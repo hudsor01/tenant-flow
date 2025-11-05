@@ -17,13 +17,12 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useCurrentLease } from '#hooks/api/use-lease'
 import { formatCurrency } from '@repo/shared/utils/formatting'
+import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantLeasePage() {
 	const { data: lease, isLoading } = useCurrentLease()
-
-
 
 	const formatDate = (dateString: string) => {
 		return new Date(dateString).toLocaleDateString('en-US', {
@@ -51,7 +50,6 @@ export default function TenantLeasePage() {
 					</Badge>
 				)}
 			</div>
-
 			{/* Property Information */}
 			<CardLayout title="Property Details" description="Your current residence">
 				<div className="space-y-4">
@@ -59,17 +57,31 @@ export default function TenantLeasePage() {
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
 							<p className="font-semibold text-lg">
-								Sunset Apartments - Unit 204
+								{lease?.unit?.property?.name || 'Property'} - Unit{' '}
+								{lease?.unit?.unitNumber || 'N/A'}
 							</p>
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
-								<span>Loading address...</span>
+								<span>
+									{isLoading || !lease
+										? 'Loading address...'
+										: (() => {
+												const addressParts = [
+													lease.unit?.property?.address,
+													lease.unit?.property?.city,
+													lease.unit?.property?.state,
+													lease.unit?.property?.zipCode
+												].filter(Boolean)
+												return addressParts.length > 0
+													? addressParts.join(', ')
+													: 'Address not available'
+											})()}
+								</span>
 							</div>
 						</div>
 					</div>
 				</div>
-			</CardLayout>
-
+			</CardLayout>{' '}
 			{/* Lease Terms */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<CardLayout title="Lease Term" description="Duration of your lease">
@@ -135,7 +147,6 @@ export default function TenantLeasePage() {
 					</div>
 				</CardLayout>
 			</div>
-
 			{/* Lease Documents */}
 			<CardLayout
 				title="Lease Documents"
@@ -161,7 +172,6 @@ export default function TenantLeasePage() {
 					</p>
 				</div>
 			</CardLayout>
-
 			{/* Quick Actions */}
 			<div className="flex gap-4">
 				<Link href="/tenant/payments">
