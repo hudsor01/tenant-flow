@@ -17,11 +17,11 @@ import {
 /**
  * Get authenticated user session
  *
- * IMPORTANT: This assumes middleware already validated auth
- * If middleware redirected unauthenticated users, this will always have a user
+ * SECURITY: Uses getUser() to validate the session with Supabase Auth server
+ * This prevents using potentially-tampered user data from cookies
  *
  * @returns Authenticated user object and access token
- * @throws Redirects to /login if no session (fallback - middleware should prevent this)
+ * @throws Redirects to /login if no valid session
  */
 export async function requireSession(): Promise<{
 	user: User
@@ -39,18 +39,31 @@ export async function requireSession(): Promise<{
 		}
 	})
 
-	// Middleware already validated with getUser(), so we can safely use getSession() here
-	// This avoids duplicate validation calls (middleware did the work)
+	// SECURITY FIX: Use getUser() to validate the session with Supabase Auth server
+	// getSession() reads from storage (cookies) which could be tampered with
+	// getUser() validates the token by contacting Supabase Auth server
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	if (userError || !user) {
+		// User validation failed - redirect to login
+		redirect('/login')
+	}
+
+	// Now get the access token from the session
+	// We trust the token here because getUser() already validated it
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	if (!session || !session.user) {
-		// Fallback: shouldn't happen since middleware handles this
+	if (!session?.access_token) {
+		// No access token - redirect to login
 		redirect('/login')
 	}
 
-	return { user: session.user, accessToken: session.access_token }
+	return { user, accessToken: session.access_token }
 }
 
 /**
