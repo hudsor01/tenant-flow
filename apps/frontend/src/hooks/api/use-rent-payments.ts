@@ -1,16 +1,19 @@
 /**
  * TanStack Query hooks for rent payments API
  * Phase 6D: One-Time Rent Payment UI
+ * Task 2.4: Payment Status Tracking
  */
 import { clientFetch } from '#lib/api/client'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**
  * Query keys for rent payments endpoints
  */
 export const rentPaymentKeys = {
 	all: ['rent-payments'] as const,
-	list: () => [...rentPaymentKeys.all, 'list'] as const
+	list: () => [...rentPaymentKeys.all, 'list'] as const,
+	status: (tenantId: string) =>
+		[...rentPaymentKeys.all, 'status', tenantId] as const
 }
 
 /**
@@ -125,5 +128,34 @@ export function useCreateRentPayment() {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: rentPaymentKeys.list() })
 		}
+	})
+}
+
+/**
+ * Payment status response type
+ * Task 2.4: Payment Status Tracking
+ */
+export interface PaymentStatus {
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	rentAmount: number
+	nextDueDate: string | null
+	lastPaymentDate: string | null
+	outstandingBalance: number
+	isOverdue: boolean
+}
+
+/**
+ * Hook to get current payment status for a tenant
+ * Returns real-time payment status from backend
+ * Task 2.4: Payment Status Tracking
+ */
+export function usePaymentStatus(tenantId: string) {
+	return useQuery({
+		queryKey: rentPaymentKeys.status(tenantId),
+		queryFn: () =>
+			clientFetch<PaymentStatus>(`/api/v1/rent-payments/status/${tenantId}`),
+		enabled: !!tenantId,
+		staleTime: 1 * 60 * 1000, // 1 minute (payment status can change)
+		retry: 2
 	})
 }
