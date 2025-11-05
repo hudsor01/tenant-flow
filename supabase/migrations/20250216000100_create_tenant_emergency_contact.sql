@@ -27,8 +27,8 @@ DROP POLICY IF EXISTS "tenant_emergency_contact_insert_own" ON tenant_emergency_
 DROP POLICY IF EXISTS "tenant_emergency_contact_update_own" ON tenant_emergency_contact;
 DROP POLICY IF EXISTS "tenant_emergency_contact_delete_own" ON tenant_emergency_contact;
 
--- RLS Policies: Tenants can only access their own emergency contact
--- SELECT: Tenant can view their own emergency contact
+-- RLS Policies: Landlords can manage emergency contacts for their tenants
+-- SELECT: Landlord can view emergency contacts for their tenants
 CREATE POLICY "tenant_emergency_contact_select_own"
   ON tenant_emergency_contact
   FOR SELECT
@@ -37,11 +37,11 @@ CREATE POLICY "tenant_emergency_contact_select_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."ownerId" = auth.uid()
+      AND t."userId" = auth.uid()
     )
   );
 
--- INSERT: Tenant can create their own emergency contact (one-to-one enforced by UNIQUE constraint)
+-- INSERT: Landlord can create emergency contacts for their tenants (one-to-one enforced by UNIQUE constraint)
 CREATE POLICY "tenant_emergency_contact_insert_own"
   ON tenant_emergency_contact
   FOR INSERT
@@ -50,11 +50,11 @@ CREATE POLICY "tenant_emergency_contact_insert_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."ownerId" = auth.uid()
+      AND t."userId" = auth.uid()
     )
   );
 
--- UPDATE: Tenant can update their own emergency contact
+-- UPDATE: Landlord can update emergency contacts for their tenants
 CREATE POLICY "tenant_emergency_contact_update_own"
   ON tenant_emergency_contact
   FOR UPDATE
@@ -63,18 +63,18 @@ CREATE POLICY "tenant_emergency_contact_update_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."ownerId" = auth.uid()
+      AND t."userId" = auth.uid()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."ownerId" = auth.uid()
+      AND t."userId" = auth.uid()
     )
   );
 
--- DELETE: Tenant can delete their own emergency contact
+-- DELETE: Landlord can delete emergency contacts for their tenants
 CREATE POLICY "tenant_emergency_contact_delete_own"
   ON tenant_emergency_contact
   FOR DELETE
@@ -83,7 +83,7 @@ CREATE POLICY "tenant_emergency_contact_delete_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."ownerId" = auth.uid()
+      AND t."userId" = auth.uid()
     )
   );
 
