@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	Body,
 	Controller,
 	Get,
@@ -26,6 +27,7 @@ const CreateMaintenanceRequestSchema = z.object({
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
 	category: z.string().optional(),
+	allowEntry: z.boolean().default(true),
 	photos: z.array(z.string().url()).max(6).optional()
 })
 
@@ -167,7 +169,7 @@ export class TenantPortalController {
 					authUserId: user.id
 				}
 			)
-			throw new InternalServerErrorException(
+			throw new BadRequestException(
 				'No active lease unit found. Cannot create maintenance request.'
 			)
 		}
@@ -181,7 +183,7 @@ export class TenantPortalController {
 				unitId: lease.unit.id,
 				status: 'OPEN',
 				requestedBy: user.id,
-				allowEntry: true,
+				allowEntry: body.allowEntry ?? true,
 				photos: body.photos && body.photos.length > 0 ? body.photos : null
 			}
 
@@ -481,11 +483,11 @@ export class TenantPortalController {
 	}
 
 	private buildStripeReceiptUrl(paymentIntentId: string | null) {
+		// TODO: Store and return Stripe's public receipt_url from payment creation
+		// Dashboard URLs are not accessible to tenants
+		// Proper fix: Add receipt_url column to rent_payment table and populate it
+		// when creating PaymentIntent (from charges.data[0].receipt_url)
 		if (!paymentIntentId) return null
-		const dashboardBase = process.env.STRIPE_DASHBOARD_BASE_URL
-		if (dashboardBase) {
-			return `${dashboardBase}/payments/${paymentIntentId}`
-		}
-		return null
+		return null // Returning null instead of inaccessible dashboard URL
 	}
 }

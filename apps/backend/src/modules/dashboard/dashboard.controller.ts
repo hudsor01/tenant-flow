@@ -13,9 +13,6 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { DashboardService } from './dashboard.service'
 import { SupabaseService } from '../../database/supabase.service'
 
-import { ZodValidationPipe } from 'nestjs-zod'
-import { UsePipes } from '@nestjs/common'
-
 import {
 	billingInsightsSchema,
 	dashboardActivityResponseSchema
@@ -96,7 +93,6 @@ export class DashboardController {
 		}
 	}
 
-	@UsePipes(new ZodValidationPipe(dashboardActivityResponseSchema))
 	async getActivity(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
@@ -134,7 +130,6 @@ export class DashboardController {
 	}
 
 	@Get('billing/insights')
-	@UsePipes(new ZodValidationPipe(billingInsightsSchema))
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
 		@Query('startDate') startDate?: string,
