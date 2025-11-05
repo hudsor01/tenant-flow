@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS tenant_emergency_contact (
 CREATE INDEX IF NOT EXISTS idx_tenant_emergency_contact_tenant_id
   ON tenant_emergency_contact(tenant_id);
 
+-- Ensure index on tenant.auth_user_id (recommended for policy performance)
+CREATE INDEX IF NOT EXISTS idx_tenant_auth_user_id ON tenant(auth_user_id);
+
 -- Enable RLS
 ALTER TABLE tenant_emergency_contact ENABLE ROW LEVEL SECURITY;
 
@@ -27,8 +30,8 @@ DROP POLICY IF EXISTS "tenant_emergency_contact_insert_own" ON tenant_emergency_
 DROP POLICY IF EXISTS "tenant_emergency_contact_update_own" ON tenant_emergency_contact;
 DROP POLICY IF EXISTS "tenant_emergency_contact_delete_own" ON tenant_emergency_contact;
 
--- RLS Policies: Landlords can manage emergency contacts for their tenants
--- SELECT: Landlord can view emergency contacts for their tenants
+-- RLS Policies: Tenants can manage their own emergency contacts
+-- SELECT: Tenant can view their own emergency contact
 CREATE POLICY "tenant_emergency_contact_select_own"
   ON tenant_emergency_contact
   FOR SELECT
@@ -37,11 +40,11 @@ CREATE POLICY "tenant_emergency_contact_select_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."userId" = auth.uid()
+      AND t.auth_user_id = auth.uid()
     )
   );
 
--- INSERT: Landlord can create emergency contacts for their tenants (one-to-one enforced by UNIQUE constraint)
+-- INSERT: Tenant can create their own emergency contact (one-to-one enforced by UNIQUE constraint)
 CREATE POLICY "tenant_emergency_contact_insert_own"
   ON tenant_emergency_contact
   FOR INSERT
@@ -50,11 +53,11 @@ CREATE POLICY "tenant_emergency_contact_insert_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."userId" = auth.uid()
+      AND t.auth_user_id = auth.uid()
     )
   );
 
--- UPDATE: Landlord can update emergency contacts for their tenants
+-- UPDATE: Tenant can update their own emergency contact
 CREATE POLICY "tenant_emergency_contact_update_own"
   ON tenant_emergency_contact
   FOR UPDATE
@@ -63,18 +66,18 @@ CREATE POLICY "tenant_emergency_contact_update_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."userId" = auth.uid()
+      AND t.auth_user_id = auth.uid()
     )
   )
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."userId" = auth.uid()
+      AND t.auth_user_id = auth.uid()
     )
   );
 
--- DELETE: Landlord can delete emergency contacts for their tenants
+-- DELETE: Tenant can delete their own emergency contact
 CREATE POLICY "tenant_emergency_contact_delete_own"
   ON tenant_emergency_contact
   FOR DELETE
@@ -83,7 +86,7 @@ CREATE POLICY "tenant_emergency_contact_delete_own"
     EXISTS (
       SELECT 1 FROM tenant t
       WHERE t.id = tenant_emergency_contact.tenant_id
-      AND t."userId" = auth.uid()
+      AND t.auth_user_id = auth.uid()
     )
   );
 
