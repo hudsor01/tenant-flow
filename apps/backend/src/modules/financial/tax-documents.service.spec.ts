@@ -16,7 +16,13 @@ describe('TaxDocumentsService', () => {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
 			gte: jest.fn().mockReturnThis(),
-			lte: jest.fn().mockReturnThis()
+			lte: jest.fn().mockReturnThis(),
+			auth: {
+				getUser: jest.fn().mockResolvedValue({
+					data: { user: { id: 'user-123' } },
+					error: null
+				})
+			}
 		}
 
 		supabaseService = {
@@ -92,18 +98,18 @@ describe('TaxDocumentsService', () => {
 
 			// Verify RPC calls
 			expect(mockClient.rpc).toHaveBeenCalledWith('get_expense_summary', {
-				p_user_id: ''
+				p_user_id: 'user-123'
 			})
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'calculate_net_operating_income',
 				{
-					p_user_id: ''
+					p_user_id: 'user-123'
 				}
 			)
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'calculate_financial_metrics',
 				{
-					p_user_id: '',
+					p_user_id: 'user-123',
 					p_start_date: '2024-01-01',
 					p_end_date: '2024-12-31'
 				}
