@@ -107,7 +107,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
 		<Breadcrumb>
 			<BreadcrumbList>
 				{items.map((item, index) => (
-					<React.Fragment key={item.href}>
+					<React.Fragment key={`${item.href}-${index}`}>
 						<BreadcrumbItem>
 							{index === items.length - 1 ? (
 								<BreadcrumbPage>{item.label}</BreadcrumbPage>
@@ -115,7 +115,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
 								<BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
 							)}
 						</BreadcrumbItem>
-						{index < items.length - 1 && <BreadcrumbSeparator />}
+						{index < items.length - 1 && <BreadcrumbSeparator key={`sep-${index}`} />}
 					</React.Fragment>
 				))}
 			</BreadcrumbList>

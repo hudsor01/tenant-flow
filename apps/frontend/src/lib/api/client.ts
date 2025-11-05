@@ -17,6 +17,9 @@ const logger = createLogger({ component: 'ClientAPI' })
  * Get auth headers with Supabase JWT token
  * Extracted for reuse across fetch calls
  *
+ * SECURITY: Validates user with getUser() before extracting token from getSession()
+ * This prevents using potentially-tampered session data from cookies
+ *
  * @param additionalHeaders - Custom headers to merge with auth headers
  * @param requireAuth - Whether to throw error if no session exists (default: true)
  */
@@ -30,17 +33,29 @@ async function getAuthHeaders(
 	}
 
 	const supabase = createClient()
+
+	// SECURITY FIX: Validate user with getUser() before extracting token
+	// This ensures the session is authentic by contacting Supabase Auth server
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	// Get session for access token (only after user validation)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	if (session?.access_token) {
+	// Only use access token if user validation succeeded
+	if (!userError && user && session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else if (requireAuth) {
 		// Log warning - caller should handle error appropriately for their context
 		logger.warn('Authentication session expired', {
 			metadata: {
+				hasUser: !!user,
 				hasSession: !!session,
+				userError: userError?.message,
 				requireAuth
 			}
 		})
@@ -49,6 +64,7 @@ async function getAuthHeaders(
 		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {
 			metadata: {
+				hasUser: !!user,
 				hasSession: !!session,
 				requireAuth
 			}
