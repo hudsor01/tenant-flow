@@ -29,12 +29,12 @@ TO authenticated
 USING (
   -- Landlords can see payments where they are the landlord
   landlordId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
   OR
   -- Tenants can see payments where they are the tenant
   tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = auth.uid()::text
+    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
   )
 );
 
