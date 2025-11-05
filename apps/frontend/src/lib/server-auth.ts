@@ -19,7 +19,10 @@ import { redirect } from 'next/navigation'
  * @returns Authenticated user object and access token
  * @throws Redirects to /login if no session (fallback - middleware should prevent this)
  */
-export async function requireSession(): Promise<{ user: User; accessToken: string }> {
+export async function requireSession(): Promise<{
+	user: User
+	accessToken: string
+}> {
 	const cookieStore = await cookies()
 	const supabase = createServerClient(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,7 +83,7 @@ export async function requirePrimaryProperty(userId: string) {
 		.single()
 
 	if (error || !property) {
-		// Redirect to dashboard - user can add properties via dashboard CTAs
+		// Server-side redirect - client can show UI based on searchParams if needed
 		redirect('/manage')
 	}
 

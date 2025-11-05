@@ -3,6 +3,9 @@
  * Mirrors server.ts pattern with Authorization header from Supabase session
  *
  * Pattern consistent with reports-client.ts and stripe-client.ts
+ *
+ * NOTE: This utility can be called from both client and server contexts,
+ * so it MUST NOT call browser-only APIs like toast()
  */
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
@@ -31,12 +34,11 @@ async function getAuthHeaders(
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	// Add Authorization header if session exists
 	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else if (requireAuth) {
-		// Fail fast if authentication is required but no session exists
-		logger.error('Authentication required but no session found', {
+		// Log warning - caller should handle error appropriately for their context
+		logger.warn('Authentication session expired', {
 			metadata: {
 				hasSession: !!session,
 				requireAuth
@@ -99,18 +101,16 @@ export async function clientFetch<T>(
 	})
 
 	if (!response.ok) {
-		// Log error for debugging
 		const errorText = await response.text()
+		// Log error - caller should handle error appropriately for their context
 		logger.error('API request failed', {
 			metadata: {
-				status: response.status,
 				endpoint,
+				status: response.status,
 				statusText: response.statusText,
-				errorText: errorText.substring(0, 500)
+				error: errorText
 			}
 		})
-
-		// Throw error with status for error handling
 		throw new Error(
 			`API Error (${response.status}): ${errorText || response.statusText}`
 		)
@@ -119,14 +119,18 @@ export async function clientFetch<T>(
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
-	// Check for explicit false to avoid treating falsy values as errors
 	if ('success' in data && data.success === false) {
+		// Log error - caller should handle error appropriately for their context
+		logger.error('API returned error response', {
+			metadata: {
+				endpoint,
+				error: data.error || data.message,
+				data
+			}
+		})
 		throw new Error(data.error || data.message || 'API request failed')
 	}
 
-	// Return wrapped data or direct response
-	// Use 'in' operator to check for data property existence
-	// This prevents returning falsy values (0, false, '', null) incorrectly
 	if ('data' in data) {
 		return data.data as T
 	}

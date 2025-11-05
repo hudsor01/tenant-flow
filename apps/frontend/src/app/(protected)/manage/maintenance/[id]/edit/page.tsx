@@ -28,15 +28,7 @@ export default async function MaintenanceEditPage({
 					Update request details and communicate changes with your team.
 				</p>
 			</div>
-			<MaintenanceForm
-				mode="edit"
-				request={request}
-				onSuccess={() => {
-					if (typeof window !== 'undefined') {
-						window.history.back()
-					}
-				}}
-			/>
+			<MaintenanceForm mode="edit" request={request} />
 		</div>
 	)
 }

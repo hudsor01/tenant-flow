@@ -13,6 +13,11 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { DashboardService } from './dashboard.service'
 import { SupabaseService } from '../../database/supabase.service'
 
+import {
+	billingInsightsSchema,
+	dashboardActivityResponseSchema
+} from '@repo/shared/validation/dashboard'
+
 @Controller('manage')
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
@@ -75,7 +80,7 @@ export class DashboardController {
 
 			return {
 				stats,
-				activity: activity.activities,
+				activity: activity.activities
 				// Note: propertyStats, tenantStats, leaseStats are already included in stats
 				// Frontend can extract them from stats.properties, stats.tenants, stats.leases
 			}
@@ -93,12 +98,10 @@ export class DashboardController {
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
-
 		if (!token) {
 			this.logger.warn('Dashboard activity requested without token')
 			throw new UnauthorizedException('Authentication token missing')
 		}
-
 		this.logger?.log(
 			{
 				dashboard: {
@@ -108,14 +111,21 @@ export class DashboardController {
 			},
 			'Getting dashboard activity via DashboardService'
 		)
-
 		const data = await this.dashboardService.getActivity(userId, token!)
-
-		return {
-			success: true,
-			data,
-			message: 'Dashboard activity retrieved successfully',
-			timestamp: new Date()
+		if (dashboardActivityResponseSchema.safeParse(data).success) {
+			return {
+				success: true,
+				data,
+				message: 'Dashboard activity retrieved successfully',
+				timestamp: new Date()
+			}
+		} else {
+			return {
+				success: false,
+				data: { activities: [] },
+				message: 'Dashboard activity response failed validation',
+				timestamp: new Date()
+			}
 		}
 	}
 
@@ -127,7 +137,6 @@ export class DashboardController {
 	): Promise<ControllerApiResponse> {
 		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
-
 		this.logger?.log(
 			{
 				dashboard: {
@@ -138,7 +147,6 @@ export class DashboardController {
 			},
 			'Getting billing insights via DashboardService'
 		)
-
 		const parsedStartDate = startDate ? new Date(startDate) : undefined
 		const parsedEndDate = endDate ? new Date(endDate) : undefined
 		if (
@@ -152,20 +160,27 @@ export class DashboardController {
 				timestamp: new Date()
 			}
 		}
-
 		const data = await this.dashboardService.getBillingInsights(
 			userId,
 			token,
 			parsedStartDate,
 			parsedEndDate
 		)
-
-		return {
-			success: true,
-			data,
-			message:
-				'Billing insights retrieved successfully from Stripe Sync Engine',
-			timestamp: new Date()
+		if (billingInsightsSchema.safeParse(data).success) {
+			return {
+				success: true,
+				data,
+				message:
+					'Billing insights retrieved successfully from Stripe Sync Engine',
+				timestamp: new Date()
+			}
+		} else {
+			return {
+				success: false,
+				data: null,
+				message: 'Billing insights response failed validation',
+				timestamp: new Date()
+			}
 		}
 	}
 
@@ -188,7 +203,10 @@ export class DashboardController {
 			'Checking billing insights availability via DashboardService'
 		)
 
-		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(req.user.id, token!)
+		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(
+			req.user.id,
+			token!
+		)
 
 		return {
 			success: true,
@@ -229,7 +247,10 @@ export class DashboardController {
 			'Getting property performance via DashboardService'
 		)
 
-		const data = await this.dashboardService.getPropertyPerformance(userId, token)
+		const data = await this.dashboardService.getPropertyPerformance(
+			userId,
+			token
+		)
 
 		return {
 			success: true,
@@ -314,7 +335,11 @@ export class DashboardController {
 			'Getting revenue trends via optimized RPC'
 		)
 
-		const data = await this.dashboardService.getRevenueTrends(userId, token, monthsNum)
+		const data = await this.dashboardService.getRevenueTrends(
+			userId,
+			token,
+			monthsNum
+		)
 
 		return {
 			success: true,
@@ -358,7 +383,12 @@ export class DashboardController {
 			'Getting time-series data via RPC'
 		)
 
-		const data = await this.dashboardService.getTimeSeries(userId, metric, parsedDays, token)
+		const data = await this.dashboardService.getTimeSeries(
+			userId,
+			metric,
+			parsedDays,
+			token
+		)
 
 		return {
 			success: true,
@@ -402,7 +432,12 @@ export class DashboardController {
 			'Getting metric trend via RPC'
 		)
 
-		const data = await this.dashboardService.getMetricTrend(userId, metric, validPeriod, token)
+		const data = await this.dashboardService.getMetricTrend(
+			userId,
+			metric,
+			validPeriod,
+			token
+		)
 
 		return {
 			success: true,
@@ -429,7 +464,10 @@ export class DashboardController {
 			'Getting maintenance analytics via optimized RPC'
 		)
 
-		const data = await this.dashboardService.getMaintenanceAnalytics(userId, token)
+		const data = await this.dashboardService.getMaintenanceAnalytics(
+			userId,
+			token
+		)
 
 		return {
 			success: true,
