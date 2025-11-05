@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { API_BASE_URL } from '@repo/shared/config/api'
+import {
+	SUPABASE_URL,
+	SUPABASE_PUBLISHABLE_KEY
+} from '@repo/shared/config/supabase'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
@@ -22,15 +26,18 @@ export default function TenantOnboardingPage() {
 	const router = useRouter()
 
 	useEffect(() => {
+		let redirectTimer: NodeJS.Timeout | null = null
+		let dashboardTimer: NodeJS.Timeout | null = null
+
 		const activateTenant = async () => {
 			try {
-				// 1. Create Supabase browser client
+				// 1. Create Supabase browser client with validated config
 				const supabase = createBrowserClient(
-					process.env.NEXT_PUBLIC_SUPABASE_URL!,
-					process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+					SUPABASE_URL,
+					SUPABASE_PUBLISHABLE_KEY
 				)
 
-				// 2. Get current auth user (security best practice: use getUser() not getSession())
+				// 3. Get current auth user and session (security best practice: use getUser() not getSession())
 				const {
 					data: { user },
 					error: authError
@@ -44,39 +51,75 @@ export default function TenantOnboardingPage() {
 						'Not authenticated. Please check your invitation email.'
 					)
 					setStatus('error')
-					setTimeout(() => router.push('/login'), 3000)
+					redirectTimer = setTimeout(() => router.push('/login'), 3000)
+					return
+				}
+
+				// 4. Get current session for authentication token
+				const {
+					data: { session },
+					error: sessionError
+				} = await supabase.auth.getSession()
+
+				if (sessionError || !session?.access_token) {
+					logger.error('Session error during tenant onboarding', {
+						error: sessionError
+					})
+					setErrorMessage(
+						'Authentication session expired. Please sign in again.'
+					)
+					setStatus('error')
+					redirectTimer = setTimeout(() => router.push('/login'), 3000)
 					return
 				}
 
 				setStatus('activating')
 
-				// 3. Call backend activation endpoint
+				// 5. Call backend activation endpoint with authentication
 				const response = await fetch(
 					`${API_BASE_URL}/api/v1/tenants/activate`,
 					{
 						method: 'POST',
 						headers: {
-							'Content-Type': 'application/json'
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${session.access_token}`
 						},
 						body: JSON.stringify({ authUserId: user.id })
 					}
 				)
 
 				if (!response.ok) {
-					const errorData = await response.json()
-					throw new Error(errorData.message || 'Activation failed')
+					let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+					let jsonError: unknown
+					let textError: unknown
+
+					try {
+						const errorData = await response.json()
+						errorMessage = errorData.message || errorMessage
+					} catch (error) {
+						jsonError = error
+						try {
+							const textContent = await response.text()
+							errorMessage = textContent.substring(0, 200) || errorMessage
+						} catch (error) {
+							textError = error
+						}
+					}
+
+					if (jsonError || textError) {
+						logger.warn('Failed to parse error response', {
+							jsonError,
+							textError
+						})
+					}
+
+					throw new Error(errorMessage)
 				}
 
-				const data = await response.json()
-
-				if (data.success) {
-					setStatus('success')
-					// Redirect to tenant dashboard after 2 seconds
-					setTimeout(() => router.push('/tenant'), 2000)
-				} else {
-					setErrorMessage(data.message || 'Failed to activate tenant')
-					setStatus('error')
-				}
+				// Since response.ok is already true, treat as success
+				setStatus('success')
+				// Redirect to tenant dashboard after 2 seconds
+				dashboardTimer = setTimeout(() => router.push('/tenant'), 2000)
 			} catch (error) {
 				logger.error('Tenant activation error', {}, error)
 				setErrorMessage(
@@ -89,11 +132,21 @@ export default function TenantOnboardingPage() {
 		}
 
 		activateTenant()
+
+		// Cleanup function to clear timers on unmount
+		return () => {
+			if (redirectTimer) clearTimeout(redirectTimer)
+			if (dashboardTimer) clearTimeout(dashboardTimer)
+		}
 	}, [router])
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-muted/50">
-			<div className="w-full max-w-md space-y-8 rounded-lg border bg-card p-8 shadow-sm">
+			<div
+				className="w-full max-w-md space-y-8 rounded-lg border bg-card p-8 shadow-sm"
+				role="status"
+				aria-live="polite"
+			>
 				<div className="text-center">
 					<h1 className="text-2xl font-semibold tracking-tight">
 						Setting Up Your Account

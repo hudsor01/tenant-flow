@@ -44,9 +44,9 @@ COMMENT ON POLICY "rent_payment_owner_or_tenant_select" ON rent_payment IS
 -- ============================================================================
 -- 3. INSERT Policy: System-only via service role (Stripe webhooks)
 -- ============================================================================
--- Note: authenticated users CAN insert, but backend validates authorization
--- via service layer before allowing insertion. This allows backend to create
--- payments on behalf of users during Stripe webhook processing.
+-- Only the service role can INSERT payments. Authenticated users must request
+-- payment creation via the application/backend, which then uses the service
+-- role to perform the INSERT during Stripe webhook processing.
 
 CREATE POLICY "rent_payment_system_insert"
 ON rent_payment

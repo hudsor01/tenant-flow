@@ -24,7 +24,27 @@
 ALTER TABLE tenant_payment_method ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
--- 2. SELECT Policy: Tenants see ONLY their own payment methods
+-- 2. Create helper function for tenant ID lookup (optimization)
+-- ============================================================================
+-- OPTIMIZATION: Replace repeated subqueries with a single STABLE function
+-- This reduces query complexity and improves performance by avoiding
+-- multiple user ID lookups per policy evaluation
+
+CREATE OR REPLACE FUNCTION get_current_tenant()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
+$$;
+
+COMMENT ON FUNCTION get_current_tenant() IS
+  'OPTIMIZATION: Efficiently resolves current authenticated user to tenant ID. Used by RLS policies to avoid repeated subqueries.';
+
+-- ============================================================================
+-- 3. SELECT Policy: Tenants see ONLY their own payment methods
 -- ============================================================================
 
 CREATE POLICY "tenant_payment_method_owner_select"
@@ -32,16 +52,14 @@ ON tenant_payment_method
 FOR SELECT
 TO authenticated
 USING (
-  tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
-  )
+  tenantId = get_current_tenant()
 );
 
 COMMENT ON POLICY "tenant_payment_method_owner_select" ON tenant_payment_method IS
   'PCI SECURITY: Tenants view ONLY their own payment methods. Landlords CANNOT view tenant payment data.';
 
 -- ============================================================================
--- 3. INSERT Policy: Tenants can add their own payment methods
+-- 4. INSERT Policy: Tenants can add their own payment methods
 -- ============================================================================
 
 CREATE POLICY "tenant_payment_method_owner_insert"
@@ -49,16 +67,14 @@ ON tenant_payment_method
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
-  )
+  tenantId = get_current_tenant()
 );
 
 COMMENT ON POLICY "tenant_payment_method_owner_insert" ON tenant_payment_method IS
   'SECURITY: Tenants can add payment methods ONLY for themselves. Backend validates Stripe PM ownership.';
 
 -- ============================================================================
--- 4. UPDATE Policy: Tenants can update their own payment methods
+-- 5. UPDATE Policy: Tenants can update their own payment methods
 -- ============================================================================
 -- Typical updates: setting default payment method, updating verification status
 
@@ -67,21 +83,17 @@ ON tenant_payment_method
 FOR UPDATE
 TO authenticated
 USING (
-  tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
-  )
+  tenantId = get_current_tenant()
 )
 WITH CHECK (
-  tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
-  )
+  tenantId = get_current_tenant()
 );
 
 COMMENT ON POLICY "tenant_payment_method_owner_update" ON tenant_payment_method IS
   'SECURITY: Tenants can update ONLY their own payment methods (e.g., set default, update status).';
 
 -- ============================================================================
--- 5. DELETE Policy: Tenants can delete their own payment methods
+-- 6. DELETE Policy: Tenants can delete their own payment methods
 -- ============================================================================
 -- When tenant removes a payment method, it must be detached from Stripe first
 -- Backend handles Stripe detachment before allowing database deletion
@@ -91,23 +103,21 @@ ON tenant_payment_method
 FOR DELETE
 TO authenticated
 USING (
-  tenantId IN (
-    SELECT id FROM users WHERE "supabaseId" = (SELECT auth.uid()::text)
-  )
+  tenantId = get_current_tenant()
 );
 
 COMMENT ON POLICY "tenant_payment_method_owner_delete" ON tenant_payment_method IS
   'SECURITY: Tenants can delete ONLY their own payment methods. Backend detaches from Stripe first.';
 
 -- ============================================================================
--- 6. PCI Compliance Verification
+-- 7. PCI Compliance Verification
 -- ============================================================================
 
 COMMENT ON TABLE tenant_payment_method IS
   'PCI DSS: Stores ONLY Stripe payment method IDs (pm_xxx), last4, and brand. Full card data NEVER stored.';
 
 -- ============================================================================
--- 7. Verification
+-- 8. Verification
 -- ============================================================================
 
 DO $$

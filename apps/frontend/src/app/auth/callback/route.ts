@@ -4,6 +4,10 @@ import { createServerClient } from '@supabase/ssr'
 import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import {
+	SUPABASE_URL,
+	SUPABASE_PUBLISHABLE_KEY
+} from '@repo/shared/config/supabase'
 
 const VALID_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
 
@@ -18,7 +22,11 @@ function redirectTo(origin: string, path: string): NextResponse {
 	return NextResponse.redirect(`${origin}${path}`)
 }
 
-function redirectToPricing(origin: string, request: NextRequest, redirectToPath: string) {
+function redirectToPricing(
+	origin: string,
+	request: NextRequest,
+	redirectToPath: string
+) {
 	const pricingUrl = new URL('/pricing', origin)
 	pricingUrl.searchParams.set('required', 'true')
 	pricingUrl.searchParams.set('redirectTo', redirectToPath)
@@ -39,7 +47,11 @@ function redirectToPricing(origin: string, request: NextRequest, redirectToPath:
 	return NextResponse.redirect(pricingUrl.toString())
 }
 
-function finalizeRedirect(origin: string, request: NextRequest, nextPath: string) {
+function finalizeRedirect(
+	origin: string,
+	request: NextRequest,
+	nextPath: string
+) {
 	const forwardedHost = request.headers.get('x-forwarded-host')
 	const isLocalEnv = process.env.NODE_ENV === 'development'
 
@@ -75,8 +87,8 @@ export async function GET(request: NextRequest) {
 	try {
 		const cookieStore = await cookies()
 		const supabase = createServerClient<Database>(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+			SUPABASE_URL,
+			SUPABASE_PUBLISHABLE_KEY,
 			{
 				cookies: {
 					getAll: () => cookieStore.getAll(),
@@ -108,10 +120,7 @@ export async function GET(request: NextRequest) {
 
 		const user = data.session.user
 
-		const {
-			data: profile,
-			error: profileError
-		} = await supabase
+		const { data: profile, error: profileError } = await supabase
 			.from('users')
 			.select('role, subscription_status, stripeCustomerId')
 			.eq('supabaseId', user.id)
@@ -125,9 +134,9 @@ export async function GET(request: NextRequest) {
 		}
 
 		const requiresPayment = profile?.role !== 'TENANT'
-	const hasValidSubscription = profile?.subscription_status
-		? VALID_SUBSCRIPTION_STATUSES.has(profile.subscription_status)
-		: false
+		const hasValidSubscription = profile?.subscription_status
+			? VALID_SUBSCRIPTION_STATUSES.has(profile.subscription_status)
+			: false
 		const hasStripeCustomer = Boolean(profile?.stripeCustomerId)
 
 		if (requiresPayment && (!hasValidSubscription || !hasStripeCustomer)) {
@@ -145,7 +154,11 @@ export async function GET(request: NextRequest) {
 		}
 
 		const destination =
-			profile?.role === 'TENANT' ? (nextParam === '/manage' ? '/tenant' : nextParam) : nextParam
+			profile?.role === 'TENANT'
+				? nextParam === '/manage'
+					? '/tenant'
+					: nextParam
+				: nextParam
 
 		logger.info('OAuth callback successful', {
 			action: 'oauth_callback_success',
@@ -162,7 +175,9 @@ export async function GET(request: NextRequest) {
 			action: 'oauth_callback_exception',
 			metadata: {
 				error:
-					callbackError instanceof Error ? callbackError.message : String(callbackError)
+					callbackError instanceof Error
+						? callbackError.message
+						: String(callbackError)
 			}
 		})
 		return redirectTo(origin, '/login?error=oauth_failed')
