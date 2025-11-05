@@ -187,11 +187,11 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					id: 'parties-introduction',
 					title: 'Lease Introduction',
 					description:
-						'Introduces the owner and tenant along with the effective date of the agreement.',
+						'Introduces the property owner and tenant along with the effective date of the agreement.',
 					tooltip:
 						'This clause formally states who is entering into the lease and establishes the official name of the agreement.',
 					defaultSelected: true,
-					body: `<p>This Residential Lease Agreement ("Agreement") is entered into on {{formattedDateGenerated}} between <strong>{{ownerName}}</strong> ("owner") and <strong>{{tenantNames}}</strong> ("Tenant").</p>`
+					body: `<p>This Residential Lease Agreement ("Agreement") is entered into on {{formattedDateGenerated}} between <strong>{{ownerName}}</strong> ("Owner") and <strong>{{tenantNames}}</strong> ("Tenant").</p>`
 				},
 				{
 					id: 'property-description',
@@ -201,7 +201,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Defines the exact property being rented to avoid disputes over what is included.',
 					defaultSelected: true,
-					body: `<p>The owner leases to the Tenant the residential premises located at <strong>{{propertyAddress}}</strong> (the "Premises") together with all improvements, fixtures, and appurtenances.</p>`
+					body: `<p>The Landlord leases to the Tenant the residential premises located at <strong>{{propertyAddress}}</strong> (the "Premises") together with all improvements, fixtures, and appurtenances.</p>`
 				},
 				{
 					id: 'occupancy-limit',
@@ -211,7 +211,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Helps prevent unauthorized occupants and protects against overcrowding violations.',
 					defaultSelected: true,
-					body: `<p>Occupancy of the Premises is limited to the Tenant(s) named above and their immediate family. No other persons may reside at the Premises without the prior written consent of the owner.</p>`
+					body: `<p>Occupancy of the Premises is limited to the Tenant(s) named above and their immediate family. No other persons may reside at the Premises without the prior written consent of the Landlord.</p>`
 				}
 			]
 		},
@@ -228,13 +228,12 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Provides the legally enforceable rent obligations including grace periods and accepted payment methods.',
 					defaultSelected: true,
-					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rentAmountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the owner.</p>`
+					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rentAmountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the Landlord.</p>`
 				},
 				{
 					id: 'late-fee',
 					title: 'Late Fees & Grace Period',
-					description:
-						'Explains when late fees apply and grace period duration.',
+					description: 'Explains when late fees apply and grace period duration.',
 					tooltip:
 						'Late fees must comply with state law; this clause sets enforceable rules to encourage timely payments.',
 					defaultSelected: true,
@@ -261,11 +260,11 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					id: 'maintenance-responsibilities',
 					title: 'Maintenance Responsibilities',
 					description:
-						'Outlines the responsibilities for upkeep and repairs for owner and tenant.',
+						'Outlines the responsibilities for upkeep and repairs for property owner and tenant.',
 					tooltip:
 						'Clarifies who must handle routine maintenance and prevents disputes over repairs.',
 					defaultSelected: true,
-					body: `<p>Tenant shall maintain the Premises in a clean and sanitary condition and promptly notify owner of conditions requiring repair. owner will maintain major structural, plumbing, heating, and electrical systems in good working order.</p>`
+					body: `<p>Tenant shall maintain the Premises in a clean and sanitary condition and promptly notify Landlord of conditions requiring repair. Landlord will maintain major structural, plumbing, heating, and electrical systems in good working order.</p>`
 				},
 				{
 					id: 'utilities',
@@ -275,17 +274,17 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Important to clarify utility obligations up front to avoid billing disputes or service interruptions.',
 					defaultSelected: true,
-					body: `<p>The Tenant is responsible for all utilities and services supplied to the Premises, except where otherwise required by law. owner shall ensure utility services are active on the commencement date.</p>`
+					body: `<p>The Tenant is responsible for all utilities and services supplied to the Premises, except where otherwise required by law. Landlord shall ensure utility services are active on the commencement date.</p>`
 				},
 				{
 					id: 'owner-entry',
-					title: 'owner Entry Rights',
+					title: 'Property Owner Entry Rights',
 					description:
-						'Provides notice requirements and acceptable reasons for owner entry.',
+						'Provides notice requirements and acceptable reasons for property owner entry.',
 					tooltip:
 						'Most states mandate advance notice for non-emergency entry; this clause mirrors typical statutory requirements.',
 					defaultSelected: true,
-					body: `<p>owner may enter the Premises upon providing reasonable notice (at least 24 hours except in emergencies) for repairs, inspections, or to show the Premises to prospective tenants or buyers.</p>`
+					body: `<p>Landlord may enter the Premises upon providing reasonable notice (at least 24 hours except in emergencies) for repairs, inspections, or to show the Premises to prospective tenants or buyers.</p>`
 				}
 			]
 		},
@@ -297,12 +296,11 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 				{
 					id: 'pet-policy',
 					title: 'Pet Policy',
-					description:
-						'States whether pets are permitted and applicable terms.',
+					description: 'States whether pets are permitted and applicable terms.',
 					tooltip:
 						'Pet policies should be explicit to avoid unapproved animals and detail deposits or fees.',
 					defaultSelected: true,
-					body: `<p>Pets are permitted only with prior written consent of the owner. Approved pets may require an additional deposit or monthly fee as allowed by law. Service and assistance animals are accommodated in accordance with federal and state regulations.</p>`
+					body: `<p>Pets are permitted only with prior written consent of the Landlord. Approved pets may require an additional deposit or monthly fee as allowed by law. Service and assistance animals are accommodated in accordance with federal and state regulations.</p>`
 				},
 				{
 					id: 'smoking-policy',
@@ -322,7 +320,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Helps differentiate between guests and unapproved occupants, protecting against subletting without consent.',
 					defaultSelected: false,
-					body: `<p>Guests staying more than 14 cumulative days in a calendar year must receive written approval from owner. Tenant remains fully responsible for guests’ conduct and compliance with this Agreement.</p>`
+					body: `<p>Guests staying more than 14 cumulative days in a calendar year must receive written approval from Landlord. Tenant remains fully responsible for guests’ conduct and compliance with this Agreement.</p>`
 				}
 			]
 		},
@@ -338,9 +336,9 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					description:
 						'Explains what happens if tenant violates the lease or fails to pay rent.',
 					tooltip:
-						'Outlines the steps owner may take upon default and protects owner’s right to enforce the lease.',
+						'Outlines the steps property owner may take upon default and protects property owner\'s right to enforce the lease.',
 					defaultSelected: true,
-					body: `<p>Failure to pay rent or abide by this Agreement constitutes a default. owner may pursue all remedies permitted by {{stateName}} law, including termination and eviction, after providing any required notices.</p>`
+					body: `<p>Failure to pay rent or abide by this Agreement constitutes a default. Landlord may pursue all remedies permitted by {{stateName}} law, including termination and eviction, after providing any required notices.</p>`
 				},
 				{
 					id: 'lead-paint-disclosure',
@@ -392,7 +390,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: 'IL',
 			stateName: stateNames.IL,
 			notices: [
-				'Chicago Residential owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
+				'Chicago Residential Landlord and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
 				'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
 				'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
 			],
@@ -404,16 +402,11 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 		'Tenants are entitled to reasonable accommodations for disabilities under the Americans with Disabilities Act (ADA) and Section 504 of the Rehabilitation Act.'
 	],
 	glossary: {
-		'Security Deposit':
-			'Money held by the owner to cover unpaid rent or damage beyond normal wear and tear.',
-		'Grace Period':
-			'The number of days after the due date during which rent can be paid without triggering a late fee.',
-		Premises:
-			'The rental property, including fixtures and any areas granted for the tenant’s exclusive use.',
-		Default:
-			'A violation of a lease obligation that may give rise to eviction or other remedies.',
-		'Notice to Enter':
-			'Advance notice required before the owner may lawfully enter the rental unit.'
+		'Security Deposit': 'Money held by the property owner to cover unpaid rent or damage beyond normal wear and tear.',
+		'Grace Period': 'The number of days after the due date during which rent can be paid without triggering a late fee.',
+		'Premises': 'The rental property, including fixtures and any areas granted for the tenant\'s exclusive use.',
+		'Default': 'A violation of a lease obligation that may give rise to eviction or other remedies.',
+		'Notice to Enter': 'Advance notice required before the property owner may lawfully enter the rental unit.'
 	}
 }
 
@@ -469,22 +462,13 @@ function renderSection(
 	context: LeaseTemplateContext
 ) {
 	const included = section.clauses.filter(clause => {
-		if (
-			clause.stateLimitation &&
-			!clause.stateLimitation.includes(selections.state)
-		) {
+		if (clause.stateLimitation && !clause.stateLimitation.includes(selections.state)) {
 			return false
 		}
-		if (
-			clause.requiresOption === 'includeStateDisclosures' &&
-			!selections.includeStateDisclosures
-		) {
+		if (clause.requiresOption === 'includeStateDisclosures' && !selections.includeStateDisclosures) {
 			return false
 		}
-		if (
-			clause.requiresOption === 'includeFederalDisclosures' &&
-			!selections.includeFederalDisclosures
-		) {
+		if (clause.requiresOption === 'includeFederalDisclosures' && !selections.includeFederalDisclosures) {
 			return false
 		}
 		return selections.selectedClauses.includes(clause.id)
@@ -512,7 +496,9 @@ function renderStateNotices(
 	if (!selections.includeStateDisclosures) return ''
 	const rules = schema.stateRules[selections.state]
 	if (!rules || !rules.notices.length) return ''
-	const noticeItems = rules.notices.map(notice => `<li>${notice}</li>`).join('')
+	const noticeItems = rules.notices
+		.map(notice => `<li>${notice}</li>`)
+		.join('')
 	return `<section class="lease-section">
 	<header class="lease-section-header">
 		<h2>State Notices</h2>
@@ -555,7 +541,7 @@ export function renderLeaseHtmlBody(
 	<header class="lease-header">
 		<h1>Residential Lease Agreement</h1>
 		<p>
-			This Agreement is made between <strong>${context.ownerName}</strong> (“owner”) and <strong>${context.tenantNames}</strong> (“Tenant”) concerning the premises at <strong>${context.propertyAddress}</strong>.
+			This Agreement is made between <strong>${context.ownerName}</strong> ("Landlord") and <strong>${context.tenantNames}</strong> ("Tenant") concerning the premises at <strong>${context.propertyAddress}</strong>.
 		</p>
 	</header>
 	${sectionHtml}
@@ -651,11 +637,12 @@ export function getDefaultSelections(
 	schema: LeaseTemplateSchema,
 	state: USState
 ): LeaseTemplateSelections {
-	const selectedClauses = schema.sections.flatMap(section =>
-		section.clauses
-			.filter(clause => clause.defaultSelected)
-			.map(clause => clause.id)
-	)
+	const selectedClauses = schema.sections
+		.flatMap(section =>
+			section.clauses
+				.filter(clause => clause.defaultSelected)
+				.map(clause => clause.id)
+		)
 
 	return {
 		state,
@@ -666,9 +653,7 @@ export function getDefaultSelections(
 	}
 }
 
-export function createDefaultContext(
-	overrides?: Partial<LeaseTemplateContext>
-) {
+export function createDefaultContext(overrides?: Partial<LeaseTemplateContext>) {
 	return {
 		...DEFAULT_CONTEXT,
 		...overrides,
@@ -696,12 +681,12 @@ export function createDefaultContext(
 export function createContextFromLeaseData(
 	leaseData: LeaseFormData
 ): LeaseTemplateContext {
-	const tenantNames = leaseData.tenants.map(tenant => tenant.name).join('; ')
+	const tenantNames = leaseData.tenants
+		.map(tenant => tenant.name)
+		.join('; ')
 	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.zipCode}`
 	const propertyAddress = `${leaseData.property.address.street}${
-		leaseData.property.address.unit
-			? `, ${leaseData.property.address.unit}`
-			: ''
+		leaseData.property.address.unit ? `, ${leaseData.property.address.unit}` : ''
 	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.zipCode}`
 
 	const overrides: Partial<LeaseTemplateContext> = {
