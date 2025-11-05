@@ -6,6 +6,7 @@
 
 'use client'
 
+import { TenantGuard } from '#components/auth/tenant-guard'
 import { ImageUpload } from './image-upload'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -109,6 +110,7 @@ export default function NewMaintenanceRequestPage() {
 	}
 
 	return (
+		<TenantGuard>
 		<div className="max-w-2xl mx-auto space-y-8">
 			<div>
 				<Link href="/tenant/maintenance">
@@ -221,5 +223,6 @@ export default function NewMaintenanceRequestPage() {
 				</form>
 			</CardLayout>
 		</div>
+		</TenantGuard>
 	)
 }
