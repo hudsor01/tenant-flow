@@ -128,7 +128,7 @@ export interface StripeProductWithPricing {
  */
 export interface CreateTenantCustomerParams {
 	tenantId: string
-	email: string
+	email?: string
 	name?: string
 	phone?: string
 	metadata?: Record<string, string>

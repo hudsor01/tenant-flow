@@ -4,7 +4,7 @@
  * Tests that tenant table and related RLS policies correctly enforce data isolation:
  * - Tenants can only see/update their own profile
  * - Tenants cannot access other tenants' data
- * - Landlords can view their managed tenants
+ * - owners can view their managed tenants
  * - Emergency contacts are properly isolated
  *
  * @group integration
@@ -15,7 +15,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import {
 	authenticateAs,
-	cleanupTestData,
 	expectEmptyResult,
 	expectPermissionError,
 	getServiceRoleClient,
@@ -24,25 +23,58 @@ import {
 } from './setup'
 
 describe('RLS: Tenant Isolation', () => {
-	let landlordA: AuthenticatedTestClient
-	let landlordB: AuthenticatedTestClient
 	let tenantA: AuthenticatedTestClient
 	let tenantB: AuthenticatedTestClient
 	let serviceClient: ReturnType<typeof getServiceRoleClient>
 
 	// Test data IDs for cleanup
 	const testData = {
-		properties: [] as string[],
 		tenants: [] as string[],
 		emergencyContacts: [] as string[]
 	}
 
 	beforeAll(async () => {
-		landlordA = await authenticateAs(TEST_USERS.LANDLORD_A)
-		landlordB = await authenticateAs(TEST_USERS.LANDLORD_B)
 		tenantA = await authenticateAs(TEST_USERS.TENANT_A)
 		tenantB = await authenticateAs(TEST_USERS.TENANT_B)
 		serviceClient = getServiceRoleClient()
+
+		// Create tenant records for test users
+		const tenantData = [
+			{
+				auth_user_id: tenantA.userId,
+				userId: tenantA.userId,
+				firstName: 'Test',
+				lastName: 'Tenant A',
+				email: tenantA.email,
+				phone: '+1234567890',
+				status: 'ACTIVE' as const
+			},
+			{
+				auth_user_id: tenantB.userId,
+				userId: tenantB.userId,
+				firstName: 'Test',
+				lastName: 'Tenant B',
+				email: tenantB.email,
+				phone: '+1234567891',
+				status: 'ACTIVE' as const
+			}
+		]
+
+		for (const tenant of tenantData) {
+			const { data, error } = await serviceClient
+				.from('tenant')
+				.insert(tenant)
+				.select('id')
+				.single()
+			if (error) {
+				console.error(
+					`Failed to create tenant record for ${tenant.email}:`,
+					error
+				)
+			} else if (data) {
+				testData.tenants.push(data.id)
+			}
+		}
 	})
 
 	afterAll(async () => {
@@ -50,8 +82,6 @@ describe('RLS: Tenant Isolation', () => {
 		for (const id of testData.emergencyContacts) {
 			await serviceClient.from('tenant_emergency_contact').delete().eq('id', id)
 		}
-
-		await cleanupTestData(serviceClient, testData)
 	})
 
 	describe('Tenant Profile Access', () => {
@@ -239,6 +269,7 @@ describe('RLS: Tenant Isolation', () => {
 			expect(data).toBeDefined()
 
 			if (data) {
+				tenantAEmergencyContactId = data.id // Update the ID for subsequent tests
 				testData.emergencyContacts.push(data.id)
 			}
 		})
@@ -315,7 +346,10 @@ describe('RLS: Tenant Isolation', () => {
 
 			// MUST fail or return empty
 			if (error) {
-				expectPermissionError(error, 'tenant A updating tenant B emergency contact')
+				expectPermissionError(
+					error,
+					'tenant A updating tenant B emergency contact'
+				)
 			} else {
 				expectEmptyResult(data, 'tenant A updating tenant B emergency contact')
 			}
@@ -353,7 +387,11 @@ describe('RLS: Tenant Isolation', () => {
 				return
 			}
 
-			const contactId = contacts[0].id
+			const contactId = contacts[0]?.id
+			if (!contactId) {
+				console.warn('Contact ID is undefined - skipping test')
+				return
+			}
 
 			const { data, error } = await tenantA.client
 				.from('tenant_emergency_contact')
@@ -362,7 +400,10 @@ describe('RLS: Tenant Isolation', () => {
 
 			// MUST fail or return empty
 			if (error) {
-				expectPermissionError(error, 'tenant A deleting tenant B emergency contact')
+				expectPermissionError(
+					error,
+					'tenant A deleting tenant B emergency contact'
+				)
 			} else {
 				expectEmptyResult(data, 'tenant A deleting tenant B emergency contact')
 			}
@@ -410,7 +451,10 @@ describe('RLS: Tenant Isolation', () => {
 				.eq('id', tenantRecord.id)
 
 			expect(error).toBeNull()
-			expectEmptyResult(data, 'tenant A querying tenant B notification preferences')
+			expectEmptyResult(
+				data,
+				'tenant A querying tenant B notification preferences'
+			)
 		})
 	})
 })

@@ -44,13 +44,13 @@ ORDER BY tablename, policyname;
 -- 3. CONNECTED ACCOUNT SECURITY
 -- ============================================================================
 
--- Verify landlords can only access their own Connected Accounts
--- Policy: "Landlords can only access own Connected Accounts"
+-- Verify owners can only access their own Connected Accounts
+-- Policy: "owners can only access own Connected Accounts"
 SELECT policyname, qual, with_check
 FROM pg_policies
 WHERE schemaname = 'public'
 AND tablename = 'ConnectedAccount'
-AND policyname LIKE '%Landlord%';
+AND policyname LIKE '%owner%';
 
 -- Expected: Should have policy checking auth.uid() = userId
 
@@ -87,12 +87,12 @@ WHERE schemaname = 'public'
 AND tablename = 'RentPayment'
 AND cmd = 'SELECT';
 
--- Verify landlords can view payments for their properties
+-- Verify owners can view payments for their properties
 SELECT policyname, cmd, qual
 FROM pg_policies
 WHERE schemaname = 'public'
 AND tablename = 'RentPayment'
-AND policyname LIKE '%Landlord%';
+AND policyname LIKE '%owner%';
 
 -- ============================================================================
 -- 6. SUBSCRIPTION SECURITY
@@ -109,7 +109,7 @@ ORDER BY cmd, policyname;
 -- - Tenants can view own subscriptions
 -- - Tenants can create own subscriptions
 -- - Tenants can update own subscriptions
--- - Landlords can view property subscriptions
+-- - owners can view property subscriptions
 
 -- ============================================================================
 -- 7. WEBHOOK EVENT SECURITY

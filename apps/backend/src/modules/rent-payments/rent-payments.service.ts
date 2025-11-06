@@ -59,7 +59,7 @@ export class RentPaymentsService {
 
 	/**
 	 * ✅ RLS COMPLIANT: Uses admin client for cross-user tenant context
-	 * (Tenants need to be accessible by both tenant and landlord)
+	 * (Tenants need to be accessible by both tenant and owner)
 	 */
 	private async getTenantContext(tenantId: string) {
 		const adminClient = this.supabase.getAdminClient()
@@ -172,19 +172,19 @@ export class RentPaymentsService {
 			throw new NotFoundException('Property not found for lease')
 		}
 
-		const { data: landlord, error: landlordError } = await adminClient
+		const { data: owner, error: ownerError } = await adminClient
 			.from('users')
 			.select('id, stripeAccountId, subscriptionTier')
 			.eq('id', property.ownerId)
 			.single<User>()
 
-		if (landlordError || !landlord) {
-			throw new NotFoundException('Landlord not found')
+		if (ownerError || !owner) {
+			throw new NotFoundException('owner not found')
 		}
 
-		if (!landlord.stripeAccountId) {
+		if (!owner.stripeAccountId) {
 			throw new BadRequestException(
-				'Landlord has not completed Stripe Connect onboarding'
+				'owner has not completed Stripe Connect onboarding'
 			)
 		}
 
@@ -204,7 +204,7 @@ export class RentPaymentsService {
 			const tenantAuthId = tenantRecord.auth_user_id
 			const isAuthorized =
 				requestingUserId === tenantAuthId || // User is the tenant
-				requestingUserId === landlord.id // User is the landlord
+				requestingUserId === owner.id // User is the owner
 
 			if (!isAuthorized) {
 				throw new ForbiddenException(
@@ -213,7 +213,7 @@ export class RentPaymentsService {
 			}
 		}
 
-		return { lease, landlord }
+		return { lease, owner }
 	}
 
 	/**
@@ -237,7 +237,7 @@ export class RentPaymentsService {
 		const adminClient = this.supabase.getAdminClient()
 		const { tenant, tenantUser } = await this.getTenantContext(tenantId)
 		// Authorization is now handled within getLeaseContext
-		const { lease, landlord } = await this.getLeaseContext(
+		const { lease, owner } = await this.getLeaseContext(
 			leaseId,
 			tenantId,
 			requestingUserId
@@ -305,12 +305,12 @@ export class RentPaymentsService {
 				confirm: true,
 				off_session: true,
 				transfer_data: {
-					destination: landlord.stripeAccountId as string
+					destination: owner.stripeAccountId as string
 				},
 				metadata: {
 					tenantId,
 					tenantUserId: tenantUser.id,
-					landlordId: landlord.id,
+					ownerId: owner.id,
 					leaseId,
 					paymentType
 				},
@@ -329,13 +329,13 @@ export class RentPaymentsService {
 			.from('rent_payment')
 			.insert({
 				tenantId: tenantUser.id,
-				landlordId: landlord.id,
+				ownerId: owner.id,
 				leaseId: lease.id,
 				amount: amountInCents,
-				// Platform fees removed - landlord receives full amount minus Stripe fees
+				// Platform fees removed - owner receives full amount minus Stripe fees
 				platformFee: 0,
 				stripeFee: 0,
-				landlordReceives: amountInCents,
+				ownerReceives: amountInCents,
 				status,
 				paymentType,
 				stripePaymentIntentId: paymentIntent.id,
@@ -386,7 +386,7 @@ export class RentPaymentsService {
 		const { data, error } = await client
 			.from('rent_payment')
 			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives, dueDate'
+				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
 			)
 			.order('createdAt', { ascending: false })
 
@@ -415,7 +415,7 @@ export class RentPaymentsService {
 		// ✅ RLS automatically validates subscription ownership
 		const { data: subscription, error: subscriptionError } = await client
 			.from('rent_subscription')
-			.select('id, landlordId')
+			.select('id, ownerId')
 			.eq('id', subscriptionId)
 			.single<RentSubscription>()
 
@@ -427,7 +427,7 @@ export class RentPaymentsService {
 		const { data, error } = await client
 			.from('rent_payment')
 			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, landlordReceives, dueDate'
+				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
 			)
 			.eq('subscriptionId', subscriptionId)
 			.order('createdAt', { ascending: false })
@@ -490,7 +490,7 @@ export class RentPaymentsService {
 		// ✅ RLS automatically validates subscription ownership
 		const { data: subscription, error: subscriptionError } = await client
 			.from('rent_subscription')
-			.select('id, landlordId')
+			.select('id, ownerId')
 			.eq('id', subscriptionId)
 			.single<RentSubscription>()
 
@@ -542,7 +542,7 @@ export class RentPaymentsService {
 			const { tenant } = await this.getTenantContext(tenantId)
 
 			// Get Lease context with authorization check
-			const { lease, landlord } = await this.getLeaseContext(
+			const { lease, owner } = await this.getLeaseContext(
 				leaseId,
 				tenantId,
 				requestingUserId
@@ -614,7 +614,7 @@ export class RentPaymentsService {
 									metadata: {
 										leaseId: lease.id,
 										tenantId,
-										landlordId: landlord.id
+										ownerId: owner.id
 									}
 								},
 								unit_amount: amountInCents,
@@ -625,12 +625,12 @@ export class RentPaymentsService {
 						}
 					],
 					transfer_data: {
-						destination: landlord.stripeAccountId as string
+						destination: owner.stripeAccountId as string
 					},
 					metadata: {
 						tenantId,
 						leaseId: lease.id,
-						landlordId: landlord.id,
+						ownerId: owner.id,
 						paymentType: 'autopay'
 					},
 					expand: ['latest_invoice.payment_intent']
@@ -808,7 +808,7 @@ export class RentPaymentsService {
 	 *
 	 * Task 2.4: Payment Status Tracking
 	 */
-	async getCurrentPaymentStatus(token: string, tenantId: string): Promise<{
+	async getCurrentPaymentStatus(tenantId: string): Promise<{
 		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
 		rentAmount: number
 		nextDueDate: string | null
@@ -840,7 +840,7 @@ export class RentPaymentsService {
 				.eq('leaseId', lease.id)
 				.order('createdAt', { ascending: false })
 				.limit(1)
-				.single()
+				.maybeSingle()
 
 			// Get any unpaid payments (DUE, PENDING, FAILED)
 			const { data: unpaidPayments } = await adminClient
@@ -862,7 +862,8 @@ export class RentPaymentsService {
 			if (unpaidPayments && unpaidPayments.length > 0) {
 				// Sum up all unpaid payments amounts
 				outstandingBalance = unpaidPayments.reduce(
-					(sum: number, payment: { amount: number | null }) => sum + (payment.amount || 0),
+					(sum: number, payment: { amount: number | null }) =>
+						sum + (payment.amount || 0),
 					0
 				)
 
@@ -873,13 +874,18 @@ export class RentPaymentsService {
 
 					// Check if any payment is overdue
 					const hasOverdue = unpaidPayments.some(
-						(payment: { dueDate: string | null }) => payment.dueDate && payment.dueDate < today
+						(payment: { dueDate: string | null }) =>
+							payment.dueDate && payment.dueDate < today
 					)
 
 					if (hasOverdue) {
 						status = 'OVERDUE'
 						isOverdue = true
-					} else if (unpaidPayments.some((p: { status: string | null }) => p.status === 'PENDING')) {
+					} else if (
+						unpaidPayments.some(
+							(p: { status: string | null }) => p.status === 'PENDING'
+						)
+					) {
 						status = 'PENDING'
 					} else {
 						status = 'DUE'

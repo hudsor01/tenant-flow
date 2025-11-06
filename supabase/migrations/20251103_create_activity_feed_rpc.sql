@@ -63,7 +63,7 @@ BEGIN
       ) as metadata
     FROM rent_payment rp
     JOIN tenant t ON t.id = rp."tenantId"
-    WHERE rp."landlordId" = p_user_id
+    WHERE rp."ownerId" = p_user_id
       AND rp."paidAt" >= NOW() - INTERVAL '90 days'
 
     UNION ALL

@@ -206,7 +206,7 @@ export class TaxDocumentsService {
 			Maintenance: 'Fully deductible as ordinary business expense',
 			Insurance: 'Fully deductible including property and liability insurance',
 			'Property Tax': 'Fully deductible',
-			Utilities: 'Deductible if paid by landlord',
+			Utilities: 'Deductible if paid by owner',
 			'Property Management':
 				'Fully deductible including management fees and commissions',
 			Mortgage: 'Interest portion only is deductible',

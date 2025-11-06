@@ -8,7 +8,15 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	afterAll,
+	afterEach,
+	beforeEach
+} from 'vitest'
 import {
 	useLeaseList,
 	useLease,
@@ -23,6 +31,7 @@ import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
+import { createBrowserClient } from '@supabase/ssr'
 import { clientFetch } from '#lib/api/client'
 
 const TEST_LEASE_PREFIX = 'TEST-CRUD'
@@ -95,6 +104,46 @@ async function createTestTenant(): Promise<string> {
 }
 
 describe('Leases CRUD Integration Tests', () => {
+	// Authenticate before running tests
+	beforeAll(async () => {
+		// Validate required E2E environment variables
+		if (!process.env.E2E_OWNER_A_EMAIL) {
+			throw new Error(
+				'E2E_OWNER_A_EMAIL environment variable is required for integration tests. Please set this variable before running tests.'
+			)
+		}
+		if (!process.env.E2E_OWNER_A_PASSWORD) {
+			throw new Error(
+				'E2E_OWNER_A_PASSWORD environment variable is required for integration tests. Please set this variable before running tests.'
+			)
+		}
+
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: process.env.E2E_OWNER_A_EMAIL,
+			password: process.env.E2E_OWNER_A_PASSWORD
+		})
+
+		if (error || !data.session) {
+			throw new Error(
+				`Failed to authenticate test user: ${error?.message || 'No session'}`
+			)
+		}
+	})
+
+	// Sign out after all tests
+	afterAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+		await supabase.auth.signOut()
+	})
+
 	// Cleanup after each test (order matters for foreign keys)
 	afterEach(async () => {
 		// Delete leases first
@@ -149,7 +198,9 @@ describe('Leases CRUD Integration Tests', () => {
 			})
 
 			const startDate = new Date().toISOString()
-			const endDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year
+			const endDate = new Date(
+				Date.now() + 365 * 24 * 60 * 60 * 1000
+			).toISOString() // 1 year
 
 			const newLease: CreateLeaseInput = {
 				tenantId,
@@ -300,7 +351,7 @@ describe('Leases CRUD Integration Tests', () => {
 			})
 
 			const leases = result.current.data!.data
-			expect(leases.every(l => l.status === 'ACTIVE')).toBe(true)
+			expect(leases.every((l: Lease) => l.status === 'ACTIVE')).toBe(true)
 		})
 
 		it('returns empty result for non-existent ID', async () => {

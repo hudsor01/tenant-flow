@@ -7,6 +7,9 @@ import { SupabaseService } from '../../database/supabase.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeOwnerService } from './stripe-owner.service'
+import { StripeTenantService } from './stripe-tenant.service'
+import { SecurityService } from '../../security/security.service'
 
 // Create properly typed mock objects
 const createMockSupabaseService = (): jest.Mocked<SupabaseService> => {
@@ -100,11 +103,32 @@ describe('StripeController - Subscription Management', () => {
 					}
 				},
 				{
+					provide: StripeOwnerService,
+					useValue: {
+						ensureOwnerCustomer: jest.fn()
+					}
+				},
+				{
+					provide: StripeTenantService,
+					useValue: {
+						ensureTenantCustomer: jest.fn()
+					}
+				},
+				{
 					provide: CACHE_MANAGER,
 					useValue: {
 						get: jest.fn().mockResolvedValue(null),
 						set: jest.fn().mockResolvedValue(undefined),
 						del: jest.fn().mockResolvedValue(undefined)
+					}
+				},
+				{
+					provide: SecurityService,
+					useValue: {
+						sanitizeInput: jest.fn((input: string) => input),
+						validateEmail: jest.fn(() => true),
+						hashPassword: jest.fn((password: string) => password),
+						validatePassword: jest.fn(() => true)
 					}
 				}
 			]
@@ -134,7 +158,9 @@ describe('StripeController - Subscription Management', () => {
 				}
 			} as unknown as Stripe.Customer
 
-			;(mockStripe.customers.create as jest.Mock).mockResolvedValue(mockCustomer)
+			;(mockStripe.customers.create as jest.Mock).mockResolvedValue(
+				mockCustomer
+			)
 
 			// This would be called during signup flow
 			const customer = await mockStripe.customers.create({
@@ -183,7 +209,14 @@ describe('StripeController - Subscription Management', () => {
 				mockCheckoutSession
 			)
 
-			const result = await controller.createCheckoutSession({
+			const mockRequest = {
+				user: {
+					id: validUserId,
+					email: 'test@example.com'
+				}
+			} as any
+
+			const result = await controller.createCheckoutSession(mockRequest, {
 				productName: 'Starter Plan',
 				tenantId: validUserId,
 				domain: 'https://app.example.com',
@@ -250,8 +283,15 @@ describe('StripeController - Subscription Management', () => {
 				stripeError
 			)
 
+			const mockRequest = {
+				user: {
+					id: validUserId,
+					email: 'test@example.com'
+				}
+			} as any
+
 			await expect(
-				controller.createCheckoutSession({
+				controller.createCheckoutSession(mockRequest, {
 					productName: 'Invalid Plan',
 					tenantId: validUserId,
 					domain: 'https://app.example.com',
@@ -297,7 +337,8 @@ describe('StripeController - Subscription Management', () => {
 				mockUpdatedSubscription
 			)
 
-			const result = await controller.updateSubscription({ subscriptionId: mockSubscriptionId, 
+			const result = await controller.updateSubscription({
+				subscriptionId: mockSubscriptionId,
 				newPriceId: mockPriceIdProfessional,
 				prorationBehavior: 'create_prorations'
 			})
@@ -355,7 +396,8 @@ describe('StripeController - Subscription Management', () => {
 			)
 
 			// Downgrade typically happens at period end
-			const result = await controller.updateSubscription({ subscriptionId: mockSubscriptionId, 
+			const result = await controller.updateSubscription({
+				subscriptionId: mockSubscriptionId,
 				newPriceId: mockPriceIdStarter,
 				prorationBehavior: 'none'
 			})
@@ -535,9 +577,8 @@ describe('StripeController - Subscription Management', () => {
 				mockSubscription
 			)
 
-			const subscription = await mockStripe.subscriptions.retrieve(
-				mockSubscriptionId
-			)
+			const subscription =
+				await mockStripe.subscriptions.retrieve(mockSubscriptionId)
 
 			expect(subscription.status).toBe('past_due')
 			expect(subscription.latest_invoice).toBe('in_failed123')
@@ -555,9 +596,8 @@ describe('StripeController - Subscription Management', () => {
 				mockSubscription
 			)
 
-			const subscription = await mockStripe.subscriptions.retrieve(
-				mockSubscriptionId
-			)
+			const subscription =
+				await mockStripe.subscriptions.retrieve(mockSubscriptionId)
 
 			expect(subscription.status).toBe('unpaid')
 		})
@@ -574,9 +614,8 @@ describe('StripeController - Subscription Management', () => {
 				mockSubscription
 			)
 
-			const subscription = await mockStripe.subscriptions.retrieve(
-				mockSubscriptionId
-			)
+			const subscription =
+				await mockStripe.subscriptions.retrieve(mockSubscriptionId)
 
 			expect(subscription.status).toBe('active')
 		})
@@ -589,19 +628,21 @@ describe('StripeController - Subscription Management', () => {
 				status: 'active',
 				cancel_at_period_end: false,
 				items: {
-					data: [{
-						id: 'si_test123',
-						current_period_start: Math.floor(Date.now() / 1000),
-						current_period_end: Math.floor(Date.now() / 1000) + 2592000,
-						price: {
-							id: mockPriceIdStarter,
-							nickname: 'Starter',
-							unit_amount: 2900,
-							currency: 'usd',
-							recurring: { interval: 'month' },
-							product: { name: 'Starter Plan' }
+					data: [
+						{
+							id: 'si_test123',
+							current_period_start: Math.floor(Date.now() / 1000),
+							current_period_end: Math.floor(Date.now() / 1000) + 2592000,
+							price: {
+								id: mockPriceIdStarter,
+								nickname: 'Starter',
+								unit_amount: 2900,
+								currency: 'usd',
+								recurring: { interval: 'month' },
+								product: { name: 'Starter Plan' }
+							}
 						}
-					}]
+					]
 				}
 			} as unknown as Stripe.Subscription
 
@@ -678,9 +719,9 @@ describe('StripeController - Subscription Management', () => {
 				customer: mockCustomerId
 			} as Stripe.BillingPortal.Session
 
-			;(mockStripe.billingPortal.sessions.create as jest.Mock).mockResolvedValue(
-				mockPortalSession
-			)
+			;(
+				mockStripe.billingPortal.sessions.create as jest.Mock
+			).mockResolvedValue(mockPortalSession)
 
 			const result = await controller.createBillingPortal({
 				customerId: mockCustomerId,
@@ -703,9 +744,9 @@ describe('StripeController - Subscription Management', () => {
 				code: 'resource_missing'
 			} as Stripe.errors.StripeError
 
-			;(mockStripe.billingPortal.sessions.create as jest.Mock).mockRejectedValue(
-				stripeError
-			)
+			;(
+				mockStripe.billingPortal.sessions.create as jest.Mock
+			).mockRejectedValue(stripeError)
 
 			await expect(
 				controller.createBillingPortal({
