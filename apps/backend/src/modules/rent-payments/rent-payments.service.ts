@@ -807,7 +807,7 @@ export class RentPaymentsService {
 	 * Returns the current balance, next due date, and payment status
 	 *
 	 * Task 2.4: Payment Status Tracking
-	 * 
+	 *
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
 	 * @returns rentAmount - Monthly rent in DOLLARS
 	 */
@@ -863,13 +863,14 @@ export class RentPaymentsService {
 			let nextDueDate: string | null = null
 			let isOverdue = false
 
-		if (unpaidPayments && unpaidPayments.length > 0) {
-			// Sum up all unpaid payments amounts (already in cents from database)
-			outstandingBalance = unpaidPayments.reduce(
-				(sum: number, payment: { amount: number | null }) =>
-					sum + (payment.amount || 0),
-				0
-			)				// Get the earliest due date
+			if (unpaidPayments && unpaidPayments.length > 0) {
+				// Sum up all unpaid payments amounts (already in cents from database)
+				outstandingBalance = unpaidPayments.reduce(
+					(sum: number, payment: { amount: number | null }) =>
+						sum + (payment.amount || 0),
+					0
+				)
+				// Get the earliest due date
 				const earliestDue = unpaidPayments[0]
 				if (earliestDue) {
 					nextDueDate = earliestDue.dueDate ?? null
