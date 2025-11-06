@@ -391,19 +391,156 @@ If any migration causes issues:
 
 ### PostgreSQL Monitoring Queries
 
-```sql
--- Check RLS policy usage (run hourly)
-SELECT schemaname, tablename, policyname,
-       pg_stat_get_tuples_returned(c.oid) as tuples_checked
-FROM pg_policies p
-JOIN pg_class c ON c.relname = p.tablename
-WHERE schemaname = 'public'
-AND tablename IN ('rent_payment', 'tenant_payment_method')
-ORDER BY tablename, policyname;
+**Note**: The `pg_stat_get_tuples_returned()` function does NOT detect RLS filtering or policy violations.
+It only counts tuples returned by the executor, which are already filtered by RLS.
 
--- Check for RLS violations in logs (requires log collection)
--- Look for: "new row violates row-level security policy"
+For effective RLS monitoring, use these approaches:
+
+#### 1. List All RLS Policies and Their Definitions
+
+```sql
+-- View all RLS policies on payment tables with their conditions
+SELECT
+    schemaname,
+    tablename,
+    policyname,
+    permissive,     -- PERMISSIVE or RESTRICTIVE
+    roles,          -- Which roles this applies to
+    cmd,            -- ALL, SELECT, INSERT, UPDATE, DELETE
+    qual,           -- USING clause (for SELECT/UPDATE/DELETE)
+    with_check      -- WITH CHECK clause (for INSERT/UPDATE)
+FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN ('rent_payment', 'tenant_payment_method')
+ORDER BY tablename, policyname;
 ```
+
+#### 2. Monitor Active Queries Against RLS Tables
+
+```sql
+-- See what queries are running against RLS-protected tables
+-- Useful for spotting unexpected access patterns
+SELECT
+    pid,
+    usename,
+    application_name,
+    client_addr,
+    state,
+    query_start,
+    left(query, 100) as query_preview
+FROM pg_stat_activity
+WHERE state = 'active'
+  AND (query ILIKE '%rent_payment%'
+       OR query ILIKE '%tenant_payment_method%')
+  AND query NOT ILIKE '%pg_stat_activity%'
+ORDER BY query_start DESC;
+```
+
+#### 3. Detect Filtered Results (Compare Privileged vs Application Role)
+
+RLS filtering is silent - denied rows simply don't appear. To detect if RLS is working:
+
+```sql
+-- Run as privileged role (service_role or postgres) to see ALL rows
+SET ROLE postgres;
+SELECT COUNT(*) as total_rows_privileged
+FROM rent_payment;
+
+-- Run as application role to see RLS-filtered rows
+SET ROLE authenticated;  -- or your application role
+SELECT COUNT(*) as visible_rows_application
+FROM rent_payment;
+
+-- Compare: If RLS is working correctly, counts should differ based on context
+-- In production, you'd compare counts per tenant/owner to validate isolation
+```
+
+#### 4. Controlled Test Queries to Validate RLS
+
+```sql
+-- Test 1: Verify tenant can only see their own payment methods
+SET ROLE authenticated;
+SET request.jwt.claims.user_role = 'TENANT';
+SET request.jwt.claims.sub = 'test-tenant-user-id';
+
+SELECT COUNT(*) FROM tenant_payment_method;
+-- Should only return payment methods for this tenant
+
+-- Test 2: Verify property owner can only see payments for their properties
+SET request.jwt.claims.user_role = 'PROPERTY_OWNER';
+SET request.jwt.claims.sub = 'test-owner-user-id';
+
+SELECT COUNT(*) FROM rent_payment;
+-- Should only return payments for properties owned by this user
+```
+
+#### 5. Enable Structured Audit Logging (Recommended for Production)
+
+For production environments, enable pgAudit or create audit triggers:
+
+```sql
+-- Option A: Install pgAudit extension (requires superuser)
+CREATE EXTENSION IF NOT EXISTS pgaudit;
+
+-- Configure to log all access to RLS tables
+ALTER DATABASE postgres SET pgaudit.log = 'read,write';
+ALTER DATABASE postgres SET pgaudit.log_relation = ON;
+
+-- Option B: Create custom audit logging via SECURITY DEFINER function
+CREATE OR REPLACE FUNCTION log_rls_access(
+    table_name text,
+    operation text,
+    row_count integer,
+    user_id text,
+    user_role text
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    INSERT INTO audit.rls_access_log (
+        table_name,
+        operation,
+        row_count,
+        user_id,
+        user_role,
+        accessed_at
+    ) VALUES (
+        table_name,
+        operation,
+        row_count,
+        user_id,
+        user_role,
+        NOW()
+    );
+END;
+$$;
+
+-- Wrap sensitive queries to log access attempts
+-- Example: In your application code, after a query:
+-- SELECT log_rls_access('rent_payment', 'SELECT', found_rows, current_user_id, current_user_role);
+```
+
+#### 6. Check PostgreSQL Logs for RLS Violations
+
+```sql
+-- Check for RLS policy violations in PostgreSQL logs
+-- Look for these error messages:
+-- - "new row violates row-level security policy"
+-- - "permission denied for table" (when RLS blocks access)
+
+-- Enable logging of RLS denials in postgresql.conf:
+-- log_statement = 'all'  # or 'mod' for INSERT/UPDATE/DELETE
+-- log_error_verbosity = 'verbose'
+```
+
+**Summary**: RLS filtering is silent by design. To monitor it effectively:
+- Use `pg_policies` to audit policy definitions
+- Use `pg_stat_activity` to monitor active queries
+- Compare counts between privileged and application roles
+- Run controlled test queries to validate isolation
+- Enable pgAudit or custom audit logging for production monitoring
 
 ---
 
