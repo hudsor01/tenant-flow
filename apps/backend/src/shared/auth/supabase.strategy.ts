@@ -1,14 +1,15 @@
 /**
- * Supabase JWT Strategy - 2025 Best Practices
+ * Supabase JWT Strategy - HS256 with JWT Secret
  *
- * Comprehensive token validation and expiration handling
+ * Verifies JWT tokens using HS256 algorithm with SUPABASE_JWT_SECRET
  * Follows official NestJS + Supabase authentication patterns
- * Uses JWKS endpoint for JWT verification (supports RS256/ES256)
  *
- * Migration from legacy JWT secrets to JWT Signing Keys:
- * - Legacy: HS256 symmetric key with SUPABASE_JWT_SECRET
- * - Modern: RS256/ES256 asymmetric keys via JWKS endpoint
- * - JWKS endpoint: https://{project}.supabase.co/auth/v1/.well-known/jwks.json
+ * Authentication Flow:
+ * 1. Frontend sends Authorization: Bearer <token> header
+ * 2. Strategy verifies JWT signature using SUPABASE_JWT_SECRET
+ * 3. Validates payload (issuer, audience, expiration)
+ * 4. Ensures user exists in users table (creates if needed for OAuth)
+ * 5. Returns authUser object for use in request handlers
  */
 
 import { Injectable, Logger } from '@nestjs/common'
@@ -17,7 +18,6 @@ import type { SupabaseJwtPayload, authUser } from '@repo/shared/types/auth'
 import { UtilityService } from '../services/utility.service'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
-import * as jwksRsa from 'jwks-rsa'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -27,25 +27,23 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
   constructor(utilityService: UtilityService) {
     // Validate environment before super() - no 'this' access allowed
     const supabaseUrl = process.env.SUPABASE_URL
+    const jwtSecret = process.env.SUPABASE_JWT_SECRET
     const extractors = [ExtractJwt.fromAuthHeaderAsBearerToken()]
 
     if (!supabaseUrl) {
       throw new Error('SUPABASE_URL environment variable is required')
     }
 
-    // Only support modern JWKS-based authentication (RS256/ES256)
+    if (!jwtSecret) {
+      throw new Error('SUPABASE_JWT_SECRET environment variable is required')
+    }
+
+    // Use HS256 with JWT secret (current Supabase configuration)
     super({
       jwtFromRequest: ExtractJwt.fromExtractors(extractors),
       ignoreExpiration: false,
-      secretOrKeyProvider: jwksRsa.passportJwtSecret({
-        jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
-        cache: true,
-        cacheMaxEntries: 5,
-        cacheMaxAge: 600000, // 10 minutes
-        rateLimit: true,
-        jwksRequestsPerMinute: 10
-      }),
-      algorithms: ['RS256', 'ES256']
+      secretOrKey: jwtSecret,
+      algorithms: ['HS256']
     })
 
     // NOW safe to assign to 'this' after super()
@@ -53,7 +51,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
     // HEADERS-ONLY AUTHENTICATION: Frontend and backend are on separate deployments (Vercel + Railway)
     // All API calls MUST use Authorization: Bearer <token> header - NO cookie support
-    this.logger.log('SupabaseStrategy initialized with JWKS verification (RS256/ES256) - HEADERS ONLY (Authorization: Bearer)')
+    this.logger.log('SupabaseStrategy initialized with HS256 JWT secret verification - HEADERS ONLY (Authorization: Bearer)')
   }
 
   async validate(payload: SupabaseJwtPayload): Promise<authUser> {
