@@ -63,7 +63,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
       expiration: payload.exp ? new Date(payload.exp * 1000) : null
     })
 
-    // Basic validation - Passport.js has already verified the JWT signature via JWKS
+    // Basic validation - Passport.js has already verified the JWT signature using HS256
     if (!payload.sub) {
       this.logger.error('JWT missing subject (sub) claim')
       throw new Error('Invalid token: missing user ID')
