@@ -53,8 +53,8 @@ export interface PaymentReminderEmailProps {
 	dueDate?: string
 	daysOverdue?: number
 	lateFee?: number
-	landlordName?: string
-	landlordPhone?: string
+	ownerName?: string
+	ownerPhone?: string
 	paymentUrl?: string
 	reminderType?: ReminderType
 }
@@ -76,7 +76,7 @@ export interface TenantInvitationEmailProps {
 	tenantName: string
 	propertyName: string
 	propertyAddress: string
-	landlordName: string
+	ownerName: string
 	invitationUrl: string
 	expiresAt: string
 }
@@ -94,7 +94,7 @@ export interface WelcomeEmailProps {
 }
 
 export interface LeaseExpirationAlertEmailProps {
-	landlordName?: string
+	ownerName?: string
 	tenantName?: string
 	propertyAddress?: string
 	leaseEndDate?: string

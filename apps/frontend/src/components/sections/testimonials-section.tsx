@@ -35,7 +35,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 			quote:
 				'The tenant screening and lease management features are game-changers. We reduced turnover by 40% and filled vacancies 60% faster.',
 			author: 'David Thompson',
-			title: 'Landlord, 12 units',
+			title: 'Property Owner, 12 units',
 			plan: 'Growth Plan'
 		}
 	]

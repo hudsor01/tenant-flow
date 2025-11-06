@@ -18,9 +18,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -36,9 +36,9 @@ describe('Configuration Schema Validation', () => {
 			const config = {
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -51,14 +51,16 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'short', // Less than 32 characters
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
 
-			expect(() => validate(config)).toThrow('JWT secret must be at least 32 characters')
+			expect(() => validate(config)).toThrow(
+				'JWT secret must be at least 32 characters'
+			)
 		})
 
 		it('should throw error for short SUPABASE_JWT_SECRET', () => {
@@ -66,9 +68,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'short',
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -83,9 +85,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'not-a-valid-url',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -100,9 +102,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123'
 			}
@@ -126,9 +128,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				NODE_ENV: 'development',
@@ -156,9 +158,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				PORT: '8080'
@@ -174,9 +176,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				ENABLE_METRICS: 'true',
@@ -197,9 +199,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: '20'
@@ -220,9 +222,9 @@ describe('Configuration Schema Validation', () => {
 					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 					JWT_SECRET: 'a'.repeat(32),
 					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'service-role-key',
+					SUPABASE_SECRET_KEY: 'secret-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+					SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
 					STRIPE_WEBHOOK_SECRET: 'whsec_123',
 					NODE_ENV: env
@@ -239,9 +241,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				NODE_ENV: 'invalid-env'
@@ -258,9 +260,9 @@ describe('Configuration Schema Validation', () => {
 					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 					JWT_SECRET: 'a'.repeat(32),
 					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'service-role-key',
+					SUPABASE_SECRET_KEY: 'secret-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+					SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
 					STRIPE_WEBHOOK_SECRET: 'whsec_123',
 					LOG_LEVEL: level
@@ -280,9 +282,9 @@ describe('Configuration Schema Validation', () => {
 					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 					JWT_SECRET: 'a'.repeat(32),
 					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'service-role-key',
+					SUPABASE_SECRET_KEY: 'secret-key',
 					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+					SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 					STRIPE_SECRET_KEY: 'sk_test_123',
 					STRIPE_WEBHOOK_SECRET: 'whsec_123',
 					STORAGE_PROVIDER: provider
@@ -301,9 +303,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'noreply@example.com'
@@ -317,9 +319,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'not-an-email'
@@ -333,9 +335,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				RESEND_FROM_EMAIL: 'support@tenantflow.app'
@@ -351,9 +353,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				DATABASE_MAX_CONNECTIONS: '20',
@@ -373,9 +375,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				DATABASE_MAX_CONNECTIONS: 'not-a-number'
@@ -392,9 +394,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				SESSION_SECRET: 'c'.repeat(32)
@@ -408,15 +410,17 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'a'.repeat(32),
 				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				SESSION_SECRET: 'short'
 			}
 
-			expect(() => validate(config)).toThrow('Session secret must be at least 32 characters')
+			expect(() => validate(config)).toThrow(
+				'Session secret must be at least 32 characters'
+			)
 		})
 	})
 
@@ -426,9 +430,9 @@ describe('Configuration Schema Validation', () => {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 				JWT_SECRET: 'short', // Too short
 				SUPABASE_URL: 'not-a-url', // Invalid URL
-				SUPABASE_SECRET_KEY: 'service-role-key',
+				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'also-short', // Too short
-				SUPABASE_PUBLISHABLE_KEY: 'anon-key',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 				STRIPE_SECRET_KEY: 'sk_test_123',
 				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'not-an-email', // Invalid email

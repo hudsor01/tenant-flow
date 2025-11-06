@@ -531,9 +531,9 @@ export interface DatabaseConfig {
 
 export interface SupabaseConfig {
 	url: string
-	serviceRoleKey: string
+	supabaseKey: string
 	jwtSecret: string
-	anonKey: string
+	publishableKey: string
 }
 
 export interface StripeConfig {

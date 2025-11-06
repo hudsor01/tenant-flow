@@ -8,7 +8,15 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	afterAll,
+	afterEach,
+	beforeEach
+} from 'vitest'
 import {
 	useAllMaintenanceRequests,
 	useMaintenanceRequest,
@@ -23,6 +31,7 @@ import type {
 	UpdateMaintenanceRequest
 } from '@repo/shared/types/backend-domain'
 import { clientFetch } from '#lib/api/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 const TEST_MAINTENANCE_PREFIX = 'TEST-CRUD'
 let createdMaintenanceIds: string[] = []
@@ -78,6 +87,34 @@ async function createTestUnit(propertyId: string): Promise<string> {
 }
 
 describe('Maintenance Requests CRUD Integration Tests', () => {
+	// Authenticate before running tests
+	beforeAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
+			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+		})
+
+		if (error || !data.session) {
+			throw new Error(
+				`Failed to authenticate test user: ${error?.message || 'No session'}`
+			)
+		}
+	})
+
+	// Sign out after all tests
+	afterAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+		await supabase.auth.signOut()
+	})
+
 	// Cleanup after each test (order matters for foreign keys)
 	afterEach(async () => {
 		// Delete maintenance requests first
@@ -223,9 +260,12 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 		})
 
 		it('fetches maintenance request by ID', async () => {
-			const { result } = renderHook(() => useMaintenanceRequest(testRequestId), {
-				wrapper: createWrapper()
-			})
+			const { result } = renderHook(
+				() => useMaintenanceRequest(testRequestId),
+				{
+					wrapper: createWrapper()
+				}
+			)
 
 			await waitFor(() => {
 				expect(result.current.isSuccess).toBe(true)

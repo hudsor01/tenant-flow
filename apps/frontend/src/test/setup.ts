@@ -29,40 +29,66 @@ const E2E_OWNER_PASSWORD = 'COmmos@69%'
 // Store the authenticated session in a way that mocks can properly access
 const sessionStore = vi.hoisted(() => ({
 	session: null as { access_token: string; expires_at?: number } | null,
-	user: null as { id: string; email?: string } | null
+	user: null as { id: string; email?: string } | null,
+	backendAvailable: false
 }))
 
-// Login to Supabase before all tests and store session
+// Check if backend is available before running integration tests
 beforeAll(async () => {
-	const supabase = createBrowserClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-	)
+	try {
+		const controller = new AbortController()
+		const timeoutId = setTimeout(() => controller.abort(), 5000)
 
-	// Sign in with test credentials
-	const { data, error } = await supabase.auth.signInWithPassword({
-		email: E2E_OWNER_EMAIL,
-		password: E2E_OWNER_PASSWORD
-	})
+		const response = await fetch('http://localhost:4600/health', {
+			signal: controller.signal
+		})
+		clearTimeout(timeoutId)
 
-	if (error) {
-		throw new Error(
-			`Failed to authenticate for integration tests: ${error.message}`
+		if (!response.ok) {
+			throw new Error('Backend health check failed')
+		}
+
+		// Backend is available, proceed with authentication
+		sessionStore.backendAvailable = true
+
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 		)
+
+		// Sign in with test credentials
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: E2E_OWNER_EMAIL,
+			password: E2E_OWNER_PASSWORD
+		})
+
+		if (error) {
+			throw new Error(
+				`Failed to authenticate for integration tests: ${error.message}`
+			)
+		}
+
+		if (!data.session) {
+			throw new Error('No session returned from Supabase auth')
+		}
+
+		// Store session in hoisted store
+		sessionStore.session = data.session
+		sessionStore.user = data.user
+
+		logger.info('Integration tests authenticated', {
+			email: data.user?.email,
+			tokenPrefix: data.session.access_token.substring(0, 20) + '...'
+		})
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error'
+		logger.warn('Backend not available, integration tests will be skipped', {
+			error: errorMessage
+		})
+		sessionStore.backendAvailable = false
+		// Don't throw - let individual tests check backendAvailable flag
 	}
-
-	if (!data.session) {
-		throw new Error('No session returned from Supabase auth')
-	}
-
-	// Store session in hoisted store
-	sessionStore.session = data.session
-	sessionStore.user = data.user
-
-	logger.info('Integration tests authenticated', {
-		email: data.user?.email,
-		tokenPrefix: data.session.access_token.substring(0, 20) + '...'
-	})
 })
 
 // Mock Next.js router hooks
@@ -111,3 +137,6 @@ vi.mock('#lib/supabase/client', () => ({
 		}
 	})
 }))
+
+// Export sessionStore for tests to check backend availability
+export { sessionStore }

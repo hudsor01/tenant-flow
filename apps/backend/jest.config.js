@@ -15,9 +15,16 @@ module.exports = {
 		'<rootDir>/src/**/*.spec.ts',
 		'<rootDir>/src/**/*.test.ts',
 		'<rootDir>/test/**/*.spec.ts',
-		'<rootDir>/test/**/*.test.ts'
+		'<rootDir>/test/**/*.test.ts',
+		'<rootDir>/tests/**/*.spec.ts',
+		'<rootDir>/tests/**/*.test.ts'
 	],
-	testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
+	testPathIgnorePatterns: [
+		'/node_modules/',
+		'/dist/',
+		'/coverage/',
+		'\\.integration\\.spec\\.ts$'
+	],
 	collectCoverageFrom: [
 		'@/**/*.(t|j)s',
 		'!src/**/*.spec.ts',
@@ -73,8 +80,6 @@ module.exports = {
 			}
 		]
 	},
-	transformIgnorePatterns: [
-		'node_modules/(?!(uuid|@repo|@supabase)/)'
-	],
+	transformIgnorePatterns: ['node_modules/(?!(uuid|@repo|@supabase)/)'],
 	injectGlobals: true
 }

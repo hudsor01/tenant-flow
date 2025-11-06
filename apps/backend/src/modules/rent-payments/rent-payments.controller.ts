@@ -197,7 +197,6 @@ export class RentPaymentsController {
 		}
 	}
 
-
 	/**
 	 * Setup autopay (recurring rent subscription) for a tenant
 	 * POST /api/v1/rent-payments/autopay/setup
@@ -228,7 +227,10 @@ export class RentPaymentsController {
 			params.paymentMethodId = body.paymentMethodId
 		}
 
-		const result = await this.rentPaymentsService.setupTenantAutopay(params, req.user.id)
+		const result = await this.rentPaymentsService.setupTenantAutopay(
+			params,
+			req.user.id
+		)
 
 		return {
 			success: true,
@@ -254,10 +256,13 @@ export class RentPaymentsController {
 			`Canceling autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
 		)
 
-		await this.rentPaymentsService.cancelTenantAutopay({
-			tenantId: body.tenantId,
-			leaseId: body.leaseId
-		}, req.user.id)
+		await this.rentPaymentsService.cancelTenantAutopay(
+			{
+				tenantId: body.tenantId,
+				leaseId: body.leaseId
+			},
+			req.user.id
+		)
 
 		return {
 			success: true,
@@ -279,16 +284,43 @@ export class RentPaymentsController {
 			`Getting autopay status for tenant ${tenantId}, lease ${leaseId}`
 		)
 
-		const status = await this.rentPaymentsService.getAutopayStatus({
-			tenantId,
-			leaseId
-		}, req.user.id)
+		const status = await this.rentPaymentsService.getAutopayStatus(
+			{
+				tenantId,
+				leaseId
+			},
+			req.user.id
+		)
 
 		return {
 			enabled: status.enabled,
 			subscriptionId: status.subscriptionId,
 			status: status.status,
 			nextPaymentDate: status.nextPaymentDate
+		}
+	}
+
+	/**
+	 * Get current payment status for a tenant
+	 * Task 2.4: Payment Status Tracking
+	 *
+	 * GET /api/v1/rent-payments/status/:tenantId
+	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 */
+	@Get('status/:tenantId')
+	async getCurrentPaymentStatus(@Param('tenantId') tenantId: string) {
+		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
+
+		const paymentStatus =
+			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId)
+
+		return {
+			status: paymentStatus.status,
+			rentAmount: paymentStatus.rentAmount,
+			nextDueDate: paymentStatus.nextDueDate,
+			lastPaymentDate: paymentStatus.lastPaymentDate,
+			outstandingBalance: paymentStatus.outstandingBalance,
+			isOverdue: paymentStatus.isOverdue
 		}
 	}
 }

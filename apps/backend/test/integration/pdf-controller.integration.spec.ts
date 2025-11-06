@@ -1,4 +1,4 @@
-import type { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common'
 import { HttpStatus } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -56,7 +56,9 @@ describe('PDFController (Integration - DTO Validation)', () => {
 	describe('POST /pdf/lease/template/preview', () => {
 		it('should accept valid input and return base64 PDF', async () => {
 			const mockPdfBuffer = Buffer.from('mock-pdf-content')
-			leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(mockPdfBuffer)
+			leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
+				mockPdfBuffer
+			)
 
 			const validBody = {
 				selections: {
@@ -67,8 +69,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: 'Test Landlord',
-					landlordAddress: '123 Test St',
+					ownerName: 'Test owner',
+					ownerAddress: '123 Test St',
 					tenantNames: 'Test Tenant',
 					propertyAddress: '456 Rental Ave',
 					propertyState: 'CA',
@@ -109,8 +111,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: 'Test',
-					landlordAddress: 'Test',
+					ownerName: 'Test',
+					ownerAddress: 'Test',
 					tenantNames: 'Test',
 					propertyAddress: 'Test',
 					propertyState: 'CA',
@@ -138,7 +140,7 @@ describe('PDFController (Integration - DTO Validation)', () => {
 			expect(response.body.statusCode).toBe(400)
 		})
 
-		it('should reject empty landlordName (production validation)', async () => {
+		it('should reject empty ownerName (production validation)', async () => {
 			const invalidBody = {
 				selections: {
 					state: 'CA',
@@ -148,8 +150,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: '', // Invalid: must be non-empty
-					landlordAddress: 'Test',
+					ownerName: '', // Invalid: must be non-empty
+					ownerAddress: 'Test',
 					tenantNames: 'Test',
 					propertyAddress: 'Test',
 					propertyState: 'CA',
@@ -183,8 +185,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: 'Test',
-					landlordAddress: 'Test',
+					ownerName: 'Test',
+					ownerAddress: 'Test',
 					tenantNames: 'Test',
 					propertyAddress: 'Test',
 					propertyState: 'CA',
@@ -218,8 +220,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: 'Test',
-					landlordAddress: 'Test',
+					ownerName: 'Test',
+					ownerAddress: 'Test',
 					tenantNames: 'Test',
 					propertyAddress: 'Test',
 					propertyState: 'CA',
@@ -253,8 +255,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: 'Test',
-					landlordAddress: 'Test',
+					ownerName: 'Test',
+					ownerAddress: 'Test',
 					tenantNames: 'Test',
 					propertyAddress: 'Test',
 					propertyState: 'CA',
@@ -294,8 +296,8 @@ describe('PDFController (Integration - DTO Validation)', () => {
 					customClauses: []
 				},
 				context: {
-					landlordName: 'Test',
-					landlordAddress: 'Test',
+					ownerName: 'Test',
+					ownerAddress: 'Test',
 					tenantNames: 'Test',
 					propertyAddress: 'Test',
 					propertyState: 'CA',
@@ -315,7 +317,9 @@ describe('PDFController (Integration - DTO Validation)', () => {
 
 			// This will PASS validation because it's syntactically correct ISO 8601
 			const mockPdfBuffer = Buffer.from('mock-pdf')
-			leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(mockPdfBuffer)
+			leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
+				mockPdfBuffer
+			)
 
 			await request(app.getHttpServer())
 				.post('/pdf/lease/template/preview')

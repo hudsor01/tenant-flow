@@ -8,7 +8,16 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	afterAll,
+	afterEach,
+	vi,
+	beforeEach
+} from 'vitest'
 import {
 	useUnitList,
 	useUnit,
@@ -18,8 +27,12 @@ import {
 	useUnitsByProperty
 } from '#hooks/api/use-unit'
 import type { Unit } from '@repo/shared/types/core'
-import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared/types/api-inputs'
+import type {
+	CreateUnitInput,
+	UpdateUnitInput
+} from '@repo/shared/types/api-inputs'
 import { clientFetch } from '#lib/api/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 const TEST_UNIT_PREFIX = 'TEST-CRUD'
 let createdUnitIds: string[] = []
@@ -57,6 +70,34 @@ async function createTestProperty(): Promise<string> {
 }
 
 describe('Units CRUD Integration Tests', () => {
+	// Authenticate before running tests
+	beforeAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
+			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+		})
+
+		if (error || !data.session) {
+			throw new Error(
+				`Failed to authenticate test user: ${error?.message || 'No session'}`
+			)
+		}
+	})
+
+	// Sign out after all tests
+	afterAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+		await supabase.auth.signOut()
+	})
+
 	// Cleanup after each test
 	afterEach(async () => {
 		// Delete units first (foreign key constraint)
@@ -93,14 +134,11 @@ describe('Units CRUD Integration Tests', () => {
 				bedrooms: 2,
 				bathrooms: 1,
 				squareFeet: 850,
-				rent: 2000,
+				rent: 200,
 				status: 'VACANT'
 			}
 
-			let createdUnit: Unit | undefined
-			await waitFor(async () => {
-				createdUnit = await result.current.mutateAsync(newUnit)
-			})
+			const createdUnit = await result.current.mutateAsync(newUnit)
 
 			// Assertions
 			expect(createdUnit).toBeDefined()
@@ -263,7 +301,9 @@ describe('Units CRUD Integration Tests', () => {
 			})
 
 			const units = result.current.data!.data
-			expect(units.some(u => u.unitNumber.includes(uniqueTerm))).toBe(true)
+			expect(units.some((u: Unit) => u.unitNumber.includes(uniqueTerm))).toBe(
+				true
+			)
 		})
 
 		it('returns empty result for non-existent ID', async () => {
@@ -294,7 +334,7 @@ describe('Units CRUD Integration Tests', () => {
 					bedrooms: 2,
 					bathrooms: 1,
 					squareFeet: 900,
-					rent: 2200,
+					rent: 220,
 					status: 'VACANT'
 				})
 			})
@@ -310,21 +350,18 @@ describe('Units CRUD Integration Tests', () => {
 			const updates: UpdateUnitInput = {
 				unitNumber: `${TEST_UNIT_PREFIX}-Updated-${Date.now()}`,
 				bedrooms: 3, // Updated from 2
-				rent: 2500 // Updated from 2200
+				rent: 250 // Updated from 2200
 			}
 
-			let updatedUnit: Unit | undefined
-			await waitFor(async () => {
-				updatedUnit = await result.current.mutateAsync({
-					id: testUnitId,
-					data: updates
-				})
+			const updatedUnit = await result.current.mutateAsync({
+				id: testUnitId,
+				data: updates
 			})
 
 			expect(updatedUnit).toBeDefined()
 			expect(updatedUnit!.unitNumber).toBe(updates.unitNumber)
 			expect(updatedUnit!.bedrooms).toBe(3)
-			expect(updatedUnit!.rent).toBe(2500)
+			expect(updatedUnit!.rent).toBe(250)
 			expect(updatedUnit!.version).toBe(2) // Version incremented
 		})
 
@@ -372,12 +409,9 @@ describe('Units CRUD Integration Tests', () => {
 				bedrooms: 4
 			}
 
-			let updatedUnit: Unit | undefined
-			await waitFor(async () => {
-				updatedUnit = await result.current.mutateAsync({
-					id: testUnitId,
-					data: partialUpdate
-				})
+			const updatedUnit = await result.current.mutateAsync({
+				id: testUnitId,
+				data: partialUpdate
 			})
 
 			expect(updatedUnit).toBeDefined()
@@ -395,12 +429,9 @@ describe('Units CRUD Integration Tests', () => {
 				status: 'OCCUPIED'
 			}
 
-			let updatedUnit: Unit | undefined
-			await waitFor(async () => {
-				updatedUnit = await result.current.mutateAsync({
-					id: testUnitId,
-					data: statusUpdate
-				})
+			const updatedUnit = await result.current.mutateAsync({
+				id: testUnitId,
+				data: statusUpdate
 			})
 
 			expect(updatedUnit!.status).toBe('OCCUPIED')
@@ -435,9 +466,7 @@ describe('Units CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			await waitFor(async () => {
-				await result.current.mutateAsync(testUnitId)
-			})
+			await result.current.mutateAsync(testUnitId)
 
 			// Remove from cleanup array since it's already deleted
 			createdUnitIds = createdUnitIds.filter(id => id !== testUnitId)
@@ -478,9 +507,7 @@ describe('Units CRUD Integration Tests', () => {
 			})
 
 			// Delete the unit
-			await waitFor(async () => {
-				await deleteResult.current.mutateAsync(testUnitId)
-			})
+			await deleteResult.current.mutateAsync(testUnitId)
 
 			createdUnitIds = createdUnitIds.filter(id => id !== testUnitId)
 
@@ -497,9 +524,13 @@ describe('Units CRUD Integration Tests', () => {
 			const propertyId = await createTestProperty()
 
 			// 1. CREATE
-			const { result: createResult } = renderHook(() => useCreateUnit(), {
-				wrapper
-			})
+			// prettier-ignore
+			const { result: createResult } = renderHook(
+				() => useCreateUnit(),
+				{
+					wrapper
+				}
+			)
 
 			const newUnit: CreateUnitInput = {
 				propertyId,
@@ -507,23 +538,24 @@ describe('Units CRUD Integration Tests', () => {
 				bedrooms: 2,
 				bathrooms: 1,
 				squareFeet: 900,
-				rent: 2200,
+				rent: 220,
 				status: 'VACANT'
 			}
 
-			let createdUnit: Unit | undefined
-			await waitFor(async () => {
-				createdUnit = await createResult.current.mutateAsync(newUnit)
-			})
+			const createdUnit = await createResult.current.mutateAsync(newUnit)
 
 			expect(createdUnit).toBeDefined()
 			expect(createdUnit!.version).toBe(1)
 			createdUnitIds.push(createdUnit!.id)
 
 			// 2. READ
-			const { result: readResult } = renderHook(() => useUnit(createdUnit!.id), {
-				wrapper
-			})
+			// prettier-ignore
+			const { result: readResult } = renderHook(
+				() => useUnit(createdUnit!.id),
+				{
+					wrapper
+				}
+			)
 
 			await waitFor(() => {
 				expect(readResult.current.isSuccess).toBe(true)
@@ -532,21 +564,22 @@ describe('Units CRUD Integration Tests', () => {
 			expect(readResult.current.data!.unitNumber).toBe(newUnit.unitNumber)
 
 			// 3. UPDATE
-			const { result: updateResult } = renderHook(() => useUpdateUnit(), {
-				wrapper
-			})
+			// prettier-ignore
+			const { result: updateResult } = renderHook(
+				() => useUpdateUnit(),
+				{
+					wrapper
+				}
+			)
 
 			const updates: UpdateUnitInput = {
 				bedrooms: 3,
 				rent: 2500
 			}
 
-			let updatedUnit: Unit | undefined
-			await waitFor(async () => {
-				updatedUnit = await updateResult.current.mutateAsync({
-					id: createdUnit!.id,
-					data: updates
-				})
+			const updatedUnit = await updateResult.current.mutateAsync({
+				id: createdUnit!.id,
+				data: updates
 			})
 
 			expect(updatedUnit!.bedrooms).toBe(3)
@@ -554,17 +587,20 @@ describe('Units CRUD Integration Tests', () => {
 			expect(updatedUnit!.version).toBe(2)
 
 			// 4. DELETE
-			const { result: deleteResult } = renderHook(() => useDeleteUnit(), {
-				wrapper
-			})
+			// prettier-ignore
+			const { result: deleteResult } = renderHook(
+				() => useDeleteUnit(),
+				{
+					wrapper
+				}
+			)
 
-			await waitFor(async () => {
-				await deleteResult.current.mutateAsync(createdUnit!.id)
-			})
+			await deleteResult.current.mutateAsync(createdUnit!.id)
 
 			createdUnitIds = createdUnitIds.filter(id => id !== createdUnit!.id)
 
 			// Verify deletion
+			// prettier-ignore
 			const { result: verifyResult } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{ wrapper }
@@ -606,10 +642,8 @@ describe('Units CRUD Integration Tests', () => {
 				status: 'VACANT'
 			}
 
-			await waitFor(async () => {
-				const created = await createResult.current.mutateAsync(newUnit)
-				createdUnitIds.push(created.id)
-			})
+			const created = await createResult.current.mutateAsync(newUnit)
+			createdUnitIds.push(created.id)
 
 			// List should be invalidated and refetch
 			await waitFor(() => {

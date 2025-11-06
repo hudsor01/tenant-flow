@@ -19,11 +19,56 @@ import { z } from 'zod'
 
 // US State codes - matches USState type from shared package
 const usStateEnum = z.enum([
-	'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-	'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-	'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-	'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-	'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+	'AL',
+	'AK',
+	'AZ',
+	'AR',
+	'CA',
+	'CO',
+	'CT',
+	'DE',
+	'FL',
+	'GA',
+	'HI',
+	'ID',
+	'IL',
+	'IN',
+	'IA',
+	'KS',
+	'KY',
+	'LA',
+	'ME',
+	'MD',
+	'MA',
+	'MI',
+	'MN',
+	'MS',
+	'MO',
+	'MT',
+	'NE',
+	'NV',
+	'NH',
+	'NJ',
+	'NM',
+	'NY',
+	'NC',
+	'ND',
+	'OH',
+	'OK',
+	'OR',
+	'PA',
+	'RI',
+	'SC',
+	'SD',
+	'TN',
+	'TX',
+	'UT',
+	'VT',
+	'VA',
+	'WA',
+	'WV',
+	'WI',
+	'WY',
 	'DC'
 ])
 
@@ -67,8 +112,8 @@ const rentDueDay = z
 
 // Lease template context schema
 const leaseTemplateContextSchema = z.object({
-	landlordName: z.string().min(1, 'Landlord name is required'),
-	landlordAddress: z.string().min(1, 'Landlord address is required'),
+	ownerName: z.string().min(1, 'owner name is required'),
+	ownerAddress: z.string().min(1, 'owner address is required'),
 	tenantNames: z.string().min(1, 'Tenant name(s) are required'),
 	propertyAddress: z.string().min(1, 'Property address is required'),
 	propertyState: usStateEnum,
@@ -77,10 +122,14 @@ const leaseTemplateContextSchema = z.object({
 	rentDueDay: rentDueDay,
 	rentDueDayOrdinal: z.string().min(1, 'Rent due day ordinal is required'),
 	securityDepositCents: positiveMoneyAmount,
-	securityDepositFormatted: z.string().min(1, 'Formatted security deposit is required'),
+	securityDepositFormatted: z
+		.string()
+		.min(1, 'Formatted security deposit is required'),
 	leaseStartDateISO: isoDateTimeString,
 	leaseEndDateISO: isoDateTimeString.optional(),
-	leaseStartDateFormatted: z.string().min(1, 'Formatted start date is required'),
+	leaseStartDateFormatted: z
+		.string()
+		.min(1, 'Formatted start date is required'),
 	leaseEndDateFormatted: z.string().optional(),
 	lateFeeAmountCents: positiveMoneyAmount.optional(),
 	lateFeeAmountFormatted: z.string().optional(),
@@ -111,7 +160,9 @@ const leaseTemplatePreviewRequestSchema = z.object({
  * }
  * ```
  */
-export class LeaseTemplatePreviewDto extends createZodDto(leaseTemplatePreviewRequestSchema) {}
+export class LeaseTemplatePreviewDto extends createZodDto(
+	leaseTemplatePreviewRequestSchema
+) {}
 
 // Export Zod schema for testing purposes
 export { leaseTemplatePreviewRequestSchema }

@@ -30,6 +30,7 @@ import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
 import { createHmac } from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
+import { SecurityService } from '../../security/security.service'
 import type {
 	CreateBillingPortalRequest,
 	CreateCheckoutSessionRequest,
@@ -37,10 +38,11 @@ import type {
 	CreatePaymentIntentRequest,
 	CreateSetupIntentRequest,
 	EmbeddedCheckoutRequest,
-	// InvoiceWithSubscription,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
 import { StripeService } from './stripe.service'
+import { StripeOwnerService } from './stripe-owner.service'
+import { StripeTenantService } from './stripe-tenant.service'
 
 /**
  * Production-Grade Stripe Integration Controller
@@ -61,7 +63,10 @@ export class StripeController {
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly stripeService: StripeService,
-		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+		private readonly stripeOwnerService: StripeOwnerService,
+		private readonly stripeTenantService: StripeTenantService,
+		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+		private readonly securityService: SecurityService
 	) {
 		this.stripe = this.stripeService.getStripe()
 	}
@@ -125,15 +130,12 @@ export class StripeController {
 		}
 
 		// Validate and sanitize metadata inputs to prevent SQL injection
-		const sanitizedTenantId = this.sanitizeMetadataValue(
-			body.tenantId,
-			'tenant_id'
-		)
+		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
 		const sanitizedPropertyId = body.propertyId
-			? this.sanitizeMetadataValue(body.propertyId, 'property_id')
+			? this.securityService.sanitizeInput(body.propertyId)
 			: undefined
 		const sanitizedSubscriptionType = body.subscriptionType
-			? this.sanitizeMetadataValue(body.subscriptionType, 'subscription_type')
+			? this.securityService.sanitizeInput(body.subscriptionType)
 			: undefined
 
 		const currency = body.currency ?? 'usd'
@@ -182,6 +184,11 @@ export class StripeController {
 
 			return response
 		} catch (error) {
+			// Re-throw validation errors (BadRequestException) directly
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
 			this.logger.error('Payment Intent creation failed', {
 				error: error instanceof Error ? error.message : String(error),
 				type: (error as Stripe.errors.StripeError).type || 'unknown',
@@ -222,6 +229,77 @@ export class StripeController {
 	}
 
 	/**
+	 * Ensure property owner Stripe customer (platform subscription onboarding)
+	 */
+	@Post('customers/owner')
+	@UseGuards(JwtAuthGuard)
+	@SkipSubscriptionCheck()
+	async ensureOwnerCustomer(
+		@Request() req: AuthenticatedRequest,
+		@Body() body: { email?: string; name?: string }
+	) {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		// Validate email format if provided
+		let sanitizedEmail: string | null = null
+		let sanitizedName: string | null = null
+
+		if (body.email) {
+			const trimmedEmail = body.email.trim()
+			if (!this.securityService.validateEmail(trimmedEmail)) {
+				throw new BadRequestException('Invalid email format')
+			}
+			sanitizedEmail = trimmedEmail
+		}
+
+		if (body.name) {
+			sanitizedName = this.securityService.sanitizeInput(body.name.trim())
+		}
+
+		try {
+			const { customer, status } =
+				await this.stripeOwnerService.ensureOwnerCustomer({
+					userId,
+					email: sanitizedEmail,
+					name: sanitizedName
+				})
+
+			this.logger.log('Owner Stripe customer ensured', {
+				userId,
+				customerId: customer.id,
+				status
+			})
+
+			return {
+				customerId: customer.id,
+				email: customer.email ?? null,
+				name: customer.name ?? null,
+				status,
+				created: status === 'created'
+			}
+		} catch (error) {
+			this.logger.error('Failed to ensure owner Stripe customer', {
+				userId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+
+			if (
+				error instanceof BadRequestException ||
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException ||
+				error instanceof ForbiddenException
+			) {
+				throw error
+			}
+
+			this.handleStripeError(error as Stripe.errors.StripeError)
+		}
+	}
+
+	/**
 	 * Setup Intent for Saving Payment Methods
 	 * Official Pattern: Setup Intent creation for future payments
 	 */
@@ -234,39 +312,29 @@ export class StripeController {
 		}
 
 		// Sanitize metadata values
-		const sanitizedTenantId = this.sanitizeMetadataValue(
-			body.tenantId,
-			'tenant_id'
-		)
+		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
 
 		try {
 			let customerId = body.customerId
 
 			// Create customer if not provided or if it's a test customer
 			if (!customerId || customerId.startsWith('cus_test')) {
-				this.logger.log('Creating new Stripe customer', {
-					tenantId: body.tenantId
-				})
-
-				const customer = await this.stripe.customers.create(
-					{
-						...(body.customerEmail !== undefined && {
-							email: body.customerEmail
-						}),
-						...(body.customerName !== undefined && { name: body.customerName }),
+				const { customer, status } =
+					await this.stripeTenantService.ensureStripeCustomer({
+						tenantId: body.tenantId,
+						email: body.customerEmail ?? null,
+						name: body.customerName ?? null,
 						metadata: {
 							tenant_id: sanitizedTenantId,
 							created_from: 'setup_intent'
 						}
-					},
-					{
-						idempotencyKey: this.generateIdempotencyKey('cus', body.tenantId)
-					}
-				)
+					})
 
 				customerId = customer.id
-				this.logger.log(`Created Stripe customer: ${customerId}`, {
-					tenantId: body.tenantId
+				this.logger.log('Tenant Stripe customer ensured for setup intent', {
+					tenantId: body.tenantId,
+					customerId,
+					status
 				})
 			}
 
@@ -331,53 +399,24 @@ export class StripeController {
 				throw new NotFoundException('Tenant record not found')
 			}
 
-			let customerId = tenant.stripe_customer_id
-
-			// Create Stripe customer if doesn't exist
-			if (!customerId) {
-				const { data: user } = await this.supabaseService
-					.getAdminClient()
-					.from('users')
-					.select('email, firstName, lastName')
-					.eq('id', userId)
-					.single()
-
-				const customerName = user
-					? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-					: ''
-
-				const customer = await this.stripe.customers.create(
-					{
-						...(user?.email && { email: user.email }),
-						...(customerName && { name: customerName }),
-						metadata: {
-							tenant_id: tenant.id,
-							user_id: userId
-						}
-					},
-					{
-						idempotencyKey: this.generateIdempotencyKey(
-							'cus',
-							userId,
-							tenant.id
-						)
-					}
-				)
-
-				customerId = customer.id
-
-				// Update tenant record with Stripe customer ID
-				await this.supabaseService
-					.getAdminClient()
-					.from('tenant')
-					.update({ stripe_customer_id: customerId })
-					.eq('id', tenant.id)
-
-				this.logger.log(`Created Stripe customer for tenant: ${customerId}`, {
+			const { customer, status } =
+				await this.stripeTenantService.ensureStripeCustomer({
 					tenantId: tenant.id,
-					userId
+					userId,
+					metadata: {
+						tenant_id: tenant.id,
+						created_from: 'tenant_portal'
+					}
 				})
-			}
+
+			const customerId = customer.id
+
+			this.logger.log('Tenant Stripe customer ensured for payment method', {
+				tenantId: tenant.id,
+				userId,
+				customerId,
+				status
+			})
 
 			// Attach payment method to customer
 			const paymentMethod = await this.stripe.paymentMethods.attach(
@@ -599,12 +638,9 @@ export class StripeController {
 		}
 
 		// Sanitize metadata values
-		const sanitizedTenantId = this.sanitizeMetadataValue(
-			body.tenantId,
-			'tenant_id'
-		)
+		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
 		const sanitizedSubscriptionType = body.subscriptionType
-			? this.sanitizeMetadataValue(body.subscriptionType, 'subscription_type')
+			? this.securityService.sanitizeInput(body.subscriptionType)
 			: undefined
 
 		try {
@@ -860,7 +896,10 @@ export class StripeController {
 	 */
 	@Post('create-checkout-session')
 	@SetMetadata('isPublic', true)
-	async createCheckoutSession(@Body() body: CreateCheckoutSessionRequest) {
+	async createCheckoutSession(
+		@Request() req: AuthenticatedRequest,
+		@Body() body: CreateCheckoutSessionRequest
+	) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.productName) {
 			throw new BadRequestException('productName is required')
@@ -883,18 +922,11 @@ export class StripeController {
 		}
 
 		// Sanitize all metadata values BEFORE try block to return proper 400 errors
-		const sanitizedTenantId = this.sanitizeMetadataValue(
-			body.tenantId,
-			'tenant_id'
+		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
+		const sanitizedProductName = this.securityService.sanitizeInput(
+			body.productName
 		)
-		const sanitizedProductName = this.sanitizeMetadataValue(
-			body.productName,
-			'product_name'
-		)
-		const sanitizedPriceId = this.sanitizeMetadataValue(
-			body.priceId,
-			'price_id'
-		)
+		const sanitizedPriceId = this.securityService.sanitizeInput(body.priceId)
 
 		this.logger.log('Creating checkout session', {
 			productName: body.productName,
@@ -913,6 +945,42 @@ export class StripeController {
 				}
 			]
 
+			let ownerCustomerId: string | undefined
+			let ownerStatus: 'existing' | 'created' | undefined
+
+			if (req.user?.id) {
+				try {
+					// Validate email format if provided
+					let sanitizedCustomerEmail: string | null = null
+					if (body.customerEmail) {
+						const trimmedEmail = body.customerEmail.trim()
+						if (!this.securityService.validateEmail(trimmedEmail)) {
+							throw new BadRequestException('Invalid email format')
+						}
+						sanitizedCustomerEmail = trimmedEmail
+					}
+
+					const { customer, status } =
+						await this.stripeOwnerService.ensureOwnerCustomer({
+							userId: req.user.id,
+							email: sanitizedCustomerEmail
+						})
+					ownerCustomerId = customer.id
+					ownerStatus = status
+				} catch (ownerError) {
+					this.logger.warn(
+						'Failed to resolve owner Stripe customer for checkout session',
+						{
+							userId: req.user.id,
+							error:
+								ownerError instanceof Error
+									? ownerError.message
+									: String(ownerError)
+						}
+					)
+				}
+			}
+
 			const session = await this.stripe.checkout.sessions.create({
 				payment_method_types: ['card'],
 				line_items: lineItems,
@@ -920,7 +988,11 @@ export class StripeController {
 				success_url: `${body.domain}/success?session_id={CHECKOUT_SESSION_ID}`,
 				cancel_url: `${body.domain}/cancel`,
 				// Following official Stripe pattern: customer identification via email
-				...(body.customerEmail && { customer_email: body.customerEmail }),
+				...(ownerCustomerId
+					? { customer: ownerCustomerId }
+					: body.customerEmail
+						? { customer_email: body.customerEmail }
+						: {}),
 				// P0: Automatic tax calculation (legal requirement)
 				automatic_tax: { enabled: true },
 				// P1: Free trial support (14-day trial for subscriptions)
@@ -933,13 +1005,23 @@ export class StripeController {
 					tenant_id: sanitizedTenantId,
 					product_name: sanitizedProductName,
 					price_id: sanitizedPriceId,
+					...(ownerCustomerId && {
+						owner_customer_id: ownerCustomerId,
+						...(ownerStatus && {
+							owner_customer_status: ownerStatus
+						})
+					}),
 					...(body.customerEmail && { customer_email: body.customerEmail })
 				}
 			})
 
 			this.logger.log('Checkout session created successfully', {
 				sessionId: session.id,
-				url: session.url
+				url: session.url,
+				...(ownerCustomerId && {
+					ownerCustomerId,
+					ownerStatus
+				})
 			})
 
 			return { url: session.url || '', session_id: session.id }
@@ -1115,14 +1197,14 @@ export class StripeController {
 	 */
 	@Post('invite-tenant')
 	async inviteTenant(
-		@Body() body: { email: string; landlordId: string; leaseId?: string }
+		@Body() body: { email: string; ownerId: string; leaseId?: string }
 	) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.email) {
 			throw new BadRequestException('email is required')
 		}
-		if (!body.landlordId) {
-			throw new BadRequestException('landlordId is required')
+		if (!body.ownerId) {
+			throw new BadRequestException('ownerId is required')
 		}
 
 		// Validate email format
@@ -1151,7 +1233,7 @@ export class StripeController {
 					email: body.email,
 					email_confirm: false, // User must confirm via invite link
 					user_metadata: {
-						invited_by: body.landlordId,
+						invited_by: body.ownerId,
 						invited_at: new Date().toISOString(),
 						...(body.leaseId && { lease_id: body.leaseId })
 					}
@@ -1271,18 +1353,15 @@ export class StripeController {
 		}
 
 		// Sanitize metadata values
-		const sanitizedTenantId = this.sanitizeMetadataValue(
-			body.tenantId,
-			'tenant_id'
-		)
+		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
 		const sanitizedPropertyId = body.propertyId
-			? this.sanitizeMetadataValue(body.propertyId, 'property_id')
+			? this.securityService.sanitizeInput(body.propertyId)
 			: undefined
+		const sanitizedConnectedAccountId = this.securityService.sanitizeInput(
+			body.connectedAccountId
+		)
 		const sanitizedPropertyOwnerAccount = body.propertyOwnerAccount
-			? this.sanitizeMetadataValue(
-					body.propertyOwnerAccount,
-					'property_owner_account'
-				)
+			? this.securityService.sanitizeInput(body.propertyOwnerAccount)
 			: undefined
 
 		try {
@@ -1302,11 +1381,11 @@ export class StripeController {
 					}
 				},
 				{
-					stripeAccount: body.connectedAccountId, // Property owner account
+					stripeAccount: sanitizedConnectedAccountId, // Property owner account
 					idempotencyKey: this.generateIdempotencyKey(
 						'pi_connected',
 						body.tenantId,
-						body.connectedAccountId
+						sanitizedConnectedAccountId
 					)
 				}
 			)
@@ -1314,7 +1393,7 @@ export class StripeController {
 			this.logger.log(`Connected payment created: ${paymentIntent.id}`, {
 				amount: body.amount,
 				platform_fee: body.platformFee,
-				connected_account: body.connectedAccountId
+				connected_account: sanitizedConnectedAccountId
 			})
 
 			return {
@@ -1498,26 +1577,28 @@ export class StripeController {
 		const cacheKey = 'stripe:products'
 
 		// Try cache first (5 minute TTL for public pricing data)
-		const cached = await this.cacheManager.get(cacheKey) as {
-			success: boolean
-			products: Array<{
-				id: string
-				name: string
-				description: string | null
-				active: boolean
-				metadata: Stripe.Metadata
-				prices: Array<{
-					id: string
-					unit_amount: number
-					currency: string
-					recurring: {
-						interval: 'month' | 'year'
-						interval_count: number
-					} | null
-				}>
-				default_price: string | Stripe.Price | null | undefined
-			}>
-		} | undefined
+		const cached = (await this.cacheManager.get(cacheKey)) as
+			| {
+					success: boolean
+					products: Array<{
+						id: string
+						name: string
+						description: string | null
+						active: boolean
+						metadata: Stripe.Metadata
+						prices: Array<{
+							id: string
+							unit_amount: number
+							currency: string
+							recurring: {
+								interval: 'month' | 'year'
+								interval_count: number
+							} | null
+						}>
+						default_price: string | Stripe.Price | null | undefined
+					}>
+			  }
+			| undefined
 		if (cached) {
 			this.logger.debug('Returning cached products')
 			return cached
@@ -1625,10 +1706,12 @@ export class StripeController {
 		const cacheKey = 'stripe:prices'
 
 		// Try cache first (5 minute TTL)
-		const cached = await this.cacheManager.get(cacheKey) as {
-			success: boolean
-			prices: Stripe.Price[]
-		} | undefined
+		const cached = (await this.cacheManager.get(cacheKey)) as
+			| {
+					success: boolean
+					prices: Stripe.Price[]
+			  }
+			| undefined
 		if (cached) {
 			this.logger.debug('Returning cached prices')
 			return cached
@@ -1832,53 +1915,6 @@ export class StripeController {
 			this.logger.error('Failed to invalidate pricing cache', error)
 			throw new InternalServerErrorException('Failed to invalidate cache')
 		}
-	}
-
-	/**
-	 * Sanitize metadata values to prevent injection attacks
-	 * CLAUDE.md compliant: Security-first approach
-	 * Allows apostrophes for valid business names like "Tenant's Premium Plan"
-	 */
-	private sanitizeMetadataValue(value: string, fieldName: string): string {
-		if (!value || typeof value !== 'string') {
-			throw new BadRequestException(
-				`Invalid ${fieldName}: must be a non-empty string`
-			)
-		}
-
-		if (value.length > 500) {
-			throw new BadRequestException(
-				`${fieldName} must be less than 500 characters`
-			)
-		}
-
-		const normalizedValue = value.normalize('NFKC')
-
-		// Check for control characters using Unicode ranges
-		const hasControlChars = [...normalizedValue].some(char => {
-			const code = char.charCodeAt(0)
-			return (code >= 0x00 && code <= 0x1f) || code === 0x7f
-		})
-
-		if (hasControlChars) {
-			throw new BadRequestException(`${fieldName} contains control characters`)
-		}
-
-		// Sanitize dangerous characters but preserve apostrophes for valid names like "Tenant's Premium Plan"
-		// Remove: < > " ` ; & \ but keep single quotes (apostrophes)
-		const sanitized = normalizedValue
-			.trim()
-			.replace(/[<>"`;&\\]/g, '') // Removed ' from the regex to allow apostrophes
-			.replace(/[\r\n\t]+/g, ' ')
-			.replace(/\s{2,}/g, ' ')
-
-		if (!sanitized) {
-			throw new BadRequestException(
-				`Invalid ${fieldName}: contains only invalid characters`
-			)
-		}
-
-		return sanitized
 	}
 
 	/**

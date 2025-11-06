@@ -3,7 +3,7 @@
  * Phase 4: Autopay Subscriptions
  *
  * Handles recurring rent payment subscriptions with Stripe Billing.
- * Uses destination charges to route payments to landlord Stripe Connect accounts.
+ * Uses destination charges to route payments to owner Stripe Connect accounts.
  */
 
 import {
@@ -46,7 +46,8 @@ export class SubscriptionsService {
 		const { data: lease, error: leaseError } = await this.supabase
 			.getAdminClient()
 			.from('lease')
-			.select(`
+			.select(
+				`
 				id,
 				tenantId,
 				propertyId,
@@ -56,7 +57,8 @@ export class SubscriptionsService {
 				endDate,
 				property:propertyId(id, name, ownerId),
 				unit:unitId(id, unitNumber)
-			`)
+			`
+			)
 			.eq('id', request.leaseId)
 			.eq('tenantId', tenantId)
 			.single()
@@ -65,29 +67,29 @@ export class SubscriptionsService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		// Get landlord ID from property
+		// Get owner ID from property
 		if (!lease.property?.ownerId) {
 			throw new NotFoundException('Property owner not found for lease')
 		}
-		const landlordId = lease.property.ownerId
+		const ownerId = lease.property.ownerId
 
-		// Get landlord's Stripe Connect account
+		// Get owner's Stripe Connect account
 		const { data: connectedAccount, error: accountError } = await this.supabase
 			.getAdminClient()
 			.from('connected_account')
 			.select('*')
-			.eq('userId', landlordId)
+			.eq('userId', ownerId)
 			.single()
 
 		if (accountError || !connectedAccount) {
 			throw new BadRequestException(
-				'Landlord has not completed Stripe Connect onboarding'
+				'Owner has not completed Stripe Connect onboarding'
 			)
 		}
 
 		if (!connectedAccount.chargesEnabled) {
 			throw new BadRequestException(
-				'Landlord Stripe account is not enabled for charges'
+				'Owner Stripe account is not enabled for charges'
 			)
 		}
 
@@ -190,7 +192,7 @@ export class SubscriptionsService {
 			},
 			metadata: {
 				tenantId,
-				landlordId,
+				ownerId,
 				leaseId: request.leaseId,
 				paymentMethodId: request.paymentMethodId
 			}
@@ -203,10 +205,10 @@ export class SubscriptionsService {
 			.insert({
 				leaseId: request.leaseId,
 				tenantId,
-				landlordId,
+				ownerId: ownerId, // <-- use ownerId to match DB types
 				stripeSubscriptionId: subscription.id,
 				stripeCustomerId,
-				amount: Math.round(request.amount * 100), // Store in cents
+				amount: Math.round(request.amount * 100),
 				currency: request.currency || 'usd',
 				dueDay: request.billingDayOfMonth,
 				status: subscription.status === 'active' ? 'active' : 'paused',
@@ -238,7 +240,7 @@ export class SubscriptionsService {
 			.from('rent_subscription')
 			.select('*')
 			.eq('id', subscriptionId)
-			.or(`tenantId.eq.${userId},landlordId.eq.${userId}`)
+			.or(`tenantId.eq.${userId},ownerId.eq.${userId}`) // <-- ownerId here
 			.single()
 
 		if (error || !data) {
@@ -249,14 +251,14 @@ export class SubscriptionsService {
 	}
 
 	/**
-	 * List subscriptions for a user (tenant or landlord)
+	 * List subscriptions for a user (tenant or owner)
 	 */
 	async listSubscriptions(userId: string): Promise<RentSubscriptionResponse[]> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('rent_subscription')
 			.select('*')
-			.or(`tenantId.eq.${userId},landlordId.eq.${userId}`)
+			.or(`tenantId.eq.${userId},ownerId.eq.${userId}`) // <-- ownerId here
 			.order('createdAt', { ascending: false })
 
 		if (error) {
@@ -497,7 +499,7 @@ export class SubscriptionsService {
 			id: data.id as string,
 			leaseId: data.leaseId as string,
 			tenantId: data.tenantId as string,
-			landlordId: data.landlordId as string,
+			ownerId: data.ownerId as string, // <-- map ownerId -> ownerId for API
 			stripeSubscriptionId: data.stripeSubscriptionId as string,
 			stripeCustomerId: data.stripeCustomerId as string,
 			paymentMethodId: '', // Not stored in database - would need to query Stripe
