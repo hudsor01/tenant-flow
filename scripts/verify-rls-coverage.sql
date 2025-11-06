@@ -56,6 +56,7 @@ DECLARE
   ];
   table_name TEXT;
   rls_enabled BOOLEAN;
+  missing_rls_tables TEXT[] := ARRAY[]::TEXT[];
 BEGIN
   RAISE NOTICE 'Checking RLS status for critical tables...';
 
@@ -66,13 +67,28 @@ BEGIN
     WHERE schemaname = 'public' AND tablename = table_name;
 
     IF rls_enabled IS NULL THEN
+      missing_rls_tables := array_append(
+        missing_rls_tables,
+        format('%s (table does not exist)', table_name)
+      );
       RAISE WARNING '  ⚠ Table "%" does not exist', table_name;
     ELSIF rls_enabled = false THEN
+      missing_rls_tables := array_append(
+        missing_rls_tables,
+        format('%s (RLS disabled)', table_name)
+      );
       RAISE WARNING '  ✗ Table "%" has RLS DISABLED', table_name;
     ELSE
       RAISE NOTICE '  ✓ Table "%" has RLS enabled', table_name;
     END IF;
   END LOOP;
+
+  -- Fail if any critical tables are missing or have RLS disabled
+  IF array_length(missing_rls_tables, 1) IS NOT NULL THEN
+    RAISE EXCEPTION 'RLS coverage check FAILED: % table(s) missing or have RLS disabled: %',
+      array_length(missing_rls_tables, 1),
+      array_to_string(missing_rls_tables, ', ');
+  END IF;
 END $$;
 
 -- ============================================================================
