@@ -239,6 +239,7 @@ describe('RLS: Tenant Isolation', () => {
 			expect(data).toBeDefined()
 
 			if (data) {
+				tenantAEmergencyContactId = data.id
 				testData.emergencyContacts.push(data.id)
 			}
 		})
