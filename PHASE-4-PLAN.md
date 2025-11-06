@@ -31,29 +31,29 @@ Phase 4 focuses on **production readiness finalization**: applying security migr
 
 #### Subtasks
 
-**4.1.1: Apply Payment RLS Migration**
+##### 4.1.1: Apply Payment RLS Migration
 - **File**: `supabase/migrations/20250215120000_add_rent_payment_rls.sql`
 - **Command**: `doppler run -- psql $DIRECT_URL -f supabase/migrations/20250215120000_add_rent_payment_rls.sql`
 - **Verification**: Check policies with `SELECT * FROM pg_policies WHERE tablename = 'rent_payment';`
 - **Critical**: Service role enforcement for INSERT/UPDATE
 
-**4.1.2: Apply Payment Method RLS Migration**
+##### 4.1.2: Apply Payment Method RLS Migration
 - **File**: `supabase/migrations/20250215120001_add_payment_method_rls.sql`
 - **Command**: `doppler run -- psql $DIRECT_URL -f supabase/migrations/20250215120001_add_payment_method_rls.sql`
 - **Verification**: Check policies with `SELECT * FROM pg_policies WHERE tablename = 'tenant_payment_method';`
 - **Critical**: PCI DSS compliance
 
-**4.1.3: Apply Notification Preferences Migration**
+##### 4.1.3: Apply Notification Preferences Migration
 - **File**: `supabase/migrations/20250216000000_add_notification_preferences.sql`
 - **Command**: `doppler run -- psql $DIRECT_URL -f supabase/migrations/20250216000000_add_notification_preferences.sql`
 - **Verification**: Check column with `\d tenant`
 
-**4.1.4: Verify Emergency Contact Migration**
+##### 4.1.4: Verify Emergency Contact Migration
 - **Status**: Already applied - verification only
 - **Command**: `SELECT * FROM pg_tables WHERE tablename = 'tenant_emergency_contact';`
 - **Expected**: Table exists with RLS enabled
 
-**4.1.5: Verify Custom Access Token Auth Hook**
+##### 4.1.5: Verify Custom Access Token Auth Hook
 - **Migration**: `supabase/migrations/20251031_auth_hook_custom_claims.sql`
 - **Status**: Migration likely applied, hook enablement needs verification
 - **Local Development**: Already enabled in `supabase/config.toml`

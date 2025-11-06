@@ -41,10 +41,9 @@ export default function TenantPaymentPage() {
 	const createRentPayment = useCreateRentPayment()
 
 	// Get real payment status from backend
-	const {
-		data: paymentStatus,
-		isLoading: statusLoading
-	} = usePaymentStatus(lease?.tenantId ?? '')
+	const { data: paymentStatus, isLoading: statusLoading } = usePaymentStatus(
+		lease?.tenantId ?? ''
+	)
 
 	const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null)
 
@@ -81,10 +80,16 @@ export default function TenantPaymentPage() {
 		}
 
 		try {
+			// Use outstanding balance from payment status if available, otherwise fall back to lease rent amount
+			const amountInCents =
+				paymentStatus && typeof paymentStatus.outstandingBalance === 'number'
+					? Math.max(0, paymentStatus.outstandingBalance) // Already in cents from backend
+					: Math.round(lease.rentAmount * 100) // Convert dollars to cents
+
 			const response = await createRentPayment.mutateAsync({
 				tenantId: lease.tenantId,
 				leaseId: lease.id,
-				amount: Math.round(lease.rentAmount * 100), // Convert to cents
+				amount: amountInCents,
 				paymentMethodId: selectedMethodId
 			})
 
@@ -108,7 +113,8 @@ export default function TenantPaymentPage() {
 				}
 			})
 			toast.error('Payment failed', {
-				description: 'Please try again or contact support if the issue persists.'
+				description:
+					'Please try again or contact support if the issue persists.'
 			})
 		}
 	}
@@ -174,12 +180,15 @@ export default function TenantPaymentPage() {
 					<div className="flex items-center gap-3">
 						{statusLoading || !paymentStatus ? (
 							<Skeleton className="h-8 w-32" />
-						) : paymentStatus.status === 'OVERDUE' || paymentStatus.status === 'DUE' ? (
+						) : paymentStatus.status === 'OVERDUE' ||
+						  paymentStatus.status === 'DUE' ? (
 							<>
 								<AlertCircle className="size-8 text-destructive" />
 								<div>
 									<p className="text-lg font-semibold text-destructive">
-										{paymentStatus.status === 'OVERDUE' ? 'Overdue' : 'Payment Due'}
+										{paymentStatus.status === 'OVERDUE'
+											? 'Overdue'
+											: 'Payment Due'}
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">
 										Please pay now
@@ -267,8 +276,8 @@ export default function TenantPaymentPage() {
 									<CreditCard className="size-5 text-primary" />
 									<div className="text-left">
 										<p className="font-medium">
-												{method.brand || 'Card'} •••• {method.last4}
-											</p>
+											{method.brand || 'Card'} •••• {method.last4}
+										</p>
 									</div>
 								</div>
 								{method.isDefault && (

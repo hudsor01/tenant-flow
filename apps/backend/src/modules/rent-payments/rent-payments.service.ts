@@ -807,6 +807,9 @@ export class RentPaymentsService {
 	 * Returns the current balance, next due date, and payment status
 	 *
 	 * Task 2.4: Payment Status Tracking
+	 * 
+	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
+	 * @returns rentAmount - Monthly rent in DOLLARS
 	 */
 	async getCurrentPaymentStatus(tenantId: string): Promise<{
 		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
@@ -842,12 +845,13 @@ export class RentPaymentsService {
 				.limit(1)
 				.maybeSingle()
 
-			// Get any unpaid payments (DUE, PENDING, FAILED)
+			// Get any unpaid payments (PENDING, FAILED, REQUIRES_ACTION)
+			// Note: SUCCEEDED and CANCELLED are considered "paid/resolved"
 			const { data: unpaidPayments } = await adminClient
 				.from('rent_payment')
 				.select('id, status, dueDate, amount')
 				.eq('leaseId', lease.id)
-				.in('status', ['DUE', 'PENDING', 'FAILED'])
+				.in('status', ['PENDING', 'FAILED', 'REQUIRES_ACTION'])
 				.order('dueDate', { ascending: true })
 
 			const now = new Date()
@@ -859,15 +863,13 @@ export class RentPaymentsService {
 			let nextDueDate: string | null = null
 			let isOverdue = false
 
-			if (unpaidPayments && unpaidPayments.length > 0) {
-				// Sum up all unpaid payments amounts
-				outstandingBalance = unpaidPayments.reduce(
-					(sum: number, payment: { amount: number | null }) =>
-						sum + (payment.amount || 0),
-					0
-				)
-
-				// Get the earliest due date
+		if (unpaidPayments && unpaidPayments.length > 0) {
+			// Sum up all unpaid payments amounts (already in cents from database)
+			outstandingBalance = unpaidPayments.reduce(
+				(sum: number, payment: { amount: number | null }) =>
+					sum + (payment.amount || 0),
+				0
+			)				// Get the earliest due date
 				const earliestDue = unpaidPayments[0]
 				if (earliestDue) {
 					nextDueDate = earliestDue.dueDate ?? null
