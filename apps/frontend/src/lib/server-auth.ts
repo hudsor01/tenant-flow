@@ -9,48 +9,61 @@ import { createServerClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import {
+	SUPABASE_URL,
+	SUPABASE_PUBLISHABLE_KEY
+} from '@repo/shared/config/supabase'
 
 /**
  * Get authenticated user session
  *
- * IMPORTANT: This assumes middleware already validated auth
- * If middleware redirected unauthenticated users, this will always have a user
+ * SECURITY: Uses getUser() to validate the session with Supabase Auth server
+ * This prevents using potentially-tampered user data from cookies
  *
  * @returns Authenticated user object and access token
- * @throws Redirects to /login if no session (fallback - middleware should prevent this)
+ * @throws Redirects to /login if no valid session
  */
 export async function requireSession(): Promise<{
 	user: User
 	accessToken: string
 }> {
 	const cookieStore = await cookies()
-	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-		{
-			cookies: {
-				getAll: () => cookieStore.getAll(),
-				setAll: cookiesToSet => {
-					cookiesToSet.forEach(({ name, value, options }) => {
-						cookieStore.set(name, value, options)
-					})
-				}
+	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+		cookies: {
+			getAll: () => cookieStore.getAll(),
+			setAll: cookiesToSet => {
+				cookiesToSet.forEach(({ name, value, options }) => {
+					cookieStore.set(name, value, options)
+				})
 			}
 		}
-	)
+	})
 
-	// Middleware already validated with getUser(), so we can safely use getSession() here
-	// This avoids duplicate validation calls (middleware did the work)
+	// SECURITY FIX: Use getUser() to validate the session with Supabase Auth server
+	// getSession() reads from storage (cookies) which could be tampered with
+	// getUser() validates the token by contacting Supabase Auth server
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	if (userError || !user) {
+		// User validation failed - redirect to login
+		redirect('/login')
+	}
+
+	// Now get the access token from the session
+	// We trust the token here because getUser() already validated it
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	if (!session || !session.user) {
-		// Fallback: shouldn't happen since middleware handles this
+	if (!session?.access_token) {
+		// No access token - redirect to login
 		redirect('/login')
 	}
 
-	return { user: session.user, accessToken: session.access_token }
+	return { user, accessToken: session.access_token }
 }
 
 /**
@@ -60,20 +73,16 @@ export async function requireSession(): Promise<{
  */
 export async function requirePrimaryProperty(userId: string) {
 	const cookieStore = await cookies()
-	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-		{
-			cookies: {
-				getAll: () => cookieStore.getAll(),
-				setAll: cookiesToSet => {
-					cookiesToSet.forEach(({ name, value, options }) => {
-						cookieStore.set(name, value, options)
-					})
-				}
+	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+		cookies: {
+			getAll: () => cookieStore.getAll(),
+			setAll: cookiesToSet => {
+				cookiesToSet.forEach(({ name, value, options }) => {
+					cookieStore.set(name, value, options)
+				})
 			}
 		}
-	)
+	})
 
 	const { data: property, error } = await supabase
 		.from('property')
