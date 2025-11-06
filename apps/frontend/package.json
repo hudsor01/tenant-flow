@@ -26,7 +26,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"test:unit": "vitest --run",
-		"test:integration": "vitest --config vitest.integration.config.js",
+		"test:integration": "doppler run -- sh -c 'pnpm --filter @repo/backend dev > /dev/null & BACKEND_PID=$!; trap \"kill $BACKEND_PID 2>/dev/null\" EXIT; while ! curl -s http://localhost:3001/health > /dev/null 2>&1; do sleep 1; done; vitest --config vitest.integration.config.js --run'",
 		"test:all": "pnpm test:unit && pnpm test:integration",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest --coverage",

@@ -31,7 +31,7 @@ export function SEOHead({
 		'property manager tools',
 		'real estate management platform',
 		'tenant management system',
-		'landlord software'
+		'property owner software'
 	],
 	ogImage = '/images/property-management-og.jpg',
 	canonicalUrl,

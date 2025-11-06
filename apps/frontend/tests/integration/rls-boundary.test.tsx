@@ -4,14 +4,14 @@
  * Tests that data isolation between users is properly enforced at the database level.
  * These tests verify that:
  * 1. User A cannot access User B's data
- * 2. Tenants cannot access landlord-only endpoints
+ * 2. Tenants cannot access owner-only endpoints
  * 3. Payment methods are isolated per user (PCI compliance requirement)
  *
  * REQUIREMENTS:
  * - Multiple test accounts must be created in Supabase Auth before running these tests
  * - Test accounts need environment variables in .env.test:
- *   - E2E_LANDLORD_A_EMAIL/PASSWORD
- *   - E2E_LANDLORD_B_EMAIL/PASSWORD
+ *   - E2E_owner_A_EMAIL/PASSWORD
+ *   - E2E_owner_B_EMAIL/PASSWORD
  *   - E2E_TENANT_A_EMAIL/PASSWORD
  *   - E2E_TENANT_B_EMAIL/PASSWORD
  *
@@ -83,14 +83,39 @@ async function fetchAsUser<T>(
 		headers: {
 			...options?.headers,
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${user.session!.access_token}`
+			Authorization: `Bearer ${user.session!.access_token}`,
+			'User-Agent':
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+			Origin: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000',
+			Referer: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000'
 		}
 	})
 
 	if (!response.ok) {
 		const errorText = await response.text()
+		throw new Error(`API request failed (${response.status}): ${errorText}`)
+	}
+
+	// Handle empty/no-body responses (204 No Content, 205 Reset Content)
+	if (response.status === 204 || response.status === 205) {
+		return null as T
+	}
+
+	// Check if response has content
+	const contentLength = response.headers.get('content-length')
+	if (contentLength === '0') {
+		return null as T
+	}
+
+	// Check if content-type is JSON
+	const contentType = response.headers.get('content-type')
+	if (!contentType || !contentType.includes('application/json')) {
+		const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`
+		console.warn(
+			`Non-JSON response from ${url}: status=${response.status}, content-type=${contentType}`
+		)
 		throw new Error(
-			`API request failed (${response.status}): ${errorText}`
+			`Expected JSON response from ${endpoint} but got ${contentType}. Status: ${response.status}`
 		)
 	}
 
@@ -147,28 +172,28 @@ async function expectNotFound(
 
 describe.skip('RLS Boundary Tests', () => {
 	// Test users (skip tests until these are configured)
-	let landlordA: TestUser
-	let landlordB: TestUser
+	let ownerA: TestUser
+	let ownerB: TestUser
 	let tenantA: TestUser
 	let tenantB: TestUser
 
 	// Test data IDs for cleanup
-	let landlordAPropertyId: string
-	let landlordBPropertyId: string
-	let landlordAPaymentMethodId: string
-	let landlordBPaymentMethodId: string
+	let ownerAPropertyId: string
+	let ownerBPropertyId: string
+	let ownerAPaymentMethodId: string
+	let ownerBPaymentMethodId: string
 
 	beforeAll(async () => {
 		// Authenticate all test users
 		// These accounts must exist in Supabase Auth
-		landlordA = await authenticateTestUser(
-			process.env.E2E_LANDLORD_A_EMAIL!,
-			process.env.E2E_LANDLORD_A_PASSWORD!
+		ownerA = await authenticateTestUser(
+			process.env.E2E_owner_A_EMAIL!,
+			process.env.E2E_owner_A_PASSWORD!
 		)
 
-		landlordB = await authenticateTestUser(
-			process.env.E2E_LANDLORD_B_EMAIL!,
-			process.env.E2E_LANDLORD_B_PASSWORD!
+		ownerB = await authenticateTestUser(
+			process.env.E2E_owner_B_EMAIL!,
+			process.env.E2E_owner_B_PASSWORD!
 		)
 
 		tenantA = await authenticateTestUser(
@@ -181,45 +206,53 @@ describe.skip('RLS Boundary Tests', () => {
 			process.env.E2E_TENANT_B_PASSWORD!
 		)
 
-		// Create test data for each landlord
-		const propertyA = await fetchAsUser<Property>(landlordA, '/api/v1/properties', {
-			method: 'POST',
-			body: JSON.stringify({
-				name: 'RLS Test Property A',
-				propertyType: 'APARTMENT'
-			} as CreatePropertyInput)
-		})
-		landlordAPropertyId = propertyA.id
+		// Create test data for each owner
+		const propertyA = await fetchAsUser<Property>(
+			ownerA,
+			'/api/v1/properties',
+			{
+				method: 'POST',
+				body: JSON.stringify({
+					name: 'RLS Test Property A',
+					propertyType: 'APARTMENT'
+				} as CreatePropertyInput)
+			}
+		)
+		ownerAPropertyId = propertyA.id
 
-		const propertyB = await fetchAsUser<Property>(landlordB, '/api/v1/properties', {
-			method: 'POST',
-			body: JSON.stringify({
-				name: 'RLS Test Property B',
-				propertyType: 'APARTMENT'
-			} as CreatePropertyInput)
-		})
-		landlordBPropertyId = propertyB.id
+		const propertyB = await fetchAsUser<Property>(
+			ownerB,
+			'/api/v1/properties',
+			{
+				method: 'POST',
+				body: JSON.stringify({
+					name: 'RLS Test Property B',
+					propertyType: 'APARTMENT'
+				} as CreatePropertyInput)
+			}
+		)
+		ownerBPropertyId = propertyB.id
 	})
 
 	afterAll(async () => {
 		// Cleanup: Delete test data
-		if (landlordAPropertyId) {
+		if (ownerAPropertyId) {
 			try {
-				await fetchAsUser(landlordA, `/api/v1/properties/${landlordAPropertyId}`, {
+				await fetchAsUser(ownerA, `/api/v1/properties/${ownerAPropertyId}`, {
 					method: 'DELETE'
 				})
 			} catch (error) {
-				console.warn('Failed to cleanup landlordA property:', error)
+				console.warn('Failed to cleanup ownerA property:', error)
 			}
 		}
 
-		if (landlordBPropertyId) {
+		if (ownerBPropertyId) {
 			try {
-				await fetchAsUser(landlordB, `/api/v1/properties/${landlordBPropertyId}`, {
+				await fetchAsUser(ownerB, `/api/v1/properties/${ownerBPropertyId}`, {
 					method: 'DELETE'
 				})
 			} catch (error) {
-				console.warn('Failed to cleanup landlordB property:', error)
+				console.warn('Failed to cleanup ownerB property:', error)
 			}
 		}
 	})
@@ -229,19 +262,19 @@ describe.skip('RLS Boundary Tests', () => {
 	// ========================================
 
 	describe('Property Isolation', () => {
-		it('landlord A cannot read landlord B\'s properties', async () => {
-			// Landlord A tries to fetch Landlord B's property by ID
-			await expectNotFound(landlordA, `/api/v1/properties/${landlordBPropertyId}`)
+		it("owner A cannot read owner B's properties", async () => {
+			// owner A tries to fetch owner B's property by ID
+			await expectNotFound(ownerA, `/api/v1/properties/${ownerBPropertyId}`)
 		})
 
-		it('landlord B cannot read landlord A\'s properties', async () => {
-			// Landlord B tries to fetch Landlord A's property by ID
-			await expectNotFound(landlordB, `/api/v1/properties/${landlordAPropertyId}`)
+		it("owner B cannot read owner A's properties", async () => {
+			// owner B tries to fetch owner A's property by ID
+			await expectNotFound(ownerB, `/api/v1/properties/${ownerAPropertyId}`)
 		})
 
-		it('landlord A cannot update landlord B\'s properties', async () => {
-			// Landlord A tries to update Landlord B's property
-			await expectForbidden(landlordA, `/api/v1/properties/${landlordBPropertyId}`, {
+		it("owner A cannot update owner B's properties", async () => {
+			// owner A tries to update owner B's property
+			await expectForbidden(ownerA, `/api/v1/properties/${ownerBPropertyId}`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: 'Unauthorized Update'
@@ -249,27 +282,31 @@ describe.skip('RLS Boundary Tests', () => {
 			})
 		})
 
-		it('landlord A cannot delete landlord B\'s properties', async () => {
-			// Landlord A tries to delete Landlord B's property
-			await expectForbidden(landlordA, `/api/v1/properties/${landlordBPropertyId}`, {
+		it("owner A cannot delete owner B's properties", async () => {
+			// owner A tries to delete owner B's property
+			await expectForbidden(ownerA, `/api/v1/properties/${ownerBPropertyId}`, {
 				method: 'DELETE'
 			})
 		})
 
-		it('landlord A can only see their own properties in list endpoint', async () => {
+		it('owner A can only see their own properties in list endpoint', async () => {
 			const response = await fetchAsUser<{ properties: Property[] }>(
-				landlordA,
+				ownerA,
 				'/api/v1/properties'
 			)
 
-			// Verify landlordA only sees their own property
-			expect(response.properties.some(p => p.id === landlordAPropertyId)).toBe(true)
-			expect(response.properties.some(p => p.id === landlordBPropertyId)).toBe(false)
+			// Verify ownerA only sees their own property
+			expect(response.properties.some(p => p.id === ownerAPropertyId)).toBe(
+				true
+			)
+			expect(response.properties.some(p => p.id === ownerBPropertyId)).toBe(
+				false
+			)
 		})
 	})
 
 	// ========================================
-	// Role-Based Access Tests (Tenant vs Landlord)
+	// Role-Based Access Tests (Tenant vs owner)
 	// ========================================
 
 	describe('Role-Based Access', () => {
@@ -284,7 +321,7 @@ describe.skip('RLS Boundary Tests', () => {
 		})
 
 		it('tenant cannot update properties', async () => {
-			await expectForbidden(tenantA, `/api/v1/properties/${landlordAPropertyId}`, {
+			await expectForbidden(tenantA, `/api/v1/properties/${ownerAPropertyId}`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: 'Unauthorized Update'
@@ -293,17 +330,17 @@ describe.skip('RLS Boundary Tests', () => {
 		})
 
 		it('tenant cannot delete properties', async () => {
-			await expectForbidden(tenantA, `/api/v1/properties/${landlordAPropertyId}`, {
+			await expectForbidden(tenantA, `/api/v1/properties/${ownerAPropertyId}`, {
 				method: 'DELETE'
 			})
 		})
 
-		it('tenant cannot access landlord dashboard endpoints', async () => {
-			await expectForbidden(tenantA, '/api/v1/dashboard/landlord-stats')
+		it('tenant cannot access owner dashboard endpoints', async () => {
+			await expectForbidden(tenantA, '/api/v1/dashboard/owner-stats')
 		})
 
-		it('landlord cannot access tenant-only endpoints', async () => {
-			await expectForbidden(landlordA, '/api/v1/tenant/profile')
+		it('owner cannot access tenant-only endpoints', async () => {
+			await expectForbidden(ownerA, '/api/v1/tenant/profile')
 		})
 	})
 
@@ -312,55 +349,55 @@ describe.skip('RLS Boundary Tests', () => {
 	// ========================================
 
 	describe('Payment Method Isolation (PCI Compliance)', () => {
-		it('landlord A cannot read landlord B\'s payment methods', async () => {
-			// Get Landlord B's payment methods
-			const landlordBMethods = await fetchAsUser<{ paymentMethods: any[] }>(
-				landlordB,
+		it("owner A cannot read owner B's payment methods", async () => {
+			// Get owner B's payment methods
+			const ownerBMethods = await fetchAsUser<{ paymentMethods: any[] }>(
+				ownerB,
 				'/api/v1/payment-methods'
 			)
 
-			if (landlordBMethods.paymentMethods.length > 0) {
-				const methodId = landlordBMethods.paymentMethods[0].id
+			if (ownerBMethods.paymentMethods.length > 0) {
+				const methodId = ownerBMethods.paymentMethods[0].id
 
-				// Landlord A tries to read Landlord B's payment method
-				await expectNotFound(landlordA, `/api/v1/payment-methods/${methodId}`)
+				// owner A tries to read owner B's payment method
+				await expectNotFound(ownerA, `/api/v1/payment-methods/${methodId}`)
 			}
 		})
 
-		it('landlord A cannot use landlord B\'s payment method for rent payment', async () => {
-			// Get Landlord B's payment methods
-			const landlordBMethods = await fetchAsUser<{ paymentMethods: any[] }>(
-				landlordB,
+		it("owner A cannot use owner B's payment method for rent payment", async () => {
+			// Get owner B's payment methods
+			const ownerBMethods = await fetchAsUser<{ paymentMethods: any[] }>(
+				ownerB,
 				'/api/v1/payment-methods'
 			)
 
-			if (landlordBMethods.paymentMethods.length > 0) {
-				const methodId = landlordBMethods.paymentMethods[0].id
+			if (ownerBMethods.paymentMethods.length > 0) {
+				const methodId = ownerBMethods.paymentMethods[0].id
 
-				// Landlord A tries to use Landlord B's payment method
-				await expectForbidden(landlordA, '/api/v1/rent-payments', {
+				// owner A tries to use owner B's payment method
+				await expectForbidden(ownerA, '/api/v1/rent-payments', {
 					method: 'POST',
 					body: JSON.stringify({
 						tenantId: 'some-tenant-id',
 						leaseId: 'some-lease-id',
 						amount: 100000,
-						paymentMethodId: methodId // Landlord B's payment method
+						paymentMethodId: methodId // owner B's payment method
 					})
 				})
 			}
 		})
 
-		it('tenant cannot read landlord\'s payment methods', async () => {
-			// Get Landlord A's payment methods
-			const landlordAMethods = await fetchAsUser<{ paymentMethods: any[] }>(
-				landlordA,
+		it("tenant cannot read owner's payment methods", async () => {
+			// Get owner A's payment methods
+			const ownerAMethods = await fetchAsUser<{ paymentMethods: any[] }>(
+				ownerA,
 				'/api/v1/payment-methods'
 			)
 
-			if (landlordAMethods.paymentMethods.length > 0) {
-				const methodId = landlordAMethods.paymentMethods[0].id
+			if (ownerAMethods.paymentMethods.length > 0) {
+				const methodId = ownerAMethods.paymentMethods[0].id
 
-				// Tenant tries to read Landlord A's payment method
+				// Tenant tries to read owner A's payment method
 				await expectNotFound(tenantA, `/api/v1/payment-methods/${methodId}`)
 			}
 		})
@@ -371,7 +408,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// ========================================
 
 	describe('Tenant Data Isolation', () => {
-		it('tenant A cannot read tenant B\'s profile', async () => {
+		it("tenant A cannot read tenant B's profile", async () => {
 			// Get Tenant B's ID (assuming it's stored in user object)
 			const tenantBId = tenantB.user!.id
 
@@ -379,7 +416,7 @@ describe.skip('RLS Boundary Tests', () => {
 			await expectForbidden(tenantA, `/api/v1/tenants/${tenantBId}`)
 		})
 
-		it('tenant A cannot update tenant B\'s profile', async () => {
+		it("tenant A cannot update tenant B's profile", async () => {
 			const tenantBId = tenantB.user!.id
 
 			// Tenant A tries to update Tenant B's profile
@@ -391,14 +428,17 @@ describe.skip('RLS Boundary Tests', () => {
 			})
 		})
 
-		it('tenant A cannot read tenant B\'s emergency contact', async () => {
+		it("tenant A cannot read tenant B's emergency contact", async () => {
 			const tenantBId = tenantB.user!.id
 
 			// Tenant A tries to read Tenant B's emergency contact
-			await expectForbidden(tenantA, `/api/v1/tenants/${tenantBId}/emergency-contact`)
+			await expectForbidden(
+				tenantA,
+				`/api/v1/tenants/${tenantBId}/emergency-contact`
+			)
 		})
 
-		it('tenant A cannot read tenant B\'s notification preferences', async () => {
+		it("tenant A cannot read tenant B's notification preferences", async () => {
 			const tenantBId = tenantB.user!.id
 
 			// Tenant A tries to read Tenant B's notification preferences
@@ -414,22 +454,22 @@ describe.skip('RLS Boundary Tests', () => {
 	// ========================================
 
 	describe('Lease Data Isolation', () => {
-		it('landlord A cannot read landlord B\'s leases', async () => {
-			// Get Landlord B's leases
-			const landlordBLeases = await fetchAsUser<{ leases: any[] }>(
-				landlordB,
+		it("owner A cannot read owner B's leases", async () => {
+			// Get owner B's leases
+			const ownerBLeases = await fetchAsUser<{ leases: any[] }>(
+				ownerB,
 				'/api/v1/leases'
 			)
 
-			if (landlordBLeases.leases.length > 0) {
-				const leaseId = landlordBLeases.leases[0].id
+			if (ownerBLeases.leases.length > 0) {
+				const leaseId = ownerBLeases.leases[0].id
 
-				// Landlord A tries to read Landlord B's lease
-				await expectNotFound(landlordA, `/api/v1/leases/${leaseId}`)
+				// owner A tries to read owner B's lease
+				await expectNotFound(ownerA, `/api/v1/leases/${leaseId}`)
 			}
 		})
 
-		it('tenant A cannot read tenant B\'s lease', async () => {
+		it("tenant A cannot read tenant B's lease", async () => {
 			// Get Tenant B's current lease
 			const tenantBLease = await fetchAsUser<{ lease: any }>(
 				tenantB,
@@ -450,7 +490,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// ========================================
 
 	describe('Maintenance Request Isolation', () => {
-		it('tenant A cannot read tenant B\'s maintenance requests', async () => {
+		it("tenant A cannot read tenant B's maintenance requests", async () => {
 			// Get Tenant B's maintenance requests
 			const tenantBRequests = await fetchAsUser<{ requests: any[] }>(
 				tenantB,
@@ -461,22 +501,28 @@ describe.skip('RLS Boundary Tests', () => {
 				const requestId = tenantBRequests.requests[0].id
 
 				// Tenant A tries to read Tenant B's maintenance request
-				await expectNotFound(tenantA, `/api/v1/maintenance-requests/${requestId}`)
+				await expectNotFound(
+					tenantA,
+					`/api/v1/maintenance-requests/${requestId}`
+				)
 			}
 		})
 
-		it('landlord A cannot read landlord B\'s maintenance requests', async () => {
-			// Get Landlord B's maintenance requests
-			const landlordBRequests = await fetchAsUser<{ requests: any[] }>(
-				landlordB,
+		it("owner A cannot read owner B's maintenance requests", async () => {
+			// Get owner B's maintenance requests
+			const ownerBRequests = await fetchAsUser<{ requests: any[] }>(
+				ownerB,
 				'/api/v1/maintenance-requests'
 			)
 
-			if (landlordBRequests.requests.length > 0) {
-				const requestId = landlordBRequests.requests[0].id
+			if (ownerBRequests.requests.length > 0) {
+				const requestId = ownerBRequests.requests[0].id
 
-				// Landlord A tries to read Landlord B's maintenance request
-				await expectNotFound(landlordA, `/api/v1/maintenance-requests/${requestId}`)
+				// owner A tries to read owner B's maintenance request
+				await expectNotFound(
+					ownerA,
+					`/api/v1/maintenance-requests/${requestId}`
+				)
 			}
 		})
 	})
@@ -490,14 +536,14 @@ describe.skip('RLS Boundary Tests', () => {
  * TO RUN THESE TESTS:
  *
  * 1. Create test accounts in Supabase Auth:
- *    - 2 landlord accounts (with different auth_user_ids)
+ *    - 2 owner accounts (with different auth_user_ids)
  *    - 2 tenant accounts (with different auth_user_ids)
  *
  * 2. Add test credentials to .env.test:
- *    E2E_LANDLORD_A_EMAIL=landlord-a@test.com
- *    E2E_LANDLORD_A_PASSWORD=SecurePassword123!
- *    E2E_LANDLORD_B_EMAIL=landlord-b@test.com
- *    E2E_LANDLORD_B_PASSWORD=SecurePassword123!
+ *    E2E_owner_A_EMAIL=owner-a@test.com
+ *    E2E_owner_A_PASSWORD=SecurePassword123!
+ *    E2E_owner_B_EMAIL=owner-b@test.com
+ *    E2E_owner_B_PASSWORD=SecurePassword123!
  *    E2E_TENANT_A_EMAIL=tenant-a@test.com
  *    E2E_TENANT_A_PASSWORD=SecurePassword123!
  *    E2E_TENANT_B_EMAIL=tenant-b@test.com

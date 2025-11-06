@@ -1,7 +1,7 @@
 -- Migration: Align RLS with tenant/auth identity mapping
 -- Date: 2025-02-15
 -- Purpose:
---   * Replace legacy helper functions that compared against landlord ids.
+--   * Replace legacy helper functions that compared against owner ids.
 --   * Rebuild Row Level Security policies so owners use property ownership
 --     checks and tenants use tenant.auth_user_id matches.
 --   * Extend RLS coverage to rent_payment, tenant_payment_method, and tenant
@@ -30,7 +30,7 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION public.is_property_owner IS
-  'Checks whether the authenticated landlord owns the given property.';
+  'Checks whether the authenticated owner owns the given property.';
 
 CREATE OR REPLACE FUNCTION public.is_authenticated_tenant(tenant_row_id uuid)
 RETURNS boolean
@@ -372,7 +372,7 @@ ON rent_payment
 FOR SELECT
 TO authenticated
 USING (
-  rent_payment."landlordId" = auth.uid()
+  rent_payment."ownerId" = auth.uid()
   OR EXISTS (
     SELECT 1
     FROM tenant t
@@ -386,7 +386,7 @@ ON rent_payment
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  rent_payment."landlordId" = auth.uid()
+  rent_payment."ownerId" = auth.uid()
 );
 
 CREATE POLICY "rent_payment_owner_update"
@@ -394,10 +394,10 @@ ON rent_payment
 FOR UPDATE
 TO authenticated
 USING (
-  rent_payment."landlordId" = auth.uid()
+  rent_payment."ownerId" = auth.uid()
 )
 WITH CHECK (
-  rent_payment."landlordId" = auth.uid()
+  rent_payment."ownerId" = auth.uid()
 );
 
 CREATE POLICY "rent_payment_owner_delete"
@@ -405,7 +405,7 @@ ON rent_payment
 FOR DELETE
 TO authenticated
 USING (
-  rent_payment."landlordId" = auth.uid()
+  rent_payment."ownerId" = auth.uid()
 );
 
 -- ============================================================================

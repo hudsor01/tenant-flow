@@ -20,21 +20,19 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 export interface TestCredentials {
 	email: string
 	password: string
-	role: 'LANDLORD' | 'TENANT'
+	role: 'owner' | 'TENANT'
 }
 
 export const TEST_USERS = {
-	LANDLORD_A: {
-		email:
-			process.env.E2E_LANDLORD_A_EMAIL || 'landlord-a@test.tenantflow.local',
-		password: process.env.E2E_LANDLORD_A_PASSWORD || 'TestPassword123!',
-		role: 'LANDLORD' as const
+	owner_A: {
+		email: process.env.E2E_owner_A_EMAIL || 'owner-a@test.tenantflow.local',
+		password: process.env.E2E_owner_A_PASSWORD || 'TestPassword123!',
+		role: 'owner' as const
 	},
-	LANDLORD_B: {
-		email:
-			process.env.E2E_LANDLORD_B_EMAIL || 'landlord-b@test.tenantflow.local',
-		password: process.env.E2E_LANDLORD_B_PASSWORD || 'TestPassword123!',
-		role: 'LANDLORD' as const
+	owner_B: {
+		email: process.env.E2E_owner_B_EMAIL || 'owner-b@test.tenantflow.local',
+		password: process.env.E2E_owner_B_PASSWORD || 'TestPassword123!',
+		role: 'owner' as const
 	},
 	TENANT_A: {
 		email: process.env.E2E_TENANT_A_EMAIL || 'tenant-a@test.tenantflow.local',
@@ -55,7 +53,7 @@ export interface AuthenticatedTestClient {
 	client: SupabaseClient<Database>
 	userId: string
 	email: string
-	role: 'LANDLORD' | 'TENANT'
+	role: 'owner' | 'TENANT'
 	accessToken: string
 }
 
@@ -78,41 +76,74 @@ function createTestClient(): SupabaseClient<Database> {
 	return createClient<Database>(supabaseUrl, supabaseKey, {
 		auth: {
 			autoRefreshToken: false,
-			persistSession: false
+			persistSession: false,
+			detectSessionInUrl: false
 		}
 	})
 }
 
 /**
  * Authenticate as a test user and return authenticated client
+ * NOTE: Test users must already exist in Supabase Auth
  */
 export async function authenticateAs(
 	credentials: TestCredentials
 ): Promise<AuthenticatedTestClient> {
 	const client = createTestClient()
 
-	const { data, error } = await client.auth.signInWithPassword({
+	// Sign in with the test user
+	const authData = await client.auth.signInWithPassword({
 		email: credentials.email,
 		password: credentials.password
 	})
 
-	if (error || !data.session) {
+	if (authData.error || !authData.data.session) {
 		throw new Error(
-			`Failed to authenticate as ${credentials.email}: ${error?.message || 'No session'}`
+			`Failed to authenticate as ${credentials.email}: ${authData.error?.message || 'No session'}`
 		)
+	}
+
+	// Ensure user exists in users table (for foreign key constraints)
+	const serviceClient = getServiceRoleClient()
+	const authUserId = authData.data.user.id
+
+	if (serviceClient) {
+		// Check if a user already exists with this auth ID as their primary key
+		const { data: existingUser } = await serviceClient
+			.from('users')
+			.select('id, supabaseId')
+			.eq('id', authData.data.user.id)
+			.maybeSingle()
+
+		if (!existingUser) {
+			// Create new user with auth ID as both id and supabaseId
+			const { error: userError } = await serviceClient.from('users').insert({
+				id: authData.data.user.id,
+				supabaseId: authData.data.user.id,
+				email: authData.data.user.email!,
+				firstName: credentials.role === 'owner' ? 'Owner' : 'Tenant',
+				lastName: 'Test',
+				role: credentials.role === 'owner' ? 'OWNER' : 'TENANT'
+			})
+
+			if (userError && !userError.message.includes('duplicate key')) {
+				throw new Error(
+					`Failed to create user record for ${credentials.email}: ${userError.message} (code: ${userError.code})`
+				)
+			}
+		}
 	}
 
 	return {
 		client,
-		userId: data.user.id,
-		email: data.user.email!,
+		userId: authUserId, // Use auth ID for both RLS and foreign keys
+		email: authData.data.user.email!,
 		role: credentials.role,
-		accessToken: data.session.access_token
+		accessToken: authData.data.session.access_token
 	}
-}
-
-/**
+} /**
  * Get service role client for cleanup operations
+ * Throws an error if environment variables are not available
  */
 export function getServiceRoleClient(): SupabaseClient<Database> {
 	const supabaseUrl =
@@ -121,7 +152,7 @@ export function getServiceRoleClient(): SupabaseClient<Database> {
 
 	if (!supabaseUrl || !serviceRoleKey) {
 		throw new Error(
-			'Missing service role credentials. Set SUPABASE_SECRET_KEY in environment.'
+			'Missing service role credentials (SUPABASE_URL and SUPABASE_SECRET_KEY). Cannot run tests.'
 		)
 	}
 
@@ -129,6 +160,9 @@ export function getServiceRoleClient(): SupabaseClient<Database> {
 		auth: {
 			autoRefreshToken: false,
 			persistSession: false
+		},
+		db: {
+			schema: 'public'
 		}
 	})
 }
@@ -221,4 +255,110 @@ export function expectPermissionError(error: any, context: string): void {
 	throw new Error(
 		`Expected permission error for ${context}, but got: ${errorMessage} (${errorCode})`
 	)
+}
+
+/**
+ * Create or get a test lease for payment testing
+ * Uses a fixed ID so it can be reused across tests
+ */
+export async function ensureTestLease(
+	ownerId: string,
+	tenantId: string
+): Promise<string> {
+	const serviceClient = getServiceRoleClient()
+	if (!serviceClient) {
+		throw new Error('Service role client not available')
+	}
+
+	const testLeaseId = 'test-lease-for-payments'
+	const testPropertyId = 'test-property-for-payments'
+	const testUnitId = 'test-unit-for-payments'
+
+	// Check if lease already exists
+	const { data: existing } = await serviceClient
+		.from('lease')
+		.select('id')
+		.eq('id', testLeaseId)
+		.maybeSingle()
+
+	if (existing) {
+		return testLeaseId
+	}
+
+	// Create minimal test property first
+	const { error: propertyError } = await serviceClient.from('property').upsert({
+		id: testPropertyId,
+		ownerId,
+		name: 'Test Property',
+		address: '123 Test St',
+		city: 'Test City',
+		state: 'CA',
+		zipCode: '12345',
+		propertyType: 'SINGLE_FAMILY',
+		status: 'ACTIVE'
+	})
+
+	if (propertyError && !propertyError.message.includes('duplicate key')) {
+		throw new Error(`Failed to create test property: ${propertyError.message}`)
+	}
+
+	// Create minimal test unit
+	const { error: unitError } = await serviceClient.from('unit').upsert({
+		id: testUnitId,
+		propertyId: testPropertyId,
+		unitNumber: '1',
+		rent: 150000, // $1,500
+		bedrooms: 1,
+		bathrooms: 1,
+		squareFeet: 500,
+		status: 'OCCUPIED'
+	})
+
+	if (unitError && !unitError.message.includes('duplicate key')) {
+		throw new Error(`Failed to create test unit: ${unitError.message}`)
+	}
+
+	// Create minimal test lease
+	const startDate = new Date()
+	const endDate = new Date()
+	endDate.setFullYear(endDate.getFullYear() + 1)
+
+	// Create tenant record (lease.tenantId references tenant table, not users)
+	const testTenantRecordId = 'test-tenant-record-for-payments'
+	const { error: tenantRecordError } = await serviceClient
+		.from('tenant')
+		.upsert({
+			id: testTenantRecordId,
+			userId: tenantId, // Link to users table
+			email: 'test-tenant@test.tenantflow.local',
+			firstName: 'Test',
+			lastName: 'Tenant',
+			status: 'ACTIVE'
+		})
+
+	if (
+		tenantRecordError &&
+		!tenantRecordError.message.includes('duplicate key')
+	) {
+		throw new Error(
+			`Failed to create tenant record: ${tenantRecordError.message}`
+		)
+	}
+
+	const { error } = await serviceClient.from('lease').insert({
+		id: testLeaseId,
+		tenantId: testTenantRecordId, // Use tenant record ID, not user ID
+		unitId: testUnitId,
+		rentAmount: 150000, // $1,500
+		securityDeposit: 150000,
+		startDate: startDate.toISOString().split('T')[0]!,
+		endDate: endDate.toISOString().split('T')[0]!,
+		status: 'ACTIVE'
+	})
+
+	if (error) {
+		throw new Error(`Failed to create test lease: ${error.message}`)
+	}
+
+	return testLeaseId
 }
