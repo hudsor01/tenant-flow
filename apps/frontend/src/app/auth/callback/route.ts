@@ -29,9 +29,22 @@ async function getJwtClaims(
 			return null
 		}
 
+import { createRemoteJWKSet, jwtVerify } from 'jose'
+
+const supabaseJwks = createRemoteJWKSet(
+	new URL(`${SUPABASE_URL}/auth/v1/keys`)
+)
+
+async function getJwtClaims(
+	supabase: SupabaseClient<Database>
+): Promise<Record<string, unknown> | null> {
+	try {
 		// Decode the JWT to extract custom claims added by the auth hook
-		const payload = decodeJwt(session.access_token)
-		return typeof payload === 'object' && payload !== null ? payload : null
+		const { payload } = await jwtVerify(session.access_token, supabaseJwks, {
+			issuer: `${SUPABASE_URL}/auth/v1`,
+			audience: 'authenticated'
+		})
+		return payload
 	} catch (err) {
 		logger.error('getJwtClaims failed while decoding session token', {
 			error: err instanceof Error ? err.message : String(err),
