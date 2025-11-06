@@ -53,11 +53,8 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,tar
     pnpm build:shared && echo "✓ shared built" && \
     pnpm build:database && echo "✓ database built" && \
     echo "=== Building backend ===" && \
-    cd apps/backend && \
-    echo "Running nest build..." && \
-    nest build && \
+    pnpm --filter @repo/backend build && \
     echo "✓ backend built" && \
-    cd /app && \
     echo "=== Verifying build outputs ===" && \
     echo "Checking dist directory..." && \
     ls -la apps/backend/ && \
