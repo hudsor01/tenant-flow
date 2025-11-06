@@ -359,6 +359,7 @@ describe('RLS: Tenant Isolation', () => {
 				.from('tenant_emergency_contact')
 				.delete()
 				.eq('id', contactId)
+				.select()
 
 			// MUST fail or return empty
 			if (error) {
