@@ -2235,12 +2235,12 @@ export type Database = {
           dueDate: string | null
           failureReason: string | null
           id: string
-          landlordId: string
-          landlordReceives: number
           lateFeeAmount: number | null
           lateFeeApplied: boolean | null
           lateFeeAppliedAt: string | null
           leaseId: string
+          ownerId: string
+          ownerReceives: number
           paidAt: string | null
           paymentType: string
           platformFee: number
@@ -2258,12 +2258,12 @@ export type Database = {
           dueDate?: string | null
           failureReason?: string | null
           id?: string
-          landlordId: string
-          landlordReceives: number
           lateFeeAmount?: number | null
           lateFeeApplied?: boolean | null
           lateFeeAppliedAt?: string | null
           leaseId: string
+          ownerId: string
+          ownerReceives: number
           paidAt?: string | null
           paymentType: string
           platformFee: number
@@ -2281,12 +2281,12 @@ export type Database = {
           dueDate?: string | null
           failureReason?: string | null
           id?: string
-          landlordId?: string
-          landlordReceives?: number
           lateFeeAmount?: number | null
           lateFeeApplied?: boolean | null
           lateFeeAppliedAt?: string | null
           leaseId?: string
+          ownerId?: string
+          ownerReceives?: number
           paidAt?: string | null
           paymentType?: string
           platformFee?: number
@@ -2301,7 +2301,7 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "rentpayment_landlordid_fkey"
-            columns: ["landlordId"]
+            columns: ["ownerId"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -2337,9 +2337,9 @@ export type Database = {
           currency: string
           dueDay: number
           id: string
-          landlordId: string
           leaseId: string
           nextBillingDate: string | null
+          ownerId: string
           pausedAt: string | null
           platformFeePercent: number
           status: string | null
@@ -2356,9 +2356,9 @@ export type Database = {
           currency?: string
           dueDay: number
           id?: string
-          landlordId: string
           leaseId: string
           nextBillingDate?: string | null
+          ownerId: string
           pausedAt?: string | null
           platformFeePercent: number
           status?: string | null
@@ -2375,9 +2375,9 @@ export type Database = {
           currency?: string
           dueDay?: number
           id?: string
-          landlordId?: string
           leaseId?: string
           nextBillingDate?: string | null
+          ownerId?: string
           pausedAt?: string | null
           platformFeePercent?: number
           status?: string | null
@@ -2389,8 +2389,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "rentsubscription_landlordid_fkey"
-            columns: ["landlordId"]
+            foreignKeyName: "rent_subscription_ownerId_fkey"
+            columns: ["ownerId"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -2888,6 +2888,7 @@ export type Database = {
           move_out_date: string | null
           move_out_reason: string | null
           name: string | null
+          notification_preferences: Json | null
           payment_method_added_at: string | null
           phone: string | null
           status: Database["public"]["Enums"]["TenantStatus"]
@@ -2921,6 +2922,7 @@ export type Database = {
           move_out_date?: string | null
           move_out_reason?: string | null
           name?: string | null
+          notification_preferences?: Json | null
           payment_method_added_at?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
@@ -2954,6 +2956,7 @@ export type Database = {
           move_out_date?: string | null
           move_out_reason?: string | null
           name?: string | null
+          notification_preferences?: Json | null
           payment_method_added_at?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["TenantStatus"]
@@ -2969,6 +2972,47 @@ export type Database = {
             columns: ["userId"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_emergency_contact: {
+        Row: {
+          contact_name: string
+          created_at: string
+          email: string | null
+          id: string
+          phone_number: string
+          relationship: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone_number: string
+          relationship: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone_number?: string
+          relationship?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_emergency_contact_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenant"
             referencedColumns: ["id"]
           },
         ]
@@ -3025,6 +3069,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tenant_payment_method_audit: {
+        Row: {
+          audit_ts: string
+          changed_by: string | null
+          id: number
+          operation: string
+          row_data: Json | null
+        }
+        Insert: {
+          audit_ts?: string
+          changed_by?: string | null
+          id?: number
+          operation: string
+          row_data?: Json | null
+        }
+        Update: {
+          audit_ts?: string
+          changed_by?: string | null
+          id?: number
+          operation?: string
+          row_data?: Json | null
+        }
+        Relationships: []
       }
       unit: {
         Row: {
@@ -3540,6 +3608,44 @@ export type Database = {
         }
         Relationships: []
       }
+      v_tenant_payment_methods_safe: {
+        Row: {
+          brand: string | null
+          createdAt: string | null
+          id: string | null
+          isDefault: boolean | null
+          last4: string | null
+          tenantId: string | null
+          updatedAt: string | null
+        }
+        Insert: {
+          brand?: string | null
+          createdAt?: string | null
+          id?: string | null
+          isDefault?: boolean | null
+          last4?: string | null
+          tenantId?: string | null
+          updatedAt?: string | null
+        }
+        Update: {
+          brand?: string | null
+          createdAt?: string | null
+          id?: string | null
+          isDefault?: boolean | null
+          last4?: string | null
+          tenantId?: string | null
+          updatedAt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenantpaymentmethod_tenantid_fkey"
+            columns: ["tenantId"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_event_type_summary: {
         Row: {
           avg_duration_ms: number | null
@@ -3811,6 +3917,7 @@ export type Database = {
         Args: { end_date?: string; start_date?: string; user_id: string }
         Returns: Json
       }
+      get_current_user_id: { Args: never; Returns: string }
       get_dashboard_financial_stats: {
         Args: { p_user_id: string }
         Returns: Json
@@ -4017,6 +4124,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_tenant_id_for_current_user: { Args: never; Returns: string }
       get_trial_days_remaining: { Args: { p_user_id: string }; Returns: number }
       get_unit_statistics: { Args: { p_user_id: string }; Returns: Json }
       get_unread_notification_count: {
@@ -4245,11 +4353,6 @@ export type Database = {
         Args: { p_event_id: string; p_retry_count: number }
         Returns: boolean
       }
-      user_is_active_tenant_of_unit: {
-        Args: { unit_id: string }
-        Returns: boolean
-      }
-      user_owns_property: { Args: { property_id: string }; Returns: boolean }
       validate_password_strength: {
         Args: { p_password: string }
         Returns: Json

@@ -15,7 +15,10 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useCurrentLease } from '#hooks/api/use-lease'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
+import {
+	useCreateRentPayment,
+	usePaymentStatus
+} from '#hooks/api/use-rent-payments'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { formatCurrency } from '@repo/shared/utils/currency'
 import {
@@ -37,6 +40,11 @@ export default function TenantPaymentPage() {
 		usePaymentMethods()
 	const createRentPayment = useCreateRentPayment()
 
+	// Get real payment status from backend
+	const { data: paymentStatus, isLoading: statusLoading } = usePaymentStatus(
+		lease?.tenantId ?? ''
+	)
+
 	const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null)
 
 	useEffect(() => {
@@ -50,21 +58,14 @@ export default function TenantPaymentPage() {
 		}
 	}, [methodsLoading, paymentMethods, selectedMethodId])
 
-	// Calculate next payment date (1st of next month)
-	const getNextPaymentDate = () => {
-		const today = new Date()
-		const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-		return nextMonth.toLocaleDateString('en-US', {
+	// Format next due date for display
+	const formatDueDate = (dateString: string | null) => {
+		if (!dateString) return 'No upcoming payment'
+		return new Date(dateString).toLocaleDateString('en-US', {
 			month: 'long',
 			day: 'numeric',
 			year: 'numeric'
 		})
-	}
-
-	// Check if payment is overdue (after 5th of month with 5-day grace period)
-	const isPaymentOverdue = () => {
-		const today = new Date()
-		return today.getDate() > 5
 	}
 
 	const handlePayment = async () => {
@@ -79,10 +80,16 @@ export default function TenantPaymentPage() {
 		}
 
 		try {
+			// Use outstanding balance from payment status if available, otherwise fall back to lease rent amount
+			const amountInCents =
+				paymentStatus && typeof paymentStatus.outstandingBalance === 'number'
+					? Math.max(0, paymentStatus.outstandingBalance) // Already in cents from backend
+					: Math.round(lease.rentAmount * 100) // Convert dollars to cents
+
 			const response = await createRentPayment.mutateAsync({
 				tenantId: lease.tenantId,
 				leaseId: lease.id,
-				amount: Math.round(lease.rentAmount * 100), // Convert to cents
+				amount: amountInCents,
 				paymentMethodId: selectedMethodId
 			})
 
@@ -106,7 +113,8 @@ export default function TenantPaymentPage() {
 				}
 			})
 			toast.error('Payment failed', {
-				description: 'Please try again or contact support if the issue persists.'
+				description:
+					'Please try again or contact support if the issue persists.'
 			})
 		}
 	}
@@ -122,29 +130,43 @@ export default function TenantPaymentPage() {
 
 			{/* Payment Summary */}
 			<div className="grid gap-4 md:grid-cols-3">
-				<CardLayout title="Amount Due" description="Monthly rent payment">
+				<CardLayout title="Amount Due" description="Outstanding balance">
 					<div className="flex items-center gap-3">
 						<DollarSign className="size-8 text-primary" />
 						<div>
-							{leaseLoading || !lease ? (
+							{statusLoading || !paymentStatus ? (
 								<Skeleton className="h-8 w-32" />
 							) : (
 								<p className="text-3xl font-bold text-primary">
-									{formatCurrency(lease.rentAmount)}
+									{formatCurrency(paymentStatus.outstandingBalance / 100)}
 								</p>
 							)}
-							<p className="text-sm text-muted-foreground mt-1">Due monthly</p>
+							<p className="text-sm text-muted-foreground mt-1">
+								{leaseLoading || !lease ? (
+									<Skeleton className="h-4 w-24" />
+								) : (
+									`Monthly rent: ${formatCurrency(lease.rentAmount)}`
+								)}
+							</p>
 						</div>
 					</div>
 				</CardLayout>
 
-				<CardLayout title="Due Date" description="Payment deadline">
+				<CardLayout title="Due Date" description="Next payment deadline">
 					<div className="flex items-center gap-3">
 						<Calendar className="size-8 text-amber-600 dark:text-amber-400" />
 						<div>
-							<p className="text-2xl font-bold">{getNextPaymentDate()}</p>
+							{statusLoading || !paymentStatus ? (
+								<Skeleton className="h-7 w-40" />
+							) : (
+								<p className="text-2xl font-bold">
+									{formatDueDate(paymentStatus.nextDueDate)}
+								</p>
+							)}
 							<p className="text-sm text-muted-foreground mt-1">
-								{isPaymentOverdue() ? (
+								{statusLoading || !paymentStatus ? (
+									<Skeleton className="h-4 w-16" />
+								) : paymentStatus.isOverdue ? (
 									<span className="text-destructive font-medium">Overdue</span>
 								) : (
 									'On time'
@@ -156,15 +178,32 @@ export default function TenantPaymentPage() {
 
 				<CardLayout title="Payment Status" description="Current status">
 					<div className="flex items-center gap-3">
-						{isPaymentOverdue() ? (
+						{statusLoading || !paymentStatus ? (
+							<Skeleton className="h-8 w-32" />
+						) : paymentStatus.status === 'OVERDUE' ||
+						  paymentStatus.status === 'DUE' ? (
 							<>
 								<AlertCircle className="size-8 text-destructive" />
 								<div>
 									<p className="text-lg font-semibold text-destructive">
-										Payment Due
+										{paymentStatus.status === 'OVERDUE'
+											? 'Overdue'
+											: 'Payment Due'}
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">
 										Please pay now
+									</p>
+								</div>
+							</>
+						) : paymentStatus.status === 'PENDING' ? (
+							<>
+								<AlertCircle className="size-8 text-amber-600 dark:text-amber-400" />
+								<div>
+									<p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
+										Processing
+									</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										Payment pending
 									</p>
 								</div>
 							</>
@@ -173,7 +212,7 @@ export default function TenantPaymentPage() {
 								<CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
 								<div>
 									<p className="text-lg font-semibold text-green-600 dark:text-green-400">
-										No Balance
+										Paid
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">
 										Up to date
@@ -237,8 +276,8 @@ export default function TenantPaymentPage() {
 									<CreditCard className="size-5 text-primary" />
 									<div className="text-left">
 										<p className="font-medium">
-												{method.brand || 'Card'} •••• {method.last4}
-											</p>
+											{method.brand || 'Card'} •••• {method.last4}
+										</p>
 									</div>
 								</div>
 								{method.isDefault && (

@@ -367,6 +367,7 @@ export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
 		autopay_enabled: null,
 		autopay_frequency: null,
 		payment_method_added_at: null,
+		notification_preferences: overrides?.notification_preferences || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		version: 1, // 🔐 BUG FIX #2: Optimistic locking

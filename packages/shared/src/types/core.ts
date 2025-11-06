@@ -402,7 +402,13 @@ export interface TenantWithLeaseInfo {
 	updatedAt: string
 
 	// Invitation fields
-	invitation_status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED' | null
+	invitation_status:
+		| 'PENDING'
+		| 'SENT'
+		| 'ACCEPTED'
+		| 'EXPIRED'
+		| 'REVOKED'
+		| null
 	invitation_sent_at: string | null
 	invitation_accepted_at: string | null
 	invitation_expires_at: string | null
@@ -635,7 +641,7 @@ export interface RentSubscriptionResponse {
 	id: string
 	leaseId: string
 	tenantId: string
-	landlordId: string
+	ownerId: string
 	stripeSubscriptionId: string
 	stripeCustomerId: string
 	paymentMethodId: string

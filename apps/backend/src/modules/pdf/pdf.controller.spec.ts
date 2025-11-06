@@ -70,8 +70,8 @@ describe('PDFController', () => {
 			}
 
 			const context = {
-				landlordName: 'Test Landlord',
-				landlordAddress: '123 Test St',
+				ownerName: 'Test owner',
+				ownerAddress: '123 Test St',
 				tenantNames: 'Test Tenant',
 				propertyAddress: '456 Rental Ave',
 				propertyState: 'CA' as const,
@@ -119,8 +119,8 @@ describe('PDFController', () => {
 			}
 
 			const context = {
-				landlordName: 'Test',
-				landlordAddress: 'Test',
+				ownerName: 'Test',
+				ownerAddress: 'Test',
 				tenantNames: 'Test',
 				propertyAddress: 'Test',
 				propertyState: 'CA' as const,
@@ -150,14 +150,14 @@ describe('PDFController', () => {
 			// In unit tests, the pipe isn't active, so we document patterns rather than test rejection
 			const invalidPatterns = {
 				state: 'INVALID', // Invalid: must be 2-character US state code
-				landlordName: '', // Invalid: must be non-empty string
+				ownerName: '', // Invalid: must be non-empty string
 				rentAmountCents: -100, // Invalid: must be non-negative integer
 				leaseStartDateISO: 'invalid-date' // Invalid: must be ISO 8601 datetime string
 			}
 
 			// Verify these are indeed invalid patterns
 			expect(invalidPatterns.state.length).not.toBe(2)
-			expect(invalidPatterns.landlordName).toBe('')
+			expect(invalidPatterns.ownerName).toBe('')
 			expect(invalidPatterns.rentAmountCents).toBeLessThan(0)
 			expect(invalidPatterns.leaseStartDateISO).not.toMatch(
 				/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
@@ -241,7 +241,7 @@ describe('PDFController', () => {
 		})
 
 		describe('Required Fields Validation', () => {
-			it('should require landlordName in context', async () => {
+			it('should require ownerName in context', async () => {
 				const mockPdfBuffer = Buffer.from('mock-pdf-content')
 				leasePdfService.generateLeasePdfFromTemplate.mockResolvedValue(
 					mockPdfBuffer
@@ -256,8 +256,8 @@ describe('PDFController', () => {
 						customClauses: []
 					},
 					context: {
-						landlordName: '$1',
-						landlordAddress: '$2',
+						ownerName: '$1',
+						ownerAddress: '$2',
 						tenantNames: '$3',
 						propertyAddress: '$4',
 						propertyState: 'CA' as const,
@@ -366,8 +366,8 @@ describe('PDFController', () => {
 						customClauses: [] // Valid empty array
 					},
 					context: {
-						landlordName: '$1',
-						landlordAddress: '$2',
+						ownerName: '$1',
+						ownerAddress: '$2',
 						tenantNames: '$3',
 						propertyAddress: '$4',
 						propertyState: 'CA' as const,
@@ -410,8 +410,8 @@ describe('PDFController', () => {
 						]
 					},
 					context: {
-						landlordName: '$1',
-						landlordAddress: '$2',
+						ownerName: '$1',
+						ownerAddress: '$2',
 						tenantNames: '$3',
 						propertyAddress: '$4',
 						propertyState: 'CA' as const,

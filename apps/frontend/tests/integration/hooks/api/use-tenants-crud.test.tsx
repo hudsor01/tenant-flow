@@ -7,7 +7,15 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	afterAll,
+	afterEach,
+	beforeEach
+} from 'vitest'
 import {
 	useTenantList,
 	useTenant,
@@ -23,9 +31,11 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import { clientFetch } from '#lib/api/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 // This is an INTEGRATION test - it calls the REAL API
 // Make sure backend is running before running these tests
+// Requires test user credentials in environment variables
 
 const TEST_TENANT_PREFIX = 'TEST-CRUD'
 
@@ -49,6 +59,46 @@ function createWrapper() {
 
 describe('Tenants CRUD Integration Tests', () => {
 	let createdTenantIds: string[] = []
+
+	// Authenticate before running tests
+	beforeAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+
+		// Explicitly check for required environment variables
+		if (!process.env.E2E_OWNER_A_EMAIL) {
+			throw new Error(
+				'E2E_OWNER_A_EMAIL environment variable is required for integration tests'
+			)
+		}
+		if (!process.env.E2E_OWNER_A_PASSWORD) {
+			throw new Error(
+				'E2E_OWNER_A_PASSWORD environment variable is required for integration tests'
+			)
+		}
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: process.env.E2E_OWNER_A_EMAIL,
+			password: process.env.E2E_OWNER_A_PASSWORD
+		})
+
+		if (error || !data.session) {
+			throw new Error(
+				`Failed to authenticate test user: ${error?.message || 'No session'}`
+			)
+		}
+	})
+
+	// Sign out after all tests
+	afterAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+		await supabase.auth.signOut()
+	})
 
 	beforeEach(() => {
 		createdTenantIds = []

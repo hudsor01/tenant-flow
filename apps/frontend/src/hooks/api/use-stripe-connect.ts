@@ -1,6 +1,6 @@
 /**
  * TanStack Query hooks for Stripe Connect API
- * Phase 6: Frontend Integration for Landlord Payment Collection
+ * Phase 6: Frontend Integration for owner Payment Collection
  */
 import { clientFetch } from '#lib/api/client'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -11,7 +11,7 @@ type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 interface CreateConnectAccountRequest {
 	displayName: string
 	businessName?: string
-	country?: string
+	country: string
 	entityType?: 'individual' | 'company'
 }
 
@@ -36,17 +36,19 @@ export const stripeConnectKeys = {
 }
 
 /**
- * Hook to fetch landlord's connected account details
+ * Hook to fetch owner's connected account details
  */
 export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
 		queryFn: async (): Promise<ConnectedAccount> => {
-			const response = await clientFetch<ConnectAccountResponse>('/api/v1/stripe-connect/account')
+			const response = await clientFetch<ConnectAccountResponse>(
+				'/api/v1/stripe-connect/account'
+			)
 			return response.data
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		retry: 1, // Don't retry much - 404 is expected for new landlords
+		retry: 1, // Don't retry much - 404 is expected for new owners
 		retryOnMount: false
 	})
 }
@@ -58,7 +60,9 @@ export function useCreateConnectedAccount() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (request: CreateConnectAccountRequest): Promise<ConnectAccountResponse> => {
+		mutationFn: async (
+			request: CreateConnectAccountRequest
+		): Promise<ConnectAccountResponse> => {
 			return clientFetch('/api/v1/stripe-connect/create', {
 				method: 'POST',
 				body: JSON.stringify(request)
@@ -77,9 +81,12 @@ export function useCreateConnectedAccount() {
 export function useRefreshOnboarding() {
 	return useMutation({
 		mutationFn: async (): Promise<OnboardingUrlResponse> => {
-			return clientFetch<OnboardingUrlResponse>('/api/v1/stripe-connect/refresh-onboarding', {
-				method: 'POST'
-			})
+			return clientFetch<OnboardingUrlResponse>(
+				'/api/v1/stripe-connect/refresh-onboarding',
+				{
+					method: 'POST'
+				}
+			)
 		}
 	})
 }
@@ -94,8 +101,10 @@ export function usePrefetchConnectedAccount() {
 		queryClient.prefetchQuery({
 			queryKey: stripeConnectKeys.account(),
 			queryFn: async (): Promise<ConnectedAccount> => {
-				const response = await clientFetch<ConnectAccountResponse>('/api/v1/stripe-connect/account')
-			return response.data
+				const response = await clientFetch<ConnectAccountResponse>(
+					'/api/v1/stripe-connect/account'
+				)
+				return response.data
 			},
 			staleTime: 5 * 60 * 1000
 		})

@@ -77,12 +77,13 @@ export class LateFeesService {
 	/**
 	 * Get late fee configuration for a lease
 	 */
-	async getLateFeeConfig(leaseId: string, token: string): Promise<LateFeeConfig> {
+	async getLateFeeConfig(
+		leaseId: string,
+		token: string
+	): Promise<LateFeeConfig> {
 		try {
 			if (!token) {
-				this.logger.warn(
-					'Get late fee config requested without token'
-				)
+				this.logger.warn('Get late fee config requested without token')
 				throw new BadRequestException('Authentication token is required')
 			}
 
@@ -145,9 +146,7 @@ export class LateFeesService {
 	): Promise<Stripe.InvoiceItem> {
 		try {
 			if (!token) {
-				this.logger.warn(
-					'Apply late fee to invoice requested without token'
-				)
+				this.logger.warn('Apply late fee to invoice requested without token')
 				throw new BadRequestException('Authentication token is required')
 			}
 
@@ -222,19 +221,14 @@ export class LateFeesService {
 	> {
 		try {
 			if (!token) {
-				this.logger.warn(
-					'Get overdue payments requested without token'
-				)
+				this.logger.warn('Get overdue payments requested without token')
 				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log(
-				'Getting overdue payments via RLS-protected query',
-				{
-					leaseId,
-					gracePeriodDays
-				}
-			)
+			this.logger.log('Getting overdue payments via RLS-protected query', {
+				leaseId,
+				gracePeriodDays
+			})
 
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's rent payments
 			const client = this.supabase.getUserClient(token)
@@ -283,7 +277,7 @@ export class LateFeesService {
 	async processLateFees(
 		leaseId: string,
 		token: string,
-		landlordId?: string
+		ownerId: string // Make required instead of optional
 	): Promise<{
 		processed: number
 		totalLateFees: number
@@ -295,15 +289,18 @@ export class LateFeesService {
 	}> {
 		try {
 			if (!token) {
-				this.logger.warn(
-					'Process late fees requested without token'
-				)
+				this.logger.warn('Process late fees requested without token')
 				throw new BadRequestException('Authentication token is required')
+			}
+
+			if (!ownerId) {
+				this.logger.warn('Process late fees requested without ownerId')
+				throw new BadRequestException('Owner ID is required')
 			}
 
 			this.logger.log('Processing late fees for lease via RLS', {
 				leaseId,
-				landlordId
+				ownerId
 			})
 
 			// Get late fee config
@@ -332,11 +329,11 @@ export class LateFeesService {
 			const { data: userData, error: userError } = await client
 				.from('users')
 				.select('stripeCustomerId')
-				.eq('id', landlordId || 'current_user') // RLS will filter appropriately
+				.eq('id', ownerId) // Use the validated ownerId
 				.single()
 
 			if (userError || !userData?.stripeCustomerId) {
-				throw new BadRequestException('Landlord Stripe customer not found')
+				throw new BadRequestException('Owner Stripe customer not found')
 			}
 
 			// Process each overdue payment
@@ -388,7 +385,7 @@ export class LateFeesService {
 			this.logger.error('Failed to process late fees', {
 				error: error instanceof Error ? error.message : String(error),
 				leaseId,
-				landlordId
+				ownerId
 			})
 			throw new BadRequestException('Failed to process late fees')
 		}
@@ -404,9 +401,7 @@ export class LateFeesService {
 	): Promise<void> {
 		try {
 			if (!token) {
-				this.logger.warn(
-					'Update late fee config requested without token'
-				)
+				this.logger.warn('Update late fee config requested without token')
 				throw new BadRequestException('Authentication token is required')
 			}
 
@@ -428,10 +423,7 @@ export class LateFeesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			await client
-				.from('lease')
-				.update(updateData)
-				.eq('id', leaseId)
+			await client.from('lease').update(updateData).eq('id', leaseId)
 
 			this.logger.log('Late fee config updated successfully', { leaseId })
 		} catch (error) {
