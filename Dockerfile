@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9
-ARG NODE_VERSION=22.14.0-alpine3.21
+ARG NODE_VERSION=22.16.0-alpine3.21
 
 FROM node:${NODE_VERSION} AS base
 
@@ -52,12 +52,31 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,tar
     echo "=== Starting builds ===" && \
     pnpm build:shared && echo "✓ shared built" && \
     pnpm build:database && echo "✓ database built" && \
-    pnpm build:backend && echo "✓ backend built" && \
+    echo "=== Building backend ===" && \
+    cd apps/backend && \
+    echo "Running nest build..." && \
+    nest build && \
+    echo "✓ backend built" && \
+    cd /app && \
     echo "=== Verifying build outputs ===" && \
-    test -d apps/backend/dist || (echo "ERROR: apps/backend/dist not found" && exit 1) && \
-    test -f apps/backend/dist/main.js || (echo "ERROR: apps/backend/dist/main.js not found" && exit 1) && \
-    ls -la apps/backend/dist/ && \
-    echo "=== Build verification passed ==="
+    echo "Checking dist directory..." && \
+    ls -la apps/backend/ && \
+    if [ -d apps/backend/dist ]; then \
+        echo "dist directory exists" && \
+        ls -la apps/backend/dist/ && \
+        if [ -f apps/backend/dist/main.js ]; then \
+            echo "✓ main.js found" && \
+            echo "=== Build verification passed ==="; \
+        else \
+            echo "ERROR: apps/backend/dist/main.js not found" && \
+            echo "Contents of dist directory:" && \
+            find apps/backend/dist -type f -name "*.js" | head -10 && \
+            exit 1; \
+        fi \
+    else \
+        echo "ERROR: apps/backend/dist not found" && \
+        exit 1; \
+    fi
 
 # Copy PDF and report templates to dist directory for runtime access
 COPY apps/backend/src/modules/pdf/templates apps/backend/dist/modules/pdf/templates
