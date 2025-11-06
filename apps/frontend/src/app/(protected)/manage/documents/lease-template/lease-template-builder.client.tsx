@@ -124,8 +124,8 @@ export function LeaseTemplateBuilder() {
 	const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false)
 
 	const [builderInputs, setBuilderInputs] = React.useState({
-		landlordName: 'Property Management LLC',
-		landlordAddress: '456 Business Ave, Suite 400, San Francisco, CA 94108',
+		ownerName: 'Property Management LLC',
+		ownerAddress: '456 Business Ave, Suite 400, San Francisco, CA 94108',
 		tenantNames: 'John Doe; Jane Doe',
 		propertyAddress: '123 Main Street, San Francisco, CA 94105',
 		rentAmount: '3500',
@@ -139,8 +139,8 @@ export function LeaseTemplateBuilder() {
 
 	const context: LeaseTemplateContext = React.useMemo(() => {
 		return createDefaultContext({
-			landlordName: builderInputs.landlordName,
-			landlordAddress: builderInputs.landlordAddress,
+			ownerName: builderInputs.ownerName,
+			ownerAddress: builderInputs.ownerAddress,
 			tenantNames: builderInputs.tenantNames,
 			propertyAddress: builderInputs.propertyAddress,
 			propertyState: state,
@@ -338,8 +338,8 @@ export function LeaseTemplateBuilder() {
 
 function ConfigurationPanel(props: {
 	builderInputs: {
-		landlordName: string
-		landlordAddress: string
+		ownerName: string
+		ownerAddress: string
 		tenantNames: string
 		propertyAddress: string
 		rentAmount: string
@@ -352,8 +352,8 @@ function ConfigurationPanel(props: {
 	}
 	onChange: React.Dispatch<
 		React.SetStateAction<{
-			landlordName: string
-			landlordAddress: string
+			ownerName: string
+			ownerAddress: string
 			tenantNames: string
 			propertyAddress: string
 			rentAmount: string
@@ -389,17 +389,17 @@ function ConfigurationPanel(props: {
 			</CardHeader>
 			<CardContent className="space-y-3 text-sm">
 				<LabeledInput
-					label="Landlord"
-					value={builderInputs.landlordName}
+					label="owner"
+					value={builderInputs.ownerName}
 					onChange={event =>
-						onChange(prev => ({ ...prev, landlordName: event.target.value }))
+						onChange(prev => ({ ...prev, ownerName: event.target.value }))
 					}
 				/>
 				<LabeledInput
-					label="Landlord address"
-					value={builderInputs.landlordAddress}
+					label="owner address"
+					value={builderInputs.ownerAddress}
 					onChange={event =>
-						onChange(prev => ({ ...prev, landlordAddress: event.target.value }))
+						onChange(prev => ({ ...prev, ownerAddress: event.target.value }))
 					}
 				/>
 				<LabeledInput

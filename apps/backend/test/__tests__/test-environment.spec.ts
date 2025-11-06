@@ -108,14 +108,14 @@ describe('Test Environment Configuration', () => {
 		it('should use environment variables for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
 			process.env.TEST_SUPABASE_URL = 'https://test.supabase.co'
-			process.env.TEST_SUPABASE_PUBLISHABLE_KEY = 'test_anon_key'
-			process.env.TEST_SUPABASE_SECRET_KEY = 'test_service_role_key'
+			process.env.TEST_SUPABASE_PUBLISHABLE_KEY = 'test_publishable_key'
+			process.env.TEST_SUPABASE_SECRET_KEY = 'test_secret_key'
 			process.env.TEST_SUPABASE_JWT_SECRET = 'test_jwt_secret'
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://test.supabase.co')
-			expect(config.publishableKey).toBe('test_anon_key')
-			expect(config.serviceRoleKey).toBe('test_service_role_key')
+			expect(config.publishableKey).toBe('test_publishable_key')
+			expect(config.serviceRoleKey).toBe('test_secret_key')
 			expect(config.jwtSecret).toBe('test_jwt_secret')
 		})
 	})

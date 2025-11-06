@@ -65,7 +65,7 @@ type RentPaymentListItem = Pick<
 	| 'leaseId'
 	| 'tenantId'
 	| 'stripePaymentIntentId'
-	| 'landlordReceives'
+	| 'ownerReceives'
 > & {
 	receiptUrl: string | null
 }
@@ -462,7 +462,7 @@ export class TenantPortalController {
 			.getUserClient(token)
 			.from('rent_payment')
 			.select(
-				'id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId, stripePaymentIntentId, landlordReceives'
+				'id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId, stripePaymentIntentId, ownerReceives'
 			)
 			.eq('tenantId', tenant.id)
 			.order('createdAt', { ascending: false })

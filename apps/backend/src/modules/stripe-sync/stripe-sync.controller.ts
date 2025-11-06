@@ -194,7 +194,6 @@ export class StripeSyncController {
 		}
 	}
 
-
 	/**
 	 * Invalidate pricing cache when products/prices change in Stripe
 	 * Called automatically by webhook handler on product/price events
@@ -266,7 +265,7 @@ export class StripeSyncController {
 		const safeLeaseId = leaseId!
 		const safeTenantId = tenantId!
 
-		// Get lease with property to retrieve ownerId (landlordId)
+		// Get lease with property to retrieve ownerId (ownerId)
 		const { data: lease, error: leaseError } = await this.supabaseService
 			.getAdminClient()
 			.from('lease')
@@ -283,9 +282,9 @@ export class StripeSyncController {
 			return
 		}
 
-		const landlordId = (lease.property as { ownerId: string }).ownerId
+		const ownerId = (lease.property as { ownerId: string }).ownerId
 
-		// Calculate amount (no platform fees - landlord receives full amount minus Stripe fees)
+		// Calculate amount (no platform fees - owner receives full amount minus Stripe fees)
 		const amountInCents = session.amount_total || 0
 		const amountInDollars = amountInCents / 100
 
@@ -298,7 +297,7 @@ export class StripeSyncController {
 			.insert({
 				leaseId: safeLeaseId,
 				tenantId: safeTenantId,
-				landlordId,
+				ownerId,
 				amount: amountInDollars,
 				paidAt: new Date().toISOString(),
 				paymentType,
@@ -306,7 +305,7 @@ export class StripeSyncController {
 				stripePaymentIntentId: session.payment_intent as string,
 				platformFee: 0,
 				stripeFee: 0,
-				landlordReceives: amountInDollars
+				ownerReceives: amountInDollars
 			})
 
 		if (error) {

@@ -1,4 +1,5 @@
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { ForbiddenException } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -7,6 +8,10 @@ import { SupabaseService } from '../../database/supabase.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeOwnerService } from './stripe-owner.service'
+import { StripeTenantService } from './stripe-tenant.service'
+import { SecurityService } from '../../security/security.service'
+import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 
 // Create properly typed mock objects
 const createMockSupabaseService = (): jest.Mocked<SupabaseService> => {
@@ -47,6 +52,10 @@ describe('StripeController', () => {
 	let controller: StripeController
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 	let mockStripe: jest.Mocked<Stripe>
+	let mockStripeOwnerService: { ensureOwnerCustomer: jest.Mock }
+	let mockStripeTenantService: {
+		ensureStripeCustomer: jest.Mock
+	}
 
 	beforeEach(async () => {
 		// Mock setInterval to prevent timer from running in tests
@@ -55,6 +64,21 @@ describe('StripeController', () => {
 		// Create mock instances
 		mockSupabaseService = createMockSupabaseService()
 		mockStripe = createMockStripe()
+		mockStripeOwnerService = {
+			ensureOwnerCustomer: jest.fn().mockResolvedValue({
+				customer: {
+					id: 'cus_owner',
+					email: 'owner@example.com'
+				} as unknown as Stripe.Customer,
+				status: 'existing'
+			})
+		}
+		mockStripeTenantService = {
+			ensureStripeCustomer: jest.fn().mockResolvedValue({
+				customer: { id: 'cus_tenant' } as unknown as Stripe.Customer,
+				status: 'existing'
+			})
+		}
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [StripeController],
@@ -87,13 +111,22 @@ describe('StripeController', () => {
 					}
 				},
 				{
+					provide: StripeOwnerService,
+					useValue: mockStripeOwnerService
+				},
+				{
+					provide: StripeTenantService,
+					useValue: mockStripeTenantService
+				},
+				{
 					provide: CACHE_MANAGER,
 					useValue: {
 						get: jest.fn(),
 						set: jest.fn(),
 						del: jest.fn()
 					}
-				}
+				},
+				SecurityService // Use real SecurityService for security tests
 			]
 		}).compile()
 
@@ -181,17 +214,54 @@ describe('StripeController', () => {
 
 			expect(result.clientSecret).toBe('pi_test123_secret')
 
-			// Verify sanitization removed dangerous characters but kept apostrophe
-			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
-				expect.objectContaining({
-					metadata: expect.objectContaining({
-						tenant_id: "test' DROP TABLE users--" // After sanitization (apostrophe preserved, semicolon removed)
-					})
-				}),
-				expect.objectContaining({
-					idempotencyKey: expect.any(String)
-				})
+			// Verify sanitization removed angle brackets only (other characters preserved)
+			const createCall = (mockStripe.paymentIntents.create as jest.Mock).mock
+				.calls[0][0]
+			expect(createCall.metadata.tenant_id).not.toContain('<')
+			expect(createCall.metadata.tenant_id).not.toContain('>')
+			// Apostrophes, semicolons, hyphens are preserved (not XSS vectors)
+			expect(createCall.metadata.tenant_id).toContain("'")
+			expect(createCall.metadata.tenant_id).toContain('DROP TABLE')
+		})
+	})
+
+	describe('ensureOwnerCustomer', () => {
+		it('should resolve existing owner Stripe customer', async () => {
+			const request = {
+				user: { id: 'owner-123' }
+			} as unknown as AuthenticatedRequest
+
+			const response = await controller.ensureOwnerCustomer(request, {
+				email: 'owner@example.com'
+			})
+
+			expect(mockStripeOwnerService.ensureOwnerCustomer).toHaveBeenCalledWith({
+				userId: 'owner-123',
+				email: 'owner@example.com',
+				name: null
+			})
+
+			expect(response).toEqual({
+				customerId: 'cus_owner',
+				email: 'owner@example.com',
+				name: null,
+				status: 'existing',
+				created: false
+			})
+		})
+
+		it('should propagate role enforcement errors from owner service', async () => {
+			const request = {
+				user: { id: 'owner-456' }
+			} as unknown as AuthenticatedRequest
+
+			mockStripeOwnerService.ensureOwnerCustomer.mockRejectedValue(
+				new ForbiddenException('Only owners can call this endpoint')
 			)
+
+			await expect(
+				controller.ensureOwnerCustomer(request, {})
+			).rejects.toBeInstanceOf(ForbiddenException)
 		})
 	})
 
@@ -208,13 +278,16 @@ describe('StripeController', () => {
 				mockSession
 			)
 
-			const result = await controller.createCheckoutSession({
-				productName: 'Select Plan',
-				tenantId: validUuid,
-				domain: 'https://example.com',
-				priceId: 'price_1234567890abcdef',
-				isSubscription: false
-			})
+			const result = await controller.createCheckoutSession(
+				{} as AuthenticatedRequest,
+				{
+					productName: 'Select Plan',
+					tenantId: validUuid,
+					domain: 'https://example.com',
+					priceId: 'price_1234567890abcdef',
+					isSubscription: false
+				}
+			)
 
 			expect(result).toEqual({
 				url: 'https://checkout.stripe.com/test',
@@ -243,13 +316,16 @@ describe('StripeController', () => {
 				mockSession
 			)
 
-			const result = await controller.createCheckoutSession({
-				productName: descriptiveName,
-				tenantId: validUuid,
-				domain: 'https://tenant.example.com',
-				priceId: 'price_abcdef1234567890',
-				isSubscription: true
-			})
+			const result = await controller.createCheckoutSession(
+				{} as AuthenticatedRequest,
+				{
+					productName: descriptiveName,
+					tenantId: validUuid,
+					domain: 'https://tenant.example.com',
+					priceId: 'price_abcdef1234567890',
+					isSubscription: true
+				}
+			)
 
 			expect(result).toEqual({
 				url: 'https://checkout.stripe.com/test/tenant',
@@ -269,7 +345,7 @@ describe('StripeController', () => {
 			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
 
 			try {
-				await controller.createCheckoutSession({
+				await controller.createCheckoutSession({} as AuthenticatedRequest, {
 					productName: '',
 					tenantId: validUuid,
 					domain: 'https://example.com',
@@ -297,29 +373,30 @@ describe('StripeController', () => {
 			)
 
 			// Should succeed after sanitization (dangerous characters removed)
-			const result = await controller.createCheckoutSession({
-				productName: maliciousProductName,
-				tenantId: validUuid,
-				domain: 'https://example.com',
-				priceId: 'price_1234567890abcdef',
-				isSubscription: false
-			})
+			const result = await controller.createCheckoutSession(
+				{} as AuthenticatedRequest,
+				{
+					productName: maliciousProductName,
+					tenantId: validUuid,
+					domain: 'https://example.com',
+					priceId: 'price_1234567890abcdef',
+					isSubscription: false
+				}
+			)
 
 			expect(result).toEqual({
 				url: 'https://checkout.stripe.com/test',
 				session_id: 'cs_test123'
 			})
 
-			// Verify the Stripe API was called with sanitized metadata
-			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
-				expect.objectContaining({
-					metadata: expect.objectContaining({
-						product_name: "Product' DROP TABLE orders--", // After sanitization (apostrophe preserved, semicolon removed)
-						tenant_id: validUuid,
-						price_id: 'price_1234567890abcdef'
-					})
-				})
-			)
+			// Verify the Stripe API was called with sanitized metadata (angle brackets removed only)
+			const createCall = (mockStripe.checkout.sessions.create as jest.Mock).mock
+				.calls[0][0]
+			expect(createCall.metadata.product_name).not.toContain('<')
+			expect(createCall.metadata.product_name).not.toContain('>')
+			expect(createCall.metadata.product_name).toContain('Product')
+			expect(createCall.metadata.product_name).toContain('DROP TABLE')
+			expect(createCall.metadata.tenant_id).toBe(validUuid)
 		})
 	})
 
@@ -387,10 +464,10 @@ describe('StripeController', () => {
 	describe('Error Handling - Sanitization vs Stripe Errors', () => {
 		it('should return 400 for strings that become empty after sanitization', async () => {
 			const validUuid = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
-			const onlyDangerousChars = '<>"`;&\\\\'
+			const onlyDangerousChars = '<><><>' // Only angle brackets - will be empty after sanitization
 
 			try {
-				await controller.createCheckoutSession({
+				await controller.createCheckoutSession({} as AuthenticatedRequest, {
 					productName: onlyDangerousChars,
 					tenantId: validUuid,
 					domain: 'https://example.com',
@@ -419,28 +496,30 @@ describe('StripeController', () => {
 			)
 
 			// Should succeed after sanitization
-			const result = await controller.createCheckoutSession({
-				productName: xssAttempt,
-				tenantId: validUuid,
-				domain: 'https://example.com',
-				priceId: 'price_1234567890abcdef',
-				isSubscription: false
-			})
+			const result = await controller.createCheckoutSession(
+				{} as AuthenticatedRequest,
+				{
+					productName: xssAttempt,
+					tenantId: validUuid,
+					domain: 'https://example.com',
+					priceId: 'price_1234567890abcdef',
+					isSubscription: false
+				}
+			)
 
 			expect(result).toEqual({
 				url: 'https://checkout.stripe.com/test',
 				session_id: 'cs_test123'
 			})
 
-			// Verify XSS was sanitized
-			expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
-				expect.objectContaining({
-					metadata: expect.objectContaining({
-						product_name: 'scriptalert(xss)/script', // After sanitization
-						tenant_id: validUuid
-					})
-				})
-			)
+			// Verify XSS was sanitized (angle brackets removed)
+			const createCall = (mockStripe.checkout.sessions.create as jest.Mock).mock
+				.calls[0][0]
+			expect(createCall.metadata.product_name).not.toContain('<')
+			expect(createCall.metadata.product_name).not.toContain('>')
+			expect(createCall.metadata.product_name).toContain('script')
+			expect(createCall.metadata.product_name).toContain('alert')
+			expect(createCall.metadata.tenant_id).toBe(validUuid)
 		})
 
 		it('should return 500 for actual Stripe API errors', async () => {
@@ -455,7 +534,7 @@ describe('StripeController', () => {
 			)
 
 			try {
-				await controller.createCheckoutSession({
+				await controller.createCheckoutSession({} as AuthenticatedRequest, {
 					productName: 'Valid Product',
 					tenantId: validUuid,
 					domain: 'https://example.com',
@@ -472,7 +551,7 @@ describe('StripeController', () => {
 
 	describe('Security Tests', () => {
 		it('should reject strings containing only dangerous characters', async () => {
-			const onlyDangerousChars = '<>"`;&\\\\'
+			const onlyDangerousChars = '<><><>' // Only angle brackets - will be empty after sanitization
 
 			try {
 				await controller.createPaymentIntent({

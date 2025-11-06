@@ -15,8 +15,7 @@
 
 @theme {
 	--font-sans:
-		var(--font-spline), system-ui, -apple-system, BlinkMacSystemFont,
-		sans-serif;
+		var(--font-spline), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-display: var(--font-spline);
 	--font-mono: var(--font-mono), ui-monospace, monospace;
 	--font-family: var(--font-sans);
@@ -396,13 +395,13 @@
 	--z-maximum: 2147483647;
 	--background: oklch(0.98 0 0);
 	--foreground: oklch(0.145 0 0 / 85%);
-	--primary: oklch(0.623 0.214 259.815);
+	--primary: oklch(0.623 0.214 259.815); /* #6366f1 (indigo) */
 	--primary-foreground: oklch(1 0 0);
 	--secondary: oklch(0.97 0 0);
 	--secondary-foreground: oklch(0.145 0 0 / 85%);
 	--muted: oklch(0.97 0 0);
 	--muted-foreground: oklch(0.145 0 0 / 50%);
-	--accent: oklch(0.94 0 0);
+	--accent: oklch(0.94 0 0); /* #f1f5f9 (light gray) */
 	--accent-foreground: oklch(0.145 0 0 / 85%);
 	--destructive: oklch(0.534 0.183 27.353);
 	--border: oklch(0.9 0 0);

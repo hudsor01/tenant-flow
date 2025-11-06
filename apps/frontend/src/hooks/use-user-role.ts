@@ -53,7 +53,7 @@ export function useUserRole(): {
 	isTenant: boolean
 	isAdmin: boolean
 	isLoading: boolean
-	canAccessLandlordFeatures: boolean
+	canAccessOwnerFeatures: boolean
 	canAccessTenantFeatures: boolean
 } {
 	const { data: profile, isLoading } = useUserProfile()
@@ -64,8 +64,8 @@ export function useUserRole(): {
 	const isTenant = role === 'TENANT'
 	const isAdmin = role === 'ADMIN'
 
-	// Landlord features: OWNER, MANAGER, ADMIN
-	const canAccessLandlordFeatures = isOwner || isManager || isAdmin
+	// Owner features: OWNER, MANAGER, ADMIN
+	const canAccessOwnerFeatures = isOwner || isManager || isAdmin
 
 	// Tenant features: TENANT only
 	const canAccessTenantFeatures = isTenant
@@ -77,7 +77,7 @@ export function useUserRole(): {
 		isTenant,
 		isAdmin,
 		isLoading,
-		canAccessLandlordFeatures,
+		canAccessOwnerFeatures,
 		canAccessTenantFeatures
 	}
 }

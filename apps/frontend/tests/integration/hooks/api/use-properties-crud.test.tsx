@@ -7,7 +7,16 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import {
+	describe,
+	it,
+	expect,
+	beforeAll,
+	afterAll,
+	afterEach,
+	vi,
+	beforeEach
+} from 'vitest'
 import {
 	usePropertyList,
 	useProperty,
@@ -20,9 +29,11 @@ import {
 import type { Property } from '@repo/shared/types/core'
 import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
 import { clientFetch } from '#lib/api/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 // This is an INTEGRATION test - it calls the REAL API
 // Make sure backend is running before running these tests
+// Requires test user credentials in environment variables
 
 const TEST_PROPERTY_PREFIX = 'TEST-CRUD'
 let createdPropertyIds: string[] = []
@@ -46,6 +57,34 @@ function createWrapper() {
 }
 
 describe('Properties CRUD Integration Tests', () => {
+	// Authenticate before running tests
+	beforeAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
+			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+		})
+
+		if (error || !data.session) {
+			throw new Error(
+				`Failed to authenticate test user: ${error?.message || 'No session'}`
+			)
+		}
+	})
+
+	// Sign out after all tests
+	afterAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+		await supabase.auth.signOut()
+	})
+
 	// Cleanup: Delete all test properties after tests
 	afterEach(async () => {
 		for (const id of createdPropertyIds) {
@@ -264,33 +303,36 @@ describe('Properties CRUD Integration Tests', () => {
 		})
 
 		it('updates property successfully', async () => {
-		const wrapper = createWrapper()
+			const wrapper = createWrapper()
 
-		// Fetch property first to get current version
-		const { result: readResult } = renderHook(() => useProperty(testPropertyId), {
-			wrapper
-		})
+			// Fetch property first to get current version
+			const { result: readResult } = renderHook(
+				() => useProperty(testPropertyId),
+				{
+					wrapper
+				}
+			)
 
-		await waitFor(() => {
-			expect(readResult.current.isSuccess).toBe(true)
-		})
+			await waitFor(() => {
+				expect(readResult.current.isSuccess).toBe(true)
+			})
 
-		const currentProperty = readResult.current.data!
+			const currentProperty = readResult.current.data!
 
-		const { result } = renderHook(() => useUpdateProperty(), {
-			wrapper
-		})
+			const { result } = renderHook(() => useUpdateProperty(), {
+				wrapper
+			})
 
-		const updatedData = {
+			const updatedData = {
 				name: `${TEST_PROPERTY_PREFIX} Updated Name`,
 				description: 'Updated description'
 			}
 
 			const updated = await result.current.mutateAsync({
-			id: testPropertyId,
-			data: updatedData,
-			version: currentProperty.version // 🔐 Pass version for optimistic locking
-		})
+				id: testPropertyId,
+				data: updatedData,
+				version: currentProperty.version // 🔐 Pass version for optimistic locking
+			})
 
 			expect(updated).toBeDefined()
 			expect(updated!.name).toBe(updatedData.name)
@@ -299,23 +341,26 @@ describe('Properties CRUD Integration Tests', () => {
 		})
 
 		it('handles optimistic locking conflicts', async () => {
-		const wrapper = createWrapper()
+			const wrapper = createWrapper()
 
-		// Get current property and populate cache
-		const { result: readResult } = renderHook(() => useProperty(testPropertyId), {
-			wrapper
-		})
+			// Get current property and populate cache
+			const { result: readResult } = renderHook(
+				() => useProperty(testPropertyId),
+				{
+					wrapper
+				}
+			)
 
-		await waitFor(() => {
-			expect(readResult.current.isSuccess).toBe(true)
-		})
+			await waitFor(() => {
+				expect(readResult.current.isSuccess).toBe(true)
+			})
 
-		const currentProperty = readResult.current.data!
+			const currentProperty = readResult.current.data!
 
-		// Simulate concurrent update (update with old version)
-		const { result: hook1 } = renderHook(() => useUpdateProperty(), {
-			wrapper
-		})
+			// Simulate concurrent update (update with old version)
+			const { result: hook1 } = renderHook(() => useUpdateProperty(), {
+				wrapper
+			})
 
 			// First update succeeds
 			await hook1.current.mutateAsync({
@@ -340,24 +385,27 @@ describe('Properties CRUD Integration Tests', () => {
 		})
 
 		it('updates only specified fields', async () => {
-		const wrapper = createWrapper()
+			const wrapper = createWrapper()
 
-		// Fetch property first to get current version
-		const { result: readResult } = renderHook(() => useProperty(testPropertyId), {
-			wrapper
-		})
+			// Fetch property first to get current version
+			const { result: readResult } = renderHook(
+				() => useProperty(testPropertyId),
+				{
+					wrapper
+				}
+			)
 
-		await waitFor(() => {
-			expect(readResult.current.isSuccess).toBe(true)
-		})
+			await waitFor(() => {
+				expect(readResult.current.isSuccess).toBe(true)
+			})
 
-		const currentProperty = readResult.current.data!
+			const currentProperty = readResult.current.data!
 
-		const { result } = renderHook(() => useUpdateProperty(), {
-			wrapper
-		})
+			const { result } = renderHook(() => useUpdateProperty(), {
+				wrapper
+			})
 
-		// Update only description
+			// Update only description
 			const updated = await result.current.mutateAsync({
 				id: testPropertyId,
 				data: { description: 'Only description changed' },
@@ -407,11 +455,11 @@ describe('Properties CRUD Integration Tests', () => {
 			const saleNotes = 'Sold to first-time buyer'
 
 			await result.current.mutateAsync({
-			id: testPropertyId,
-			dateSold: saleDate,
-			salePrice,
-			saleNotes
-		})
+				id: testPropertyId,
+				dateSold: saleDate,
+				salePrice,
+				saleNotes
+			})
 
 			// Verify property is marked as sold
 			const soldProperty = await clientFetch<Property>(
@@ -441,12 +489,12 @@ describe('Properties CRUD Integration Tests', () => {
 
 	describe('CRUD Workflow', () => {
 		it('completes full CRUD lifecycle', async () => {
-		const wrapper = createWrapper()
+			const wrapper = createWrapper()
 
-		// 1. CREATE
-		const { result: createResult } = renderHook(() => useCreateProperty(), {
-			wrapper
-		})
+			// 1. CREATE
+			const { result: createResult } = renderHook(() => useCreateProperty(), {
+				wrapper
+			})
 
 			const newProperty: CreatePropertyRequest = {
 				name: `${TEST_PROPERTY_PREFIX} Lifecycle ${Date.now()}`,
@@ -466,9 +514,9 @@ describe('Properties CRUD Integration Tests', () => {
 			createdPropertyIds.push(propertyId)
 
 			// 2. READ
-		const { result: readResult } = renderHook(() => useProperty(propertyId), {
-			wrapper
-		})
+			const { result: readResult } = renderHook(() => useProperty(propertyId), {
+				wrapper
+			})
 
 			await waitFor(() => {
 				expect(readResult.current.isSuccess).toBe(true)
@@ -477,9 +525,9 @@ describe('Properties CRUD Integration Tests', () => {
 			expect(readResult.current.data!.name).toBe(newProperty.name)
 
 			// 3. UPDATE
-		const { result: updateResult } = renderHook(() => useUpdateProperty(), {
-			wrapper
-		})
+			const { result: updateResult } = renderHook(() => useUpdateProperty(), {
+				wrapper
+			})
 
 			const currentVersion = readResult.current.data!.version
 
@@ -490,11 +538,11 @@ describe('Properties CRUD Integration Tests', () => {
 			})
 
 			expect(updated.description).toBe('Updated lifecycle description')
-		expect(updated.version).toBe(2)
+			expect(updated.version).toBe(2)
 
-		// Note: Properties are not deleted in production UI
-		// They can be marked as SOLD via useMarkPropertySold()
-		// Lifecycle completes at UPDATE (no DELETE step)
+			// Note: Properties are not deleted in production UI
+			// They can be marked as SOLD via useMarkPropertySold()
+			// Lifecycle completes at UPDATE (no DELETE step)
 		})
 	})
 

@@ -1165,13 +1165,15 @@ export class TenantsService {
 		}
 
 		// Return preferences or default values
-		return (data.notification_preferences as Record<string, boolean>) || {
-			rentReminders: true,
-			maintenanceUpdates: true,
-			propertyNotices: true,
-			emailNotifications: true,
-			smsNotifications: false
-		}
+		return (
+			(data.notification_preferences as Record<string, boolean>) || {
+				rentReminders: true,
+				maintenanceUpdates: true,
+				propertyNotices: true,
+				emailNotifications: true,
+				smsNotifications: false
+			}
+		)
 	}
 
 	/**
@@ -1757,38 +1759,38 @@ export class TenantsService {
 				}
 			})
 			.addStep({
-				name: 'Verify landlord Connected Account',
+				name: 'Verify owner Connected Account',
 				execute: async () => {
-					// Get landlord's connected account from users table
-					const { data: landlord, error: landlordError } = await client
+					// Get owner's connected account from users table
+					const { data: owner, error: ownerError } = await client
 						.from('users')
 						.select('connectedAccountId, onboardingComplete, email')
 						.eq('id', userId)
 						.single()
 
-					if (landlordError || !landlord) {
-						throw new BadRequestException('Landlord not found')
+					if (ownerError || !owner) {
+						throw new BadRequestException('owner not found')
 					}
 
-					if (!landlord.connectedAccountId) {
+					if (!owner.connectedAccountId) {
 						throw new BadRequestException(
 							'Please complete Stripe onboarding before inviting tenants. Go to Settings → Billing to set up payments.'
 						)
 					}
 
-					if (!landlord.onboardingComplete) {
+					if (!owner.onboardingComplete) {
 						throw new BadRequestException(
 							'Your Stripe account setup is incomplete. Please complete onboarding in Settings → Billing before inviting tenants.'
 						)
 					}
 
-					this.logger.log('Landlord Connected Account verified', {
-						connectedAccountId: landlord.connectedAccountId
+					this.logger.log('owner Connected Account verified', {
+						connectedAccountId: owner.connectedAccountId
 					})
 
 					return {
-						connectedAccountId: landlord.connectedAccountId,
-						landlordEmail: landlord.email
+						connectedAccountId: owner.connectedAccountId,
+						ownerEmail: owner.email
 					}
 				},
 				compensate: async () => {
@@ -1803,14 +1805,14 @@ export class TenantsService {
 						throw new BadRequestException('Tenant or lease not created')
 					}
 
-					// Get landlord's connected account ID
-					const { data: landlord } = await client
+					// Get owner's connected account ID
+					const { data: owner } = await client
 						.from('users')
 						.select('connectedAccountId')
 						.eq('id', userId)
 						.single()
 
-					if (!landlord?.connectedAccountId) {
+					if (!owner?.connectedAccountId) {
 						throw new BadRequestException('Connected account not found')
 					}
 
@@ -1828,7 +1830,7 @@ export class TenantsService {
 							}
 						},
 						{
-							stripeAccount: landlord.connectedAccountId
+							stripeAccount: owner.connectedAccountId
 						}
 					)
 
@@ -1847,12 +1849,12 @@ export class TenantsService {
 
 					this.logger.log('Stripe Customer created on Connected Account', {
 						customerId: customer.id,
-						connectedAccountId: landlord.connectedAccountId
+						connectedAccountId: owner.connectedAccountId
 					})
 
 					return {
 						customerId: customer.id,
-						connectedAccountId: landlord.connectedAccountId
+						connectedAccountId: owner.connectedAccountId
 					}
 				},
 				compensate: async (
@@ -1887,8 +1889,8 @@ export class TenantsService {
 						throw new BadRequestException('Tenant or lease not created')
 					}
 
-					// Get landlord's connected account and tenant's customer ID
-					const { data: landlord } = await client
+					// Get owner's connected account and tenant's customer ID
+					const { data: owner } = await client
 						.from('users')
 						.select('connectedAccountId')
 						.eq('id', userId)
@@ -1900,7 +1902,7 @@ export class TenantsService {
 						.eq('id', createdTenant.id)
 						.single()
 
-					if (!landlord?.connectedAccountId || !tenant?.stripeCustomerId) {
+					if (!owner?.connectedAccountId || !tenant?.stripeCustomerId) {
 						throw new BadRequestException(
 							'Missing Stripe account or customer information'
 						)
@@ -1934,12 +1936,12 @@ export class TenantsService {
 							}
 						},
 						{
-							stripeAccount: landlord.connectedAccountId
+							stripeAccount: owner.connectedAccountId
 						}
 					)
 
-					// Create subscription (NO application fee - landlord gets 100% of rent)
-					// Landlords pay for platform via separate SaaS subscription on /pricing page
+					// Create subscription (NO application fee - owner gets 100% of rent)
+					// owners pay for platform via separate SaaS subscription on /pricing page
 					const subscription = await stripe.subscriptions.create(
 						{
 							customer: tenant.stripeCustomerId,
@@ -1962,7 +1964,7 @@ export class TenantsService {
 							}
 						},
 						{
-							stripeAccount: landlord.connectedAccountId
+							stripeAccount: owner.connectedAccountId
 						}
 					)
 
@@ -1982,13 +1984,13 @@ export class TenantsService {
 						subscriptionId: subscription.id,
 						priceId: price.id,
 						rentAmount: leaseData.rentAmount,
-						connectedAccountId: landlord.connectedAccountId
+						connectedAccountId: owner.connectedAccountId
 					})
 
 					return {
 						subscriptionId: subscription.id,
 						priceId: price.id,
-						connectedAccountId: landlord.connectedAccountId
+						connectedAccountId: owner.connectedAccountId
 					}
 				},
 				compensate: async (
@@ -2494,7 +2496,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('auth_user_id', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (!tenant) {
@@ -2566,7 +2568,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('auth_user_id', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (!tenant) {
@@ -2654,7 +2656,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('auth_user_id', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (!tenant) {
@@ -2722,7 +2724,7 @@ export class TenantsService {
 			.from('tenant')
 			.select('id')
 			.eq('id', tenantId)
-			.eq('auth_user_id', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (!tenant) {

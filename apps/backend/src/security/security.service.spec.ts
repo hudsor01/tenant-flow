@@ -1,19 +1,19 @@
-import type { TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
-import { SimpleSecurityService } from './security.service'
+import { SecurityService } from './security.service'
 
 describe('SimpleSecurityService', () => {
-	let service: SimpleSecurityService
+	let service: SecurityService
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [SimpleSecurityService],
+			providers: [SecurityService]
 		})
 			.setLogger(new SilentLogger())
 			.compile()
 
-		service = module.get<SimpleSecurityService>(SimpleSecurityService)
+		service = module.get<SecurityService>(SecurityService)
 	})
 
 	describe('sanitizeInput', () => {
@@ -103,15 +103,15 @@ describe('SimpleSecurityService', () => {
 		})
 
 		it('should handle edge cases for email validation', () => {
-			// These emails pass the current regex but might be considered edge cases
-			expect(service.validateEmail('.user@domain.com')).toBe(true) // Current regex allows leading dot
-			expect(service.validateEmail('user.@domain.com')).toBe(true) // Current regex allows trailing dot
+			// These emails should be rejected (invalid format)
+			expect(service.validateEmail('.user@domain.com')).toBe(false) // Leading dot is invalid
+			expect(service.validateEmail('user.@domain.com')).toBe(false) // Trailing dot is invalid
 		})
 
 		it('should validate minimal email formats', () => {
 			// These are technically valid according to the regex
 			expect(service.validateEmail('a@b.c')).toBe(true)
-			
+
 			// These should be invalid
 			expect(service.validateEmail('user@')).toBe(false)
 			expect(service.validateEmail('@domain.com')).toBe(false)
@@ -124,66 +124,84 @@ describe('SimpleSecurityService', () => {
 	})
 
 	describe('hashPassword', () => {
-		it('should return the password unchanged (placeholder implementation)', () => {
+		it('should hash password using bcrypt', async () => {
 			const password = 'testPassword123'
-			const result = service.hashPassword(password)
-			expect(result).toBe(password)
+			const hash = await service.hashPassword(password)
+
+			expect(hash).toBeDefined()
+			expect(hash).not.toBe(password)
+			expect(hash.startsWith('$2b$')).toBe(true) // bcrypt hash format
 		})
 
-		it('should handle empty password', () => {
-			const result = service.hashPassword('')
-			expect(result).toBe('')
+		it('should generate different hashes for same password (random salt)', async () => {
+			const password = 'testPassword123'
+			const hash1 = await service.hashPassword(password)
+			const hash2 = await service.hashPassword(password)
+
+			expect(hash1).not.toBe(hash2) // Different salts = different hashes
 		})
 
-		it('should handle special characters in password', () => {
+		it('should hash password with special characters', async () => {
 			const password = 'p@ssW0rd!#$%'
-			const result = service.hashPassword(password)
-			expect(result).toBe(password)
+			const hash = await service.hashPassword(password)
+
+			expect(hash).toBeDefined()
+			expect(hash.startsWith('$2b$')).toBe(true)
 		})
 
-		it('should handle whitespace in password', () => {
+		it('should hash password with whitespace', async () => {
 			const password = ' password with spaces '
-			const result = service.hashPassword(password)
-			expect(result).toBe(password)
+			const hash = await service.hashPassword(password)
+
+			expect(hash).toBeDefined()
+			expect(hash.startsWith('$2b$')).toBe(true)
 		})
 	})
 
 	describe('validatePassword', () => {
-		it('should validate correct password against hash (placeholder implementation)', () => {
+		it('should validate correct password', async () => {
 			const password = 'testPassword123'
-			const hashedPassword = 'testPassword123' // Same since it's not actually hashed
-			
-			const result = service.validatePassword(password, hashedPassword)
-			expect(result).toBe(true)
+			const hash = await service.hashPassword(password)
+
+			const isValid = await service.validatePassword(password, hash)
+			expect(isValid).toBe(true)
 		})
 
-		it('should reject incorrect password against hash', () => {
+		it('should reject incorrect password', async () => {
 			const password = 'testPassword123'
 			const wrongPassword = 'wrongPassword123'
-			
-			const result = service.validatePassword(wrongPassword, password)
-			expect(result).toBe(false)
+			const hash = await service.hashPassword(password)
+
+			const isValid = await service.validatePassword(wrongPassword, hash)
+			expect(isValid).toBe(false)
 		})
 
-		it('should handle empty passwords', () => {
-			expect(service.validatePassword('', '')).toBe(true)
-			expect(service.validatePassword('password', '')).toBe(false)
-			expect(service.validatePassword('', 'password')).toBe(false)
+		it('should reject empty passwords', async () => {
+			const password = 'testPassword123'
+			const hash = await service.hashPassword(password)
+
+			const isValidEmpty = await service.validatePassword('', hash)
+			expect(isValidEmpty).toBe(false)
+
+			const isValidEmptyHash = await service.validatePassword(password, '')
+			expect(isValidEmptyHash).toBe(false)
 		})
 
-		it('should be case sensitive', () => {
+		it('should be case sensitive', async () => {
 			const password = 'TestPassword'
 			const wrongCase = 'testpassword'
-			
-			const result = service.validatePassword(wrongCase, password)
-			expect(result).toBe(false)
+			const hash = await service.hashPassword(password)
+
+			const isValid = await service.validatePassword(wrongCase, hash)
+			expect(isValid).toBe(false)
 		})
 
-		it('should handle special characters and whitespace exactly', () => {
+		it('should handle special characters and whitespace', async () => {
 			const password = ' p@ssW0rd!#$% '
-			
-			expect(service.validatePassword(password, password)).toBe(true)
-			expect(service.validatePassword('p@ssW0rd!#$%', password)).toBe(false) // Missing spaces
+			const hash = await service.hashPassword(password)
+
+			const isValid = await service.validatePassword(password, hash)
+			expect(isValid).toBe(true)
 		})
 	})
 })

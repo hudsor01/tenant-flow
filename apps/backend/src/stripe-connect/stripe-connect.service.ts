@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
+import * as countries from 'i18n-iso-countries'
+import enLocale from 'i18n-iso-countries/langs/en.json'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
+
+// Register the English locale to enable country validation
+countries.registerLocale(enLocale)
 
 export interface CreateConnectedAccountParams {
 	userId: string
@@ -44,26 +49,58 @@ export interface ConnectedAccountRow {
 export class StripeConnectService {
 	private readonly stripe: Stripe
 	private readonly logger = new Logger(StripeConnectService.name)
+	private readonly defaultCountry: string
 
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService
 	) {
 		this.stripe = this.stripeClientService.getClient()
+		this.defaultCountry = process.env.STRIPE_CONNECT_DEFAULT_COUNTRY || 'US'
 	}
 
 	/**
-	 * Create a Stripe Connect v2 account for a landlord
+	 * Validates and normalizes a country code to ISO 3166-1 alpha-2 format
+	 * @param country The country code to validate and normalize
+	 * @returns The normalized country code, or 'US' if invalid/missing
+	 */
+	private validateAndNormalizeCountry(country: string | undefined): string {
+		if (!country) {
+			this.logger.warn(
+				`Country parameter is missing, falling back to ${this.defaultCountry}`
+			)
+			return this.defaultCountry
+		}
+
+		// Trim whitespace and convert to uppercase
+		const normalized = country.trim().toUpperCase()
+
+		// Check if it's a valid ISO 3166-1 alpha-2 code using i18n-iso-countries
+		if (normalized.length !== 2 || !countries.isValid(normalized)) {
+			this.logger.warn(
+				`Invalid country code: ${country}, falling back to ${this.defaultCountry}`
+			)
+			return this.defaultCountry
+		}
+
+		return normalized
+	}
+
+	/**
+	 * Create a Stripe Connect v2 account for a owner
 	 * Uses the Accounts v2 API with marketplace model
 	 */
 	async createConnectedAccount(
 		params: CreateConnectedAccountParams
 	): Promise<ConnectedAccountResponse> {
 		try {
+			// Validate and normalize the country
+			const normalizedCountry = this.validateAndNormalizeCountry(params.country)
+
 			// Create Stripe Connect account using v2 API
 			const account = await this.stripe.accounts.create({
 				type: 'express',
-				country: params.country || 'US',
+				country: normalizedCountry,
 				email: params.email,
 				business_type: params.entityType || 'individual',
 				business_profile: {
@@ -86,7 +123,7 @@ export class StripeConnectService {
 				accountStatus: 'pending',
 				displayName: params.displayName,
 				contactEmail: params.email,
-				country: params.country || 'US',
+				country: normalizedCountry,
 				businessType: params.entityType || 'individual',
 				chargesEnabled: account.charges_enabled || false,
 				payoutsEnabled: account.payouts_enabled || false,

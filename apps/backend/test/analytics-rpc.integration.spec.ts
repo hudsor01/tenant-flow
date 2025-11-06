@@ -14,7 +14,7 @@ if (!process.env.SUPABASE_URL) {
 	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
 if (!process.env.SUPABASE_SECRET_KEY) {
-	process.env.SUPABASE_SECRET_KEY = 'mock-service-role-key'
+	process.env.SUPABASE_SECRET_KEY = 'mock-secret-key'
 }
 if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
 	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'

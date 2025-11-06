@@ -31,7 +31,7 @@ describe('SupabaseService', () => {
 		process.env.SUPABASE_SECRET_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-service-key'
 		process.env.SUPABASE_PUBLISHABLE_KEY =
-			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-anon-key'
+			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-publishable-key'
 
 		// Spy on Logger before creating the service (logs happen in constructor)
 		const mockLoggerDebug = jest.fn()
@@ -139,7 +139,7 @@ describe('SupabaseService', () => {
 			// Mock environment variables for user client
 			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
 			process.env.SUPABASE_PUBLISHABLE_KEY =
-				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-anon-key'
+				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-publishable-key'
 
 			const userClient = service.getUserClient(userToken)
 
@@ -150,7 +150,7 @@ describe('SupabaseService', () => {
 
 		it('should throw error when creating user client without SUPABASE_URL', () => {
 			delete process.env.SUPABASE_URL
-			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-anon-key'
+			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key'
 
 			expect(() => service.getUserClient('test-token')).toThrow(
 				InternalServerErrorException
@@ -201,7 +201,7 @@ describe('SupabaseService', () => {
 		it('should provide user client with required methods', () => {
 			// Set required environment variables for user client
 			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-anon-key'
+			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key'
 
 			const userClient = service.getUserClient('test-token')
 

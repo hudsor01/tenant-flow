@@ -32,10 +32,17 @@ export const STRIPE_WEBHOOK_EVENTS = {
 	SUBSCRIPTION_DELETED: 'customer.subscription.deleted',
 	SUBSCRIPTION_TRIAL_WILL_END: 'customer.subscription.trial_will_end',
 
+	// Checkout events - CRITICAL for revenue tracking
+	CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed',
+
 	// Invoice and payment events
 	INVOICE_PAYMENT_SUCCEEDED: 'invoice.payment_succeeded',
 	INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
 	INVOICE_FINALIZED: 'invoice.finalized',
+
+	// Payment intent events
+	PAYMENT_INTENT_SUCCEEDED: 'payment_intent.succeeded',
+	PAYMENT_INTENT_PAYMENT_FAILED: 'payment_intent.payment_failed',
 
 	// Payment method events
 	PAYMENT_METHOD_ATTACHED: 'payment_method.attached',

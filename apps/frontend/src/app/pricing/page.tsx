@@ -136,7 +136,7 @@ export default function PricingPage() {
 				priceValidUntil: '2025-12-31',
 				availability: 'https://schema.org/InStock',
 				url: `${baseUrl}/pricing`,
-				description: 'Ideal for small landlords managing a few properties'
+				description: 'Ideal for small owners managing a few properties'
 			},
 			{
 				'@type': 'Offer',
@@ -202,7 +202,9 @@ export default function PricingPage() {
 									Plans built for every portfolio size
 								</h1>
 								<p className="mx-auto max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground sm:text-xl">
-									Launch with the essentials, scale with automation, and switch plans whenever you need—without losing the tenants, leases, or workflows you already manage in TenantFlow.
+									Launch with the essentials, scale with automation, and switch
+									plans whenever you need—without losing the tenants, leases, or
+									workflows you already manage in TenantFlow.
 								</p>
 							</div>
 							<div className="flex flex-col items-center gap-3 sm:flex-row">
@@ -218,21 +220,24 @@ export default function PricingPage() {
 							</div>
 						</div>
 						<div className="grid gap-6 text-left sm:grid-cols-3">
-						{[
+							{[
 								{
 									label: 'Active doors managed',
 									value: '35k+',
-									description: 'Trusted by owners and PM teams across North America.'
+									description:
+										'Trusted by owners and PM teams across North America.'
 								},
 								{
 									label: 'Automation savings',
 									value: '20+ hrs/week',
-									description: 'Average time reclaimed per team after moving to TenantFlow.'
+									description:
+										'Average time reclaimed per team after moving to TenantFlow.'
 								},
 								{
 									label: 'Customer satisfaction',
 									value: '4.9 / 5',
-									description: 'Consistent feedback from monthly NPS and onboarding surveys.'
+									description:
+										'Consistent feedback from monthly NPS and onboarding surveys.'
 								}
 							].map(stat => (
 								<div
@@ -259,10 +264,13 @@ export default function PricingPage() {
 					<div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 lg:px-8">
 						<div className="max-w-3xl text-center sm:mx-auto">
 							<h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-								Pick the plan that fits today—upgrade only when you&apos;re ready
+								Pick the plan that fits today—upgrade only when you&apos;re
+								ready
 							</h2>
 							<p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-								Transparent pricing with flexible billing. Switch between monthly and annual inside the cards, and keep every integration, automation, and workflow intact.
+								Transparent pricing with flexible billing. Switch between
+								monthly and annual inside the cards, and keep every integration,
+								automation, and workflow intact.
 							</p>
 						</div>
 						<KiboStylePricing />
@@ -277,7 +285,8 @@ export default function PricingPage() {
 								Loved by property teams who scale with clarity
 							</h2>
 							<p className="mt-4 text-base text-muted-foreground sm:text-lg">
-								Hear from customers who moved their operations, communications, and payments into one workspace.
+								Hear from customers who moved their operations, communications,
+								and payments into one workspace.
 							</p>
 						</div>
 						<TestimonialsSection />
@@ -293,12 +302,18 @@ export default function PricingPage() {
 									Frequently asked questions
 								</h2>
 								<p className="mt-4 text-base text-muted-foreground sm:text-lg">
-									Details on trials, billing, switching plans, and how access works for teams and tenants.
+									Details on trials, billing, switching plans, and how access
+									works for teams and tenants.
 								</p>
 							</div>
 							<div className="grid gap-4 lg:grid-cols-2">
 								{faqs.map((faq, index) => (
-									<Accordion key={index} type="single" collapsible className="w-full">
+									<Accordion
+										key={index}
+										type="single"
+										collapsible
+										className="w-full"
+									>
 										<AccordionItem
 											value={`item-${index}`}
 											className="rounded-2xl border border-border/50 bg-background/60 px-5 transition-colors hover:border-primary/30"
@@ -319,7 +334,8 @@ export default function PricingPage() {
 										Still unsure which plan fits best?
 									</p>
 									<p className="text-sm text-muted-foreground sm:text-base">
-										Our team can walk through your portfolio and recommend the right setup.
+										Our team can walk through your portfolio and recommend the
+										right setup.
 									</p>
 								</div>
 								<Button size="lg" className="px-7" asChild>
@@ -342,7 +358,10 @@ export default function PricingPage() {
 									Ready to centralize your portfolio and automate the busywork?
 								</h2>
 								<p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-									Start with the workflow templates built for self-managing owners, then add teammates, vendors, and integrations as your units grow. Your data and automations stay intact across every plan.
+									Start with the workflow templates built for self-managing
+									owners, then add teammates, vendors, and integrations as your
+									units grow. Your data and automations stay intact across every
+									plan.
 								</p>
 								<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 									<Button size="lg" className="px-8" asChild>
@@ -360,27 +379,36 @@ export default function PricingPage() {
 								<div className="flex items-start gap-3">
 									<CheckCircle2 className="mt-1 h-5 w-5 text-success" />
 									<div>
-										<p className="font-medium text-foreground">14-day trial, all features</p>
+										<p className="font-medium text-foreground">
+											14-day trial, all features
+										</p>
 										<p className="text-sm text-muted-foreground">
-											Add properties, send invites, test automations—keep everything when you subscribe.
+											Add properties, send invites, test automations—keep
+											everything when you subscribe.
 										</p>
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<CheckCircle2 className="mt-1 h-5 w-5 text-success" />
 									<div>
-										<p className="font-medium text-foreground">Billing that flexes with you</p>
+										<p className="font-medium text-foreground">
+											Billing that flexes with you
+										</p>
 										<p className="text-sm text-muted-foreground">
-											Switch plans whenever you want. Monthly and annual billing are available on every tier.
+											Switch plans whenever you want. Monthly and annual billing
+											are available on every tier.
 										</p>
 									</div>
 								</div>
 								<div className="flex items-start gap-3">
 									<CheckCircle2 className="mt-1 h-5 w-5 text-success" />
 									<div>
-										<p className="font-medium text-foreground">Guided onboarding</p>
+										<p className="font-medium text-foreground">
+											Guided onboarding
+										</p>
 										<p className="text-sm text-muted-foreground">
-											Our implementation team and resource hub help migrate leases, payments, and documents in days.
+											Our implementation team and resource hub help migrate
+											leases, payments, and documents in days.
 										</p>
 									</div>
 								</div>

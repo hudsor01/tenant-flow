@@ -4,8 +4,11 @@ import type {
 	AttachPaymentMethodParams,
 	CreateTenantCustomerParams
 } from '@repo/shared/types/stripe'
+import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+
+type TenantRow = Database['public']['Tables']['tenant']['Row']
 
 /**
  * Stripe Tenant Service
@@ -83,13 +86,16 @@ export class StripeTenantService {
 			// Create new Stripe Customer
 			this.logger.log(`Creating Stripe Customer for Tenant: ${params.tenantId}`)
 			const customerParams: Stripe.CustomerCreateParams = {
-				email: params.email,
 				metadata: {
 					tenantId: params.tenantId,
 					platform: 'tenantflow',
 					role: 'tenant',
 					...params.metadata
 				}
+			}
+
+			if (params.email) {
+				customerParams.email = params.email
 			}
 
 			// Only add optional fields if they have values
@@ -185,6 +191,97 @@ export class StripeTenantService {
 			})
 			return null
 		}
+	}
+
+	async ensureStripeCustomer(params: {
+		tenantId: string
+		email?: string | null
+		name?: string | null
+		userId?: string
+		metadata?: Record<string, string>
+		invitedByOwnerId?: string
+	}): Promise<{ customer: Stripe.Customer; status: 'existing' | 'created' }> {
+		const existingCustomer = await this.getStripeCustomerForTenant(
+			params.tenantId
+		)
+
+		if (existingCustomer) {
+			this.logger.log('Tenant Stripe customer resolved', {
+				tenantId: params.tenantId,
+				customerId: existingCustomer.id,
+				status: 'existing'
+			})
+
+			return { customer: existingCustomer, status: 'existing' }
+		}
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('tenant' as never)
+			.select(
+				'id, email, name, firstName, lastName, stripe_customer_id, userId' as never
+			)
+			.eq('id' as never, params.tenantId as never)
+			.single()
+
+		if (error || !data) {
+			this.logger.error('Tenant record not found while ensuring customer', {
+				tenantId: params.tenantId,
+				error
+			})
+			throw new NotFoundException(`Tenant not found: ${params.tenantId}`)
+		}
+
+		const tenant = data as TenantRow
+
+		const resolvedEmail = params.email ?? tenant.email ?? undefined
+		const resolvedName =
+			params.name ?? tenant.name ?? this.buildTenantName(tenant)
+
+		const metadata: Record<string, string> = {
+			...(params.metadata ?? {}),
+			...(params.userId ? { user_id: params.userId } : {}),
+			...(params.invitedByOwnerId
+				? { invited_by: params.invitedByOwnerId }
+				: {}),
+			source: params.metadata?.source ?? 'tenant_service'
+		}
+
+		const customerParams: CreateTenantCustomerParams = {
+			tenantId: params.tenantId,
+			email: resolvedEmail,
+			metadata
+		}
+
+		if (resolvedName) {
+			customerParams.name = resolvedName
+		}
+
+		const customer = await this.createStripeCustomerForTenant(customerParams)
+
+		this.logger.log('Tenant Stripe customer resolved', {
+			tenantId: params.tenantId,
+			customerId: customer.id,
+			status: 'created'
+		})
+
+		return { customer, status: 'created' }
+	}
+
+	private buildTenantName(tenant: TenantRow): string | undefined {
+		const parts = [
+			tenant.firstName?.trim() || '',
+			tenant.lastName?.trim() || ''
+		].filter(Boolean)
+
+		const composite = parts.join(' ').trim()
+
+		if (composite.length > 0) {
+			return composite
+		}
+
+		const fallback = tenant.name?.trim() || null
+		return fallback && fallback.length > 0 ? fallback : undefined
 	}
 
 	/**

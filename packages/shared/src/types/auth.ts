@@ -136,7 +136,7 @@ export interface SecureUserMetadata {
 	full_name?: string
 	avatar_url?: string
 	company_name?: string
-	company_type?: 'LANDLORD' | 'PROPERTY_MANAGER' | 'TENANT' | 'VENDOR'
+	company_type?: 'OWNER' | 'PROPERTY_MANAGER' | 'TENANT' | 'VENDOR'
 	company_size?: '1-10' | '11-50' | '51-200' | '201+'
 	onboarding_completed?: boolean
 	terms_accepted_at?: string
@@ -312,7 +312,7 @@ export const Permission = {
 	MANAGE_USERS: 'MANAGE_USERS'
 } as const
 
-export type PermissionValue = typeof Permission[keyof typeof Permission]
+export type PermissionValue = (typeof Permission)[keyof typeof Permission]
 
 // Security validation and context types
 export interface SecurityValidationResult {

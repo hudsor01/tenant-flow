@@ -25,7 +25,10 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/types/backend-domain'
+import type {
+	CreateTenantRequest,
+	UpdateTenantRequest
+} from '@repo/shared/types/backend-domain'
 import { TenantsService } from './tenants.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
@@ -103,7 +106,10 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
-		const tenantWithLease = await this.tenantsService.findOneWithLease(userId, id)
+		const tenantWithLease = await this.tenantsService.findOneWithLease(
+			userId,
+			id
+		)
 		if (!tenantWithLease) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -125,29 +131,27 @@ export class TenantsController {
 	}
 
 	@Post()
-	async create(
-		@Body() dto: CreateTenantDto,
-		@Req() req: AuthenticatedRequest
-	) {
+	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const userId = req.user.id
-		const tenant = await this.tenantsService.create(userId, dto as unknown as CreateTenantRequest)
+		const tenant = await this.tenantsService.create(
+			userId,
+			dto as unknown as CreateTenantRequest
+		)
 
 		// Auto-send invitation email after tenant creation (V2 - Supabase Auth)
 		// This is fire-and-forget to not block the response
 		// Note: propertyId/leaseId are assigned later when lease is created
-		this.tenantsService
-			.sendTenantInvitationV2(userId, tenant.id)
-			.catch(err => {
-				// Log but don't fail the tenant creation if email fails
-				this.logger.warn(
-					'Failed to send invitation email after tenant creation',
-					{
-						tenantId: tenant.id,
-						error: err instanceof Error ? err.message : String(err)
-					}
-				)
-			})
+		this.tenantsService.sendTenantInvitationV2(userId, tenant.id).catch(err => {
+			// Log but don't fail the tenant creation if email fails
+			this.logger.warn(
+				'Failed to send invitation email after tenant creation',
+				{
+					tenantId: tenant.id,
+					error: err instanceof Error ? err.message : String(err)
+				}
+			)
+		})
 
 		return tenant
 	}
@@ -261,7 +265,6 @@ export class TenantsController {
 		await this.tenantsService.remove(userId, id)
 	}
 
-
 	/**
 	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system
@@ -288,35 +291,49 @@ export class TenantsController {
 	 */
 	@Post('invite-with-lease')
 	async inviteTenantWithLease(
-		@Body() body: { 
-			tenantData: { 
+		@Body()
+		body: {
+			tenantData: {
 				email: string
 				firstName: string
 				lastName: string
-				phone?: string 
+				phone?: string
 			}
-			leaseData: { 
+			leaseData: {
 				propertyId: string
 				unitId?: string
 				rentAmount: number
 				securityDeposit: number
 				startDate: string
-				endDate: string 
-			} 
+				endDate: string
+			}
 		},
 		@Req() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
-		
+
 		// Validate required fields
-		if (!body.tenantData?.email || !body.tenantData?.firstName || !body.tenantData?.lastName) {
-			throw new BadRequestException('Tenant email, firstName, and lastName are required')
+		if (
+			!body.tenantData?.email ||
+			!body.tenantData?.firstName ||
+			!body.tenantData?.lastName
+		) {
+			throw new BadRequestException(
+				'Tenant email, firstName, and lastName are required'
+			)
 		}
-		
-		if (!body.leaseData?.propertyId || !body.leaseData?.rentAmount || !body.leaseData?.startDate || !body.leaseData?.endDate) {
-			throw new BadRequestException('Lease propertyId, rentAmount, startDate, and endDate are required')
+
+		if (
+			!body.leaseData?.propertyId ||
+			!body.leaseData?.rentAmount ||
+			!body.leaseData?.startDate ||
+			!body.leaseData?.endDate
+		) {
+			throw new BadRequestException(
+				'Lease propertyId, rentAmount, startDate, and endDate are required'
+			)
 		}
-		
+
 		return this.tenantsService.inviteTenantWithLease(
 			userId,
 			body.tenantData,
@@ -403,9 +420,7 @@ export class TenantsController {
 			userId,
 			id,
 			{
-				contactName: dto.contactName,
-				relationship: dto.relationship,
-				phoneNumber: dto.phoneNumber,
+				...dto,
 				email: dto.email ?? null
 			}
 		)
@@ -429,22 +444,17 @@ export class TenantsController {
 	) {
 		const userId = req.user.id
 
-		// Build update object with only defined fields
-		const updateData: {
-			contactName?: string
-			relationship?: string
-			phoneNumber?: string
-			email?: string | null
-		} = {}
-		if (dto.contactName !== undefined) updateData.contactName = dto.contactName
-		if (dto.relationship !== undefined) updateData.relationship = dto.relationship
-		if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber
-		if (dto.email !== undefined) updateData.email = dto.email ?? null
-
 		const emergencyContact = await this.tenantsService.updateEmergencyContact(
 			userId,
 			id,
-			updateData
+			{
+				...(dto.contactName !== undefined && { contactName: dto.contactName }),
+				...(dto.relationship !== undefined && {
+					relationship: dto.relationship
+				}),
+				...(dto.phoneNumber !== undefined && { phoneNumber: dto.phoneNumber }),
+				...(dto.email !== undefined && { email: dto.email ?? null })
+			}
 		)
 
 		if (!emergencyContact) {

@@ -18,7 +18,7 @@ export interface SupabaseClientPoolMetrics {
 
 interface SupabaseUserClientPoolOptions {
 	supabaseUrl: string
-	supabaseAnonKey: string
+	supabasePublishableKey: string
 	logger: Logger
 	maxSize?: number
 	ttlMs?: number
@@ -46,7 +46,8 @@ export class SupabaseUserClientPool {
 	constructor(private readonly options: SupabaseUserClientPoolOptions) {
 		this.maxPoolSize = options.maxSize ?? DEFAULT_MAX_POOL_SIZE
 		this.ttlMs = options.ttlMs ?? DEFAULT_TTL
-		this.cleanupIntervalMs = options.cleanupIntervalMs ?? DEFAULT_CLEANUP_INTERVAL
+		this.cleanupIntervalMs =
+			options.cleanupIntervalMs ?? DEFAULT_CLEANUP_INTERVAL
 		this.startCleanupTimer()
 	}
 
@@ -70,7 +71,7 @@ export class SupabaseUserClientPool {
 		this.metrics.misses++
 		const client = createClient<Database>(
 			this.options.supabaseUrl,
-			this.options.supabaseAnonKey,
+			this.options.supabasePublishableKey,
 			{
 				auth: {
 					persistSession: false,
@@ -95,8 +96,7 @@ export class SupabaseUserClientPool {
 
 		if (this.metrics.misses % 100 === 0) {
 			const hitRate =
-				(this.metrics.hits /
-					(this.metrics.hits + this.metrics.misses || 1)) *
+				(this.metrics.hits / (this.metrics.hits + this.metrics.misses || 1)) *
 				100
 			this.options.logger.debug(
 				`Client pool stats: ${hitRate.toFixed(1)}% hit rate, ${this.clients.size} cached clients, ${this.metrics.evictions} evictions`

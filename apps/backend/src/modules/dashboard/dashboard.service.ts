@@ -187,7 +187,7 @@ export class DashboardService {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('rent_payment')
-			.select('id, landlordId, amount, status, paidAt, createdAt')
+			.select('id, ownerId, amount, status, paidAt, createdAt')
 			.order('createdAt', { ascending: false })
 			.limit(10)
 
@@ -196,7 +196,7 @@ export class DashboardService {
 		return data.map(payment => ({
 			id: payment.id,
 			type: 'payment',
-			landlordId: payment.landlordId,
+			ownerId: payment.ownerId,
 			status: payment.status,
 			action: `Payment ${payment.status?.toLowerCase()}`,
 			amount: payment.amount,

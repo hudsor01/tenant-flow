@@ -9,7 +9,7 @@ export const defaultMetadata: Metadata = {
 	description:
 		"Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow's enterprise platform.",
 	keywords:
-		'property management software, rental property management, property manager tools, real estate management platform, tenant management system, landlord software, property portfolio management',
+		'property management software, rental property management, property manager tools, real estate management platform, tenant management system, owner software, property portfolio management',
 	authors: [{ name: 'TenantFlow' }],
 	creator: 'TenantFlow',
 	publisher: 'TenantFlow',

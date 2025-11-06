@@ -25,17 +25,17 @@ describe('LeasePDFService', () => {
 			bedrooms: 1,
 			bathrooms: 1
 		},
-		landlord: {
-			name: 'Landlord',
+		owner: {
+			name: 'owner',
 			isEntity: false,
 			address: {
-				street: '500 Landlord St',
+				street: '500 owner St',
 				city: 'Demo City',
 				state: 'CA',
 				zipCode: '90002'
 			},
 			phone: '555-0100',
-			email: 'landlord@example.com'
+			email: 'owner@example.com'
 		},
 		tenants: [
 			{
@@ -109,7 +109,7 @@ describe('LeasePDFService', () => {
 				pets: { allowed: true, types: ['cats'] },
 				smoking: { allowed: false },
 				guests: { allowed: true },
-				maintenance: { requestProcess: 'Contact landlord' }
+				maintenance: { requestProcess: 'Contact owner' }
 			},
 			customTerms: [
 				{ title: 'Quiet Hours', content: '10 PM to 8 AM', required: true }
@@ -139,7 +139,7 @@ describe('LeasePDFService', () => {
 
 	it('renders PDF from template selections', async () => {
 		const context = createDefaultContext({
-			landlordName: 'Preview Landlord',
+			ownerName: 'Preview owner',
 			tenantNames: 'Preview Tenant',
 			propertyAddress: '123 Preview Ave, Demo City, CA 90003',
 			propertyState: 'CA',

@@ -121,7 +121,7 @@ describe('SubscriptionsService', () => {
 					property: {
 						id: 'property123',
 						name: 'Test Property',
-						ownerId: 'landlord123'
+						ownerId: 'owner123'
 					},
 					unit: {
 						id: 'unit123',
@@ -155,7 +155,7 @@ describe('SubscriptionsService', () => {
 					id: 'subscription123',
 					leaseId: 'lease123',
 					tenantId: 'tenant123',
-					landlordId: 'landlord123',
+					ownerId: 'owner123',
 					stripeSubscriptionId: 'sub_test123',
 					stripeCustomerId: 'cus_test123',
 					amount: 100000,
@@ -240,7 +240,7 @@ describe('SubscriptionsService', () => {
 					property: {
 						id: 'property123',
 						name: 'Test Property',
-						ownerId: 'landlord123'
+						ownerId: 'owner123'
 					},
 					unit: {
 						id: 'unit123',
@@ -456,7 +456,7 @@ describe('SubscriptionsService', () => {
 
 			expect(result).toHaveLength(2)
 			expect(supabaseClient.or).toHaveBeenCalledWith(
-				'tenantId.eq.user123,landlordId.eq.user123'
+				'tenantId.eq.user123,ownerId.eq.user123'
 			)
 		})
 	})

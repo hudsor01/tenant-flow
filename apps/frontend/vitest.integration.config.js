@@ -16,9 +16,8 @@ export default defineConfig({
 		watch: process.env.CI ? false : undefined,
 		globals: true,
 		setupFiles: ['./src/test/setup.ts'],
-		include: [
-			'tests/integration/**/*.{test,spec}.{ts,tsx}'
-		],
+		globalSetup: ['./tests/integration/setup.ts'],
+		include: ['tests/integration/**/*.{test,spec}.{ts,tsx}'],
 		exclude: [
 			'node_modules',
 			'dist',
