@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🔍 Testing Backend Authentication with HS256"
+echo "🔍 Testing Backend Authentication with JWKS (ES256/RS256)"
 echo "=================================================="
 
 # Step 1: Get JWT token from Supabase
