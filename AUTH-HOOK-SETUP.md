@@ -271,7 +271,7 @@ DROP FUNCTION IF EXISTS public.custom_access_token_hook(jsonb);
 - **Migration**: `supabase/migrations/20251031_auth_hook_custom_claims.sql`
 - **Local Config**: `supabase/config.toml:33-35`
 - **Usage**: `apps/frontend/src/lib/supabase/middleware.ts:106-108`
-- **Supabase Docs**: https://supabase.com/docs/guides/auth/auth-hooks/custom-access-token-hook
+- **Supabase Docs**: [Custom Access Token Hook Guide](https://supabase.com/docs/guides/auth/auth-hooks/custom-access-token-hook)
 - **Phase 4 Plan**: `PHASE-4-PLAN.md` Task 4.1.5
 
 ---
