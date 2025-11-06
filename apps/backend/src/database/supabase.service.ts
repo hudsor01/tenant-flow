@@ -42,9 +42,9 @@ export class SupabaseService {
 	private getUserClientPool(): SupabaseUserClientPool {
 		if (!this.userClientPool) {
 			const supabaseUrl = process.env.SUPABASE_URL
-			const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_KEY
+			const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
 
-			if (!supabaseUrl || !supabaseAnonKey) {
+			if (!supabaseUrl || !supabasePublishableKey) {
 				throw new InternalServerErrorException(
 					'Authentication service unavailable [SUP-002]'
 				)
@@ -52,7 +52,7 @@ export class SupabaseService {
 
 			this.userClientPool = new SupabaseUserClientPool({
 				supabaseUrl,
-				supabaseAnonKey,
+				supabasePublishableKey,
 				logger: this.logger
 			})
 		}
@@ -231,7 +231,9 @@ export class SupabaseService {
 					// If not JSON, might be token directly
 					// JWT tokens have format: header.payload.signature
 					const token = match[1]
-					return token.split('.').length === 3 && token.length > 20 ? token : null
+					return token.split('.').length === 3 && token.length > 20
+						? token
+						: null
 				}
 			}
 		}
@@ -247,7 +249,8 @@ export class SupabaseService {
 	async getUser(req: Request): Promise<authUser | null> {
 		const startTime = Date.now()
 		try {
-			const tokenDetails: ResolvedSupabaseToken = this.tokenResolver.resolve(req)
+			const tokenDetails: ResolvedSupabaseToken =
+				this.tokenResolver.resolve(req)
 			const token = tokenDetails.token
 
 			if (!token) {

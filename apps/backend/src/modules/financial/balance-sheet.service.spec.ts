@@ -127,13 +127,13 @@ describe('BalanceSheetService', () => {
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'calculate_net_operating_income',
 				{
-					p_user_id: ''
+					p_user_id: 'user-123'
 				}
 			)
 			expect(mockClient.rpc).toHaveBeenCalledWith(
 				'get_lease_financial_summary',
 				{
-					p_user_id: ''
+					p_user_id: 'user-123'
 				}
 			)
 		})

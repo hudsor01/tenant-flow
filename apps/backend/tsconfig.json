@@ -4,6 +4,7 @@
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
+		"rootDir": ".",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest", "express"],
@@ -13,7 +14,7 @@
 		"incremental": false,
 		"removeComments": true
 	},
-	"include": ["src/**/*.ts", "test/**/*.ts"],
+	"include": ["src/**/*.ts", "test/**/*.ts", "tests/**/*.ts"],
 	"exclude": [
 		"node_modules",
 		"dist",
