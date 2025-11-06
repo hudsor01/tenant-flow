@@ -26,10 +26,10 @@ describe('LeasePDFService', () => {
 			bathrooms: 1
 		},
 		owner: {
-			name: 'Landlord',
+			name: 'Owner',
 			isEntity: false,
 			address: {
-				street: '500 Landlord St',
+				street: '500 Owner St',
 				city: 'Demo City',
 				state: 'CA',
 				zipCode: '90002'

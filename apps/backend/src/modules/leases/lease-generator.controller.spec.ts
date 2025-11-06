@@ -150,7 +150,7 @@ describe('LeaseGeneratorController', () => {
 			}
 
 			await expect(controller.generateLease(invalidLease)).rejects.toThrow(
-				new BadRequestException('Landlord name is required')
+				new BadRequestException('Owner name is required')
 			)
 		})
 

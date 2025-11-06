@@ -53,9 +53,8 @@ export class LeaseGeneratorController {
 			if (!leaseData?.property?.address?.state) {
 				throw new BadRequestException('Property state is required')
 			}
-		// @ts-expect-error - Support legacy landlord field for backward compatibility
-		if (!leaseData?.owner?.name && !leaseData?.landlord?.name) {
-			throw new BadRequestException('Owner/Landlord name is required')
+		if (!leaseData?.owner?.name) {
+			throw new BadRequestException('Owner name is required')
 		}
 			if (!leaseData?.tenants?.length) {
 				throw new BadRequestException('At least one tenant is required')
@@ -251,7 +250,7 @@ export class LeaseGeneratorController {
 				bedrooms: 2,
 				bathrooms: 1
 			},
-			landlord: {
+			owner: {
 				name: 'Demo Property Management LLC',
 				isEntity: true,
 				entityType: 'LLC',
