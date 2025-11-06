@@ -7,12 +7,12 @@ async function checkTestUsers() {
 
 	if (!supabaseUrl) {
 		console.error('Error: SUPABASE_URL environment variable is required')
-		return
+		process.exit(1)
 	}
 
 	if (!supabaseSecretKey) {
 		console.error('Error: SUPABASE_SECRET_KEY environment variable is required')
-		return
+		process.exit(1)
 	}
 
 	const supabase = createClient(supabaseUrl, supabaseSecretKey)
