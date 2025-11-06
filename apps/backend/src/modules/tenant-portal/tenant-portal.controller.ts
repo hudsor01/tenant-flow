@@ -21,7 +21,6 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { Logger } from '@nestjs/common'
 
-// DTOs for tenant portal endpoints
 const CreateMaintenanceRequestSchema = z.object({
 	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
@@ -180,11 +179,11 @@ export class TenantPortalController {
 				description: body.description,
 				priority: body.priority as Database['public']['Enums']['Priority'],
 				category: body.category ?? null,
-				unitId: lease.unit.id,
+				allowEntry: body.allowEntry,
 				status: 'OPEN',
 				requestedBy: user.id,
-				allowEntry: body.allowEntry ?? true,
-				photos: body.photos && body.photos.length > 0 ? body.photos : null
+				photos: body.photos && body.photos.length > 0 ? body.photos : null,
+				unitId: lease.unit.id
 			}
 
 		const { data, error } = await this.supabase

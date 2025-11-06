@@ -30,6 +30,18 @@ const formatConfig: Record<
 
 async function fetchAccessToken(): Promise<string | null> {
 	const supabase = createClient()
+
+	// SECURITY FIX: Validate user with getUser() before extracting token
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	if (userError || !user) {
+		return null
+	}
+
+	// Get session for access token (only after user validation)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()

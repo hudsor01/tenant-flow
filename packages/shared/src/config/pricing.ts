@@ -81,7 +81,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'STARTER',
 		planId: 'starter',
 		name: 'Starter',
-		description: 'Ideal for small owners managing a few properties',
+		description: 'Ideal for property owners managing a few properties',
 		price: {
 			monthly: 29,
 			annual: 290

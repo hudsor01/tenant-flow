@@ -208,10 +208,18 @@ export function useReports({
 			// For blob downloads, we can't use clientFetch (it calls .json())
 			// But we still need to add Authorization header manually
 			const supabase = (await import('#lib/supabase/client')).createClient()
+
+			// SECURITY FIX: Validate user with getUser() before extracting token
+			const {
+				data: { user },
+				error: userError
+			} = await supabase.auth.getUser()
+
+			// Get session for access token (only after user validation)
 			const { data: { session } } = await supabase.auth.getSession()
-			
+
 			const headers: Record<string, string> = {}
-			if (session?.access_token) {
+			if (!userError && user && session?.access_token) {
 				headers['Authorization'] = `Bearer ${session.access_token}`
 			}
 
