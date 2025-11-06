@@ -26,7 +26,13 @@ export async function createCheckoutSession(
 ): Promise<CreateCheckoutSessionResponse> {
 	const supabase = createClient()
 
-	// Get current session for authentication (optional for unauthenticated checkout)
+	// SECURITY FIX: Validate user with getUser() before extracting data
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	// Get session for access token (only after user validation)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
@@ -36,7 +42,7 @@ export async function createCheckoutSession(
 	}
 
 	// Add auth header if user is authenticated
-	if (session?.access_token) {
+	if (!userError && user && session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	}
 
@@ -48,12 +54,11 @@ export async function createCheckoutSession(
 			body: JSON.stringify({
 				priceId: request.priceId,
 				productName: request.planName,
-				tenantId: request.tenantId || session?.user?.id || 'pending_signup',
+				tenantId: request.tenantId || user?.id || 'pending_signup',
 				domain: window.location.origin,
 				description: request.description,
 				isSubscription: true,
-				customerEmail:
-					request.customerEmail || session?.user?.email || undefined
+				customerEmail: request.customerEmail || user?.email || undefined
 			})
 		}
 	)
@@ -74,14 +79,16 @@ export async function createCheckoutSession(
 
 /**
  * Check if user is authenticated with Supabase
+ * SECURITY: Uses getUser() to validate authentication
  */
 export async function isUserAuthenticated(): Promise<boolean> {
 	const supabase = createClient()
 
 	const {
-		data: { session }
-	} = await supabase.auth.getSession()
-	return !!session?.access_token
+		data: { user },
+		error
+	} = await supabase.auth.getUser()
+	return !error && !!user
 }
 
 /**
@@ -118,6 +125,13 @@ export async function createPaymentIntent({
 }) {
 	const supabase = createClient()
 
+	// SECURITY FIX: Validate user with getUser() before extracting token
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	// Get session for access token (only after user validation)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
@@ -127,7 +141,7 @@ export async function createPaymentIntent({
 	}
 
 	// Add auth header if user is authenticated
-	if (session?.access_token) {
+	if (!userError && user && session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	}
 
@@ -164,22 +178,33 @@ export async function createCustomerPortalSession(
 ): Promise<{ url: string }> {
 	const supabase = createClient()
 
+	// SECURITY FIX: Validate user with getUser() before extracting data
+	const {
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
+
+	if (userError || !user) {
+		throw new Error('User not authenticated')
+	}
+
+	// Get session for access token (only after user validation)
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
 	if (!session?.access_token) {
-		throw new Error('User not authenticated')
+		throw new Error('Session expired')
 	}
 
 	// Get user's Stripe customer ID
-	const { data: userData, error: userError } = await supabase
+	const { data: userData, error: dbError } = await supabase
 		.from('users')
 		.select('stripeCustomerId')
-		.eq('id', session.user.id)
+		.eq('id', user.id)
 		.single()
 
-	if (userError || !userData?.stripeCustomerId) {
+	if (dbError || !userData?.stripeCustomerId) {
 		throw new Error('No Stripe customer found. Please contact support.')
 	}
 

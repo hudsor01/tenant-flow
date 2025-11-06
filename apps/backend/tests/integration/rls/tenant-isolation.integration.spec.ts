@@ -269,7 +269,7 @@ describe('RLS: Tenant Isolation', () => {
 			expect(data).toBeDefined()
 
 			if (data) {
-				tenantAEmergencyContactId = data.id // Update the ID for subsequent tests
+				tenantAEmergencyContactId = data.id
 				testData.emergencyContacts.push(data.id)
 			}
 		})
@@ -397,6 +397,7 @@ describe('RLS: Tenant Isolation', () => {
 				.from('tenant_emergency_contact')
 				.delete()
 				.eq('id', contactId)
+				.select()
 
 			// MUST fail or return empty
 			if (error) {

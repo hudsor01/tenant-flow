@@ -4,6 +4,10 @@ import {
 	PROTECTED_ROUTE_PREFIXES,
 	PUBLIC_AUTH_ROUTES
 } from '#lib/auth-constants'
+import {
+	SUPABASE_URL,
+	SUPABASE_PUBLISHABLE_KEY
+} from '@repo/shared/config/supabase'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -19,8 +23,8 @@ export async function updateSession(request: NextRequest) {
 	})
 
 	const supabase = createServerClient<Database>(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+		SUPABASE_URL,
+		SUPABASE_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll() {
@@ -177,6 +181,11 @@ async function getJwtClaims(
 	supabase: SupabaseClient<Database>
 ): Promise<Record<string, unknown> | null> {
 	try {
+		// NOTE: Using getSession() here is acceptable because:
+		// 1. We already validated the user with getUser() (line 56)
+		// 2. We only use the access_token from session, not session.user
+		// 3. The token itself is what we're decoding (the source of truth)
+		// This is the recommended pattern per Supabase docs when you need the JWT token
 		const {
 			data: { session },
 			error
