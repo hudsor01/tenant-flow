@@ -155,7 +155,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	async generateLeaseAgreementPDF(leaseData: {
 		propertyAddress: string
 		tenantName: string
-		ownerName: string // Updated from landlordName for consistency
+		ownerName: string
 		startDate: string
 		endDate: string
 		rentAmount: number
@@ -197,7 +197,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
-							`Landlord: ${leaseData.ownerName}`
+							`Owner: ${leaseData.ownerName}`
 						),
 						React.createElement(
 							Text,
@@ -266,7 +266,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 								React.createElement(
 									Text,
 									{ style: styles.signatureLabel },
-									`Landlord: ${leaseData.ownerName}`
+									`Owner: ${leaseData.ownerName}`
 								),
 								React.createElement(Text, { style: styles.signatureDate }, 'Date: _________________')
 							),
