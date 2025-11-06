@@ -53,6 +53,25 @@ Phase 4 focuses on **production readiness finalization**: applying security migr
 - **Command**: `SELECT * FROM pg_tables WHERE tablename = 'tenant_emergency_contact';`
 - **Expected**: Table exists with RLS enabled
 
+**4.1.5: Verify Custom Access Token Auth Hook**
+- **Migration**: `supabase/migrations/20251031_auth_hook_custom_claims.sql`
+- **Status**: Migration likely applied, hook enablement needs verification
+- **Local Development**: Already enabled in `supabase/config.toml`
+- **Production Verification**:
+  1. Navigate to Supabase Dashboard → Authentication → Hooks
+  2. Check "Custom Access Token" hook is enabled
+  3. Verify function: `public.custom_access_token_hook`
+- **Test JWT Claims**:
+  ```bash
+  # Login and decode JWT to verify custom claims present
+  # Expected claims: user_role, subscription_status, stripe_customer_id
+  ```
+- **Impact**: Without this hook, middleware performs extra database queries (performance penalty)
+- **References**:
+  - Migration: `supabase/migrations/20251031_auth_hook_custom_claims.sql`
+  - Usage: `apps/frontend/src/lib/supabase/middleware.ts:106-108`
+  - Config: `supabase/config.toml:33-35`
+
 **Acceptance Criteria**:
 - [ ] All 3 migrations applied successfully
 - [ ] Verification SQL returns expected results
@@ -60,6 +79,8 @@ Phase 4 focuses on **production readiness finalization**: applying security migr
 - [ ] Backend can create payments via service role
 - [ ] Frontend cannot create payments directly
 - [ ] All RLS policies active
+- [ ] Custom access token auth hook enabled in production
+- [ ] JWT claims include user_role, subscription_status, stripe_customer_id
 
 **Rollback Plan**: See `MIGRATIONS-TO-APPLY.md` for detailed rollback SQL
 
