@@ -45,6 +45,7 @@ export function ConnectOnboardingDialog({
 	const [entityType, setEntityType] = useState<'individual' | 'company'>(
 		'individual'
 	)
+	const [country, setCountry] = useState('US')
 
 	const createAccount = useCreateConnectedAccount()
 	const refreshOnboarding = useRefreshOnboarding()
@@ -65,7 +66,7 @@ export function ConnectOnboardingDialog({
 				entityType: 'individual' | 'company'
 			} = {
 				displayName: displayName.trim(),
-				country: 'US',
+				country,
 				entityType
 			}
 			if (businessName.trim()) {
@@ -137,19 +138,35 @@ export function ConnectOnboardingDialog({
 					</Field>
 					{entityType === 'company' && (
 						<Field>
-						<FieldLabel htmlFor="businessName">Business Name</FieldLabel>
-						<Input
-							id="businessName"
-							name="businessName"
-							placeholder="Legal business name"
-							autoComplete="organization"
-							value={businessName}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-								setBusinessName(e.target.value)
-							}
+							<FieldLabel htmlFor="businessName">Business Name</FieldLabel>
+							<Input
+								id="businessName"
+								name="businessName"
+								placeholder="Legal business name"
+								autoComplete="organization"
+								value={businessName}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									setBusinessName(e.target.value)
+								}
 							/>
 						</Field>
-					)}{' '}
+					)}
+					<Field>
+						<FieldLabel htmlFor="country">Country *</FieldLabel>
+						<Select
+							name="country"
+							value={country}
+							onValueChange={value => setCountry(value)}
+						>
+							<SelectTrigger id="country">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="US">United States</SelectItem>
+								<SelectItem value="CA">Canada</SelectItem>
+							</SelectContent>
+						</Select>
+					</Field>
 					<div className="rounded-lg border p-4 bg-muted/50">
 						<p className="text-sm text-muted-foreground">
 							After creating your account, you&apos;ll be redirected to Stripe to

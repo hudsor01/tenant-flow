@@ -3,6 +3,7 @@
 When providing commit messages, never include attribution.
 
 ## BEFORE EVERY ACTION: USE MCP SERVER SERENA! Activate project if not available.
+## Then run coderabbit --prompt-only in the background and fix any issues.
 
 
 ## Project Structure

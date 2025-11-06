@@ -6,8 +6,8 @@ import { SupabaseService } from '../../database/supabase.service'
 /**
  * Stripe Connect Service
  *
- * Handles Connected Account management for multi-landlord SaaS platform
- * - Creates Express Connected Accounts for landlords
+ * Handles Connected Account management for multi-owner SaaS platform
+ * - Creates Express Connected Accounts for owners
  * - Manages onboarding with Account Links
  * - Tracks onboarding status
  */
@@ -15,12 +15,198 @@ import { SupabaseService } from '../../database/supabase.service'
 export class StripeConnectService {
 	private readonly logger = new Logger(StripeConnectService.name)
 	private stripe: Stripe
+	private readonly defaultCountry: string
+
+	// Set of Stripe-supported 2-letter country codes
+	private readonly stripeSupportedCountries = new Set([
+		'AD',
+		'AE',
+		'AG',
+		'AL',
+		'AM',
+		'AO',
+		'AR',
+		'AT',
+		'AU',
+		'AZ',
+		'BA',
+		'BB',
+		'BD',
+		'BE',
+		'BF',
+		'BG',
+		'BH',
+		'BI',
+		'BJ',
+		'BN',
+		'BO',
+		'BR',
+		'BS',
+		'BT',
+		'BW',
+		'BZ',
+		'CA',
+		'CD',
+		'CG',
+		'CH',
+		'CI',
+		'CL',
+		'CM',
+		'CN',
+		'CO',
+		'CR',
+		'CV',
+		'CY',
+		'CZ',
+		'DE',
+		'DJ',
+		'DK',
+		'DM',
+		'DO',
+		'DZ',
+		'EC',
+		'EE',
+		'EG',
+		'ES',
+		'ET',
+		'FI',
+		'FJ',
+		'FM',
+		'FR',
+		'GA',
+		'GB',
+		'GD',
+		'GE',
+		'GH',
+		'GM',
+		'GN',
+		'GQ',
+		'GR',
+		'GT',
+		'GW',
+		'GY',
+		'HK',
+		'HN',
+		'HR',
+		'HT',
+		'HU',
+		'ID',
+		'IE',
+		'IL',
+		'IN',
+		'IS',
+		'IT',
+		'JM',
+		'JO',
+		'JP',
+		'KE',
+		'KG',
+		'KH',
+		'KI',
+		'KN',
+		'KR',
+		'KW',
+		'KZ',
+		'LA',
+		'LB',
+		'LC',
+		'LI',
+		'LK',
+		'LR',
+		'LS',
+		'LT',
+		'LU',
+		'LV',
+		'MA',
+		'MC',
+		'MD',
+		'ME',
+		'MG',
+		'MH',
+		'MK',
+		'ML',
+		'MM',
+		'MN',
+		'MO',
+		'MR',
+		'MT',
+		'MU',
+		'MV',
+		'MW',
+		'MX',
+		'MY',
+		'MZ',
+		'NA',
+		'NE',
+		'NG',
+		'NI',
+		'NL',
+		'NO',
+		'NP',
+		'NR',
+		'NZ',
+		'OM',
+		'PA',
+		'PE',
+		'PG',
+		'PH',
+		'PK',
+		'PL',
+		'PT',
+		'PW',
+		'PY',
+		'QA',
+		'RO',
+		'RS',
+		'RW',
+		'SA',
+		'SB',
+		'SC',
+		'SE',
+		'SG',
+		'SI',
+		'SK',
+		'SL',
+		'SM',
+		'SN',
+		'SR',
+		'ST',
+		'SV',
+		'SZ',
+		'TD',
+		'TG',
+		'TH',
+		'TJ',
+		'TL',
+		'TN',
+		'TO',
+		'TR',
+		'TT',
+		'TV',
+		'TW',
+		'TZ',
+		'UA',
+		'UG',
+		'US',
+		'UY',
+		'UZ',
+		'VC',
+		'VN',
+		'VU',
+		'WS',
+		'ZA',
+		'ZM',
+		'ZW'
+	])
 
 	constructor(
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService
 	) {
 		this.stripe = this.stripeClientService.getClient()
+		this.defaultCountry =
+			this.normalizeCountryCode(process.env.STRIPE_CONNECT_DEFAULT_COUNTRY) ??
+			'US'
 	}
 
 	/**
@@ -31,7 +217,7 @@ export class StripeConnectService {
 	}
 
 	/**
-	 * Create a Stripe Connected Account for a landlord
+	 * Create a Stripe Connected Account for a owner
 	 * Uses Express account type with Stripe-managed onboarding
 	 */
 	async createConnectedAccount(params: {
@@ -39,6 +225,7 @@ export class StripeConnectService {
 		email: string
 		firstName?: string
 		lastName?: string
+		country?: string
 	}): Promise<{ accountId: string; onboardingUrl: string }> {
 		// Check if user already has a connected account (idempotent)
 		const { data: existingUser, error: fetchError } = await this.supabaseService
@@ -49,7 +236,10 @@ export class StripeConnectService {
 			.single()
 
 		if (fetchError) {
-			this.logger.error('Failed to fetch user', { error: fetchError, userId: params.userId })
+			this.logger.error('Failed to fetch user', {
+				error: fetchError,
+				userId: params.userId
+			})
 			throw new BadRequestException('Failed to fetch user')
 		}
 
@@ -58,7 +248,9 @@ export class StripeConnectService {
 				userId: params.userId,
 				accountId: existingUser.connectedAccountId
 			})
-			const accountLink = await this.createAccountLink(existingUser.connectedAccountId)
+			const accountLink = await this.createAccountLink(
+				existingUser.connectedAccountId
+			)
 			return {
 				accountId: existingUser.connectedAccountId,
 				onboardingUrl: accountLink.url
@@ -68,11 +260,26 @@ export class StripeConnectService {
 		let stripeAccountId: string | null = null
 
 		try {
+			const normalizedCountry = this.normalizeCountryCode(params.country)
+			const accountCountry = normalizedCountry ?? this.defaultCountry
+			if (params.country && !normalizedCountry) {
+				this.logger.warn('Provided country code is invalid, using default', {
+					userId: params.userId,
+					providedCountry: params.country,
+					defaultCountry: accountCountry
+				})
+			} else if (!params.country) {
+				this.logger.debug('Falling back to default Stripe country', {
+					userId: params.userId,
+					defaultCountry: accountCountry
+				})
+			}
+
 			// Create Express Connected Account with idempotency key
 			const account = await this.stripe.accounts.create(
 				{
 					type: 'express',
-					country: 'US', // TODO: Make configurable based on landlord location
+					country: accountCountry,
 					email: params.email,
 					capabilities: {
 						card_payments: { requested: true },
@@ -89,7 +296,8 @@ export class StripeConnectService {
 					},
 					metadata: {
 						userId: params.userId,
-						platform: 'tenantflow'
+						platform: 'tenantflow',
+						country: accountCountry
 					}
 				},
 				{
@@ -122,7 +330,9 @@ export class StripeConnectService {
 				// Cleanup: Delete the Stripe account since DB update failed
 				try {
 					await this.stripe.accounts.del(account.id)
-					this.logger.log('Cleaned up orphaned Stripe account', { accountId: account.id })
+					this.logger.log('Cleaned up orphaned Stripe account', {
+						accountId: account.id
+					})
 				} catch (deleteError) {
 					this.logger.error('Failed to cleanup Stripe account', {
 						error: deleteError,
@@ -163,6 +373,36 @@ export class StripeConnectService {
 
 			throw error
 		}
+	}
+
+	private normalizeCountryCode(country?: string | null): string | null {
+		if (!country) {
+			return null
+		}
+
+		const trimmed = country.trim()
+		if (!trimmed) {
+			return null
+		}
+
+		const code = trimmed.toUpperCase()
+
+		// First check if format is valid (2-letter code)
+		if (!/^[A-Z]{2}$/.test(code)) {
+			return null
+		}
+
+		// Then check if Stripe supports this country
+		if (!this.stripeSupportedCountries.has(code)) {
+			// Log warning but return null to trigger fallback
+			this.logger.warn('Unsupported country code for Stripe Connect', {
+				country: code,
+				message: 'Stripe does not support this country for Express accounts'
+			})
+			return null
+		}
+
+		return code
 	}
 
 	/**

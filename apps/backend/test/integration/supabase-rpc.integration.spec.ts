@@ -6,7 +6,7 @@ if (!process.env.SUPABASE_URL) {
 	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
 if (!process.env.SUPABASE_SECRET_KEY) {
-	process.env.SUPABASE_SECRET_KEY = 'mock-service-role-key'
+	process.env.SUPABASE_SECRET_KEY = 'mock-secret-key'
 }
 if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
 	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
@@ -110,9 +110,12 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc('get_property_performance', {
-			p_user_id: userId
-		})
+		const { data, error } = await (client as any).rpc(
+			'get_property_performance',
+			{
+				p_user_id: userId
+			}
+		)
 
 		expect(error).toBeNull()
 		expect(Array.isArray(data)).toBe(true)
@@ -137,9 +140,12 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc('calculate_maintenance_metrics', {
-			p_user_id: userId
-		})
+		const { data, error } = await (client as any).rpc(
+			'calculate_maintenance_metrics',
+			{
+				p_user_id: userId
+			}
+		)
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()
@@ -168,9 +174,12 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc('get_maintenance_analytics', {
-			user_id: userId
-		})
+		const { data, error } = await (client as any).rpc(
+			'get_maintenance_analytics',
+			{
+				user_id: userId
+			}
+		)
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()

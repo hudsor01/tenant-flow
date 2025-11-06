@@ -28,8 +28,10 @@ describe('Environment Variables Access', () => {
 
 		expect(process.env.SUPABASE_SECRET_KEY).toBeDefined()
 
-		// Should be a JWT token or demo value
-		expect(process.env.SUPABASE_SECRET_KEY).toMatch(/^(eyJ|demo-service-key)/)
+		// Should be a JWT token (legacy format), new secret format (sb_secret_), or demo value
+		expect(process.env.SUPABASE_SECRET_KEY).toMatch(
+			/^(eyJ|sb_secret_|demo-service-key)/
+		)
 	})
 
 	it('should check SUPABASE_PUBLISHABLE_KEY availability', () => {
