@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
+import { SecurityModule } from '../../security/security.module'
 import { StripeAccessControlService } from './stripe-access-control.service'
 import { StripeDataService } from './stripe-data.service'
 import { StripeRecoveryService } from './stripe-recovery.service'
@@ -26,7 +27,7 @@ import { StripeConnectController } from './stripe-connect.controller'
  * - Type-safe DTOs with comprehensive validation
  */
 @Module({
-	imports: [SupabaseModule, EmailModule],
+	imports: [SupabaseModule, EmailModule, SecurityModule],
 	providers: [
 		StripeService,
 		StripeSyncService,
