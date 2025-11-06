@@ -1,4 +1,5 @@
 import {
+	Body,
 	Controller,
 	Post,
 	Get,
@@ -16,7 +17,7 @@ import { SupabaseService } from '../../database/supabase.service'
 /**
  * Stripe Connect Controller
  *
- * Handles Connected Account management for multi-landlord SaaS platform
+ * Handles Connected Account management for multi-owner SaaS platform
  */
 @Controller('stripe/connect')
 @UseGuards(JwtAuthGuard)
@@ -34,8 +35,13 @@ export class StripeConnectController {
 	 */
 	@Post('onboard')
 	@SkipSubscriptionCheck() // Allow onboarding before subscription is active
-	async createConnectedAccount(@Request() req: AuthenticatedRequest) {
+	async createConnectedAccount(
+		@Request() req: AuthenticatedRequest,
+		@Body() body?: { country?: string }
+	) {
 		const userId = req.user.id
+		const requestedCountry =
+			body && typeof body.country === 'string' ? body.country : undefined
 
 		try {
 			// Check if user already has a connected account
@@ -67,6 +73,7 @@ export class StripeConnectController {
 			const result = await this.stripeConnectService.createConnectedAccount({
 				userId,
 				email: user.email,
+				...(requestedCountry && { country: requestedCountry }),
 				...(user.firstName && { firstName: user.firstName }),
 				...(user.lastName && { lastName: user.lastName })
 			})

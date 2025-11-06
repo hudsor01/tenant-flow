@@ -15,7 +15,7 @@ describe('StripeConnectService', () => {
 	let mockSupabaseClient: any
 
 	const mockUserId = '123e4567-e89b-12d3-a456-426614174000'
-	const mockEmail = 'landlord@example.com'
+	const mockEmail = 'owner@example.com'
 	const mockStripeAccountId = 'acct_test123'
 
 	beforeEach(async () => {
@@ -113,7 +113,7 @@ describe('StripeConnectService', () => {
 			const result = await service.createConnectedAccount({
 				userId: mockUserId,
 				email: mockEmail,
-				displayName: 'Test Landlord',
+				displayName: 'Test owner',
 				country: 'US',
 				entityType: 'individual'
 			})
@@ -124,7 +124,7 @@ describe('StripeConnectService', () => {
 				email: mockEmail,
 				business_type: 'individual',
 				business_profile: {
-					name: 'Test Landlord'
+					name: 'Test owner'
 				},
 				capabilities: {
 					card_payments: { requested: true },
@@ -177,7 +177,7 @@ describe('StripeConnectService', () => {
 				service.createConnectedAccount({
 					userId: mockUserId,
 					email: mockEmail,
-					displayName: 'Test Landlord'
+					displayName: 'Test owner'
 				})
 			).rejects.toThrow('Failed to store connected account')
 		})
@@ -189,7 +189,7 @@ describe('StripeConnectService', () => {
 				service.createConnectedAccount({
 					userId: mockUserId,
 					email: mockEmail,
-					displayName: 'Test Landlord'
+					displayName: 'Test owner'
 				})
 			).rejects.toThrow('Stripe API error')
 		})

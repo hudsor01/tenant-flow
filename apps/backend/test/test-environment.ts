@@ -23,7 +23,7 @@ export interface TestEnvironmentConfig {
 	}
 	supabase: {
 		url: string
-		anonKey: string
+		publishableKey: string
 		serviceRoleKey: string
 		jwtSecret: string
 	}
@@ -121,7 +121,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 		// Unit tests use mocked Supabase
 		return {
 			url: 'https://mock-supabase-project.supabase.co',
-			anonKey: 'mock_anon_key_for_unit_tests',
+			publishableKey: 'mock_anon_key_for_unit_tests',
 			serviceRoleKey: 'mock_service_role_key_for_unit_tests',
 			jwtSecret: 'mock_jwt_secret_for_unit_tests'
 		}
@@ -129,9 +129,8 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 
 	// Integration and E2E tests use real test Supabase project
 	// Require explicit environment variables - no silent fallbacks
-	const url =
-		process.env.TEST_SUPABASE_URL ?? process.env.SUPABASE_URL ?? null
-	const anonKey =
+	const url = process.env.TEST_SUPABASE_URL ?? process.env.SUPABASE_URL ?? null
+	const publishableKey =
 		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ??
 		process.env.SUPABASE_PUBLISHABLE_KEY ??
 		null
@@ -146,13 +145,13 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 
 	// If running in CI and vars are missing, fall back to safe mocks to keep tests deterministic
 	if (process.env.GITHUB_ACTIONS) {
-		if (!url || !anonKey || !serviceRoleKey || !jwtSecret) {
+		if (!url || !publishableKey || !serviceRoleKey || !jwtSecret) {
 			moduleLogger.warn(
 				'Missing Supabase test env vars in CI; falling back to mocked Supabase values for tests.'
 			)
 			return {
 				url: url ?? 'https://mock-supabase-project.supabase.co',
-				anonKey: anonKey ?? 'mock_anon_key_for_ci',
+				publishableKey: publishableKey ?? 'mock_anon_key_for_ci',
 				serviceRoleKey: serviceRoleKey ?? 'mock_service_role_key_for_ci',
 				jwtSecret: jwtSecret ?? 'mock_jwt_secret_for_ci'
 			}
@@ -165,7 +164,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 			'TEST_SUPABASE_URL or SUPABASE_URL environment variable is required for integration/e2e tests'
 		)
 	}
-	if (!anonKey) {
+	if (!publishableKey) {
 		throw new Error(
 			'TEST_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
 		)
@@ -183,7 +182,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 
 	return {
 		url,
-		anonKey,
+		publishableKey,
 		serviceRoleKey,
 		jwtSecret
 	}
@@ -313,7 +312,7 @@ export async function createTestModule(moduleMetadata: {
 	process.env.NODE_ENV = 'test'
 	process.env.DATABASE_URL = testConfig.database.url
 	process.env.SUPABASE_URL = testConfig.supabase.url
-	process.env.SUPABASE_PUBLISHABLE_KEY = testConfig.supabase.anonKey
+	process.env.SUPABASE_PUBLISHABLE_KEY = testConfig.supabase.publishableKey
 	process.env.SUPABASE_SECRET_KEY = testConfig.supabase.serviceRoleKey
 	process.env.SUPABASE_JWT_SECRET = testConfig.supabase.jwtSecret
 	process.env.STRIPE_SECRET_KEY = testConfig.stripe.secretKey

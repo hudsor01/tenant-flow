@@ -202,13 +202,13 @@ describe('LateFeesService', () => {
 			mockAdminClient.eq.mockResolvedValue({ data: {}, error: null })
 
 			const result = await service.applyLateFeeToInvoice(
-			customerId,
-			leaseId,
-			rentPaymentId,
-			lateFeeAmount,
-			reason,
-			'mock-jwt-token'
-		)
+				customerId,
+				leaseId,
+				rentPaymentId,
+				lateFeeAmount,
+				reason,
+				'mock-jwt-token'
+			)
 
 			// Verify Stripe invoice item created
 			expect(mockStripe.invoiceItems!.create).toHaveBeenCalledWith({
@@ -241,13 +241,13 @@ describe('LateFeesService', () => {
 
 			await expect(
 				service.applyLateFeeToInvoice(
-				'cus_123',
-				generateUUID(),
-				generateUUID(),
-				50,
-				'test',
-				'mock-jwt-token'
-			)
+					'cus_123',
+					generateUUID(),
+					generateUUID(),
+					50,
+					'test',
+					'mock-jwt-token'
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -277,7 +277,11 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getOverduePayments(leaseId, 'mock-jwt-token', 5)
+			const result = await service.getOverduePayments(
+				leaseId,
+				'mock-jwt-token',
+				5
+			)
 
 			expect(result).toHaveLength(1)
 			expect(result[0]?.amount).toBe(1500) // Converted from cents
@@ -305,7 +309,11 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getOverduePayments(leaseId, 'mock-jwt-token', 5)
+			const result = await service.getOverduePayments(
+				leaseId,
+				'mock-jwt-token',
+				5
+			)
 
 			expect(result).toHaveLength(0)
 		})
@@ -330,7 +338,11 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getOverduePayments(leaseId, 'mock-jwt-token', 5)
+			const result = await service.getOverduePayments(
+				leaseId,
+				'mock-jwt-token',
+				5
+			)
 
 			expect(result).toHaveLength(0)
 		})
@@ -342,15 +354,15 @@ describe('LateFeesService', () => {
 			})
 
 			await expect(
-			service.getOverduePayments(generateUUID(), 'mock-jwt-token')
-		).rejects.toThrow(BadRequestException)
+				service.getOverduePayments(generateUUID(), 'mock-jwt-token')
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('processLateFees', () => {
 		it('should process late fees for all overdue payments', async () => {
 			const leaseId = generateUUID()
-			const landlordId = generateUUID()
+			const ownerId = generateUUID()
 			const paymentId1 = generateUUID()
 			const paymentId2 = generateUUID()
 
@@ -385,7 +397,7 @@ describe('LateFeesService', () => {
 				.spyOn(service, 'getOverduePayments')
 				.mockResolvedValue(mockOverduePayments)
 
-			// Mock landlord Stripe customer
+			// Mock owner Stripe customer
 			mockAdminClient.single.mockResolvedValue({
 				data: { stripeCustomerId: 'cus_123' },
 				error: null
@@ -398,7 +410,11 @@ describe('LateFeesService', () => {
 					id: 'ii_123'
 				} as any)
 
-			const result = await service.processLateFees(leaseId, landlordId)
+			const result = await service.processLateFees(
+				leaseId,
+				'mock-jwt-token',
+				ownerId
+			)
 
 			expect(result.processed).toBe(2)
 			expect(result.totalLateFees).toBeGreaterThan(0)
@@ -408,7 +424,7 @@ describe('LateFeesService', () => {
 
 		it('should return zero processed when no overdue payments', async () => {
 			const leaseId = generateUUID()
-			const landlordId = generateUUID()
+			const ownerId = generateUUID()
 
 			jest.spyOn(service, 'getLateFeeConfig').mockResolvedValue({
 				leaseId,
@@ -418,16 +434,20 @@ describe('LateFeesService', () => {
 
 			jest.spyOn(service, 'getOverduePayments').mockResolvedValue([])
 
-			const result = await service.processLateFees(leaseId, landlordId)
+			const result = await service.processLateFees(
+				leaseId,
+				'mock-jwt-token',
+				ownerId
+			)
 
 			expect(result.processed).toBe(0)
 			expect(result.totalLateFees).toBe(0)
 			expect(result.details).toHaveLength(0)
 		})
 
-		it('should throw BadRequestException when landlord not found', async () => {
+		it('should throw BadRequestException when owner not found', async () => {
 			const leaseId = generateUUID()
-			const landlordId = generateUUID()
+			const ownerId = generateUUID()
 
 			jest.spyOn(service, 'getLateFeeConfig').mockResolvedValue({
 				leaseId,
@@ -451,7 +471,7 @@ describe('LateFeesService', () => {
 			})
 
 			await expect(
-				service.processLateFees(leaseId, landlordId)
+				service.processLateFees(leaseId, 'mock-jwt-token', ownerId)
 			).rejects.toThrow(BadRequestException)
 		})
 	})

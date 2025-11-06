@@ -86,29 +86,29 @@ describe('RentPaymentsService', () => {
 		}
 
 		const unit = { propertyId: 'property123' }
-		const property = { ownerId: 'landlord123' }
-		const landlord = {
-			id: 'landlord123',
+		const property = { ownerId: 'owner123' }
+		const owner = {
+			id: 'owner123',
 			stripeAccountId: 'acct_456',
 			subscriptionTier: 'STARTER'
 		}
 
 		const tenantPaymentMethod = {
-		stripePaymentMethodId: 'pm_123',
-		stripeCustomerId: 'cus_existing',
-		type: 'card',
-		tenantId: 'user123' // Must match tenant.userId for ownership check
-	}
+			stripePaymentMethodId: 'pm_123',
+			stripeCustomerId: 'cus_existing',
+			type: 'card',
+			tenantId: 'user123' // Must match tenant.userId for ownership check
+		}
 
 		const rentPaymentRecord = {
 			id: 'payment123',
 			tenantId: 'user123',
-			landlordId: 'landlord123',
+			ownerId: 'owner123',
 			leaseId: 'lease123',
 			amount: 150000,
 			platformFee: 4500,
 			stripeFee: 4380,
-			landlordReceives: 141120,
+			ownerReceives: 141120,
 			status: 'succeeded',
 			paymentType: 'card',
 			stripePaymentIntentId: 'pi_123',
@@ -143,7 +143,7 @@ describe('RentPaymentsService', () => {
 		})
 
 		it('creates destination charge and persists rent payment', async () => {
-			const userCallResults = [tenantUser, landlord]
+			const userCallResults = [tenantUser, owner]
 			let tenantPaymentMethodCall = 0
 
 			const tenantPaymentMethodBuilders = [
@@ -210,7 +210,7 @@ describe('RentPaymentsService', () => {
 					amount: 1500,
 					paymentMethodId: 'pm_record'
 				},
-				'landlord123'
+				'owner123'
 			)
 
 			expect(result.payment.id).toBe('payment123')

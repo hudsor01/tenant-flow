@@ -56,7 +56,7 @@ export default function ResourcesPage() {
 			icon: <BookOpen className="size-8" />,
 			title: 'Blog',
 			description:
-				'Expert insights, industry trends, and best practices for landlords',
+				'Expert insights, industry trends, and best practices for owners',
 			href: '/blog',
 			color: 'bg-purple-500/10 border-purple-500/20',
 			iconColor: 'text-purple-600 dark:text-purple-400',
@@ -75,8 +75,7 @@ export default function ResourcesPage() {
 		{
 			icon: <Mail className="size-8" />,
 			title: 'Contact Support',
-			description:
-				'Get personalized help from our dedicated support team',
+			description: 'Get personalized help from our dedicated support team',
 			href: '/contact',
 			color: 'bg-orange-500/10 border-orange-500/20',
 			iconColor: 'text-orange-600 dark:text-orange-400',

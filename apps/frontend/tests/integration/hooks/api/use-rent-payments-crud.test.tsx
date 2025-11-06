@@ -11,9 +11,10 @@
 
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { clientFetch } from '#lib/api/client'
+import { createBrowserClient } from '@supabase/ssr'
 
 const TEST_PAYMENT_PREFIX = 'TEST-CRUD'
 let createdPaymentIds: string[] = []
@@ -92,9 +93,7 @@ async function createTestLease(
 	propertyId: string
 ): Promise<string> {
 	const startDate = new Date().toISOString()
-	const endDate = new Date(
-		Date.now() + 365 * 24 * 60 * 60 * 1000
-	).toISOString()
+	const endDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
 
 	const lease = await clientFetch<{ id: string }>('/api/v1/leases', {
 		method: 'POST',
@@ -114,6 +113,34 @@ async function createTestLease(
 }
 
 describe('Rent Payments Integration Tests', () => {
+	// Authenticate before running tests
+	beforeAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+
+		const { data, error } = await supabase.auth.signInWithPassword({
+			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
+			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+		})
+
+		if (error || !data.session) {
+			throw new Error(
+				`Failed to authenticate test user: ${error?.message || 'No session'}`
+			)
+		}
+	})
+
+	// Sign out after all tests
+	afterAll(async () => {
+		const supabase = createBrowserClient(
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		)
+		await supabase.auth.signOut()
+	})
+
 	// Cleanup after each test (order matters for foreign keys)
 	afterEach(async () => {
 		// Note: Rent payments typically cannot be deleted in production
@@ -168,7 +195,9 @@ describe('Rent Payments Integration Tests', () => {
 			const hasStripeTestKey = process.env.STRIPE_SECRET_KEY?.includes('test')
 
 			if (!hasStripeTestKey) {
-				console.log('⚠️  Skipping rent payment test - requires Stripe test mode')
+				console.log(
+					'⚠️  Skipping rent payment test - requires Stripe test mode'
+				)
 				return
 			}
 
@@ -195,7 +224,7 @@ describe('Rent Payments Integration Tests', () => {
 						success: boolean
 						payment: { id: string; amount: number; status: string }
 						paymentIntent: { id: string; status: string }
-					}
+				  }
 				| undefined
 
 			await waitFor(async () => {
@@ -313,9 +342,12 @@ describe('Rent Payments Integration Tests', () => {
 			const leaseId = await createTestLease(tenantId, unitId, propertyId)
 
 			// 1. CREATE payment
-			const { result: createResult } = renderHook(() => useCreateRentPayment(), {
-				wrapper
-			})
+			const { result: createResult } = renderHook(
+				() => useCreateRentPayment(),
+				{
+					wrapper
+				}
+			)
 
 			const paymentParams = {
 				tenantId,
@@ -328,7 +360,7 @@ describe('Rent Payments Integration Tests', () => {
 				| {
 						success: boolean
 						payment: { id: string; status: string }
-					}
+				  }
 				| undefined
 
 			await waitFor(async () => {
@@ -366,9 +398,12 @@ describe('Rent Payments Integration Tests', () => {
 			const leaseId = await createTestLease(tenantId, unitId, propertyId)
 
 			// Create payment
-			const { result: createResult } = renderHook(() => useCreateRentPayment(), {
-				wrapper
-			})
+			const { result: createResult } = renderHook(
+				() => useCreateRentPayment(),
+				{
+					wrapper
+				}
+			)
 
 			const paymentParams = {
 				tenantId,
