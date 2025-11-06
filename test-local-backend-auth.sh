@@ -10,7 +10,7 @@ LOGIN_RESPONSE=$(curl -s -X POST \
   "${SUPABASE_URL}/auth/v1/token?grant_type=password" \
   -H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
   -H "Content-Type: application/json" \
-  -d '{"email":"rhudson42@yahoo.com","password":"Bandit2025!"}')
+  -d "{\"email\":\"${TEST_EMAIL}\",\"password\":\"${TEST_PASSWORD}\"}")
 
 if ! echo "$LOGIN_RESPONSE" | grep -q "access_token"; then
   echo "❌ Login failed"
