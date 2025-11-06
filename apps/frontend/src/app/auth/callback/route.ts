@@ -8,8 +8,54 @@ import {
 	SUPABASE_URL,
 	SUPABASE_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
+import { decodeJwt } from 'jose'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 const VALID_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
+
+async function getJwtClaims(
+	supabase: SupabaseClient<Database>
+): Promise<Record<string, unknown> | null> {
+	try {
+		// The auth hook (custom_access_token_hook) automatically enriches the JWT
+		// with user_role, subscription_status, and stripe_customer_id claims.
+		// We get the session after code exchange to read the enriched access token.
+		const {
+			data: { session },
+			error
+		} = await supabase.auth.getSession()
+
+		if (error || !session?.access_token) {
+			return null
+		}
+
+		// Decode the JWT to extract custom claims added by the auth hook
+		const payload = decodeJwt(session.access_token)
+		return typeof payload === 'object' && payload !== null ? payload : null
+	} catch (err) {
+		logger.error('getJwtClaims failed while decoding session token', {
+			error: err instanceof Error ? err.message : String(err),
+			stack: err instanceof Error ? err.stack : undefined
+		})
+		return null
+	}
+}
+
+function getStringClaim(
+	claims: Record<string, unknown> | null,
+	key: string
+): string | null {
+	if (!claims) {
+		return null
+	}
+
+	const value = claims[key]
+	if (typeof value !== 'string') {
+		return null
+	}
+
+	return value
+}
 
 function safeNextPath(nextParam: string | null): string {
 	if (!nextParam || !nextParam.startsWith('/')) {
@@ -120,32 +166,36 @@ export async function GET(request: NextRequest) {
 
 		const user = data.session.user
 
-		const { data: profile, error: profileError } = await supabase
-			.from('users')
-			.select('role, subscription_status, stripeCustomerId')
-			.eq('supabaseId', user.id)
-			.single()
+		// Extract role, subscription_status, and stripe_customer_id from JWT claims
+		// instead of making a redundant database query
+		const claims = await getJwtClaims(supabase)
+		const role = getStringClaim(claims, 'user_role')
+		const subscriptionStatus = getStringClaim(claims, 'subscription_status')
+		const stripeCustomerId = getStringClaim(claims, 'stripe_customer_id')
 
-		if (profileError) {
-			logger.warn('OAuth callback could not load user profile', {
-				action: 'oauth_profile_missing',
-				metadata: { userId: user.id, error: profileError.message }
-			})
+		if (!role) {
+			logger.warn(
+				'OAuth callback could not extract user role from JWT claims',
+				{
+					action: 'oauth_claims_missing',
+					metadata: { userId: user.id }
+				}
+			)
 		}
 
-		const requiresPayment = profile?.role !== 'TENANT'
-		const hasValidSubscription = profile?.subscription_status
-			? VALID_SUBSCRIPTION_STATUSES.has(profile.subscription_status)
+		const requiresPayment = role !== 'TENANT'
+		const hasValidSubscription = subscriptionStatus
+			? VALID_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
 			: false
-		const hasStripeCustomer = Boolean(profile?.stripeCustomerId)
+		const hasStripeCustomer = Boolean(stripeCustomerId)
 
 		if (requiresPayment && (!hasValidSubscription || !hasStripeCustomer)) {
 			logger.info('OAuth user requires payment - redirecting to pricing', {
 				action: 'oauth_payment_required',
 				metadata: {
 					userId: user.id,
-					role: profile?.role,
-					subscriptionStatus: profile?.subscription_status,
+					role: role,
+					subscriptionStatus: subscriptionStatus,
 					hasValidSubscription,
 					hasStripeCustomer
 				}
@@ -154,7 +204,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		const destination =
-			profile?.role === 'TENANT'
+			role === 'TENANT'
 				? nextParam === '/manage'
 					? '/tenant'
 					: nextParam
@@ -164,7 +214,7 @@ export async function GET(request: NextRequest) {
 			action: 'oauth_callback_success',
 			metadata: {
 				userId: user.id,
-				role: profile?.role,
+				role: role,
 				next: destination
 			}
 		})
