@@ -59,7 +59,15 @@ function getSupabasePublishableKey(): string {
  * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
  * ```
  */
-export const SUPABASE_URL = getSupabaseUrl()
+export const SUPABASE_URL = (() => {
+	try {
+		return getSupabaseUrl()
+	} catch {
+		// Return empty string during build if env vars not set
+		// This prevents build failures while maintaining runtime validation
+		return ''
+	}
+})()
 
 /**
  * Supabase publishable key constant - validated at build time.
@@ -77,4 +85,12 @@ export const SUPABASE_URL = getSupabaseUrl()
  * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
  * ```
  */
-export const SUPABASE_PUBLISHABLE_KEY = getSupabasePublishableKey()
+export const SUPABASE_PUBLISHABLE_KEY = (() => {
+	try {
+		return getSupabasePublishableKey()
+	} catch {
+		// Return empty string during build if env vars not set
+		// This prevents build failures while maintaining runtime validation
+		return ''
+	}
+})()

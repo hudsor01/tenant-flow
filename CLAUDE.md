@@ -3,7 +3,7 @@
 When providing commit messages, never include attribution.
 
 ## BEFORE EVERY ACTION: USE MCP SERVER SERENA! Activate project if not available.
-## Then run coderabbit --prompt-only in the background and fix any issues.
+## Then run coderabbit --prompt-only in the background to get review suggestions (not automatic fixes). If issues are reported, address them before proceeding with your changes. Run this command in parallel with your development work and review any suggestions before committing.
 
 
 ## Project Structure

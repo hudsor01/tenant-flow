@@ -43,9 +43,17 @@ async function authenticateTestUser(
 	email: string,
 	password: string
 ): Promise<TestUser> {
+	// Validate required environment variables
+	if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+		throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
+	}
+	if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+		throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required')
+	}
+
 	const supabase = createBrowserClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+		process.env.NEXT_PUBLIC_SUPABASE_URL,
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 	)
 
 	const { data, error } = await supabase.auth.signInWithPassword({
@@ -76,6 +84,11 @@ async function fetchAsUser<T>(
 	endpoint: string,
 	options?: RequestInit
 ): Promise<T> {
+	// Validate session exists before using
+	if (!user.session || !user.session.access_token) {
+		throw new Error(`No valid session for user ${user.email}`)
+	}
+
 	const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`
 
 	const response = await fetch(url, {
@@ -83,7 +96,7 @@ async function fetchAsUser<T>(
 		headers: {
 			...options?.headers,
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${user.session!.access_token}`,
+			Authorization: `Bearer ${user.session.access_token}`,
 			'User-Agent':
 				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
 			Origin: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000',

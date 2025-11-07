@@ -140,7 +140,7 @@ export function ChangePasswordDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={isOpen => !isOpen && handleCancel()}>
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
@@ -171,6 +171,11 @@ export function ChangePasswordDialog({
 								onClick={() => togglePasswordVisibility('current')}
 								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 								disabled={changePassword.isPending}
+								aria-label={
+									showPasswords.current
+										? 'Hide current password'
+										: 'Show current password'
+								}
 							>
 								{showPasswords.current ? (
 									<EyeOff className="size-4" />
@@ -199,6 +204,9 @@ export function ChangePasswordDialog({
 								onClick={() => togglePasswordVisibility('new')}
 								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 								disabled={changePassword.isPending}
+								aria-label={
+									showPasswords.new ? 'Hide new password' : 'Show new password'
+								}
 							>
 								{showPasswords.new ? (
 									<EyeOff className="size-4" />
@@ -208,8 +216,8 @@ export function ChangePasswordDialog({
 							</button>
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">
-							Must be at least 8 characters with uppercase, lowercase, number, and
-							special character
+							Must be at least 8 characters with uppercase, lowercase, number,
+							and special character
 						</p>
 					</Field>
 
@@ -231,6 +239,11 @@ export function ChangePasswordDialog({
 								onClick={() => togglePasswordVisibility('confirm')}
 								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 								disabled={changePassword.isPending}
+								aria-label={
+									showPasswords.confirm
+										? 'Hide confirm password'
+										: 'Show confirm password'
+								}
 							>
 								{showPasswords.confirm ? (
 									<EyeOff className="size-4" />
