@@ -5,6 +5,8 @@
  * This file is a single source of truth for both frontend and backend.
  */
 
+import { SHARED_ERROR_MESSAGES } from './error-messages.js'
+
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
 	STARTER: 'STARTER',
@@ -100,7 +102,7 @@ export const getPlanById = (planId: PlanType): BillingPlan | undefined => {
 export const getDefaultPlan = (): BillingPlan => {
 	const plan = BILLING_PLANS[PLAN_TYPE.FREETRIAL]
 	if (!plan) {
-		throw new Error('Default plan not found')
+		throw new Error(SHARED_ERROR_MESSAGES.DEFAULT_PLAN_NOT_FOUND)
 	}
 	return plan
 }

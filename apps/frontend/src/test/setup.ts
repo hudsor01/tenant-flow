@@ -13,18 +13,49 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 // Create logger instance for structured logging
 const logger = createLogger({ component: 'TestSetup' })
 
-// Set Supabase environment variables
-process.env.NEXT_PUBLIC_SUPABASE_URL =
-	'https://bshjmbshupiibfiewpxb.supabase.co'
-process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
-	'sb_publishable_YYaHlF11DF7tVIpF9-PVMQ_BynUAN8e'
+// SECURITY: Load all credentials from environment variables
+// Never hardcode secrets in source code!
+// See E2E_TESTING_GUIDE.md for setup instructions
 
-// Set API base URL to local backend
-process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:4600'
+// Check if we're running unit tests or integration tests
+// Integration tests run via vitest.integration.config.js
+const isIntegrationTest = process.env.VITEST_INTEGRATION === 'true'
 
-// Test credentials (must match E2E_TESTING_GUIDE.md)
-const E2E_OWNER_EMAIL = 'rhudsontspr@gmail.com'
-const E2E_OWNER_PASSWORD = 'COmmos@69%'
+// Validate required environment variables only for integration tests
+if (isIntegrationTest) {
+	const requiredEnvVars = [
+		'NEXT_PUBLIC_SUPABASE_URL',
+		'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+		'E2E_OWNER_EMAIL',
+		'E2E_OWNER_PASSWORD'
+	] as const
+
+	for (const envVar of requiredEnvVars) {
+		if (!process.env[envVar]) {
+			throw new Error(
+				`Missing required environment variable: ${envVar}
+` +
+					`Please create a .env.test.local file with test credentials.
+` +
+					`See E2E_TESTING_GUIDE.md for setup instructions.`
+			)
+		}
+	}
+} else {
+	// For unit tests, provide mock environment variables
+	process.env.NEXT_PUBLIC_SUPABASE_URL =
+		process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
+}
+
+// Set API base URL to local backend (defaults to localhost:4600)
+process.env.NEXT_PUBLIC_API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+
+// Test credentials loaded from environment (for integration tests)
+const E2E_OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test@example.com'
+const E2E_OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'test-password'
 
 // Store the authenticated session in a way that mocks can properly access
 const sessionStore = vi.hoisted(() => ({
@@ -76,9 +107,9 @@ beforeAll(async () => {
 		sessionStore.session = data.session
 		sessionStore.user = data.user
 
+		// SECURITY: Do not log PII (email) or token details
 		logger.info('Integration tests authenticated', {
-			email: data.user?.email,
-			tokenPrefix: data.session.access_token.substring(0, 20) + '...'
+			userId: data.user?.id
 		})
 	} catch (error) {
 		const errorMessage =

@@ -157,9 +157,11 @@ export class FAQService {
 					error: error.message,
 					slug
 				})
-				throw error
+				throw new HttpException(
+					error.message || 'Failed to fetch FAQ category',
+					HttpStatus.INTERNAL_SERVER_ERROR
+				)
 			}
-
 			const categoryData: FAQCategoryWithQuestions = {
 				id: data.id ?? '',
 				name: data.name ?? '',
@@ -211,13 +213,16 @@ export class FAQService {
 			})
 
 			if (error) {
-				this.logger.warn('Failed to increment helpful count', {
+				this.logger.warn('Failed to increment view count', {
 					questionId,
 					error
 				})
 			}
 		} catch (error) {
-			this.logger.warn('Error marking question helpful', { questionId, error })
+			this.logger.warn('Error incrementing question view', {
+				questionId,
+				error
+			})
 		}
 	}
 

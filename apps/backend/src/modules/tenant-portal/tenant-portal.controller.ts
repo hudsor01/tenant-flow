@@ -25,7 +25,9 @@ const CreateMaintenanceRequestSchema = z.object({
 	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-	category: z.string().optional(),
+	category: z
+		.enum(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCES', 'SAFETY', 'GENERAL', 'OTHER'])
+		.optional(),
 	allowEntry: z.boolean().default(true),
 	photos: z.array(z.string().url()).max(6).optional()
 })
@@ -250,10 +252,15 @@ export class TenantPortalController {
 
 		for (const payment of payments) {
 			if (!payment.receiptUrl) continue
+			// FIX: Safely select a valid date, fallback to "Unknown date" if all are null
+			const dateSource = payment.createdAt ?? payment.dueDate ?? payment.paidAt
+			const dateDisplay = dateSource
+				? new Date(dateSource).toLocaleDateString()
+				: 'Unknown date'
 			documents.push({
 				id: payment.id,
 				type: 'RECEIPT',
-				name: `Rent receipt - ${new Date(payment.createdAt ?? payment.dueDate ?? '').toLocaleDateString()}`,
+				name: `Rent receipt - ${dateDisplay}`,
 				url: payment.receiptUrl,
 				createdAt: payment.paidAt ?? payment.createdAt
 			})

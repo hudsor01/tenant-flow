@@ -41,6 +41,9 @@ let createdUnitIds: string[] = []
 let createdPropertyIds: string[] = []
 
 // Create wrapper with fresh QueryClient for each test
+// Shared QueryClient instance for tests that need cache coordination
+let sharedQueryClient: QueryClient | null = null
+
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -48,6 +51,9 @@ function createWrapper() {
 			mutations: { retry: false }
 		}
 	})
+
+	// Store for cleanup
+	sharedQueryClient = queryClient
 
 	return ({ children }: { children: React.ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -106,21 +112,25 @@ async function createTestTenant(): Promise<string> {
 describe('Leases CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
-		// Validate required E2E environment variables
-		if (!process.env.E2E_OWNER_A_EMAIL) {
-			throw new Error(
-				'E2E_OWNER_A_EMAIL environment variable is required for integration tests. Please set this variable before running tests.'
-			)
-		}
-		if (!process.env.E2E_OWNER_A_PASSWORD) {
-			throw new Error(
-				'E2E_OWNER_A_PASSWORD environment variable is required for integration tests. Please set this variable before running tests.'
-			)
+		// Validate ALL required environment variables
+		const requiredEnvVars = [
+			'NEXT_PUBLIC_SUPABASE_URL',
+			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			'E2E_OWNER_A_EMAIL',
+			'E2E_OWNER_A_PASSWORD'
+		] as const
+
+		for (const envVar of requiredEnvVars) {
+			if (!process.env[envVar]) {
+				throw new Error(
+					`Missing required environment variable: ${envVar}. Please check your .env.test.local file.`
+				)
+			}
 		}
 
 		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			process.env.NEXT_PUBLIC_SUPABASE_URL,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
@@ -137,15 +147,28 @@ describe('Leases CRUD Integration Tests', () => {
 
 	// Sign out after all tests
 	afterAll(async () => {
-		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-		)
-		await supabase.auth.signOut()
+		try {
+			const supabase = createBrowserClient(
+				process.env.NEXT_PUBLIC_SUPABASE_URL!,
+				process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			)
+			const { data } = await supabase.auth.getSession()
+			if (data.session) {
+				await supabase.auth.signOut()
+			}
+		} catch (error) {
+			// Ignore sign-out errors in test cleanup
+			console.warn('Failed to sign out in afterAll:', error)
+		}
 	})
 
 	// Cleanup after each test (order matters for foreign keys)
 	afterEach(async () => {
+		// Clear QueryClient cache to prevent memory leaks and test pollution
+		if (sharedQueryClient) {
+			sharedQueryClient.clear()
+		}
+
 		// Delete leases first
 		for (const id of createdLeaseIds) {
 			try {
@@ -218,10 +241,8 @@ describe('Leases CRUD Integration Tests', () => {
 				lateFeePercentage: null
 			}
 
-			let createdLease: Lease | undefined
-			await waitFor(async () => {
-				createdLease = await result.current.mutateAsync(newLease)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const createdLease = await result.current.mutateAsync(newLease)
 
 			// Assertions
 			expect(createdLease).toBeDefined()
@@ -410,12 +431,10 @@ describe('Leases CRUD Integration Tests', () => {
 				terms: 'Updated terms'
 			}
 
-			let updatedLease: Lease | undefined
-			await waitFor(async () => {
-				updatedLease = await result.current.mutateAsync({
-					id: testLeaseId,
-					data: updates
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedLease = await result.current.mutateAsync({
+				id: testLeaseId,
+				data: updates
 			})
 
 			expect(updatedLease).toBeDefined()
@@ -433,12 +452,10 @@ describe('Leases CRUD Integration Tests', () => {
 				lateFeeAmount: 75
 			}
 
-			let updatedLease: Lease | undefined
-			await waitFor(async () => {
-				updatedLease = await result.current.mutateAsync({
-					id: testLeaseId,
-					data: partialUpdate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedLease = await result.current.mutateAsync({
+				id: testLeaseId,
+				data: partialUpdate
 			})
 
 			expect(updatedLease).toBeDefined()
@@ -455,12 +472,10 @@ describe('Leases CRUD Integration Tests', () => {
 				status: 'EXPIRED'
 			}
 
-			let updatedLease: Lease | undefined
-			await waitFor(async () => {
-				updatedLease = await result.current.mutateAsync({
-					id: testLeaseId,
-					data: statusUpdate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedLease = await result.current.mutateAsync({
+				id: testLeaseId,
+				data: statusUpdate
 			})
 
 			expect(updatedLease!.status).toBe('EXPIRED')
@@ -505,9 +520,8 @@ describe('Leases CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			await waitFor(async () => {
-				await result.current.mutateAsync(testLeaseId)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			await result.current.mutateAsync(testLeaseId)
 
 			// Remove from cleanup array
 			createdLeaseIds = createdLeaseIds.filter(id => id !== testLeaseId)
@@ -549,9 +563,8 @@ describe('Leases CRUD Integration Tests', () => {
 				wrapper
 			})
 
-			await waitFor(async () => {
-				await deleteResult.current.mutateAsync(testLeaseId)
-			})
+			// Direct await
+			await deleteResult.current.mutateAsync(testLeaseId)
 
 			createdLeaseIds = createdLeaseIds.filter(id => id !== testLeaseId)
 
@@ -604,12 +617,10 @@ describe('Leases CRUD Integration Tests', () => {
 				Date.now() + 395 * 24 * 60 * 60 * 1000
 			).toISOString() // 395 days (1 year + 30 days)
 
-			let renewedLease: Lease | undefined
-			await waitFor(async () => {
-				renewedLease = await result.current.mutateAsync({
-					id: testLeaseId,
-					newEndDate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const renewedLease = await result.current.mutateAsync({
+				id: testLeaseId,
+				newEndDate
 			})
 
 			expect(renewedLease).toBeDefined()
@@ -659,13 +670,11 @@ describe('Leases CRUD Integration Tests', () => {
 
 			const terminationDate = new Date().toISOString()
 
-			let terminatedLease: Lease | undefined
-			await waitFor(async () => {
-				terminatedLease = await result.current.mutateAsync({
-					id: testLeaseId,
-					terminationDate,
-					reason: 'Tenant relocating'
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const terminatedLease = await result.current.mutateAsync({
+				id: testLeaseId,
+				terminationDate,
+				reason: 'Tenant relocating'
 			})
 
 			expect(terminatedLease).toBeDefined()
@@ -679,12 +688,10 @@ describe('Leases CRUD Integration Tests', () => {
 
 			const terminationDate = new Date().toISOString()
 
-			let terminatedLease: Lease | undefined
-			await waitFor(async () => {
-				terminatedLease = await result.current.mutateAsync({
-					id: testLeaseId,
-					terminationDate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const terminatedLease = await result.current.mutateAsync({
+				id: testLeaseId,
+				terminationDate
 			})
 
 			expect(terminatedLease).toBeDefined()
@@ -719,10 +726,8 @@ describe('Leases CRUD Integration Tests', () => {
 				status: 'ACTIVE'
 			}
 
-			let createdLease: Lease | undefined
-			await waitFor(async () => {
-				createdLease = await createResult.current.mutateAsync(newLease)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const createdLease = await createResult.current.mutateAsync(newLease)
 
 			expect(createdLease).toBeDefined()
 			expect(createdLease!.version).toBe(1)
@@ -750,12 +755,10 @@ describe('Leases CRUD Integration Tests', () => {
 				terms: 'Updated terms'
 			}
 
-			let updatedLease: Lease | undefined
-			await waitFor(async () => {
-				updatedLease = await updateResult.current.mutateAsync({
-					id: createdLease!.id,
-					data: updates
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedLease = await updateResult.current.mutateAsync({
+				id: createdLease!.id,
+				data: updates
 			})
 
 			expect(updatedLease!.rentAmount).toBe(2200)
@@ -765,9 +768,8 @@ describe('Leases CRUD Integration Tests', () => {
 				wrapper
 			})
 
-			await waitFor(async () => {
-				await deleteResult.current.mutateAsync(createdLease!.id)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			await deleteResult.current.mutateAsync(createdLease!.id)
 
 			createdLeaseIds = createdLeaseIds.filter(id => id !== createdLease!.id)
 
@@ -822,10 +824,9 @@ describe('Leases CRUD Integration Tests', () => {
 				status: 'ACTIVE'
 			}
 
-			await waitFor(async () => {
-				const created = await createResult.current.mutateAsync(newLease)
-				createdLeaseIds.push(created.id)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const created = await createResult.current.mutateAsync(newLease)
+			createdLeaseIds.push(created.id)
 
 			// List should be invalidated and refetch
 			await waitFor(() => {

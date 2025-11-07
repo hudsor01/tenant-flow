@@ -96,9 +96,8 @@ describe('TenantsController', () => {
 						update: jest.fn(),
 						remove: jest.fn(),
 						markAsMovedOut: jest.fn(),
-						hardDelete: jest.fn(),
-						sendTenantInvitation: jest.fn(),
-						sendTenantInvitationV2: jest.fn().mockResolvedValue(undefined),
+					hardDelete: jest.fn(),
+					sendTenantInvitationV2: jest.fn().mockResolvedValue(undefined),
 						resendInvitation: jest.fn()
 					}
 				},

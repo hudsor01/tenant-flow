@@ -80,6 +80,40 @@ describe('Configuration Schema Validation', () => {
 			)
 		})
 
+		it('should normalize SUPABASE_JWT_ALGORITHM to uppercase', () => {
+			const config = {
+				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
+				JWT_SECRET: 'a'.repeat(32),
+				SUPABASE_URL: 'https://project.supabase.co',
+				SUPABASE_SECRET_KEY: 'secret-key',
+				SUPABASE_JWT_ALGORITHM: 'rs256',
+				SUPABASE_JWT_SECRET: 'b'.repeat(32),
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
+				STRIPE_SECRET_KEY: 'sk_test_123',
+				STRIPE_WEBHOOK_SECRET: 'whsec_123'
+			}
+
+			const result = validate(config)
+			expect(result.SUPABASE_JWT_ALGORITHM).toBe('RS256')
+		})
+
+		it('should throw error for invalid SUPABASE_JWT_ALGORITHM', () => {
+			const config = {
+				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
+				JWT_SECRET: 'a'.repeat(32),
+				SUPABASE_URL: 'https://project.supabase.co',
+				SUPABASE_SECRET_KEY: 'secret-key',
+				SUPABASE_JWT_ALGORITHM: 'HS512',
+				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
+				STRIPE_SECRET_KEY: 'sk_test_123',
+				STRIPE_WEBHOOK_SECRET: 'whsec_123'
+			}
+
+			expect(() => validate(config)).toThrow(
+				'Invalid option: expected one of "HS256"|"RS256"|"ES256"'
+			)
+		})
+
 		it('should throw error for invalid SUPABASE_URL', () => {
 			const config = {
 				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
