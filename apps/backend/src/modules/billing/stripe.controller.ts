@@ -119,11 +119,12 @@ export class StripeController {
 		additionalContext?: string
 	): string {
 		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
-		const secret = process.env.IDEMPOTENCY_KEY_SECRET || process.env.JWT_SECRET
+		const secret = process.env.IDEMPOTENCY_KEY_SECRET
 
 		if (!secret) {
 			throw new Error(
-				'Missing IDEMPOTENCY_KEY_SECRET or JWT_SECRET environment variable'
+				'Missing IDEMPOTENCY_KEY_SECRET environment variable. ' +
+				'Please set IDEMPOTENCY_KEY_SECRET in your environment configuration.'
 			)
 		}
 
@@ -1235,14 +1236,28 @@ export class StripeController {
 	 */
 	@Post('invite-tenant')
 	async inviteTenant(
-		@Body() body: { email: string; ownerId: string; leaseId?: string }
+		@Body() body: { email: string; ownerId?: string; propertyId?: string; leaseId?: string }
 	) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.email) {
 			throw new BadRequestException('email is required')
 		}
-		if (!body.ownerId) {
+
+		// Backward compatibility: accept both ownerId and propertyId (deprecated)
+		const ownerId = body.ownerId || body.propertyId
+
+		if (!ownerId) {
 			throw new BadRequestException('ownerId is required')
+		}
+
+		// Emit deprecation warning if only propertyId was provided
+		if (!body.ownerId && body.propertyId) {
+			this.logger.warn('propertyId parameter is deprecated, use ownerId instead', {
+				endpoint: 'POST /stripe/invite-tenant',
+				providedParam: 'propertyId',
+				preferredParam: 'ownerId',
+				email: body.email
+			})
 		}
 
 		// Validate email format
@@ -1270,8 +1285,8 @@ export class StripeController {
 				await supabase.auth.admin.createUser({
 					email: body.email,
 					email_confirm: false, // User must confirm via invite link
-					user_metadata: {
-						invited_by: body.ownerId,
+				user_metadata: {
+					invited_by: ownerId,
 						invited_at: new Date().toISOString(),
 						...(body.leaseId && { lease_id: body.leaseId })
 					}

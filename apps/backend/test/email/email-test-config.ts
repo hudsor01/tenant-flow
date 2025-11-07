@@ -26,6 +26,20 @@ export interface EmailTestConfig {
 }
 
 /**
+ * Stored email for test assertions
+ */
+export interface StoredEmail {
+	to: string | string[]
+	subject?: string
+	template?: string
+	html?: string
+	text?: string
+	timestamp: number
+	messageId: string
+	[key: string]: any
+}
+
+/**
  * Get email test configuration based on environment
  */
 export function getEmailTestConfig(env?: string): EmailTestConfig {
@@ -119,7 +133,7 @@ export function getEmailTestConfig(env?: string): EmailTestConfig {
  */
 export class EmailTestUtils {
 	private static readonly logger = new Logger(EmailTestUtils.name)
-	private static sentEmails: any[] = []
+	private static sentEmails: StoredEmail[] = []
 	private static emailMetrics = {
 		sent: 0,
 		failed: 0,
@@ -130,7 +144,7 @@ export class EmailTestUtils {
 	/**
 	 * Mock email sender for testing
 	 */
-	static async mockSendEmail(options: any): Promise<any> {
+	static async mockSendEmail(options: Partial<StoredEmail>): Promise<any> {
 		const config = getEmailTestConfig()
 
 		if (config.logEmails) {
