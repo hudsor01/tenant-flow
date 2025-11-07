@@ -13,6 +13,7 @@
 		"CI",
 		"NODE_ENV",
 		"npm_package_version",
+		"SKIP_ENV_VALIDATION",
 		"SUPABASE_PUBLISHABLE_KEY",
 		"TEST_USER_ID",
 		"SUPABASE_URL",
