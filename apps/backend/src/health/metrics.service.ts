@@ -45,6 +45,14 @@ export class MetricsService implements OnModuleDestroy {
 		string,
 		{ result: ServiceHealth; timestamp: number }
 	>()
+	/**
+	 * Health check thresholds for monitoring system resources
+	 * @property memory.warning - Memory usage % that triggers warning (default: 80%)
+	 * @property memory.critical - Memory usage % that triggers critical alert (default: 95%)
+	 * @property cache.maxEntries - Maximum number of cached health checks (default: 100)
+	 * @property responseTime.warning - Response time in ms that triggers warning (default: 100ms)
+	 * @property responseTime.critical - Response time in ms that triggers critical alert (default: 200ms)
+	 */
 	private readonly thresholds: MetricsThresholds = {
 		memory: { warning: 80, critical: 95 },
 		cache: { maxEntries: 100 },

@@ -21,6 +21,13 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { Logger } from '@nestjs/common'
 
+/**
+ * API endpoint paths for tenant portal
+ */
+const API_ENDPOINTS = {
+	PAYMENT_METHODS: '/api/v1/stripe/tenant-payment-methods'
+} as const
+
 const CreateMaintenanceRequestSchema = z.object({
 	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
@@ -218,7 +225,7 @@ export class TenantPortalController {
 
 		return {
 			payments,
-			methodsEndpoint: '/api/v1/stripe/tenant-payment-methods'
+			methodsEndpoint: API_ENDPOINTS.PAYMENT_METHODS
 		}
 	}
 

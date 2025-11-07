@@ -26,7 +26,7 @@ export function useFAQs() {
 		queryFn: async (): Promise<FAQCategoryWithQuestions[]> => {
 			const response = await fetch('/api/v1/faq')
 			if (!response.ok) {
-				throw new Error('Failed to fetch FAQs')
+				throw new Error(`Failed to fetch FAQs: ${response.status} ${response.statusText}`)
 			}
 			return response.json()
 		},
@@ -47,7 +47,7 @@ export function useFAQCategory(slug: string) {
 				return null
 			}
 			if (!response.ok) {
-				throw new Error('Failed to fetch FAQ category')
+				throw new Error(`Failed to fetch FAQ category '${slug}': ${response.status} ${response.statusText}`)
 			}
 			return response.json()
 		},
