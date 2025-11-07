@@ -26,21 +26,6 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
-type _TenantPortalLeaseUnit = {
-	id: string
-	unitNumber: string | null
-	bedrooms: number | null
-	bathrooms: number | null
-	property?: {
-		id: string
-		name: string | null
-		address: string | null
-		city: string | null
-		state: string | null
-		zipCode: string | null
-	} | null
-} | null
-
 export type TenantPortalLease = LeaseWithDetails & {
 	metadata: {
 		documentUrl: string | null

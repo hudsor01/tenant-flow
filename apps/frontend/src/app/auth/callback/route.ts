@@ -34,7 +34,12 @@ function getConfiguredAlgorithm(): SupportedAlgorithm | null {
 
 function detectTokenAlgorithm(token: string): SupportedAlgorithm | null {
 	try {
-		const [header] = token.split('.')
+		const parts = token.split('.')
+		if (parts.length !== 3) {
+			console.warn('JWT validation failed: token does not have exactly 3 parts')
+			return null
+		}
+		const [header] = parts
 		if (!header) return null
 		const padded = header + '='.repeat((4 - (header.length % 4)) % 4)
 		const parsed = JSON.parse(
@@ -138,7 +143,16 @@ async function getJwtClaims(
 			error
 		} = await supabase.auth.getSession()
 
-		if (error || !session?.access_token) {
+		if (error) {
+			logger.error('getJwtClaims: getSession returned error', { error })
+			return null
+		}
+		if (!session) {
+			logger.warn('getJwtClaims: no session returned from getSession')
+			return null
+		}
+		if (!session.access_token) {
+			logger.warn('getJwtClaims: session missing access_token')
 			return null
 		}
 
@@ -286,13 +300,11 @@ export async function GET(request: NextRequest) {
 		const stripeCustomerId = getStringClaim(claims, 'stripe_customer_id')
 
 		if (!role) {
-			logger.warn(
-				'OAuth callback could not extract user role from JWT claims',
-				{
-					action: 'oauth_claims_missing',
-					metadata: { userId: user.id }
-				}
-			)
+			logger.error('OAuth callback could not extract user role from JWT claims - terminating', {
+				action: 'oauth_role_missing',
+				metadata: { userId: user.id, hasClaims: Boolean(claims) }
+			})
+			return redirectTo(origin, '/login?error=role_missing')
 		}
 
 		const requiresPayment = role !== 'TENANT'

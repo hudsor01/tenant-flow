@@ -10,7 +10,7 @@ export const activitySchema = z.object({
 	id: z.string(),
 	type: z.string(),
 	description: z.string().optional(),
-	timestamp: z.union([z.string(), z.date()])
+	timestamp: z.union([z.string().datetime(), z.date()])
 })
 
 export const dashboardActivityResponseSchema = z.object({
