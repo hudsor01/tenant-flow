@@ -17,6 +17,14 @@ import { Eye, EyeOff, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+// Helper function to extract field error message
+function getFieldErrorMessage(errors: unknown[] | undefined): string {
+	if (!errors?.[0]) return ''
+	return typeof errors[0] === 'string'
+		? errors[0]
+		: (errors[0] as { message?: string })?.message || ''
+}
+
 export function LoginForm({
 	className,
 	onSubmit,
@@ -132,13 +140,8 @@ export function LoginForm({
 								/>
 							</InputGroup>
 							<FieldError>
-								{field.state.meta.errors?.[0]
-									? typeof field.state.meta.errors[0] === 'string'
-										? field.state.meta.errors[0]
-										: field.state.meta.errors[0]?.message ||
-											'Invalid email address'
-									: ''}
-							</FieldError>
+							{getFieldErrorMessage(field.state.meta.errors) || 'Invalid email address'}
+						</FieldError>
 						</Field>
 					)}
 				</form.Field>
@@ -181,13 +184,8 @@ export function LoginForm({
 								</InputGroupAddon>
 							</InputGroup>
 							<FieldError>
-								{field.state.meta.errors?.[0]
-									? typeof field.state.meta.errors[0] === 'string'
-										? field.state.meta.errors[0]
-										: field.state.meta.errors[0]?.message ||
-											'Password is required'
-									: ''}
-							</FieldError>
+							{getFieldErrorMessage(field.state.meta.errors) || 'Password is required'}
+						</FieldError>
 						</Field>
 					)}
 				</form.Field>

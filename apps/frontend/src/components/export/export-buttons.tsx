@@ -8,9 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { safeDom } from '#lib/dom-utils'
 import { createClient } from '#lib/supabase/client'
-import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-
-const API_BASE_URL = getApiBaseUrl()
+import { API_BASE_URL } from '#lib/api-config'
 
 type ExportFormat = 'excel' | 'pdf' | 'csv'
 

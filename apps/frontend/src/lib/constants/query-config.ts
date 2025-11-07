@@ -40,6 +40,15 @@ export const QUERY_CACHE_TIMES = {
 	},
 
 	/**
+	 * Analytics queries (longer cache for report data)
+	 * Used for property analytics, financial reports
+	 */
+	ANALYTICS: {
+		staleTime: 15 * 60 * 1000, // 15 minutes
+		gcTime: 30 * 60 * 1000 // 30 minutes
+	},
+
+	/**
 	 * Real-time data queries
 	 * Used for live updates (e.g., notifications, activity feeds)
 	 */

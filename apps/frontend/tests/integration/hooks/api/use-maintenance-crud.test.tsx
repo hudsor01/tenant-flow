@@ -95,14 +95,30 @@ async function createTestUnit(propertyId: string): Promise<string> {
 describe('Maintenance Requests CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
+		// Validate ALL required environment variables
+		const requiredEnvVars = [
+			'NEXT_PUBLIC_SUPABASE_URL',
+			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			'E2E_OWNER_A_EMAIL',
+			'E2E_OWNER_A_PASSWORD'
+		] as const
+
+		for (const envVar of requiredEnvVars) {
+			if (!process.env[envVar]) {
+				throw new Error(
+					`Missing required environment variable: ${envVar}. Please check your .env.test.local file.`
+				)
+			}
+		}
+
 		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			process.env.NEXT_PUBLIC_SUPABASE_URL,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
-			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+			email: process.env.E2E_OWNER_A_EMAIL,
+			password: process.env.E2E_OWNER_A_PASSWORD
 		})
 
 		if (error || !data.session) {

@@ -82,6 +82,11 @@ describe('RLS: Tenant Isolation', () => {
 		for (const id of testData.emergencyContacts) {
 			await serviceClient.from('tenant_emergency_contact').delete().eq('id', id)
 		}
+
+		// Cleanup tenant records
+		for (const id of testData.tenants) {
+			await serviceClient.from('tenant').delete().eq('id', id)
+		}
 	})
 
 	describe('Tenant Profile Access', () => {
@@ -189,16 +194,17 @@ describe('RLS: Tenant Isolation', () => {
 			if (tenantARecord) tenantAId = tenantARecord.id
 			if (tenantBRecord) tenantBId = tenantBRecord.id
 
-			// Create emergency contact for tenant A
+			// Create unique emergency contact for tenant A (test isolation)
 			if (tenantAId) {
+				const uniquePhone = `+1${Date.now().toString().slice(-9)}`
 				const { data } = await serviceClient
 					.from('tenant_emergency_contact')
 					.insert({
 						tenant_id: tenantAId,
-						contact_name: 'John Emergency',
+						contact_name: `John Emergency ${Date.now()}`,
 						relationship: 'Father',
-						phone_number: '+1234567890',
-						email: 'emergency@test.com'
+						phone_number: uniquePhone,
+						email: `emergency-${Date.now()}@test.com`
 					})
 					.select()
 					.single()
@@ -248,19 +254,15 @@ describe('RLS: Tenant Isolation', () => {
 				return
 			}
 
-			// Delete existing contact first
-			await serviceClient
-				.from('tenant_emergency_contact')
-				.delete()
-				.eq('tenant_id', tenantAId)
-
+			// Create unique contact for this test (don't delete all contacts)
+			const uniquePhone = `+1${Date.now().toString().slice(-9)}`
 			const { data, error } = await tenantA.client
 				.from('tenant_emergency_contact')
 				.insert({
 					tenant_id: tenantAId,
 					contact_name: 'Jane Emergency',
 					relationship: 'Mother',
-					phone_number: '+1987654321'
+					phone_number: uniquePhone
 				})
 				.select()
 				.single()

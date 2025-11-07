@@ -13,6 +13,7 @@ import type {
 	TenantStats
 } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 export interface FinancialChartDatum {
 	date: string
@@ -83,7 +84,7 @@ export function usePropertyPerformance() {
 	return useQuery({
 		queryKey: dashboardKeys.propertyPerformance(),
 		queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
-		staleTime: 5 * 60 * 1000, // 5 minutes - reduced server load
+		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes (reduced from 30s)
 		refetchIntervalInBackground: false, // Stop refreshing when tab inactive
 		refetchOnWindowFocus: true, // Refresh when user returns to tab
@@ -101,7 +102,7 @@ export function useSystemUptime() {
 	return useQuery({
 		queryKey: dashboardKeys.uptime(),
 		queryFn: () => clientFetch<SystemUptime>('/api/v1/manage/uptime'),
-		staleTime: 5 * 60 * 1000, // 5 minutes - uptime data doesn't change frequently
+		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: false, // No need to refresh in background for uptime
 		refetchOnWindowFocus: true, // Refresh when user returns to tab
@@ -126,7 +127,7 @@ export function usePropertyStats() {
 			vacantUnits: number
 			maintenanceUnits: number
 		}>('/api/v1/properties/stats'),
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
 		refetchOnWindowFocus: true,
@@ -143,7 +144,7 @@ export function useTenantStats() {
 	return useQuery({
 		queryKey: dashboardKeys.tenantStats(),
 		queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
 		refetchOnWindowFocus: true,
@@ -160,7 +161,7 @@ export function useLeaseStats() {
 	return useQuery({
 		queryKey: dashboardKeys.leaseStats(),
 		queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
 		refetchOnWindowFocus: true,
@@ -197,7 +198,7 @@ export function useFinancialChartData(timeRange: string = '6m') {
 			// Return empty array if no data
 			return [] as FinancialChartDatum[]
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: true,
 		refetchOnWindowFocus: true,
@@ -247,7 +248,7 @@ export function usePrefetchPropertyPerformance() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.propertyPerformance(),
 			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
-			staleTime: 5 * 60 * 1000 // 5 minutes (reduced from 30s)
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }
@@ -270,7 +271,7 @@ export function usePrefetchPropertyStats() {
 				vacantUnits: number
 				maintenanceUnits: number
 			}>('/api/v1/properties/stats'),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }
@@ -285,7 +286,7 @@ export function usePrefetchTenantStats() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.tenantStats(),
 			queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }
@@ -300,7 +301,7 @@ export function usePrefetchLeaseStats() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.leaseStats(),
 			queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }
