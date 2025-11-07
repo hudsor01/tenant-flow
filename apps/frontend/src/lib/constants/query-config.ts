@@ -54,7 +54,8 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	REALTIME: {
 		staleTime: 0, // Always stale, refetch on mount
-		refetchInterval: 30 * 1000 // 30 seconds
+		refetchInterval: 30 * 1000, // 30 seconds
+		gcTime: 5 * 60 * 1000 // 5 minutes
 	},
 
 	/**

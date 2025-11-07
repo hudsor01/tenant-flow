@@ -10,6 +10,7 @@ import {
 } from '#components/ui/input-group'
 import { useFormProgress } from '#hooks/use-form-progress'
 import { cn } from '#lib/design-system'
+import { getFieldErrorMessage } from '#lib/utils/form'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
@@ -17,13 +18,7 @@ import { Eye, EyeOff, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-// Helper function to extract field error message
-function getFieldErrorMessage(errors: unknown[] | undefined): string {
-	if (!errors?.[0]) return ''
-	return typeof errors[0] === 'string'
-		? errors[0]
-		: (errors[0] as { message?: string })?.message || ''
-}
+
 
 export function LoginForm({
 	className,

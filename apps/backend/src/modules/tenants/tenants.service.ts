@@ -47,6 +47,36 @@ export interface EmergencyContactResponse {
 	updatedAt: string
 }
 
+/**
+ * Default notification preferences for new tenants
+ */
+const DEFAULT_NOTIFICATION_PREFERENCES = {
+	rentReminders: true,
+	maintenanceUpdates: true,
+	propertyNotices: true,
+	emailNotifications: true,
+	smsNotifications: false
+} as const
+
+/**
+ * Maps database emergency contact record to API response format
+ * Converts snake_case database fields to camelCase API fields
+ */
+function mapEmergencyContactToResponse(
+	contact: Database['public']['Tables']['tenant_emergency_contact']['Row']
+): EmergencyContactResponse {
+	return {
+		id: contact.id,
+		tenantId: contact.tenant_id,
+		contactName: contact.contact_name,
+		relationship: contact.relationship,
+		phoneNumber: contact.phone_number,
+		email: contact.email,
+		createdAt: contact.created_at,
+		updatedAt: contact.updated_at
+	}
+}
+
 export interface TenantWithRelations extends Tenant {
 	_Lease?: {
 		id: string
@@ -1182,13 +1212,7 @@ export class TenantsService {
 
 		// Return preferences or default values
 		return (
-			(data.notification_preferences as Record<string, boolean>) || {
-				rentReminders: true,
-				maintenanceUpdates: true,
-				propertyNotices: true,
-				emailNotifications: true,
-				smsNotifications: false
-			}
+			(data.notification_preferences as Record<string, boolean>) || DEFAULT_NOTIFICATION_PREFERENCES
 		)
 	}
 
@@ -2558,16 +2582,7 @@ export class TenantsService {
 			return null
 		}
 
-		return {
-			id: data.id,
-			tenantId: data.tenant_id,
-			contactName: data.contact_name,
-			relationship: data.relationship,
-			phoneNumber: data.phone_number,
-			email: data.email,
-			createdAt: data.created_at,
-			updatedAt: data.updated_at
-		}
+			return mapEmergencyContactToResponse(data)
 	}
 
 	/**
@@ -2663,16 +2678,7 @@ export class TenantsService {
 			contactId: created.id
 		})
 
-		return {
-			id: created.id,
-			tenantId: created.tenant_id,
-			contactName: created.contact_name,
-			relationship: created.relationship,
-			phoneNumber: created.phone_number,
-			email: created.email,
-			createdAt: created.created_at,
-			updatedAt: created.updated_at
-		}
+			return mapEmergencyContactToResponse(created)
 	}
 
 	/**
@@ -2746,16 +2752,7 @@ export class TenantsService {
 			contactId: updated.id
 		})
 
-		return {
-			id: updated.id,
-			tenantId: updated.tenant_id,
-			contactName: updated.contact_name,
-			relationship: updated.relationship,
-			phoneNumber: updated.phone_number,
-			email: updated.email,
-			createdAt: updated.created_at,
-			updatedAt: updated.updated_at
-		}
+			return mapEmergencyContactToResponse(updated)
 	}
 
 	/**
