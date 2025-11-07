@@ -169,9 +169,13 @@ export class EmailTestUtils {
 	 * Get emails sent to a specific recipient
 	 */
 	static getEmailsTo(recipient: string) {
-		return this.sentEmails.filter(
-			email => email.to?.includes(recipient) || email.to?.[0] === recipient
-		)
+		return this.sentEmails.filter(email => {
+			const to = email.to
+			if (Array.isArray(to)) {
+				return to.includes(recipient)
+			}
+			return to === recipient
+		})
 	}
 
 	/**

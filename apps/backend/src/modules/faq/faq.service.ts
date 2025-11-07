@@ -10,6 +10,53 @@ export class FAQService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
+	 * Maps a database FAQ question row to the application type
+	 */
+	private mapQuestion(
+		question: Database['public']['Tables']['faq_questions']['Row']
+	) {
+		return {
+			id: question.id ?? '',
+			categoryId: question.category_id ?? '',
+			question: question.question ?? '',
+			answer: question.answer ?? '',
+			displayOrder: question.display_order ?? 0,
+			isActive: question.is_active ?? false,
+			viewCount: question.view_count ?? 0,
+			helpfulCount: question.helpful_count ?? 0,
+			createdAt: question.created_at ?? '',
+			updatedAt: question.updated_at ?? ''
+		}
+	}
+
+	/**
+	 * Maps a database FAQ category row (with questions) to the application type
+	 */
+	private mapCategoryWithQuestions(
+		category: Database['public']['Tables']['faq_categories']['Row'] & {
+			faq_questions?: Database['public']['Tables']['faq_questions']['Row'][]
+		}
+	): FAQCategoryWithQuestions {
+		const categoryData: FAQCategoryWithQuestions = {
+			id: category.id ?? '',
+			name: category.name ?? '',
+			slug: category.slug ?? '',
+			displayOrder: category.display_order ?? 0,
+			isActive: category.is_active ?? false,
+			createdAt: category.created_at ?? '',
+			updatedAt: category.updated_at ?? '',
+			questions: (category.faq_questions || []).map(q => this.mapQuestion(q))
+		}
+
+		// Only include description if it exists
+		if (category.description) {
+			categoryData.description = category.description
+		}
+
+		return categoryData
+	}
+
+	/**
 	 * Get all active FAQ categories with their questions
 	 */
 	async getAllFAQs(): Promise<FAQCategoryWithQuestions[]> {
@@ -58,49 +105,10 @@ export class FAQService {
 				)
 			}
 
-			// Transform the data to match our types
-			const categories: FAQCategoryWithQuestions[] = (data || []).map(
-				(
-					category: Database['public']['Tables']['faq_categories']['Row'] & {
-						faq_questions: Database['public']['Tables']['faq_questions']['Row'][]
-					}
-				) => {
-					const categoryData: FAQCategoryWithQuestions = {
-						id: category.id,
-						name: category.name,
-						slug: category.slug,
-						displayOrder: category.display_order ?? 0,
-						isActive: category.is_active ?? false,
-						createdAt: category.created_at ?? '',
-						updatedAt: category.updated_at ?? '',
-						questions: (category.faq_questions || []).map(
-							(
-								question: Database['public']['Tables']['faq_questions']['Row']
-							) => ({
-								id: question.id,
-								categoryId: question.category_id ?? '',
-								question: question.question ?? '',
-								answer: question.answer ?? '',
-								displayOrder: question.display_order ?? 0,
-								isActive: question.is_active ?? false,
-								viewCount: question.view_count ?? 0,
-								helpfulCount: question.helpful_count ?? 0,
-								createdAt: question.created_at ?? '',
-								updatedAt: question.updated_at ?? ''
-							})
-						)
-					}
-
-					// Only include description if it exists
-					if (category.description) {
-						categoryData.description = category.description
-					}
-
-					return categoryData
-				}
+			// Transform the data using the mapper helper
+			return (data || []).map(category =>
+				this.mapCategoryWithQuestions(category)
 			)
-
-			return categories
 		} catch (error) {
 			this.logger.error('Failed to fetch FAQs', { error })
 			throw new HttpException(
@@ -162,36 +170,8 @@ export class FAQService {
 					HttpStatus.INTERNAL_SERVER_ERROR
 				)
 			}
-			const categoryData: FAQCategoryWithQuestions = {
-				id: data.id ?? '',
-				name: data.name ?? '',
-				slug: data.slug ?? '',
-				displayOrder: data.display_order ?? 0,
-				isActive: data.is_active ?? false,
-				createdAt: data.created_at ?? '',
-				updatedAt: data.updated_at ?? '',
-				questions: (data.faq_questions || []).map(
-					(question: Database['public']['Tables']['faq_questions']['Row']) => ({
-						id: question.id ?? '',
-						categoryId: question.category_id ?? '',
-						question: question.question ?? '',
-						answer: question.answer ?? '',
-						displayOrder: question.display_order ?? 0,
-						isActive: question.is_active ?? false,
-						viewCount: question.view_count ?? 0,
-						helpfulCount: question.helpful_count ?? 0,
-						createdAt: question.created_at ?? '',
-						updatedAt: question.updated_at ?? ''
-					})
-				)
-			}
 
-			// Only include description if it exists
-			if (data.description) {
-				categoryData.description = data.description
-			}
-
-			return categoryData
+			return this.mapCategoryWithQuestions(data)
 		} catch (error) {
 			this.logger.error('Failed to fetch FAQ by slug', { error, slug })
 			throw new HttpException(

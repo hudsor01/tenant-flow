@@ -55,7 +55,11 @@ export class DashboardController {
 	 * Unified dashboard endpoint - combines all dashboard data in one request
 	 * Reduces 5 HTTP requests to 1 for 40-50% faster initial page load
 	 */
-	async getPageData(@Request() req: AuthenticatedRequest, @UserId() userId: string) {
+	@Get('page-data')
+	async getPageData(
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
+	) {
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -154,7 +158,8 @@ export class DashboardController {
 		return {
 			success: true,
 			data,
-			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
+			message:
+				'Billing insights retrieved successfully from Stripe Sync Engine',
 			timestamp: new Date()
 		}
 	}
