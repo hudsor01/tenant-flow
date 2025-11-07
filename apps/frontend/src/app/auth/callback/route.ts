@@ -36,7 +36,9 @@ function detectTokenAlgorithm(token: string): SupportedAlgorithm | null {
 	try {
 		const parts = token.split('.')
 		if (parts.length !== 3) {
-			console.warn('JWT validation failed: token does not have exactly 3 parts')
+			logger.warn('JWT validation failed: token does not have exactly 3 parts', {
+				partsCount: parts.length
+			})
 			return null
 		}
 		const [header] = parts
