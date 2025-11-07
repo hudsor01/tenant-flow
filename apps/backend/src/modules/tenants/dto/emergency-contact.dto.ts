@@ -26,7 +26,17 @@ export const EmergencyContactSchema = z.object({
 		.string()
 		.min(10, 'Phone number must be at least 10 characters')
 		.max(20, 'Phone number must be less than 20 characters')
-		.regex(/^[\d\s\-+()]+$/, 'Phone number contains invalid characters')
+		.regex(
+			/^\+?[\d\s\-()]+$/,
+			'Phone number must contain only digits, spaces, dashes, parentheses, and optional leading +'
+		)
+		.refine(
+			val => {
+				const digitCount = val.replace(/\D/g, '').length
+				return digitCount >= 10 && digitCount <= 20
+			},
+			{ message: 'Phone number must contain between 10 and 20 digits' }
+		)
 		.describe('Phone number of emergency contact'),
 
 	email: z
@@ -47,13 +57,12 @@ export const CreateEmergencyContactSchema = EmergencyContactSchema.extend({
 export const UpdateEmergencyContactSchema = EmergencyContactSchema.partial()
 
 // Response schema
-export const EmergencyContactResponseSchema = CreateEmergencyContactSchema.extend(
-	{
+export const EmergencyContactResponseSchema =
+	CreateEmergencyContactSchema.extend({
 		id: z.string().uuid().describe('Emergency contact ID'),
 		createdAt: z.string().datetime().describe('Creation timestamp'),
 		updatedAt: z.string().datetime().describe('Last update timestamp')
-	}
-)
+	})
 
 // Export types
 export type EmergencyContact = z.infer<typeof EmergencyContactSchema>

@@ -1149,11 +1149,12 @@ export class TenantsService {
 		const client = this.supabase.getAdminClient()
 
 		// Fetch tenant's notification preferences
+		// FIX: Use userId instead of ownerId to match tenant table schema
 		const { data, error } = await client
 			.from('tenant')
 			.select('notification_preferences')
 			.eq('id', tenantId)
-			.eq('ownerId', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (error) {
@@ -1187,11 +1188,12 @@ export class TenantsService {
 		const client = this.supabase.getAdminClient()
 
 		// Get current preferences
+		// FIX: Use userId instead of ownerId to match tenant table schema
 		const { data: currentData } = await client
 			.from('tenant')
 			.select('notification_preferences')
 			.eq('id', tenantId)
-			.eq('ownerId', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (!currentData) {
@@ -1205,11 +1207,12 @@ export class TenantsService {
 		}
 
 		// Update preferences
+		// FIX: Use userId instead of ownerId to match tenant table schema
 		const { data, error } = await client
 			.from('tenant')
 			.update({ notification_preferences: updatedPreferences })
 			.eq('id', tenantId)
-			.eq('ownerId', userId)
+			.eq('userId', userId)
 			.select('notification_preferences')
 			.single()
 

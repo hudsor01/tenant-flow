@@ -112,7 +112,8 @@ export class DashboardController {
 			'Getting dashboard activity via DashboardService'
 		)
 		const data = await this.dashboardService.getActivity(userId, token!)
-		if (dashboardActivityResponseSchema.safeParse(data).success) {
+		const parseResult = dashboardActivityResponseSchema.safeParse(data)
+		if (parseResult.success) {
 			return {
 				success: true,
 				data,
@@ -120,6 +121,13 @@ export class DashboardController {
 				timestamp: new Date()
 			}
 		} else {
+			// Log validation errors for debugging
+			this.logger.error('Dashboard activity validation failed', {
+				userId,
+				validationErrors: parseResult.error.format(),
+				// Do not log full payload - may contain sensitive data
+				dataKeys: data ? Object.keys(data) : []
+			})
 			return {
 				success: false,
 				data: { activities: [] },
@@ -166,7 +174,8 @@ export class DashboardController {
 			parsedStartDate,
 			parsedEndDate
 		)
-		if (billingInsightsSchema.safeParse(data).success) {
+		const billingParseResult = billingInsightsSchema.safeParse(data)
+		if (billingParseResult.success) {
 			return {
 				success: true,
 				data,
@@ -175,6 +184,15 @@ export class DashboardController {
 				timestamp: new Date()
 			}
 		} else {
+			// Log validation errors for debugging
+			this.logger.warn('Billing insights validation failed', {
+				userId,
+				startDate: parsedStartDate?.toISOString(),
+				endDate: parsedEndDate?.toISOString(),
+				validationErrors: billingParseResult.error.format(),
+				// Do not log full payload - may contain sensitive financial data
+				dataKeys: data ? Object.keys(data) : []
+			})
 			return {
 				success: false,
 				data: null,

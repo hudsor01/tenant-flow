@@ -112,10 +112,7 @@ export class SecurityService {
 			else if (/[!@#$%^&*(),.?":{}|<>[\]\\;'`~_+=/-]/.test(char)) {
 				if (!validation.punctuation) return false
 			}
-			// Check for other special characters
-			else if (code < 127) {
-				if (!validation.special) return false
-			}
+
 			// Check for Unicode characters
 			else {
 				if (!validation.unicode) return false
@@ -131,8 +128,21 @@ export class SecurityService {
 		input: string,
 		opts: SanitizationOptions = {}
 	): string {
-		// Validate options using Zod schema
-		const validatedOptions = SanitizationOptionsSchema.parse(opts)
+		// Validate options using Zod schema with error handling
+		let validatedOptions: SanitizationOptions
+		try {
+			validatedOptions = SanitizationOptionsSchema.parse(
+				opts
+			) as SanitizationOptions
+		} catch (error) {
+			if (error instanceof Error && error.name === 'ZodError') {
+				throw new BadRequestException(
+					`Invalid sanitization options: ${error.message}`
+				)
+			}
+			// Re-throw non-Zod errors unchanged
+			throw error
+		}
 
 		// Apply default options with proper type safety
 		const options = {

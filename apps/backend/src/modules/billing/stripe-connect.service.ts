@@ -1,5 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import Stripe from 'stripe'
+import * as countries from 'i18n-iso-countries'
+import enLocale from 'i18n-iso-countries/langs/en.json'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -203,6 +205,9 @@ export class StripeConnectService {
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService
 	) {
+		// Register the English locale to enable country validation
+		countries.registerLocale(enLocale)
+		
 		this.stripe = this.stripeClientService.getClient()
 		this.defaultCountry =
 			this.normalizeCountryCode(process.env.STRIPE_CONNECT_DEFAULT_COUNTRY) ??

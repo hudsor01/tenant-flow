@@ -6,6 +6,7 @@ import {
 	UseGuards,
 	Request,
 	BadRequestException,
+	InternalServerErrorException,
 	Logger
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
@@ -165,23 +166,34 @@ export class StripeConnectController {
 			)
 
 			// Fetch updated status
-			const { data: updatedUser } = await this.supabaseService
-				.getAdminClient()
-				.from('users')
-				.select(
-					'onboardingComplete, detailsSubmitted, chargesEnabled, payoutsEnabled, onboardingCompletedAt'
+			const { data: updatedUser, error: fetchError } =
+				await this.supabaseService
+					.getAdminClient()
+					.from('users')
+					.select(
+						'onboardingComplete, detailsSubmitted, chargesEnabled, payoutsEnabled, onboardingCompletedAt'
+					)
+					.eq('id', userId)
+					.single()
+
+			if (fetchError || !updatedUser) {
+				this.logger.error('Failed to fetch updated user status', {
+					userId,
+					error: fetchError
+				})
+				throw new InternalServerErrorException(
+					'Failed to retrieve updated onboarding status'
 				)
-				.eq('id', userId)
-				.single()
+			}
 
 			return {
 				hasConnectedAccount: true,
 				connectedAccountId: user.connectedAccountId,
-				onboardingComplete: updatedUser?.onboardingComplete || false,
-				detailsSubmitted: updatedUser?.detailsSubmitted || false,
-				chargesEnabled: updatedUser?.chargesEnabled || false,
-				payoutsEnabled: updatedUser?.payoutsEnabled || false,
-				onboardingCompletedAt: updatedUser?.onboardingCompletedAt
+				onboardingComplete: updatedUser.onboardingComplete || false,
+				detailsSubmitted: updatedUser.detailsSubmitted || false,
+				chargesEnabled: updatedUser.chargesEnabled || false,
+				payoutsEnabled: updatedUser.payoutsEnabled || false,
+				onboardingCompletedAt: updatedUser.onboardingCompletedAt
 			}
 		} catch (error) {
 			this.logger.error('Failed to get connected account status', {
