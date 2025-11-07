@@ -111,10 +111,19 @@ export async function clientFetch<T>(
 	// Get auth headers (includes Authorization + custom headers)
 	const headers = await getAuthHeaders(customHeaders, requireAuth)
 
-	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-		...fetchOptions,
-		headers
-	})
+	// Ensure body is set for methods that require it
+	const finalOptions = { ...fetchOptions, headers }
+	if (
+		fetchOptions.method &&
+		['POST', 'PUT', 'PATCH'].includes(fetchOptions.method.toUpperCase()) &&
+		!finalOptions.body
+	) {
+		logger.warn('Request body missing for mutation method', {
+			metadata: { endpoint, method: fetchOptions.method }
+		})
+	}
+
+	const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
 
 	if (!response.ok) {
 		const errorText = await response.text()

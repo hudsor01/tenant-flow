@@ -86,8 +86,11 @@ export class StripeController {
 		userId: string,
 		additionalContext?: string
 	): string {
-		// Use server secret for HMAC to ensure keys are unique per deployment
-		const secret = process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
+		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
+		const secret =
+			process.env.IDEMPOTENCY_KEY_SECRET ||
+			process.env.JWT_SECRET ||
+			'fallback-secret-for-dev'
 
 		// Combine all inputs into a stable string
 		const context = additionalContext ? `_${additionalContext}` : ''

@@ -308,8 +308,15 @@ export class RentPaymentsController {
 	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('status/:tenantId')
-	async getCurrentPaymentStatus(@Param('tenantId') tenantId: string) {
+	async getCurrentPaymentStatus(
+		@Param('tenantId') tenantId: string,
+		@Request() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
 		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
+
+		// Verify user has access to this tenant
+		await this.rentPaymentsService.verifyTenantAccess(userId, tenantId)
 
 		const paymentStatus =
 			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId)

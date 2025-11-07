@@ -59,16 +59,28 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const [properties, setProperties] = useState<Property[]>([])
 	const [units, setUnits] = useState<Unit[]>([])
 
-	// Initialize form with single form for both create and edit
-	const form = useMaintenanceForm(mode, {
-		title: extendedRequest?.title ?? '',
-		description: extendedRequest?.description ?? '',
-		priority: (extendedRequest?.priority as Database['public']['Enums']['Priority']) ?? 'LOW',
-		category: extendedRequest?.category ?? '',
-		unitId: extendedRequest?.unitId ?? '',
-		propertyId: extendedRequest?.propertyId ?? '',
-		estimatedCost: extendedRequest?.estimatedCost?.toString() ?? '',
-		preferredDate: extendedRequest?.preferredDate ?? ''
+	// Initialize form with mutations and success callback
+	const form = useMaintenanceForm({
+		mode,
+		defaultValues: {
+			title: extendedRequest?.title ?? '',
+			description: extendedRequest?.description ?? '',
+			priority:
+				(extendedRequest?.priority as Database['public']['Enums']['Priority']) ??
+				'LOW',
+			category: extendedRequest?.category ?? '',
+			unitId: extendedRequest?.unitId ?? '',
+			propertyId: extendedRequest?.propertyId ?? '',
+			estimatedCost: extendedRequest?.estimatedCost?.toString() ?? '',
+			preferredDate: extendedRequest?.preferredDate ?? ''
+		},
+		createMutation: createRequest,
+		updateMutation: updateRequest,
+		...(request?.id && { requestId: request.id }),
+		...(request?.version !== undefined && { version: request.version }),
+		onSuccess: () => {
+			router.back()
+		}
 	})
 
 	// Get available units based on selected property
