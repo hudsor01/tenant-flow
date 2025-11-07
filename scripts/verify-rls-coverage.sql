@@ -51,7 +51,6 @@ DECLARE
     'maintenance_request',
     'rent_payment',
     'tenant_payment_method',
-    'documents',
     'notifications'
   ];
   table_name TEXT;
@@ -96,24 +95,40 @@ END $$;
 -- ============================================================================
 
 DO $$
+DECLARE
+  critical_tables TEXT[] := ARRAY[
+    'users',
+    'property',
+    'unit',
+    'lease',
+    'maintenance_request',
+    'rent_payment',
+    'tenant_payment_method',
+    'notifications'
+  ];
+  policy_summary RECORD;
 BEGIN
   RAISE NOTICE '';
   RAISE NOTICE 'Policy counts by table:';
   RAISE NOTICE '─────────────────────────────────────';
-END $$;
 
-SELECT
-  tablename,
-  COUNT(*) as policy_count,
-  ARRAY_AGG(policyname ORDER BY policyname) as policies
-FROM pg_policies
-WHERE schemaname = 'public'
-  AND tablename IN (
-    'users', 'property', 'unit', 'lease', 'maintenance_request',
-    'rent_payment', 'tenant_payment_method', 'documents', 'notifications'
-  )
-GROUP BY tablename
-ORDER BY tablename;
+  FOR policy_summary IN
+    SELECT
+      tablename,
+      COUNT(*) as policy_count,
+      ARRAY_AGG(policyname ORDER BY policyname) as policies
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = ANY(critical_tables)
+    GROUP BY tablename
+    ORDER BY tablename
+  LOOP
+    RAISE NOTICE '  % (% policies): %',
+      policy_summary.tablename,
+      policy_summary.policy_count,
+      policy_summary.policies;
+  END LOOP;
+END $$;
 
 -- ============================================================================
 -- 4. Verify payment table policies (CRITICAL for PCI compliance)
@@ -135,8 +150,13 @@ BEGIN
 
   IF rent_payment_policies IS NULL THEN
     RAISE EXCEPTION 'CRITICAL: rent_payment table has NO RLS policies (financial data exposed!)';
-  ELSIF NOT 'rent_payment_owner_or_tenant_select' = ANY(rent_payment_policies) THEN
-    RAISE WARNING '  ⚠ Missing SELECT policy for rent_payment';
+  ELSIF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'rent_payment'
+      AND cmd = 'SELECT'
+  ) THEN
+    RAISE EXCEPTION 'CRITICAL: rent_payment missing SELECT policy (financial data may be exposed!)';
   ELSE
     RAISE NOTICE '  ✓ rent_payment has proper policies: %', rent_payment_policies;
   END IF;
@@ -149,8 +169,14 @@ BEGIN
 
   IF payment_method_policies IS NULL THEN
     RAISE EXCEPTION 'CRITICAL: tenant_payment_method table has NO RLS policies (PCI violation!)';
-  ELSIF NOT 'tenant_payment_method_owner_select' = ANY(payment_method_policies) THEN
-    RAISE WARNING '  ⚠ Missing SELECT policy for tenant_payment_method';
+  ELSIF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'tenant_payment_method'
+      AND cmd = 'SELECT'
+      AND (policyname ~ 'owner.*select' OR policyname ~ 'select.*owner')
+  ) THEN
+    RAISE EXCEPTION 'CRITICAL: tenant_payment_method missing SELECT policy for owner access (PCI violation!)';
   ELSE
     RAISE NOTICE '  ✓ tenant_payment_method has proper policies: %', payment_method_policies;
   END IF;

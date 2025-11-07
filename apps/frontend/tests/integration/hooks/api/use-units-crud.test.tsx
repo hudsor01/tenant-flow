@@ -39,6 +39,9 @@ let createdUnitIds: string[] = []
 let createdPropertyIds: string[] = []
 
 // Create wrapper with fresh QueryClient for each test
+// Shared QueryClient instance for tests that need cache coordination
+let sharedQueryClient: QueryClient | null = null
+
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -46,6 +49,9 @@ function createWrapper() {
 			mutations: { retry: false }
 		}
 	})
+
+	// Store for cleanup
+	sharedQueryClient = queryClient
 
 	return ({ children }: { children: React.ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -100,6 +106,11 @@ describe('Units CRUD Integration Tests', () => {
 
 	// Cleanup after each test
 	afterEach(async () => {
+		// Clear QueryClient cache to prevent memory leaks and test pollution
+		if (sharedQueryClient) {
+			sharedQueryClient.clear()
+		}
+
 		// Delete units first (foreign key constraint)
 		for (const id of createdUnitIds) {
 			try {
@@ -375,11 +386,10 @@ describe('Units CRUD Integration Tests', () => {
 				bedrooms: 3
 			}
 
-			await waitFor(async () => {
-				await result.current.mutateAsync({
-					id: testUnitId,
-					data: update1
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			await result.current.mutateAsync({
+				id: testUnitId,
+				data: update1
 			})
 
 			// Simulate concurrent update by manually incrementing version in cache
@@ -390,13 +400,12 @@ describe('Units CRUD Integration Tests', () => {
 
 			// The mutation should handle version conflicts
 			// Note: This test assumes the backend enforces optimistic locking
-			await waitFor(async () => {
-				const result2 = await result.current.mutateAsync({
-					id: testUnitId,
-					data: update2
-				})
-				expect(result2.version).toBeGreaterThan(1)
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const result2 = await result.current.mutateAsync({
+				id: testUnitId,
+				data: update2
 			})
+			expect(result2.version).toBeGreaterThan(1)
 		})
 
 		it('allows partial updates', async () => {

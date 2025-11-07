@@ -60,13 +60,11 @@ function getSupabasePublishableKey(): string {
  * ```
  */
 export const SUPABASE_URL = (() => {
-	try {
-		return getSupabaseUrl()
-	} catch {
-		// Return empty string during build if env vars not set
-		// This prevents build failures while maintaining runtime validation
-		return ''
+	// Allow builds to proceed without env vars when explicitly skipped
+	if (process.env.SKIP_ENV_VALIDATION === 'true') {
+		return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 	}
+	return getSupabaseUrl()
 })()
 
 /**
@@ -86,11 +84,13 @@ export const SUPABASE_URL = (() => {
  * ```
  */
 export const SUPABASE_PUBLISHABLE_KEY = (() => {
-	try {
-		return getSupabasePublishableKey()
-	} catch {
-		// Return empty string during build if env vars not set
-		// This prevents build failures while maintaining runtime validation
-		return ''
+	// Allow builds to proceed without env vars when explicitly skipped
+	if (process.env.SKIP_ENV_VALIDATION === 'true') {
+		return (
+			process.env.SUPABASE_PUBLISHABLE_KEY ||
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+			''
+		)
 	}
+	return getSupabasePublishableKey()
 })()

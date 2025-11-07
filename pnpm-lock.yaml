@@ -204,9 +204,6 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.78.0
         version: 2.78.0
-      '@types/jsonwebtoken':
-        specifier: 9.0.10
-        version: 9.0.10
       '@types/passport-jwt':
         specifier: 4.0.1
         version: 4.0.1
@@ -346,6 +343,9 @@ importers:
       '@types/jest':
         specifier: 'catalog:'
         version: 30.0.0
+      '@types/jsonwebtoken':
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/multer':
         specifier: 2.0.0
         version: 2.0.0

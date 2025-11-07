@@ -1641,6 +1641,13 @@ export class TenantsService {
 			unitId: leaseData.unitId
 		})
 
+		// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
+		if (!leaseData.rentAmount || leaseData.rentAmount < 0) {
+			throw new BadRequestException(
+				'rentAmount is required and must be non-negative'
+			)
+		}
+
 		const client = this.supabase.getAdminClient()
 
 		// 🔐 BUG FIX #2: Use Saga pattern for transactional tenant+lease+auth creation
@@ -1913,7 +1920,6 @@ export class TenantsService {
 
 					const stripe = this.stripeConnectService.getStripe()
 
-					// Normalize rent amount to cents (Stripe requires smallest currency unit)
 					const rentAmountInCents =
 						leaseData.rentAmount >= 100000
 							? Math.round(leaseData.rentAmount)
@@ -2218,8 +2224,8 @@ export class TenantsService {
 				}
 			}
 
-			// Use sendTenantInvitation method to handle the resend
-			// This will generate a new token and update expiry
+			// Resend invitation via Supabase Auth
+			// This will generate a new invitation email
 			return await this.sendTenantInvitationV2(userId, tenantId)
 		} catch (error) {
 			this.logger.error('Failed to resend tenant invitation', {

@@ -37,6 +37,7 @@ import type {
 } from '@repo/shared/types/core'
 import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { ERROR_MESSAGES } from '#lib/constants'
 
 const logger = createLogger({ component: 'MaintenanceForm' })
 
@@ -68,7 +69,16 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 			priority:
 				(extendedRequest?.priority as Database['public']['Enums']['Priority']) ??
 				'LOW',
-			category: extendedRequest?.category ?? '',
+			category:
+				(extendedRequest?.category as
+					| 'GENERAL'
+					| 'PLUMBING'
+					| 'ELECTRICAL'
+					| 'HVAC'
+					| 'APPLIANCES'
+					| 'SAFETY'
+					| 'OTHER'
+					| undefined) ?? undefined,
 			unitId: extendedRequest?.unitId ?? '',
 			propertyId: extendedRequest?.propertyId ?? '',
 			estimatedCost: extendedRequest?.estimatedCost?.toString() ?? '',
@@ -101,7 +111,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 				setProperties(propertiesData)
 				setUnits(unitsData)
 			} catch (error) {
-				logger.error('Failed to load form data', { error })
+				logger.error(ERROR_MESSAGES.FORM_LOAD_FAILED, { error })
 			}
 		}
 		loadData()
@@ -301,19 +311,30 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 									<FieldLabel htmlFor="category">Category</FieldLabel>
 									<Select
 										value={field.state.value || ''}
-										onValueChange={field.handleChange}
+										onValueChange={value =>
+											field.handleChange(
+												value as
+													| 'GENERAL'
+													| 'PLUMBING'
+													| 'ELECTRICAL'
+													| 'HVAC'
+													| 'APPLIANCES'
+													| 'SAFETY'
+													| 'OTHER'
+											)
+										}
 									>
 										<SelectTrigger id="category">
 											<SelectValue placeholder="Select maintenance category" />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="plumbing">Plumbing</SelectItem>
-											<SelectItem value="electrical">Electrical</SelectItem>
-											<SelectItem value="hvac">HVAC</SelectItem>
-											<SelectItem value="appliance">Appliance</SelectItem>
-											<SelectItem value="structural">Structural</SelectItem>
-											<SelectItem value="pest-control">Pest Control</SelectItem>
-											<SelectItem value="other">Other</SelectItem>
+											<SelectItem value="GENERAL">General</SelectItem>
+											<SelectItem value="PLUMBING">Plumbing</SelectItem>
+											<SelectItem value="ELECTRICAL">Electrical</SelectItem>
+											<SelectItem value="HVAC">HVAC</SelectItem>
+											<SelectItem value="APPLIANCES">Appliances</SelectItem>
+											<SelectItem value="SAFETY">Safety</SelectItem>
+											<SelectItem value="OTHER">Other</SelectItem>
 										</SelectContent>
 									</Select>
 									{(field.state.meta.errors?.length ?? 0) > 0 && (
