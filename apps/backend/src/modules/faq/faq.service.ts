@@ -81,14 +81,13 @@ export class FAQService {
 	 * Get all active FAQ categories with their questions
 	 */
 	async getAllFAQs(): Promise<FAQCategoryWithQuestions[]> {
-		try {
-			const client = this.supabase.getAdminClient()
+		const client = this.supabase.getAdminClient()
 
-			// Get categories with questions in a single query
-			const { data, error } = await client
-				.from('faq_categories')
-				.select(
-					`
+		// Get categories with questions in a single query
+		const { data, error } = await client
+			.from('faq_categories')
+			.select(
+				`
                     id,
                     name,
                     slug,
@@ -110,46 +109,38 @@ export class FAQService {
                         updated_at
                     )
                 `
-				)
-				.eq('is_active', true)
-				.order('display_order', { ascending: true })
-				.order('faq_questions.display_order', {
-					ascending: true,
-					foreignTable: 'faq_questions'
-				})
-
-			if (error) {
-				this.logger.error('Failed to fetch FAQs', { error: error.message })
-				throw new HttpException(
-					'Failed to fetch FAQs',
-					HttpStatus.INTERNAL_SERVER_ERROR
-				)
-			}
-
-			// Transform the data using the mapper helper
-			return (data || []).map(category =>
-				this.mapCategoryWithQuestions(category)
 			)
-		} catch (error) {
-			this.logger.error('Failed to fetch FAQs', { error })
+			.eq('is_active', true)
+			.order('display_order', { ascending: true })
+			.order('faq_questions.display_order', {
+				ascending: true,
+				foreignTable: 'faq_questions'
+			})
+
+		if (error) {
+			this.logger.error('Failed to fetch FAQs', { error: error.message })
 			throw new HttpException(
 				'Failed to fetch FAQs',
 				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
+
+		// Transform the data using the mapper helper
+		return (data || []).map(category =>
+			this.mapCategoryWithQuestions(category)
+		)
 	}
 
 	/**
 	 * Get a single FAQ category with its questions
 	 */
 	async getFAQBySlug(slug: string): Promise<FAQCategoryWithQuestions | null> {
-		try {
-			const client = this.supabase.getAdminClient()
+		const client = this.supabase.getAdminClient()
 
-			const { data, error } = await client
-				.from('faq_categories')
-				.select(
-					`
+		const { data, error } = await client
+			.from('faq_categories')
+			.select(
+				`
                     id,
                     name,
                     slug,
@@ -171,35 +162,28 @@ export class FAQService {
                         updated_at
                     )
                 `
-				)
-				.eq('slug', slug)
-				.eq('is_active', true)
-				.order('faq_questions.display_order', {
-					ascending: true,
-					foreignTable: 'faq_questions'
-				})
-				.single()
+			)
+			.eq('slug', slug)
+			.eq('is_active', true)
+			.order('faq_questions.display_order', {
+				ascending: true,
+				foreignTable: 'faq_questions'
+			})
+			.single()
 
-			if (error) {
-				if (error.code === 'PGRST116') return null
-				this.logger.error('Failed to fetch FAQ by slug', {
-					error: error.message,
-					slug
-				})
-				throw new HttpException(
-					error.message || 'Failed to fetch FAQ category',
-					HttpStatus.INTERNAL_SERVER_ERROR
-				)
-			}
-
-			return this.mapCategoryWithQuestions(data)
-		} catch (error) {
-			this.logger.error('Failed to fetch FAQ by slug', { error, slug })
+		if (error) {
+			if (error.code === 'PGRST116') return null
+			this.logger.error('Failed to fetch FAQ by slug', {
+				error: error.message,
+				slug
+			})
 			throw new HttpException(
-				'Failed to fetch FAQ',
+				error.message || 'Failed to fetch FAQ category',
 				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
+
+		return this.mapCategoryWithQuestions(data)
 	}
 
 	/**
@@ -215,17 +199,9 @@ export class FAQService {
 
 		try {
 			const client = this.supabase.getAdminClient()
-
-			const { error } = await client.rpc('increment_faq_view_count', {
+			await client.rpc('increment_faq_view_count', {
 				question_id: questionId
 			})
-
-			if (error) {
-				this.logger.warn('Failed to increment view count', {
-					questionId,
-					error
-				})
-			}
 		} catch (error) {
 			this.logger.warn('Error incrementing question view', {
 				questionId,
@@ -247,17 +223,9 @@ export class FAQService {
 
 		try {
 			const client = this.supabase.getAdminClient()
-
-			const { error } = await client.rpc('increment_faq_helpful_count', {
+			await client.rpc('increment_faq_helpful_count', {
 				question_id: questionId
 			})
-
-			if (error) {
-				this.logger.warn('Failed to increment helpful count', {
-					questionId,
-					error
-				})
-			}
 		} catch (error) {
 			this.logger.warn('Error marking question helpful', { questionId, error })
 		}
@@ -273,42 +241,34 @@ export class FAQService {
 		totalHelpful: number
 		avgHelpfulRate: number
 	}> {
-		try {
-			const client = this.supabase.getAdminClient()
+		const client = this.supabase.getAdminClient()
 
-			const { data, error } = await client.rpc('get_faq_analytics')
+		const { data, error } = await client.rpc('get_faq_analytics')
 
-			if (error) {
-				this.logger.error('Failed to fetch FAQ analytics', {
-					error: error.message
-				})
-				throw new HttpException(
-					'Failed to fetch FAQ analytics',
-					HttpStatus.INTERNAL_SERVER_ERROR
-				)
-			}
-
-			return data?.[0]
-				? {
-						totalCategories: data[0].total_categories ?? 0,
-						totalQuestions: data[0].total_questions ?? 0,
-						totalViews: data[0].total_views ?? 0,
-						totalHelpful: data[0].total_helpful ?? 0,
-						avgHelpfulRate: data[0].avg_helpful_rate ?? 0
-					}
-				: {
-						totalCategories: 0,
-						totalQuestions: 0,
-						totalViews: 0,
-						totalHelpful: 0,
-						avgHelpfulRate: 0
-					}
-		} catch (error) {
-			this.logger.error('Failed to fetch FAQ analytics', { error })
+		if (error) {
+			this.logger.error('Failed to fetch FAQ analytics', {
+				error: error.message
+			})
 			throw new HttpException(
 				'Failed to fetch FAQ analytics',
 				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
+
+		return data?.[0]
+			? {
+					totalCategories: data[0].total_categories ?? 0,
+					totalQuestions: data[0].total_questions ?? 0,
+					totalViews: data[0].total_views ?? 0,
+					totalHelpful: data[0].total_helpful ?? 0,
+					avgHelpfulRate: data[0].avg_helpful_rate ?? 0
+				}
+			: {
+					totalCategories: 0,
+					totalQuestions: 0,
+					totalViews: 0,
+					totalHelpful: 0,
+					avgHelpfulRate: 0
+				}
 	}
 }
