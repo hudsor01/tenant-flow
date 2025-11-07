@@ -76,7 +76,7 @@ export class DashboardController {
 
 			return {
 				stats,
-				activity: activity.activities
+				activity: activity && Array.isArray(activity.activities) ? activity.activities : []
 				// Note: propertyStats, tenantStats, leaseStats are already included in stats
 				// Frontend can extract them from stats.properties, stats.tenants, stats.leases
 			}
@@ -89,6 +89,7 @@ export class DashboardController {
 		}
 	}
 
+	@Get('activity')
 	async getActivity(
 		@Request() req: AuthenticatedRequest,
 		@UserId() userId: string

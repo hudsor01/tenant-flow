@@ -28,6 +28,26 @@ import type {
 
 type PaymentMethodType = 'card' | 'ach'
 
+/**
+ * Current payment status for a tenant
+ *
+ * **All amounts in CENTS (Stripe standard)**
+ */
+export interface CurrentPaymentStatus {
+	/** Payment status: PAID, DUE, OVERDUE, or PENDING */
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	/** Monthly rent amount in CENTS */
+	rentAmount: number
+	/** Next payment due date (ISO string) or null */
+	nextDueDate: string | null
+	/** Last payment date (ISO string) or null */
+	lastPaymentDate: string | null
+	/** Outstanding balance in CENTS */
+	outstandingBalance: number
+	/** Whether there are overdue payments */
+	isOverdue: boolean
+}
+
 @Injectable()
 export class RentPaymentsService {
 	private readonly logger = new Logger(RentPaymentsService.name)
@@ -814,14 +834,7 @@ export class RentPaymentsService {
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
 	 * @returns rentAmount - Monthly rent in CENTS (Stripe standard)
 	 */
-	async getCurrentPaymentStatus(tenantId: string): Promise<{
-		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
-		rentAmount: number
-		nextDueDate: string | null
-		lastPaymentDate: string | null
-		outstandingBalance: number
-		isOverdue: boolean
-	}> {
+	async getCurrentPaymentStatus(tenantId: string): Promise<CurrentPaymentStatus> {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 

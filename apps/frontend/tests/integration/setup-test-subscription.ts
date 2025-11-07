@@ -93,13 +93,25 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
  * Sets up all test users with trial subscriptions
  */
 export async function setupIntegrationTestUsers(): Promise<void> {
-	// Test users for integration tests
-	// Note: Fallback values are for local development only
-	// CI/CD environments MUST set E2E_OWNER_A_EMAIL and E2E_OWNER_A_PASSWORD
+	// Test users for integration tests - MUST be set via environment variables
+	const requiredEnvVars = ['E2E_OWNER_A_EMAIL', 'E2E_OWNER_A_PASSWORD']
+	const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName])
+
+	if (missingEnvVars.length > 0) {
+		throw new Error(
+			`Missing required environment variables for subscription tests:
+  - ${missingEnvVars.join('
+  - ')}
+
+` +
+			`Please set these variables before running integration tests.`
+		)
+	}
+
 	const testUsers: TestUser[] = [
 		{
-			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
-			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+			email: process.env.E2E_OWNER_A_EMAIL!,
+			password: process.env.E2E_OWNER_A_PASSWORD!
 		}
 	]
 

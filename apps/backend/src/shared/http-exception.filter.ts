@@ -54,12 +54,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			if (request.url) {
 				// Parse URL safely - handle relative URLs by adding a base
 				const url = new URL(
-				request.url,
-				`http://${request.headers?.host || 'localhost'}`
-			)
-			sanitizedPath = url.pathname
-		} else if (request.path) {
-			sanitizedPath = request.path
+					request.url,
+					`http://${request.headers?.host || 'localhost'}`
+				)
+				sanitizedPath = url.pathname
+			} else if (request.path) {
+				sanitizedPath = request.path
 			}
 		} catch {
 			// If URL parsing fails, fall back to a safe default

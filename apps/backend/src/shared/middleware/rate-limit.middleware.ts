@@ -278,26 +278,42 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 			// Auto-block after multiple violations
 			const blockTimer = setTimeout(
 				() => {
-					this.activeTimers.delete(blockTimer)
-					if (this.suspiciousIPs.has(clientIP)) {
-						this.blockedIPs.add(clientIP)
-						this.logger.error(
-							'IP automatically blocked due to repeated violations',
-							{
-								operation: 'rate_limit_ip_auto_blocked',
-								ip: clientIP,
-								reason: 'repeated_violations',
-								blockDuration: 60 * 60 * 1000,
-								severity: 'CRITICAL'
-							}
-						)
+					try {
+						this.activeTimers.delete(blockTimer)
+						if (this.suspiciousIPs.has(clientIP)) {
+							this.blockedIPs.add(clientIP)
+							this.logger.error(
+								'IP automatically blocked due to repeated violations',
+								{
+									operation: 'rate_limit_ip_auto_blocked',
+									ip: clientIP,
+									reason: 'repeated_violations',
+									blockDuration: 60 * 60 * 1000,
+									severity: 'CRITICAL'
+								}
+							)
 
-						// Remove from blocked list after 1 hour
-						const unblockTimer = setTimeout(() => {
-							this.activeTimers.delete(unblockTimer)
-							this.blockedIPs.delete(clientIP)
-						}, 60 * 60 * 1000)
-						this.activeTimers.add(unblockTimer)
+							// Remove from blocked list after 1 hour
+							const unblockTimer = setTimeout(
+								() => {
+									try {
+										this.activeTimers.delete(unblockTimer)
+										this.blockedIPs.delete(clientIP)
+									} catch (error) {
+										this.logger.error('Error in unblock timer callback', {
+											error:
+												error instanceof Error ? error.message : String(error)
+										})
+									}
+								},
+								60 * 60 * 1000
+							)
+							this.activeTimers.add(unblockTimer)
+						}
+					} catch (error) {
+						this.logger.error('Error in block timer callback', {
+							error: error instanceof Error ? error.message : String(error)
+						})
 					}
 				},
 				5 * 60 * 1000
@@ -305,7 +321,6 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 			this.activeTimers.add(blockTimer)
 		}
 	}
-
 	private cleanupExpiredEntries(): void {
 		const now = Date.now()
 		let cleaned = 0
