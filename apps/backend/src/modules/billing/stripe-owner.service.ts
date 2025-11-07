@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ForbiddenException,
 	Injectable,
 	Logger,
@@ -114,7 +115,7 @@ export class StripeOwnerService {
 
 		// Validate that an email is present before creating Stripe customer
 		if (!resolvedEmail) {
-			throw new Error(
+			throw new BadRequestException(
 				`Cannot create Stripe customer without email address for user ${params.userId}`
 			)
 		}

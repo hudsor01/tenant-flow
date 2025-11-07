@@ -12,13 +12,9 @@ import {
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/spinner'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { supabaseClient } from '@repo/shared/lib/supabase-client'
-import { useMutation } from '@tanstack/react-query'
+import { useSupabasePasswordReset } from '#hooks/api/use-supabase-auth'
 import { CheckCircle2, Info, Mail } from 'lucide-react'
 import { useState } from 'react'
-
-const logger = createLogger({ component: 'ForgotPasswordModal' })
 
 interface ForgotPasswordModalProps {
 	open: boolean
@@ -32,6 +28,8 @@ export function ForgotPasswordModal({
 	const [email, setEmail] = useState('')
 	const [isSubmitted, setIsSubmitted] = useState(false)
 
+	const resetPasswordMutation = useSupabasePasswordReset()
+
 	// Reset state when modal closes
 	const handleOpenChange = (newOpen: boolean) => {
 		if (!newOpen) {
@@ -42,38 +40,16 @@ export function ForgotPasswordModal({
 		onOpenChange(newOpen)
 	}
 
-	const resetPasswordMutation = useMutation({
-		mutationFn: async (email: string) => {
-			// Always return success to prevent email enumeration
-			// Supabase will only send email if user exists
-			const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-				redirectTo: `${window.location.origin}/auth/update-password`
-			})
-
-			// Log error internally but do not expose to user
-			if (error) {
-				logger.error('Password reset error', {
-					action: 'password_reset_failed',
-					metadata: {
-						error: error.message,
-						code: error.code || 'unknown',
-						email: email // Consider PII implications - may need to redact
-					}
-				})
-			}
-
-			// Always show success to prevent email enumeration
-			return { success: true }
-		},
-		onSuccess: () => {
-			setIsSubmitted(true)
-		}
-	})
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 		if (email) {
-			resetPasswordMutation.mutate(email)
+			resetPasswordMutation.mutate(email, {
+				onSuccess: () => setIsSubmitted(true),
+				onError: () => {
+					// Display generic message without leaking email existence
+					setIsSubmitted(true)
+				}
+			})
 		}
 	}
 

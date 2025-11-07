@@ -69,6 +69,14 @@ type CachedProductsResponse = {
 }
 
 /**
+ * Cached prices response structure
+ */
+type CachedPricesResponse = {
+	success: boolean
+	prices: Stripe.Price[]
+}
+
+/**
  * Production-Grade Stripe Integration Controller
  *
  * Based on comprehensive official Stripe documentation research:
@@ -111,10 +119,14 @@ export class StripeController {
 		additionalContext?: string
 	): string {
 		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
-		const secret =
-			process.env.IDEMPOTENCY_KEY_SECRET ||
-			process.env.JWT_SECRET ||
-			'fallback-secret-for-dev'
+		const secret = process.env.IDEMPOTENCY_KEY_SECRET
+
+		if (!secret) {
+			throw new Error(
+				'Missing IDEMPOTENCY_KEY_SECRET environment variable. ' +
+				'Please set IDEMPOTENCY_KEY_SECRET in your environment configuration.'
+			)
+		}
 
 		// Combine all inputs into a stable string
 		const context = additionalContext ? `_${additionalContext}` : ''
@@ -1224,14 +1236,28 @@ export class StripeController {
 	 */
 	@Post('invite-tenant')
 	async inviteTenant(
-		@Body() body: { email: string; ownerId: string; leaseId?: string }
+		@Body() body: { email: string; ownerId?: string; propertyId?: string; leaseId?: string }
 	) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.email) {
 			throw new BadRequestException('email is required')
 		}
-		if (!body.ownerId) {
+
+		// Backward compatibility: accept both ownerId and propertyId (deprecated)
+		const ownerId = body.ownerId || body.propertyId
+
+		if (!ownerId) {
 			throw new BadRequestException('ownerId is required')
+		}
+
+		// Emit deprecation warning if only propertyId was provided
+		if (!body.ownerId && body.propertyId) {
+			this.logger.warn('propertyId parameter is deprecated, use ownerId instead', {
+				endpoint: 'POST /stripe/invite-tenant',
+				providedParam: 'propertyId',
+				preferredParam: 'ownerId',
+				email: body.email
+			})
 		}
 
 		// Validate email format
@@ -1259,8 +1285,8 @@ export class StripeController {
 				await supabase.auth.admin.createUser({
 					email: body.email,
 					email_confirm: false, // User must confirm via invite link
-					user_metadata: {
-						invited_by: body.ownerId,
+				user_metadata: {
+					invited_by: ownerId,
 						invited_at: new Date().toISOString(),
 						...(body.leaseId && { lease_id: body.leaseId })
 					}
@@ -1604,9 +1630,9 @@ export class StripeController {
 		const cacheKey = 'stripe:products'
 
 		// Try cache first (5 minute TTL for public pricing data)
-		const cached = (await this.cacheManager.get(
-			cacheKey
-		)) as CachedProductsResponse | undefined
+		const cached = (await this.cacheManager.get(cacheKey)) as
+			| CachedProductsResponse
+			| undefined
 		if (cached) {
 			this.logger.debug('Returning cached products')
 			return cached
@@ -1707,18 +1733,12 @@ export class StripeController {
 	 */
 	@Get('prices')
 	@HttpCode(HttpStatus.OK)
-	async getPrices(): Promise<{
-		success: boolean
-		prices: Stripe.Price[]
-	}> {
+	async getPrices(): Promise<CachedPricesResponse> {
 		const cacheKey = 'stripe:prices'
 
 		// Try cache first (5 minute TTL)
 		const cached = (await this.cacheManager.get(cacheKey)) as
-			| {
-					success: boolean
-					prices: Stripe.Price[]
-			  }
+			| CachedPricesResponse
 			| undefined
 		if (cached) {
 			this.logger.debug('Returning cached prices')
@@ -1734,7 +1754,7 @@ export class StripeController {
 				expand: ['data.product']
 			})
 
-			const result = {
+			const result: CachedPricesResponse = {
 				success: true,
 				prices: prices.data
 			}

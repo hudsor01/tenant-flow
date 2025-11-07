@@ -15,7 +15,7 @@ const logger = createLogger({ component: 'MaintenanceFormHook' })
 export interface MaintenanceFormData {
 	title: string
 	description: string
-	priority: string
+	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 	category: MaintenanceCategory | undefined
 	propertyId: string
 	unitId: string
@@ -86,7 +86,10 @@ export function useMaintenanceForm({
 						payload.category = value.category
 					}
 					if (value.estimatedCost) {
-						payload.estimatedCost = parseFloat(value.estimatedCost)
+						const parsed = parseFloat(value.estimatedCost)
+						if (Number.isFinite(parsed)) {
+							payload.estimatedCost = parsed
+						}
 					}
 					if (value.preferredDate) {
 						payload.scheduledDate = value.preferredDate
@@ -120,7 +123,10 @@ export function useMaintenanceForm({
 						payload.category = value.category
 					}
 					if (value.estimatedCost) {
-						payload.estimatedCost = parseFloat(value.estimatedCost)
+						const parsed = parseFloat(value.estimatedCost)
+						if (Number.isFinite(parsed)) {
+							payload.estimatedCost = parsed
+						}
 					}
 					if (value.preferredDate) {
 						payload.scheduledDate = value.preferredDate

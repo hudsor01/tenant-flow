@@ -9,6 +9,7 @@ import type {
 	PaymentMethodSetupIntent
 } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 /**
  * Query keys for payment methods endpoints
@@ -31,7 +32,7 @@ export function usePaymentMethods() {
 			// Backend now returns proper PaymentMethodResponse structure
 			return response.payment_methods
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -210,7 +211,7 @@ export function usePrefetchPaymentMethods() {
 				const response = await clientFetch<{ paymentMethods: PaymentMethodResponse[] }>('/api/v1/payment-methods')
 				return response.paymentMethods
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }
