@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import type {
   MetricTrend,
   TimeSeriesDataPoint,
@@ -37,7 +38,7 @@ export function useMetricTrend(
       return response.data as MetricTrend
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...QUERY_CACHE_TIMES.DETAIL,
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 }
@@ -62,7 +63,7 @@ export function useDashboardTimeSeries(
       return response.data || []
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...QUERY_CACHE_TIMES.DETAIL,
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 }
@@ -97,7 +98,7 @@ export function useDashboardTrendData(userId: string | undefined) {
       }
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...QUERY_CACHE_TIMES.DETAIL,
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 }

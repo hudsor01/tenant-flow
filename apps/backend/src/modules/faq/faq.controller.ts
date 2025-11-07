@@ -9,8 +9,14 @@ import {
 	Logger,
 	ParseUUIDPipe
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { FAQService } from './faq.service'
 import { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
+
+/**
+ * Regex for validating URL-safe slugs (lowercase letters, numbers, hyphens)
+ */
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 @Controller('api/v1/faq')
 export class FAQController {
@@ -45,7 +51,7 @@ export class FAQController {
 		@Param('slug') slug: string
 	): Promise<FAQCategoryWithQuestions | null> {
 		// Validate slug format
-		if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+		if (!SLUG_REGEX.test(slug)) {
 			throw new BadRequestException(
 				'Slug must contain only lowercase letters, numbers, and hyphens'
 			)
@@ -69,8 +75,10 @@ export class FAQController {
 
 	/**
 	 * Track question views for analytics
+	 * Rate limited to prevent abuse (10 requests per minute)
 	 */
 	@Post('question/:questionId/view')
+	@Throttle({ default: { limit: 10, ttl: 60000 } })
 	async trackQuestionView(
 		@Param('questionId', ParseUUIDPipe) questionId: string
 	): Promise<{ success: boolean }> {
@@ -86,8 +94,10 @@ export class FAQController {
 
 	/**
 	 * Mark question as helpful for analytics
+	 * Rate limited to prevent abuse (5 requests per minute)
 	 */
 	@Post('question/:questionId/helpful')
+	@Throttle({ default: { limit: 5, ttl: 60000 } })
 	async markQuestionHelpful(
 		@Param('questionId', ParseUUIDPipe) questionId: string
 	): Promise<{ success: boolean }> {

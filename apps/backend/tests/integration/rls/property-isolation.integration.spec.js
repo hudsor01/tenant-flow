@@ -12,8 +12,8 @@ const setup_1 = require("./setup");
         units: []
     };
     (0, globals_1.beforeAll)(async () => {
-        ownerA = await (0, setup_1.authenticateAs)(setup_1.TEST_USERS.owner_A);
-        ownerB = await (0, setup_1.authenticateAs)(setup_1.TEST_USERS.owner_B);
+        ownerA = await (0, setup_1.authenticateAs)(setup_1.TEST_USERS.OWNER_A);
+        ownerB = await (0, setup_1.authenticateAs)(setup_1.TEST_USERS.OWNER_B);
         tenantA = await (0, setup_1.authenticateAs)(setup_1.TEST_USERS.TENANT_A);
         serviceClient = (0, setup_1.getServiceRoleClient)();
     });

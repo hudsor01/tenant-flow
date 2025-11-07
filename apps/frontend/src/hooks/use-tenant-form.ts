@@ -88,11 +88,21 @@ export function useMultiStepTenantForm(): {
 	const form = useTenantForm(formData as TenantInput)
 
 	const nextStep = () => {
-		// TODO: Re-enable validation after resolving type instantiation depth issue
-		// The validateField API causes deep type recursion with complex generated types
-		// if (form.validateField('firstName', 'change')) {
+		// Manual field-level validation before proceeding
+		const values = form.state.values
+		
+		// Basic validation for required fields in current step
+		if (currentStep === 0) {
+			if (!values.firstName || !values.lastName) {
+				return // Don't proceed if required fields are missing
+			}
+		} else if (currentStep === 1) {
+			if (!values.email) {
+				return // Don't proceed if email is missing
+			}
+		}
+		
 		setCurrentStep(prev => prev + 1)
-		// }
 	}
 
 	const prevStep = () => {

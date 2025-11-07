@@ -249,14 +249,10 @@ export function getRecommendedUpgrade(
 	// Check each higher plan to see if it fits
 	for (let i = currentIndex + 1; i < plans.length; i++) {
 		const planId = plans[i]
-		if (!planId) {
-			continue
-		}
+		if (!planId) continue
 
 		const plan = getPricingPlan(planId)
-		if (!plan) {
-			continue
-		}
+		if (!plan) continue
 
 		const { exceeded } = checkPlanLimits(usage, planId)
 		if (!exceeded) {
@@ -316,9 +312,7 @@ export function getStripePriceId(
 	period: 'monthly' | 'annual'
 ): StripePriceId | null {
 	const plan = getPricingPlan(planId)
-	if (!plan) {
-		return null
-	}
+	if (!plan) return null
 
 	return period === 'monthly'
 		? plan.stripePriceIds.monthly

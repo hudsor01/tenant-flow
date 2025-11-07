@@ -25,26 +25,59 @@ export interface TestCredentials {
 
 export const TEST_USERS = {
 	OWNER_A: {
-		email: process.env.E2E_OWNER_A_EMAIL || 'owner-a@test.tenantflow.local',
-		password: process.env.E2E_OWNER_A_PASSWORD || 'TestPassword123!',
+		email: process.env.E2E_OWNER_A_EMAIL!,
+		password: process.env.E2E_OWNER_A_PASSWORD!,
 		role: 'OWNER' as const
 	},
 	OWNER_B: {
-		email: process.env.E2E_OWNER_B_EMAIL || 'owner-b@test.tenantflow.local',
-		password: process.env.E2E_OWNER_B_PASSWORD || 'TestPassword123!',
+		email: process.env.E2E_OWNER_B_EMAIL!,
+		password: process.env.E2E_OWNER_B_PASSWORD!,
 		role: 'OWNER' as const
 	},
 	TENANT_A: {
-		email: process.env.E2E_TENANT_A_EMAIL || 'tenant-a@test.tenantflow.local',
-		password: process.env.E2E_TENANT_A_PASSWORD || 'TestPassword123!',
+		email: process.env.E2E_TENANT_A_EMAIL!,
+		password: process.env.E2E_TENANT_A_PASSWORD!,
 		role: 'TENANT' as const
 	},
 	TENANT_B: {
-		email: process.env.E2E_TENANT_B_EMAIL || 'tenant-b@test.tenantflow.local',
-		password: process.env.E2E_TENANT_B_PASSWORD || 'TestPassword123!',
+		email: process.env.E2E_TENANT_B_EMAIL!,
+		password: process.env.E2E_TENANT_B_PASSWORD!,
 		role: 'TENANT' as const
 	}
 } as const
+
+// Validate required environment variables at module load time
+const REQUIRED_TEST_USER_VARS = [
+	'E2E_OWNER_A_EMAIL', 'E2E_OWNER_A_PASSWORD',
+	'E2E_OWNER_B_EMAIL', 'E2E_OWNER_B_PASSWORD',
+	'E2E_TENANT_A_EMAIL', 'E2E_TENANT_A_PASSWORD',
+	'E2E_TENANT_B_EMAIL', 'E2E_TENANT_B_PASSWORD'
+] as const
+
+const missingVars = REQUIRED_TEST_USER_VARS.filter(varName => !process.env[varName])
+
+if (missingVars.length > 0) {
+	throw new Error(
+		`Missing required environment variables for integration tests:
+  - ${missingVars.join('\n  - ')}
+
+Please set these variables in your environment or .env.local file before running integration tests.`
+	)
+}
+
+// Validate password strength - must not be the weak default
+const WEAK_PASSWORD = 'TestPassword123!'
+Object.entries(TEST_USERS).forEach(([key, user]) => {
+	if (!user.email || !user.password) {
+		throw new Error(`Test user ${key} is missing email or password. Check environment variables.`)
+	}
+	if (user.password === WEAK_PASSWORD) {
+		throw new Error(
+			`Test user ${key} is using the weak default password. ` +
+			`Please set a secure password in environment variables.`
+		)
+	}
+})
 
 /**
  * Authenticated test client with user context

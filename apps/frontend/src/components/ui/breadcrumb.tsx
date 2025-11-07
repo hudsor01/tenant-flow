@@ -103,30 +103,26 @@ export type BreadcrumbItem = {
 }
 
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
-	const breadcrumbElements = items.flatMap((item, index) => {
-		const isLast = index === items.length - 1
-		const keyBase = `${item.href}-${index}`
-
-		const nodes = [
-			<BreadcrumbItem key={`item-${keyBase}`}>
-				{isLast ? (
-					<BreadcrumbPage>{item.label}</BreadcrumbPage>
-				) : (
-					<BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
-				)}
-			</BreadcrumbItem>
-		]
-
-		if (!isLast) {
-			nodes.push(<BreadcrumbSeparator key={`sep-${keyBase}`} />)
-		}
-
-		return nodes
-	})
-
 	return (
 		<Breadcrumb>
-			<BreadcrumbList>{breadcrumbElements}</BreadcrumbList>
+			<BreadcrumbList>
+				{items.map((item, index) => {
+					const isLast = index === items.length - 1
+
+					return (
+						<React.Fragment key={`breadcrumb-${index}`}>
+							<BreadcrumbItem>
+								{isLast ? (
+									<BreadcrumbPage>{item.label}</BreadcrumbPage>
+								) : (
+									<BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
+								)}
+							</BreadcrumbItem>
+							{!isLast && <BreadcrumbSeparator />}
+						</React.Fragment>
+					)
+				})}
+			</BreadcrumbList>
 		</Breadcrumb>
 	)
 }

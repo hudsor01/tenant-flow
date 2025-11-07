@@ -130,7 +130,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			})
 
 			const receiptUrl =
-				result.paymentIntent.receiptUrl || result.paymentIntent.receipt_url
+				result.paymentIntent.receiptUrl || result.paymentIntent.receiptUrl
 
 			if (result.success && receiptUrl) {
 				toast.success(
