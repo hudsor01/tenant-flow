@@ -93,6 +93,9 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
  * Sets up all test users with trial subscriptions
  */
 export async function setupIntegrationTestUsers(): Promise<void> {
+	// Test users for integration tests
+	// Note: Fallback values are for local development only
+	// CI/CD environments MUST set E2E_OWNER_A_EMAIL and E2E_OWNER_A_PASSWORD
 	const testUsers: TestUser[] = [
 		{
 			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',

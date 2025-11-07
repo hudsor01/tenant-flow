@@ -3,7 +3,15 @@
 When providing commit messages, never include attribution.
 
 ## BEFORE EVERY ACTION: USE MCP SERVER SERENA! Activate project if not available.
-## Then run coderabbit --prompt-only in the background and fix any issues.
+
+## CodeRabbit Review Integration
+Before making changes:
+1. Run from project root: `coderabbit --prompt-only` in the background
+2. Continue development work in parallel
+3. Review CodeRabbit suggestions before committing
+4. Address any issues reported
+
+**Note**: CodeRabbit CLI must be installed globally (`npm install -g @coderabbitai/cli`) or available in your PATH. It provides review suggestions only, not automatic fixes.
 
 
 ## Project Structure
