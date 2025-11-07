@@ -15,7 +15,6 @@ import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
-import { useCurrentLease } from '#hooks/api/use-lease'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { formatCurrency } from '@repo/shared/utils/formatting'
 import {
@@ -27,6 +26,23 @@ import {
 	Wrench
 } from 'lucide-react'
 import Link from 'next/link'
+
+/**
+ * Formats next payment date from upcoming payment or returns TBD
+ */
+function getNextPaymentDate(
+	upcomingPayment: { dueDate?: string | null } | null | undefined,
+	formatDate: (date: string | Date, options?: Intl.DateTimeFormatOptions) => string
+): string {
+	if (upcomingPayment?.dueDate) {
+		return formatDate(upcomingPayment.dueDate, {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		})
+	}
+	return 'TBD'
+}
 
 export default function TenantDashboardPage() {
 	// Modern helpers - assume valid inputs
@@ -46,34 +62,27 @@ export default function TenantDashboardPage() {
 		return str.replace(search, replace)
 	}
 
-	const { data: lease } = useCurrentLease()
+	// Removed: useCurrentLease() - redundant, dashboard hook already includes lease data
 	const {
 		data: dashboard,
 		isLoading: dashboardLoading,
 		error: dashboardError
 	} = useTenantPortalDashboard()
 
-	const activeLease = dashboard?.lease ?? lease ?? null
+	const activeLease = dashboard?.lease ?? null
 	const maintenanceSummary = dashboard?.maintenance
 	const recentRequests = dashboard?.maintenance?.recent ?? []
 	const recentPayments = dashboard?.payments?.recent ?? []
 	const upcomingPayment = dashboard?.payments?.upcoming ?? null
-	const leaseLoading = dashboardLoading && !activeLease
+	// Removed: dashboardLoading - use dashboardLoading directly
 
 	// Calculate next payment date (1st of next month)
-	const getNextPaymentDate = () => {
-		if (upcomingPayment?.dueDate) {
-			return formatDate(upcomingPayment.dueDate, {
-				month: 'short',
-				day: 'numeric',
-				year: 'numeric'
-			})
-		}
-		return 'TBD'
-	}
+	const nextPaymentDate = getNextPaymentDate(upcomingPayment, formatDate)
 
-	if (dashboardError) {
-		return <ErrorFallback error={dashboardError} />
+	// Single error source
+	const error = dashboardError
+	if (error) {
+		return <ErrorFallback error={error} />
 	}
 
 	return (
@@ -108,7 +117,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
-							{leaseLoading || !activeLease ? (
+							{dashboardLoading || !activeLease ? (
 								<Skeleton className="h-7 w-48" />
 							) : (
 								<p className="text-xl font-semibold">Active Lease</p>
@@ -133,10 +142,10 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
-							{leaseLoading || !activeLease ? (
+							{dashboardLoading || !activeLease ? (
 								<Skeleton className="h-7 w-32" />
 							) : (
-								<p className="text-xl font-semibold">{getNextPaymentDate()}</p>
+								<p className="text-xl font-semibold">{nextPaymentDate}</p>
 							)}
 						</div>
 					</div>
@@ -244,14 +253,14 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="space-y-4">
-						{leaseLoading ? (
+						{dashboardLoading ? (
 							<Skeleton className="h-16 w-full" />
 						) : activeLease ? (
 							<div className="flex items-center justify-between py-3 border-b border-border/50">
 								<div>
 									<p className="font-medium">Monthly Rent</p>
 									<p className="text-sm text-muted-foreground">
-										Due: {getNextPaymentDate()}
+										Due: {nextPaymentDate}
 									</p>
 								</div>
 								<div className="text-right">

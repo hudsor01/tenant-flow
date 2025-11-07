@@ -287,6 +287,31 @@ export class StripeSyncController {
 		// Calculate amount (no platform fees - owner receives full amount minus Stripe fees)
 		const amountInCents = session.amount_total || 0
 		const amountInDollars = amountInCents / 100
+		let receiptUrl: string | null = null
+
+		if (session.payment_intent) {
+			try {
+				const stripe = this.stripeClientService.getClient()
+				const paymentIntent = await stripe.paymentIntents.retrieve(
+					session.payment_intent as string,
+					{ expand: ['latest_charge'] }
+				)
+
+				if (
+					paymentIntent.latest_charge &&
+					typeof paymentIntent.latest_charge === 'object'
+				) {
+					receiptUrl =
+						(paymentIntent.latest_charge as Stripe.Charge).receipt_url ?? null
+				}
+			} catch (error) {
+				this.logger.warn('Failed to fetch receipt URL for checkout payment', {
+					sessionId: session.id,
+					paymentIntentId: session.payment_intent,
+					error: error instanceof Error ? error.message : 'Unknown Stripe error'
+				})
+			}
+		}
 
 		// Record payment in database
 		// NOTE: We rely on unique constraint on stripePaymentIntentId to prevent duplicates
@@ -303,6 +328,7 @@ export class StripeSyncController {
 				paymentType,
 				status: 'completed',
 				stripePaymentIntentId: session.payment_intent as string,
+				receiptUrl,
 				platformFee: 0,
 				stripeFee: 0,
 				ownerReceives: amountInDollars

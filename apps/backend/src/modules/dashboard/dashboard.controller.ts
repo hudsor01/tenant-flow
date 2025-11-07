@@ -1,6 +1,7 @@
 import {
 	Controller,
 	Get,
+	HttpException,
 	Logger,
 	Query,
 	Req,
@@ -55,7 +56,11 @@ export class DashboardController {
 	 * Unified dashboard endpoint - combines all dashboard data in one request
 	 * Reduces 5 HTTP requests to 1 for 40-50% faster initial page load
 	 */
-	async getPageData(@Request() req: AuthenticatedRequest, @UserId() userId: string) {
+	@Get('page-data')
+	async getPageData(
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
+	) {
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -81,10 +86,15 @@ export class DashboardController {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
+			// Re-throw HTTP exceptions as-is to preserve specific error messages
+			if (error instanceof HttpException) {
+				throw error
+			}
 			throw new InternalServerErrorException('Failed to fetch dashboard data')
 		}
 	}
 
+	@Get('activity')
 	async getActivity(
 		@Request() req: AuthenticatedRequest,
 		@UserId() userId: string
@@ -154,11 +164,49 @@ export class DashboardController {
 		return {
 			success: true,
 			data,
-			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
+			message:
+				'Billing insights retrieved successfully from Stripe Sync Engine',
 			timestamp: new Date()
 		}
 	}
 
+	@Get('billing/insights/available')
+	async checkBillingInsightsAvailability(
+		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string
+	): Promise<ControllerApiResponse> {
+		const token = this.supabase.getTokenFromRequest(req)
+
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'checkBillingInsightsAvailability',
+					userId
+				}
+			},
+			'Checking billing insights availability'
+		)
+
+		const available = await this.dashboardService.isBillingInsightsAvailable(
+			userId,
+			token
+		)
+
+		return {
+			success: true,
+			data: { available },
+			message: available
+				? 'Billing insights are available'
+				: 'Billing insights are not available',
+			timestamp: new Date()
+		}
+	}
+
+	@Get('billing/health')
 	async getBillingHealth(
 		@Request() req: AuthenticatedRequest,
 		@UserId() userId: string

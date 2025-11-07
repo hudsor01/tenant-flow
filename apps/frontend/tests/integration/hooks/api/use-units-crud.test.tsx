@@ -78,14 +78,30 @@ async function createTestProperty(): Promise<string> {
 describe('Units CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
+		// Validate ALL required environment variables
+		const requiredEnvVars = [
+			'NEXT_PUBLIC_SUPABASE_URL',
+			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			'E2E_OWNER_A_EMAIL',
+			'E2E_OWNER_A_PASSWORD'
+		] as const
+
+		for (const envVar of requiredEnvVars) {
+			if (!process.env[envVar]) {
+				throw new Error(
+					`Missing required environment variable: ${envVar}. Please check your .env.test.local file.`
+				)
+			}
+		}
+
 		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			process.env.NEXT_PUBLIC_SUPABASE_URL,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
-			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+			email: process.env.E2E_OWNER_A_EMAIL,
+			password: process.env.E2E_OWNER_A_PASSWORD
 		})
 
 		if (error || !data.session) {
@@ -161,7 +177,8 @@ describe('Units CRUD Integration Tests', () => {
 			expect(createdUnit!.squareFeet).toBe(850)
 			expect(createdUnit!.rent).toBe(2000)
 			expect(createdUnit!.status).toBe('VACANT')
-			expect(createdUnit!.version).toBe(1) // Optimistic locking
+			// Optimistic locking
+			expect(createdUnit!.version).toBe(1)
 
 			// Track for cleanup
 			createdUnitIds.push(createdUnit!.id)
@@ -533,7 +550,6 @@ describe('Units CRUD Integration Tests', () => {
 			const propertyId = await createTestProperty()
 
 			// 1. CREATE
-			// prettier-ignore
 			const { result: createResult } = renderHook(
 				() => useCreateUnit(),
 				{
@@ -558,8 +574,7 @@ describe('Units CRUD Integration Tests', () => {
 			createdUnitIds.push(createdUnit!.id)
 
 			// 2. READ
-			// prettier-ignore
-			const { result: readResult } = renderHook(
+			const { result: $1 } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{
 					wrapper
@@ -573,8 +588,7 @@ describe('Units CRUD Integration Tests', () => {
 			expect(readResult.current.data!.unitNumber).toBe(newUnit.unitNumber)
 
 			// 3. UPDATE
-			// prettier-ignore
-			const { result: updateResult } = renderHook(
+			const { result: $1 } = renderHook(
 				() => useUpdateUnit(),
 				{
 					wrapper
@@ -596,8 +610,7 @@ describe('Units CRUD Integration Tests', () => {
 			expect(updatedUnit!.version).toBe(2)
 
 			// 4. DELETE
-			// prettier-ignore
-			const { result: deleteResult } = renderHook(
+			const { result: $1 } = renderHook(
 				() => useDeleteUnit(),
 				{
 					wrapper
@@ -609,8 +622,7 @@ describe('Units CRUD Integration Tests', () => {
 			createdUnitIds = createdUnitIds.filter(id => id !== createdUnit!.id)
 
 			// Verify deletion
-			// prettier-ignore
-			const { result: verifyResult } = renderHook(
+			const { result: $1 } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{ wrapper }
 			)

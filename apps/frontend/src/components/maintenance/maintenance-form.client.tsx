@@ -29,6 +29,7 @@ import {
 } from '#hooks/api/use-maintenance'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
 import { clientFetch } from '#lib/api/client'
+import { MAINTENANCE_CATEGORY_OPTIONS } from '#lib/constants'
 import type {
 	Database,
 	MaintenanceRequest,
@@ -37,7 +38,7 @@ import type {
 } from '@repo/shared/types/core'
 import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ERROR_MESSAGES } from '#lib/constants'
+
 
 const logger = createLogger({ component: 'MaintenanceForm' })
 
@@ -103,15 +104,20 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	// Load properties and units on mount
 	useEffect(() => {
 		const loadData = async () => {
+			// Load properties
 			try {
-				const [propertiesData, unitsData] = await Promise.all([
-					clientFetch<Property[]>('/api/v1/properties'),
-					clientFetch<Unit[]>('/api/v1/units')
-				])
+				const propertiesData = await clientFetch<Property[]>('/api/v1/properties')
 				setProperties(propertiesData)
+			} catch (error) {
+				logger.error('Failed to load properties', { error, endpoint: '/api/v1/properties' })
+			}
+
+			// Load units
+			try {
+				const unitsData = await clientFetch<Unit[]>('/api/v1/units')
 				setUnits(unitsData)
 			} catch (error) {
-				logger.error(ERROR_MESSAGES.FORM_LOAD_FAILED, { error })
+				logger.error('Failed to load units', { error, endpoint: '/api/v1/units' })
 			}
 		}
 		loadData()
@@ -312,30 +318,21 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 									<Select
 										value={field.state.value || ''}
 										onValueChange={value =>
-											field.handleChange(
-												value as
-													| 'GENERAL'
-													| 'PLUMBING'
-													| 'ELECTRICAL'
-													| 'HVAC'
-													| 'APPLIANCES'
-													| 'SAFETY'
-													| 'OTHER'
-											)
-										}
+									field.handleChange(
+										value as keyof typeof import('#lib/constants').MAINTENANCE_CATEGORY
+									)
+								}
 									>
 										<SelectTrigger id="category">
 											<SelectValue placeholder="Select maintenance category" />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="GENERAL">General</SelectItem>
-											<SelectItem value="PLUMBING">Plumbing</SelectItem>
-											<SelectItem value="ELECTRICAL">Electrical</SelectItem>
-											<SelectItem value="HVAC">HVAC</SelectItem>
-											<SelectItem value="APPLIANCES">Appliances</SelectItem>
-											<SelectItem value="SAFETY">Safety</SelectItem>
-											<SelectItem value="OTHER">Other</SelectItem>
-										</SelectContent>
+												{MAINTENANCE_CATEGORY_OPTIONS.map(option => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.label}
+													</SelectItem>
+												))}
+											</SelectContent>
 									</Select>
 									{(field.state.meta.errors?.length ?? 0) > 0 && (
 										<FieldError>

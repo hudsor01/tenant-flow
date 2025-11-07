@@ -529,8 +529,10 @@ export class StripeConnectService {
 		// Only set timestamp if:
 		// 1. Account is now complete AND existing timestamp is falsy (first completion)
 		// 2. Account is not complete -> null (allow re-onboarding)
+		// Note: Using ?? (nullish coalescing) instead of || to preserve empty strings if they exist,
+		// though in practice existingTimestamp should only be null/undefined or a valid ISO string
 		const onboardingCompletedAt: string | null = isNowComplete
-			? (existingTimestamp || new Date().toISOString())
+			? (existingTimestamp ?? new Date().toISOString())
 			: null
 
 			const { error } = await this.supabaseService

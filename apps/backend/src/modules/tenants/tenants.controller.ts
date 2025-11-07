@@ -211,18 +211,10 @@ export class TenantsController {
 	) {
 		const userId = req.user.id
 
-		// Extract boolean properties from the validated DTO to maintain type safety
-		const preferences: Record<string, boolean> = {}
-		for (const [key, value] of Object.entries(dto)) {
-			if (typeof value === 'boolean') {
-				preferences[key] = value
-			}
-		}
-
 		const result = await this.tenantsService.updateNotificationPreferences(
 			userId,
 			id,
-			preferences
+			dto as Record<string, boolean>
 		)
 		if (!result) {
 			throw new NotFoundException('Tenant not found')
@@ -453,17 +445,22 @@ export class TenantsController {
 	) {
 		const userId = req.user.id
 
+		// Filter out undefined values for exactOptionalPropertyTypes
+		const updateData: {
+			contactName?: string
+			relationship?: string
+			phoneNumber?: string
+			email?: string | null
+		} = {}
+		if (dto.contactName !== undefined) updateData.contactName = dto.contactName
+		if (dto.relationship !== undefined) updateData.relationship = dto.relationship
+		if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber
+		if (dto.email !== undefined) updateData.email = dto.email ?? null
+
 		const emergencyContact = await this.tenantsService.updateEmergencyContact(
 			userId,
 			id,
-			{
-				...(dto.contactName !== undefined && { contactName: dto.contactName }),
-				...(dto.relationship !== undefined && {
-					relationship: dto.relationship
-				}),
-				...(dto.phoneNumber !== undefined && { phoneNumber: dto.phoneNumber }),
-				...(dto.email !== undefined && { email: dto.email ?? null })
-			}
+			updateData
 		)
 
 		if (!emergencyContact) {

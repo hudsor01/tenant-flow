@@ -66,6 +66,9 @@ describe('StripeController - Subscription Management', () => {
 	const mockPriceIdProfessional = 'price_professional456'
 
 	beforeEach(async () => {
+		// Set required environment variables for controller
+		process.env.IDEMPOTENCY_KEY_SECRET = 'test-secret-key-for-tests-only'
+
 		jest.useFakeTimers()
 
 		mockSupabaseService = createMockSupabaseService()
@@ -145,6 +148,7 @@ describe('StripeController - Subscription Management', () => {
 	afterEach(() => {
 		jest.clearAllTimers()
 		jest.useRealTimers()
+		delete process.env.IDEMPOTENCY_KEY_SECRET
 	})
 
 	describe('Customer Creation on Signup', () => {

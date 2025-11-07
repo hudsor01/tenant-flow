@@ -2244,6 +2244,7 @@ export type Database = {
           paidAt: string | null
           paymentType: string
           platformFee: number
+          receiptUrl: string | null
           status: string | null
           stripeFee: number
           stripeInvoiceId: string | null
@@ -2267,6 +2268,7 @@ export type Database = {
           paidAt?: string | null
           paymentType: string
           platformFee: number
+          receiptUrl?: string | null
           status?: string | null
           stripeFee: number
           stripeInvoiceId?: string | null
@@ -2290,6 +2292,7 @@ export type Database = {
           paidAt?: string | null
           paymentType?: string
           platformFee?: number
+          receiptUrl?: string | null
           status?: string | null
           stripeFee?: number
           stripeInvoiceId?: string | null
@@ -3851,10 +3854,9 @@ export type Database = {
       }
       check_event_processed: { Args: { p_event_id: string }; Returns: boolean }
       check_lease_expiry_notifications: { Args: never; Returns: undefined }
-      check_user_feature_access: {
-        Args: { p_feature: string; p_user_id: string }
-        Returns: boolean
-      }
+      check_user_feature_access:
+        | { Args: { p_feature: string; p_user_id: string }; Returns: boolean }
+        | { Args: { p_feature: string; p_user_id: string }; Returns: boolean }
       cleanup_dashboard_history: { Args: never; Returns: number }
       cleanup_expired_drafts: { Args: never; Returns: undefined }
       cleanup_old_email_queue_entries: { Args: never; Returns: number }
@@ -3883,6 +3885,7 @@ export type Database = {
         }
         Returns: Json
       }
+      current_internal_user_id: { Args: never; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       detect_webhook_health_issues: {
         Args: never
@@ -4268,6 +4271,7 @@ export type Database = {
         Args: { question_id: string }
         Returns: undefined
       }
+      is_property_owner: { Args: { property_id: string }; Returns: boolean }
       is_user_on_trial: { Args: { p_user_id: string }; Returns: boolean }
       link_stripe_customer_to_user: {
         Args: { p_email: string; p_stripe_customer_id: string }

@@ -52,6 +52,23 @@ describe('RLS: Payment Isolation', () => {
 		testLeaseId = await ensureTestLease(ownerA.userId, tenantA.userId)
 	})
 
+	afterAll(async () => {
+		try {
+			// Cleanup in reverse foreign key order
+			// Delete payments created during tests
+			for (const id of testData.payments) {
+				await serviceClient.from('rent_payment').delete().eq('id', id)
+			}
+			// Delete test lease if it was created
+			if (testLeaseId) {
+				await serviceClient.from('lease').delete().eq('id', testLeaseId)
+			}
+		} catch (error) {
+			// Log but don't fail tests on cleanup errors
+			console.error('Cleanup error in payment-isolation tests:', error)
+		}
+	})
+
 	describe('SELECT Policy: Owner/Tenant Access', () => {
 		it('owner A can only see their own property payments', async () => {
 			// owner A queries all payments
@@ -127,7 +144,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantA.userId,
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',
@@ -149,7 +166,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantA.userId,
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',
@@ -170,7 +187,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantA.userId,
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',
@@ -207,7 +224,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantA.userId,
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',
@@ -273,7 +290,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantA.userId,
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',
@@ -335,7 +352,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantB.userId, // Spoofing attempt
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',
@@ -358,7 +375,7 @@ describe('RLS: Payment Isolation', () => {
 					tenantId: tenantA.userId,
 					amount: 150000,
 					status: 'pending',
-					dueDate: new Date().toISOString().split('T')[0] || null,
+					dueDate: new Date().toISOString().split('T')[0]!,
 					leaseId: testLeaseId,
 					ownerReceives: 142500, // 5% platform fee
 					paymentType: 'card',

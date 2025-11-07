@@ -88,6 +88,10 @@ export function validateConfig(): void {
 		{
 			key: 'SUPABASE_SECRET_KEY',
 			value: APP_CONFIG.SUPABASE.SERVICE_KEY
+		},
+		{
+			key: 'SUPABASE_PUBLISHABLE_KEY',
+			value: APP_CONFIG.SUPABASE.PUBLISHABLE_KEY
 		}
 	]
 

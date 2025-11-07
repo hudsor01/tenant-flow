@@ -9,27 +9,55 @@ exports.expectPermissionError = expectPermissionError;
 exports.ensureTestLease = ensureTestLease;
 const supabase_js_1 = require("@supabase/supabase-js");
 exports.TEST_USERS = {
-    owner_A: {
-        email: process.env.E2E_owner_A_EMAIL || 'owner-a@test.tenantflow.local',
-        password: process.env.E2E_owner_A_PASSWORD || 'TestPassword123!',
+    OWNER_A: {
+        email: process.env.E2E_OWNER_A_EMAIL,
+        password: process.env.E2E_OWNER_A_PASSWORD,
         role: 'owner'
     },
-    owner_B: {
-        email: process.env.E2E_owner_B_EMAIL || 'owner-b@test.tenantflow.local',
-        password: process.env.E2E_owner_B_PASSWORD || 'TestPassword123!',
+    OWNER_B: {
+        email: process.env.E2E_OWNER_B_EMAIL,
+        password: process.env.E2E_OWNER_B_PASSWORD,
         role: 'owner'
     },
     TENANT_A: {
-        email: process.env.E2E_TENANT_A_EMAIL || 'tenant-a@test.tenantflow.local',
-        password: process.env.E2E_TENANT_A_PASSWORD || 'TestPassword123!',
+        email: process.env.E2E_TENANT_A_EMAIL,
+        password: process.env.E2E_TENANT_A_PASSWORD,
         role: 'TENANT'
     },
     TENANT_B: {
-        email: process.env.E2E_TENANT_B_EMAIL || 'tenant-b@test.tenantflow.local',
-        password: process.env.E2E_TENANT_B_PASSWORD || 'TestPassword123!',
+        email: process.env.E2E_TENANT_B_EMAIL,
+        password: process.env.E2E_TENANT_B_PASSWORD,
         role: 'TENANT'
     }
 };
+
+// Validate required environment variables
+const REQUIRED_TEST_USER_VARS = [
+    'E2E_OWNER_A_EMAIL', 'E2E_OWNER_A_PASSWORD',
+    'E2E_OWNER_B_EMAIL', 'E2E_OWNER_B_PASSWORD',
+    'E2E_TENANT_A_EMAIL', 'E2E_TENANT_A_PASSWORD',
+    'E2E_TENANT_B_EMAIL', 'E2E_TENANT_B_PASSWORD'
+];
+
+const missingVars = REQUIRED_TEST_USER_VARS.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+    throw new Error(
+        `Missing required environment variables for integration tests:
+  - ${missingVars.join('
+  - ')}
+
+` +
+        `Please set these variables in your environment or .env.local file before running integration tests.`
+    );
+}
+
+// Validate all user objects have required fields
+Object.entries(TEST_USERS).forEach(([key, user]) => {
+    if (!user.email || !user.password) {
+        throw new Error(`Test user ${key} is missing email or password. Check environment variables.`);
+    }
+});
 function createTestClient() {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY ||

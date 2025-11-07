@@ -24,7 +24,7 @@ const logger = createLogger({ component: 'ClientAPI' })
  * @param additionalHeaders - Custom headers to merge with auth headers
  * @param requireAuth - Whether to throw error if no session exists (default: true)
  */
-async function getAuthHeaders(
+export async function getAuthHeaders(
 	additionalHeaders?: Record<string, string>,
 	requireAuth: boolean = true
 ): Promise<Record<string, string>> {

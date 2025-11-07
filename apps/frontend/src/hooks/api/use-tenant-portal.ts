@@ -5,6 +5,7 @@ import type {
 } from '@repo/shared/types/core'
 import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 export interface TenantPortalDashboardResponse {
 	tenant: {
@@ -75,7 +76,7 @@ export function useTenantPortalDashboard() {
 		queryKey: tenantPortalKeys.dashboard(),
 		queryFn: async (): Promise<TenantPortalDashboardResponse> =>
 			clientFetch('/api/v1/tenant-portal/dashboard'),
-		staleTime: 60 * 1000
+		staleTime: 3 * 60 * 1000 // 3 minutes
 	})
 }
 
@@ -84,7 +85,7 @@ export function useTenantPortalMaintenance() {
 		queryKey: tenantPortalKeys.maintenance(),
 		queryFn: async (): Promise<TenantPortalMaintenanceResponse> =>
 			clientFetch('/api/v1/tenant-portal/maintenance'),
-		staleTime: 60 * 1000
+		staleTime: 3 * 60 * 1000 // 3 minutes
 	})
 }
 
@@ -93,7 +94,7 @@ export function useTenantPortalPayments() {
 		queryKey: tenantPortalKeys.payments(),
 		queryFn: async (): Promise<TenantPortalPaymentsResponse> =>
 			clientFetch('/api/v1/tenant-portal/payments'),
-		staleTime: 60 * 1000
+		staleTime: 3 * 60 * 1000 // 3 minutes
 	})
 }
 
@@ -102,7 +103,7 @@ export function useTenantPortalDocuments() {
 		queryKey: tenantPortalKeys.documents(),
 		queryFn: async (): Promise<TenantPortalDocumentsResponse> =>
 			clientFetch('/api/v1/tenant-portal/documents'),
-		staleTime: 5 * 60 * 1000
+		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 

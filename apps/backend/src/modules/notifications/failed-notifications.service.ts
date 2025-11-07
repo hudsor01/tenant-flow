@@ -5,7 +5,7 @@
  * 🔐 BUG FIX #3: Event Handler Error Swallowing
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -21,7 +21,7 @@ export interface FailedNotification {
 }
 
 @Injectable()
-export class FailedNotificationsService {
+export class FailedNotificationsService implements OnModuleDestroy {
 	private readonly logger = new Logger(FailedNotificationsService.name)
 	private readonly MAX_RETRIES = 3
 	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s

@@ -48,28 +48,12 @@ export async function serverFetch<T>(
 		}
 	)
 
-	// SECURITY FIX: Validate user with getUser() before extracting token
-	// This ensures the session is authentic by contacting Supabase Auth server
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	// Get access token from session (only after validation)
+	// Get access token from session
+	// NOTE: getSession() is fast (reads from cookie, no network call)
+	// We trust the session because middleware already validated it
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
-
-	// Debug authentication in production
-	logger.debug('serverFetch session check', {
-		metadata: {
-			hasUser: !!user,
-			hasSession: !!session,
-			hasAccessToken: !!session?.access_token,
-			endpoint,
-			environment: process.env.NODE_ENV
-		}
-	})
 
 	// Make API request with Bearer token if available
 	const headers: Record<string, string> = {
@@ -85,16 +69,13 @@ export async function serverFetch<T>(
 		})
 	}
 
-	// Only use access token if user validation succeeded
-	if (!userError && user && session?.access_token) {
+	// Add auth header if session exists
+	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else {
-		logger.warn('No valid session found for API request', {
+		logger.warn('No session found for API request', {
 			metadata: {
 				endpoint,
-				hasUser: !!user,
-				hasSession: !!session,
-				userError: userError?.message,
 				cookieCount: cookieStore.getAll().length
 			}
 		})

@@ -42,7 +42,6 @@ export function useCreateRentPayment() {
 					id: string
 					status: string
 					receiptUrl?: string
-					receipt_url?: string
 				}
 			}>('/api/v1/rent-payments', {
 				method: 'POST',
@@ -53,9 +52,7 @@ export function useCreateRentPayment() {
 				...response,
 				paymentIntent: {
 					...response.paymentIntent,
-					receiptUrl:
-						response.paymentIntent.receiptUrl ??
-						response.paymentIntent.receipt_url
+					receiptUrl: response.paymentIntent.receiptUrl
 				}
 			}
 		},

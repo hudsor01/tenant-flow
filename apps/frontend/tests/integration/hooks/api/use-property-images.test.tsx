@@ -233,6 +233,23 @@ describe('Property Image Upload Integration', () => {
 			isPrimary: false
 		})
 		expect(large).toBeDefined()
+
+		// Cleanup: Delete uploaded images
+		try {
+			const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
+			const smallTyped = small as PropertyImageUploadResult
+			const largeTyped = large as PropertyImageUploadResult
+			await deleteResult.current.mutateAsync({
+				imageId: smallTyped.result.id,
+				propertyId: testPropertyId
+			})
+			await deleteResult.current.mutateAsync({
+				imageId: largeTyped.result.id,
+				propertyId: testPropertyId
+			})
+		} catch (error) {
+			console.warn('Failed to cleanup uploaded images:', error)
+		}
 	})
 
 	/**

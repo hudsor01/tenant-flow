@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
@@ -41,14 +42,14 @@ describe('SecurityService', () => {
 			expect(result).toBe('test')
 		})
 
-		it('should handle empty string', () => {
-			const result = service.sanitizeInput('')
-			expect(result).toBe('')
+		it('should throw on empty string', () => {
+			expect(() => service.sanitizeInput('')).toThrow(BadRequestException)
+			expect(() => service.sanitizeInput('')).toThrow('Input cannot be empty')
 		})
 
-		it('should handle string with only whitespace', () => {
-			const result = service.sanitizeInput('   ')
-			expect(result).toBe('')
+		it('should throw on string with only whitespace', () => {
+			expect(() => service.sanitizeInput('   ')).toThrow(BadRequestException)
+			expect(() => service.sanitizeInput('   ')).toThrow('Input cannot contain only whitespace')
 		})
 
 		it('should preserve other special characters', () => {

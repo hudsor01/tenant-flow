@@ -31,6 +31,20 @@ export default function TenantLeasePage() {
 		})
 	}
 
+	const formatPropertyAddress = (property?: {
+		address?: string | null
+		city?: string | null
+		state?: string | null
+	}) => {
+		if (!property) return 'Address not available'
+		const addressParts = [property.address, property.city, property.state].filter(
+			Boolean
+		)
+		return addressParts.length > 0
+			? addressParts.join(', ')
+			: 'Address not available'
+	}
+
 	return (
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
@@ -65,21 +79,12 @@ export default function TenantLeasePage() {
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
 								<span>
-									{isLoading || !lease ? (
-										<Skeleton className="h-4 w-48" />
-									) : (
-										(() => {
-											const addressParts = [
-												lease.unit?.property?.address,
-												lease.unit?.property?.city,
-												lease.unit?.property?.state
-											].filter(Boolean)
-											return addressParts.length > 0
-												? addressParts.join(', ')
-												: 'Address not available'
-										})()
-									)}
-								</span>
+					{isLoading || !lease ? (
+						<Skeleton className="h-4 w-48" />
+					) : (
+						formatPropertyAddress(lease.unit?.property)
+					)}
+				</span>
 							</div>
 						</div>
 					</div>
