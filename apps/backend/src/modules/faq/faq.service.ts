@@ -16,19 +16,22 @@ export class FAQService {
 	private mapQuestion(
 		question: Database['public']['Tables']['faq_questions']['Row']
 	) {
-		// Validate required fields
-		const requiredFields = {
-			id: question.id,
-			category_id: question.category_id,
-			question: question.question,
-			answer: question.answer,
-			created_at: question.created_at,
-			updated_at: question.updated_at
-		}
+		// Validate required fields - separate validation for strings vs other types
+		const missingFields: string[] = []
 
-		const missingFields = Object.entries(requiredFields)
-			.filter(([_, value]) => value === null || value === undefined || value === '')
-			.map(([key]) => key)
+		// UUID and date fields: check null/undefined only
+		if (!question.id) missingFields.push('id')
+		if (!question.category_id) missingFields.push('category_id')
+		if (!question.created_at) missingFields.push('created_at')
+		if (!question.updated_at) missingFields.push('updated_at')
+
+		// String content fields: check null/undefined/empty string
+		if (!question.question || question.question.trim() === '') {
+			missingFields.push('question')
+		}
+		if (!question.answer || question.answer.trim() === '') {
+			missingFields.push('answer')
+		}
 
 		if (missingFields.length > 0) {
 			throw new Error(
