@@ -74,7 +74,9 @@ echo "✅ Got JWT token"
 echo ""
 
 # Step 2: Test production backend
-echo "🚀 Step 2: Testing PRODUCTION backend (api.tenantflow.app)..."
+# Usage: Override URL with: export PROD_API_URL="https://your-api.example.com"
+PROD_API_URL="${PROD_API_URL:-https://api.tenantflow.app}"
+echo "🚀 Step 2: Testing backend (${PROD_API_URL})..."
 
 # Create secure temp file for response
 TEMP_PROD_RESPONSE=$(mktemp)
@@ -84,7 +86,7 @@ trap 'rm -f "$TEMP_LOGIN_RESPONSE" "$TEMP_PROD_RESPONSE"' EXIT
 HTTP_CODE=$(curl -s -w '%{http_code}' -o "$TEMP_PROD_RESPONSE" \
   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   -H "Content-Type: application/json" \
-  "https://api.tenantflow.app/api/v1/properties")
+  "${PROD_API_URL}/api/v1/properties")
 
 PROD_RESPONSE=$(cat "$TEMP_PROD_RESPONSE")
 

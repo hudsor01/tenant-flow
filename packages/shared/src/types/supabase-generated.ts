@@ -2244,6 +2244,7 @@ export type Database = {
           paidAt: string | null
           paymentType: string
           platformFee: number
+          receiptUrl: string | null
           status: string | null
           stripeFee: number
           stripeInvoiceId: string | null
@@ -2267,6 +2268,7 @@ export type Database = {
           paidAt?: string | null
           paymentType: string
           platformFee: number
+          receiptUrl?: string | null
           status?: string | null
           stripeFee: number
           stripeInvoiceId?: string | null
@@ -2290,6 +2292,7 @@ export type Database = {
           paidAt?: string | null
           paymentType?: string
           platformFee?: number
+          receiptUrl?: string | null
           status?: string | null
           stripeFee?: number
           stripeInvoiceId?: string | null
