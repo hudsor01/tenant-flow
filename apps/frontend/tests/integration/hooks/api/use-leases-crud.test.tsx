@@ -106,21 +106,25 @@ async function createTestTenant(): Promise<string> {
 describe('Leases CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
-		// Validate required E2E environment variables
-		if (!process.env.E2E_OWNER_A_EMAIL) {
-			throw new Error(
-				'E2E_OWNER_A_EMAIL environment variable is required for integration tests. Please set this variable before running tests.'
-			)
-		}
-		if (!process.env.E2E_OWNER_A_PASSWORD) {
-			throw new Error(
-				'E2E_OWNER_A_PASSWORD environment variable is required for integration tests. Please set this variable before running tests.'
-			)
+		// Validate ALL required environment variables
+		const requiredEnvVars = [
+			'NEXT_PUBLIC_SUPABASE_URL',
+			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			'E2E_OWNER_A_EMAIL',
+			'E2E_OWNER_A_PASSWORD'
+		] as const
+
+		for (const envVar of requiredEnvVars) {
+			if (!process.env[envVar]) {
+				throw new Error(
+					`Missing required environment variable: ${envVar}. Please check your .env.test.local file.`
+				)
+			}
 		}
 
 		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			process.env.NEXT_PUBLIC_SUPABASE_URL,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
@@ -137,11 +141,19 @@ describe('Leases CRUD Integration Tests', () => {
 
 	// Sign out after all tests
 	afterAll(async () => {
-		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-		)
-		await supabase.auth.signOut()
+		try {
+			const supabase = createBrowserClient(
+				process.env.NEXT_PUBLIC_SUPABASE_URL!,
+				process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			)
+			const { data } = await supabase.auth.getSession()
+			if (data.session) {
+				await supabase.auth.signOut()
+			}
+		} catch (error) {
+			// Ignore sign-out errors in test cleanup
+			console.warn('Failed to sign out in afterAll:', error)
+		}
 	})
 
 	// Cleanup after each test (order matters for foreign keys)

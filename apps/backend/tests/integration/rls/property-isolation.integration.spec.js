@@ -18,8 +18,12 @@ const setup_1 = require("./setup");
         serviceClient = (0, setup_1.getServiceRoleClient)();
     });
     (0, globals_1.afterAll)(async () => {
+        // Cleanup in correct order: units first (foreign key), then properties
         for (const id of testData.units) {
             await serviceClient.from('unit').delete().eq('id', id);
+        }
+        for (const id of testData.properties) {
+            await serviceClient.from('property').delete().eq('id', id);
         }
     });
     (0, globals_1.describe)('Property Ownership Access', () => {
