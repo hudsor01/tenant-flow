@@ -107,12 +107,13 @@ describe('LeasesService', () => {
 
   const mockTenantsService = {
     create: jest.fn(() => Promise.resolve({ id: 'tenant-id', email: 'test@example.com' })),
-    sendTenantInvitation: jest.fn(() => Promise.resolve({ success: true })),
     sendTenantInvitationV2: jest.fn(() => Promise.resolve({ success: true })),
   };
 
   const mockEmailService = {
-    sendTenantInvitation: jest.fn(() => Promise.resolve()),
+    sendPaymentSuccessEmail: jest.fn(() => Promise.resolve()),
+    sendPaymentFailedEmail: jest.fn(() => Promise.resolve()),
+    sendSubscriptionCanceledEmail: jest.fn(() => Promise.resolve()),
   };
 
   beforeEach(async () => {
