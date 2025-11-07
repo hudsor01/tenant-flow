@@ -97,7 +97,7 @@ describe('RentPaymentsService', () => {
 			stripePaymentMethodId: 'pm_123',
 			stripeCustomerId: 'cus_existing',
 			type: 'card',
-			tenantId: 'user123' // Must match tenant.userId for ownership check
+			tenantId: 'tenant123' // Must match tenant.id for ownership check
 		}
 
 		const rentPaymentRecord = {

@@ -13,7 +13,6 @@ export function validateEnvironment(): void {
 	const logger = new Logger('EnvValidation')
 
 	// Define required environment variables
-	// Note: SUPABASE_JWT_SECRET is no longer required - we use JWKS endpoint for JWT verification
 	const requiredVars: (keyof RequiredEnvVars)[] = [
 		'DATABASE_URL',
 		'DIRECT_URL',
@@ -40,10 +39,33 @@ export function validateEnvironment(): void {
 			'SUPABASE_SECRET_KEY is set but SUPABASE_SECRET_KEY is missing. Please migrate to the new variable name.'
 		)
 	}
-	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification
-	if (process.env.SUPABASE_JWT_SECRET) {
-		logger.warn(
-			'SUPABASE_JWT_SECRET is set but no longer required. We now use JWKS endpoint for JWT verification. You can remove this variable.'
+	const algorithm = process.env.SUPABASE_JWT_ALGORITHM
+	if (algorithm) {
+		const normalized = algorithm.toUpperCase().trim()
+		const allowedAlgorithms = new Set(['HS256', 'RS256', 'ES256'])
+		if (!allowedAlgorithms.has(normalized)) {
+			throw new Error(
+				`Invalid SUPABASE_JWT_ALGORITHM value "${algorithm}". Allowed values: HS256, RS256, ES256.`
+			)
+		}
+		if (
+			normalized !== 'HS256' &&
+			process.env.SUPABASE_JWT_SECRET &&
+			process.env.SUPABASE_JWT_SECRET.length > 0
+		) {
+			logger.warn(
+				`SUPABASE_JWT_SECRET is set but the configured algorithm "${normalized}" does not require a symmetric secret. You can remove SUPABASE_JWT_SECRET.`
+			)
+		}
+	}
+
+	// Symmetric secrets remain optional; when provided they will be used for HS256 verification.
+	if (
+		process.env.SUPABASE_JWT_SECRET &&
+		process.env.SUPABASE_JWT_SECRET.length < 32
+	) {
+		throw new Error(
+			'SUPABASE_JWT_SECRET (or SERVICE_ROLE_KEY) must be at least 32 characters when provided.'
 		)
 	}
 
@@ -79,9 +101,7 @@ export function validateEnvironment(): void {
 
 		// In production, enforce HTTPS-only origins
 		if (process.env.NODE_ENV === 'production') {
-			const httpOrigins = origins.filter(origin =>
-				origin.startsWith('http://')
-			)
+			const httpOrigins = origins.filter(origin => origin.startsWith('http://'))
 			if (httpOrigins.length > 0) {
 				throw new Error(
 					`Production environment cannot have HTTP origins: ${httpOrigins.join(', ')}`
@@ -95,9 +115,7 @@ export function validateEnvironment(): void {
 		process.env.DATABASE_URL &&
 		!process.env.DATABASE_URL.startsWith('postgresql://')
 	) {
-		throw new Error(
-			'DATABASE_URL must be a valid PostgreSQL connection string'
-		)
+		throw new Error('DATABASE_URL must be a valid PostgreSQL connection string')
 	}
 
 	logger.log('Environment validation completed successfully')

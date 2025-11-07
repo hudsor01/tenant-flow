@@ -1,12 +1,12 @@
--- Rename owner columns to owner columns across all tables
--- This migration renames all columns that contain "owner" to use "owner" instead
+-- This migration was originally intended to rename "landlord" columns to "owner" columns
+-- However, the columns in rent_payment and rent_subscription tables already use "ownerId" naming
+-- Therefore, no actual column renames are needed
+-- 
+-- Tables already using correct naming:
+-- - rent_payment: ownerId, ownerReceives
+-- - rent_subscription: ownerId
+--
+-- This migration file is kept for version continuity but performs no operations
 
--- Rename columns in rent_payment table
-ALTER TABLE rent_payment RENAME COLUMN ownerId TO ownerId;
-ALTER TABLE rent_payment RENAME COLUMN ownerReceives TO ownerReceives;
-
--- Rename columns in rent_subscription table
-ALTER TABLE rent_subscription RENAME COLUMN ownerId TO ownerId;
-
--- Note: RLS policies and indexes will need to be updated separately
--- to reference the new column names. This migration only renames the columns.
+-- No-op migration (all columns already use "owner" naming convention)
+SELECT 1;

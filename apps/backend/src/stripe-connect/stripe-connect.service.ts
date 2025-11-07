@@ -1,12 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import Stripe from 'stripe'
 import * as countries from 'i18n-iso-countries'
-import enLocale from 'i18n-iso-countries/langs/en.json'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
-
-// Register the English locale to enable country validation
-countries.registerLocale(enLocale)
 
 export interface CreateConnectedAccountParams {
 	userId: string

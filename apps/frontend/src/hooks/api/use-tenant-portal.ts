@@ -46,7 +46,7 @@ export interface TenantPortalMaintenanceResponse {
 export interface TenantPortalPaymentsResponse {
 	payments: Array<
 		RentPayment & {
-			receiptUrl: string | null
+			receiptUrl?: string | null
 		}
 	>
 	methodsEndpoint: string
@@ -79,6 +79,15 @@ export function useTenantPortalDashboard() {
 	})
 }
 
+export function useTenantPortalMaintenance() {
+	return useQuery({
+		queryKey: tenantPortalKeys.maintenance(),
+		queryFn: async (): Promise<TenantPortalMaintenanceResponse> =>
+			clientFetch('/api/v1/tenant-portal/maintenance'),
+		staleTime: 60 * 1000
+	})
+}
+
 export function useTenantPortalPayments() {
 	return useQuery({
 		queryKey: tenantPortalKeys.payments(),
@@ -106,6 +115,7 @@ export function useCreateTenantMaintenanceRequest() {
 			description: string
 			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 			category?: string
+			photos?: string[]
 		}) => {
 			return clientFetch<MaintenanceRequest>('/api/v1/tenant-portal/maintenance', {
 				method: 'POST',

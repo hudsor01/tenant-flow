@@ -23,6 +23,8 @@ import { IDashboardAnalyticsService } from './interfaces/dashboard-analytics.int
 @Injectable()
 export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	private readonly logger = new Logger(DashboardAnalyticsService.name)
+	private readonly MAX_RETRIES = 3
+	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s exponential backoff
 
 	constructor(private readonly supabase: SupabaseService) {}
 
@@ -41,8 +43,6 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		token?: string,
 		attempt: number = 0
 	): Promise<T | null> {
-		const MAX_RETRIES = 3
-		const RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s exponential backoff
 
 		try {
 			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
@@ -60,14 +60,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					functionName,
 					error: res.error?.message,
 					attempt: attempt + 1,
-					maxRetries: MAX_RETRIES
+					maxRetries: this.MAX_RETRIES
 				})
 
 				// Retry with exponential backoff
-				if (attempt < MAX_RETRIES) {
-					const delay = RETRY_DELAYS_MS[attempt]
+				if (attempt < this.MAX_RETRIES) {
+					const delay = this.RETRY_DELAYS_MS[attempt]
 					this.logger.log(
-						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`
+						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/\${this.MAX_RETRIES})`
 					)
 					await new Promise(resolve => setTimeout(resolve, delay))
 					return this.callRpc<T>(functionName, payload, token, attempt + 1)
@@ -82,14 +82,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				functionName,
 				error: error instanceof Error ? error.message : String(error),
 				attempt: attempt + 1,
-				maxRetries: MAX_RETRIES
+				maxRetries: this.MAX_RETRIES
 			})
 
 			// Retry on unexpected errors too
-			if (attempt < MAX_RETRIES) {
-				const delay = RETRY_DELAYS_MS[attempt]
+			if (attempt < this.MAX_RETRIES) {
+				const delay = this.RETRY_DELAYS_MS[attempt]
 				this.logger.log(
-					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/${MAX_RETRIES})`
+					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/\${this.MAX_RETRIES})`
 				)
 				await new Promise(resolve => setTimeout(resolve, delay))
 				return this.callRpc<T>(functionName, payload, token, attempt + 1)

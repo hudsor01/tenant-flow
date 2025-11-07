@@ -137,12 +137,14 @@ export class StripeOwnerService {
 			{ idempotencyKey }
 		)
 
+		// Use consistent timestamp for both DB and cache
+		const updatedAt = new Date().toISOString()
 		const { error: updateError } = await this.supabaseService
 			.getAdminClient()
 			.from('users')
 			.update({
 				stripeCustomerId: customer.id,
-				updatedAt: new Date().toISOString()
+				updatedAt
 			})
 			.eq('id', params.userId)
 
@@ -153,14 +155,33 @@ export class StripeOwnerService {
 				error: updateError.message
 			})
 
+			// Attempt to clean up orphaned Stripe customer
+			try {
+				await this.stripe.customers.del(customer.id)
+				this.logger.log('Successfully deleted orphaned Stripe customer', {
+					customerId: customer.id,
+					userId: params.userId
+				})
+			} catch (deletionError) {
+				this.logger.error('Failed to delete orphaned Stripe customer', {
+					customerId: customer.id,
+					userId: params.userId,
+					error:
+						deletionError instanceof Error
+							? deletionError.message
+							: String(deletionError)
+				})
+			}
+
 			// Propagate the error to prevent silent success and orphaned Stripe customers
 			throw new Error(
 				`Failed to update user with Stripe customer ID: ${updateError.message}`,
 				{ cause: updateError }
 			)
 		} else {
+			// Update cache with same timestamp as DB to maintain consistency
 			this.ownerCache.set(params.userId, {
-				user: { ...owner, stripeCustomerId: customer.id },
+				user: { ...owner, stripeCustomerId: customer.id, updatedAt },
 				cachedAt: Date.now()
 			})
 			// Prune expired cache entries only when cache size exceeds threshold (performance optimization)

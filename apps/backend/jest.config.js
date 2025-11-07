@@ -26,7 +26,7 @@ module.exports = {
 		'\\.integration\\.spec\\.ts$'
 	],
 	collectCoverageFrom: [
-		'@/**/*.(t|j)s',
+		'src/**/*.{ts,js}',
 		'!src/**/*.spec.ts',
 		'!src/**/*.test.ts',
 		'!src/main.ts',
