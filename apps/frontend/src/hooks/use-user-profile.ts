@@ -21,7 +21,7 @@ export function useUserProfile() {
 	const { userId, isAuthenticated } = useCurrentUser()
 
 	return useQuery({
-		queryKey: userProfileKeys.profile(userId || ''),
+		queryKey: userId ? userProfileKeys.profile(userId) : ['userProfile', 'no-user'],
 		queryFn: async () => {
 			if (!userId) throw new Error('No user ID')
 
