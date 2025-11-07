@@ -31,21 +31,26 @@ async function createTestUsers() {
 	const testUsers = [
 		{
 			email: 'owner-a@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
+			password: process.env.TEST_USER_PASSWORD
 		},
 		{
 			email: 'owner-b@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
+			password: process.env.TEST_USER_PASSWORD
 		},
 		{
 			email: 'tenant-a@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
+			password: process.env.TEST_USER_PASSWORD
 		},
 		{
 			email: 'tenant-b@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD || 'TestPassword123!'
+			password: process.env.TEST_USER_PASSWORD
 		}
 	]
+
+	if (!testUsers[0].password) {
+		console.error('Error: TEST_USER_PASSWORD environment variable is required')
+		process.exit(1)
+	}
 
 	console.log('Creating test users via signUp (no admin API)...')
 	for (const user of testUsers) {

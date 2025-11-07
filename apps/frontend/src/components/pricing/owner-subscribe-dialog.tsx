@@ -91,9 +91,7 @@ export function OwnerSubscribeDialog({
 					if (!signInError) {
 						requiresEmailConfirmation = false
 						supabaseUserId = signInData.user?.id ?? supabaseUserId
-					} else if (
-						!signInError.message.toLowerCase().includes('not confirmed')
-					) {
+					} else if (signInError?.code !== 'email_not_confirmed') {
 						// If it's not the expected confirmation error, surface it
 						throw signInError
 					}

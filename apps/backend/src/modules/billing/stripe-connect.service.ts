@@ -422,6 +422,20 @@ export class StripeConnectService {
 			throw new Error(error)
 		}
 
+		// Validate URL format
+		try {
+			const url = new URL(frontendUrl)
+			if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+				const error = `FRONTEND_URL must use http or https protocol, got: ${url.protocol}`
+				this.logger.error(error, { accountId, frontendUrl })
+				throw new Error(error)
+			}
+		} catch (urlError) {
+			const error = `Invalid FRONTEND_URL format: ${frontendUrl}`
+			this.logger.error(error, { accountId, urlError })
+			throw new Error(error)
+		}
+
 		// Remove trailing slashes
 		const baseUrl = frontendUrl.replace(/\/+$/, '')
 
@@ -459,6 +473,16 @@ export class StripeConnectService {
 	}
 
 	/**
+	 * Create dashboard login link for connected account
+	 */
+	async createDashboardLoginLink(connectedAccountId: string): Promise<string> {
+		const loginLink = await this.stripe.accounts.createLoginLink(
+			connectedAccountId
+		)
+		return loginLink.url
+	}
+
+	/**
 	 * Update user onboarding status based on Stripe Account
 	 */
 	async updateOnboardingStatus(
@@ -468,19 +492,49 @@ export class StripeConnectService {
 		try {
 			const account = await this.getConnectedAccount(accountId)
 
+			// Fetch existing user to check current onboardingCompletedAt
+			const { data: existingUser, error: fetchError } =
+				await this.supabaseService
+					.getAdminClient()
+					.from('users')
+					.select('onboardingCompletedAt')
+					.eq('id', userId)
+					.single()
+
+			if (fetchError) {
+				this.logger.error('Failed to fetch existing user for onboarding status', {
+					error: fetchError,
+					userId
+				})
+				throw fetchError
+			}
+
+			const isNowComplete = account.charges_enabled && account.payouts_enabled
+			const existingTimestamp = existingUser?.onboardingCompletedAt
+
+			// Only set timestamp if:
+			// 1. Account is now complete AND existing timestamp is falsy (first completion)
+			// 2. Account is not complete -> null (allow re-onboarding)
+			let onboardingCompletedAt: string | null
+			if (isNowComplete && !existingTimestamp) {
+				onboardingCompletedAt = new Date().toISOString()
+			} else if (isNowComplete && existingTimestamp) {
+				// Already completed, keep existing timestamp
+				onboardingCompletedAt = existingTimestamp
+			} else {
+				// Not complete
+				onboardingCompletedAt = null
+			}
+
 			const { error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.update({
-					onboardingComplete:
-						account.charges_enabled && account.payouts_enabled,
+					onboardingComplete: isNowComplete,
 					detailsSubmitted: account.details_submitted,
 					chargesEnabled: account.charges_enabled,
 					payoutsEnabled: account.payouts_enabled,
-					onboardingCompletedAt:
-						account.charges_enabled && account.payouts_enabled
-							? new Date().toISOString()
-							: null
+					onboardingCompletedAt
 				})
 				.eq('id', userId)
 

@@ -19,7 +19,9 @@ async function checkUsers() {
 
 	const { data, error } = await supabase.auth.admin.listUsers()
 	console.log('Total users:', data?.users?.length || 0)
-	console.log('Error:', error?.message)
+	if (error) {
+		console.error('Error:', error.message)
+	}
 
 	if (data?.users) {
 		const testUsers = data.users.filter(user =>

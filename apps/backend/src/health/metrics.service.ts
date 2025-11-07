@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common'
 import type { ServiceHealth, SystemHealth } from '@repo/shared/types/health'
+import { evictOldestEntries } from '../utils/cache-eviction'
 
 export interface PerformanceMetrics {
 	uptime: number
@@ -15,6 +16,28 @@ export interface PerformanceMetrics {
 	}
 }
 
+export interface DetailedPerformanceMetrics extends PerformanceMetrics {
+	healthCheckHistory: {
+		lastStatus: string
+		lastCheck: string
+	} | null
+	thresholds: {
+		memory: { warning: number; critical: number }
+		cache: { maxEntries: number }
+		responseTime: { warning: number; critical: number }
+	}
+	cache: {
+		cacheSize: number
+		heapUsageMb: number
+	}
+}
+
+export interface MetricsThresholds {
+	memory: { warning: number; critical: number }
+	cache: { maxEntries: number }
+	responseTime: { warning: number; critical: number }
+}
+
 @Injectable()
 export class MetricsService implements OnModuleDestroy {
 	private lastHealthCheck: SystemHealth | null = null
@@ -22,7 +45,25 @@ export class MetricsService implements OnModuleDestroy {
 		string,
 		{ result: ServiceHealth; timestamp: number }
 	>()
-	private readonly MAX_CACHE_SIZE = 100
+	
+	private readonly thresholds: MetricsThresholds
+	private readonly MAX_CACHE_SIZE: number
+
+	constructor(thresholds?: Partial<MetricsThresholds>) {
+		const defaultThresholds: MetricsThresholds = {
+			memory: { warning: 80, critical: 95 },
+			cache: { maxEntries: 100 },
+			responseTime: { warning: 100, critical: 200 }
+		}
+
+		this.thresholds = {
+			memory: thresholds?.memory ?? defaultThresholds.memory,
+			cache: thresholds?.cache ?? defaultThresholds.cache,
+			responseTime: thresholds?.responseTime ?? defaultThresholds.responseTime
+		}
+
+		this.MAX_CACHE_SIZE = this.thresholds.cache.maxEntries
+	}
 
 	/**
 	 * Cleanup cache on module destruction to prevent memory leaks
@@ -60,7 +101,7 @@ export class MetricsService implements OnModuleDestroy {
 	/**
 	 * Get performance metrics with thresholds and history
 	 */
-	getDetailedPerformanceMetrics() {
+	getDetailedPerformanceMetrics(): DetailedPerformanceMetrics {
 		const performance = this.getPerformanceMetrics()
 
 		return {
@@ -71,11 +112,7 @@ export class MetricsService implements OnModuleDestroy {
 						lastCheck: this.lastHealthCheck.timestamp
 					}
 				: null,
-		thresholds: {
-				memory: { warning: 80, critical: 95 },
-				cache: { maxEntries: 100 }, // max entries (100)
-				responseTime: { warning: 100, critical: 200 }
-			},
+			thresholds: this.thresholds,
 			cache: {
 				cacheSize: this.healthCheckCache.size,
 				heapUsageMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
@@ -106,21 +143,7 @@ export class MetricsService implements OnModuleDestroy {
 		})
 
 		// Prevent memory leaks by limiting cache size
-		if (this.healthCheckCache.size > this.MAX_CACHE_SIZE) {
-			// Remove oldest entries (simple LRU approximation)
-			const entries = Array.from(this.healthCheckCache.entries())
-			entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
-			const toRemove = Math.min(
-				this.healthCheckCache.size - this.MAX_CACHE_SIZE,
-				entries.length
-			)
-			for (let i = 0; i < toRemove; i++) {
-				const entry = entries[i]
-				if (entry) {
-					this.healthCheckCache.delete(entry[0])
-				}
-			}
-		}
+		evictOldestEntries(this.healthCheckCache, this.MAX_CACHE_SIZE)
 
 		return result
 	}

@@ -13,7 +13,7 @@ export interface MaintenanceFormData {
 	title: string
 	description: string
 	priority: string
-	category: string
+	category: string | undefined
 	propertyId: string
 	unitId: string
 	estimatedCost?: string

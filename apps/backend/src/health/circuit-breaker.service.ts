@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common'
 import type { ServiceHealth } from '@repo/shared/types/health'
+import { evictOldestEntries } from '../utils/cache-eviction'
 
 export interface CircuitBreakerStatus {
 	timestamp: string
@@ -75,21 +76,7 @@ export class CircuitBreakerService implements OnModuleDestroy {
 		})
 
 		// Prevent memory leaks by limiting cache size
-		if (this.healthCheckCache.size > this.MAX_CACHE_SIZE) {
-			// Remove oldest entries
-			const entries = Array.from(this.healthCheckCache.entries())
-			entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
-			const toRemove = Math.min(
-				this.healthCheckCache.size - this.MAX_CACHE_SIZE,
-				entries.length
-			)
-			for (let i = 0; i < toRemove; i++) {
-				const entry = entries[i]
-				if (entry) {
-					this.healthCheckCache.delete(entry[0])
-				}
-			}
-		}
+		evictOldestEntries(this.healthCheckCache, this.MAX_CACHE_SIZE)
 	}
 
 	/**

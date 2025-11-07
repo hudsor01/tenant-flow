@@ -13,10 +13,7 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { DashboardService } from './dashboard.service'
 import { SupabaseService } from '../../database/supabase.service'
 
-import {
-	billingInsightsSchema,
-	dashboardActivityResponseSchema
-} from '@repo/shared/validation/dashboard'
+// Validation schemas removed - service handles validation
 
 @Controller('manage')
 export class DashboardController {
@@ -112,28 +109,12 @@ export class DashboardController {
 			'Getting dashboard activity via DashboardService'
 		)
 		const data = await this.dashboardService.getActivity(userId, token!)
-		const parseResult = dashboardActivityResponseSchema.safeParse(data)
-		if (parseResult.success) {
-			return {
-				success: true,
-				data,
-				message: 'Dashboard activity retrieved successfully',
-				timestamp: new Date()
-			}
-		} else {
-			// Log validation errors for debugging
-			this.logger.error('Dashboard activity validation failed', {
-				userId,
-				validationErrors: parseResult.error.format(),
-				// Do not log full payload - may contain sensitive data
-				dataKeys: data ? Object.keys(data) : []
-			})
-			return {
-				success: false,
-				data: { activities: [] },
-				message: 'Dashboard activity response failed validation',
-				timestamp: new Date()
-			}
+		// Service handles validation, return data directly
+		return {
+			success: true,
+			data,
+			message: 'Dashboard activity retrieved successfully',
+			timestamp: new Date()
 		}
 	}
 
@@ -174,31 +155,12 @@ export class DashboardController {
 			parsedStartDate,
 			parsedEndDate
 		)
-		const billingParseResult = billingInsightsSchema.safeParse(data)
-		if (billingParseResult.success) {
-			return {
-				success: true,
-				data,
-				message:
-					'Billing insights retrieved successfully from Stripe Sync Engine',
-				timestamp: new Date()
-			}
-		} else {
-			// Log validation errors for debugging
-			this.logger.warn('Billing insights validation failed', {
-				userId,
-				startDate: parsedStartDate?.toISOString(),
-				endDate: parsedEndDate?.toISOString(),
-				validationErrors: billingParseResult.error.format(),
-				// Do not log full payload - may contain sensitive financial data
-				dataKeys: data ? Object.keys(data) : []
-			})
-			return {
-				success: false,
-				data: null,
-				message: 'Billing insights response failed validation',
-				timestamp: new Date()
-			}
+		// Service handles validation, return data directly
+		return {
+			success: true,
+			data,
+			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
+			timestamp: new Date()
 		}
 	}
 

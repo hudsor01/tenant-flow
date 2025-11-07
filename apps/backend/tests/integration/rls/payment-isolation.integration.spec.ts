@@ -42,8 +42,8 @@ describe('RLS: Payment Isolation', () => {
 
 	beforeAll(async () => {
 		// Authenticate all test users
-		ownerA = await authenticateAs(TEST_USERS.owner_A)
-		ownerB = await authenticateAs(TEST_USERS.owner_B)
+		ownerA = await authenticateAs(TEST_USERS.OWNER_A)
+		ownerB = await authenticateAs(TEST_USERS.OWNER_B)
 		tenantA = await authenticateAs(TEST_USERS.TENANT_A)
 		tenantB = await authenticateAs(TEST_USERS.TENANT_B)
 		serviceClient = getServiceRoleClient()

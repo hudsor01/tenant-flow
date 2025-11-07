@@ -31,7 +31,10 @@ export default async function EditMaintenanceModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		logger.error('Failed to fetch maintenance request', { error })
+		logger.error('Failed to fetch maintenance request', {
+			message: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined
+		})
 		notFound()
 	}
 }

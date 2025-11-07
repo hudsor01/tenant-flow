@@ -44,7 +44,10 @@ export default async function EditPropertyModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		logger.error('Failed to fetch property', { error })
+		logger.error('Failed to fetch property', {
+			message: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined
+		})
 		notFound()
 	}
 }

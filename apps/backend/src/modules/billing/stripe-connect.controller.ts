@@ -160,10 +160,21 @@ export class StripeConnectController {
 			}
 
 			// Update status from Stripe (in case it changed)
-			await this.stripeConnectService.updateOnboardingStatus(
-				userId,
-				user.connectedAccountId
-			)
+			try {
+				await this.stripeConnectService.updateOnboardingStatus(
+					userId,
+					user.connectedAccountId
+				)
+			} catch (updateError) {
+				this.logger.error('Failed to update onboarding status from Stripe', {
+					userId,
+					connectedAccountId: user.connectedAccountId,
+					error: updateError
+				})
+				throw new InternalServerErrorException(
+					'Failed to sync onboarding status with Stripe'
+				)
+			}
 
 			// Fetch updated status
 			const { data: updatedUser, error: fetchError } =
@@ -229,13 +240,11 @@ export class StripeConnectController {
 			}
 
 			// Create Express Dashboard login link
-			const loginLink = await this.stripeConnectService
-				.getStripe()
-				.accounts.createLoginLink(user.connectedAccountId)
+			const url = await this.stripeConnectService.createDashboardLoginLink(
+				user.connectedAccountId
+			)
 
-			return {
-				url: loginLink.url
-			}
+			return { url }
 		} catch (error) {
 			this.logger.error('Failed to create dashboard link', {
 				error,
