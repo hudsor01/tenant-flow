@@ -5,7 +5,10 @@ import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
 } from '@repo/shared/types/backend-domain'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenanceCategory
+} from '@repo/shared/types/core'
 
 const logger = createLogger({ component: 'MaintenanceFormHook' })
 
@@ -13,7 +16,7 @@ export interface MaintenanceFormData {
 	title: string
 	description: string
 	priority: string
-	category: string | undefined
+	category: MaintenanceCategory | undefined
 	propertyId: string
 	unitId: string
 	estimatedCost?: string
@@ -80,14 +83,7 @@ export function useMaintenanceForm({
 
 					// Add optional fields only if they have values
 					if (value.category) {
-						payload.category = value.category as
-							| 'GENERAL'
-							| 'PLUMBING'
-							| 'ELECTRICAL'
-							| 'HVAC'
-							| 'APPLIANCES'
-							| 'SAFETY'
-							| 'OTHER'
+						payload.category = value.category
 					}
 					if (value.estimatedCost) {
 						payload.estimatedCost = parseFloat(value.estimatedCost)
@@ -121,14 +117,7 @@ export function useMaintenanceForm({
 
 					// Add optional fields only if they have values
 					if (value.category) {
-						payload.category = value.category as
-							| 'GENERAL'
-							| 'PLUMBING'
-							| 'ELECTRICAL'
-							| 'HVAC'
-							| 'APPLIANCES'
-							| 'SAFETY'
-							| 'OTHER'
+						payload.category = value.category
 					}
 					if (value.estimatedCost) {
 						payload.estimatedCost = parseFloat(value.estimatedCost)

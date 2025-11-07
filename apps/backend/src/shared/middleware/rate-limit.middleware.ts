@@ -80,6 +80,8 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 
 	// Store cleanup interval for proper resource cleanup
 	private cleanupInterval: NodeJS.Timeout | null = null
+	// Track active timers for cleanup
+	private activeTimers: Set<NodeJS.Timeout> = new Set()
 
 	constructor() {
 		// Cleanup expired rate limit entries every 5 minutes
@@ -274,8 +276,9 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 			})
 
 			// Auto-block after multiple violations
-			setTimeout(
+			const blockTimer = setTimeout(
 				() => {
+					this.activeTimers.delete(blockTimer)
 					if (this.suspiciousIPs.has(clientIP)) {
 						this.blockedIPs.add(clientIP)
 						this.logger.error(
@@ -290,11 +293,16 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 						)
 
 						// Remove from blocked list after 1 hour
-						setTimeout(() => this.blockedIPs.delete(clientIP), 60 * 60 * 1000)
+						const unblockTimer = setTimeout(() => {
+							this.activeTimers.delete(unblockTimer)
+							this.blockedIPs.delete(clientIP)
+						}, 60 * 60 * 1000)
+						this.activeTimers.add(unblockTimer)
 					}
 				},
 				5 * 60 * 1000
 			) // Block after 5 minutes of suspicious activity
+			this.activeTimers.add(blockTimer)
 		}
 	}
 
@@ -371,6 +379,11 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 			clearInterval(this.cleanupInterval)
 			this.cleanupInterval = null
 		}
+		// Clear all active timers
+		for (const timer of this.activeTimers) {
+			clearTimeout(timer)
+		}
+		this.activeTimers.clear()
 		this.rateLimitStore.clear()
 		this.suspiciousIPs.clear()
 		this.blockedIPs.clear()

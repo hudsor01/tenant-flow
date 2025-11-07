@@ -103,3 +103,24 @@ export interface UpdateActivityInput {
 	description?: string
 	metadata?: ActivityMetadata
 }
+
+/**
+ * Dashboard activity from optimized RPC function
+ * Manual override required because PostgreSQL RETURNS TABLE doesn't support nullable columns
+ * in the type declaration, but returns NULL values at runtime
+ */
+export interface DashboardActivity {
+	id: string
+	activity_type: 'lease' | 'payment' | 'maintenance' | 'unit'
+	entity_id: string
+	property_id: string | null
+	tenant_id: string | null
+	unit_id: string | null
+	owner_id: string | null
+	status: string | null
+	priority: string | null
+	action: string
+	amount: number | null
+	activity_timestamp: string
+	details: Record<string, unknown>
+}

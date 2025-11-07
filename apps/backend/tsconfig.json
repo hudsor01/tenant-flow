@@ -4,7 +4,6 @@
 	"extends": "../../packages/typescript-config/nestjs.json",
 	"compilerOptions": {
 		"baseUrl": ".",
-		"rootDir": ".",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest", "express"],

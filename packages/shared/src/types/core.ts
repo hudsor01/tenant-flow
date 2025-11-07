@@ -5,6 +5,8 @@
  * to reduce the shared types directory by 75% while improving type safety.
  */
 
+import type { DashboardActivity } from './activity.js'
+
 // NATIVE TYPESCRIPT 5.9.2 UTILITY TYPES (replacing custom implementations)
 
 export type DeepReadonly<T> = {
@@ -105,7 +107,7 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Tables } from './supabase-generated.js'
+import type { Database, Tables } from './supabase-generated.js'
 
 export type User = Tables<'users'>
 export type Property = Tables<'property'>
@@ -114,6 +116,8 @@ export type Tenant = Tables<'tenant'>
 export type Lease = Tables<'lease'>
 export type MaintenanceRequest = Tables<'maintenance_request'>
 export type RentPayment = Tables<'rent_payment'>
+export type MaintenanceCategory =
+	Database['public']['Enums']['MaintenanceCategory']
 
 // Maintenance API response with relations
 export interface MaintenanceRequestResponse {
@@ -322,7 +326,7 @@ export interface Notification {
 }
 
 // Activity types
-export type { ActivityItem } from './activity'
+export type { ActivityItem, DashboardActivity } from './activity'
 
 // Financial overview and stats types (from common.ts)
 export interface DashboardFinancialStats {
@@ -497,6 +501,41 @@ export interface SystemUptime {
 	lastIncident: string | null // ISO timestamp of last incident
 	responseTime: number // Average response time in ms
 	timestamp: string // ISO timestamp of measurement
+}
+
+// Dashboard Metrics Response (replaces Record<string, unknown>)
+export interface DashboardMetricsResponse {
+	totalProperties: number
+	totalUnits: number
+	totalTenants: number
+	totalLeases: number
+	occupancyRate: number
+	monthlyRevenue: number
+	maintenanceRequests: number
+	timestamp: string
+}
+
+// Dashboard Summary Response (replaces Record<string, unknown>)
+export interface DashboardSummaryResponse {
+	overview: {
+		properties: number
+		units: number
+		tenants: number
+		occupancyRate: number
+	}
+	revenue: {
+		monthly: number
+		yearly: number
+		growth: number
+	}
+	maintenance: {
+		open: number
+		inProgress: number
+		avgResolutionTime: number
+	}
+	recentActivity: DashboardActivity[]
+	topPerformingProperties: PropertyPerformance[]
+	timestamp: string
 }
 
 // Stripe Pricing Component Props

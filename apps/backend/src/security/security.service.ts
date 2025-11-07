@@ -97,9 +97,7 @@ export class SecurityService {
 		}
 
 		for (let i = 0; i < input.length; i++) {
-			const char = input[i]
-			if (!char) continue // Skip if undefined
-
+			const char = input[i]!
 			const code = char.charCodeAt(0)
 
 			// Check for letters (a-z, A-Z)
@@ -235,9 +233,8 @@ export class SecurityService {
 
 		// Handle Unicode if not allowed (PERFORMANCE: use regex for faster filtering)
 		if (!options.allowUnicode) {
-			// Remove non-ASCII characters (keep only characters 0-127)
-			// eslint-disable-next-line no-control-regex
-			sanitized = sanitized.replace(/[^\x00-\x7F]/g, '')
+			// Remove non-ASCII characters (keep only printable ASCII: space through DEL)
+			sanitized = sanitized.replace(/[^\u0020-\u007F]/g, '')
 		}
 
 		sanitized = sanitized.trim()

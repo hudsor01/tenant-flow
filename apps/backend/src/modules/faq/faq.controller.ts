@@ -45,7 +45,7 @@ export class FAQController {
 		@Param('slug') slug: string
 	): Promise<FAQCategoryWithQuestions | null> {
 		// Validate slug format
-		if (!/^[a-z0-9-]+$/.test(slug)) {
+		if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
 			throw new BadRequestException(
 				'Slug must contain only lowercase letters, numbers, and hyphens'
 			)

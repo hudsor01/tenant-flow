@@ -13,7 +13,7 @@ export function evictOldestEntries<K, V extends { timestamp: number }>(
 
 	const entries = Array.from(cache.entries())
 	entries.sort((a, b) => a[1].timestamp - b[1].timestamp)
-	const toRemove = Math.min(cache.size - maxSize, entries.length)
+	const toRemove = cache.size - maxSize
 
 	for (let i = 0; i < toRemove; i++) {
 		const entry = entries[i]
