@@ -206,6 +206,7 @@ export class DashboardController {
 		}
 	}
 
+	@Get('billing/health')
 	async getBillingHealth(
 		@Request() req: AuthenticatedRequest,
 		@UserId() userId: string
