@@ -604,8 +604,9 @@ describe('Tenants CRUD Integration Tests', () => {
 				expect(result.current.isError).toBe(true)
 			})
 
-			// Error should be a fetch error with 404 status
+			// Verify 404 status in error message
 			expect(result.current.error).toBeDefined()
+			expect(result.current.error!.message).toMatch(/404|not found/i)
 		})
 
 		it('returns 400 for invalid email format', async () => {
@@ -613,14 +614,17 @@ describe('Tenants CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			await expect(
-				result.current.mutateAsync({
+			try {
+				await result.current.mutateAsync({
 					firstName: 'Invalid',
 					lastName: 'Email',
 					email: 'not-an-email', // Invalid format
 					phone: '+1234567890'
 				})
-			).rejects.toThrow()
+				expect.fail('Should have thrown an error')
+			} catch (error: any) {
+				expect(error.message).toMatch(/400|invalid|email/i)
+			}
 		})
 
 		it('returns 400 for missing required fields', async () => {
@@ -628,14 +632,17 @@ describe('Tenants CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			await expect(
-				result.current.mutateAsync({
+			try {
+				await result.current.mutateAsync({
 					// @ts-expect-error - intentionally missing required fields
 					firstName: 'Missing',
 					// lastName missing
 					email: `missing-${Date.now()}@example.com`
 				})
-			).rejects.toThrow()
+				expect.fail('Should have thrown an error')
+			} catch (error: any) {
+				expect(error.message).toMatch(/400|missing|required/i)
+			}
 		})
 
 		it('handles 409 conflict for optimistic locking (version mismatch)', async () => {
@@ -664,15 +671,18 @@ describe('Tenants CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			await expect(
-				result.current.mutateAsync({
+			try {
+				await result.current.mutateAsync({
 					id: created.id,
 					data: {
 						firstName: 'Outdated Update',
 						version: created.version // Old version
 					}
 				})
-			).rejects.toThrow()
+				expect.fail('Should have thrown an error')
+			} catch (error: any) {
+				expect(error.message).toMatch(/409|conflict|version/i)
+			}
 		})
 
 		/**
