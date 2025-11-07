@@ -99,12 +99,7 @@ export async function setupIntegrationTestUsers(): Promise<void> {
 
 	if (missingEnvVars.length > 0) {
 		throw new Error(
-			`Missing required environment variables for subscription tests:
-  - ${missingEnvVars.join('
-  - ')}
-
-` +
-			`Please set these variables before running integration tests.`
+			`Missing required environment variables for subscription tests:\n  - ${missingEnvVars.join('\n  - ')}\n\nPlease set these variables before running integration tests.`
 		)
 	}
 

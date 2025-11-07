@@ -104,9 +104,9 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		reason: 'error' | 'exception' = 'error'
 	): Promise<void> {
 		const delay = this.RETRY_DELAYS_MS[attempt]
-		const reasonText = reason === 'exception' ? 'due to exception' : ''
+		const reasonText = reason === 'exception' ? 'due to exception ' : ''
 		this.logger.log(
-			`Retrying RPC ${functionName} after ${delay}ms ${reasonText}(attempt ${attempt + 1}/${this.MAX_RETRIES})`.trim()
+			`Retrying RPC ${functionName} after ${delay}ms ${reasonText}(attempt ${attempt + 1}/${this.MAX_RETRIES})`
 		)
 		await new Promise<void>(resolve => {
 			const timer = setTimeout(() => {

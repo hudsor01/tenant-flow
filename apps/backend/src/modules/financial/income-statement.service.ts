@@ -226,9 +226,12 @@ export class IncomeStatementService {
 				changeAmount
 			}
 		} catch (error) {
-			this.logger.error('Error calculating previous period', {
-				error: error instanceof Error ? error.message : String(error)
-			})
+			this.logger.error(
+				`Error calculating previous period: ${
+					error instanceof Error ? error.message : String(error)
+				}`,
+				error instanceof Error ? error.stack : undefined
+			)
 			return {
 				netIncome: 0,
 				changePercent: 0,
