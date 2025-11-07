@@ -47,24 +47,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			}
 		}
 
-		// SECURITY: Sanitize URL to remove sensitive query parameters
-		// Extract only the pathname, never log full URL with query params
-		let sanitizedPath = '/'
-		try {
-			if (request.url) {
-				// Parse URL safely - handle relative URLs by adding a base
-				const url = new URL(
-					request.url,
-					`http://${request.headers?.host || 'localhost'}`
-				)
-				sanitizedPath = url.pathname
-			} else if (request.path) {
-				sanitizedPath = request.path
-			}
-		} catch {
-			// If URL parsing fails, fall back to a safe default
-			sanitizedPath = request.path || '/'
-		}
+		const sanitizedPath = this.sanitizeRequestPath(request)
 
 		// Log exception for production observability
 		const timestamp = new Date().toISOString()
@@ -101,5 +84,28 @@ export class HttpExceptionFilter implements ExceptionFilter {
 		}
 
 		response.status(status).json(errorResponse)
+	}
+
+	/**
+	 * Sanitizes request URL by extracting only the pathname
+	 * SECURITY: Removes sensitive query parameters from logs
+	 */
+	private sanitizeRequestPath(request: Request): string {
+		try {
+			if (request.url) {
+				// Parse URL safely - handle relative URLs by adding a base
+				const url = new URL(
+					request.url,
+					`http://${request.headers?.host || 'localhost'}`
+				)
+				return url.pathname
+			} else if (request.path) {
+				return request.path
+			}
+		} catch {
+			// If URL parsing fails, fall back to a safe default
+			return request.path || '/'
+		}
+		return '/'
 	}
 }

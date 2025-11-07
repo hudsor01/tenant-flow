@@ -25,6 +25,7 @@ import {
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
+import { ToggleSwitch } from '#components/ui/toggle-switch'
 import { useSupabaseUpdateProfile } from '#hooks/api/use-supabase-auth'
 import {
 	useNotificationPreferences,
@@ -551,77 +552,32 @@ export default function TenantProfilePage() {
 				description="Choose how you want to be notified"
 			>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between p-4 border rounded-lg">
-						<div className="flex items-center gap-3">
-							<Bell className="size-5 text-accent-main" />
-							<div>
-								<p className="font-medium">Rent Reminders</p>
-								<p className="text-sm text-muted-foreground">
-									Get notified before rent is due
-								</p>
-							</div>
-						</div>
-						<label className="relative inline-flex items-center cursor-pointer">
-							<input
-								type="checkbox"
-								className="sr-only peer"
-								checked={notificationPrefs?.rentReminders ?? true}
-								onChange={e =>
-									handleTogglePreference('rentReminders', e.target.checked)
-								}
-								disabled={prefsLoading || updatePreferences.isPending}
-							/>
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-						</label>
-					</div>
+					<ToggleSwitch
+						icon={Bell}
+						label="Rent Reminders"
+						description="Get notified before rent is due"
+						checked={notificationPrefs?.rentReminders ?? true}
+						disabled={prefsLoading || updatePreferences.isPending}
+						onChange={checked => handleTogglePreference('rentReminders', checked)}
+					/>
 
-					<div className="flex items-center justify-between p-4 border rounded-lg">
-						<div className="flex items-center gap-3">
-							<Bell className="size-5 text-accent-main" />
-							<div>
-								<p className="font-medium">Maintenance Updates</p>
-								<p className="text-sm text-muted-foreground">
-									Updates on your maintenance requests
-								</p>
-							</div>
-						</div>
-						<label className="relative inline-flex items-center cursor-pointer">
-							<input
-								type="checkbox"
-								className="sr-only peer"
-								checked={notificationPrefs?.maintenanceUpdates ?? true}
-								onChange={e =>
-									handleTogglePreference('maintenanceUpdates', e.target.checked)
-								}
-								disabled={prefsLoading || updatePreferences.isPending}
-							/>
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-						</label>
-					</div>
+					<ToggleSwitch
+						icon={Bell}
+						label="Maintenance Updates"
+						description="Updates on your maintenance requests"
+						checked={notificationPrefs?.maintenanceUpdates ?? true}
+						disabled={prefsLoading || updatePreferences.isPending}
+						onChange={checked => handleTogglePreference('maintenanceUpdates', checked)}
+					/>
 
-					<div className="flex items-center justify-between p-4 border rounded-lg">
-						<div className="flex items-center gap-3">
-							<Bell className="size-5 text-accent-main" />
-							<div>
-								<p className="font-medium">Property Notices</p>
-								<p className="text-sm text-muted-foreground">
-									Important announcements and updates
-								</p>
-							</div>
-						</div>
-						<label className="relative inline-flex items-center cursor-pointer">
-							<input
-								type="checkbox"
-								className="sr-only peer"
-								checked={notificationPrefs?.propertyNotices ?? true}
-								onChange={e =>
-									handleTogglePreference('propertyNotices', e.target.checked)
-								}
-								disabled={prefsLoading || updatePreferences.isPending}
-							/>
-							<div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent-main/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-main peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-						</label>
-					</div>
+					<ToggleSwitch
+						icon={Bell}
+						label="Property Notices"
+						description="Important announcements and updates"
+						checked={notificationPrefs?.propertyNotices ?? true}
+						disabled={prefsLoading || updatePreferences.isPending}
+						onChange={checked => handleTogglePreference('propertyNotices', checked)}
+					/>
 				</div>
 			</CardLayout>
 
