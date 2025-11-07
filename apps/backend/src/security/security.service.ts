@@ -85,14 +85,20 @@ export class SecurityService {
 
 	/**
 	 * Validates character classes in input string
+	 * @returns false for empty strings (security: empty input should not pass validation)
 	 */
 	validateCharacterClasses(
 		input: string,
 		validation: CharacterClassValidation
 	): boolean {
+		// SECURITY: Reject empty strings explicitly
+		if (input.length === 0) {
+			return false
+		}
+
 		for (let i = 0; i < input.length; i++) {
 			const char = input[i]
-			if (char === undefined) continue // Skip undefined characters
+			if (!char) continue // Skip if undefined
 
 			const code = char.charCodeAt(0)
 
@@ -108,14 +114,21 @@ export class SecurityService {
 			else if (char === ' ') {
 				if (!validation.spaces) return false
 			}
-			// Check for basic punctuation
-			else if (/[!@#$%^&*(),.?":{}|<>[\]\\;'`~_+=/-]/.test(char)) {
+			// Check for basic punctuation (.,;:!?)
+			else if (/[.,;:!?]/.test(char)) {
 				if (!validation.punctuation) return false
 			}
-
-			// Check for Unicode characters
-			else {
+			// Check for special characters (@#$%^&*()[]{}etc)
+			else if (/[@#$%^&*()[\]\\{}<>|`~_+=/"'-]/.test(char)) {
+				if (!validation.special) return false
+			}
+			// Check for Unicode characters (>127)
+			else if (code > 127) {
 				if (!validation.unicode) return false
+			}
+			// Reject anything else not explicitly allowed
+			else {
+				return false
 			}
 		}
 		return true
@@ -171,22 +184,21 @@ export class SecurityService {
 			)
 		}
 
-		// Check for control characters
-		if (!options.allowControlChars) {
-			for (let i = 0; i < input.length; i++) {
-				const charCode = input.charCodeAt(i)
-				if ((charCode >= 0x00 && charCode <= 0x1f) || charCode === 0x7f) {
-					throw new BadRequestException('Input contains control characters')
-				}
-			}
-		}
+		// PERFORMANCE: Consolidated validation loop - check control chars and null bytes in single pass
+		for (let i = 0; i < input.length; i++) {
+			const charCode = input.charCodeAt(i)
 
-		// Check for null bytes using charCodeAt instead of regex
-		if (!options.allowNullBytes) {
-			for (let i = 0; i < input.length; i++) {
-				if (input.charCodeAt(i) === 0) {
-					throw new BadRequestException('Input contains null bytes')
-				}
+			// Check for control characters (includes null bytes if not explicitly allowed)
+			if (
+				!options.allowControlChars &&
+				((charCode >= 0x00 && charCode <= 0x1f) || charCode === 0x7f)
+			) {
+				throw new BadRequestException('Input contains control characters')
+			}
+
+			// Check for null bytes separately (for backward compatibility when allowControlChars=true but allowNullBytes=false)
+			if (!options.allowNullBytes && charCode === 0) {
+				throw new BadRequestException('Input contains null bytes')
 			}
 		}
 
@@ -221,18 +233,11 @@ export class SecurityService {
 			sanitized = sanitized.replace(/'/g, '')
 		}
 
-		// Handle Unicode if not allowed
+		// Handle Unicode if not allowed (PERFORMANCE: use regex for faster filtering)
 		if (!options.allowUnicode) {
 			// Remove non-ASCII characters (keep only characters 0-127)
-			let asciiOnly = ''
-			for (let i = 0; i < sanitized.length; i++) {
-				const char = sanitized.charAt(i)
-				const code = char.charCodeAt(0)
-				if (code >= 0 && code <= 127) {
-					asciiOnly += char
-				}
-			}
-			sanitized = asciiOnly
+			// eslint-disable-next-line no-control-regex
+			sanitized = sanitized.replace(/[^\x00-\x7F]/g, '')
 		}
 
 		sanitized = sanitized.trim()
