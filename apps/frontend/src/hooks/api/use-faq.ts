@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 const logger = createLogger({ component: 'FAQHooks' })
 
@@ -25,11 +26,11 @@ export function useFAQs() {
 		queryFn: async (): Promise<FAQCategoryWithQuestions[]> => {
 			const response = await fetch('/api/v1/faq')
 			if (!response.ok) {
-				throw new Error('Failed to fetch FAQs')
+				throw new Error(`Failed to fetch FAQs: ${response.status} ${response.statusText}`)
 			}
 			return response.json()
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
 }
@@ -46,12 +47,12 @@ export function useFAQCategory(slug: string) {
 				return null
 			}
 			if (!response.ok) {
-				throw new Error('Failed to fetch FAQ category')
+				throw new Error(`Failed to fetch FAQ category '${slug}': ${response.status} ${response.statusText}`)
 			}
 			return response.json()
 		},
 		enabled: !!slug,
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000
 	})
 }
@@ -61,12 +62,20 @@ export function useFAQCategory(slug: string) {
  */
 export async function trackQuestionView(questionId: string): Promise<void> {
 	try {
-		await fetch(`/api/v1/faq/question/${questionId}/view`, {
+		const response = await fetch(`/api/v1/faq/question/${questionId}/view`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		})
+		
+		if (!response.ok) {
+			logger.warn('Failed to track question view', {
+				status: response.status,
+				statusText: response.statusText,
+				questionId
+			})
+		}
 	} catch (error) {
 		// Silently fail for analytics tracking
 		logger.warn('Failed to track question view', { error })
@@ -78,12 +87,20 @@ export async function trackQuestionView(questionId: string): Promise<void> {
  */
 export async function markQuestionHelpful(questionId: string): Promise<void> {
 	try {
-		await fetch(`/api/v1/faq/question/${questionId}/helpful`, {
+		const response = await fetch(`/api/v1/faq/question/${questionId}/helpful`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		})
+		
+		if (!response.ok) {
+			logger.warn('Failed to mark question helpful', {
+				status: response.status,
+				statusText: response.statusText,
+				questionId
+			})
+		}
 	} catch (error) {
 		// Silently fail for analytics tracking
 		logger.warn('Failed to mark question helpful', { error })

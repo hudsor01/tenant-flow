@@ -28,6 +28,26 @@ import type {
 
 type PaymentMethodType = 'card' | 'ach'
 
+/**
+ * Current payment status for a tenant
+ *
+ * **All amounts in CENTS (Stripe standard)**
+ */
+export interface CurrentPaymentStatus {
+	/** Payment status: PAID, DUE, OVERDUE, or PENDING */
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	/** Monthly rent amount in CENTS */
+	rentAmount: number
+	/** Next payment due date (ISO string) or null */
+	nextDueDate: string | null
+	/** Last payment date (ISO string) or null */
+	lastPaymentDate: string | null
+	/** Outstanding balance in CENTS */
+	outstandingBalance: number
+	/** Whether there are overdue payments */
+	isOverdue: boolean
+}
+
 @Injectable()
 export class RentPaymentsService {
 	private readonly logger = new Logger(RentPaymentsService.name)
@@ -327,6 +347,13 @@ export class RentPaymentsService {
 			paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending'
 		const now = new Date().toISOString()
 
+		// Extract receipt URL from payment intent
+		const receiptUrl =
+			typeof paymentIntent.latest_charge === 'object' &&
+			paymentIntent.latest_charge
+				? paymentIntent.latest_charge.receipt_url
+				: undefined
+
 		const { data: rentPayment, error: paymentError } = await adminClient
 			.from('rent_payment')
 			.insert({
@@ -341,6 +368,7 @@ export class RentPaymentsService {
 				status,
 				paymentType,
 				stripePaymentIntentId: paymentIntent.id,
+				receiptUrl: receiptUrl ?? null,
 				paidAt: status === 'succeeded' ? now : null,
 				createdAt: now
 			})
@@ -355,12 +383,6 @@ export class RentPaymentsService {
 			})
 			throw new BadRequestException('Failed to save payment record')
 		}
-
-		const receiptUrl =
-			typeof paymentIntent.latest_charge === 'object' &&
-			paymentIntent.latest_charge
-				? paymentIntent.latest_charge.receipt_url
-				: undefined
 
 		return {
 			payment: rentPayment,
@@ -814,14 +836,9 @@ export class RentPaymentsService {
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
 	 * @returns rentAmount - Monthly rent in CENTS (Stripe standard)
 	 */
-	async getCurrentPaymentStatus(tenantId: string): Promise<{
-		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
-		rentAmount: number
-		nextDueDate: string | null
-		lastPaymentDate: string | null
-		outstandingBalance: number
-		isOverdue: boolean
-	}> {
+	async getCurrentPaymentStatus(
+		tenantId: string
+	): Promise<CurrentPaymentStatus> {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
@@ -860,50 +877,8 @@ export class RentPaymentsService {
 			const now = new Date()
 
 			// Calculate status based on unpaid payments
-			let status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING' = 'PAID'
-			let outstandingBalance = 0
-			let nextDueDate: string | null = null
-			let isOverdue = false
-
-			if (unpaidPayments && unpaidPayments.length > 0) {
-				// Sum up all unpaid payments amounts (already in cents from database)
-				outstandingBalance = unpaidPayments.reduce(
-					(sum: number, payment: { amount: number | null }) =>
-						sum + (payment.amount || 0),
-					0
-				)
-				// Get the earliest due date
-				const earliestDue = unpaidPayments[0]
-				if (earliestDue) {
-					nextDueDate = earliestDue.dueDate ?? null
-
-							// Check if any payment is overdue using proper Date comparison
-					const hasOverdue = unpaidPayments.some(
-						(payment: { dueDate: string | null }) => {
-							if (!payment.dueDate) return false
-							const dueDate = new Date(payment.dueDate)
-							return dueDate < now
-						}
-					)
-
-					if (hasOverdue) {
-						status = 'OVERDUE'
-						isOverdue = true
-					} else if (
-						unpaidPayments.some(
-							(p: { status: string | null }) => p.status === 'PENDING'
-						)
-					) {
-						status = 'PENDING'
-					} else {
-						status = 'DUE'
-					}
-				}
-			} else {
-				// No unpaid payments - calculate next due date (1st of next month)
-				const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-				nextDueDate = nextMonth.toISOString().split('T')[0] ?? null
-			}
+			const { status, outstandingBalance, nextDueDate, isOverdue } =
+				this.determinePaymentStatus(unpaidPayments, now)
 
 			const lastPaymentDate = lastPayment?.paidAt ?? null
 
@@ -947,7 +922,74 @@ export class RentPaymentsService {
 				tenantId,
 				tenantOwnerId: tenant.auth_user_id
 			})
-			throw new ForbiddenException('You do not have access to this tenant')
+				throw new ForbiddenException('You do not have access to this tenant')
 		}
+	}
+
+	/**
+	 * Determines payment status based on unpaid payments
+	 * @param unpaidPayments - Array of unpaid rent payments
+	 * @param now - Current date for overdue calculation
+	 * @returns Payment status and related fields
+	 */
+	private determinePaymentStatus(
+		unpaidPayments: Array<{
+			dueDate: string | null
+			status: string | null
+			amount: number | null
+		}> | null,
+		now: Date
+	): {
+		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+		outstandingBalance: number
+		nextDueDate: string | null
+		isOverdue: boolean
+	} {
+		let status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING' = 'PAID'
+		let outstandingBalance = 0
+		let nextDueDate: string | null = null
+		let isOverdue = false
+
+		if (unpaidPayments && unpaidPayments.length > 0) {
+			// Sum up all unpaid payments amounts (already in cents from database)
+			outstandingBalance = unpaidPayments.reduce(
+				(sum: number, payment: { amount: number | null }) =>
+					sum + (payment.amount || 0),
+				0
+			)
+			// Get the earliest due date
+			const earliestDue = unpaidPayments[0]
+			if (earliestDue) {
+				nextDueDate = earliestDue.dueDate ?? null
+
+				// Check if any payment is overdue using proper Date comparison
+				const hasOverdue = unpaidPayments.some(
+					(payment: { dueDate: string | null }) => {
+						if (!payment.dueDate) return false
+						const dueDate = new Date(payment.dueDate)
+						return dueDate < now
+					}
+				)
+
+				if (hasOverdue) {
+					status = 'OVERDUE'
+					isOverdue = true
+				} else if (
+					unpaidPayments.some(
+						(p: { status: string | null }) => p.status === 'PENDING'
+					)
+				) {
+					status = 'PENDING'
+				} else {
+					status = 'DUE'
+				}
+			}
+		} else {
+			// No unpaid payments - calculate next due date (1st of next month)
+			const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+			nextDueDate = nextMonth.toISOString().split('T')[0] ?? null
+		}
+
+		return { status, outstandingBalance, nextDueDate, isOverdue }
 	}
 }

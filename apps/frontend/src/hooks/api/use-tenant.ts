@@ -13,6 +13,7 @@
 
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import { toast } from 'sonner' // Still needed for some success handlers
 import {
 	handleMutationError,
@@ -52,7 +53,7 @@ export function useTenant(id: string) {
 		queryKey: tenantKeys.detail(id),
 		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes cache time
 	})
 }
@@ -70,7 +71,7 @@ export function useTenantWithLease(id: string) {
 			)
 		},
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes cache time
 		retry: 2
 	})
@@ -171,7 +172,7 @@ export function useAllTenants() {
 				throw error
 			}
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes - list data rarely changes
+		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time for dropdown data
 		retry: 3, // Retry up to 3 times
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
@@ -355,7 +356,7 @@ export function useTenantSuspense(id: string) {
 	return useSuspenseQuery({
 		queryKey: tenantKeys.detail(id),
 		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000
 	})
 }
@@ -372,7 +373,7 @@ export function useTenantWithLeaseSuspense(id: string) {
 				`/api/v1/tenants/${id}/with-lease`
 			)
 		},
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000
 	})
 }
@@ -411,7 +412,7 @@ export function useAllTenantsSuspense() {
 
 			return response
 		},
-		staleTime: 10 * 60 * 1000,
+		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000
 	})
 }
@@ -443,7 +444,7 @@ export function usePrefetchTenant() {
 			return queryClient.prefetchQuery({
 				queryKey: tenantKeys.detail(id),
 				queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-				staleTime: 5 * 60 * 1000
+				...QUERY_CACHE_TIMES.DETAIL,
 			})
 		},
 		prefetchTenantWithLease: (id: string) => {
@@ -454,7 +455,7 @@ export function usePrefetchTenant() {
 						`/api/v1/tenants/${id}/with-lease`
 					)
 				},
-				staleTime: 5 * 60 * 1000
+				...QUERY_CACHE_TIMES.DETAIL,
 			})
 		}
 	}

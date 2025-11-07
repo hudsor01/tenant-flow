@@ -155,7 +155,7 @@ function formatOrdinal(input: number) {
 }
 
 const DEFAULT_CONTEXT: LeaseTemplateContext = {
-	ownerName: 'owner Name',
+	ownerName: 'Owner Name',
 	ownerAddress: '123 Main Street, Suite 200, Springfield, IL 62701',
 	tenantNames: 'Tenant One; Tenant Two',
 	propertyAddress: '456 Elm Street, Springfield, IL 62701',
@@ -392,7 +392,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: 'IL',
 			stateName: stateNames.IL,
 			notices: [
-				'Chicago Residential owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
+				'Chicago Residential Landlord and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
 				'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
 				'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
 			],

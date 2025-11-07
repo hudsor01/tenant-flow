@@ -58,6 +58,9 @@ describe('StripeController', () => {
 	}
 
 	beforeEach(async () => {
+		// Set required environment variables for controller
+		process.env.IDEMPOTENCY_KEY_SECRET = 'test-secret-key-for-tests-only'
+
 		// Mock setInterval to prevent timer from running in tests
 		jest.useFakeTimers()
 
@@ -141,6 +144,7 @@ describe('StripeController', () => {
 	afterEach(() => {
 		jest.clearAllTimers()
 		jest.useRealTimers()
+		delete process.env.IDEMPOTENCY_KEY_SECRET
 	})
 
 	describe('createPaymentIntent', () => {
@@ -643,7 +647,8 @@ describe('StripeController', () => {
 			} catch (error) {
 				const err = error as Error
 				expect(err.constructor.name).toBe('BadRequestException')
-				expect(err.message).toContain('contains control characters')
+				// Null bytes are checked first in SecurityService, so expect that error
+				expect(err.message).toContain('Input contains null bytes')
 			}
 		})
 	})

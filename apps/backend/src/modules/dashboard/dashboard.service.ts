@@ -144,6 +144,7 @@ export class DashboardService {
 		endDate?: Date
 	): Promise<z.infer<typeof billingInsightsSchema> | null> {
 		if (!userId) {
+			this.logger.warn('getBillingInsights called without userId')
 			return null
 		}
 		try {
