@@ -15,7 +15,6 @@ import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
-import { useCurrentLease } from '#hooks/api/use-lease'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { formatCurrency } from '@repo/shared/utils/formatting'
 import {
@@ -63,25 +62,25 @@ export default function TenantDashboardPage() {
 		return str.replace(search, replace)
 	}
 
-	const { data: lease, error: leaseError } = useCurrentLease()
+	// Removed: useCurrentLease() - redundant, dashboard hook already includes lease data
 	const {
 		data: dashboard,
 		isLoading: dashboardLoading,
 		error: dashboardError
 	} = useTenantPortalDashboard()
 
-	const activeLease = dashboard?.lease ?? lease ?? null
+	const activeLease = dashboard?.lease ?? null
 	const maintenanceSummary = dashboard?.maintenance
 	const recentRequests = dashboard?.maintenance?.recent ?? []
 	const recentPayments = dashboard?.payments?.recent ?? []
 	const upcomingPayment = dashboard?.payments?.upcoming ?? null
-	const leaseLoading = dashboardLoading && !activeLease
+	// Removed: dashboardLoading - use dashboardLoading directly
 
 	// Calculate next payment date (1st of next month)
 	const nextPaymentDate = getNextPaymentDate(upcomingPayment, formatDate)
 
-	// Show error if either dashboard or lease fails to load
-	const error = dashboardError || leaseError
+	// Single error source
+	const error = dashboardError
 	if (error) {
 		return <ErrorFallback error={error} />
 	}
@@ -118,7 +117,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
-							{leaseLoading || !activeLease ? (
+							{dashboardLoading || !activeLease ? (
 								<Skeleton className="h-7 w-48" />
 							) : (
 								<p className="text-xl font-semibold">Active Lease</p>
@@ -143,7 +142,7 @@ export default function TenantDashboardPage() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Due Date</p>
-							{leaseLoading || !activeLease ? (
+							{dashboardLoading || !activeLease ? (
 								<Skeleton className="h-7 w-32" />
 							) : (
 								<p className="text-xl font-semibold">{nextPaymentDate}</p>
@@ -254,7 +253,7 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="space-y-4">
-						{leaseLoading ? (
+						{dashboardLoading ? (
 							<Skeleton className="h-16 w-full" />
 						) : activeLease ? (
 							<div className="flex items-center justify-between py-3 border-b border-border/50">
