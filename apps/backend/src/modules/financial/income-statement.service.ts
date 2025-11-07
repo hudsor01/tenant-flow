@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import {
-	calculatePeriodComparison,
 	calculateProfitMargin,
 	createFinancialPeriod,
 	safeNumber
@@ -126,6 +125,7 @@ export class IncomeStatementService {
 
 		// Calculate previous period comparison
 		const previousPeriod = await this.calculatePreviousPeriod(
+			user.id,
 			token,
 			startDate,
 			endDate,
@@ -162,6 +162,7 @@ export class IncomeStatementService {
 	 * Calculate previous period net income for comparison
 	 */
 	private async calculatePreviousPeriod(
+		userId: string,
 		token: string,
 		startDate: string,
 		endDate: string,
@@ -185,22 +186,12 @@ export class IncomeStatementService {
 		try {
 			const client = this.supabaseService.getUserClient(token)
 
-			// Get user ID from token for defense-in-depth security
-			const {
-				data: { user },
-				error: authError
-			} = await this.supabaseService.getAdminClient().auth.getUser(token)
-
-			if (authError || !user) {
-				throw new Error('Failed to authenticate user from token')
-			}
-
 			const { data: previousMetrics, error } = await client.rpc(
 				'calculate_financial_metrics',
 				{
 					p_start_date: previousStartStr,
 					p_end_date: previousEndStr,
-					p_user_id: user.id
+					p_user_id: userId
 				}
 			)
 
@@ -214,26 +205,30 @@ export class IncomeStatementService {
 			}
 
 			const previousData = (
-				Array.isArray(previousMetrics) ? previousMetrics[0] : previousMetrics
+				Array.isArray(previousMetrics)
+					? previousMetrics[0]
+					: previousMetrics
 			) as FinancialMetricsResponse
+
 			const previousRevenue = safeNumber(previousData?.total_revenue)
 			const previousExpenses = safeNumber(previousData?.operating_expenses)
 			const previousNetIncome = previousRevenue - previousExpenses
 
-			const comparison = calculatePeriodComparison(
-				currentNetIncome,
-				previousNetIncome
-			)
+			const changeAmount = currentNetIncome - previousNetIncome
+			const changePercent =
+				previousNetIncome !== 0
+					? (changeAmount / previousNetIncome) * 100
+					: 0
 
 			return {
 				netIncome: previousNetIncome,
-				changePercent: comparison.changePercent,
-				changeAmount: comparison.changeAmount
+				changePercent,
+				changeAmount
 			}
 		} catch (error) {
-			this.logger.error(
-				`Error calculating previous period: ${error instanceof Error ? error.message : String(error)}`
-			)
+			this.logger.error('Error calculating previous period', {
+				error: error instanceof Error ? error.message : String(error)
+			})
 			return {
 				netIncome: 0,
 				changePercent: 0,

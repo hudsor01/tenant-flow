@@ -423,7 +423,11 @@ export class LateFeesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			await client.from('lease').update(updateData).eq('id', leaseId)
+			const { error: updateError } = await client.from('lease').update(updateData).eq('id', leaseId)
+
+			if (updateError) {
+				throw new BadRequestException(`Failed to update lease: ${updateError.message}`)
+			}
 
 			this.logger.log('Late fee config updated successfully', { leaseId })
 		} catch (error) {
