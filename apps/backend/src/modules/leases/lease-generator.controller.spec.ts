@@ -8,10 +8,13 @@ import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { LeaseGeneratorController } from './lease-generator.controller'
+import { LeasesService } from './leases.service'
 
 describe('LeaseGeneratorController', () => {
 	let controller: LeaseGeneratorController
 	let pdfService: { generateLeasePDF: jest.Mock }
+	let leasesService: { findOne: jest.Mock }
+	const mockToken = 'mock-token'
 
 	const validLease: LeaseFormData = {
 		property: {
@@ -72,13 +75,19 @@ describe('LeaseGeneratorController', () => {
 
 
 
+
+
 	beforeEach(async () => {
 		pdfService = { generateLeasePDF: jest.fn() }
+		leasesService = {
+			findOne: jest.fn()
+		}
 
 		const module = await Test.createTestingModule({
 			controllers: [LeaseGeneratorController],
 			providers: [
 				{ provide: LeasePDFService, useValue: pdfService },
+				{ provide: LeasesService, useValue: leasesService },
 				{
 					provide: Logger,
 					useValue: {
@@ -186,7 +195,7 @@ describe('LeaseGeneratorController', () => {
 	describe('downloadLease', () => {
 		it('throws error when leaseId is missing', async () => {
 			const mockReq = {
-				headers: { authorization: 'Bearer mock-token' }
+				headers: { authorization: `Bearer ${mockToken}` }
 			} as any
 
 			await expect(
@@ -194,23 +203,51 @@ describe('LeaseGeneratorController', () => {
 			).rejects.toThrow('leaseId query parameter is required')
 		})
 
-		it('throws error indicating transformation not implemented', async () => {
+		it('throws error when lease data fetch fails', async () => {
 			const mockReq = {
-				headers: { authorization: 'Bearer mock-token' }
+				headers: { authorization: `Bearer ${mockToken}` }
 			} as any
 
-			// Note: Implementation now fetches from database but transformation layer
-			// not yet implemented, so it throws InternalServerErrorException
+			const fetchSpy = jest
+				.spyOn(controller as any, 'fetchLeaseWithRelations')
+				.mockRejectedValue(new Error('Failed to fetch relations'))
+
 			await expect(
 				controller.downloadLease('test-lease-id', mockReq)
-			).rejects.toThrow('not yet implemented')
+			).rejects.toThrow('Failed to fetch lease data for PDF generation')
+
+			fetchSpy.mockRestore()
 		})
+
+		it('returns PDF when relations are fetched successfully', async () => {
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			const fetchSpy = jest
+				.spyOn(controller as any, 'fetchLeaseWithRelations')
+				.mockResolvedValue({} as any)
+			const transformSpy = jest
+				.spyOn(controller as any, 'transformLeaseWithRelationsToFormData')
+				.mockReturnValue(validLease)
+			pdfService.generateLeasePDF.mockResolvedValue(Buffer.from('pdf'))
+
+			const result = await controller.downloadLease('test-lease-id', mockReq)
+
+			expect(result.success).toBe(true)
+			expect(pdfService.generateLeasePDF).toHaveBeenCalledWith(validLease)
+			expect(leasesService.findOne).not.toHaveBeenCalled()
+
+			fetchSpy.mockRestore()
+			transformSpy.mockRestore()
+		})
+
 	})
 
 	describe('previewLease', () => {
 		it('throws error when leaseId is missing', async () => {
 			const mockReq = {
-				headers: { authorization: 'Bearer mock-token' }
+				headers: { authorization: `Bearer ${mockToken}` }
 			} as any
 
 			await expect(
@@ -218,16 +255,49 @@ describe('LeaseGeneratorController', () => {
 			).rejects.toThrow('leaseId query parameter is required')
 		})
 
-		it('throws error indicating transformation not implemented', async () => {
+		it('throws error when lease not found', async () => {
 			const mockReq = {
-				headers: { authorization: 'Bearer mock-token' }
+				headers: { authorization: `Bearer ${mockToken}` }
 			} as any
+
+			const fetchSpy = jest
+				.spyOn(controller as any, 'fetchLeaseWithRelations')
+				.mockRejectedValue(new Error('No relations'))
+
+			leasesService.findOne.mockResolvedValue(null)
 
 			await expect(
 				controller.previewLease('test-lease-id', mockReq)
-			).rejects.toThrow('not yet implemented')
+			).rejects.toThrow('Failed to fetch lease data for PDF generation')
+
+			fetchSpy.mockRestore()
 		})
+
+		it('previews PDF when relations fetch works', async () => {
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			const fetchSpy = jest
+				.spyOn(controller as any, 'fetchLeaseWithRelations')
+				.mockResolvedValue({} as any)
+			const transformSpy = jest
+				.spyOn(controller as any, 'transformLeaseWithRelationsToFormData')
+				.mockReturnValue(validLease)
+			pdfService.generateLeasePDF.mockResolvedValue(Buffer.from('pdf'))
+
+			const result = await controller.previewLease('test-lease-id', mockReq)
+
+			expect(result.success).toBe(true)
+			expect(result.disposition).toBe('inline')
+			expect(pdfService.generateLeasePDF).toHaveBeenCalledWith(validLease)
+
+			fetchSpy.mockRestore()
+			transformSpy.mockRestore()
+		})
+
 	})
+
 
 	describe('validateLease', () => {
 		it('passes validation for valid lease', async () => {
