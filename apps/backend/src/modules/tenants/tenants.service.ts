@@ -2627,7 +2627,7 @@ export class TenantsService {
 		}
 
 		// Validate phone number format - E.164 international format or common US formats
-		const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/
+		const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/
 		if (!phoneRegex.test(data.phoneNumber)) {
 			throw new BadRequestException(
 				'Invalid phone number format. Please enter a valid international or US phone number.'
@@ -2636,7 +2636,7 @@ export class TenantsService {
 
 		// Validate email format if provided - RFC 5322 simplified
 		if (data.email) {
-			const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+			const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 			if (!emailRegex.test(data.email)) {
 				throw new BadRequestException('Invalid email format. Please enter a valid email address.')
 			}
