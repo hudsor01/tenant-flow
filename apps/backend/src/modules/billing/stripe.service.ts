@@ -15,6 +15,10 @@ export class StripeService {
 	private readonly logger = new Logger(StripeService.name)
 	private stripe: Stripe
 
+	// Stripe API pagination defaults
+	private readonly STRIPE_DEFAULT_LIMIT = 100 // Maximum items per page for Stripe API
+	private readonly STRIPE_MAX_TOTAL_ITEMS = 1000 // Maximum total items to prevent unbounded pagination
+
 	constructor(
 		private readonly stripeClientService: StripeClientService,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
@@ -82,9 +86,9 @@ export class StripeService {
 			let hasMore = true
 			let startingAfter: string | undefined
 
-			while (hasMore) {
+			while (hasMore && allSubscriptions.length < this.STRIPE_MAX_TOTAL_ITEMS) {
 				const requestParams: Stripe.SubscriptionListParams = {
-					limit: 100,
+					limit: this.STRIPE_DEFAULT_LIMIT,
 					expand: ['data.customer', 'data.items']
 				}
 				if (params?.customer) {
@@ -106,6 +110,12 @@ export class StripeService {
 				if (hasMore && subscriptions.data.length > 0) {
 					startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
 				}
+			}
+
+			if (allSubscriptions.length >= this.STRIPE_MAX_TOTAL_ITEMS) {
+				this.logger.warn(
+					`getAllSubscriptions hit max limit of ${this.STRIPE_MAX_TOTAL_ITEMS} items. Consider using listSubscriptions with pagination instead.`
+				)
 			}
 
 			this.logger.log(`Fetched ${allSubscriptions.length} total subscriptions`)
@@ -180,7 +190,7 @@ export class StripeService {
 
 			while (hasMore) {
 				const requestParams: Stripe.InvoiceListParams = {
-					limit: 100,
+					limit: this.STRIPE_DEFAULT_LIMIT,
 					expand: ['data.subscription', 'data.customer']
 				}
 				if (params?.customer) {
@@ -255,7 +265,7 @@ export class StripeService {
 
 			while (hasMore) {
 				const requestParams: Stripe.CustomerListParams = {
-					limit: 100,
+					limit: this.STRIPE_DEFAULT_LIMIT,
 					expand: ['data.subscriptions']
 				}
 				if (params?.email) {
@@ -309,7 +319,7 @@ export class StripeService {
 		try {
 			const result = await this.stripe.subscriptions.search({
 				query,
-				limit: 100,
+				limit: this.STRIPE_DEFAULT_LIMIT,
 				expand: ['data.customer']
 			})
 			return result.data
