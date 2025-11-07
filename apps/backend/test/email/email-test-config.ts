@@ -141,7 +141,13 @@ export class EmailTestUtils {
 	/**
 	 * Mock email sender for testing
 	 */
-	static async mockSendEmail(options: Partial<StoredEmail>): Promise<any> {
+	static async mockSendEmail(
+		options: Partial<StoredEmail> & Pick<StoredEmail, 'to'>
+	): Promise<{
+		success: boolean
+		messageId: string
+		mock: boolean
+	}> {
 		const config = getEmailTestConfig()
 
 		if (config.logEmails) {
@@ -164,7 +170,7 @@ export class EmailTestUtils {
 
 		return {
 			success: true,
-			messageId: this.sentEmails[this.sentEmails.length - 1].messageId,
+			messageId: this.sentEmails[this.sentEmails.length - 1].messageId!,
 			mock: true
 		}
 	}

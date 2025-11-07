@@ -1,6 +1,7 @@
 import {
 	Controller,
 	Get,
+	HttpException,
 	Logger,
 	Query,
 	Req,
@@ -76,7 +77,7 @@ export class DashboardController {
 
 			return {
 				stats,
-				activity: activity && Array.isArray(activity.activities) ? activity.activities : []
+				activity: activity.activities
 				// Note: propertyStats, tenantStats, leaseStats are already included in stats
 				// Frontend can extract them from stats.properties, stats.tenants, stats.leases
 			}
@@ -85,6 +86,10 @@ export class DashboardController {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
+			// Re-throw HTTP exceptions as-is to preserve specific error messages
+			if (error instanceof HttpException) {
+				throw error
+			}
 			throw new InternalServerErrorException('Failed to fetch dashboard data')
 		}
 	}
