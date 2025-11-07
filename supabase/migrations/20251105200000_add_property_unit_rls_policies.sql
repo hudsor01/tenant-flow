@@ -1,5 +1,5 @@
 -- Add RLS policies for property and unit tables
--- Uses current column names (ownerId, not ownerId)
+-- Uses current column names: property.ownerId, tenant.auth_user_id (not tenant.userId)
 
 -- ============================================
 -- PROPERTY TABLE RLS POLICIES
@@ -147,7 +147,7 @@ USING (
     EXISTS (
         SELECT 1 FROM tenant
         WHERE tenant.id = tenant_emergency_contact.tenant_id
-        AND tenant."userId" = (SELECT auth.uid())::text
+        AND tenant.auth_user_id = (SELECT auth.uid())::text
     )
 );
 
@@ -160,7 +160,7 @@ WITH CHECK (
     EXISTS (
         SELECT 1 FROM tenant
         WHERE tenant.id = tenant_emergency_contact.tenant_id
-        AND tenant."userId" = (SELECT auth.uid())::text
+        AND tenant.auth_user_id = (SELECT auth.uid())::text
     )
 );
 
@@ -173,14 +173,14 @@ USING (
     EXISTS (
         SELECT 1 FROM tenant
         WHERE tenant.id = tenant_emergency_contact.tenant_id
-        AND tenant."userId" = (SELECT auth.uid())::text
+        AND tenant.auth_user_id = (SELECT auth.uid())::text
     )
 )
 WITH CHECK (
     EXISTS (
         SELECT 1 FROM tenant
         WHERE tenant.id = tenant_emergency_contact.tenant_id
-        AND tenant."userId" = (SELECT auth.uid())::text
+        AND tenant.auth_user_id = (SELECT auth.uid())::text
     )
 );
 
@@ -193,7 +193,7 @@ USING (
     EXISTS (
         SELECT 1 FROM tenant
         WHERE tenant.id = tenant_emergency_contact.tenant_id
-        AND tenant."userId" = (SELECT auth.uid())::text
+        AND tenant.auth_user_id = (SELECT auth.uid())::text
     )
 );
 
