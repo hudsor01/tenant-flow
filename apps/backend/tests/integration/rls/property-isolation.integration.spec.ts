@@ -39,16 +39,19 @@ describe('RLS: Property Isolation', () => {
 	}
 
 	beforeAll(async () => {
-		ownerA = await authenticateAs(TEST_USERS.owner_A)
-		ownerB = await authenticateAs(TEST_USERS.owner_B)
+		ownerA = await authenticateAs(TEST_USERS.OWNER_A)
+		ownerB = await authenticateAs(TEST_USERS.OWNER_B)
 		tenantA = await authenticateAs(TEST_USERS.TENANT_A)
 		serviceClient = getServiceRoleClient()
 	})
 
 	afterAll(async () => {
-		// Cleanup units first (foreign key constraint)
+		// Cleanup in correct order: units first (foreign key), then properties
 		for (const id of testData.units) {
 			await serviceClient.from('unit').delete().eq('id', id)
+		}
+		for (const id of testData.properties) {
+			await serviceClient.from('property').delete().eq('id', id)
 		}
 	})
 

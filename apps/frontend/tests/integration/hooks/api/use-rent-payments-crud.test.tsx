@@ -24,6 +24,9 @@ let createdUnitIds: string[] = []
 let createdPropertyIds: string[] = []
 
 // Create wrapper with fresh QueryClient for each test
+// Shared QueryClient instance for tests that need cache coordination
+let sharedQueryClient: QueryClient | null = null
+
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -31,6 +34,9 @@ function createWrapper() {
 			mutations: { retry: false }
 		}
 	})
+
+	// Store for cleanup
+	sharedQueryClient = queryClient
 
 	return ({ children }: { children: React.ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -115,14 +121,30 @@ async function createTestLease(
 describe('Rent Payments Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
+		// Validate ALL required environment variables - NO FALLBACKS
+		const requiredEnvVars = [
+			'NEXT_PUBLIC_SUPABASE_URL',
+			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			'E2E_OWNER_A_EMAIL',
+			'E2E_OWNER_A_PASSWORD'
+		] as const
+
+		for (const envVar of requiredEnvVars) {
+			if (!process.env[envVar]) {
+				throw new Error(
+					`Missing required environment variable: ${envVar}. Please check your .env.test.local file.`
+				)
+			}
+		}
+
 		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+			process.env.NEXT_PUBLIC_SUPABASE_URL,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL || 'test@example.com',
-			password: process.env.E2E_OWNER_A_PASSWORD || 'testpassword'
+			email: process.env.E2E_OWNER_A_EMAIL,
+			password: process.env.E2E_OWNER_A_PASSWORD
 		})
 
 		if (error || !data.session) {
@@ -143,6 +165,11 @@ describe('Rent Payments Integration Tests', () => {
 
 	// Cleanup after each test (order matters for foreign keys)
 	afterEach(async () => {
+		// Clear QueryClient cache to prevent memory leaks and test pollution
+		if (sharedQueryClient) {
+			sharedQueryClient.clear()
+		}
+
 		// Note: Rent payments typically cannot be deleted in production
 		// They are immutable for accounting/audit purposes
 		// In test environment, we may allow deletion for cleanup
@@ -227,9 +254,8 @@ describe('Rent Payments Integration Tests', () => {
 				  }
 				| undefined
 
-			await waitFor(async () => {
-				paymentResult = await result.current.mutateAsync(paymentParams)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			paymentResult = await result.current.mutateAsync(paymentParams)
 
 			// Assertions
 			expect(paymentResult).toBeDefined()
@@ -363,9 +389,8 @@ describe('Rent Payments Integration Tests', () => {
 				  }
 				| undefined
 
-			await waitFor(async () => {
-				payment = await createResult.current.mutateAsync(paymentParams)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			payment = await createResult.current.mutateAsync(paymentParams)
 
 			expect(payment).toBeDefined()
 			expect(payment!.success).toBe(true)
@@ -412,12 +437,11 @@ describe('Rent Payments Integration Tests', () => {
 				paymentMethodId: 'pm_card_visa'
 			}
 
-			await waitFor(async () => {
-				const result = await createResult.current.mutateAsync(paymentParams)
-				if (result?.payment?.id) {
-					createdPaymentIds.push(result.payment.id)
-				}
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const result = await createResult.current.mutateAsync(paymentParams)
+			if (result?.payment?.id) {
+				createdPaymentIds.push(result.payment.id)
+			}
 
 			// Payment list cache should be invalidated
 			// Verify by checking if new payment appears in list

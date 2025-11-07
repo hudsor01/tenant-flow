@@ -59,7 +59,13 @@ function getSupabasePublishableKey(): string {
  * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
  * ```
  */
-export const SUPABASE_URL = getSupabaseUrl()
+export const SUPABASE_URL = (() => {
+	// Allow builds to proceed without env vars when explicitly skipped
+	if (process.env.SKIP_ENV_VALIDATION === 'true') {
+		return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+	}
+	return getSupabaseUrl()
+})()
 
 /**
  * Supabase publishable key constant - validated at build time.
@@ -77,4 +83,14 @@ export const SUPABASE_URL = getSupabaseUrl()
  * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
  * ```
  */
-export const SUPABASE_PUBLISHABLE_KEY = getSupabasePublishableKey()
+export const SUPABASE_PUBLISHABLE_KEY = (() => {
+	// Allow builds to proceed without env vars when explicitly skipped
+	if (process.env.SKIP_ENV_VALIDATION === 'true') {
+		return (
+			process.env.SUPABASE_PUBLISHABLE_KEY ||
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+			''
+		)
+	}
+	return getSupabasePublishableKey()
+})()

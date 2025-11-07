@@ -24,8 +24,12 @@ const environmentSchema = z.object({
 	// Supabase (using modern API key naming convention)
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
 	SUPABASE_SECRET_KEY: z.string(),
-	// SUPABASE_JWT_SECRET is now optional - we use JWKS endpoint for JWT verification
-	// Only needed for legacy HS256 symmetric key verification
+	SUPABASE_JWT_ALGORITHM: z
+		.string()
+		.transform(val => val.toUpperCase().trim())
+		.pipe(z.enum(['HS256', 'RS256', 'ES256']))
+		.optional(),
+	// SUPABASE_JWT_SECRET remains optional for symmetric (HS256) projects
 	SUPABASE_JWT_SECRET: z
 		.string()
 		.min(32, 'Supabase JWT secret must be at least 32 characters')

@@ -37,6 +37,7 @@ import type {
 } from '@repo/shared/types/core'
 import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { ERROR_MESSAGES } from '#lib/constants'
 
 const logger = createLogger({ component: 'MaintenanceForm' })
 
@@ -59,16 +60,37 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const [properties, setProperties] = useState<Property[]>([])
 	const [units, setUnits] = useState<Unit[]>([])
 
-	// Initialize form with single form for both create and edit
-	const form = useMaintenanceForm(mode, {
-		title: extendedRequest?.title ?? '',
-		description: extendedRequest?.description ?? '',
-		priority: (extendedRequest?.priority as Database['public']['Enums']['Priority']) ?? 'LOW',
-		category: extendedRequest?.category ?? '',
-		unitId: extendedRequest?.unitId ?? '',
-		propertyId: extendedRequest?.propertyId ?? '',
-		estimatedCost: extendedRequest?.estimatedCost?.toString() ?? '',
-		preferredDate: extendedRequest?.preferredDate ?? ''
+	// Initialize form with mutations and success callback
+	const form = useMaintenanceForm({
+		mode,
+		defaultValues: {
+			title: extendedRequest?.title ?? '',
+			description: extendedRequest?.description ?? '',
+			priority:
+				(extendedRequest?.priority as Database['public']['Enums']['Priority']) ??
+				'LOW',
+			category:
+				(extendedRequest?.category as
+					| 'GENERAL'
+					| 'PLUMBING'
+					| 'ELECTRICAL'
+					| 'HVAC'
+					| 'APPLIANCES'
+					| 'SAFETY'
+					| 'OTHER'
+					| undefined) ?? undefined,
+			unitId: extendedRequest?.unitId ?? '',
+			propertyId: extendedRequest?.propertyId ?? '',
+			estimatedCost: extendedRequest?.estimatedCost?.toString() ?? '',
+			preferredDate: extendedRequest?.preferredDate ?? ''
+		},
+		createMutation: createRequest,
+		updateMutation: updateRequest,
+		...(request?.id && { requestId: request.id }),
+		...(request?.version !== undefined && { version: request.version }),
+		onSuccess: () => {
+			router.back()
+		}
 	})
 
 	// Get available units based on selected property
@@ -89,7 +111,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 				setProperties(propertiesData)
 				setUnits(unitsData)
 			} catch (error) {
-				logger.error('Failed to load form data', { error })
+				logger.error(ERROR_MESSAGES.FORM_LOAD_FAILED, { error })
 			}
 		}
 		loadData()
@@ -289,19 +311,30 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 									<FieldLabel htmlFor="category">Category</FieldLabel>
 									<Select
 										value={field.state.value || ''}
-										onValueChange={field.handleChange}
+										onValueChange={value =>
+											field.handleChange(
+												value as
+													| 'GENERAL'
+													| 'PLUMBING'
+													| 'ELECTRICAL'
+													| 'HVAC'
+													| 'APPLIANCES'
+													| 'SAFETY'
+													| 'OTHER'
+											)
+										}
 									>
 										<SelectTrigger id="category">
 											<SelectValue placeholder="Select maintenance category" />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="plumbing">Plumbing</SelectItem>
-											<SelectItem value="electrical">Electrical</SelectItem>
-											<SelectItem value="hvac">HVAC</SelectItem>
-											<SelectItem value="appliance">Appliance</SelectItem>
-											<SelectItem value="structural">Structural</SelectItem>
-											<SelectItem value="pest-control">Pest Control</SelectItem>
-											<SelectItem value="other">Other</SelectItem>
+											<SelectItem value="GENERAL">General</SelectItem>
+											<SelectItem value="PLUMBING">Plumbing</SelectItem>
+											<SelectItem value="ELECTRICAL">Electrical</SelectItem>
+											<SelectItem value="HVAC">HVAC</SelectItem>
+											<SelectItem value="APPLIANCES">Appliances</SelectItem>
+											<SelectItem value="SAFETY">Safety</SelectItem>
+											<SelectItem value="OTHER">Other</SelectItem>
 										</SelectContent>
 									</Select>
 									{(field.state.meta.errors?.length ?? 0) > 0 && (

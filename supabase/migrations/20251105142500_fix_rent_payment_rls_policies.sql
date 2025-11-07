@@ -22,7 +22,12 @@ ON public.rent_payment
 FOR SELECT
 TO authenticated
 USING (
-    "tenantId" = (SELECT auth.uid())::text
+    EXISTS (
+        SELECT 1
+        FROM tenant t
+        WHERE t.id = rent_payment."tenantId"
+          AND t.auth_user_id = auth.uid()
+    )
 );
 
 -- Policy: Only service role can INSERT payments (for security)

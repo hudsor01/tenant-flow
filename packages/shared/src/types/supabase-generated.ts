@@ -4160,6 +4160,24 @@ export type Database = {
           trial_start: string
         }[]
       }
+      get_user_dashboard_activities: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          action: string
+          activity_timestamp: string
+          activity_type: string
+          amount: number
+          details: Json
+          entity_id: string
+          id: string
+          owner_id: string
+          priority: string
+          property_id: string
+          status: string
+          tenant_id: string
+          unit_id: string
+        }[]
+      }
       get_user_id: { Args: never; Returns: string }
       get_user_id_by_stripe_customer: {
         Args: { p_stripe_customer_id: string }

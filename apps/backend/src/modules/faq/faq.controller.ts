@@ -5,6 +5,7 @@ import {
 	Post,
 	HttpStatus,
 	HttpException,
+	BadRequestException,
 	Logger,
 	ParseUUIDPipe
 } from '@nestjs/common'
@@ -43,6 +44,13 @@ export class FAQController {
 	async getFAQBySlug(
 		@Param('slug') slug: string
 	): Promise<FAQCategoryWithQuestions | null> {
+		// Validate slug format
+		if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+			throw new BadRequestException(
+				'Slug must contain only lowercase letters, numbers, and hyphens'
+			)
+		}
+
 		try {
 			const faq = await this.faqService.getFAQBySlug(slug)
 			if (!faq) {

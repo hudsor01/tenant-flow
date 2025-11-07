@@ -41,7 +41,7 @@ function getTokenFromRequest(req: Request): string | null {
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
 		return null
 	}
-	return authHeader.substring(7) // Remove 'Bearer ' prefix
+	return authHeader.substring(7)
 }
 
 // Validation constants (DRY principle)
@@ -59,6 +59,9 @@ const VALID_PROPERTY_TYPES: PropertyType[] = [
 @Injectable()
 export class PropertiesService {
 	private readonly logger: Logger
+
+	// CSV Import Configuration
+	private readonly CSV_MAX_RECORD_SIZE_BYTES = 100_000 // 100KB max per record
 
 	constructor(
 		private readonly supabase: SupabaseService,
@@ -268,12 +271,21 @@ export class PropertiesService {
 								trim: true,
 								relax_quotes: true, // Allow quotes in unquoted fields
 								relax_column_count: true, // Allow variable column counts
-								max_record_size: 100000 // 100KB max per record
+								max_record_size: this.CSV_MAX_RECORD_SIZE_BYTES
 							})
 						)
-						.on('data', (row: Record<string, string>) => {
-							rows.push(row)
-						})
+						.on('data', (row: unknown) => {
+					// Validate row structure with type guard
+					if (!this.isValidCsvRow(row)) {
+						reject(
+							new BadRequestException(
+								'Invalid CSV row format: expected string values only'
+							)
+						)
+						return
+					}
+					rows.push(row)
+				})
 						.on('error', (error: Error) => {
 							reject(
 								new BadRequestException(`CSV parsing failed: ${error.message}`)
@@ -421,8 +433,25 @@ export class PropertiesService {
 		}
 	}
 
+	/**
+	 * Type guard: Validate CSV row has expected string fields
+	 * Prevents injection attacks and ensures data integrity
+	 */
+	private isValidCsvRow(row: unknown): row is Record<string, string> {
+		if (!row || typeof row !== 'object') return false
+
+		// CSV parser returns objects with string values
+		// Validate all values are strings (not objects, arrays, etc.)
+		return Object.values(row).every(
+			value => typeof value === 'string' || value === null || value === undefined
+		)
+	}
+
+	/**
+	 * Safe string extraction from CSV row with type guard
+	 */
 	private getStringValue(
-		row: Record<string, unknown>,
+		row: Record<string, string>,
 		key: string
 	): string | undefined {
 		const value = row[key]
@@ -485,10 +514,7 @@ export class PropertiesService {
 		}
 
 		// 🔐 BUG FIX #2: Add version check for optimistic locking
-		let query = client
-			.from('property')
-			.update(updateData)
-			.eq('id', propertyId)
+		let query = client.from('property').update(updateData).eq('id', propertyId)
 
 		// Add version check if expectedVersion provided
 		if (expectedVersion !== undefined) {
@@ -642,15 +668,15 @@ export class PropertiesService {
 				name: 'Mark property as INACTIVE in database',
 				execute: async () => {
 					const { data, error } = await client
-					.from('property')
-					.update({
-						status:
-							'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
-						updatedAt: new Date().toISOString(),
-						// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
-						version: (existing.version || 0) + 1
-					})
-					.eq('id', propertyId)
+						.from('property')
+						.update({
+							status:
+								'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
+							updatedAt: new Date().toISOString(),
+							// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
+							version: (existing.version || 0) + 1
+						})
+						.eq('id', propertyId)
 						.select()
 						.single()
 
@@ -882,7 +908,7 @@ export class PropertiesService {
 			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
-		
+
 		const rpcParams: Record<string, unknown> = {
 			p_user_id: userId
 		}
@@ -1012,7 +1038,7 @@ export class PropertiesService {
 			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
-		
+
 		const rpcParams: Record<string, unknown> = {
 			p_user_id: userId
 		}
@@ -1038,10 +1064,7 @@ export class PropertiesService {
 	/**
 	 * Get property units
 	 */
-	async getPropertyUnits(
-		req: Request,
-		propertyId: string
-	): Promise<unknown[]> {
+	async getPropertyUnits(req: Request, propertyId: string): Promise<unknown[]> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.error('No authentication token found in request')
@@ -1150,7 +1173,10 @@ export class PropertiesService {
 				this.logger.error('Failed to cleanup orphaned file', {
 					filename,
 					dbError: error.message,
-					cleanupError: cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+					cleanupError:
+						cleanupError instanceof Error
+							? cleanupError.message
+							: String(cleanupError)
 				})
 			}
 			throw new BadRequestException(`Failed to save image: ${error.message}`)

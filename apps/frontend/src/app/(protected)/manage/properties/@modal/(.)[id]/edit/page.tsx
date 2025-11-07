@@ -1,6 +1,7 @@
 import { PropertyForm } from '#components/properties/property-form.client'
 import { RouteModal } from '#components/ui/route-modal'
 import { clientFetch } from '#lib/api/client'
+import { logErrorDetails } from '#lib/utils/error-logging'
 import type { Property } from '@repo/shared/types/core'
 import { notFound } from 'next/navigation'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -24,8 +25,9 @@ export default async function EditPropertyModal({
 }: {
 	params: Promise<{ id: string }>
 }) {
+	const { id } = await params
+
 	try {
-		const { id } = await params
 		const property = await clientFetch<Property>(
 			`${process.env.API_BASE_URL}/api/v1/properties/${id}`
 		)
@@ -44,7 +46,7 @@ export default async function EditPropertyModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		logger.error('Failed to fetch property', { error })
+		logErrorDetails(logger, 'Failed to fetch property', error, { id })
 		notFound()
 	}
 }
