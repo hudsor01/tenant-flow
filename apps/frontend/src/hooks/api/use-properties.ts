@@ -149,7 +149,7 @@ export function usePropertyPerformanceAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/performance')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -163,7 +163,7 @@ export function usePropertyOccupancyAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/occupancy')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -177,7 +177,7 @@ export function usePropertyFinancialAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/financial')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -191,7 +191,7 @@ export function usePropertyMaintenanceAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/maintenance')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -558,7 +558,7 @@ export function usePrefetchProperty() {
 			queryFn: async (): Promise<Property> => {
 				return clientFetch<Property>(`/api/v1/properties/${id}`)
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }
@@ -575,7 +575,7 @@ export function usePropertyImages(propertyId: string) {
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
 		queryFn: () => clientFetch<Tables<'property_images'>[]>(`/api/v1/properties/${propertyId}/images`),
 		enabled: !!propertyId,
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000
 	})
 }

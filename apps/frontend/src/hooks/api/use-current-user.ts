@@ -10,6 +10,7 @@
 
 import { clientFetch } from '#lib/api/client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 /**
  * User type returned from API
@@ -46,7 +47,7 @@ export function useUser() {
 	return useQuery({
 		queryKey: userKeys.me,
 		queryFn: () => clientFetch<User>('/api/v1/users/me'),
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000,
 		retry: 1
 	})
@@ -62,7 +63,7 @@ export function usePrefetchUser() {
 		queryClient.prefetchQuery({
 			queryKey: userKeys.me,
 			queryFn: () => clientFetch<User>('/api/v1/users/me'),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }

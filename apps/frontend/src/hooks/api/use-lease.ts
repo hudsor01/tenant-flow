@@ -25,6 +25,7 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 export type TenantPortalLease = LeaseWithDetails & {
 	metadata: {
@@ -62,7 +63,7 @@ export function useLease(id: string) {
 		queryKey: leaseKeys.detail(id),
 		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
 	})
@@ -158,7 +159,7 @@ export function useLeaseList(params?: {
 
 			return response
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes
 		retry: 2,
 		structuralSharing: true
@@ -173,7 +174,7 @@ export function useExpiringLeases(daysUntilExpiry: number = 30) {
 		queryKey: [...leaseKeys.expiring(), { days: daysUntilExpiry }],
 		queryFn: () =>
 			clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${daysUntilExpiry}`),
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -185,7 +186,7 @@ export function useLeaseStats() {
 	return useQuery({
 		queryKey: leaseKeys.stats(),
 		queryFn: () => clientFetch('/api/v1/leases/stats'),
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		retry: 2
 	})
 }
@@ -579,7 +580,7 @@ export function usePrefetchLease() {
 		queryClient.prefetchQuery({
 			queryKey: leaseKeys.detail(id),
 			queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }

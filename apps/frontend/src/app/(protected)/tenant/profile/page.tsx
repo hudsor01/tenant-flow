@@ -12,6 +12,16 @@
 'use client'
 
 import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '#components/ui/alert-dialog'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
@@ -37,6 +47,7 @@ export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
 	const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 	const [emergencyContactEditing, setEmergencyContactEditing] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const { data: profile, isLoading: profileLoading } = useUserProfile()
 	const updateProfile = useSupabaseUpdateProfile()
@@ -102,6 +113,24 @@ export default function TenantProfilePage() {
 
 	const handleSave = async (e: React.FormEvent) => {
 		e.preventDefault()
+
+		// Validate email format if provided
+		if (formData.email && formData.email.trim()) {
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+			if (!emailRegex.test(formData.email)) {
+				toast.error('Please enter a valid email address')
+				return
+			}
+		}
+
+		// Validate phone format if provided
+		if (formData.phone && formData.phone.trim()) {
+			const phoneRegex = /^\+?[\d\s\-()]+$/
+			if (!phoneRegex.test(formData.phone) || formData.phone.replace(/\D/g, '').length < 10) {
+				toast.error('Please enter a valid phone number (at least 10 digits)')
+				return
+			}
+		}
 
 		try {
 			await updateProfile.mutateAsync({
@@ -189,14 +218,11 @@ export default function TenantProfilePage() {
 
 	const handleDeleteEmergencyContact = async () => {
 		if (!emergencyContact) return
+		setDeleteDialogOpen(true)
+	}
 
-		if (
-			!confirm(
-				'Are you sure you want to remove this emergency contact? This action cannot be undone.'
-			)
-		) {
-			return
-		}
+	const confirmDeleteEmergencyContact = async () => {
+		if (!emergencyContact) return
 
 		try {
 			await deleteEmergencyContact.mutateAsync()
@@ -207,6 +233,7 @@ export default function TenantProfilePage() {
 				email: ''
 			})
 			setEmergencyContactEditing(false)
+			setDeleteDialogOpen(false)
 		} catch (error) {
 			logger.error('Failed to delete emergency contact', {
 				action: 'delete_emergency_contact',
@@ -633,6 +660,25 @@ export default function TenantProfilePage() {
 				open={passwordDialogOpen}
 				onOpenChange={setPasswordDialogOpen}
 			/>
+
+			{/* Delete Emergency Contact Confirmation Dialog */}
+			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Remove Emergency Contact</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to remove this emergency contact? This action
+							cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={confirmDeleteEmergencyContact}>
+							Remove Contact
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	)
 }

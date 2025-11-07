@@ -191,7 +191,7 @@ export default function PricingPage() {
 			<main className="flex-1 pt-20">
 				{/* Hero */}
 				<section className="relative overflow-hidden py-20 sm:py-24 animate-in fade-in duration-700">
-					<div className="absolute inset-0 bg-linear-to-b from-primary/5 via-background to-transparent" />
+					<div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-transparent" />
 					<div className="relative mx-auto flex max-w-6xl flex-col gap-12 px-6 text-center sm:gap-14 lg:px-8">
 						<div className="flex flex-col items-center gap-6">
 							<Badge className="rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
@@ -308,8 +308,8 @@ export default function PricingPage() {
 							</div>
 							<div className="grid gap-4 lg:grid-cols-2">
 								{faqs.map((faq, index) => (
-									<Accordion
-										key={index}
+							<Accordion
+								key={faq.question}
 										type="single"
 										collapsible
 										className="w-full"

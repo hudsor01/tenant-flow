@@ -5,6 +5,7 @@
 import { clientFetch } from '#lib/api/client'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 
@@ -47,7 +48,7 @@ export function useConnectedAccount() {
 			)
 			return response.data
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 1, // Don't retry much - 404 is expected for new owners
 		retryOnMount: false
 	})
@@ -106,7 +107,7 @@ export function usePrefetchConnectedAccount() {
 				)
 				return response.data
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }

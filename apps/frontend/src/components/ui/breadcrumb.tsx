@@ -105,10 +105,9 @@ export type BreadcrumbItem = {
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
 	const breadcrumbElements = items.flatMap((item, index) => {
 		const isLast = index === items.length - 1
-		const keyBase = `${item.href}-${index}`
 
 		const nodes = [
-			<BreadcrumbItem key={`item-${keyBase}`}>
+			<BreadcrumbItem key={`item-${index}`}>
 				{isLast ? (
 					<BreadcrumbPage>{item.label}</BreadcrumbPage>
 				) : (
@@ -118,7 +117,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
 		]
 
 		if (!isLast) {
-			nodes.push(<BreadcrumbSeparator key={`sep-${keyBase}`} />)
+			nodes.push(<BreadcrumbSeparator key={`sep-${index}`} />)
 		}
 
 		return nodes

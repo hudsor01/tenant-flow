@@ -7,7 +7,7 @@ import { useTenantPortalDocuments } from '#hooks/api/use-tenant-portal'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 
 export default function TenantDocumentsPage() {
-	const { data, isLoading, error } = useTenantPortalDocuments()
+	const { data, isLoading, error, refetch } = useTenantPortalDocuments()
 	const documents = data?.documents ?? []
 	const leaseDocs = documents.filter(doc => doc.type === 'LEASE')
 	const receiptDocs = documents.filter(doc => doc.type === 'RECEIPT')
@@ -30,7 +30,17 @@ export default function TenantDocumentsPage() {
 							<div className="flex items-center gap-1">
 								<Calendar className="size-3" />
 								<span>
-									Uploaded on {new Date(doc.createdAt).toLocaleDateString()}
+									Uploaded on{' '}
+									{(() => {
+										try {
+											const date = new Date(doc.createdAt)
+											return isNaN(date.getTime())
+												? 'Unknown date'
+												: date.toLocaleDateString()
+										} catch {
+											return 'Unknown date'
+										}
+									})()}
 								</span>
 							</div>
 						)}
@@ -47,7 +57,18 @@ export default function TenantDocumentsPage() {
 					size="sm"
 					disabled={!doc.url}
 					aria-label={`View ${doc.name || 'document'}`}
-				onClick={() => doc.url && window.open(doc.url, '_blank', 'noopener,noreferrer')}
+				onClick={() => {
+						if (!doc.url) return
+						// Validate URL scheme for security
+						try {
+							const url = new URL(doc.url)
+							if (url.protocol === 'http:' || url.protocol === 'https:') {
+								window.open(doc.url, '_blank', 'noopener,noreferrer')
+							}
+						} catch {
+							// Invalid URL, do nothing
+						}
+					}}
 				>
 					<Eye className="size-4" />
 				</Button>
@@ -83,9 +104,19 @@ export default function TenantDocumentsPage() {
 
 			{error && (
 				<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
-					<p className="text-sm text-destructive">
-						Failed to load documents. Please try again later.
-					</p>
+					<div className="flex items-center justify-between">
+						<p className="text-sm text-destructive">
+							Failed to load documents. Please try again.
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => refetch()}
+							className="ml-4"
+						>
+							Retry
+						</Button>
+					</div>
 				</div>
 			)}
 

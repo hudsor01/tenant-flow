@@ -347,6 +347,13 @@ export class RentPaymentsService {
 			paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending'
 		const now = new Date().toISOString()
 
+		// Extract receipt URL from payment intent
+		const receiptUrl =
+			typeof paymentIntent.latest_charge === 'object' &&
+			paymentIntent.latest_charge
+				? paymentIntent.latest_charge.receipt_url
+				: undefined
+
 		const { data: rentPayment, error: paymentError } = await adminClient
 			.from('rent_payment')
 			.insert({
@@ -361,6 +368,7 @@ export class RentPaymentsService {
 				status,
 				paymentType,
 				stripePaymentIntentId: paymentIntent.id,
+				receiptUrl: receiptUrl ?? null,
 				paidAt: status === 'succeeded' ? now : null,
 				createdAt: now
 			})
@@ -375,12 +383,6 @@ export class RentPaymentsService {
 			})
 			throw new BadRequestException('Failed to save payment record')
 		}
-
-		const receiptUrl =
-			typeof paymentIntent.latest_charge === 'object' &&
-			paymentIntent.latest_charge
-				? paymentIntent.latest_charge.receipt_url
-				: undefined
 
 		return {
 			payment: rentPayment,
@@ -834,7 +836,9 @@ export class RentPaymentsService {
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
 	 * @returns rentAmount - Monthly rent in CENTS (Stripe standard)
 	 */
-	async getCurrentPaymentStatus(tenantId: string): Promise<CurrentPaymentStatus> {
+	async getCurrentPaymentStatus(
+		tenantId: string
+	): Promise<CurrentPaymentStatus> {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
@@ -890,7 +894,7 @@ export class RentPaymentsService {
 				if (earliestDue) {
 					nextDueDate = earliestDue.dueDate ?? null
 
-							// Check if any payment is overdue using proper Date comparison
+					// Check if any payment is overdue using proper Date comparison
 					const hasOverdue = unpaidPayments.some(
 						(payment: { dueDate: string | null }) => {
 							if (!payment.dueDate) return false

@@ -45,7 +45,6 @@ export class MetricsService implements OnModuleDestroy {
 		string,
 		{ result: ServiceHealth; timestamp: number }
 	>()
-	
 	private readonly thresholds: MetricsThresholds = {
 		memory: { warning: 80, critical: 95 },
 		cache: { maxEntries: 100 },

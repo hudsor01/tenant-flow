@@ -20,7 +20,7 @@ import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { UNIT_STATUS, ERROR_MESSAGES } from '#lib/constants'
+import { UNIT_STATUS, UNIT_STATUS_LABELS, ERROR_MESSAGES } from '#lib/constants'
 
 interface UnitFormProps {
 	mode: 'create' | 'edit'
@@ -148,11 +148,16 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			} catch (error) {
 				const errorMessage =
 					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'unit')
+				
+				// Check for 409 conflict via error status or response
+				const is409Conflict = 
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(error as any)?.status === 409 || 
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(error as any)?.response?.status === 409
+				
 				toast.error(errorMessage, {
-					description:
-						error instanceof Error && error.message.includes('409')
-							? ERROR_MESSAGES.CONFLICT_UPDATE
-							: undefined
+					description: is409Conflict ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
 				})
 			}
 		}
@@ -302,10 +307,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value={UNIT_STATUS.VACANT}>Vacant</SelectItem>
-									<SelectItem value={UNIT_STATUS.OCCUPIED}>Occupied</SelectItem>
-									<SelectItem value={UNIT_STATUS.MAINTENANCE}>Maintenance</SelectItem>
-									<SelectItem value={UNIT_STATUS.RESERVED}>Reserved</SelectItem>
+									<SelectItem value={UNIT_STATUS.VACANT}>{UNIT_STATUS_LABELS.VACANT}</SelectItem>
+									<SelectItem value={UNIT_STATUS.OCCUPIED}>{UNIT_STATUS_LABELS.OCCUPIED}</SelectItem>
+									<SelectItem value={UNIT_STATUS.MAINTENANCE}>{UNIT_STATUS_LABELS.MAINTENANCE}</SelectItem>
+									<SelectItem value={UNIT_STATUS.RESERVED}>{UNIT_STATUS_LABELS.RESERVED}</SelectItem>
 								</SelectContent>
 							</Select>
 						</Field>
