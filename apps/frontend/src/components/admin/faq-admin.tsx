@@ -20,6 +20,8 @@ interface FAQAdminProps {
 	categories: FAQCategory[]
 }
 
+const ADD_CATEGORY_COMING_SOON = 'Add category functionality coming soon'
+
 export default function FAQAdmin({ categories }: FAQAdminProps) {
 	return (
 		<div className="space-y-6">
@@ -30,7 +32,7 @@ export default function FAQAdmin({ categories }: FAQAdminProps) {
 						Manage your frequently asked questions and help content
 					</p>
 				</div>
-				<Button>
+				<Button disabled title={ADD_CATEGORY_COMING_SOON}>
 					<Plus className="size-4 mr-2" />
 					Add Category
 				</Button>
@@ -91,7 +93,7 @@ export default function FAQAdmin({ categories }: FAQAdminProps) {
 						<h3 className="text-lg font-medium mb-2">No FAQ categories yet</h3>
 						<p>Create your first FAQ category to get started</p>
 					</div>
-					<Button>
+					<Button disabled title={ADD_CATEGORY_COMING_SOON}>
 						<Plus className="size-4 mr-2" />
 						Create First Category
 					</Button>

@@ -27,7 +27,8 @@ interface EnsureOwnerCustomerResult {
 export class StripeOwnerService {
 	private readonly logger = new Logger(StripeOwnerService.name)
 	private readonly stripe: Stripe
-	private readonly CACHE_TTL_MS = 5_000
+	// Cache user profile data for 10 minutes (stable data, rarely changes)
+	private readonly CACHE_TTL_MS = 600_000
 	private readonly MAX_CACHE_SIZE = 1000
 	private readonly ownerCache = new Map<
 		string,

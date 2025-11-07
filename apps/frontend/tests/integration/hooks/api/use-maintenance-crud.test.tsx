@@ -39,6 +39,9 @@ let createdUnitIds: string[] = []
 let createdPropertyIds: string[] = []
 
 // Create wrapper with fresh QueryClient for each test
+// Shared QueryClient instance for tests that need cache coordination
+let sharedQueryClient: QueryClient | null = null
+
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -46,6 +49,9 @@ function createWrapper() {
 			mutations: { retry: false }
 		}
 	})
+
+	// Store for cleanup
+	sharedQueryClient = queryClient
 
 	return ({ children }: { children: React.ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -117,6 +123,11 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 
 	// Cleanup after each test (order matters for foreign keys)
 	afterEach(async () => {
+		// Clear QueryClient cache to prevent memory leaks and test pollution
+		if (sharedQueryClient) {
+			sharedQueryClient.clear()
+		}
+
 		// Delete maintenance requests first
 		for (const id of createdMaintenanceIds) {
 			try {
@@ -166,10 +177,8 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				estimatedCost: 150
 			}
 
-			let createdRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				createdRequest = await result.current.mutateAsync(newRequest)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const createdRequest = await result.current.mutateAsync(newRequest)
 
 			// Assertions
 			expect(createdRequest).toBeDefined()
@@ -391,12 +400,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				estimatedCost: 250
 			}
 
-			let updatedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				updatedRequest = await result.current.mutateAsync({
-					id: testRequestId,
-					data: updates
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedRequest = await result.current.mutateAsync({
+				id: testRequestId,
+				data: updates
 			})
 
 			expect(updatedRequest).toBeDefined()
@@ -416,12 +423,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				priority: 'URGENT'
 			}
 
-			let updatedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				updatedRequest = await result.current.mutateAsync({
-					id: testRequestId,
-					data: partialUpdate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedRequest = await result.current.mutateAsync({
+				id: testRequestId,
+				data: partialUpdate
 			})
 
 			expect(updatedRequest).toBeDefined()
@@ -439,12 +444,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				status: 'IN_PROGRESS'
 			}
 
-			let updatedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				updatedRequest = await result.current.mutateAsync({
-					id: testRequestId,
-					data: statusUpdate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedRequest = await result.current.mutateAsync({
+				id: testRequestId,
+				data: statusUpdate
 			})
 
 			expect(updatedRequest!.status).toBe('IN_PROGRESS')
@@ -459,12 +462,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				category: 'ELECTRICAL'
 			}
 
-			let updatedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				updatedRequest = await result.current.mutateAsync({
-					id: testRequestId,
-					data: categoryUpdate
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedRequest = await result.current.mutateAsync({
+				id: testRequestId,
+				data: categoryUpdate
 			})
 
 			expect(updatedRequest!.category).toBe('ELECTRICAL')
@@ -502,13 +503,11 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			let completedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				completedRequest = await result.current.mutateAsync({
-					id: testRequestId,
-					actualCost: 280,
-					notes: 'Replaced faucet'
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const completedRequest = await result.current.mutateAsync({
+				id: testRequestId,
+				actualCost: 280,
+				notes: 'Replaced faucet'
 			})
 
 			expect(completedRequest).toBeDefined()
@@ -522,11 +521,9 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			let completedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				completedRequest = await result.current.mutateAsync({
-					id: testRequestId
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const completedRequest = await result.current.mutateAsync({
+				id: testRequestId
 			})
 
 			expect(completedRequest!.status).toBe('COMPLETED')
@@ -564,12 +561,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			let cancelledRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				cancelledRequest = await result.current.mutateAsync({
-					id: testRequestId,
-					reason: 'Tenant resolved issue'
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const cancelledRequest = await result.current.mutateAsync({
+				id: testRequestId,
+				reason: 'Tenant resolved issue'
 			})
 
 			expect(cancelledRequest).toBeDefined()
@@ -581,11 +576,9 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
-			let cancelledRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				cancelledRequest = await result.current.mutateAsync({
-					id: testRequestId
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const cancelledRequest = await result.current.mutateAsync({
+				id: testRequestId
 			})
 
 			expect(cancelledRequest!.status).toBe('CANCELED')
@@ -615,10 +608,8 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				estimatedCost: 200
 			}
 
-			let createdRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				createdRequest = await createResult.current.mutateAsync(newRequest)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const createdRequest = await createResult.current.mutateAsync(newRequest)
 
 			expect(createdRequest).toBeDefined()
 			expect(createdRequest!.version).toBe(1)
@@ -650,12 +641,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				priority: 'HIGH'
 			}
 
-			let updatedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				updatedRequest = await updateResult.current.mutateAsync({
-					id: createdRequest!.id,
-					data: updates
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const updatedRequest = await updateResult.current.mutateAsync({
+				id: createdRequest!.id,
+				data: updates
 			})
 
 			expect(updatedRequest!.status).toBe('IN_PROGRESS')
@@ -669,12 +658,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				}
 			)
 
-			let completedRequest: MaintenanceRequest | undefined
-			await waitFor(async () => {
-				completedRequest = await completeResult.current.mutateAsync({
-					id: createdRequest!.id,
-					actualCost: 180
-				})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const completedRequest = await completeResult.current.mutateAsync({
+				id: createdRequest!.id,
+				actualCost: 180
 			})
 
 			expect(completedRequest!.status).toBe('COMPLETED')
@@ -720,10 +707,9 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 				unitId
 			}
 
-			await waitFor(async () => {
-				const created = await createResult.current.mutateAsync(newRequest)
-				createdMaintenanceIds.push(created.id)
-			})
+			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
+			const created = await createResult.current.mutateAsync(newRequest)
+			createdMaintenanceIds.push(created.id)
 
 			// List should be invalidated and refetch
 			await waitFor(() => {

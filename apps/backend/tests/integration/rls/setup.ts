@@ -20,19 +20,19 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 export interface TestCredentials {
 	email: string
 	password: string
-	role: 'owner' | 'TENANT'
+	role: 'OWNER' | 'TENANT'
 }
 
 export const TEST_USERS = {
-	owner_A: {
-		email: process.env.E2E_owner_A_EMAIL || 'owner-a@test.tenantflow.local',
-		password: process.env.E2E_owner_A_PASSWORD || 'TestPassword123!',
-		role: 'owner' as const
+	OWNER_A: {
+		email: process.env.E2E_OWNER_A_EMAIL || 'owner-a@test.tenantflow.local',
+		password: process.env.E2E_OWNER_A_PASSWORD || 'TestPassword123!',
+		role: 'OWNER' as const
 	},
-	owner_B: {
-		email: process.env.E2E_owner_B_EMAIL || 'owner-b@test.tenantflow.local',
-		password: process.env.E2E_owner_B_PASSWORD || 'TestPassword123!',
-		role: 'owner' as const
+	OWNER_B: {
+		email: process.env.E2E_OWNER_B_EMAIL || 'owner-b@test.tenantflow.local',
+		password: process.env.E2E_OWNER_B_PASSWORD || 'TestPassword123!',
+		role: 'OWNER' as const
 	},
 	TENANT_A: {
 		email: process.env.E2E_TENANT_A_EMAIL || 'tenant-a@test.tenantflow.local',
@@ -53,7 +53,7 @@ export interface AuthenticatedTestClient {
 	client: SupabaseClient<Database>
 	userId: string
 	email: string
-	role: 'owner' | 'TENANT'
+	role: 'OWNER' | 'TENANT'
 	accessToken: string
 }
 
@@ -121,9 +121,9 @@ export async function authenticateAs(
 				id: authData.data.user.id,
 				supabaseId: authData.data.user.id,
 				email: authData.data.user.email!,
-				firstName: credentials.role === 'owner' ? 'Owner' : 'Tenant',
+				firstName: credentials.role === 'OWNER' ? 'Owner' : 'Tenant',
 				lastName: 'Test',
-				role: credentials.role === 'owner' ? 'OWNER' : 'TENANT'
+				role: credentials.role === 'OWNER' ? 'OWNER' : 'TENANT'
 			})
 
 			if (userError && !userError.message.includes('duplicate key')) {
