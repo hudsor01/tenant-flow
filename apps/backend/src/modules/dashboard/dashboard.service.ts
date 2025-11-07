@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type {
 	DashboardStats,
+	DashboardMetricsResponse,
+	DashboardSummaryResponse,
 	PropertyPerformance,
 	SystemUptime
 } from '@repo/shared/types/core'
@@ -96,12 +98,9 @@ export class DashboardService {
 				return { activities: [] }
 			}
 
-			// Cast to inferred Zod type (PostgreSQL RETURNS TABLE doesn't preserve nullability in generated types)
-			const activities = (data || []) as z.infer<typeof dashboardActivityResponseSchema>['activities']
-
-			// Validate response with dashboardActivityResponseSchema
+			// Validate response with dashboardActivityResponseSchema (pass data directly to safeParse)
 			const validation = dashboardActivityResponseSchema.safeParse({
-				activities
+				activities: data || []
 			})
 			if (validation.success) {
 				return validation.data
@@ -111,8 +110,8 @@ export class DashboardService {
 					validationErrors: validation.error.format()
 				})
 				// Optionally filter valid activities only
-				const validActivities = activities.filter(
-					activity =>
+				const validActivities = (data || []).filter(
+					(activity: unknown) =>
 						dashboardActivityResponseSchema.shape.activities.element.safeParse(
 							activity
 						).success
@@ -329,7 +328,7 @@ export class DashboardService {
 	async getMetrics(
 		userId: string,
 		token?: string
-	): Promise<Record<string, unknown>> {
+	): Promise<DashboardMetricsResponse> {
 		try {
 			this.logger.log('Fetching dashboard metrics via repository', { userId })
 
@@ -352,7 +351,16 @@ export class DashboardService {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
-			return {}
+			return {
+				totalProperties: 0,
+				totalUnits: 0,
+				totalTenants: 0,
+				totalLeases: 0,
+				occupancyRate: 0,
+				monthlyRevenue: 0,
+				maintenanceRequests: 0,
+				timestamp: new Date().toISOString()
+			}
 		}
 	}
 
@@ -363,7 +371,7 @@ export class DashboardService {
 	async getSummary(
 		userId: string,
 		token?: string
-	): Promise<Record<string, unknown>> {
+	): Promise<DashboardSummaryResponse> {
 		try {
 			this.logger.log('Fetching dashboard summary via repository', { userId })
 
@@ -402,7 +410,27 @@ export class DashboardService {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
-			return {}
+			return {
+				overview: {
+					properties: 0,
+					units: 0,
+					tenants: 0,
+					occupancyRate: 0
+				},
+				revenue: {
+					monthly: 0,
+					yearly: 0,
+					growth: 0
+				},
+				maintenance: {
+					open: 0,
+					inProgress: 0,
+					avgResolutionTime: 0
+				},
+				recentActivity: [],
+				topPerformingProperties: [],
+				timestamp: new Date().toISOString()
+			}
 		}
 	}
 

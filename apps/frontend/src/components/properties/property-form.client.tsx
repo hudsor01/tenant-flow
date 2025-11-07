@@ -40,6 +40,7 @@ import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import { SUPABASE_URL } from '@repo/shared/config/supabase'
+import { ERROR_MESSAGES } from '#lib/constants'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 
@@ -161,7 +162,7 @@ export function PropertyForm({
 				})
 
 				const errorMessage =
-					error instanceof Error ? error.message : `Failed to ${mode} property`
+					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'property')
 				toast.error(errorMessage)
 			}
 		},

@@ -1641,6 +1641,13 @@ export class TenantsService {
 			unitId: leaseData.unitId
 		})
 
+		// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
+		if (!leaseData.rentAmount || leaseData.rentAmount < 0) {
+			throw new BadRequestException(
+				'rentAmount is required and must be non-negative'
+			)
+		}
+
 		const client = this.supabase.getAdminClient()
 
 		// 🔐 BUG FIX #2: Use Saga pattern for transactional tenant+lease+auth creation
@@ -1912,13 +1919,6 @@ export class TenantsService {
 					}
 
 					const stripe = this.stripeConnectService.getStripe()
-
-					// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
-					if (!leaseData.rentAmount || leaseData.rentAmount < 0) {
-						throw new BadRequestException(
-							'rentAmount is required and must be non-negative'
-						)
-					}
 
 					const rentAmountInCents =
 						leaseData.rentAmount >= 100000

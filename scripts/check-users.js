@@ -18,10 +18,11 @@ async function checkUsers() {
 	const supabase = createClient(supabaseUrl, supabaseSecretKey)
 
 	const { data, error } = await supabase.auth.admin.listUsers()
-	console.log('Total users:', data?.users?.length || 0)
 	if (error) {
-		console.error('Error:', error.message)
+		console.error('Error fetching users:', error.message)
+		process.exit(1)
 	}
+	console.log('Total users:', data?.users?.length || 0)
 
 	if (data?.users) {
 		const testUsers = data.users.filter(user =>

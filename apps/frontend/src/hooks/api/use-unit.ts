@@ -282,21 +282,17 @@ export function useUpdateUnit() {
 	return useMutation({
 		mutationFn: async ({
 			id,
-			data
+			data,
+			version
 		}: {
 			id: string
 			data: UpdateUnitInput
+			version?: number
 		}): Promise<Unit> => {
-			// 🔐 BUG FIX #2: Get current version from cache for optimistic locking
-			const currentUnit = queryClient.getQueryData<Unit>(unitKeys.detail(id))
-
 			return clientFetch<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
-				// Use withVersion helper to include version in request
 				body: JSON.stringify(
-					currentUnit?.version !== null
-						? withVersion(data, currentUnit!.version)
-						: data
+					version !== null && version !== undefined ? withVersion(data, version) : data
 				)
 			})
 		},
