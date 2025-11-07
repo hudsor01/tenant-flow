@@ -15,17 +15,38 @@ export class FAQService {
 	private mapQuestion(
 		question: Database['public']['Tables']['faq_questions']['Row']
 	) {
+		// Validate required fields
+		const requiredFields = {
+			id: question.id,
+			category_id: question.category_id,
+			question: question.question,
+			answer: question.answer,
+			created_at: question.created_at,
+			updated_at: question.updated_at
+		}
+
+		const missingFields = Object.entries(requiredFields)
+			.filter(([_, value]) => value === null || value === undefined || value === '')
+			.map(([key]) => key)
+
+		if (missingFields.length > 0) {
+			throw new Error(
+				`Invalid FAQ question data: missing required fields [${missingFields.join(', ')}]. ` +
+				`Question ID: ${question.id || 'unknown'}`
+			)
+		}
+
 		return {
-			id: question.id ?? '',
-			categoryId: question.category_id ?? '',
-			question: question.question ?? '',
-			answer: question.answer ?? '',
+			id: question.id!,
+			categoryId: question.category_id!,
+			question: question.question!,
+			answer: question.answer!,
 			displayOrder: question.display_order ?? 0,
 			isActive: question.is_active ?? false,
 			viewCount: question.view_count ?? 0,
 			helpfulCount: question.helpful_count ?? 0,
-			createdAt: question.created_at ?? '',
-			updatedAt: question.updated_at ?? ''
+			createdAt: question.created_at!,
+			updatedAt: question.updated_at!
 		}
 	}
 
@@ -185,6 +206,13 @@ export class FAQService {
 	 * Increment view count for a question (for analytics)
 	 */
 	async incrementQuestionView(questionId: string): Promise<void> {
+		// Validate questionId is a valid UUID
+		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+		if (!questionId || typeof questionId !== 'string' || !uuidRegex.test(questionId)) {
+			this.logger.debug('Invalid questionId for incrementQuestionView', { questionId })
+			return
+		}
+
 		try {
 			const client = this.supabase.getAdminClient()
 
@@ -210,6 +238,13 @@ export class FAQService {
 	 * Mark a question as helpful (for analytics)
 	 */
 	async incrementQuestionHelpful(questionId: string): Promise<void> {
+		// Validate questionId is a valid UUID
+		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+		if (!questionId || typeof questionId !== 'string' || !uuidRegex.test(questionId)) {
+			this.logger.debug('Invalid questionId for incrementQuestionHelpful', { questionId })
+			return
+		}
+
 		try {
 			const client = this.supabase.getAdminClient()
 

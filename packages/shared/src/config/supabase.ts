@@ -94,3 +94,37 @@ export const SUPABASE_PUBLISHABLE_KEY = (() => {
 	}
 	return getSupabasePublishableKey()
 })()
+
+/**
+ * Validates that Supabase configuration is properly set.
+ *
+ * **Warning**: SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY may be empty when
+ * SKIP_ENV_VALIDATION === 'true'. Consumers must call this function before
+ * creating Supabase clients to ensure configuration is valid.
+ *
+ * @throws {Error} If SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is falsy
+ *
+ * @example
+ * ```typescript
+ * import { assertSupabaseConfig, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
+ *
+ * // Before creating client
+ * assertSupabaseConfig()
+ * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+ * ```
+ */
+export function assertSupabaseConfig(): void {
+	if (!SUPABASE_URL) {
+		throw new Error(
+			'SUPABASE_URL is not configured. ' +
+			'Please set SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL in your environment.'
+		)
+	}
+
+	if (!SUPABASE_PUBLISHABLE_KEY) {
+		throw new Error(
+			'SUPABASE_PUBLISHABLE_KEY is not configured. ' +
+			'Please set SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in your environment.'
+		)
+	}
+}
