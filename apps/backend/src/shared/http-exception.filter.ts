@@ -9,7 +9,7 @@ import {
 import { Request, Response } from 'express'
 
 type ExceptionResponse = {
-	message?: string
+	message?: string | string[]
 	error?: string
 	[key: string]: unknown
 }
@@ -37,7 +37,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
 				'message' in exceptionResponse
 			) {
 				const responseObj = exceptionResponse as ExceptionResponse
-				message = responseObj.message || message
+				const rawMessage = responseObj.message
+				// Handle array messages (e.g., from class-validator)
+				if (Array.isArray(rawMessage)) {
+					message = rawMessage.join('; ')
+				} else {
+					message = rawMessage || message
+				}
 			}
 		}
 

@@ -283,7 +283,7 @@ function resolveSupabaseJwtConfig(supabaseUrl: string): {
 		}
 
 		logger.log('Using HS256 with shared secret verification')
-		logger.log(`Secret key length: ${secret.length} characters`)
+		// Remove secret length logging to avoid security information disclosure
 		return {
 			algorithm,
 			isAsymmetric,
