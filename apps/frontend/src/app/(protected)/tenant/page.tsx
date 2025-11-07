@@ -28,6 +28,23 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+/**
+ * Formats next payment date from upcoming payment or returns TBD
+ */
+function getNextPaymentDate(
+	upcomingPayment: { dueDate?: string | null } | null | undefined,
+	formatDate: (date: string | Date, options?: Intl.DateTimeFormatOptions) => string
+): string {
+	if (upcomingPayment?.dueDate) {
+		return formatDate(upcomingPayment.dueDate, {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		})
+	}
+	return 'TBD'
+}
+
 export default function TenantDashboardPage() {
 	// Modern helpers - assume valid inputs
 	const formatDate = (
@@ -61,16 +78,7 @@ export default function TenantDashboardPage() {
 	const leaseLoading = dashboardLoading && !activeLease
 
 	// Calculate next payment date (1st of next month)
-	const getNextPaymentDate = () => {
-		if (upcomingPayment?.dueDate) {
-			return formatDate(upcomingPayment.dueDate, {
-				month: 'short',
-				day: 'numeric',
-				year: 'numeric'
-			})
-		}
-		return 'TBD'
-	}
+	const nextPaymentDate = getNextPaymentDate(upcomingPayment, formatDate)
 
 	// Show error if either dashboard or lease fails to load
 	const error = dashboardError || leaseError
@@ -138,7 +146,7 @@ export default function TenantDashboardPage() {
 							{leaseLoading || !activeLease ? (
 								<Skeleton className="h-7 w-32" />
 							) : (
-								<p className="text-xl font-semibold">{getNextPaymentDate()}</p>
+								<p className="text-xl font-semibold">{nextPaymentDate}</p>
 							)}
 						</div>
 					</div>
@@ -253,7 +261,7 @@ export default function TenantDashboardPage() {
 								<div>
 									<p className="font-medium">Monthly Rent</p>
 									<p className="text-sm text-muted-foreground">
-										Due: {getNextPaymentDate()}
+										Due: {nextPaymentDate}
 									</p>
 								</div>
 								<div className="text-right">
