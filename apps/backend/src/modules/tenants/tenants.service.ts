@@ -32,6 +32,21 @@ import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 
+
+/**
+ * Emergency contact information for a tenant
+ */
+export interface EmergencyContactResponse {
+	id: string
+	tenantId: string
+	contactName: string
+	relationship: string
+	phoneNumber: string
+	email: string | null
+	createdAt: string
+	updatedAt: string
+}
+
 export interface TenantWithRelations extends Tenant {
 	_Lease?: {
 		id: string
@@ -1642,9 +1657,29 @@ export class TenantsService {
 		})
 
 		// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
-		if (!leaseData.rentAmount || leaseData.rentAmount < 0) {
+		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined || (typeof leaseData.rentAmount === 'string' && leaseData.rentAmount === '')) {
+			throw new BadRequestException('rentAmount is required')
+		}
+
+		const rentAmountNum = typeof leaseData.rentAmount === 'string' 
+			? parseFloat(leaseData.rentAmount) 
+			: leaseData.rentAmount
+
+		if (!Number.isFinite(rentAmountNum)) {
+			throw new BadRequestException('rentAmount must be a valid number')
+		}
+
+		// Convert to cents and validate range
+		const rentAmountCents = Math.round(rentAmountNum * 100)
+		const MAX_STRIPE_AMOUNT = 99999999 // Stripe limit in cents ($999,999.99)
+
+		if (rentAmountCents < 0) {
+			throw new BadRequestException('rentAmount must be non-negative')
+		}
+
+		if (rentAmountCents > MAX_STRIPE_AMOUNT) {
 			throw new BadRequestException(
-				'rentAmount is required and must be non-negative'
+				`rentAmount exceeds maximum allowed value ($${(MAX_STRIPE_AMOUNT / 100).toLocaleString()})`
 			)
 		}
 
@@ -1740,7 +1775,7 @@ export class TenantsService {
 							tenantId: createdTenant.id,
 							propertyId: leaseData.propertyId,
 							unitId: leaseData.unitId || null,
-							rentAmount: leaseData.rentAmount,
+						rentAmount: rentAmountCents,
 							// monthlyRent is a GENERATED ALWAYS column (copies rentAmount automatically)
 							securityDeposit: leaseData.securityDeposit,
 							startDate: leaseData.startDate,
@@ -1920,10 +1955,7 @@ export class TenantsService {
 
 					const stripe = this.stripeConnectService.getStripe()
 
-					const rentAmountInCents =
-						leaseData.rentAmount >= 100000
-							? Math.round(leaseData.rentAmount)
-							: Math.round(leaseData.rentAmount * 100)
+					const rentAmountInCents = rentAmountCents
 
 					// Create a Price for the rent amount on the connected account
 					const price = await stripe.prices.create(
@@ -2066,7 +2098,7 @@ export class TenantsService {
 								lastName: tenantData.lastName,
 								propertyName,
 								...(unitNumber && { unitNumber }),
-								rentAmount: leaseData.rentAmount,
+							rentAmount: rentAmountCents,
 								startDate: leaseData.startDate,
 								endDate: leaseData.endDate,
 								role: 'tenant'
@@ -2488,16 +2520,7 @@ export class TenantsService {
 	async getEmergencyContact(
 		userId: string,
 		tenantId: string
-	): Promise<{
-		id: string
-		tenantId: string
-		contactName: string
-		relationship: string
-		phoneNumber: string
-		email: string | null
-		createdAt: string
-		updatedAt: string
-	} | null> {
+	): Promise<EmergencyContactResponse | null> {
 		const client = this.supabase.getAdminClient()
 
 		// Verify ownership first
@@ -2586,6 +2609,22 @@ export class TenantsService {
 				tenantId
 			})
 			throw new BadRequestException('Tenant not found or access denied')
+		}
+
+		// Validate phone number format
+		const phoneRegex = /^[\d+()-\s]+$/
+		if (!phoneRegex.test(data.phoneNumber)) {
+			throw new BadRequestException(
+				'Invalid phone number format. Must contain only digits, +, (), -, and spaces'
+			)
+		}
+
+		// Validate email format if provided
+		if (data.email) {
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+			if (!emailRegex.test(data.email)) {
+				throw new BadRequestException('Invalid email format')
+			}
 		}
 
 		// Create emergency contact
