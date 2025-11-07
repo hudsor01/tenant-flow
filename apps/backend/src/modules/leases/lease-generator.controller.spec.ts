@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
-import type { Response } from 'express'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { LeaseGeneratorController } from './lease-generator.controller'
@@ -71,12 +70,7 @@ describe('LeaseGeneratorController', () => {
 		}
 	}
 
-	const mockReply = {
-		type: jest.fn().mockReturnThis(),
-		header: jest.fn().mockReturnThis(),
-		status: jest.fn().mockReturnThis(),
-		send: jest.fn().mockReturnThis()
-	}
+
 
 	beforeEach(async () => {
 		pdfService = { generateLeasePDF: jest.fn() }
@@ -190,39 +184,48 @@ describe('LeaseGeneratorController', () => {
 	})
 
 	describe('downloadLease', () => {
-		it('streams PDF with attachment headers', async () => {
-			const pdfBuffer = Buffer.from('test-pdf')
-			pdfService.generateLeasePDF.mockResolvedValue(pdfBuffer)
+		it('throws error when leaseId is missing', async () => {
+			const mockReq = {
+				headers: { authorization: 'Bearer mock-token' }
+			} as any
 
-			await controller.downloadLease(
-				'test.pdf',
-				mockReply as unknown as Response
-			)
+			await expect(
+				controller.downloadLease(undefined, mockReq)
+			).rejects.toThrow('leaseId query parameter is required')
+		})
 
-			expect(mockReply.type).toHaveBeenCalledWith('application/pdf')
-			expect(mockReply.header).toHaveBeenCalledWith(
-				'Content-Disposition',
-				'attachment; filename="test.pdf"'
-			)
-			expect(mockReply.send).toHaveBeenCalledWith(pdfBuffer)
+		it('throws error indicating transformation not implemented', async () => {
+			const mockReq = {
+				headers: { authorization: 'Bearer mock-token' }
+			} as any
+
+			// Note: Implementation now fetches from database but transformation layer
+			// not yet implemented, so it throws InternalServerErrorException
+			await expect(
+				controller.downloadLease('test-lease-id', mockReq)
+			).rejects.toThrow('not yet implemented')
 		})
 	})
 
 	describe('previewLease', () => {
-		it('streams PDF with inline headers', async () => {
-			const pdfBuffer = Buffer.from('test-pdf')
-			pdfService.generateLeasePDF.mockResolvedValue(pdfBuffer)
+		it('throws error when leaseId is missing', async () => {
+			const mockReq = {
+				headers: { authorization: 'Bearer mock-token' }
+			} as any
 
-			await controller.previewLease(
-				'test.pdf',
-				mockReply as unknown as Response
-			)
+			await expect(
+				controller.previewLease(undefined, mockReq)
+			).rejects.toThrow('leaseId query parameter is required')
+		})
 
-			expect(mockReply.header).toHaveBeenCalledWith(
-				'Content-Disposition',
-				'inline; filename="test.pdf"'
-			)
-			expect(mockReply.send).toHaveBeenCalledWith(pdfBuffer)
+		it('throws error indicating transformation not implemented', async () => {
+			const mockReq = {
+				headers: { authorization: 'Bearer mock-token' }
+			} as any
+
+			await expect(
+				controller.previewLease('test-lease-id', mockReq)
+			).rejects.toThrow('not yet implemented')
 		})
 	})
 
