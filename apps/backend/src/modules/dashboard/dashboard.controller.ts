@@ -170,6 +170,42 @@ export class DashboardController {
 		}
 	}
 
+	@Get('billing/insights/available')
+	async checkBillingInsightsAvailability(
+		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string
+	): Promise<ControllerApiResponse> {
+		const token = this.supabase.getTokenFromRequest(req)
+
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+
+		this.logger?.log(
+			{
+				dashboard: {
+					action: 'checkBillingInsightsAvailability',
+					userId
+				}
+			},
+			'Checking billing insights availability'
+		)
+
+		const available = await this.dashboardService.isBillingInsightsAvailable(
+			userId,
+			token
+		)
+
+		return {
+			success: true,
+			data: { available },
+			message: available
+				? 'Billing insights are available'
+				: 'Billing insights are not available',
+			timestamp: new Date()
+		}
+	}
+
 	async getBillingHealth(
 		@Request() req: AuthenticatedRequest,
 		@UserId() userId: string

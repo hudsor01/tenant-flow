@@ -356,23 +356,108 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		// Use centralized client selection
 		const client = this.getClientForToken(token)
 
-		// Simple billing insights (placeholder for now)
-			const { data, error } = await client
-				.from('property')
-				.select('id')
-				.eq('ownerId', userId)
-				.limit(1)
+		// Build date filter conditions
+		const startDate = options?.startDate
+		const endDate = options?.endDate
 
-			if (error) {
-				this.logger.error('Failed to calculate billing insights', {
-					error,
-					userId,
-					options
-				})
-				return {}
+		// Calculate total revenue from PAID rent payments
+		const revenueQuery = client
+			.from('rent_payment')
+			.select('amount, lease!inner(unit!inner(property!inner(ownerId)))')
+			.eq('lease.unit.property.ownerId', userId)
+			.eq('status', 'PAID')
+
+		if (startDate) {
+			revenueQuery.gte('paidAt', startDate.toISOString())
+		}
+		if (endDate) {
+			revenueQuery.lte('paidAt', endDate.toISOString())
+		}
+
+		const { data: revenueData, error: revenueError } = await revenueQuery
+
+		if (revenueError) {
+			this.logger.error('Failed to calculate total revenue', {
+				error: revenueError,
+				userId,
+				options
+			})
+			return {
+				totalRevenue: 0,
+				churnRate: 0,
+				mrr: 0
 			}
+		}
 
-			return { placeholder: 'billing_insights', count: data?.length || 0 }
+		const totalRevenue = (revenueData || []).reduce(
+			(sum, payment) => sum + (payment.amount || 0),
+			0
+		)
+
+		// Calculate MRR from active leases
+		const { data: mrrData, error: mrrError } = await client
+			.from('lease')
+			.select('monthlyRent, unit!inner(property!inner(ownerId))')
+			.eq('unit.property.ownerId', userId)
+			.eq('status', 'ACTIVE')
+
+		if (mrrError) {
+			this.logger.error('Failed to calculate MRR', {
+				error: mrrError,
+				userId
+			})
+			return {
+				totalRevenue,
+				churnRate: 0,
+				mrr: 0
+			}
+		}
+
+		const mrr = (mrrData || []).reduce(
+			(sum, lease) => sum + (lease.monthlyRent || 0),
+			0
+		)
+
+		// Calculate churn rate (OVERDUE payments / total payments)
+		const churnQuery = client
+			.from('rent_payment')
+			.select('status, lease!inner(unit!inner(property!inner(ownerId)))', {
+				count: 'exact'
+			})
+			.eq('lease.unit.property.ownerId', userId)
+
+		if (startDate) {
+			churnQuery.gte('dueDate', startDate.toISOString())
+		}
+		if (endDate) {
+			churnQuery.lte('dueDate', endDate.toISOString())
+		}
+
+		const { data: churnData, error: churnError } = await churnQuery
+
+		if (churnError) {
+			this.logger.error('Failed to calculate churn rate', {
+				error: churnError,
+				userId,
+				options
+			})
+			return {
+				totalRevenue,
+				churnRate: 0,
+				mrr
+			}
+		}
+
+		const totalPayments = churnData?.length || 0
+		const overduePayments =
+			churnData?.filter((p) => p.status === 'OVERDUE').length || 0
+		const churnRate = totalPayments > 0 ? overduePayments / totalPayments : 0
+
+		return {
+			totalRevenue,
+			churnRate,
+			mrr
+		}
 		} catch (error) {
 			this.logger.error(
 				`Database error in getBillingInsights: ${error instanceof Error ? error.message : String(error)}`,
@@ -382,7 +467,12 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					options
 				}
 			)
-			return {}
+			// Return valid schema structure on error
+			return {
+				totalRevenue: 0,
+				churnRate: 0,
+				mrr: 0
+			}
 		}
 	}
 

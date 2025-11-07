@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import type {
 	DashboardStats,
 	DashboardMetricsResponse,
@@ -144,7 +144,8 @@ export class DashboardService {
 		endDate?: Date
 	): Promise<z.infer<typeof billingInsightsSchema> | null> {
 		if (!userId) {
-			throw new BadRequestException('userId is required for billing insights')
+			this.logger.warn('getBillingInsights called without userId')
+			return null
 		}
 		try {
 			const result = await this.dashboardAnalyticsService.getBillingInsights(
