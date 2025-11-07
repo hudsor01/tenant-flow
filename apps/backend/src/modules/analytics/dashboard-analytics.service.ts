@@ -66,17 +66,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 				// Retry with exponential backoff
 				if (attempt < this.MAX_RETRIES) {
-					const delay = this.RETRY_DELAYS_MS[attempt]
-					this.logger.log(
-						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/${this.MAX_RETRIES})`
-					)
-					await new Promise(resolve => {
-						const timer = setTimeout(() => {
-							this.pendingTimers.delete(timer)
-							resolve(undefined)
-						}, delay)
-						this.pendingTimers.add(timer)
-					})
+					await this.retryWithBackoff(attempt, functionName)
 					return this.callRpc<T>(functionName, payload, token, attempt + 1)
 				}
 
@@ -94,22 +84,37 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 			// Retry on unexpected errors too
 			if (attempt < this.MAX_RETRIES) {
-				const delay = this.RETRY_DELAYS_MS[attempt]
-				this.logger.log(
-					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/${this.MAX_RETRIES})`
-				)
-				await new Promise(resolve => {
-					const timer = setTimeout(() => {
-						this.pendingTimers.delete(timer)
-						resolve(undefined)
-					}, delay)
-					this.pendingTimers.add(timer)
-				})
+				await this.retryWithBackoff(attempt, functionName, 'exception')
 				return this.callRpc<T>(functionName, payload, token, attempt + 1)
 			}
 
 			return null
 		}
+	}
+
+	/**
+	 * Centralized retry logic with exponential backoff and timer cleanup.
+	 * @param attempt - Current attempt number (0-indexed)
+	 * @param functionName - Name of the function being retried
+	 * @param reason - Reason for retry (default: 'error', or 'exception')
+	 */
+	private async retryWithBackoff(
+		attempt: number,
+		functionName: string,
+		reason: 'error' | 'exception' = 'error'
+	): Promise<void> {
+		const delay = this.RETRY_DELAYS_MS[attempt]
+		const reasonText = reason === 'exception' ? 'due to exception' : ''
+		this.logger.log(
+			`Retrying RPC ${functionName} after ${delay}ms ${reasonText}(attempt ${attempt + 1}/${this.MAX_RETRIES})`.trim()
+		)
+		await new Promise<void>(resolve => {
+			const timer = setTimeout(() => {
+				this.pendingTimers.delete(timer)
+				resolve()
+			}, delay)
+			this.pendingTimers.add(timer)
+		})
 	}
 
 	async getDashboardStats(userId: string, token?: string): Promise<DashboardStats> {

@@ -69,6 +69,14 @@ type CachedProductsResponse = {
 }
 
 /**
+ * Cached prices response structure
+ */
+type CachedPricesResponse = {
+	success: boolean
+	prices: Stripe.Price[]
+}
+
+/**
  * Production-Grade Stripe Integration Controller
  *
  * Based on comprehensive official Stripe documentation research:
@@ -111,10 +119,13 @@ export class StripeController {
 		additionalContext?: string
 	): string {
 		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
-		const secret =
-			process.env.IDEMPOTENCY_KEY_SECRET ||
-			process.env.JWT_SECRET ||
-			'fallback-secret-for-dev'
+		const secret = process.env.IDEMPOTENCY_KEY_SECRET || process.env.JWT_SECRET
+
+		if (!secret) {
+			throw new Error(
+				'Missing IDEMPOTENCY_KEY_SECRET or JWT_SECRET environment variable'
+			)
+		}
 
 		// Combine all inputs into a stable string
 		const context = additionalContext ? `_${additionalContext}` : ''
@@ -1604,9 +1615,9 @@ export class StripeController {
 		const cacheKey = 'stripe:products'
 
 		// Try cache first (5 minute TTL for public pricing data)
-		const cached = (await this.cacheManager.get(
-			cacheKey
-		)) as CachedProductsResponse | undefined
+		const cached = (await this.cacheManager.get(cacheKey)) as
+			| CachedProductsResponse
+			| undefined
 		if (cached) {
 			this.logger.debug('Returning cached products')
 			return cached
@@ -1707,18 +1718,12 @@ export class StripeController {
 	 */
 	@Get('prices')
 	@HttpCode(HttpStatus.OK)
-	async getPrices(): Promise<{
-		success: boolean
-		prices: Stripe.Price[]
-	}> {
+	async getPrices(): Promise<CachedPricesResponse> {
 		const cacheKey = 'stripe:prices'
 
 		// Try cache first (5 minute TTL)
 		const cached = (await this.cacheManager.get(cacheKey)) as
-			| {
-					success: boolean
-					prices: Stripe.Price[]
-			  }
+			| CachedPricesResponse
 			| undefined
 		if (cached) {
 			this.logger.debug('Returning cached prices')
@@ -1734,7 +1739,7 @@ export class StripeController {
 				expand: ['data.product']
 			})
 
-			const result = {
+			const result: CachedPricesResponse = {
 				success: true,
 				prices: prices.data
 			}
