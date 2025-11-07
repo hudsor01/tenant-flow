@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 export const billingInsightsSchema = z.object({
-	totalRevenue: z.number(),
-	churnRate: z.number(),
-	mrr: z.number()
+	totalRevenue: z.number().nonnegative(),
+	churnRate: z.number().min(0).max(1),
+	mrr: z.number().nonnegative()
 })
 
 export const activitySchema = z.object({
