@@ -360,11 +360,18 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const client = this.getClientForToken(token)
 
 			// Call optimized RPC function that consolidates 3 queries into one
-			const { data, error } = await client.rpc('get_billing_insights', {
-				owner_id_param: userId,
-				start_date_param: options?.startDate?.toISOString() || null,
-				end_date_param: options?.endDate?.toISOString() || null
-			})
+			// Build params conditionally to satisfy exactOptionalPropertyTypes
+			const params: { user_id: string; start_date?: string; end_date?: string } = {
+				user_id: userId
+			}
+			if (options?.startDate) {
+				params.start_date = options.startDate.toISOString()
+			}
+			if (options?.endDate) {
+				params.end_date = options.endDate.toISOString()
+			}
+
+			const { data, error } = await client.rpc('get_billing_insights', params)
 
 			if (error) {
 				this.logger.error('Failed to get billing insights via RPC', {
