@@ -46,9 +46,12 @@ describe('RLS: Property Isolation', () => {
 	})
 
 	afterAll(async () => {
-		// Cleanup units first (foreign key constraint)
+		// Cleanup in correct order: units first (foreign key), then properties
 		for (const id of testData.units) {
 			await serviceClient.from('unit').delete().eq('id', id)
+		}
+		for (const id of testData.properties) {
+			await serviceClient.from('property').delete().eq('id', id)
 		}
 	})
 

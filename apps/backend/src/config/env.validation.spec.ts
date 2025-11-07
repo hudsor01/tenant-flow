@@ -99,9 +99,56 @@ describe('Environment Validation', () => {
 			delete process.env.SUPABASE_JWT_SECRET
 			delete process.env.CORS_ORIGINS
 
-			// Note: SUPABASE_JWT_SECRET is no longer required - we use JWKS endpoint
+			// Note: SUPABASE_JWT_SECRET remains optional; signing algorithm detection handles verification
 			expect(() => validateEnvironment()).toThrow(
 				'Critical environment variables missing: SUPABASE_URL, SUPABASE_SECRET_KEY, JWT_SECRET, CORS_ORIGINS'
+			)
+		})
+
+		it('should accept supported SUPABASE_JWT_ALGORITHM values', () => {
+			process.env.DATABASE_URL =
+				'postgresql://user:pass@localhost:5432/testdb'
+			process.env.DIRECT_URL = 'postgresql://user:pass@localhost:5432/testdb'
+			process.env.JWT_SECRET = 'a'.repeat(32)
+			process.env.SUPABASE_URL = 'https://project.supabase.co'
+			process.env.SUPABASE_SECRET_KEY = 'secret-key'
+			process.env.CORS_ORIGINS = 'https://example.com'
+			process.env.SUPABASE_JWT_SECRET = 'b'.repeat(32)
+
+			for (const algorithm of ['hs256', 'RS256', 'Es256']) {
+				process.env.SUPABASE_JWT_ALGORITHM = algorithm
+				expect(() => validateEnvironment()).not.toThrow()
+			}
+		})
+
+		it('should throw for invalid SUPABASE_JWT_ALGORITHM values', () => {
+			process.env.DATABASE_URL =
+				'postgresql://user:pass@localhost:5432/testdb'
+			process.env.DIRECT_URL = 'postgresql://user:pass@localhost:5432/testdb'
+			process.env.JWT_SECRET = 'a'.repeat(32)
+			process.env.SUPABASE_URL = 'https://project.supabase.co'
+			process.env.SUPABASE_SECRET_KEY = 'secret-key'
+			process.env.CORS_ORIGINS = 'https://example.com'
+
+			process.env.SUPABASE_JWT_ALGORITHM = 'HS512'
+
+			expect(() => validateEnvironment()).toThrow(
+				'Invalid SUPABASE_JWT_ALGORITHM value "HS512". Allowed values: HS256, RS256, ES256.'
+			)
+		})
+
+		it('should enforce minimum length for SUPABASE_JWT_SECRET when provided', () => {
+			process.env.DATABASE_URL =
+				'postgresql://user:pass@localhost:5432/testdb'
+			process.env.DIRECT_URL = 'postgresql://user:pass@localhost:5432/testdb'
+			process.env.JWT_SECRET = 'a'.repeat(32)
+			process.env.SUPABASE_URL = 'https://project.supabase.co'
+			process.env.SUPABASE_SECRET_KEY = 'secret-key'
+			process.env.CORS_ORIGINS = 'https://example.com'
+			process.env.SUPABASE_JWT_SECRET = 'short'
+
+			expect(() => validateEnvironment()).toThrow(
+				'SUPABASE_JWT_SECRET (or SERVICE_ROLE_KEY) must be at least 32 characters when provided.'
 			)
 		})
 	})

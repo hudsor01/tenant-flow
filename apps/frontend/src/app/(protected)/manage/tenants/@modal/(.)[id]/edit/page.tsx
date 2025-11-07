@@ -32,7 +32,10 @@ export default async function EditTenantModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		logger.error('Failed to load tenant edit modal', { error })
+		logger.error('Failed to load tenant edit modal', {
+			message: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined
+		})
 		notFound()
 	}
 }

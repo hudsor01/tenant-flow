@@ -255,10 +255,12 @@ export class RentPaymentsService {
 			throw new NotFoundException('Payment method not found')
 		}
 
-		if (paymentMethod.tenantId !== tenant.userId) {
+		if (paymentMethod.tenantId !== tenant.id) {
 			this.logger.warn('Payment method does not belong to tenant', {
 				requestingUserId,
 				tenantId,
+				tenantRecordId: tenant.id,
+				paymentMethodTenantId: paymentMethod.tenantId,
 				paymentMethodId
 			})
 			throw new ForbiddenException('Payment method not accessible')
@@ -808,8 +810,9 @@ export class RentPaymentsService {
 	 *
 	 * Task 2.4: Payment Status Tracking
 	 *
+	 * IMPORTANT: All amounts use Stripe standard (CENTS, not dollars)
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
-	 * @returns rentAmount - Monthly rent in DOLLARS
+	 * @returns rentAmount - Monthly rent in CENTS (Stripe standard)
 	 */
 	async getCurrentPaymentStatus(tenantId: string): Promise<{
 		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
@@ -855,7 +858,6 @@ export class RentPaymentsService {
 				.order('dueDate', { ascending: true })
 
 			const now = new Date()
-			const today: string = now.toISOString().split('T')[0]!
 
 			// Calculate status based on unpaid payments
 			let status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING' = 'PAID'
@@ -875,10 +877,13 @@ export class RentPaymentsService {
 				if (earliestDue) {
 					nextDueDate = earliestDue.dueDate ?? null
 
-					// Check if any payment is overdue
+							// Check if any payment is overdue using proper Date comparison
 					const hasOverdue = unpaidPayments.some(
-						(payment: { dueDate: string | null }) =>
-							payment.dueDate && payment.dueDate < today
+						(payment: { dueDate: string | null }) => {
+							if (!payment.dueDate) return false
+							const dueDate = new Date(payment.dueDate)
+							return dueDate < now
+						}
 					)
 
 					if (hasOverdue) {
@@ -916,6 +921,33 @@ export class RentPaymentsService {
 				error: error instanceof Error ? error.message : String(error)
 			})
 			throw error
+		}
+	}
+
+	/**
+	 * Verify that a user has access to a tenant
+	 * Checks if the user is the tenant owner (tenant.auth_user_id matches userId)
+	 */
+	async verifyTenantAccess(userId: string, tenantId: string): Promise<void> {
+		const adminClient = this.supabase.getAdminClient()
+
+		const { data: tenant, error } = await adminClient
+			.from('tenant')
+			.select('auth_user_id')
+			.eq('id', tenantId)
+			.single()
+
+		if (error || !tenant) {
+			throw new NotFoundException('Tenant not found')
+		}
+
+		if (tenant.auth_user_id !== userId) {
+			this.logger.warn('Unauthorized tenant access attempt', {
+				userId,
+				tenantId,
+				tenantOwnerId: tenant.auth_user_id
+			})
+			throw new ForbiddenException('You do not have access to this tenant')
 		}
 	}
 }

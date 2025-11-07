@@ -17,6 +17,9 @@ export default defineConfig({
 		globals: true,
 		setupFiles: ['./src/test/setup.ts'],
 		globalSetup: ['./tests/integration/setup.ts'],
+		env: {
+			VITEST_INTEGRATION: 'true'
+		},
 		include: ['tests/integration/**/*.{test,spec}.{ts,tsx}'],
 		exclude: [
 			'node_modules',

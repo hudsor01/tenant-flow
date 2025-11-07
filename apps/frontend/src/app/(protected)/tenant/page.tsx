@@ -55,9 +55,9 @@ export default function TenantDashboardPage() {
 
 	const activeLease = dashboard?.lease ?? lease ?? null
 	const maintenanceSummary = dashboard?.maintenance
-	const recentRequests = dashboard?.maintenance.recent ?? []
-	const recentPayments = dashboard?.payments.recent ?? []
-	const upcomingPayment = dashboard?.payments.upcoming ?? null
+	const recentRequests = dashboard?.maintenance?.recent ?? []
+	const recentPayments = dashboard?.payments?.recent ?? []
+	const upcomingPayment = dashboard?.payments?.upcoming ?? null
 	const leaseLoading = dashboardLoading && !activeLease
 
 	// Calculate next payment date (1st of next month)
@@ -288,13 +288,15 @@ export default function TenantDashboardPage() {
 									<div>
 										<p className="font-medium">
 											{(() => {
-							const dateValue = payment.createdAt ?? payment.dueDate
-							return dateValue ? formatDate(dateValue, {
-								month: 'short',
-								day: 'numeric',
-								year: 'numeric'
-							}) : '—'
-						})()}
+												const dateValue = payment.createdAt ?? payment.dueDate
+												return dateValue
+													? formatDate(dateValue, {
+															month: 'short',
+															day: 'numeric',
+															year: 'numeric'
+														})
+													: '—'
+											})()}
 										</p>
 										<p className="text-sm text-muted-foreground">
 											{payment.status === 'SUCCEEDED' ||

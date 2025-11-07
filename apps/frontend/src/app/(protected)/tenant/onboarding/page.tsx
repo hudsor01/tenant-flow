@@ -93,14 +93,16 @@ export default function TenantOnboardingPage() {
 					let jsonError: unknown
 					let textError: unknown
 
+					// FIX: Clone BEFORE consuming the response body
+					const responseClone = response.clone()
+
 					try {
 						const errorData = await response.json()
 						errorMessage = errorData.message || errorMessage
 					} catch (error) {
 						jsonError = error
 						try {
-							// Clone response to avoid consuming the body twice
-							const responseClone = response.clone()
+							// Use the cloned response for text fallback
 							const textContent = await responseClone.text()
 							errorMessage = textContent.substring(0, 200) || errorMessage
 						} catch (error) {

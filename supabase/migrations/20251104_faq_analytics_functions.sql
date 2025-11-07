@@ -4,7 +4,7 @@
 CREATE OR REPLACE FUNCTION increment_faq_view_count(question_id UUID)
 RETURNS void
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 AS $$
 BEGIN
     UPDATE faq_questions
@@ -18,7 +18,7 @@ $$;
 CREATE OR REPLACE FUNCTION increment_faq_helpful_count(question_id UUID)
 RETURNS void
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 AS $$
 BEGIN
     UPDATE faq_questions
@@ -38,7 +38,7 @@ RETURNS TABLE (
     avg_helpful_rate DECIMAL
 )
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 AS $$
 BEGIN
     RETURN QUERY

@@ -11,9 +11,120 @@ import {
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseJwks = createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/keys`))
-
 const VALID_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
+const SUPPORTED_ALGORITHMS = new Set(['HS256', 'RS256', 'ES256'])
+type SupportedAlgorithm = 'HS256' | 'RS256' | 'ES256'
+
+const jwksCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
+
+function getConfiguredAlgorithm(): SupportedAlgorithm | null {
+	const value =
+		process.env.SUPABASE_JWT_ALGORITHM ||
+		process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM
+
+	if (!value) {
+		return null
+	}
+
+	const normalized = value.toUpperCase().trim()
+	return SUPPORTED_ALGORITHMS.has(normalized as SupportedAlgorithm)
+		? (normalized as SupportedAlgorithm)
+		: null
+}
+
+function detectTokenAlgorithm(token: string): SupportedAlgorithm | null {
+	try {
+		const [header] = token.split('.')
+		if (!header) return null
+		const padded = header + '='.repeat((4 - (header.length % 4)) % 4)
+		const parsed = JSON.parse(
+			Buffer.from(padded, 'base64').toString('utf8')
+		) as { alg?: string }
+		const alg = parsed.alg?.toUpperCase()
+		return alg && SUPPORTED_ALGORITHMS.has(alg as SupportedAlgorithm)
+			? (alg as SupportedAlgorithm)
+			: null
+	} catch {
+		return null
+	}
+}
+
+function resolveAlgorithm(token: string): SupportedAlgorithm | null {
+	// SECURITY: Algorithm must be explicitly configured or detected from token.
+	// Never default to HS256 - this prevents accepting tokens with unknown/unsafe algorithms.
+	// In production, SUPABASE_JWT_ALGORITHM environment variable MUST be set.
+	return getConfiguredAlgorithm() ?? detectTokenAlgorithm(token)
+}
+
+function getSupabaseJwks() {
+	const key = `${SUPABASE_URL}/auth/v1/keys`
+	if (!jwksCache.has(key)) {
+		jwksCache.set(key, createRemoteJWKSet(new URL(key)))
+	}
+	return jwksCache.get(key)!
+}
+
+async function verifySupabaseJwt(
+	token: string
+): Promise<Record<string, unknown> | null> {
+	const algorithm = resolveAlgorithm(token)
+
+	// SECURITY: Fail fast if algorithm cannot be determined
+	if (!algorithm) {
+		logger.error(
+			'JWT verification failed: algorithm could not be determined. SUPABASE_JWT_ALGORITHM must be explicitly configured in production.',
+			{ tokenPrefix: token.substring(0, 20) }
+		)
+		return null
+	}
+
+	try {
+		if (algorithm === 'HS256') {
+			// SECURITY: Only use SUPABASE_JWT_SECRET for HS256 verification
+			// Do NOT fall back to service key or other secrets
+			const secret = process.env.SUPABASE_JWT_SECRET
+
+			if (!secret) {
+				logger.error(
+					'HS256 JWT verification failed: SUPABASE_JWT_SECRET is not configured. Cannot verify token.',
+					{ algorithm }
+				)
+				return null
+			}
+
+			const { payload } = await jwtVerify(
+				token,
+				new TextEncoder().encode(secret),
+				{
+					issuer: `${SUPABASE_URL}/auth/v1`,
+					audience: 'authenticated',
+					algorithms: [algorithm]
+				}
+			)
+
+			return payload
+		}
+
+		// RS256/ES256: Use JWKS for verification
+		const { payload } = await jwtVerify(token, getSupabaseJwks(), {
+			issuer: `${SUPABASE_URL}/auth/v1`,
+			audience: 'authenticated',
+			algorithms: [algorithm]
+		})
+
+		return payload
+	} catch (err) {
+		// SECURITY: Do NOT fall back to unverified decode on verification failure
+		// Any JWT that fails verification MUST be rejected
+		logger.error('JWT verification failed - token rejected', {
+			error: err instanceof Error ? err.message : String(err),
+			algorithm,
+			// Log minimal info for debugging, avoid logging full token
+			tokenPrefix: token.substring(0, 20)
+		})
+		return null
+	}
+}
 
 async function getJwtClaims(
 	supabase: SupabaseClient<Database>
@@ -32,11 +143,7 @@ async function getJwtClaims(
 		}
 
 		// Decode the JWT to extract custom claims added by the auth hook
-		const { payload } = await jwtVerify(session.access_token, supabaseJwks, {
-			issuer: `${SUPABASE_URL}/auth/v1`,
-			audience: 'authenticated'
-		})
-		return payload
+		return await verifySupabaseJwt(session.access_token)
 	} catch (err) {
 		logger.error('getJwtClaims failed while decoding session token', {
 			error: err instanceof Error ? err.message : String(err),

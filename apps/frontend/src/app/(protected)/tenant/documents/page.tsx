@@ -7,7 +7,7 @@ import { useTenantPortalDocuments } from '#hooks/api/use-tenant-portal'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 
 export default function TenantDocumentsPage() {
-	const { data, isLoading } = useTenantPortalDocuments()
+	const { data, isLoading, error } = useTenantPortalDocuments()
 	const documents = data?.documents ?? []
 	const leaseDocs = documents.filter(doc => doc.type === 'LEASE')
 	const receiptDocs = documents.filter(doc => doc.type === 'RECEIPT')
@@ -35,7 +35,9 @@ export default function TenantDocumentsPage() {
 							</div>
 						)}
 						{doc.url && <span>•</span>}
-						<span>{doc.url ? 'Download available' : 'Contact manager for access'}</span>
+						<span>
+							{doc.url ? 'Download available' : 'Contact manager for access'}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -44,7 +46,8 @@ export default function TenantDocumentsPage() {
 					variant="ghost"
 					size="sm"
 					disabled={!doc.url}
-					onClick={() => doc.url && window.open(doc.url, '_blank', 'noopener')}
+					aria-label={`View ${doc.name || 'document'}`}
+				onClick={() => doc.url && window.open(doc.url, '_blank', 'noopener,noreferrer')}
 				>
 					<Eye className="size-4" />
 				</Button>
@@ -56,7 +59,7 @@ export default function TenantDocumentsPage() {
 						if (!doc.url) return
 						const anchor = document.createElement('a')
 						anchor.href = doc.url
-						anchor.download = ''
+						anchor.download = doc.name || 'document'
 						document.body.appendChild(anchor)
 						anchor.click()
 						document.body.removeChild(anchor)
@@ -77,6 +80,14 @@ export default function TenantDocumentsPage() {
 					View and download your lease documents and important notices
 				</p>
 			</div>
+
+			{error && (
+				<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
+					<p className="text-sm text-destructive">
+						Failed to load documents. Please try again later.
+					</p>
+				</div>
+			)}
 
 			<CardLayout
 				title="Lease Documents"
