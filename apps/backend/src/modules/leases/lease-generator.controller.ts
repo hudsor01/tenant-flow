@@ -3,17 +3,17 @@ import {
 	Body,
 	Controller,
 	Get,
-	HttpStatus,
 	InternalServerErrorException,
 	Logger,
-	Param,
 	Post,
-	Res
+	Query,
+	Req
 } from '@nestjs/common'
 import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
 import type { LeaseTemplatePreviewRequest } from '@repo/shared/templates/lease-template'
-import type { Response } from 'express'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
+import { LeasesService } from './leases.service'
 
 /**
  * Lease Generator Controller
@@ -23,7 +23,10 @@ import { LeasePDFService } from '../pdf/lease-pdf.service'
 export class LeaseGeneratorController {
 	private readonly logger = new Logger(LeaseGeneratorController.name)
 
-	constructor(private readonly leasePDFService: LeasePDFService) {}
+	constructor(
+		private readonly leasePDFService: LeasePDFService,
+		private readonly leasesService: LeasesService
+	) {}
 
 	@Post('template/preview')
 	async previewTemplate(@Body() payload: LeaseTemplatePreviewRequest) {
@@ -112,29 +115,55 @@ export class LeaseGeneratorController {
 	 */
 	@Get('download/:filename')
 	async downloadLease(
-		@Param('filename') filename: string,
-		@Res() reply: Response
+		@Query('leaseId') leaseId: string | undefined,
+		@Req() req: AuthenticatedRequest
 	) {
 		try {
-			// In production, you would:
-			// 1. Verify user has access to this lease
-			// 2. Retrieve PDF from cloud storage
-			// 3. Log download activity
-			// 4. Handle download limits
+			// Require leaseId to fetch real data
+			if (!leaseId) {
+				throw new BadRequestException(
+					'leaseId query parameter is required to generate lease PDF'
+				)
+			}
 
-			// For demo purposes, generate a sample PDF
-			const sampleLeaseData = this.getSampleLeaseData()
-			const pdfBuffer =
-				await this.leasePDFService.generateLeasePDF(sampleLeaseData)
+			// Get authentication token from request
+			const token = req.headers.authorization?.replace('Bearer ', '')
+			if (!token) {
+				throw new BadRequestException('Authentication token is required')
+			}
 
-			reply
-				.type('application/pdf')
-				.header('Content-Disposition', `attachment; filename="${filename}"`)
-				.header('Content-Length', pdfBuffer.length.toString())
-				.status(HttpStatus.OK)
-				.send(pdfBuffer)
+			// Fetch real lease data from database (RLS-protected)
+			const leaseData = await this.leasesService.findOne(token, leaseId)
+			if (!leaseData) {
+				throw new BadRequestException(
+					'Lease not found or you do not have access to this lease'
+				)
+			}
+
+			// TODO: Transform database Lease model to LeaseFormData structure
+			// This requires mapping property, owner, tenants, and lease terms
+			// For now, this will error because structures don't match
+			this.logger.warn(
+				'Lease data transformation not yet implemented - database Lease model needs mapping to LeaseFormData',
+				{ leaseId }
+			)
+
+			throw new InternalServerErrorException(
+				'Lease PDF generation from database not yet implemented - data transformation layer needed'
+			)
+
+			// When transformation is implemented:
+			// const transformedData = this.transformLeaseToFormData(leaseData)
+			// const pdfBuffer = await this.leasePDFService.generateLeasePDF(transformedData)
+			// reply.type('application/pdf')...
 		} catch (error) {
 			this.logger.error('Error downloading lease:', error)
+			if (
+				error instanceof BadRequestException ||
+				error instanceof InternalServerErrorException
+			) {
+				throw error
+			}
 			throw new InternalServerErrorException('Failed to download lease')
 		}
 	}
@@ -144,23 +173,53 @@ export class LeaseGeneratorController {
 	 */
 	@Get('preview/:filename')
 	async previewLease(
-		@Param('filename') filename: string,
-		@Res() reply: Response
+		@Query('leaseId') leaseId: string | undefined,
+		@Req() req: AuthenticatedRequest
 	) {
 		try {
-			// Generate sample PDF for preview
-			const sampleLeaseData = this.getSampleLeaseData()
-			const pdfBuffer =
-				await this.leasePDFService.generateLeasePDF(sampleLeaseData)
+			// Require leaseId to fetch real data
+			if (!leaseId) {
+				throw new BadRequestException(
+					'leaseId query parameter is required to generate lease PDF'
+				)
+			}
 
-			reply
-				.type('application/pdf')
-				.header('Content-Disposition', `inline; filename="${filename}"`)
-				.header('Content-Length', pdfBuffer.length.toString())
-				.status(HttpStatus.OK)
-				.send(pdfBuffer)
+			// Get authentication token from request
+			const token = req.headers.authorization?.replace('Bearer ', '')
+			if (!token) {
+				throw new BadRequestException('Authentication token is required')
+			}
+
+			// Fetch real lease data from database (RLS-protected)
+			const leaseData = await this.leasesService.findOne(token, leaseId)
+			if (!leaseData) {
+				throw new BadRequestException(
+					'Lease not found or you do not have access to this lease'
+				)
+			}
+
+			// TODO: Transform database Lease model to LeaseFormData structure
+			this.logger.warn(
+				'Lease data transformation not yet implemented - database Lease model needs mapping to LeaseFormData',
+				{ leaseId }
+			)
+
+			throw new InternalServerErrorException(
+				'Lease PDF generation from database not yet implemented - data transformation layer needed'
+			)
+
+			// When transformation is implemented:
+			// const transformedData = this.transformLeaseToFormData(leaseData)
+			// const pdfBuffer = await this.leasePDFService.generateLeasePDF(transformedData)
+			// reply.type('application/pdf')...
 		} catch (error) {
 			this.logger.error('Error previewing lease:', error)
+			if (
+				error instanceof BadRequestException ||
+				error instanceof InternalServerErrorException
+			) {
+				throw error
+			}
 			throw new InternalServerErrorException('Failed to preview lease')
 		}
 	}
@@ -232,64 +291,6 @@ export class LeaseGeneratorController {
 		} catch (error) {
 			this.logger.error('Error validating lease:', error)
 			throw new InternalServerErrorException('Failed to validate lease data')
-		}
-	}
-
-	/**
-	 * Get sample lease data for demo purposes
-	 */
-	private getSampleLeaseData() {
-		return {
-			property: {
-				address: {
-					street: '123 Demo Street',
-					unit: 'Apt 1A',
-					city: 'San Francisco',
-					state: 'CA',
-					zipCode: '94102'
-				},
-				type: 'apartment',
-				bedrooms: 2,
-				bathrooms: 1
-			},
-			owner: {
-				name: 'Demo Property Management LLC',
-				isEntity: true,
-				entityType: 'LLC',
-				address: {
-					street: '456 Business Ave',
-					city: 'San Francisco',
-					state: 'CA',
-					zipCode: '94103'
-				},
-				phone: '(415) 555-0123',
-				email: 'demo@properties.com'
-			},
-			tenants: [
-				{
-					name: 'John Doe',
-					email: 'john@example.com',
-					phone: '(415) 555-7890',
-					isMainTenant: true
-				}
-			],
-			leaseTerms: {
-				type: 'fixed_term',
-				startDate: '2024-03-01',
-				endDate: '2025-02-28',
-				rentAmount: 300000, // $3000 in cents
-				currency: 'USD',
-				dueDate: 1,
-				lateFee: {
-					enabled: true,
-					amount: 10000, // $100 in cents
-					gracePeriod: 5
-				},
-				securityDeposit: {
-					amount: 300000, // $3000 in cents
-					monthsRent: 1
-				}
-			}
 		}
 	}
 
