@@ -23,45 +23,45 @@ async function createTestUsers() {
 		process.exit(1)
 	}
 
-	// Use anon key for signUp (modern approach, no admin API needed)
+	// Use publishable key for signUp (modern approach, no admin API needed)
 	const supabase = createClient(supabaseUrl, supabasePublishableKey)
+
+	// Validate TEST_USER_PASSWORD is provided
+	const testUserPassword = process.env.TEST_USER_PASSWORD
+	if (!testUserPassword) {
+		console.error('Error: TEST_USER_PASSWORD environment variable is required')
+		process.exit(1)
+	}
 
 	// Test users with environment-configurable passwords
 	// Note: These credentials are test-only and should not be used in production
 	const testUsers = [
 		{
 			email: 'owner-a@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD
+			password: testUserPassword
 		},
 		{
 			email: 'owner-b@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD
+			password: testUserPassword
 		},
 		{
 			email: 'tenant-a@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD
+			password: testUserPassword
 		},
 		{
 			email: 'tenant-b@test.tenantflow.local',
-			password: process.env.TEST_USER_PASSWORD
+			password: testUserPassword
 		}
 	]
 
-	if (!testUsers[0].password) {
-		console.error('Error: TEST_USER_PASSWORD environment variable is required')
-		process.exit(1)
-	}
-
 	console.log('Creating test users via signUp (no admin API)...')
+	let failureCount = 0
 	for (const user of testUsers) {
 		try {
 			const { data, error } = await supabase.auth.signUp({
 				email: user.email,
 				password: user.password,
-				options: {
-					emailRedirectTo: undefined, // No email confirmation for test users
-					data: {}
-				}
+				options: {}
 			})
 			if (error) {
 				if (
@@ -71,13 +71,22 @@ async function createTestUsers() {
 					console.log(`✅ ${user.email} already exists`)
 				} else {
 					console.error(`❌ Error creating ${user.email}:`, error.message)
+					failureCount++
 				}
 			} else {
 				console.log(`✅ Created ${user.email} (ID: ${data.user?.id})`)
 			}
 		} catch (e) {
 			console.error(`❌ Error creating ${user.email}:`, e.message)
+			failureCount++
 		}
+	}
+
+	if (failureCount > 0) {
+		console.error(`\n❌ Failed to create ${failureCount} user(s)`)
+		process.exit(1)
+	} else {
+		console.log('\n✅ All test users created or already exist')
 	}
 }
 
