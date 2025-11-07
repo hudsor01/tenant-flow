@@ -2224,8 +2224,8 @@ export class TenantsService {
 				}
 			}
 
-			// Use sendTenantInvitation method to handle the resend
-			// This will generate a new token and update expiry
+			// Resend invitation via Supabase Auth
+			// This will generate a new invitation email
 			return await this.sendTenantInvitationV2(userId, tenantId)
 		} catch (error) {
 			this.logger.error('Failed to resend tenant invitation', {
