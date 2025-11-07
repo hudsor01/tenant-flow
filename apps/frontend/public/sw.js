@@ -20,7 +20,8 @@ const PRECACHE = `tenantflow-precache-${CACHE_VERSION}`
 const RUNTIME = `tenantflow-runtime-${CACHE_VERSION}`
 
 // Files we want to precache. Keep this list conservative — avoid large files.
-const PRECACHE_URLS = ['/', '/manifest.json', '/favicon.ico']
+// Note: Don't precache '/' as it redirects based on auth status (causes cache.addAll to fail)
+const PRECACHE_URLS = ['/manifest.json', '/favicon.ico']
 
 // Limit entries in runtime caches to avoid unbounded growth
 const MAX_RUNTIME_ENTRIES = 100

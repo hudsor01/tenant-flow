@@ -1680,21 +1680,21 @@ export class TenantsService {
 			unitId: leaseData.unitId
 		})
 
-		// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
-		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined || (typeof leaseData.rentAmount === 'string' && leaseData.rentAmount === '')) {
+		// Validate rent amount (frontend already sends in cents)
+		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined) {
 			throw new BadRequestException('rentAmount is required')
 		}
 
-		const rentAmountNum = typeof leaseData.rentAmount === 'string' 
-			? parseFloat(leaseData.rentAmount) 
-			: leaseData.rentAmount
+		// rentAmount is already in cents from frontend
+		const rentAmountCents = typeof leaseData.rentAmount === 'string'
+			? Math.round(parseFloat(leaseData.rentAmount))
+			: Math.round(leaseData.rentAmount)
 
-		if (!Number.isFinite(rentAmountNum)) {
+		if (!Number.isFinite(rentAmountCents)) {
 			throw new BadRequestException('rentAmount must be a valid number')
 		}
 
-		// Convert to cents and validate range
-		const rentAmountCents = Math.round(rentAmountNum * 100)
+		// Validate range (already in cents)
 		const MAX_STRIPE_AMOUNT = 99999999 // Stripe limit in cents ($999,999.99)
 
 		if (rentAmountCents < 0) {
