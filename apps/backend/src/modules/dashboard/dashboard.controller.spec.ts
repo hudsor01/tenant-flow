@@ -70,7 +70,7 @@ describe('DashboardController', () => {
 
 			mockDashboardServiceInstance.getStats.mockResolvedValue(mockStats)
 
-			const result = await controller.getStats(mockRequest)
+			const result = await controller.getStats(mockRequest, mockUser.id)
 
 			expect(mockDashboardServiceInstance.getStats).toHaveBeenCalledWith(
 				mockUser.id,
@@ -91,9 +91,18 @@ describe('DashboardController', () => {
 			const mockActivity = [
 				{
 					id: 'activity-1',
-					type: 'maintenance_request',
-					description: 'New maintenance request submitted',
-					timestamp: new Date()
+					activity_type: 'maintenance' as const,
+					entity_id: 'entity-1',
+					property_id: 'prop-1',
+					tenant_id: null,
+					unit_id: 'unit-1',
+					owner_id: null,
+					status: 'pending',
+					priority: 'high',
+					action: 'Maintenance pending',
+					amount: null,
+					activity_timestamp: new Date().toISOString(),
+					details: {}
 				}
 			]
 
@@ -101,7 +110,7 @@ describe('DashboardController', () => {
 				activities: mockActivity
 			})
 
-			const result = await controller.getActivity(mockRequest)
+			const result = await controller.getActivity(mockRequest, mockUser.id)
 
 			expect(mockDashboardServiceInstance.getActivity).toHaveBeenCalledWith(
 				mockUser.id,
@@ -130,6 +139,7 @@ describe('DashboardController', () => {
 
 			const result = await controller.getBillingInsights(
 				mockRequest,
+				mockUser.id,
 				'2024-01-01',
 				'2024-01-31'
 			)
@@ -162,7 +172,7 @@ describe('DashboardController', () => {
 				mockInsights
 			)
 
-			const result = await controller.getBillingInsights(mockRequest)
+			const result = await controller.getBillingInsights(mockRequest, mockUser.id)
 
 			expect(
 				mockDashboardServiceInstance.getBillingInsights
@@ -173,6 +183,7 @@ describe('DashboardController', () => {
 		it('should return error for invalid date format', async () => {
 			const result = await controller.getBillingInsights(
 				mockRequest,
+				mockUser.id,
 				'invalid-date',
 				'2024-01-31'
 			)
@@ -192,7 +203,7 @@ describe('DashboardController', () => {
 				true
 			)
 
-			const result = await controller.getBillingHealth(mockRequest)
+			const result = await controller.getBillingHealth(mockRequest, mockUser.id)
 
 			expect(
 				mockDashboardServiceInstance.isBillingInsightsAvailable
@@ -220,7 +231,7 @@ describe('DashboardController', () => {
 				false
 			)
 
-			const result = await controller.getBillingHealth(mockRequest)
+			const result = await controller.getBillingHealth(mockRequest, mockUser.id)
 
 			expect(result).toEqual({
 				success: true,
@@ -261,7 +272,7 @@ describe('DashboardController', () => {
 				mockPerformance
 			)
 
-			const result = await controller.getPropertyPerformance(mockRequest)
+			const result = await controller.getPropertyPerformance(mockRequest, mockUser.id)
 
 			expect(
 				mockDashboardServiceInstance.getPropertyPerformance

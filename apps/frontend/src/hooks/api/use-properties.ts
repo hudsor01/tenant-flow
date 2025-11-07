@@ -27,6 +27,7 @@ import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
@@ -61,8 +62,7 @@ export function useProperty(id: string) {
 			return clientFetch<Property>(`/api/v1/properties/${id}`)
 		},
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -105,8 +105,7 @@ export function usePropertyList(params?: {
 				offset
 			}
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
-		gcTime: 30 * 60 * 1000, // 30 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		retry: 2,
 		structuralSharing: true
 	})
@@ -122,8 +121,7 @@ export function usePropertiesWithUnits() {
 		queryFn: async (): Promise<Property[]> => {
 			return clientFetch('/api/v1/properties/with-units')
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -137,8 +135,7 @@ export function usePropertyStats() {
 		queryFn: async (): Promise<PropertyStats> => {
 			return clientFetch('/api/v1/properties/stats')
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
-		gcTime: 30 * 60 * 1000, // 30 minutes
+		...QUERY_CACHE_TIMES.STATS,
 		retry: 2
 	})
 }

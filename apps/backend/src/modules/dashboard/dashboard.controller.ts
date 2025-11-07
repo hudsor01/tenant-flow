@@ -8,15 +8,13 @@ import {
 	UnauthorizedException,
 	InternalServerErrorException
 } from '@nestjs/common'
+import { UserId } from '../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
 import { SupabaseService } from '../../database/supabase.service'
 
-import {
-	billingInsightsSchema,
-	dashboardActivityResponseSchema
-} from '@repo/shared/validation/dashboard'
+// Validation schemas removed - service handles validation
 
 @Controller('manage')
 export class DashboardController {
@@ -31,9 +29,9 @@ export class DashboardController {
 	// NOTE: Caching disabled - @CacheKey doesn't support per-user keys
 	// User-specific data cannot use global cache without exposing data across users
 	async getStats(
-		@Request() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
@@ -57,14 +55,8 @@ export class DashboardController {
 	 * Unified dashboard endpoint - combines all dashboard data in one request
 	 * Reduces 5 HTTP requests to 1 for 40-50% faster initial page load
 	 */
-	async getPageData(@Request() req: AuthenticatedRequest) {
-		const userId = req.user?.id
+	async getPageData(@Request() req: AuthenticatedRequest, @UserId() userId: string) {
 		const token = this.supabase.getTokenFromRequest(req)
-
-		if (!userId) {
-			this.logger.warn('Dashboard page data requested without user ID')
-			throw new UnauthorizedException('User not authenticated')
-		}
 
 		if (!token) {
 			this.logger.warn('Dashboard page data requested without token')
@@ -94,9 +86,9 @@ export class DashboardController {
 	}
 
 	async getActivity(
-		@Request() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 		if (!token) {
 			this.logger.warn('Dashboard activity requested without token')
@@ -112,38 +104,22 @@ export class DashboardController {
 			'Getting dashboard activity via DashboardService'
 		)
 		const data = await this.dashboardService.getActivity(userId, token!)
-		const parseResult = dashboardActivityResponseSchema.safeParse(data)
-		if (parseResult.success) {
-			return {
-				success: true,
-				data,
-				message: 'Dashboard activity retrieved successfully',
-				timestamp: new Date()
-			}
-		} else {
-			// Log validation errors for debugging
-			this.logger.error('Dashboard activity validation failed', {
-				userId,
-				validationErrors: parseResult.error.format(),
-				// Do not log full payload - may contain sensitive data
-				dataKeys: data ? Object.keys(data) : []
-			})
-			return {
-				success: false,
-				data: { activities: [] },
-				message: 'Dashboard activity response failed validation',
-				timestamp: new Date()
-			}
+		// Service handles validation, return data directly
+		return {
+			success: true,
+			data,
+			message: 'Dashboard activity retrieved successfully',
+			timestamp: new Date()
 		}
 	}
 
 	@Get('billing/insights')
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string,
 		@Query('startDate') startDate?: string,
 		@Query('endDate') endDate?: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 		this.logger?.log(
 			{
@@ -174,36 +150,18 @@ export class DashboardController {
 			parsedStartDate,
 			parsedEndDate
 		)
-		const billingParseResult = billingInsightsSchema.safeParse(data)
-		if (billingParseResult.success) {
-			return {
-				success: true,
-				data,
-				message:
-					'Billing insights retrieved successfully from Stripe Sync Engine',
-				timestamp: new Date()
-			}
-		} else {
-			// Log validation errors for debugging
-			this.logger.warn('Billing insights validation failed', {
-				userId,
-				startDate: parsedStartDate?.toISOString(),
-				endDate: parsedEndDate?.toISOString(),
-				validationErrors: billingParseResult.error.format(),
-				// Do not log full payload - may contain sensitive financial data
-				dataKeys: data ? Object.keys(data) : []
-			})
-			return {
-				success: false,
-				data: null,
-				message: 'Billing insights response failed validation',
-				timestamp: new Date()
-			}
+		// Service handles validation, return data directly
+		return {
+			success: true,
+			data,
+			message: 'Billing insights retrieved successfully from Stripe Sync Engine',
+			timestamp: new Date()
 		}
 	}
 
 	async getBillingHealth(
-		@Request() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -222,7 +180,7 @@ export class DashboardController {
 		)
 
 		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(
-			req.user.id,
+			userId,
 			token!
 		)
 
@@ -250,9 +208,9 @@ export class DashboardController {
 
 	@Get('property-performance')
 	async getPropertyPerformance(
-		@Request() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
@@ -302,9 +260,9 @@ export class DashboardController {
 	@Get('occupancy-trends')
 	async getOccupancyTrends(
 		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 		const monthsNum = parseInt(months, 10) || 12
 
@@ -336,9 +294,9 @@ export class DashboardController {
 	@Get('revenue-trends')
 	async getRevenueTrends(
 		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 		const monthsNum = parseInt(months, 10) || 12
 
@@ -373,10 +331,10 @@ export class DashboardController {
 	@Get('time-series')
 	async getTimeSeries(
 		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string,
 		@Query('metric') metric: string,
 		@Query('days') days?: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		if (!metric) {
@@ -422,10 +380,10 @@ export class DashboardController {
 	@Get('metric-trend')
 	async getMetricTrend(
 		@Req() req: AuthenticatedRequest,
+		@UserId() userId: string,
 		@Query('metric') metric: string,
 		@Query('period') period?: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		if (!metric) {
@@ -467,9 +425,9 @@ export class DashboardController {
 
 	@Get('maintenance-analytics')
 	async getMaintenanceAnalytics(
-		@Request() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest,
+		@UserId() userId: string
 	): Promise<ControllerApiResponse> {
-		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
