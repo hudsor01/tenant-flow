@@ -44,7 +44,11 @@ export function ForgotPasswordModal({
 		e.preventDefault()
 		if (email) {
 			resetPasswordMutation.mutate(email, {
-				onSuccess: () => setIsSubmitted(true)
+				onSuccess: () => setIsSubmitted(true),
+				onError: () => {
+					// Display generic message without leaking email existence
+					setIsSubmitted(true)
+				}
 			})
 		}
 	}

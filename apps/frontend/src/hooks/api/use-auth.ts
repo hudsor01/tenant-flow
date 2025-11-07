@@ -5,6 +5,7 @@ import { authQueryKeys as authProviderKeys } from '#providers/auth-provider'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User } from '@supabase/supabase-js'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 // Create browser client for authentication
 const supabaseClient = createClient()
@@ -149,7 +150,7 @@ export function usePrefetchAuthSession() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: authQueryKeys.session,
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }

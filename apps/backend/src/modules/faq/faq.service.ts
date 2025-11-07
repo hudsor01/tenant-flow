@@ -6,6 +6,7 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 @Injectable()
 export class FAQService {
 	private readonly logger = new Logger(FAQService.name)
+	private readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 	constructor(private readonly supabase: SupabaseService) {}
 
@@ -58,14 +59,29 @@ export class FAQService {
 			faq_questions?: Database['public']['Tables']['faq_questions']['Row'][]
 		}
 	): FAQCategoryWithQuestions {
+		// Validate required fields before mapping
+		const requiredFields = {
+			id: category.id,
+			name: category.name,
+			slug: category.slug,
+			created_at: category.created_at,
+			updated_at: category.updated_at
+		}
+
+		for (const [field, value] of Object.entries(requiredFields)) {
+			if (!value) {
+				throw new Error(`Missing required category field: ${field}`)
+			}
+		}
+
 		const categoryData: FAQCategoryWithQuestions = {
-			id: category.id ?? '',
-			name: category.name ?? '',
-			slug: category.slug ?? '',
+			id: category.id,
+			name: category.name,
+			slug: category.slug,
 			displayOrder: category.display_order ?? 0,
 			isActive: category.is_active ?? false,
-			createdAt: category.created_at ?? '',
-			updatedAt: category.updated_at ?? '',
+			createdAt: category.created_at || new Date().toISOString(),
+			updatedAt: category.updated_at || new Date().toISOString(),
 			questions: (category.faq_questions || []).map(q => this.mapQuestion(q))
 		}
 
@@ -187,23 +203,29 @@ export class FAQService {
 	}
 
 	/**
-	 * Increment view count for a question (for analytics)
+	 * Helper method to increment question metrics (views, helpful counts)
+	 * Validates UUID and invokes RPC function with error handling
 	 */
-	async incrementQuestionView(questionId: string): Promise<void> {
+	private async incrementQuestionMetric(
+		questionId: string,
+		rpcFunction: string,
+		metricName: string
+	): Promise<void> {
 		// Validate questionId is a valid UUID
-		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-		if (!questionId || typeof questionId !== 'string' || !uuidRegex.test(questionId)) {
-			this.logger.debug('Invalid questionId for incrementQuestionView', { questionId })
+		if (!questionId || typeof questionId !== 'string' || !this.UUID_REGEX.test(questionId)) {
+			this.logger.debug(`Invalid questionId for ${metricName}`, { questionId })
 			return
 		}
 
 		try {
 			const client = this.supabase.getAdminClient()
-			await client.rpc('increment_faq_view_count', {
+			// Type assertion needed as rpcFunction is dynamically determined
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			await client.rpc(rpcFunction as any, {
 				question_id: questionId
 			})
 		} catch (error) {
-			this.logger.warn('Error incrementing question view', {
+			this.logger.warn(`Error ${metricName}`, {
 				questionId,
 				error
 			})
@@ -211,24 +233,25 @@ export class FAQService {
 	}
 
 	/**
+	 * Increment view count for a question (for analytics)
+	 */
+	async incrementQuestionView(questionId: string): Promise<void> {
+		return this.incrementQuestionMetric(
+			questionId,
+			'increment_faq_view_count',
+			'incrementing question view'
+		)
+	}
+
+	/**
 	 * Mark a question as helpful (for analytics)
 	 */
 	async incrementQuestionHelpful(questionId: string): Promise<void> {
-		// Validate questionId is a valid UUID
-		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-		if (!questionId || typeof questionId !== 'string' || !uuidRegex.test(questionId)) {
-			this.logger.debug('Invalid questionId for incrementQuestionHelpful', { questionId })
-			return
-		}
-
-		try {
-			const client = this.supabase.getAdminClient()
-			await client.rpc('increment_faq_helpful_count', {
-				question_id: questionId
-			})
-		} catch (error) {
-			this.logger.warn('Error marking question helpful', { questionId, error })
-		}
+		return this.incrementQuestionMetric(
+			questionId,
+			'increment_faq_helpful_count',
+			'marking question helpful'
+		)
 	}
 
 	/**

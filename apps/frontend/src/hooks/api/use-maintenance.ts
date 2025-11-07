@@ -11,6 +11,7 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -75,7 +76,7 @@ export function useAllMaintenanceRequests(query?: {
 
 			return response || []
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes cache
 		retry: 2,
 		structuralSharing: true
@@ -93,7 +94,7 @@ export function useMaintenanceRequest(id: string) {
 			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 		},
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000,
 		retry: 2
 	})
@@ -114,7 +115,7 @@ export function useMaintenanceStats() {
 		}> => {
 			return clientFetch(`/api/v1/maintenance/stats`)
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		retry: 2
 	})
 }
@@ -279,7 +280,7 @@ export function usePrefetchMaintenanceRequest() {
 				queryFn: async (): Promise<MaintenanceRequest> => {
 					return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 				},
-				staleTime: 5 * 60 * 1000
+				...QUERY_CACHE_TIMES.DETAIL,
 			})
 		}
 	}

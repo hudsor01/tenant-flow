@@ -36,17 +36,14 @@ export interface StoredEmail {
 	text?: string
 	timestamp: number
 	messageId: string
-	[key: string]: any
+	extra?: Record&lt;string, unknown&gt;
 }
 
 /**
  * Get email test configuration based on environment
  */
 export function getEmailTestConfig(env?: string): EmailTestConfig {
-	const environment = env || process.env.NODE_ENV
-	if (!environment) {
-		throw new Error('NODE_ENV is required for email test configuration')
-	}
+	const environment = env || process.env.NODE_ENV || 'development'
 
 	switch (environment) {
 		case 'test':
@@ -197,6 +194,7 @@ export class EmailTestUtils {
 	 */
 	static clearSentEmails() {
 		this.sentEmails = []
+		this.emailMetrics.sent = 0
 	}
 
 	/**
@@ -276,7 +274,7 @@ export class EmailTestUtils {
 	 * Generate test email data
 	 */
 	static generateTestEmailData(template: string, overrides?: any) {
-		const baseData: Record<string, any> = {
+		const baseData: Record&lt;string, any&gt; = {
 			welcome: {
 				email: 'test@example.com',
 				name: 'Test User',
@@ -305,6 +303,12 @@ export class EmailTestUtils {
 				renewalLink: 'https://test.tenantflow.app/renew/test789',
 				leaseId: 'lease_test_123'
 			}
+		}
+
+		if (!baseData[template]) {
+			throw new Error(
+				`Unknown email template: "${template}". Valid templates: ${Object.keys(baseData).join(', ')}`
+			)
 		}
 
 		return {
@@ -449,6 +453,32 @@ export class EmailPerformanceTest {
 		const timeMs = Number(end - start) / 1_000_000
 
 		this.metrics.renderTimes.push(timeMs)
+		return timeMs
+	}
+
+	/**
+	 * Measure email send performance
+	 */
+	static async measureSendTime(sendFn: () => Promise&lt;any&gt;): Promise&lt;number&gt; {
+		const start = process.hrtime.bigint()
+		await sendFn()
+		const end = process.hrtime.bigint()
+		const timeMs = Number(end - start) / 1_000_000
+
+		this.metrics.sendTimes.push(timeMs)
+		return timeMs
+	}
+
+	/**
+	 * Measure total email operation time (render + send)
+	 */
+	static async measureTotalTime(totalFn: () => Promise&lt;any&gt;): Promise&lt;number&gt; {
+		const start = process.hrtime.bigint()
+		await totalFn()
+		const end = process.hrtime.bigint()
+		const timeMs = Number(end - start) / 1_000_000
+
+		this.metrics.totalTimes.push(timeMs)
 		return timeMs
 	}
 

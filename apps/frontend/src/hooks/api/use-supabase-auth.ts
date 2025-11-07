@@ -5,6 +5,7 @@
 import { createClient } from '#lib/supabase/client'
 import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
@@ -34,7 +35,7 @@ export function useSupabaseUser() {
 			if (error) throw error
 			return user
 		},
-		staleTime: 5 * 60 * 1000, // Consider fresh for 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL, // Consider fresh for 5 minutes
 		retry: 1
 	})
 }
@@ -53,7 +54,7 @@ export function useSupabaseSession() {
 			if (error) throw error
 			return session
 		},
-		staleTime: 5 * 60 * 1000 // Consider fresh for 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 
@@ -265,7 +266,7 @@ export function usePrefetchSupabaseUser() {
 				if (error) throw error
 				return user
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }
@@ -287,7 +288,7 @@ export function usePrefetchSupabaseSession() {
 				if (error) throw error
 				return session
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }

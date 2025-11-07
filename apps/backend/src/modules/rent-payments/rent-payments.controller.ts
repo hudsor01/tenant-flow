@@ -53,7 +53,7 @@ export class RentPaymentsController {
 			payment: result.payment,
 			paymentIntent: {
 				...result.paymentIntent,
-				receipt_url: result.paymentIntent.receiptUrl
+				receiptUrl: result.paymentIntent.receiptUrl
 			}
 		}
 	}

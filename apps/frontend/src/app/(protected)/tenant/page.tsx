@@ -46,7 +46,7 @@ export default function TenantDashboardPage() {
 		return str.replace(search, replace)
 	}
 
-	const { data: lease } = useCurrentLease()
+	const { data: lease, error: leaseError } = useCurrentLease()
 	const {
 		data: dashboard,
 		isLoading: dashboardLoading,
@@ -72,8 +72,10 @@ export default function TenantDashboardPage() {
 		return 'TBD'
 	}
 
-	if (dashboardError) {
-		return <ErrorFallback error={dashboardError} />
+	// Show error if either dashboard or lease fails to load
+	const error = dashboardError || leaseError
+	if (error) {
+		return <ErrorFallback error={error} />
 	}
 
 	return (
