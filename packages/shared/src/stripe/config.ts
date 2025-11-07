@@ -4,6 +4,7 @@
  */
 
 import { PLANS } from '../constants/billing.js'
+import { SHARED_ERROR_MESSAGES } from '../constants/error-messages.js'
 import type { BillingPeriod, PlanType } from '../types/stripe.js'
 
 /**
@@ -18,40 +19,62 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 		STARTER_monthly:
 			process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ||
 			(() => {
-				throw new Error('NEXT_PUBLIC_STRIPE_STARTER_MONTHLY is required')
+				throw new Error(
+					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
+						'NEXT_PUBLIC_STRIPE_STARTER_MONTHLY'
+					)
+				)
 			})(),
 		STARTER_annual:
 			process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL ||
 			(() => {
-				throw new Error('NEXT_PUBLIC_STRIPE_STARTER_ANNUAL is required')
+				throw new Error(
+					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
+						'NEXT_PUBLIC_STRIPE_STARTER_ANNUAL'
+					)
+				)
 			})(),
 		GROWTH_monthly:
 			process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY ||
 			(() => {
-				throw new Error('NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY is required')
+				throw new Error(
+					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
+						'NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY'
+					)
+				)
 			})(),
 		GROWTH_annual:
 			process.env.NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL ||
 			(() => {
-				throw new Error('NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL is required')
+				throw new Error(
+					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
+						'NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL'
+					)
+				)
 			})(),
 		TENANTFLOW_MAX_monthly:
 			process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY ||
 			(() => {
-				throw new Error('NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY is required')
+				throw new Error(
+					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
+						'NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY'
+					)
+				)
 			})(),
 		TENANTFLOW_MAX_annual:
 			process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL ||
 			(() => {
-				throw new Error('NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL is required')
+				throw new Error(
+					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
+						'NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL'
+					)
+				)
 			})()
 	}
 
 	const priceId = priceMap[`${plan}_${period}`]
 	if (!priceId) {
-		throw new Error(
-			`No price ID configured for plan: ${plan}, period: ${period}`
-		)
+		throw new Error(SHARED_ERROR_MESSAGES.STRIPE_PRICE_ID_MISSING(plan, period))
 	}
 	return priceId
 }

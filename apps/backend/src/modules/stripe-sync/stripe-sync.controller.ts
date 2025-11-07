@@ -265,7 +265,7 @@ export class StripeSyncController {
 		const safeLeaseId = leaseId!
 		const safeTenantId = tenantId!
 
-		// Get lease with property to retrieve ownerId (ownerId)
+		// Get lease with property to retrieve ownerId
 		const { data: lease, error: leaseError } = await this.supabaseService
 			.getAdminClient()
 			.from('lease')

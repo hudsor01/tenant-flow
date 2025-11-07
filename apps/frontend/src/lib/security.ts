@@ -117,6 +117,11 @@ export function getSecurityHeaders(): Record<string, string> {
 	}
 }
 
+// Rate limiting constants
+const DEFAULT_MAX_REQUESTS = 5
+const DEFAULT_WINDOW_MS = 60000 // 1 minute in milliseconds
+const CHECKOUT_MAX_REQUESTS = 3
+
 /**
  * Rate limiting helper for client-side requests
  */
@@ -125,7 +130,7 @@ class RateLimiter {
 	private maxRequests: number
 	private windowMs: number
 
-	constructor(maxRequests: number = 5, windowMs: number = 60000) {
+	constructor(maxRequests: number = DEFAULT_MAX_REQUESTS, windowMs: number = DEFAULT_WINDOW_MS) {
 		this.maxRequests = maxRequests
 		this.windowMs = windowMs
 	}
@@ -144,7 +149,7 @@ class RateLimiter {
 }
 
 // Global rate limiter for checkout requests
-export const checkoutRateLimiter = new RateLimiter(3, 60000) // 3 requests per minute
+export const checkoutRateLimiter = new RateLimiter(CHECKOUT_MAX_REQUESTS, DEFAULT_WINDOW_MS)
 
 /**
  * Validate authentication token format

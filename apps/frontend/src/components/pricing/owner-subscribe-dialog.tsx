@@ -91,11 +91,20 @@ export function OwnerSubscribeDialog({
 					if (!signInError) {
 						requiresEmailConfirmation = false
 						supabaseUserId = signInData.user?.id ?? supabaseUserId
-					} else if (
-						!signInError.message.toLowerCase().includes('not confirmed')
-					) {
-						// If it's not the expected confirmation error, surface it
-						throw signInError
+					} else {
+						// Detect if this is an email confirmation error using multiple indicators
+						const isConfirmationError =
+							signInError?.code === 'email_not_confirmed' ||
+							(signInError?.status &&
+								(signInError.status === 400 || signInError.status === 401)) ||
+							(signInError?.message &&
+								/confirm|email not confirmed/i.test(signInError.message))
+
+						if (!isConfirmationError) {
+							// If it's not a confirmation-related error, surface it
+							throw signInError
+						}
+						// Otherwise, treat as expected confirmation requirement
 					}
 				}
 

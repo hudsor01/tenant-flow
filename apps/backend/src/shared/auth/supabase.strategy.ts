@@ -17,6 +17,7 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
+import type { Request } from 'express'
 import type { SupabaseJwtPayload, authUser } from '@repo/shared/types/auth'
 import { UtilityService } from '../services/utility.service'
 import { passportJwtSecret } from 'jwks-rsa'
@@ -41,30 +42,75 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		const { algorithm, isAsymmetric, secretOrKey, jwksUri } =
 			resolveSupabaseJwtConfig(supabaseUrl)
 
-		super(
-			isAsymmetric
-				? {
-						jwtFromRequest: ExtractJwt.fromExtractors(extractors),
-						ignoreExpiration: false,
-						issuer: `${supabaseUrl}/auth/v1`,
-						audience: 'authenticated',
-						algorithms: [algorithm],
-						secretOrKeyProvider: passportJwtSecret({
-							cache: true,
-							rateLimit: true,
-							jwksRequestsPerMinute: 10,
-							jwksUri
+		const logger = new Logger(SupabaseStrategy.name)
+
+		// Base JWT configuration shared across symmetric and asymmetric modes
+		const baseConfig = {
+			jwtFromRequest: ExtractJwt.fromExtractors(extractors),
+			ignoreExpiration: false,
+			issuer: `${supabaseUrl}/auth/v1`,
+			audience: 'authenticated',
+			algorithms: [algorithm]
+		}
+
+		// Ensure secretOrKey is provided for symmetric algorithms
+		if (!isAsymmetric && !secretOrKey) {
+			throw new Error(
+				'secretOrKey is required for symmetric JWT algorithms but was not provided'
+			)
+		}
+
+		// Create JWKS client once for asymmetric algorithms (outside request handler)
+		const jwksSecretProvider = isAsymmetric
+			? passportJwtSecret({
+					cache: true,
+					rateLimit: true,
+					jwksRequestsPerMinute: 10,
+					jwksUri: jwksUri!
+				})
+			: null
+
+		// Add algorithm-specific configuration
+		const strategyConfig = isAsymmetric
+			? {
+					...baseConfig,
+					secretOrKeyProvider: (
+						request: Request,
+						rawJwtToken: string,
+						done: (err: Error | null, key?: string | Buffer) => void
+					) => {
+						// Use pre-created JWKS client with error handling and logging
+						jwksSecretProvider!(request, rawJwtToken, (err, signingKey) => {
+							if (err) {
+								logger.error('JWKS key retrieval failed', {
+									error: err.message,
+									jwksUri,
+									algorithm
+								})
+								return done(err)
+							}
+
+							if (!signingKey) {
+								logger.error('JWKS returned no signing key', {
+									jwksUri,
+									algorithm
+								})
+								return done(new Error('No signing key found in JWKS endpoint'))
+							}
+
+							logger.debug('JWKS key retrieved successfully', {
+								algorithm
+							})
+							done(null, signingKey)
 						})
 					}
-				: {
-						jwtFromRequest: ExtractJwt.fromExtractors(extractors),
-						ignoreExpiration: false,
-						issuer: `${supabaseUrl}/auth/v1`,
-						audience: 'authenticated',
-						algorithms: [algorithm],
-						secretOrKey: secretOrKey!
-					}
-		)
+				}
+			: {
+					...baseConfig,
+					secretOrKey: secretOrKey!
+				}
+
+		super(strategyConfig)
 
 		// NOW safe to assign to 'this' after super()
 		this.utilityService = utilityService
@@ -92,7 +138,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			expiration: payload.exp ? new Date(payload.exp * 1000) : null
 		})
 
-		// Basic validation - Passport.js has already verified the JWT signature via JWKS (ES256/RS256)
+		// Basic validation - Passport.js has already verified the JWT signature via JWKS (ES256/RS256) or HS256
 		if (!payload.sub) {
 			this.logger.error('JWT missing subject (sub) claim')
 			throw new Error('Invalid token: missing user ID')
@@ -199,8 +245,9 @@ function resolveSupabaseJwtConfig(supabaseUrl: string): {
 	algorithm: Algorithm
 	isAsymmetric: boolean
 	secretOrKey?: string
-	jwksUri: string
+	jwksUri?: string
 } {
+	const logger = new Logger('SupabaseJwtConfig')
 	const explicitAlg = process.env.SUPABASE_JWT_ALGORITHM?.toUpperCase().trim()
 
 	// SECURITY: Algorithm detection strategy (recommended by official docs):
@@ -215,31 +262,42 @@ function resolveSupabaseJwtConfig(supabaseUrl: string): {
 	const asymmetricAlgs = new Set(['ES256', 'RS256'])
 	const isAsymmetric = asymmetricAlgs.has(algorithm)
 
+	logger.log(`Configuring JWT verification with algorithm: ${algorithm}`)
+	logger.log(`Is asymmetric: ${isAsymmetric}`)
+
 	if (!isAsymmetric) {
 		// HS256: Requires SUPABASE_JWT_SECRET for verification
 		const secret =
-			process.env.SUPABASE_JWT_SECRET ??
-			process.env.SUPABASE_SECRET_KEY ??
-			process.env.SERVICE_ROLE_KEY
+			process.env.SUPABASE_JWT_SECRET ?? process.env.SUPABASE_SECRET_KEY
 
 		if (!secret) {
+			logger.error('HS256 algorithm selected but no secret key provided')
+			logger.error('Checked environment variables:', {
+				hasSupabaseJwtSecret: !!process.env.SUPABASE_JWT_SECRET,
+				hasSupabaseSecretKey: !!process.env.SUPABASE_SECRET_KEY
+			})
 			throw new Error(
-				'HS256 algorithm requires SUPABASE_JWT_SECRET (or SUPABASE_SECRET_KEY) for verification'
+				'HS256 algorithm requires SUPABASE_JWT_SECRET (or SUPABASE_SECRET_KEY) for verification. ' +
+					'Set SUPABASE_JWT_SECRET environment variable or use RS256/ES256 with JWKS.'
 			)
 		}
 
+		logger.log('Using HS256 with shared secret verification')
+		logger.log(`Secret key length: ${secret.length} characters`)
 		return {
 			algorithm,
 			isAsymmetric,
-			secretOrKey: secret,
-			jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`
+			secretOrKey: secret
 		}
 	}
 
 	// RS256/ES256: Use JWKS for verification (no secret needed)
+	const jwksUri = `${supabaseUrl}/auth/v1/.well-known/jwks.json`
+	logger.log(`Using ${algorithm} with JWKS verification`)
+	logger.log(`JWKS URI: ${jwksUri}`)
 	return {
 		algorithm,
 		isAsymmetric,
-		jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`
+		jwksUri
 	}
 }

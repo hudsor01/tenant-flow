@@ -10,6 +10,7 @@
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { ERROR_MESSAGES } from '#lib/constants'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -59,7 +60,7 @@ async function getAuthHeaders(
 				requireAuth
 			}
 		})
-		throw new Error('Authentication session expired. Please log in again.')
+		throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
 	} else {
 		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {

@@ -25,6 +25,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	private readonly logger = new Logger(DashboardAnalyticsService.name)
 	private readonly MAX_RETRIES = 3
 	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s exponential backoff
+	private pendingTimers: Set<NodeJS.Timeout> = new Set()
 
 	constructor(private readonly supabase: SupabaseService) {}
 
@@ -67,9 +68,15 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				if (attempt < this.MAX_RETRIES) {
 					const delay = this.RETRY_DELAYS_MS[attempt]
 					this.logger.log(
-						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/\${this.MAX_RETRIES})`
+						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/${this.MAX_RETRIES})`
 					)
-					await new Promise(resolve => setTimeout(resolve, delay))
+					await new Promise(resolve => {
+						const timer = setTimeout(() => {
+							this.pendingTimers.delete(timer)
+							resolve(undefined)
+						}, delay)
+						this.pendingTimers.add(timer)
+					})
 					return this.callRpc<T>(functionName, payload, token, attempt + 1)
 				}
 
@@ -89,9 +96,15 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			if (attempt < this.MAX_RETRIES) {
 				const delay = this.RETRY_DELAYS_MS[attempt]
 				this.logger.log(
-					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/\${this.MAX_RETRIES})`
+					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/${this.MAX_RETRIES})`
 				)
-				await new Promise(resolve => setTimeout(resolve, delay))
+				await new Promise(resolve => {
+					const timer = setTimeout(() => {
+						this.pendingTimers.delete(timer)
+						resolve(undefined)
+					}, delay)
+					this.pendingTimers.add(timer)
+				})
 				return this.callRpc<T>(functionName, payload, token, attempt + 1)
 			}
 
@@ -539,6 +552,21 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				yearly: 0,
 				growth: 0
 			}
+		}
+	}
+
+	/**
+	 * Cleanup pending timers on module destroy
+	 */
+	async onModuleDestroy() {
+		if (this.pendingTimers.size > 0) {
+			this.logger.log('Clearing pending retry timers', {
+				count: this.pendingTimers.size
+			})
+			for (const timer of this.pendingTimers) {
+				clearTimeout(timer)
+			}
+			this.pendingTimers.clear()
 		}
 	}
 }

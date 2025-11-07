@@ -1,6 +1,7 @@
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
 import { RouteModal } from '#components/ui/route-modal'
 import { clientFetch } from '#lib/api/client'
+import { logErrorDetails } from '#lib/utils/error-logging'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { notFound } from 'next/navigation'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -31,7 +32,8 @@ export default async function EditMaintenanceModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		logger.error('Failed to fetch maintenance request', { error })
+		const { id } = await params
+		logErrorDetails(logger, 'Failed to fetch maintenance request', error, { id })
 		notFound()
 	}
 }

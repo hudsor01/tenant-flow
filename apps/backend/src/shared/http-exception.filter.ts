@@ -48,25 +48,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			if (request.url) {
 				// Parse URL safely - handle relative URLs by adding a base
 				const url = new URL(
-					request.url,
-					`http://${(request as Request).headers?.host || 'localhost'}`
-				)
-				sanitizedPath = url.pathname
-			} else if ((request as Request).path) {
-				sanitizedPath = (request as Request).path
+				request.url,
+				`http://${request.headers?.host || 'localhost'}`
+			)
+			sanitizedPath = url.pathname
+		} else if (request.path) {
+			sanitizedPath = request.path
 			}
 		} catch {
 			// If URL parsing fails, fall back to a safe default
-			sanitizedPath = (request as Request).path || '/'
+			sanitizedPath = request.path || '/'
 		}
 
 		// Log exception for production observability
+		const timestamp = new Date().toISOString()
 		const errorContext = {
 			status,
 			message,
 			path: sanitizedPath,
 			method: request.method,
-			timestamp: new Date().toISOString()
+			timestamp
 		}
 
 		// Include stack trace in error log if available
@@ -84,7 +85,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			success: false,
 			message,
 			statusCode: status,
-			timestamp: new Date().toISOString(),
+			timestamp,
 			path: sanitizedPath // Use sanitized path without query params
 		}
 

@@ -38,6 +38,9 @@ import { createBrowserClient } from '@supabase/ssr'
 const TEST_PROPERTY_PREFIX = 'TEST-CRUD'
 let createdPropertyIds: string[] = []
 
+// Shared QueryClient instance for tests that need cache coordination
+let sharedQueryClient: QueryClient | null = null
+
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
@@ -50,6 +53,9 @@ function createWrapper() {
 			}
 		}
 	})
+
+	// Store for cleanup
+	sharedQueryClient = queryClient
 
 	return ({ children }: { children: React.ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -85,8 +91,13 @@ describe('Properties CRUD Integration Tests', () => {
 		await supabase.auth.signOut()
 	})
 
-	// Cleanup: Delete all test properties after tests
+	// Cleanup: Delete all test properties and clear QueryClient cache
 	afterEach(async () => {
+		// Clear QueryClient cache to prevent memory leaks and test pollution
+		if (sharedQueryClient) {
+			sharedQueryClient.clear()
+		}
+
 		for (const id of createdPropertyIds) {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })

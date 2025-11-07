@@ -333,17 +333,10 @@ export class StripeConnectService {
 					accountId: account.id
 				})
 				// Cleanup: Delete the Stripe account since DB update failed
-				try {
-					await this.stripe.accounts.del(account.id)
-					this.logger.log('Cleaned up orphaned Stripe account', {
-						accountId: account.id
-					})
-				} catch (deleteError) {
-					this.logger.error('Failed to cleanup Stripe account', {
-						error: deleteError,
-						accountId: account.id
-					})
-				}
+				await this.cleanupStripeAccount(
+					account.id,
+					'after database update failure'
+				)
 				throw new BadRequestException('Failed to save account')
 			}
 
@@ -363,17 +356,7 @@ export class StripeConnectService {
 
 			// Cleanup orphaned Stripe account if it was created
 			if (stripeAccountId) {
-				try {
-					await this.stripe.accounts.del(stripeAccountId)
-					this.logger.log('Cleaned up orphaned Stripe account after error', {
-						accountId: stripeAccountId
-					})
-				} catch (deleteError) {
-					this.logger.error('Failed to cleanup Stripe account after error', {
-						error: deleteError,
-						accountId: stripeAccountId
-					})
-				}
+				await this.cleanupStripeAccount(stripeAccountId, 'after error')
 			}
 
 			throw error
@@ -411,6 +394,29 @@ export class StripeConnectService {
 	}
 
 	/**
+	 * Cleanup orphaned Stripe account
+	 * @private
+	 */
+	private async cleanupStripeAccount(
+		accountId: string,
+		context: string
+	): Promise<void> {
+		try {
+			await this.stripe.accounts.del(accountId)
+			this.logger.log(`Cleaned up orphaned Stripe account ${context}`, {
+				accountId,
+				context
+			})
+		} catch (deleteError) {
+			this.logger.error(`Failed to cleanup Stripe account ${context}`, {
+				error: deleteError,
+				accountId,
+				context
+			})
+		}
+	}
+
+	/**
 	 * Create an Account Link for onboarding
 	 */
 	async createAccountLink(accountId: string): Promise<Stripe.AccountLink> {
@@ -419,6 +425,20 @@ export class StripeConnectService {
 		if (!frontendUrl) {
 			const error = 'FRONTEND_URL environment variable is not set'
 			this.logger.error(error, { accountId })
+			throw new Error(error)
+		}
+
+		// Validate URL format
+		try {
+			const url = new URL(frontendUrl)
+			if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+				const error = `FRONTEND_URL must use http or https protocol, got: ${url.protocol}`
+				this.logger.error(error, { accountId, frontendUrl })
+				throw new Error(error)
+			}
+		} catch (urlError) {
+			const error = `Invalid FRONTEND_URL format: ${frontendUrl}`
+			this.logger.error(error, { accountId, urlError })
 			throw new Error(error)
 		}
 
@@ -459,6 +479,24 @@ export class StripeConnectService {
 	}
 
 	/**
+	 * Create dashboard login link for connected account
+	 */
+	async createDashboardLoginLink(connectedAccountId: string): Promise<string> {
+		try {
+			const loginLink = await this.stripe.accounts.createLoginLink(
+				connectedAccountId
+			)
+			return loginLink.url
+		} catch (error) {
+			this.logger.error('Failed to create dashboard login link', {
+				error,
+				connectedAccountId
+			})
+			throw error
+		}
+	}
+
+	/**
 	 * Update user onboarding status based on Stripe Account
 	 */
 	async updateOnboardingStatus(
@@ -468,19 +506,42 @@ export class StripeConnectService {
 		try {
 			const account = await this.getConnectedAccount(accountId)
 
+			// Fetch existing user to check current onboardingCompletedAt
+			const { data: existingUser, error: fetchError } =
+				await this.supabaseService
+					.getAdminClient()
+					.from('users')
+					.select('onboardingCompletedAt')
+					.eq('id', userId)
+					.single()
+
+			if (fetchError) {
+				this.logger.error('Failed to fetch existing user for onboarding status', {
+					error: fetchError,
+					userId
+				})
+				throw fetchError
+			}
+
+			const isNowComplete = account.charges_enabled && account.payouts_enabled
+		const existingTimestamp = existingUser?.onboardingCompletedAt
+
+		// Only set timestamp if:
+		// 1. Account is now complete AND existing timestamp is falsy (first completion)
+		// 2. Account is not complete -> null (allow re-onboarding)
+		const onboardingCompletedAt: string | null = isNowComplete
+			? (existingTimestamp || new Date().toISOString())
+			: null
+
 			const { error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.update({
-					onboardingComplete:
-						account.charges_enabled && account.payouts_enabled,
+					onboardingComplete: isNowComplete,
 					detailsSubmitted: account.details_submitted,
 					chargesEnabled: account.charges_enabled,
 					payoutsEnabled: account.payouts_enabled,
-					onboardingCompletedAt:
-						account.charges_enabled && account.payouts_enabled
-							? new Date().toISOString()
-							: null
+					onboardingCompletedAt
 				})
 				.eq('id', userId)
 
