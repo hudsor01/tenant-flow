@@ -46,24 +46,13 @@ export class MetricsService implements OnModuleDestroy {
 		{ result: ServiceHealth; timestamp: number }
 	>()
 	
-	private readonly thresholds: MetricsThresholds
-	private readonly MAX_CACHE_SIZE: number
-
-	constructor(thresholds?: Partial<MetricsThresholds>) {
-		const defaultThresholds: MetricsThresholds = {
-			memory: { warning: 80, critical: 95 },
-			cache: { maxEntries: 100 },
-			responseTime: { warning: 100, critical: 200 }
-		}
-
-		this.thresholds = {
-			memory: thresholds?.memory ?? defaultThresholds.memory,
-			cache: thresholds?.cache ?? defaultThresholds.cache,
-			responseTime: thresholds?.responseTime ?? defaultThresholds.responseTime
-		}
-
-		this.MAX_CACHE_SIZE = this.thresholds.cache.maxEntries
+	private readonly thresholds: MetricsThresholds = {
+		memory: { warning: 80, critical: 95 },
+		cache: { maxEntries: 100 },
+		responseTime: { warning: 100, critical: 200 }
 	}
+
+	private readonly MAX_CACHE_SIZE = this.thresholds.cache.maxEntries
 
 	/**
 	 * Cleanup cache on module destruction to prevent memory leaks
