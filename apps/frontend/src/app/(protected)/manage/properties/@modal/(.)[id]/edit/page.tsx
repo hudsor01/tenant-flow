@@ -24,8 +24,9 @@ export default async function EditPropertyModal({
 }: {
 	params: Promise<{ id: string }>
 }) {
+	const { id } = await params
+
 	try {
-		const { id } = await params
 		const property = await clientFetch<Property>(
 			`${process.env.API_BASE_URL}/api/v1/properties/${id}`
 		)
@@ -45,6 +46,7 @@ export default async function EditPropertyModal({
 		)
 	} catch (error) {
 		logger.error('Failed to fetch property', {
+			id,
 			message: error instanceof Error ? error.message : String(error),
 			stack: error instanceof Error ? error.stack : undefined
 		})
