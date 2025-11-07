@@ -218,7 +218,7 @@ export class SecurityService {
 
 		// Handle apostrophes if not allowed
 		if (!options.allowApostrophes) {
-			sanitized = sanitized.replace(/['"]/g, '')
+			sanitized = sanitized.replace(/'/g, '')
 		}
 
 		// Handle Unicode if not allowed

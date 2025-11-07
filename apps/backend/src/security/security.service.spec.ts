@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SecurityService } from './security.service'
 
-describe('SimpleSecurityService', () => {
+describe('SecurityService', () => {
 	let service: SecurityService
 
 	beforeEach(async () => {

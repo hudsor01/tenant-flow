@@ -249,8 +249,11 @@ export class StripeTenantService {
 
 		const customerParams: CreateTenantCustomerParams = {
 			tenantId: params.tenantId,
-			email: resolvedEmail,
 			metadata
+		}
+
+		if (resolvedEmail) {
+			customerParams.email = resolvedEmail
 		}
 
 		if (resolvedName) {
