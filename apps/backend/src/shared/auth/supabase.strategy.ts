@@ -60,6 +60,16 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			)
 		}
 
+		// Create JWKS client once for asymmetric algorithms (outside request handler)
+		const jwksSecretProvider = isAsymmetric
+			? passportJwtSecret({
+					cache: true,
+					rateLimit: true,
+					jwksRequestsPerMinute: 10,
+					jwksUri: jwksUri!
+				})
+			: null
+
 		// Add algorithm-specific configuration
 		const strategyConfig = isAsymmetric
 			? {
@@ -69,15 +79,8 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 						rawJwtToken: string,
 						done: (err: Error | null, key?: string | Buffer) => void
 					) => {
-						const jwksClient = passportJwtSecret({
-							cache: true,
-							rateLimit: true,
-							jwksRequestsPerMinute: 10,
-							jwksUri: jwksUri!
-						})
-
-						// Wrap JWKS call with error handling and logging
-						jwksClient(request, rawJwtToken, (err, signingKey) => {
+						// Use pre-created JWKS client with error handling and logging
+						jwksSecretProvider!(request, rawJwtToken, (err, signingKey) => {
 							if (err) {
 								logger.error('JWKS key retrieval failed', {
 									error: err.message,

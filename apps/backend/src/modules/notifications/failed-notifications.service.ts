@@ -25,6 +25,7 @@ export class FailedNotificationsService {
 	private readonly logger = new Logger(FailedNotificationsService.name)
 	private readonly MAX_RETRIES = 3
 	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s
+	private pendingTimers: Set<NodeJS.Timeout> = new Set()
 
 	constructor(private readonly supabase: SupabaseService) {}
 
@@ -114,7 +115,13 @@ export class FailedNotificationsService {
 					errorMessage: error instanceof Error ? error.message : String(error)
 				})
 
-				await new Promise(resolve => setTimeout(resolve, delay))
+				await new Promise(resolve => {
+					const timer = setTimeout(() => {
+						this.pendingTimers.delete(timer)
+						resolve(undefined)
+					}, delay)
+					this.pendingTimers.add(timer)
+				})
 				return this.retryWithBackoff(operation, eventType, eventData, attempt + 1)
 			} else {
 				// Max retries exceeded, log failure
@@ -166,6 +173,21 @@ export class FailedNotificationsService {
 			return serialized ? (JSON.parse(serialized) as Json) : {}
 		} catch {
 			return { payload: String(eventData) }
+		}
+	}
+
+	/**
+	 * Cleanup pending timers on module destroy
+	 */
+	async onModuleDestroy() {
+		if (this.pendingTimers.size > 0) {
+			this.logger.log('Clearing pending retry timers', {
+				count: this.pendingTimers.size
+			})
+			for (const timer of this.pendingTimers) {
+				clearTimeout(timer)
+			}
+			this.pendingTimers.clear()
 		}
 	}
 }

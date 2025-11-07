@@ -137,6 +137,9 @@ export class NotificationsService {
 			})
 
 		if (!validationResult.success) {
+			this.logger.error('Notification validation failed', {
+				validationErrors: validationResult.error.format()
+			})
 			const errorMessages = validationResult.error.issues
 				.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
 				.join(', ')
@@ -172,6 +175,9 @@ export class NotificationsService {
 			)
 
 		if (!notificationValidation.success) {
+			this.logger.error('Notification data validation failed', {
+				validationErrors: notificationValidation.error.format()
+			})
 			const errorMessages = notificationValidation.error.issues
 				.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
 				.join(', ')

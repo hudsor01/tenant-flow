@@ -60,6 +60,9 @@ const VALID_PROPERTY_TYPES: PropertyType[] = [
 export class PropertiesService {
 	private readonly logger: Logger
 
+	// CSV Import Configuration
+	private readonly CSV_MAX_RECORD_SIZE_BYTES = 100_000 // 100KB max per record
+
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly storage: StorageService,
@@ -268,12 +271,21 @@ export class PropertiesService {
 								trim: true,
 								relax_quotes: true, // Allow quotes in unquoted fields
 								relax_column_count: true, // Allow variable column counts
-								max_record_size: 100000 // 100KB max per record
+								max_record_size: this.CSV_MAX_RECORD_SIZE_BYTES
 							})
 						)
-						.on('data', (row: Record<string, string>) => {
-							rows.push(row)
-						})
+						.on('data', (row: unknown) => {
+					// Validate row structure with type guard
+					if (!this.isValidCsvRow(row)) {
+						reject(
+							new BadRequestException(
+								'Invalid CSV row format: expected string values only'
+							)
+						)
+						return
+					}
+					rows.push(row)
+				})
 						.on('error', (error: Error) => {
 							reject(
 								new BadRequestException(`CSV parsing failed: ${error.message}`)
@@ -421,8 +433,25 @@ export class PropertiesService {
 		}
 	}
 
+	/**
+	 * Type guard: Validate CSV row has expected string fields
+	 * Prevents injection attacks and ensures data integrity
+	 */
+	private isValidCsvRow(row: unknown): row is Record<string, string> {
+		if (!row || typeof row !== 'object') return false
+
+		// CSV parser returns objects with string values
+		// Validate all values are strings (not objects, arrays, etc.)
+		return Object.values(row).every(
+			value => typeof value === 'string' || value === null || value === undefined
+		)
+	}
+
+	/**
+	 * Safe string extraction from CSV row with type guard
+	 */
 	private getStringValue(
-		row: Record<string, unknown>,
+		row: Record<string, string>,
 		key: string
 	): string | undefined {
 		const value = row[key]

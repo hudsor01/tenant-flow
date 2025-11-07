@@ -20,6 +20,7 @@ import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
+import { UNIT_STATUS, ERROR_MESSAGES } from '#lib/constants'
 
 interface UnitFormProps {
 	mode: 'create' | 'edit'
@@ -146,11 +147,11 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				onSuccess?.()
 			} catch (error) {
 				const errorMessage =
-					error instanceof Error ? error.message : `Failed to ${mode} unit`
+					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'unit')
 				toast.error(errorMessage, {
 					description:
 						error instanceof Error && error.message.includes('409')
-							? 'This unit was modified by another user. Please refresh and try again.'
+							? ERROR_MESSAGES.CONFLICT_UPDATE
 							: undefined
 				})
 			}
@@ -301,10 +302,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="VACANT">Vacant</SelectItem>
-									<SelectItem value="OCCUPIED">Occupied</SelectItem>
-									<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-									<SelectItem value="RESERVED">Reserved</SelectItem>
+									<SelectItem value={UNIT_STATUS.VACANT}>Vacant</SelectItem>
+									<SelectItem value={UNIT_STATUS.OCCUPIED}>Occupied</SelectItem>
+									<SelectItem value={UNIT_STATUS.MAINTENANCE}>Maintenance</SelectItem>
+									<SelectItem value={UNIT_STATUS.RESERVED}>Reserved</SelectItem>
 								</SelectContent>
 							</Select>
 						</Field>
