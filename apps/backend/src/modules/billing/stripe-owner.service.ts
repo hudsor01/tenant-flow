@@ -27,7 +27,8 @@ interface EnsureOwnerCustomerResult {
 export class StripeOwnerService {
 	private readonly logger = new Logger(StripeOwnerService.name)
 	private readonly stripe: Stripe
-	private readonly CACHE_TTL_MS = 5_000
+	// Cache user profile data for 10 minutes (stable data, rarely changes)
+	private readonly CACHE_TTL_MS = 600_000
 	private readonly MAX_CACHE_SIZE = 1000
 	private readonly ownerCache = new Map<
 		string,
@@ -137,12 +138,14 @@ export class StripeOwnerService {
 			{ idempotencyKey }
 		)
 
+		// Use consistent timestamp for both DB and cache
+		const updatedAt = new Date().toISOString()
 		const { error: updateError } = await this.supabaseService
 			.getAdminClient()
 			.from('users')
 			.update({
 				stripeCustomerId: customer.id,
-				updatedAt: new Date().toISOString()
+				updatedAt
 			})
 			.eq('id', params.userId)
 
@@ -153,14 +156,33 @@ export class StripeOwnerService {
 				error: updateError.message
 			})
 
+			// Attempt to clean up orphaned Stripe customer
+			try {
+				await this.stripe.customers.del(customer.id)
+				this.logger.log('Successfully deleted orphaned Stripe customer', {
+					customerId: customer.id,
+					userId: params.userId
+				})
+			} catch (deletionError) {
+				this.logger.error('Failed to delete orphaned Stripe customer', {
+					customerId: customer.id,
+					userId: params.userId,
+					error:
+						deletionError instanceof Error
+							? deletionError.message
+							: String(deletionError)
+				})
+			}
+
 			// Propagate the error to prevent silent success and orphaned Stripe customers
 			throw new Error(
 				`Failed to update user with Stripe customer ID: ${updateError.message}`,
 				{ cause: updateError }
 			)
 		} else {
+			// Update cache with same timestamp as DB to maintain consistency
 			this.ownerCache.set(params.userId, {
-				user: { ...owner, stripeCustomerId: customer.id },
+				user: { ...owner, stripeCustomerId: customer.id, updatedAt },
 				cachedAt: Date.now()
 			})
 			// Prune expired cache entries only when cache size exceeds threshold (performance optimization)

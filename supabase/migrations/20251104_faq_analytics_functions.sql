@@ -1,34 +1,30 @@
 -- RPC functions for FAQ analytics
 
--- Function to increment view count
+-- Function to increment view count (atomic operation)
 CREATE OR REPLACE FUNCTION increment_faq_view_count(question_id UUID)
 RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
+LANGUAGE sql
+SECURITY INVOKER
 AS $$
-BEGIN
     UPDATE faq_questions
     SET view_count = view_count + 1,
         updated_at = NOW()
     WHERE id = question_id AND is_active = true;
-END;
 $$;
 
--- Function to increment helpful count
+-- Function to increment helpful count (atomic operation)
 CREATE OR REPLACE FUNCTION increment_faq_helpful_count(question_id UUID)
 RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
+LANGUAGE sql
+SECURITY INVOKER
 AS $$
-BEGIN
     UPDATE faq_questions
     SET helpful_count = helpful_count + 1,
         updated_at = NOW()
     WHERE id = question_id AND is_active = true;
-END;
 $$;
 
--- Function to get FAQ stats for admin dashboard
+-- Function to get FAQ stats for admin dashboard (optimized with single scan)
 CREATE OR REPLACE FUNCTION get_faq_analytics()
 RETURNS TABLE (
     total_categories BIGINT,
@@ -37,24 +33,26 @@ RETURNS TABLE (
     total_helpful BIGINT,
     avg_helpful_rate DECIMAL
 )
-LANGUAGE plpgsql
-SECURITY DEFINER
+LANGUAGE sql
+SECURITY INVOKER
 AS $$
-BEGIN
-    RETURN QUERY
+    WITH question_stats AS (
+        SELECT
+            COUNT(*) as question_count,
+            COALESCE(SUM(view_count), 0) as total_view_count,
+            COALESCE(SUM(helpful_count), 0) as total_helpful_count
+        FROM faq_questions
+        WHERE is_active = true
+    )
     SELECT
         (SELECT COUNT(*) FROM faq_categories WHERE is_active = true) as total_categories,
-        (SELECT COUNT(*) FROM faq_questions WHERE is_active = true) as total_questions,
-        (SELECT COALESCE(SUM(view_count), 0) FROM faq_questions WHERE is_active = true) as total_views,
-        (SELECT COALESCE(SUM(helpful_count), 0) FROM faq_questions WHERE is_active = true) as total_helpful,
+        qs.question_count::BIGINT as total_questions,
+        qs.total_view_count::BIGINT as total_views,
+        qs.total_helpful_count::BIGINT as total_helpful,
         CASE
-            WHEN (SELECT COALESCE(SUM(view_count), 0) FROM faq_questions WHERE is_active = true) > 0
-            THEN ROUND(
-                ((SELECT COALESCE(SUM(helpful_count), 0) FROM faq_questions WHERE is_active = true)::DECIMAL /
-                 (SELECT COALESCE(SUM(view_count), 0) FROM faq_questions WHERE is_active = true)::DECIMAL) * 100,
-                2
-            )
+            WHEN qs.total_view_count > 0
+            THEN ROUND((qs.total_helpful_count::DECIMAL / qs.total_view_count::DECIMAL) * 100, 2)
             ELSE 0
-        END as avg_helpful_rate;
-END;
+        END as avg_helpful_rate
+    FROM question_stats qs;
 $$;

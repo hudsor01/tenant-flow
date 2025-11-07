@@ -45,6 +45,30 @@ import { StripeOwnerService } from './stripe-owner.service'
 import { StripeTenantService } from './stripe-tenant.service'
 
 /**
+ * Cached products response structure
+ */
+type CachedProductsResponse = {
+	success: boolean
+	products: Array<{
+		id: string
+		name: string
+		description: string | null
+		active: boolean
+		metadata: Stripe.Metadata
+		prices: Array<{
+			id: string
+			unit_amount: number
+			currency: string
+			recurring: {
+				interval: 'month' | 'year'
+				interval_count: number
+			} | null
+		}>
+		default_price: string | Stripe.Price | null | undefined
+	}>
+}
+
+/**
  * Production-Grade Stripe Integration Controller
  *
  * Based on comprehensive official Stripe documentation research:
@@ -86,8 +110,11 @@ export class StripeController {
 		userId: string,
 		additionalContext?: string
 	): string {
-		// Use server secret for HMAC to ensure keys are unique per deployment
-		const secret = process.env.SUPABASE_JWT_SECRET || 'fallback-secret-for-dev'
+		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
+		const secret =
+			process.env.IDEMPOTENCY_KEY_SECRET ||
+			process.env.JWT_SECRET ||
+			'fallback-secret-for-dev'
 
 		// Combine all inputs into a stable string
 		const context = additionalContext ? `_${additionalContext}` : ''
@@ -1577,28 +1604,9 @@ export class StripeController {
 		const cacheKey = 'stripe:products'
 
 		// Try cache first (5 minute TTL for public pricing data)
-		const cached = (await this.cacheManager.get(cacheKey)) as
-			| {
-					success: boolean
-					products: Array<{
-						id: string
-						name: string
-						description: string | null
-						active: boolean
-						metadata: Stripe.Metadata
-						prices: Array<{
-							id: string
-							unit_amount: number
-							currency: string
-							recurring: {
-								interval: 'month' | 'year'
-								interval_count: number
-							} | null
-						}>
-						default_price: string | Stripe.Price | null | undefined
-					}>
-			  }
-			| undefined
+		const cached = (await this.cacheManager.get(
+			cacheKey
+		)) as CachedProductsResponse | undefined
 		if (cached) {
 			this.logger.debug('Returning cached products')
 			return cached

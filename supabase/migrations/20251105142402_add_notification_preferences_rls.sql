@@ -34,6 +34,10 @@ TO authenticated
 USING (
     auth_user_id = (SELECT auth.uid())
     OR userId = (SELECT auth.uid())
+)
+WITH CHECK (
+    auth_user_id = (SELECT auth.uid())
+    OR userId = (SELECT auth.uid())
 );
 
 -- Service role has full access for management operations

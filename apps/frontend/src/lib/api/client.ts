@@ -10,6 +10,7 @@
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { ERROR_MESSAGES } from '#lib/constants'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -59,7 +60,7 @@ async function getAuthHeaders(
 				requireAuth
 			}
 		})
-		throw new Error('Authentication session expired. Please log in again.')
+		throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
 	} else {
 		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {
@@ -111,10 +112,19 @@ export async function clientFetch<T>(
 	// Get auth headers (includes Authorization + custom headers)
 	const headers = await getAuthHeaders(customHeaders, requireAuth)
 
-	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-		...fetchOptions,
-		headers
-	})
+	// Ensure body is set for methods that require it
+	const finalOptions = { ...fetchOptions, headers }
+	if (
+		fetchOptions.method &&
+		['POST', 'PUT', 'PATCH'].includes(fetchOptions.method.toUpperCase()) &&
+		!finalOptions.body
+	) {
+		logger.warn('Request body missing for mutation method', {
+			metadata: { endpoint, method: fetchOptions.method }
+		})
+	}
+
+	const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
 
 	if (!response.ok) {
 		const errorText = await response.text()

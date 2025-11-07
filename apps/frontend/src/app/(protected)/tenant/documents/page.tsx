@@ -20,6 +20,71 @@ import { Skeleton } from '#components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 
 export default function TenantDocumentsPage() {
+	const { data, isLoading, error } = useTenantPortalDocuments()
+	const documents = data?.documents ?? []
+	const leaseDocs = documents.filter(doc => doc.type === 'LEASE')
+	const receiptDocs = documents.filter(doc => doc.type === 'RECEIPT')
+
+	const renderDocumentRow = (doc: (typeof documents)[number]) => (
+		<div
+			key={doc.id}
+			className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
+		>
+			<div className="flex items-center gap-4 flex-1">
+				{doc.type === 'LEASE' ? (
+					<FileText className="size-6 text-accent-main" />
+				) : (
+					<FolderOpen className="size-6 text-accent-main" />
+				)}
+				<div className="flex-1">
+					<p className="font-medium">{doc.name}</p>
+					<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+						{doc.createdAt && (
+							<div className="flex items-center gap-1">
+								<Calendar className="size-3" />
+								<span>
+									Uploaded on {new Date(doc.createdAt).toLocaleDateString()}
+								</span>
+							</div>
+						)}
+						{doc.url && <span>•</span>}
+						<span>
+							{doc.url ? 'Download available' : 'Contact manager for access'}
+						</span>
+					</div>
+				</div>
+			</div>
+			<div className="flex gap-2">
+				<Button
+					variant="ghost"
+					size="sm"
+					disabled={!doc.url}
+					aria-label={`View ${doc.name || 'document'}`}
+				onClick={() => doc.url && window.open(doc.url, '_blank', 'noopener,noreferrer')}
+				>
+					<Eye className="size-4" />
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					disabled={!doc.url}
+					onClick={() => {
+						if (!doc.url) return
+						const anchor = document.createElement('a')
+						anchor.href = doc.url
+						anchor.download = doc.name || 'document'
+						document.body.appendChild(anchor)
+						anchor.click()
+						document.body.removeChild(anchor)
+					}}
+				>
+					<Download className="size-4 mr-2" />
+					Download
+				</Button>
+			</div>
+		</div>
+	)
+
 	return (
 		<TenantGuard>
 		<div className="space-y-8">
@@ -30,13 +95,19 @@ export default function TenantDocumentsPage() {
 				</p>
 			</div>
 
-			{/* Document Categories */}
-			<div className="grid gap-6">
-				{/* Lease Documents */}
-				<CardLayout
-					title="Lease Documents"
-					description="Your signed lease agreement and addendums"
-				>
+			{error && (
+				<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
+					<p className="text-sm text-destructive">
+						Failed to load documents. Please try again later.
+					</p>
+				</div>
+			)}
+
+			<CardLayout
+				title="Lease Documents"
+				description="Signed agreements and addendums"
+			>
+				{isLoading ? (
 					<div className="space-y-3">
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">

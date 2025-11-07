@@ -1149,11 +1149,12 @@ export class TenantsService {
 		const client = this.supabase.getAdminClient()
 
 		// Fetch tenant's notification preferences
+		// FIX: Use userId instead of ownerId to match tenant table schema
 		const { data, error } = await client
 			.from('tenant')
 			.select('notification_preferences')
 			.eq('id', tenantId)
-			.eq('ownerId', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (error) {
@@ -1187,11 +1188,12 @@ export class TenantsService {
 		const client = this.supabase.getAdminClient()
 
 		// Get current preferences
+		// FIX: Use userId instead of ownerId to match tenant table schema
 		const { data: currentData } = await client
 			.from('tenant')
 			.select('notification_preferences')
 			.eq('id', tenantId)
-			.eq('ownerId', userId)
+			.eq('userId', userId)
 			.single()
 
 		if (!currentData) {
@@ -1205,11 +1207,12 @@ export class TenantsService {
 		}
 
 		// Update preferences
+		// FIX: Use userId instead of ownerId to match tenant table schema
 		const { data, error } = await client
 			.from('tenant')
 			.update({ notification_preferences: updatedPreferences })
 			.eq('id', tenantId)
-			.eq('ownerId', userId)
+			.eq('userId', userId)
 			.select('notification_preferences')
 			.single()
 
@@ -1638,6 +1641,13 @@ export class TenantsService {
 			unitId: leaseData.unitId
 		})
 
+		// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
+		if (!leaseData.rentAmount || leaseData.rentAmount < 0) {
+			throw new BadRequestException(
+				'rentAmount is required and must be non-negative'
+			)
+		}
+
 		const client = this.supabase.getAdminClient()
 
 		// 🔐 BUG FIX #2: Use Saga pattern for transactional tenant+lease+auth creation
@@ -1910,7 +1920,6 @@ export class TenantsService {
 
 					const stripe = this.stripeConnectService.getStripe()
 
-					// Normalize rent amount to cents (Stripe requires smallest currency unit)
 					const rentAmountInCents =
 						leaseData.rentAmount >= 100000
 							? Math.round(leaseData.rentAmount)
@@ -2215,8 +2224,8 @@ export class TenantsService {
 				}
 			}
 
-			// Use sendTenantInvitation method to handle the resend
-			// This will generate a new token and update expiry
+			// Resend invitation via Supabase Auth
+			// This will generate a new invitation email
 			return await this.sendTenantInvitationV2(userId, tenantId)
 		} catch (error) {
 			this.logger.error('Failed to resend tenant invitation', {

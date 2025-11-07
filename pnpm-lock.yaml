@@ -249,6 +249,9 @@ importers:
       jose:
         specifier: 6.1.0
         version: 6.1.0
+      jsonwebtoken:
+        specifier: 9.0.2
+        version: 9.0.2
       jwks-rsa:
         specifier: 3.2.0
         version: 3.2.0
@@ -340,6 +343,9 @@ importers:
       '@types/jest':
         specifier: 'catalog:'
         version: 30.0.0
+      '@types/jsonwebtoken':
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/multer':
         specifier: 2.0.0
         version: 2.0.0
@@ -544,9 +550,6 @@ importers:
       '@tanstack/react-virtual':
         specifier: 3.13.12
         version: 3.13.12(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@types/dompurify':
-        specifier: 3.2.0
-        version: 3.2.0
       '@vercel/analytics':
         specifier: ^1.5.0
         version: 1.5.0(next@15.5.6(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
@@ -4114,10 +4117,6 @@ packages:
 
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
-
-  '@types/dompurify@3.2.0':
-    resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}
-    deprecated: This is a stub types definition. dompurify provides its own type definitions, so you do not need this installed.
 
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
@@ -13543,10 +13542,6 @@ snapshots:
   '@types/d3-timer@3.0.2': {}
 
   '@types/deep-eql@4.0.2': {}
-
-  '@types/dompurify@3.2.0':
-    dependencies:
-      dompurify: 3.3.0
 
   '@types/eslint-scope@3.7.7':
     dependencies:

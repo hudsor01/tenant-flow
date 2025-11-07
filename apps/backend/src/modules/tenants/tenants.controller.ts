@@ -210,15 +210,24 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
-		const preferences = await this.tenantsService.updateNotificationPreferences(
+
+		// Extract boolean properties from the validated DTO to maintain type safety
+		const preferences: Record<string, boolean> = {}
+		for (const [key, value] of Object.entries(dto)) {
+			if (typeof value === 'boolean') {
+				preferences[key] = value
+			}
+		}
+
+		const result = await this.tenantsService.updateNotificationPreferences(
 			userId,
 			id,
-			dto as unknown as Record<string, boolean>
+			preferences
 		)
-		if (!preferences) {
+		if (!result) {
 			throw new NotFoundException('Tenant not found')
 		}
-		return preferences
+		return result
 	}
 
 	@Put(':id/mark-moved-out')

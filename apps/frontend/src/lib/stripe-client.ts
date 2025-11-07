@@ -4,6 +4,7 @@
  */
 import { API_BASE_URL } from '#lib/api-config'
 import { createClient } from '#lib/supabase/client'
+import { ERROR_MESSAGES } from '#lib/constants'
 
 interface CreateCheckoutSessionRequest {
 	priceId: string
@@ -103,7 +104,7 @@ export async function getCurrentUser() {
 	} = await supabase.auth.getUser()
 
 	if (error || !user) {
-		throw new Error('User not authenticated')
+		throw new Error(ERROR_MESSAGES.USER_NOT_AUTHENTICATED)
 	}
 
 	return user
@@ -194,7 +195,7 @@ export async function createCustomerPortalSession(
 	} = await supabase.auth.getSession()
 
 	if (!session?.access_token) {
-		throw new Error('Session expired')
+		throw new Error(ERROR_MESSAGES.SESSION_EXPIRED)
 	}
 
 	// Get user's Stripe customer ID
@@ -205,7 +206,7 @@ export async function createCustomerPortalSession(
 		.single()
 
 	if (dbError || !userData?.stripeCustomerId) {
-		throw new Error('No Stripe customer found. Please contact support.')
+		throw new Error(ERROR_MESSAGES.NO_STRIPE_CUSTOMER)
 	}
 
 	const response = await fetch(
