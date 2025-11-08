@@ -18,6 +18,7 @@ import type {
 import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
 import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleConflictError,
 	isConflictError,
@@ -25,7 +26,6 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 export type TenantPortalLease = LeaseWithDetails & {
 	metadata: {
@@ -80,7 +80,7 @@ export function useCurrentLease() {
 				'/api/v1/tenant-portal/lease'
 			)
 		},
-		staleTime: 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -135,8 +135,8 @@ export function useLeaseList(params?: {
 		queryKey: leaseKeys.list({
 			...(status && { status }),
 			...(search && { search }),
-			...(limit !== 50 && { limit }),
-			...(offset !== 0 && { offset })
+			limit, // Always include for proper cache keying
+			offset // Always include for proper cache keying
 		}),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams()
@@ -219,9 +219,9 @@ export function useCreateLease() {
 			const tempId = `temp-${Date.now()}`
 			const optimisticLease: Lease = {
 				id: tempId,
-				tenantId: newLease.tenantId ?? null,
-				unitId: newLease.unitId ?? null,
-				propertyId: newLease.propertyId ?? null,
+				tenantId: newLease.tenantId !== undefined ? newLease.tenantId : null,
+				unitId: newLease.unitId !== undefined ? newLease.unitId : null,
+				propertyId: newLease.propertyId !== undefined ? newLease.propertyId : null,
 				startDate: newLease.startDate,
 				endDate: newLease.endDate ?? null,
 				rentAmount: newLease.rentAmount,
