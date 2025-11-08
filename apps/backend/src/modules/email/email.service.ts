@@ -158,7 +158,7 @@ export class EmailService {
 		const email = this.escapeHtml(dto.email)
 		const company = dto.company ? this.escapeHtml(dto.company) : null
 		const subject = this.escapeHtml(dto.subject)
-		const type = this.escapeHtml(dto.type || 'General Inquiry')
+		const type = this.escapeHtml(dto.type)
 		const message = this.escapeHtml(dto.message)
 
 		return `
@@ -212,6 +212,7 @@ export class EmailService {
 	generateUserConfirmationHtml(dto: ContactFormRequest): string {
 		const name = this.escapeHtml(dto.name)
 		const subject = this.escapeHtml(dto.subject)
+		const supportPhone = this.escapeHtml(process.env.SUPPORT_PHONE || '(555) 123-4567')
 
 		return `
 <!DOCTYPE html>
@@ -235,7 +236,7 @@ export class EmailService {
 			<p class="message">Hi ${name},</p>
 			<p class="message">Thank you for reaching out to us. We've received your message regarding "${subject}" and our team will review it shortly.</p>
 			<p class="message">We typically respond within 4 hours during business hours (9 AM - 5 PM EST, Monday-Friday).</p>
-			<p class="message">If you need immediate assistance, please call us at ${process.env.SUPPORT_PHONE || '(555) 123-4567'}.</p>
+			<p class="message">If you need immediate assistance, please call us at ${supportPhone}.</p>
 			<p class="message">Best regards,<br>The TenantFlow Team</p>
 		</div>
 	</div>
