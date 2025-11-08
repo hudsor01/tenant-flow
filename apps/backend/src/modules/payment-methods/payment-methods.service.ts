@@ -53,7 +53,7 @@ export class PaymentMethodsService {
 		}
 		
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate customers
-		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
+		const idempotencyKey = `customer-create-${userId}`
 		const customer = await this.stripe.customers.create(customerParams, {
 			idempotencyKey
 		})
@@ -120,7 +120,7 @@ export class PaymentMethodsService {
 		}
 
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate setup intents
-		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}-${Date.now()}`
+		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}`
 		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams, {
 			idempotencyKey
 		})
@@ -151,6 +151,21 @@ export class PaymentMethodsService {
 		})
 
 		const client = this.supabase.getUserClient(token)
+
+		// BUG FIX #3: First resolve tenant ID from auth_user_id
+		// RLS policy checks: tenant.auth_user_id = auth.uid()
+		// userId parameter is auth_user_id, NOT tenant table ID
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', { userId })
+			throw new NotFoundException('Tenant not found')
+		}
+
 		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId)
 
 		const paymentMethod = await this.stripe.paymentMethods.retrieve(
@@ -174,11 +189,12 @@ export class PaymentMethodsService {
 			})
 		}
 
+		// Now query payment methods using the correct tenant.id
 		const { data: existing, error: existingError } = await client
 			.from('tenant_payment_method')
 			.select('id')
 			.match({
-				tenantId: userId,
+				tenantId: tenant.id,
 				stripePaymentMethodId
 			})
 			.maybeSingle()
@@ -203,7 +219,7 @@ export class PaymentMethodsService {
 		const { data: existingMethods, error: listError } = await client
 			.from('tenant_payment_method')
 			.select('id')
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 
 		if (listError) {
 			this.logger.error('Failed to load tenant payment methods', {
@@ -222,11 +238,11 @@ export class PaymentMethodsService {
 					isDefault: false,
 					updatedAt: new Date().toISOString()
 				})
-				.eq('tenantId', userId)
+				.eq('tenantId', tenant.id)
 		}
 
 		const { error } = await client.from('tenant_payment_method').insert({
-			tenantId: userId,
+			tenantId: tenant.id,
 			stripePaymentMethodId,
 			stripeCustomerId,
 			type: paymentMethod.type,
