@@ -131,7 +131,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			}
 
 			const result = await createPayment.mutateAsync({
-				tenantId,
+				tenantId: tenantId,
 				leaseId: lease.id,
 				amount: lease.rentAmount,
 				paymentMethodId: selectedPaymentMethodId

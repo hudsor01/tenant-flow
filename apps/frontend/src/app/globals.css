@@ -1243,6 +1243,101 @@
 		border-radius: calc(var(--radius) - 2px);
 		outline: none;
 	}
+
+	/* Sonner toaster */
+	.toaster {
+		z-index: var(--z-toast);
+		font-family: var(--font-family);
+	}
+
+	.sonner-toast {
+		display: grid;
+		gap: 0.35rem;
+		min-width: 18rem;
+		padding: 0.85rem 1rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid oklch(var(--border));
+		background-color: oklch(var(--card));
+		color: oklch(var(--card-foreground));
+		box-shadow: var(--shadow-medium);
+		transition: all var(--duration-200) var(--ease-out);
+	}
+
+	.sonner-toast[data-type='success'] {
+		background-color: var(--color-success-bg);
+		color: var(--color-success-text);
+		border-color: var(--color-success-border);
+	}
+
+	.sonner-toast[data-type='error'] {
+		background-color: var(--color-error-background);
+		color: var(--color-error-foreground);
+		border-color: var(--color-error-border);
+	}
+
+	.sonner-toast[data-type='warning'] {
+		background-color: var(--color-warning-background);
+		color: var(--color-warning-foreground);
+		border-color: var(--color-warning-border);
+	}
+
+	.sonner-toast[data-type='info'] {
+		background-color: var(--color-info-background);
+		color: var(--color-info-foreground);
+		border-color: var(--color-info-border);
+	}
+
+	.sonner-toast__title {
+		font-size: var(--text-sm);
+		font-weight: var(--font-weight-semibold);
+		line-height: var(--line-height-tight);
+		color: inherit;
+	}
+
+	.sonner-toast__description {
+		font-size: var(--text-sm);
+		line-height: var(--line-height-relaxed);
+		color: oklch(var(--muted-foreground));
+	}
+
+	.sonner-toast[data-type] .sonner-toast__description {
+		color: inherit;
+		opacity: 0.9;
+	}
+
+	.sonner-toast__action,
+	.sonner-toast__cancel {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: var(--radius);
+		padding: 0.35rem 0.85rem;
+		font-size: var(--text-sm);
+		font-weight: var(--font-weight-medium);
+		transition: background-color var(--duration-200) var(--ease-out),
+			color var(--duration-200) var(--ease-out),
+			box-shadow var(--duration-200) var(--ease-out);
+	}
+
+	.sonner-toast__action {
+		background-color: oklch(var(--primary));
+		color: oklch(var(--primary-foreground));
+		box-shadow: var(--shadow-small);
+	}
+
+	.sonner-toast__action:hover {
+		background-color: oklch(var(--primary) / 90%);
+	}
+
+	.sonner-toast__cancel {
+		background-color: oklch(var(--muted));
+		color: oklch(var(--muted-foreground));
+		border: 1px solid transparent;
+	}
+
+	.sonner-toast__cancel:hover {
+		border-color: oklch(var(--border));
+	}
 }
 
 @layer utilities {
