@@ -22,6 +22,8 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { RawBodyRequest } from '../../shared/types/express-request.types'
 import { StripeConnectService } from './stripe-connect.service'
+import { SupabaseService } from '../../database/supabase.service'
+import { PrometheusService } from '../observability/prometheus.service'
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
@@ -29,7 +31,9 @@ export class StripeWebhookController {
 
 	constructor(
 		private readonly stripeConnect: StripeConnectService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly supabase: SupabaseService,
+		private readonly prometheus: PrometheusService
 	) {}
 
 	/**
@@ -70,15 +74,100 @@ export class StripeWebhookController {
 			throw new BadRequestException('Invalid webhook signature')
 		}
 
+		const client = this.supabase.getAdminClient()
+
+		// Check for duplicate events (idempotency)
+		const { data: existing } = await client
+			.from('processed_stripe_events')
+			.select('id')
+			.eq('stripe_event_id', event.id)
+			.single()
+
+		if (existing) {
+			// Record idempotency hit
+			this.prometheus.recordIdempotencyHit(event.type)
+			this.logger.log('Duplicate webhook event detected', {
+				type: event.type,
+				id: event.id
+			})
+			return { received: true, duplicate: true }
+		}
+
+		// Record event processing start
+		const startTime = Date.now()
+
 		this.logger.log('Stripe webhook received', {
 			type: event.type,
 			id: event.id
 		})
 
-		// Emit event using NestJS EventEmitter2
-		// Event listeners handle business logic separately
-		this.eventEmitter.emit(`stripe.${event.type}`, event.data.object)
+		try {
+			// CHANGE: Use emitAsync() instead of emit() to propagate errors
+			await this.eventEmitter.emitAsync(`stripe.${event.type}`, {
+				...(event.data.object as unknown as Record<string, unknown>),
+				eventId: event.id,
+				eventType: event.type
+			})
 
-		return { received: true }
+			// Record success
+			const duration = Date.now() - startTime
+			this.prometheus.recordWebhookProcessing(event.type, duration, 'success')
+
+			// Store in processed_stripe_events table
+			await client.from('processed_stripe_events').insert({
+				stripe_event_id: event.id,
+				event_type: event.type,
+				processed_at: new Date().toISOString()
+			})
+
+			// Store metrics in webhook_metrics table
+			await client.from('webhook_metrics').insert({
+				stripe_event_id: event.id,
+				event_type: event.type,
+				processing_duration_ms: duration,
+				success: true,
+				created_at: new Date().toISOString()
+			})
+
+			return { received: true }
+		} catch (error) {
+			// Record failure
+			const duration = Date.now() - startTime
+			this.prometheus.recordWebhookProcessing(event.type, duration, 'error')
+			this.prometheus.recordWebhookFailure(
+				event.type,
+				error instanceof Error ? error.constructor.name : 'UnknownError'
+			)
+
+			// Store in webhook_failures table
+			await client.from('webhook_failures').insert({
+				stripe_event_id: event.id,
+				event_type: event.type,
+				raw_event_data: JSON.parse(JSON.stringify(event)),
+				error_message: error instanceof Error ? error.message : String(error),
+				error_stack: error instanceof Error ? (error.stack || null) : null,
+				failure_reason: 'processing_error',
+				retry_count: 0,
+				created_at: new Date().toISOString()
+			})
+
+			// Store metrics
+			await client.from('webhook_metrics').insert({
+				stripe_event_id: event.id,
+				event_type: event.type,
+				processing_duration_ms: duration,
+				success: false,
+				created_at: new Date().toISOString()
+			})
+
+			this.logger.error('Webhook processing failed', {
+				type: event.type,
+				id: event.id,
+				error: error instanceof Error ? error.message : String(error)
+			})
+
+			// Return 500 to trigger Stripe automatic retry
+			throw new BadRequestException('Webhook processing failed')
+		}
 	}
 }

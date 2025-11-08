@@ -39,9 +39,7 @@ interface TenantInvitationResult {
 
 @Injectable()
 export class TenantInvitationService {
-	private readonly logger = new Logger(
-		TenantInvitationService.name
-	)
+	private readonly logger = new Logger(TenantInvitationService.name)
 
 	constructor(
 		private readonly supabase: SupabaseService,
@@ -134,8 +132,7 @@ export class TenantInvitationService {
 				tenantId: tenant.id,
 				leaseId: lease.id,
 				checkoutUrl: checkoutSession.url,
-				message:
-					'Tenant created and invitation sent with payment setup link'
+				message: 'Tenant created and invitation sent with payment setup link'
 			}
 		} catch (error) {
 			this.logger.error('Tenant invitation failed', {
@@ -340,8 +337,9 @@ export class TenantInvitationService {
 		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
 
 		// Send Supabase Auth invitation with Checkout URL in metadata
-		const { data: authUser, error } =
-			await client.auth.admin.inviteUserByEmail(tenant.email, {
+		const { data: authUser, error } = await client.auth.admin.inviteUserByEmail(
+			tenant.email,
+			{
 				data: {
 					tenantId: tenant.id,
 					leaseId: lease.id,
@@ -353,7 +351,8 @@ export class TenantInvitationService {
 					role: 'tenant'
 				},
 				redirectTo: `${frontendUrl}/auth/confirm`
-			})
+			}
+		)
 
 		if (error) {
 			throw new BadRequestException(

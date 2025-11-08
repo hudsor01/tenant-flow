@@ -4,6 +4,8 @@ import { render } from '@react-email/render'
 import { PaymentSuccessEmail } from '../../emails/payment-success-email'
 import { PaymentFailedEmail } from '../../emails/payment-failed-email'
 import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
 
 /**
  * Email Service - Direct Resend Integration
@@ -13,6 +15,12 @@ import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-em
  */
 @Injectable()
 export class EmailService {
+	generateTeamNotificationHtml(dto: ContactFormRequest) {
+		throw new Error('Method not implemented.')
+	}
+	generateUserConfirmationHtml(dto: ContactFormRequest) {
+		throw new Error('Method not implemented.')
+	}
 	private readonly logger = new Logger(EmailService.name)
 	private readonly resend: Resend | null
 
@@ -109,7 +117,9 @@ export class EmailService {
 		currentPeriodEnd: Date | null
 	}): Promise<void> {
 		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping subscription canceled email')
+			this.logger.warn(
+				'Resend not configured, skipping subscription canceled email'
+			)
 			return
 		}
 
@@ -128,8 +138,8 @@ export class EmailService {
 			})
 		} catch (error) {
 			this.logger.error('Failed to send subscription canceled email', {
-			error: error instanceof Error ? error.message : String(error)
-		})
+				error: error instanceof Error ? error.message : String(error)
+			})
 		}
 	}
 }
