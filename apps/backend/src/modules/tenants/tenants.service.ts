@@ -2136,7 +2136,7 @@ export class TenantsService {
 				securityDeposit: leaseData.securityDeposit,
 				startDate: leaseData.startDate,
 				endDate: leaseData.endDate,
-				status: 'PENDING' as Database['public']['Enums']['LeaseStatus']
+				status: 'DRAFT' as Database['public']['Enums']['LeaseStatus'] // FIX: PENDING doesn't exist in LeaseStatus enum
 			})
 			.select()
 			.single()

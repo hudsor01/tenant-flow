@@ -323,7 +323,7 @@ export default function LeasesPage() {
 								<TableRow key={lease.id}>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											{lease.tenantId.substring(0, 8)}...
+											{lease.tenantId ? `${lease.tenantId.substring(0, 8)}...` : 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>
