@@ -376,7 +376,9 @@ describe('Leases CRUD Integration Tests', () => {
 		})
 
 		it('returns empty result for non-existent ID', async () => {
-			const { result } = renderHook(() => useLease('non-existent-id'), {
+			// Use properly formatted UUID that doesn't exist in database
+			const nonExistentId = '00000000-0000-0000-0000-000000000000'
+			const { result } = renderHook(() => useLease(nonExistentId), {
 				wrapper: createWrapper()
 			})
 
@@ -541,8 +543,10 @@ describe('Leases CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
+			// Use properly formatted UUID that doesn't exist in database
+			const nonExistentId = '00000000-0000-0000-0000-000000000000'
 			await expect(async () => {
-				await result.current.mutateAsync('non-existent-id')
+				await result.current.mutateAsync(nonExistentId)
 			}).rejects.toThrow()
 		})
 

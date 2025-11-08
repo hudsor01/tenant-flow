@@ -243,12 +243,12 @@ describe('TenantsService.activateTenantFromAuthUser', () => {
 
 	it('should activate tenant from auth user ID', async () => {
 		const authUserId = 'auth-user-123'
-		const tenantId = 'tenant-456'
+		const tenantId = '00000000-0000-4000-8000-000000000456'
 
 		const mockAdminClient: any = {
 			rpc: jest.fn(() =>
 				Promise.resolve({
-					data: [{ tenant_id: tenantId, activated: true }],
+					data: [{ id: tenantId, activated: true }],
 					error: null
 				})
 			)
@@ -293,7 +293,7 @@ describe('TenantsService.activateTenantFromAuthUser', () => {
 		const mockAdminClient: any = {
 			rpc: jest.fn(() =>
 				Promise.resolve({
-					data: [{ tenant_id: 'tenant-456', activated: false }],
+					data: [{ id: '00000000-0000-4000-8000-000000000456', activated: false }],
 					error: null
 				})
 			)
