@@ -15,6 +15,7 @@ import { StripeService } from './stripe.service'
 import { StripeConnectService } from './stripe-connect.service'
 import { StripeConnectController } from './stripe-connect.controller'
 import { StripeWebhookListener } from './stripe-webhook.listener'
+import { WebhookRetryService } from './webhook-retry.service'
 
 /**
  * Production-Grade Stripe Module
@@ -39,7 +40,8 @@ import { StripeWebhookListener } from './stripe-webhook.listener'
 		StripeTenantService,
 		StripeOwnerService,
 		StripeConnectService,
-		StripeWebhookListener
+		StripeWebhookListener,
+		WebhookRetryService
 	],
 	controllers: [StripeController, StripeConnectController],
 	exports: [

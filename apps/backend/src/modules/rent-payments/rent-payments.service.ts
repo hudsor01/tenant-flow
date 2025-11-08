@@ -63,26 +63,26 @@ export class RentPaymentsService {
 
 	/**
 	 * CURRENCY CONVENTION: Normalize amount to CENTS for Stripe
-	 * 
+	 *
 	 * Accepts both dollar and cent inputs (backward compatibility):
 	 * - If amount < 1,000,000 → assume DOLLARS, convert to cents (amount * 100)
 	 * - If amount >= 1,000,000 → assume CENTS, use as-is
-	 * 
+	 *
 	 * Rationale: Threshold of 1M allows rents up to $9,999/month in dollar format
 	 * while supporting high-value properties (e.g., $5,000/month = 500,000 cents)
-	 * 
+	 *
 	 * Example:
 	 * - normalizeAmount(2500) → 250,000 cents ($2,500.00)
 	 * - normalizeAmount(5000) → 500,000 cents ($5,000.00)
 	 * - normalizeAmount(500000) → 500,000 cents ($5,000.00)
-	 * 
+	 *
 	 * @param amount - Amount in dollars (< 1000000) or cents (>= 1000000)
 	 * @returns Integer amount in CENTS for Stripe
 	 * @throws BadRequestException if amount is invalid or non-positive
 	 */
 	private normalizeAmount(amount: number): number {
 		const numericAmount = Number(amount)
-		
+
 		// Validate is finite and positive
 		if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
 			throw new BadRequestException('Payment amount must be greater than zero')
@@ -99,7 +99,7 @@ export class RentPaymentsService {
 		if (!Number.isInteger(roundedAmount)) {
 			throw new BadRequestException('Amount in cents must be an integer')
 		}
-		
+
 		return roundedAmount
 	}
 
@@ -859,7 +859,7 @@ export class RentPaymentsService {
 	 * Task 2.4: Payment Status Tracking
 	 *
 	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
-	 * 
+	 *
 	 * IMPORTANT: All amounts use Stripe standard (CENTS, not dollars)
 	 * @param tenantId - The tenant ID to get payment status for
 	 * @param requestingUserId - The user making the request (for authorization)
@@ -957,7 +957,7 @@ export class RentPaymentsService {
 				tenantId,
 				tenantOwnerId: tenant.auth_user_id
 			})
-				throw new ForbiddenException('You do not have access to this tenant')
+			throw new ForbiddenException('You do not have access to this tenant')
 		}
 	}
 
