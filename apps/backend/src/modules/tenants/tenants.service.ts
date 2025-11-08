@@ -1719,19 +1719,36 @@ export class TenantsService {
 			.addStep({
 				name: 'Check for existing auth user (prevent race condition)',
 				execute: async () => {
-					// 🔐 BUG FIX #1: Atomic check for existing auth user
-					const { data: existingUsers, error: listError } =
-						await client.auth.admin.listUsers()
-					if (listError) {
-						throw new BadRequestException('Failed to verify email uniqueness')
-					}
+					// 🔐 BUG FIX #1: Atomic check for existing auth user with pagination
+					// Per CodeRabbit: listUsers() returns only 50 users per page by default
+					// We must paginate through all users to avoid missing duplicates
+					const emailToCheck = tenantData.email.toLowerCase()
+					let page = 1
+					let hasMore = true
 
-					const existingAuthUser = existingUsers.users.find(
-						u => u.email?.toLowerCase() === tenantData.email.toLowerCase()
-					)
+					while (hasMore) {
+						const { data: userData, error: listError } =
+							await client.auth.admin.listUsers({
+								page,
+								perPage: 1000 // Max allowed per page
+							})
 
-					if (existingAuthUser) {
-						throw new ConflictException('Account already exists for this email')
+						if (listError) {
+							throw new BadRequestException('Failed to verify email uniqueness')
+						}
+
+						// Check if email exists in this page
+						const existingUser = userData.users.find(
+							u => u.email?.toLowerCase() === emailToCheck
+						)
+
+						if (existingUser) {
+							throw new ConflictException('Account already exists for this email')
+						}
+
+						// Check if there are more pages
+						hasMore = userData.users.length === 1000
+						page++
 					}
 
 					return { checked: true }
