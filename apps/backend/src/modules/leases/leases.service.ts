@@ -27,6 +27,14 @@ export class LeasesService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
+	 * Get user-scoped Supabase client for direct database access
+	 * Used by lease-generator.controller.ts for fetching lease data with relations
+	 */
+	getUserClient(token: string) {
+		return this.supabase.getUserClient(token)
+	}
+
+	/**
 	 * ❌ REMOVED: Manual unit filtering violates RLS pattern
 	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */

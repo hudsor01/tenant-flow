@@ -177,7 +177,7 @@ export function PropertyForm({
 		}
 	})
 
-	// Initialize image upload hook (create mode only)
+	// Initialize image upload hook (both create and edit modes)
 	const upload = useSupabaseUpload({
 		bucketName: 'property-images',
 		path: 'temp',
@@ -192,15 +192,15 @@ export function PropertyForm({
 		maxFiles: 1
 	})
 
-	// Watch for successful uploads and update imageUrl field (create mode only)
+	// Watch for successful uploads and update imageUrl field (both modes)
 	useEffect(() => {
-		if (mode === 'create' && upload.isSuccess && upload.successes.length > 0) {
+		if (upload.isSuccess && upload.successes.length > 0) {
 			const uploadedFileName = upload.successes[0]
 			const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/property-images/temp/${uploadedFileName}`
 			form.setFieldValue('imageUrl', imageUrl)
 			toast.success('Property image uploaded successfully')
 		}
-	}, [mode, form, upload.isSuccess, upload.successes])
+	}, [form, upload.isSuccess, upload.successes])
 
 	// Success state (create mode only)
 	if (showSuccessState && isSubmitted) {
@@ -399,26 +399,56 @@ export function PropertyForm({
 						)}
 					</form.Field>
 
-					{mode === 'create' && (
-						<form.Field name="imageUrl">
-							{field => (
-								<Field>
-									<FieldLabel>Property Image (Optional)</FieldLabel>
-									<div className="space-y-2">
+					<form.Field name="imageUrl">
+						{field => (
+							<Field>
+								<FieldLabel>Property Image (Optional)</FieldLabel>
+								<div className="space-y-3">
+									{/* Show existing image in edit mode */}
+									{mode === 'edit' && field.state.value && (
+										<div className="relative aspect-video w-full max-w-md rounded-lg overflow-hidden border bg-muted">
+											<img
+												src={field.state.value}
+												alt="Property"
+												className="object-cover w-full h-full"
+											/>
+											<Button
+												type="button"
+												variant="destructive"
+												size="sm"
+												className="absolute top-2 right-2"
+												onClick={() => {
+													form.setFieldValue('imageUrl', '')
+													toast.success('Image removed')
+												}}
+											>
+												Remove Image
+											</Button>
+										</div>
+									)}
+
+									{/* Upload new image */}
+									<div>
+										{mode === 'edit' && field.state.value ? (
+											<p className="text-sm text-muted-foreground mb-2">
+												Upload a new image to replace the current one
+											</p>
+										) : null}
 										<Dropzone {...upload}>
 											<DropzoneEmptyState />
 											<DropzoneContent />
 										</Dropzone>
-										{field.state.value && (
-											<p className="text-sm text-muted-foreground">
-												Image uploaded successfully
-											</p>
-										)}
 									</div>
-								</Field>
-							)}
-						</form.Field>
-					)}
+
+									{mutation.isSuccess && field.state.value && (
+										<p className="text-sm text-muted-foreground">
+											Image uploaded successfully
+										</p>
+									)}
+								</div>
+							</Field>
+						)}
+					</form.Field>
 				</div>
 
 				{/* Submit Button */}

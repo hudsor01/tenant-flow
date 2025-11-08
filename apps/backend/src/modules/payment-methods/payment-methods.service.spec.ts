@@ -227,11 +227,25 @@ describe('PaymentMethodsService', () => {
 				insert: jest.fn(() => Promise.resolve({ error: null }))
 			}
 
+			const tenantBuilder: any = {
+				select: jest.fn(() => ({
+					eq: jest.fn(() => ({
+						single: jest.fn(() =>
+							Promise.resolve({ data: { id: 'tenant-1' }, error: null })
+						)
+					}))
+				}))
+			}
+
 			let tenantPaymentMethodCall = 0
 
 			userClient.from.mockImplementation((table: string) => {
 				if (table === 'users') {
 					return userBuilder
+				}
+
+				if (table === 'tenant') {
+					return tenantBuilder
 				}
 
 				if (table === 'tenant_payment_method') {
@@ -261,7 +275,7 @@ describe('PaymentMethodsService', () => {
 			expect(result).toEqual({ success: true })
 			expect(insertBuilder.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					tenantId: 'user-1',
+					tenantId: 'tenant-1',
 					stripePaymentMethodId: 'pm_123',
 					isDefault: true
 				})
