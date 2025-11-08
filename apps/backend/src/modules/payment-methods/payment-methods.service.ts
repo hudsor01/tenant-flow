@@ -53,7 +53,8 @@ export class PaymentMethodsService {
 		}
 		
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate customers
-		const idempotencyKey = `customer-create-${userId}`
+		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
+		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
 		const customer = await this.stripe.customers.create(customerParams, {
 			idempotencyKey
 		})
@@ -120,7 +121,8 @@ export class PaymentMethodsService {
 		}
 
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate setup intents
-		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}`
+		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
+		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}-${Date.now()}`
 		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams, {
 			idempotencyKey
 		})
