@@ -170,12 +170,30 @@ export class AppConfigService {
 		return this.configService.get('REDIS_DB', { infer: true })
 	}
 
-	getRedisConfig(): { url: string } | Record<string, never> {
+	getRedisConfig():
+		| { url: string }
+		| {
+				host?: string
+				port?: number
+				password?: string
+				db?: number
+		  } {
 		const url = this.getRedisUrl()
 		if (url) {
 			return { url }
 		}
-		return {}
+
+		const host = this.getRedisHost()
+		const port = this.getRedisPort()
+		const password = this.getRedisPassword()
+		const db = this.getRedisDb()
+
+		return {
+			...(host ? { host } : {}),
+			...(port ? { port: Number(port) } : {}),
+			...(password ? { password } : {}),
+			...(db ? { db: Number(db) } : {})
+		}
 	}
 
 	// ==================== Logging ====================

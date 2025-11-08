@@ -378,6 +378,15 @@ stripe-webhooks.log
 database.dev
 db.dev
 local.db
+*.sqlite
+*.sqlite3
+
+# CRITICAL: Production user data and uploads
+**/uploads/
+**/tenant-files/
+**/lease-agreements/
+**/documents/uploads/
+**/storage/user-files/
 
 # Generated types that may contain sensitive info
 **/generated-types.secret.ts
