@@ -12,7 +12,7 @@ import {
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/spinner'
-import { useSupabasePasswordReset } from '#hooks/api/use-supabase-auth'
+import { useSupabasePasswordReset } from '#hooks/api/use-auth'
 import { CheckCircle2, Info, Mail } from 'lucide-react'
 import { useState } from 'react'
 

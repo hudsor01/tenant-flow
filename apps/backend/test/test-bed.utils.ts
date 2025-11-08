@@ -8,7 +8,6 @@
  */
 
 import { TestBed } from '@automock/jest'
-import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 
 /**
@@ -17,8 +16,8 @@ import { Test } from '@nestjs/testing'
 export interface TestBedResult<T> {
 	/** The class instance being tested */
 	unit: T
-	/** TestingModule reference for advanced use cases */
-	unitRef: TestingModule
+	/** Unit reference for accessing dependencies */
+	unitRef: any
 	/** Get a mocked dependency with type safety */
 	get: <TDep>(token: new (...args: any[]) => TDep) => jest.Mocked<TDep>
 }
@@ -108,12 +107,7 @@ export async function createTestBed<T>(
  */
 export async function createTestBedWithOverrides<T>(
 	classType: new (...args: any[]) => T,
-	customProviders: Array<{
-		provide: any
-		useValue?: any
-		useFactory?: (...args: any[]) => any
-		useClass?: any
-	}>
+	customProviders: any[]
 ): Promise<TestBedResult<T>> {
 	// Create base test module using NestJS testing utilities
 	const moduleRef = await Test.createTestingModule({
@@ -125,7 +119,7 @@ export async function createTestBedWithOverrides<T>(
 
 	return {
 		unit,
-		unitRef: moduleRef,
+		unitRef: moduleRef as any,
 		get: <TDep>(token: new (...args: any[]) => TDep): jest.Mocked<TDep> => {
 			return moduleRef.get(token)
 		}
