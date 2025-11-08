@@ -1720,19 +1720,40 @@ export class TenantsService {
 			unitId: leaseData.unitId
 		})
 
-		// Validate rent amount (frontend already sends in cents)
+		/**
+		 * CURRENCY CONVENTION: All rent amounts are stored and processed in CENTS
+		 * 
+		 * - Frontend sends: cents (e.g., 250000 = $2,500.00)
+		 * - Backend stores: cents in database
+		 * - Stripe receives: cents (native format)
+		 * 
+		 * BUG FIX: Removed double conversion (backend was multiplying cents by 100 again)
+		 * Previously: Frontend sent cents → Backend multiplied by 100 → Stripe received wrong amount
+		 * Now: Frontend sends cents → Backend validates as-is → Stripe receives correct amount
+		 * 
+		 * @param leaseData.rentAmount - Rent amount in CENTS (must be positive integer)
+		 * @throws BadRequestException if rentAmount is invalid or out of Stripe's range
+		 */
+		
+		// Validate rent amount presence
 		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined) {
 			throw new BadRequestException('rentAmount is required')
 		}
 
-		// rentAmount is already in cents from frontend
+		// Parse and round to integer cents (handles string or number input)
 		const rentAmountCents =
 			typeof leaseData.rentAmount === 'string'
 				? Math.round(parseFloat(leaseData.rentAmount))
 				: Math.round(leaseData.rentAmount)
 
+		// Validate is finite number
 		if (!Number.isFinite(rentAmountCents)) {
 			throw new BadRequestException('rentAmount must be a valid number')
+		}
+		
+		// Validate is integer (cents must be whole numbers)
+		if (!Number.isInteger(rentAmountCents)) {
+			throw new BadRequestException('rentAmount must be an integer (cents)')
 		}
 
 		// Validate range (already in cents)
