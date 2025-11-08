@@ -440,7 +440,7 @@ export function PropertyForm({
 										</Dropzone>
 									</div>
 
-									{field.state.value && !property?.imageUrl && (
+									{mutation.isSuccess && field.state.value && (
 										<p className="text-sm text-muted-foreground">
 											Image uploaded successfully
 										</p>

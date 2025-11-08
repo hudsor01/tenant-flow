@@ -1759,13 +1759,13 @@ export class TenantsService {
 		const result = await new SagaBuilder(this.logger)
 			.addStep({
 				name: 'Check for existing auth user (prevent race condition)',
-				execute: () => this._checkExistingAuthUser(tenantData.email),
+				execute: () => this.checkExistingAuthUser(tenantData.email),
 				compensate: async () => Promise.resolve()
 			})
 			.addStep({
 				name: 'Create tenant record',
 				execute: async () => {
-					createdTenant = await this._createTenantRecord(tenantData, userId)
+					createdTenant = await this.createTenantRecord(tenantData, userId)
 					return createdTenant
 				},
 				compensate: async (tenant: unknown) => {
@@ -1789,7 +1789,7 @@ export class TenantsService {
 					if (!createdTenant) {
 						throw new BadRequestException('Tenant not created')
 					}
-					createdLease = await this._createLeaseRecord(createdTenant.id, {
+					createdLease = await this.createLeaseRecord(createdTenant.id, {
 						...leaseData,
 						rentAmount: rentAmountCents
 					})
@@ -1805,7 +1805,7 @@ export class TenantsService {
 			})
 			.addStep({
 				name: 'Verify owner Connected Account',
-				execute: () => this._verifyOwnerConnectedAccount(userId),
+				execute: () => this.verifyOwnerConnectedAccount(userId),
 				compensate: async () => Promise.resolve()
 			})
 			.addStep({
@@ -1826,7 +1826,7 @@ export class TenantsService {
 						throw new BadRequestException('Connected account not found')
 					}
 
-					return this._createStripeCustomer(
+					return this.createStripeCustomer(
 						createdTenant,
 						createdLease.id,
 						owner.connectedAccountId
@@ -1875,7 +1875,7 @@ export class TenantsService {
 						throw new BadRequestException('Connected account not found')
 					}
 
-					return this._createStripeSubscription(
+					return this.createStripeSubscription(
 						createdTenant.id,
 						createdLease.id,
 						{
@@ -1917,7 +1917,7 @@ export class TenantsService {
 						throw new BadRequestException('Tenant or lease not created')
 					}
 
-					createdAuthUser = await this._sendAuthInvitation(
+					createdAuthUser = await this.sendAuthInvitation(
 						createdTenant,
 						leaseData,
 						createdLease.id,
@@ -1956,7 +1956,7 @@ export class TenantsService {
 					if (!createdTenant || !createdAuthUser) {
 						throw new BadRequestException('Tenant or auth user not created')
 					}
-					return this._linkTenantToAuthUser(createdTenant.id, createdAuthUser.id)
+					return this.linkTenantToAuthUser(createdTenant.id, createdAuthUser.id)
 				},
 				compensate: async () => {
 					// Rollback: Unlink tenant from auth user
@@ -2010,7 +2010,7 @@ export class TenantsService {
 	 * SAGA STEP 1: Check for existing auth user with pagination
 	 * Prevents race conditions by checking all pages of users
 	 */
-	private async _checkExistingAuthUser(
+	private async checkExistingAuthUser(
 		email: string
 	): Promise<{ checked: boolean }> {
 		const client = this.supabase.getAdminClient()
@@ -2049,7 +2049,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 2: Create tenant record in database
 	 */
-	private async _createTenantRecord(
+	private async createTenantRecord(
 		tenantData: {
 			email: string
 			firstName: string
@@ -2091,7 +2091,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 3: Create lease record in database
 	 */
-	private async _createLeaseRecord(
+	private async createLeaseRecord(
 		tenantId: string,
 		leaseData: {
 			propertyId: string
@@ -2133,7 +2133,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 4: Verify owner has completed Stripe Connect onboarding
 	 */
-	private async _verifyOwnerConnectedAccount(
+	private async verifyOwnerConnectedAccount(
 		userId: string
 	): Promise<{ connectedAccountId: string; ownerEmail: string }> {
 		const client = this.supabase.getAdminClient()
@@ -2173,7 +2173,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 5: Create Stripe Customer on owner's Connected Account
 	 */
-	private async _createStripeCustomer(
+	private async createStripeCustomer(
 		tenant: Tenant,
 		leaseId: string,
 		connectedAccountId: string
@@ -2225,7 +2225,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 6: Create Stripe Subscription for rent payment
 	 */
-	private async _createStripeSubscription(
+	private async createStripeSubscription(
 		tenantId: string,
 		leaseId: string,
 		leaseData: {
@@ -2333,7 +2333,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 7: Send Supabase Auth invitation email
 	 */
-	private async _sendAuthInvitation(
+	private async sendAuthInvitation(
 		tenant: Tenant,
 		leaseData: {
 			propertyId: string
@@ -2408,7 +2408,7 @@ export class TenantsService {
 	/**
 	 * SAGA STEP 8: Link tenant to auth user
 	 */
-	private async _linkTenantToAuthUser(
+	private async linkTenantToAuthUser(
 		tenantId: string,
 		authUserId: string
 	): Promise<{ linked: boolean }> {

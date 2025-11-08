@@ -578,7 +578,7 @@ describe('Units CRUD Integration Tests', () => {
 			createdUnitIds.push(createdUnit!.id)
 
 			// 2. READ
-			const { result: $1 } = renderHook(
+			const { result: readResult } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{
 					wrapper
@@ -592,7 +592,7 @@ describe('Units CRUD Integration Tests', () => {
 			expect(readResult.current.data!.unitNumber).toBe(newUnit.unitNumber)
 
 			// 3. UPDATE
-			const { result: $1 } = renderHook(
+			const { result: updateResult } = renderHook(
 				() => useUpdateUnit(),
 				{
 					wrapper
@@ -614,7 +614,7 @@ describe('Units CRUD Integration Tests', () => {
 			expect(updatedUnit!.version).toBe(2)
 
 			// 4. DELETE
-			const { result: $1 } = renderHook(
+			const { result: deleteResult } = renderHook(
 				() => useDeleteUnit(),
 				{
 					wrapper
@@ -626,7 +626,7 @@ describe('Units CRUD Integration Tests', () => {
 			createdUnitIds = createdUnitIds.filter(id => id !== createdUnit!.id)
 
 			// Verify deletion
-			const { result: $1 } = renderHook(
+			const { result: verifyResult } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{ wrapper }
 			)
