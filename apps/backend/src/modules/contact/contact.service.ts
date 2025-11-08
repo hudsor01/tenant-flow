@@ -8,7 +8,7 @@ import type { ConfigType } from '@nestjs/config'
 import { Resend } from 'resend'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import emailConfig from 'src/config/email.config'
-import type { EmailService } from '../email/email.service'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class ContactService {
