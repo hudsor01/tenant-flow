@@ -65,7 +65,6 @@ LEFT JOIN unit u ON u."propertyId" = p.id
 LEFT JOIN lease l ON l."unitId" = u.id
 LEFT JOIN tenant t ON t.id = l."tenantId"
 LEFT JOIN maintenance_request m ON m."unitId" = u.id
-LEFT JOIN rent_payment rp ON rp."tenantId" = t.id
 GROUP BY p."ownerId";
 
 -- Create index on user_id for faster lookups
