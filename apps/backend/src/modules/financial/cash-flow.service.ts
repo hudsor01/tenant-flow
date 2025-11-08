@@ -74,7 +74,7 @@ export class CashFlowService {
 		const { data: billingInsights, error: billingError } = await client.rpc(
 			'get_billing_insights',
 			{
-				user_id: user.id
+				owner_id_param: user.id
 			}
 		)
 

@@ -8,8 +8,10 @@
 import {
 	BadRequestException,
 	ConflictException,
+	ForbiddenException,
 	Injectable,
-	Logger
+	Logger,
+	NotFoundException
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
@@ -23,6 +25,7 @@ import type {
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { activateTenantResultSchema } from '@repo/shared/validation/database-rpc.schemas'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildMultiColumnSearch,
@@ -336,111 +339,9 @@ export class TenantsService {
 				}
 			)
 
-			const client = this.supabase.getAdminClient()
-
-			// Fetch tenants with their leases and related data
-			let queryBuilder = client
-				.from('tenant')
-				.select(
-					`
-					id,
-					firstName,
-					lastName,
-					email,
-					phone,
-					avatarUrl,
-					emergencyContact,
-					createdAt,
-					updatedAt,
-					invitation_status,
-					invitation_sent_at,
-					invitation_accepted_at,
-					invitation_expires_at,
-					userId,
-					lease!inner (
-						id,
-						startDate,
-						endDate,
-						rentAmount,
-						securityDeposit,
-						status,
-						terms,
-						unitId,
-						unit:unitId (
-							id,
-							unitNumber,
-							bedrooms,
-							bathrooms,
-							squareFeet,
-							propertyId,
-							property:propertyId (
-								id,
-								name,
-								address,
-								city,
-								state,
-								zipCode
-							)
-						)
-					)
-				`
-				)
-				.eq('userId', userId)
-
-			// Filter out MOVED_OUT and ARCHIVED tenants by default
-			if (!query.status) {
-				queryBuilder = queryBuilder.not(
-					'status',
-					'in',
-					'("MOVED_OUT","ARCHIVED")'
-				)
-			} else if (query.status && query.status !== 'all') {
-				const statusValue = String(
-					query.status
-				) as Database['public']['Enums']['TenantStatus']
-				queryBuilder = queryBuilder.eq('status', statusValue)
-			}
-
-			// Apply search filter
-			if (query.search) {
-				const searchTerm = String(query.search)
-				const sanitized = sanitizeSearchInput(searchTerm)
-				if (sanitized) {
-					queryBuilder = queryBuilder.or(
-						buildMultiColumnSearch(sanitized, [
-							'firstName',
-							'lastName',
-							'email'
-						])
-					)
-				}
-			}
-
-			if (query.invitationStatus) {
-				const statusFilter = String(query.invitationStatus).toUpperCase()
-				const allowedInvitationStatuses = [
-					'PENDING',
-					'SENT',
-					'ACCEPTED',
-					'EXPIRED',
-					'REVOKED'
-				] as const
-				if (
-					allowedInvitationStatuses.includes(
-						statusFilter as (typeof allowedInvitationStatuses)[number]
-					)
-				) {
-					queryBuilder = queryBuilder.eq(
-						'invitation_status',
-						statusFilter as (typeof allowedInvitationStatuses)[number]
-					)
-				}
-			}
-
-			// Apply pagination
-			const limit = query.limit ? Number(query.limit) : 50
-			const offset = query.offset ? Number(query.offset) : 0
-			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+			// Build and execute query
+			let queryBuilder = this._buildTenantQuery(userId)
+			queryBuilder = this._applyTenantFilters(queryBuilder, query)
 
 			const { data, error } = await queryBuilder
 
@@ -461,150 +362,11 @@ export class TenantsService {
 			}
 
 			// Fetch payment statuses for all tenants in a single query (fix N+1 problem)
-			const tenantIds = (data as TenantWithLeaseRelations[]).map(t => t.id)
-			const leaseIds = (data as TenantWithLeaseRelations[]).flatMap(t => {
-				const leases = Array.isArray(t.lease) ? t.lease : [t.lease]
-				const currentLease =
-					leases.find(l => l.status === 'ACTIVE') || leases[0]
-				return currentLease ? [currentLease.id] : []
-			})
+			const tenants = data as TenantWithLeaseRelations[]
+			const paymentMap = await this._fetchPaymentStatuses(tenants)
 
-			// Fetch most recent payment for each lease in one query
-			const { data: payments, error: paymentsError } = await client
-				.from('rent_payment')
-				.select('tenantId, leaseId, status, dueDate')
-				.in('tenantId', tenantIds)
-				.in('leaseId', leaseIds)
-				.order('dueDate', { ascending: false })
-
-			if (paymentsError) {
-				this.logger.warn('Failed to fetch payment statuses for tenants', {
-					error: paymentsError.message,
-					tenantIds,
-					leaseIds
-				})
-				// Continue without payment data - statuses will be null
-			}
-
-			// Build a map of tenantId+leaseId -> most recent payment
-			const paymentMap = new Map<
-				string,
-				{
-					status: Database['public']['Enums']['RentPaymentStatus']
-					dueDate: string
-				}
-			>()
-			if (payments) {
-				for (const payment of payments) {
-					const key = `${payment.tenantId}-${payment.leaseId}`
-					if (!paymentMap.has(key) && payment.status && payment.dueDate) {
-						paymentMap.set(key, {
-							status:
-								payment.status as Database['public']['Enums']['RentPaymentStatus'],
-							dueDate: payment.dueDate
-						})
-					}
-				}
-			}
-
-			// Transform each tenant to TenantWithLeaseInfo format with payment status
-			const tenantsWithLeaseInfo = (data as TenantWithLeaseRelations[]).map(
-				tenant => {
-					const leases = Array.isArray(tenant.lease)
-						? tenant.lease
-						: [tenant.lease]
-					const currentLease =
-						leases.find(l => l.status === 'ACTIVE') || leases[0]
-
-					// Get payment status from the pre-fetched map
-					let paymentStatus: string | null = null
-					if (currentLease) {
-						const key = `${tenant.id}-${currentLease.id}`
-						const payment = paymentMap.get(key) || null
-						paymentStatus = this.calculatePaymentStatus(payment)
-					}
-
-					// Calculate other derived fields
-					const monthlyRent = currentLease?.rentAmount || 0
-					const leaseStatus = currentLease?.status || 'None'
-					const unitDisplay = currentLease?.unit
-						? `Unit ${currentLease.unit.unitNumber}`
-						: 'No unit assigned'
-					const propertyDisplay = currentLease?.unit?.property
-						? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
-						: 'No property assigned'
-					const leaseStart = currentLease?.startDate || null
-					const leaseEnd = currentLease?.endDate || null
-
-					const result: TenantWithLeaseInfo = {
-						id: tenant.id,
-						name: `${tenant.firstName || ''} ${tenant.lastName || ''}`.trim(),
-						email: tenant.email,
-						phone: tenant.phone,
-						avatarUrl: tenant.avatarUrl,
-						emergencyContact: tenant.emergencyContact,
-						createdAt: tenant.createdAt,
-						updatedAt: tenant.updatedAt,
-						invitation_status:
-							tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
-						invitation_sent_at: tenant.invitation_sent_at,
-						invitation_accepted_at: tenant.invitation_accepted_at,
-						invitation_expires_at: tenant.invitation_expires_at,
-						currentLease: currentLease
-							? {
-									id: currentLease.id,
-									startDate: currentLease.startDate,
-									endDate: currentLease.endDate,
-									rentAmount: currentLease.rentAmount,
-									securityDeposit: currentLease.securityDeposit,
-									status: currentLease.status,
-									terms: currentLease.terms
-								}
-							: null,
-						leases: leases.map(lease => ({
-							id: lease.id,
-							startDate: lease.startDate,
-							endDate: lease.endDate,
-							rentAmount: lease.rentAmount,
-							status: lease.status,
-							...(lease.unit?.property
-								? { property: { address: lease.unit.property.address } }
-								: {})
-						})),
-						unit: currentLease?.unit
-							? {
-									id: currentLease.unit.id,
-									unitNumber: currentLease.unit.unitNumber,
-									bedrooms: currentLease.unit.bedrooms,
-									bathrooms: currentLease.unit.bathrooms,
-									squareFootage: currentLease.unit.squareFeet
-								}
-							: null,
-						property: currentLease?.unit?.property
-							? {
-									id: currentLease.unit.property.id,
-									name: currentLease.unit.property.name,
-									address: currentLease.unit.property.address,
-									city: currentLease.unit.property.city,
-									state: currentLease.unit.property.state,
-									zipCode: currentLease.unit.property.zipCode
-								}
-							: null,
-						// Derived fields for UI display
-						monthlyRent,
-						leaseStatus,
-						paymentStatus,
-						unitDisplay,
-						propertyDisplay,
-						leaseStart,
-						leaseEnd
-					}
-
-					return result
-				}
-			)
-
-			return tenantsWithLeaseInfo
+			// Transform raw database data to API response format
+			return this._transformTenantData(tenants, paymentMap)
 		} catch (error) {
 			this.logger.error(
 				'Tenants service failed to find all tenants with lease info',
@@ -616,6 +378,284 @@ export class TenantsService {
 			)
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
+	}
+
+
+	/**
+	 * Build base Supabase query for tenants with lease information
+	 * Includes all necessary joins for leases, units, and properties
+	 */
+	private _buildTenantQuery(userId: string) {
+		const client = this.supabase.getAdminClient()
+
+		return client
+			.from('tenant')
+			.select(
+				`
+				id,
+				firstName,
+				lastName,
+				email,
+				phone,
+				avatarUrl,
+				emergencyContact,
+				createdAt,
+				updatedAt,
+				invitation_status,
+				invitation_sent_at,
+				invitation_accepted_at,
+				invitation_expires_at,
+				userId,
+				lease!inner (
+					id,
+					startDate,
+					endDate,
+					rentAmount,
+					securityDeposit,
+					status,
+					terms,
+					unitId,
+					unit:unitId (
+						id,
+						unitNumber,
+						bedrooms,
+						bathrooms,
+						squareFeet,
+						propertyId,
+						property:propertyId (
+							id,
+							name,
+							address,
+							city,
+							state,
+							zipCode
+						)
+					)
+				)
+			`
+			)
+			.eq('userId', userId)
+	}
+
+	/**
+	 * Apply filters to tenant query (status, search, invitation status, pagination)
+	 */
+	private _applyTenantFilters(
+		queryBuilder: ReturnType<typeof this._buildTenantQuery>,
+		query: Record<string, unknown>
+	) {
+		// Filter out MOVED_OUT and ARCHIVED tenants by default
+		if (!query.status) {
+			queryBuilder = queryBuilder.not(
+				'status',
+				'in',
+				'("MOVED_OUT","ARCHIVED")'
+			)
+		} else if (query.status && query.status !== 'all') {
+			const statusValue = String(
+				query.status
+			) as Database['public']['Enums']['TenantStatus']
+			queryBuilder = queryBuilder.eq('status', statusValue)
+		}
+
+		// Apply search filter
+		if (query.search) {
+			const searchTerm = String(query.search)
+			const sanitized = sanitizeSearchInput(searchTerm)
+			if (sanitized) {
+				queryBuilder = queryBuilder.or(
+					buildMultiColumnSearch(sanitized, ['firstName', 'lastName', 'email'])
+				)
+			}
+		}
+
+		// Apply invitation status filter
+		if (query.invitationStatus) {
+			const statusFilter = String(query.invitationStatus).toUpperCase()
+			const allowedInvitationStatuses = [
+				'PENDING',
+				'SENT',
+				'ACCEPTED',
+				'EXPIRED',
+				'REVOKED'
+			] as const
+			if (
+				allowedInvitationStatuses.includes(
+					statusFilter as (typeof allowedInvitationStatuses)[number]
+				)
+			) {
+				queryBuilder = queryBuilder.eq(
+					'invitation_status',
+					statusFilter as (typeof allowedInvitationStatuses)[number]
+				)
+			}
+		}
+
+		// Apply pagination
+		const limit = query.limit ? Number(query.limit) : 50
+		const offset = query.offset ? Number(query.offset) : 0
+		queryBuilder = queryBuilder.range(offset, offset + limit - 1)
+
+		return queryBuilder
+	}
+
+	/**
+	 * Fetch payment statuses for all tenants in a single query (fix N+1 problem)
+	 */
+	private async _fetchPaymentStatuses(tenants: TenantWithLeaseRelations[]) {
+		const client = this.supabase.getAdminClient()
+
+		const tenantIds = tenants.map(t => t.id)
+		const leaseIds = tenants.flatMap(t => {
+			const leases = Array.isArray(t.lease) ? t.lease : [t.lease]
+			const currentLease = leases.find(l => l.status === 'ACTIVE') || leases[0]
+			return currentLease ? [currentLease.id] : []
+		})
+
+		// Fetch most recent payment for each lease in one query
+		const { data: payments, error: paymentsError } = await client
+			.from('rent_payment')
+			.select('tenantId, leaseId, status, dueDate')
+			.in('tenantId', tenantIds)
+			.in('leaseId', leaseIds)
+			.order('dueDate', { ascending: false })
+
+		if (paymentsError) {
+			this.logger.warn('Failed to fetch payment statuses for tenants', {
+				error: paymentsError.message,
+				tenantIds,
+				leaseIds
+			})
+			// Continue without payment data - statuses will be null
+		}
+
+		// Build a map of tenantId+leaseId -> most recent payment
+		const paymentMap = new Map<
+			string,
+			{
+				status: Database['public']['Enums']['RentPaymentStatus']
+				dueDate: string
+			}
+		>()
+		if (payments) {
+			for (const payment of payments) {
+				const key = `${payment.tenantId}-${payment.leaseId}`
+				if (!paymentMap.has(key) && payment.status && payment.dueDate) {
+					paymentMap.set(key, {
+						status:
+							payment.status as Database['public']['Enums']['RentPaymentStatus'],
+						dueDate: payment.dueDate
+					})
+				}
+			}
+		}
+
+		return paymentMap
+	}
+
+	/**
+	 * Transform raw database tenant data to TenantWithLeaseInfo format
+	 */
+	private _transformTenantData(
+		tenants: TenantWithLeaseRelations[],
+		paymentMap: Map<
+			string,
+			{
+				status: Database['public']['Enums']['RentPaymentStatus']
+				dueDate: string
+			}
+		>
+	): TenantWithLeaseInfo[] {
+		return tenants.map(tenant => {
+			const leases = Array.isArray(tenant.lease) ? tenant.lease : [tenant.lease]
+			const currentLease = leases.find(l => l.status === 'ACTIVE') || leases[0]
+
+			// Get payment status from the pre-fetched map
+			let paymentStatus: string | null = null
+			if (currentLease) {
+				const key = `${tenant.id}-${currentLease.id}`
+				const payment = paymentMap.get(key) || null
+				paymentStatus = this.calculatePaymentStatus(payment)
+			}
+
+			// Calculate other derived fields
+			const monthlyRent = currentLease?.rentAmount || 0
+			const leaseStatus = currentLease?.status || 'None'
+			const unitDisplay = currentLease?.unit
+				? `Unit ${currentLease.unit.unitNumber}`
+				: 'No unit assigned'
+			const propertyDisplay = currentLease?.unit?.property
+				? `${currentLease.unit.property.name}, ${currentLease.unit.property.city}`
+				: 'No property assigned'
+			const leaseStart = currentLease?.startDate || null
+			const leaseEnd = currentLease?.endDate || null
+
+			const result: TenantWithLeaseInfo = {
+				id: tenant.id,
+				name: `${tenant.firstName || ''} ${tenant.lastName || ''}`.trim(),
+				email: tenant.email,
+				phone: tenant.phone,
+				avatarUrl: tenant.avatarUrl,
+				emergencyContact: tenant.emergencyContact,
+				createdAt: tenant.createdAt,
+				updatedAt: tenant.updatedAt,
+				invitation_status:
+					tenant.invitation_status as TenantWithLeaseInfo['invitation_status'],
+				invitation_sent_at: tenant.invitation_sent_at,
+				invitation_accepted_at: tenant.invitation_accepted_at,
+				invitation_expires_at: tenant.invitation_expires_at,
+				currentLease: currentLease
+					? {
+							id: currentLease.id,
+							startDate: currentLease.startDate,
+							endDate: currentLease.endDate,
+							rentAmount: currentLease.rentAmount,
+							securityDeposit: currentLease.securityDeposit,
+							status: currentLease.status,
+							terms: currentLease.terms
+						}
+					: null,
+				leases: leases.map(lease => ({
+					id: lease.id,
+					startDate: lease.startDate,
+					endDate: lease.endDate,
+					rentAmount: lease.rentAmount,
+					status: lease.status,
+					...(lease.unit?.property
+						? { property: { address: lease.unit.property.address } }
+						: {})
+				})),
+				unit: currentLease?.unit
+					? {
+							id: currentLease.unit.id,
+							unitNumber: currentLease.unit.unitNumber,
+							bedrooms: currentLease.unit.bedrooms,
+							bathrooms: currentLease.unit.bathrooms,
+							squareFootage: currentLease.unit.squareFeet
+						}
+					: null,
+				property: currentLease?.unit?.property
+					? {
+							id: currentLease.unit.property.id,
+							name: currentLease.unit.property.name,
+							address: currentLease.unit.property.address,
+							city: currentLease.unit.property.city,
+							state: currentLease.unit.property.state,
+							zipCode: currentLease.unit.property.zipCode
+						}
+					: null,
+				// Derived fields for UI display
+				monthlyRent,
+				leaseStatus,
+				paymentStatus,
+				unitDisplay,
+				propertyDisplay,
+				leaseStart,
+				leaseEnd
+			}
+
+			return result
+		})
 	}
 
 	/**
@@ -1680,21 +1720,43 @@ export class TenantsService {
 			unitId: leaseData.unitId
 		})
 
-		// Validate and normalize rent amount to cents (Stripe requires smallest currency unit)
-		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined || (typeof leaseData.rentAmount === 'string' && leaseData.rentAmount === '')) {
+		/**
+		 * CURRENCY CONVENTION: All rent amounts are stored and processed in CENTS
+		 * 
+		 * - Frontend sends: cents (e.g., 250000 = $2,500.00)
+		 * - Backend stores: cents in database
+		 * - Stripe receives: cents (native format)
+		 * 
+		 * BUG FIX: Removed double conversion (backend was multiplying cents by 100 again)
+		 * Previously: Frontend sent cents → Backend multiplied by 100 → Stripe received wrong amount
+		 * Now: Frontend sends cents → Backend validates as-is → Stripe receives correct amount
+		 * 
+		 * @param leaseData.rentAmount - Rent amount in CENTS (must be positive integer)
+		 * @throws BadRequestException if rentAmount is invalid or out of Stripe's range
+		 */
+		
+		// Validate rent amount presence
+		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined) {
 			throw new BadRequestException('rentAmount is required')
 		}
 
-		const rentAmountNum = typeof leaseData.rentAmount === 'string' 
-			? parseFloat(leaseData.rentAmount) 
-			: leaseData.rentAmount
+		// Parse and round to integer cents (handles string or number input)
+		const rentAmountCents =
+			typeof leaseData.rentAmount === 'string'
+				? Math.round(parseFloat(leaseData.rentAmount))
+				: Math.round(leaseData.rentAmount)
 
-		if (!Number.isFinite(rentAmountNum)) {
+		// Validate is finite number
+		if (!Number.isFinite(rentAmountCents)) {
 			throw new BadRequestException('rentAmount must be a valid number')
 		}
+		
+		// Validate is integer (cents must be whole numbers)
+		if (!Number.isInteger(rentAmountCents)) {
+			throw new BadRequestException('rentAmount must be an integer (cents)')
+		}
 
-		// Convert to cents and validate range
-		const rentAmountCents = Math.round(rentAmountNum * 100)
+		// Validate range (already in cents)
 		const MAX_STRIPE_AMOUNT = 99999999 // Stripe limit in cents ($999,999.99)
 
 		if (rentAmountCents < 0) {
@@ -1718,58 +1780,14 @@ export class TenantsService {
 		const result = await new SagaBuilder(this.logger)
 			.addStep({
 				name: 'Check for existing auth user (prevent race condition)',
-				execute: async () => {
-					// 🔐 BUG FIX #1: Atomic check for existing auth user
-					const { data: existingUsers, error: listError } =
-						await client.auth.admin.listUsers()
-					if (listError) {
-						throw new BadRequestException('Failed to verify email uniqueness')
-					}
-
-					const existingAuthUser = existingUsers.users.find(
-						u => u.email?.toLowerCase() === tenantData.email.toLowerCase()
-					)
-
-					if (existingAuthUser) {
-						throw new ConflictException('Account already exists for this email')
-					}
-
-					return { checked: true }
-				},
-				compensate: async () => {
-					// No compensation needed for check operation
-					return Promise.resolve()
-				}
+				execute: () => this.checkExistingAuthUser(tenantData.email),
+				compensate: async () => Promise.resolve()
 			})
 			.addStep({
 				name: 'Create tenant record',
 				execute: async () => {
-					const { data: tenant, error: tenantError } = await client
-						.from('tenant')
-						.insert({
-							email: tenantData.email,
-							firstName: tenantData.firstName,
-							lastName: tenantData.lastName,
-							phone: tenantData.phone ?? null,
-							userId,
-							status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
-							invitation_status:
-								'PENDING' as Database['public']['Enums']['invitation_status']
-						})
-						.select()
-						.single()
-
-					if (tenantError || !tenant) {
-						throw new BadRequestException(
-							`Failed to create tenant: ${tenantError?.message || 'Unknown error'}`
-						)
-					}
-
-					createdTenant = tenant as Tenant
-					this.logger.log('Tenant created successfully', {
-						tenantId: tenant.id
-					})
-					return tenant
+					createdTenant = await this.createTenantRecord(tenantData, userId)
+					return createdTenant
 				},
 				compensate: async (tenant: unknown) => {
 					// Rollback: Delete tenant record
@@ -1792,32 +1810,11 @@ export class TenantsService {
 					if (!createdTenant) {
 						throw new BadRequestException('Tenant not created')
 					}
-
-					const { data: lease, error: leaseError } = await client
-						.from('lease')
-						.insert({
-							tenantId: createdTenant.id,
-							propertyId: leaseData.propertyId,
-							unitId: leaseData.unitId || null,
-						rentAmount: rentAmountCents,
-							// monthlyRent is a GENERATED ALWAYS column (copies rentAmount automatically)
-							securityDeposit: leaseData.securityDeposit,
-							startDate: leaseData.startDate,
-							endDate: leaseData.endDate,
-							status: 'PENDING' as Database['public']['Enums']['LeaseStatus']
-						})
-						.select()
-						.single()
-
-					if (leaseError || !lease) {
-						throw new BadRequestException(
-							`Failed to create lease: ${leaseError?.message || 'Unknown error'}`
-						)
-					}
-
-					createdLease = lease
-					this.logger.log('Lease created successfully', { leaseId: lease.id })
-					return lease
+					createdLease = await this.createLeaseRecord(createdTenant.id, {
+						...leaseData,
+						rentAmount: rentAmountCents
+					})
+					return createdLease
 				},
 				compensate: async (lease: { id: string } | null) => {
 					// Rollback: Delete lease record
@@ -1829,43 +1826,8 @@ export class TenantsService {
 			})
 			.addStep({
 				name: 'Verify owner Connected Account',
-				execute: async () => {
-					// Get owner's connected account from users table
-					const { data: owner, error: ownerError } = await client
-						.from('users')
-						.select('connectedAccountId, onboardingComplete, email')
-						.eq('id', userId)
-						.single()
-
-					if (ownerError || !owner) {
-						throw new BadRequestException('owner not found')
-					}
-
-					if (!owner.connectedAccountId) {
-						throw new BadRequestException(
-							'Please complete Stripe onboarding before inviting tenants. Go to Settings → Billing to set up payments.'
-						)
-					}
-
-					if (!owner.onboardingComplete) {
-						throw new BadRequestException(
-							'Your Stripe account setup is incomplete. Please complete onboarding in Settings → Billing before inviting tenants.'
-						)
-					}
-
-					this.logger.log('owner Connected Account verified', {
-						connectedAccountId: owner.connectedAccountId
-					})
-
-					return {
-						connectedAccountId: owner.connectedAccountId,
-						ownerEmail: owner.email
-					}
-				},
-				compensate: async () => {
-					// No compensation needed for verification step
-					return Promise.resolve()
-				}
+				execute: () => this.verifyOwnerConnectedAccount(userId),
+				compensate: async () => Promise.resolve()
 			})
 			.addStep({
 				name: 'Create Stripe Customer on Connected Account',
@@ -1885,46 +1847,11 @@ export class TenantsService {
 						throw new BadRequestException('Connected account not found')
 					}
 
-					// Create Stripe Customer on connected account
-					const stripe = this.stripeConnectService.getStripe()
-					const customer = await stripe.customers.create(
-						{
-							email: createdTenant.email,
-							name: `${createdTenant.firstName} ${createdTenant.lastName}`,
-							...(createdTenant.phone && { phone: createdTenant.phone }),
-							metadata: {
-								tenantId: createdTenant.id,
-								leaseId: createdLease.id,
-								platform: 'tenantflow'
-							}
-						},
-						{
-							stripeAccount: owner.connectedAccountId
-						}
+					return this.createStripeCustomer(
+						createdTenant,
+						createdLease.id,
+						owner.connectedAccountId
 					)
-
-					// Store Stripe Customer ID in tenant record
-					const { error: updateError } = await client
-						.from('tenant')
-						.update({ stripeCustomerId: customer.id })
-						.eq('id', createdTenant.id)
-
-					if (updateError) {
-						this.logger.error('Failed to save stripeCustomerId', {
-							error: updateError
-						})
-						// Don't throw - we'll try to delete the Stripe customer in compensation
-					}
-
-					this.logger.log('Stripe Customer created on Connected Account', {
-						customerId: customer.id,
-						connectedAccountId: owner.connectedAccountId
-					})
-
-					return {
-						customerId: customer.id,
-						connectedAccountId: owner.connectedAccountId
-					}
 				},
 				compensate: async (
 					result: {
@@ -1958,105 +1885,26 @@ export class TenantsService {
 						throw new BadRequestException('Tenant or lease not created')
 					}
 
-					// Get owner's connected account and tenant's customer ID
+					// Get owner's connected account
 					const { data: owner } = await client
 						.from('users')
 						.select('connectedAccountId')
 						.eq('id', userId)
 						.single()
 
-					const { data: tenant } = await client
-						.from('tenant')
-						.select('stripeCustomerId')
-						.eq('id', createdTenant.id)
-						.single()
-
-					if (!owner?.connectedAccountId || !tenant?.stripeCustomerId) {
-						throw new BadRequestException(
-							'Missing Stripe account or customer information'
-						)
+					if (!owner?.connectedAccountId) {
+						throw new BadRequestException('Connected account not found')
 					}
 
-					const stripe = this.stripeConnectService.getStripe()
-
-					const rentAmountInCents = rentAmountCents
-
-					// Create a Price for the rent amount on the connected account
-					const price = await stripe.prices.create(
+					return this.createStripeSubscription(
+						createdTenant.id,
+						createdLease.id,
 						{
-							currency: 'usd',
-							unit_amount: rentAmountInCents,
-							recurring: {
-								interval: 'month',
-								interval_count: 1
-							},
-							product_data: {
-								name: 'Monthly Rent'
-							},
-							metadata: {
-								leaseId: createdLease.id,
-								tenantId: createdTenant.id,
-								propertyId: leaseData.propertyId,
-								...(leaseData.unitId && { unitId: leaseData.unitId })
-							}
+							...leaseData,
+							rentAmount: rentAmountCents
 						},
-						{
-							stripeAccount: owner.connectedAccountId
-						}
+						owner.connectedAccountId
 					)
-
-					// Create subscription (NO application fee - owner gets 100% of rent)
-					// owners pay for platform via separate SaaS subscription on /pricing page
-					const subscription = await stripe.subscriptions.create(
-						{
-							customer: tenant.stripeCustomerId,
-							items: [{ price: price.id }],
-							payment_behavior: 'default_incomplete',
-							payment_settings: {
-								payment_method_types: ['card'],
-								save_default_payment_method: 'on_subscription'
-							},
-							expand: ['latest_invoice.payment_intent'],
-							metadata: {
-								leaseId: createdLease.id,
-								tenantId: createdTenant.id,
-								propertyId: leaseData.propertyId,
-								...(leaseData.unitId && { unitId: leaseData.unitId }),
-								platform: 'tenantflow'
-							},
-							billing_cycle_anchor_config: {
-								day_of_month: 1 // Rent due on 1st of each month
-							}
-						},
-						{
-							stripeAccount: owner.connectedAccountId
-						}
-					)
-
-					// Store Stripe Subscription ID in lease record
-					const { error: updateError } = await client
-						.from('lease')
-						.update({ stripeSubscriptionId: subscription.id })
-						.eq('id', createdLease.id)
-
-					if (updateError) {
-						this.logger.error('Failed to save stripeSubscriptionId', {
-							error: updateError
-						})
-					}
-
-					this.logger.log('Stripe Subscription created for rent payment', {
-						subscriptionId: subscription.id,
-						priceId: price.id,
-						rentAmount: leaseData.rentAmount,
-						connectedAccountId: owner.connectedAccountId
-					})
-
-					return {
-						subscriptionId: subscription.id,
-						priceId: price.id,
-						connectedAccountId: owner.connectedAccountId
-					}
 				},
 				compensate: async (
 					result: {
@@ -2090,66 +1938,13 @@ export class TenantsService {
 						throw new BadRequestException('Tenant or lease not created')
 					}
 
-					// Get property/unit info for email metadata
-					const { data: property } = await client
-						.from('property')
-						.select('name')
-						.eq('id', leaseData.propertyId)
-						.single()
-
-					let unitNumber: string | undefined
-					if (leaseData.unitId) {
-						const { data: unit } = await client
-							.from('unit')
-							.select('unitNumber')
-							.eq('id', leaseData.unitId)
-							.single()
-						unitNumber = unit?.unitNumber
-					}
-
-					const propertyName = property?.name || 'Your Property'
-					const frontendUrl =
-						process.env.FRONTEND_URL || 'https://tenantflow.app'
-
-					const { data: authUser, error: authError } =
-						await client.auth.admin.inviteUserByEmail(createdTenant.email, {
-							data: {
-								tenantId: createdTenant.id,
-								leaseId: createdLease.id,
-								propertyId: leaseData.propertyId,
-								...(leaseData.unitId && { unitId: leaseData.unitId }),
-								firstName: tenantData.firstName,
-								lastName: tenantData.lastName,
-								propertyName,
-								...(unitNumber && { unitNumber }),
-							rentAmount: rentAmountCents,
-								startDate: leaseData.startDate,
-								endDate: leaseData.endDate,
-								role: 'tenant'
-							},
-							redirectTo: `${frontendUrl}/auth/confirm`
-						})
-
-					if (authError || !authUser?.user) {
-						// Handle race condition where user was created between check and invite
-						if (
-							authError?.message?.includes('already') ||
-							authError?.message?.includes('exists')
-						) {
-							throw new ConflictException(
-								'Account already exists for this email'
-							)
-						}
-						throw new BadRequestException(
-							`Failed to send invitation: ${authError?.message || 'Unknown error'}`
-						)
-					}
-
-					createdAuthUser = authUser.user
-					this.logger.log('Supabase Auth invitation sent successfully', {
-						authUserId: authUser.user.id
-					})
-					return authUser.user
+					createdAuthUser = await this.sendAuthInvitation(
+						createdTenant,
+						leaseData,
+						createdLease.id,
+						rentAmountCents
+					)
+					return createdAuthUser
 				},
 				compensate: async (authUser: { id: string } | null) => {
 					// Rollback: Delete auth user
@@ -2182,28 +1977,7 @@ export class TenantsService {
 					if (!createdTenant || !createdAuthUser) {
 						throw new BadRequestException('Tenant or auth user not created')
 					}
-
-					const { error: updateError } = await client
-						.from('tenant')
-						.update({
-							auth_user_id: createdAuthUser.id,
-							invitation_status:
-								'SENT' as Database['public']['Enums']['invitation_status'],
-							invitation_sent_at: new Date().toISOString()
-						})
-						.eq('id', createdTenant.id)
-
-					if (updateError) {
-						throw new BadRequestException(
-							`Failed to link tenant to auth user: ${updateError.message}`
-						)
-					}
-
-					this.logger.log('Tenant linked to auth user', {
-						tenantId: createdTenant.id,
-						authUserId: createdAuthUser.id
-					})
-					return { linked: true }
+					return this.linkTenantToAuthUser(createdTenant.id, createdAuthUser.id)
 				},
 				compensate: async () => {
 					// Rollback: Unlink tenant from auth user
@@ -2250,6 +2024,439 @@ export class TenantsService {
 			authUserId: createdAuthUser!.id,
 			message: 'Tenant created and invitation sent successfully'
 		}
+	}
+
+
+	/**
+	 * SAGA STEP 1: Check for existing auth user with pagination
+	 * Prevents race conditions by checking all pages of users
+	 */
+	private async checkExistingAuthUser(
+		email: string
+	): Promise<{ checked: boolean }> {
+		const client = this.supabase.getAdminClient()
+		const emailToCheck = email.toLowerCase()
+		let page = 1
+		let hasMore = true
+
+		while (hasMore) {
+			const { data: userData, error: listError } =
+				await client.auth.admin.listUsers({
+					page,
+					perPage: 1000 // Max allowed per page
+				})
+
+			if (listError) {
+				throw new BadRequestException('Failed to verify email uniqueness')
+			}
+
+			// Check if email exists in this page
+			const existingUser = userData.users.find(
+				u => u.email?.toLowerCase() === emailToCheck
+			)
+
+			if (existingUser) {
+				throw new ConflictException('Account already exists for this email')
+			}
+
+			// Check if there are more pages
+			hasMore = userData.users.length === 1000
+			page++
+		}
+
+		return { checked: true }
+	}
+
+	/**
+	 * SAGA STEP 2: Create tenant record in database
+	 */
+	private async createTenantRecord(
+		tenantData: {
+			email: string
+			firstName: string
+			lastName: string
+			phone?: string
+		},
+		userId: string
+	): Promise<Tenant> {
+		const client = this.supabase.getAdminClient()
+
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.insert({
+				email: tenantData.email,
+				firstName: tenantData.firstName,
+				lastName: tenantData.lastName,
+				phone: tenantData.phone ?? null,
+				userId,
+				status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
+				invitation_status:
+					'PENDING' as Database['public']['Enums']['invitation_status']
+			})
+			.select()
+			.single()
+
+		if (tenantError || !tenant) {
+			throw new BadRequestException(
+				`Failed to create tenant: ${tenantError?.message || 'Unknown error'}`
+			)
+		}
+
+		this.logger.log('Tenant created successfully', {
+			tenantId: tenant.id
+		})
+
+		return tenant as Tenant
+	}
+
+	/**
+	 * SAGA STEP 3: Create lease record in database
+	 */
+	private async createLeaseRecord(
+		tenantId: string,
+		leaseData: {
+			propertyId: string
+			unitId?: string
+			rentAmount: number
+			securityDeposit: number
+			startDate: string
+			endDate: string
+		}
+	): Promise<{ id: string }> {
+		const client = this.supabase.getAdminClient()
+
+		const { data: lease, error: leaseError } = await client
+			.from('lease')
+			.insert({
+				tenantId,
+				propertyId: leaseData.propertyId,
+				unitId: leaseData.unitId || null,
+				rentAmount: leaseData.rentAmount,
+				// monthlyRent is a GENERATED ALWAYS column (copies rentAmount automatically)
+				securityDeposit: leaseData.securityDeposit,
+				startDate: leaseData.startDate,
+				endDate: leaseData.endDate,
+				status: 'PENDING' as Database['public']['Enums']['LeaseStatus']
+			})
+			.select()
+			.single()
+
+		if (leaseError || !lease) {
+			throw new BadRequestException(
+				`Failed to create lease: ${leaseError?.message || 'Unknown error'}`
+			)
+		}
+
+		this.logger.log('Lease created successfully', { leaseId: lease.id })
+		return lease
+	}
+
+	/**
+	 * SAGA STEP 4: Verify owner has completed Stripe Connect onboarding
+	 */
+	private async verifyOwnerConnectedAccount(
+		userId: string
+	): Promise<{ connectedAccountId: string; ownerEmail: string }> {
+		const client = this.supabase.getAdminClient()
+
+		const { data: owner, error: ownerError } = await client
+			.from('users')
+			.select('connectedAccountId, onboardingComplete, email')
+			.eq('id', userId)
+			.single()
+
+		if (ownerError || !owner) {
+			throw new BadRequestException('owner not found')
+		}
+
+		if (!owner.connectedAccountId) {
+			throw new BadRequestException(
+				'Please complete Stripe onboarding before inviting tenants. Go to Settings → Billing to set up payments.'
+			)
+		}
+
+		if (!owner.onboardingComplete) {
+			throw new BadRequestException(
+				'Your Stripe account setup is incomplete. Please complete onboarding in Settings → Billing before inviting tenants.'
+			)
+		}
+
+		this.logger.log('owner Connected Account verified', {
+			connectedAccountId: owner.connectedAccountId
+		})
+
+		return {
+			connectedAccountId: owner.connectedAccountId,
+			ownerEmail: owner.email
+		}
+	}
+
+	/**
+	 * SAGA STEP 5: Create Stripe Customer on owner's Connected Account
+	 */
+	private async createStripeCustomer(
+		tenant: Tenant,
+		leaseId: string,
+		connectedAccountId: string
+	): Promise<{ customerId: string; connectedAccountId: string }> {
+		const client = this.supabase.getAdminClient()
+		const stripe = this.stripeConnectService.getStripe()
+
+		// Create Stripe Customer on connected account
+		const customer = await stripe.customers.create(
+			{
+				email: tenant.email,
+				name: `${tenant.firstName} ${tenant.lastName}`,
+				...(tenant.phone && { phone: tenant.phone }),
+				metadata: {
+					tenantId: tenant.id,
+					leaseId,
+					platform: 'tenantflow'
+				}
+			},
+			{
+				stripeAccount: connectedAccountId
+			}
+		)
+
+		// Store Stripe Customer ID in tenant record
+		const { error: updateError } = await client
+			.from('tenant')
+			.update({ stripeCustomerId: customer.id })
+			.eq('id', tenant.id)
+
+		if (updateError) {
+			this.logger.error('Failed to save stripeCustomerId', {
+				error: updateError
+			})
+			// Don't throw - we'll try to delete the Stripe customer in compensation
+		}
+
+		this.logger.log('Stripe Customer created on Connected Account', {
+			customerId: customer.id,
+			connectedAccountId
+		})
+
+		return {
+			customerId: customer.id,
+			connectedAccountId
+		}
+	}
+
+	/**
+	 * SAGA STEP 6: Create Stripe Subscription for rent payment
+	 */
+	private async createStripeSubscription(
+		tenantId: string,
+		leaseId: string,
+		leaseData: {
+			propertyId: string
+			unitId?: string
+			rentAmount: number
+		},
+		connectedAccountId: string
+	): Promise<{
+		subscriptionId: string
+		priceId: string
+		connectedAccountId: string
+	}> {
+		const client = this.supabase.getAdminClient()
+		const stripe = this.stripeConnectService.getStripe()
+
+		// Get tenant's Stripe Customer ID
+		const { data: tenant } = await client
+			.from('tenant')
+			.select('stripeCustomerId')
+			.eq('id', tenantId)
+			.single()
+
+		if (!tenant?.stripeCustomerId) {
+			throw new BadRequestException('Missing Stripe customer information')
+		}
+
+		// Create a Price for the rent amount on the connected account
+		const price = await stripe.prices.create(
+			{
+				currency: 'usd',
+				unit_amount: leaseData.rentAmount,
+				recurring: {
+					interval: 'month',
+					interval_count: 1
+				},
+				product_data: {
+					name: 'Monthly Rent'
+				},
+				metadata: {
+					leaseId,
+					tenantId,
+					propertyId: leaseData.propertyId,
+					...(leaseData.unitId && { unitId: leaseData.unitId })
+				}
+			},
+			{
+				stripeAccount: connectedAccountId
+			}
+		)
+
+		// Create subscription (NO application fee - owner gets 100% of rent)
+		const subscription = await stripe.subscriptions.create(
+			{
+				customer: tenant.stripeCustomerId,
+				items: [{ price: price.id }],
+				payment_behavior: 'default_incomplete',
+				payment_settings: {
+					payment_method_types: ['card'],
+					save_default_payment_method: 'on_subscription'
+				},
+				expand: ['latest_invoice.payment_intent'],
+				metadata: {
+					leaseId,
+					tenantId,
+					propertyId: leaseData.propertyId,
+					...(leaseData.unitId && { unitId: leaseData.unitId }),
+					platform: 'tenantflow'
+				},
+				billing_cycle_anchor_config: {
+					day_of_month: 1 // Rent due on 1st of each month
+				}
+			},
+			{
+				stripeAccount: connectedAccountId
+			}
+		)
+
+		// Store Stripe Subscription ID in lease record
+		const { error: updateError } = await client
+			.from('lease')
+			.update({ stripeSubscriptionId: subscription.id })
+			.eq('id', leaseId)
+
+		if (updateError) {
+			this.logger.error('Failed to save stripeSubscriptionId', {
+				error: updateError
+			})
+		}
+
+		this.logger.log('Stripe Subscription created for rent payment', {
+			subscriptionId: subscription.id,
+			priceId: price.id,
+			rentAmount: leaseData.rentAmount,
+			connectedAccountId
+		})
+
+		return {
+			subscriptionId: subscription.id,
+			priceId: price.id,
+			connectedAccountId
+		}
+	}
+
+	/**
+	 * SAGA STEP 7: Send Supabase Auth invitation email
+	 */
+	private async sendAuthInvitation(
+		tenant: Tenant,
+		leaseData: {
+			propertyId: string
+			unitId?: string
+			startDate: string
+			endDate: string
+		},
+		leaseId: string,
+		rentAmountCents: number
+	): Promise<{ id: string; email?: string }> {
+		const client = this.supabase.getAdminClient()
+
+		// Get property/unit info for email metadata
+		const { data: property } = await client
+			.from('property')
+			.select('name')
+			.eq('id', leaseData.propertyId)
+			.single()
+
+		let unitNumber: string | undefined
+		if (leaseData.unitId) {
+			const { data: unit } = await client
+				.from('unit')
+				.select('unitNumber')
+				.eq('id', leaseData.unitId)
+				.single()
+			unitNumber = unit?.unitNumber
+		}
+
+		const propertyName = property?.name || 'Your Property'
+		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+
+		const { data: authUser, error: authError } =
+			await client.auth.admin.inviteUserByEmail(tenant.email, {
+				data: {
+					tenantId: tenant.id,
+					leaseId,
+					propertyId: leaseData.propertyId,
+					...(leaseData.unitId && { unitId: leaseData.unitId }),
+					firstName: tenant.firstName,
+					lastName: tenant.lastName,
+					propertyName,
+					...(unitNumber && { unitNumber }),
+					rentAmount: rentAmountCents,
+					startDate: leaseData.startDate,
+					endDate: leaseData.endDate,
+					role: 'tenant'
+				},
+				redirectTo: `${frontendUrl}/auth/confirm`
+			})
+
+		if (authError || !authUser?.user) {
+			// Handle race condition where user was created between check and invite
+			if (
+				authError?.message?.includes('already') ||
+				authError?.message?.includes('exists')
+			) {
+				throw new ConflictException('Account already exists for this email')
+			}
+			throw new BadRequestException(
+				`Failed to send invitation: ${authError?.message || 'Unknown error'}`
+			)
+		}
+
+		this.logger.log('Supabase Auth invitation sent successfully', {
+			authUserId: authUser.user.id
+		})
+
+		return authUser.user
+	}
+
+	/**
+	 * SAGA STEP 8: Link tenant to auth user
+	 */
+	private async linkTenantToAuthUser(
+		tenantId: string,
+		authUserId: string
+	): Promise<{ linked: boolean }> {
+		const client = this.supabase.getAdminClient()
+
+		const { error: updateError } = await client
+			.from('tenant')
+			.update({
+				auth_user_id: authUserId,
+				invitation_status:
+					'SENT' as Database['public']['Enums']['invitation_status'],
+				invitation_sent_at: new Date().toISOString()
+			})
+			.eq('id', tenantId)
+
+		if (updateError) {
+			throw new BadRequestException(
+				`Failed to link tenant to auth user: ${updateError.message}`
+			)
+		}
+
+		this.logger.log('Tenant linked to auth user', {
+			tenantId,
+			authUserId
+		})
+
+		return { linked: true }
 	}
 
 	/**
@@ -2484,10 +2691,19 @@ export class TenantsService {
 			}
 
 			// Database function returns { tenant_id, activated }
-			const result = data as unknown as Array<{
-				tenant_id: string
-				activated: boolean
-			}>
+			// Runtime validation with Zod
+			const validationResult = activateTenantResultSchema.safeParse(data)
+			if (!validationResult.success) {
+				this.logger.error('Activate tenant result validation failed', {
+					authUserId,
+					errors: validationResult.error.issues
+				})
+				throw new BadRequestException(
+					'Invalid response from database - schema validation failed'
+				)
+			}
+
+			const result = validationResult.data
 
 			if (!result || result.length === 0) {
 				return {
@@ -2505,13 +2721,13 @@ export class TenantsService {
 			}
 
 			this.logger.log('Tenant activated successfully', {
-				tenantId: firstResult.tenant_id,
+				tenantId: firstResult.id,
 				authUserId
 			})
 
 			return {
 				success: true,
-				tenantId: firstResult.tenant_id,
+				tenantId: firstResult.id,
 				message: 'Tenant activated successfully'
 			}
 		} catch (error) {
@@ -2547,20 +2763,50 @@ export class TenantsService {
 	): Promise<EmergencyContactResponse | null> {
 		const client = this.supabase.getAdminClient()
 
-		// Verify ownership first
-		const { data: tenant } = await client
+		// BUG FIX #3: Validate complete ownership chain
+		// Verify tenant exists and get their info
+		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
-			.select('id')
+			.select('id, userId')
 			.eq('id', tenantId)
-			.eq('userId', userId)
 			.single()
 
-		if (!tenant) {
-			this.logger.warn('Tenant not found or access denied', {
-				userId,
-				tenantId
-			})
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found', { userId, tenantId })
 			return null
+		}
+
+		// Verify tenant belongs to a property owned by requesting user
+		// Check through lease -> property -> owner relationship
+		const { data: lease, error: leaseError } = await client
+			.from('lease')
+			.select('id, propertyId')
+			.eq('tenantId', tenantId)
+			.single()
+
+		if (leaseError || !lease) {
+			this.logger.warn('No lease found for tenant', { tenantId })
+			throw new NotFoundException('No lease found for tenant')
+		}
+
+		// Verify property ownership
+		if (!lease.propertyId) {
+			this.logger.warn('Lease has no property', { tenantId, leaseId: lease.id })
+			throw new NotFoundException('Lease has no associated property')
+		}
+
+		const { data: property, error: propertyError } = await client
+			.from('property')
+			.select('ownerId')
+			.eq('id', lease.propertyId!)
+			.single()
+
+		if (propertyError || !property || property.ownerId !== userId) {
+			this.logger.warn('Access denied: Not property owner', {
+				userId,
+				propertyOwnerId: property?.ownerId
+			})
+			throw new ForbiddenException('Access denied: Not property owner')
 		}
 
 		// Fetch emergency contact (RLS will double-check access)

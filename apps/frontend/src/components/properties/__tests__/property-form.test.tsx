@@ -132,12 +132,12 @@ describe('PropertyForm', () => {
 			expect(screen.getByLabelText(/zip code/i)).toHaveValue('94105')
 		})
 
-		test('does not show image upload section in edit mode', () => {
+		test('shows image upload section in edit mode', () => {
 			renderWithQueryClient(
 				<PropertyForm mode="edit" property={DEFAULT_PROPERTY} />
 			)
 
-			expect(screen.queryByText(/property image/i)).not.toBeInTheDocument()
+			expect(screen.getByText(/property image/i)).toBeInTheDocument()
 		})
 
 		test('displays correct button text in edit mode', () => {

@@ -5,10 +5,14 @@ import {
 	Get,
 	InternalServerErrorException,
 	Logger,
+	NotFoundException,
 	Post,
 	Query,
 	Req
 } from '@nestjs/common'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { UserId } from '../../shared/decorators/user.decorator'
+import { randomUUID } from 'node:crypto'
 import type {
 	LeaseFormData,
 	LeaseTermType,
@@ -52,7 +56,11 @@ export class LeaseGeneratorController {
 	 * Generate a new lease agreement PDF
 	 */
 	@Post('generate')
-	async generateLease(@Body() leaseData: LeaseFormData) {
+	async generateLease(
+		@JwtToken() token: string,
+		@UserId() userId: string,
+		@Body() leaseData: LeaseFormData
+	) {
 		this.logger.log(
 			`Generating lease agreement for ${leaseData?.property?.address?.state} ${leaseData?.property?.type}`
 		)
@@ -72,28 +80,115 @@ export class LeaseGeneratorController {
 				throw new BadRequestException('Rent amount is required')
 			}
 
-			// Generate the PDF using the service
+			// Generate the PDF using the service to validate LeaseFormData
 			await this.leasePDFService.generateLeasePDF(
 				leaseData as unknown as Record<string, unknown>
 			)
 
-			// Create a unique filename
+			// Create a unique ID for this lease using crypto.randomUUID() to prevent collisions
+			const leaseId = `lease_${randomUUID()}`
 			const timestamp = new Date().toISOString().slice(0, 10)
-			const filename = `lease-agreement-${timestamp}-${Date.now()}.pdf`
+			const filename = `lease-agreement-${timestamp}-${randomUUID()}.pdf`
 
-			// In a production app, you would:
-			// 1. Save the PDF to cloud storage (S3, Google Cloud Storage, etc.)
-			// 2. Save lease record to database
-			// 3. Handle billing/subscription limits
-			// 4. Send notifications/emails
+			// TODO: Save PDF to cloud storage (S3, Supabase Storage, etc.)
+			// For now, PDF is generated on-demand from database lease record
+			const documentUrl = `/api/lease/download?leaseId=${leaseId}`
+
+			// Persist lease record to database
+			try {
+				const client = this.leasesService.getUserClient(token)
+
+				// Validate and parse dates
+				const startDate = new Date(leaseData.leaseTerms.startDate)
+				
+				// endDate is required by schema, but leases can be month-to-month
+				// For month-to-month leases, use a far-future date (100 years from start)
+				const endDate = leaseData.leaseTerms.endDate
+					? new Date(leaseData.leaseTerms.endDate)
+					: new Date(startDate.getTime() + 100 * 365 * 24 * 60 * 60 * 1000)
+
+				if (isNaN(startDate.getTime())) {
+					throw new BadRequestException('Invalid start date')
+				}
+				if (isNaN(endDate.getTime())) {
+					throw new BadRequestException('Invalid end date')
+				}
+
+				// Store complete LeaseFormData as JSON in terms field for PDF regeneration
+				const termsJson = JSON.stringify(leaseData)
+
+				// Insert lease record
+				// NOTE: tenantId is required in the schema. Using a placeholder empty string
+				// since this is a generated lease not yet linked to a specific tenant.
+				// Real tenant linking should be done when the lease is actually used.
+				const { data: newLease, error: insertError } = await client
+					.from('lease')
+					.insert({
+						id: leaseId,
+						// tenantId is required - using empty string as placeholder for unlinked generated leases
+						tenantId: '',
+						unitId: null,
+						propertyId: null,
+						startDate: startDate.toISOString(),
+						endDate: endDate.toISOString(),
+						rentAmount: leaseData.leaseTerms.rentAmount,
+						monthlyRent: leaseData.leaseTerms.rentAmount,
+						securityDeposit: leaseData.leaseTerms.securityDeposit.amount || 0,
+						status: 'DRAFT',
+						terms: termsJson,
+						lease_document_url: documentUrl,
+						gracePeriodDays: leaseData.leaseTerms.lateFee?.gracePeriod || null,
+						lateFeeAmount: leaseData.leaseTerms.lateFee?.enabled
+							? leaseData.leaseTerms.lateFee.amount || null
+							: null,
+						lateFeePercentage: leaseData.leaseTerms.lateFee?.enabled
+							? leaseData.leaseTerms.lateFee.percentage || null
+							: null,
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
+						version: 1
+					})
+					.select()
+					.single()
+
+				if (insertError || !newLease) {
+					this.logger.error('Failed to persist lease record', {
+						leaseId,
+						error: insertError?.message
+					})
+					throw new InternalServerErrorException(
+						'Failed to save lease record to database'
+					)
+				}
+
+				this.logger.log('Successfully persisted lease record', {
+					leaseId,
+					userId
+				})
+			} catch (saveError) {
+				this.logger.error('Error persisting lease record', {
+					leaseId,
+					error: saveError instanceof Error ? saveError.message : String(saveError)
+				})
+
+				// Re-throw BadRequestException
+				if (saveError instanceof BadRequestException) {
+					throw saveError
+				}
+
+				// Translate database errors to HTTP exceptions
+				throw new InternalServerErrorException(
+					'Failed to save lease record to database'
+				)
+			}
 
 			return {
 				success: true,
 				lease: {
-					id: `lease_${Date.now()}`,
+					id: leaseId,
 					filename,
-					downloadUrl: `/api/lease/download/${filename}`,
-					previewUrl: `/api/lease/preview/${filename}`,
+					downloadUrl: `/api/lease/download?leaseId=${leaseId}`,
+					previewUrl: `/api/lease/preview?leaseId=${leaseId}`,
 					generatedAt: new Date().toISOString(),
 					state: leaseData.property.address.state,
 					propertyAddress: `${leaseData.property.address.street}${leaseData.property.address.unit ? `, ${leaseData.property.address.unit}` : ''}, ${leaseData.property.address.city}, ${leaseData.property.address.state}`,
@@ -117,7 +212,7 @@ export class LeaseGeneratorController {
 	/**
 	 * Download a generated lease PDF
 	 */
-	@Get('download/:filename')
+	@Get('download')
 	async downloadLease(
 		@Query('leaseId') leaseId: string | undefined,
 		@Req() req: AuthenticatedRequest
@@ -166,6 +261,7 @@ export class LeaseGeneratorController {
 			this.logger.error('Error downloading lease:', error)
 			if (
 				error instanceof BadRequestException ||
+				error instanceof NotFoundException ||
 				error instanceof InternalServerErrorException
 			) {
 				throw error
@@ -177,7 +273,7 @@ export class LeaseGeneratorController {
 	/**
 	 * Preview a generated lease PDF (inline view)
 	 */
-	@Get('preview/:filename')
+	@Get('preview')
 	async previewLease(
 		@Query('leaseId') leaseId: string | undefined,
 		@Req() req: AuthenticatedRequest
@@ -221,6 +317,7 @@ export class LeaseGeneratorController {
 			this.logger.error('Error previewing lease:', error)
 			if (
 				error instanceof BadRequestException ||
+				error instanceof NotFoundException ||
 				error instanceof InternalServerErrorException
 			) {
 				throw error
@@ -378,7 +475,7 @@ export class LeaseGeneratorController {
 
 			// Fallback: fetch basic lease and use transformLeaseToFormData
 			try {
-				const client = this.leasesService['supabase'].getUserClient(token)
+				const client = this.leasesService.getUserClient(token)
 				const { data: basicLease, error: basicError } = await client
 					.from('lease')
 					.select('*')
@@ -386,15 +483,26 @@ export class LeaseGeneratorController {
 					.single()
 
 				if (basicError || !basicLease) {
+					// Check if it's a not found error (PGRST116 is PostgREST not found code)
+					if (basicError?.code === 'PGRST116' || !basicLease) {
+						this.logger.warn('Lease not found', { leaseId })
+						throw new NotFoundException(`Lease not found: ${leaseId}`)
+					}
+
 					this.logger.error('Failed to fetch basic lease data', {
 						leaseId,
-						error: basicError?.message
+						error: basicError ? (basicError as { message?: string }).message : 'Unknown error'
 					})
 					throw new BadRequestException('Failed to fetch lease data')
 				}
 
 				return this.transformLeaseToFormData(basicLease)
 			} catch (fallbackError) {
+				// Re-throw NotFoundException
+				if (fallbackError instanceof NotFoundException) {
+					throw fallbackError
+				}
+
 				this.logger.error(
 					'Failed to fetch basic lease data for PDF generation',
 					{
@@ -418,7 +526,7 @@ export class LeaseGeneratorController {
 	 * Used for transforming database Lease to LeaseFormData structure
 	 */
 	private async fetchLeaseWithRelations(token: string, leaseId: string) {
-		const client = this.leasesService['supabase'].getUserClient(token)
+		const client = this.leasesService.getUserClient(token)
 
 		// Fetch lease with related data in a single query
 		const { data, error } = await client
@@ -447,9 +555,17 @@ export class LeaseGeneratorController {
 			.single()
 
 		if (error || !data) {
+			// Check if it's a not found error (PGRST116 is PostgREST not found code)
+			if (error?.code === 'PGRST116' || !data) {
+				this.logger.warn('Lease not found in fetchLeaseWithRelations', {
+					leaseId
+				})
+				throw new NotFoundException(`Lease not found: ${leaseId}`)
+			}
+
 			this.logger.error('Failed to fetch lease with relations', {
 				leaseId,
-				error: error?.message
+				error: error ? (error as { message?: string }).message : 'Unknown error'
 			})
 			throw new BadRequestException('Failed to fetch lease data')
 		}

@@ -3598,6 +3598,56 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_stats_mv: {
+        Row: {
+          active_leases: number | null
+          active_tenants: number | null
+          average_unit_rent: number | null
+          avg_resolution_time_hours: number | null
+          completed_maintenance: number | null
+          completed_today_maintenance: number | null
+          emergency_maintenance: number | null
+          expired_leases: number | null
+          expiring_soon_leases: number | null
+          high_priority_maintenance: number | null
+          in_progress_maintenance: number | null
+          inactive_tenants: number | null
+          last_updated: string | null
+          low_priority_maintenance: number | null
+          maintenance_units: number | null
+          medium_priority_maintenance: number | null
+          monthly_revenue: number | null
+          new_tenants_this_month: number | null
+          occupancy_change_percentage: number | null
+          occupancy_rate: number | null
+          occupied_properties: number | null
+          occupied_units: number | null
+          open_maintenance: number | null
+          previous_month_revenue: number | null
+          terminated_leases: number | null
+          total_actual_rent: number | null
+          total_lease_rent: number | null
+          total_leases: number | null
+          total_maintenance: number | null
+          total_potential_rent: number | null
+          total_properties: number | null
+          total_security_deposits: number | null
+          total_tenants: number | null
+          total_units: number | null
+          user_id: string | null
+          vacant_units: number | null
+          yearly_revenue: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_ownerid_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_queue_stats: {
         Row: {
           avg_attempts: number | null
@@ -3917,7 +3967,11 @@ export type Database = {
       get_auth_uid_text: { Args: never; Returns: string }
       get_auth_uid_uuid: { Args: never; Returns: string }
       get_billing_insights: {
-        Args: { end_date?: string; start_date?: string; user_id: string }
+        Args: {
+          end_date_param?: string
+          owner_id_param: string
+          start_date_param?: string
+        }
         Returns: Json
       }
       get_current_user_id: { Args: never; Returns: string }

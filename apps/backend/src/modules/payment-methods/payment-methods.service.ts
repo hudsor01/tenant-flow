@@ -53,6 +53,7 @@ export class PaymentMethodsService {
 		}
 		
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate customers
+		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
 		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
 		const customer = await this.stripe.customers.create(customerParams, {
 			idempotencyKey
@@ -74,6 +75,34 @@ export class PaymentMethodsService {
 		}
 
 		return customer.id
+	}
+
+	/**
+	 * DRY: Resolve tenant ID from auth user ID
+	 * 
+	 * Prevents code duplication across savePaymentMethod and listPaymentMethods.
+	 * RLS policies check: tenant.auth_user_id = auth.uid()
+	 * 
+	 * @param token - JWT token for RLS-protected Supabase client
+	 * @param userId - Auth user ID (NOT tenant table ID)
+	 * @returns Tenant ID from tenant table
+	 * @throws NotFoundException if tenant not found for user
+	 */
+	private async resolveTenantId(token: string, userId: string): Promise<string> {
+		const client = this.supabase.getUserClient(token)
+		
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', { userId })
+			throw new NotFoundException('Tenant not found')
+		}
+
+		return tenant.id
 	}
 
 	/**
@@ -120,6 +149,7 @@ export class PaymentMethodsService {
 		}
 
 		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate setup intents
+		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
 		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}-${Date.now()}`
 		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams, {
 			idempotencyKey
@@ -150,7 +180,10 @@ export class PaymentMethodsService {
 			stripePaymentMethodId
 		})
 
+		// BUG FIX #3: Resolve tenant ID from auth_user_id using DRY helper
+		const tenantId = await this.resolveTenantId(token, userId)
 		const client = this.supabase.getUserClient(token)
+
 		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId)
 
 		const paymentMethod = await this.stripe.paymentMethods.retrieve(
@@ -174,11 +207,12 @@ export class PaymentMethodsService {
 			})
 		}
 
+		// Now query payment methods using the correct tenant ID
 		const { data: existing, error: existingError } = await client
 			.from('tenant_payment_method')
 			.select('id')
 			.match({
-				tenantId: userId,
+				tenantId,
 				stripePaymentMethodId
 			})
 			.maybeSingle()
@@ -203,7 +237,7 @@ export class PaymentMethodsService {
 		const { data: existingMethods, error: listError } = await client
 			.from('tenant_payment_method')
 			.select('id')
-			.eq('tenantId', userId)
+			.eq('tenantId', tenantId)
 
 		if (listError) {
 			this.logger.error('Failed to load tenant payment methods', {
@@ -222,11 +256,11 @@ export class PaymentMethodsService {
 					isDefault: false,
 					updatedAt: new Date().toISOString()
 				})
-				.eq('tenantId', userId)
+				.eq('tenantId', tenantId)
 		}
 
 		const { error } = await client.from('tenant_payment_method').insert({
-			tenantId: userId,
+			tenantId,
 			stripePaymentMethodId,
 			stripeCustomerId,
 			type: paymentMethod.type,
@@ -263,13 +297,17 @@ export class PaymentMethodsService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		const { data, error } = await this.supabase
-			.getUserClient(token)
+		// BUG FIX #2: Resolve tenant ID from auth_user_id using DRY helper
+		const tenantId = await this.resolveTenantId(token, userId)
+		const client = this.supabase.getUserClient(token)
+
+		// Now query payment methods using the correct tenant ID
+		const { data, error } = await client
 			.from('tenant_payment_method')
 			.select(
 				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
 			)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenantId)
 			.order('createdAt', { ascending: false })
 
 		if (error) {

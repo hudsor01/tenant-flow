@@ -84,8 +84,7 @@ export class StripeOwnerService {
 		if (owner.stripeCustomerId) {
 			try {
 				const existingCustomer = await this.stripe.customers.retrieve(
-					owner.stripeCustomerId,
-					{ expand: ['subscriptions'] }
+					owner.stripeCustomerId
 				)
 
 				if (!('deleted' in existingCustomer)) {

@@ -335,7 +335,9 @@ describe('Units CRUD Integration Tests', () => {
 		})
 
 		it('returns empty result for non-existent ID', async () => {
-			const { result } = renderHook(() => useUnit('non-existent-id'), {
+			// Use properly formatted UUID that doesn't exist in database
+			const nonExistentId = '00000000-0000-0000-0000-000000000000'
+			const { result } = renderHook(() => useUnit(nonExistentId), {
 				wrapper: createWrapper()
 			})
 
@@ -512,8 +514,10 @@ describe('Units CRUD Integration Tests', () => {
 				wrapper: createWrapper()
 			})
 
+			// Use properly formatted UUID that doesn't exist in database
+			const nonExistentId = '00000000-0000-0000-0000-000000000000'
 			await expect(async () => {
-				await result.current.mutateAsync('non-existent-id')
+				await result.current.mutateAsync(nonExistentId)
 			}).rejects.toThrow()
 		})
 
@@ -574,7 +578,7 @@ describe('Units CRUD Integration Tests', () => {
 			createdUnitIds.push(createdUnit!.id)
 
 			// 2. READ
-			const { result: $1 } = renderHook(
+			const { result: readResult } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{
 					wrapper
@@ -588,7 +592,7 @@ describe('Units CRUD Integration Tests', () => {
 			expect(readResult.current.data!.unitNumber).toBe(newUnit.unitNumber)
 
 			// 3. UPDATE
-			const { result: $1 } = renderHook(
+			const { result: updateResult } = renderHook(
 				() => useUpdateUnit(),
 				{
 					wrapper
@@ -610,7 +614,7 @@ describe('Units CRUD Integration Tests', () => {
 			expect(updatedUnit!.version).toBe(2)
 
 			// 4. DELETE
-			const { result: $1 } = renderHook(
+			const { result: deleteResult } = renderHook(
 				() => useDeleteUnit(),
 				{
 					wrapper
@@ -622,7 +626,7 @@ describe('Units CRUD Integration Tests', () => {
 			createdUnitIds = createdUnitIds.filter(id => id !== createdUnit!.id)
 
 			// Verify deletion
-			const { result: $1 } = renderHook(
+			const { result: verifyResult } = renderHook(
 				() => useUnit(createdUnit!.id),
 				{ wrapper }
 			)

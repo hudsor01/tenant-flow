@@ -1,7 +1,8 @@
 import {
 	BadRequestException,
 	InternalServerErrorException,
-	Logger
+	Logger,
+	NotFoundException
 } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
@@ -13,8 +14,12 @@ import { LeasesService } from './leases.service'
 describe('LeaseGeneratorController', () => {
 	let controller: LeaseGeneratorController
 	let pdfService: { generateLeasePDF: jest.Mock }
-	let leasesService: { findOne: jest.Mock }
+	let leasesService: {
+		findOne: jest.Mock
+		getUserClient: jest.Mock
+	}
 	const mockToken = 'mock-token'
+	const mockUserId = 'user-123'
 
 	const validLease: LeaseFormData = {
 		property: {
@@ -79,8 +84,36 @@ describe('LeaseGeneratorController', () => {
 
 	beforeEach(async () => {
 		pdfService = { generateLeasePDF: jest.fn() }
+
+		// Mock Supabase client chain for database operations
+		const mockSupabaseClient = {
+			from: jest.fn(() => ({
+				insert: jest.fn(() => ({
+					select: jest.fn(() => ({
+						single: jest.fn(() =>
+							Promise.resolve({
+								data: { id: 'lease_mock-uuid', version: 1 },
+								error: null
+							})
+						)
+					}))
+				})),
+				select: jest.fn(() => ({
+					eq: jest.fn(() => ({
+						single: jest.fn(() =>
+							Promise.resolve({
+								data: null,
+								error: { code: 'PGRST116', message: 'Not found' }
+							})
+						)
+					}))
+				}))
+			}))
+		}
+
 		leasesService = {
-			findOne: jest.fn()
+			findOne: jest.fn(),
+			getUserClient: jest.fn(() => mockSupabaseClient)
 		}
 
 		const module = await Test.createTestingModule({
@@ -108,14 +141,20 @@ describe('LeaseGeneratorController', () => {
 	})
 
 	describe('generateLease', () => {
-		it('generates lease with valid data', async () => {
+		it('generates lease with valid data and persists to database', async () => {
 			pdfService.generateLeasePDF.mockResolvedValue(Buffer.from('pdf'))
 
-			const result = await controller.generateLease(validLease)
+			const result = await controller.generateLease(
+				mockToken,
+				mockUserId,
+				validLease
+			)
 
 			expect(result.success).toBe(true)
 			expect(result.lease.monthlyRent).toBe(25)
+			expect(result.lease.id).toMatch(/^lease_/)
 			expect(pdfService.generateLeasePDF).toHaveBeenCalledWith(validLease)
+			expect(leasesService.getUserClient).toHaveBeenCalledWith(mockToken)
 		})
 
 		it('rejects missing state', async () => {
@@ -130,9 +169,9 @@ describe('LeaseGeneratorController', () => {
 				}
 			}
 
-			await expect(controller.generateLease(invalidLease)).rejects.toThrow(
-				new BadRequestException('Property state is required')
-			)
+			await expect(
+				controller.generateLease(mockToken, mockUserId, invalidLease)
+			).rejects.toThrow(new BadRequestException('Property state is required'))
 		})
 
 		it('rejects missing owner', async () => {
@@ -152,17 +191,17 @@ describe('LeaseGeneratorController', () => {
 				}
 			}
 
-			await expect(controller.generateLease(invalidLease)).rejects.toThrow(
-				new BadRequestException('Owner name is required')
-			)
+			await expect(
+				controller.generateLease(mockToken, mockUserId, invalidLease)
+			).rejects.toThrow(new BadRequestException('Owner name is required'))
 		})
 
 		it('rejects empty tenants', async () => {
 			const invalidLease = { ...validLease, tenants: [] }
 
-			await expect(controller.generateLease(invalidLease)).rejects.toThrow(
-				new BadRequestException('At least one tenant is required')
-			)
+			await expect(
+				controller.generateLease(mockToken, mockUserId, invalidLease)
+			).rejects.toThrow(new BadRequestException('At least one tenant is required'))
 		})
 
 		it('rejects missing rent', async () => {
@@ -179,16 +218,34 @@ describe('LeaseGeneratorController', () => {
 				}
 			}
 
-			await expect(controller.generateLease(invalidLease)).rejects.toThrow(
-				new BadRequestException('Rent amount is required')
-			)
+			await expect(
+				controller.generateLease(mockToken, mockUserId, invalidLease)
+			).rejects.toThrow(new BadRequestException('Rent amount is required'))
 		})
 
 		it('handles PDF service errors', async () => {
 			pdfService.generateLeasePDF.mockRejectedValue(new Error('PDF failed'))
-			await expect(controller.generateLease(validLease)).rejects.toThrow(
+			await expect(
+				controller.generateLease(mockToken, mockUserId, validLease)
+			).rejects.toThrow(
 				new InternalServerErrorException('Failed to generate lease agreement')
 			)
+		})
+
+		it('handles invalid start date', async () => {
+			pdfService.generateLeasePDF.mockResolvedValue(Buffer.from('pdf'))
+
+			const invalidLease = {
+				...validLease,
+				leaseTerms: {
+					...validLease.leaseTerms,
+					startDate: 'invalid-date'
+				}
+			}
+
+			await expect(
+				controller.generateLease(mockToken, mockUserId, invalidLease)
+			).rejects.toThrow(new BadRequestException('Invalid start date'))
 		})
 	})
 
@@ -203,18 +260,20 @@ describe('LeaseGeneratorController', () => {
 			).rejects.toThrow('leaseId query parameter is required')
 		})
 
-		it('throws error when lease data fetch fails', async () => {
+		it('throws 404 NotFoundException when lease not found', async () => {
 			const mockReq = {
 				headers: { authorization: `Bearer ${mockToken}` }
 			} as any
 
 			const fetchSpy = jest
 				.spyOn(controller as any, 'fetchLeaseWithRelations')
-				.mockRejectedValue(new Error('Failed to fetch relations'))
+				.mockRejectedValue(
+					new NotFoundException('Lease not found: test-lease-id')
+				)
 
 			await expect(
 				controller.downloadLease('test-lease-id', mockReq)
-			).rejects.toThrow('Failed to fetch lease data for PDF generation')
+			).rejects.toThrow(NotFoundException)
 
 			fetchSpy.mockRestore()
 		})
@@ -255,20 +314,20 @@ describe('LeaseGeneratorController', () => {
 			).rejects.toThrow('leaseId query parameter is required')
 		})
 
-		it('throws error when lease not found', async () => {
+		it('throws 404 NotFoundException when lease not found', async () => {
 			const mockReq = {
 				headers: { authorization: `Bearer ${mockToken}` }
 			} as any
 
 			const fetchSpy = jest
 				.spyOn(controller as any, 'fetchLeaseWithRelations')
-				.mockRejectedValue(new Error('No relations'))
-
-			leasesService.findOne.mockResolvedValue(null)
+				.mockRejectedValue(
+					new NotFoundException('Lease not found: test-lease-id')
+				)
 
 			await expect(
 				controller.previewLease('test-lease-id', mockReq)
-			).rejects.toThrow('Failed to fetch lease data for PDF generation')
+			).rejects.toThrow(NotFoundException)
 
 			fetchSpy.mockRestore()
 		})
