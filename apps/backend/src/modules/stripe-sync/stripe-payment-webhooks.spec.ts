@@ -213,10 +213,10 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				paymentType: 'rent',
 				status: 'completed',
 				stripePaymentIntentId: mockPaymentIntentId,
-			platformFee: 0,
-			stripeFee: 0,
-			ownerReceives: 1500.0,
-			receiptUrl: null
+				platformFee: 0,
+				stripeFee: 0,
+				ownerReceives: 1500.0,
+				receiptUrl: null
 			})
 
 			// Verify event was marked as processed

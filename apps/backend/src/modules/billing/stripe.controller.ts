@@ -124,7 +124,7 @@ export class StripeController {
 		if (!secret) {
 			throw new Error(
 				'Missing IDEMPOTENCY_KEY_SECRET environment variable. ' +
-				'Please set IDEMPOTENCY_KEY_SECRET in your environment configuration.'
+					'Please set IDEMPOTENCY_KEY_SECRET in your environment configuration.'
 			)
 		}
 
@@ -1236,7 +1236,13 @@ export class StripeController {
 	 */
 	@Post('invite-tenant')
 	async inviteTenant(
-		@Body() body: { email: string; ownerId?: string; propertyId?: string; leaseId?: string }
+		@Body()
+		body: {
+			email: string
+			ownerId?: string
+			propertyId?: string
+			leaseId?: string
+		}
 	) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.email) {
@@ -1252,12 +1258,15 @@ export class StripeController {
 
 		// Emit deprecation warning if only propertyId was provided
 		if (!body.ownerId && body.propertyId) {
-			this.logger.warn('propertyId parameter is deprecated, use ownerId instead', {
-				endpoint: 'POST /stripe/invite-tenant',
-				providedParam: 'propertyId',
-				preferredParam: 'ownerId',
-				email: body.email
-			})
+			this.logger.warn(
+				'propertyId parameter is deprecated, use ownerId instead',
+				{
+					endpoint: 'POST /stripe/invite-tenant',
+					providedParam: 'propertyId',
+					preferredParam: 'ownerId',
+					email: body.email
+				}
+			)
 		}
 
 		// Validate email format
@@ -1285,8 +1294,8 @@ export class StripeController {
 				await supabase.auth.admin.createUser({
 					email: body.email,
 					email_confirm: false, // User must confirm via invite link
-				user_metadata: {
-					invited_by: ownerId,
+					user_metadata: {
+						invited_by: ownerId,
 						invited_at: new Date().toISOString(),
 						...(body.leaseId && { lease_id: body.leaseId })
 					}

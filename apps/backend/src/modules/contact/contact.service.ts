@@ -1,21 +1,29 @@
 import {
 	Injectable,
 	InternalServerErrorException,
-	Logger
+	Logger,
+	Inject
 } from '@nestjs/common'
-import type { ContactFormRequest } from '@repo/shared/types/domain'
+import type { ConfigType } from '@nestjs/config'
 import { Resend } from 'resend'
+import type { ContactFormRequest } from '@repo/shared/types/domain'
+import emailConfig from 'src/config/email.config'
+import type { EmailService } from '../email/email.service'
 
 @Injectable()
 export class ContactService {
 	private readonly logger = new Logger(ContactService.name)
 	private readonly resend: Resend | null
 
-	constructor() {
-		const apiKey = process.env.RESEND_API_KEY
+	constructor(
+		@Inject(emailConfig.KEY)
+		private emailOptions: ConfigType<typeof emailConfig>,
+		private readonly emailService: EmailService
+	) {
+		const apiKey = this.emailOptions.resendApiKey
 		if (!apiKey) {
 			this.logger.warn(
-				'RESEND_API_KEY not configured - email functionality will be disabled'
+				'RESEND_API_KEY not configured in emailOptions - email functionality will be disabled'
 			)
 			this.resend = null
 		} else {
@@ -25,13 +33,39 @@ export class ContactService {
 
 	async processContactForm(dto: ContactFormRequest) {
 		try {
-			// Send notification email to support team
-			if (process.env.RESEND_API_KEY) {
-				await this.sendNotificationToTeam(dto)
-				await this.sendConfirmationToUser(dto)
+			// Attempt to send emails only if Resend is configured
+			if (this.resend) {
+				// Use the EmailService to generate HTML content
+				const teamEmailHtml =
+					this.emailService.generateTeamNotificationHtml(dto)
+				const userConfirmationHtml =
+					this.emailService.generateUserConfirmationHtml(dto)
+
+				// Attempt to send both emails concurrently, collect potential errors
+				const [teamEmailError, confirmationEmailError] =
+					await Promise.allSettled([
+						this.sendEmailToTeam(teamEmailHtml, dto),
+						this.sendEmailToUser(userConfirmationHtml, dto)
+					])
+
+				// Log errors if they occurred, but don't stop the process
+				if (teamEmailError.status === 'rejected') {
+					this.logger.error(
+						`Failed to send team notification for ${dto.email}: ${teamEmailError.reason}`,
+						teamEmailError.reason?.stack, // Log stack trace if available
+						'ContactService'
+					)
+				}
+				if (confirmationEmailError.status === 'rejected') {
+					this.logger.error(
+						`Failed to send user confirmation to ${dto.email}: ${confirmationEmailError.reason}`,
+						confirmationEmailError.reason?.stack,
+						'ContactService'
+					)
+				}
 			}
 
-			// Log the submission
+			// Log the successful submission attempt regardless of email status
 			this.logger.log(
 				{
 					contactForm: {
@@ -43,7 +77,7 @@ export class ContactService {
 						messageLength: dto.message.length
 					}
 				},
-				`Contact form submission from ${dto.email}`
+				`Contact form submission processed from ${dto.email}`
 			)
 
 			return {
@@ -52,12 +86,15 @@ export class ContactService {
 					'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
 			}
 		} catch (error) {
+			// This catch block handles unexpected errors *before* attempting to send emails
+			// Errors during email sending are handled by Promise.allSettled
 			this.logger.error(
 				{
 					error: error instanceof Error ? error.message : String(error),
 					email: dto.email
 				},
-				'Failed to process contact form'
+				'Unexpected error during contact form processing',
+				'ContactService'
 			)
 			throw new InternalServerErrorException(
 				'Contact submission failed [CONTACT-001]'
@@ -65,65 +102,26 @@ export class ContactService {
 		}
 	}
 
-	private async sendNotificationToTeam(dto: ContactFormRequest) {
-		if (!this.resend) return
+	private async sendEmailToTeam(htmlContent: string, dto: ContactFormRequest) {
+		// This method assumes this.resend is not null (checked in processContactForm)
+		const supportEmail =
+			this.emailOptions.supportEmail || 'support@tenantflow.app'
 
-		const supportEmail = process.env.SUPPORT_EMAIL || 'support@tenantflow.app'
-
-		const emailHtml = `
-			<h2>New Contact Form Submission</h2>
-			<p><strong>From:</strong> ${dto.name} (${dto.email})</p>
-			${dto.company ? `<p><strong>Company:</strong> ${dto.company}</p>` : ''}
-			${dto.phone ? `<p><strong>Phone:</strong> ${dto.phone}</p>` : ''}
-			<p><strong>Interest:</strong> ${dto.subject}</p>
-			<p><strong>How they heard about us:</strong> ${dto.type}</p>
-			<hr>
-			<h3>Message:</h3>
-			<p>${dto.message.replace(/\n/g, '<br>')}</p>
-		`
-
-		try {
-			await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [supportEmail],
-				subject: `Contact Form: ${dto.subject} - ${dto.name}`,
-				html: emailHtml
-			})
-		} catch (error) {
-			this.logger.error('Failed to send team notification', error)
-		}
+		await this.resend!.emails.send({
+			from: this.emailOptions.fromAddress || 'noreply@tenantflow.app', // Use config for from address too
+			to: [supportEmail],
+			subject: `Contact Form: ${dto.subject} - ${dto.name}`,
+			html: htmlContent
+		})
 	}
 
-	private async sendConfirmationToUser(dto: ContactFormRequest) {
-		if (!this.resend) return
-
-		const emailHtml = `
-			<h2>Thank you for contacting TenantFlow!</h2>
-			<p>Hi ${dto.name},</p>
-			<p>We've received your message and appreciate your interest in TenantFlow. Our team will review your inquiry and get back to you within 4 hours during business hours.</p>
-			<p>Here's a summary of what you submitted:</p>
-			<ul>
-				<li><strong>Interest:</strong> ${dto.subject}</li>
-				<li><strong>Message:</strong> ${dto.message}</li>
-			</ul>
-			<p>In the meantime, feel free to:</p>
-			<ul>
-				<li>Visit our <a href="https://tenantflow.app">website</a> to learn more</li>
-				<li>Check out our <a href="https://tenantflow.app/pricing">pricing plans</a></li>
-				<li>Read our <a href="https://tenantflow.app/features">features overview</a></li>
-			</ul>
-			<p>Best regards,<br>The TenantFlow Team</p>
-		`
-
-		try {
-			await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [dto.email],
-				subject: 'Thank you for contacting TenantFlow',
-				html: emailHtml
-			})
-		} catch (error) {
-			this.logger.error('Failed to send user confirmation', error)
-		}
+	private async sendEmailToUser(htmlContent: string, dto: ContactFormRequest) {
+		// This method assumes this.resend is not null (checked in processContactForm)
+		await this.resend!.emails.send({
+			from: this.emailOptions.fromAddress || 'noreply@tenantflow.app',
+			to: [dto.email],
+			subject: 'Thank you for contacting TenantFlow',
+			html: htmlContent
+		})
 	}
 }
