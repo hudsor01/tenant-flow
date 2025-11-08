@@ -9,6 +9,7 @@ import {
 	urlSchema,
 	uuidSchema
 } from './common.js'
+import { imageUrlSchema } from './image-url.schemas.js'
 
 // Property type schema - uses auto-generated Supabase enums
 export const propertyTypeSchema = z.enum(
@@ -148,7 +149,7 @@ export const propertyFormSchema = z.object({
 	squareFootage: z.string().optional(),
 	rent: z.string().optional(),
 	deposit: z.string().optional(),
-	imageUrl: z.string().optional(), // Legacy single image field
+	imageUrl: imageUrlSchema, // Validates trusted image sources only
 	propertyId: z.string().optional(), // Optional propertyId for form.setFieldValue
 	// Frontend-specific UI fields
 	hasGarage: z.boolean().optional(),
@@ -282,8 +283,7 @@ export const createPropertyRequestSchema = z.object({
 		Constants.public.Enums.PropertyType as readonly [string, ...string[]]
 	),
 	amenities: z.array(z.string()).optional(),
-	imageUrl: z
-		.union([z.string().url(), z.literal(''), z.null(), z.undefined()])
+	imageUrl: imageUrlSchema
 		.transform(val => (val === '' || val === null ? undefined : val))
 		.optional()
 })
@@ -310,8 +310,7 @@ export const updatePropertyRequestSchema = z.object({
 	description: z.string().optional(),
 	propertyType: propertyTypeSchema.optional(),
 	amenities: z.array(z.string()).optional(),
-	imageUrl: z
-		.union([z.string().url(), z.literal(''), z.null(), z.undefined()])
+	imageUrl: imageUrlSchema
 		.transform(val => (val === '' || val === null ? undefined : val))
 		.optional(),
 	version: z.number().optional()

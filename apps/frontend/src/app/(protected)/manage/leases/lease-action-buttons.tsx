@@ -122,8 +122,13 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		}
 
 		try {
+			if (!lease.tenantId) {
+				toast.error('Lease has no tenant assigned')
+				return
+			}
+
 			const result = await createPayment.mutateAsync({
-				tenantId: lease.tenantId,
+				tenantId: lease.tenantId!,
 				leaseId: lease.id,
 				amount: lease.rentAmount,
 				paymentMethodId: selectedPaymentMethodId
