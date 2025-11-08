@@ -1,6 +1,7 @@
 import { CacheModule } from '@nestjs/cache-manager'
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
+import { BullModule } from '@nestjs/bullmq'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
@@ -46,6 +47,7 @@ import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
+import { PrometheusModule } from './modules/observability'
 
 /**
  * Core App Module - KISS principle
@@ -55,6 +57,8 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
+			cache: true, // Cache environment variables for performance
+			expandVariables: true, // Allow ${VAR} expansion in .env files
 			validate
 		}),
 
@@ -80,13 +84,23 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 			ttl: 30 * 1000, // 30 seconds default TTL
 			max: 1000 // Maximum number of items in cache
 		}),
-
+		// Queue system for background jobs and rate limiting
+		BullModule.forRoot({
+			connection: {
+				host: 'localhost',
+				port: 6379
+			}
+		}),
 		// Event system for decoupled architecture
-		EventEmitterModule.forRoot(),
-
+		EventEmitterModule.forRoot({
+			wildcard: true,
+			delimiter: '.',
+			maxListeners: 10,
+			verboseMemoryLeak: true,
+			ignoreErrors: false // CRITICAL: Propagate errors to controller
+		}),
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
-
 		// Rate limiting - simple configuration
 		ThrottlerModule.forRoot({
 			throttlers: [
@@ -96,9 +110,14 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 				}
 			]
 		}),
-
 		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule.forRootAsync(),
+		// Prometheus metrics for Grafana/Prometheus integration
+		PrometheusModule.forRoot({
+			bearerToken: process.env.PROMETHEUS_BEARER_TOKEN || '',
+			enableDefaultMetrics: true,
+			prefix: 'tenantflow'
+		}),
 		SharedModule,
 		ServicesModule,
 		HealthModule,
