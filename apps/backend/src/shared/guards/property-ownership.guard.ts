@@ -37,12 +37,28 @@ export class PropertyOwnershipGuard implements CanActivate {
 			throw new ForbiddenException('Authentication required')
 		}
 
-		// Extract resource IDs from request
-		const { tenantId, leaseId, propertyId } = {
-			...request.params,
-			...request.body,
-			...request.query
+		// Extract resource IDs from request (controllers commonly expose them as `id` or nested objects)
+		const normalized = {
+			tenantId:
+				request.params?.tenantId ??
+				request.params?.id ??
+				request.body?.tenantId ??
+				request.body?.id ??
+				request.query?.tenantId,
+			leaseId:
+				request.params?.leaseId ??
+				request.params?.id ??
+				request.body?.leaseId ??
+				request.body?.id ??
+				request.query?.leaseId ??
+				request.body?.leaseData?.leaseId,
+			propertyId:
+				request.params?.propertyId ??
+				request.body?.propertyId ??
+				request.query?.propertyId ??
+				request.body?.leaseData?.propertyId
 		}
+		const { tenantId, leaseId, propertyId } = normalized
 
 		// If accessing a specific tenant
 		if (tenantId) {

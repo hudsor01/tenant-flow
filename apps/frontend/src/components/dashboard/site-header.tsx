@@ -2,6 +2,7 @@
 
 import { NavUser } from '#components/dashboard/nav-user'
 import { Button } from '#components/ui/button'
+import { ModeToggle } from '#components/ui/theme-switch'
 import { cn } from '#lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -25,8 +26,9 @@ export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
 				<Button variant="ghost" size="icon" onClick={() => router.back()}>
 					<ArrowLeft className="size-5" />
 				</Button>
-				{/* User Avatar */}
+				{/* Theme Toggle & User Avatar */}
 				<div className="ml-auto flex items-center gap-2">
+					<ModeToggle />
 					<NavUser />
 				</div>
 			</header>

@@ -35,8 +35,8 @@ export const QUERY_CACHE_TIMES = {
 	 * Used for dashboard widgets and summary cards
 	 */
 	STATS: {
-		staleTime: 10 * 60 * 1000, // 10 minutes
-		gcTime: 30 * 60 * 1000 // 30 minutes
+		staleTime: 1 * 60 * 1000, // 1 minute (per CLAUDE.md)
+		gcTime: 5 * 60 * 1000 // 5 minutes
 	},
 
 	/**
