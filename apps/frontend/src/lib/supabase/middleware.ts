@@ -77,20 +77,49 @@ export async function updateSession(request: NextRequest) {
 			const claims = await verifyJwtToken(accessToken)
 
 			if (claims) {
+				// ✅ SECURITY: Validate required JWT claims before trusting token
+				const userId = getStringClaim(claims, 'sub')
+				const userEmail = getStringClaim(claims, 'email')
+
+				// Reject tokens without required claims (defense against forged/malformed tokens)
+				if (!userId || !userEmail) {
+					logger.warn('JWT missing required claims', {
+						hasUserId: !!userId,
+						hasEmail: !!userEmail
+					})
+					isAuthenticated = false
+					// Early return - don't process invalid token
+					return supabaseResponse
+				}
+
 				// Extract complete user info from verified JWT claims
 				// Map JWT claims to Supabase User type fields
 
+				// ✅ SECURITY FIX: Use deterministic timestamps from JWT (not Date.now())
 				// Timestamps: Convert UNIX epoch (seconds) to ISO string
+				// IMPORTANT: Always use JWT's 'iat' (issued at) claim, never Date.now()
+				// This prevents timestamp manipulation attacks
 				const authTime = getNumberClaim(claims, 'auth_time') || getNumberClaim(claims, 'iat')
-				const createdAt = authTime ? new Date(authTime * 1000).toISOString() : new Date().toISOString()
+				
+				// SECURITY: If JWT is missing timestamps, reject it (malformed token)
+				if (!authTime) {
+					logger.warn('JWT missing timestamp claims (iat/auth_time)')
+					isAuthenticated = false
+					return supabaseResponse
+				}
+				
+				const createdAt = new Date(authTime * 1000).toISOString()
 
 				// Confirmation timestamps: Map boolean verification claims to ISO timestamps
-				const emailVerified = claims['email_verified'] === true
-				const phoneVerified = claims['phone_verified'] === true
+				const emailVerified = getBooleanClaim(claims, 'email_verified')
+				const phoneVerified = getBooleanClaim(claims, 'phone_verified')
+				
+				// ✅ SECURITY: Use JWT auth time for confirmation timestamps (not Date.now())
+				const confirmationTime = new Date(authTime * 1000).toISOString()
 
 				user = {
-					id: getStringClaim(claims, 'sub') || '',
-					email: getStringClaim(claims, 'email') || '',
+					id: userId, // Already validated above
+					email: userEmail, // Already validated above
 					phone: getStringClaim(claims, 'phone') ?? '',
 					app_metadata: {},
 					user_metadata: {},
@@ -98,11 +127,11 @@ export async function updateSession(request: NextRequest) {
 					role: getStringClaim(claims, 'role') ?? getStringClaim(claims, 'app_role') ?? 'authenticated',
 					created_at: createdAt,
 					updated_at: getStringClaim(claims, 'updated_at') ?? createdAt,
-					// If user has valid JWT, they're confirmed - use auth time or created time as fallback
-					confirmed_at: (emailVerified && authTime ? new Date(authTime * 1000) : new Date(createdAt)).toISOString(),
-					email_confirmed_at: (emailVerified && authTime ? new Date(authTime * 1000) : new Date(createdAt)).toISOString(),
-					phone_confirmed_at: (phoneVerified && authTime ? new Date(authTime * 1000) : new Date(createdAt)).toISOString(),
-					last_sign_in_at: authTime ? new Date(authTime * 1000).toISOString() : createdAt,
+					// ✅ SECURITY: Use deterministic JWT timestamps for confirmation fields
+					confirmed_at: emailVerified ? confirmationTime : createdAt,
+					email_confirmed_at: emailVerified ? confirmationTime : createdAt,
+					phone_confirmed_at: phoneVerified ? confirmationTime : createdAt,
+					last_sign_in_at: confirmationTime,
 					identities: [],
 					factors: []
 				}
@@ -282,4 +311,20 @@ function getNumberClaim(
 	}
 
 	return value
+}
+
+/**
+ * Extract boolean claim from JWT payload
+ * Helper function to reduce code duplication for boolean verification claims
+ */
+function getBooleanClaim(
+	claims: Record<string, unknown> | null,
+	key: string
+): boolean {
+	if (!claims) {
+		return false
+	}
+
+	const value = claims[key]
+	return value === true
 }

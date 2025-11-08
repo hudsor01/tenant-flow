@@ -201,6 +201,8 @@ export class FinancialService {
 					total: leases.length,
 					active: leases.filter((l: LeaseRow) => l.status === 'ACTIVE').length,
 					expiring: leases.filter((l: LeaseRow) => {
+						// Skip month-to-month leases (endDate is null)
+						if (!l.endDate) return false
 						const endDate = new Date(l.endDate)
 						const now = new Date()
 						const thirtyDaysFromNow = new Date(
@@ -274,6 +276,8 @@ export class FinancialService {
 
 			// Calculate lease duration analytics
 			const totalDuration = leaseList.reduce((sum, lease: LeaseRow) => {
+				// Skip month-to-month leases (endDate is null)
+				if (!lease.endDate) return sum
 				const start = new Date(lease.startDate)
 				const end = new Date(lease.endDate)
 				const durationMonths =
@@ -290,12 +294,13 @@ export class FinancialService {
 					activeLeases: leaseList.filter((l: LeaseRow) => l.status === 'ACTIVE')
 						.length,
 					expiredLeases: leaseList.filter(
-						(l: LeaseRow) => new Date(l.endDate) < now
-					).length,
+					(l: LeaseRow) => l.endDate && new Date(l.endDate) < now
+				).length,
 					expiringSoon: leaseList.filter((l: LeaseRow) => {
-						const endDate = new Date(l.endDate)
-						return endDate > now && endDate <= thirtyDaysFromNow
-					}).length
+					if (!l.endDate) return false
+					const endDate = new Date(l.endDate)
+					return endDate > now && endDate <= thirtyDaysFromNow
+				}).length
 				},
 				financial: {
 					totalRevenue,
@@ -545,7 +550,8 @@ export class FinancialService {
 			let monthlyRevenue = 0
 			for (const lease of leases) {
 				const startDate = new Date(lease.startDate)
-				const endDate = new Date(lease.endDate)
+				// Month-to-month leases (endDate is null) are always active
+				const endDate = lease.endDate ? new Date(lease.endDate) : new Date('9999-12-31')
 				if (startDate <= monthEnd && endDate >= monthStart) {
 					monthlyRevenue += lease.rentAmount || 0
 				}

@@ -40,6 +40,7 @@ import {
 import { useCurrentUser } from '#hooks/use-current-user'
 import { useUserProfile } from '#hooks/use-user-role'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -188,6 +189,15 @@ export default function TenantProfilePage() {
 			return
 		}
 
+		// Validate email format if provided
+		if (emergencyContactForm.email && emergencyContactForm.email.trim()) {
+			const emailResult = emailSchema.safeParse(emergencyContactForm.email)
+			if (!emailResult.success) {
+				toast.error('Emergency contact email is invalid')
+				return
+			}
+		}
+
 		try {
 			if (emergencyContact) {
 				// Update existing contact
@@ -213,6 +223,9 @@ export default function TenantProfilePage() {
 				metadata: {
 					error: error instanceof Error ? error.message : 'Unknown error'
 				}
+			})
+			toast.error('Failed to save emergency contact', {
+				description: error instanceof Error ? error.message : 'Please try again'
 			})
 		}
 	}
