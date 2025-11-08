@@ -12,6 +12,7 @@ import {
 	closestCorners
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { createSnapModifier, restrictToWindowEdges } from '@dnd-kit/modifiers'
 import { Badge } from '#components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { toast } from 'sonner'
@@ -56,6 +57,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			}
 		})
 	)
+
+	// Grid snapping for professional alignment (16px grid)
+	const snapToGrid = createSnapModifier(16)
 
 	// Group requests by status
 	const requestsByStatus = requests.reduce(
@@ -128,6 +132,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			collisionDetection={closestCorners}
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
+			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 				{COLUMNS.map(column => {
