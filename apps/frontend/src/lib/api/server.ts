@@ -84,9 +84,8 @@ export async function serverFetch<T>(
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 		...options,
 		headers,
-		// Use revalidation caching instead of no-store to prevent excessive calls
-		next: { revalidate: 30 }, // Cache for 30 seconds
-		cache: options?.cache || 'default'
+		cache: options?.cache ?? 'no-store',
+		next: options?.next ?? { revalidate: 0 }
 	})
 
 	if (!response.ok) {
