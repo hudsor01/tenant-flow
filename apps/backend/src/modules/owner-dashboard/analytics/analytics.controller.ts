@@ -42,11 +42,7 @@ export class AnalyticsController {
 		@Req() req: AuthenticatedRequest,
 		@UserId() userId: string
 	): Promise<ControllerApiResponse> {
-		const token = this.supabase.getTokenFromRequest(req)
-
-		if (!token) {
-			throw new UnauthorizedException('Authentication token required')
-		}
+		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger.log('Getting dashboard stats', { userId })
 
@@ -95,7 +91,8 @@ export class AnalyticsController {
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
-			throw new UnauthorizedException('Authentication token required')
+			this.logger.warn('Dashboard page data requested without token')
+			throw new UnauthorizedException('Authentication token missing')
 		}
 
 		this.logger.log('Getting unified dashboard page data', { userId })

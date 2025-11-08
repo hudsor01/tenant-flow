@@ -6,7 +6,7 @@ import { requiredString } from './common.js'
 // Enhanced validation with Zod patterns
 const positiveMoneyAmount = z
 	.number()
-	.min(0, { message: 'Amount must be positive' })
+	.positive({ message: 'Amount must be greater than zero' })
 	.max(100000, { message: 'Amount exceeds maximum limit' })
 	.refine(Number.isFinite, { message: 'Must be a finite number' })
 

@@ -168,10 +168,10 @@ export function useOwnerTimeSeries(
 	return useQuery({
 		queryKey: ownerDashboardKeys.reports.timeSeries(metric, days),
 		queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
-			const response = await clientFetch<{ data: TimeSeriesDataPoint[] }>(
+			const data = await clientFetch<TimeSeriesDataPoint[]>(
 				`/api/v1/owner/reports/time-series?metric=${metric}&days=${days}`
 			)
-			return response.data || []
+			return data ?? []
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes
@@ -188,10 +188,9 @@ export function useOwnerMetricTrend(
 	return useQuery({
 		queryKey: ownerDashboardKeys.reports.metricTrend(metric, period),
 		queryFn: async (): Promise<MetricTrend> => {
-			const response = await clientFetch<{ data: MetricTrend }>(
+			return clientFetch<MetricTrend>(
 				`/api/v1/owner/reports/metric-trend?metric=${metric}&period=${period}`
 			)
-			return response.data as MetricTrend
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes
