@@ -9,6 +9,7 @@ import {
 	Query,
 	Req
 } from '@nestjs/common'
+import { randomUUID } from 'node:crypto'
 import type {
 	LeaseFormData,
 	LeaseTermType,
@@ -77,10 +78,10 @@ export class LeaseGeneratorController {
 				leaseData as unknown as Record<string, unknown>
 			)
 
-			// Create a unique ID for this lease
-			const leaseId = `lease_${Date.now()}`
+			// Create a unique ID for this lease using crypto.randomUUID() to prevent collisions
+			const leaseId = `lease_${randomUUID()}`
 			const timestamp = new Date().toISOString().slice(0, 10)
-			const filename = `lease-agreement-${timestamp}-${Date.now()}.pdf`
+			const filename = `lease-agreement-${timestamp}-${randomUUID()}.pdf`
 
 			// In a production app, you would:
 			// 1. Save the PDF to cloud storage (S3, Google Cloud Storage, etc.)
