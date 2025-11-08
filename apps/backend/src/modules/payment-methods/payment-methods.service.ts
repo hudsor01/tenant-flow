@@ -78,6 +78,34 @@ export class PaymentMethodsService {
 	}
 
 	/**
+	 * DRY: Resolve tenant ID from auth user ID
+	 * 
+	 * Prevents code duplication across savePaymentMethod and listPaymentMethods.
+	 * RLS policies check: tenant.auth_user_id = auth.uid()
+	 * 
+	 * @param token - JWT token for RLS-protected Supabase client
+	 * @param userId - Auth user ID (NOT tenant table ID)
+	 * @returns Tenant ID from tenant table
+	 * @throws NotFoundException if tenant not found for user
+	 */
+	private async resolveTenantId(token: string, userId: string): Promise<string> {
+		const client = this.supabase.getUserClient(token)
+		
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', { userId })
+			throw new NotFoundException('Tenant not found')
+		}
+
+		return tenant.id
+	}
+
+	/**
 	 * Create a Stripe SetupIntent so the tenant can add a payment method.
 	 * Supports both card and ACH (us_bank_account) payment method types.
 	 */
@@ -152,21 +180,9 @@ export class PaymentMethodsService {
 			stripePaymentMethodId
 		})
 
+		// BUG FIX #3: Resolve tenant ID from auth_user_id using DRY helper
+		const tenantId = await this.resolveTenantId(token, userId)
 		const client = this.supabase.getUserClient(token)
-
-		// BUG FIX #3: First resolve tenant ID from auth_user_id
-		// RLS policy checks: tenant.auth_user_id = auth.uid()
-		// userId parameter is auth_user_id, NOT tenant table ID
-		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
-			.select('id')
-			.eq('auth_user_id', userId)
-			.single()
-
-		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found for user', { userId })
-			throw new NotFoundException('Tenant not found')
-		}
 
 		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId)
 
@@ -191,12 +207,12 @@ export class PaymentMethodsService {
 			})
 		}
 
-		// Now query payment methods using the correct tenant.id
+		// Now query payment methods using the correct tenant ID
 		const { data: existing, error: existingError } = await client
 			.from('tenant_payment_method')
 			.select('id')
 			.match({
-				tenantId: tenant.id,
+				tenantId,
 				stripePaymentMethodId
 			})
 			.maybeSingle()
@@ -221,7 +237,7 @@ export class PaymentMethodsService {
 		const { data: existingMethods, error: listError } = await client
 			.from('tenant_payment_method')
 			.select('id')
-			.eq('tenantId', tenant.id)
+			.eq('tenantId', tenantId)
 
 		if (listError) {
 			this.logger.error('Failed to load tenant payment methods', {
@@ -240,11 +256,11 @@ export class PaymentMethodsService {
 					isDefault: false,
 					updatedAt: new Date().toISOString()
 				})
-				.eq('tenantId', tenant.id)
+				.eq('tenantId', tenantId)
 		}
 
 		const { error } = await client.from('tenant_payment_method').insert({
-			tenantId: tenant.id,
+			tenantId,
 			stripePaymentMethodId,
 			stripeCustomerId,
 			type: paymentMethod.type,
@@ -281,29 +297,17 @@ export class PaymentMethodsService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
+		// BUG FIX #2: Resolve tenant ID from auth_user_id using DRY helper
+		const tenantId = await this.resolveTenantId(token, userId)
 		const client = this.supabase.getUserClient(token)
 
-		// BUG FIX #2: First resolve tenant ID from auth_user_id
-		// RLS policy checks: tenant.auth_user_id = auth.uid()
-		// userId parameter is auth_user_id, NOT tenant table ID
-		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
-			.select('id')
-			.eq('auth_user_id', userId)
-			.single()
-
-		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found for user', { userId })
-			throw new NotFoundException('Tenant not found')
-		}
-
-		// Now query payment methods using the correct tenant.id
+		// Now query payment methods using the correct tenant ID
 		const { data, error } = await client
 			.from('tenant_payment_method')
 			.select(
 				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
 			)
-			.eq('tenantId', tenant.id)
+			.eq('tenantId', tenantId)
 			.order('createdAt', { ascending: false })
 
 		if (error) {
