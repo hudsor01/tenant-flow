@@ -137,9 +137,28 @@ export class EmailService {
 	}
 
 	/**
+	 * Escape HTML special characters to prevent XSS
+	 */
+	private escapeHtml(text: string): string {
+		return text
+			.replace(/&amp;/g, '&amp;')
+			.replace(/&lt;/g, '&lt;')
+			.replace(/&gt;/g, '&gt;')
+			.replace(/&quot;/g, '&quot;')
+			.replace(/&#039;/g, '&#039;')
+	}
+
+	/**
 	 * Generate team notification HTML for contact form submissions
 	 */
 	generateTeamNotificationHtml(dto: ContactFormRequest): string {
+		const name = this.escapeHtml(dto.name)
+		const email = this.escapeHtml(dto.email)
+		const company = dto.company ? this.escapeHtml(dto.company) : null
+		const subject = this.escapeHtml(dto.subject)
+		const type = this.escapeHtml(dto.type || 'General Inquiry')
+		const message = this.escapeHtml(dto.message)
+
 		return `
 <!DOCTYPE html>
 <html>
@@ -163,20 +182,20 @@ export class EmailService {
 		<div class="content">
 			<div class="field">
 				<div class="label">From:</div>
-				<div class="value">${dto.name} (${dto.email})</div>
+				<div class="value">${name} (${email})</div>
 			</div>
-			${dto.company ? `<div class="field"><div class="label">Company:</div><div class="value">${dto.company}</div></div>` : ''}
+			${company ? `<div class="field"><div class="label">Company:</div><div class="value">${company}</div></div>` : ''}
 			<div class="field">
 				<div class="label">Subject:</div>
-				<div class="value">${dto.subject}</div>
+				<div class="value">${subject}</div>
 			</div>
 			<div class="field">
 				<div class="label">Type:</div>
-				<div class="value">${dto.type || 'General Inquiry'}</div>
+				<div class="value">${type}</div>
 			</div>
 			<div class="field">
 				<div class="label">Message:</div>
-				<div class="value">${dto.message}</div>
+				<div class="value">${message}</div>
 			</div>
 		</div>
 	</div>
@@ -189,6 +208,9 @@ export class EmailService {
 	 * Generate user confirmation HTML for contact form submissions
 	 */
 	generateUserConfirmationHtml(dto: ContactFormRequest): string {
+		const name = this.escapeHtml(dto.name)
+		const subject = this.escapeHtml(dto.subject)
+
 		return `
 <!DOCTYPE html>
 <html>
@@ -208,10 +230,10 @@ export class EmailService {
 			<h2>Thank You for Contacting TenantFlow</h2>
 		</div>
 		<div class="content">
-			<p class="message">Hi ${dto.name},</p>
-			<p class="message">Thank you for reaching out to us. We've received your message regarding "${dto.subject}" and our team will review it shortly.</p>
+			<p class="message">Hi ${name},</p>
+			<p class="message">Thank you for reaching out to us. We've received your message regarding "${subject}" and our team will review it shortly.</p>
 			<p class="message">We typically respond within 4 hours during business hours (9 AM - 5 PM EST, Monday-Friday).</p>
-			<p class="message">If you need immediate assistance, please call us at (555) 123-4567.</p>
+			<p class="message">If you need immediate assistance, please call us at ${process.env.SUPPORT_PHONE || '(555) 123-4567'}.</p>
 			<p class="message">Best regards,<br>The TenantFlow Team</p>
 		</div>
 	</div>

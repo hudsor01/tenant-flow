@@ -135,13 +135,19 @@ export class PropertyOwnershipGuard implements CanActivate {
 	): Promise<boolean> {
 		const client = this.supabase.getAdminClient()
 
-		const { data } = await client
+		const { data, error } = await client
 			.from('lease')
 			.select('property:propertyId(ownerId)')
 			.eq('id', leaseId)
 			.single()
 
-		return (data as { property: { ownerId: string } | null })?.property?.ownerId === userId
+		if (error) {
+			return false
+		}
+
+		// Supabase join returns nested object structure
+		const result = data as unknown as { property: { ownerId: string } | null }
+		return result?.property?.ownerId === userId
 	}
 
 	/**

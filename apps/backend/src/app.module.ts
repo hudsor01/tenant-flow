@@ -114,11 +114,16 @@ import { PrometheusModule } from './modules/observability'
 		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule.forRootAsync(),
 		// Prometheus metrics for Grafana/Prometheus integration
-		PrometheusModule.forRoot({
-			bearerToken: process.env.PROMETHEUS_BEARER_TOKEN || '',
-			enableDefaultMetrics: true,
-			prefix: 'tenantflow'
-		}),
+		// Only register if bearer token is configured
+		...(process.env.PROMETHEUS_BEARER_TOKEN
+			? [
+					PrometheusModule.forRoot({
+						bearerToken: process.env.PROMETHEUS_BEARER_TOKEN,
+						enableDefaultMetrics: true,
+						prefix: 'tenantflow'
+					})
+			  ]
+			: []),
 		SharedModule,
 		ServicesModule,
 		HealthModule,
