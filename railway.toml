@@ -1,10 +1,6 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
-cacheMount = [
-  ".turbo",
-  "node_modules/.cache"
-]
 watchPatterns = [
   "apps/backend/**",
   "packages/shared/**",
