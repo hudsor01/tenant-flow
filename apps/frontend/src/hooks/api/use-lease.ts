@@ -219,7 +219,7 @@ export function useCreateLease() {
 			const tempId = `temp-${Date.now()}`
 			const optimisticLease: Lease = {
 				id: tempId,
-				tenantId: newLease.tenantId,
+				tenantId: newLease.tenantId !== undefined ? newLease.tenantId : null,
 				unitId: newLease.unitId || null,
 				propertyId: newLease.propertyId || null,
 				startDate: newLease.startDate,

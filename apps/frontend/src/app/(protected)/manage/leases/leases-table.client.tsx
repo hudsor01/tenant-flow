@@ -112,7 +112,7 @@ export function LeasesTable() {
 					</TableHeader>
 					<TableBody>
 						{leases.map((lease: Lease) => {
-							const tenantName = tenantMap.get(lease.tenantId) ?? 'Unassigned'
+							const tenantName = lease.tenantId ? (tenantMap.get(lease.tenantId!) ?? 'Unassigned') : 'Unassigned'
 							const unit = unitMap.get(lease.unitId ?? '')
 							return (
 								<TableRow key={lease.id}>
