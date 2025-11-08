@@ -295,7 +295,7 @@ export class TenantInvitationService {
 	) {
 		const client = this.supabase.getAdminClient()
 
-		await Promise.all([
+		const results = await Promise.all([
 			client
 				.from('tenant')
 				.update({ stripeCustomerId: customerId })
@@ -305,6 +305,14 @@ export class TenantInvitationService {
 				.update({ stripeSubscriptionId: subscriptionId })
 				.eq('id', leaseId)
 		])
+
+		for (const { error } of results) {
+			if (error) {
+				throw new BadRequestException(
+					`Failed to link Stripe resources: ${error.message}`
+				)
+			}
+		}
 	}
 
 	/**
@@ -354,7 +362,7 @@ export class TenantInvitationService {
 		}
 
 		// Link auth user to tenant
-		await client
+		const { error: updateError } = await client
 			.from('tenant')
 			.update({
 				auth_user_id: authUser.user?.id,
@@ -363,6 +371,12 @@ export class TenantInvitationService {
 				invitation_sent_at: new Date().toISOString()
 			})
 			.eq('id', tenant.id)
+
+		if (updateError) {
+			throw new BadRequestException(
+				`Failed to link auth user: ${updateError.message}`
+			)
+		}
 
 		this.logger.log('Invitation email sent', {
 			tenantId: tenant.id,
