@@ -5,7 +5,6 @@ import { PaymentSuccessEmail } from '../../emails/payment-success-email'
 import { PaymentFailedEmail } from '../../emails/payment-failed-email'
 import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
-import type { ContactFormRequest } from '@repo/shared/types/domain'
 
 /**
  * Email Service - Direct Resend Integration
@@ -15,12 +14,6 @@ import type { ContactFormRequest } from '@repo/shared/types/domain'
  */
 @Injectable()
 export class EmailService {
-	generateTeamNotificationHtml(dto: ContactFormRequest) {
-		throw new Error('Method not implemented.')
-	}
-	generateUserConfirmationHtml(dto: ContactFormRequest) {
-		throw new Error('Method not implemented.')
-	}
 	private readonly logger = new Logger(EmailService.name)
 	private readonly resend: Resend | null
 
@@ -141,5 +134,89 @@ export class EmailService {
 				error: error instanceof Error ? error.message : String(error)
 			})
 		}
+	}
+
+	/**
+	 * Generate team notification HTML for contact form submissions
+	 */
+	generateTeamNotificationHtml(dto: ContactFormRequest): string {
+		return `
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background: #4F46E5; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+		.content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+		.field { margin-bottom: 15px; }
+		.label { font-weight: bold; color: #6B7280; }
+		.value { margin-top: 5px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h2>New Contact Form Submission</h2>
+		</div>
+		<div class="content">
+			<div class="field">
+				<div class="label">From:</div>
+				<div class="value">${dto.name} (${dto.email})</div>
+			</div>
+			${dto.company ? `<div class="field"><div class="label">Company:</div><div class="value">${dto.company}</div></div>` : ''}
+			<div class="field">
+				<div class="label">Subject:</div>
+				<div class="value">${dto.subject}</div>
+			</div>
+			<div class="field">
+				<div class="label">Type:</div>
+				<div class="value">${dto.type || 'General Inquiry'}</div>
+			</div>
+			<div class="field">
+				<div class="label">Message:</div>
+				<div class="value">${dto.message}</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+		`.trim()
+	}
+
+	/**
+	 * Generate user confirmation HTML for contact form submissions
+	 */
+	generateUserConfirmationHtml(dto: ContactFormRequest): string {
+		return `
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background: #4F46E5; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+		.content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+		.message { margin-bottom: 20px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h2>Thank You for Contacting TenantFlow</h2>
+		</div>
+		<div class="content">
+			<p class="message">Hi ${dto.name},</p>
+			<p class="message">Thank you for reaching out to us. We've received your message regarding "${dto.subject}" and our team will review it shortly.</p>
+			<p class="message">We typically respond within 4 hours during business hours (9 AM - 5 PM EST, Monday-Friday).</p>
+			<p class="message">If you need immediate assistance, please call us at (555) 123-4567.</p>
+			<p class="message">Best regards,<br>The TenantFlow Team</p>
+		</div>
+	</div>
+</body>
+</html>
+		`.trim()
 	}
 }

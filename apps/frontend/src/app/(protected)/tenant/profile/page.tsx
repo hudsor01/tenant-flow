@@ -26,7 +26,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
 import { ToggleSwitch } from '#components/ui/toggle-switch'
-import { useSupabaseUpdateProfile } from '#hooks/api/use-supabase-auth'
+import { useSupabaseUpdateProfile } from '#hooks/api/use-auth'
 import {
 	useNotificationPreferences,
 	useUpdateNotificationPreferences
