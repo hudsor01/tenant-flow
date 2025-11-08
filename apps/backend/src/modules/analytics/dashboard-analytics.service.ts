@@ -361,14 +361,18 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 			// Call optimized RPC function that consolidates 3 queries into one
 			// Build params conditionally to satisfy exactOptionalPropertyTypes
-			const params: { user_id: string; start_date?: string; end_date?: string } = {
-				user_id: userId
+			const params: {
+				owner_id_param: string
+				start_date_param?: string
+				end_date_param?: string
+			} = {
+				owner_id_param: userId
 			}
 			if (options?.startDate) {
-				params.start_date = options.startDate.toISOString()
+				params.start_date_param = options.startDate.toISOString()
 			}
 			if (options?.endDate) {
-				params.end_date = options.endDate.toISOString()
+				params.end_date_param = options.endDate.toISOString()
 			}
 
 			const { data, error } = await client.rpc('get_billing_insights', params)
