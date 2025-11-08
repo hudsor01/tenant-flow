@@ -336,7 +336,7 @@ export class PaymentMethodsService {
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
 			.select('id, stripe_customer_id')
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (tenantError || !tenant) {
@@ -399,11 +399,26 @@ export class PaymentMethodsService {
 
 		const client = this.supabase.getUserClient(token)
 
+		// Resolve tenant ID from auth user ID
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', {
+				userId,
+				error: tenantError?.message
+			})
+			throw new NotFoundException('Tenant not found')
+		}
+
 		const { data: paymentMethod, error: fetchError } = await client
 			.from('tenant_payment_method')
 			.select('stripePaymentMethodId, isDefault')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 			.single()
 
 		if (fetchError || !paymentMethod) {
@@ -425,7 +440,7 @@ export class PaymentMethodsService {
 			.from('tenant_payment_method')
 			.delete()
 			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 
 		if (error) {
 			this.logger.error('Failed to delete payment method', {
@@ -440,7 +455,7 @@ export class PaymentMethodsService {
 			const { data: nextDefault } = await client
 				.from('tenant_payment_method')
 				.select('id')
-				.eq('tenantId', userId)
+				.eq('tenantId', tenant.id)
 				.order('createdAt', { ascending: true })
 				.limit(1)
 

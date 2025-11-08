@@ -315,11 +315,9 @@ export class RentPaymentsController {
 		const userId = req.user.id
 		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
 
-		// Verify user has access to this tenant
-		await this.rentPaymentsService.verifyTenantAccess(userId, tenantId)
-
+		// ✅ Authorization now enforced at service layer (defense-in-depth)
 		const paymentStatus =
-			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId)
+			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId, userId)
 
 		return {
 			status: paymentStatus.status,

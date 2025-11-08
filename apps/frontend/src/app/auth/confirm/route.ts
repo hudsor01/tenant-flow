@@ -44,6 +44,16 @@ export async function GET(request: NextRequest) {
 			}
 		)
 
+		// Valid OTP types (as per Supabase EmailOtpType)
+		const validOtpTypes: EmailOtpType[] = ['email', 'recovery', 'invite', 'email_change']
+
+		// Validate type before using it
+		if (!validOtpTypes.includes(type as EmailOtpType)) {
+			return NextResponse.redirect(
+				new URL('/error?message=Invalid+OTP+type', request.url)
+			)
+		}
+
 		// Verify OTP and exchange for session
 		const { error } = await supabase.auth.verifyOtp({
 			token_hash,

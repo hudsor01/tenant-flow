@@ -65,14 +65,18 @@ export class RentPaymentsService {
 	 * CURRENCY CONVENTION: Normalize amount to CENTS for Stripe
 	 * 
 	 * Accepts both dollar and cent inputs (backward compatibility):
-	 * - If amount < 100,000 → assume DOLLARS, convert to cents (amount * 100)
-	 * - If amount >= 100,000 → assume CENTS, use as-is
+	 * - If amount < 1,000,000 → assume DOLLARS, convert to cents (amount * 100)
+	 * - If amount >= 1,000,000 → assume CENTS, use as-is
+	 * 
+	 * Rationale: Threshold of 1M allows rents up to $9,999/month in dollar format
+	 * while supporting high-value properties (e.g., $5,000/month = 500,000 cents)
 	 * 
 	 * Example:
-	 * - normalizeAmount(2500) → 250000 cents ($2,500.00)
-	 * - normalizeAmount(250000) → 250000 cents ($2,500.00)
+	 * - normalizeAmount(2500) → 250,000 cents ($2,500.00)
+	 * - normalizeAmount(5000) → 500,000 cents ($5,000.00)
+	 * - normalizeAmount(500000) → 500,000 cents ($5,000.00)
 	 * 
-	 * @param amount - Amount in dollars (< 100000) or cents (>= 100000)
+	 * @param amount - Amount in dollars (< 1000000) or cents (>= 1000000)
 	 * @returns Integer amount in CENTS for Stripe
 	 * @throws BadRequestException if amount is invalid or non-positive
 	 */
@@ -84,9 +88,9 @@ export class RentPaymentsService {
 			throw new BadRequestException('Payment amount must be greater than zero')
 		}
 
-		// Heuristic: values < 100,000 assumed to be dollars, >= 100,000 assumed to be cents
-		// This handles backward compatibility with both input formats
-		if (numericAmount < 100000) {
+		// Heuristic: values < 1,000,000 assumed to be dollars, >= 1,000,000 assumed to be cents
+		// This handles backward compatibility with both input formats and high-value properties
+		if (numericAmount < 1000000) {
 			return Math.round(numericAmount * 100) // Convert dollars to cents
 		}
 
@@ -854,15 +858,24 @@ export class RentPaymentsService {
 	 *
 	 * Task 2.4: Payment Status Tracking
 	 *
+	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
+	 * 
 	 * IMPORTANT: All amounts use Stripe standard (CENTS, not dollars)
+	 * @param tenantId - The tenant ID to get payment status for
+	 * @param requestingUserId - The user making the request (for authorization)
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
 	 * @returns rentAmount - Monthly rent in CENTS (Stripe standard)
+	 * @throws ForbiddenException if user is not authorized
 	 */
 	async getCurrentPaymentStatus(
-		tenantId: string
+		tenantId: string,
+		requestingUserId: string
 	): Promise<CurrentPaymentStatus> {
 		try {
 			const adminClient = this.supabase.getAdminClient()
+
+			// ✅ Authorization check: Verify requesting user has access to this tenant
+			await this.verifyTenantAccess(requestingUserId, tenantId)
 
 			// Get tenant's active lease
 			const { data: lease, error: leaseError } = await adminClient

@@ -246,6 +246,8 @@ export class LeasesService {
 					0
 				),
 				expiringLeases: leases.filter((l: LeaseRow) => {
+					// Skip month-to-month leases (endDate is null)
+					if (!l.endDate) return false
 					const endDate = new Date(l.endDate)
 					return endDate > now && endDate <= thirtyDaysFromNow
 				}).length
@@ -408,7 +410,7 @@ export class LeasesService {
 					tenantId: dto.tenantId,
 					unitId: dto.unitId,
 					startDate: dto.startDate,
-					endDate: dto.endDate,
+					endDate: dto.endDate || null,
 					rentAmount: dto.rentAmount,
 					securityDeposit: dto.securityDeposit || 0,
 					status: (dto.status ||
@@ -615,6 +617,13 @@ export class LeasesService {
 			const existingLease = await this.findOne(token, leaseId)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
+			}
+
+			// Month-to-month leases cannot be renewed (no fixed end date)
+			if (!existingLease.endDate) {
+				throw new BadRequestException(
+					'Cannot renew a month-to-month lease. Convert to fixed-term first.'
+				)
 			}
 
 			// Validate new end date is after current
