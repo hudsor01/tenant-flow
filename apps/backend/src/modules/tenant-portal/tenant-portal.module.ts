@@ -41,7 +41,7 @@ import { SupabaseModule } from '../../database/supabase.module'
 		TenantSettingsModule,
 		RouterModule.register([
 			{
-				path: 'tenant-portal',
+				path: 'tenant',
 				children: [
 					{ path: 'payments', module: TenantPaymentsModule },
 					{ path: 'autopay', module: TenantAutopayModule },

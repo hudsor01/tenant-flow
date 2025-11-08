@@ -11,10 +11,39 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type Stripe from 'stripe'
+import { z } from 'zod'
 import type { Tenant, Lease } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
+
+// Zod schemas for runtime validation
+// Note: RPC returns subset of full Tenant/Lease types - validate essential fields only
+const TenantLeaseRpcResultSchema = z.object({
+	tenant: z.object({
+		id: z.string().uuid(),
+		email: z.string().email(),
+		firstName: z.string(),
+		lastName: z.string(),
+		phone: z.string().nullable(),
+		status: z.string()
+	}).passthrough(), // Allow additional fields from RPC
+	lease: z.object({
+		id: z.string().uuid(),
+		propertyId: z.string().uuid(),
+		unitId: z.string().uuid().nullable(),
+		tenantId: z.string().uuid(),
+		startDate: z.string(),
+		endDate: z.string(),
+		rentAmount: z.number(),
+		securityDeposit: z.number(),
+		status: z.string()
+	}).passthrough() // Allow additional fields from RPC
+})
+
+const PropertyNameSchema = z.object({
+	name: z.string()
+})
 
 interface CreateTenantWithLeaseInput {
 	tenantEmail: string
@@ -114,6 +143,9 @@ export class TenantInvitationService {
 			await this.sendInvitationEmail(tenant, lease, checkoutSession.url)
 
 			// Step 6: Emit event for audit logging
+			// TODO: Add listener in NotificationsService (apps/backend/src/modules/notifications/notifications.service.ts)
+			// Pattern: @OnEvent('tenant.invited') async handleTenantInvited(payload: { tenantId, leaseId, ownerId, checkoutUrl })
+			// Purpose: Send notification to property owner about successful tenant invitation
 			this.eventEmitter.emit('tenant.invited', {
 				tenantId: tenant.id,
 				leaseId: lease.id,
@@ -181,9 +213,18 @@ export class TenantInvitationService {
 			)
 		}
 
-		// Cast JSON result to expected types
-		const result = data as unknown as { tenant: Tenant; lease: Lease }
-		return result
+		// Validate JSON result with Zod for runtime type safety
+		const validationResult = TenantLeaseRpcResultSchema.safeParse(data)
+		if (!validationResult.success) {
+			this.logger.error('RPC result validation failed', {
+				error: validationResult.error,
+				data
+			})
+			throw new BadRequestException('Invalid RPC response structure')
+		}
+
+		// Cast to full Tenant/Lease types (RPC returns all fields, we only validate essential ones)
+		return validationResult.data as unknown as { tenant: Tenant; lease: Lease }
 	}
 
 	/**
@@ -220,14 +261,17 @@ export class TenantInvitationService {
 				customer: customer.id,
 				items: [
 					{
-						price_data: {
-							currency: 'usd',
-							unit_amount: rentAmountCents,
-							recurring: { interval: 'month' },
-							product_data: {
-								name: 'Monthly Rent'
-							}
-						} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
+					// Note: Type assertion required due to Stripe SDK type mismatch
+					// The API accepts this structure but TypeScript types are overly strict
+					// See: https://github.com/stripe/stripe-node/issues/1179
+					price_data: {
+						currency: 'usd',
+						unit_amount: rentAmountCents,
+						recurring: { interval: 'month' },
+						product_data: {
+							name: 'Monthly Rent'
+						}
+					} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
 					}
 				],
 				payment_behavior: 'default_incomplete',
@@ -328,11 +372,31 @@ export class TenantInvitationService {
 			throw new BadRequestException('Lease must have a property assigned')
 		}
 
-		const { data: property } = await client
+		const { data: property, error: propertyError } = await client
 			.from('property')
 			.select('name')
 			.eq('id', propertyId)
 			.single()
+
+		if (propertyError || !property) {
+			this.logger.error('Failed to fetch property for invitation email', {
+				propertyId,
+				error: propertyError
+			})
+			throw new BadRequestException(
+				'Failed to fetch property details for invitation'
+			)
+		}
+
+		// Validate property structure with Zod
+		const propertyValidation = PropertyNameSchema.safeParse(property)
+		if (!propertyValidation.success) {
+			this.logger.error('Property validation failed', {
+				propertyId,
+				error: propertyValidation.error
+			})
+			throw new BadRequestException('Invalid property structure')
+		}
 
 		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
 
@@ -346,7 +410,7 @@ export class TenantInvitationService {
 					propertyId: lease.propertyId,
 					firstName: tenant.firstName,
 					lastName: tenant.lastName,
-					propertyName: property?.name || 'Your Property',
+					propertyName: propertyValidation.data.name,
 					checkoutUrl, // Tenant can complete payment setup
 					role: 'tenant'
 				},

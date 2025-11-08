@@ -343,8 +343,8 @@ export function useSupabaseSignup() {
  * Logout mutation (alias for useSignOut for backwards compatibility)
  */
 export function useSupabaseLogout() {
-	const queryClient = useQueryClient()
 	const router = useRouter()
+	const { clearAuthData } = useAuthCacheUtils()
 
 	return useMutation({
 		mutationFn: async () => {
@@ -352,8 +352,8 @@ export function useSupabaseLogout() {
 			if (error) throw error
 		},
 		onSuccess: () => {
-			// Clear all queries
-			queryClient.clear()
+			// Clear auth and user-specific queries
+			clearAuthData()
 
 			handleMutationSuccess('Logout')
 			router.push('/login')
