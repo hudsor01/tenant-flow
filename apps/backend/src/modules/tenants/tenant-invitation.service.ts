@@ -167,10 +167,13 @@ export class TenantInvitationService {
 				message: 'Tenant created and invitation sent with payment setup link'
 			}
 		} catch (error) {
+			// Log error without PII (no tenant email, name, phone)
 			this.logger.error('Tenant invitation failed', {
-				error: error instanceof Error ? error.message : String(error),
 				ownerId,
-				input
+				propertyId: input.propertyId,
+				unitId: input.unitId,
+				rentAmount: input.rentAmount,
+				error: error instanceof Error ? error.message : String(error)
 			})
 
 			// Emit failure event for cleanup (event-driven compensation)
