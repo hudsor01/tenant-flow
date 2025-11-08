@@ -13,7 +13,7 @@ import { z } from 'zod'
  *
  * Allowed patterns:
  * - Supabase Storage: https://*.supabase.co/storage/v1/object/public/*
- * - Data URLs: data:image/*;base64,*
+ * - Data URLs: data:image/(jpeg|jpg|png|gif|webp);base64,* (SVG excluded for XSS protection)
  */
 export const imageUrlSchema = z
 	.string()
@@ -22,9 +22,9 @@ export const imageUrlSchema = z
 			// Allow empty/null
 			if (!url) return true
 
-			// Allow data URLs for base64 encoded images
+			// Allow data URLs for base64 encoded images (excluding SVG for XSS protection)
 			if (url.startsWith('data:image/')) {
-				return /^data:image\/(jpeg|jpg|png|gif|webp|svg\+xml);base64,/.test(url)
+				return /^data:image\/(jpeg|jpg|png|gif|webp);base64,/.test(url)
 			}
 
 			// Allow Supabase Storage URLs
