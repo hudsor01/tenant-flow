@@ -109,7 +109,8 @@ export class PropertyOwnershipGuard implements CanActivate {
 	}
 
 	/**
-	 * Verify user owns the tenant (through property ownership)
+	 * Verify user owns the tenant (through lease → property ownership chain)
+	 * Tenant belongs to Lease, Lease belongs to Property, Property has ownerId
 	 */
 	private async verifyTenantOwnership(
 		userId: string,
@@ -117,13 +118,20 @@ export class PropertyOwnershipGuard implements CanActivate {
 	): Promise<boolean> {
 		const client = this.supabase.getAdminClient()
 
-		const { data } = await client
-			.from('tenant')
-			.select('userId')
-			.eq('id', tenantId)
+		// Follow the ownership chain: tenant → lease → property → ownerId
+		const { data, error } = await client
+			.from('lease')
+			.select('property:propertyId(ownerId)')
+			.eq('tenantId', tenantId)
 			.single()
 
-		return data?.userId === userId
+		if (error) {
+			return false
+		}
+
+		// Supabase join returns nested object structure
+		const result = data as unknown as { property: { ownerId: string } | null }
+		return result?.property?.ownerId === userId
 	}
 
 	/**

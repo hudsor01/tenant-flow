@@ -424,11 +424,25 @@ export class TenantInvitationService {
 			)
 		}
 
+		// Validate auth user response before linking
+		if (!authUser.user?.id) {
+			this.logger.error('Auth invitation succeeded but user ID is missing', {
+				tenantId: tenant.id,
+				tenantEmail: tenant.email,
+				authUser
+			})
+			throw new BadRequestException(
+				'Failed to create auth user: User ID missing from response'
+			)
+		}
+
+		const authUserId = authUser.user.id
+
 		// Link auth user to tenant
 		const { error: updateError } = await client
 			.from('tenant')
 			.update({
-				auth_user_id: authUser.user?.id,
+				auth_user_id: authUserId,
 				invitation_status:
 					'SENT' as Database['public']['Enums']['invitation_status'],
 				invitation_sent_at: new Date().toISOString()
@@ -443,7 +457,7 @@ export class TenantInvitationService {
 
 		this.logger.log('Invitation email sent', {
 			tenantId: tenant.id,
-			authUserId: authUser.user?.id
+			authUserId
 		})
 	}
 }
