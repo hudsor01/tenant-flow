@@ -427,10 +427,11 @@ export class NotificationsService {
 				userId
 			})
 
-			const { count, error } = await this.supabaseService
+			// Type assertion needed due to Supabase generated types limitation
+			const { count, error } = await (this.supabaseService
 				.getAdminClient()
 				.from('notifications')
-				.select('*', { count: 'exact', head: true })
+				.select('*', { count: 'exact', head: true }) )
 				.eq('userId', userId)
 				.eq('isRead', false)
 
@@ -462,16 +463,16 @@ export class NotificationsService {
 				userId
 			})
 
-			const { count, error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.update({
-					isRead: true,
-					read_at: new Date().toISOString()
-				})
-				.eq('user_id', userId)
-				.eq('isRead', false)
-				.select('*')
+			const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('notifications')
+			.update({
+				isRead: true,
+				readAt: new Date().toISOString()
+			})
+			.eq('userId', userId)
+			.eq('isRead', false)
+			.select('*')
 
 			if (error) {
 				this.logger.error('Failed to mark all notifications as read', {
@@ -481,7 +482,7 @@ export class NotificationsService {
 				return 0
 			}
 
-			return count || 0
+			return data?.length ?? 0
 		} catch (error) {
 			this.logger.error('Error marking all notifications as read', {
 				error: error instanceof Error ? error.message : String(error),

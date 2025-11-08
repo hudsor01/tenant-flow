@@ -13,9 +13,16 @@ import type { User } from '@supabase/supabase-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { decodeJwt } from 'jose'
+import { jwtVerify, createRemoteJWKSet } from 'jose'
 
 const logger = createLogger({ component: 'SupabaseMiddleware' })
+
+// BUG FIX #1: Create JWKS for JWT signature verification
+// Per Supabase docs: Always verify JWT signatures against Supabase's public keys
+// Reference: https://supabase.com/docs/guides/auth/jwts
+const SUPABASE_JWKS = createRemoteJWKSet(
+	new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`)
+)
 
 export async function updateSession(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({
@@ -45,27 +52,38 @@ export async function updateSession(request: NextRequest) {
 		}
 	)
 
-	// PERFORMANCE OPTIMIZATION: Use getSession() instead of getUser() to avoid API roundtrip
-	// getSession() reads from the cookie locally without network call (~5-10ms vs 200-500ms)
-	// Per Supabase docs: getSession() is sufficient for middleware - validates JWT signature locally
+	// SECURITY FIX: Use getUser() for server-side JWT validation
+	// getUser() makes API call to Supabase to verify JWT signature server-side
+	// This prevents forged cookie attacks where client manipulates JWT
+	// Per Supabase security docs: Always use getUser() in middleware for auth decisions
 	let isAuthenticated = false
 	let user: User | null = null
 	let accessToken: string | null = null
 
 	try {
+		// Server-side validation - verifies JWT signature with Supabase Auth API
+		// This is the critical security fix - validates token can't be forged
 		const {
-			data: { session },
+			data: { user: validatedUser },
 			error
-		} = await supabase.auth.getSession()
+		} = await supabase.auth.getUser()
 
-		user = session?.user ?? null
-		accessToken = session?.access_token ?? null
+		if (!error && validatedUser) {
+			// User JWT is valid, now get session for access token
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
 
-		// Only consider user authenticated if session exists with valid user + token
-		// JWT signature is validated by Supabase client
-		isAuthenticated = !error && !!user && !!accessToken
+			user = validatedUser
+			accessToken = session?.access_token ?? null
+
+			// Only consider authenticated if we have both validated user AND token
+			isAuthenticated = !!user && !!accessToken
+		} else {
+			isAuthenticated = false
+		}
 	} catch (err) {
-		// Network failure - fail closed for security
+		// Network failure or JWT validation error - fail closed for security
 		logger.error('Auth check failed', {
 			error: err instanceof Error ? err.message : String(err)
 		})
@@ -107,8 +125,8 @@ export async function updateSession(request: NextRequest) {
 	let stripeCustomerId: string | null = null
 
 	if (isAuthenticated && user && accessToken) {
-		// Decode JWT claims directly from the token we already have (no additional call needed)
-		const claims = decodeJwtToken(accessToken)
+		// BUG FIX #1: Verify JWT signature before trusting claims
+		const claims = await verifyJwtToken(accessToken)
 		const roleFromClaims = getStringClaim(claims, 'user_role')
 		const subscriptionFromClaims = getStringClaim(claims, 'subscription_status')
 		const stripeIdFromClaims = getStringClaim(claims, 'stripe_customer_id')
@@ -183,14 +201,20 @@ export async function updateSession(request: NextRequest) {
 	return supabaseResponse
 }
 
-// PERFORMANCE OPTIMIZATION: Decode JWT directly without additional API calls
-function decodeJwtToken(accessToken: string): Record<string, unknown> | null {
+// BUG FIX #1: Verify JWT signature instead of just decoding
+// Per Supabase docs: Use jwtVerify() to prevent forged tokens with fake claims
+// Reference: https://supabase.com/docs/guides/auth/jwts
+async function verifyJwtToken(
+	accessToken: string
+): Promise<Record<string, unknown> | null> {
 	try {
-		// Use jose library for robust JWT decoding with proper error handling
-		const payload = decodeJwt(accessToken)
-		return typeof payload === 'object' && payload !== null ? payload : null
+		// Verify JWT signature using Supabase's public keys
+		const { payload } = await jwtVerify(accessToken, SUPABASE_JWKS, {
+			issuer: `${SUPABASE_URL}/auth/v1`
+		})
+		return payload as Record<string, unknown>
 	} catch (err) {
-		logger.error('Failed to decode JWT token', {
+		logger.error('JWT verification failed', {
 			error: err instanceof Error ? err.message : String(err)
 		})
 		return null

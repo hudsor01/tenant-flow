@@ -19,6 +19,7 @@ import type {
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
+import { propertyStatsSchema } from '@repo/shared/validation/database-rpc.schemas'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Cache } from 'cache-manager'
 import { StorageService } from '../../database/storage.service'
@@ -816,7 +817,19 @@ export class PropertiesService {
 			}
 		}
 
-		const stats = data as unknown as PropertyStats
+		// Runtime validation with Zod - fail fast on schema mismatch
+		const validationResult = propertyStatsSchema.safeParse(data)
+		if (!validationResult.success) {
+			this.logger.error('Property stats validation failed', {
+				userId,
+				errors: validationResult.error.issues
+			})
+			throw new BadRequestException(
+				'Invalid property stats response - schema validation failed'
+			)
+		}
+
+		const stats: PropertyStats = validationResult.data
 
 		// Cache for 30 seconds with user-specific key
 		await this.cacheManager.set(cacheKey, stats, 30000)
