@@ -138,14 +138,16 @@ export class EmailService {
 
 	/**
 	 * Escape HTML special characters to prevent XSS
+	 * Replaces: & < > " ' / with their HTML entity equivalents
 	 */
 	private escapeHtml(text: string): string {
 		return text
-			.replace(/&amp;/g, '&amp;')
-			.replace(/&lt;/g, '&lt;')
-			.replace(/&gt;/g, '&gt;')
-			.replace(/&quot;/g, '&quot;')
-			.replace(/&#039;/g, '&#039;')
+			.replace(/&/g, '&amp;')   // Must be first to avoid double-escaping
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;')
+			.replace(/\//g, '&#x2F;')
 	}
 
 	/**

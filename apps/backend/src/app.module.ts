@@ -96,7 +96,7 @@ import { PrometheusModule } from './modules/observability'
 		EventEmitterModule.forRoot({
 			wildcard: true,
 			delimiter: '.',
-			maxListeners: 10,
+			maxListeners: 20, // Increased from 10 to accommodate multi-service event patterns
 			verboseMemoryLeak: true,
 			ignoreErrors: false // CRITICAL: Propagate errors to controller
 		}),
