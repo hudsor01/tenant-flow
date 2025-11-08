@@ -428,12 +428,13 @@ export class NotificationsService {
 			})
 
 			// Type assertion needed due to Supabase generated types limitation
-			const { count, error } = await (this.supabaseService
+			// When using head: true with count: 'exact', TypeScript doesn't infer count field
+			const { count, error } = (await this.supabaseService
 				.getAdminClient()
 				.from('notifications')
-				.select('*', { count: 'exact', head: true }) )
+				.select('*', { count: 'exact', head: true })
 				.eq('userId', userId)
-				.eq('isRead', false)
+				.eq('isRead', false)) as { count: number | null; error: unknown }
 
 			if (error) {
 				this.logger.error('Failed to get unread notification count', {

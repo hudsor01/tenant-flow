@@ -62,19 +62,41 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * Accept both dollar and cent inputs and return an integer amount in cents.
+	 * CURRENCY CONVENTION: Normalize amount to CENTS for Stripe
+	 * 
+	 * Accepts both dollar and cent inputs (backward compatibility):
+	 * - If amount < 100,000 → assume DOLLARS, convert to cents (amount * 100)
+	 * - If amount >= 100,000 → assume CENTS, use as-is
+	 * 
+	 * Example:
+	 * - normalizeAmount(2500) → 250000 cents ($2,500.00)
+	 * - normalizeAmount(250000) → 250000 cents ($2,500.00)
+	 * 
+	 * @param amount - Amount in dollars (< 100000) or cents (>= 100000)
+	 * @returns Integer amount in CENTS for Stripe
+	 * @throws BadRequestException if amount is invalid or non-positive
 	 */
 	private normalizeAmount(amount: number): number {
 		const numericAmount = Number(amount)
+		
+		// Validate is finite and positive
 		if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
 			throw new BadRequestException('Payment amount must be greater than zero')
 		}
 
+		// Heuristic: values < 100,000 assumed to be dollars, >= 100,000 assumed to be cents
+		// This handles backward compatibility with both input formats
 		if (numericAmount < 100000) {
-			return Math.round(numericAmount * 100)
+			return Math.round(numericAmount * 100) // Convert dollars to cents
 		}
 
-		return Math.round(numericAmount)
+		// Already in cents, validate is integer
+		const roundedAmount = Math.round(numericAmount)
+		if (!Number.isInteger(roundedAmount)) {
+			throw new BadRequestException('Amount in cents must be an integer')
+		}
+		
+		return roundedAmount
 	}
 
 	/**

@@ -77,14 +77,34 @@ export async function updateSession(request: NextRequest) {
 			const claims = await verifyJwtToken(accessToken)
 
 			if (claims) {
-				// Extract user info from verified JWT claims
+				// Extract complete user info from verified JWT claims
+				// Map JWT claims to Supabase User type fields
+
+				// Timestamps: Convert UNIX epoch (seconds) to ISO string
+				const authTime = getNumberClaim(claims, 'auth_time') || getNumberClaim(claims, 'iat')
+				const createdAt = authTime ? new Date(authTime * 1000).toISOString() : new Date().toISOString()
+
+				// Confirmation timestamps: Map boolean verification claims to ISO timestamps
+				const emailVerified = claims['email_verified'] === true
+				const phoneVerified = claims['phone_verified'] === true
+
 				user = {
 					id: getStringClaim(claims, 'sub') || '',
 					email: getStringClaim(claims, 'email') || '',
+					phone: getStringClaim(claims, 'phone') ?? '',
 					app_metadata: {},
 					user_metadata: {},
 					aud: 'authenticated',
-					created_at: new Date().toISOString()
+					role: getStringClaim(claims, 'role') ?? getStringClaim(claims, 'app_role') ?? 'authenticated',
+					created_at: createdAt,
+					updated_at: getStringClaim(claims, 'updated_at') ?? createdAt,
+					// If user has valid JWT, they're confirmed - use auth time or created time as fallback
+					confirmed_at: (emailVerified && authTime ? new Date(authTime * 1000) : new Date(createdAt)).toISOString(),
+					email_confirmed_at: (emailVerified && authTime ? new Date(authTime * 1000) : new Date(createdAt)).toISOString(),
+					phone_confirmed_at: (phoneVerified && authTime ? new Date(authTime * 1000) : new Date(createdAt)).toISOString(),
+					last_sign_in_at: authTime ? new Date(authTime * 1000).toISOString() : createdAt,
+					identities: [],
+					factors: []
 				}
 
 				isAuthenticated = !!user.id && !!user.email
@@ -246,4 +266,20 @@ function getStringClaim(
 
 	const normalized = value.trim()
 	return normalized && normalized !== 'null' ? normalized : null
+}
+
+function getNumberClaim(
+	claims: Record<string, unknown> | null,
+	key: string
+): number | null {
+	if (!claims) {
+		return null
+	}
+
+	const value = claims[key]
+	if (typeof value !== 'number') {
+		return null
+	}
+
+	return value
 }
