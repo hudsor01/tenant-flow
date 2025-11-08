@@ -37,6 +37,7 @@ import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
+import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
 import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware'
 import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
@@ -137,6 +138,10 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		{
 			provide: APP_GUARD,
 			useClass: SubscriptionGuard
+		},
+		{
+			provide: APP_GUARD,
+			useClass: ThrottlerProxyGuard
 		},
 		{
 			provide: APP_INTERCEPTOR,

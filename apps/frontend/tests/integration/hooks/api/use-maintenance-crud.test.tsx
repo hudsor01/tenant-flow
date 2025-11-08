@@ -363,8 +363,10 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 		})
 
 		it('returns empty result for non-existent ID', async () => {
+			// Use properly formatted UUID that doesn't exist in database
+			const nonExistentId = '00000000-0000-0000-0000-000000000000'
 			const { result } = renderHook(
-				() => useMaintenanceRequest('non-existent-id'),
+				() => useMaintenanceRequest(nonExistentId),
 				{
 					wrapper: createWrapper()
 				}

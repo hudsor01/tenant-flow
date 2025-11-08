@@ -77,23 +77,24 @@ export class LeaseGeneratorController {
 				leaseData as unknown as Record<string, unknown>
 			)
 
-			// Create a unique filename
+			// Create a unique ID for this lease
+			const leaseId = `lease_${Date.now()}`
 			const timestamp = new Date().toISOString().slice(0, 10)
 			const filename = `lease-agreement-${timestamp}-${Date.now()}.pdf`
 
 			// In a production app, you would:
 			// 1. Save the PDF to cloud storage (S3, Google Cloud Storage, etc.)
-			// 2. Save lease record to database
+			// 2. Save lease record to database with the generated leaseId
 			// 3. Handle billing/subscription limits
 			// 4. Send notifications/emails
 
 			return {
 				success: true,
 				lease: {
-					id: `lease_${Date.now()}`,
+					id: leaseId,
 					filename,
-					downloadUrl: `/api/lease/download/${filename}`,
-					previewUrl: `/api/lease/preview/${filename}`,
+					downloadUrl: `/api/lease/download?leaseId=${leaseId}`,
+					previewUrl: `/api/lease/preview?leaseId=${leaseId}`,
 					generatedAt: new Date().toISOString(),
 					state: leaseData.property.address.state,
 					propertyAddress: `${leaseData.property.address.street}${leaseData.property.address.unit ? `, ${leaseData.property.address.unit}` : ''}, ${leaseData.property.address.city}, ${leaseData.property.address.state}`,
@@ -117,7 +118,7 @@ export class LeaseGeneratorController {
 	/**
 	 * Download a generated lease PDF
 	 */
-	@Get('download/:filename')
+	@Get('download')
 	async downloadLease(
 		@Query('leaseId') leaseId: string | undefined,
 		@Req() req: AuthenticatedRequest
@@ -177,7 +178,7 @@ export class LeaseGeneratorController {
 	/**
 	 * Preview a generated lease PDF (inline view)
 	 */
-	@Get('preview/:filename')
+	@Get('preview')
 	async previewLease(
 		@Query('leaseId') leaseId: string | undefined,
 		@Req() req: AuthenticatedRequest
@@ -378,7 +379,7 @@ export class LeaseGeneratorController {
 
 			// Fallback: fetch basic lease and use transformLeaseToFormData
 			try {
-				const client = this.leasesService['supabase'].getUserClient(token)
+				const client = this.leasesService.getUserClient(token)
 				const { data: basicLease, error: basicError } = await client
 					.from('lease')
 					.select('*')
@@ -418,7 +419,7 @@ export class LeaseGeneratorController {
 	 * Used for transforming database Lease to LeaseFormData structure
 	 */
 	private async fetchLeaseWithRelations(token: string, leaseId: string) {
-		const client = this.leasesService['supabase'].getUserClient(token)
+		const client = this.leasesService.getUserClient(token)
 
 		// Fetch lease with related data in a single query
 		const { data, error } = await client

@@ -263,13 +263,29 @@ export class PaymentMethodsService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		const { data, error } = await this.supabase
-			.getUserClient(token)
+		const client = this.supabase.getUserClient(token)
+
+		// BUG FIX #2: First resolve tenant ID from auth_user_id
+		// RLS policy checks: tenant.auth_user_id = auth.uid()
+		// userId parameter is auth_user_id, NOT tenant table ID
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', { userId })
+			throw new NotFoundException('Tenant not found')
+		}
+
+		// Now query payment methods using the correct tenant.id
+		const { data, error } = await client
 			.from('tenant_payment_method')
 			.select(
 				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
 			)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 			.order('createdAt', { ascending: false })
 
 		if (error) {
