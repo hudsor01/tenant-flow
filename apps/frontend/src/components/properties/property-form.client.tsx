@@ -26,7 +26,7 @@ import {
 	useUpdateProperty,
 	propertiesKeys
 } from '#hooks/api/use-properties'
-import { useSupabaseUser } from '#hooks/api/use-supabase-auth'
+import { useSupabaseUser } from '#hooks/api/use-auth'
 import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
