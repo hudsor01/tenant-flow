@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-import { RateLimitingModule } from './rate-limiting/rate-limiting.module'
+import { ThrottlerModule } from '@nestjs/throttler'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { ContextModule } from './context/context.module'
 import { CacheConfigurationModule } from './cache/cache.module'
@@ -13,6 +13,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AppConfigService } from './config/app-config.service'
 import { validate } from './config/config.schema'
+import emailConfig from './config/email.config'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
@@ -59,6 +60,7 @@ import { PrometheusModule } from './modules/observability'
 			isGlobal: true,
 			cache: true, // Cache environment variables for performance
 			expandVariables: true, // Allow ${VAR} expansion in .env files
+			load: [emailConfig],
 			validate
 		}),
 
@@ -101,10 +103,10 @@ import { PrometheusModule } from './modules/observability'
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
 		// Rate limiting - simple configuration
-		RateLimitingModule.forRoot({
+		ThrottlerModule.forRoot({
 			throttlers: [
 				{
-					ttl: 60, // 1 minute
+					ttl: 60000, // 1 minute in milliseconds
 					limit: 100 // 100 requests per minute
 				}
 			]

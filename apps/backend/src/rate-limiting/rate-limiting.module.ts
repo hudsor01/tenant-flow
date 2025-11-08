@@ -3,17 +3,16 @@ import { Module } from '@nestjs/common'
 import { ThrottlerModule } from '@nestjs/throttler'
 import {
 	ConfigurableModuleClass,
-	MODULE_OPTIONS_TOKEN,
 	type RateLimitingModuleOptions
 } from './rate-limiting.module-definition'
 
-@Module({
-	imports: [
-		ThrottlerModule.forRootAsync({
-			useFactory: (options: RateLimitingModuleOptions) => options,
-			inject: [MODULE_OPTIONS_TOKEN]
-		})
-	],
-	exports: [ThrottlerModule]
-})
-export class RateLimitingModule extends ConfigurableModuleClass {}
+@Module({})
+export class RateLimitingModule extends ConfigurableModuleClass {
+	static override forRoot(options: RateLimitingModuleOptions) {
+		return {
+			module: RateLimitingModule,
+			imports: [ThrottlerModule.forRoot(options)],
+			exports: [ThrottlerModule]
+		}
+	}
+}
