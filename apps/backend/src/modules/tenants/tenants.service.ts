@@ -981,9 +981,9 @@ export class TenantsService {
 					: null,
 				leases: leases.map(lease => {
 					const leaseItem: {
-						id: string
-						startDate: string
-						endDate: string
+				id: string
+				startDate: string
+				endDate: string | null
 						rentAmount: number
 						status: string
 						property?: { address: string }

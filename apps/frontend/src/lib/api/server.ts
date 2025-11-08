@@ -100,21 +100,25 @@ export async function serverFetch<T>(
 			}
 		})
 
-		// In production, don't expose detailed error messages to prevent leaking sensitive info
-		if (process.env.NODE_ENV === 'production') {
-			throw new Error(`API request failed with status ${response.status}`)
-		} else {
-			throw new Error(
-				`API Error (${response.status}): ${errorText || response.statusText}`
-			)
-		}
+		// Preserve status code for error handling utilities (isConflictError, isNotFoundError)
+		const errorMessage = process.env.NODE_ENV === 'production'
+			? `API request failed with status ${response.status}`
+			: `API Error (${response.status}): ${errorText || response.statusText}`
+		
+		const error = new Error(errorMessage) as Error & { status: number; statusCode: number }
+		error.status = response.status
+		error.statusCode = response.status
+		throw error
 	}
 
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
 	if (data.success === false) {
-		throw new Error(data.error || data.message || 'API request failed')
+		const error = new Error(data.error || data.message || 'API request failed') as Error & { status: number; statusCode: number }
+		error.status = response.status
+		error.statusCode = response.status
+		throw error
 	}
 
 	// Return data directly or the whole response based on API format

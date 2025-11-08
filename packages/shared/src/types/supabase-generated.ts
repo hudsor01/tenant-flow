@@ -1208,7 +1208,7 @@ export type Database = {
       lease: {
         Row: {
           createdAt: string
-          endDate: string
+          endDate: string | null
           gracePeriodDays: number | null
           id: string
           lateFeeAmount: number | null
@@ -1232,7 +1232,7 @@ export type Database = {
         }
         Insert: {
           createdAt?: string
-          endDate: string
+          endDate?: string | null
           gracePeriodDays?: number | null
           id?: string
           lateFeeAmount?: number | null
@@ -1256,7 +1256,7 @@ export type Database = {
         }
         Update: {
           createdAt?: string
-          endDate?: string
+          endDate?: string | null
           gracePeriodDays?: number | null
           id?: string
           lateFeeAmount?: number | null

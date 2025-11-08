@@ -234,7 +234,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.startDate)} -{' '}
-												{formatDate(lease.endDate)}
+												{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}
 											</span>
 											<span>${lease.rentAmount}/mo</span>
 										</div>
