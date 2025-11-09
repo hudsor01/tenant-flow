@@ -7,7 +7,7 @@
  * @see TESTING-BEST-PRACTICES.md for usage examples
  */
 
-import { TestBed, type StubbedInstance } from '@suites/unit'
+import { TestBed } from '@suites/unit'
 import { Test } from '@nestjs/testing'
 
 /**
@@ -19,7 +19,7 @@ export interface TestBedResult<T> {
 	/** Unit reference for accessing dependencies */
 	unitRef: any
 	/** Get a mocked dependency with type safety */
-	get: <TDep>(token: new (...args: any[]) => TDep) => StubbedInstance<TDep>
+	get: <TDep>(token: new (...args: any[]) => TDep) => any
 }
 
 /**
@@ -69,7 +69,7 @@ export async function createTestBed<T>(
 	return {
 		unit,
 		unitRef,
-		get: <TDep>(token: new (...args: any[]) => TDep): StubbedInstance<TDep> => {
+		get: <TDep>(token: new (...args: any[]) => TDep): any => {
 			return unitRef.get(token)
 		}
 	}
@@ -120,7 +120,7 @@ export async function createTestBedWithOverrides<T>(
 	return {
 		unit,
 		unitRef: moduleRef as any,
-		get: <TDep>(token: new (...args: any[]) => TDep): StubbedInstance<TDep> => {
+		get: <TDep>(token: new (...args: any[]) => TDep): any => {
 			return moduleRef.get(token)
 		}
 	}
