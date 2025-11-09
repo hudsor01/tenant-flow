@@ -32,7 +32,10 @@ import Link from 'next/link'
  */
 function getNextPaymentDate(
 	upcomingPayment: { dueDate?: string | null } | null | undefined,
-	formatDate: (date: string | Date, options?: Intl.DateTimeFormatOptions) => string
+	formatDate: (
+		date: string | Date,
+		options?: Intl.DateTimeFormatOptions
+	) => string
 ): string {
 	if (upcomingPayment?.dueDate) {
 		return formatDate(upcomingPayment.dueDate, {
@@ -62,7 +65,6 @@ export default function TenantDashboardPage() {
 		return str.replace(search, replace)
 	}
 
-	// Removed: useCurrentLease() - redundant, dashboard hook already includes lease data
 	const {
 		data: dashboard,
 		isLoading: dashboardLoading,
@@ -74,9 +76,8 @@ export default function TenantDashboardPage() {
 	const recentRequests = dashboard?.maintenance?.recent ?? []
 	const recentPayments = dashboard?.payments?.recent ?? []
 	const upcomingPayment = dashboard?.payments?.upcoming ?? null
-	// Removed: dashboardLoading - use dashboardLoading directly
 
-	// Calculate next payment date (1st of next month)
+	// Format the next payment date from upcoming payment
 	const nextPaymentDate = getNextPaymentDate(upcomingPayment, formatDate)
 
 	// Single error source

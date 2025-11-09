@@ -9,6 +9,7 @@
 
 'use client'
 
+import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -120,6 +121,7 @@ export default function TenantPaymentPage() {
 	}
 
 	return (
+		<TenantGuard>
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">Pay Rent</h1>
@@ -379,5 +381,6 @@ export default function TenantPaymentPage() {
 				</Link>
 			</div>
 		</div>
+		</TenantGuard>
 	)
 }
