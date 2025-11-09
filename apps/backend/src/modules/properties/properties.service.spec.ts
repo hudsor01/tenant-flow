@@ -9,6 +9,7 @@ import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { createMockProperty } from '../../test-utils/mocks'
 import { PropertiesService } from './properties.service'
+import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
 
 // Helper function to create mock Request objects
 function createMockRequest(userId: string, token = 'mock-token'): AuthenticatedRequest {
@@ -48,6 +49,9 @@ describe('PropertiesService', () => {
 	let mockUserClient: {
 		from: jest.Mock
 		rpc: jest.Mock
+	}
+	let mockDashboardAnalytics: {
+		getDashboardStats: jest.Mock
 	}
 
 	beforeEach(async () => {
@@ -94,10 +98,26 @@ describe('PropertiesService', () => {
 					}
 				},
 				{
+					provide: DashboardAnalyticsService,
+					useValue: {
+						getDashboardStats: jest.fn().mockResolvedValue({
+							properties: {
+								total: 0,
+								occupied: 0,
+								vacant: 0,
+								occupancyRate: 0,
+								totalMonthlyRent: 0,
+								averageRent: 0
+							}
+						})
+					}
+				},
+				{
 					provide: CACHE_MANAGER,
 					useValue: {
 						get: jest.fn(),
-						set: jest.fn()
+						set: jest.fn(),
+						del: jest.fn()
 					}
 				},
 				{
@@ -109,6 +129,7 @@ describe('PropertiesService', () => {
 
 		service = module.get<PropertiesService>(PropertiesService)
 		cacheManager = module.get(CACHE_MANAGER)
+		mockDashboardAnalytics = module.get(DashboardAnalyticsService)
 	})
 
 	describe('findAll', () => {
@@ -348,14 +369,20 @@ describe('PropertiesService', () => {
 				averageRent: 2000
 			}
 
-			mockUserClient.rpc.mockResolvedValue({ data: mockStats, error: null })
+			// Mock DashboardAnalyticsService to return the expected stats
+			mockDashboardAnalytics.getDashboardStats.mockResolvedValue({
+				properties: mockStats,
+				tenants: {},
+				leases: {}
+			})
 
 			const result = await service.getStats(createMockRequest('user-123'))
 
 			expect(result).toEqual(mockStats)
-			expect(mockUserClient.rpc).toHaveBeenCalledWith('get_property_stats', {
-				p_user_id: 'user-123'
-			})
+			expect(mockDashboardAnalytics.getDashboardStats).toHaveBeenCalledWith(
+				'user-123',
+				'mock-token'
+			)
 			expect(cacheManager.set).toHaveBeenCalledWith(
 				'property-stats:user-123',
 				mockStats,
