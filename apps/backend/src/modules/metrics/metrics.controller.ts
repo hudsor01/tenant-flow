@@ -1,5 +1,5 @@
 import { Controller, Get, Req, Res, UnauthorizedException, SetMetadata, Logger } from '@nestjs/common'
-import { PrometheusController as BasePrometheusController } from '@willsoto/nestjs-prometheus'
+import { PrometheusController } from '@willsoto/nestjs-prometheus'
 import { ConfigService } from '@nestjs/config'
 import { timingSafeEqual } from 'crypto'
 import type { Request, Response } from 'express'
@@ -7,17 +7,19 @@ import type { Request, Response } from 'express'
 /**
  * Metrics Controller - Exposes Prometheus metrics with bearer token authentication
  *
+ * Extends PrometheusController to add custom authentication logic.
  * Uses @Public() decorator to bypass JWT authentication,
- * then manually validates bearer token from Prometheus scraper
+ * then manually validates bearer token from Prometheus scraper.
+ *
+ * Pattern: https://github.com/willsoto/nestjs-prometheus#custom-controller
  */
 @Controller('metrics')
-export class MetricsController {
+export class MetricsController extends PrometheusController {
 	private readonly logger = new Logger(MetricsController.name)
 
-	constructor(
-		private readonly prometheusController: BasePrometheusController,
-		private readonly configService: ConfigService
-	) {}
+	constructor(private readonly configService: ConfigService) {
+		super()
+	}
 
 	@SetMetadata('isPublic', true)
 	@Get()
@@ -58,7 +60,7 @@ export class MetricsController {
 			throw new UnauthorizedException('Invalid bearer token')
 		}
 
-		// Delegate to Prometheus controller
-		return this.prometheusController.index(res)
+		// Delegate to parent PrometheusController with only response object
+		return super.index(res)
 	}
 }
