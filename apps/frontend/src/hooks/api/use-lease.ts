@@ -18,6 +18,7 @@ import type {
 import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
 import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleConflictError,
 	isConflictError,
@@ -62,7 +63,7 @@ export function useLease(id: string) {
 		queryKey: leaseKeys.detail(id),
 		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
 	})
@@ -79,7 +80,7 @@ export function useCurrentLease() {
 				'/api/v1/tenant-portal/lease'
 			)
 		},
-		staleTime: 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -134,8 +135,8 @@ export function useLeaseList(params?: {
 		queryKey: leaseKeys.list({
 			...(status && { status }),
 			...(search && { search }),
-			...(limit !== 50 && { limit }),
-			...(offset !== 0 && { offset })
+			limit, // Always include for proper cache keying
+			offset // Always include for proper cache keying
 		}),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams()
@@ -158,7 +159,7 @@ export function useLeaseList(params?: {
 
 			return response
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes
 		retry: 2,
 		structuralSharing: true
@@ -173,7 +174,7 @@ export function useExpiringLeases(daysUntilExpiry: number = 30) {
 		queryKey: [...leaseKeys.expiring(), { days: daysUntilExpiry }],
 		queryFn: () =>
 			clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${daysUntilExpiry}`),
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -185,7 +186,7 @@ export function useLeaseStats() {
 	return useQuery({
 		queryKey: leaseKeys.stats(),
 		queryFn: () => clientFetch('/api/v1/leases/stats'),
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		retry: 2
 	})
 }
@@ -218,14 +219,14 @@ export function useCreateLease() {
 			const tempId = `temp-${Date.now()}`
 			const optimisticLease: Lease = {
 				id: tempId,
-				tenantId: newLease.tenantId,
-				unitId: newLease.unitId || null,
-				propertyId: newLease.propertyId || null,
+				tenantId: newLease.tenantId !== undefined ? newLease.tenantId : null,
+				unitId: newLease.unitId !== undefined ? newLease.unitId : null,
+				propertyId: newLease.propertyId !== undefined ? newLease.propertyId : null,
 				startDate: newLease.startDate,
-				endDate: newLease.endDate,
+				endDate: newLease.endDate ?? null,
 				rentAmount: newLease.rentAmount,
-				securityDeposit: newLease.securityDeposit,
-				monthlyRent: newLease.monthlyRent || null,
+				securityDeposit: newLease.securityDeposit ?? null,
+				monthlyRent: newLease.monthlyRent ?? null,
 				status: newLease.status || 'ACTIVE',
 				terms: newLease.terms || null,
 				gracePeriodDays: newLease.gracePeriodDays || null,
@@ -579,7 +580,7 @@ export function usePrefetchLease() {
 		queryClient.prefetchQuery({
 			queryKey: leaseKeys.detail(id),
 			queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
 }

@@ -11,7 +11,11 @@ Before making changes:
 3. Review CodeRabbit suggestions before committing
 4. Address any issues reported
 
-**Note**: CodeRabbit CLI must be installed globally (`npm install -g @coderabbitai/cli`) or available in your PATH. It provides review suggestions only, not automatic fixes.
+**Note**: CodeRabbit CLI must be installed via the official installer or Homebrew. It provides review suggestions only, not automatic fixes.
+
+**Installation**:
+- Official installer: `curl -fsSL https://cli.coderabbit.ai/install.sh | sh`
+- macOS via Homebrew: `brew install --cask coderabbit`
 
 
 ## Project Structure
@@ -31,13 +35,34 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 
 
 ## Database Migrations
-**SUPABASE MCP Server**: All writes via `doppler run -- psql $DIRECT_URL -f file.sql`
 
-**Workflow**: Create SQL → Apply with DIRECT_URL → Verify → `pnpm update-supabase-types` → Commit
+**CRITICAL TYPE RULE**: `public.users.id` is type `text`, NOT `uuid`. Always cast `auth.uid()::text` when comparing with users table.
+
+**Primary Workflow** (Recommended):
+1. Create migration SQL file in `supabase/migrations/`
+2. Apply using Supabase MCP server: `mcp__supabase__apply_migration`
+3. Update types: `pnpm update-supabase-types`
+4. Commit migration file + updated types
+
+**Fallback Workflow** (if MCP unavailable):
+```bash
+doppler run -- psql $DIRECT_URL -f supabase/migrations/YYYYMMDDHHMMSS_name.sql
+pnpm update-supabase-types
+```
+
+**Common Issues & Fixes**:
+- **"Remote migration versions not found"**: Use MCP server to apply migrations instead of CLI
+- **Type mismatch errors**: Check `public.users.id` is `text`, use `auth.uid()::text`
+- **Migration history mismatch**: `supabase migration repair --status reverted <versions>`
 
 **Connection Strings**:
-- `DIRECT_URL`: DDL (CREATE, ALTER, DROP)
-- `DATABASE_URL`: DML (SELECT, INSERT, UPDATE)
+- `DIRECT_URL`: DDL (CREATE, ALTER, DROP) - direct connection
+- `DATABASE_URL`: DML (SELECT, INSERT, UPDATE) - pooled connection
+
+**Why MCP Server?**:
+- Bypasses CLI connectivity issues
+- More reliable for production databases
+- Direct database access without pooler problems
 
 ## TypeScript Types - ZERO TOLERANCE
 **Location**: `packages/shared/src/types/`

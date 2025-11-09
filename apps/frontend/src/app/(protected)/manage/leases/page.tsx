@@ -323,7 +323,7 @@ export default function LeasesPage() {
 								<TableRow key={lease.id}>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											{lease.tenantId.substring(0, 8)}...
+											{lease.tenantId ? `${lease.tenantId.substring(0, 8)}...` : 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>
@@ -334,7 +334,7 @@ export default function LeasesPage() {
 										</span>
 									</TableCell>
 									<TableCell>{formatDate(lease.startDate)}</TableCell>
-									<TableCell>{formatDate(lease.endDate)}</TableCell>
+									<TableCell>{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}</TableCell>
 									<TableCell>${lease.rentAmount.toLocaleString()}</TableCell>
 									<TableCell>
 										${lease.securityDeposit.toLocaleString()}
@@ -551,7 +551,7 @@ export default function LeasesPage() {
 							</div>
 							<div>
 								<Label>End Date</Label>
-								<Input type="date" value={selectedLease.endDate} disabled />
+								<Input type="date" value={selectedLease.endDate || ''} disabled />
 							</div>
 							<div>
 								<Label>Rent Amount</Label>

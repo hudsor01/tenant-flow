@@ -11,7 +11,6 @@
 
 'use client'
 
-import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -32,8 +31,21 @@ export default function TenantLeasePage() {
 		})
 	}
 
+	const formatPropertyAddress = (property?: {
+		address?: string | null
+		city?: string | null
+		state?: string | null
+	}) => {
+		if (!property) return 'Address not available'
+		const addressParts = [property.address, property.city, property.state].filter(
+			Boolean
+		)
+		return addressParts.length > 0
+			? addressParts.join(', ')
+			: 'Address not available'
+	}
+
 	return (
-		<TenantGuard>
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
 				<div>
@@ -51,33 +63,33 @@ export default function TenantLeasePage() {
 					</Badge>
 				)}
 			</div>
-
 			{/* Property Information */}
 			<CardLayout title="Property Details" description="Your current residence">
 				<div className="space-y-4">
 					<div className="flex items-start gap-4">
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
-							{isLoading || !lease ? (
-								<Skeleton className="h-7 w-64" />
-							) : (
-								<p className="font-semibold text-lg">
-									{lease.unit?.property?.name || 'Property'}{lease.unit?.unitNumber ? ` - Unit ${lease.unit.unitNumber}` : ''}
-								</p>
-							)}
+							<p className="font-semibold text-lg">
+								{isLoading || !lease ? (
+									<Skeleton className="h-7 w-64" />
+								) : (
+									`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unitNumber ?? 'N/A'}`
+								)}
+							</p>
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
-								{isLoading || !lease ? (
-									<Skeleton className="h-5 w-48" />
-								) : (
-									<span>{lease.unit?.property?.address || 'Address not available'}</span>
-								)}
+								<span>
+					{isLoading || !lease ? (
+						<Skeleton className="h-4 w-48" />
+					) : (
+						formatPropertyAddress(lease.unit?.property)
+					)}
+				</span>
 							</div>
 						</div>
 					</div>
 				</div>
 			</CardLayout>
-
 			{/* Lease Terms */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<CardLayout title="Lease Term" description="Duration of your lease">
@@ -100,7 +112,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{formatDate(lease.endDate)}</p>
+									<p className="font-semibold">{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}</p>
 								)}
 							</div>
 						</div>
@@ -143,7 +155,6 @@ export default function TenantLeasePage() {
 					</div>
 				</CardLayout>
 			</div>
-
 			{/* Lease Documents */}
 			<CardLayout
 				title="Lease Documents"
@@ -169,7 +180,6 @@ export default function TenantLeasePage() {
 					</p>
 				</div>
 			</CardLayout>
-
 			{/* Quick Actions */}
 			<div className="flex gap-4">
 				<Link href="/tenant/payments">
@@ -180,6 +190,5 @@ export default function TenantLeasePage() {
 				</Link>
 			</div>
 		</div>
-		</TenantGuard>
 	)
 }

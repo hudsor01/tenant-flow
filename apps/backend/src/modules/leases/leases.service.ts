@@ -27,6 +27,14 @@ export class LeasesService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
+	 * Get user-scoped Supabase client for direct database access
+	 * Used by lease-generator.controller.ts for fetching lease data with relations
+	 */
+	getUserClient(token: string) {
+		return this.supabase.getUserClient(token)
+	}
+
+	/**
 	 * ❌ REMOVED: Manual unit filtering violates RLS pattern
 	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */
@@ -195,9 +203,7 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client
-				.from('lease')
-				.select('*')
+			const { data, error } = await client.from('lease').select('*')
 
 			if (error) {
 				this.logger.error('Failed to get lease stats from Supabase', {
@@ -238,6 +244,8 @@ export class LeasesService {
 					0
 				),
 				expiringLeases: leases.filter((l: LeaseRow) => {
+					// Skip month-to-month leases (endDate is null)
+					if (!l.endDate) return false
 					const endDate = new Date(l.endDate)
 					return endDate > now && endDate <= thirtyDaysFromNow
 				}).length
@@ -400,7 +408,7 @@ export class LeasesService {
 					tenantId: dto.tenantId,
 					unitId: dto.unitId,
 					startDate: dto.startDate,
-					endDate: dto.endDate,
+					endDate: dto.endDate || null,
 					rentAmount: dto.rentAmount,
 					securityDeposit: dto.securityDeposit || 0,
 					status: (dto.status ||
@@ -442,7 +450,7 @@ export class LeasesService {
 		token: string,
 		leaseId: string,
 		updateRequest: UpdateLeaseDto,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		expectedVersion?: number //Optimistic locking
 	): Promise<Lease | null> {
 		try {
 			if (!token || !leaseId) {
@@ -470,7 +478,7 @@ export class LeasesService {
 				updatedAt: new Date().toISOString()
 			}
 
-			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
 				updateData.version = expectedVersion + 1
 			}
@@ -479,7 +487,10 @@ export class LeasesService {
 				updateData.startDate = updateRequest.startDate
 			if (updateRequest.endDate !== undefined)
 				updateData.endDate = updateRequest.endDate
-			if (updateRequest.rentAmount !== undefined && updateRequest.rentAmount !== null)
+			if (
+				updateRequest.rentAmount !== undefined &&
+				updateRequest.rentAmount !== null
+			)
 				updateData.rentAmount = updateRequest.rentAmount
 			if (
 				updateRequest.securityDeposit !== undefined &&
@@ -490,7 +501,7 @@ export class LeasesService {
 				updateData.status =
 					updateRequest.status as Database['public']['Enums']['LeaseStatus']
 
-			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			//Add version check for optimistic locking
 			let query = client.from('lease').update(updateData).eq('id', leaseId)
 
 			// Add version check if expectedVersion provided
@@ -501,7 +512,7 @@ export class LeasesService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				//Detect optimistic locking conflict
 				if (error?.code === 'PGRST116') {
 					// PGRST116 = 0 rows affected (version mismatch)
 					this.logger.warn('Optimistic locking conflict detected', {
@@ -550,7 +561,9 @@ export class LeasesService {
 				this.logger.warn('Remove lease called with missing parameters', {
 					leaseId
 				})
-				throw new BadRequestException('Authentication token and lease ID are required')
+				throw new BadRequestException(
+					'Authentication token and lease ID are required'
+				)
 			}
 
 			this.logger.log('Removing lease via RLS-protected query', {
@@ -607,6 +620,13 @@ export class LeasesService {
 			const existingLease = await this.findOne(token, leaseId)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
+			}
+
+			// Month-to-month leases cannot be renewed (no fixed end date)
+			if (!existingLease.endDate) {
+				throw new BadRequestException(
+					'Cannot renew a month-to-month lease. Convert to fixed-term first.'
+				)
 			}
 
 			// Validate new end date is after current
@@ -812,7 +832,9 @@ export class LeasesService {
 				this.logger.warn('Payment history requested with missing parameters', {
 					leaseId
 				})
-				throw new BadRequestException('Authentication token and lease ID are required')
+				throw new BadRequestException(
+					'Authentication token and lease ID are required'
+				)
 			}
 
 			// Verify ownership (RLS will enforce ownership)
@@ -821,12 +843,9 @@ export class LeasesService {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
-			this.logger.log(
-				'Getting lease payment history via RLS-protected query',
-				{
-					leaseId
-				}
-			)
+			this.logger.log('Getting lease payment history via RLS-protected query', {
+				leaseId
+			})
 
 			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)

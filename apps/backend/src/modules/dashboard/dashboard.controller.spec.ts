@@ -195,6 +195,93 @@ describe('DashboardController', () => {
 				timestamp: expect.anything()
 			})
 		})
+
+		it('should return null when service returns null', async () => {
+			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(null)
+
+			const result = await controller.getBillingInsights(mockRequest, mockUser.id)
+
+			expect(result).toEqual({
+				success: true,
+				data: null,
+				message:
+					'Billing insights retrieved successfully from Stripe Sync Engine',
+				timestamp: expect.anything()
+			})
+		})
+
+		it('should return valid schema from placeholder data', async () => {
+			const placeholderInsights = {
+				totalRevenue: 0,
+				churnRate: 0,
+				mrr: 0
+			}
+
+			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(
+				placeholderInsights
+			)
+
+			const result = await controller.getBillingInsights(mockRequest, mockUser.id)
+
+			expect(result).toEqual({
+				success: true,
+				data: placeholderInsights,
+				message:
+					'Billing insights retrieved successfully from Stripe Sync Engine',
+				timestamp: expect.anything()
+			})
+		})
+	})
+
+	describe('checkBillingInsightsAvailability', () => {
+		it('should return availability status when billing insights are available', async () => {
+			mockDashboardServiceInstance.isBillingInsightsAvailable.mockResolvedValue(
+				true
+			)
+
+			const result = await controller.checkBillingInsightsAvailability(
+				mockRequest,
+				mockUser.id
+			)
+
+			expect(
+				mockDashboardServiceInstance.isBillingInsightsAvailable
+			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token')
+			expect(result).toEqual({
+				success: true,
+				data: { available: true },
+				message: 'Billing insights are available',
+				timestamp: expect.anything()
+			})
+		})
+
+		it('should return unavailable when billing insights are not available', async () => {
+			mockDashboardServiceInstance.isBillingInsightsAvailable.mockResolvedValue(
+				false
+			)
+
+			const result = await controller.checkBillingInsightsAvailability(
+				mockRequest,
+				mockUser.id
+			)
+
+			expect(result).toEqual({
+				success: true,
+				data: { available: false },
+				message: 'Billing insights are not available',
+				timestamp: expect.anything()
+			})
+		})
+
+		it('should throw UnauthorizedException when token is missing', async () => {
+			const mockSupabaseService =
+				controller['supabase'] as jest.Mocked<SupabaseService>
+			mockSupabaseService.getTokenFromRequest = jest.fn().mockReturnValue(null)
+
+			await expect(
+				controller.checkBillingInsightsAvailability(mockRequest, mockUser.id)
+			).rejects.toThrow('Authentication token required')
+		})
 	})
 
 	describe('getBillingHealth', () => {
@@ -264,7 +351,9 @@ describe('DashboardController', () => {
 					potentialRevenue: 8400,
 					address: '123 Main St',
 					propertyType: 'APARTMENT',
-					status: 'PARTIAL' as const
+					status: 'PARTIAL' as const,
+					trend: 'stable' as const,
+					trendPercentage: 0
 				}
 			]
 

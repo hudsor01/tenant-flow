@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import { AppConfigService } from '../config/app-config.service'
 import { AuthModule } from './auth/auth.module'
 import { CurrentUserProvider } from './providers/current-user.provider'
 import { StripeClientService } from './stripe-client.service'
@@ -26,7 +27,14 @@ import { ServicesModule } from './services/services.module'
 @Global()
 @Module({
 	imports: [AuthModule, ServicesModule],
-	providers: [Reflector, CurrentUserProvider, StripeClientService],
-	exports: [Reflector, AuthModule, ServicesModule, CurrentUserProvider, StripeClientService]
+	providers: [Reflector, CurrentUserProvider, StripeClientService, AppConfigService],
+	exports: [
+		Reflector,
+		AuthModule,
+		ServicesModule,
+		CurrentUserProvider,
+		StripeClientService,
+		AppConfigService
+	]
 })
 export class SharedModule {}

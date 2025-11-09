@@ -258,6 +258,9 @@ function resolveSupabaseJwtConfig(supabaseUrl: string): {
 	// NEVER decode the service role key as a JWT - it's a signing secret, not a token!
 	// Modern Supabase projects use ES256/RS256, legacy projects use HS256.
 
+	// Defaults to RS256 when no SUPABASE_JWT_ALGORITHM is provided.
+	// RS256 is chosen because modern Supabase projects use asymmetric algorithms (RS256/ES256).
+	// Only falls back to HS256 when explicitly configured via SUPABASE_JWT_ALGORITHM=HS256.
 	const algorithm: Algorithm = (explicitAlg as Algorithm) ?? 'RS256'
 	const asymmetricAlgs = new Set(['ES256', 'RS256'])
 	const isAsymmetric = asymmetricAlgs.has(algorithm)
@@ -283,7 +286,7 @@ function resolveSupabaseJwtConfig(supabaseUrl: string): {
 		}
 
 		logger.log('Using HS256 with shared secret verification')
-		logger.log(`Secret key length: ${secret.length} characters`)
+		// Remove secret length logging to avoid security information disclosure
 		return {
 			algorithm,
 			isAsymmetric,

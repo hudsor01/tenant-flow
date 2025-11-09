@@ -177,10 +177,7 @@ export default function TenantOnboardingPage() {
 				</div>
 
 				<div className="flex justify-center py-8">
-					{status === 'loading' && (
-						<Loader2 className="h-16 w-16 animate-spin text-primary" />
-					)}
-					{status === 'activating' && (
+					{(status === 'loading' || status === 'activating') && (
 						<Loader2 className="h-16 w-16 animate-spin text-primary" />
 					)}
 					{status === 'success' && (

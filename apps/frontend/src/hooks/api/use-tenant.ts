@@ -31,9 +31,11 @@ import {
 	useQueryClient,
 	useSuspenseQuery
 } from '@tanstack/react-query'
+import { tenantQueries } from './queries'
 
 /**
- * Query keys for tenant endpoints
+ * Legacy query keys for backwards compatibility
+ * @deprecated Use tenantQueries from ./queries instead
  */
 export const tenantKeys = {
 	all: ['tenants'] as const,
@@ -45,35 +47,18 @@ export const tenantKeys = {
 
 /**
  * Hook to fetch tenant by ID
- * TanStack Query cache is the single source of truth
+ * Uses queryOptions pattern for type-safe, reusable configuration
  */
 export function useTenant(id: string) {
-	return useQuery({
-		queryKey: tenantKeys.detail(id),
-		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000 // 10 minutes cache time
-	})
+	return useQuery(tenantQueries.detail(id))
 }
 
 /**
  * Hook to fetch tenant with lease information
- * TanStack Query cache is the single source of truth
+ * Uses queryOptions pattern for type-safe, reusable configuration
  */
 export function useTenantWithLease(id: string) {
-	return useQuery({
-		queryKey: tenantKeys.withLease(id),
-		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			return clientFetch<TenantWithLeaseInfo>(
-				`/api/v1/tenants/${id}/with-lease`
-			)
-		},
-		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes cache time
-		retry: 2
-	})
+	return useQuery(tenantQueries.withLease(id))
 }
 
 /**
@@ -87,7 +72,7 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 	const offset = (page - 1) * limit
 
 	return useQuery({
-		queryKey: [...tenantKeys.list(), { page, limit, offset }],
+		queryKey: [...tenantQueries.lists(), { page, limit, offset }],
 		queryFn: async () => {
 			const response = await clientFetch<TenantWithLeaseInfo[]>(
 				`/api/v1/tenants?limit=${limit}&offset=${offset}`
@@ -97,18 +82,18 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 			// This prevents overwriting fresher detail data with potentially stale list data
 			response?.forEach?.(tenant => {
 				const existingDetail = queryClient.getQueryData(
-					tenantKeys.detail(tenant.id)
+					tenantQueries.detail(tenant.id).queryKey
 				)
 				const existingWithLease = queryClient.getQueryData(
-					tenantKeys.withLease(tenant.id)
+					tenantQueries.withLease(tenant.id).queryKey
 				)
 
 				// Only set if no existing data (avoids race condition where detail is fresher)
 				if (!existingDetail) {
-					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
 				}
 				if (!existingWithLease) {
-					queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
 				}
 			})
 
@@ -136,7 +121,7 @@ export function useAllTenants() {
 	const queryClient = useQueryClient()
 
 	return useQuery({
-		queryKey: tenantKeys.list(),
+		queryKey: tenantQueries.lists(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			try {
 				const response =
@@ -146,19 +131,19 @@ export function useAllTenants() {
 				// This prevents overwriting fresher detail data with potentially stale list data
 				response.forEach(tenant => {
 					const existingDetail = queryClient.getQueryData(
-						tenantKeys.detail(tenant.id)
+						tenantQueries.detail(tenant.id).queryKey
 					)
 					const existingWithLease = queryClient.getQueryData(
-						tenantKeys.withLease(tenant.id)
+						tenantQueries.withLease(tenant.id).queryKey
 					)
 
 					// Only set if no existing data (avoids race condition where detail is fresher)
 					if (!existingDetail) {
-						queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
-					}
-					if (!existingWithLease) {
-						queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
-					}
+					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
+				}
+				if (!existingWithLease) {
+					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
+				}
 				})
 
 				return response
@@ -171,7 +156,7 @@ export function useAllTenants() {
 				throw error
 			}
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes - list data rarely changes
+		staleTime: 3 * 60 * 1000, // 3 minutes
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time for dropdown data
 		retry: 3, // Retry up to 3 times
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
@@ -195,12 +180,9 @@ export function useCreateTenant() {
 			}),
 		onError: err => handleMutationError(err, 'Create tenant'),
 		onSuccess: data => {
-			// Cache individual tenant details
-			queryClient.setQueryData(tenantKeys.detail(data.id), data)
-			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
-
-			// Invalidate list to refetch with new tenant
-			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			// Invalidate queries to refetch with new/updated tenant
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(data.id).queryKey })
 		}
 	})
 }
@@ -219,25 +201,25 @@ export function useUpdateTenant() {
 				body: JSON.stringify(data)
 			}),
 		onMutate: async ({ id, data }) => {
-			// Cancel all outgoing queries for this tenant
-			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.withLease(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
+			// Cancel all outgoing queries for this tenant (using queryOptions keys)
+			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: tenantQueries.lists() })
 
 			// Snapshot all relevant caches for comprehensive rollback
 			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id)
+				tenantQueries.detail(id).queryKey
 			)
 			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.withLease(id)
+				tenantQueries.withLease(id).queryKey
 			)
 			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list()
+				tenantQueries.lists()
 			)
 
 			// Optimistically update detail cache
 			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id),
+				tenantQueries.detail(id).queryKey,
 				old => {
 					if (!old) return old
 					return {
@@ -254,7 +236,7 @@ export function useUpdateTenant() {
 
 			// Optimistically update with-lease cache
 			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantKeys.withLease(id),
+				tenantQueries.withLease(id).queryKey,
 				old => {
 					if (!old) return old
 					return {
@@ -271,7 +253,7 @@ export function useUpdateTenant() {
 
 			// Optimistically update list cache
 			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list(),
+				tenantQueries.lists(),
 				old => {
 					if (!old) return old
 					return old.map(tenant =>
@@ -297,18 +279,18 @@ export function useUpdateTenant() {
 			if (context) {
 				if (context.previousDetail) {
 					queryClient.setQueryData(
-						tenantKeys.detail(context.id),
-						context.previousDetail
+						tenantQueries.detail(context.id).queryKey,
+						context.previousDetail as unknown as Tenant
 					)
 				}
 				if (context.previousWithLease) {
 					queryClient.setQueryData(
-						tenantKeys.withLease(context.id),
+						tenantQueries.withLease(context.id).queryKey,
 						context.previousWithLease
 					)
 				}
 				if (context.previousList) {
-					queryClient.setQueryData(tenantKeys.list(), context.previousList)
+					queryClient.setQueryData(tenantQueries.lists(), context.previousList)
 				}
 			}
 
@@ -316,16 +298,10 @@ export function useUpdateTenant() {
 		},
 
 		onSuccess: data => {
-			// Merge server response into all caches
-			queryClient.setQueryData(tenantKeys.detail(data.id), data)
-			queryClient.setQueryData(tenantKeys.withLease(data.id), data)
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list(),
-				old => {
-					if (!old) return [data]
-					return old.map(tenant => (tenant.id === data.id ? data : tenant))
-				}
-			)
+			// Invalidate queries to refetch with updated tenant
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(data.id).queryKey })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.withLease(data.id).queryKey })
 		}
 	})
 }
@@ -352,12 +328,7 @@ export function useTenantOperations() {
  * Automatically throws errors to nearest Error Boundary
  */
 export function useTenantSuspense(id: string) {
-	return useSuspenseQuery({
-		queryKey: tenantKeys.detail(id),
-		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000
-	})
+	return useSuspenseQuery(tenantQueries.detail(id))
 }
 
 /**
@@ -365,16 +336,7 @@ export function useTenantSuspense(id: string) {
  * Use this with Suspense boundaries for automatic loading states
  */
 export function useTenantWithLeaseSuspense(id: string) {
-	return useSuspenseQuery({
-		queryKey: tenantKeys.withLease(id),
-		queryFn: async (): Promise<TenantWithLeaseInfo> => {
-			return clientFetch<TenantWithLeaseInfo>(
-				`/api/v1/tenants/${id}/with-lease`
-			)
-		},
-		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000
-	})
+	return useSuspenseQuery(tenantQueries.withLease(id))
 }
 
 /**
@@ -385,7 +347,7 @@ export function useAllTenantsSuspense() {
 	const queryClient = useQueryClient()
 
 	return useSuspenseQuery({
-		queryKey: tenantKeys.list(),
+		queryKey: tenantQueries.lists(),
 		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 			const response =
 				await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
@@ -394,24 +356,24 @@ export function useAllTenantsSuspense() {
 			// This prevents overwriting fresher detail data with potentially stale list data
 			response.forEach(tenant => {
 				const existingDetail = queryClient.getQueryData(
-					tenantKeys.detail(tenant.id)
+					tenantQueries.detail(tenant.id).queryKey
 				)
 				const existingWithLease = queryClient.getQueryData(
-					tenantKeys.withLease(tenant.id)
+					tenantQueries.withLease(tenant.id).queryKey
 				)
 
 				// Only set if no existing data (avoids race condition where detail is fresher)
 				if (!existingDetail) {
-					queryClient.setQueryData(tenantKeys.detail(tenant.id), tenant)
+					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
 				}
 				if (!existingWithLease) {
-					queryClient.setQueryData(tenantKeys.withLease(tenant.id), tenant)
+					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
 				}
 			})
 
 			return response
 		},
-		staleTime: 10 * 60 * 1000,
+		staleTime: 3 * 60 * 1000, // 3 minutes
 		gcTime: 30 * 60 * 1000
 	})
 }
@@ -422,7 +384,7 @@ export function useAllTenantsSuspense() {
  */
 export function useTenantPolling(id: string, interval: number = 30000) {
 	return useQuery({
-		queryKey: [...tenantKeys.detail(id), 'polling'],
+		queryKey: [...tenantQueries.detail(id).queryKey, 'polling'],
 		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
 		enabled: !!id,
 		refetchInterval: interval,
@@ -440,22 +402,10 @@ export function usePrefetchTenant() {
 
 	return {
 		prefetchTenant: (id: string) => {
-			return queryClient.prefetchQuery({
-				queryKey: tenantKeys.detail(id),
-				queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-				staleTime: 5 * 60 * 1000
-			})
+			return queryClient.prefetchQuery(tenantQueries.detail(id))
 		},
 		prefetchTenantWithLease: (id: string) => {
-			return queryClient.prefetchQuery({
-				queryKey: tenantKeys.withLease(id),
-				queryFn: async (): Promise<TenantWithLeaseInfo> => {
-					return clientFetch<TenantWithLeaseInfo>(
-						`/api/v1/tenants/${id}/with-lease`
-					)
-				},
-				staleTime: 5 * 60 * 1000
-			})
+			return queryClient.prefetchQuery(tenantQueries.withLease(id))
 		}
 	}
 }
@@ -473,19 +423,19 @@ export function useOptimisticTenantUpdate() {
 			updates: Partial<TenantWithLeaseInfo>
 		) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
 
 			// Snapshot previous value
-			const previous = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id)
+			const previous = queryClient.getQueryData<Tenant>(
+				tenantQueries.detail(id).queryKey
 			)
 
 			// Optimistically update
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id),
+			queryClient.setQueryData<Tenant>(
+				tenantQueries.detail(id).queryKey,
 				old => {
 					if (!old) return old
-					return { ...old, ...updates }
+					return { ...old, ...(updates as unknown as Partial<Tenant>) }
 				}
 			)
 
@@ -493,7 +443,7 @@ export function useOptimisticTenantUpdate() {
 				previous,
 				rollback: () => {
 					if (previous) {
-						queryClient.setQueryData(tenantKeys.detail(id), previous)
+						queryClient.setQueryData(tenantQueries.detail(id).queryKey, previous)
 					}
 				}
 			}
@@ -527,24 +477,24 @@ export function useMarkTenantAsMovedOut() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel in-flight queries
-			await queryClient.cancelQueries({ queryKey: tenantKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.withLease(id) })
-			await queryClient.cancelQueries({ queryKey: tenantKeys.list() })
+			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: tenantQueries.lists() })
 
 			// Snapshot previous values
 			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id)
+				tenantQueries.detail(id).queryKey
 			)
 			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantKeys.withLease(id)
+				tenantQueries.withLease(id).queryKey
 			)
 			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list()
+				tenantQueries.lists()
 			)
 
 			// Optimistic update - mark as MOVED_OUT in detail caches
 			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantKeys.detail(id),
+				tenantQueries.detail(id).queryKey,
 				old => {
 					if (!old) return old
 					return {
@@ -558,7 +508,7 @@ export function useMarkTenantAsMovedOut() {
 			)
 
 			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantKeys.withLease(id),
+				tenantQueries.withLease(id).queryKey,
 				old => {
 					if (!old) return old
 					return {
@@ -573,7 +523,7 @@ export function useMarkTenantAsMovedOut() {
 
 			// Optimistic update - remove from list (soft delete)
 			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantKeys.list(),
+				tenantQueries.lists(),
 				old => {
 					if (!old) return old
 					return old.filter(tenant => tenant.id !== id)
@@ -587,18 +537,18 @@ export function useMarkTenantAsMovedOut() {
 			if (context) {
 				if (context.previousDetail) {
 					queryClient.setQueryData(
-						tenantKeys.detail(context.id),
-						context.previousDetail
+						tenantQueries.detail(context.id).queryKey,
+						context.previousDetail as unknown as Tenant
 					)
 				}
 				if (context.previousWithLease) {
 					queryClient.setQueryData(
-						tenantKeys.withLease(context.id),
+						tenantQueries.withLease(context.id).queryKey,
 						context.previousWithLease
 					)
 				}
 				if (context.previousList) {
-					queryClient.setQueryData(tenantKeys.list(), context.previousList)
+					queryClient.setQueryData(tenantQueries.lists(), context.previousList)
 				}
 			}
 
@@ -613,12 +563,12 @@ export function useMarkTenantAsMovedOut() {
 		onSettled: (_data, _error, variables) => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({
-				queryKey: tenantKeys.detail(variables.id)
+				queryKey: tenantQueries.detail(variables.id).queryKey
 			})
 			queryClient.invalidateQueries({
-				queryKey: tenantKeys.withLease(variables.id)
+				queryKey: tenantQueries.withLease(variables.id).queryKey
 			})
-			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 		}
 	})
 }
@@ -642,9 +592,9 @@ export function useBatchTenantOperations() {
 			)
 
 			// Invalidate all affected queries
-			await queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			updates.forEach(({ id }) => {
-				queryClient.invalidateQueries({ queryKey: tenantKeys.detail(id) })
+				queryClient.invalidateQueries({ queryKey: tenantQueries.detail(id).queryKey })
 			})
 
 			return results
@@ -659,7 +609,7 @@ export function useBatchTenantOperations() {
 			)
 
 			// Invalidate all affected queries
-			await queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			return results
 		}
@@ -709,7 +659,7 @@ export function useInviteTenant() {
 			})
 
 			// Invalidate tenant list to show new pending tenant
-			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			logger.info('Tenant invitation sent', {
 				action: 'invite_tenant',
@@ -742,8 +692,8 @@ export function useResendInvitation() {
 			})
 
 			// Refresh tenant data to show updated invitation_sent_at
-			queryClient.invalidateQueries({ queryKey: tenantKeys.detail(tenantId) })
-			queryClient.invalidateQueries({ queryKey: tenantKeys.list() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(tenantId).queryKey })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			logger.info('Tenant invitation resent', {
 				action: 'resend_invitation',

@@ -123,7 +123,7 @@ describe('RentPaymentsService', () => {
 				amount: 150000,
 				latest_charge: {
 					id: 'ch_123',
-					receipt_url: 'https://stripe.com/receipt'
+					receiptUrl: 'https://stripe.com/receipt'
 				}
 			} as unknown as Stripe.Response<Stripe.PaymentIntent>
 
@@ -214,6 +214,12 @@ describe('RentPaymentsService', () => {
 			)
 
 			expect(result.payment.id).toBe('payment123')
+
+			// Verify Stripe payment intent was created with correct params
+			const stripeCall = (service['stripe'].paymentIntents.create as jest.Mock)
+				.mock.calls[0]
+			const [paymentIntentParams] = stripeCall
+
 			expect(service['stripe'].paymentIntents.create).toHaveBeenCalledWith(
 				expect.objectContaining({
 					amount: 150000,
@@ -221,6 +227,9 @@ describe('RentPaymentsService', () => {
 				}),
 				expect.objectContaining({ idempotencyKey: expect.any(String) })
 			)
+
+			// Explicitly assert no application_fee_amount (no platform fees)
+			expect(paymentIntentParams).not.toHaveProperty('application_fee_amount')
 		})
 	})
 })

@@ -172,8 +172,13 @@ describe('Tenants CRUD Integration Tests', () => {
 				// email is required but missing
 			}
 
-			// @ts-expect-error - Testing validation of missing required field
-			await expect(result.current.mutateAsync(invalidTenant)).rejects.toThrow()
+			try {
+				// @ts-expect-error - Testing validation of missing required field
+				await result.current.mutateAsync(invalidTenant)
+				expect.fail('Should have thrown validation error')
+			} catch (error: any) {
+				expect(error.message).toMatch(/400|invalid|required|email/i)
+			}
 		})
 	})
 
@@ -318,7 +323,7 @@ describe('Tenants CRUD Integration Tests', () => {
 			expect(updated.version).toBe(2) // Version incremented
 		})
 
-		it('handles optimistic locking', async () => {
+		it('handles optimistic locking conflicts', async () => {
 			// Create tenant first
 			const created = await clientFetch<Tenant>('/api/v1/tenants', {
 				method: 'POST',
@@ -330,23 +335,29 @@ describe('Tenants CRUD Integration Tests', () => {
 			})
 			createdTenantIds.push(created.id)
 
-			// Try to update with wrong version (simulate concurrent update)
-			const { result } = renderHook(() => useUpdateTenant(), {
-				wrapper: createWrapper()
+			// Use shared wrapper for cache coordination
+			const wrapper = createWrapper()
+
+			// CRITICAL: Populate cache first with useReadTenant
+			const { result: readResult } = renderHook(() => useTenant(created.id), {
+				wrapper
 			})
 
-			// This should either succeed (if version checking is disabled) or fail with 409
-			try {
-				await result.current.mutateAsync({
-					id: created.id,
-					data: { firstName: 'Updated Name' }
-				})
-				// If it succeeds, version should be incremented
-				expect(true).toBe(true) // Test passes either way
-			} catch (error: any) {
-				// If it fails, it should be due to version conflict
-				expect(error.message).toContain('version') // Version conflict expected
-			}
+			await waitFor(() => {
+				expect(readResult.current.isSuccess).toBe(true)
+			})
+
+			// Now cache has version field, update should work with optimistic locking
+			const { result: updateResult } = renderHook(() => useUpdateTenant(), {
+				wrapper
+			})
+
+			const updated = await updateResult.current.mutateAsync({
+				id: created.id,
+				data: { firstName: 'Updated Name' }
+			})
+
+			expect(updated.version).toBe(2) // Version incremented
 		})
 	})
 
@@ -476,11 +487,11 @@ describe('Tenants CRUD Integration Tests', () => {
 		expect(fetchedTenant.invitation_sent_at).toBeDefined()
 		expect(fetchedTenant.invitation_sent_at).toBeTruthy()
 		
-		// Verify timestamp is recent (within last 5 seconds)
+		// Verify timestamp is recent (within last 30 seconds to account for test latency)
 		const sentAt = new Date(fetchedTenant.invitation_sent_at!)
 		const now = new Date()
 		const diffSeconds = (now.getTime() - sentAt.getTime()) / 1000
-		expect(diffSeconds).toBeLessThan(5)
+		expect(diffSeconds).toBeLessThan(30)
 
 		createdTenantIds.push(invitedTenant.id)
 

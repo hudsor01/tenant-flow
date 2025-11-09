@@ -6,6 +6,7 @@
 import { clientFetch } from '#lib/api/client'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import { logger } from '@repo/shared/lib/frontend-logger'
 
 export interface NotificationPreferences {
@@ -36,7 +37,7 @@ export function useNotificationPreferences(tenantId: string) {
 				`/api/v1/tenants/${tenantId}/notification-preferences`
 			),
 		enabled: !!tenantId,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
 }
@@ -115,12 +116,6 @@ export function useUpdateNotificationPreferences(tenantId: string) {
 			logger.info('Notification preferences updated', {
 				action: 'update_notification_preferences',
 				metadata: { tenantId }
-			})
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-			queryClient.invalidateQueries({
-				queryKey: notificationPreferencesKeys.tenant(tenantId)
 			})
 		}
 	})

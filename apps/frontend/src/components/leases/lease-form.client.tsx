@@ -27,7 +27,7 @@ import type { Lease, Property, Unit } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { LEASE_STATUS, ERROR_MESSAGES } from '#lib/constants'
+import { LEASE_STATUS, LEASE_STATUS_LABELS, ERROR_MESSAGES } from '#lib/constants'
 
 type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 
@@ -67,7 +67,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 			rentAmount: lease?.rentAmount ?? 0,
 			securityDeposit: lease?.securityDeposit ?? 0,
 			terms: lease?.terms ?? '',
-			status: (lease?.status ?? 'DRAFT') as LeaseStatus
+			status: (lease?.status ?? LEASE_STATUS.DRAFT) as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -105,11 +105,16 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 
 				const errorMessage =
 					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'lease')
+				
+				// Check for 409 conflict via error status or response
+				const is409Conflict = 
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(error as any)?.status === 409 || 
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(error as any)?.response?.status === 409
+				
 				toast.error(errorMessage, {
-					description:
-						error instanceof Error && error.message.includes('409')
-							? ERROR_MESSAGES.CONFLICT_UPDATE
-							: undefined
+					description: is409Conflict ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
 				})
 			}
 		}
@@ -308,10 +313,10 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-					<SelectItem value={LEASE_STATUS.DRAFT}>Draft</SelectItem>
-					<SelectItem value={LEASE_STATUS.ACTIVE}>Active</SelectItem>
-					<SelectItem value={LEASE_STATUS.EXPIRED}>Expired</SelectItem>
-					<SelectItem value={LEASE_STATUS.TERMINATED}>Terminated</SelectItem>
+					<SelectItem value={LEASE_STATUS.DRAFT}>{LEASE_STATUS_LABELS.DRAFT}</SelectItem>
+					<SelectItem value={LEASE_STATUS.ACTIVE}>{LEASE_STATUS_LABELS.ACTIVE}</SelectItem>
+					<SelectItem value={LEASE_STATUS.EXPIRED}>{LEASE_STATUS_LABELS.EXPIRED}</SelectItem>
+					<SelectItem value={LEASE_STATUS.TERMINATED}>{LEASE_STATUS_LABELS.TERMINATED}</SelectItem>
 				</SelectContent>
 							</Select>
 							{field.state.meta.errors.length > 0 && (

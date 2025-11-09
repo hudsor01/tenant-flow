@@ -1,4 +1,5 @@
 import {
+	BadRequestException,
 	ForbiddenException,
 	Injectable,
 	Logger,
@@ -83,8 +84,7 @@ export class StripeOwnerService {
 		if (owner.stripeCustomerId) {
 			try {
 				const existingCustomer = await this.stripe.customers.retrieve(
-					owner.stripeCustomerId,
-					{ expand: ['subscriptions'] }
+					owner.stripeCustomerId
 				)
 
 				if (!('deleted' in existingCustomer)) {
@@ -114,7 +114,7 @@ export class StripeOwnerService {
 
 		// Validate that an email is present before creating Stripe customer
 		if (!resolvedEmail) {
-			throw new Error(
+			throw new BadRequestException(
 				`Cannot create Stripe customer without email address for user ${params.userId}`
 			)
 		}

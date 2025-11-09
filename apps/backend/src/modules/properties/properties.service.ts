@@ -19,6 +19,7 @@ import type {
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
+import { propertyStatsSchema } from '@repo/shared/validation/database-rpc.schemas'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { Cache } from 'cache-manager'
 import { StorageService } from '../../database/storage.service'
@@ -275,17 +276,17 @@ export class PropertiesService {
 							})
 						)
 						.on('data', (row: unknown) => {
-					// Validate row structure with type guard
-					if (!this.isValidCsvRow(row)) {
-						reject(
-							new BadRequestException(
-								'Invalid CSV row format: expected string values only'
-							)
-						)
-						return
-					}
-					rows.push(row)
-				})
+							// Validate row structure with type guard
+							if (!this.isValidCsvRow(row)) {
+								reject(
+									new BadRequestException(
+										'Invalid CSV row format: expected string values only'
+									)
+								)
+								return
+							}
+							rows.push(row)
+						})
 						.on('error', (error: Error) => {
 							reject(
 								new BadRequestException(`CSV parsing failed: ${error.message}`)
@@ -443,7 +444,8 @@ export class PropertiesService {
 		// CSV parser returns objects with string values
 		// Validate all values are strings (not objects, arrays, etc.)
 		return Object.values(row).every(
-			value => typeof value === 'string' || value === null || value === undefined
+			value =>
+				typeof value === 'string' || value === null || value === undefined
 		)
 	}
 
@@ -466,7 +468,7 @@ export class PropertiesService {
 		req: Request,
 		propertyId: string,
 		request: UpdatePropertyRequest,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		expectedVersion?: number //Optimistic locking
 	): Promise<Property | null> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
@@ -513,7 +515,7 @@ export class PropertiesService {
 			updateData.propertyType = request.propertyType as PropertyType
 		}
 
-		// 🔐 BUG FIX #2: Add version check for optimistic locking
+		//Add version check for optimistic locking
 		let query = client.from('property').update(updateData).eq('id', propertyId)
 
 		// Add version check if expectedVersion provided
@@ -524,7 +526,7 @@ export class PropertiesService {
 		const { data, error } = await query.select().single()
 
 		if (error || !data) {
-			// 🔐 BUG FIX #2: Detect optimistic locking conflict
+			//Detect optimistic locking conflict
 			if (error?.code === 'PGRST116' || !data) {
 				// PGRST116 = 0 rows affected (version mismatch)
 				this.logger.warn('Optimistic locking conflict detected', {
@@ -572,7 +574,7 @@ export class PropertiesService {
 		if (!existing)
 			throw new BadRequestException('Property not found or access denied')
 
-		// 🔐 BUG FIX #3: Use Saga pattern for transactional delete with compensation
+		//Use Saga pattern for transactional delete with compensation
 		let imageFilePath: string | null = null
 		let trashFilePath: string | null = null
 
@@ -816,7 +818,19 @@ export class PropertiesService {
 			}
 		}
 
-		const stats = data as unknown as PropertyStats
+		// Runtime validation with Zod - fail fast on schema mismatch
+		const validationResult = propertyStatsSchema.safeParse(data)
+		if (!validationResult.success) {
+			this.logger.error('Property stats validation failed', {
+				userId,
+				errors: validationResult.error.issues
+			})
+			throw new BadRequestException(
+				'Invalid property stats response - schema validation failed'
+			)
+		}
+
+		const stats: PropertyStats = validationResult.data
 
 		// Cache for 30 seconds with user-specific key
 		await this.cacheManager.set(cacheKey, stats, 30000)

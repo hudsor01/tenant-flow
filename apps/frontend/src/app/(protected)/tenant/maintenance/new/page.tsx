@@ -29,7 +29,7 @@ export default function NewMaintenanceRequestPage() {
 		category: '',
 		priority: '',
 		description: '',
-		location: ''
+		allowEntry: true
 	})
 	const [photoUrls, setPhotoUrls] = useState<string[]>([])
 
@@ -76,9 +76,9 @@ export default function NewMaintenanceRequestPage() {
 			plumbing: 'PLUMBING',
 			electrical: 'ELECTRICAL',
 			hvac: 'HVAC',
-			appliance: 'APPLIANCES',
-			structural: 'SAFETY',
-			pest: 'GENERAL', // Map pest to GENERAL or create new enum value
+			appliances: 'APPLIANCES',
+			safety: 'SAFETY',
+			general: 'GENERAL',
 			other: 'OTHER'
 		}
 
@@ -87,6 +87,7 @@ export default function NewMaintenanceRequestPage() {
 			description: formData.description,
 			priority: priorityMap[formData.priority] || 'MEDIUM',
 			category: categoryMap[formData.category] || 'GENERAL',
+			allowEntry: formData.allowEntry,
 			photos: photoUrls
 		}
 
@@ -105,7 +106,10 @@ export default function NewMaintenanceRequestPage() {
 		}
 	}
 
-	const handleChange = (field: keyof typeof formData, value: string) => {
+	const handleChange = (
+		field: keyof typeof formData,
+		value: string | boolean
+	) => {
 		setFormData(prev => ({ ...prev, [field]: value }))
 	}
 
@@ -152,10 +156,10 @@ export default function NewMaintenanceRequestPage() {
 							<option value="">Select category...</option>
 							<option value="plumbing">Plumbing</option>
 							<option value="electrical">Electrical</option>
-							<option value="hvac">Heating/Cooling</option>
-							<option value="appliance">Appliance</option>
-							<option value="structural">Structural</option>
-							<option value="pest">Pest Control</option>
+							<option value="hvac">Heating/Cooling (HVAC)</option>
+							<option value="appliances">Appliances</option>
+							<option value="safety">Safety/Structural</option>
+							<option value="general">General Maintenance</option>
 							<option value="other">Other</option>
 						</select>
 					</Field>
@@ -179,7 +183,7 @@ export default function NewMaintenanceRequestPage() {
 					<Field>
 						<FieldLabel>Description *</FieldLabel>
 						<textarea
-							className="input w-full min-h-30"
+							className="input w-full min-h-[7.5rem]"
 							placeholder="Please describe the issue in detail..."
 							value={formData.description}
 							onChange={e => handleChange('description', e.target.value)}
@@ -188,14 +192,21 @@ export default function NewMaintenanceRequestPage() {
 					</Field>
 
 					<Field>
-						<FieldLabel>Location in Unit</FieldLabel>
-						<input
-							type="text"
-							className="input w-full"
-							placeholder="e.g., Master bathroom, Kitchen sink"
-							value={formData.location}
-							onChange={e => handleChange('location', e.target.value)}
-						/>
+						<div className="flex items-center gap-3">
+							<input
+								type="checkbox"
+								id="allowEntry"
+								checked={formData.allowEntry}
+								onChange={e => handleChange('allowEntry', e.target.checked)}
+								className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+							/>
+							<FieldLabel htmlFor="allowEntry" className="mb-0 cursor-pointer">
+								Allow maintenance team to enter unit if I&apos;m not home
+							</FieldLabel>
+						</div>
+						<p className="text-sm text-muted-foreground mt-1">
+							Check this box if maintenance can access your unit without you being present
+						</p>
 					</Field>
 
 					{/* Image Upload */}

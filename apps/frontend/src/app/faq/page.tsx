@@ -11,7 +11,7 @@ import type { FAQQuestion } from '@repo/shared/types/faq'
 
 export default function FAQPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
-	const { data: faqs, isLoading, error } = useFAQs()
+	const { data: faqs, isLoading, error, refetch } = useFAQs()
 
 	// Show loading state
 	if (isLoading) {
@@ -29,11 +29,16 @@ export default function FAQPage() {
 	if (error) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
-				<div className="text-center">
+				<div className="text-center space-y-4">
 					<h1 className="text-2xl font-bold text-destructive mb-4">
 						Failed to load FAQs
 					</h1>
-					<p className="text-muted-foreground">Please try again later.</p>
+					<p className="text-muted-foreground">
+						Unable to load FAQ content. Please try again.
+					</p>
+					<Button onClick={() => refetch()} variant="outline">
+						Retry
+					</Button>
 				</div>
 			</div>
 		)
@@ -214,9 +219,9 @@ export default function FAQPage() {
 						</div>
 					)}
 					{faqCategories.length > 0 &&
-						faqCategories.map((category, categoryIndex) => (
-							<FaqsAccordion
-								key={categoryIndex}
+					faqCategories.map((category) => (
+						<FaqsAccordion
+							key={category.category}
 								category={category.category}
 								faqs={category.questions}
 								defaultOpenIndex={null}

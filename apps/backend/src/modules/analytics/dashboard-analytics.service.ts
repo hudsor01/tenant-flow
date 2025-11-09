@@ -10,7 +10,10 @@ import type {
 } from '@repo/shared/types/database-rpc'
 import { EMPTY_MAINTENANCE_ANALYTICS } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
-import { IDashboardAnalyticsService } from './interfaces/dashboard-analytics.interface'
+import {
+	BillingInsights,
+	IDashboardAnalyticsService
+} from './interfaces/dashboard-analytics.interface'
 
 /**
  * Dashboard Analytics Service
@@ -66,17 +69,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 				// Retry with exponential backoff
 				if (attempt < this.MAX_RETRIES) {
-					const delay = this.RETRY_DELAYS_MS[attempt]
-					this.logger.log(
-						`Retrying RPC ${functionName} after ${delay}ms (attempt ${attempt + 1}/${this.MAX_RETRIES})`
-					)
-					await new Promise(resolve => {
-						const timer = setTimeout(() => {
-							this.pendingTimers.delete(timer)
-							resolve(undefined)
-						}, delay)
-						this.pendingTimers.add(timer)
-					})
+					await this.retryWithBackoff(attempt, functionName)
 					return this.callRpc<T>(functionName, payload, token, attempt + 1)
 				}
 
@@ -94,22 +87,37 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 			// Retry on unexpected errors too
 			if (attempt < this.MAX_RETRIES) {
-				const delay = this.RETRY_DELAYS_MS[attempt]
-				this.logger.log(
-					`Retrying RPC ${functionName} after ${delay}ms due to exception (attempt ${attempt + 1}/${this.MAX_RETRIES})`
-				)
-				await new Promise(resolve => {
-					const timer = setTimeout(() => {
-						this.pendingTimers.delete(timer)
-						resolve(undefined)
-					}, delay)
-					this.pendingTimers.add(timer)
-				})
+				await this.retryWithBackoff(attempt, functionName, 'exception')
 				return this.callRpc<T>(functionName, payload, token, attempt + 1)
 			}
 
 			return null
 		}
+	}
+
+	/**
+	 * Centralized retry logic with exponential backoff and timer cleanup.
+	 * @param attempt - Current attempt number (0-indexed)
+	 * @param functionName - Name of the function being retried
+	 * @param reason - Reason for retry (default: 'error', or 'exception')
+	 */
+	private async retryWithBackoff(
+		attempt: number,
+		functionName: string,
+		reason: 'error' | 'exception' = 'error'
+	): Promise<void> {
+		const delay = this.RETRY_DELAYS_MS[attempt]
+		const reasonText = reason === 'exception' ? 'due to exception ' : ''
+		this.logger.log(
+			`Retrying RPC ${functionName} after ${delay}ms ${reasonText}(attempt ${attempt + 1}/${this.MAX_RETRIES})`
+		)
+		await new Promise<void>(resolve => {
+			const timer = setTimeout(() => {
+				this.pendingTimers.delete(timer)
+				resolve()
+			}, delay)
+			this.pendingTimers.add(timer)
+		})
 	}
 
 	async getDashboardStats(userId: string, token?: string): Promise<DashboardStats> {
@@ -146,34 +154,61 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getPropertyPerformance(userId: string, token?: string): Promise<PropertyPerformance[]> {
+	async getPropertyPerformance(
+		userId: string,
+		token?: string
+	): Promise<PropertyPerformance[]> {
 		try {
-			this.logger.log('Calculating property performance via RPC', { userId })
+			this.logger.log('Calculating property performance via optimized RPC', {
+				userId
+			})
 
-			const raw = await this.callRpc<PropertyPerformanceRpcResponse[]>(
-				'get_property_performance',
-				{ p_user_id: userId },
-				token
+			const [rawProperties, rawTrends] = await Promise.all([
+				this.callRpc<PropertyPerformanceRpcResponse[]>(
+					'get_property_performance_cached',
+					{ p_user_id: userId },
+					token
+				),
+				this.callRpc<
+					Array<{
+						property_id: string
+						current_month_revenue: number
+						previous_month_revenue: number
+						trend: 'up' | 'down' | 'stable'
+						trend_percentage: number
+					}>
+				>('get_property_performance_trends', { p_user_id: userId }, token)
+			])
+
+			if (!rawProperties) return []
+
+			// Create a map of property trends for O(1) lookup
+			const trendsMap = new Map(
+				(rawTrends || []).map(trend => [trend.property_id, trend])
 			)
 
-			if (!raw) return []
+			return rawProperties.map(item => {
+				const trendData = trendsMap.get(item.property_id)
 
-			return raw.map(item => ({
-				property: item.property_name,
-				propertyId: item.property_id,
-				units: item.total_units,
-				totalUnits: item.total_units,
-				occupiedUnits: item.occupied_units,
-				vacantUnits: item.vacant_units,
-				occupancy: `${item.occupancy_rate}%`,
-				occupancyRate: item.occupancy_rate,
-				revenue: item.annual_revenue,
-				monthlyRevenue: item.monthly_revenue,
-				potentialRevenue: item.potential_revenue,
-				address: item.address,
-				propertyType: item.property_type,
-				status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL'
-			}))
+				return {
+					property: item.property_name,
+					propertyId: item.property_id,
+					units: item.total_units,
+					totalUnits: item.total_units,
+					occupiedUnits: item.occupied_units,
+					vacantUnits: item.vacant_units,
+					occupancy: `${item.occupancy_rate}%`,
+					occupancyRate: item.occupancy_rate,
+					revenue: item.annual_revenue,
+					monthlyRevenue: item.monthly_revenue,
+					potentialRevenue: item.potential_revenue,
+					address: item.address,
+					propertyType: item.property_type,
+					status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL',
+					trend: trendData?.trend ?? ('stable' as const),
+					trendPercentage: trendData?.trend_percentage ?? 0
+				}
+			})
 		} catch (error) {
 			this.logger.error(
 				`Database error in getPropertyPerformance: ${error instanceof Error ? error.message : String(error)}`,
@@ -341,33 +376,55 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			startDate?: Date
 			endDate?: Date
 		}
-	): Promise<Record<string, unknown>> {
+	): Promise<BillingInsights> {
 		try {
 			this.logger.log('Calculating billing insights via RPC', {
-			userId,
-			options
-		})
+				userId,
+				options
+			})
 
-		// Use centralized client selection
-		const client = this.getClientForToken(token)
+			// Use centralized client selection
+			const client = this.getClientForToken(token)
 
-		// Simple billing insights (placeholder for now)
-			const { data, error } = await client
-				.from('property')
-				.select('id')
-				.eq('ownerId', userId)
-				.limit(1)
+			// Call optimized RPC function that consolidates 3 queries into one
+			// Build params conditionally to satisfy exactOptionalPropertyTypes
+			const params: {
+				owner_id_param: string
+				start_date_param?: string
+				end_date_param?: string
+			} = {
+				owner_id_param: userId
+			}
+			if (options?.startDate) {
+				params.start_date_param = options.startDate.toISOString()
+			}
+			if (options?.endDate) {
+				params.end_date_param = options.endDate.toISOString()
+			}
+
+			const { data, error } = await client.rpc('get_billing_insights', params)
 
 			if (error) {
-				this.logger.error('Failed to calculate billing insights', {
-					error,
+				this.logger.error('Failed to get billing insights via RPC', {
+					error: error.message,
 					userId,
 					options
 				})
-				return {}
+				return {
+					totalRevenue: 0,
+					churnRate: 0,
+					mrr: 0
+				}
 			}
 
-			return { placeholder: 'billing_insights', count: data?.length || 0 }
+			// Parse RPC response (returns JSON)
+			const result = data as { totalRevenue: number; mrr: number; churnRate: number }
+
+			return {
+				totalRevenue: result.totalRevenue || 0,
+				churnRate: result.churnRate || 0,
+				mrr: result.mrr || 0
+			}
 		} catch (error) {
 			this.logger.error(
 				`Database error in getBillingInsights: ${error instanceof Error ? error.message : String(error)}`,
@@ -377,7 +434,12 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					options
 				}
 			)
-			return {}
+			// Return valid schema structure on error
+			return {
+				totalRevenue: 0,
+				churnRate: 0,
+				mrr: 0
+			}
 		}
 	}
 

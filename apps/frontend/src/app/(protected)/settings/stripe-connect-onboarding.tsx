@@ -166,6 +166,9 @@ export function ConnectOnboardingDialog({
 								<SelectItem value="CA">Canada</SelectItem>
 							</SelectContent>
 						</Select>
+						<p className="text-sm text-muted-foreground mt-1">
+							Currently limited to US and Canada only
+						</p>
 					</Field>
 					<div className="rounded-lg border p-4 bg-muted/50">
 						<p className="text-sm text-muted-foreground">

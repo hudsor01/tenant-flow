@@ -5,6 +5,7 @@ import { StripeModule } from '../billing/stripe.module'
 import { AuthWebhookController } from './auth-webhook.controller'
 import { TenantsController } from './tenants.controller'
 import { TenantsService } from './tenants.service'
+import { TenantInvitationService } from './tenant-invitation.service'
 
 /**
  * Tenants module - Ultra-Native NestJS Implementation
@@ -14,7 +15,7 @@ import { TenantsService } from './tenants.service'
 @Module({
 	imports: [SupabaseModule, EmailModule, StripeModule],
 	controllers: [TenantsController, AuthWebhookController],
-	providers: [TenantsService],
+	providers: [TenantsService, TenantInvitationService],
 	exports: [TenantsService]
 })
 export class TenantsModule {}

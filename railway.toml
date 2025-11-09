@@ -1,30 +1,24 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "./Dockerfile"
-cacheMount = [
-  ".turbo",
-  "node_modules/.cache"
-]
-# Watch patterns trigger deployment when these paths change
 watchPatterns = [
   "apps/backend/**",
   "packages/shared/**",
   "packages/database/**",
+  "packages/**",
   "package.json",
   "pnpm-lock.yaml",
   "pnpm-workspace.yaml",
   "turbo.json",
-  "Dockerfile"
+  "Dockerfile",
+  ".dockerignore"
 ]
 
 [deploy]
-# Zero-downtime deployment configuration (2025 best practices)
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 overlapSeconds = 10
 drainingSeconds = 30
-
-# Restart policy for crash handling
 restartPolicyType = "ALWAYS"
 restartPolicyMaxRetries = 5
 

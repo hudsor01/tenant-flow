@@ -6,6 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import { clientFetch } from '#lib/api/client'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
@@ -61,7 +62,7 @@ export function useLateFeeConfig(leaseId: string) {
 		queryKey: lateFeesKeys.config(leaseId),
 		queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${leaseId}/config`),
 		enabled: !!leaseId,
-		staleTime: 5 * 60 * 1000 // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 
@@ -204,7 +205,7 @@ export function usePrefetchLateFeeConfig() {
 		queryClient.prefetchQuery({
 			queryKey: lateFeesKeys.config(leaseId),
 			queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${leaseId}/config`),
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }

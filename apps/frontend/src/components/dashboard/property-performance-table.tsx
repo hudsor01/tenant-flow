@@ -106,9 +106,6 @@ export function PropertyPerformanceTable() {
 								.join('')
 								.slice(0, 2)
 								.toUpperCase()
-							// Calculate trend - for now just show as stable since API doesn't provide trend data
-							const trend = 'stable'
-							const trendPercentage = 0
 
 							return (
 								<TableRow key={property.propertyId}>
@@ -153,10 +150,10 @@ export function PropertyPerformanceTable() {
 									</TableCell>
 									<TableCell>
 										<div
-											className={`flex items-center gap-1 text-sm font-medium ${getTrendColorClass(trend)}`}
+											className={`flex items-center gap-1 text-sm font-medium ${getTrendColorClass(property.trend || 'stable')}`}
 										>
-											{getTrendIcon(trend)}
-											{Math.abs(trendPercentage)}%
+											{getTrendIcon(property.trend || 'stable')}
+											{property.trendPercentage?.toFixed(1) ?? '0.0'}%
 										</div>
 									</TableCell>
 									<TableCell>

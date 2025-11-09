@@ -116,39 +116,41 @@ export class StripeAccessControlService {
 			})
 
 			// Access is automatically revoked via stripe.subscriptions table
-		// The get_user_active_subscription() function filters by status
-		// canceled/incomplete_expired subscriptions won't be returned
+			// The get_user_active_subscription() function filters by status
+			// canceled/incomplete_expired subscriptions won't be returned
 
-		// Get user email for sending cancellation notice
-		const { data: userData, error: emailError } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select('email')
-			.eq('id', userId)
-			.single()
+			// Get user email for sending cancellation notice
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single()
 
-		if (emailError || !userData?.email) {
-			this.logger.warn('Could not fetch user email for cancellation notice', {
-				userId,
-				error: emailError?.message
-			})
-		} else {
-			// Send subscription canceled email using React template
-			// Type assertion needed because Stripe types don't expose all fields
-			const sub = subscription as Stripe.Subscription & { current_period_end?: number }
-			const currentPeriodEnd = sub.current_period_end
-				? new Date(sub.current_period_end * 1000)
-				: null
+			if (emailError || !userData?.email) {
+				this.logger.warn('Could not fetch user email for cancellation notice', {
+					userId,
+					error: emailError?.message
+				})
+			} else {
+				// Send subscription canceled email using React template
+				// Type assertion needed because Stripe types don't expose all fields
+				const sub = subscription as Stripe.Subscription & {
+					current_period_end?: number
+				}
+				const currentPeriodEnd = sub.current_period_end
+					? new Date(sub.current_period_end * 1000)
+					: null
 
-			await this.emailService.sendSubscriptionCanceledEmail({
-				customerEmail: userData.email,
-				subscriptionId: subscription.id,
-				cancelAtPeriodEnd: subscription.cancel_at_period_end,
-				currentPeriodEnd
-			})
-		}
+				await this.emailService.sendSubscriptionCanceledEmail({
+					customerEmail: userData.email,
+					subscriptionId: subscription.id,
+					cancelAtPeriodEnd: subscription.cancel_at_period_end,
+					currentPeriodEnd
+				})
+			}
 
-		// No additional database writes needed - stripe.* schema is source of truth
+			// No additional database writes needed - stripe.* schema is source of truth
 		} catch (error) {
 			this.logger.error('Failed to revoke subscription access', {
 				subscriptionId: subscription.id,
@@ -268,33 +270,36 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending failed payment notice
-		const { data: userData, error: emailError } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select('email')
-			.eq('id', userId)
-			.single()
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single()
 
-		if (emailError || !userData?.email) {
-			this.logger.warn('Could not fetch user email for payment failed notice', {
-				userId,
-				error: emailError?.message
+			if (emailError || !userData?.email) {
+				this.logger.warn(
+					'Could not fetch user email for payment failed notice',
+					{
+						userId,
+						error: emailError?.message
+					}
+				)
+				return
+			}
+
+			// Determine if this is the last attempt
+			const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
+
+			// Send payment failed email using React template
+			await this.emailService.sendPaymentFailedEmail({
+				customerEmail: userData.email,
+				amount: invoice.amount_due,
+				currency: invoice.currency,
+				attemptCount: invoice.attempt_count,
+				invoiceUrl: invoice.hosted_invoice_url ?? null,
+				isLastAttempt
 			})
-			return
-		}
-
-		// Determine if this is the last attempt
-		const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
-
-		// Send payment failed email using React template
-		await this.emailService.sendPaymentFailedEmail({
-			customerEmail: userData.email,
-			amount: invoice.amount_due,
-			currency: invoice.currency,
-			attemptCount: invoice.attempt_count,
-			invoiceUrl: invoice.hosted_invoice_url ?? null,
-			isLastAttempt
-		})
 		} catch (error) {
 			this.logger.error('Failed to handle payment failure', {
 				invoiceId: invoice.id,
@@ -344,29 +349,29 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending receipt
-		const { data: userData, error: emailError } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select('email')
-			.eq('id', userId)
-			.single()
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single()
 
-		if (emailError || !userData?.email) {
-			this.logger.warn('Could not fetch user email for payment receipt', {
-				userId,
-				error: emailError?.message
+			if (emailError || !userData?.email) {
+				this.logger.warn('Could not fetch user email for payment receipt', {
+					userId,
+					error: emailError?.message
+				})
+				return
+			}
+
+			// Send payment success receipt email using React template
+			await this.emailService.sendPaymentSuccessEmail({
+				customerEmail: userData.email,
+				amount: invoice.amount_paid,
+				currency: invoice.currency,
+				invoiceUrl: invoice.hosted_invoice_url ?? null,
+				invoicePdf: invoice.invoice_pdf ?? null
 			})
-			return
-		}
-
-		// Send payment success receipt email using React template
-		await this.emailService.sendPaymentSuccessEmail({
-			customerEmail: userData.email,
-			amount: invoice.amount_paid,
-			currency: invoice.currency,
-			invoiceUrl: invoice.hosted_invoice_url ?? null,
-			invoicePdf: invoice.invoice_pdf ?? null
-		})
 		} catch (error) {
 			this.logger.error('Failed to handle payment success', {
 				invoiceId: invoice.id,
