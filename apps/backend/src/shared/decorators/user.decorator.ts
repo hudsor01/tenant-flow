@@ -20,3 +20,18 @@ export const User = createParamDecorator(
 		return request.user
 	}
 )
+
+/**
+ * Extract connected account ID from authenticated user
+ * Requires StripeConnectedGuard to be applied first
+ */
+export const ConnectedAccountId = createParamDecorator(
+	(_data: unknown, ctx: ExecutionContext) => {
+		const request = ctx.switchToHttp().getRequest()
+		if (!request.user) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+		// User data comes from database via StripeConnectedGuard
+		return request.connectedAccountId
+	}
+)

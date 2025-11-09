@@ -51,8 +51,8 @@ export class PaymentMethodsService {
 		if (resolvedEmail) {
 			customerParams.email = resolvedEmail
 		}
-		
-		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate customers
+
+		//Add idempotency key to prevent duplicate customers
 		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
 		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
 		const customer = await this.stripe.customers.create(customerParams, {
@@ -79,10 +79,10 @@ export class PaymentMethodsService {
 
 	/**
 	 * DRY: Resolve tenant ID from auth user ID
-	 * 
+	 *
 	 * Prevents code duplication across savePaymentMethod and listPaymentMethods.
 	 * RLS policies check: tenant.auth_user_id = auth.uid()
-	 * 
+	 *
 	 * @param token - JWT token for RLS-protected Supabase client
 	 * @param userId - Auth user ID (NOT tenant table ID)
 	 * @returns Tenant ID from tenant table
@@ -90,7 +90,7 @@ export class PaymentMethodsService {
 	 */
 	private async resolveTenantId(token: string, userId: string): Promise<string> {
 		const client = this.supabase.getUserClient(token)
-		
+
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
 			.select('id')
@@ -148,7 +148,7 @@ export class PaymentMethodsService {
 			}
 		}
 
-		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate setup intents
+		//Add idempotency key to prevent duplicate setup intents
 		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
 		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}-${Date.now()}`
 		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams, {
@@ -180,7 +180,7 @@ export class PaymentMethodsService {
 			stripePaymentMethodId
 		})
 
-		// BUG FIX #3: Resolve tenant ID from auth_user_id using DRY helper
+		// Resolve tenant ID from auth_user_id using DRY helper
 		const tenantId = await this.resolveTenantId(token, userId)
 		const client = this.supabase.getUserClient(token)
 
@@ -297,7 +297,7 @@ export class PaymentMethodsService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		// BUG FIX #2: Resolve tenant ID from auth_user_id using DRY helper
+		// Resolve tenant ID from auth_user_id using DRY helper
 		const tenantId = await this.resolveTenantId(token, userId)
 		const client = this.supabase.getUserClient(token)
 
@@ -336,7 +336,7 @@ export class PaymentMethodsService {
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
 			.select('id, stripe_customer_id')
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (tenantError || !tenant) {
@@ -399,11 +399,26 @@ export class PaymentMethodsService {
 
 		const client = this.supabase.getUserClient(token)
 
+		// Resolve tenant ID from auth user ID
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', {
+				userId,
+				error: tenantError?.message
+			})
+			throw new NotFoundException('Tenant not found')
+		}
+
 		const { data: paymentMethod, error: fetchError } = await client
 			.from('tenant_payment_method')
 			.select('stripePaymentMethodId, isDefault')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 			.single()
 
 		if (fetchError || !paymentMethod) {
@@ -425,7 +440,7 @@ export class PaymentMethodsService {
 			.from('tenant_payment_method')
 			.delete()
 			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 
 		if (error) {
 			this.logger.error('Failed to delete payment method', {
@@ -440,7 +455,7 @@ export class PaymentMethodsService {
 			const { data: nextDefault } = await client
 				.from('tenant_payment_method')
 				.select('id')
-				.eq('tenantId', userId)
+				.eq('tenantId', tenant.id)
 				.order('createdAt', { ascending: true })
 				.limit(1)
 

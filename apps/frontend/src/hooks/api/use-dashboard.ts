@@ -1,5 +1,30 @@
 /**
  * TanStack Query hooks for dashboard data
+ *
+ * DEPRECATED: These hooks use the legacy /manage endpoints.
+ * For new development, use hooks from use-owner-dashboard.ts which provide:
+ * - Better organization (/owner/financial, /owner/properties, etc.)
+ * - Role-based access control (OwnerAuthGuard)
+ * - Enhanced monitoring and logging
+ * - Modular route structure
+ *
+ * Migration Guide:
+ * - useDashboardStats() → useOwnerDashboardStats()
+ * - useDashboardActivity() → useOwnerDashboardActivity()
+ * - useDashboardPageDataUnified() → useOwnerDashboardPageData()
+ * - usePropertyPerformance() → useOwnerPropertyPerformance()
+ * - useFinancialChartData(timeRange) → useOwnerRevenueTrends(year)
+ *
+ * Example:
+ * ```typescript
+ * // OLD
+ * import { useDashboardStats } from '#hooks/api/use-dashboard'
+ * const { data: stats } = useDashboardStats()
+ * 
+ * // NEW
+ * import { useOwnerDashboardStats } from '#hooks/api/use-owner-dashboard'
+ * const { data: stats } = useOwnerDashboardStats()
+ * ```
  */
 import { clientFetch } from '#lib/api/client'
 import type { Activity } from '@repo/shared/types/activity'

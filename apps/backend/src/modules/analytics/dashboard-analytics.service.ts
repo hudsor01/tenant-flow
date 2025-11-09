@@ -154,34 +154,61 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getPropertyPerformance(userId: string, token?: string): Promise<PropertyPerformance[]> {
+	async getPropertyPerformance(
+		userId: string,
+		token?: string
+	): Promise<PropertyPerformance[]> {
 		try {
-			this.logger.log('Calculating property performance via RPC', { userId })
+			this.logger.log('Calculating property performance via optimized RPC', {
+				userId
+			})
 
-			const raw = await this.callRpc<PropertyPerformanceRpcResponse[]>(
-				'get_property_performance',
-				{ p_user_id: userId },
-				token
+			const [rawProperties, rawTrends] = await Promise.all([
+				this.callRpc<PropertyPerformanceRpcResponse[]>(
+					'get_property_performance_cached',
+					{ p_user_id: userId },
+					token
+				),
+				this.callRpc<
+					Array<{
+						property_id: string
+						current_month_revenue: number
+						previous_month_revenue: number
+						trend: 'up' | 'down' | 'stable'
+						trend_percentage: number
+					}>
+				>('get_property_performance_trends', { p_user_id: userId }, token)
+			])
+
+			if (!rawProperties) return []
+
+			// Create a map of property trends for O(1) lookup
+			const trendsMap = new Map(
+				(rawTrends || []).map(trend => [trend.property_id, trend])
 			)
 
-			if (!raw) return []
+			return rawProperties.map(item => {
+				const trendData = trendsMap.get(item.property_id)
 
-			return raw.map(item => ({
-				property: item.property_name,
-				propertyId: item.property_id,
-				units: item.total_units,
-				totalUnits: item.total_units,
-				occupiedUnits: item.occupied_units,
-				vacantUnits: item.vacant_units,
-				occupancy: `${item.occupancy_rate}%`,
-				occupancyRate: item.occupancy_rate,
-				revenue: item.annual_revenue,
-				monthlyRevenue: item.monthly_revenue,
-				potentialRevenue: item.potential_revenue,
-				address: item.address,
-				propertyType: item.property_type,
-				status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL'
-			}))
+				return {
+					property: item.property_name,
+					propertyId: item.property_id,
+					units: item.total_units,
+					totalUnits: item.total_units,
+					occupiedUnits: item.occupied_units,
+					vacantUnits: item.vacant_units,
+					occupancy: `${item.occupancy_rate}%`,
+					occupancyRate: item.occupancy_rate,
+					revenue: item.annual_revenue,
+					monthlyRevenue: item.monthly_revenue,
+					potentialRevenue: item.potential_revenue,
+					address: item.address,
+					propertyType: item.property_type,
+					status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL',
+					trend: trendData?.trend ?? ('stable' as const),
+					trendPercentage: trendData?.trend_percentage ?? 0
+				}
+			})
 		} catch (error) {
 			this.logger.error(
 				`Database error in getPropertyPerformance: ${error instanceof Error ? error.message : String(error)}`,

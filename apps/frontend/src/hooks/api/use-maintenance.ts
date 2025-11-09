@@ -163,7 +163,7 @@ export function useCreateMaintenanceRequest() {
 				notes: null,
 				photos: [],
 				preferredDate: null,
-				version: 1 // 🔐 BUG FIX #2: Optimistic locking
+				version: 1 //Optimistic locking
 			}
 
 			queryClient.setQueryData<MaintenanceRequest[]>(
@@ -212,7 +212,9 @@ export function useUpdateMaintenanceRequest() {
 				method: 'PUT',
 				// 🔐 OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
-					version !== null && version !== undefined ? withVersion(data, version) : data
+					version !== null && version !== undefined
+						? withVersion(data, version)
+						: data
 				)
 			})
 		},
@@ -225,7 +227,10 @@ export function useUpdateMaintenanceRequest() {
 			// Optimistic update (use incrementVersion helper)
 			queryClient.setQueryData<MaintenanceRequest>(
 				maintenanceKeys.detail(id),
-				old => (old ? incrementVersion(old, data as Partial<MaintenanceRequest>) : undefined)
+				old =>
+					old
+						? incrementVersion(old, data as Partial<MaintenanceRequest>)
+						: undefined
 			)
 
 			// Also update list cache
@@ -234,7 +239,9 @@ export function useUpdateMaintenanceRequest() {
 				old => {
 					if (!old) return old
 					return old.map(m =>
-						m.id === id ? incrementVersion(m, data as Partial<MaintenanceRequest>) : m
+						m.id === id
+							? incrementVersion(m, data as Partial<MaintenanceRequest>)
+							: m
 					)
 				}
 			)
@@ -280,7 +287,7 @@ export function usePrefetchMaintenanceRequest() {
 				queryFn: async (): Promise<MaintenanceRequest> => {
 					return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 				},
-				...QUERY_CACHE_TIMES.DETAIL,
+				...QUERY_CACHE_TIMES.DETAIL
 			})
 		}
 	}
@@ -303,10 +310,13 @@ export function useCompleteMaintenance() {
 			actualCost?: number
 			notes?: string
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}/complete`, {
-				method: 'POST',
-				body: JSON.stringify({ actualCost, notes })
-			})
+			return clientFetch<MaintenanceRequest>(
+				`/api/v1/maintenance/${id}/complete`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ actualCost, notes })
+				}
+			)
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -400,10 +410,13 @@ export function useCancelMaintenance() {
 			id: string
 			reason?: string
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}/cancel`, {
-				method: 'POST',
-				body: JSON.stringify({ reason })
-			})
+			return clientFetch<MaintenanceRequest>(
+				`/api/v1/maintenance/${id}/cancel`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ reason })
+				}
+			)
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
