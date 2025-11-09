@@ -47,6 +47,7 @@ import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
+import { MetricsController } from './modules/metrics/metrics.controller'
 
 /**
  * Core App Module - KISS principle
@@ -88,11 +89,12 @@ import { MetricsModule } from './modules/metrics/metrics.module'
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
 
-		// Prometheus metrics - default metrics enabled
+		// Prometheus metrics - default metrics enabled with custom controller
 		PrometheusModule.register({
 			defaultMetrics: {
 				enabled: true
-			}
+			},
+			controller: MetricsController
 		}),
 
 		// Rate limiting - simple configuration

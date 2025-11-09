@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common'
 import { makeCounterProvider, makeGaugeProvider } from '@willsoto/nestjs-prometheus'
 import { MetricsService } from './metrics.service'
-import { MetricsController } from './metrics.controller'
 import { ConfigModule } from '@nestjs/config'
 
 @Module({
 	imports: [ConfigModule],
-	controllers: [MetricsController],
+	controllers: [],
 	providers: [
 		// Stripe webhook metrics
 		makeCounterProvider({
