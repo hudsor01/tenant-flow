@@ -316,7 +316,8 @@ export class StripeWebhookListener {
 
 			// Re-throw to propagate error to controller
 			throw error
-}
+		}
+	}
 
 	/**
 	 * Safely extract the subscription id from a Stripe invoice
