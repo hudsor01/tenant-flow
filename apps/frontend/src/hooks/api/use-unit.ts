@@ -216,7 +216,7 @@ export function useCreateUnit() {
 				lastInspectionDate: newUnit.lastInspectionDate || null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
-				version: 1 // 🔐 BUG FIX #2: Optimistic locking
+				version: 1 //Optimistic locking
 			}
 
 			// Optimistically update all relevant caches
@@ -293,7 +293,9 @@ export function useUpdateUnit() {
 			return clientFetch<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(
-					version !== null && version !== undefined ? withVersion(data, version) : data
+					version !== null && version !== undefined
+						? withVersion(data, version)
+						: data
 				)
 			})
 		},
@@ -344,7 +346,7 @@ export function useUpdateUnit() {
 				})
 			}
 
-			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
+			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('unit', id, queryClient, [
 					unitKeys.detail(id),
@@ -465,7 +467,7 @@ export function usePrefetchUnit() {
 			queryFn: async (): Promise<Unit> => {
 				return clientFetch<Unit>(`/api/v1/units/${id}`)
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }

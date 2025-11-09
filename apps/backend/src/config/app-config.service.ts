@@ -34,6 +34,10 @@ export class AppConfigService {
 		return this.configService.get('PORT', { infer: true })
 	}
 
+	getFrontendUrl(): string {
+		return this.configService.get('FRONTEND_URL', { infer: true })
+	}
+
 	// ==================== Database ====================
 
 	getDatabaseUrl(): string {
