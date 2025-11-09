@@ -207,7 +207,7 @@ export class StripeConnectService {
 	) {
 		// Register the English locale to enable country validation
 		countries.registerLocale(enLocale)
-		
+
 		this.stripe = this.stripeClientService.getClient()
 		this.defaultCountry =
 			this.normalizeCountryCode(process.env.STRIPE_CONNECT_DEFAULT_COUNTRY) ??
@@ -483,9 +483,8 @@ export class StripeConnectService {
 	 */
 	async createDashboardLoginLink(connectedAccountId: string): Promise<string> {
 		try {
-			const loginLink = await this.stripe.accounts.createLoginLink(
-				connectedAccountId
-			)
+			const loginLink =
+				await this.stripe.accounts.createLoginLink(connectedAccountId)
 			return loginLink.url
 		} catch (error) {
 			this.logger.error('Failed to create dashboard login link', {
@@ -516,27 +515,30 @@ export class StripeConnectService {
 					.single()
 
 			if (fetchError) {
-				this.logger.error('Failed to fetch existing user for onboarding status', {
-					error: fetchError,
-					userId
-				})
+				this.logger.error(
+					'Failed to fetch existing user for onboarding status',
+					{
+						error: fetchError,
+						userId
+					}
+				)
 				throw fetchError
 			}
 
 			const isNowComplete = account.charges_enabled && account.payouts_enabled
-		const existingTimestamp = existingUser?.onboardingCompletedAt
+			const existingTimestamp = existingUser?.onboardingCompletedAt
 
-		// Only set timestamp if:
-		// 1. Account is now complete AND existing timestamp is falsy (first completion)
-		// 2. Account is not complete -> null (allow re-onboarding)
-		let onboardingCompletedAt: string | null
-		if (isNowComplete) {
-			// Preserve existing timestamp on re-completion, set new timestamp on first completion
-			onboardingCompletedAt = existingTimestamp ?? new Date().toISOString()
-		} else {
-			// Clear timestamp when account is not complete (allow re-onboarding)
-			onboardingCompletedAt = null
-		}
+			// Only set timestamp if:
+			// 1. Account is now complete AND existing timestamp is falsy (first completion)
+			// 2. Account is not complete -> null (allow re-onboarding)
+			let onboardingCompletedAt: string | null
+			if (isNowComplete) {
+				// Preserve existing timestamp on re-completion, set new timestamp on first completion
+				onboardingCompletedAt = existingTimestamp ?? new Date().toISOString()
+			} else {
+				// Clear timestamp when account is not complete (allow re-onboarding)
+				onboardingCompletedAt = null
+			}
 
 			const { error } = await this.supabaseService
 				.getAdminClient()
