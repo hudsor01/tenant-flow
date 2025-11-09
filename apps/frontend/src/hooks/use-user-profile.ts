@@ -4,8 +4,6 @@ import { createClient } from '#lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from './use-current-user'
 
-const supabase = createClient()
-
 /**
  * Query keys for user profile
  */
@@ -18,10 +16,11 @@ export const userProfileKeys = {
  * Hook to fetch user's full profile from database (includes role)
  */
 export function useUserProfile() {
+	const supabase = createClient()
 	const { userId, isAuthenticated } = useCurrentUser()
 
 	return useQuery({
-		queryKey: userProfileKeys.profile(userId ?? 'no-user'),
+		queryKey: userProfileKeys.profile(userId!),
 		queryFn: async () => {
 			if (!userId) throw new Error('No user ID')
 
