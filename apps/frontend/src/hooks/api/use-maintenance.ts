@@ -11,6 +11,7 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -75,7 +76,7 @@ export function useAllMaintenanceRequests(query?: {
 
 			return response || []
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes cache
 		retry: 2,
 		structuralSharing: true
@@ -93,7 +94,7 @@ export function useMaintenanceRequest(id: string) {
 			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 		},
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000,
 		retry: 2
 	})
@@ -114,7 +115,7 @@ export function useMaintenanceStats() {
 		}> => {
 			return clientFetch(`/api/v1/maintenance/stats`)
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		retry: 2
 	})
 }
@@ -162,7 +163,7 @@ export function useCreateMaintenanceRequest() {
 				notes: null,
 				photos: [],
 				preferredDate: null,
-				version: 1 // 🔐 BUG FIX #2: Optimistic locking
+				version: 1 //Optimistic locking
 			}
 
 			queryClient.setQueryData<MaintenanceRequest[]>(
@@ -211,7 +212,9 @@ export function useUpdateMaintenanceRequest() {
 				method: 'PUT',
 				// 🔐 OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
-					version !== null && version !== undefined ? withVersion(data, version) : data
+					version !== null && version !== undefined
+						? withVersion(data, version)
+						: data
 				)
 			})
 		},
@@ -224,7 +227,10 @@ export function useUpdateMaintenanceRequest() {
 			// Optimistic update (use incrementVersion helper)
 			queryClient.setQueryData<MaintenanceRequest>(
 				maintenanceKeys.detail(id),
-				old => (old ? incrementVersion(old, data as Partial<MaintenanceRequest>) : undefined)
+				old =>
+					old
+						? incrementVersion(old, data as Partial<MaintenanceRequest>)
+						: undefined
 			)
 
 			// Also update list cache
@@ -233,7 +239,9 @@ export function useUpdateMaintenanceRequest() {
 				old => {
 					if (!old) return old
 					return old.map(m =>
-						m.id === id ? incrementVersion(m, data as Partial<MaintenanceRequest>) : m
+						m.id === id
+							? incrementVersion(m, data as Partial<MaintenanceRequest>)
+							: m
 					)
 				}
 			)
@@ -279,7 +287,7 @@ export function usePrefetchMaintenanceRequest() {
 				queryFn: async (): Promise<MaintenanceRequest> => {
 					return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
 				},
-				staleTime: 5 * 60 * 1000
+				...QUERY_CACHE_TIMES.DETAIL
 			})
 		}
 	}
@@ -302,10 +310,13 @@ export function useCompleteMaintenance() {
 			actualCost?: number
 			notes?: string
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}/complete`, {
-				method: 'POST',
-				body: JSON.stringify({ actualCost, notes })
-			})
+			return clientFetch<MaintenanceRequest>(
+				`/api/v1/maintenance/${id}/complete`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ actualCost, notes })
+				}
+			)
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -399,10 +410,13 @@ export function useCancelMaintenance() {
 			id: string
 			reason?: string
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}/cancel`, {
-				method: 'POST',
-				body: JSON.stringify({ reason })
-			})
+			return clientFetch<MaintenanceRequest>(
+				`/api/v1/maintenance/${id}/cancel`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ reason })
+				}
+			)
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries

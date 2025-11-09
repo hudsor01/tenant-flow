@@ -8,6 +8,18 @@ import type {
 } from '@repo/shared/types/database-rpc'
 
 /**
+ * Billing insights aggregated from rent payments and leases
+ */
+export interface BillingInsights {
+	/** Total revenue from all PAID rent payments */
+	totalRevenue: number
+	/** Churn rate calculated as OVERDUE / total payments */
+	churnRate: number
+	/** Monthly Recurring Revenue from active leases */
+	mrr: number
+}
+
+/**
  * Dashboard Analytics Service Interface
  *
  * RESPONSIBILITY: Complex dashboard calculations via RPC functions
@@ -76,7 +88,7 @@ export interface IDashboardAnalyticsService {
 			startDate?: Date
 			endDate?: Date
 		}
-	): Promise<Record<string, unknown>>
+	): Promise<BillingInsights>
 
 	/**
 	 * Health check for analytics service

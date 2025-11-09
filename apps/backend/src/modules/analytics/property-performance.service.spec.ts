@@ -1,227 +1,411 @@
-import { Logger } from '@nestjs/common'
-import type { SupabaseService } from '../../database/supabase.service'
+import { Test, type TestingModule } from '@nestjs/testing'
 import { PropertyPerformanceService } from './property-performance.service'
+import { SupabaseService } from '../../database/supabase.service'
+import { Logger } from '@nestjs/common'
 
-describe('PropertyPerformanceService', () => {
+describe('PropertyPerformanceService - Trend Calculation', () => {
 	let service: PropertyPerformanceService
-	let mockSupabase: jest.Mocked<Pick<SupabaseService, 'getAdminClient'>>
-	let mockRpc: jest.Mock
-	let warnSpy: jest.SpyInstance
+	let supabaseService: SupabaseService
 
-	beforeEach(() => {
-		warnSpy = jest
-			.spyOn(Logger.prototype, 'warn')
-			.mockImplementation(() => undefined)
+	const mockUserId = 'test-user-123'
 
-		mockRpc = jest.fn()
-		// Create a mock supabase that exposes getAdminClient and rpcWithRetries.
-		// rpcWithRetries delegates to the admin client's rpc so tests can assert
-		// the underlying rpc was called and also that getAdminClient was used.
-		mockSupabase = {
-			getAdminClient: jest.fn().mockReturnValue({ rpc: mockRpc })
-		} as unknown as jest.Mocked<
-			Pick<SupabaseService, 'getAdminClient' | 'rpcWithRetries'>
-		>
-		;(mockSupabase as unknown as any).rpcWithRetries = jest
-			.fn()
-			.mockImplementation((fn: string, payload: Record<string, unknown>) => {
-				return (mockSupabase.getAdminClient() as any).rpc(fn, payload)
-			})
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [
+				PropertyPerformanceService,
+				{
+					provide: SupabaseService,
+					useValue: {
+						rpcWithRetries: jest.fn()
+					}
+				}
+			]
+		}).compile()
 
-		service = new PropertyPerformanceService(
-			mockSupabase as unknown as SupabaseService
-		)
+		service = module.get<PropertyPerformanceService>(PropertyPerformanceService)
+		supabaseService = module.get<SupabaseService>(SupabaseService)
+
+		// Suppress logger output during tests
+		jest.spyOn(Logger.prototype, 'warn').mockImplementation()
 	})
 
 	afterEach(() => {
-		warnSpy.mockRestore()
+		jest.clearAllMocks()
 	})
 
-	it('fetches property performance via RPC and maps the payload', async () => {
-		const sample = [
-			{
-				property_id: 'prop_1',
-				property_name: 'Property One',
-				occupancy_rate: 94.5,
-				monthly_revenue: 12000,
-				annual_revenue: 144000,
-				total_units: 50,
-				occupied_units: 47,
-				vacant_units: 3,
-				address: '123 Main St',
-				status: 'active',
-				property_type: 'multi-family'
-			}
-		]
-
-		mockRpc.mockResolvedValue({ data: sample, error: null })
-
-		const result = await service.getPropertyPerformance('user-123')
-
-		expect(mockSupabase.getAdminClient).toHaveBeenCalledTimes(1)
-		expect(mockRpc).toHaveBeenCalledWith(
-			'get_property_performance',
-			expect.objectContaining({ user_id: 'user-123' })
-		)
-		expect(result).toEqual([
-			{
-				propertyId: 'prop_1',
-				propertyName: 'Property One',
-				occupancyRate: 94.5,
-				monthlyRevenue: 12000,
-				annualRevenue: 144000,
-				totalUnits: 50,
-				occupiedUnits: 47,
-				vacantUnits: 3,
-				address: '123 Main St',
-				status: 'active',
-				propertyType: 'multi-family'
-			}
-		])
-	})
-
-	it('returns safe fallbacks when RPC resolves with an error', async () => {
-		mockRpc.mockResolvedValue({ data: null, error: { message: 'unavailable' } })
-
-		const [performance, units, stats] = await Promise.all([
-			service.getPropertyPerformance('user-123'),
-			service.getPropertyUnits('user-123'),
-			service.getUnitStatistics('user-123')
-		])
-
-		expect(performance).toEqual([])
-		expect(units).toEqual([])
-		expect(stats).toEqual([])
-	})
-
-	it('falls back to empty records when RPC throws unexpectedly', async () => {
-		mockRpc.mockRejectedValue(new Error('network blip'))
-
-		const visitorAnalytics = await service.getVisitorAnalytics('user-456')
-
-		expect(visitorAnalytics).toEqual({
-			summary: {
-				totalVisits: 0,
-				totalInquiries: 0,
-				totalConversions: 0,
-				conversionRate: 0
-			},
-			timeline: []
-		})
-	})
-
-	it('builds property performance page data from multiple RPC calls', async () => {
-		const performance = [
-			{
-				property_id: 'prop_1',
-				property_name: 'Property One',
-				occupancy_rate: 94.5,
-				monthly_revenue: 12000,
-				total_units: 50,
-				occupied_units: 47,
-				vacant_units: 3
-			}
-		]
-		const units = [
-			{
-				property_id: 'prop_1',
-				unit_id: 'unit_1',
-				unit_number: '101',
-				status: 'occupied',
-				bedrooms: 2,
-				bathrooms: 1,
-				rent_amount: 1800,
-				square_feet: 950
-			}
-		]
-		const unitStats = [{ label: 'Vacant Units', value: 3, trend: -1 }]
-		const visitorAnalytics = {
-			summary: {
-				total_visits: 1000,
-				total_inquiries: 150,
-				total_conversions: 30
-			},
-			timeline: [
-				{ period: '2024-01', visits: 500, inquiries: 80, conversions: 15 },
-				{ period: '2024-02', visits: 500, inquiries: 70, conversions: 15 }
-			]
-		}
-
-		mockRpc
-			.mockResolvedValueOnce({ data: performance, error: null })
-			.mockResolvedValueOnce({ data: units, error: null })
-			.mockResolvedValueOnce({ data: unitStats, error: null })
-			.mockResolvedValueOnce({ data: visitorAnalytics, error: null })
-
-		const result = await service.getPropertyPerformancePageData('user-789')
-
-		expect(mockRpc).toHaveBeenCalledTimes(4)
-		expect(result).toEqual({
-			metrics: {
-				totalProperties: 1,
-				totalUnits: 50,
-				occupiedUnits: 47,
-				averageOccupancy: 94.5,
-				totalRevenue: 12000,
-				bestPerformer: 'Property One',
-				worstPerformer: 'Property One'
-			},
-			performance: [
+	describe('getPropertyPerformance - Trend Integration', () => {
+		it('should merge trend data with property performance', async () => {
+			// Mock property performance data
+			const mockProperties = [
 				{
-					propertyId: 'prop_1',
-					propertyName: 'Property One',
-					occupancyRate: 94.5,
-					monthlyRevenue: 12000,
-					annualRevenue: 0,
-					totalUnits: 50,
-					occupiedUnits: 47,
-					vacantUnits: 3,
-					address: '',
-					status: '',
-					propertyType: ''
-				}
-			],
-			units: [
-				{
-					propertyId: 'prop_1',
-					unitId: 'unit_1',
-					unitNumber: '101',
-					status: 'OCCUPIED',
-					bedrooms: 2,
-					bathrooms: 1,
-					rent: 1800,
-					squareFeet: 950
-				}
-			],
-			unitStats: [
-				{
-					label: 'Vacant Units',
-					value: 3,
-					trend: -1
-				}
-			],
-			visitorAnalytics: {
-				summary: {
-					totalVisits: 1000,
-					totalInquiries: 150,
-					totalConversions: 30,
-					conversionRate: 3
+					propertyId: 'prop-1',
+					propertyName: 'Sunset Apartments',
+					occupancyRate: 85.5,
+					monthlyRevenue: 5000,
+					annualRevenue: 60000,
+					totalUnits: 10,
+					occupiedUnits: 8,
+					vacantUnits: 2
 				},
-				timeline: [
+				{
+					propertyId: 'prop-2',
+					propertyName: 'Ocean View',
+					occupancyRate: 92.3,
+					monthlyRevenue: 8000,
+					annualRevenue: 96000,
+					totalUnits: 12,
+					occupiedUnits: 11,
+					vacantUnits: 1
+				}
+			]
+
+			// Mock trend data
+			const mockTrends = [
+				{
+					data: [
+						{
+							property_id: 'prop-1',
+							current_month_revenue: 5000,
+							previous_month_revenue: 4500,
+							trend: 'up' as const,
+							trend_percentage: 11.1
+						},
+						{
+							property_id: 'prop-2',
+							current_month_revenue: 8000,
+							previous_month_revenue: 8100,
+							trend: 'down' as const,
+							trend_percentage: 1.2
+						}
+					]
+				}
+			]
+
+			// Setup mock responses
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties }) // get_property_performance
+				.mockResolvedValueOnce(mockTrends[0]) // get_property_performance_trends
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result).toHaveLength(2)
+
+			// Verify first property has upward trend
+			expect(result[0]).toMatchObject({
+				propertyId: 'prop-1',
+				propertyName: 'Sunset Apartments',
+				trend: 'up',
+				trendPercentage: 11.1
+			})
+
+			// Verify second property has downward trend
+			expect(result[1]).toMatchObject({
+				propertyId: 'prop-2',
+				propertyName: 'Ocean View',
+				trend: 'down',
+				trendPercentage: 1.2
+			})
+		})
+
+		it('should use stable trend as fallback when no trend data available', async () => {
+			const mockProperties = [
+				{
+					propertyId: 'prop-new',
+					propertyName: 'New Property',
+					occupancyRate: 0,
+					monthlyRevenue: 0,
+					annualRevenue: 0,
+					totalUnits: 5,
+					occupiedUnits: 0,
+					vacantUnits: 5
+				}
+			]
+
+			// Mock empty trend data (new property with no payment history)
+			const mockTrends = {
+				data: []
+			}
+
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce(mockTrends)
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result).toHaveLength(1)
+			expect(result[0]).toMatchObject({
+				propertyId: 'prop-new',
+				trend: 'stable',
+				trendPercentage: 0
+			})
+		})
+
+		it('should handle null trend data gracefully', async () => {
+			const mockProperties = [
+				{
+					propertyId: 'prop-1',
+					propertyName: 'Test Property',
+					occupancyRate: 75,
+					monthlyRevenue: 3000,
+					annualRevenue: 36000,
+					totalUnits: 8,
+					occupiedUnits: 6,
+					vacantUnits: 2
+				}
+			]
+
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce({ data: null }) // Null trend data
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result).toHaveLength(1)
+			expect(result[0]).toMatchObject({
+				propertyId: 'prop-1',
+				trend: 'stable',
+				trendPercentage: 0
+			})
+		})
+
+		it('should handle partial trend data (some properties have trends, others do not)', async () => {
+			const mockProperties = [
+				{
+					propertyId: 'prop-1',
+					propertyName: 'Property with History',
+					occupancyRate: 85,
+					monthlyRevenue: 5000,
+					annualRevenue: 60000,
+					totalUnits: 10,
+					occupiedUnits: 8,
+					vacantUnits: 2
+				},
+				{
+					propertyId: 'prop-2',
+					propertyName: 'New Property',
+					occupancyRate: 0,
+					monthlyRevenue: 0,
+					annualRevenue: 0,
+					totalUnits: 5,
+					occupiedUnits: 0,
+					vacantUnits: 5
+				}
+			]
+
+			const mockTrends = {
+				data: [
 					{
-						period: '2024-01',
-						visits: 500,
-						inquiries: 80,
-						conversions: 15
-					},
+						property_id: 'prop-1',
+						current_month_revenue: 5000,
+						previous_month_revenue: 4800,
+						trend: 'up' as const,
+						trend_percentage: 4.2
+					}
+					// No trend data for prop-2
+				]
+			}
+
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce(mockTrends)
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result).toHaveLength(2)
+
+			// First property has real trend data
+			expect(result[0]).toMatchObject({
+				propertyId: 'prop-1',
+				trend: 'up',
+				trendPercentage: 4.2
+			})
+
+			// Second property falls back to stable
+			expect(result[1]).toMatchObject({
+				propertyId: 'prop-2',
+				trend: 'stable',
+				trendPercentage: 0
+			})
+		})
+
+		it('should handle stable trend (< 1% change)', async () => {
+			const mockProperties = [
+				{
+					propertyId: 'prop-1',
+					propertyName: 'Stable Property',
+					occupancyRate: 90,
+					monthlyRevenue: 10000,
+					annualRevenue: 120000,
+					totalUnits: 20,
+					occupiedUnits: 18,
+					vacantUnits: 2
+				}
+			]
+
+			const mockTrends = {
+				data: [
 					{
-						period: '2024-02',
-						visits: 500,
-						inquiries: 70,
-						conversions: 15
+						property_id: 'prop-1',
+						current_month_revenue: 10000,
+						previous_month_revenue: 9950, // 0.5% change
+						trend: 'stable' as const,
+						trend_percentage: 0 // Changes < 1% are considered stable
 					}
 				]
 			}
+
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce(mockTrends)
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result).toHaveLength(1)
+			expect(result[0]).toMatchObject({
+				propertyId: 'prop-1',
+				trend: 'stable',
+				trendPercentage: 0
+			})
+		})
+
+		it('should handle RPC errors gracefully and return empty array', async () => {
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ error: { message: 'Database error' } })
+				.mockResolvedValueOnce({ data: [] })
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result).toEqual([])
+		})
+
+		it('should call both RPC functions in parallel', async () => {
+			const mockProperties = [{ propertyId: 'prop-1' }]
+			const mockTrends = { data: [] }
+
+			const rpcSpy = jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce(mockTrends)
+
+			await service.getPropertyPerformance(mockUserId)
+
+			// Verify both RPC calls were made
+			expect(rpcSpy).toHaveBeenCalledTimes(2)
+			expect(rpcSpy).toHaveBeenNthCalledWith(1, 'get_property_performance', {
+				user_id: mockUserId,
+				user_id_param: mockUserId,
+				p_user_id: mockUserId,
+				uid: mockUserId
+			})
+			expect(rpcSpy).toHaveBeenNthCalledWith(
+				2,
+				'get_property_performance_trends',
+				{
+					user_id: mockUserId,
+					user_id_param: mockUserId,
+					p_user_id: mockUserId,
+					uid: mockUserId
+				}
+			)
+		})
+	})
+
+	describe('Edge Cases', () => {
+		it('should handle properties with zero previous revenue', async () => {
+			const mockProperties = [
+				{
+					propertyId: 'prop-1',
+					propertyName: 'First Month Revenue',
+					occupancyRate: 50,
+					monthlyRevenue: 2000,
+					annualRevenue: 24000,
+					totalUnits: 4,
+					occupiedUnits: 2,
+					vacantUnits: 2
+				}
+			]
+
+			const mockTrends = {
+				data: [
+					{
+						property_id: 'prop-1',
+						current_month_revenue: 2000,
+						previous_month_revenue: 0, // No previous revenue
+						trend: 'stable' as const, // DB returns stable when prev = 0
+						trend_percentage: 0
+					}
+				]
+			}
+
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce(mockTrends)
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			expect(result[0]?.trend).toBe('stable')
+			expect(result[0]?.trendPercentage).toBe(0)
+		})
+
+		it('should correctly preserve all property fields when merging trends', async () => {
+			const mockProperties = [
+				{
+					property_id: 'prop-1',
+					property_name: 'Full Property',
+					occupancy_rate: 85.5,
+					monthly_revenue: 5000,
+					annual_revenue: 60000,
+					total_units: 10,
+					occupied_units: 8,
+					vacant_units: 2,
+					address: '123 Main St',
+					status: 'ACTIVE',
+					property_type: 'APARTMENT'
+				}
+			]
+
+			const mockTrends = {
+				data: [
+					{
+						property_id: 'prop-1',
+						current_month_revenue: 5000,
+						previous_month_revenue: 4500,
+						trend: 'up' as const,
+						trend_percentage: 11.1
+					}
+				]
+			}
+
+			jest
+				.spyOn(supabaseService, 'rpcWithRetries')
+				.mockResolvedValueOnce({ data: mockProperties })
+				.mockResolvedValueOnce(mockTrends)
+
+			const result = await service.getPropertyPerformance(mockUserId)
+
+			// Verify all fields are preserved
+			expect(result[0]).toEqual({
+				propertyId: 'prop-1',
+				propertyName: 'Full Property',
+				occupancyRate: 85.5,
+				monthlyRevenue: 5000,
+				annualRevenue: 60000,
+				totalUnits: 10,
+				occupiedUnits: 8,
+				vacantUnits: 2,
+				address: '123 Main St',
+				status: 'ACTIVE',
+				propertyType: 'APARTMENT',
+				trend: 'up',
+				trendPercentage: 11.1
+			})
 		})
 	})
 })

@@ -78,3 +78,34 @@ export const TENANT_STATUS_LABELS: Record<
 	INACTIVE: 'Inactive',
 	PENDING: 'Pending'
 }
+
+export const MAINTENANCE_CATEGORY = {
+	GENERAL: 'GENERAL',
+	PLUMBING: 'PLUMBING',
+	ELECTRICAL: 'ELECTRICAL',
+	HVAC: 'HVAC',
+	APPLIANCES: 'APPLIANCES',
+	SAFETY: 'SAFETY',
+	OTHER: 'OTHER'
+} as const
+
+export const MAINTENANCE_CATEGORY_LABELS: Record<
+	keyof typeof MAINTENANCE_CATEGORY,
+	string
+> = {
+	GENERAL: 'General',
+	PLUMBING: 'Plumbing',
+	ELECTRICAL: 'Electrical',
+	HVAC: 'HVAC',
+	APPLIANCES: 'Appliances',
+	SAFETY: 'Safety',
+	OTHER: 'Other'
+}
+
+/**
+ * Maintenance category options for forms
+ * Provides value/label pairs for select dropdowns
+ */
+export const MAINTENANCE_CATEGORY_OPTIONS = Object.entries(
+	MAINTENANCE_CATEGORY_LABELS
+).map(([value, label]) => ({ value, label }))

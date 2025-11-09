@@ -7,7 +7,12 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	Logger
+} from '@nestjs/common'
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
@@ -364,7 +369,7 @@ export class UnitsService {
 		token: string,
 		unitId: string,
 		updateRequest: UpdateUnitRequest,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		expectedVersion?: number //Optimistic locking
 	): Promise<Unit | null> {
 		try {
 			if (!token || !unitId) {
@@ -402,12 +407,12 @@ export class UnitsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
 				updateData.version = expectedVersion + 1
 			}
 
-			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			//Add version check for optimistic locking
 			// RLS automatically verifies unit ownership - no manual propertyId check needed
 			let query = client.from('unit').update(updateData).eq('id', unitId)
 
@@ -418,7 +423,7 @@ export class UnitsService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				//Detect optimistic locking conflict
 				if (error?.code === 'PGRST116' || !data) {
 					this.logger.warn('Optimistic locking conflict detected', {
 						unitId,
@@ -544,7 +549,9 @@ export class UnitsService {
 	async getAvailable(token: string, propertyId: string): Promise<Unit[]> {
 		try {
 			if (!token || !propertyId) {
-				this.logger.warn('Available units requested without token or propertyId')
+				this.logger.warn(
+					'Available units requested without token or propertyId'
+				)
 				throw new BadRequestException(
 					'Authentication token and property ID are required'
 				)

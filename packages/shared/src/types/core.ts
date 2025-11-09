@@ -421,7 +421,7 @@ export interface TenantWithLeaseInfo {
 	currentLease: {
 		id: string
 		startDate: string
-		endDate: string
+		endDate: string | null
 		rentAmount: number
 		securityDeposit: number
 		status: string
@@ -432,7 +432,7 @@ export interface TenantWithLeaseInfo {
 	leases?: Array<{
 		id: string
 		startDate: string
-		endDate: string
+		endDate: string | null
 		rentAmount: number
 		status: string
 		property?: {
@@ -485,6 +485,8 @@ export interface PropertyPerformance {
 	address: string
 	propertyType: string
 	status: 'NO_UNITS' | 'VACANT' | 'FULL' | 'PARTIAL'
+	trend: 'up' | 'down' | 'stable'
+	trendPercentage: number
 }
 
 export interface PropertyPerformanceResponse {

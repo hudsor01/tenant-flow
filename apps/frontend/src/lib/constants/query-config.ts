@@ -35,7 +35,16 @@ export const QUERY_CACHE_TIMES = {
 	 * Used for dashboard widgets and summary cards
 	 */
 	STATS: {
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		staleTime: 1 * 60 * 1000, // 1 minute (per CLAUDE.md)
+		gcTime: 5 * 60 * 1000 // 5 minutes
+	},
+
+	/**
+	 * Analytics queries (longer cache for report data)
+	 * Used for property analytics, financial reports
+	 */
+	ANALYTICS: {
+		staleTime: 15 * 60 * 1000, // 15 minutes
 		gcTime: 30 * 60 * 1000 // 30 minutes
 	},
 
@@ -45,7 +54,8 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	REALTIME: {
 		staleTime: 0, // Always stale, refetch on mount
-		refetchInterval: 30 * 1000 // 30 seconds
+		refetchInterval: 30 * 1000, // 30 seconds
+		gcTime: 5 * 60 * 1000 // 5 minutes
 	},
 
 	/**

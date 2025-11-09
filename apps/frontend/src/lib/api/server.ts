@@ -48,28 +48,12 @@ export async function serverFetch<T>(
 		}
 	)
 
-	// SECURITY FIX: Validate user with getUser() before extracting token
-	// This ensures the session is authentic by contacting Supabase Auth server
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	// Get access token from session (only after validation)
+	// Get access token from session
+	// NOTE: getSession() is fast (reads from cookie, no network call)
+	// We trust the session because middleware already validated it
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
-
-	// Debug authentication in production
-	logger.debug('serverFetch session check', {
-		metadata: {
-			hasUser: !!user,
-			hasSession: !!session,
-			hasAccessToken: !!session?.access_token,
-			endpoint,
-			environment: process.env.NODE_ENV
-		}
-	})
 
 	// Make API request with Bearer token if available
 	const headers: Record<string, string> = {
@@ -85,16 +69,13 @@ export async function serverFetch<T>(
 		})
 	}
 
-	// Only use access token if user validation succeeded
-	if (!userError && user && session?.access_token) {
+	// Add auth header if session exists
+	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	} else {
-		logger.warn('No valid session found for API request', {
+		logger.warn('No session found for API request', {
 			metadata: {
 				endpoint,
-				hasUser: !!user,
-				hasSession: !!session,
-				userError: userError?.message,
 				cookieCount: cookieStore.getAll().length
 			}
 		})
@@ -103,9 +84,8 @@ export async function serverFetch<T>(
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 		...options,
 		headers,
-		// Use revalidation caching instead of no-store to prevent excessive calls
-		next: { revalidate: 30 }, // Cache for 30 seconds
-		cache: options?.cache || 'default'
+		cache: options?.cache ?? 'no-store',
+		next: options?.next ?? { revalidate: 0 }
 	})
 
 	if (!response.ok) {
@@ -120,21 +100,25 @@ export async function serverFetch<T>(
 			}
 		})
 
-		// In production, don't expose detailed error messages to prevent leaking sensitive info
-		if (process.env.NODE_ENV === 'production') {
-			throw new Error(`API request failed with status ${response.status}`)
-		} else {
-			throw new Error(
-				`API Error (${response.status}): ${errorText || response.statusText}`
-			)
-		}
+		// Preserve status code for error handling utilities (isConflictError, isNotFoundError)
+		const errorMessage = process.env.NODE_ENV === 'production'
+			? `API request failed with status ${response.status}`
+			: `API Error (${response.status}): ${errorText || response.statusText}`
+		
+		const error = new Error(errorMessage) as Error & { status: number; statusCode: number }
+		error.status = response.status
+		error.statusCode = response.status
+		throw error
 	}
 
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
 	if (data.success === false) {
-		throw new Error(data.error || data.message || 'API request failed')
+		const error = new Error(data.error || data.message || 'API request failed') as Error & { status: number; statusCode: number }
+		error.status = response.status
+		error.statusCode = response.status
+		throw error
 	}
 
 	// Return data directly or the whole response based on API format
