@@ -14,6 +14,7 @@ import type Stripe from 'stripe'
 import { z } from 'zod'
 import type { Tenant, Lease } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 
@@ -39,10 +40,6 @@ const TenantLeaseRpcResultSchema = z.object({
 		securityDeposit: z.number(),
 		status: z.string()
 	}).passthrough() // Allow additional fields from RPC
-})
-
-const PropertyNameSchema = z.object({
-	name: z.string()
 })
 
 interface CreateTenantWithLeaseInput {
@@ -73,7 +70,8 @@ export class TenantInvitationService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly stripeConnect: StripeConnectService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly config: AppConfigService
 	) {}
 
 	/**
@@ -143,9 +141,6 @@ export class TenantInvitationService {
 			await this.sendInvitationEmail(tenant, lease, checkoutSession.url)
 
 			// Step 6: Emit event for audit logging
-			// TODO: Add listener in NotificationsService (apps/backend/src/modules/notifications/notifications.service.ts)
-			// Pattern: @OnEvent('tenant.invited') async handleTenantInvited(payload: { tenantId, leaseId, ownerId, checkoutUrl })
-			// Purpose: Send notification to property owner about successful tenant invitation
 			this.eventEmitter.emit('tenant.invited', {
 				tenantId: tenant.id,
 				leaseId: lease.id,
@@ -211,8 +206,12 @@ export class TenantInvitationService {
 		})
 
 		if (error || !data) {
+			this.logger.error('Failed to create tenant via RPC', {
+				ownerId,
+				error: error?.message
+			})
 			throw new BadRequestException(
-				`Failed to create tenant: ${error?.message || 'Unknown error'}`
+				'Failed to create tenant. Please verify the property and tenant details.'
 			)
 		}
 
@@ -220,8 +219,8 @@ export class TenantInvitationService {
 		const validationResult = TenantLeaseRpcResultSchema.safeParse(data)
 		if (!validationResult.success) {
 			this.logger.error('RPC result validation failed', {
-				error: validationResult.error,
-				data
+				errorCount: validationResult.error.issues.length,
+				firstIssue: validationResult.error.issues[0]?.path.join('.')
 			})
 			throw new BadRequestException('Invalid RPC response structure')
 		}
@@ -264,17 +263,19 @@ export class TenantInvitationService {
 				customer: customer.id,
 				items: [
 					{
-					// Note: Type assertion required due to Stripe SDK type mismatch
-					// The API accepts this structure but TypeScript types are overly strict
-					// See: https://github.com/stripe/stripe-node/issues/1179
-					price_data: {
-						currency: 'usd',
-						unit_amount: rentAmountCents,
-						recurring: { interval: 'month' },
-						product_data: {
-							name: 'Monthly Rent'
-						}
-					} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
+						// Stripe SDK types are overly strict - API accepts inline product_data
+						// but TypeScript types expect product ID string. This is a known issue.
+						// References:
+						// - API docs: https://stripe.com/docs/api/subscriptions/create#create_subscription-items-price_data
+						// - SDK issue: https://github.com/stripe/stripe-node/issues/1179
+						price_data: {
+							currency: 'usd',
+							unit_amount: rentAmountCents,
+							recurring: { interval: 'month' },
+							product_data: {
+								name: 'Monthly Rent'
+							}
+						} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
 					}
 				],
 				payment_behavior: 'default_incomplete',
@@ -309,7 +310,7 @@ export class TenantInvitationService {
 		leaseId: string
 	) {
 		const stripe = this.stripeConnect.getStripe()
-		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+		const frontendUrl = this.config.getFrontendUrl()
 
 		return await stripe.checkout.sessions.create(
 			{
@@ -352,8 +353,13 @@ export class TenantInvitationService {
 
 		for (const { error } of results) {
 			if (error) {
+				this.logger.error('Failed to link Stripe resources', {
+					tenantId,
+					leaseId,
+					error: error.message
+				})
 				throw new BadRequestException(
-					`Failed to link Stripe resources: ${error.message}`
+					'Failed to link Stripe subscription. Please contact support.'
 				)
 			}
 		}
@@ -368,40 +374,20 @@ export class TenantInvitationService {
 		checkoutUrl: string
 	) {
 		const client = this.supabase.getAdminClient()
+		const frontendUrl = this.config.getFrontendUrl()
 
-		// Get property info for email
+		// Get property name for email metadata
+		// Note: PropertyOwnershipGuard already validated property exists and is owned by user
 		const propertyId = lease.propertyId
 		if (!propertyId) {
 			throw new BadRequestException('Lease must have a property assigned')
 		}
 
-		const { data: property, error: propertyError } = await client
+		const { data: property } = await client
 			.from('property')
 			.select('name')
 			.eq('id', propertyId)
 			.single()
-
-		if (propertyError || !property) {
-			this.logger.error('Failed to fetch property for invitation email', {
-				propertyId,
-				error: propertyError
-			})
-			throw new BadRequestException(
-				'Failed to fetch property details for invitation'
-			)
-		}
-
-		// Validate property structure with Zod
-		const propertyValidation = PropertyNameSchema.safeParse(property)
-		if (!propertyValidation.success) {
-			this.logger.error('Property validation failed', {
-				propertyId,
-				error: propertyValidation.error
-			})
-			throw new BadRequestException('Invalid property structure')
-		}
-
-		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
 
 		// Send Supabase Auth invitation with Checkout URL in metadata
 		const { data: authUser, error } = await client.auth.admin.inviteUserByEmail(
@@ -413,7 +399,7 @@ export class TenantInvitationService {
 					propertyId: lease.propertyId,
 					firstName: tenant.firstName,
 					lastName: tenant.lastName,
-					propertyName: propertyValidation.data.name,
+					propertyName: property?.name ?? 'Property',
 					checkoutUrl, // Tenant can complete payment setup
 					role: 'tenant'
 				},
@@ -430,9 +416,7 @@ export class TenantInvitationService {
 		// Validate auth user response before linking
 		if (!authUser.user?.id) {
 			this.logger.error('Auth invitation succeeded but user ID is missing', {
-				tenantId: tenant.id,
-				tenantEmail: tenant.email,
-				authUser
+				tenantId: tenant.id
 			})
 			throw new BadRequestException(
 				'Failed to create auth user: User ID missing from response'

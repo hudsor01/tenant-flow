@@ -10,6 +10,7 @@ const environmentSchema = z.object({
 	// Application
 	NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
 	PORT: z.coerce.number().default(4600),
+	FRONTEND_URL: z.string().url('Must be a valid URL').default('https://tenantflow.app'),
 
 	// Database
 	DATABASE_URL: z.string(),

@@ -173,7 +173,7 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const userId = req.user.id
 
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		//Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const tenant = await this.tenantsService.update(
 			userId,
@@ -295,7 +295,7 @@ export class TenantsController {
 
 	/**
 	 * ✅ MODERN: Invite tenant with lease using Stripe + Supabase
-	 * 
+	 *
 	 * Architecture:
 	 * - PropertyOwnershipGuard: Verifies user owns the property
 	 * - StripeConnectedGuard: Verifies user has completed Stripe onboarding
@@ -480,7 +480,8 @@ export class TenantsController {
 			email?: string | null
 		} = {}
 		if (dto.contactName !== undefined) updateData.contactName = dto.contactName
-		if (dto.relationship !== undefined) updateData.relationship = dto.relationship
+		if (dto.relationship !== undefined)
+			updateData.relationship = dto.relationship
 		if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber
 		if (dto.email !== undefined) updateData.email = dto.email ?? null
 
