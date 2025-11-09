@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
@@ -11,7 +11,7 @@ export class WebhookRetryService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly prometheus: PrometheusService
+		@Optional() private readonly prometheus: PrometheusService | null
 	) {}
 
 	/**
@@ -95,7 +95,7 @@ export class WebhookRetryService {
 					.eq('id', failure.id)
 
 				// Record retry success
-				this.prometheus.recordWebhookRetry(failure.event_type, retryCount + 1)
+				this.prometheus?.recordWebhookRetry(failure.event_type, retryCount + 1)
 
 				this.logger.log(`Successfully retried webhook ${failure.stripe_event_id}`)
 			} catch (error) {
@@ -117,7 +117,7 @@ export class WebhookRetryService {
 				)
 
 				// Record retry failure
-				this.prometheus.recordWebhookFailure(
+				this.prometheus?.recordWebhookFailure(
 					failure.event_type,
 					error instanceof Error ? error.constructor.name : 'UnknownError'
 				)
