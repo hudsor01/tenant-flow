@@ -5,11 +5,6 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { API_BASE_URL } from '@repo/shared/config/api'
-import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
-} from '@repo/shared/config/supabase'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
@@ -31,11 +26,19 @@ export default function TenantOnboardingPage() {
 
 		const activateTenant = async () => {
 			try {
-				// 1. Create Supabase browser client with validated config
-				const supabase = createBrowserClient(
-					SUPABASE_URL,
-					SUPABASE_PUBLISHABLE_KEY
-				)
+			// Validate required environment variables
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+			if (!supabaseUrl || !supabaseKey) {
+				logger.error('Missing Supabase configuration')
+				setErrorMessage('Application configuration error. Please contact support.')
+				setStatus('error')
+				return
+			}
+
+			// 1. Create Supabase browser client with validated config
+			const supabase = createBrowserClient(supabaseUrl, supabaseKey)
 
 				// 3. Get current auth user (validates JWT securely)
 				const {
@@ -75,9 +78,18 @@ export default function TenantOnboardingPage() {
 
 				setStatus('activating')
 
-				// 5. Call backend activation endpoint with authentication
-				const response = await fetch(
-					`${API_BASE_URL}/api/v1/tenants/activate`,
+			// Validate API base URL
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+			if (!apiBaseUrl) {
+				logger.error('Missing API base URL configuration')
+				setErrorMessage('Application configuration error. Please contact support.')
+				setStatus('error')
+				return
+			}
+
+			// 5. Call backend activation endpoint with authentication
+			const response = await fetch(
+				`${apiBaseUrl}/api/v1/tenants/activate`,
 					{
 						method: 'POST',
 						headers: {
