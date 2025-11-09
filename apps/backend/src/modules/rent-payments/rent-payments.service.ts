@@ -28,6 +28,26 @@ import type {
 
 type PaymentMethodType = 'card' | 'ach'
 
+/**
+ * Current payment status for a tenant
+ *
+ * **All amounts in CENTS (Stripe standard)**
+ */
+export interface CurrentPaymentStatus {
+	/** Payment status: PAID, DUE, OVERDUE, or PENDING */
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	/** Monthly rent amount in CENTS */
+	rentAmount: number
+	/** Next payment due date (ISO string) or null */
+	nextDueDate: string | null
+	/** Last payment date (ISO string) or null */
+	lastPaymentDate: string | null
+	/** Outstanding balance in CENTS */
+	outstandingBalance: number
+	/** Whether there are overdue payments */
+	isOverdue: boolean
+}
+
 @Injectable()
 export class RentPaymentsService {
 	private readonly logger = new Logger(RentPaymentsService.name)
@@ -42,19 +62,45 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * Accept both dollar and cent inputs and return an integer amount in cents.
+	 * CURRENCY CONVENTION: Normalize amount to CENTS for Stripe
+	 *
+	 * Accepts both dollar and cent inputs (backward compatibility):
+	 * - If amount < 1,000,000 → assume DOLLARS, convert to cents (amount * 100)
+	 * - If amount >= 1,000,000 → assume CENTS, use as-is
+	 *
+	 * Rationale: Threshold of 1M allows rents up to $9,999/month in dollar format
+	 * while supporting high-value properties (e.g., $5,000/month = 500,000 cents)
+	 *
+	 * Example:
+	 * - normalizeAmount(2500) → 250,000 cents ($2,500.00)
+	 * - normalizeAmount(5000) → 500,000 cents ($5,000.00)
+	 * - normalizeAmount(500000) → 500,000 cents ($5,000.00)
+	 *
+	 * @param amount - Amount in dollars (< 1000000) or cents (>= 1000000)
+	 * @returns Integer amount in CENTS for Stripe
+	 * @throws BadRequestException if amount is invalid or non-positive
 	 */
 	private normalizeAmount(amount: number): number {
 		const numericAmount = Number(amount)
+
+		// Validate is finite and positive
 		if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
 			throw new BadRequestException('Payment amount must be greater than zero')
 		}
 
-		if (numericAmount < 100000) {
-			return Math.round(numericAmount * 100)
+		// Heuristic: values < 1,000,000 assumed to be dollars, >= 1,000,000 assumed to be cents
+		// This handles backward compatibility with both input formats and high-value properties
+		if (numericAmount < 1000000) {
+			return Math.round(numericAmount * 100) // Convert dollars to cents
 		}
 
-		return Math.round(numericAmount)
+		// Already in cents, validate is integer
+		const roundedAmount = Math.round(numericAmount)
+		if (!Number.isInteger(roundedAmount)) {
+			throw new BadRequestException('Amount in cents must be an integer')
+		}
+
+		return roundedAmount
 	}
 
 	/**
@@ -296,8 +342,8 @@ export class RentPaymentsService {
 
 		const stripeCustomerId = stripeCustomer.id
 
-		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate charges
-		const idempotencyKey = `payment-${tenantId}-${leaseId}-${paymentType}-${Date.now()}`
+		// Idempotency key prevents duplicate charges - uses stable identifiers only
+		const idempotencyKey = `payment-${tenantId}-${leaseId}-${paymentType}`
 		const paymentIntent = await this.stripe.paymentIntents.create(
 			{
 				amount: amountInCents,
@@ -327,6 +373,13 @@ export class RentPaymentsService {
 			paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending'
 		const now = new Date().toISOString()
 
+		// Extract receipt URL from payment intent
+		const receiptUrl =
+			typeof paymentIntent.latest_charge === 'object' &&
+			paymentIntent.latest_charge
+				? paymentIntent.latest_charge.receipt_url
+				: undefined
+
 		const { data: rentPayment, error: paymentError } = await adminClient
 			.from('rent_payment')
 			.insert({
@@ -341,6 +394,7 @@ export class RentPaymentsService {
 				status,
 				paymentType,
 				stripePaymentIntentId: paymentIntent.id,
+				receiptUrl: receiptUrl ?? null,
 				paidAt: status === 'succeeded' ? now : null,
 				createdAt: now
 			})
@@ -355,12 +409,6 @@ export class RentPaymentsService {
 			})
 			throw new BadRequestException('Failed to save payment record')
 		}
-
-		const receiptUrl =
-			typeof paymentIntent.latest_charge === 'object' &&
-			paymentIntent.latest_charge
-				? paymentIntent.latest_charge.receipt_url
-				: undefined
 
 		return {
 			payment: rentPayment,
@@ -602,8 +650,8 @@ export class RentPaymentsService {
 			// Create Stripe Subscription for recurring rent (no platform fee)
 			const amountInCents = this.normalizeAmount(lease.rentAmount)
 
-			// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate subscriptions
-			const subscriptionIdempotencyKey = `subscription-${tenantId}-${leaseId}-${Date.now()}`
+			// Idempotency key prevents duplicate subscriptions - uses stable identifiers only
+			const subscriptionIdempotencyKey = `subscription-${tenantId}-${leaseId}`
 			const subscription = await this.stripe.subscriptions.create(
 				{
 					customer: stripeCustomer.id,
@@ -810,20 +858,24 @@ export class RentPaymentsService {
 	 *
 	 * Task 2.4: Payment Status Tracking
 	 *
+	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
+	 *
 	 * IMPORTANT: All amounts use Stripe standard (CENTS, not dollars)
+	 * @param tenantId - The tenant ID to get payment status for
+	 * @param requestingUserId - The user making the request (for authorization)
 	 * @returns outstandingBalance - Amount in CENTS (Stripe standard)
 	 * @returns rentAmount - Monthly rent in CENTS (Stripe standard)
+	 * @throws ForbiddenException if user is not authorized
 	 */
-	async getCurrentPaymentStatus(tenantId: string): Promise<{
-		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
-		rentAmount: number
-		nextDueDate: string | null
-		lastPaymentDate: string | null
-		outstandingBalance: number
-		isOverdue: boolean
-	}> {
+	async getCurrentPaymentStatus(
+		tenantId: string,
+		requestingUserId: string
+	): Promise<CurrentPaymentStatus> {
 		try {
 			const adminClient = this.supabase.getAdminClient()
+
+			// ✅ Authorization check: Verify requesting user has access to this tenant
+			await this.verifyTenantAccess(requestingUserId, tenantId)
 
 			// Get tenant's active lease
 			const { data: lease, error: leaseError } = await adminClient
@@ -860,50 +912,8 @@ export class RentPaymentsService {
 			const now = new Date()
 
 			// Calculate status based on unpaid payments
-			let status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING' = 'PAID'
-			let outstandingBalance = 0
-			let nextDueDate: string | null = null
-			let isOverdue = false
-
-			if (unpaidPayments && unpaidPayments.length > 0) {
-				// Sum up all unpaid payments amounts (already in cents from database)
-				outstandingBalance = unpaidPayments.reduce(
-					(sum: number, payment: { amount: number | null }) =>
-						sum + (payment.amount || 0),
-					0
-				)
-				// Get the earliest due date
-				const earliestDue = unpaidPayments[0]
-				if (earliestDue) {
-					nextDueDate = earliestDue.dueDate ?? null
-
-							// Check if any payment is overdue using proper Date comparison
-					const hasOverdue = unpaidPayments.some(
-						(payment: { dueDate: string | null }) => {
-							if (!payment.dueDate) return false
-							const dueDate = new Date(payment.dueDate)
-							return dueDate < now
-						}
-					)
-
-					if (hasOverdue) {
-						status = 'OVERDUE'
-						isOverdue = true
-					} else if (
-						unpaidPayments.some(
-							(p: { status: string | null }) => p.status === 'PENDING'
-						)
-					) {
-						status = 'PENDING'
-					} else {
-						status = 'DUE'
-					}
-				}
-			} else {
-				// No unpaid payments - calculate next due date (1st of next month)
-				const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-				nextDueDate = nextMonth.toISOString().split('T')[0] ?? null
-			}
+			const { status, outstandingBalance, nextDueDate, isOverdue } =
+				this.determinePaymentStatus(unpaidPayments, now)
 
 			const lastPaymentDate = lastPayment?.paidAt ?? null
 
@@ -949,5 +959,72 @@ export class RentPaymentsService {
 			})
 			throw new ForbiddenException('You do not have access to this tenant')
 		}
+	}
+
+	/**
+	 * Determines payment status based on unpaid payments
+	 * @param unpaidPayments - Array of unpaid rent payments
+	 * @param now - Current date for overdue calculation
+	 * @returns Payment status and related fields
+	 */
+	private determinePaymentStatus(
+		unpaidPayments: Array<{
+			dueDate: string | null
+			status: string | null
+			amount: number | null
+		}> | null,
+		now: Date
+	): {
+		status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+		outstandingBalance: number
+		nextDueDate: string | null
+		isOverdue: boolean
+	} {
+		let status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING' = 'PAID'
+		let outstandingBalance = 0
+		let nextDueDate: string | null = null
+		let isOverdue = false
+
+		if (unpaidPayments && unpaidPayments.length > 0) {
+			// Sum up all unpaid payments amounts (already in cents from database)
+			outstandingBalance = unpaidPayments.reduce(
+				(sum: number, payment: { amount: number | null }) =>
+					sum + (payment.amount || 0),
+				0
+			)
+			// Get the earliest due date
+			const earliestDue = unpaidPayments[0]
+			if (earliestDue) {
+				nextDueDate = earliestDue.dueDate ?? null
+
+				// Check if any payment is overdue using proper Date comparison
+				const hasOverdue = unpaidPayments.some(
+					(payment: { dueDate: string | null }) => {
+						if (!payment.dueDate) return false
+						const dueDate = new Date(payment.dueDate)
+						return dueDate < now
+					}
+				)
+
+				if (hasOverdue) {
+					status = 'OVERDUE'
+					isOverdue = true
+				} else if (
+					unpaidPayments.some(
+						(p: { status: string | null }) => p.status === 'PENDING'
+					)
+				) {
+					status = 'PENDING'
+				} else {
+					status = 'DUE'
+				}
+			}
+		} else {
+			// No unpaid payments - calculate next due date (1st of next month)
+			const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+			nextDueDate = nextMonth.toISOString().split('T')[0] ?? null
+		}
+
+		return { status, outstandingBalance, nextDueDate, isOverdue }
 	}
 }

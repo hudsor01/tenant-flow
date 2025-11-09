@@ -5,27 +5,40 @@ import {
 } from '../../test-utils/mocks'
 import { TenantsService } from './tenants.service'
 
+/**
+ * Test helper: Creates TenantsService with mocked dependencies
+ * Consolidates service instantiation to reduce duplication across test suites
+ */
+function createTenantsServiceWithMocks() {
+	const mockSupabaseService = createMockSupabaseService()
+	const mockStripeConnectService = createMockStripeConnectService()
+	const mockEventEmitter = {
+		emit: jest.fn()
+	} as unknown as jest.Mocked<EventEmitter2>
+
+	// Directly instantiate the service to avoid Nest DI resolution issues
+	const tenantsService = new TenantsService(
+		mockSupabaseService as any,
+		mockEventEmitter as any,
+		mockStripeConnectService as any
+	)
+
+	return {
+		tenantsService,
+		mockSupabaseService,
+		mockStripeConnectService,
+		mockEventEmitter
+	}
+}
+
 describe('TenantsService.getSummary', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
-	let mockStripeConnectService: ReturnType<
-		typeof createMockStripeConnectService
-	>
-	let mockEventEmitter: jest.Mocked<EventEmitter2>
 
 	beforeEach(async () => {
-		mockSupabaseService = createMockSupabaseService()
-		mockStripeConnectService = createMockStripeConnectService()
-		mockEventEmitter = {
-			emit: jest.fn()
-		} as unknown as jest.Mocked<EventEmitter2>
-
-		// Directly instantiate the service to avoid Nest DI resolution issues
-		tenantsService = new TenantsService(
-			mockSupabaseService as any,
-			mockEventEmitter as any,
-			mockStripeConnectService as any
-		)
+		const mocks = createTenantsServiceWithMocks()
+		tenantsService = mocks.tenantsService
+		mockSupabaseService = mocks.mockSupabaseService
 	})
 
 	it('should compute totals and return a TenantSummary', async () => {
@@ -94,24 +107,11 @@ describe('TenantsService.getSummary', () => {
 describe('TenantsService.sendTenantInvitationV2', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
-	let mockStripeConnectService: ReturnType<
-		typeof createMockStripeConnectService
-	>
-	let mockEventEmitter: jest.Mocked<EventEmitter2>
 
 	beforeEach(async () => {
-		mockSupabaseService = createMockSupabaseService()
-		mockStripeConnectService = createMockStripeConnectService()
-		mockEventEmitter = {
-			emit: jest.fn()
-		} as unknown as jest.Mocked<EventEmitter2>
-
-		// Direct instantiation to avoid DI issues in unit tests
-		tenantsService = new TenantsService(
-			mockSupabaseService as any,
-			mockEventEmitter as any,
-			mockStripeConnectService as any
-		)
+		const mocks = createTenantsServiceWithMocks()
+		tenantsService = mocks.tenantsService
+		mockSupabaseService = mocks.mockSupabaseService
 	})
 
 	it('should send invitation via Supabase Auth', async () => {
@@ -234,34 +234,21 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 describe('TenantsService.activateTenantFromAuthUser', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
-	let mockStripeConnectService: ReturnType<
-		typeof createMockStripeConnectService
-	>
-	let mockEventEmitter: jest.Mocked<EventEmitter2>
 
 	beforeEach(async () => {
-		mockSupabaseService = createMockSupabaseService()
-		mockStripeConnectService = createMockStripeConnectService()
-		mockEventEmitter = {
-			emit: jest.fn()
-		} as unknown as jest.Mocked<EventEmitter2>
-
-		// Direct instantiation to avoid DI issues in unit tests
-		tenantsService = new TenantsService(
-			mockSupabaseService as any,
-			mockEventEmitter as any,
-			mockStripeConnectService as any
-		)
+		const mocks = createTenantsServiceWithMocks()
+		tenantsService = mocks.tenantsService
+		mockSupabaseService = mocks.mockSupabaseService
 	})
 
 	it('should activate tenant from auth user ID', async () => {
 		const authUserId = 'auth-user-123'
-		const tenantId = 'tenant-456'
+		const tenantId = '00000000-0000-4000-8000-000000000456'
 
 		const mockAdminClient: any = {
 			rpc: jest.fn(() =>
 				Promise.resolve({
-					data: [{ tenant_id: tenantId, activated: true }],
+					data: [{ id: tenantId, activated: true }],
 					error: null
 				})
 			)
@@ -306,7 +293,7 @@ describe('TenantsService.activateTenantFromAuthUser', () => {
 		const mockAdminClient: any = {
 			rpc: jest.fn(() =>
 				Promise.resolve({
-					data: [{ tenant_id: 'tenant-456', activated: false }],
+					data: [{ id: '00000000-0000-4000-8000-000000000456', activated: false }],
 					error: null
 				})
 			)
@@ -324,24 +311,11 @@ describe('TenantsService.activateTenantFromAuthUser', () => {
 describe('TenantsService.findOneWithLease - Payment Status Calculation', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
-	let mockStripeConnectService: ReturnType<
-		typeof createMockStripeConnectService
-	>
-	let mockEventEmitter: jest.Mocked<EventEmitter2>
 
 	beforeEach(async () => {
-		mockSupabaseService = createMockSupabaseService()
-		mockStripeConnectService = createMockStripeConnectService()
-		mockEventEmitter = {
-			emit: jest.fn()
-		} as unknown as jest.Mocked<EventEmitter2>
-
-		// Direct instantiation to avoid DI issues in unit tests
-		tenantsService = new TenantsService(
-			mockSupabaseService as any,
-			mockEventEmitter as any,
-			mockStripeConnectService as any
-		)
+		const mocks = createTenantsServiceWithMocks()
+		tenantsService = mocks.tenantsService
+		mockSupabaseService = mocks.mockSupabaseService
 	})
 
 	it('should return "Current" status when payment is PAID', async () => {

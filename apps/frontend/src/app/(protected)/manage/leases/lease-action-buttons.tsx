@@ -122,15 +122,23 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		}
 
 		try {
+			// Extract tenantId before async call for TypeScript control flow analysis
+			const tenantId = lease.tenantId
+
+			if (!tenantId) {
+				toast.error('Lease has no tenant assigned')
+				return
+			}
+
 			const result = await createPayment.mutateAsync({
-				tenantId: lease.tenantId,
+				tenantId: tenantId,
 				leaseId: lease.id,
 				amount: lease.rentAmount,
 				paymentMethodId: selectedPaymentMethodId
 			})
 
 			const receiptUrl =
-				result.paymentIntent.receiptUrl || result.paymentIntent.receipt_url
+				result.paymentIntent.receiptUrl || result.paymentIntent.receiptUrl
 
 			if (result.success && receiptUrl) {
 				toast.success(
@@ -217,8 +225,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 											</InputGroupAddon>
 											<InputGroupInput
 												id="edit-endDate"
-												type="date"
-												value={field.state.value}
+										type="date"
+										value={field.state.value || ''}
 												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 													field.handleChange(e.target.value)
 												}
@@ -396,7 +404,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 								</div>
 								<span className="text-sm text-muted-foreground">
 									{new Date(lease.startDate).toLocaleDateString()} -{' '}
-									{new Date(lease.endDate).toLocaleDateString()}
+									{lease.endDate ? new Date(lease.endDate).toLocaleDateString() : 'Month-to-Month'}
 								</span>
 							</div>
 
@@ -442,7 +450,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 									<span className="text-sm font-medium">Tenant ID</span>
 								</div>
 								<span className="text-sm text-muted-foreground font-mono">
-									{lease.tenantId}
+									{lease.tenantId || 'Unassigned'}
 								</span>
 							</div>
 

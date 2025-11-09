@@ -175,6 +175,11 @@ export class SecurityService {
 			throw new BadRequestException('Input must be a string')
 		}
 
+		// Throw on empty input early (fail-fast principle)
+		if (input.length === 0) {
+			throw new BadRequestException('Input cannot be empty')
+		}
+
 		// Simplified maxLength check - remove unnecessary non-null assertion
 		if (input.length > options.maxLength) {
 			throw new BadRequestException(
@@ -182,21 +187,24 @@ export class SecurityService {
 			)
 		}
 
-		// PERFORMANCE: Consolidated validation loop - check control chars and null bytes in single pass
-		for (let i = 0; i < input.length; i++) {
-			const charCode = input.charCodeAt(i)
+		// Fix whitespace-only input check to use proper regex (not includes)
+		if (/^\s+$/.test(input)) {
+			throw new BadRequestException('Input cannot contain only whitespace')
+		}
 
-			// Check for control characters (includes null bytes if not explicitly allowed)
-			if (
-				!options.allowControlChars &&
-				((charCode >= 0x00 && charCode <= 0x1f) || charCode === 0x7f)
-			) {
-				throw new BadRequestException('Input contains control characters')
-			}
+		// PERFORMANCE: Optimized null-byte check before loop
+		if (!options.allowNullBytes && input.includes('\0')) {
+			throw new BadRequestException('Input contains null bytes')
+		}
 
-			// Check for null bytes separately (for backward compatibility when allowControlChars=true but allowNullBytes=false)
-			if (!options.allowNullBytes && charCode === 0) {
-				throw new BadRequestException('Input contains null bytes')
+		// PERFORMANCE: Consolidated validation loop - check control chars in single pass
+		if (!options.allowControlChars) {
+			for (let i = 0; i < input.length; i++) {
+				const charCode = input.charCodeAt(i)
+				// Check for control characters (0x00-0x1F and 0x7F)
+				if ((charCode >= 0x00 && charCode <= 0x1f) || charCode === 0x7f) {
+					throw new BadRequestException('Input contains control characters')
+				}
 			}
 		}
 

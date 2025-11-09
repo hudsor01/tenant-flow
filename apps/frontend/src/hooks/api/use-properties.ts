@@ -18,15 +18,16 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-import type {
-	UpdatePropertyInput
-} from '@repo/shared/types/api-inputs'
+import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
 import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants'
 
 /**
@@ -90,7 +91,9 @@ export function usePropertyList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const response = await clientFetch<Property[]>(`/api/v1/properties?${searchParams.toString()}`)
+			const response = await clientFetch<Property[]>(
+				`/api/v1/properties?${searchParams.toString()}`
+			)
 
 			// Prefetch individual property details
 			response?.forEach?.(property => {
@@ -149,7 +152,7 @@ export function usePropertyPerformanceAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/performance')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -163,7 +166,7 @@ export function usePropertyOccupancyAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/occupancy')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -177,7 +180,7 @@ export function usePropertyFinancialAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/financial')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -191,7 +194,7 @@ export function usePropertyMaintenanceAnalytics() {
 		queryFn: async () => {
 			return clientFetch('/api/v1/properties/analytics/maintenance')
 		},
-		staleTime: 15 * 60 * 1000, // 15 minutes
+		...QUERY_CACHE_TIMES.ANALYTICS,
 		retry: 2
 	})
 }
@@ -203,11 +206,13 @@ export function useCreateProperty() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (propertyData: CreatePropertyRequest): Promise<Property> => {
+		mutationFn: async (
+			propertyData: CreatePropertyRequest
+		): Promise<Property> => {
 			return clientFetch<Property>('/api/v1/properties', {
-			method: 'POST',
-			body: JSON.stringify(propertyData)
-		})
+				method: 'POST',
+				body: JSON.stringify(propertyData)
+			})
 		},
 		onMutate: async (newProperty: CreatePropertyRequest) => {
 			// Cancel outgoing refetches
@@ -240,7 +245,7 @@ export function useCreateProperty() {
 				sale_notes: null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
-				version: 1 // 🔐 BUG FIX #2: Optimistic locking
+				version: 1 //Optimistic locking
 			}
 
 			// Optimistically update all caches
@@ -269,7 +274,10 @@ export function useCreateProperty() {
 			handleMutationError(err, 'Create property')
 		},
 		onSuccess: (data, _variables, context) => {
-			handleMutationSuccess('Create property', `${data.name} has been added to your portfolio`)
+			handleMutationSuccess(
+				'Create property',
+				`${data.name} has been added to your portfolio`
+			)
 
 			// Replace optimistic entry with real data
 			queryClient.setQueriesData<{ data: Property[]; total: number }>(
@@ -317,7 +325,9 @@ export function useUpdateProperty() {
 				method: 'PUT',
 				// 🔐 OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
-					version !== null && version !== undefined ? withVersion(data, version) : data
+					version !== null && version !== undefined
+						? withVersion(data, version)
+						: data
 				)
 			})
 		},
@@ -372,7 +382,7 @@ export function useUpdateProperty() {
 				})
 			}
 
-			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
+			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('property', id, queryClient, [
 					propertiesKeys.detail(id),
@@ -383,7 +393,10 @@ export function useUpdateProperty() {
 			}
 		},
 		onSuccess: (data, { id }) => {
-			handleMutationSuccess('Update property', `${data.name} has been updated successfully`)
+			handleMutationSuccess(
+				'Update property',
+				`${data.name} has been updated successfully`
+			)
 
 			// Replace optimistic update with real data (including correct version)
 			queryClient.setQueryData(propertiesKeys.detail(id), data)
@@ -429,14 +442,17 @@ export function useMarkPropertySold() {
 			salePrice: number
 			saleNotes?: string
 		}): Promise<{ success: boolean; message: string }> => {
-			return clientFetch<{ success: boolean; message: string }>(`/api/v1/properties/${id}/mark-sold`, {
-				method: 'PUT',
-				body: JSON.stringify({
-					dateSold: dateSold.toISOString(),
-					salePrice,
-					saleNotes
-				})
-			})
+			return clientFetch<{ success: boolean; message: string }>(
+				`/api/v1/properties/${id}/mark-sold`,
+				{
+					method: 'PUT',
+					body: JSON.stringify({
+						dateSold: dateSold.toISOString(),
+						salePrice,
+						saleNotes
+					})
+				}
+			)
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -533,7 +549,10 @@ export function useDeleteProperty() {
 			handleMutationError(error, 'Delete property')
 		},
 		onSuccess: (_, id) => {
-			handleMutationSuccess('Delete property', 'Property has been removed from your portfolio')
+			handleMutationSuccess(
+				'Delete property',
+				'Property has been removed from your portfolio'
+			)
 
 			// Remove individual property cache
 			queryClient.removeQueries({ queryKey: propertiesKeys.detail(id) })
@@ -558,7 +577,7 @@ export function usePrefetchProperty() {
 			queryFn: async (): Promise<Property> => {
 				return clientFetch<Property>(`/api/v1/properties/${id}`)
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }
@@ -573,9 +592,12 @@ export function usePrefetchProperty() {
 export function usePropertyImages(propertyId: string) {
 	return useQuery({
 		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
-		queryFn: () => clientFetch<Tables<'property_images'>[]>(`/api/v1/properties/${propertyId}/images`),
+		queryFn: () =>
+			clientFetch<Tables<'property_images'>[]>(
+				`/api/v1/properties/${propertyId}/images`
+			),
 		enabled: !!propertyId,
-		staleTime: 5 * 60 * 1000,
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000
 	})
 }
@@ -606,15 +628,21 @@ export function useUploadPropertyImage() {
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const result = await clientFetch(`/api/v1/properties/${propertyId}/images`, {
-				method: 'POST',
-				body: formData
-			})
+			const result = await clientFetch(
+				`/api/v1/properties/${propertyId}/images`,
+				{
+					method: 'POST',
+					body: formData
+				}
+			)
 
 			return { result, compressionRatio: compressed.compressionRatio }
 		},
 		onSuccess: ({ compressionRatio }, { propertyId }) => {
-			handleMutationSuccess('Upload image', `Image uploaded (${Math.round((1 - compressionRatio) * 100)}% size reduction)`)
+			handleMutationSuccess(
+				'Upload image',
+				`Image uploaded (${Math.round((1 - compressionRatio) * 100)}% size reduction)`
+			)
 			// Invalidate property images
 			queryClient.invalidateQueries({
 				queryKey: [...propertiesKeys.detail(propertyId), 'images']
