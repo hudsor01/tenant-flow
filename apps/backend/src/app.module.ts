@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
+import { PrometheusModule } from '@willsoto/nestjs-prometheus'
 import { ThrottlerModule } from '@nestjs/throttler'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
@@ -45,6 +46,7 @@ import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
+import { MetricsModule } from './modules/metrics/metrics.module'
 
 /**
  * Core App Module - KISS principle
@@ -86,6 +88,13 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
 
+		// Prometheus metrics - default metrics enabled
+		PrometheusModule.register({
+			defaultMetrics: {
+				enabled: true
+			}
+		}),
+
 		// Rate limiting - simple configuration
 		ThrottlerModule.forRoot({
 			throttlers: [
@@ -101,6 +110,7 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		SharedModule,
 		ServicesModule,
 		HealthModule,
+		MetricsModule,
 		AnalyticsModule,
 		StripeModule,
 		StripeSyncModule,

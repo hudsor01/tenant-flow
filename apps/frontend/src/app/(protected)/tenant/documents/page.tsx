@@ -180,12 +180,17 @@ export default function TenantDocumentsPage() {
 								</Button>
 							</div>
 						</div>
-
-						<p className="text-sm text-center text-muted-foreground py-8">
-							No lease documents available yet
-						</p>
 					</div>
-				</CardLayout>
+				) : leaseDocs.length > 0 ? (
+					<div className="space-y-3">
+						{leaseDocs.map(renderDocumentRow)}
+					</div>
+				) : (
+					<p className="text-sm text-center text-muted-foreground py-8">
+						No lease documents available yet
+					</p>
+				)}
+			</CardLayout>
 
 				{/* Move-In Documents */}
 				<CardLayout
@@ -293,8 +298,7 @@ export default function TenantDocumentsPage() {
 						</p>
 					</div>
 				</CardLayout>
-			</div>
 		</div>
-		</TenantGuard>
+	</TenantGuard>
 	)
 }
