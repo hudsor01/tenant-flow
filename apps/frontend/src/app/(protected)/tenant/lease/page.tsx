@@ -112,7 +112,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{formatDate(lease.endDate)}</p>
+									<p className="font-semibold">{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}</p>
 								)}
 							</div>
 						</div>

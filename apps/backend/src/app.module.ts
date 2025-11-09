@@ -1,18 +1,19 @@
-import { CacheModule } from '@nestjs/cache-manager'
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
+import { BullModule } from '@nestjs/bullmq'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerModule } from '@nestjs/throttler'
-import type { Request } from 'express'
-import { ClsModule } from 'nestjs-cls'
 import { ZodValidationPipe } from 'nestjs-zod'
-import { randomUUID } from 'node:crypto'
+import { ContextModule } from './context/context.module'
+import { CacheConfigurationModule } from './cache/cache.module'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { AppConfigService } from './config/app-config.service'
 import { validate } from './config/config.schema'
+import emailConfig from './config/email.config'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
@@ -46,6 +47,8 @@ import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
+import { OwnerDashboardModule } from './modules/owner-dashboard'
+import { PrometheusModule } from './modules/observability'
 
 /**
  * Core App Module - KISS principle
@@ -55,50 +58,72 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
+			cache: true, // Cache environment variables for performance
+			expandVariables: true, // Allow ${VAR} expansion in .env files
+			load: [emailConfig],
 			validate
 		}),
 
 		// Request context for tracing and user management
-		ClsModule.forRoot({
-			global: true,
-			middleware: {
-				mount: true,
-				setup: (cls, req: Request) => {
-					cls.set('REQUEST_CONTEXT', {
-						requestId: randomUUID(),
-						startTime: Date.now(),
-						path: req.url,
-						method: req.method
-					})
-				}
-			}
+		ContextModule.forRoot({
+			global: true
 		}),
 
 		// Smart caching for database-heavy operations
-		CacheModule.register({
+		CacheConfigurationModule.forRoot({
 			isGlobal: true,
 			ttl: 30 * 1000, // 30 seconds default TTL
 			max: 1000 // Maximum number of items in cache
 		}),
-
+		// Queue system for background jobs and rate limiting
+		BullModule.forRootAsync({
+			useFactory: (config: AppConfigService) => {
+				const redisUrl = config.getRedisUrl()
+				// If Redis URL is configured, use it; otherwise use host/port defaults
+				if (redisUrl) {
+					return { connection: { url: redisUrl } }
+				}
+				return {
+					connection: {
+						host: config.getRedisHost() || 'localhost',
+						port: config.getRedisPort() || 6379
+					}
+				}
+			},
+			inject: [AppConfigService]
+		}),
 		// Event system for decoupled architecture
-		EventEmitterModule.forRoot(),
-
+		EventEmitterModule.forRoot({
+			wildcard: true,
+			delimiter: '.',
+			maxListeners: 20, // Increased from 10 to accommodate multi-service event patterns
+			verboseMemoryLeak: true,
+			ignoreErrors: false // CRITICAL: Propagate errors to controller
+		}),
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
-
 		// Rate limiting - simple configuration
 		ThrottlerModule.forRoot({
 			throttlers: [
 				{
-					ttl: 60, // 1 minute
+					ttl: 60000, // 1 minute in milliseconds
 					limit: 100 // 100 requests per minute
 				}
 			]
 		}),
-
 		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule.forRootAsync(),
+		// Prometheus metrics for Grafana/Prometheus integration
+		// Only register if bearer token is configured
+		...(process.env.PROMETHEUS_BEARER_TOKEN
+			? [
+					PrometheusModule.forRoot({
+						bearerToken: process.env.PROMETHEUS_BEARER_TOKEN,
+						enableDefaultMetrics: true,
+						prefix: 'tenantflow'
+					})
+			  ]
+			: []),
 		SharedModule,
 		ServicesModule,
 		HealthModule,
@@ -108,6 +133,7 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		ContactModule,
 		FAQModule,
 		DashboardModule,
+		OwnerDashboardModule,
 		FinancialModule,
 		PropertiesModule,
 		UnitsModule,

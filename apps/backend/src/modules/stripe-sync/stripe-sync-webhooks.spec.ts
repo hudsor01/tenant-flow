@@ -115,7 +115,10 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act: Process webhook
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert: Verify access was granted
 			expect(accessControlService.grantSubscriptionAccess).toHaveBeenCalledWith(
@@ -126,7 +129,9 @@ describe('StripeSyncController - Webhook Processing', () => {
 			)
 
 			// Verify event was marked as processed
-			expect(mockAdminClient.from).toHaveBeenCalledWith('stripe_processed_events')
+			expect(mockAdminClient.from).toHaveBeenCalledWith(
+				'stripe_processed_events'
+			)
 		})
 
 		it('should skip duplicate event', async () => {
@@ -163,10 +168,15 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act: Process webhook
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert: Access control should NOT be called for duplicate events
-			expect(accessControlService.grantSubscriptionAccess).not.toHaveBeenCalled()
+			expect(
+				accessControlService.grantSubscriptionAccess
+			).not.toHaveBeenCalled()
 		})
 
 		it('should handle concurrent duplicate events gracefully', async () => {
@@ -191,30 +201,39 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Mock: First check shows not processed, then insert fails due to unique constraint
 			let callCount = 0
-			mockAdminClient.from.mockImplementation(() => ({
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				insert: jest.fn().mockReturnThis(),
-				single: jest.fn().mockImplementation(() => {
-					callCount++
-					if (callCount === 1) {
-						// First call: event not found
-						return Promise.resolve({ data: null, error: { code: 'PGRST116' } })
-					} else {
-						// Second call after failed insert: event now exists
-						return Promise.resolve({
-							data: { id: '123', event_id: mockEventId },
-							error: null
+			mockAdminClient.from.mockImplementation(
+				() =>
+					({
+						select: jest.fn().mockReturnThis(),
+						eq: jest.fn().mockReturnThis(),
+						insert: jest.fn().mockReturnThis(),
+						single: jest.fn().mockImplementation(() => {
+							callCount++
+							if (callCount === 1) {
+								// First call: event not found
+								return Promise.resolve({
+									data: null,
+									error: { code: 'PGRST116' }
+								})
+							} else {
+								// Second call after failed insert: event now exists
+								return Promise.resolve({
+									data: { id: '123', event_id: mockEventId },
+									error: null
+								})
+							}
 						})
-					}
-				})
-			} as any))
+					}) as any
+			)
 
 			stripeClientService.constructWebhookEvent.mockReturnValue(mockEvent)
 
 			// Act: Process webhook
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert: Should handle gracefully without throwing
 			expect(mockAdminClient.from).toHaveBeenCalled()
@@ -263,10 +282,15 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert
-			expect(accessControlService.grantSubscriptionAccess).toHaveBeenCalledWith(mockSubscription)
+			expect(accessControlService.grantSubscriptionAccess).toHaveBeenCalledWith(
+				mockSubscription
+			)
 		})
 
 		it('should handle customer.subscription.updated', async () => {
@@ -310,10 +334,15 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert - past_due should revoke access
-			expect(accessControlService.revokeSubscriptionAccess).toHaveBeenCalledWith(mockSubscription)
+			expect(
+				accessControlService.revokeSubscriptionAccess
+			).toHaveBeenCalledWith(mockSubscription)
 		})
 
 		it('should handle customer.subscription.deleted', async () => {
@@ -357,10 +386,15 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert - deleted should revoke access with full subscription object
-			expect(accessControlService.revokeSubscriptionAccess).toHaveBeenCalledWith(mockSubscription)
+			expect(
+				accessControlService.revokeSubscriptionAccess
+			).toHaveBeenCalledWith(mockSubscription)
 		})
 	})
 
@@ -400,7 +434,10 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert: Should process without errors
 			expect(stripeClientService.constructWebhookEvent).toHaveBeenCalled()
@@ -441,7 +478,10 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert
 			expect(stripeClientService.constructWebhookEvent).toHaveBeenCalled()
@@ -482,7 +522,10 @@ describe('StripeSyncController - Webhook Processing', () => {
 
 			// Act
 			const rawBody = Buffer.from(JSON.stringify(mockEvent))
-			await controller.handleStripeSyncWebhook({ body: rawBody, headers: { 'stripe-signature': mockSignature } } as any)
+			await controller.handleStripeSyncWebhook({
+				body: rawBody,
+				headers: { 'stripe-signature': mockSignature }
+			} as any)
 
 			// Assert
 			expect(stripeClientService.constructWebhookEvent).toHaveBeenCalled()

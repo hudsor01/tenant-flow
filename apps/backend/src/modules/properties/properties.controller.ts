@@ -58,12 +58,12 @@ export class PropertiesController {
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@JwtToken() token: string  // ✅ Extract JWT token for user-scoped client
+		@JwtToken() token: string // ✅ Extract JWT token for user-scoped client
 	) {
 		// Clamp limit/offset to safe bounds
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		
+
 		// ✅ Pass JWT token to service for RLS-enforced queries
 		return this.propertiesService.findAll(token, {
 			search,
@@ -190,7 +190,7 @@ export class PropertiesController {
 		@Body() dto: UpdatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		//Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const property = await this.propertiesService.update(
 			req,

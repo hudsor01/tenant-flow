@@ -22,14 +22,19 @@ import {
 	Put,
 	Query,
 	Req,
-	SetMetadata
+	SetMetadata,
+	UseGuards
 } from '@nestjs/common'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
+import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
+import { ConnectedAccountId } from '../../shared/decorators/user.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import { TenantsService } from './tenants.service'
+import { TenantInvitationService } from './tenant-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
@@ -42,7 +47,10 @@ import {
 export class TenantsController {
 	private readonly logger = new Logger(TenantsController.name)
 
-	constructor(private readonly tenantsService: TenantsService) {}
+	constructor(
+		private readonly tenantsService: TenantsService,
+		private readonly tenantInvitationService: TenantInvitationService
+	) {}
 
 	@Get()
 	async findAll(
@@ -165,7 +173,7 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const userId = req.user.id
 
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		//Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const tenant = await this.tenantsService.update(
 			userId,
@@ -286,11 +294,18 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ NEW: Complete tenant invitation with lease creation (Industry Standard - Phase 3.1)
-	 * Creates tenant + lease + sends Supabase Auth invitation in one atomic operation
-	 * Based on Buildium/AppFolio/TurboTenant best practices
+	 * ✅ MODERN: Invite tenant with lease using Stripe + Supabase
+	 *
+	 * Architecture:
+	 * - PropertyOwnershipGuard: Verifies user owns the property
+	 * - StripeConnectedGuard: Verifies user has completed Stripe onboarding
+	 * - Atomic tenant + lease creation via Supabase RPC
+	 * - Stripe Customer + Subscription with inline pricing
+	 * - Stripe Checkout for payment method collection
+	 * - Supabase Auth invitation email with checkout URL
 	 */
 	@Post('invite-with-lease')
+	@UseGuards(PropertyOwnershipGuard, StripeConnectedGuard)
 	async inviteTenantWithLease(
 		@Body()
 		body: {
@@ -309,7 +324,8 @@ export class TenantsController {
 				endDate: string
 			}
 		},
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@ConnectedAccountId() connectedAccountId: string
 	) {
 		const userId = req.user.id
 
@@ -335,10 +351,21 @@ export class TenantsController {
 			)
 		}
 
-		return this.tenantsService.inviteTenantWithLease(
+		return this.tenantInvitationService.inviteTenantWithLease(
 			userId,
-			body.tenantData,
-			body.leaseData
+			{
+				tenantEmail: body.tenantData.email,
+				tenantFirstName: body.tenantData.firstName,
+				tenantLastName: body.tenantData.lastName,
+				propertyId: body.leaseData.propertyId,
+				rentAmount: body.leaseData.rentAmount,
+				securityDeposit: body.leaseData.securityDeposit,
+				startDate: body.leaseData.startDate,
+				endDate: body.leaseData.endDate,
+				...(body.tenantData.phone && { tenantPhone: body.tenantData.phone }),
+				...(body.leaseData.unitId && { unitId: body.leaseData.unitId })
+			},
+			connectedAccountId
 		)
 	}
 
@@ -453,7 +480,8 @@ export class TenantsController {
 			email?: string | null
 		} = {}
 		if (dto.contactName !== undefined) updateData.contactName = dto.contactName
-		if (dto.relationship !== undefined) updateData.relationship = dto.relationship
+		if (dto.relationship !== undefined)
+			updateData.relationship = dto.relationship
 		if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber
 		if (dto.email !== undefined) updateData.email = dto.email ?? null
 

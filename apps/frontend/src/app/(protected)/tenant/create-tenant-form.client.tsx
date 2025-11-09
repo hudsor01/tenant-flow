@@ -97,7 +97,13 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
-				const response = await clientFetch<{tenantId: string, leaseId: string}>('/api/v1/tenants/invite-with-lease', {
+				const response = await clientFetch<{
+					success: boolean
+					tenantId: string
+					leaseId: string
+					checkoutUrl: string
+					message: string
+				}>('/api/v1/tenants/invite-with-lease', {
 					method: 'POST',
 					body: JSON.stringify({
 						tenantData: {
@@ -122,11 +128,12 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 
 				logger.info('Tenant onboarded successfully', {
 					tenantId: response.tenantId,
-					leaseId: response.leaseId
+					leaseId: response.leaseId,
+					checkoutUrl: response.checkoutUrl
 				})
 
-				toast.success('Tenant Onboarded', {
-					description: `${value.firstName} ${value.lastName} has been created and invited to the portal.`
+				toast.success('Tenant Invited Successfully', {
+					description: response.message
 				})
 
 				router.push(`/manage/tenants/${response.tenantId}`)

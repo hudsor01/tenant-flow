@@ -62,14 +62,48 @@ export class PropertyPerformanceService {
 		}
 	}
 
-	async getPropertyPerformance(
+async getPropertyPerformance(
 		userId: string
 	): Promise<PropertyPerformanceEntry[]> {
-		const raw = await this.callRpc(
-			'get_property_performance',
-			this.buildUserPayload(userId)
+		const [rawProperties, rawTrends] = await Promise.all([
+			this.callRpc('get_property_performance', this.buildUserPayload(userId)),
+			this.callRpc<
+				Array<{
+					property_id: string
+					current_month_revenue: number
+					previous_month_revenue: number
+					trend: 'up' | 'down' | 'stable'
+					trend_percentage: number
+				}>
+			>('get_property_performance_trends', this.buildUserPayload(userId))
+		])
+
+		const properties = mapPropertyPerformance(rawProperties)
+
+		// Create a map of property trends for O(1) lookup
+		const trendsMap = new Map(
+			(rawTrends || []).map(trend => [trend.property_id, trend])
 		)
-		return mapPropertyPerformance(raw)
+
+		// Merge trend data with property performance
+		return properties.map(property => {
+			const trendData = trendsMap.get(property.propertyId)
+
+			if (trendData) {
+				return {
+					...property,
+					trend: trendData.trend,
+					trendPercentage: trendData.trend_percentage
+				}
+			}
+
+			// Fallback to stable if no trend data available (e.g., new property with no payment history)
+			return {
+				...property,
+				trend: 'stable' as const,
+				trendPercentage: 0
+			}
+		})
 	}
 
 	async getPropertyUnits(userId: string): Promise<PropertyUnitDetail[]> {

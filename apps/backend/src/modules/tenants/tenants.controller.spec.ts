@@ -6,10 +6,13 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import type { Tenant } from '@repo/shared/types/core'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
+import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
 import { TenantsController } from './tenants.controller'
+import { TenantInvitationService } from './tenant-invitation.service'
 import { TenantsService } from './tenants.service'
 
 jest.mock('../../database/supabase.service', () => {
@@ -101,9 +104,32 @@ describe('TenantsController', () => {
 						resendInvitation: jest.fn()
 					}
 				},
+				{
+					provide: TenantInvitationService,
+					useValue: {
+						inviteTenantWithLease: jest.fn()
+					}
+				},
+				{
+					provide: 'PropertyOwnershipGuard',
+					useValue: {
+						canActivate: jest.fn().mockResolvedValue(true)
+					}
+				},
+				{
+					provide: 'StripeConnectedGuard',
+					useValue: {
+						canActivate: jest.fn().mockResolvedValue(true)
+					}
+				},
 				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
 			]
-		}).compile()
+		})
+			.overrideGuard(PropertyOwnershipGuard)
+			.useValue({ canActivate: jest.fn().mockResolvedValue(true) })
+			.overrideGuard(StripeConnectedGuard)
+			.useValue({ canActivate: jest.fn().mockResolvedValue(true) })
+			.compile()
 
 		controller = module.get<TenantsController>(TenantsController)
 		mockTenantsServiceInstance = module.get(

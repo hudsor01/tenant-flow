@@ -6,7 +6,7 @@ import { requiredString } from './common.js'
 // Enhanced validation with Zod patterns
 const positiveMoneyAmount = z
 	.number()
-	.min(0, { message: 'Amount must be positive' })
+	.positive({ message: 'Amount must be greater than zero' })
 	.max(100000, { message: 'Amount exceeds maximum limit' })
 	.refine(Number.isFinite, { message: 'Must be a finite number' })
 
@@ -42,7 +42,7 @@ const leaseBaseSchema = z.object({
 	unitId: uuidString,
 	tenantId: uuidString,
 	startDate: dateString,
-	endDate: dateString,
+	endDate: dateString.optional().nullable(), // NULL for month-to-month leases
 	rentAmount: positiveMoneyAmount,
 	// Security deposit is optional - 0 or empty is valid (some leases may not require a deposit)
 	securityDeposit: positiveMoneyAmount.optional().nullable().or(z.literal(0)),
@@ -54,9 +54,12 @@ const leaseBaseSchema = z.object({
 
 // Main lease input schema (with refinements)
 export const leaseInputSchema = leaseBaseSchema.refine(
-	(data: { startDate: string; endDate: string }) => {
+	(data: { startDate: string; endDate?: string | null | undefined }) => {
 		try {
 			const start = new Date(data.startDate)
+			// If endDate is null/undefined, it's a month-to-month lease - valid
+			if (!data.endDate) return true
+
 			const end = new Date(data.endDate)
 			return !isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start
 		} catch {
@@ -64,7 +67,7 @@ export const leaseInputSchema = leaseBaseSchema.refine(
 		}
 	},
 	{
-		message: 'End date must be after start date',
+		message: 'End date must be after start date (or null for month-to-month)',
 		path: ['endDate']
 	}
 )

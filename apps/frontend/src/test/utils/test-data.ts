@@ -62,7 +62,7 @@ export const DEFAULT_TENANT: Tenant = {
 	},
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 // 🔐 BUG FIX #2: Optimistic locking
+	version: 1 //Optimistic locking
 }
 
 /**
@@ -101,7 +101,7 @@ export const DEFAULT_USER: User = {
 	lastLoginAt: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 // 🔐 BUG FIX #2: Optimistic locking
+	version: 1 //Optimistic locking
 }
 
 /**
@@ -131,7 +131,7 @@ export const DEFAULT_PROPERTY: Property = {
 	sale_notes: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 // 🔐 BUG FIX #2: Optimistic locking
+	version: 1 //Optimistic locking
 }
 
 /**
@@ -166,7 +166,7 @@ export const DEFAULT_LEASE: Lease = {
 	signed_at: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 // 🔐 BUG FIX #2: Optimistic locking
+	version: 1 //Optimistic locking
 }
 
 /**

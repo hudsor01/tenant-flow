@@ -14,7 +14,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
 import { cookies } from 'next/headers'
-import { Toaster } from 'sonner'
+import { Toaster } from '#components/ui/sonner'
 import './globals.css'
 
 const splineSans = Spline_Sans({
@@ -80,15 +80,7 @@ export default async function RootLayout({
 					<ErrorBoundary>{children}</ErrorBoundary>
 					{/* Register service worker silently for performance/offline */}
 					<RegisterServiceWorker />
-					<Toaster
-						position="top-right"
-						toastOptions={{
-							className: 'sonner-toast',
-							duration: 4000
-						}}
-						richColors
-						closeButton
-					/>
+					<Toaster position="top-right" richColors closeButton />
 				</Providers>
 				<Analytics />
 				<SpeedInsights />

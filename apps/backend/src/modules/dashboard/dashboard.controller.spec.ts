@@ -351,7 +351,9 @@ describe('DashboardController', () => {
 					potentialRevenue: 8400,
 					address: '123 Main St',
 					propertyType: 'APARTMENT',
-					status: 'PARTIAL' as const
+					status: 'PARTIAL' as const,
+					trend: 'stable' as const,
+					trendPercentage: 0
 				}
 			]
 

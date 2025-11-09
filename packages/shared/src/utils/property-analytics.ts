@@ -52,6 +52,16 @@ export function mapPropertyPerformance(
 			record.property_name ?? record.propertyName ?? record.property
 		)
 
+		const trendValue = record.trend ?? record.trend_direction
+		const trend: 'up' | 'down' | 'stable' =
+			trendValue === 'up' || trendValue === 'down' || trendValue === 'stable'
+				? trendValue
+				: 'stable' // Default to stable if not provided
+		const trendPercentage = toNumber(
+			record.trend_percentage ?? record.trendPercentage,
+			0 // Default to 0 if not provided
+		)
+
 		return {
 			propertyId: toString(
 				record.property_id ?? record.propertyId,
@@ -70,7 +80,9 @@ export function mapPropertyPerformance(
 			vacantUnits: toNumber(record.vacant_units ?? record.vacantUnits),
 			address: toString(record.address ?? record.formatted_address ?? ''),
 			status: toString(record.status ?? record.state ?? ''),
-			propertyType: toString(record.property_type ?? record.type ?? '')
+			propertyType: toString(record.property_type ?? record.type ?? ''),
+			trend,
+			trendPercentage
 		}
 	})
 }

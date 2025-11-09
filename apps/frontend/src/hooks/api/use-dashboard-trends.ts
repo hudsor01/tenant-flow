@@ -1,5 +1,26 @@
 'use client'
 
+/**
+ * Dashboard Trends Hooks
+ *
+ * DEPRECATED: These hooks use the legacy /manage endpoints.
+ * For new development, use hooks from use-owner-dashboard.ts which use /owner/reports endpoints.
+ *
+ * Migration Guide:
+ * - useMetricTrend(userId, metric, period) → useOwnerMetricTrend(metric, period)
+ * - useDashboardTimeSeries(userId, options) → useOwnerTimeSeries(options)
+ * - useDashboardTrendData(userId) → Use multiple useOwnerMetricTrend() calls
+ *
+ * Example:
+ * ```typescript
+ * // OLD
+ * const { data } = useMetricTrend(userId, 'occupancy_rate', 'month')
+ * 
+ * // NEW
+ * const { data } = useOwnerMetricTrend('occupancy_rate', 'month')
+ * ```
+ */
+
 import { useQuery } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants'
 import type {
