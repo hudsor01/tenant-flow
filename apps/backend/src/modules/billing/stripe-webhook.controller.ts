@@ -16,6 +16,7 @@ import {
 	Controller,
 	Headers,
 	Logger,
+	Optional,
 	Post,
 	Req
 } from '@nestjs/common'
@@ -33,7 +34,7 @@ export class StripeWebhookController {
 		private readonly stripeConnect: StripeConnectService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly supabase: SupabaseService,
-		private readonly prometheus: PrometheusService
+		@Optional() private readonly prometheus: PrometheusService | null
 	) {}
 
 	/**
@@ -85,7 +86,7 @@ export class StripeWebhookController {
 
 		if (existing) {
 			// Record idempotency hit
-			this.prometheus.recordIdempotencyHit(event.type)
+			this.prometheus?.recordIdempotencyHit(event.type)
 			this.logger.log('Duplicate webhook event detected', {
 				type: event.type,
 				id: event.id
@@ -111,7 +112,7 @@ export class StripeWebhookController {
 
 			// Record success
 			const duration = Date.now() - startTime
-			this.prometheus.recordWebhookProcessing(event.type, duration, 'success')
+			this.prometheus?.recordWebhookProcessing(event.type, duration, 'success')
 
 			// Store in processed_stripe_events table
 			await client.from('processed_stripe_events').insert({
@@ -133,8 +134,8 @@ export class StripeWebhookController {
 		} catch (error) {
 			// Record failure
 			const duration = Date.now() - startTime
-			this.prometheus.recordWebhookProcessing(event.type, duration, 'error')
-			this.prometheus.recordWebhookFailure(
+			this.prometheus?.recordWebhookProcessing(event.type, duration, 'error')
+			this.prometheus?.recordWebhookFailure(
 				event.type,
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)

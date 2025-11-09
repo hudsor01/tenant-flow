@@ -5,7 +5,7 @@
  * Replaces manual Saga compensation with event-driven cleanup
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
@@ -19,7 +19,7 @@ export class StripeWebhookListener {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly prometheus: PrometheusService,
+		@Optional() private readonly prometheus: PrometheusService | null,
 		private readonly eventEmitter: EventEmitter2
 	) {}
 
@@ -84,7 +84,7 @@ export class StripeWebhookListener {
 			})
 		} catch (error) {
 			// Record failure details
-			this.prometheus.recordWebhookFailure(
+			this.prometheus?.recordWebhookFailure(
 				event.eventType || 'payment_method.attached',
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
@@ -158,7 +158,7 @@ export class StripeWebhookListener {
 			})
 		} catch (error) {
 			// Record failure details
-			this.prometheus.recordWebhookFailure(
+			this.prometheus?.recordWebhookFailure(
 				event.eventType || 'customer.subscription.updated',
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
@@ -304,7 +304,7 @@ export class StripeWebhookListener {
 			}
 		} catch (error) {
 			// Record failure details
-			this.prometheus.recordWebhookFailure(
+			this.prometheus?.recordWebhookFailure(
 				event.eventType || 'invoice.payment_failed',
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
@@ -381,7 +381,7 @@ export class StripeWebhookListener {
 			// Stripe resources might need cleanup
 		} catch (error) {
 			// Record failure details
-			this.prometheus.recordWebhookFailure(
+			this.prometheus?.recordWebhookFailure(
 				event.eventType || 'tenant.invitation.failed',
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
