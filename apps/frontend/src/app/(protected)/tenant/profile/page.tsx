@@ -38,7 +38,7 @@ import {
 	useDeleteEmergencyContact
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
-import { useUserProfile } from '#hooks/use-user-role'
+import { useUserProfile } from '#hooks/use-user-profile'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'

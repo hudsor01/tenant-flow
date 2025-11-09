@@ -4115,6 +4115,16 @@ export type Database = {
         }
         Returns: Json[]
       }
+      get_property_performance_trends: {
+        Args: { p_user_id: string }
+        Returns: {
+          current_month_revenue: number
+          previous_month_revenue: number
+          property_id: string
+          trend: string
+          trend_percentage: number
+        }[]
+      }
       get_property_stats: { Args: { p_user_id: string }; Returns: Json }
       get_property_units: {
         Args: { p_property_id: string; p_user_id: string }
