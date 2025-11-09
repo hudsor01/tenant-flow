@@ -376,13 +376,15 @@ describe('PropertiesService', () => {
 				leases: {}
 			})
 
+		// Mock the RPC call
+		mockUserClient.rpc.mockResolvedValue({ data: mockStats, error: null })
+
 			const result = await service.getStats(createMockRequest('user-123'))
 
 			expect(result).toEqual(mockStats)
-			expect(mockDashboardAnalytics.getDashboardStats).toHaveBeenCalledWith(
-				'user-123',
-				'mock-token'
-			)
+			expect(mockUserClient.rpc).toHaveBeenCalledWith('get_property_stats', {
+			p_user_id: 'user-123'
+		})
 			expect(cacheManager.set).toHaveBeenCalledWith(
 				'property-stats:user-123',
 				mockStats,
