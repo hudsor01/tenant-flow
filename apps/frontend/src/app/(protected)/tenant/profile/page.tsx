@@ -38,7 +38,7 @@ import {
 	useDeleteEmergencyContact
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
-import { useUserProfile } from '#hooks/use-user-role'
+import { useUserProfile } from '#hooks/use-user-profile'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
@@ -118,8 +118,8 @@ export default function TenantProfilePage() {
 
 		// Validate email format if provided
 		if (formData.email && formData.email.trim()) {
-			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-			if (!emailRegex.test(formData.email)) {
+			const emailResult = emailSchema.safeParse(formData.email)
+			if (!emailResult.success) {
 				toast.error('Please enter a valid email address')
 				return
 			}
@@ -128,7 +128,10 @@ export default function TenantProfilePage() {
 		// Validate phone format if provided
 		if (formData.phone && formData.phone.trim()) {
 			const phoneRegex = /^\+?[\d\s\-()]+$/
-			if (!phoneRegex.test(formData.phone) || formData.phone.replace(/\D/g, '').length < 10) {
+			if (
+				!phoneRegex.test(formData.phone) ||
+				formData.phone.replace(/\D/g, '').length < 10
+			) {
 				toast.error('Please enter a valid phone number (at least 10 digits)')
 				return
 			}
@@ -511,7 +514,9 @@ export default function TenantProfilePage() {
 									onClick={() => setEmergencyContactEditing(true)}
 									disabled={emergencyContactLoading}
 								>
-									{emergencyContact ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
+									{emergencyContact
+										? 'Edit Emergency Contact'
+										: 'Add Emergency Contact'}
 								</Button>
 								{emergencyContact && (
 									<Button
@@ -519,7 +524,8 @@ export default function TenantProfilePage() {
 										variant="outline"
 										onClick={handleDeleteEmergencyContact}
 										disabled={
-											emergencyContactLoading || deleteEmergencyContact.isPending
+											emergencyContactLoading ||
+											deleteEmergencyContact.isPending
 										}
 									>
 										Remove Contact
@@ -571,7 +577,9 @@ export default function TenantProfilePage() {
 						description="Get notified before rent is due"
 						checked={notificationPrefs?.rentReminders ?? true}
 						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked => handleTogglePreference('rentReminders', checked)}
+						onChange={checked =>
+							handleTogglePreference('rentReminders', checked)
+						}
 					/>
 
 					<ToggleSwitch
@@ -580,7 +588,9 @@ export default function TenantProfilePage() {
 						description="Updates on your maintenance requests"
 						checked={notificationPrefs?.maintenanceUpdates ?? true}
 						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked => handleTogglePreference('maintenanceUpdates', checked)}
+						onChange={checked =>
+							handleTogglePreference('maintenanceUpdates', checked)
+						}
 					/>
 
 					<ToggleSwitch
@@ -589,7 +599,9 @@ export default function TenantProfilePage() {
 						description="Important announcements and updates"
 						checked={notificationPrefs?.propertyNotices ?? true}
 						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked => handleTogglePreference('propertyNotices', checked)}
+						onChange={checked =>
+							handleTogglePreference('propertyNotices', checked)
+						}
 					/>
 				</div>
 			</CardLayout>
@@ -636,8 +648,8 @@ export default function TenantProfilePage() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Remove Emergency Contact</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to remove this emergency contact? This action
-							cannot be undone.
+							Are you sure you want to remove this emergency contact? This
+							action cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

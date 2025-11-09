@@ -1,13 +1,13 @@
 /**
- * TestBed Utilities for Suites (Automock)
+ * TestBed Utilities for Suites
  *
- * Modern testing utilities using @automock/jest for automatic dependency mocking.
+ * Modern testing utilities using @suites/unit for automatic dependency mocking.
  * Eliminates 50+ lines of manual mock boilerplate per test file.
  *
  * @see TESTING-BEST-PRACTICES.md for usage examples
  */
 
-import { TestBed } from '@automock/jest'
+import { TestBed } from '@suites/unit'
 import { Test } from '@nestjs/testing'
 
 /**
@@ -19,7 +19,7 @@ export interface TestBedResult<T> {
 	/** Unit reference for accessing dependencies */
 	unitRef: any
 	/** Get a mocked dependency with type safety */
-	get: <TDep>(token: new (...args: any[]) => TDep) => jest.Mocked<TDep>
+	get: <TDep>(token: new (...args: any[]) => TDep) => any
 }
 
 /**
@@ -64,12 +64,12 @@ export interface TestBedResult<T> {
 export async function createTestBed<T>(
 	classType: new (...args: any[]) => T
 ): Promise<TestBedResult<T>> {
-	const { unit, unitRef } = TestBed.create(classType).compile()
+	const { unit, unitRef } = await TestBed.solitary(classType).compile()
 
 	return {
 		unit,
 		unitRef,
-		get: <TDep>(token: new (...args: any[]) => TDep): jest.Mocked<TDep> => {
+		get: <TDep>(token: new (...args: any[]) => TDep): any => {
 			return unitRef.get(token)
 		}
 	}
@@ -120,7 +120,7 @@ export async function createTestBedWithOverrides<T>(
 	return {
 		unit,
 		unitRef: moduleRef as any,
-		get: <TDep>(token: new (...args: any[]) => TDep): jest.Mocked<TDep> => {
+		get: <TDep>(token: new (...args: any[]) => TDep): any => {
 			return moduleRef.get(token)
 		}
 	}

@@ -603,7 +603,7 @@ export class TenantsService {
 				invitation_accepted_at: tenant.invitation_accepted_at,
 				invitation_expires_at: tenant.invitation_expires_at,
 				currentLease: currentLease
-					? {
+					? ({
 							id: currentLease.id,
 							startDate: currentLease.startDate,
 							endDate: currentLease.endDate,
@@ -611,7 +611,7 @@ export class TenantsService {
 							securityDeposit: currentLease.securityDeposit,
 							status: currentLease.status,
 							terms: currentLease.terms
-						}
+						} as TenantWithLeaseInfo['currentLease'])
 					: null,
 				leases: leases.map(lease => ({
 					id: lease.id,
@@ -967,7 +967,7 @@ export class TenantsService {
 				invitation_accepted_at: tenant.invitation_accepted_at,
 				invitation_expires_at: tenant.invitation_expires_at,
 				currentLease: currentLease
-					? {
+					? ({
 							id: currentLease.id,
 							startDate: currentLease.startDate,
 							endDate: currentLease.endDate,
@@ -975,7 +975,7 @@ export class TenantsService {
 							securityDeposit: currentLease.securityDeposit,
 							status: currentLease.status,
 							terms: currentLease.terms
-						}
+						} as TenantWithLeaseInfo['currentLease'])
 					: null,
 				leases: leases.map(lease => {
 					const leaseItem: {
@@ -999,7 +999,7 @@ export class TenantsService {
 						}
 					}
 
-					return leaseItem
+					return leaseItem as NonNullable<TenantWithLeaseInfo['leases']>[number]
 				}),
 				unit: currentLease?.unit
 					? {
