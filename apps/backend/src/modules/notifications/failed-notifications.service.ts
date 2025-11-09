@@ -2,7 +2,7 @@
  * Failed Notifications Service
  *
  * Tracks failed notification attempts and provides retry mechanism
- * 🔐 BUG FIX #3: Event Handler Error Swallowing
+ *Event Handler Error Swallowing
  */
 
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
@@ -41,7 +41,10 @@ export class FailedNotificationsService implements OnModuleDestroy {
 		last_attempt_at: string
 	}) {
 		const client = this.supabase.getAdminClient()
-		return await client.schema('public').from('failed_notifications').insert(data)
+		return await client
+			.schema('public')
+			.from('failed_notifications')
+			.insert(data)
 	}
 
 	/**
@@ -61,14 +64,14 @@ export class FailedNotificationsService implements OnModuleDestroy {
 					? normalizedEventData
 					: { payload: normalizedEventData }
 
-		const { error: insertError } = await this.insertFailedNotification({
-			event_type: eventType,
-			event_data: normalizedEventData,
-			error_message: error.message,
-			error_stack: error.stack ?? null,
-			attempt_count: safeAttemptCount,
-			last_attempt_at: new Date().toISOString()
-		})
+			const { error: insertError } = await this.insertFailedNotification({
+				event_type: eventType,
+				event_data: normalizedEventData,
+				error_message: error.message,
+				error_stack: error.stack ?? null,
+				attempt_count: safeAttemptCount,
+				last_attempt_at: new Date().toISOString()
+			})
 
 			if (insertError) {
 				this.logger.error('Failed to persist notification failure', {
@@ -91,7 +94,8 @@ export class FailedNotificationsService implements OnModuleDestroy {
 			// If logging fails, at least log to console
 			this.logger.error('Failed to log notification failure', {
 				originalError: error.message,
-				logError: logError instanceof Error ? logError.message : String(logError)
+				logError:
+					logError instanceof Error ? logError.message : String(logError)
 			})
 		}
 	}
@@ -110,10 +114,13 @@ export class FailedNotificationsService implements OnModuleDestroy {
 		} catch (error) {
 			if (attempt < this.MAX_RETRIES) {
 				const delay = this.RETRY_DELAYS_MS[attempt] || 15000
-				this.logger.warn(`Retry attempt ${attempt + 1}/${this.MAX_RETRIES} after ${delay}ms`, {
-					eventType,
-					errorMessage: error instanceof Error ? error.message : String(error)
-				})
+				this.logger.warn(
+					`Retry attempt ${attempt + 1}/${this.MAX_RETRIES} after ${delay}ms`,
+					{
+						eventType,
+						errorMessage: error instanceof Error ? error.message : String(error)
+					}
+				)
 
 				await new Promise(resolve => {
 					const timer = setTimeout(() => {
@@ -122,7 +129,12 @@ export class FailedNotificationsService implements OnModuleDestroy {
 					}, delay)
 					this.pendingTimers.add(timer)
 				})
-				return this.retryWithBackoff(operation, eventType, eventData, attempt + 1)
+				return this.retryWithBackoff(
+					operation,
+					eventType,
+					eventData,
+					attempt + 1
+				)
 			} else {
 				// Max retries exceeded, log failure
 				await this.logFailure(
@@ -143,14 +155,17 @@ export class FailedNotificationsService implements OnModuleDestroy {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			const { data, error } = await client.schema('public')
+			const { data, error } = await client
+				.schema('public')
 				.from('failed_notifications')
 				.select('*')
 				.order('created_at', { ascending: false })
 				.limit(limit)
 
 			if (error) {
-				this.logger.error('Failed to query failed notifications', { error: error.message })
+				this.logger.error('Failed to query failed notifications', {
+					error: error.message
+				})
 				return []
 			}
 

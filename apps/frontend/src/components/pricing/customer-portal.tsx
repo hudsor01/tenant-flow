@@ -3,7 +3,7 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { useUser } from '#hooks/api/use-current-user'
+import { useUser } from '#hooks/api/use-auth'
 import { API_BASE_URL } from '#lib/api-config'
 import { cn } from '#lib/utils'
 import type { CustomerPortalCardProps } from '@repo/shared/types/frontend'

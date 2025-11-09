@@ -6,6 +6,8 @@ import { PDFModule } from '../pdf/pdf.module'
 import { LeaseGeneratorController } from './lease-generator.controller'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { LeaseTransformationService } from './lease-transformation.service'
+import { LeaseValidationService } from './lease-validation.service'
 import { TenantsModule } from '../tenants/tenants.module'
 
 /**
@@ -20,7 +22,17 @@ import { TenantsModule } from '../tenants/tenants.module'
 		SharedModule
 	],
 	controllers: [LeasesController, LeaseGeneratorController],
-	providers: [LeasesService, LeasePDFService],
-	exports: [LeasesService, LeasePDFService]
+	providers: [
+		LeasesService,
+		LeasePDFService,
+		LeaseTransformationService,
+		LeaseValidationService
+	],
+	exports: [
+		LeasesService,
+		LeasePDFService,
+		LeaseTransformationService,
+		LeaseValidationService
+	]
 })
 export class LeasesModule {}

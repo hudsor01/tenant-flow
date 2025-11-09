@@ -1208,7 +1208,7 @@ export type Database = {
       lease: {
         Row: {
           createdAt: string
-          endDate: string
+          endDate: string | null
           gracePeriodDays: number | null
           id: string
           lateFeeAmount: number | null
@@ -1224,7 +1224,7 @@ export type Database = {
           status: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id: string | null
           stripeSubscriptionId: string | null
-          tenantId: string
+          tenantId: string | null
           terms: string | null
           unitId: string | null
           updatedAt: string
@@ -1232,7 +1232,7 @@ export type Database = {
         }
         Insert: {
           createdAt?: string
-          endDate: string
+          endDate?: string | null
           gracePeriodDays?: number | null
           id?: string
           lateFeeAmount?: number | null
@@ -1248,7 +1248,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
           stripeSubscriptionId?: string | null
-          tenantId: string
+          tenantId?: string | null
           terms?: string | null
           unitId?: string | null
           updatedAt?: string
@@ -1256,7 +1256,7 @@ export type Database = {
         }
         Update: {
           createdAt?: string
-          endDate?: string
+          endDate?: string | null
           gracePeriodDays?: number | null
           id?: string
           lateFeeAmount?: number | null
@@ -1272,7 +1272,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
           stripeSubscriptionId?: string | null
-          tenantId?: string
+          tenantId?: string | null
           terms?: string | null
           unitId?: string | null
           updatedAt?: string
@@ -3932,6 +3932,22 @@ export type Database = {
           p_tenant_id: string
           p_unit_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      create_tenant_with_lease: {
+        Args: {
+          p_end_date: string
+          p_owner_id: string
+          p_property_id: string
+          p_rent_amount: number
+          p_security_deposit: number
+          p_start_date: string
+          p_tenant_email: string
+          p_tenant_first_name: string
+          p_tenant_last_name: string
+          p_tenant_phone?: string
+          p_unit_id?: string
         }
         Returns: Json
       }
