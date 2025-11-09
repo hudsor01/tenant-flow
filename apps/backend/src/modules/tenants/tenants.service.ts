@@ -1129,7 +1129,7 @@ export class TenantsService {
 		userId: string,
 		tenantId: string,
 		updateRequest: UpdateTenantRequest,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		expectedVersion?: number //Optimistic locking
 	): Promise<Tenant | null> {
 		// Business logic: Validate inputs
 		if (!userId || !tenantId) {
@@ -1153,7 +1153,7 @@ export class TenantsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
 				updateData.version = expectedVersion + 1
 			}
@@ -1167,7 +1167,7 @@ export class TenantsService {
 			if (updateRequest.phone !== undefined)
 				updateData.phone = updateRequest.phone
 
-			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			//Add version check for optimistic locking
 			let query = client
 				.from('tenant')
 				.update(updateData)
@@ -1182,7 +1182,7 @@ export class TenantsService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				//Detect optimistic locking conflict
 				if (error?.code === 'PGRST116') {
 					// PGRST116 = 0 rows affected (version mismatch)
 					this.logger.warn('Optimistic locking conflict detected', {
@@ -1521,7 +1521,7 @@ export class TenantsService {
 
 			const client = this.supabase.getAdminClient()
 
-			// 🔐 BUG FIX #1: Atomic check for existing auth user BEFORE invitation
+			//Atomic check for existing auth user BEFORE invitation
 			// This prevents race condition where two simultaneous invitations create duplicate auth users
 			const { data: existingUsers, error: listError } =
 				await client.auth.admin.listUsers()
@@ -1726,7 +1726,7 @@ export class TenantsService {
 		 * - Backend stores: cents in database
 		 * - Stripe receives: cents (native format)
 		 *
-		 * BUG FIX: Removed double conversion (backend was multiplying cents by 100 again)
+		 *Removed double conversion (backend was multiplying cents by 100 again)
 		 * Previously: Frontend sent cents → Backend multiplied by 100 → Stripe received wrong amount
 		 * Now: Frontend sends cents → Backend validates as-is → Stripe receives correct amount
 		 *
@@ -1770,7 +1770,7 @@ export class TenantsService {
 
 		const client = this.supabase.getAdminClient()
 
-		// 🔐 BUG FIX #2: Use Saga pattern for transactional tenant+lease+auth creation
+		//Use Saga pattern for transactional tenant+lease+auth creation
 		// This ensures proper rollback if any step fails, with comprehensive logging
 		let createdTenant: Tenant | null = null
 		let createdLease: { id: string } | null = null
@@ -2761,7 +2761,7 @@ export class TenantsService {
 	): Promise<EmergencyContactResponse | null> {
 		const client = this.supabase.getAdminClient()
 
-		// BUG FIX #3: Validate complete ownership chain
+		// Validate complete ownership chain
 		// Verify tenant exists and get their info
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')

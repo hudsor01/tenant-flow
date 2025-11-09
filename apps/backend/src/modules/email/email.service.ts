@@ -157,6 +157,8 @@ export class EmailService {
 		const name = this.escapeHtml(dto.name)
 		const email = this.escapeHtml(dto.email)
 		const company = dto.company ? this.escapeHtml(dto.company) : null
+		const phone = dto.phone ? this.escapeHtml(dto.phone) : null
+		const urgency = dto.urgency ? this.escapeHtml(dto.urgency) : null
 		const subject = this.escapeHtml(dto.subject)
 		const type = this.escapeHtml(dto.type)
 		const message = this.escapeHtml(dto.message)
@@ -187,6 +189,7 @@ export class EmailService {
 				<div class="value">${name} (${email})</div>
 			</div>
 			${company ? `<div class="field"><div class="label">Company:</div><div class="value">${company}</div></div>` : ''}
+			${phone ? `<div class="field"><div class="label">Phone:</div><div class="value">${phone}</div></div>` : ''}
 			<div class="field">
 				<div class="label">Subject:</div>
 				<div class="value">${subject}</div>
@@ -195,6 +198,7 @@ export class EmailService {
 				<div class="label">Type:</div>
 				<div class="value">${type}</div>
 			</div>
+			${urgency ? `<div class="field"><div class="label">Urgency:</div><div class="value">${urgency}</div></div>` : ''}
 			<div class="field">
 				<div class="label">Message:</div>
 				<div class="value">${message}</div>

@@ -7,10 +7,11 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
-import { OnEvent } from '@nestjs/event-emitter'
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { PaymentFailedEvent } from '../notifications/events/notification.events'
 
 @Injectable()
 export class StripeWebhookListener {
@@ -18,7 +19,8 @@ export class StripeWebhookListener {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly prometheus: PrometheusService
+		private readonly prometheus: PrometheusService,
+		private readonly eventEmitter: EventEmitter2
 	) {}
 
 	/**
@@ -192,8 +194,114 @@ export class StripeWebhookListener {
 				amount: invoice.amount_due
 			})
 
-			// TODO: Send notification to property owner
-			// TODO: Send notification to tenant
+			const subscriptionId = this.getInvoiceSubscriptionId(invoice)
+
+			if (!subscriptionId) {
+				this.logger.warn('Failed payment has no subscription reference', {
+					invoiceId: invoice.id
+				})
+				return
+			}
+
+			type LeaseWithRelations =
+				Database['public']['Tables']['lease']['Row'] & {
+					property: { ownerId: string | null; name: string | null } | null
+					unit: { unitNumber: string | null } | null
+					tenant: { id: string; userId: string | null; name: string | null } | null
+				}
+
+			const { data: lease, error: leaseError } = await this.supabase
+				.getAdminClient()
+				.from('lease')
+				.select(
+					`
+					id,
+					tenantId,
+					property:propertyId(ownerId, name),
+					unit:unitId(unitNumber),
+					tenant:tenantId(id, userId, name)
+				`
+				)
+				.eq('stripeSubscriptionId', subscriptionId)
+				.single<LeaseWithRelations>()
+
+			if (leaseError || !lease) {
+				this.logger.warn('No lease found for failed payment', {
+					subscriptionId,
+					error: leaseError?.message
+				})
+				return
+			}
+
+			const propertyName = lease.property?.name || 'Subscription'
+			const propertyLabel = lease.unit?.unitNumber
+				? `${propertyName} - Unit ${lease.unit.unitNumber}`
+				: propertyName
+			const errorMessage =
+				this.getInvoicePaymentError(invoice) || invoice.description || null
+			const ownerFailureReason =
+				errorMessage ||
+				`Payment for ${propertyLabel} failed. Please review the tenant payment method.`
+			const tenantFailureReason =
+				errorMessage ||
+				`Your rent payment for ${propertyLabel} failed. Please update your payment method to avoid late fees.`
+
+			const ownerId = lease.property?.ownerId
+
+			if (!ownerId) {
+				this.logger.warn('Lease missing owner for failed payment notification', {
+					leaseId: lease.id,
+					subscriptionId
+				})
+			} else {
+				await this.eventEmitter.emitAsync(
+					'payment.failed',
+					new PaymentFailedEvent(
+						ownerId,
+						subscriptionId,
+						invoice.amount_due,
+						invoice.currency || 'usd',
+						invoice.hosted_invoice_url || '',
+						ownerFailureReason
+					)
+				)
+
+				this.logger.log('Queued payment failed notification for owner', {
+					ownerId,
+					subscriptionId
+				})
+			}
+
+			const tenantUserId = lease.tenant?.userId
+
+			if (!tenantUserId) {
+				this.logger.warn(
+					'Tenant missing user account for failed payment notification',
+					{
+						leaseId: lease.id,
+						tenantId: lease.tenantId,
+						subscriptionId
+					}
+				)
+			} else {
+				await this.eventEmitter.emitAsync(
+					'payment.failed',
+					new PaymentFailedEvent(
+						tenantUserId,
+						subscriptionId,
+						invoice.amount_due,
+						invoice.currency || 'usd',
+						invoice.hosted_invoice_url || '',
+						tenantFailureReason
+					)
+				)
+
+				this.logger.log('Queued payment failed notification for tenant', {
+					tenantUserId,
+					tenantId: lease.tenant?.id,
+					subscriptionId
+				})
+			}
 		} catch (error) {
 			// Record failure details
 			this.prometheus.recordWebhookFailure(
@@ -208,7 +316,44 @@ export class StripeWebhookListener {
 
 			// Re-throw to propagate error to controller
 			throw error
+}
+
+	/**
+	 * Safely extract the subscription id from a Stripe invoice
+	 */
+	private getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+		const raw = (
+			invoice as Stripe.Invoice & {
+				subscription?: string | Stripe.Subscription | null
+			}
+		).subscription
+
+		if (!raw) {
+			return null
 		}
+
+		if (typeof raw === 'string') {
+			return raw
+		}
+
+		if (typeof raw === 'object' && typeof raw.id === 'string') {
+			return raw.id
+		}
+
+		return null
+	}
+
+	/**
+	 * Safely read the payment failure reason from the invoice
+	 */
+	private getInvoicePaymentError(invoice: Stripe.Invoice): string | null {
+		const error = (
+			invoice as Stripe.Invoice & {
+				last_payment_error?: { message?: string | null } | null
+			}
+		).last_payment_error
+
+		return typeof error?.message === 'string' ? error.message : null
 	}
 
 	/**
