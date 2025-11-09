@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
+import { PrometheusModule } from '../observability/prometheus.module'
 import { StripeAccessControlService } from './stripe-access-control.service'
 import { StripeDataService } from './stripe-data.service'
 import { StripeRecoveryService } from './stripe-recovery.service'
@@ -30,7 +31,7 @@ import { StripeWebhookController } from './stripe-webhook.controller'
  * - Type-safe DTOs with comprehensive validation
  */
 @Module({
-	imports: [SupabaseModule, EmailModule, SecurityModule],
+	imports: [SupabaseModule, EmailModule, SecurityModule, PrometheusModule],
 	providers: [
 		StripeService,
 		StripeSyncService,
