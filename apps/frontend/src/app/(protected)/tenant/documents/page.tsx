@@ -12,6 +12,7 @@
 
 'use client'
 
+import { useTenantPortalDocuments } from '#hooks/api/use-tenant-portal'
 import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -23,7 +24,6 @@ export default function TenantDocumentsPage() {
 	const { data, isLoading, error, refetch } = useTenantPortalDocuments()
 	const documents = data?.documents ?? []
 	const leaseDocs = documents.filter(doc => doc.type === 'LEASE')
-	const receiptDocs = documents.filter(doc => doc.type === 'RECEIPT')
 
 	const renderDocumentRow = (doc: (typeof documents)[number]) => (
 		<div
