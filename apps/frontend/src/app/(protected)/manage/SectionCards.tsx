@@ -1,14 +1,40 @@
-import type { DashboardStats } from '@repo/shared/types/core'
-import { TrendingDown, TrendingUp } from 'lucide-react'
+'use client'
 
 import { Badge } from '#components/ui/badge'
+import { Skeleton } from '#components/ui/skeleton'
+import { useDashboardStats } from '#hooks/api/use-dashboard-stats'
 import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 
-interface SectionCardsProps {
-	stats?: Partial<DashboardStats>
-}
+export function SectionCards() {
+	const { data: stats, isLoading, isError } = useDashboardStats()
 
-export function SectionCards({ stats = {} }: SectionCardsProps) {
+	// Show loading skeletons
+	if (isLoading) {
+		return (
+			<div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+				{[...Array(4)].map((_, i) => (
+					<div key={i} className="rounded-xl border bg-card p-5">
+						<Skeleton className="h-5 w-32 mb-4" />
+						<Skeleton className="h-9 w-24 mb-2" />
+						<Skeleton className="h-4 w-full" />
+					</div>
+				))}
+			</div>
+		)
+	}
+
+	// Show empty state if error or no data
+	if (isError || !stats) {
+		return (
+			<div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+				<div className="rounded-xl border bg-card p-5">
+					<p className="text-sm text-muted-foreground">Unable to load stats</p>
+				</div>
+			</div>
+		)
+	}
+
 	const totalRevenue = stats.revenue?.monthly || 0
 	const revenueGrowth = stats.revenue?.growth || 0
 	const totalTenants = stats.tenants?.total || 0

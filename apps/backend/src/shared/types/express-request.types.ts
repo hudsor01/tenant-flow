@@ -10,6 +10,21 @@ import type { Request } from 'express'
 export interface AuthenticatedRequest extends Request {
 	user: authUser
 	startTime?: number | undefined
+	// Added by StripeConnectedGuard for ConnectedAccountId decorator
+	connectedAccountId?: string
+	// Added by OwnerContextInterceptor
+	ownerContext?: {
+		ownerId: string
+		timestamp: string
+		route: string
+		method: string
+	}
+	// Added by TenantContextInterceptor
+	tenantContext?: {
+		tenantId: string
+		authUserId: string
+		status: string
+	}
 }
 
 // Raw request body for webhooks

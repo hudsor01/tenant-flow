@@ -10,12 +10,15 @@ import {
 } from '#components/ui/input-group'
 import { useFormProgress } from '#hooks/use-form-progress'
 import { cn } from '#lib/design-system'
+import { getFieldErrorMessage } from '#lib/utils/form'
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { Eye, EyeOff, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+
 
 export function LoginForm({
 	className,
@@ -132,13 +135,8 @@ export function LoginForm({
 								/>
 							</InputGroup>
 							<FieldError>
-								{field.state.meta.errors?.[0]
-									? typeof field.state.meta.errors[0] === 'string'
-										? field.state.meta.errors[0]
-										: field.state.meta.errors[0]?.message ||
-											'Invalid email address'
-									: ''}
-							</FieldError>
+							{getFieldErrorMessage(field.state.meta.errors) || 'Invalid email address'}
+						</FieldError>
 						</Field>
 					)}
 				</form.Field>
@@ -181,13 +179,8 @@ export function LoginForm({
 								</InputGroupAddon>
 							</InputGroup>
 							<FieldError>
-								{field.state.meta.errors?.[0]
-									? typeof field.state.meta.errors[0] === 'string'
-										? field.state.meta.errors[0]
-										: field.state.meta.errors[0]?.message ||
-											'Password is required'
-									: ''}
-							</FieldError>
+							{getFieldErrorMessage(field.state.meta.errors) || 'Password is required'}
+						</FieldError>
 						</Field>
 					)}
 				</form.Field>

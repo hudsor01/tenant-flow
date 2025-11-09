@@ -1208,7 +1208,7 @@ export type Database = {
       lease: {
         Row: {
           createdAt: string
-          endDate: string
+          endDate: string | null
           gracePeriodDays: number | null
           id: string
           lateFeeAmount: number | null
@@ -1224,7 +1224,7 @@ export type Database = {
           status: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id: string | null
           stripeSubscriptionId: string | null
-          tenantId: string
+          tenantId: string | null
           terms: string | null
           unitId: string | null
           updatedAt: string
@@ -1232,7 +1232,7 @@ export type Database = {
         }
         Insert: {
           createdAt?: string
-          endDate: string
+          endDate?: string | null
           gracePeriodDays?: number | null
           id?: string
           lateFeeAmount?: number | null
@@ -1248,7 +1248,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
           stripeSubscriptionId?: string | null
-          tenantId: string
+          tenantId?: string | null
           terms?: string | null
           unitId?: string | null
           updatedAt?: string
@@ -1256,7 +1256,7 @@ export type Database = {
         }
         Update: {
           createdAt?: string
-          endDate?: string
+          endDate?: string | null
           gracePeriodDays?: number | null
           id?: string
           lateFeeAmount?: number | null
@@ -1272,7 +1272,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["LeaseStatus"]
           stripe_subscription_id?: string | null
           stripeSubscriptionId?: string | null
-          tenantId?: string
+          tenantId?: string | null
           terms?: string | null
           unitId?: string | null
           updatedAt?: string
@@ -2244,6 +2244,7 @@ export type Database = {
           paidAt: string | null
           paymentType: string
           platformFee: number
+          receiptUrl: string | null
           status: string | null
           stripeFee: number
           stripeInvoiceId: string | null
@@ -2267,6 +2268,7 @@ export type Database = {
           paidAt?: string | null
           paymentType: string
           platformFee: number
+          receiptUrl?: string | null
           status?: string | null
           stripeFee: number
           stripeInvoiceId?: string | null
@@ -2290,6 +2292,7 @@ export type Database = {
           paidAt?: string | null
           paymentType?: string
           platformFee?: number
+          receiptUrl?: string | null
           status?: string | null
           stripeFee?: number
           stripeInvoiceId?: string | null
@@ -3595,6 +3598,56 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_stats_mv: {
+        Row: {
+          active_leases: number | null
+          active_tenants: number | null
+          average_unit_rent: number | null
+          avg_resolution_time_hours: number | null
+          completed_maintenance: number | null
+          completed_today_maintenance: number | null
+          emergency_maintenance: number | null
+          expired_leases: number | null
+          expiring_soon_leases: number | null
+          high_priority_maintenance: number | null
+          in_progress_maintenance: number | null
+          inactive_tenants: number | null
+          last_updated: string | null
+          low_priority_maintenance: number | null
+          maintenance_units: number | null
+          medium_priority_maintenance: number | null
+          monthly_revenue: number | null
+          new_tenants_this_month: number | null
+          occupancy_change_percentage: number | null
+          occupancy_rate: number | null
+          occupied_properties: number | null
+          occupied_units: number | null
+          open_maintenance: number | null
+          previous_month_revenue: number | null
+          terminated_leases: number | null
+          total_actual_rent: number | null
+          total_lease_rent: number | null
+          total_leases: number | null
+          total_maintenance: number | null
+          total_potential_rent: number | null
+          total_properties: number | null
+          total_security_deposits: number | null
+          total_tenants: number | null
+          total_units: number | null
+          user_id: string | null
+          vacant_units: number | null
+          yearly_revenue: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_ownerid_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_queue_stats: {
         Row: {
           avg_attempts: number | null
@@ -3851,10 +3904,9 @@ export type Database = {
       }
       check_event_processed: { Args: { p_event_id: string }; Returns: boolean }
       check_lease_expiry_notifications: { Args: never; Returns: undefined }
-      check_user_feature_access: {
-        Args: { p_feature: string; p_user_id: string }
-        Returns: boolean
-      }
+      check_user_feature_access:
+        | { Args: { p_feature: string; p_user_id: string }; Returns: boolean }
+        | { Args: { p_feature: string; p_user_id: string }; Returns: boolean }
       cleanup_dashboard_history: { Args: never; Returns: number }
       cleanup_expired_drafts: { Args: never; Returns: undefined }
       cleanup_old_email_queue_entries: { Args: never; Returns: number }
@@ -3883,6 +3935,23 @@ export type Database = {
         }
         Returns: Json
       }
+      create_tenant_with_lease: {
+        Args: {
+          p_end_date: string
+          p_owner_id: string
+          p_property_id: string
+          p_rent_amount: number
+          p_security_deposit: number
+          p_start_date: string
+          p_tenant_email: string
+          p_tenant_first_name: string
+          p_tenant_last_name: string
+          p_tenant_phone?: string
+          p_unit_id?: string
+        }
+        Returns: Json
+      }
+      current_internal_user_id: { Args: never; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       detect_webhook_health_issues: {
         Args: never
@@ -3914,7 +3983,11 @@ export type Database = {
       get_auth_uid_text: { Args: never; Returns: string }
       get_auth_uid_uuid: { Args: never; Returns: string }
       get_billing_insights: {
-        Args: { end_date?: string; start_date?: string; user_id: string }
+        Args: {
+          end_date_param?: string
+          owner_id_param: string
+          start_date_param?: string
+        }
         Returns: Json
       }
       get_current_user_id: { Args: never; Returns: string }
@@ -4268,6 +4341,7 @@ export type Database = {
         Args: { question_id: string }
         Returns: undefined
       }
+      is_property_owner: { Args: { property_id: string }; Returns: boolean }
       is_user_on_trial: { Args: { p_user_id: string }; Returns: boolean }
       link_stripe_customer_to_user: {
         Args: { p_email: string; p_stripe_customer_id: string }

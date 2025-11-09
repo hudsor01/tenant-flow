@@ -21,6 +21,13 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { Logger } from '@nestjs/common'
 
+/**
+ * API endpoint paths for tenant portal
+ */
+const API_ENDPOINTS = {
+	PAYMENT_METHODS: '/api/v1/stripe/tenant-payment-methods'
+} as const
+
 const CreateMaintenanceRequestSchema = z.object({
 	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
@@ -67,9 +74,8 @@ type RentPaymentListItem = Pick<
 	| 'tenantId'
 	| 'stripePaymentIntentId'
 	| 'ownerReceives'
-> & {
-	receiptUrl: string | null
-}
+	| 'receiptUrl'
+>
 
 /**
  * Tenant Portal Controller
@@ -219,7 +225,7 @@ export class TenantPortalController {
 
 		return {
 			payments,
-			methodsEndpoint: '/api/v1/stripe/tenant-payment-methods'
+			methodsEndpoint: API_ENDPOINTS.PAYMENT_METHODS
 		}
 	}
 
@@ -468,7 +474,7 @@ export class TenantPortalController {
 			.getUserClient(token)
 			.from('rent_payment')
 			.select(
-				'id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId, stripePaymentIntentId, ownerReceives'
+				'id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId, stripePaymentIntentId, ownerReceives, receiptUrl'
 			)
 			.eq('tenantId', tenant.id)
 			.order('createdAt', { ascending: false })
@@ -482,18 +488,6 @@ export class TenantPortalController {
 			throw new InternalServerErrorException('Failed to load payment history')
 		}
 
-		return (data ?? []).map(payment => ({
-			...payment,
-			receiptUrl: this.buildStripeReceiptUrl(payment.stripePaymentIntentId)
-		}))
-	}
-
-	private buildStripeReceiptUrl(paymentIntentId: string | null) {
-		// TODO: Store and return Stripe's public receipt_url from payment creation
-		// Dashboard URLs are not accessible to tenants
-		// Proper fix: Add receipt_url column to rent_payment table and populate it
-		// when creating PaymentIntent (from charges.data[0].receipt_url)
-		if (!paymentIntentId) return null
-		return null // Returning null instead of inaccessible dashboard URL
+		return (data as RentPaymentListItem[]) ?? []
 	}
 }

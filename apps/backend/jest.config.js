@@ -23,7 +23,7 @@ module.exports = {
 		'/node_modules/',
 		'/dist/',
 		'/coverage/',
-		'\\.integration\\.spec\\.ts$'
+		'\.integration\.(spec|test)\.ts$'
 	],
 	collectCoverageFrom: [
 		'src/**/*.{ts,js}',

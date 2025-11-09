@@ -6,21 +6,107 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 @Injectable()
 export class FAQService {
 	private readonly logger = new Logger(FAQService.name)
+	private readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 	constructor(private readonly supabase: SupabaseService) {}
+
+	/**
+	 * Maps a database FAQ question row to the application type
+	 */
+	private mapQuestion(
+		question: Database['public']['Tables']['faq_questions']['Row']
+	) {
+		// Validate required fields - separate validation for strings vs other types
+		const missingFields: string[] = []
+
+		// UUID and date fields: check null/undefined only
+		if (!question.id) missingFields.push('id')
+		if (!question.category_id) missingFields.push('category_id')
+		if (!question.created_at) missingFields.push('created_at')
+		if (!question.updated_at) missingFields.push('updated_at')
+
+		// String content fields: check null/undefined/empty string
+		if (!question.question || question.question.trim() === '') {
+			missingFields.push('question')
+		}
+		if (!question.answer || question.answer.trim() === '') {
+			missingFields.push('answer')
+		}
+
+		if (missingFields.length > 0) {
+			throw new Error(
+				`Invalid FAQ question data: missing required fields [${missingFields.join(', ')}]. ` +
+				`Question ID: ${question.id || 'unknown'}`
+			)
+		}
+
+		return {
+			id: question.id!,
+			categoryId: question.category_id!,
+			question: question.question!,
+			answer: question.answer!,
+			displayOrder: question.display_order ?? 0,
+			isActive: question.is_active ?? false,
+			viewCount: question.view_count ?? 0,
+			helpfulCount: question.helpful_count ?? 0,
+			createdAt: question.created_at!,
+			updatedAt: question.updated_at!
+		}
+	}
+
+	/**
+	 * Maps a database FAQ category row (with questions) to the application type
+	 */
+	private mapCategoryWithQuestions(
+		category: Database['public']['Tables']['faq_categories']['Row'] & {
+			faq_questions?: Database['public']['Tables']['faq_questions']['Row'][]
+		}
+	): FAQCategoryWithQuestions {
+		// Validate required fields before mapping
+		const requiredFields = {
+			id: category.id,
+			name: category.name,
+			slug: category.slug,
+			created_at: category.created_at,
+			updated_at: category.updated_at
+		}
+
+		for (const [field, value] of Object.entries(requiredFields)) {
+			if (!value) {
+				throw new Error(`Missing required category field: ${field}`)
+			}
+		}
+
+		const categoryData: FAQCategoryWithQuestions = {
+			id: category.id,
+			name: category.name,
+			slug: category.slug,
+			displayOrder: category.display_order ?? 0,
+			isActive: category.is_active ?? false,
+			createdAt: category.created_at || new Date().toISOString(),
+			updatedAt: category.updated_at || new Date().toISOString(),
+			questions: (category.faq_questions || []).map(q => this.mapQuestion(q))
+		}
+
+		// Only include description if it exists
+		if (category.description) {
+			categoryData.description = category.description
+		}
+
+		return categoryData
+	}
 
 	/**
 	 * Get all active FAQ categories with their questions
 	 */
 	async getAllFAQs(): Promise<FAQCategoryWithQuestions[]> {
-		try {
-			const client = this.supabase.getAdminClient()
+		const client = this.supabase.getAdminClient()
 
-			// Get categories with questions in a single query
-			const { data, error } = await client
-				.from('faq_categories')
-				.select(
-					`
+		// Get categories with questions in a single query
+		const { data, error } = await client
+			.from('faq_categories')
+			.select(
+				`
                     id,
                     name,
                     slug,
@@ -42,85 +128,38 @@ export class FAQService {
                         updated_at
                     )
                 `
-				)
-				.eq('is_active', true)
-				.order('display_order', { ascending: true })
-				.order('faq_questions.display_order', {
-					ascending: true,
-					foreignTable: 'faq_questions'
-				})
-
-			if (error) {
-				this.logger.error('Failed to fetch FAQs', { error: error.message })
-				throw new HttpException(
-					'Failed to fetch FAQs',
-					HttpStatus.INTERNAL_SERVER_ERROR
-				)
-			}
-
-			// Transform the data to match our types
-			const categories: FAQCategoryWithQuestions[] = (data || []).map(
-				(
-					category: Database['public']['Tables']['faq_categories']['Row'] & {
-						faq_questions: Database['public']['Tables']['faq_questions']['Row'][]
-					}
-				) => {
-					const categoryData: FAQCategoryWithQuestions = {
-						id: category.id,
-						name: category.name,
-						slug: category.slug,
-						displayOrder: category.display_order ?? 0,
-						isActive: category.is_active ?? false,
-						createdAt: category.created_at ?? '',
-						updatedAt: category.updated_at ?? '',
-						questions: (category.faq_questions || []).map(
-							(
-								question: Database['public']['Tables']['faq_questions']['Row']
-							) => ({
-								id: question.id,
-								categoryId: question.category_id ?? '',
-								question: question.question ?? '',
-								answer: question.answer ?? '',
-								displayOrder: question.display_order ?? 0,
-								isActive: question.is_active ?? false,
-								viewCount: question.view_count ?? 0,
-								helpfulCount: question.helpful_count ?? 0,
-								createdAt: question.created_at ?? '',
-								updatedAt: question.updated_at ?? ''
-							})
-						)
-					}
-
-					// Only include description if it exists
-					if (category.description) {
-						categoryData.description = category.description
-					}
-
-					return categoryData
-				}
 			)
+			.eq('is_active', true)
+			.order('display_order', { ascending: true })
+			.order('faq_questions.display_order', {
+				ascending: true,
+				foreignTable: 'faq_questions'
+			})
 
-			return categories
-		} catch (error) {
-			this.logger.error('Failed to fetch FAQs', { error })
+		if (error) {
+			this.logger.error('Failed to fetch FAQs', { error: error.message })
 			throw new HttpException(
 				'Failed to fetch FAQs',
 				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
+
+		// Transform the data using the mapper helper
+		return (data || []).map(category =>
+			this.mapCategoryWithQuestions(category)
+		)
 	}
 
 	/**
 	 * Get a single FAQ category with its questions
 	 */
 	async getFAQBySlug(slug: string): Promise<FAQCategoryWithQuestions | null> {
-		try {
-			const client = this.supabase.getAdminClient()
+		const client = this.supabase.getAdminClient()
 
-			const { data, error } = await client
-				.from('faq_categories')
-				.select(
-					`
+		const { data, error } = await client
+			.from('faq_categories')
+			.select(
+				`
                     id,
                     name,
                     slug,
@@ -142,84 +181,54 @@ export class FAQService {
                         updated_at
                     )
                 `
-				)
-				.eq('slug', slug)
-				.eq('is_active', true)
-				.order('faq_questions.display_order', {
-					ascending: true,
-					foreignTable: 'faq_questions'
-				})
-				.single()
+			)
+			.eq('slug', slug)
+			.eq('is_active', true)
+			.order('faq_questions.display_order', {
+				ascending: true,
+				foreignTable: 'faq_questions'
+			})
+			.single()
 
-			if (error) {
-				if (error.code === 'PGRST116') return null
-				this.logger.error('Failed to fetch FAQ by slug', {
-					error: error.message,
-					slug
-				})
-				throw new HttpException(
-					error.message || 'Failed to fetch FAQ category',
-					HttpStatus.INTERNAL_SERVER_ERROR
-				)
-			}
-			const categoryData: FAQCategoryWithQuestions = {
-				id: data.id ?? '',
-				name: data.name ?? '',
-				slug: data.slug ?? '',
-				displayOrder: data.display_order ?? 0,
-				isActive: data.is_active ?? false,
-				createdAt: data.created_at ?? '',
-				updatedAt: data.updated_at ?? '',
-				questions: (data.faq_questions || []).map(
-					(question: Database['public']['Tables']['faq_questions']['Row']) => ({
-						id: question.id ?? '',
-						categoryId: question.category_id ?? '',
-						question: question.question ?? '',
-						answer: question.answer ?? '',
-						displayOrder: question.display_order ?? 0,
-						isActive: question.is_active ?? false,
-						viewCount: question.view_count ?? 0,
-						helpfulCount: question.helpful_count ?? 0,
-						createdAt: question.created_at ?? '',
-						updatedAt: question.updated_at ?? ''
-					})
-				)
-			}
-
-			// Only include description if it exists
-			if (data.description) {
-				categoryData.description = data.description
-			}
-
-			return categoryData
-		} catch (error) {
-			this.logger.error('Failed to fetch FAQ by slug', { error, slug })
+		if (error) {
+			if (error.code === 'PGRST116') return null
+			this.logger.error('Failed to fetch FAQ by slug', {
+				error: error.message,
+				slug
+			})
 			throw new HttpException(
-				'Failed to fetch FAQ',
+				error.message || 'Failed to fetch FAQ category',
 				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
+
+		return this.mapCategoryWithQuestions(data)
 	}
 
 	/**
-	 * Increment view count for a question (for analytics)
+	 * Helper method to increment question metrics (views, helpful counts)
+	 * Validates UUID and invokes RPC function with error handling
 	 */
-	async incrementQuestionView(questionId: string): Promise<void> {
+	private async incrementQuestionMetric(
+		questionId: string,
+		rpcFunction: string,
+		metricName: string
+	): Promise<void> {
+		// Validate questionId is a valid UUID
+		if (!questionId || typeof questionId !== 'string' || !this.UUID_REGEX.test(questionId)) {
+			this.logger.debug(`Invalid questionId for ${metricName}`, { questionId })
+			return
+		}
+
 		try {
 			const client = this.supabase.getAdminClient()
-
-			const { error } = await client.rpc('increment_faq_view_count', {
+			// Type assertion needed as rpcFunction is dynamically determined
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			await client.rpc(rpcFunction as any, {
 				question_id: questionId
 			})
-
-			if (error) {
-				this.logger.warn('Failed to increment view count', {
-					questionId,
-					error
-				})
-			}
 		} catch (error) {
-			this.logger.warn('Error incrementing question view', {
+			this.logger.warn(`Error ${metricName}`, {
 				questionId,
 				error
 			})
@@ -227,25 +236,25 @@ export class FAQService {
 	}
 
 	/**
+	 * Increment view count for a question (for analytics)
+	 */
+	async incrementQuestionView(questionId: string): Promise<void> {
+		return this.incrementQuestionMetric(
+			questionId,
+			'increment_faq_view_count',
+			'incrementing question view'
+		)
+	}
+
+	/**
 	 * Mark a question as helpful (for analytics)
 	 */
 	async incrementQuestionHelpful(questionId: string): Promise<void> {
-		try {
-			const client = this.supabase.getAdminClient()
-
-			const { error } = await client.rpc('increment_faq_helpful_count', {
-				question_id: questionId
-			})
-
-			if (error) {
-				this.logger.warn('Failed to increment helpful count', {
-					questionId,
-					error
-				})
-			}
-		} catch (error) {
-			this.logger.warn('Error marking question helpful', { questionId, error })
-		}
+		return this.incrementQuestionMetric(
+			questionId,
+			'increment_faq_helpful_count',
+			'marking question helpful'
+		)
 	}
 
 	/**
@@ -258,42 +267,34 @@ export class FAQService {
 		totalHelpful: number
 		avgHelpfulRate: number
 	}> {
-		try {
-			const client = this.supabase.getAdminClient()
+		const client = this.supabase.getAdminClient()
 
-			const { data, error } = await client.rpc('get_faq_analytics')
+		const { data, error } = await client.rpc('get_faq_analytics')
 
-			if (error) {
-				this.logger.error('Failed to fetch FAQ analytics', {
-					error: error.message
-				})
-				throw new HttpException(
-					'Failed to fetch FAQ analytics',
-					HttpStatus.INTERNAL_SERVER_ERROR
-				)
-			}
-
-			return data?.[0]
-				? {
-						totalCategories: data[0].total_categories ?? 0,
-						totalQuestions: data[0].total_questions ?? 0,
-						totalViews: data[0].total_views ?? 0,
-						totalHelpful: data[0].total_helpful ?? 0,
-						avgHelpfulRate: data[0].avg_helpful_rate ?? 0
-					}
-				: {
-						totalCategories: 0,
-						totalQuestions: 0,
-						totalViews: 0,
-						totalHelpful: 0,
-						avgHelpfulRate: 0
-					}
-		} catch (error) {
-			this.logger.error('Failed to fetch FAQ analytics', { error })
+		if (error) {
+			this.logger.error('Failed to fetch FAQ analytics', {
+				error: error.message
+			})
 			throw new HttpException(
 				'Failed to fetch FAQ analytics',
 				HttpStatus.INTERNAL_SERVER_ERROR
 			)
 		}
+
+		return data?.[0]
+			? {
+					totalCategories: data[0].total_categories ?? 0,
+					totalQuestions: data[0].total_questions ?? 0,
+					totalViews: data[0].total_views ?? 0,
+					totalHelpful: data[0].total_helpful ?? 0,
+					avgHelpfulRate: data[0].avg_helpful_rate ?? 0
+				}
+			: {
+					totalCategories: 0,
+					totalQuestions: 0,
+					totalViews: 0,
+					totalHelpful: 0,
+					avgHelpfulRate: 0
+				}
 	}
 }

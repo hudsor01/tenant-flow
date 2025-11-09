@@ -153,7 +153,7 @@ export class UnitsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() updateUnitRequest: UpdateUnitRequest
 	) {
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		//Pass version for optimistic locking
 		const expectedVersion = (updateUnitRequest as { version?: number }).version
 		const unit = await this.unitsService.update(
 			token,

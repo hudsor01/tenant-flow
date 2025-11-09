@@ -3,17 +3,29 @@ import {
 	Body,
 	Controller,
 	Get,
-	HttpStatus,
 	InternalServerErrorException,
 	Logger,
-	Param,
 	Post,
-	Res
+	Query,
+	Req,
+	UseInterceptors,
+	UseFilters
 } from '@nestjs/common'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { UserId } from '../../shared/decorators/user.decorator'
+import { randomUUID } from 'node:crypto'
 import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
 import type { LeaseTemplatePreviewRequest } from '@repo/shared/templates/lease-template'
-import type { Response } from 'express'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasePDFService } from '../pdf/lease-pdf.service'
+import { LeasesService } from './leases.service'
+import { LeaseTransformationService } from './lease-transformation.service'
+import { LeaseValidationService } from './lease-validation.service'
+import {
+	PdfResponseInterceptor,
+	type PdfResponse
+} from '../../shared/interceptors/pdf-response.interceptor'
+import { DatabaseExceptionFilter } from '../../shared/filters/database-exception.filter'
 
 /**
  * Lease Generator Controller
@@ -23,11 +35,18 @@ import { LeasePDFService } from '../pdf/lease-pdf.service'
 export class LeaseGeneratorController {
 	private readonly logger = new Logger(LeaseGeneratorController.name)
 
-	constructor(private readonly leasePDFService: LeasePDFService) {}
+	constructor(
+		private readonly leasePDFService: LeasePDFService,
+		private readonly leasesService: LeasesService,
+		private readonly transformationService: LeaseTransformationService,
+		private readonly validationService: LeaseValidationService
+	) {}
 
 	@Post('template/preview')
 	async previewTemplate(@Body() payload: LeaseTemplatePreviewRequest) {
-		this.logger.log(`Previewing lease template for state ${payload.selections.state}`)
+		this.logger.log(
+			`Previewing lease template for state ${payload.selections.state}`
+		)
 		const pdfBuffer = await this.leasePDFService.generateLeasePdfFromTemplate(
 			payload.selections,
 			payload.context
@@ -43,48 +62,92 @@ export class LeaseGeneratorController {
 	 * Generate a new lease agreement PDF
 	 */
 	@Post('generate')
-	async generateLease(@Body() leaseData: LeaseFormData) {
+	async generateLease(
+		@JwtToken() token: string,
+		@UserId() userId: string,
+		@Body() leaseData: LeaseFormData
+	) {
 		this.logger.log(
 			`Generating lease agreement for ${leaseData?.property?.address?.state} ${leaseData?.property?.type}`
 		)
 
 		try {
-			// Validate required fields
-			if (!leaseData?.property?.address?.state) {
-				throw new BadRequestException('Property state is required')
-			}
-		if (!leaseData?.owner?.name) {
-			throw new BadRequestException('Owner name is required')
-		}
-			if (!leaseData?.tenants?.length) {
-				throw new BadRequestException('At least one tenant is required')
-			}
-			if (!leaseData?.leaseTerms?.rentAmount) {
-				throw new BadRequestException('Rent amount is required')
-			}
+			// Use validation service
+			this.validationService.validateRequiredFields(leaseData)
+			const { startDate, endDate } = this.validationService.validateDates(leaseData)
 
-			// Generate the PDF using the service
+			// Generate the PDF using the service to validate LeaseFormData
 			await this.leasePDFService.generateLeasePDF(
 				leaseData as unknown as Record<string, unknown>
 			)
 
-			// Create a unique filename
+			// Create a unique ID for this lease using crypto.randomUUID() to prevent collisions
+			const leaseId = `lease_${randomUUID()}`
 			const timestamp = new Date().toISOString().slice(0, 10)
-			const filename = `lease-agreement-${timestamp}-${Date.now()}.pdf`
+			const filename = `lease-agreement-${timestamp}-${randomUUID()}.pdf`
 
-			// In a production app, you would:
-			// 1. Save the PDF to cloud storage (S3, Google Cloud Storage, etc.)
-			// 2. Save lease record to database
-			// 3. Handle billing/subscription limits
-			// 4. Send notifications/emails
+			// TODO: Save PDF to cloud storage (S3, Supabase Storage, etc.)
+			// For now, PDF is generated on-demand from database lease record
+			const documentUrl = `/api/lease/download?leaseId=${leaseId}`
+
+			// Persist lease record to database
+			const client = this.leasesService.getUserClient(token)
+
+			// Store complete LeaseFormData as JSON in terms field for PDF regeneration
+			const termsJson = JSON.stringify(leaseData)
+
+			// Insert lease record
+			const { data: newLease, error: insertError } = await client
+				.from('lease')
+				.insert({
+					id: leaseId,
+					tenantId: '',
+					unitId: null,
+					propertyId: null,
+					startDate: startDate.toISOString(),
+					endDate: endDate.toISOString(),
+					rentAmount: leaseData.leaseTerms.rentAmount,
+					monthlyRent: leaseData.leaseTerms.rentAmount,
+					securityDeposit: leaseData.leaseTerms.securityDeposit.amount || 0,
+					status: 'DRAFT',
+					terms: termsJson,
+					lease_document_url: documentUrl,
+					gracePeriodDays: leaseData.leaseTerms.lateFee?.gracePeriod || null,
+					lateFeeAmount: leaseData.leaseTerms.lateFee?.enabled
+						? leaseData.leaseTerms.lateFee.amount || null
+						: null,
+					lateFeePercentage: leaseData.leaseTerms.lateFee?.enabled
+						? leaseData.leaseTerms.lateFee.percentage || null
+						: null,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+					version: 1
+				})
+				.select()
+				.single()
+
+			if (insertError || !newLease) {
+				this.logger.error('Failed to persist lease record', {
+					leaseId,
+					error: insertError?.message
+				})
+				throw new InternalServerErrorException(
+					'Failed to save lease record to database'
+				)
+			}
+
+			this.logger.log('Successfully persisted lease record', {
+				leaseId,
+				userId
+			})
 
 			return {
 				success: true,
 				lease: {
-					id: `lease_${Date.now()}`,
+					id: leaseId,
 					filename,
-					downloadUrl: `/api/lease/download/${filename}`,
-					previewUrl: `/api/lease/preview/${filename}`,
+					downloadUrl: `/api/lease/download?leaseId=${leaseId}`,
+					previewUrl: `/api/lease/preview?leaseId=${leaseId}`,
 					generatedAt: new Date().toISOString(),
 					state: leaseData.property.address.state,
 					propertyAddress: `${leaseData.property.address.street}${leaseData.property.address.unit ? `, ${leaseData.property.address.unit}` : ''}, ${leaseData.property.address.city}, ${leaseData.property.address.state}`,
@@ -108,58 +171,100 @@ export class LeaseGeneratorController {
 	/**
 	 * Download a generated lease PDF
 	 */
-	@Get('download/:filename')
+	@Get('download')
+	@UseInterceptors(PdfResponseInterceptor)
+	@UseFilters(DatabaseExceptionFilter)
 	async downloadLease(
-		@Param('filename') filename: string,
-		@Res() reply: Response
-	) {
-		try {
-			// In production, you would:
-			// 1. Verify user has access to this lease
-			// 2. Retrieve PDF from cloud storage
-			// 3. Log download activity
-			// 4. Handle download limits
+		@Query('leaseId') leaseId: string | undefined,
+		@Req() req: AuthenticatedRequest
+	): Promise<PdfResponse> {
+		// Validate parameters
+		if (!leaseId) {
+			throw new BadRequestException(
+				'leaseId query parameter is required to generate lease PDF'
+			)
+		}
 
-			// For demo purposes, generate a sample PDF
-			const sampleLeaseData = this.getSampleLeaseData()
-			const pdfBuffer =
-				await this.leasePDFService.generateLeasePDF(sampleLeaseData)
+		// Get authentication token from request
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authentication token is required')
+		}
 
-			reply
-				.type('application/pdf')
-				.header('Content-Disposition', `attachment; filename="${filename}"`)
-				.header('Content-Length', pdfBuffer.length.toString())
-				.status(HttpStatus.OK)
-				.send(pdfBuffer)
-		} catch (error) {
-			this.logger.error('Error downloading lease:', error)
-			throw new InternalServerErrorException('Failed to download lease')
+		// Use transformation service
+		const leaseFormData = await this.transformationService.buildLeaseFormData(
+			token,
+			leaseId
+		)
+
+		this.logger.log('Generating PDF for lease', {
+			leaseId,
+			tenantCount: leaseFormData.tenants.length,
+			propertyState: leaseFormData.property.address.state
+		})
+
+		// Generate PDF
+		const pdfBuffer = await this.leasePDFService.generateLeasePDF(
+			leaseFormData as unknown as Record<string, unknown>
+		)
+
+		// Return PDF response (interceptor will set headers)
+		return {
+			success: true,
+			contentType: 'application/pdf',
+			disposition: 'attachment',
+			filename: `lease-${leaseId}.pdf`,
+			buffer: pdfBuffer
 		}
 	}
 
 	/**
 	 * Preview a generated lease PDF (inline view)
 	 */
-	@Get('preview/:filename')
+	@Get('preview')
+	@UseInterceptors(PdfResponseInterceptor)
+	@UseFilters(DatabaseExceptionFilter)
 	async previewLease(
-		@Param('filename') filename: string,
-		@Res() reply: Response
-	) {
-		try {
-			// Generate sample PDF for preview
-			const sampleLeaseData = this.getSampleLeaseData()
-			const pdfBuffer =
-				await this.leasePDFService.generateLeasePDF(sampleLeaseData)
+		@Query('leaseId') leaseId: string | undefined,
+		@Req() req: AuthenticatedRequest
+	): Promise<PdfResponse> {
+		// Validate parameters
+		if (!leaseId) {
+			throw new BadRequestException(
+				'leaseId query parameter is required to generate lease PDF'
+			)
+		}
 
-			reply
-				.type('application/pdf')
-				.header('Content-Disposition', `inline; filename="${filename}"`)
-				.header('Content-Length', pdfBuffer.length.toString())
-				.status(HttpStatus.OK)
-				.send(pdfBuffer)
-		} catch (error) {
-			this.logger.error('Error previewing lease:', error)
-			throw new InternalServerErrorException('Failed to preview lease')
+		// Get authentication token from request
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authentication token is required')
+		}
+
+		// Use transformation service
+		const leaseFormData = await this.transformationService.buildLeaseFormData(
+			token,
+			leaseId
+		)
+
+		this.logger.log('Generating PDF preview for lease', {
+			leaseId,
+			tenantCount: leaseFormData.tenants.length,
+			propertyState: leaseFormData.property.address.state
+		})
+
+		// Generate PDF
+		const pdfBuffer = await this.leasePDFService.generateLeasePDF(
+			leaseFormData as unknown as Record<string, unknown>
+		)
+
+		// Return PDF response (interceptor will set headers)
+		return {
+			success: true,
+			contentType: 'application/pdf',
+			disposition: 'inline',
+			filename: `lease-${leaseId}.pdf`,
+			buffer: pdfBuffer
 		}
 	}
 
@@ -173,175 +278,11 @@ export class LeaseGeneratorController {
 		)
 
 		try {
-			const errors: Array<{ field: string; message: string; code: string }> = []
-			const warnings: Array<{
-				field: string
-				message: string
-				suggestion: string
-			}> = []
-
-			// Basic validation
-			if (!leaseData?.property?.address?.state) {
-				errors.push({
-					field: 'property.address.state',
-					message: 'Property state is required',
-					code: 'REQUIRED_FIELD'
-				})
-			}
-
-			// State-specific validation (simplified)
-			if (leaseData?.property?.address?.state === 'CA') {
-				// California security deposit limit: 2x monthly rent
-				const rentAmount = leaseData?.leaseTerms?.rentAmount || 0
-				const depositAmount =
-					leaseData?.leaseTerms?.securityDeposit?.amount || 0
-
-				if (depositAmount > rentAmount * 2) {
-					errors.push({
-						field: 'leaseTerms.securityDeposit.amount',
-						message:
-							'Security deposit cannot exceed 2x monthly rent in California',
-						code: 'CA_DEPOSIT_LIMIT'
-					})
-				}
-
-				// California late fee grace period
-				if (leaseData?.leaseTerms?.lateFee?.enabled) {
-					const gracePeriod = leaseData.leaseTerms.lateFee.gracePeriod || 0
-					if (gracePeriod < 3) {
-						warnings.push({
-							field: 'leaseTerms.lateFee.gracePeriod',
-							message:
-								'California recommends minimum 3-day grace period for late fees',
-							suggestion: 'Increase grace period to 3 days'
-						})
-					}
-				}
-			}
-
-			return {
-				valid: errors.length === 0,
-				errors,
-				warnings,
-				stateRequirements: this.getStateRequirements(
-					leaseData?.property?.address?.state || 'CA'
-				)
-			}
+			// Use validation service
+			return this.validationService.validateLeaseData(leaseData)
 		} catch (error) {
 			this.logger.error('Error validating lease:', error)
 			throw new InternalServerErrorException('Failed to validate lease data')
-		}
-	}
-
-	/**
-	 * Get sample lease data for demo purposes
-	 */
-	private getSampleLeaseData() {
-		return {
-			property: {
-				address: {
-					street: '123 Demo Street',
-					unit: 'Apt 1A',
-					city: 'San Francisco',
-					state: 'CA',
-					zipCode: '94102'
-				},
-				type: 'apartment',
-				bedrooms: 2,
-				bathrooms: 1
-			},
-			owner: {
-				name: 'Demo Property Management LLC',
-				isEntity: true,
-				entityType: 'LLC',
-				address: {
-					street: '456 Business Ave',
-					city: 'San Francisco',
-					state: 'CA',
-					zipCode: '94103'
-				},
-				phone: '(415) 555-0123',
-				email: 'demo@properties.com'
-			},
-			tenants: [
-				{
-					name: 'John Doe',
-					email: 'john@example.com',
-					phone: '(415) 555-7890',
-					isMainTenant: true
-				}
-			],
-			leaseTerms: {
-				type: 'fixed_term',
-				startDate: '2024-03-01',
-				endDate: '2025-02-28',
-				rentAmount: 300000, // $3000 in cents
-				currency: 'USD',
-				dueDate: 1,
-				lateFee: {
-					enabled: true,
-					amount: 10000, // $100 in cents
-					gracePeriod: 5
-				},
-				securityDeposit: {
-					amount: 300000, // $3000 in cents
-					monthsRent: 1
-				}
-			}
-		}
-	}
-
-	/**
-	 * Get simplified state requirements
-	 */
-	private getStateRequirements(state: string): {
-		stateName: string
-		securityDepositMax: string
-		lateFeeGracePeriod: string
-		requiredDisclosures: string[]
-	} {
-		const requirements: Record<
-			string,
-			{
-				stateName: string
-				securityDepositMax: string
-				lateFeeGracePeriod: string
-				requiredDisclosures: string[]
-			}
-		> = {
-			CA: {
-				stateName: 'California',
-				securityDepositMax: '2x monthly rent',
-				lateFeeGracePeriod: '3 days minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug History']
-			},
-			TX: {
-				stateName: 'Texas',
-				securityDepositMax: '2x monthly rent',
-				lateFeeGracePeriod: '1 day minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)']
-			},
-			NY: {
-				stateName: 'New York',
-				securityDepositMax: '1x monthly rent',
-				lateFeeGracePeriod: '5 days minimum',
-				requiredDisclosures: [
-					'Lead Paint (pre-1978)',
-					'Bed Bug Annual Statement'
-				]
-			}
-		}
-
-		const stateReq = requirements[state]
-		if (stateReq) {
-			return stateReq
-		}
-
-		return {
-			stateName: state,
-			securityDepositMax: 'Varies by state',
-			lateFeeGracePeriod: 'Check state law',
-			requiredDisclosures: ['Lead Paint (pre-1978)']
 		}
 	}
 }

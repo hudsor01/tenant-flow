@@ -12,6 +12,7 @@
 
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { QUERY_CACHE_TIMES } from '#lib/constants'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	handleConflictError,
@@ -55,7 +56,7 @@ export function useUnit(id: string) {
 			return clientFetch<Unit>(`/api/v1/units/${id}`)
 		},
 		enabled: !!id,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes cache time
 	})
 }
@@ -86,7 +87,7 @@ export function useUnitsByProperty(propertyId: string) {
 			}
 		},
 		enabled: !!propertyId,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
 	})
@@ -139,7 +140,7 @@ export function useUnitList(params?: {
 				offset
 			}
 		},
-		staleTime: 10 * 60 * 1000, // 10 minutes - list data rarely changes
+		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time
 		retry: 2,
 		// Enable structural sharing to prevent re-renders when data hasn't changed
@@ -154,7 +155,7 @@ export function useUnitStats() {
 	return useQuery({
 		queryKey: unitKeys.stats(),
 		queryFn: () => clientFetch<UnitStats>('/api/v1/units/stats'),
-		staleTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes
 		retry: 2
 	})
@@ -215,7 +216,7 @@ export function useCreateUnit() {
 				lastInspectionDate: newUnit.lastInspectionDate || null,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
-				version: 1 // 🔐 BUG FIX #2: Optimistic locking
+				version: 1 //Optimistic locking
 			}
 
 			// Optimistically update all relevant caches
@@ -292,7 +293,9 @@ export function useUpdateUnit() {
 			return clientFetch<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(
-					version !== null && version !== undefined ? withVersion(data, version) : data
+					version !== null && version !== undefined
+						? withVersion(data, version)
+						: data
 				)
 			})
 		},
@@ -343,7 +346,7 @@ export function useUpdateUnit() {
 				})
 			}
 
-			// 🔐 BUG FIX #2: Handle 409 Conflict using helper
+			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('unit', id, queryClient, [
 					unitKeys.detail(id),
@@ -464,7 +467,7 @@ export function usePrefetchUnit() {
 			queryFn: async (): Promise<Unit> => {
 				return clientFetch<Unit>(`/api/v1/units/${id}`)
 			},
-			staleTime: 5 * 60 * 1000
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }
