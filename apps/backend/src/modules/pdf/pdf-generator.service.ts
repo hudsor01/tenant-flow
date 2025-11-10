@@ -9,12 +9,13 @@ import {
 	renderToBuffer,
 	type DocumentProps
 } from '@react-pdf/renderer'
-import puppeteer, { type PDFOptions } from 'puppeteer'
+import puppeteer from 'puppeteer'
 
 /**
  * PDF Generator Service
  * - @react-pdf/renderer for React-based PDFs (invoices)
- * - Puppeteer for HTML-based PDFs (lease agreements with complex templates)
+ * - Puppeteer for HTML-based PDFs (legacy lease-pdf.service.ts)
+ * - pdf-lib for PDF template filling (new texas-lease-pdf.service.ts)
  */
 @Injectable()
 export class PDFGeneratorService implements OnModuleDestroy {
@@ -346,7 +347,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
 
 			// PDF options with defaults
-			const pdfOptions: PDFOptions = {
+			const pdfOptions: { format: "A4" | "Letter" | "Legal"; printBackground: boolean; margin: { top?: string; right?: string; bottom?: string; left?: string }; landscape: boolean; headerTemplate?: string; footerTemplate?: string } = {
 				format: options?.format || 'A4',
 				printBackground: true,
 				margin: options?.margin || {

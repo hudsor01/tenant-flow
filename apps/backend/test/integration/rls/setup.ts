@@ -25,8 +25,8 @@ export interface TestCredentials {
 
 export const TEST_USERS = {
 	OWNER_A: {
-		email: process.env.E2E_OWNER_A_EMAIL!,
-		password: process.env.E2E_OWNER_A_PASSWORD!,
+		email: process.env.E2E_OWNER_EMAIL!,
+		password: process.env.E2E_OWNER_PASSWORD!,
 		role: 'OWNER' as const
 	},
 	OWNER_B: {
@@ -48,7 +48,7 @@ export const TEST_USERS = {
 
 // Validate required environment variables at module load time
 const REQUIRED_TEST_USER_VARS = [
-	'E2E_OWNER_A_EMAIL', 'E2E_OWNER_A_PASSWORD',
+	'E2E_OWNER_EMAIL', 'E2E_OWNER_PASSWORD',
 	'E2E_OWNER_B_EMAIL', 'E2E_OWNER_B_PASSWORD',
 	'E2E_TENANT_A_EMAIL', 'E2E_TENANT_A_PASSWORD',
 	'E2E_TENANT_B_EMAIL', 'E2E_TENANT_B_PASSWORD'

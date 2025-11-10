@@ -18,10 +18,11 @@ import {
 	Logger,
 	Optional,
 	Post,
+	RawBodyRequest,
 	Req
 } from '@nestjs/common'
+import { Request } from 'express'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { RawBodyRequest } from '../../shared/types/express-request.types'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
@@ -45,7 +46,7 @@ export class StripeWebhookController {
 	 */
 	@Post()
 	async handleWebhook(
-		@Req() req: RawBodyRequest,
+		@Req() req: RawBodyRequest<Request>,
 		@Headers('stripe-signature') signature: string
 	) {
 		if (!signature) {

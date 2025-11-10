@@ -404,8 +404,9 @@ export default function FeaturesPage() {
 									<div className="flex justify-center space-x-2 mt-6">
 										{testimonials.map((_, index) => (
 											<button
-												key={index}
-												onClick={() => setCurrentTestimonial(index)}
+										type="button"
+										key={index}
+										onClick={() => setCurrentTestimonial(index)}
 												className={cn(
 													'size-2 rounded-full transition-colors duration-300',
 													index === currentTestimonial

@@ -253,6 +253,16 @@ describe('LeaseGeneratorController', () => {
 	})
 
 	describe('downloadLease', () => {
+		let mockTransformationService: { buildLeaseFormData: jest.Mock }
+
+		beforeEach(() => {
+			mockTransformationService = {
+				buildLeaseFormData: jest.fn()
+			}
+			// Replace the transformation service mock
+			;(controller as any).transformationService = mockTransformationService
+		})
+
 		it('throws error when leaseId is missing', async () => {
 			const mockReq = {
 				headers: { authorization: `Bearer ${mockToken}` }
@@ -263,12 +273,87 @@ describe('LeaseGeneratorController', () => {
 			).rejects.toThrow('leaseId query parameter is required')
 		})
 
-		// Note: downloadLease now uses LeaseTransformationService.buildLeaseFormData()
-		// which is tested separately. Controller integration tests would require
-		// mocking the transformation service or using real database calls.
+		it('throws error when authorization token is missing', async () => {
+			const mockReq = {
+				headers: {}
+			} as any
+
+			await expect(
+				controller.downloadLease('lease_123', mockReq)
+			).rejects.toThrow('Authentication token is required')
+		})
+
+		it('successfully generates PDF for download', async () => {
+			const leaseId = 'lease_test-123'
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			// Mock transformation service to return valid lease data
+			mockTransformationService.buildLeaseFormData.mockResolvedValue(validLease)
+
+			// Mock PDF service
+			const pdfBuffer = Buffer.from('test-pdf-content')
+			pdfService.generateLeasePDF.mockResolvedValue(pdfBuffer)
+
+			const result = await controller.downloadLease(leaseId, mockReq)
+
+			// Verify transformation service called with correct params
+			expect(mockTransformationService.buildLeaseFormData).toHaveBeenCalledWith(
+				mockToken,
+				leaseId
+			)
+
+			// Verify PDF generation
+			expect(pdfService.generateLeasePDF).toHaveBeenCalledWith(validLease)
+
+			// Verify response format (attachment for download)
+			expect(result.success).toBe(true)
+			expect(result.contentType).toBe('application/pdf')
+			expect(result.disposition).toBe('attachment')
+			expect(result.filename).toBe(`lease-${leaseId}.pdf`)
+			expect(result.buffer).toBe(pdfBuffer)
+		})
+
+		it('handles transformation service errors', async () => {
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			mockTransformationService.buildLeaseFormData.mockRejectedValue(
+				new Error('Lease not found')
+			)
+
+			await expect(
+				controller.downloadLease('lease_missing', mockReq)
+			).rejects.toThrow('Lease not found')
+		})
+
+		it('handles PDF generation errors', async () => {
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			mockTransformationService.buildLeaseFormData.mockResolvedValue(validLease)
+			pdfService.generateLeasePDF.mockRejectedValue(new Error('PDF generation failed'))
+
+			await expect(
+				controller.downloadLease('lease_123', mockReq)
+			).rejects.toThrow('PDF generation failed')
+		})
 	})
 
 	describe('previewLease', () => {
+		let mockTransformationService: { buildLeaseFormData: jest.Mock }
+
+		beforeEach(() => {
+			mockTransformationService = {
+				buildLeaseFormData: jest.fn()
+			}
+			// Replace the transformation service mock
+			;(controller as any).transformationService = mockTransformationService
+		})
+
 		it('throws error when leaseId is missing', async () => {
 			const mockReq = {
 				headers: { authorization: `Bearer ${mockToken}` }
@@ -279,9 +364,76 @@ describe('LeaseGeneratorController', () => {
 			).rejects.toThrow('leaseId query parameter is required')
 		})
 
-		// Note: previewLease now uses LeaseTransformationService.buildLeaseFormData()
-		// which is tested separately. Controller integration tests would require
-		// mocking the transformation service or using real database calls.
+		it('throws error when authorization token is missing', async () => {
+			const mockReq = {
+				headers: {}
+			} as any
+
+			await expect(
+				controller.previewLease('lease_123', mockReq)
+			).rejects.toThrow('Authentication token is required')
+		})
+
+		it('successfully generates PDF for preview (inline display)', async () => {
+			const leaseId = 'lease_test-456'
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			// Mock transformation service to return valid lease data
+			mockTransformationService.buildLeaseFormData.mockResolvedValue(validLease)
+
+			// Mock PDF service
+			const pdfBuffer = Buffer.from('preview-pdf-content')
+			pdfService.generateLeasePDF.mockResolvedValue(pdfBuffer)
+
+			const result = await controller.previewLease(leaseId, mockReq)
+
+			// Verify transformation service called
+			expect(mockTransformationService.buildLeaseFormData).toHaveBeenCalledWith(
+				mockToken,
+				leaseId
+			)
+
+			// Verify PDF generation
+			expect(pdfService.generateLeasePDF).toHaveBeenCalledWith(validLease)
+
+			// Verify response format (inline for preview - key difference from download)
+			expect(result.success).toBe(true)
+			expect(result.contentType).toBe('application/pdf')
+			expect(result.disposition).toBe('inline') // Different from download!
+			expect(result.filename).toBe(`lease-${leaseId}.pdf`)
+			expect(result.buffer).toBe(pdfBuffer)
+		})
+
+		it('handles transformation service errors', async () => {
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			mockTransformationService.buildLeaseFormData.mockRejectedValue(
+				new Error('Database connection failed')
+			)
+
+			await expect(
+				controller.previewLease('lease_error', mockReq)
+			).rejects.toThrow('Database connection failed')
+		})
+
+		it('handles PDF generation errors', async () => {
+			const mockReq = {
+				headers: { authorization: `Bearer ${mockToken}` }
+			} as any
+
+			mockTransformationService.buildLeaseFormData.mockResolvedValue(validLease)
+			pdfService.generateLeasePDF.mockRejectedValue(
+				new Error('Puppeteer timeout')
+			)
+
+			await expect(
+				controller.previewLease('lease_456', mockReq)
+			).rejects.toThrow('Puppeteer timeout')
+		})
 	})
 
 

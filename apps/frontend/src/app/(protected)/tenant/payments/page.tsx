@@ -254,8 +254,9 @@ export default function TenantPaymentPage() {
 					{!methodsLoading &&
 						paymentMethods.map(method => (
 							<button
-								key={method.id}
-								onClick={() => setSelectedMethodId(method.id)}
+							type="button"
+							key={method.id}
+							onClick={() => setSelectedMethodId(method.id)}
 								className={`w-full flex items-center justify-between p-4 border rounded-lg transition-all ${
 									selectedMethodId === method.id
 										? 'border-primary bg-primary/5 ring-2 ring-primary/20'

@@ -14,19 +14,49 @@ import { TenantGuard } from '#components/auth/tenant-guard'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { FieldLabel } from '#components/ui/field'
+import {
+	useNotificationPreferences,
+	useUpdateNotificationPreferences
+} from '#hooks/api/use-notification-preferences'
+import { useUserProfile } from '#hooks/use-user-profile'
 // Icons removed - CardLayout doesn't support icon prop
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { useEffect, useState } from 'react'
 
 export default function TenantSettingsPage() {
+	// Get tenant ID from user profile
+	const { data: profile } = useUserProfile()
+	const tenantId = profile?.id || ''
+
+	// Fetch notification preferences
+	const { data: preferences, isLoading: prefsLoading } =
+		useNotificationPreferences(tenantId)
+	const updatePreferences = useUpdateNotificationPreferences(tenantId)
+
+	// Local state for form
 	const [emailNotifications, setEmailNotifications] = useState(true)
 	const [smsNotifications, setSmsNotifications] = useState(false)
 	const [maintenanceUpdates, setMaintenanceUpdates] = useState(true)
-	const [paymentReminders, setPaymentReminders] = useState(true)
+	const [rentReminders, setRentReminders] = useState(true)
 
-	const handleSaveNotifications = () => {
-		// TODO: Implement actual save functionality
-		toast.success('Notification preferences saved')
+	// Sync form state with fetched preferences
+	useEffect(() => {
+		if (preferences) {
+			setEmailNotifications(preferences.emailNotifications ?? true)
+			setSmsNotifications(preferences.smsNotifications ?? false)
+			setMaintenanceUpdates(preferences.maintenanceUpdates ?? true)
+			setRentReminders(preferences.rentReminders ?? true)
+		}
+	}, [preferences])
+
+	const handleSaveNotifications = async () => {
+		if (!tenantId) return
+
+		await updatePreferences.mutateAsync({
+			emailNotifications,
+			smsNotifications,
+			maintenanceUpdates,
+			rentReminders
+		})
 	}
 
 	return (
@@ -93,23 +123,26 @@ export default function TenantSettingsPage() {
 
 						<div className="flex items-center justify-between">
 							<div className="space-y-0.5">
-								<FieldLabel>Payment Reminders</FieldLabel>
+								<FieldLabel>Rent Reminders</FieldLabel>
 								<p className="text-sm text-muted-foreground">
 									Receive reminders before rent is due
 								</p>
 							</div>
 							<input
 								type="checkbox"
-								checked={paymentReminders}
-								onChange={(e) => setPaymentReminders(e.target.checked)}
+								checked={rentReminders}
+								onChange={(e) => setRentReminders(e.target.checked)}
 								className="size-4 rounded border-gray-300"
 							/>
 						</div>
 					</div>
 
 					<div className="flex justify-end">
-						<Button onClick={handleSaveNotifications}>
-							Save Preferences
+						<Button
+							onClick={handleSaveNotifications}
+							disabled={!tenantId || updatePreferences.isPending || prefsLoading}
+						>
+							{updatePreferences.isPending ? 'Saving...' : 'Save Preferences'}
 						</Button>
 					</div>
 				</div>
