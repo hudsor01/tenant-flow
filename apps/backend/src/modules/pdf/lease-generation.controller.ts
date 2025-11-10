@@ -3,6 +3,7 @@ import {
 	Controller,
 	Get,
 	Param,
+	ParseUUIDPipe,
 	Post,
 	Res,
 	UseGuards,
@@ -17,7 +18,10 @@ import { TexasLeasePDFService } from './texas-lease-pdf.service'
 import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
-import { validate as isUUID } from 'uuid'
+
+// Filename sanitization constants
+const MAX_ADDRESS_LENGTH = 30 // Max characters for property address in filename
+const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
 
 /**
  * Lease Generation Controller
@@ -33,14 +37,7 @@ export class LeaseGenerationController {
 		private readonly supabase: SupabaseService
 	) {}
 
-	/**
-	 * Validate UUID format for ID parameters
-	 */
-	private validateUUID(id: string, paramName: string): void {
-		if (!isUUID(id)) {
-			throw new BadRequestException(`Invalid ${paramName}: must be a valid UUID`)
-		}
-	}
+
 
 	/**
 	 * Generate Texas lease PDF from form data
@@ -60,10 +57,10 @@ export class LeaseGenerationController {
 			// Generate descriptive filename
 			const sanitizedAddress = (dto.propertyAddress || 'property')
 				.replace(/[^a-zA-Z0-9]/g, '-')
-				.slice(0, 30)
+				.slice(0, MAX_ADDRESS_LENGTH)
 			const sanitizedTenant = (dto.tenantName || 'tenant')
 				.replace(/[^a-zA-Z0-9]/g, '-')
-				.slice(0, 20)
+				.slice(0, MAX_TENANT_NAME_LENGTH)
 			const date = new Date().toISOString().split('T')[0]
 			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
 
@@ -92,14 +89,10 @@ export class LeaseGenerationController {
 	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:propertyId/:unitId/:tenantId')
 	async autoFillLease(
-		@Param('propertyId') propertyId: string,
-		@Param('unitId') unitId: string,
-		@Param('tenantId') tenantId: string
+		@Param('propertyId', ParseUUIDPipe) propertyId: string,
+		@Param('unitId', ParseUUIDPipe) unitId: string,
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	): Promise<Partial<LeaseGenerationFormData>> {
-		// Validate UUID format
-		this.validateUUID(propertyId, 'propertyId')
-		this.validateUUID(unitId, 'unitId')
-		this.validateUUID(tenantId, 'tenantId')
 
 		// Fetch property data
 		const { data: property, error: propertyError } = await this.supabase
@@ -109,7 +102,19 @@ export class LeaseGenerationController {
 			.eq('id', propertyId)
 			.single()
 
-		if (propertyError || !property) {
+		if (propertyError) {
+			// PGRST116 = not found (no rows returned)
+			if (propertyError.code === 'PGRST116') {
+				throw new NotFoundException(`Property not found: ${propertyId}`)
+			}
+			// Other database errors (connection, permissions, etc.)
+			throw new InternalServerErrorException(
+				'Failed to fetch property data',
+				propertyError.message
+			)
+		}
+
+		if (!property) {
 			throw new NotFoundException(`Property not found: ${propertyId}`)
 		}
 
@@ -121,7 +126,17 @@ export class LeaseGenerationController {
 			.eq('id', unitId)
 			.single()
 
-		if (unitError || !unit) {
+		if (unitError) {
+			if (unitError.code === 'PGRST116') {
+				throw new NotFoundException(`Unit not found: ${unitId}`)
+			}
+			throw new InternalServerErrorException(
+				'Failed to fetch unit data',
+				unitError.message
+			)
+		}
+
+		if (!unit) {
 			throw new NotFoundException(`Unit not found: ${unitId}`)
 		}
 
@@ -140,7 +155,17 @@ export class LeaseGenerationController {
 			.eq('id', tenantId)
 			.single()
 
-		if (tenantError || !tenant) {
+		if (tenantError) {
+			if (tenantError.code === 'PGRST116') {
+				throw new NotFoundException(`Tenant not found: ${tenantId}`)
+			}
+			throw new InternalServerErrorException(
+				'Failed to fetch tenant data',
+				tenantError.message
+			)
+		}
+
+		if (!tenant) {
 			throw new NotFoundException(`Tenant not found: ${tenantId}`)
 		}
 

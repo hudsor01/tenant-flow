@@ -13,7 +13,7 @@ import {
 
 /**
  * Normalize error types to prevent unbounded cardinality in Prometheus metrics
- * Maps error constructor names to 6 categories + UNKNOWN
+ * Maps error constructor names to 7 categories + UNKNOWN
  */
 function normalizeErrorType(errorType: string): string {
 	const upper = errorType.toUpperCase()
@@ -22,6 +22,7 @@ function normalizeErrorType(errorType: string): string {
 	if (upper.includes('NETWORK') || upper.includes('TIMEOUT')) return 'NETWORK_ERROR'
 	if (upper.includes('AUTH') || upper.includes('UNAUTHORIZED')) return 'AUTH_ERROR'
 	if (upper.includes('STRIPE') || upper.includes('PAYMENT')) return 'STRIPE_ERROR'
+	if (upper.includes('PDF') || upper.includes('TEMPLATE')) return 'PDF_ERROR'
 	return 'UNKNOWN'
 }
 

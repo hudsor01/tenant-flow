@@ -20,11 +20,13 @@ export class TexasLeasePDFService {
 	private readonly templatePath: string
 
 	constructor() {
-		// Use absolute path relative to backend dist directory
-		this.templatePath = join(
-			__dirname,
-			'../../../Texas_Residential_Lease_Agreement.pdf'
-		)
+		// Use environment variable or default path relative to backend dist directory
+		this.templatePath =
+			process.env.TEXAS_LEASE_TEMPLATE_PATH ||
+			join(
+				__dirname,
+				'../../../Texas_Residential_Lease_Agreement.pdf'
+			)
 	}
 
 	/**
@@ -44,6 +46,7 @@ export class TexasLeasePDFService {
 
 	/**
 	 * Helper to safely set form field value
+	 * Handles text fields, checkboxes, radio groups, and dropdowns
 	 */
 	private setFormField(
 		form: ReturnType<PDFDocument['getForm']>,
@@ -53,13 +56,70 @@ export class TexasLeasePDFService {
 		if (value === undefined || value === null) return
 
 		try {
-			const field = form.getTextField(fieldName)
-			field.setText(String(value))
+			// Handle boolean values (checkboxes/radio groups)
+			if (typeof value === 'boolean') {
+				try {
+					const checkbox = form.getCheckBox(fieldName)
+					if (value) {
+						checkbox.check()
+					} else {
+						checkbox.uncheck()
+					}
+					return
+				} catch {
+					// Try radio group
+					try {
+						const radioGroup = form.getRadioGroup(fieldName)
+						radioGroup.select(value ? 'Yes' : 'No')
+						return
+					} catch {
+						// Fallback to text field
+						const field = form.getTextField(fieldName)
+						field.setText(value ? 'Yes' : 'No')
+						return
+					}
+				}
+			}
+
+			// Handle string/number values (text fields or dropdowns)
+			const stringValue = String(value)
+			try {
+				const field = form.getTextField(fieldName)
+				field.setText(stringValue)
+			} catch {
+				// Try dropdown
+				try {
+					const dropdown = form.getDropdown(fieldName)
+					dropdown.select(stringValue)
+				} catch {
+					this.logger.warn(
+						`Form field "${fieldName}" not found or unsupported type (attempted value: ${stringValue})`
+					)
+				}
+			}
 		} catch (error) {
 			this.logger.warn(
-				`Form field "${fieldName}" not found in PDF template`
+				`Failed to set form field "${fieldName}" with value ${value}`,
+				error
 			)
 		}
+	}
+
+	/**
+	 * Format currency as USD with two decimal places
+	 */
+	private formatCurrency(amount: number): string {
+		return `$${amount.toFixed(2)}`
+	}
+
+	/**
+	 * Format pets text based on whether pets are allowed
+	 */
+	private formatPetsText(formData: LeaseGenerationFormData): string {
+		if (!formData.petsAllowed) {
+			return 'No pets allowed'
+		}
+		return `Pets allowed - Deposit: ${this.formatCurrency(formData.petDeposit)}, Rent: ${this.formatCurrency(formData.petRent)}/month`
 	}
 
 	/**
@@ -96,24 +156,24 @@ export class TexasLeasePDFService {
 			this.setFormField(
 				form,
 				'monthly_rent',
-				`$${formData.monthlyRent.toFixed(2)}`
+				this.formatCurrency(formData.monthlyRent)
 			)
 			this.setFormField(form, 'rent_due_day', formData.rentDueDay)
 			if (formData.lateFeeAmount) {
 				this.setFormField(
 					form,
 					'late_fee_amount',
-					`$${formData.lateFeeAmount.toFixed(2)}`
+					this.formatCurrency(formData.lateFeeAmount)
 				)
 			}
 			this.setFormField(form, 'late_fee_grace_days', formData.lateFeeGraceDays)
-			this.setFormField(form, 'nsf_fee', `$${formData.nsfFee.toFixed(2)}`)
+			this.setFormField(form, 'nsf_fee', this.formatCurrency(formData.nsfFee))
 
 			// Fill in security deposit
 			this.setFormField(
 				form,
 				'security_deposit',
-				`$${formData.securityDeposit.toFixed(2)}`
+				this.formatCurrency(formData.securityDeposit)
 			)
 			this.setFormField(
 				form,
@@ -152,20 +212,17 @@ export class TexasLeasePDFService {
 			}
 
 			// Fill in pets information
-			const petsText = formData.petsAllowed
-				? `Pets allowed - Deposit: $${formData.petDeposit.toFixed(2)}, Rent: $${formData.petRent.toFixed(2)}/month`
-				: 'No pets allowed'
-			this.setFormField(form, 'pets_allowed', petsText)
+			this.setFormField(form, 'pets_allowed', this.formatPetsText(formData))
 			if (formData.petsAllowed) {
 				this.setFormField(
 					form,
 					'pet_deposit',
-					`$${formData.petDeposit.toFixed(2)}`
+					this.formatCurrency(formData.petDeposit)
 				)
 				this.setFormField(
 					form,
 					'pet_rent',
-					`$${formData.petRent.toFixed(2)}/month`
+					`${this.formatCurrency(formData.petRent)}/month`
 				)
 			}
 
@@ -175,7 +232,7 @@ export class TexasLeasePDFService {
 			this.setFormField(
 				form,
 				'hold_over_rent',
-				`$${holdOverRent.toFixed(2)}/month (${(formData.holdOverRentMultiplier * 100).toFixed(0)}% of monthly rent)`
+				`${this.formatCurrency(holdOverRent)}/month (${(formData.holdOverRentMultiplier * 100).toFixed(0)}% of monthly rent)`
 			)
 
 			// Fill in lead paint disclosure
