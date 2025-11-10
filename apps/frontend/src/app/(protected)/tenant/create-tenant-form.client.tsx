@@ -97,6 +97,15 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
+				// Validate numeric conversions
+				const rentAmount = Number.parseFloat(value.rentAmount)
+				const securityDeposit = Number.parseFloat(value.securityDeposit)
+				if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
+					toast.error('Invalid rent or security deposit amount')
+					setIsSubmitting(false)
+					return
+				}
+
 				const response = await clientFetch<{
 					success: boolean
 					tenantId: string
@@ -115,6 +124,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 						leaseData: {
 							propertyId: value.propertyId,
 							...(value.unitId && { unitId: value.unitId }),
+							// Convert dollars to cents for backend (backend expects integer cents)
 							rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
 							securityDeposit: Math.round(
 								Number.parseFloat(value.securityDeposit) * 100
