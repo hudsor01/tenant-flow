@@ -146,16 +146,16 @@ test.describe('Texas Lease Generation', () => {
 		// Select tenant (required)
 		const tenantSelect = page.getByLabel(/tenant/i).or(page.locator('select[name*="tenant"], [role="combobox"][aria-label*="tenant"]')).first()
 		await expect(tenantSelect).toBeVisible({ timeout: 5000 })
-		
-		await tenantSelect.click()
-		const firstTenantOption = page.locator('[role="option"]').first()
-		await firstTenantOption.click()
 
-		// Intercept auto-fill API call
+		// Set up auto-fill listener BEFORE clicking tenant (to avoid race condition)
 		const autoFillPromise = page.waitForResponse(
 			response => response.url().includes('/api/v1/leases/auto-fill/') && response.status() === 200,
 			{ timeout: 30000 }
 		)
+
+		await tenantSelect.click()
+		const firstTenantOption = page.locator('[role="option"]').first()
+		await firstTenantOption.click()
 
 		// Wait for auto-fill to complete
 		const autoFillResponse = await autoFillPromise

@@ -11,7 +11,13 @@ const CreateUnitSchema = z.object({
 	bedrooms: z.number().int().nonnegative().optional(),
 	bathrooms: z.number().nonnegative().optional(),
 	squareFeet: z.number().int().positive().optional(),
-	rent: z.number().nonnegative('Rent must be non-negative').optional(),
+	// IMPORTANT: rent must be in cents (multiply dollars by 100)
+	// This matches the lease rentAmount field convention
+	rent: z
+		.number()
+		.int('Rent must be an integer (cents)')
+		.nonnegative('Rent must be non-negative')
+		.optional(),
 	status: z
 		.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'])
 		.optional()
