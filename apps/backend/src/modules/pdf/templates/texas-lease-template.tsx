@@ -67,6 +67,14 @@ interface TexasLeaseTemplateProps {
 	data: LeaseGenerationFormData
 }
 
+// Helper function to get ordinal suffix for day numbers (1st, 2nd, 3rd, etc.)
+const getOrdinalSuffix = (day: number): string => {
+	if (day === 1 || day === 21 || day === 31) return 'st'
+	if (day === 2 || day === 22) return 'nd'
+	if (day === 3 || day === 23) return 'rd'
+	return 'th'
+}
+
 export function TexasLeaseTemplate({
 	data
 }: TexasLeaseTemplateProps) {
@@ -166,13 +174,7 @@ export function TexasLeaseTemplate({
 						Tenant shall pay to Landlord the sum of ${data.monthlyRent.toFixed(2)}{' '}
 						per month as Rent for the Term of the Agreement. Due date for Rent
 						payment shall be the {data.rentDueDay}
-						{data.rentDueDay === 1
-							? 'st'
-							: data.rentDueDay === 2
-								? 'nd'
-								: data.rentDueDay === 3
-									? 'rd'
-									: 'th'}{' '}
+						{getOrdinalSuffix(data.rentDueDay)}{' '}
 						day of each calendar month and shall be considered advance payment for
 						that month. Weekends and holidays do not delay or excuse Tenant's
 						obligation to timely pay rent.
@@ -182,15 +184,15 @@ export function TexasLeaseTemplate({
 						<Text style={styles.sectionTitle}>A. Delinquent Rent.</Text>
 						<Text style={styles.paragraph}>
 							If not paid on the {data.rentDueDay}
-							{data.rentDueDay === 1 ? 'st' : 'th'}, Rent shall be considered
+							{getOrdinalSuffix(data.rentDueDay)}, Rent shall be considered
 							overdue and delinquent on the{' '}
-							{data.rentDueDay === 1 ? '2nd' : `${data.rentDueDay + 1}th`} day of
+							{data.rentDueDay + 1}{getOrdinalSuffix(data.rentDueDay + 1)} day of
 							each calendar month. If Tenant fails to timely pay any month's rent,
 							Tenant will pay Landlord a late charge of $
-							{data.lateFeeAmount ? data.lateFeeAmount.toFixed(2) : '0.00'} per day until rent is paid
+							{(data.lateFeeAmount ?? 0).toFixed(2)} per day until rent is paid
 							in full. If Landlord receives the monthly rent by the{' '}
 							{data.lateFeeGraceDays + 1}
-							{data.lateFeeGraceDays + 1 === 3 ? 'rd' : 'th'} day of the month,
+							{getOrdinalSuffix(data.lateFeeGraceDays + 1)} day of the month,
 							Landlord will waive the late charges for that month. Any waiver of
 							late charges under this paragraph will not affect or diminish any
 							other right or remedy Landlord may exercise for Tenant's failure to
