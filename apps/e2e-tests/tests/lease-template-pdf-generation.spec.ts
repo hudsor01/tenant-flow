@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { test } from '@playwright/test'
 import type { TestInfo } from '@playwright/test'
 import { loginAsOwner } from '../auth-helpers'
 
