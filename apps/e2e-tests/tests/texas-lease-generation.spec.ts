@@ -31,7 +31,7 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
  * E2E AUTHENTICATION SETUP REQUIRED
  * 
  * These tests require a local test account to be set up in your database:
- * Email: process.env.E2E_OWNER_EMAIL (default: rhudsontspr+46@gmail.com)
+ * Email: process.env.E2E_OWNER_EMAIL (default: test-owner@example.com)
  * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
  * 
  * To set up:
@@ -49,22 +49,26 @@ test.describe('Texas Lease Generation', () => {
 	// Check if authentication is available before running tests
 	test.beforeAll(async ({ browser }) => {
 		const page = await browser.newPage()
+		const controller = new AbortController()
+		const timeoutId = setTimeout(() => controller.abort(), 10000)
+		
 		try {
-			// Try to login with reduced timeout to fail fast
-			await Promise.race([
-				loginAsOwner(page),
-				new Promise((_, reject) => 
-					setTimeout(() => reject(new Error('Auth timeout')), 10000)
-				)
-			])
+			// Try to login with timeout using AbortController
+			await loginAsOwner(page)
+			
+			if (controller.signal.aborted) {
+				throw new Error('Auth timeout')
+			}
+			
 			authenticationAvailable = true
 			console.log('✅ Authentication successful - tests will run')
-			await page.close()
 		} catch (error) {
 			authenticationAvailable = false
 			console.log('⚠️  Authentication failed - tests will be SKIPPED')
 			console.log('   Set up test account at http://localhost:3000/signup')
-			console.log(`   Email: ${process.env.E2E_OWNER_EMAIL || 'rhudsontspr+46@gmail.com'}`)
+			console.log(`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`)
+		} finally {
+			clearTimeout(timeoutId)
 			await page.close()
 		}
 	})
@@ -97,14 +101,13 @@ test.describe('Texas Lease Generation', () => {
 	})
 
 	test('should auto-fill and generate Texas lease PDF', async ({ page }, testInfo) => {
-		// Authenticate for this test
-		try {
-			await loginAsOwner(page)
-		} catch (error) {
-			// Skip test if authentication fails (requires test account setup)
+		// Skip if auth unavailable (beforeAll handles authentication)
+		if (!authenticationAvailable) {
 			test.skip()
 			return
 		}
+
+		await loginAsOwner(page)
 
 		// Navigate to leases page
 		await page.goto('/manage/leases', {
@@ -249,8 +252,11 @@ test.describe('Texas Lease Generation', () => {
 			// Generate button should be disabled or show error message
 			const generateButton = page.getByRole('button', { name: /generate.*download.*lease/i })
 			
-			// Wait for button to appear
-			await page.waitForTimeout(2000)
+			// Wait for button to appear or error message
+			await Promise.race([
+				generateButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
+				page.locator('[class*="error"], [role="alert"]').first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+			])
 			
 			if (await generateButton.isVisible()) {
 				// Should be disabled without required selections
@@ -291,7 +297,7 @@ test.describe('Texas Lease Generation', () => {
 			await newLeaseButton.click()
 
 			// Wait for form to load
-			await page.waitForTimeout(2000)
+			await page.getByRole('button', { name: /generate/i }).waitFor({ state: 'attached', timeout: 5000 }).catch(() => {})
 
 			// Try to generate (if button becomes enabled)
 			const generateButton = page.getByRole('button', { name: /generate.*download/i })
@@ -337,7 +343,7 @@ test.describe('Texas Lease Generation', () => {
 			await newLeaseButton.click()
 
 			// Wait for form
-			await page.waitForTimeout(2000)
+			await page.getByRole('button', { name: /generate/i }).waitFor({ state: 'attached', timeout: 5000 }).catch(() => {})
 
 			const generateButton = page.getByRole('button', { name: /generate/i })
 			
@@ -362,7 +368,7 @@ test.describe('Texas Lease Generation', () => {
 			await newLeaseButton.click()
 
 			// Wait for form to load
-			await page.waitForTimeout(2000)
+			await page.getByRole('button', { name: /generate/i }).waitFor({ state: 'attached', timeout: 5000 }).catch(() => {})
 
 			// Modify a form field (monthly rent)
 			const monthlyRentInput = page.getByLabel(/monthly.*rent/i).or(page.locator('input[name="monthlyRent"]')).first()

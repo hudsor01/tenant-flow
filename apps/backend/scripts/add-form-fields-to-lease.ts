@@ -14,7 +14,7 @@ async function addFormFields() {
 	)
 	const outputPath = join(
 		process.cwd(),
-		'Texas_Residential_Lease_Agreement.pdf'
+		'Texas_Residential_Lease_Agreement.filled.pdf'
 	)
 
 	console.log('📄 Loading PDF template...')
@@ -29,8 +29,6 @@ async function addFormFields() {
 	const firstPage = pages[0]
 	const { height } = firstPage.getSize()
 
-	// Helper to convert top-left coordinates to bottom-left (PDF standard)
-	const convertY = (y: number) => height - y - 20
 
 	// Page 1 - Agreement Information
 	form.createTextField('agreement_date')

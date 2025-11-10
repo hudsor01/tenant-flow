@@ -322,7 +322,7 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
 			const client = this.supabase.getUserClient(token)
 
-// RLS automatically verifies property ownership - no manual check needed
+		// RLS automatically verifies property ownership - no manual check needed
 			const unitData = {
 				propertyId: createRequest.propertyId,
 				unitNumber: createRequest.unitNumber,
@@ -330,7 +330,7 @@ export class UnitsService {
 				bathrooms: createRequest.bathrooms || 1,
 				squareFeet: createRequest.squareFeet || null,
 				rent: createRequest.rent ?? 0,
-				status: (createRequest.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED') ?? 'VACANT'
+				status: createRequest.status ?? 'VACANT'
 			}
 
 			const { data, error } = await client
