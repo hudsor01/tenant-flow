@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
+import { convertDateToIso } from '@repo/shared/validation/lease-generation.schemas'
 
 /**
  * Zod schema for tenant invitation with lease creation
@@ -25,38 +26,8 @@ const InviteWithLeaseSchema = z
 				.number()
 				.int('Security deposit must be an integer (cents)')
 				.nonnegative('Security deposit cannot be negative'),
-			startDate: z.preprocess(
-				(val) => {
-					// Convert YYYY-MM-DD to ISO 8601 datetime
-					if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-						const isoDate = `${val}T00:00:00.000Z`
-						// Validate it's a real date (not 2024-99-99)
-						const date = new Date(isoDate)
-						if (isNaN(date.getTime())) {
-							return val // Return original to trigger validation error
-						}
-						return isoDate
-					}
-					return val
-				},
-				z.string().datetime('Invalid start date format')
-			),
-			endDate: z.preprocess(
-				(val) => {
-					// Convert YYYY-MM-DD to ISO 8601 datetime
-					if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-						const isoDate = `${val}T00:00:00.000Z`
-						// Validate it's a real date (not 2024-99-99)
-						const date = new Date(isoDate)
-						if (isNaN(date.getTime())) {
-							return val // Return original to trigger validation error
-						}
-						return isoDate
-					}
-					return val
-				},
-				z.string().datetime('Invalid end date format')
-			)
+			startDate: z.preprocess(convertDateToIso, z.string().datetime('Invalid start date format')),
+			endDate: z.preprocess(convertDateToIso, z.string().datetime('Invalid end date format'))
 		})
 	})
 	.refine(

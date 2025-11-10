@@ -48,15 +48,21 @@ export class TexasLeasePDFService {
 	 */
 	private async verifyTemplateExists(): Promise<void> {
 		// SECURITY: Prevent path traversal attacks
+		// Only enforce dist-root restriction for default relative paths
+		// Allow absolute paths from TEXAS_LEASE_TEMPLATE_PATH env var
 		const resolvedPath = resolve(this.templatePath)
-		const expectedDirectory = resolve(__dirname, '../../..')
+		const isEnvOverride = !!process.env.TEXAS_LEASE_TEMPLATE_PATH
 		
-		if (!resolvedPath.startsWith(expectedDirectory)) {
-			const errorMessage = `Invalid template path (path traversal detected): ${this.templatePath}`
-			this.logger.error(errorMessage)
-			throw new InternalServerErrorException(
-				'PDF template path is invalid'
-			)
+		if (!isEnvOverride) {
+			// For default relative path, ensure it stays within dist directory
+			const expectedDirectory = resolve(__dirname, '../../..')
+			if (!resolvedPath.startsWith(expectedDirectory)) {
+				const errorMessage = `Invalid template path (path traversal detected): ${this.templatePath}`
+				this.logger.error(errorMessage)
+				throw new InternalServerErrorException(
+					'PDF template path is invalid'
+				)
+			}
 		}
 
 		// Check if template file exists and is readable
