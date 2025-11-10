@@ -1,0 +1,35 @@
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
+
+/**
+ * Zod schema for tenant invitation with lease creation
+ * Per CLAUDE.md: Use nestjs-zod + createZodDto() for validation
+ */
+const InviteWithLeaseSchema = z.object({
+	tenantData: z.object({
+		email: z.string().email('Invalid email format'),
+		firstName: z.string().min(1, 'First name is required'),
+		lastName: z.string().min(1, 'Last name is required'),
+		phone: z.string().optional()
+	}),
+	leaseData: z.object({
+		propertyId: z.string().uuid('Invalid property ID'),
+		unitId: z.string().uuid('Invalid unit ID').optional(),
+		rentAmount: z
+			.number()
+			.int('Rent amount must be an integer')
+			.positive('Rent amount must be positive'),
+		securityDeposit: z
+			.number()
+			.int('Security deposit must be an integer')
+			.nonnegative('Security deposit cannot be negative'),
+		startDate: z.string().datetime('Invalid start date format'),
+		endDate: z.string().datetime('Invalid end date format')
+	})
+})
+
+/**
+ * DTO for inviting tenant with lease
+ * Uses Zod validation per CLAUDE.md guidelines
+ */
+export class InviteWithLeaseDto extends createZodDto(InviteWithLeaseSchema) {}

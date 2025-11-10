@@ -1,0 +1,134 @@
+'use client'
+
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { clientFetch } from '#lib/api/client'
+import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
+import { toast } from 'sonner'
+import { logger } from '@repo/shared/lib/frontend-logger'
+
+/**
+ * Query keys for lease generation
+ */
+export const leaseGenerationKeys = {
+	all: ['lease-generation'] as const,
+	autoFill: (propertyId: string, unitId: string, tenantId: string) =>
+		[...leaseGenerationKeys.all, 'auto-fill', propertyId, unitId, tenantId] as const
+}
+
+/**
+ * Hook to fetch auto-filled lease form data
+ * propertyId, unitId, and tenantId are all REQUIRED
+ */
+export function useLeaseAutoFill(propertyId: string, unitId: string, tenantId: string) {
+	return useQuery({
+		queryKey: leaseGenerationKeys.autoFill(propertyId, unitId, tenantId),
+		queryFn: () =>
+			clientFetch<Partial<LeaseGenerationFormData>>(
+				`/api/v1/leases/auto-fill/${propertyId}/${unitId}/${tenantId}`
+			),
+		enabled: !!propertyId && !!unitId && !!tenantId,
+		staleTime: 5 * 60 * 1000 // 5 minutes
+	})
+}
+
+/**
+ * Hook to generate and download Texas lease PDF
+ */
+export function useGenerateLease() {
+	return useMutation({
+		mutationFn: async (data: LeaseGenerationFormData) => {
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify(data)
+				}
+			)
+
+			if (!response.ok) {
+				const errorText = await response.text()
+				throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
+			}
+
+			// Get the PDF blob
+			const blob = await response.blob()
+
+			// Generate safe filename (handle empty propertyAddress)
+			const sanitizedAddress = (data.propertyAddress || 'property')
+				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-')
+				.slice(0, 50) // Limit length
+			const timestamp = Date.now()
+			const filename = `lease-${sanitizedAddress}-${timestamp}.pdf`
+
+			// Create download link
+			const url = window.URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = filename
+			document.body.appendChild(a)
+			a.click()
+			document.body.removeChild(a)
+			window.URL.revokeObjectURL(url)
+
+			return { success: true, filename }
+		},
+		onSuccess: () => {
+			toast.success('Lease generated and downloaded successfully')
+			logger.info('Lease generated', {
+				action: 'generate_lease'
+			})
+		},
+		onError: error => {
+			toast.error('Failed to generate lease')
+			logger.error('Error generating lease', {
+				action: 'generate_lease_error',
+				metadata: { error: String(error) }
+			})
+		}
+	})
+}
+
+/**
+ * Hook to generate and email Texas lease PDF
+ * TODO: Implement proper email endpoint
+ */
+export function useEmailLease() {
+	return useMutation({
+		mutationFn: async (data: LeaseGenerationFormData & { emailTo: string }) => {
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify(data)
+				}
+			)
+
+			if (!response.ok) {
+				const errorText = await response.text()
+				throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
+			}
+
+			const blob = await response.blob()
+			return { success: true, blob }
+		},
+		onSuccess: () => {
+			toast.success('Lease generated - email functionality coming soon')
+		},
+		onError: error => {
+			toast.error('Failed to generate lease')
+			logger.error('Error generating lease for email', {
+				action: 'email_lease_error',
+				metadata: { error: String(error) }
+			})
+		}
+	})
+}

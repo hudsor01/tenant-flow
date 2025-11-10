@@ -82,8 +82,8 @@ describe('Units CRUD Integration Tests', () => {
 		const requiredEnvVars = [
 			'NEXT_PUBLIC_SUPABASE_URL',
 			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-			'E2E_OWNER_A_EMAIL',
-			'E2E_OWNER_A_PASSWORD'
+			'E2E_OWNER_EMAIL',
+			'E2E_OWNER_PASSWORD'
 		] as const
 
 		for (const envVar of requiredEnvVars) {
@@ -100,8 +100,8 @@ describe('Units CRUD Integration Tests', () => {
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL,
-			password: process.env.E2E_OWNER_A_PASSWORD
+			email: process.env.E2E_OWNER_EMAIL,
+			password: process.env.E2E_OWNER_PASSWORD
 		})
 
 		if (error || !data.session) {

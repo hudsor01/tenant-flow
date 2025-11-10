@@ -2,12 +2,14 @@
 
 import { Badge } from '#components/ui/badge'
 import { Skeleton } from '#components/ui/skeleton'
-import { useDashboardStats } from '#hooks/api/use-dashboard-stats'
+import { useDashboardPageDataUnified } from '#hooks/api/use-dashboard'
 import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 
 export function SectionCards() {
-	const { data: stats, isLoading, isError } = useDashboardStats()
+	const { data, isLoading, error } = useDashboardPageDataUnified()
+	const stats = data?.stats
+	const isError = !!error
 
 	// Show loading skeletons
 	if (isLoading) {
