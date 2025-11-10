@@ -18,6 +18,13 @@ import { type Page, expect } from '@playwright/test'
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, any>()
 
+// Debug logging helper - only logs when DEBUG env var is set
+function debugLog(...args: any[]) {
+	if (process.env.DEBUG) {
+		console.debug(...args)
+	}
+}
+
 interface LoginOptions {
 	email?: string
 	password?: string
@@ -53,7 +60,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 		await page.goto(`${baseUrl}/manage`)
 		await page.waitForLoadState('networkidle')
 
-		console.log(
+			debugLog(
 			`✅ Logged in as owner (${email}) - Session reused from cache`
 		)
 		return // Fast path: ~100ms
@@ -61,24 +68,45 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 
 	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	debugLog(`🔐 Starting fresh login for: ${email}`)
+	debugLog(`🌐 Base URL: ${baseUrl}`)
+	
 	await page.goto(`${baseUrl}/login`)
+	debugLog('📍 Navigated to login page')
 	await page.waitForLoadState('networkidle')
+	debugLog('✅ Page load complete (networkidle)')
 
 	// Wait for login form to be fully visible
+	debugLog('⏳ Waiting for email field to be visible...')
 	await expect(page.locator('#email')).toBeVisible({ timeout: 5000 })
+	debugLog('✅ Email field is visible')
 
 	// Fill login form with explicit force to handle any overlays
+	debugLog('📝 Filling email field...')
 	await page.locator('#email').fill(email, { force: true })
+	debugLog('📝 Filling password field...')
 	await page.locator('#password').fill(password, { force: true })
+	debugLog('✅ Form fields filled')
 
 	// Small delay to ensure form state is settled
 	await page.waitForTimeout(500)
+	debugLog('⏱️  Form state settled (500ms delay)')
+
+	// Check if button is visible and enabled
+	const submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
+	debugLog('🔍 Looking for submit button...')
+	await expect(submitButton).toBeVisible({ timeout: 5000 })
+	const buttonText = await submitButton.textContent()
+	const isEnabled = await submitButton.isEnabled()
+	debugLog(`✅ Submit button found: "${buttonText}" (enabled: ${isEnabled})`)
 
 	// Submit form and wait for navigation
+	debugLog('🚀 Clicking submit button and waiting for navigation...')
 	await Promise.all([
 		page.waitForURL(/\/(manage|dashboard)/, { timeout: 30000 }),
-		page.getByRole('button', { name: /sign in|login|submit/i }).click()
+		submitButton.click()
 	])
+	debugLog('✅ Navigation complete!')
 
 	await page.waitForLoadState('networkidle')
 
@@ -86,7 +114,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const session = await page.context().storageState()
 	sessionCache.set(cacheKey, session)
 
-	console.log(`✅ Logged in as owner (${email}) - Session cached for worker`)
+	debugLog(`✅ Logged in as owner (${email}) - Session cached for worker`)
 }
 
 /**
@@ -118,7 +146,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		await page.goto(`${baseUrl}/tenant/dashboard`)
 		await page.waitForLoadState('networkidle')
 
-		console.log(
+		debugLog(
 			`✅ Logged in as tenant (${email}) - Session reused from cache`
 		)
 		return // Fast path: ~100ms
@@ -151,7 +179,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	const session = await page.context().storageState()
 	sessionCache.set(cacheKey, session)
 
-	console.log(
+	debugLog(
 		`✅ Logged in as tenant (${email}) - Session cached for worker`
 	)
 }
@@ -164,5 +192,5 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
  */
 export function clearSessionCache() {
 	sessionCache.clear()
-	console.log('🗑️  Session cache cleared')
+	debugLog('🗑️  Session cache cleared')
 }
