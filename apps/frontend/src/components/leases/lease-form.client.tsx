@@ -94,7 +94,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						},
 						version: lease.version
 					})
-					toast.success('Lease updated successfully')
 				}
 
 				onSuccess?.()

@@ -491,13 +491,10 @@ export function useMarkPropertySold() {
 				})
 			}
 
-			logger.error('Failed to mark property as sold', {
-				propertyId: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
+			handleMutationError(err, 'Mark property as sold')
 		},
 		onSuccess: data => {
-			logger.info('Property marked as sold', { message: data.message })
+			handleMutationSuccess('Mark property as sold', data.message)
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency

@@ -473,15 +473,12 @@ export function useDeleteLease(options?: {
 				})
 			}
 
-			logger.error('Failed to delete lease', {
-				leaseId: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
+			handleMutationError(err, 'Delete lease')
 
 			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
 		},
 		onSuccess: id => {
-			logger.info('Lease deleted successfully', { leaseId: id })
+			handleMutationSuccess('Delete lease', 'Lease deleted successfully')
 			options?.onSuccess?.()
 		},
 		onSettled: () => {
@@ -519,7 +516,10 @@ export function useRenewLease() {
 				}
 			)
 
-			logger.info('Lease renewed successfully', { leaseId: id })
+			handleMutationSuccess('Renew lease', 'Lease renewed successfully')
+		},
+		onError: err => {
+			handleMutationError(err, 'Renew lease')
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
@@ -568,7 +568,10 @@ export function useTerminateLease() {
 				}
 			)
 
-			logger.info('Lease terminated successfully', { leaseId: id })
+			handleMutationSuccess('Terminate lease', 'Lease terminated successfully')
+		},
+		onError: err => {
+			handleMutationError(err, 'Terminate lease')
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: leaseKeys.all })

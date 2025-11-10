@@ -662,17 +662,13 @@ export function useInviteTenant() {
 			return response
 		},
 		onSuccess: data => {
-			toast.success('Invitation sent', {
-				description: `${data.name} will receive an email to accept the invitation`
-			})
-
 			// Invalidate tenant list to show new pending tenant
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
-			logger.info('Tenant invitation sent', {
-				action: 'invite_tenant',
-				metadata: { tenantId: data.id, email: data.email }
-			})
+			handleMutationSuccess(
+				'Send invitation',
+				`Invitation sent to ${data.email}`
+			)
 		},
 		onError: error => {
 			handleMutationError(error, 'Send tenant invitation')
@@ -695,18 +691,14 @@ export function useResendInvitation() {
 				}
 			),
 		onSuccess: (_, tenantId) => {
-			toast.success('Invitation resent', {
-				description: 'A new invitation email has been sent'
-			})
-
 			// Refresh tenant data to show updated invitation_sent_at
 			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(tenantId).queryKey })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
-			logger.info('Tenant invitation resent', {
-				action: 'resend_invitation',
-				metadata: { tenantId }
-			})
+			handleMutationSuccess(
+				'Resend invitation',
+				'Invitation email resent successfully'
+			)
 		},
 		onError: error => {
 			handleMutationError(error, 'Resend invitation')

@@ -4,6 +4,10 @@
  * Task 2.4: Payment Status Tracking
  */
 import { clientFetch } from '#lib/api/client'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 /**
@@ -99,11 +103,13 @@ export function useCreateRentPayment() {
 
 			return { previousList, tempId }
 		},
-		onError: (_err, _variables, context) => {
+		onError: (err, _variables, context) => {
 			// Rollback on error
 			if (context?.previousList) {
 				queryClient.setQueryData(rentPaymentKeys.list(), context.previousList)
 			}
+
+			handleMutationError(err, 'Process rent payment')
 		},
 		onSuccess: (res, _variables, context) => {
 			if (res?.payment) {
@@ -118,6 +124,11 @@ export function useCreateRentPayment() {
 									: p
 							)
 						: [res.payment as import('@repo/shared/types/core').RentPayment]
+				)
+
+				handleMutationSuccess(
+					'Process rent payment',
+					`Payment of $${(res.payment.amount / 100).toFixed(2)} processed successfully`
 				)
 			}
 		},

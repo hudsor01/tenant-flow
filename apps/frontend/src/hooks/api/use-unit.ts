@@ -269,7 +269,10 @@ export function useCreateUnit() {
 			// Cache individual unit details
 			queryClient.setQueryData(unitKeys.detail(data.id), data)
 
-			logger.info('Unit created successfully', { unitId: data.id })
+			handleMutationSuccess(
+				'Create unit',
+				`Unit ${data.unitNumber} created successfully`
+			)
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency with server
@@ -377,7 +380,10 @@ export function useUpdateUnit() {
 				}
 			)
 
-			logger.info('Unit updated successfully', { unitId: id })
+			handleMutationSuccess(
+				'Update unit',
+				`Unit ${data.unitNumber} updated successfully`
+			)
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
@@ -450,7 +456,7 @@ export function useDeleteUnit(options?: {
 			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
 		},
 		onSuccess: id => {
-			logger.info('Unit deleted successfully', { unitId: id })
+			handleMutationSuccess('Delete unit', 'Unit deleted successfully')
 			options?.onSuccess?.()
 		},
 		onSettled: () => {

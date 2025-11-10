@@ -127,7 +127,6 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 
 				if (mode === 'create') {
 					await createUnitMutation.mutateAsync(unitData)
-					toast.success('Unit created successfully')
 					router.push('/manage/units')
 				} else {
 					if (!unit?.id) {
@@ -139,7 +138,6 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 						data: unitData,
 						version: unit.version
 					})
-					toast.success('Unit updated successfully')
 				}
 
 				onSuccess?.()
