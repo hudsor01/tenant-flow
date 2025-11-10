@@ -19,6 +19,7 @@ import {
 	User,
 	Wrench
 } from 'lucide-react'
+import { memo, useMemo } from 'react'
 
 type Activity = Tables<'activity'>
 
@@ -76,7 +77,7 @@ const getIconForType = (type: string) => {
 	}
 }
 
-export function ActivityFeed() {
+function ActivityFeedComponent() {
 	const { data, isLoading, error } = useDashboardActivity()
 
 	// Extract activities array from the response and cast to proper enum type
@@ -168,3 +169,8 @@ export function ActivityFeed() {
 		</div>
 	)
 }
+
+// Memoize component to prevent unnecessary re-renders
+// Re-renders only when data, isLoading, or error change
+export const ActivityFeed = memo(ActivityFeedComponent)
+ActivityFeed.displayName = 'ActivityFeed'

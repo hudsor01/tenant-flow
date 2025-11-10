@@ -33,7 +33,7 @@ interface DataTableProps<TData, TValue> {
 	filterPlaceholder?: string
 }
 
-export function DataTable<TData, TValue>({
+function DataTableComponent<TData, TValue>({
 	columns,
 	data,
 	filterColumn,
@@ -137,3 +137,8 @@ export function DataTable<TData, TValue>({
 		</div>
 	)
 }
+
+// Memoize DataTable to prevent unnecessary re-renders
+// Re-renders only when columns or data props change
+// Note: For maximum benefit, ensure columns are memoized in parent component
+export const DataTable = React.memo(DataTableComponent) as typeof DataTableComponent

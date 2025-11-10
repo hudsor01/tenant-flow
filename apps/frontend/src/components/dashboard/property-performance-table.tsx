@@ -20,7 +20,21 @@ import {
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 
 import { formatCurrency } from '@repo/shared/utils/currency'
+import { memo, useMemo } from 'react'
 
+
+/**
+ * Generate avatar initials from property name
+ * Optimized: Moved outside render loop to prevent recalculation
+ */
+const getPropertyInitials = (propertyName: string): string => {
+	return propertyName
+		.split(' ')
+		.map(word => word[0])
+		.join('')
+		.slice(0, 2)
+		.toUpperCase()
+}
 
 const getTrendIcon = (trend: string) => {
 	switch (trend) {
@@ -49,7 +63,7 @@ const getOccupancyBadge = (rate: number) => {
 	)
 }
 
-export function PropertyPerformanceTable() {
+function PropertyPerformanceTableComponent() {
 	const { data: properties, isLoading, error } = usePropertyPerformance()
 
 	if (isLoading) {
@@ -99,13 +113,8 @@ export function PropertyPerformanceTable() {
 					</TableHeader>
 					<TableBody>
 						{properties.map(property => {
-							// Generate avatar initials from property name
-							const avatar = property.property
-								.split(' ')
-								.map(word => word[0])
-								.join('')
-								.slice(0, 2)
-								.toUpperCase()
+							// Use helper function for avatar initials (optimized)
+							const avatar = getPropertyInitials(property.property)
 
 							return (
 								<TableRow key={property.propertyId}>
@@ -176,3 +185,8 @@ export function PropertyPerformanceTable() {
 		</div>
 	)
 }
+
+// Memoize component to prevent unnecessary re-renders
+// Re-renders only when properties, isLoading, or error change
+export const PropertyPerformanceTable = memo(PropertyPerformanceTableComponent)
+PropertyPerformanceTable.displayName = 'PropertyPerformanceTable'
