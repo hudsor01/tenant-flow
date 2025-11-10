@@ -3,22 +3,16 @@ import {
 	Logger,
 	InternalServerErrorException
 } from '@nestjs/common'
-import {
-	PDFDocument,
-	rgb,
-	StandardFonts,
-	type PDFPage,
-	type PDFFont
-} from 'pdf-lib'
+import { PDFDocument } from 'pdf-lib'
 import { readFile, access } from 'node:fs/promises'
 import { constants } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 
 /**
  * Texas Lease PDF Service
- * Fills the Texas Residential Lease Agreement PDF template
- * Replaces puppeteer with pdf-lib (450KB vs 900KB bundle reduction)
+ * Fills the Texas Residential Lease Agreement PDF template using AcroForm fields
+ * Uses pdf-lib form filling API (no manual coordinate positioning required)
  */
 @Injectable()
 export class TexasLeasePDFService {
@@ -26,21 +20,36 @@ export class TexasLeasePDFService {
 	private readonly templatePath: string
 
 	constructor() {
-		// Use absolute path relative to backend dist directory
-		this.templatePath = join(
-			__dirname,
-			'../../../Texas_Residential_Lease_Agreement.pdf'
-		)
+		// Use environment variable or default path relative to backend dist directory
+		this.templatePath =
+			process.env.TEXAS_LEASE_TEMPLATE_PATH ||
+			join(
+				__dirname,
+				'../../../Texas_Residential_Lease_Agreement.pdf'
+			)
 	}
 
 	/**
 	 * Check if template file exists
 	 */
 	private async verifyTemplateExists(): Promise<void> {
+		// SECURITY: Prevent path traversal attacks
+		const resolvedPath = resolve(this.templatePath)
+		const expectedDirectory = resolve(__dirname, '../../..')
+		
+		if (!resolvedPath.startsWith(expectedDirectory)) {
+			const errorMessage = `Invalid template path (path traversal detected): ${this.templatePath}`
+			this.logger.error(errorMessage)
+			throw new InternalServerErrorException(
+				'PDF template path is invalid'
+			)
+		}
+
+		// Check if template file exists and is readable
 		try {
-			await access(this.templatePath, constants.R_OK)
+			await access(resolvedPath, constants.R_OK)
 		} catch (error) {
-			const errorMessage = `PDF template not found at ${this.templatePath}`
+			const errorMessage = `PDF template not found at ${resolvedPath}`
 			this.logger.error(errorMessage, error)
 			throw new InternalServerErrorException(
 				'PDF template is not configured correctly'
@@ -49,40 +58,86 @@ export class TexasLeasePDFService {
 	}
 
 	/**
-	 * Create reusable text drawing function
+	 * Helper to safely set form field value
+	 * Handles text fields, checkboxes, radio groups, and dropdowns
 	 */
-	private createTextDrawer(
-		page: PDFPage,
-		font: PDFFont,
-		fontBold: PDFFont,
-		pageHeight: number,
-		fontSize: number
-	) {
-		return (
-			text: string,
-			x: number,
-			y: number,
-			options?: {
-				bold?: boolean
-				size?: number
+	private setFormField(
+		form: ReturnType<PDFDocument['getForm']>,
+		fieldName: string,
+		value: string | number | boolean | undefined
+	): void {
+		if (value === undefined || value === null) return
+
+		try {
+			// Handle boolean values (checkboxes/radio groups)
+			if (typeof value === 'boolean') {
+				try {
+					const checkbox = form.getCheckBox(fieldName)
+					if (value) {
+						checkbox.check()
+					} else {
+						checkbox.uncheck()
+					}
+					return
+				} catch {
+					// Try radio group
+					try {
+						const radioGroup = form.getRadioGroup(fieldName)
+						radioGroup.select(value ? 'Yes' : 'No')
+						return
+					} catch {
+						// Fallback to text field
+						const field = form.getTextField(fieldName)
+						field.setText(value ? 'Yes' : 'No')
+						return
+					}
+				}
 			}
-		) => {
+
+			// Handle string/number values (text fields or dropdowns)
+			const stringValue = String(value)
 			try {
-				page.drawText(text, {
-					x,
-					y: pageHeight - y, // Convert from top-left to bottom-left
-					size: options?.size ?? fontSize,
-					font: options?.bold ? fontBold : font,
-					color: rgb(0, 0, 0)
-				})
-			} catch (error) {
-				this.logger.warn(`Failed to draw text at (${x}, ${y}): ${text}`)
+				const field = form.getTextField(fieldName)
+				field.setText(stringValue)
+			} catch {
+				// Try dropdown
+				try {
+					const dropdown = form.getDropdown(fieldName)
+					dropdown.select(stringValue)
+				} catch {
+					this.logger.warn(
+						`Form field "${fieldName}" not found or unsupported type (attempted value: ${stringValue})`
+					)
+				}
 			}
+		} catch (error) {
+			this.logger.warn(
+				`Failed to set form field "${fieldName}" with value ${value}`,
+				error
+			)
 		}
 	}
 
 	/**
+	 * Format currency as USD with two decimal places
+	 */
+	private formatCurrency(amount: number): string {
+		return `$${amount.toFixed(2)}`
+	}
+
+	/**
+	 * Format pets text based on whether pets are allowed
+	 */
+	private formatPetsText(formData: LeaseGenerationFormData): string {
+		if (!formData.petsAllowed) {
+			return 'No pets allowed'
+		}
+		return `Pets allowed - Deposit: ${this.formatCurrency(formData.petDeposit)}, Rent: ${this.formatCurrency(formData.petRent)}/month`
+	}
+
+	/**
 	 * Generate filled Texas lease PDF from form data
+	 * Uses AcroForm field filling (no manual coordinate positioning)
 	 */
 	async generateLeasePDF(formData: LeaseGenerationFormData): Promise<Buffer> {
 		try {
@@ -91,134 +146,135 @@ export class TexasLeasePDFService {
 			// Verify template exists
 			await this.verifyTemplateExists()
 
-			// Load the template PDF asynchronously
+			// Load the template PDF
 			const templateBytes = await readFile(this.templatePath)
 			const pdfDoc = await PDFDocument.load(templateBytes)
 
-			// Get first page (all fields are on page 1 of the template)
-			const pages = pdfDoc.getPages()
-			const firstPage = pages[0]
+			// Get the form
+			const form = pdfDoc.getForm()
 
-			if (!firstPage) {
-				throw new InternalServerErrorException('PDF template has no pages')
+			// Fill in basic information
+			this.setFormField(form, 'agreement_date', formData.agreementDate)
+			this.setFormField(form, 'owner_name', formData.ownerName)
+			this.setFormField(form, 'owner_address', formData.ownerAddress)
+			this.setFormField(form, 'owner_phone', formData.ownerPhone)
+			this.setFormField(form, 'tenant_name', formData.tenantName)
+			this.setFormField(form, 'property_address', formData.propertyAddress)
+
+			// Fill in lease term
+			this.setFormField(form, 'commencement_date', formData.commencementDate)
+			this.setFormField(form, 'termination_date', formData.terminationDate)
+
+			// Fill in rent information
+			this.setFormField(
+				form,
+				'monthly_rent',
+				this.formatCurrency(formData.monthlyRent)
+			)
+			this.setFormField(form, 'rent_due_day', formData.rentDueDay)
+			if (formData.lateFeeAmount) {
+				this.setFormField(
+					form,
+					'late_fee_amount',
+					this.formatCurrency(formData.lateFeeAmount)
+				)
 			}
+			this.setFormField(form, 'late_fee_grace_days', formData.lateFeeGraceDays)
+			this.setFormField(form, 'nsf_fee', this.formatCurrency(formData.nsfFee))
 
-			// Load fonts
-			const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-			const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-			// Page dimensions
-			const { height } = firstPage.getSize()
-			const fontSize = 10
-
-			// Create text drawing helper
-			const drawText = this.createTextDrawer(
-				firstPage,
-				font,
-				fontBold,
-				height,
-				fontSize
+			// Fill in security deposit
+			this.setFormField(
+				form,
+				'security_deposit',
+				this.formatCurrency(formData.securityDeposit)
+			)
+			this.setFormField(
+				form,
+				'security_deposit_due_days',
+				formData.securityDepositDueDays
 			)
 
-			// PAGE 1: Agreement Date, Parties, Property Address
-			drawText(formData.agreementDate, 100, 100) // Agreement date field
-			drawText(formData.landlordName, 100, 130, { bold: true }) // Landlord name
-			drawText(formData.landlordAddress, 100, 145) // Landlord address
-			if (formData.landlordPhone) {
-				drawText(formData.landlordPhone, 400, 145) // Landlord phone
-			}
-			drawText(formData.tenantName, 100, 175, { bold: true }) // Tenant name
-			drawText(formData.propertyAddress, 100, 205, { bold: true }) // Property address
-
-			// PAGE 1: Term Dates
-			drawText(formData.commencementDate, 100, 235) // Lease start date
-			drawText(formData.terminationDate, 300, 235) // Lease end date
-
-			// PAGE 1-2: Rent Information
-			drawText(`$${formData.monthlyRent.toFixed(2)}`, 100, 265) // Monthly rent
-			drawText(`${formData.rentDueDay}`, 350, 265) // Due day
-			if (formData.lateFeeAmount) {
-				drawText(`$${formData.lateFeeAmount.toFixed(2)}`, 100, 295) // Late fee
-				drawText(`${formData.lateFeeGraceDays}`, 300, 295) // Grace period
-			}
-			drawText(`$${formData.nsfFee.toFixed(2)}`, 100, 325) // NSF fee
-
-			// PAGE 2: Security Deposit
-			drawText(`$${formData.securityDeposit.toFixed(2)}`, 100, 355) // Security deposit
-			drawText(
-				`${formData.securityDepositDueDays}`,
-				400,
-				355
-			) // Refund days
-
-			// PAGE 2: Use of Premises
+			// Fill in use of premises
 			if (formData.maxOccupants) {
-				drawText(`${formData.maxOccupants}`, 100, 385) // Max occupants
+				this.setFormField(form, 'max_occupants', formData.maxOccupants)
 			}
-			drawText(formData.allowedUse, 100, 415, { size: 9 }) // Allowed use
+			this.setFormField(form, 'allowed_use', formData.allowedUse)
 
-			// PAGE 2: Alterations
+			// Fill in alterations
 			const alterationsText = formData.alterationsAllowed
 				? formData.alterationsRequireConsent
 					? 'Allowed with prior written consent'
 					: 'Allowed'
 				: 'Not allowed'
-			drawText(alterationsText, 100, 445)
+			this.setFormField(form, 'alterations', alterationsText)
 
-			// PAGE 3: Utilities
-			if (formData.utilitiesIncluded.length > 0) {
-				drawText(
-					`Included: ${formData.utilitiesIncluded.join(', ')}`,
-					100,
-					475
+			// Fill in utilities
+			if (formData.utilitiesIncluded?.length > 0) {
+				this.setFormField(
+					form,
+					'utilities_included',
+					`Included: ${formData.utilitiesIncluded.join(', ')}`
 				)
 			}
-			if (formData.tenantResponsibleUtilities.length > 0) {
-				drawText(
-					`Tenant pays: ${formData.tenantResponsibleUtilities.join(', ')}`,
-					100,
-					505
+			if (formData.tenantResponsibleUtilities?.length > 0) {
+				this.setFormField(
+					form,
+					'tenant_utilities',
+					`Tenant pays: ${formData.tenantResponsibleUtilities.join(', ')}`
 				)
 			}
 
-			// PAGE 5: Animals/Pets
+			// Fill in pets information
+			this.setFormField(form, 'pets_allowed', this.formatPetsText(formData))
 			if (formData.petsAllowed) {
-				drawText('Pets allowed with deposit and monthly rent', 100, 535)
-				drawText(`Pet deposit: $${formData.petDeposit.toFixed(2)}`, 100, 555)
-				drawText(`Pet rent: $${formData.petRent.toFixed(2)}/month`, 100, 575)
-			} else {
-				drawText('No pets allowed', 100, 535)
+				this.setFormField(
+					form,
+					'pet_deposit',
+					this.formatCurrency(formData.petDeposit)
+				)
+				this.setFormField(
+					form,
+					'pet_rent',
+					`${this.formatCurrency(formData.petRent)}/month`
+				)
 			}
 
-			// PAGE 5: Hold Over Rent
-			const holdOverRent = formData.monthlyRent * formData.holdOverRentMultiplier
-			drawText(
-				`Hold over rent: $${holdOverRent.toFixed(2)}/month (${(formData.holdOverRentMultiplier * 100).toFixed(0)}% of monthly rent)`,
-				100,
-				605
+			// Fill in hold over rent
+			const holdOverRent =
+				formData.monthlyRent * formData.holdOverRentMultiplier
+			this.setFormField(
+				form,
+				'hold_over_rent',
+				`${this.formatCurrency(holdOverRent)}/month (${(formData.holdOverRentMultiplier * 100).toFixed(0)}% of monthly rent)`
 			)
 
-			// PAGE 7: Lead-Based Paint Disclosure
+			// Fill in lead paint disclosure
 			if (formData.propertyBuiltBefore1978) {
-				drawText(
-					'Property built before 1978 - Lead paint disclosure provided',
-					100,
-					635,
-					{ size: 9 }
+				this.setFormField(
+					form,
+					'lead_paint_disclosure',
+					'Property built before 1978 - Lead paint disclosure provided'
 				)
 			}
 
-			// PAGE 6: Notice Address
+			// Fill in notice information
 			if (formData.noticeAddress) {
-				drawText(`Notice Address: ${formData.noticeAddress}`, 100, 665, {
-					size: 9
-				})
+				this.setFormField(
+					form,
+					'notice_address',
+					`Notice Address: ${formData.noticeAddress}`
+				)
 			}
 			if (formData.noticeEmail) {
-				drawText(`Notice Email: ${formData.noticeEmail}`, 100, 685, {
-					size: 9
-				})
+				this.setFormField(
+					form,
+					'notice_email',
+					`Notice Email: ${formData.noticeEmail}`
+				)
 			}
+
+			// Flatten the form (make fields read-only and part of the page content)
+			form.flatten()
 
 			// Save and return the PDF
 			const pdfBytes = await pdfDoc.save()

@@ -43,9 +43,9 @@ export function LeaseGenerationForm({
 	const form = useForm({
 		defaultValues: {
 			agreementDate: new Date().toISOString().split('T')[0],
-			landlordName: '',
-			landlordAddress: '',
-			landlordPhone: '',
+			ownerName: '',
+			ownerAddress: '',
+			ownerPhone: '',
 			tenantName: '',
 			propertyAddress: '',
 			commencementDate: '',
@@ -117,7 +117,8 @@ export function LeaseGenerationForm({
 				}
 			})
 		}
-	}, [autoFillData, form])
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [autoFillData])
 
 	// Show error if required data is missing (after all hooks)
 	if (!propertyId || !unitId || !tenantId) {
@@ -174,10 +175,10 @@ export function LeaseGenerationForm({
 					)}
 				</form.Field>
 
-				<form.Field name="landlordName">
+				<form.Field name="ownerName">
 					{field => (
 						<div className="space-y-2">
-							<FieldLabel>Landlord Name</FieldLabel>
+							<FieldLabel>Property Owner Name</FieldLabel>
 							<Input
 								value={field.state.value}
 								onChange={e => field.handleChange(e.target.value)}
@@ -192,10 +193,10 @@ export function LeaseGenerationForm({
 					)}
 				</form.Field>
 
-				<form.Field name="landlordAddress">
+				<form.Field name="ownerAddress">
 					{field => (
 						<div className="space-y-2">
-							<FieldLabel>Landlord Address</FieldLabel>
+							<FieldLabel>Property Owner Address</FieldLabel>
 							<Input
 								value={field.state.value}
 								onChange={e => field.handleChange(e.target.value)}

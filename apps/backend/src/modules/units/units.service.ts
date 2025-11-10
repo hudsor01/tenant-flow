@@ -62,17 +62,21 @@ export class UnitsService {
 			}
 
 			if (query.status) {
-				const status = String(
-					query.status
-				).toUpperCase() as Database['public']['Enums']['UnitStatus']
+				const statusInput = String(query.status).toUpperCase()
 				const allowedStatuses: Database['public']['Enums']['UnitStatus'][] = [
 					'VACANT',
 					'OCCUPIED',
 					'MAINTENANCE',
 					'RESERVED'
 				]
-				if (allowedStatuses.includes(status)) {
-					queryBuilder = queryBuilder.eq('status', status)
+				const isValidStatus = allowedStatuses.includes(
+					statusInput as Database['public']['Enums']['UnitStatus']
+				)
+				if (isValidStatus) {
+					queryBuilder = queryBuilder.eq(
+						'status',
+						statusInput as Database['public']['Enums']['UnitStatus']
+					)
 				}
 			}
 
@@ -322,7 +326,7 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
 			const client = this.supabase.getUserClient(token)
 
-// RLS automatically verifies property ownership - no manual check needed
+		// RLS automatically verifies property ownership - no manual check needed
 			const unitData = {
 				propertyId: createRequest.propertyId,
 				unitNumber: createRequest.unitNumber,
@@ -330,7 +334,7 @@ export class UnitsService {
 				bathrooms: createRequest.bathrooms || 1,
 				squareFeet: createRequest.squareFeet || null,
 				rent: createRequest.rent ?? 0,
-				status: (createRequest.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED') ?? 'VACANT'
+				status: createRequest.status ?? 'VACANT'
 			}
 
 			const { data, error } = await client
