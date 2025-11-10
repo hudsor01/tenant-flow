@@ -36,7 +36,7 @@ export default function TenantSettingsPage() {
 	const [emailNotifications, setEmailNotifications] = useState(true)
 	const [smsNotifications, setSmsNotifications] = useState(false)
 	const [maintenanceUpdates, setMaintenanceUpdates] = useState(true)
-	const [paymentReminders, setPaymentReminders] = useState(true)
+	const [rentReminders, setRentReminders] = useState(true)
 
 	// Sync form state with fetched preferences
 	useEffect(() => {
@@ -44,11 +44,7 @@ export default function TenantSettingsPage() {
 			setEmailNotifications(preferences.emailNotifications ?? true)
 			setSmsNotifications(preferences.smsNotifications ?? false)
 			setMaintenanceUpdates(preferences.maintenanceUpdates ?? true)
-			// Map backend rentReminders to frontend paymentReminders
-			setPaymentReminders(
-				(preferences as unknown as { rentReminders?: boolean }).rentReminders ??
-					true
-			)
+			setRentReminders(preferences.rentReminders ?? true)
 		}
 	}, [preferences])
 
@@ -59,7 +55,7 @@ export default function TenantSettingsPage() {
 			emailNotifications,
 			smsNotifications,
 			maintenanceUpdates,
-			rentReminders: paymentReminders // Map frontend to backend field name
+			rentReminders
 		})
 	}
 
@@ -127,15 +123,15 @@ export default function TenantSettingsPage() {
 
 						<div className="flex items-center justify-between">
 							<div className="space-y-0.5">
-								<FieldLabel>Payment Reminders</FieldLabel>
+								<FieldLabel>Rent Reminders</FieldLabel>
 								<p className="text-sm text-muted-foreground">
 									Receive reminders before rent is due
 								</p>
 							</div>
 							<input
 								type="checkbox"
-								checked={paymentReminders}
-								onChange={(e) => setPaymentReminders(e.target.checked)}
+								checked={rentReminders}
+								onChange={(e) => setRentReminders(e.target.checked)}
 								className="size-4 rounded border-gray-300"
 							/>
 						</div>
