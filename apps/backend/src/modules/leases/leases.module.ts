@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
-import { LeasePDFService } from '../pdf/lease-pdf.service'
 import { PDFModule } from '../pdf/pdf.module'
-import { LeaseGeneratorController } from './lease-generator.controller'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 import { LeaseTransformationService } from './lease-transformation.service'
@@ -21,16 +19,14 @@ import { TenantsModule } from '../tenants/tenants.module'
 		PDFModule, // For lease PDF generation
 		SharedModule
 	],
-	controllers: [LeasesController, LeaseGeneratorController],
+	controllers: [LeasesController],
 	providers: [
 		LeasesService,
-		LeasePDFService,
 		LeaseTransformationService,
 		LeaseValidationService
 	],
 	exports: [
 		LeasesService,
-		LeasePDFService,
 		LeaseTransformationService,
 		LeaseValidationService
 	]
