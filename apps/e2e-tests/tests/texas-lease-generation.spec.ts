@@ -74,8 +74,17 @@ test.describe('Texas Lease Generation', () => {
 	})
 
 	test.beforeEach(async ({ page }) => {
+		// Skip authentication if not available (checked in beforeAll)
+		if (!authenticationAvailable) {
+			test.skip()
+			return
+		}
+
 		consoleErrors = []
 		networkErrors = []
+
+		// Authenticate before each test for clean state
+		await loginAsOwner(page)
 
 		// Set up console and network monitoring
 		page.on('console', (msg) => {
@@ -101,13 +110,7 @@ test.describe('Texas Lease Generation', () => {
 	})
 
 	test('should auto-fill and generate Texas lease PDF', async ({ page }, testInfo) => {
-		// Skip if auth unavailable (beforeAll handles authentication)
-		if (!authenticationAvailable) {
-			test.skip()
-			return
-		}
-
-		await loginAsOwner(page)
+		// Authentication handled in beforeEach
 
 		// Navigate to leases page
 		await page.goto('/manage/leases', {
