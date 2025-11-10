@@ -13,15 +13,19 @@
 
 import {
 	BadRequestException,
-	Body,
 	Controller,
+	Headers,
 	Logger,
 	Post,
+	RawBodyRequest,
+	Req,
 	SetMetadata
 } from '@nestjs/common'
 import { TenantsService } from '../tenants/tenants.service'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { Webhook } from 'standardwebhooks'
+import type { Request } from 'express'
 
 interface SupabaseAuthWebhookPayload {
 	type: 'user.created' | 'user.updated' | 'user.deleted'
@@ -70,13 +74,48 @@ export class AuthWebhookController {
 	 * Automatically activates tenant record
 	 * 
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
+	 * SECURITY: Verifies webhook signature using Standard Webhooks spec
 	 */
 	@Post('user-confirmed')
 	@SetMetadata('isPublic', true)
-	async handleUserConfirmed(@Body() payload: SupabaseAuthWebhookPayload) {
+	async handleUserConfirmed(
+		@Req() req: RawBodyRequest<Request>,
+		@Headers('webhook-id') webhookId: string,
+		@Headers('webhook-timestamp') webhookTimestamp: string,
+		@Headers('webhook-signature') webhookSignature: string
+	) {
 		const startTime = Date.now()
 
 		try {
+			// SECURITY: Verify webhook signature
+			const webhookSecret = process.env.SUPABASE_AUTH_WEBHOOK_SECRET
+			
+			if (!webhookSecret) {
+				throw new BadRequestException('Webhook secret not configured')
+			}
+
+			if (!webhookId || !webhookTimestamp || !webhookSignature) {
+				throw new BadRequestException('Missing webhook signature headers')
+			}
+
+			// Verify signature using Standard Webhooks library
+			const wh = new Webhook(webhookSecret.replace('v1,whsec_', ''))
+			const rawBody = req.rawBody?.toString('utf-8') || ''
+			
+			let payload: SupabaseAuthWebhookPayload
+			try {
+				payload = wh.verify(rawBody, {
+					'webhook-id': webhookId,
+					'webhook-timestamp': webhookTimestamp,
+					'webhook-signature': webhookSignature
+				}) as SupabaseAuthWebhookPayload
+			} catch (error) {
+				this.logger.error('Webhook signature verification failed', {
+					error: error instanceof Error ? error.message : String(error)
+				})
+				throw new BadRequestException('Invalid webhook signature')
+			}
+
 			// Log webhook receipt
 			this.logger.log('Received Supabase Auth webhook', {
 				type: payload.type,
