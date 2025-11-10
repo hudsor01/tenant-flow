@@ -6,7 +6,10 @@ import { toast } from 'sonner'
 import { clientFetch } from '#lib/api/client'
 
 import { useAuth } from '#providers/auth-provider'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -46,10 +49,13 @@ import {
 	Upload,
 	User
 } from 'lucide-react'
+import { useUserProfile } from '#hooks/use-user-profile'
+import { Skeleton } from '#components/ui/skeleton'
 
 export default function SettingsPage() {
 	const [isPending, startTransition] = useTransition()
 	const { session } = useAuth()
+	const { data: profile, isLoading: profileLoading } = useUserProfile()
 
 	const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -78,7 +84,7 @@ export default function SettingsPage() {
 					method: 'PATCH',
 					body: JSON.stringify(profileData)
 				})
-				
+
 				handleMutationSuccess('Update profile')
 			} catch (error) {
 				handleMutationError(error, 'Update profile')
@@ -131,97 +137,139 @@ export default function SettingsPage() {
 						title="Profile Information"
 						className="p-6 border shadow-sm"
 					>
-						<form onSubmit={handleProfileSubmit} className="grid grid-cols-1 gap-6 md:grid-cols-2">
-							<div className="space-y-2">
-								<Label htmlFor="firstName">First Name</Label>
-								<Input
-									id="firstName"
-									name="firstName"
-									autoComplete="given-name"
-									defaultValue="Johnathan"
-								/>
+						{profileLoading ? (
+							<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="mt-6 md:col-span-2 space-y-2">
+									<Skeleton className="h-4 w-16" />
+									<Skeleton className="h-24 w-full" />
+								</div>
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="lastName">Last Name</Label>
-								<Input
-									id="lastName"
-									name="lastName"
-									autoComplete="family-name"
-									defaultValue="Doe"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="email">Email Address</Label>
-								<Input
-									id="email"
-									name="email"
-									autoComplete="email"
-									type="email"
-									defaultValue="john.doe@placeholder.com"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="phone">Phone Number</Label>
-								<Input
-									id="phone"
-									name="phone"
-									autoComplete="tel"
-									type="tel"
-									defaultValue="+1 (555) 123-4567"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="company">Company</Label>
-								<Input
-									id="company"
-									name="company"
-									autoComplete="organization"
-									defaultValue="Property Management Co."
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="timezone">Timezone</Label>
-								<Select name="timezone" defaultValue="cst">
-									<SelectTrigger id="timezone">
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="pst">Pacific Standard Time</SelectItem>
-										<SelectItem value="mst">Mountain Standard Time</SelectItem>
-										<SelectItem value="cst">Central Standard Time</SelectItem>
-										<SelectItem value="est">Eastern Standard Time</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-							<div className="mt-6 md:col-span-2">
-								<Label htmlFor="bio">Bio</Label>
-								<Textarea
-									id="bio"
-									name="bio"
-									className="mt-2"
-									placeholder="Tell us about yourself..."
-									rows={3}
-								/>
-							</div>
-							<div className="md:col-span-2 flex justify-end gap-2">
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => {
-										const form = document.querySelector('form') as HTMLFormElement
-										form?.reset()
-										toast.info('Form reset to defaults')
-									}}
-								>
-									<RefreshCw className="size-4 mr-2" />
-									Reset to Defaults
-								</Button>
-								<Button type="submit" disabled={isPending}>
-									<Save className="size-4 mr-2" />
-									{isPending ? 'Saving...' : 'Save Changes'}
-								</Button>
-							</div>
-						</form>
+						) : (
+							<form
+								onSubmit={handleProfileSubmit}
+								className="grid grid-cols-1 gap-6 md:grid-cols-2"
+							>
+								<div className="space-y-2">
+									<Label htmlFor="firstName">First Name</Label>
+									<Input
+										id="firstName"
+										name="firstName"
+										autoComplete="given-name"
+										defaultValue={profile?.firstName || ''}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="lastName">Last Name</Label>
+									<Input
+										id="lastName"
+										name="lastName"
+										autoComplete="family-name"
+										defaultValue={profile?.lastName || ''}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="email">Email Address</Label>
+									<Input
+										id="email"
+										name="email"
+										autoComplete="email"
+										type="email"
+										defaultValue={profile?.email || ''}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="phone">Phone Number</Label>
+									<Input
+										id="phone"
+										name="phone"
+										autoComplete="tel"
+										type="tel"
+										defaultValue={''}
+										placeholder="Add your phone number"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="company">Company</Label>
+									<Input
+										id="company"
+										name="company"
+										autoComplete="organization"
+										defaultValue={''}
+										placeholder="Add your company name"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="timezone">Timezone</Label>
+									<Select name="timezone" defaultValue="cst">
+										<SelectTrigger id="timezone">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="pst">Pacific Standard Time</SelectItem>
+											<SelectItem value="mst">
+												Mountain Standard Time
+											</SelectItem>
+											<SelectItem value="cst">Central Standard Time</SelectItem>
+											<SelectItem value="est">Eastern Standard Time</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="mt-6 md:col-span-2">
+									<Label htmlFor="bio">Bio</Label>
+									<Textarea
+										id="bio"
+										name="bio"
+										className="mt-2"
+										placeholder="Tell us about yourself..."
+										rows={3}
+									/>
+								</div>
+								<div className="md:col-span-2 flex justify-end gap-2">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => {
+											const form = document.querySelector(
+												'form'
+											) as HTMLFormElement
+											form?.reset()
+											toast.info('Form reset to defaults')
+										}}
+									>
+										<RefreshCw className="size-4 mr-2" />
+										Reset to Defaults
+									</Button>
+									<Button type="submit" disabled={isPending}>
+										<Save className="size-4 mr-2" />
+										{isPending ? 'Saving...' : 'Save Changes'}
+									</Button>
+								</div>
+							</form>
+						)}
 					</CardLayout>
 				</TabsContent>
 
@@ -285,7 +333,9 @@ export default function SettingsPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>
-										<Label htmlFor="notify-payments">Payment Notifications</Label>
+										<Label htmlFor="notify-payments">
+											Payment Notifications
+										</Label>
 									</ItemTitle>
 									<ItemDescription>
 										Alerts for rent payments and overdue accounts
@@ -332,7 +382,9 @@ export default function SettingsPage() {
 								</ItemMedia>
 								<ItemContent>
 									<ItemTitle>
-										<Label htmlFor="push-emergency">Emergency Maintenance</Label>
+										<Label htmlFor="push-emergency">
+											Emergency Maintenance
+										</Label>
 									</ItemTitle>
 									<ItemDescription>
 										Immediate alerts for critical issues

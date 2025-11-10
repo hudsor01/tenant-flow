@@ -705,3 +705,64 @@ export function useResendInvitation() {
 		}
 	})
 }
+
+/**
+ * Hook to fetch notification preferences for a tenant
+ */
+export function useNotificationPreferences(tenantId: string) {
+	return useQuery({
+		queryKey: [...tenantKeys.detail(tenantId), 'notification-preferences'] as const,
+		queryFn: () =>
+			clientFetch<{
+				emailNotifications: boolean
+				smsNotifications: boolean
+				maintenanceUpdates: boolean
+				paymentReminders: boolean
+			}>(`/api/v1/tenants/${tenantId}/notification-preferences`),
+		enabled: !!tenantId,
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000 // 10 minutes
+	})
+}
+
+/**
+ * Mutation hook to update notification preferences for a tenant
+ */
+export function useUpdateNotificationPreferences() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({
+			tenantId,
+			preferences
+		}: {
+			tenantId: string
+			preferences: {
+				emailNotifications: boolean
+				smsNotifications: boolean
+				maintenanceUpdates: boolean
+				paymentReminders: boolean
+			}
+		}) =>
+			clientFetch(`/api/v1/tenants/${tenantId}/notification-preferences`, {
+				method: 'PUT',
+				body: JSON.stringify(preferences)
+			}),
+		onSuccess: (_data, variables) => {
+			toast.success('Notification preferences updated')
+
+			// Invalidate notification preferences query
+			queryClient.invalidateQueries({
+				queryKey: [...tenantKeys.detail(variables.tenantId), 'notification-preferences']
+			})
+
+			logger.info('Notification preferences updated', {
+				action: 'update_notification_preferences',
+				metadata: { tenantId: variables.tenantId }
+			})
+		},
+		onError: error => {
+			handleMutationError(error, 'Update notification preferences')
+		}
+	})
+}

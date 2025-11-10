@@ -797,16 +797,47 @@ doppler run -- pnpm --filter @repo/backend dev  # Backend must be running
 - Custom event emitters (use @nestjs/event-emitter)
 
 ### Validation (nestjs-zod ONLY)
+**IMPORTANT**: `nestjs-zod` is published under `@nestjs/*` org and IS native to the NestJS ecosystem. Zod is the standard validation library for Next.js, tRPC, and Remix. Using DTOs with Zod validation follows official NestJS best practices.
+
 **Method**: `nestjs-zod` + `createZodDto()` + `ZodValidationPipe` (globally configured in app.module.ts)
 **Schemas**: Define in `packages/shared/src/validation/*.schemas.ts` using Zod
-**DTOs**: Create classes with `createZodDto(schema)` in controller dto/ folders
+**DTOs**: Create classes with `createZodDto(schema)` in controller `dto/` folders
 **Why Classes**: Runtime existence, reflection metadata, decorator support (interfaces erased at runtime)
-**Global Pipe**: `APP_PIPE` provider with `ZodValidationPipe` in app.module.ts
+**Global Pipe**: `APP_PIPE` provider with `ZodValidationPipe` in app.module.ts validates ALL requests by default
 **Output**: `class-transformer` + ClassSerializerInterceptor - `@Exclude()` for sensitive fields
 **Validation Groups**: `.partial()`, `.pick()`, `.omit()` (Zod built-in, NOT custom)
 
+**WHEN DTOS ARE REQUIRED:**
+- ✅ **ALL @Post() endpoints** - Create DTOs prevent invalid data insertion
+- ✅ **ALL @Put()/@Patch() endpoints** - Update DTOs prevent data corruption
+- ✅ **Complex @Get() with body** - Query DTOs validate search/filter params
+- ⚠️ **Simple @Get()** - Use built-in pipes (ParseUUIDPipe, ParseIntPipe, DefaultValuePipe) for query params
+- ⚠️ **@Delete()** - Usually just needs ParseUUIDPipe for ID param
+
+**DTO Pattern**:
+```typescript
+// packages/shared/src/validation/entities.ts
+export const createEntitySchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email()
+})
+
+// apps/backend/src/modules/entities/dto/create-entity.dto.ts
+import { createZodDto } from 'nestjs-zod'
+import { createEntitySchema } from '@repo/shared/validation/entities'
+
+export class CreateEntityDto extends createZodDto(createEntitySchema) {}
+
+// apps/backend/src/modules/entities/entities.controller.ts
+@Post()
+async create(@Body() dto: CreateEntityDto) {
+  // dto is validated automatically by global ZodValidationPipe
+}
+```
+
 **VALIDATION FORBIDDEN:**
-- NO: Manual inline validation in controllers
+- NO: Manual inline validation in controllers (global pipe handles it)
+- NO: TypeScript interfaces as @Body() parameters (causes validation failures)
 - NO: `class-validator` decorators (`@IsString`, `@IsEmail`, etc.)
 - NO: DTO factories
 - NO: Custom base classes for DTOs
@@ -821,7 +852,7 @@ doppler run -- pnpm --filter @repo/backend dev  # Backend must be running
 - **Guards**: Constructor init, Reflector metadata, cache lookups, composition via `applyDecorators()`
 - **Interceptors**: Response transformation, logging, caching, timeout handling
 - **Decorators**: Param extraction (`@User()`), metadata (`@Roles()`), composition (`@Auth()`)
-- **Caching**: `@CacheKey()` + `@CacheTTL()` decorators
+- **Caching**: `@CacheKey()` + `@CacheTTL()` decorators (in-memory cache via `ZeroCacheService`, see [CACHE-ARCHITECTURE.md](apps/backend/docs/CACHE-ARCHITECTURE.md))
 - **Context**: `@Request() req: AuthenticatedRequest` or custom `@User()` decorator
 - **Errors**: Built-in NestJS exceptions only (BadRequestException, NotFoundException, etc.)
 
