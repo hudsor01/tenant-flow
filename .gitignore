@@ -21,6 +21,7 @@ packages/**/*.tgz
 doppler.env
 .serena/
 .supabase/
+*.pdf
 
 # Local environment files
 .env.local

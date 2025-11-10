@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common'
-import { LeasePDFService } from './lease-pdf.service'
 import { PDFGeneratorService } from './pdf-generator.service'
-import { TexasLeasePDFService } from './texas-lease-pdf.service'
-import { PDFController } from './pdf.controller'
+import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationController } from './lease-generation.controller'
 import { SupabaseModule } from '../../database/supabase.module'
 
@@ -12,8 +10,8 @@ import { SupabaseModule } from '../../database/supabase.module'
  */
 @Module({
 	imports: [SupabaseModule],
-	controllers: [PDFController, LeaseGenerationController],
-	providers: [PDFGeneratorService, LeasePDFService, TexasLeasePDFService],
-	exports: [PDFGeneratorService, LeasePDFService, TexasLeasePDFService]
+	controllers: [LeaseGenerationController],
+	providers: [PDFGeneratorService, ReactLeasePDFService],
+	exports: [PDFGeneratorService, ReactLeasePDFService]
 })
 export class PDFModule {}
