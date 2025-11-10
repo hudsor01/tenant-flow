@@ -14,8 +14,10 @@ import {
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { RolesGuard } from '../../shared/guards/roles.guard'
+import { Roles } from '../../shared/decorators/roles.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
-import { TexasLeasePDFService } from './texas-lease-pdf.service'
+import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
@@ -28,15 +30,19 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
  * Lease Generation Controller
  * Handles Texas Residential Lease Agreement generation
  *
- * Authorization: JwtAuthGuard ensures only authenticated users can access
+ * Authorization:
+ * - JwtAuthGuard: Ensures only authenticated users can access
+ * - RolesGuard: Restricts lease generation to OWNER and MANAGER roles
+ * - PropertyOwnershipGuard: Verifies user owns the property (applied to specific routes)
  */
 @Controller('api/v1/leases')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('OWNER', 'MANAGER')
 export class LeaseGenerationController {
 	private readonly logger = new Logger(LeaseGenerationController.name)
 
 	constructor(
-		private readonly texasLeasePDF: TexasLeasePDFService,
+		private readonly leasePDF: ReactLeasePDFService,
 		private readonly supabase: SupabaseService
 	) {}
 
@@ -55,32 +61,74 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.texasLeasePDF.generateLeasePDF(dto)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto)
 
-			// Generate descriptive filename with proper sanitization
 			const sanitizedAddress = (dto.propertyAddress || 'property')
 				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-') // Replace consecutive hyphens with single hyphen
-				.replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '')
 				.slice(0, MAX_ADDRESS_LENGTH)
 			const sanitizedTenant = (dto.tenantName || 'tenant')
 				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-') // Replace consecutive hyphens with single hyphen
-				.replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '')
 				.slice(0, MAX_TENANT_NAME_LENGTH)
 			const date = new Date().toISOString().split('T')[0]
 			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
 
-			// Set response headers for PDF download
+			// Preview mode - display in browser (NO DOWNLOAD, NO DATABASE SAVE)
 			res.setHeader('Content-Type', 'application/pdf')
-			res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+			res.setHeader('Content-Disposition', `inline; filename="${filename}"`)
 			res.setHeader('Content-Length', pdfBuffer.length)
+			res.setHeader('Cache-Control', 'no-cache')
 
-			// NestJS compression middleware will automatically compress if enabled
 			res.send(pdfBuffer)
 		} catch (error) {
 			throw new InternalServerErrorException(
 				'Failed to generate lease PDF',
+				error instanceof Error ? error.message : String(error)
+			)
+		}
+	}
+
+	/**
+	 * Download Texas lease PDF
+	 * POST /api/v1/leases/download
+	 * 
+	 * Forces download instead of preview
+	 * NO DATABASE STORAGE - user action in their hands
+	 */
+	@UseGuards(PropertyOwnershipGuard)
+	@Post('download')
+	async downloadLease(
+		@Body() dto: LeaseGenerationDto,
+		@Res() res: Response
+	): Promise<void> {
+		try {
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto)
+
+			const sanitizedAddress = (dto.propertyAddress || 'property')
+				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '')
+				.slice(0, MAX_ADDRESS_LENGTH)
+			const sanitizedTenant = (dto.tenantName || 'tenant')
+				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '')
+				.slice(0, MAX_TENANT_NAME_LENGTH)
+			const date = new Date().toISOString().split('T')[0]
+			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
+
+			// Force download
+			res.setHeader('Content-Type', 'application/pdf')
+			res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+			res.setHeader('Content-Length', pdfBuffer.length)
+
+			res.send(pdfBuffer)
+		} catch (error) {
+			throw new InternalServerErrorException(
+				'Failed to download lease PDF',
 				error instanceof Error ? error.message : String(error)
 			)
 		}
