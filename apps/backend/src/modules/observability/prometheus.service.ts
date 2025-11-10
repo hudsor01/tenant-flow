@@ -11,6 +11,61 @@ import {
 	type PrometheusModuleOptions
 } from './prometheus.module-definition'
 
+/**
+ * Normalize error types to prevent unbounded cardinality in Prometheus metrics
+ * Maps error constructor names to 7 categories + UNKNOWN
+ */
+function normalizeErrorType(errorType: string): string {
+	const upper = errorType.toUpperCase()
+	if (upper.includes('VALIDATION')) return 'VALIDATION_ERROR'
+	if (upper.includes('DATABASE') || upper.includes('SQL')) return 'DATABASE_ERROR'
+	if (upper.includes('NETWORK') || upper.includes('TIMEOUT')) return 'NETWORK_ERROR'
+	if (upper.includes('AUTH') || upper.includes('UNAUTHORIZED')) return 'AUTH_ERROR'
+	if (upper.includes('STRIPE') || upper.includes('PAYMENT')) return 'STRIPE_ERROR'
+	if (upper.includes('PDF') || upper.includes('TEMPLATE')) return 'PDF_ERROR'
+	return 'UNKNOWN'
+}
+
+/**
+ * Normalize HTTP routes to prevent unbounded cardinality
+ * Converts dynamic segments like /properties/uuid-123 to /properties/:id
+ */
+function normalizeHttpRoute(route: string): string {
+	// Strip query parameters
+	const path = route.split('?')[0] || route
+
+	// Replace UUIDs with :id
+	const uuidPattern =
+		/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
+	let normalized = path.replace(uuidPattern, ':id')
+
+	// Replace numeric IDs with :id
+	normalized = normalized.replace(/\/\d+($|\/)/g, '/:id$1')
+
+	// Replace other potential dynamic segments (e.g., email addresses, usernames)
+	// Keep the first path segment, normalize the rest if they look dynamic
+	const segments = normalized.split('/')
+	const result = segments.map((segment, index) => {
+		// Keep static segments and the :id placeholder we already added
+		if (segment === '' || segment === ':id' || segment.startsWith('api')) {
+			return segment
+		}
+		// If segment contains special chars or looks like data, replace with :param
+		if (
+			index > 2 &&
+			(segment.includes('@') ||
+				segment.includes('.') ||
+				segment.includes('_') ||
+				/^[a-z0-9-]+$/i.test(segment) === false)
+		) {
+			return ':param'
+		}
+		return segment
+	})
+
+	return result.join('/')
+}
+
 @Injectable()
 export class PrometheusService implements OnModuleInit {
 	private readonly registry: Registry
@@ -155,7 +210,8 @@ export class PrometheusService implements OnModuleInit {
 	 * Record webhook failure
 	 */
 	recordWebhookFailure(eventType: string, errorType: string): void {
-		this.webhookFailures.inc({ event_type: eventType, error_type: errorType })
+		const normalizedErrorType = normalizeErrorType(errorType)
+		this.webhookFailures.inc({ event_type: eventType, error_type: normalizedErrorType })
 	}
 
 	/**
@@ -174,12 +230,13 @@ export class PrometheusService implements OnModuleInit {
 		statusCode: number,
 		durationMs: number
 	): void {
+		const normalizedRoute = normalizeHttpRoute(route)
 		this.httpRequestsTotal.inc({
 			method,
-			route,
+			route: normalizedRoute,
 			status: statusCode.toString()
 		})
-		this.httpRequestDuration.observe({ method, route }, durationMs / 1000)
+		this.httpRequestDuration.observe({ method, route: normalizedRoute }, durationMs / 1000)
 	}
 
 	/**
