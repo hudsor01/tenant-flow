@@ -1,6 +1,5 @@
-import type { Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
-import { Logger } from '@nestjs/common'
+import type { Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { EmailService } from '../email/email.service'
@@ -677,6 +676,7 @@ describe('StripeAccessControlService', () => {
 				)
 
 				expect(errorCall).toBeDefined()
+				if (!errorCall) return
 				expect(errorCall[1]).toHaveProperty('errors')
 				expect(errorCall[1]).toHaveProperty('customerId', 'cus_test123')
 				expect(errorCall[1]).toHaveProperty('subscriptionId', 'sub_test123')
