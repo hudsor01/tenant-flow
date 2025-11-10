@@ -27,6 +27,14 @@ USING (
 
 -- RLS Policy: Tenants can read leases they're associated with
 -- Checks if authenticated user is the tenant_id in the lease record
+--
+-- IMPORTANT: This policy is prepared for future use when the backend implements storage saves.
+-- Expected path structure: {userId}/{leaseId}/{filename}
+-- The controller currently generates PDFs in-memory only (no storage saves).
+-- When implementing storage:
+--   1. Ensure the path structure matches this policy's assumptions
+--   2. Add integration tests to verify RLS works correctly
+--   3. Consider adding validation for (storage.foldername(name))[2] as a valid UUID
 CREATE POLICY "Tenants can read their lease documents"
 ON storage.objects FOR SELECT
 TO authenticated
