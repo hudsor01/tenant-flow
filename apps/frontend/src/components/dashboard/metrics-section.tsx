@@ -2,11 +2,7 @@
 
 import { MetricsCardSkeleton } from '#components/charts/metrics-card-skeleton'
 // import { SectionCards } from '../../../../app/(protected)/manage/SectionCards'
-import {
-	useDashboardStats,
-	useLeaseStats,
-	usePropertyStats
-} from '#hooks/api/use-dashboard'
+import { useDashboardStats } from '#hooks/api/use-dashboard'
 
 /**
  * MetricsSection - Single Responsibility: Display key metrics cards
@@ -15,17 +11,7 @@ import {
  */
 export function MetricsSection() {
 	// Focused data fetching for metrics only
-	const dashboardStats = useDashboardStats()
-	const propertyStats = usePropertyStats()
-	const leaseStats = useLeaseStats()
-
-	// Show loading state while any metrics data is fetching
-	const isLoading =
-		dashboardStats.isLoading || propertyStats.isLoading || leaseStats.isLoading
-	const error = dashboardStats.error || propertyStats.error || leaseStats.error
-
-	// Combine stats data for SectionCards
-	// const stats = dashboardStats.data
+	const { isLoading, error } = useDashboardStats()
 
 	if (isLoading) {
 		return (

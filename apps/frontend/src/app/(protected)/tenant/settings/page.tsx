@@ -14,19 +14,53 @@ import { TenantGuard } from '#components/auth/tenant-guard'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { FieldLabel } from '#components/ui/field'
+import {
+	useNotificationPreferences,
+	useUpdateNotificationPreferences
+} from '#hooks/api/use-notification-preferences'
+import { useUserProfile } from '#hooks/use-user-profile'
 // Icons removed - CardLayout doesn't support icon prop
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { useEffect, useState } from 'react'
 
 export default function TenantSettingsPage() {
+	// Get tenant ID from user profile
+	const { data: profile } = useUserProfile()
+	const tenantId = profile?.id || ''
+
+	// Fetch notification preferences
+	const { data: preferences, isLoading: prefsLoading } =
+		useNotificationPreferences(tenantId)
+	const updatePreferences = useUpdateNotificationPreferences(tenantId)
+
+	// Local state for form
 	const [emailNotifications, setEmailNotifications] = useState(true)
 	const [smsNotifications, setSmsNotifications] = useState(false)
 	const [maintenanceUpdates, setMaintenanceUpdates] = useState(true)
 	const [paymentReminders, setPaymentReminders] = useState(true)
 
-	const handleSaveNotifications = () => {
-		// TODO: Implement actual save functionality
-		toast.success('Notification preferences saved')
+	// Sync form state with fetched preferences
+	useEffect(() => {
+		if (preferences) {
+			setEmailNotifications(preferences.emailNotifications ?? true)
+			setSmsNotifications(preferences.smsNotifications ?? false)
+			setMaintenanceUpdates(preferences.maintenanceUpdates ?? true)
+			// Map backend rentReminders to frontend paymentReminders
+			setPaymentReminders(
+				(preferences as unknown as { rentReminders?: boolean }).rentReminders ??
+					true
+			)
+		}
+	}, [preferences])
+
+	const handleSaveNotifications = async () => {
+		if (!tenantId) return
+
+		await updatePreferences.mutateAsync({
+			emailNotifications,
+			smsNotifications,
+			maintenanceUpdates,
+			rentReminders: paymentReminders // Map frontend to backend field name
+		})
 	}
 
 	return (
@@ -108,8 +142,11 @@ export default function TenantSettingsPage() {
 					</div>
 
 					<div className="flex justify-end">
-						<Button onClick={handleSaveNotifications}>
-							Save Preferences
+						<Button
+							onClick={handleSaveNotifications}
+							disabled={!tenantId || updatePreferences.isPending || prefsLoading}
+						>
+							{updatePreferences.isPending ? 'Saving...' : 'Save Preferences'}
 						</Button>
 					</div>
 				</div>
