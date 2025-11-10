@@ -78,7 +78,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -102,7 +102,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -170,7 +170,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -219,7 +219,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -240,7 +240,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Subscription
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -262,7 +262,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Invoice & { subscription?: string }
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -272,7 +272,7 @@ describe('StripeAccessControlService', () => {
 			expect(mockLogger.warn).toHaveBeenCalledWith(
 				'Payment failed',
 				expect.objectContaining({
-					userId: 'user-123',
+					userId: '550e8400-e29b-41d4-a716-446655440000',
 					invoiceId: 'in_test123',
 					subscriptionId: 'sub_test123'
 				})
@@ -311,7 +311,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Invoice & { subscription?: Stripe.Subscription }
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
@@ -332,7 +332,7 @@ describe('StripeAccessControlService', () => {
 			} as unknown as Stripe.Invoice & { subscription?: string }
 
 			supabaseService.rpcWithRetries.mockResolvedValue({
-				data: 'user-123',
+				data: '550e8400-e29b-41d4-a716-446655440000', // Valid UUID
 				error: null
 			})
 
