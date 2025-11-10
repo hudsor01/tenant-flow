@@ -537,10 +537,10 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>18. ANIMALS.</Text>
 					<Text style={styles.paragraph}>
 						{data.petsAllowed
-							? `Pets are permitted on the Premises with a pet deposit of $${data.petDeposit.toFixed(2)} and monthly pet rent of $${data.petRent.toFixed(2)}.`
+							? `Pets are permitted on the Premises with a pet deposit of $${(data.petDeposit ?? 0).toFixed(2)} and monthly pet rent of $${(data.petRent ?? 0).toFixed(2)}.`
 							: 'THERE WILL BE NO ANIMALS, unless authorized by a separate written Pet Addendum to this Residential Lease Agreement. Tenant shall not permit any animal, including mammals, reptiles, birds, fish, rodents, or insects on the property, even temporarily, unless otherwise agreed by a separate written Pet Agreement.'}{' '}
 						If tenant violates the pet restrictions of this Lease, Tenant will pay to
-						Landlord a fee of ${data.petDeposit.toFixed(2)} per day per animal for
+						Landlord a fee of ${(data.petDeposit ?? 0).toFixed(2)} per day per animal for
 						each day Tenant violates the animal restrictions as additional rent for any
 						unauthorized animal. Landlord may remove or cause to be removed any
 						unauthorized animal and deliver it to appropriate local authorities by
