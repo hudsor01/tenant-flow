@@ -97,6 +97,15 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
+				// Validate numeric conversions
+				const rentAmount = Number.parseFloat(value.rentAmount)
+				const securityDeposit = Number.parseFloat(value.securityDeposit)
+				if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
+					toast.error('Invalid rent or security deposit amount')
+					setIsSubmitting(false)
+					return
+				}
+
 				const response = await clientFetch<{
 					success: boolean
 					tenantId: string
