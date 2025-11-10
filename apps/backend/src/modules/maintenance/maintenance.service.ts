@@ -27,6 +27,33 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 
+/**
+ * Safe column list for maintenance_request queries
+ * SECURITY: Explicit column list prevents over-fetching
+ */
+const SAFE_MAINTENANCE_REQUEST_COLUMNS = `
+	actualCost,
+	allowEntry,
+	assignedTo,
+	category,
+	completedAt,
+	contactPhone,
+	createdAt,
+	description,
+	estimatedCost,
+	id,
+	notes,
+	photos,
+	preferredDate,
+	priority,
+	requestedBy,
+	status,
+	title,
+	unitId,
+	updatedAt,
+	version
+`.trim()
+
 @Injectable()
 export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
@@ -63,7 +90,9 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual userId filtering needed)
-			let queryBuilder = client.from('maintenance_request').select('*')
+			let queryBuilder = client
+				.from('maintenance_request')
+				.select(SAFE_MAINTENANCE_REQUEST_COLUMNS)
 
 			// Apply filters
 			if (query.propertyId) {
@@ -287,7 +316,7 @@ export class MaintenanceService {
 
 			const { data, error } = await client
 				.from('maintenance_request')
-				.select('*')
+				.select(SAFE_MAINTENANCE_REQUEST_COLUMNS)
 				.in('priority', ['HIGH', 'URGENT'])
 				.neq('status', 'COMPLETED')
 				.order('priority', { ascending: false })
@@ -338,7 +367,7 @@ export class MaintenanceService {
 
 			const { data, error } = await client
 				.from('maintenance_request')
-				.select('*')
+				.select(SAFE_MAINTENANCE_REQUEST_COLUMNS)
 				.neq('status', 'COMPLETED')
 				.lt('preferredDate', new Date().toISOString())
 				.order('preferredDate', { ascending: true })
@@ -397,7 +426,7 @@ export class MaintenanceService {
 
 			const { data, error } = await client
 				.from('maintenance_request')
-				.select('*')
+				.select(SAFE_MAINTENANCE_REQUEST_COLUMNS)
 				.eq('id', maintenanceId)
 				.single()
 

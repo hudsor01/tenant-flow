@@ -10,6 +10,50 @@ import { SupabaseService } from '../../database/supabase.service'
 
 type ExpenseRecord = Tables<'expense'>
 
+/**
+ * Safe column lists for financial queries
+ * SECURITY: Explicit column lists prevent over-fetching
+ */
+const SAFE_LEASE_COLUMNS = `
+	createdAt,
+	endDate,
+	gracePeriodDays,
+	id,
+	lateFeeAmount,
+	lateFeePercentage,
+	lease_document_url,
+	monthlyRent,
+	propertyId,
+	rentAmount,
+	securityDeposit,
+	signature,
+	signed_at,
+	startDate,
+	status,
+	stripe_subscription_id,
+	stripeSubscriptionId,
+	tenantId,
+	terms,
+	unitId,
+	updatedAt,
+	version
+`.trim()
+
+const SAFE_EXPENSE_COLUMNS = `
+	amount,
+	category,
+	createdAt,
+	date,
+	description,
+	id,
+	maintenanceId,
+	propertyId,
+	receiptUrl,
+	updatedAt,
+	vendorContact,
+	vendorName
+`.trim()
+
 @Injectable()
 export class FinancialService {
 	private readonly logger = new Logger(FinancialService.name)
@@ -133,7 +177,7 @@ export class FinancialService {
 
 			// Fetch leases and maintenance data using unit IDs
 			const [leasesData, maintenanceData] = await Promise.all([
-				client.from('lease').select('*').in('unitId', unitIds),
+				client.from('lease').select(SAFE_LEASE_COLUMNS).in('unitId', unitIds),
 				client
 					.from('maintenance_request')
 					.select('estimatedCost, status')
@@ -251,7 +295,7 @@ export class FinancialService {
 
 			const { data: leases, error } = await client
 				.from('lease')
-				.select('*')
+				.select(SAFE_LEASE_COLUMNS)
 				.in('unitId', unitIds)
 
 			if (error) {
@@ -346,7 +390,7 @@ export class FinancialService {
 			const client = this.supabaseService.getUserClient(token)
 			const { data: leases } = await client
 				.from('lease')
-				.select('*')
+				.select(SAFE_LEASE_COLUMNS)
 				.in('unitId', unitIds)
 
 			const expenses = await this.fetchExpenses(propertyIds, yearStart, yearEnd)
@@ -501,7 +545,7 @@ export class FinancialService {
 			let query = this.supabaseService
 				.getAdminClient()
 				.from('expense')
-				.select('*')
+				.select(SAFE_EXPENSE_COLUMNS)
 				.in('propertyId', propertyIds)
 
 			if (startDate) {

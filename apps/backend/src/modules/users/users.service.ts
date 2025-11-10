@@ -5,6 +5,39 @@ import { SupabaseService } from '../../database/supabase.service'
 type UserInsert = Database['public']['Tables']['users']['Insert']
 type UserUpdate = Database['public']['Tables']['users']['Update']
 
+/**
+ * Safe column list for users queries
+ * SECURITY: Explicit column list prevents over-fetching
+ */
+const SAFE_USERS_COLUMNS = `
+	avatarUrl,
+	bio,
+	chargesEnabled,
+	connectedAccountId,
+	createdAt,
+	detailsSubmitted,
+	email,
+	firstName,
+	id,
+	lastLoginAt,
+	lastName,
+	name,
+	onboardingComplete,
+	onboardingCompletedAt,
+	orgId,
+	payoutsEnabled,
+	phone,
+	profileComplete,
+	role,
+	stripeAccountId,
+	stripeCustomerId,
+	subscription_status,
+	subscriptionTier,
+	supabaseId,
+	updatedAt,
+	version
+`.trim()
+
 @Injectable()
 export class UsersService {
 	constructor(private readonly supabase: SupabaseService) {}
@@ -15,7 +48,7 @@ export class UsersService {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('users')
-			.select('*')
+			.select(SAFE_USERS_COLUMNS)
 			.eq('email', email)
 			.single()
 
@@ -72,7 +105,7 @@ export class UsersService {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('users')
-			.select('*')
+			.select(SAFE_USERS_COLUMNS)
 			.eq('id', userId)
 			.single()
 

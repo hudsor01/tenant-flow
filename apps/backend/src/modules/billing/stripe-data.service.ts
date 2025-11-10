@@ -32,6 +32,79 @@ type StripeProductDB = Database['public']['Tables']['stripe_products']['Row']
 // Standard subscription value for calculations
 const STANDARD_SUBSCRIPTION_VALUE = 2999
 
+/**
+ * Safe column lists for Stripe data queries
+ * SECURITY: Explicit column lists prevent over-fetching
+ */
+const SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS = `
+	cancel_at_period_end,
+	canceled_at,
+	createdAt,
+	current_period_end,
+	current_period_start,
+	customer_id,
+	id,
+	metadata,
+	status,
+	trial_end,
+	trial_start,
+	updatedAt
+`.trim()
+
+const SAFE_STRIPE_CUSTOMERS_COLUMNS = `
+	balance,
+	createdAt,
+	currency,
+	delinquent,
+	description,
+	email,
+	id,
+	livemode,
+	metadata,
+	name,
+	phone,
+	updatedAt
+`.trim()
+
+const SAFE_STRIPE_PAYMENT_INTENTS_COLUMNS = `
+	amount,
+	createdAt,
+	currency,
+	customer_id,
+	description,
+	id,
+	metadata,
+	receipt_email,
+	status,
+	updatedAt
+`.trim()
+
+const SAFE_STRIPE_PRICES_COLUMNS = `
+	active,
+	createdAt,
+	currency,
+	id,
+	metadata,
+	product_id,
+	recurring_interval,
+	recurring_interval_count,
+	type,
+	unit_amount,
+	updatedAt
+`.trim()
+
+const SAFE_STRIPE_PRODUCTS_COLUMNS = `
+	active,
+	createdAt,
+	description,
+	id,
+	images,
+	metadata,
+	name,
+	unit_label,
+	updatedAt
+`.trim()
+
 @Injectable()
 export class StripeDataService {
 	private readonly logger = new Logger(StripeDataService.name)
@@ -55,7 +128,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client
 				.from('stripe_subscriptions')
-				.select('*')
+				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
 				.eq('customer_id', customerId)
 
 			if (error) {
@@ -97,7 +170,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client
 				.from('stripe_customers')
-				.select('*')
+				.select(SAFE_STRIPE_CUSTOMERS_COLUMNS)
 				.eq('id', customerId)
 				.single()
 
@@ -133,7 +206,9 @@ export class StripeDataService {
 			})
 
 			const client = this.supabaseService.getAdminClient()
-			let queryBuilder = client.from('stripe_prices').select('*')
+			let queryBuilder = client
+				.from('stripe_prices')
+				.select(SAFE_STRIPE_PRICES_COLUMNS)
 
 			if (activeOnly) {
 				queryBuilder = queryBuilder.eq('active', true)
@@ -166,7 +241,9 @@ export class StripeDataService {
 			})
 
 			const client = this.supabaseService.getAdminClient()
-			let queryBuilder = client.from('stripe_products').select('*')
+			let queryBuilder = client
+				.from('stripe_products')
+				.select(SAFE_STRIPE_PRODUCTS_COLUMNS)
 
 			if (activeOnly) {
 				queryBuilder = queryBuilder.eq('active', true)
@@ -221,7 +298,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data: paymentIntents, error } = await client
 				.from('stripe_payment_intents')
-				.select('*')
+				.select(SAFE_STRIPE_PAYMENT_INTENTS_COLUMNS)
 				.gte('createdAt', startDate.toISOString())
 				.lte('createdAt', endDate.toISOString())
 				.limit(1000)
@@ -299,7 +376,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
 				.from('stripe_subscriptions')
-				.select('*')
+				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
 				.limit(1000)
 
 			if (error) {
@@ -363,8 +440,14 @@ export class StripeDataService {
 
 			// Fetch customers and subscriptions with complete pagination
 			const [customersResult, subscriptionsResult] = await Promise.all([
-				client.from('stripe_customers').select('*').limit(1000),
-				client.from('stripe_subscriptions').select('*').limit(1000)
+				client
+					.from('stripe_customers')
+					.select(SAFE_STRIPE_CUSTOMERS_COLUMNS)
+					.limit(1000),
+				client
+					.from('stripe_subscriptions')
+					.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
+					.limit(1000)
 			])
 
 			if (customersResult.error || subscriptionsResult.error) {
@@ -465,7 +548,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
 				.from('stripe_subscriptions')
-				.select('*')
+				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
 				.limit(months * 100) // Adjust limit based on months
 
 			if (error) {
@@ -493,7 +576,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
 				.from('stripe_subscriptions')
-				.select('*')
+				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
 				.limit(1000)
 
 			if (error) {
@@ -539,7 +622,7 @@ export class StripeDataService {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
 				.from('stripe_subscriptions')
-				.select('*')
+				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
 				.eq('customer_id', customerId)
 
 			if (error) {
