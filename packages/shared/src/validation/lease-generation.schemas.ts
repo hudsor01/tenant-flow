@@ -7,9 +7,9 @@ import { z } from 'zod'
 export const leaseGenerationSchema = z.object({
 	// Section 1: Property & Parties (Page 1)
 	agreementDate: z.string().min(1, 'Agreement date is required'),
-	landlordName: z.string().min(1, 'Landlord name is required'),
-	landlordAddress: z.string().min(1, 'Landlord address is required'),
-	landlordPhone: z.string().optional(),
+	ownerName: z.string().min(1, 'Property owner name is required'),
+	ownerAddress: z.string().min(1, 'Property owner address is required'),
+	ownerPhone: z.string().optional(),
 	tenantName: z.string().min(1, 'Tenant name is required'),
 	propertyAddress: z.string().min(1, 'Property address is required'),
 

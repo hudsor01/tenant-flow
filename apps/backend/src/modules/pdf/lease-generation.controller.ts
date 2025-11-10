@@ -12,7 +12,9 @@ import {
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { TexasLeasePDFService } from './texas-lease-pdf.service'
+import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
 import { validate as isUUID } from 'uuid'
@@ -43,10 +45,13 @@ export class LeaseGenerationController {
 	/**
 	 * Generate Texas lease PDF from form data
 	 * POST /api/v1/leases/generate
+	 *
+	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 */
+	@UseGuards(PropertyOwnershipGuard)
 	@Post('generate')
 	async generateLease(
-		@Body() dto: LeaseGenerationFormData,
+		@Body() dto: LeaseGenerationDto,
 		@Res() res: Response
 	): Promise<void> {
 		try {
@@ -81,8 +86,10 @@ export class LeaseGenerationController {
 	 * Auto-fill lease form from property, unit, and tenant data
 	 * GET /api/v1/leases/auto-fill/:propertyId/:unitId/:tenantId
 	 *
+	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 * Uses a single optimized query with joins instead of multiple queries
 	 */
+	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:propertyId/:unitId/:tenantId')
 	async autoFillLease(
 		@Param('propertyId') propertyId: string,
@@ -110,7 +117,7 @@ export class LeaseGenerationController {
 		const { data: unit, error: unitError } = await this.supabase
 			.getAdminClient()
 			.from('unit')
-			.select('id, rent, unitNumber')
+			.select('id, rent, unitNumber, propertyId')
 			.eq('id', unitId)
 			.single()
 
@@ -118,15 +125,8 @@ export class LeaseGenerationController {
 			throw new NotFoundException(`Unit not found: ${unitId}`)
 		}
 
-		// Verify unit belongs to property
-		const { data: unitPropertyCheck } = await this.supabase
-			.getAdminClient()
-			.from('unit')
-			.select('propertyId')
-			.eq('id', unitId)
-			.single()
-
-		if (unitPropertyCheck?.propertyId !== propertyId) {
+		// Verify unit belongs to property (using data from previous query)
+		if (unit.propertyId !== propertyId) {
 			throw new BadRequestException(
 				`Unit ${unitId} does not belong to property ${propertyId}`
 			)
@@ -158,11 +158,11 @@ export class LeaseGenerationController {
 			propertyAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
 			propertyId: property.id,
 
-			// Landlord info
-			landlordName: landlord
+			// Property owner info
+			ownerName: landlord
 				? `${landlord.firstName} ${landlord.lastName}`
 				: 'Property Owner',
-			landlordAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
+			ownerAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
 
 			// Tenant info (REQUIRED)
 			tenantName: `${tenant.firstName} ${tenant.lastName}`,
