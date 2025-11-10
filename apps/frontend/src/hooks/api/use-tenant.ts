@@ -180,6 +180,10 @@ export function useCreateTenant() {
 			}),
 		onError: err => handleMutationError(err, 'Create tenant'),
 		onSuccess: data => {
+			handleMutationSuccess(
+				'Create tenant',
+				`${data.firstName} ${data.lastName} has been added`
+			)
 			// Invalidate queries to refetch with new/updated tenant
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(data.id).queryKey })
@@ -298,6 +302,10 @@ export function useUpdateTenant() {
 		},
 
 		onSuccess: data => {
+			handleMutationSuccess(
+				'Update tenant',
+				`${data.firstName} ${data.lastName} has been updated`
+			)
 			// Invalidate queries to refetch with updated tenant
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(data.id).queryKey })

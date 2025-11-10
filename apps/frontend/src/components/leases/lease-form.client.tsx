@@ -23,10 +23,12 @@ import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitsByProperty } from '#hooks/api/use-unit'
 import { useTenantList } from '#hooks/api/use-tenant'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { isConflictError } from '@repo/shared/utils/optimistic-locking'
 import type { Lease, Property, Unit } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
 import { LEASE_STATUS, LEASE_STATUS_LABELS, ERROR_MESSAGES } from '#lib/constants'
 
 type LeaseStatus = Database['public']['Enums']['LeaseStatus']
@@ -36,6 +38,11 @@ interface LeaseFormProps {
 	lease?: Lease
 	onSuccess?: () => void
 }
+
+// Validation schema
+const leaseValidationSchema = z.object({
+	rentAmount: z.number().min(0.01, 'Monthly rent must be greater than $0')
+})
 
 export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const router = useRouter()
@@ -73,12 +80,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 			try {
 				if (mode === 'create') {
 					await createLeaseMutation.mutateAsync(value)
-					await Promise.all([
-						queryClient.invalidateQueries({ queryKey: ['leases'] }),
-						queryClient.invalidateQueries({ queryKey: ['units'] }),
-						queryClient.invalidateQueries({ queryKey: ['tenants'] })
-					])
-					toast.success('Lease created successfully')
 					router.push('/manage/leases')
 				} else {
 					if (!lease?.id) {
@@ -105,17 +106,19 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 
 				const errorMessage =
 					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'lease')
-				
-				// Check for 409 conflict via error status or response
-				const is409Conflict = 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error as any)?.status === 409 || 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error as any)?.response?.status === 409
-				
+
 				toast.error(errorMessage, {
-					description: is409Conflict ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
+					description: isConflictError(error) ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
 				})
+			}
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = leaseValidationSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
 			}
 		}
 	})
@@ -264,7 +267,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 								<Input
 									id="rentAmount"
 									type="number"
-									min="0"
+									min="0.01"
 									step="0.01"
 									value={field.state.value}
 									onChange={e => {

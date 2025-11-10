@@ -268,9 +268,7 @@ export function useCreateLease() {
 				})
 			}
 
-			logger.error('Failed to create lease', {
-				error: err instanceof Error ? err.message : String(err)
-			})
+			handleMutationError(err, 'Create lease')
 		},
 		onSuccess: (data, _variables, context) => {
 			// Replace optimistic entry with real data
@@ -296,6 +294,9 @@ export function useCreateLease() {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
 			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
+			// Invalidate related entities (unit status, tenant status may change)
+			queryClient.invalidateQueries({ queryKey: ['units'] })
+			queryClient.invalidateQueries({ queryKey: ['tenants'] })
 		}
 	})
 }
@@ -406,6 +407,9 @@ export function useUpdateLease() {
 			queryClient.invalidateQueries({ queryKey: leaseKeys.detail(id) })
 			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
 			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
+			// Invalidate related entities (unit status, tenant status may change)
+			queryClient.invalidateQueries({ queryKey: ['units'] })
+			queryClient.invalidateQueries({ queryKey: ['tenants'] })
 		}
 	})
 }

@@ -193,6 +193,7 @@ export function useCreateMaintenanceRequest() {
 		onSettled: () => {
 			// Refetch in background
 			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.stats() })
 		}
 	})
 }
