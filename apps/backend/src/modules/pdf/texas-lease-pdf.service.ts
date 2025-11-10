@@ -87,6 +87,35 @@ export class TexasLeasePDFService {
 	}
 
 	/**
+	 * Sanitize user input for PDF fields
+	 * Prevents injection attacks and ensures safe rendering
+	 * 
+	 * Security measures:
+	 * - Remove control characters
+	 * - Remove potentially dangerous characters for PDF rendering
+	 * - Limit length to prevent DoS
+	 */
+	private sanitizeInput(value: string | number | boolean): string {
+		if (typeof value === 'boolean') {
+			return value ? 'Yes' : 'No'
+		}
+
+		const stringValue = String(value)
+		
+		// SECURITY: Sanitize with whitelist approach (avoids eslint no-control-regex)
+		const sanitized = stringValue
+			// SECURITY: Whitelist safe printable characters (avoids eslint no-control-regex)
+			// Allowed: A-Z a-z 0-9 space , . / - ( ) @ # $ % & + =
+			.replace(/[^A-Za-z0-9 ,.\-()@#$%&+=]/g, '')
+						// Limit to 1000 characters to prevent DoS
+			.slice(0, 1000)
+			// Trim whitespace
+			.trim()
+
+		return sanitized
+	}
+
+	/**
 	 * Helper to safely set form field value
 	 * Handles text fields, checkboxes, radio groups, and dropdowns
 	 */
@@ -115,16 +144,17 @@ export class TexasLeasePDFService {
 						radioGroup.select(value ? 'Yes' : 'No')
 						return
 					} catch {
-						// Fallback to text field
-						const field = form.getTextField(fieldName)
-						field.setText(value ? 'Yes' : 'No')
+					// Fallback to text field
+					const field = form.getTextField(fieldName)
+					field.setText(this.sanitizeInput(value))
 						return
 					}
 				}
 			}
 
 			// Handle string/number values (text fields or dropdowns)
-			const stringValue = String(value)
+			// SECURITY: Sanitize input before setting
+			const stringValue = this.sanitizeInput(value)
 			try {
 				const field = form.getTextField(fieldName)
 				field.setText(stringValue)
