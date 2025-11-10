@@ -8,6 +8,32 @@ import {
 } from '@repo/shared/config/supabase'
 
 /**
+ * Validate redirect URL to prevent open redirect attacks
+ * Only allows internal paths (starting with /) and blocks protocol-relative URLs
+ */
+function validateRedirectUrl(url: string | null, fallback: string): string {
+	if (!url) return fallback
+
+	// Must start with / but not // or /\ (protocol-relative URLs)
+	if (!url.startsWith('/') || url.startsWith('//') || url.startsWith('/\\')) {
+		return fallback
+	}
+
+	// Block URLs with @ (potential credential injection)
+	if (url.includes('@')) {
+		return fallback
+	}
+
+	// Block URLs that might navigate away (javascript:, data:, etc.)
+	const lowerUrl = url.toLowerCase()
+	if (lowerUrl.startsWith('javascript:') || lowerUrl.startsWith('data:') || lowerUrl.startsWith('vbscript:')) {
+		return fallback
+	}
+
+	return url
+}
+
+/**
  * Auth Confirmation Route Handler
  * Exchanges Supabase Auth token_hash from email link for a session
  * Called after user clicks invitation email link
@@ -16,7 +42,8 @@ export async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
 	const token_hash = searchParams.get('token_hash')
 	const type = searchParams.get('type')
-	const next = searchParams.get('next') ?? '/tenant/onboarding'
+	const nextParam = searchParams.get('next')
+	const next = validateRedirectUrl(nextParam, '/tenant/onboarding')
 
 	if (token_hash && type) {
 		const cookieStore = await cookies()
