@@ -115,6 +115,7 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 						leaseData: {
 							propertyId: value.propertyId,
 							...(value.unitId && { unitId: value.unitId }),
+							// Convert dollars to cents for backend (backend expects integer cents)
 							rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
 							securityDeposit: Math.round(
 								Number.parseFloat(value.securityDeposit) * 100
