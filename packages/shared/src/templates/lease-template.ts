@@ -74,6 +74,23 @@ export interface LeaseTemplatePreviewRequest {
 	context: LeaseTemplateContext
 }
 
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ * @param unsafe - User-provided string that may contain malicious HTML/JS
+ * @returns Escaped string safe for HTML insertion
+ */
+function escapeHtml(unsafe: string): string {
+	if (typeof unsafe !== 'string') {
+		return String(unsafe)
+	}
+	return unsafe
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;')
+}
+
 const stateNames: Record<USState, string> = {
 	AL: 'Alabama',
 	AK: 'Alaska',
@@ -431,7 +448,9 @@ function resolveToken(context: LeaseTemplateContext, token: string): string {
 			return ''
 		}
 	}
-	return current === null || current === undefined ? '' : String(current)
+	const value = current === null || current === undefined ? '' : String(current)
+	// Escape HTML to prevent XSS attacks
+	return escapeHtml(value)
 }
 
 function interpolate(template: string, context: LeaseTemplateContext) {
@@ -448,16 +467,17 @@ function buildClauseHtml(
 	clause: LeaseTemplateClause,
 	context: LeaseTemplateContext
 ) {
-	return `<article data-clause="${clause.id}" class="lease-clause"><h3>${clause.title}</h3>${interpolate(clause.body, context)}</article>`
+	// Escape clause.id and clause.title to prevent XSS attacks
+	return `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause"><h3>${escapeHtml(clause.title)}</h3>${interpolate(clause.body, context)}</article>`
 }
 
 function renderCustomClauses(customClauses: CustomClause[] | undefined) {
 	if (!customClauses?.length) return ''
 	return customClauses
 		.map(
-			clause => `<article data-clause="${clause.id}" class="lease-clause">
-	<h3>${clause.title}</h3>
-	<p>${clause.body}</p>
+			clause => `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause">
+	<h3>${escapeHtml(clause.title)}</h3>
+	<p>${escapeHtml(clause.body)}</p>
 </article>`
 		)
 		.join('')
@@ -555,7 +575,7 @@ export function renderLeaseHtmlBody(
 	<header class="lease-header">
 		<h1>Residential Lease Agreement</h1>
 		<p>
-			This Agreement is made between <strong>${context.ownerName}</strong> (“owner”) and <strong>${context.tenantNames}</strong> (“Tenant”) concerning the premises at <strong>${context.propertyAddress}</strong>.
+			This Agreement is made between <strong>${escapeHtml(context.ownerName)}</strong> ("owner") and <strong>${escapeHtml(context.tenantNames)}</strong> ("Tenant") concerning the premises at <strong>${escapeHtml(context.propertyAddress)}</strong>.
 		</p>
 	</header>
 	${sectionHtml}

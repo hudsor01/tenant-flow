@@ -15,13 +15,16 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
+	Headers,
 	Logger,
 	Post,
-	SetMetadata
+	SetMetadata,
+	UnauthorizedException
 } from '@nestjs/common'
 import { TenantsService } from '../tenants/tenants.service'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { timingSafeEqual } from 'crypto'
 
 interface SupabaseAuthWebhookPayload {
 	type: 'user.created' | 'user.updated' | 'user.deleted'
@@ -68,15 +71,21 @@ export class AuthWebhookController {
 	 * ✅ Supabase Auth Webhook Handler
 	 * Called when user confirms email (clicks invitation link)
 	 * Automatically activates tenant record
-	 * 
+	 *
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
 	 */
 	@Post('user-confirmed')
 	@SetMetadata('isPublic', true)
-	async handleUserConfirmed(@Body() payload: SupabaseAuthWebhookPayload) {
+	async handleUserConfirmed(
+		@Body() payload: SupabaseAuthWebhookPayload,
+		@Headers('authorization') authHeader?: string
+	) {
 		const startTime = Date.now()
 
 		try {
+			// SECURITY: Verify webhook signature
+			this.verifyWebhookSignature(authHeader)
+
 			// Log webhook receipt
 			this.logger.log('Received Supabase Auth webhook', {
 				type: payload.type,
@@ -176,6 +185,65 @@ export class AuthWebhookController {
 				error: errorMessage,
 				userId: payload.record?.id
 			}
+		}
+	}
+
+	/**
+	 * Verify webhook signature using constant-time comparison
+	 * Prevents timing attacks on webhook secret
+	 */
+	private verifyWebhookSignature(authHeader?: string): void {
+		const webhookSecret = process.env.SUPABASE_WEBHOOK_SECRET
+
+		if (!webhookSecret) {
+			this.logger.error('SUPABASE_WEBHOOK_SECRET not configured')
+			throw new UnauthorizedException('Webhook authentication not configured')
+		}
+
+		if (!authHeader) {
+			this.logger.warn('Missing Authorization header in webhook request')
+			throw new UnauthorizedException('Missing Authorization header')
+		}
+
+		// Extract Bearer token
+		const token = authHeader.startsWith('Bearer ')
+			? authHeader.substring(7)
+			: authHeader
+
+		if (!token) {
+			this.logger.warn('Invalid Authorization header format')
+			throw new UnauthorizedException('Invalid Authorization header format')
+		}
+
+		// Constant-time comparison to prevent timing attacks
+		try {
+			const tokenBuffer = Buffer.from(token, 'utf8')
+			const secretBuffer = Buffer.from(webhookSecret, 'utf8')
+
+			// Check lengths first (constant-time comparison requires same length)
+			if (tokenBuffer.length !== secretBuffer.length) {
+				this.logger.warn('Webhook signature verification failed: length mismatch', {
+					receivedLength: tokenBuffer.length,
+					expectedLength: secretBuffer.length
+				})
+				throw new UnauthorizedException('Invalid webhook signature')
+			}
+
+			// Constant-time comparison
+			if (!timingSafeEqual(tokenBuffer, secretBuffer)) {
+				this.logger.warn('Webhook signature verification failed: signature mismatch')
+				throw new UnauthorizedException('Invalid webhook signature')
+			}
+
+			this.logger.debug('Webhook signature verified successfully')
+		} catch (error) {
+			if (error instanceof UnauthorizedException) {
+				throw error
+			}
+			this.logger.error('Error during webhook signature verification', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw new UnauthorizedException('Webhook signature verification failed')
 		}
 	}
 
