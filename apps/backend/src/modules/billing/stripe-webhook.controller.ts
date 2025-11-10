@@ -18,7 +18,8 @@ import {
 	Logger,
 	Optional,
 	Post,
-	Req
+	Req,
+	SetMetadata
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { RawBodyRequest } from '../../shared/types/express-request.types'
@@ -42,8 +43,11 @@ export class StripeWebhookController {
 	 *
 	 * IMPORTANT: Requires raw body for signature verification
 	 * Configure in main.ts with rawBody: true
+	 *
+	 * PUBLIC ENDPOINT - No CSRF protection required (uses Stripe signature verification)
 	 */
 	@Post()
+	@SetMetadata('isPublic', true)
 	async handleWebhook(
 		@Req() req: RawBodyRequest,
 		@Headers('stripe-signature') signature: string
