@@ -119,10 +119,19 @@ export class SupabaseService {
 			}
 
 			try {
-				// `client.rpc` has a union type for known RPC names; cast to any for dynamic calls
+				// `client.rpc` has a union type for known RPC names; cast for dynamic calls
 				// and attach an abort signal for the attempt so long-running RPCs time out.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const rpcBuilder = (client as any).rpc(fn, args)
+				type RpcResult = {
+					data: unknown
+					error?: { message?: string } | null
+				}
+				type RpcBuilder = {
+					abortSignal?: (signal: AbortSignal) => Promise<RpcResult>
+				} & Promise<RpcResult>
+				type DynamicRpcClient = {
+					rpc: (name: string, args: Record<string, unknown>) => RpcBuilder
+				}
+				const rpcBuilder = (client as unknown as DynamicRpcClient).rpc(fn, args)
 				// Some versions of the SDK return a builder with `.abortSignal` support.
 				const result = rpcBuilder?.abortSignal
 					? await rpcBuilder.abortSignal(ac.signal)
@@ -132,9 +141,9 @@ export class SupabaseService {
 
 				// If the RPC returned an error object, determine if it's transient.
 				const maybeErrorMsg =
-					result?.error?.message ??
-					(result?.error ? String(result.error) : undefined)
-				if (result?.error) {
+					result.error?.message ??
+					(result.error ? String(result.error) : undefined)
+				if (result.error) {
 					// Log transient RPC errors at debug level to avoid noisy WARN logs for
 					// retries; callers should decide whether to warn on final failure.
 					this.logger.debug(
@@ -323,10 +332,14 @@ export class SupabaseService {
 		try {
 			const fn = 'health_check' // Hardcoded health check function name
 			try {
-				// Explicit any here because RPC name is dynamic and SDK typings are
-				// narrow; accept the cast for runtime call.
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const result = await (this.adminClient as any).rpc(fn)
+				// RPC name is dynamic and SDK typings are narrow; cast for runtime call.
+				type RpcResult = {
+					data: unknown
+					error: unknown
+				}
+				const result = (await this.adminClient.rpc(
+					fn
+				)) as unknown as RpcResult
 				const { data, error } = result
 				if (!error && data && typeof data === 'object') {
 					const dataArray = data as unknown[]
@@ -359,10 +372,12 @@ export class SupabaseService {
 
 			// Connectivity check: lightweight HEAD count on a canonical table.
 			const table = 'users' // Use users table for health check
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { error } = await (this.adminClient as any)
+			type SelectResult = {
+				error: unknown
+			}
+			const { error } = (await this.adminClient
 				.from(table)
-				.select('*', { count: 'exact', head: true })
+				.select('*', { count: 'exact', head: true })) as unknown as SelectResult
 
 			if (error) {
 				interface SupabaseError {

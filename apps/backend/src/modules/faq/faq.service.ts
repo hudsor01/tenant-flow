@@ -223,8 +223,10 @@ export class FAQService {
 		try {
 			const client = this.supabase.getAdminClient()
 			// Type assertion needed as rpcFunction is dynamically determined
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			await client.rpc(rpcFunction as any, {
+			type RpcFunctions =
+				| 'increment_faq_view_count'
+				| 'increment_faq_helpful_count'
+			await client.rpc(rpcFunction as RpcFunctions, {
 				question_id: questionId
 			})
 		} catch (error) {

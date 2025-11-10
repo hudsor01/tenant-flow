@@ -39,12 +39,11 @@ export class StripeAccessControlService {
 					: subscription.customer.id
 
 			// Get user_id from stripe.customers
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)) as { data: string | null; error: { message?: string } | null }
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for subscription', {
@@ -91,12 +90,11 @@ export class StripeAccessControlService {
 					: subscription.customer.id
 
 			// Get user_id from stripe.customers
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)) as { data: string | null; error: { message?: string } | null }
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for subscription cancellation', {
@@ -120,17 +118,20 @@ export class StripeAccessControlService {
 			// canceled/incomplete_expired subscriptions won't be returned
 
 			// Get user email for sending cancellation notice
-			const { data: userData, error: emailError } = await this.supabaseService
+			const { data: userData, error: emailError} = (await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('email')
 				.eq('id', userId)
-				.single()
+				.single()) as { data: { email: string } | null; error: unknown }
 
 			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for cancellation notice', {
 					userId,
-					error: emailError?.message
+					error:
+						emailError instanceof Error
+							? emailError.message
+							: String(emailError as unknown)
 				})
 			} else {
 				// Send subscription canceled email using React template
@@ -172,12 +173,11 @@ export class StripeAccessControlService {
 					: subscription.customer.id
 
 			// Get user_id and email
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)) as { data: string | null; error: { message?: string } | null }
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for trial ending', {
@@ -204,7 +204,7 @@ export class StripeAccessControlService {
 
 			// Send trial ending email via Supabase function
 			if (trialEnd) {
-				await this.supabaseService
+				const result = await this.supabaseService
 					.getAdminClient()
 					.rpc('send_trial_ending_email', {
 						p_user_id: userId,
@@ -212,6 +212,14 @@ export class StripeAccessControlService {
 						p_days_remaining: daysRemaining,
 						p_trial_end: trialEnd.toISOString()
 					})
+				if (result.error) {
+					this.logger.warn('Failed to send trial ending email', {
+						error:
+							result.error instanceof Error
+								? result.error.message
+								: String(result.error as unknown)
+					})
+				}
 			}
 		} catch (error) {
 			this.logger.error('Failed to handle trial ending', {
@@ -242,12 +250,11 @@ export class StripeAccessControlService {
 			}
 
 			// Get user_id
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)) as { data: string | null; error: { message?: string } | null }
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for failed payment', {
@@ -270,19 +277,22 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending failed payment notice
-			const { data: userData, error: emailError } = await this.supabaseService
+			const { data: userData, error: emailError } = (await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('email')
 				.eq('id', userId)
-				.single()
+				.single()) as { data: { email: string } | null; error: unknown }
 
 			if (emailError || !userData?.email) {
 				this.logger.warn(
 					'Could not fetch user email for payment failed notice',
 					{
 						userId,
-						error: emailError?.message
+						error:
+							emailError instanceof Error
+								? emailError.message
+								: String(emailError)
 					}
 				)
 				return
@@ -326,12 +336,11 @@ export class StripeAccessControlService {
 			}
 
 			// Get user_id
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)) as { data: string | null; error: { message?: string } | null }
 
 			if (userError || !userId) {
 				return
@@ -349,17 +358,20 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending receipt
-			const { data: userData, error: emailError } = await this.supabaseService
+			const { data: userData, error: emailError } = (await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('email')
 				.eq('id', userId)
-				.single()
+				.single()) as { data: { email: string } | null; error: unknown }
 
 			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for payment receipt', {
 					userId,
-					error: emailError?.message
+					error:
+						emailError instanceof Error
+							? emailError.message
+							: String(emailError as unknown)
 				})
 				return
 			}

@@ -107,11 +107,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'lease')
 				
 				// Check for 409 conflict via error status or response
-				const is409Conflict = 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error as any)?.status === 409 || 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error as any)?.response?.status === 409
+				type ErrorWithStatus = { status?: number; response?: { status?: number } }
+				const errorObj = error as ErrorWithStatus
+				const is409Conflict =
+					errorObj?.status === 409 ||
+					errorObj?.response?.status === 409
 				
 				toast.error(errorMessage, {
 					description: is409Conflict ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
