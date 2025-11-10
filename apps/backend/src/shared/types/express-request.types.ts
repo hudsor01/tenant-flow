@@ -27,12 +27,8 @@ export interface AuthenticatedRequest extends Request {
 	}
 }
 
-// Raw request body for webhooks
-export interface RawBodyRequest extends Request {
-	rawBody?: Buffer
-}
-
 // Combined authenticated request with raw body support
+// Note: For webhook-only endpoints, use RawBodyRequest<Request> from '@nestjs/common'
 export interface AuthenticatedRawRequest extends AuthenticatedRequest {
 	rawBody?: Buffer
 }

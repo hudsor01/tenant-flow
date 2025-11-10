@@ -8,6 +8,7 @@
 		"jsx": "react-jsx",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
+		"isolatedModules": false,
 		"noEmit": false,
 		"allowImportingTsExtensions": false,
 		"inlineSources": true,
