@@ -14,7 +14,7 @@ import { useFormStep, useUIStore, type FormProgress } from '#stores/ui-store'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { CheckCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 export interface FormStep {
 	id: number
@@ -163,8 +163,11 @@ export function CreateDialog({
 		onOpenChange?.(value)
 	}
 
-	useEffect(() => {
-		if (isOpen) {
+	const hasInitializedRef = useRef(false)
+
+	const initializeFormProgress = useCallback(() => {
+		if (isOpen && !hasInitializedRef.current) {
+			hasInitializedRef.current = true
 			setFormProgress({
 				currentStep: 1,
 				totalSteps: steps.length,
@@ -172,11 +175,15 @@ export function CreateDialog({
 				formData: {},
 				formType
 			})
-		} else {
+		} else if (!isOpen && hasInitializedRef.current) {
+			hasInitializedRef.current = false
 			resetFormProgress()
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen, steps.length, formType])
+	}, [isOpen, steps.length, formType, setFormProgress, resetFormProgress])
+
+	useEffect(() => {
+		initializeFormProgress()
+	}, [initializeFormProgress])
 
 	// Initialize form progress when dialog opens
 	const handleOpenChange = (openState: boolean) => {

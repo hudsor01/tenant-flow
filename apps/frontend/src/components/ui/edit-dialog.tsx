@@ -17,7 +17,7 @@ import {
 	ChevronRight,
 	Edit
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 export interface FormStep {
@@ -179,8 +179,11 @@ export function EditDialog({
 		onOpenChange?.(value)
 	}
 
-	useEffect(() => {
-		if (isOpen) {
+	const hasInitializedRef = useRef(false)
+
+	const initializeFormProgress = useCallback(() => {
+		if (isOpen && !hasInitializedRef.current) {
+			hasInitializedRef.current = true
 			setFormProgress({
 				currentStep: 1,
 				totalSteps: effectiveTotalSteps,
@@ -188,11 +191,15 @@ export function EditDialog({
 				formData: {},
 				formType
 			})
-		} else {
+		} else if (!isOpen && hasInitializedRef.current) {
+			hasInitializedRef.current = false
 			resetFormProgress()
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen, effectiveTotalSteps, formType])
+	}, [isOpen, effectiveTotalSteps, formType, setFormProgress, resetFormProgress])
+
+	useEffect(() => {
+		initializeFormProgress()
+	}, [initializeFormProgress])
 
 	// Initialize form progress when dialog opens
 	const handleOpenChange = (openState: boolean) => {
