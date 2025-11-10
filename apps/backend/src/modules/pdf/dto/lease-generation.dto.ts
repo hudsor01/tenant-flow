@@ -25,8 +25,8 @@ import { leaseGenerationSchema } from '@repo/shared/validation/lease-generation.
  * - Preserves TypeScript type information (no type assertions)
  * - Compatible with @Body() decorator in NestJS controllers
  *
- * **Note**: Field names like "landlordName" match the legal terminology
- * used in the Texas Residential Lease Agreement document.
+ * **Note**: Field names like "ownerName", "ownerAddress", and "ownerPhone" use
+ * owner-centric terminology as defined in the schema.
  *
  * @example
  * ```typescript
