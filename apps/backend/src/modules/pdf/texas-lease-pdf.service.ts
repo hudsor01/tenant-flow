@@ -20,12 +20,26 @@ export class TexasLeasePDFService {
 	private readonly templatePath: string
 
 	constructor() {
-		// Use environment variable or default path relative to backend dist directory
+		/**
+		 * Texas Residential Lease Agreement PDF Template
+		 *
+		 * Location: apps/backend/assets/Texas_Residential_Lease_Agreement.pdf
+		 * Source: Texas Association of Realtors (TAR) - Standard Residential Lease Form
+		 * License: Public template form - TAR forms may be used by licensed real estate professionals
+		 *
+		 * Path resolution:
+		 * - Production: Uses TEXAS_LEASE_TEMPLATE_PATH env var
+		 * - Development: Resolves from dist/ to assets/ directory
+		 *
+		 * The path calculation works because:
+		 * - __dirname = apps/backend/dist/modules/pdf (compiled output)
+		 * - ../../assets = apps/backend/assets (template location)
+		 */
 		this.templatePath =
 			process.env.TEXAS_LEASE_TEMPLATE_PATH ||
 			join(
 				__dirname,
-				'../../../Texas_Residential_Lease_Agreement.pdf'
+				'../../assets/Texas_Residential_Lease_Agreement.pdf'
 			)
 	}
 

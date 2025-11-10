@@ -1,6 +1,20 @@
 /**
- * Script to add form fields to Texas Residential Lease Agreement PDF
- * Run with: pnpm tsx apps/backend/scripts/add-form-fields-to-lease.ts
+/**
+ * DEV-ONLY SCRIPT: Add form fields to Texas Residential Lease Agreement PDF
+ *
+ * Classification: Development/Testing Tool (NOT production code)
+ * Purpose: Manually add AcroForm fields to the PDF template for testing the pdf-lib form filling API
+ *
+ * Usage:
+ * 1. Place Texas_Residential_Lease_Agreement.pdf in project root
+ * 2. Run: pnpm tsx apps/backend/scripts/add-form-fields-to-lease.ts
+ * 3. Output: Texas_Residential_Lease_Agreement.filled.pdf with editable form fields
+ *
+ * IMPORTANT:
+ * - This script is for template preparation ONLY
+ * - DO NOT use in production code or deployment pipelines
+ * - The output PDF should be reviewed manually before use
+ * - Template modifications should be documented in apps/backend/assets/README.md
  */
 
 import { PDFDocument } from 'pdf-lib'
