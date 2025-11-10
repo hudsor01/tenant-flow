@@ -43,6 +43,11 @@ const leaseBaseSchema = z.object({
 	tenantId: uuidString,
 	startDate: dateString,
 	endDate: dateString.optional().nullable(), // NULL for month-to-month leases
+	/**
+	 * Monthly rent amount in cents (integer, positive)
+	 * @example 250000 = $2,500.00/month
+	 * Consumers should convert to dollars for display (amount / 100)
+	 */
 	rentAmount: positiveMoneyAmount,
 	// Security deposit is optional - 0 or empty is valid (some leases may not require a deposit)
 	securityDeposit: positiveMoneyAmount.optional().nullable().or(z.literal(0)),

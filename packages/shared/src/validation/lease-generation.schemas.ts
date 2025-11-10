@@ -70,7 +70,24 @@ export const leaseGenerationSchema = z.object({
 	// Additional metadata (required for authorization/validation)
 	propertyId: z.string().uuid('Invalid property ID'),
 	tenantId: z.string().optional()
-})
+}).refine(
+	(data) => {
+		// Validate terminationDate > commencementDate
+		const commence = new Date(data.commencementDate)
+		const terminate = new Date(data.terminationDate)
+
+		// Check both dates are valid
+		if (isNaN(commence.getTime()) || isNaN(terminate.getTime())) {
+			return true // Let individual field validation handle invalid dates
+		}
+
+		return terminate > commence
+	},
+	{
+		message: 'Termination date must be after commencement date',
+		path: ['terminationDate']
+	}
+)
 
 export type LeaseGenerationFormData = z.infer<typeof leaseGenerationSchema>
 
