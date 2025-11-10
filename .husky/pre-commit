@@ -15,10 +15,16 @@ fi
 
 # Step 2: Turbo runs lint, typecheck, and unit tests
 # Integration/e2e tests excluded (require running services)
+# Run tasks for all packages to ensure comprehensive validation
+# --force: Always validate fresh (no stale cache)
+# --continue: Show all errors across all packages
+# --output-logs=errors-only: Only show failed task output (cleaner logs)
+# --summarize: Display cache performance metrics
 CI=true npx turbo run lint typecheck test:unit \
-  --cache-dir=.turbo \
-  --filter='[HEAD^1]' \
-  --concurrency=10 || {
+  --continue \
+  --force \
+  --output-logs=errors-only \
+  --summarize || {
     echo "❌ Pre-commit checks failed!"
     echo "Fix errors before committing."
     echo "Use 'git commit --no-verify' to bypass (not recommended)."

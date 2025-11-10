@@ -1,8 +1,13 @@
 import { expect, test } from '@playwright/test'
+import { test } from '@playwright/test'
 import type { TestInfo } from '@playwright/test'
+import { loginAsOwner } from '../auth-helpers'
 
 /**
- * E2E tests for Lease Template PDF Generation Flow
+ * E2E tests for Lease Template Builder (NOT Texas Lease Generation)
+ * 
+ * NOTE: This tests the lease template builder feature, which is different from
+ * the Texas Residential Lease Agreement generation (tested in texas-lease-generation.spec.ts)
  * 
  * Tests the complete user journey:
  * 1. Navigate to lease template builder
@@ -25,11 +30,49 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
 test.describe('Lease Template PDF Generation', () => {
 	let consoleErrors: string[] = []
 	let networkErrors: string[] = []
+	let authenticationAvailable = false
+
+	// Check if authentication is available before running tests
+	test.beforeAll(async ({ browser }) => {
+		const page = await browser.newPage()
+		const controller = new AbortController()
+		const timeoutId = setTimeout(() => controller.abort(), 10000)
+		
+		try {
+			// Try to login with timeout using AbortController
+			await loginAsOwner(page)
+			
+			if (controller.signal.aborted) {
+				throw new Error('Auth timeout')
+			}
+			
+			authenticationAvailable = true
+			console.log('✅ Authentication successful - tests will run')
+		} catch (error) {
+			authenticationAvailable = false
+			console.log('⚠️  Authentication failed - tests will be SKIPPED')
+			console.log('   Set up test account at http://localhost:3000/signup')
+			console.log(`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`)
+		} finally {
+			clearTimeout(timeoutId)
+			await page.close()
+		}
+	})
 
 	test.beforeEach(async ({ page }) => {
+		// Skip authentication if not available (checked in beforeAll)
+		if (!authenticationAvailable) {
+			test.skip()
+			return
+		}
+
 		consoleErrors = []
 		networkErrors = []
 
+		// Authenticate before each test for clean state
+		await loginAsOwner(page)
+
+		// Set up console and network monitoring
 		page.on('console', (msg) => {
 			if (msg.type() === 'error') {
 				consoleErrors.push(msg.text())
