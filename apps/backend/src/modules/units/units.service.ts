@@ -62,17 +62,21 @@ export class UnitsService {
 			}
 
 			if (query.status) {
-				const status = String(
-					query.status
-				).toUpperCase() as Database['public']['Enums']['UnitStatus']
+				const statusInput = String(query.status).toUpperCase()
 				const allowedStatuses: Database['public']['Enums']['UnitStatus'][] = [
 					'VACANT',
 					'OCCUPIED',
 					'MAINTENANCE',
 					'RESERVED'
 				]
-				if (allowedStatuses.includes(status)) {
-					queryBuilder = queryBuilder.eq('status', status)
+				const isValidStatus = allowedStatuses.includes(
+					statusInput as Database['public']['Enums']['UnitStatus']
+				)
+				if (isValidStatus) {
+					queryBuilder = queryBuilder.eq(
+						'status',
+						statusInput as Database['public']['Enums']['UnitStatus']
+					)
 				}
 			}
 

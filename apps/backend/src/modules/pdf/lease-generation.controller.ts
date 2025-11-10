@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	Get,
+	Logger,
 	Param,
 	ParseUUIDPipe,
 	Post,
@@ -32,6 +33,8 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
 @Controller('api/v1/leases')
 @UseGuards(JwtAuthGuard)
 export class LeaseGenerationController {
+	private readonly logger = new Logger(LeaseGenerationController.name)
+
 	constructor(
 		private readonly texasLeasePDF: TexasLeasePDFService,
 		private readonly supabase: SupabaseService
@@ -54,12 +57,16 @@ export class LeaseGenerationController {
 		try {
 			const pdfBuffer = await this.texasLeasePDF.generateLeasePDF(dto)
 
-			// Generate descriptive filename
+			// Generate descriptive filename with proper sanitization
 			const sanitizedAddress = (dto.propertyAddress || 'property')
 				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-') // Replace consecutive hyphens with single hyphen
+				.replace(/^-|-$/g, '') // Remove leading/trailing hyphens
 				.slice(0, MAX_ADDRESS_LENGTH)
 			const sanitizedTenant = (dto.tenantName || 'tenant')
 				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-') // Replace consecutive hyphens with single hyphen
+				.replace(/^-|-$/g, '') // Remove leading/trailing hyphens
 				.slice(0, MAX_TENANT_NAME_LENGTH)
 			const date = new Date().toISOString().split('T')[0]
 			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
@@ -94,14 +101,33 @@ export class LeaseGenerationController {
 		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	): Promise<Partial<LeaseGenerationFormData>> {
 
-		// Fetch property data
-		const { data: property, error: propertyError } = await this.supabase
-			.getAdminClient()
-			.from('property')
-			.select('id, address, city, state, zipCode, ownerId')
-			.eq('id', propertyId)
-			.single()
+		// OPTIMIZATION: Fetch property, unit, and tenant data in parallel with Promise.all
+		const [
+			{ data: property, error: propertyError },
+			{ data: unit, error: unitError },
+			{ data: tenant, error: tenantError }
+		] = await Promise.all([
+			this.supabase
+				.getAdminClient()
+				.from('property')
+				.select('id, address, city, state, zipCode, ownerId')
+				.eq('id', propertyId)
+				.single(),
+			this.supabase
+				.getAdminClient()
+				.from('unit')
+				.select('id, rent, unitNumber, propertyId')
+				.eq('id', unitId)
+				.single(),
+			this.supabase
+				.getAdminClient()
+				.from('users')
+				.select('id, firstName, lastName, email')
+				.eq('id', tenantId)
+				.single()
+		])
 
+		// Validate property query result
 		if (propertyError) {
 			// PGRST116 = not found (no rows returned)
 			if (propertyError.code === 'PGRST116') {
@@ -118,14 +144,7 @@ export class LeaseGenerationController {
 			throw new NotFoundException(`Property not found: ${propertyId}`)
 		}
 
-		// Fetch unit data for rent amount
-		const { data: unit, error: unitError } = await this.supabase
-			.getAdminClient()
-			.from('unit')
-			.select('id, rent, unitNumber, propertyId')
-			.eq('id', unitId)
-			.single()
-
+		// Validate unit query result
 		if (unitError) {
 			if (unitError.code === 'PGRST116') {
 				throw new NotFoundException(`Unit not found: ${unitId}`)
@@ -147,14 +166,7 @@ export class LeaseGenerationController {
 			)
 		}
 
-		// Fetch tenant data - REQUIRED for lease generation
-		const { data: tenant, error: tenantError } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id, firstName, lastName, email')
-			.eq('id', tenantId)
-			.single()
-
+		// Validate tenant query result
 		if (tenantError) {
 			if (tenantError.code === 'PGRST116') {
 				throw new NotFoundException(`Tenant not found: ${tenantId}`)
@@ -170,12 +182,19 @@ export class LeaseGenerationController {
 		}
 
 		// Fetch owner data from property owner
-		const { data: owner } = await this.supabase
+		const { data: owner, error: ownerError } = await this.supabase
 			.getAdminClient()
 			.from('users')
 			.select('firstName, lastName, email')
 			.eq('id', property.ownerId)
 			.single()
+
+		// Owner is optional - if fetch fails, use fallback
+		if (ownerError && ownerError.code !== 'PGRST116') {
+			this.logger.warn(
+				`Failed to fetch owner data for property ${propertyId}: ${ownerError.message}`
+			)
+		}
 
 		// Auto-fill form data
 		const autoFilled: Partial<LeaseGenerationFormData> = {

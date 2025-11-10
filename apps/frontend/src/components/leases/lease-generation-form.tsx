@@ -117,7 +117,8 @@ export function LeaseGenerationForm({
 				}
 			})
 		}
-	}, [autoFillData, form])
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [autoFillData])
 
 	// Show error if required data is missing (after all hooks)
 	if (!propertyId || !unitId || !tenantId) {

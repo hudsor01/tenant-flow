@@ -21,7 +21,7 @@ const sessionCache = new Map<string, any>()
 // Debug logging helper - only logs when DEBUG env var is set
 function debugLog(...args: any[]) {
 	if (process.env.DEBUG) {
-		debugLog(...args)
+		console.debug(...args)
 	}
 }
 

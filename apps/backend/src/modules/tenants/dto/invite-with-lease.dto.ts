@@ -23,8 +23,20 @@ const InviteWithLeaseSchema = z.object({
 			.number()
 			.int('Security deposit must be an integer')
 			.nonnegative('Security deposit cannot be negative'),
-		startDate: z.string().datetime('Invalid start date format'),
-		endDate: z.string().datetime('Invalid end date format')
+		startDate: z.preprocess(
+			(val) =>
+				typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)
+					? `${val}T00:00:00.000Z`
+					: val,
+			z.string().datetime('Invalid start date format')
+		),
+		endDate: z.preprocess(
+			(val) =>
+				typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)
+					? `${val}T00:00:00.000Z`
+					: val,
+			z.string().datetime('Invalid end date format')
+		)
 	})
 })
 
