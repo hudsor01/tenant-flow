@@ -54,6 +54,12 @@ export function useGenerateLease() {
 				throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
 			}
 
+			// SECURITY: Validate content-type before processing
+			const contentType = response.headers.get('content-type')
+			if (!contentType?.includes('application/pdf')) {
+				throw new Error(`Invalid response type: expected PDF, got ${contentType}`)
+			}
+
 			// Get the PDF blob
 			const blob = await response.blob()
 
@@ -65,15 +71,19 @@ export function useGenerateLease() {
 			const timestamp = Date.now()
 			const filename = `lease-${sanitizedAddress}-${timestamp}.pdf`
 
-			// Create download link
+			// Create download link with proper cleanup
 			const url = window.URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = filename
-			document.body.appendChild(a)
-			a.click()
-			document.body.removeChild(a)
-			window.URL.revokeObjectURL(url)
+			try {
+				const a = document.createElement('a')
+				a.href = url
+				a.download = filename
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+			} finally {
+				// MEMORY LEAK FIX: Always revoke URL even if error occurs
+				window.URL.revokeObjectURL(url)
+			}
 
 			return { success: true, filename }
 		},
