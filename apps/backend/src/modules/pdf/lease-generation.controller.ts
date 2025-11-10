@@ -95,6 +95,9 @@ export class LeaseGenerationController {
 	 */
 	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:propertyId/:unitId/:tenantId')
+	// NOTE: Caching disabled - @CacheKey doesn't support per-property/per-user keys
+	// User-specific data cannot use global cache without exposing data across users
+	// Each property/unit/tenant combination would need unique cache key: lease-auto-fill:{propertyId}:{unitId}:{tenantId}
 	async autoFillLease(
 		@Param('propertyId', ParseUUIDPipe) propertyId: string,
 		@Param('unitId', ParseUUIDPipe) unitId: string,

@@ -1,12 +1,42 @@
 import { z } from 'zod'
 
 /**
+ * Helper to validate date strings and reject invalid dates like 2024-99-99
+ */
+export const validateDateString = (val: unknown): unknown => {
+	if (typeof val === 'string' && val.length > 0) {
+		const date = new Date(val)
+		if (isNaN(date.getTime())) {
+			throw new Error('Invalid date')
+		}
+	}
+	return val
+}
+
+/**
+ * Helper to convert YYYY-MM-DD to ISO 8601 datetime and validate
+ * Used in backend DTOs for date preprocessing
+ */
+export const convertDateToIso = (val: unknown): unknown => {
+	if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+		const isoDate = `${val}T00:00:00.000Z`
+		// Validate it's a real date (not 2024-99-99)
+		const date = new Date(isoDate)
+		if (isNaN(date.getTime())) {
+			return val // Return original to trigger validation error
+		}
+		return isoDate
+	}
+	return val
+}
+
+/**
  * Lease Generation Form Schema
  * Maps to Texas Residential Lease Agreement PDF (34 sections)
  */
 export const leaseGenerationSchema = z.object({
 	// Section 1: Property & Parties (Page 1)
-	agreementDate: z.string().min(1, 'Agreement date is required'),
+	agreementDate: z.preprocess(validateDateString, z.string().min(1, 'Agreement date is required')),
 	ownerName: z.string().min(1, 'Property owner name is required'),
 	ownerAddress: z.string().min(1, 'Property owner address is required'),
 	ownerPhone: z.string().optional(),
@@ -14,11 +44,11 @@ export const leaseGenerationSchema = z.object({
 	propertyAddress: z.string().min(1, 'Property address is required'),
 
 	// Section 2: Term (Page 1)
-	commencementDate: z.string().min(1, 'Commencement date is required'),
-	terminationDate: z.string().min(1, 'Termination date is required'),
+	commencementDate: z.preprocess(validateDateString, z.string().min(1, 'Commencement date is required')),
+	terminationDate: z.preprocess(validateDateString, z.string().min(1, 'Termination date is required')),
 
 	// Section 3: Rent (Pages 1-2)
-	monthlyRent: z.number().min(0, 'Monthly rent must be positive'),
+	monthlyRent: z.number().gt(0, 'Monthly rent must be positive'),
 	rentDueDay: z.number().min(1).max(31).default(1),
 	lateFeeAmount: z.number().min(0).optional(),
 	lateFeeGraceDays: z.number().min(0).default(3),

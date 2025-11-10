@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { clientFetch, getAuthHeaders } from '#lib/api/client'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
@@ -37,14 +37,14 @@ export function useLeaseAutoFill(propertyId: string, unitId: string, tenantId: s
 export function useGenerateLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData) => {
+			// Get auth headers for authenticated request
+			const headers = await getAuthHeaders()
+			
 			const response = await fetch(
 				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
 				{
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
+					headers,
 					body: JSON.stringify(data)
 				}
 			)
@@ -110,14 +110,14 @@ export function useGenerateLease() {
 export function useEmailLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData & { emailTo: string }) => {
+			// Get auth headers for authenticated request
+			const headers = await getAuthHeaders()
+			
 			const response = await fetch(
 				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
 				{
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					credentials: 'include',
+					headers,
 					body: JSON.stringify(data)
 				}
 			)
