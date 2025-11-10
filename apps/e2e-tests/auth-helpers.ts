@@ -61,24 +61,45 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 
 	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	console.log(`🔐 Starting fresh login for: ${email}`)
+	console.log(`🌐 Base URL: ${baseUrl}`)
+	
 	await page.goto(`${baseUrl}/login`)
+	console.log('📍 Navigated to login page')
 	await page.waitForLoadState('networkidle')
+	console.log('✅ Page load complete (networkidle)')
 
 	// Wait for login form to be fully visible
+	console.log('⏳ Waiting for email field to be visible...')
 	await expect(page.locator('#email')).toBeVisible({ timeout: 5000 })
+	console.log('✅ Email field is visible')
 
 	// Fill login form with explicit force to handle any overlays
+	console.log('📝 Filling email field...')
 	await page.locator('#email').fill(email, { force: true })
+	console.log('📝 Filling password field...')
 	await page.locator('#password').fill(password, { force: true })
+	console.log('✅ Form fields filled')
 
 	// Small delay to ensure form state is settled
 	await page.waitForTimeout(500)
+	console.log('⏱️  Form state settled (500ms delay)')
+
+	// Check if button is visible and enabled
+	const submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
+	console.log('🔍 Looking for submit button...')
+	await expect(submitButton).toBeVisible({ timeout: 5000 })
+	const buttonText = await submitButton.textContent()
+	const isEnabled = await submitButton.isEnabled()
+	console.log(`✅ Submit button found: "${buttonText}" (enabled: ${isEnabled})`)
 
 	// Submit form and wait for navigation
+	console.log('🚀 Clicking submit button and waiting for navigation...')
 	await Promise.all([
 		page.waitForURL(/\/(manage|dashboard)/, { timeout: 30000 }),
-		page.getByRole('button', { name: /sign in|login|submit/i }).click()
+		submitButton.click()
 	])
+	console.log('✅ Navigation complete!')
 
 	await page.waitForLoadState('networkidle')
 

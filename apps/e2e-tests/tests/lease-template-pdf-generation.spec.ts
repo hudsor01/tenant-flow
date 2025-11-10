@@ -2,7 +2,10 @@ import { expect, test } from '@playwright/test'
 import type { TestInfo } from '@playwright/test'
 
 /**
- * E2E tests for Lease Template PDF Generation Flow
+ * E2E tests for Lease Template Builder (NOT Texas Lease Generation)
+ * 
+ * NOTE: This tests the lease template builder feature, which is different from
+ * the Texas Residential Lease Agreement generation (tested in texas-lease-generation.spec.ts)
  * 
  * Tests the complete user journey:
  * 1. Navigate to lease template builder
