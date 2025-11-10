@@ -6,7 +6,7 @@ import {
 import { PDFDocument } from 'pdf-lib'
 import { readFile, access } from 'node:fs/promises'
 import { constants } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { join, resolve, normalize, relative, isAbsolute } from 'node:path'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 
 /**
@@ -48,21 +48,30 @@ export class TexasLeasePDFService {
 	 */
 	private async verifyTemplateExists(): Promise<void> {
 		// SECURITY: Prevent path traversal attacks
-		// Only enforce dist-root restriction for default relative paths
-		// Allow absolute paths from TEXAS_LEASE_TEMPLATE_PATH env var
-		const resolvedPath = resolve(this.templatePath)
-		const isEnvOverride = !!process.env.TEXAS_LEASE_TEMPLATE_PATH
+		// Always validate that resolved path stays within backend root directory
+		// regardless of whether path comes from env var or default
 		
-		if (!isEnvOverride) {
-			// For default relative path, ensure it stays within dist directory
-			const expectedDirectory = resolve(__dirname, '../../..')
-			if (!resolvedPath.startsWith(expectedDirectory)) {
-				const errorMessage = `Invalid template path (path traversal detected): ${this.templatePath}`
-				this.logger.error(errorMessage)
-				throw new InternalServerErrorException(
-					'PDF template path is invalid'
-				)
-			}
+		const normalizedPath = normalize(this.templatePath)
+		const resolvedPath = resolve(normalizedPath)
+		
+		// Compute backend root directory (apps/backend/)
+		// __dirname in production = apps/backend/dist/modules/pdf
+		// Going up 3 levels from dist/modules/pdf gets us to dist/
+		// Going up 1 more level gets us to apps/backend/
+		const backendRoot = resolve(__dirname, '../../../..')
+		
+		// Ensure resolved path is within backend root
+		const relativePath = relative(backendRoot, resolvedPath)
+		const isWithinBackendRoot = 
+			!relativePath.startsWith('..') && 
+			!isAbsolute(relativePath)
+		
+		if (!isWithinBackendRoot) {
+			const errorMessage = `Invalid template path (path traversal detected): ${this.templatePath}`
+			this.logger.error(errorMessage)
+			throw new InternalServerErrorException(
+				'PDF template path is invalid'
+			)
 		}
 
 		// Check if template file exists and is readable

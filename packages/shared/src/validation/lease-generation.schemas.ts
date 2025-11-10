@@ -1,31 +1,42 @@
 import { z } from 'zod'
 
 /**
- * Helper to validate date strings and reject invalid dates like 2024-99-99
+ * Timezone-safe date validation for YYYY-MM-DD calendar dates
+ * 
+ * Lease dates are calendar dates (not timestamps), so we parse them consistently
+ * in UTC to avoid timezone-related bugs. For example:
+ * - User selects "2024-01-15" → treated as Jan 15 regardless of timezone
+ * - Parsing "2024-01-15" as UTC midnight ensures consistent validation
+ * 
+ * @param val - Date string in YYYY-MM-DD format
+ * @returns val if valid, throws Error if invalid
  */
 export const validateDateString = (val: unknown): unknown => {
 	if (typeof val === 'string' && val.length > 0) {
-		const date = new Date(val)
+		// Validate YYYY-MM-DD format
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+			throw new Error('Date must be in YYYY-MM-DD format')
+		}
+		
+		// Parse as UTC midnight for consistent validation (avoids timezone bugs)
+		// This treats "2024-01-15" as a calendar date, not a timestamp
+		const date = new Date(`${val}T00:00:00.000Z`)
+		
+		// Validate it's a real date (rejects 2024-99-99, 2024-02-30, etc.)
 		if (isNaN(date.getTime())) {
 			throw new Error('Invalid date')
 		}
-	}
-	return val
-}
-
-/**
- * Helper to convert YYYY-MM-DD to ISO 8601 datetime and validate
- * Used in backend DTOs for date preprocessing
- */
-export const convertDateToIso = (val: unknown): unknown => {
-	if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-		const isoDate = `${val}T00:00:00.000Z`
-		// Validate it's a real date (not 2024-99-99)
-		const date = new Date(isoDate)
-		if (isNaN(date.getTime())) {
-			return val // Return original to trigger validation error
+		
+		// Additional validation: Extract parts and verify they match
+		// This catches edge cases like "2024-02-30" which Date might auto-adjust
+		const [year, month, day] = val.split('-').map(Number)
+		if (
+			date.getUTCFullYear() !== year ||
+			date.getUTCMonth() + 1 !== month ||
+			date.getUTCDate() !== day
+		) {
+			throw new Error('Invalid date')
 		}
-		return isoDate
 	}
 	return val
 }
@@ -103,8 +114,9 @@ export const leaseGenerationSchema = z.object({
 }).refine(
 	(data) => {
 		// Validate terminationDate > commencementDate
-		const commence = new Date(data.commencementDate)
-		const terminate = new Date(data.terminationDate)
+		// Parse as UTC midnight for consistent comparison (same as validateDateString)
+		const commence = new Date(`${data.commencementDate}T00:00:00.000Z`)
+		const terminate = new Date(`${data.terminationDate}T00:00:00.000Z`)
 
 		// Check both dates are valid
 		if (isNaN(commence.getTime()) || isNaN(terminate.getTime())) {
