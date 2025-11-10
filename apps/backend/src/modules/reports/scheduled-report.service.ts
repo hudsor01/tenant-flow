@@ -36,6 +36,25 @@ export interface ScheduledReportRecord {
 	updatedAt: string
 }
 
+const SAFE_SCHEDULED_REPORT_COLUMNS = `
+	id,
+	userId,
+	reportType,
+	reportName,
+	format,
+	frequency,
+	dayOfWeek,
+	dayOfMonth,
+	hour,
+	timezone,
+	isActive,
+	lastRunAt,
+	nextRunAt,
+	metadata,
+	createdAt,
+	updatedAt
+`.trim()
+
 @Injectable()
 export class ScheduledReportService {
 	private readonly logger = new Logger(ScheduledReportService.name)
@@ -98,7 +117,7 @@ export class ScheduledReportService {
 
 		const { data, error } = await client
 			.from('scheduled_report')
-			.select('*')
+			.select(SAFE_SCHEDULED_REPORT_COLUMNS)
 			.eq('userId', userId)
 			.order('createdAt', { ascending: false })
 
@@ -156,7 +175,7 @@ export class ScheduledReportService {
 		// Fetch all active schedules that are due
 		const { data: schedules, error } = await client
 			.from('scheduled_report')
-			.select('*')
+			.select(SAFE_SCHEDULED_REPORT_COLUMNS)
 			.eq('isActive', true)
 			.lte('nextRunAt', now.toISOString())
 

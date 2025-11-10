@@ -23,6 +23,95 @@ import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
 
+const SAFE_CONNECTED_ACCOUNT_COLUMNS = `
+	id,
+	userId,
+	stripeAccountId,
+	accountType,
+	accountStatus,
+	chargesEnabled,
+	payoutsEnabled,
+	detailsSubmitted,
+	displayName,
+	contactEmail,
+	country,
+	currency,
+	businessType,
+	onboardingCompleted,
+	onboardingCompletedAt,
+	capabilities,
+	requirements,
+	createdAt,
+	updatedAt
+`.trim()
+
+const SAFE_TENANT_PAYMENT_METHOD_COLUMNS = `
+	id,
+	tenantId,
+	stripePaymentMethodId,
+	stripeCustomerId,
+	type,
+	brand,
+	last4,
+	bankName,
+	isDefault,
+	verificationStatus,
+	createdAt,
+	updatedAt
+`.trim()
+
+const SAFE_TENANT_COLUMNS = `
+	id,
+	userId,
+	name,
+	firstName,
+	lastName,
+	email,
+	phone,
+	emergencyContact,
+	avatarUrl,
+	status,
+	auth_user_id,
+	stripeCustomerId,
+	stripe_customer_id,
+	autopay_enabled,
+	autopay_day,
+	autopay_frequency,
+	autopay_configured_at,
+	payment_method_added_at,
+	invitation_status,
+	invitation_sent_at,
+	invitation_expires_at,
+	invitation_accepted_at,
+	move_out_date,
+	move_out_reason,
+	archived_at,
+	notification_preferences,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
+const SAFE_RENT_SUBSCRIPTION_COLUMNS = `
+	id,
+	leaseId,
+	tenantId,
+	ownerId,
+	stripeSubscriptionId,
+	stripeCustomerId,
+	amount,
+	currency,
+	dueDay,
+	status,
+	platformFeePercent,
+	nextBillingDate,
+	pausedAt,
+	canceledAt,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
 @Injectable()
 export class SubscriptionsService {
 	private readonly logger = new Logger(SubscriptionsService.name)
@@ -77,7 +166,7 @@ export class SubscriptionsService {
 		const { data: connectedAccount, error: accountError } = await this.supabase
 			.getAdminClient()
 			.from('connected_account')
-			.select('*')
+			.select(SAFE_CONNECTED_ACCOUNT_COLUMNS)
 			.eq('userId', ownerId)
 			.single()
 
@@ -99,7 +188,7 @@ export class SubscriptionsService {
 		const { data: paymentMethod, error: pmError } = await this.supabase
 			.getAdminClient()
 			.from('tenant_payment_method')
-			.select('*')
+			.select(SAFE_TENANT_PAYMENT_METHOD_COLUMNS)
 			.eq('id', request.paymentMethodId)
 			.eq('tenantId', tenantId)
 			.single()
@@ -116,7 +205,7 @@ export class SubscriptionsService {
 			const { data: tenant } = await this.supabase
 				.getAdminClient()
 				.from('tenant')
-				.select('*')
+				.select(SAFE_TENANT_COLUMNS)
 				.eq('id', tenantId)
 				.single()
 
@@ -238,7 +327,7 @@ export class SubscriptionsService {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('rent_subscription')
-			.select('*')
+			.select(SAFE_RENT_SUBSCRIPTION_COLUMNS)
 			.eq('id', subscriptionId)
 			.or(`tenantId.eq.${userId},ownerId.eq.${userId}`) // <-- ownerId here
 			.single()
@@ -257,7 +346,7 @@ export class SubscriptionsService {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('rent_subscription')
-			.select('*')
+			.select(SAFE_RENT_SUBSCRIPTION_COLUMNS)
 			.or(`tenantId.eq.${userId},ownerId.eq.${userId}`) // <-- ownerId here
 			.order('createdAt', { ascending: false })
 

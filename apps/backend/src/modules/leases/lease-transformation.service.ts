@@ -12,6 +12,46 @@ import type {
 } from '@repo/shared/types/lease-generator.types'
 import { LeasesService } from './leases.service'
 
+const SAFE_LEASE_COLUMNS = `
+	id,
+	propertyId,
+	unitId,
+	tenantId,
+	rentAmount,
+	securityDeposit,
+	startDate,
+	endDate,
+	monthlyRent,
+	status,
+	terms,
+	gracePeriodDays,
+	lateFeeAmount,
+	lateFeePercentage,
+	stripeSubscriptionId,
+	stripe_subscription_id,
+	lease_document_url,
+	signature,
+	signed_at,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
+const SAFE_UNIT_COLUMNS = `
+	id,
+	propertyId,
+	unitNumber,
+	bedrooms,
+	bathrooms,
+	squareFeet,
+	rent,
+	status,
+	lastInspectionDate,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
 /**
  * Lease Transformation Service
  * Handles transformation of database lease records to LeaseFormData structure
@@ -51,7 +91,7 @@ export class LeaseTransformationService {
 				const client = this.leasesService.getUserClient(token)
 				const { data: basicLease, error: basicError } = await client
 					.from('lease')
-					.select('*')
+					.select(SAFE_LEASE_COLUMNS)
 					.eq('id', leaseId)
 					.single()
 
@@ -108,11 +148,17 @@ export class LeaseTransformationService {
 			.from('lease')
 			.select(
 				`
-				*,
+				${SAFE_LEASE_COLUMNS},
 				unit:unit_id (
-					*,
+					${SAFE_UNIT_COLUMNS},
 					property:property_id (
-						*,
+						id,
+						name,
+						address,
+						city,
+						state,
+						zipCode,
+						propertyType,
 						owner:user_id (
 							id,
 							email,
@@ -122,7 +168,10 @@ export class LeaseTransformationService {
 					)
 				),
 				tenant:tenant_id (
-					*
+					id,
+					name,
+					email,
+					phone
 				)
 			`
 			)

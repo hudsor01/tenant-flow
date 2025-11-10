@@ -16,6 +16,29 @@ import type {
 import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
 
+const SAFE_MAINTENANCE_REQUEST_COLUMNS = `
+	id,
+	unitId,
+	title,
+	description,
+	category,
+	priority,
+	status,
+	requestedBy,
+	assignedTo,
+	allowEntry,
+	contactPhone,
+	preferredDate,
+	estimatedCost,
+	actualCost,
+	completedAt,
+	notes,
+	photos,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
 /**
  * Maintenance Analytics Controller - Ultra-Native Implementation
  * Direct Supabase queries, no repository dependencies
@@ -284,7 +307,7 @@ export class MaintenanceAnalyticsController {
 		try {
 			const { data: maintenanceRows, error: maintenanceError } = await client
 				.from('maintenance_request')
-				.select('*')
+				.select(SAFE_MAINTENANCE_REQUEST_COLUMNS)
 				.in('unitId', unitIds)
 
 			if (maintenanceError) {

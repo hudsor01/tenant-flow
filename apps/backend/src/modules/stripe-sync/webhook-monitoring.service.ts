@@ -36,6 +36,20 @@ export interface WebhookHealthIssue {
 	last_occurrence: string
 }
 
+const SAFE_WEBHOOK_FAILURES_COLUMNS = `
+	id,
+	stripe_event_id,
+	event_type,
+	failure_reason,
+	error_message,
+	error_stack,
+	raw_event_data,
+	retry_count,
+	created_at,
+	last_retry_at,
+	resolved_at
+`.trim()
+
 export interface WebhookFailureRecord {
 	id: string
 	stripe_event_id: string
@@ -208,7 +222,7 @@ export class WebhookMonitoringService {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('webhook_failures')
-			.select('*')
+			.select(SAFE_WEBHOOK_FAILURES_COLUMNS)
 			.is('resolved_at', null)
 			.order('created_at', { ascending: false })
 			.limit(limit)

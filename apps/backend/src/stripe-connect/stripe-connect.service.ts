@@ -41,6 +41,28 @@ export interface ConnectedAccountRow {
 	updatedAt: string
 }
 
+const SAFE_CONNECTED_ACCOUNT_COLUMNS = `
+	id,
+	userId,
+	stripeAccountId,
+	accountType,
+	accountStatus,
+	chargesEnabled,
+	payoutsEnabled,
+	detailsSubmitted,
+	displayName,
+	contactEmail,
+	country,
+	currency,
+	businessType,
+	onboardingCompleted,
+	onboardingCompletedAt,
+	capabilities,
+	requirements,
+	createdAt,
+	updatedAt
+`.trim()
+
 @Injectable()
 export class StripeConnectService {
 	private readonly stripe: Stripe
@@ -230,7 +252,7 @@ export class StripeConnectService {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('connected_account' as never)
-			.select('*')
+			.select(SAFE_CONNECTED_ACCOUNT_COLUMNS)
 			.eq('userId', userId)
 			.single()
 

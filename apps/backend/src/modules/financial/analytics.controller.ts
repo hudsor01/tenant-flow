@@ -19,6 +19,61 @@ import { SupabaseService } from '../../database/supabase.service'
 
 type ExpenseRecord = Tables<'expense'>
 
+const SAFE_LEASE_COLUMNS = `
+	id,
+	propertyId,
+	unitId,
+	tenantId,
+	rentAmount,
+	securityDeposit,
+	startDate,
+	endDate,
+	monthlyRent,
+	status,
+	terms,
+	gracePeriodDays,
+	lateFeeAmount,
+	lateFeePercentage,
+	stripeSubscriptionId,
+	stripe_subscription_id,
+	lease_document_url,
+	signature,
+	signed_at,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
+const SAFE_UNIT_COLUMNS = `
+	id,
+	propertyId,
+	unitNumber,
+	bedrooms,
+	bathrooms,
+	squareFeet,
+	rent,
+	status,
+	lastInspectionDate,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
+const SAFE_EXPENSE_COLUMNS = `
+	id,
+	propertyId,
+	maintenanceId,
+	amount,
+	category,
+	date,
+	description,
+	vendorName,
+	vendorContact,
+	receiptUrl,
+	createdAt,
+	updatedAt
+`.trim()
+
 /**
  * Financial Analytics Controller - Ultra-Native Implementation
  * Direct Supabase queries, no repository dependencies
@@ -101,7 +156,7 @@ export class FinancialAnalyticsController {
 
 			const [leasesData, expenses] = await Promise.all([
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unitId', unitIds)
+					? client.from('lease').select(SAFE_LEASE_COLUMNS).in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -186,7 +241,7 @@ export class FinancialAnalyticsController {
 							.in('propertyId', propertyContext.propertyIds)
 					: Promise.resolve({ data: [] }),
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unitId', unitIds)
+					? client.from('lease').select(SAFE_LEASE_COLUMNS).in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -277,7 +332,7 @@ export class FinancialAnalyticsController {
 
 			const [leasesData, expenses] = await Promise.all([
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unitId', unitIds)
+					? client.from('lease').select(SAFE_LEASE_COLUMNS).in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -358,11 +413,11 @@ export class FinancialAnalyticsController {
 				propertyContext.propertyIds.length > 0
 					? client
 							.from('unit')
-							.select('*')
+							.select(SAFE_UNIT_COLUMNS)
 							.in('propertyId', propertyContext.propertyIds)
 					: Promise.resolve({ data: [] }),
 				unitIds.length > 0
-					? client.from('lease').select('*').in('unitId', unitIds)
+					? client.from('lease').select(SAFE_LEASE_COLUMNS).in('unitId', unitIds)
 					: Promise.resolve({ data: [] }),
 				this.fetchExpensesForProperties(
 					propertyContext.propertyIds,
@@ -474,7 +529,7 @@ export class FinancialAnalyticsController {
 			let query = this.supabaseService
 				.getAdminClient()
 				.from('expense')
-				.select('*')
+				.select(SAFE_EXPENSE_COLUMNS)
 				.in('propertyId', propertyIds)
 
 			if (start) {

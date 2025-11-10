@@ -9,6 +9,17 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 
+const SAFE_FAILED_NOTIFICATIONS_COLUMNS = `
+	id,
+	event_type,
+	event_data,
+	error_message,
+	error_stack,
+	attempt_count,
+	last_attempt_at,
+	created_at
+`.trim()
+
 export interface FailedNotification {
 	id: string
 	event_type: string
@@ -158,7 +169,7 @@ export class FailedNotificationsService implements OnModuleDestroy {
 			const { data, error } = await client
 				.schema('public')
 				.from('failed_notifications')
-				.select('*')
+				.select(SAFE_FAILED_NOTIFICATIONS_COLUMNS)
 				.order('created_at', { ascending: false })
 				.limit(limit)
 

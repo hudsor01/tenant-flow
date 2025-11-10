@@ -22,6 +22,27 @@ import {
 type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
+const SAFE_NOTIFICATIONS_COLUMNS = `
+	id,
+	userId,
+	tenantId,
+	propertyId,
+	leaseId,
+	maintenanceRequestId,
+	organizationId,
+	title,
+	content,
+	type,
+	priority,
+	actionUrl,
+	metadata,
+	isRead,
+	readAt,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
 interface TenantInvitedEventPayload {
 	tenantId: string
 	leaseId: string
@@ -332,7 +353,7 @@ export class NotificationsService {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('notifications')
-			.select('*')
+			.select(SAFE_NOTIFICATIONS_COLUMNS)
 			.eq('userId', userId)
 			.eq('isRead', false)
 			.order('createdAt', { ascending: false })

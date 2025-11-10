@@ -15,6 +15,27 @@ import {
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
+const SAFE_NOTIFICATIONS_COLUMNS = `
+	id,
+	userId,
+	tenantId,
+	propertyId,
+	leaseId,
+	maintenanceRequestId,
+	organizationId,
+	title,
+	content,
+	type,
+	priority,
+	actionUrl,
+	metadata,
+	isRead,
+	readAt,
+	version,
+	createdAt,
+	updatedAt
+`.trim()
+
 /**
  * ULTRA-NATIVE Notifications Controller
  * Uses Supabase directly with native NestJS validation pipes
@@ -36,7 +57,7 @@ export class NotificationsController {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
-			.select('*')
+			.select(SAFE_NOTIFICATIONS_COLUMNS)
 			.eq('userId', userId)
 			.order('createdAt', { ascending: false })
 			.range(

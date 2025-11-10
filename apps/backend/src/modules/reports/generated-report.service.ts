@@ -32,6 +32,24 @@ export interface GeneratedReportRecord {
 	updatedAt: string
 }
 
+const SAFE_GENERATED_REPORT_COLUMNS = `
+	id,
+	userId,
+	reportType,
+	reportName,
+	format,
+	status,
+	fileUrl,
+	filePath,
+	fileSize,
+	startDate,
+	endDate,
+	metadata,
+	errorMessage,
+	createdAt,
+	updatedAt
+`.trim()
+
 @Injectable()
 export class GeneratedReportService {
 	private readonly logger = new Logger(GeneratedReportService.name)
@@ -123,7 +141,7 @@ export class GeneratedReportService {
 			// Get paginated records
 			const { data: reports, error } = await client
 				.from('generated_report')
-				.select('*')
+				.select(SAFE_GENERATED_REPORT_COLUMNS)
 				.eq('userId', userId)
 				.order('createdAt', { ascending: false })
 				.range(offset, offset + limit - 1)
@@ -152,7 +170,7 @@ export class GeneratedReportService {
 		try {
 			const { data: report, error } = await client
 				.from('generated_report')
-				.select('*')
+				.select(SAFE_GENERATED_REPORT_COLUMNS)
 				.eq('id', reportId)
 				.eq('userId', userId)
 				.single()

@@ -4,6 +4,20 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 
+const SAFE_WEBHOOK_FAILURES_COLUMNS = `
+	id,
+	stripe_event_id,
+	event_type,
+	failure_reason,
+	error_message,
+	error_stack,
+	raw_event_data,
+	retry_count,
+	created_at,
+	last_retry_at,
+	resolved_at
+`.trim()
+
 @Injectable()
 export class WebhookRetryService {
 	private readonly logger = new Logger(WebhookRetryService.name)
@@ -27,7 +41,7 @@ export class WebhookRetryService {
 		// Query webhook_failures table
 		const { data: failures, error } = await client
 			.from('webhook_failures')
-			.select('*')
+			.select(SAFE_WEBHOOK_FAILURES_COLUMNS)
 			.is('resolved_at', null)
 			.lt('retry_count', 3) // Max 3 retries
 			.order('created_at', { ascending: true })
