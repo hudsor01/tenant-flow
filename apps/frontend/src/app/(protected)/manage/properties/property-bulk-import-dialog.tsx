@@ -73,8 +73,8 @@ export function PropertyBulkImportDialog() {
 				errors: Array<{ row: number; error: string }>
 			}>('/api/v1/properties/bulk-import', {
 				method: 'POST',
-				headers: {},
-				body: formData
+				body: formData,
+				omitJsonContentType: true // Let browser set multipart/form-data with boundary
 			})
 
 			logger.info('Bulk import completed', response)

@@ -46,7 +46,33 @@ export class LeaseGenerationController {
 		private readonly supabase: SupabaseService
 	) {}
 
+	/**
+	 * Sanitize string for use in filename
+	 * Removes special characters and limits length
+	 */
+	private sanitizeForFilename(value: string, maxLength: number): string {
+		return value
+			.replace(/[^a-zA-Z0-9]/g, '-')
+			.replace(/-+/g, '-')
+			.replace(/^-|-$/g, '')
+			.slice(0, maxLength)
+	}
 
+	/**
+	 * Generate lease filename from DTO data
+	 */
+	private generateLeaseFilename(dto: LeaseGenerationDto): string {
+		const sanitizedAddress = this.sanitizeForFilename(
+			dto.propertyAddress || 'property',
+			MAX_ADDRESS_LENGTH
+		)
+		const sanitizedTenant = this.sanitizeForFilename(
+			dto.tenantName || 'tenant',
+			MAX_TENANT_NAME_LENGTH
+		)
+		const date = new Date().toISOString().split('T')[0]
+		return `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
+	}
 
 	/**
 	 * Generate Texas lease PDF from form data
@@ -62,19 +88,7 @@ export class LeaseGenerationController {
 	): Promise<void> {
 		try {
 			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto)
-
-			const sanitizedAddress = (dto.propertyAddress || 'property')
-				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-')
-				.replace(/^-|-$/g, '')
-				.slice(0, MAX_ADDRESS_LENGTH)
-			const sanitizedTenant = (dto.tenantName || 'tenant')
-				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-')
-				.replace(/^-|-$/g, '')
-				.slice(0, MAX_TENANT_NAME_LENGTH)
-			const date = new Date().toISOString().split('T')[0]
-			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
+			const filename = this.generateLeaseFilename(dto)
 
 			// Preview mode - display in browser (NO DOWNLOAD, NO DATABASE SAVE)
 			res.setHeader('Content-Type', 'application/pdf')
@@ -106,19 +120,7 @@ export class LeaseGenerationController {
 	): Promise<void> {
 		try {
 			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto)
-
-			const sanitizedAddress = (dto.propertyAddress || 'property')
-				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-')
-				.replace(/^-|-$/g, '')
-				.slice(0, MAX_ADDRESS_LENGTH)
-			const sanitizedTenant = (dto.tenantName || 'tenant')
-				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-')
-				.replace(/^-|-$/g, '')
-				.slice(0, MAX_TENANT_NAME_LENGTH)
-			const date = new Date().toISOString().split('T')[0]
-			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
+			const filename = this.generateLeaseFilename(dto)
 
 			// Force download
 			res.setHeader('Content-Type', 'application/pdf')
