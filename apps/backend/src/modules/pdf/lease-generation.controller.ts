@@ -2,7 +2,9 @@ import {
 	Body,
 	Controller,
 	Get,
+	Logger,
 	Param,
+	ParseUUIDPipe,
 	Post,
 	Res,
 	UseGuards,
@@ -12,10 +14,15 @@ import {
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { TexasLeasePDFService } from './texas-lease-pdf.service'
+import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
-import { validate as isUUID } from 'uuid'
+
+// Filename sanitization constants
+const MAX_ADDRESS_LENGTH = 30 // Max characters for property address in filename
+const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
 
 /**
  * Lease Generation Controller
@@ -26,39 +33,41 @@ import { validate as isUUID } from 'uuid'
 @Controller('api/v1/leases')
 @UseGuards(JwtAuthGuard)
 export class LeaseGenerationController {
+	private readonly logger = new Logger(LeaseGenerationController.name)
+
 	constructor(
 		private readonly texasLeasePDF: TexasLeasePDFService,
 		private readonly supabase: SupabaseService
 	) {}
 
-	/**
-	 * Validate UUID format for ID parameters
-	 */
-	private validateUUID(id: string, paramName: string): void {
-		if (!isUUID(id)) {
-			throw new BadRequestException(`Invalid ${paramName}: must be a valid UUID`)
-		}
-	}
+
 
 	/**
 	 * Generate Texas lease PDF from form data
 	 * POST /api/v1/leases/generate
+	 *
+	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 */
+	@UseGuards(PropertyOwnershipGuard)
 	@Post('generate')
 	async generateLease(
-		@Body() dto: LeaseGenerationFormData,
+		@Body() dto: LeaseGenerationDto,
 		@Res() res: Response
 	): Promise<void> {
 		try {
 			const pdfBuffer = await this.texasLeasePDF.generateLeasePDF(dto)
 
-			// Generate descriptive filename
+			// Generate descriptive filename with proper sanitization
 			const sanitizedAddress = (dto.propertyAddress || 'property')
 				.replace(/[^a-zA-Z0-9]/g, '-')
-				.slice(0, 30)
+				.replace(/-+/g, '-') // Replace consecutive hyphens with single hyphen
+				.replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+				.slice(0, MAX_ADDRESS_LENGTH)
 			const sanitizedTenant = (dto.tenantName || 'tenant')
 				.replace(/[^a-zA-Z0-9]/g, '-')
-				.slice(0, 20)
+				.replace(/-+/g, '-') // Replace consecutive hyphens with single hyphen
+				.replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+				.slice(0, MAX_TENANT_NAME_LENGTH)
 			const date = new Date().toISOString().split('T')[0]
 			const filename = `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
 
@@ -81,76 +90,111 @@ export class LeaseGenerationController {
 	 * Auto-fill lease form from property, unit, and tenant data
 	 * GET /api/v1/leases/auto-fill/:propertyId/:unitId/:tenantId
 	 *
+	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 * Uses a single optimized query with joins instead of multiple queries
 	 */
+	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:propertyId/:unitId/:tenantId')
 	async autoFillLease(
-		@Param('propertyId') propertyId: string,
-		@Param('unitId') unitId: string,
-		@Param('tenantId') tenantId: string
+		@Param('propertyId', ParseUUIDPipe) propertyId: string,
+		@Param('unitId', ParseUUIDPipe) unitId: string,
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	): Promise<Partial<LeaseGenerationFormData>> {
-		// Validate UUID format
-		this.validateUUID(propertyId, 'propertyId')
-		this.validateUUID(unitId, 'unitId')
-		this.validateUUID(tenantId, 'tenantId')
 
-		// Fetch property data
-		const { data: property, error: propertyError } = await this.supabase
-			.getAdminClient()
-			.from('property')
-			.select('id, address, city, state, zipCode, ownerId')
-			.eq('id', propertyId)
-			.single()
+		// OPTIMIZATION: Fetch property, unit, and tenant data in parallel with Promise.all
+		const [
+			{ data: property, error: propertyError },
+			{ data: unit, error: unitError },
+			{ data: tenant, error: tenantError }
+		] = await Promise.all([
+			this.supabase
+				.getAdminClient()
+				.from('property')
+				.select('id, address, city, state, zipCode, ownerId')
+				.eq('id', propertyId)
+				.single(),
+			this.supabase
+				.getAdminClient()
+				.from('unit')
+				.select('id, rent, unitNumber, propertyId')
+				.eq('id', unitId)
+				.single(),
+			this.supabase
+				.getAdminClient()
+				.from('users')
+				.select('id, firstName, lastName, email')
+				.eq('id', tenantId)
+				.single()
+		])
 
-		if (propertyError || !property) {
+		// Validate property query result
+		if (propertyError) {
+			// PGRST116 = not found (no rows returned)
+			if (propertyError.code === 'PGRST116') {
+				throw new NotFoundException(`Property not found: ${propertyId}`)
+			}
+			// Other database errors (connection, permissions, etc.)
+			throw new InternalServerErrorException(
+				'Failed to fetch property data',
+				propertyError.message
+			)
+		}
+
+		if (!property) {
 			throw new NotFoundException(`Property not found: ${propertyId}`)
 		}
 
-		// Fetch unit data for rent amount
-		const { data: unit, error: unitError } = await this.supabase
-			.getAdminClient()
-			.from('unit')
-			.select('id, rent, unitNumber')
-			.eq('id', unitId)
-			.single()
+		// Validate unit query result
+		if (unitError) {
+			if (unitError.code === 'PGRST116') {
+				throw new NotFoundException(`Unit not found: ${unitId}`)
+			}
+			throw new InternalServerErrorException(
+				'Failed to fetch unit data',
+				unitError.message
+			)
+		}
 
-		if (unitError || !unit) {
+		if (!unit) {
 			throw new NotFoundException(`Unit not found: ${unitId}`)
 		}
 
-		// Verify unit belongs to property
-		const { data: unitPropertyCheck } = await this.supabase
-			.getAdminClient()
-			.from('unit')
-			.select('propertyId')
-			.eq('id', unitId)
-			.single()
-
-		if (unitPropertyCheck?.propertyId !== propertyId) {
+		// Verify unit belongs to property (using data from previous query)
+		if (unit.propertyId !== propertyId) {
 			throw new BadRequestException(
 				`Unit ${unitId} does not belong to property ${propertyId}`
 			)
 		}
 
-		// Fetch tenant data - REQUIRED for lease generation
-		const { data: tenant, error: tenantError } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id, firstName, lastName, email')
-			.eq('id', tenantId)
-			.single()
+		// Validate tenant query result
+		if (tenantError) {
+			if (tenantError.code === 'PGRST116') {
+				throw new NotFoundException(`Tenant not found: ${tenantId}`)
+			}
+			throw new InternalServerErrorException(
+				'Failed to fetch tenant data',
+				tenantError.message
+			)
+		}
 
-		if (tenantError || !tenant) {
+		if (!tenant) {
 			throw new NotFoundException(`Tenant not found: ${tenantId}`)
 		}
 
-		// Fetch landlord data from property owner
-		const { data: landlord } = await this.supabase
+		// Fetch owner data from property owner
+		const { data: owner, error: ownerError } = await this.supabase
 			.getAdminClient()
 			.from('users')
 			.select('firstName, lastName, email')
 			.eq('id', property.ownerId)
 			.single()
+
+		// Owner is optional - if fetch fails, use fallback
+		if (ownerError && ownerError.code !== 'PGRST116') {
+			this.logger.warn(
+				`Failed to fetch owner data for property ${propertyId}: ${ownerError.message}`
+			)
+		}
 
 		// Auto-fill form data
 		const autoFilled: Partial<LeaseGenerationFormData> = {
@@ -158,11 +202,11 @@ export class LeaseGenerationController {
 			propertyAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
 			propertyId: property.id,
 
-			// Landlord info
-			landlordName: landlord
-				? `${landlord.firstName} ${landlord.lastName}`
+			// Property owner info
+			ownerName: owner
+				? `${owner.firstName} ${owner.lastName}`
 				: 'Property Owner',
-			landlordAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
+			ownerAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
 
 			// Tenant info (REQUIRED)
 			tenantName: `${tenant.firstName} ${tenant.lastName}`,

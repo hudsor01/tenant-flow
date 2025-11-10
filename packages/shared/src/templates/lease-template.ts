@@ -392,7 +392,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 		state: 'IL',
 		stateName: stateNames.IL,
 		notices: [
-			'Chicago Residential Landlord and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
+			'Chicago Residential Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
 			'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
 			'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
 		],
@@ -402,9 +402,9 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 		state: 'TX',
 		stateName: stateNames.TX,
 		notices: [
-			'Texas Property Code §92.109 requires landlords to provide written notice of security deposit deductions within 30 days of move-out.',
-			'Landlords must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).',
-			'Texas Property Code §92.052 requires landlords to provide contact information for the property owner or manager.',
+			'Texas Property Code §92.109 requires property owners to provide written notice of security deposit deductions within 30 days of move-out.',
+			'Property owners must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).',
+			'Texas Property Code §92.052 requires property owners to provide contact information for the property owner or manager.',
 			'Window and door lock requirements must be disclosed if not compliant with Texas Property Code §92.151-§92.154.'
 		],
 		recommendedClauses: ['state-specific-disclosures', 'late-fee', 'owner-entry']
