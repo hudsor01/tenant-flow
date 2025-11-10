@@ -169,8 +169,8 @@ export class LeaseGenerationController {
 			throw new NotFoundException(`Tenant not found: ${tenantId}`)
 		}
 
-		// Fetch landlord data from property owner
-		const { data: landlord } = await this.supabase
+		// Fetch owner data from property owner
+		const { data: owner } = await this.supabase
 			.getAdminClient()
 			.from('users')
 			.select('firstName, lastName, email')
@@ -184,8 +184,8 @@ export class LeaseGenerationController {
 			propertyId: property.id,
 
 			// Property owner info
-			ownerName: landlord
-				? `${landlord.firstName} ${landlord.lastName}`
+			ownerName: owner
+				? `${owner.firstName} ${owner.lastName}`
 				: 'Property Owner',
 			ownerAddress: `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`,
 
