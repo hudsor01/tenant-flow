@@ -138,26 +138,18 @@ export class AuthWebhookController {
 	@Post('user-confirmed')
 	@SetMetadata('isPublic', true)
 	async handleUserConfirmed(
-<<<<<<< HEAD
-		@Body() payload: SupabaseAuthWebhookPayload,
-		@Headers('authorization') authHeader?: string
-=======
 		@Req() req: RawBodyRequest<Request>,
 		@Headers('webhook-id') webhookId?: string,
 		@Headers('webhook-timestamp') webhookTimestamp?: string,
 		@Headers('webhook-signature') webhookSignature?: string
->>>>>>> origin/main
 	) {
 		const startTime = Date.now()
 		let payload: SupabaseAuthWebhookPayload | undefined
 
 		try {
-			// SECURITY: Verify webhook signature
-<<<<<<< HEAD
-			this.verifyWebhookSignature(authHeader)
-=======
+			// SECURITY: Verify webhook signature using Standard Webhooks
 			const webhookSecret = process.env.SUPABASE_AUTH_WEBHOOK_SECRET
-			
+
 			if (!webhookSecret) {
 				throw new BadRequestException('Webhook secret not configured')
 			}
@@ -169,16 +161,15 @@ export class AuthWebhookController {
 			// Extract secret from Standard Webhooks format (v1,whsec_<base64>)
 			const secret = webhookSecret.replace(/^v1,whsec_/, '')
 			const rawBody = req.rawBody?.toString('utf8') || ''
-			
-			// At this point, webhookSignature and webhookTimestamp are guaranteed to be strings
-			// (we checked for undefined above)
+
+			// Verify Standard Webhooks signature
 			const isValid = this.verifyWebhookSignature(
 				rawBody,
-				webhookSignature!, // Non-null assertion - checked above
-				webhookTimestamp!, // Non-null assertion - checked above
+				webhookSignature,
+				webhookTimestamp,
 				secret
 			)
-			
+
 			if (!isValid) {
 				this.logger.error('Webhook signature verification failed', {
 					webhookId,
@@ -186,7 +177,7 @@ export class AuthWebhookController {
 				})
 				throw new BadRequestException('Invalid webhook signature')
 			}
-			
+
 			// Parse payload after verification
 			try {
 				payload = JSON.parse(rawBody) as SupabaseAuthWebhookPayload
@@ -199,7 +190,6 @@ export class AuthWebhookController {
 
 			// Payload is guaranteed to be defined after successful parse
 			const confirmedPayload = payload!
->>>>>>> origin/main
 
 			// Log webhook receipt
 			this.logger.log('Received Supabase Auth webhook', {
