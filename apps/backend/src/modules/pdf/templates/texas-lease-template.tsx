@@ -1,5 +1,6 @@
 // React needed for JSX transform at runtime
-// @ts-ignore TS6133 - React required for JSX but appears unused
+// Force classic JSX runtime for this file (Jest requires React in scope)
+/* @jsxRuntime classic */
 import * as React from 'react'
 import {
 	Document,
