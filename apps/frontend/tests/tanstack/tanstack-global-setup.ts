@@ -109,15 +109,13 @@ async function globalSetup() {
 										key.startsWith('_reactInternalFiber')
 								)
 
-								if (
-									reactKey &&
-									reactKey in rootElement &&
-									rootElement[reactKey as keyof HTMLElement]
-								) {
-									return findQueryClient(
-										rootElement[reactKey as keyof HTMLElement] as FiberNode
-									)
-								}
+								if (reactKey && reactKey in rootElement) {
+							const element = rootElement as Record<string, unknown>
+							const fiberNode = element[reactKey]
+							if (fiberNode) {
+								return findQueryClient(fiberNode as FiberNode)
+							}
+						}
 							}
 							return null
 						}
