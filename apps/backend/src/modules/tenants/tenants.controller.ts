@@ -25,6 +25,7 @@ import {
 	SetMetadata,
 	UseGuards
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import { ConnectedAccountId } from '../../shared/decorators/user.decorator'
@@ -385,12 +386,14 @@ export class TenantsController {
 	 */
 	@Get('invitation/:token')
 	@SetMetadata('isPublic', true)
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 validations per minute per IP
 	async validateInvitation(@Param('token') token: string) {
 		return this.tenantsService.validateInvitationToken(token)
 	}
 
 	@Post('invitation/:token/accept')
 	@SetMetadata('isPublic', true)
+	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 accepts per minute per IP (prevent token brute force)
 	async acceptInvitation(@Param('token') token: string) {
 		return this.tenantsService.acceptInvitationToken(token)
 	}
@@ -402,6 +405,7 @@ export class TenantsController {
 	 */
 	@Post('activate')
 	@SetMetadata('isPublic', true)
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 activations per minute per IP
 	async activateTenant(@Body() body: { authUserId: string }) {
 		if (!body.authUserId) {
 			throw new BadRequestException('authUserId is required')
