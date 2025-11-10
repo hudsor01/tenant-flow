@@ -25,6 +25,25 @@ import {
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
 
+/**
+ * Safe column list for unit queries
+ * PERFORMANCE: Explicit column list prevents over-fetching
+ */
+const SAFE_UNIT_COLUMNS = `
+	id,
+	propertyId,
+	unitNumber,
+	bedrooms,
+	bathrooms,
+	squareFeet,
+	rent,
+	status,
+	lastInspectionDate,
+	createdAt,
+	updatedAt,
+	version
+`.trim()
+
 @Injectable()
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
@@ -56,7 +75,7 @@ export class UnitsService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual userId/propertyId filtering needed)
-			let queryBuilder = client.from('unit').select('*')
+			let queryBuilder = client.from('unit').select(SAFE_UNIT_COLUMNS)
 
 			// Apply filters if provided
 			if (query.propertyId) {
@@ -233,7 +252,7 @@ export class UnitsService {
 			// RLS automatically verifies property ownership - no manual check needed
 			const { data, error } = await client
 				.from('unit')
-				.select('*')
+				.select(SAFE_UNIT_COLUMNS)
 				.eq('propertyId', propertyId)
 				.order('unitNumber', { ascending: true })
 
@@ -280,7 +299,7 @@ export class UnitsService {
 			// RLS automatically verifies unit belongs to user's property
 			const { data, error } = await client
 				.from('unit')
-				.select('*')
+				.select(SAFE_UNIT_COLUMNS)
 				.eq('id', unitId)
 				.single()
 
@@ -516,7 +535,7 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
-			let queryBuilder = client.from('unit').select('*')
+			let queryBuilder = client.from('unit').select(SAFE_UNIT_COLUMNS)
 
 			if (options.propertyId) {
 				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
@@ -565,7 +584,7 @@ export class UnitsService {
 			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('unit')
-				.select('*')
+				.select(SAFE_UNIT_COLUMNS)
 				.eq('propertyId', propertyId)
 				.eq('status', 'VACANT')
 

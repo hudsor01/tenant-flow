@@ -20,6 +20,35 @@ import {
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
 
+/**
+ * Safe column list for lease queries
+ * PERFORMANCE: Explicit column list prevents over-fetching
+ */
+const SAFE_LEASE_COLUMNS = `
+	id,
+	tenantId,
+	unitId,
+	propertyId,
+	rentAmount,
+	securityDeposit,
+	startDate,
+	endDate,
+	status,
+	terms,
+	signature,
+	signed_at,
+	lease_document_url,
+	monthlyRent,
+	lateFeeAmount,
+	lateFeePercentage,
+	gracePeriodDays,
+	stripe_subscription_id,
+	stripeSubscriptionId,
+	createdAt,
+	updatedAt,
+	version
+`.trim()
+
 @Injectable()
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
@@ -111,7 +140,7 @@ export class LeasesService {
 			}
 
 			// Build data query with filters (NO manual userId/unitId filtering needed)
-			let queryBuilder = client.from('lease').select('*')
+			let queryBuilder = client.from('lease').select(SAFE_LEASE_COLUMNS)
 
 			// Apply filters
 			if (query.propertyId) {
@@ -203,7 +232,7 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client.from('lease').select('*')
+			const { data, error } = await client.from('lease').select(SAFE_LEASE_COLUMNS)
 
 			if (error) {
 				this.logger.error('Failed to get lease stats from Supabase', {
@@ -287,7 +316,7 @@ export class LeasesService {
 
 			const { data, error } = await client
 				.from('lease')
-				.select('*')
+				.select(SAFE_LEASE_COLUMNS)
 				.eq('status', 'ACTIVE')
 				.gte('end_date', now.toISOString())
 				.lte('end_date', futureDate.toISOString())
@@ -335,7 +364,7 @@ export class LeasesService {
 
 			const { data, error } = await client
 				.from('lease')
-				.select('*')
+				.select(SAFE_LEASE_COLUMNS)
 				.eq('id', leaseId)
 				.single()
 
@@ -790,7 +819,7 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			let queryBuilder = client.from('lease').select('*')
+			let queryBuilder = client.from('lease').select(SAFE_LEASE_COLUMNS)
 
 			if (options.leaseId) {
 				queryBuilder = queryBuilder.eq('id', options.leaseId)
