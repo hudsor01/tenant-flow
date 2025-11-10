@@ -67,8 +67,8 @@ export const leaseGenerationSchema = z.object({
 	propertyBuiltBefore1978: z.boolean().default(false),
 	leadPaintDisclosureProvided: z.boolean().optional(),
 
-	// Additional metadata
-	propertyId: z.string().optional(),
+	// Additional metadata (required for authorization/validation)
+	propertyId: z.string().uuid('Invalid property ID'),
 	tenantId: z.string().optional()
 })
 

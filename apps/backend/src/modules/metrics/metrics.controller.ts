@@ -13,7 +13,7 @@ import type { Request, Response } from 'express'
  *
  * Pattern: https://github.com/willsoto/nestjs-prometheus#custom-controller
  */
-@Controller('metrics')
+@Controller() // Empty path - PrometheusModule handles /metrics routing
 export class MetricsController extends PrometheusController {
 	private readonly logger = new Logger(MetricsController.name)
 
