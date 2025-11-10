@@ -10,7 +10,7 @@ import {
 	useGenerateLease,
 	useLeaseAutoFill
 } from '#hooks/api/use-lease-generation'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Loader2 } from 'lucide-react'
 import { logger } from '@repo/shared/lib/frontend-logger'
 
@@ -100,7 +100,7 @@ export function LeaseGenerationForm({
 // Auto-fill form when data is loaded
 	const hasAutoFilledRef = useRef(false)
 
-	const autoFillForm = useCallback(() => {
+	useEffect(() => {
 		if (autoFillData && !hasAutoFilledRef.current) {
 			hasAutoFilledRef.current = true
 			Object.entries(autoFillData).forEach(([key, value]) => {
@@ -121,10 +121,6 @@ export function LeaseGenerationForm({
 			})
 		}
 	}, [autoFillData, form])
-
-	useEffect(() => {
-		autoFillForm()
-	}, [autoFillForm])
 
 	// Show error if required data is missing (after all hooks)
 	if (!propertyId || !unitId || !tenantId) {
