@@ -8,5 +8,5 @@ DROP POLICY IF EXISTS "Only service role can access webhook failures" ON public.
 -- Disable RLS on webhook_failures (backend-only table, no user access)
 ALTER TABLE public.webhook_failures DISABLE ROW LEVEL SECURITY;
 
--- Note: Backend service uses admin client with service_role key which bypasses RLS anyway
--- Disabling RLS makes the intent explicit and prevents permission errors
+-- Document RLS is intentionally disabled for backend-only access
+COMMENT ON TABLE public.webhook_failures IS 'Backend-only table for webhook failure logging. RLS is intentionally disabled because the backend uses service_role which bypasses RLS. WARNING: Do not expose this table to user-facing access without re-enabling RLS and implementing appropriate row-level security policies.';
