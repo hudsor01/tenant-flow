@@ -15,13 +15,14 @@ const InviteWithLeaseSchema = z.object({
 	leaseData: z.object({
 		propertyId: z.string().uuid('Invalid property ID'),
 		unitId: z.string().uuid('Invalid unit ID').optional(),
+		// IMPORTANT: rentAmount and securityDeposit must be in cents (multiply dollars by 100)
 		rentAmount: z
 			.number()
-			.int('Rent amount must be an integer')
+			.int('Rent amount must be an integer (cents)')
 			.positive('Rent amount must be positive'),
 		securityDeposit: z
 			.number()
-			.int('Security deposit must be an integer')
+			.int('Security deposit must be an integer (cents)')
 			.nonnegative('Security deposit cannot be negative'),
 		startDate: z.string().datetime('Invalid start date format'),
 		endDate: z.string().datetime('Invalid end date format')
