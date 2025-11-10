@@ -196,12 +196,24 @@ export class StripeAccessControlService {
 					? subscription.customer
 					: subscription.customer.id
 
-			// Get user_id and email
-			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+			// Get user_id with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
 				'get_user_id_by_stripe_customer',
 				{ p_stripe_customer_id: customerId },
 				DEFAULT_RPC_RETRY_ATTEMPTS
-			)) as { data: string | null; error: { message?: string } | null }
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for trial ending', {
@@ -291,12 +303,24 @@ export class StripeAccessControlService {
 				return
 			}
 
-			// Get user_id
-			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+			// Get user_id with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
 				'get_user_id_by_stripe_customer',
 				{ p_stripe_customer_id: customerId },
 				DEFAULT_RPC_RETRY_ATTEMPTS
-			)) as { data: string | null; error: { message?: string } | null }
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					invoiceId: invoice.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for failed payment', {
@@ -377,12 +401,24 @@ export class StripeAccessControlService {
 				return
 			}
 
-			// Get user_id
-			const { data: userId, error: userError } = (await this.supabaseService.rpcWithRetries(
+			// Get user_id with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
 				'get_user_id_by_stripe_customer',
 				{ p_stripe_customer_id: customerId },
 				DEFAULT_RPC_RETRY_ATTEMPTS
-			)) as { data: string | null; error: { message?: string } | null }
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					invoiceId: invoice.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				return
