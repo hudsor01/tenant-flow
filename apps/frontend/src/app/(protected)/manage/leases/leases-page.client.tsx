@@ -64,17 +64,33 @@ function LeaseCreateDialog() {
 			status: 'ACTIVE' as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				const leaseData: CreateLeaseInput = {
+		try {
+			// Validate numeric conversions
+			const rentAmount = Number.parseFloat(value.rentAmount)
+			const securityDeposit = Number.parseFloat(value.securityDeposit)
+			if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
+				toast.error('Invalid rent or security deposit amount')
+				return
+			}
+			if (value.monthlyRent && Number.isNaN(Number.parseFloat(value.monthlyRent))) {
+				toast.error('Invalid monthly rent amount')
+				return
+			}
+			if (value.lateFeeAmount && Number.isNaN(Number.parseFloat(value.lateFeeAmount))) {
+				toast.error('Invalid late fee amount')
+				return
+			}
+
+			const leaseData: CreateLeaseInput = {
 					tenantId: value.tenantId,
 					unitId: value.unitId,
 					startDate: value.startDate,
 					endDate: value.endDate,
-					rentAmount: parseFloat(value.rentAmount),
-					securityDeposit: parseFloat(value.securityDeposit),
-					monthlyRent: value.monthlyRent ? parseFloat(value.monthlyRent) : null,
+					rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100), // Convert dollars to cents
+				securityDeposit: Math.round(Number.parseFloat(value.securityDeposit) * 100), // Convert dollars to cents
+					monthlyRent: value.monthlyRent ? Math.round(Number.parseFloat(value.monthlyRent) * 100) : null, // Convert dollars to cents
 					gracePeriodDays: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
-					lateFeeAmount: value.lateFeeAmount ? parseFloat(value.lateFeeAmount) : null,
+					lateFeeAmount: value.lateFeeAmount ? Math.round(Number.parseFloat(value.lateFeeAmount) * 100) : null, // Convert dollars to cents
 					lateFeePercentage: value.lateFeePercentage ? parseFloat(value.lateFeePercentage) : null,
 					terms: value.terms || null,
 					status: value.status

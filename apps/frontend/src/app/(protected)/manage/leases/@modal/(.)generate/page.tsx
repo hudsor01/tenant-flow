@@ -34,6 +34,7 @@ export default function GenerateLeaseModal() {
 					</div>
 					<div className="flex justify-end">
 						<button
+							type="button"
 							onClick={() => router.back()}
 							className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
 						>

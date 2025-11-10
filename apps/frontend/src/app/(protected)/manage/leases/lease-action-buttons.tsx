@@ -84,6 +84,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		},
 		onSubmit: async ({ value }) => {
 			try {
+				// 🔐 RACE CONDITION FIX: Include version for optimistic locking
 				await updateLease.mutateAsync({
 					id: lease.id,
 					data: {
@@ -93,7 +94,9 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 						securityDeposit: value.securityDeposit,
 						terms: value.terms || null,
 						status: value.status
-					}
+					},
+					// Pass version from lease prop for optimistic locking protection
+					version: lease.version
 				})
 				queryClient.invalidateQueries({ queryKey: ['leases'] })
 				toast.success('Lease updated successfully')
