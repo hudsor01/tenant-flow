@@ -52,98 +52,35 @@ export async function updateSession(request: NextRequest) {
 		}
 	)
 
-	// SECURITY FIX: Use getUser() for server-side JWT validation
-	//Use getSession() + local JWT verification instead of getUser() API call
-	// Performance: ~10-20ms (local) vs 200-500ms (API roundtrip)
-	// Security: Verifies JWT signature locally using Supabase's public JWKS
-	// Per Supabase docs: getSession() validates JWT cryptographically
+	// SECURITY FIX: Use getUser() for server-side session validation
+	// This validates the session against the Supabase server, detecting revoked sessions
+	// Per Supabase docs: getUser() is the recommended approach for server-side auth
+	// Reference: https://supabase.com/docs/guides/auth/server-side/nextjs
 	let isAuthenticated = false
 	let user: User | null = null
 	let accessToken: string | null = null
 
 	try {
-		// Get session from cookies (local operation, ~5-10ms)
+		// Server-side user validation - detects revoked sessions
 		const {
-			data: { session },
-			error: sessionError
-		} = await supabase.auth.getSession()
+			data: { user: validatedUser },
+			error: userError
+		} = await supabase.auth.getUser()
 
-		if (sessionError || !session?.access_token) {
+		if (userError || !validatedUser) {
 			isAuthenticated = false
 		} else {
-			accessToken = session.access_token
+			user = validatedUser
 
-			// Verify JWT signature locally using JWKS (~5-10ms)
-			const claims = await verifyJwtToken(accessToken)
+			// Get access token from session for JWT claims extraction
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
 
-			if (claims) {
-				// ✅ SECURITY: Validate required JWT claims before trusting token
-				const userId = getStringClaim(claims, 'sub')
-				const userEmail = getStringClaim(claims, 'email')
+			accessToken = session?.access_token ?? null
 
-				// Reject tokens without required claims (defense against forged/malformed tokens)
-				if (!userId || !userEmail) {
-					logger.warn('JWT missing required claims', {
-						hasUserId: !!userId,
-						hasEmail: !!userEmail
-					})
-					isAuthenticated = false
-					// Early return - don't process invalid token
-					return supabaseResponse
-				}
-
-				// Extract complete user info from verified JWT claims
-				// Map JWT claims to Supabase User type fields
-
-				// ✅ SECURITY FIX: Use deterministic timestamps from JWT (not Date.now())
-				// Timestamps: Convert UNIX epoch (seconds) to ISO string
-				// IMPORTANT: Always use JWT's 'iat' (issued at) claim, never Date.now()
-				// This prevents timestamp manipulation attacks
-				const authTime =
-					getNumberClaim(claims, 'auth_time') || getNumberClaim(claims, 'iat')
-
-				// SECURITY: If JWT is missing timestamps, reject it (malformed token)
-				if (!authTime) {
-					logger.warn('JWT missing timestamp claims (iat/auth_time)')
-					isAuthenticated = false
-					return supabaseResponse
-				}
-
-				const createdAt = new Date(authTime * 1000).toISOString()
-
-				// Confirmation timestamps: Map boolean verification claims to ISO timestamps
-				const emailVerified = getBooleanClaim(claims, 'email_verified')
-				const phoneVerified = getBooleanClaim(claims, 'phone_verified')
-
-				// ✅ SECURITY: Use JWT auth time for confirmation timestamps (not Date.now())
-				const confirmationTime = new Date(authTime * 1000).toISOString()
-
-				user = {
-					id: userId, // Already validated above
-					email: userEmail, // Already validated above
-					phone: getStringClaim(claims, 'phone') ?? '',
-					app_metadata: {},
-					user_metadata: {},
-					aud: 'authenticated',
-					role:
-						getStringClaim(claims, 'role') ??
-						getStringClaim(claims, 'app_role') ??
-						'authenticated',
-					created_at: createdAt,
-					updated_at: getStringClaim(claims, 'updated_at') ?? createdAt,
-					// ✅ SECURITY: Use deterministic JWT timestamps for confirmation fields
-					confirmed_at: emailVerified ? confirmationTime : createdAt,
-					email_confirmed_at: emailVerified ? confirmationTime : createdAt,
-					phone_confirmed_at: phoneVerified ? confirmationTime : createdAt,
-					last_sign_in_at: confirmationTime,
-					identities: [],
-					factors: []
-				}
-
-				isAuthenticated = !!user.id && !!user.email
-			} else {
-				isAuthenticated = false
-			}
+			// User object already validated by getUser() - session is confirmed valid
+			isAuthenticated = !!user.id && !!user.email
 		}
 	} catch (err) {
 		// JWT verification error - fail closed for security

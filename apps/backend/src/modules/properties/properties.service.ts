@@ -45,6 +45,30 @@ function getTokenFromRequest(req: Request): string | null {
 	return authHeader.substring(7)
 }
 
+/**
+ * Safe column list for property queries
+ * PERFORMANCE: Explicit column list prevents over-fetching
+ */
+const SAFE_PROPERTY_COLUMNS = `
+	id,
+	ownerId,
+	name,
+	address,
+	city,
+	state,
+	zipCode,
+	propertyType,
+	description,
+	imageUrl,
+	status,
+	date_sold,
+	sale_price,
+	sale_notes,
+	createdAt,
+	updatedAt,
+	version
+`.trim()
+
 // Validation constants (DRY principle)
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
 const VALID_PROPERTY_TYPES: PropertyType[] = [
@@ -104,7 +128,7 @@ export class PropertiesService {
 
 		let queryBuilder = userClient
 			.from('property')
-			.select('*')
+			.select(SAFE_PROPERTY_COLUMNS)
 			// ✅ No manual ownerId filter needed - RLS automatically applies: WHERE ownerId = auth.uid()
 			.order('createdAt', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
@@ -140,9 +164,9 @@ export class PropertiesService {
 		}
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error } = await client
+		const { data, error} = await client
 			.from('property')
-			.select('*')
+			.select(SAFE_PROPERTY_COLUMNS)
 			.eq('id', propertyId)
 			.single()
 

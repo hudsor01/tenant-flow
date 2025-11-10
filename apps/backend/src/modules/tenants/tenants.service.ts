@@ -36,6 +36,42 @@ import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 
 /**
+ * Safe column list for tenant queries
+ * SECURITY: Excludes sensitive fields (invitation_token, auth_user_id)
+ * PERFORMANCE: Explicit column list prevents over-fetching
+ */
+const SAFE_TENANT_COLUMNS = `
+	id,
+	userId,
+	email,
+	firstName,
+	lastName,
+	name,
+	phone,
+	avatarUrl,
+	status,
+	emergencyContact,
+	stripe_customer_id,
+	stripeCustomerId,
+	autopay_enabled,
+	autopay_configured_at,
+	autopay_day,
+	autopay_frequency,
+	payment_method_added_at,
+	notification_preferences,
+	invitation_status,
+	invitation_sent_at,
+	invitation_expires_at,
+	invitation_accepted_at,
+	move_out_date,
+	move_out_reason,
+	archived_at,
+	createdAt,
+	updatedAt,
+	version
+`.trim()
+
+/**
  * Emergency contact information for a tenant
  */
 export interface EmergencyContactResponse {
@@ -233,7 +269,10 @@ export class TenantsService {
 			})
 
 			const client = this.supabase.getAdminClient()
-			let queryBuilder = client.from('tenant').select('*').eq('userId', userId)
+			let queryBuilder = client
+				.from('tenant')
+				.select(SAFE_TENANT_COLUMNS)
+				.eq('userId', userId)
 
 			// Filter out MOVED_OUT and ARCHIVED tenants by default (soft delete)
 			// Include them only if explicitly requested via status filter
@@ -734,7 +773,7 @@ export class TenantsService {
 		// Fetch tenants for counts
 		const { data: tenantsData } = await client
 			.from('tenant')
-			.select('*')
+			.select(SAFE_TENANT_COLUMNS)
 			.eq('userId', userId)
 
 		const tenants: Tenant[] = tenantsData || []
@@ -795,7 +834,7 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 			const { data, error } = await client
 				.from('tenant')
-				.select('*')
+				.select(SAFE_TENANT_COLUMNS)
 				.eq('id', tenantId)
 				.eq('userId', userId)
 				.single()

@@ -105,15 +105,14 @@ export function validateCheckoutData(
 
 /**
  * Security headers for API requests
+ * CSRF protection is handled by origin-based validation in the backend CsrfGuard
  */
 export function getSecurityHeaders(): Record<string, string> {
 	return {
 		'Content-Type': 'application/json',
-		'X-Requested-With': 'XMLHttpRequest',
-		// Add CSRF token if available
-		...(typeof window !== 'undefined' && {
-			'X-CSRF-Token': localStorage.getItem('csrf-token') || ''
-		})
+		'X-Requested-With': 'XMLHttpRequest'
+		// Note: CSRF protection uses origin-based validation (no token required)
+		// See apps/backend/src/security/csrf.guard.ts
 	}
 }
 
