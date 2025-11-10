@@ -74,7 +74,19 @@ export interface LeaseTemplatePreviewRequest {
 	context: LeaseTemplateContext
 }
 
-const stateNames: Record<USState, string> = {
+/**
+ * Escape HTML special characters to prevent injection attacks
+ */
+function escapeHtml(unsafe: string): string {
+	return unsafe
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;')
+}
+
+export const stateNames: Record<USState, string> = {
 	AL: 'Alabama',
 	AK: 'Alaska',
 	AZ: 'Arizona',
@@ -174,7 +186,7 @@ const DEFAULT_CONTEXT: LeaseTemplateContext = {
 	formattedDateGenerated: formatDate(new Date().toISOString())
 }
 
-const leaseTemplateSchema: LeaseTemplateSchema = {
+export const leaseTemplateSchema: LeaseTemplateSchema = {
 	version: '2.0',
 	sections: [
 		{
@@ -338,7 +350,7 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 					description:
 						'Explains what happens if tenant violates the lease or fails to pay rent.',
 					tooltip:
-						'Outlines the steps Owner may take upon default and protects Owner\'s right to enforce the lease.',
+						"Outlines the steps Owner may take upon default and protects Owner's right to enforce the lease.",
 					defaultSelected: true,
 					body: `<p>Failure to pay rent or abide by this Agreement constitutes a default. Owner may pursue all remedies permitted by {{stateName}} law, including termination and eviction, after providing any required notices.</p>`
 				},
@@ -389,27 +401,31 @@ const leaseTemplateSchema: LeaseTemplateSchema = {
 			recommendedClauses: ['state-specific-disclosures']
 		},
 		IL: {
-		state: 'IL',
-		stateName: stateNames.IL,
-		notices: [
-			'Chicago Residential Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
-			'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
-			'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
-		],
-		recommendedClauses: ['state-specific-disclosures']
-	},
-	TX: {
-		state: 'TX',
-		stateName: stateNames.TX,
-		notices: [
-			'Texas Property Code §92.109 requires property owners to provide written notice of security deposit deductions within 30 days of move-out.',
-			'Property owners must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).',
-			'Texas Property Code §92.052 requires property owners to provide contact information for the property owner or manager.',
-			'Window and door lock requirements must be disclosed if not compliant with Texas Property Code §92.151-§92.154.'
-		],
-		recommendedClauses: ['state-specific-disclosures', 'late-fee', 'owner-entry']
-	}
-} as Record<USState, LeaseTemplateStateRule>,
+			state: 'IL',
+			stateName: stateNames.IL,
+			notices: [
+				'Chicago Residential Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
+				'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
+				'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
+			],
+			recommendedClauses: ['state-specific-disclosures']
+		},
+		TX: {
+			state: 'TX',
+			stateName: stateNames.TX,
+			notices: [
+				'Texas Property Code §92.109 requires property owners to provide written notice of security deposit deductions within 30 days of move-out.',
+				'Property owners must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).',
+				'Texas Property Code §92.052 requires property owners to provide contact information for the property owner or manager.',
+				'Window and door lock requirements must be disclosed if not compliant with Texas Property Code §92.151-§92.154.'
+			],
+			recommendedClauses: [
+				'state-specific-disclosures',
+				'late-fee',
+				'owner-entry'
+			]
+		}
+	} as Record<USState, LeaseTemplateStateRule>,
 	federalNotices: [
 		'The Fair Housing Act prohibits discrimination on the basis of race, color, religion, sex, familial status, national origin, or disability.',
 		'Tenants are entitled to reasonable accommodations for disabilities under the Americans with Disabilities Act (ADA) and Section 504 of the Rehabilitation Act.'
@@ -459,17 +475,16 @@ function buildClauseHtml(
 	clause: LeaseTemplateClause,
 	context: LeaseTemplateContext
 ) {
-	return `<article data-clause="${clause.id}" class="lease-clause"><h3>${clause.title}</h3>${interpolate(clause.body, context)}</article>`
+	return `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause"><h3>${escapeHtml(clause.title)}</h3>${interpolate(clause.body, context)}</article>`
 }
 
 function renderCustomClauses(customClauses: CustomClause[] | undefined) {
 	if (!customClauses?.length) return ''
 	return customClauses
 		.map(
-			clause => `<article data-clause="${clause.id}" class="lease-clause">
-	<h3>${clause.title}</h3>
-	<p>${clause.body}</p>
-</article>`
+			clause => `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause">
+      <h3>${escapeHtml(clause.title)}</h3>
+      <p>${escapeHtml(clause.body)}</p>`
 		)
 		.join('')
 }
@@ -566,7 +581,7 @@ export function renderLeaseHtmlBody(
 	<header class="lease-header">
 		<h1>Residential Lease Agreement</h1>
 		<p>
-			This Agreement is made between <strong>${context.ownerName}</strong> (“owner”) and <strong>${context.tenantNames}</strong> (“Tenant”) concerning the premises at <strong>${context.propertyAddress}</strong>.
+		This Agreement is made between <strong>${escapeHtml(context.ownerName)}</strong> ("owner") and <strong>${escapeHtml(context.tenantNames)}</strong> ("Tenant") concerning the premises at <strong>${escapeHtml(context.propertyAddress)}</strong>.
 		</p>
 	</header>
 	${sectionHtml}
@@ -740,5 +755,3 @@ export function createContextFromLeaseData(
 
 	return createDefaultContext(overrides)
 }
-
-export { leaseTemplateSchema, stateNames }
