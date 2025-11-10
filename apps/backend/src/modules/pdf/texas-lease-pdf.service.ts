@@ -6,7 +6,7 @@ import {
 import { PDFDocument } from 'pdf-lib'
 import { readFile, access } from 'node:fs/promises'
 import { constants } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 
 /**
@@ -33,10 +33,23 @@ export class TexasLeasePDFService {
 	 * Check if template file exists
 	 */
 	private async verifyTemplateExists(): Promise<void> {
+		// SECURITY: Prevent path traversal attacks
+		const resolvedPath = resolve(this.templatePath)
+		const expectedDirectory = resolve(__dirname, '../../..')
+		
+		if (!resolvedPath.startsWith(expectedDirectory)) {
+			const errorMessage = `Invalid template path (path traversal detected): ${this.templatePath}`
+			this.logger.error(errorMessage)
+			throw new InternalServerErrorException(
+				'PDF template path is invalid'
+			)
+		}
+
+		// Check if template file exists and is readable
 		try {
-			await access(this.templatePath, constants.R_OK)
+			await access(resolvedPath, constants.R_OK)
 		} catch (error) {
-			const errorMessage = `PDF template not found at ${this.templatePath}`
+			const errorMessage = `PDF template not found at ${resolvedPath}`
 			this.logger.error(errorMessage, error)
 			throw new InternalServerErrorException(
 				'PDF template is not configured correctly'
