@@ -1,5 +1,6 @@
 import type { Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
+import { Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { EmailService } from '../email/email.service'
@@ -508,6 +509,179 @@ describe('StripeAccessControlService', () => {
 			const limits = await service.getUserPlanLimits('user-123')
 
 			expect(limits).toBeNull()
+		})
+	})
+
+	describe('Zod Validation', () => {
+		describe('RPC Response Validation', () => {
+			it('should log error when RPC response has invalid UUID format', async () => {
+				const mockSubscription = {
+					id: 'sub_test123',
+					customer: 'cus_test123',
+					status: 'canceled'
+				} as unknown as Stripe.Subscription
+
+				// Mock RPC to return invalid UUID
+				supabaseService.rpcWithRetries.mockResolvedValue({
+					data: 'not-a-valid-uuid',
+					error: null
+				})
+
+				await service.grantSubscriptionAccess(mockSubscription)
+
+				expect(mockLogger.error).toHaveBeenCalledWith(
+					'RPC response validation failed',
+					expect.objectContaining({
+						errors: expect.arrayContaining([
+							expect.objectContaining({
+								code: 'invalid_format',
+								format: 'uuid'
+							})
+						]),
+						customerId: 'cus_test123'
+					})
+				)
+			})
+
+			it('should log error when RPC response is missing data field', async () => {
+				const mockSubscription = {
+					id: 'sub_test123',
+					customer: 'cus_test123',
+					status: 'active'
+				} as unknown as Stripe.Subscription
+
+				// Mock RPC to return malformed response
+				supabaseService.rpcWithRetries.mockResolvedValue({
+					error: null
+					// Missing 'data' field
+				} as any)
+
+				await service.grantSubscriptionAccess(mockSubscription)
+
+				expect(mockLogger.error).toHaveBeenCalledWith(
+					'RPC response validation failed',
+					expect.objectContaining({
+						errors: expect.any(Array),
+						customerId: 'cus_test123'
+					})
+				)
+			})
+
+			it('should log error when RPC response has wrong data type', async () => {
+				const mockSubscription = {
+					id: 'sub_test123',
+					customer: 'cus_test123',
+					status: 'active'
+				} as unknown as Stripe.Subscription
+
+				// Mock RPC to return wrong type
+				supabaseService.rpcWithRetries.mockResolvedValue({
+					data: 12345, // Number instead of string UUID
+					error: null
+				})
+
+				await service.grantSubscriptionAccess(mockSubscription)
+
+				expect(mockLogger.error).toHaveBeenCalledWith(
+					'RPC response validation failed',
+					expect.objectContaining({
+						errors: expect.arrayContaining([
+							expect.objectContaining({
+								code: 'invalid_type',
+								expected: 'string'
+							})
+						]),
+						customerId: 'cus_test123'
+					})
+				)
+			})
+
+			it('should handle validation failure gracefully without throwing', async () => {
+				const mockSubscription = {
+					id: 'sub_test123',
+					customer: 'cus_test123',
+					status: 'active'
+				} as unknown as Stripe.Subscription
+
+				supabaseService.rpcWithRetries.mockResolvedValue({
+					data: 'invalid-uuid',
+					error: null
+				})
+
+				// Should not throw
+				await expect(
+					service.grantSubscriptionAccess(mockSubscription)
+				).resolves.not.toThrow()
+			})
+
+			it('should not proceed with business logic when validation fails', async () => {
+				const mockSubscription = {
+					id: 'sub_test123',
+					customer: 'cus_test123',
+					status: 'active',
+					items: {
+						data: [{ price: { id: 'price_test123' } }]
+					}
+				} as unknown as Stripe.Subscription
+
+				const mockAdminClient = {
+					from: jest.fn().mockReturnValue({
+						upsert: jest.fn().mockReturnValue({
+							select: jest.fn().mockReturnValue({
+								single: jest.fn()
+							})
+						})
+					})
+				}
+
+				supabaseService.getAdminClient = jest
+					.fn()
+					.mockReturnValue(mockAdminClient)
+
+				// Mock invalid RPC response
+				supabaseService.rpcWithRetries.mockResolvedValue({
+					data: 'not-a-uuid',
+					error: null
+				})
+
+				await service.grantSubscriptionAccess(mockSubscription)
+
+				// Should log error
+				expect(mockLogger.error).toHaveBeenCalledWith(
+					'RPC response validation failed',
+					expect.any(Object)
+				)
+
+				// Should NOT call subsequent database operations
+				expect(mockAdminClient.from).not.toHaveBeenCalled()
+			})
+		})
+
+		describe('Validation Error Logging', () => {
+			it('should include Zod error details in logs', async () => {
+				const mockSubscription = {
+					id: 'sub_test123',
+					customer: 'cus_test123',
+					status: 'active'
+				} as unknown as Stripe.Subscription
+
+				supabaseService.rpcWithRetries.mockResolvedValue({
+					data: 'not-a-valid-uuid', // Invalid UUID format
+					error: null
+				})
+
+				await service.grantSubscriptionAccess(mockSubscription)
+
+				const errorCall = mockLogger.error.mock.calls.find(
+					call => call[0] === 'RPC response validation failed'
+				)
+
+				expect(errorCall).toBeDefined()
+				expect(errorCall[1]).toHaveProperty('errors')
+				expect(errorCall[1]).toHaveProperty('customerId', 'cus_test123')
+				expect(errorCall[1]).toHaveProperty('subscriptionId', 'sub_test123')
+				expect(Array.isArray(errorCall[1].errors)).toBe(true)
+			})
 		})
 	})
 
