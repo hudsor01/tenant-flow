@@ -152,9 +152,12 @@ export function useLeaseList(params?: {
 				offset: number
 			}>(`/api/v1/leases?${searchParams.toString()}`)
 
-			// Prefetch individual lease details
+			// Prefetch individual lease details (only if not already cached)
 			response.data.forEach(lease => {
-				queryClient.setQueryData(leaseKeys.detail(lease.id), lease)
+				const existingDetail = queryClient.getQueryData(leaseKeys.detail(lease.id))
+				if (!existingDetail) {
+					queryClient.setQueryData(leaseKeys.detail(lease.id), lease)
+				}
 			})
 
 			return response

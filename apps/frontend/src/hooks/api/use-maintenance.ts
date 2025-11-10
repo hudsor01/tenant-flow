@@ -66,12 +66,17 @@ export function useAllMaintenanceRequests(query?: {
 				`/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`
 			)
 
-			// Prefetch individual details for instant navigation
+			// Prefetch individual details for instant navigation (only if not already cached)
 			response?.forEach?.(maintenance => {
-				queryClient.setQueryData(
-					maintenanceKeys.detail(maintenance.id),
-					maintenance
+				const existingDetail = queryClient.getQueryData(
+					maintenanceKeys.detail(maintenance.id)
 				)
+				if (!existingDetail) {
+					queryClient.setQueryData(
+						maintenanceKeys.detail(maintenance.id),
+						maintenance
+					)
+				}
 			})
 
 			return response || []

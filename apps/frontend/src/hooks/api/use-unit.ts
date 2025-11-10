@@ -75,9 +75,12 @@ export function useUnitsByProperty(propertyId: string) {
 				`/api/v1/units/by-property/${propertyId}`
 			)
 
-			// Prefetch individual unit details for faster navigation
+			// Prefetch individual unit details for faster navigation (only if not already cached)
 			response?.forEach?.(unit => {
-				queryClient.setQueryData(unitKeys.detail(unit.id), unit)
+				const existingDetail = queryClient.getQueryData(unitKeys.detail(unit.id))
+				if (!existingDetail) {
+					queryClient.setQueryData(unitKeys.detail(unit.id), unit)
+				}
 			})
 
 			// Transform to expected paginated format for backwards compatibility
@@ -127,9 +130,12 @@ export function useUnitList(params?: {
 				`/api/v1/units?${searchParams.toString()}`
 			)
 
-			// Prefetch individual unit details for faster navigation
+			// Prefetch individual unit details for faster navigation (only if not already cached)
 			response?.forEach?.(unit => {
-				queryClient.setQueryData(unitKeys.detail(unit.id), unit)
+				const existingDetail = queryClient.getQueryData(unitKeys.detail(unit.id))
+				if (!existingDetail) {
+					queryClient.setQueryData(unitKeys.detail(unit.id), unit)
+				}
 			})
 
 			// Transform to expected paginated format for backwards compatibility

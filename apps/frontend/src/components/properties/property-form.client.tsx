@@ -122,7 +122,6 @@ export function PropertyForm({
 						data: transformedData
 					})
 					await createPropertyMutation.mutateAsync(transformedData)
-					toast.success('Property created successfully')
 
 					if (showSuccessState) {
 						setIsSubmitted(true)
@@ -145,7 +144,6 @@ export function PropertyForm({
 						data: transformedData,
 						version: property.version
 					})
-					toast.success('Property updated successfully')
 
 					// Navigate back if no custom onSuccess handler
 					if (!onSuccess) {

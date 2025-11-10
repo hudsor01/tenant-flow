@@ -95,9 +95,14 @@ export function usePropertyList(params?: {
 				`/api/v1/properties?${searchParams.toString()}`
 			)
 
-			// Prefetch individual property details
+			// Prefetch individual property details (only if not already cached)
 			response?.forEach?.(property => {
-				queryClient.setQueryData(propertiesKeys.detail(property.id), property)
+				const existingDetail = queryClient.getQueryData(
+					propertiesKeys.detail(property.id)
+				)
+				if (!existingDetail) {
+					queryClient.setQueryData(propertiesKeys.detail(property.id), property)
+				}
 			})
 
 			// Transform to expected paginated format for backwards compatibility
@@ -520,30 +525,35 @@ export function useDeleteProperty() {
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
 			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
 
-			// Snapshot previous state for rollback
-			const previousList = queryClient.getQueryData<{
+			// Snapshot ALL list query variants (including filtered/paginated)
+			const previousLists = queryClient.getQueriesData<{
 				data: Property[]
 				total: number
-			}>(propertiesKeys.list())
+			}>({
+				queryKey: propertiesKeys.all
+			})
 
-			// Optimistically remove from list
-			if (previousList) {
-				queryClient.setQueryData<{ data: Property[]; total: number }>(
-					propertiesKeys.list(),
-					{
-						...previousList,
-						data: previousList.data.filter(prop => prop.id !== id),
-						total: previousList.total - 1
-					}
-				)
-			}
+			// Optimistically remove from ALL list caches
+			queryClient.setQueriesData<{ data: Property[]; total: number }>(
+				{ queryKey: propertiesKeys.all },
+				old =>
+					old
+						? {
+								...old,
+								data: old.data.filter(prop => prop.id !== id),
+								total: old.total - 1
+							}
+						: old
+			)
 
-			return { previousList }
+			return { previousLists }
 		},
 		onError: (error, id, context) => {
-			// Rollback on error
-			if (context?.previousList) {
-				queryClient.setQueryData(propertiesKeys.list(), context.previousList)
+			// Rollback ALL list query variants
+			if (context?.previousLists) {
+				context.previousLists.forEach(([queryKey, data]) => {
+					queryClient.setQueryData(queryKey, data)
+				})
 			}
 
 			handleMutationError(error, 'Delete property')
