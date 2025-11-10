@@ -30,6 +30,7 @@ import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.g
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import { ConnectedAccountId } from '../../shared/decorators/user.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
@@ -308,49 +309,11 @@ export class TenantsController {
 	@Post('invite-with-lease')
 	@UseGuards(PropertyOwnershipGuard, StripeConnectedGuard)
 	async inviteTenantWithLease(
-		@Body()
-		body: {
-			tenantData: {
-				email: string
-				firstName: string
-				lastName: string
-				phone?: string
-			}
-			leaseData: {
-				propertyId: string
-				unitId?: string
-				rentAmount: number
-				securityDeposit: number
-				startDate: string
-				endDate: string
-			}
-		},
+		@Body() body: InviteWithLeaseDto,
 		@Req() req: AuthenticatedRequest,
 		@ConnectedAccountId() connectedAccountId: string
 	) {
 		const userId = req.user.id
-
-		// Validate required fields
-		if (
-			!body.tenantData?.email ||
-			!body.tenantData?.firstName ||
-			!body.tenantData?.lastName
-		) {
-			throw new BadRequestException(
-				'Tenant email, firstName, and lastName are required'
-			)
-		}
-
-		if (
-			!body.leaseData?.propertyId ||
-			!body.leaseData?.rentAmount ||
-			!body.leaseData?.startDate ||
-			!body.leaseData?.endDate
-		) {
-			throw new BadRequestException(
-				'Lease propertyId, rentAmount, startDate, and endDate are required'
-			)
-		}
 
 		return this.tenantInvitationService.inviteTenantWithLease(
 			userId,

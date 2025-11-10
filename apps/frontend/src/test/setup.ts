@@ -54,8 +54,9 @@ process.env.NEXT_PUBLIC_API_BASE_URL =
 	process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 
 // Test credentials loaded from environment (for integration tests)
-const E2E_OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test@example.com'
-const E2E_OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'test-password'
+// Note: env vars remain SCREAMING_SNAKE_CASE, but local constants use camelCase per CLAUDE.md
+const e2eOwnerEmail = process.env.E2E_OWNER_EMAIL || 'test@example.com'
+const e2eOwnerPassword = process.env.E2E_OWNER_PASSWORD || 'test-password'
 
 // Store the authenticated session in a way that mocks can properly access
 const sessionStore = vi.hoisted(() => ({
@@ -89,8 +90,8 @@ beforeAll(async () => {
 
 		// Sign in with test credentials
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: E2E_OWNER_EMAIL,
-			password: E2E_OWNER_PASSWORD
+			email: e2eOwnerEmail,
+			password: e2eOwnerPassword
 		})
 
 		if (error) {

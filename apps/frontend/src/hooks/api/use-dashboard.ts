@@ -154,7 +154,7 @@ export function usePropertyStats() {
 		}>('/api/v1/properties/stats'),
 		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: true,
+		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
 		refetchOnWindowFocus: true,
 		refetchOnMount: true,
 		retry: 2,
@@ -171,7 +171,7 @@ export function useTenantStats() {
 		queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
 		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: true,
+		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
 		refetchOnWindowFocus: true,
 		refetchOnMount: true,
 		retry: 2,
@@ -188,7 +188,7 @@ export function useLeaseStats() {
 		queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
 		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: true,
+		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
 		refetchOnWindowFocus: true,
 		refetchOnMount: true,
 		retry: 2,
@@ -225,7 +225,7 @@ export function useFinancialChartData(timeRange: string = '6m') {
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: true,
+		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
 		refetchOnWindowFocus: true,
 		refetchOnMount: true,
 		retry: 2,
