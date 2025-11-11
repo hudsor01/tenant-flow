@@ -19,6 +19,9 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'TenantDocumentsPage' })
 
 export default function TenantDocumentsPage() {
 	const { data, isLoading, error, refetch } = useTenantPortalDocuments()
@@ -70,16 +73,30 @@ export default function TenantDocumentsPage() {
 					size="sm"
 					disabled={!doc.url}
 					aria-label={`View ${doc.name || 'document'}`}
-				onClick={() => {
+					onClick={() => {
 						if (!doc.url) return
 						// Validate URL scheme for security
 						try {
 							const url = new URL(doc.url)
-							if (url.protocol === 'http:' || url.protocol === 'https:') {
-								window.open(doc.url, '_blank', 'noopener,noreferrer')
+							// Only allow HTTPS protocol for security
+							if (url.protocol !== 'https:') {
+								logger.error('Invalid URL protocol', {
+									metadata: { protocol: url.protocol }
+								})
+								return
 							}
+							// Additional security: validate the URL is properly formatted
+							if (!url.hostname) {
+								logger.error('Invalid URL hostname', {
+									metadata: { hostname: url.hostname }
+								})
+								return
+							}
+							// Open with security features
+							window.open(doc.url, '_blank', 'noopener,noreferrer')
 						} catch {
 							// Invalid URL, do nothing
+							logger.error('Invalid URL format', { metadata: { url: doc.url } })
 						}
 					}}
 				>
@@ -108,120 +125,120 @@ export default function TenantDocumentsPage() {
 
 	return (
 		<TenantGuard>
-		<div className="space-y-8">
-			<div>
-				<h1 className="text-3xl font-bold tracking-tight">My Documents</h1>
-				<p className="text-muted-foreground">
-					View and download your lease documents and important notices
-				</p>
-			</div>
-
-			{error && (
-				<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
-					<div className="flex items-center justify-between">
-						<p className="text-sm text-destructive">
-							Failed to load documents. Please try again.
-						</p>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => refetch()}
-							className="ml-4"
-						>
-							Retry
-						</Button>
-					</div>
-				</div>
-			)}
-
-			<CardLayout
-				title="Lease Documents"
-				description="Signed agreements and addendums"
-			>
-				{isLoading ? (
-					<div className="space-y-3">
-						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-							<div className="flex items-center gap-4 flex-1">
-								<FileText className="size-6 text-accent-main" />
-								<div className="flex-1">
-									<div className="flex items-center gap-3">
-										<p className="font-medium">Lease Agreement - 2024</p>
-										<Badge
-											variant="outline"
-											className="bg-green-50 text-green-700 border-green-200"
-										>
-											Signed
-										</Badge>
-									</div>
-									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-										<div className="flex items-center gap-1">
-											<Calendar className="size-3" />
-											<span>
-												Signed on <Skeleton className="inline-block h-4 w-20" />
-											</span>
-										</div>
-										<span>•</span>
-										<span>PDF, 1.2 MB</span>
-									</div>
-								</div>
-							</div>
-							<div className="flex gap-2">
-								<Button variant="ghost" size="sm">
-									<Eye className="size-4" />
-								</Button>
-								<Button variant="outline" size="sm">
-									<Download className="size-4 mr-2" />
-									Download
-								</Button>
-							</div>
-						</div>
-
-						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-							<div className="flex items-center gap-4 flex-1">
-								<FileText className="size-6 text-accent-main" />
-								<div className="flex-1">
-									<div className="flex items-center gap-3">
-										<p className="font-medium">Pet Addendum</p>
-										<Badge
-											variant="outline"
-											className="bg-green-50 text-green-700 border-green-200"
-										>
-											Signed
-										</Badge>
-									</div>
-									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-										<div className="flex items-center gap-1">
-											<Calendar className="size-3" />
-											<span>
-												Signed on <Skeleton className="inline-block h-4 w-20" />
-											</span>
-										</div>
-										<span>•</span>
-										<span>PDF, 245 KB</span>
-									</div>
-								</div>
-							</div>
-							<div className="flex gap-2">
-								<Button variant="ghost" size="sm">
-									<Eye className="size-4" />
-								</Button>
-								<Button variant="outline" size="sm">
-									<Download className="size-4 mr-2" />
-									Download
-								</Button>
-							</div>
-						</div>
-					</div>
-				) : leaseDocs.length > 0 ? (
-					<div className="space-y-3">
-						{leaseDocs.map(renderDocumentRow)}
-					</div>
-				) : (
-					<p className="text-sm text-center text-muted-foreground py-8">
-						No lease documents available yet
+			<div className="space-y-8">
+				<div>
+					<h1 className="text-3xl font-bold tracking-tight">My Documents</h1>
+					<p className="text-muted-foreground">
+						View and download your lease documents and important notices
 					</p>
+				</div>
+
+				{error && (
+					<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
+						<div className="flex items-center justify-between">
+							<p className="text-sm text-destructive">
+								Failed to load documents. Please try again.
+							</p>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => refetch()}
+								className="ml-4"
+							>
+								Retry
+							</Button>
+						</div>
+					</div>
 				)}
-			</CardLayout>
+
+				<CardLayout
+					title="Lease Documents"
+					description="Signed agreements and addendums"
+				>
+					{isLoading ? (
+						<div className="space-y-3">
+							<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+								<div className="flex items-center gap-4 flex-1">
+									<FileText className="size-6 text-accent-main" />
+									<div className="flex-1">
+										<div className="flex items-center gap-3">
+											<p className="font-medium">Lease Agreement - 2024</p>
+											<Badge
+												variant="outline"
+												className="bg-green-50 text-green-700 border-green-200"
+											>
+												Signed
+											</Badge>
+										</div>
+										<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+											<div className="flex items-center gap-1">
+												<Calendar className="size-3" />
+												<span>
+													Signed on{' '}
+													<Skeleton className="inline-block h-4 w-20" />
+												</span>
+											</div>
+											<span>•</span>
+											<span>PDF, 1.2 MB</span>
+										</div>
+									</div>
+								</div>
+								<div className="flex gap-2">
+									<Button variant="ghost" size="sm">
+										<Eye className="size-4" />
+									</Button>
+									<Button variant="outline" size="sm">
+										<Download className="size-4 mr-2" />
+										Download
+									</Button>
+								</div>
+							</div>
+
+							<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+								<div className="flex items-center gap-4 flex-1">
+									<FileText className="size-6 text-accent-main" />
+									<div className="flex-1">
+										<div className="flex items-center gap-3">
+											<p className="font-medium">Pet Addendum</p>
+											<Badge
+												variant="outline"
+												className="bg-green-50 text-green-700 border-green-200"
+											>
+												Signed
+											</Badge>
+										</div>
+										<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+											<div className="flex items-center gap-1">
+												<Calendar className="size-3" />
+												<span>
+													Signed on{' '}
+													<Skeleton className="inline-block h-4 w-20" />
+												</span>
+											</div>
+											<span>•</span>
+											<span>PDF, 245 KB</span>
+										</div>
+									</div>
+								</div>
+								<div className="flex gap-2">
+									<Button variant="ghost" size="sm">
+										<Eye className="size-4" />
+									</Button>
+									<Button variant="outline" size="sm">
+										<Download className="size-4 mr-2" />
+										Download
+									</Button>
+								</div>
+							</div>
+						</div>
+					) : leaseDocs.length > 0 ? (
+						<div className="space-y-3">{leaseDocs.map(renderDocumentRow)}</div>
+					) : (
+						<p className="text-sm text-center text-muted-foreground py-8">
+							No lease documents available yet
+						</p>
+					)}
+				</CardLayout>
 
 				{/* Move-In Documents */}
 				<CardLayout
@@ -329,7 +346,7 @@ export default function TenantDocumentsPage() {
 						</p>
 					</div>
 				</CardLayout>
-		</div>
-	</TenantGuard>
+			</div>
+		</TenantGuard>
 	)
 }

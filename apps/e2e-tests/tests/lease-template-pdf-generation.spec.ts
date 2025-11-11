@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test'
 import type { TestInfo } from '@playwright/test'
 import { loginAsOwner } from '../auth-helpers'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'LeaseTemplatePDFTest' })
 
 /**
  * E2E tests for Lease Template Builder (NOT Texas Lease Generation)
@@ -46,12 +49,14 @@ test.describe('Lease Template PDF Generation', () => {
 			}
 			
 			authenticationAvailable = true
-			console.log('✅ Authentication successful - tests will run')
+			logger.info('✅ Authentication successful - tests will run')
 		} catch (error) {
 			authenticationAvailable = false
-			console.log('⚠️  Authentication failed - tests will be SKIPPED')
-			console.log('   Set up test account at http://localhost:3000/signup')
-			console.log(`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`)
+			logger.warn('⚠️  Authentication failed - tests will be SKIPPED')
+			logger.info('   Set up test account at http://localhost:3000/signup')
+			logger.info(
+				`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
+			)
 		} finally {
 			clearTimeout(timeoutId)
 			await page.close()

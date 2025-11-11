@@ -5,7 +5,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen } from '#test/utils'
+import { render, screen } from '#test/utils/test-render'
 import { LeaseForm } from '../lease-form.client'
 import type { Lease } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

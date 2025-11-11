@@ -9,6 +9,7 @@ import { Button } from '#components/ui/button'
 import { safeDom } from '#lib/dom-utils'
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 type ExportFormat = 'excel' | 'pdf' | 'csv'
 
@@ -113,11 +114,7 @@ export function ExportButtons({ filename, payload }: ExportButtonsProps) {
 			await requestExport(format, filename, payload)
 			toast.success(`Exported ${formatConfig[format].label}`)
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Unable to export data right now.'
-			toast.error(message)
+			handleMutationError(error, `Export ${formatConfig[format].label}`)
 		} finally {
 			setLoadingFormat(null)
 		}

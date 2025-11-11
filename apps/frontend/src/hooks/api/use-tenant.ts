@@ -18,6 +18,7 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	Tenant,
 	TenantInput,
@@ -31,7 +32,7 @@ import {
 	useQueryClient,
 	useSuspenseQuery
 } from '@tanstack/react-query'
-import { tenantQueries } from './queries'
+import { tenantQueries } from './queries/tenant-queries'
 
 /**
  * Legacy query keys for backwards compatibility
@@ -48,6 +49,9 @@ export const tenantKeys = {
 /**
  * Hook to fetch tenant by ID
  * Uses queryOptions pattern for type-safe, reusable configuration
+ *
+ * NOTE: Prefetch is handled manually in useAllTenants and useTenantList
+ * due to type mismatch between Tenant and TenantWithLeaseInfo.
  */
 export function useTenant(id: string) {
 	return useQuery(tenantQueries.detail(id))
@@ -105,8 +109,7 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 				limit
 			}
 		},
-		staleTime: 3 * 60 * 1000, // 3 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes cache time
+		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2,
 		// Keep previous data while fetching new page (official v5 helper)
 		placeholderData: keepPreviousData
@@ -156,8 +159,8 @@ export function useAllTenants() {
 				throw error
 			}
 		},
-		staleTime: 3 * 60 * 1000, // 3 minutes
-		gcTime: 30 * 60 * 1000, // 30 minutes cache time for dropdown data
+		...QUERY_CACHE_TIMES.DETAIL,
+		gcTime: 30 * 60 * 1000, // Keep 30 minutes for dropdown data
 		retry: 3, // Retry up to 3 times
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
 		// Enable structural sharing to prevent re-renders when data hasn't changed
@@ -720,7 +723,7 @@ export function useNotificationPreferences(tenantId: string) {
 				paymentReminders: boolean
 			}>(`/api/v1/tenants/${tenantId}/notification-preferences`),
 		enabled: !!tenantId,
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
 }

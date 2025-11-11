@@ -404,7 +404,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 			state: 'IL',
 			stateName: stateNames.IL,
 			notices: [
-				'Chicago Residential Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
+				'Chicago Residential Property Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
 				'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
 				'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
 			],

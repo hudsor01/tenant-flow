@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test'
 import type { TestInfo } from '@playwright/test'
-import { loginAsOwner } from '../auth-helpers'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'TexasLeaseGenerationTest' })
 
 /**
  * E2E tests for Texas Residential Lease Agreement Generation
@@ -29,16 +31,16 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
 
 /**
  * E2E AUTHENTICATION SETUP REQUIRED
- * 
+ *
  * These tests require a local test account to be set up in your database:
  * Email: process.env.E2E_OWNER_EMAIL (default: test-owner@example.com)
  * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
- * 
+ *
  * To set up:
  * 1. Sign up at http://localhost:3000/signup with the test credentials
  * 2. Verify the email in your local Supabase dashboard
  * 3. Run these tests
- * 
+ *
  * Tests will be SKIPPED if authentication fails.
  */
 test.describe('Texas Lease Generation', () => {
@@ -49,26 +51,26 @@ test.describe('Texas Lease Generation', () => {
 	// Check if authentication is available before running tests
 	test.beforeAll(async ({ browser }) => {
 		const page = await browser.newPage()
-		const controller = new AbortController()
-		const timeoutId = setTimeout(() => controller.abort(), 10000)
-		
+
 		try {
-			// Try to login with timeout using AbortController
-			await loginAsOwner(page)
-			
-			if (controller.signal.aborted) {
-				throw new Error('Auth timeout')
-			}
-			
+			// Try to login with timeout using Promise.race
+			await Promise.race([
+				loginAsOwner(page),
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new Error('Auth timeout after 10s')), 10000)
+				)
+			])
+
 			authenticationAvailable = true
-			console.log('✅ Authentication successful - tests will run')
+			logger.info('✅ Authentication successful - tests will run')
 		} catch (error) {
 			authenticationAvailable = false
-			console.log('⚠️  Authentication failed - tests will be SKIPPED')
-			console.log('   Set up test account at http://localhost:3000/signup')
-			console.log(`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`)
+			logger.warn('⚠️  Authentication failed - tests will be SKIPPED')
+			logger.info('   Set up test account at http://localhost:3000/signup')
+			logger.info(
+				`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
+			)
 		} finally {
-			clearTimeout(timeoutId)
 			await page.close()
 		}
 	})
@@ -87,17 +89,17 @@ test.describe('Texas Lease Generation', () => {
 		await loginAsOwner(page)
 
 		// Set up console and network monitoring
-		page.on('console', (msg) => {
+		page.on('console', msg => {
 			if (msg.type() === 'error') {
 				consoleErrors.push(msg.text())
 			}
 		})
 
-		page.on('requestfailed', (request) => {
+		page.on('requestfailed', request => {
 			networkErrors.push(`${request.url()} - ${request.failure()?.errorText}`)
 		})
 
-		page.on('response', (response) => {
+		page.on('response', response => {
 			if (response.status() >= 400) {
 				networkErrors.push(`${response.url()} - Status: ${response.status()}`)
 			}
@@ -109,7 +111,9 @@ test.describe('Texas Lease Generation', () => {
 		await attachText(testInfo, 'network-errors', networkErrors)
 	})
 
-	test('should auto-fill and generate Texas lease PDF', async ({ page }, testInfo) => {
+	test('should auto-fill and generate Texas lease PDF', async ({
+		page
+	}, testInfo) => {
 		// Authentication handled in beforeEach
 
 		// Navigate to leases page
@@ -119,37 +123,64 @@ test.describe('Texas Lease Generation', () => {
 		})
 
 		// Verify page loaded
-		await expect(page.locator('h1, h2').filter({ hasText: /lease/i }).first()).toBeVisible()
+		await expect(
+			page.locator('h1, h2').filter({ hasText: /lease/i }).first()
+		).toBeVisible()
 
 		// Click "New Lease" or "Generate Lease" button
-		const newLeaseButton = page.getByRole('button', { name: /new.*lease|generate.*lease|add.*lease/i })
+		const newLeaseButton = page.getByRole('button', {
+			name: /new.*lease|generate.*lease|add.*lease/i
+		})
 		await expect(newLeaseButton).toBeVisible({ timeout: 10000 })
 		await newLeaseButton.click()
 
 		// Select property (required)
-		const propertySelect = page.getByLabel(/property/i).or(page.locator('select[name*="property"], [role="combobox"][aria-label*="property"]')).first()
+		const propertySelect = page
+			.getByLabel(/property/i)
+			.or(
+				page.locator(
+					'select[name*="property"], [role="combobox"][aria-label*="property"]'
+				)
+			)
+			.first()
 		await expect(propertySelect).toBeVisible({ timeout: 5000 })
-		
+
 		// Get the first available property
 		await propertySelect.click()
 		const firstPropertyOption = page.locator('[role="option"]').first()
 		await firstPropertyOption.click()
 
 		// Select unit (required)
-		const unitSelect = page.getByLabel(/unit/i).or(page.locator('select[name*="unit"], [role="combobox"][aria-label*="unit"]')).first()
+		const unitSelect = page
+			.getByLabel(/unit/i)
+			.or(
+				page.locator(
+					'select[name*="unit"], [role="combobox"][aria-label*="unit"]'
+				)
+			)
+			.first()
 		await expect(unitSelect).toBeVisible({ timeout: 5000 })
-		
+
 		await unitSelect.click()
 		const firstUnitOption = page.locator('[role="option"]').first()
 		await firstUnitOption.click()
 
 		// Select tenant (required)
-		const tenantSelect = page.getByLabel(/tenant/i).or(page.locator('select[name*="tenant"], [role="combobox"][aria-label*="tenant"]')).first()
+		const tenantSelect = page
+			.getByLabel(/tenant/i)
+			.or(
+				page.locator(
+					'select[name*="tenant"], [role="combobox"][aria-label*="tenant"]'
+				)
+			)
+			.first()
 		await expect(tenantSelect).toBeVisible({ timeout: 5000 })
 
 		// Set up auto-fill listener BEFORE clicking tenant (to avoid race condition)
 		const autoFillPromise = page.waitForResponse(
-			response => response.url().includes('/api/v1/leases/auto-fill/') && response.status() === 200,
+			response =>
+				response.url().includes('/api/v1/leases/auto-fill/') &&
+				response.status() === 200,
 			{ timeout: 30000 }
 		)
 
@@ -173,22 +204,33 @@ test.describe('Texas Lease Generation', () => {
 		})
 
 		// Verify form fields are populated
-		const ownerNameInput = page.getByLabel(/owner.*name/i).or(page.locator('input[name="ownerName"]')).first()
+		const ownerNameInput = page
+			.getByLabel(/owner.*name/i)
+			.or(page.locator('input[name="ownerName"]'))
+			.first()
 		if (await ownerNameInput.isVisible()) {
 			const ownerNameValue = await ownerNameInput.inputValue()
 			expect(ownerNameValue).toBeTruthy()
 			expect(ownerNameValue).not.toBe('')
 		}
 
-		const monthlyRentInput = page.getByLabel(/monthly.*rent/i).or(page.locator('input[name="monthlyRent"]')).first()
+		const monthlyRentInput = page
+			.getByLabel(/monthly.*rent/i)
+			.or(page.locator('input[name="monthlyRent"]'))
+			.first()
 		if (await monthlyRentInput.isVisible()) {
 			const rentValue = await monthlyRentInput.inputValue()
-			expect(Number.parseFloat(rentValue)).toBeGreaterThan(0)
+			expect(rentValue).toBeTruthy()
+			const rentNumber = Number.parseFloat(rentValue)
+			expect(rentNumber).not.toBeNaN()
+			expect(rentNumber).toBeGreaterThan(0)
 		}
 
 		// Intercept PDF generation API call
 		const pdfGeneratePromise = page.waitForResponse(
-			response => response.url().includes('/api/v1/leases/generate') && response.status() === 200,
+			response =>
+				response.url().includes('/api/v1/leases/generate') &&
+				response.status() === 200,
 			{ timeout: 60000 } // PDF generation can take longer
 		)
 
@@ -196,7 +238,9 @@ test.describe('Texas Lease Generation', () => {
 		const downloadPromise = page.waitForEvent('download', { timeout: 60000 })
 
 		// Click "Generate & Download Lease" button
-		const generateButton = page.getByRole('button', { name: /generate.*download.*lease/i })
+		const generateButton = page.getByRole('button', {
+			name: /generate.*download.*lease/i
+		})
 		await expect(generateButton).toBeVisible()
 		await expect(generateButton).toBeEnabled()
 		await generateButton.click()
@@ -232,56 +276,74 @@ test.describe('Texas Lease Generation', () => {
 
 		// Verify no critical errors during the process
 		expect(consoleErrors.length).toBe(0)
-		const criticalErrors = networkErrors.filter(err =>
-			!err.includes('analytics') &&
-			!err.includes('telemetry') &&
-			!err.includes('favicon')
+		const criticalErrors = networkErrors.filter(
+			err =>
+				!err.includes('analytics') &&
+				!err.includes('telemetry') &&
+				!err.includes('favicon')
 		)
 		expect(criticalErrors.length).toBe(0)
 	})
 
-	test('should reject generation without required property/unit/tenant', async ({ page }) => {
+	test('should reject generation without required property/unit/tenant', async ({
+		page
+	}) => {
 		await page.goto('/manage/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
 
 		// Try to access lease generation without selecting required data
-		const newLeaseButton = page.getByRole('button', { name: /new.*lease|generate.*lease/i })
-		
+		const newLeaseButton = page.getByRole('button', {
+			name: /new.*lease|generate.*lease/i
+		})
+
 		if (await newLeaseButton.isVisible()) {
 			await newLeaseButton.click()
 
 			// Generate button should be disabled or show error message
-			const generateButton = page.getByRole('button', { name: /generate.*download.*lease/i })
-			
+			const generateButton = page.getByRole('button', {
+				name: /generate.*download.*lease/i
+			})
+
 			// Wait for button to appear or error message
 			await Promise.race([
-				generateButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {}),
-				page.locator('[class*="error"], [role="alert"]').first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+				generateButton
+					.waitFor({ state: 'visible', timeout: 5000 })
+					.catch(() => {}),
+				page
+					.locator('[class*="error"], [role="alert"]')
+					.first()
+					.waitFor({ state: 'visible', timeout: 5000 })
+					.catch(() => {})
 			])
-			
+
 			if (await generateButton.isVisible()) {
 				// Should be disabled without required selections
 				const isDisabled = await generateButton.isDisabled()
 				expect(isDisabled).toBe(true)
 			} else {
 				// Or should show error message about missing required data
-				const errorMessage = page.locator('[class*="error"], [role="alert"]').filter({ 
-					hasText: /property.*unit.*tenant|required|missing/i 
-				}).first()
+				const errorMessage = page
+					.locator('[class*="error"], [role="alert"]')
+					.filter({
+						hasText: /property.*unit.*tenant|required|missing/i
+					})
+					.first()
 				await expect(errorMessage).toBeVisible({ timeout: 5000 })
 			}
 		}
 	})
 
-	test('should handle PDF generation API errors gracefully', async ({ page }) => {
+	test('should handle PDF generation API errors gracefully', async ({
+		page
+	}) => {
 		// Mock API to return error
 		await page.route('**/api/v1/leases/generate', route => {
 			route.fulfill({
 				status: 500,
 				contentType: 'application/json',
-				body: JSON.stringify({ 
+				body: JSON.stringify({
 					message: 'Failed to generate lease PDF',
 					statusCode: 500,
 					error: 'Internal Server Error'
@@ -300,24 +362,37 @@ test.describe('Texas Lease Generation', () => {
 			await newLeaseButton.click()
 
 			// Wait for form to load
-			await page.getByRole('button', { name: /generate/i }).waitFor({ state: 'attached', timeout: 5000 }).catch(() => {})
+			await page
+				.getByRole('button', { name: /generate/i })
+				.waitFor({ state: 'attached', timeout: 5000 })
+				.catch(() => {})
 
 			// Try to generate (if button becomes enabled)
-			const generateButton = page.getByRole('button', { name: /generate.*download/i })
-			
-			if (await generateButton.isVisible() && !(await generateButton.isDisabled())) {
+			const generateButton = page.getByRole('button', {
+				name: /generate.*download/i
+			})
+
+			if (
+				(await generateButton.isVisible()) &&
+				!(await generateButton.isDisabled())
+			) {
 				await generateButton.click()
 
 				// Should show error toast/message
-				const errorMessage = page.locator('[role="alert"], .toast, [class*="error"]').filter({ 
-					hasText: /failed|error/i 
-				}).first()
+				const errorMessage = page
+					.locator('[role="alert"], .toast, [class*="error"]')
+					.filter({
+						hasText: /failed|error/i
+					})
+					.first()
 				await expect(errorMessage).toBeVisible({ timeout: 10000 })
 			}
 		}
 	})
 
-	test('should validate required fields before submission', async ({ page }) => {
+	test('should validate required fields before submission', async ({
+		page
+	}) => {
 		// Mock API with validation error
 		await page.route('**/api/v1/leases/generate', route => {
 			route.fulfill({
@@ -346,15 +421,23 @@ test.describe('Texas Lease Generation', () => {
 			await newLeaseButton.click()
 
 			// Wait for form
-			await page.getByRole('button', { name: /generate/i }).waitFor({ state: 'attached', timeout: 5000 }).catch(() => {})
+			await page
+				.getByRole('button', { name: /generate/i })
+				.waitFor({ state: 'attached', timeout: 5000 })
+				.catch(() => {})
 
 			const generateButton = page.getByRole('button', { name: /generate/i })
-			
-			if (await generateButton.isVisible() && !(await generateButton.isDisabled())) {
+
+			if (
+				(await generateButton.isVisible()) &&
+				!(await generateButton.isDisabled())
+			) {
 				await generateButton.click()
 
 				// Should show validation errors
-				const validationError = page.locator('[class*="error"], [role="alert"]').first()
+				const validationError = page
+					.locator('[class*="error"], [role="alert"]')
+					.first()
 				await expect(validationError).toBeVisible({ timeout: 5000 })
 			}
 		}
@@ -371,11 +454,17 @@ test.describe('Texas Lease Generation', () => {
 			await newLeaseButton.click()
 
 			// Wait for form to load
-			await page.getByRole('button', { name: /generate/i }).waitFor({ state: 'attached', timeout: 5000 }).catch(() => {})
+			await page
+				.getByRole('button', { name: /generate/i })
+				.waitFor({ state: 'attached', timeout: 5000 })
+				.catch(() => {})
 
 			// Modify a form field (monthly rent)
-			const monthlyRentInput = page.getByLabel(/monthly.*rent/i).or(page.locator('input[name="monthlyRent"]')).first()
-			
+			const monthlyRentInput = page
+				.getByLabel(/monthly.*rent/i)
+				.or(page.locator('input[name="monthlyRent"]'))
+				.first()
+
 			if (await monthlyRentInput.isVisible()) {
 				await monthlyRentInput.clear()
 				await monthlyRentInput.fill('2500')
@@ -383,14 +472,14 @@ test.describe('Texas Lease Generation', () => {
 				// Verify value persisted
 				const rentValue = await monthlyRentInput.inputValue()
 				expect(rentValue).toBe('2500')
-
-				// If we navigate away and back, value should persist (if using form state management)
-				// Note: This depends on implementation - may use localStorage or query params
 			}
 
 			// Modify security deposit
-			const securityDepositInput = page.getByLabel(/security.*deposit/i).or(page.locator('input[name="securityDeposit"]')).first()
-			
+			const securityDepositInput = page
+				.getByLabel(/security.*deposit/i)
+				.or(page.locator('input[name="securityDeposit"]'))
+				.first()
+
 			if (await securityDepositInput.isVisible()) {
 				await securityDepositInput.clear()
 				await securityDepositInput.fill('3000')

@@ -30,6 +30,7 @@ import {
 import { useRouter } from 'next/navigation'
 import type { ComponentProps } from 'react'
 import { toast } from 'sonner'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	animationClasses,
 	buttonClasses,
@@ -97,10 +98,8 @@ export function CustomerPortalButton({
 			return { success: true }
 		},
 		onError: error => {
-			toast.error(
-				`Failed to access portal: ${error instanceof Error ? error.message : 'Unknown error'}`,
-				{ id: 'portal' }
-			)
+			handleMutationError(error, 'Access customer portal')
+			toast.dismiss('portal')
 		}
 	})
 
