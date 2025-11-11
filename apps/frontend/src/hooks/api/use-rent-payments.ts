@@ -5,6 +5,7 @@
  */
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 /**
  * Query keys for rent payments endpoints
@@ -152,7 +153,7 @@ export function usePaymentStatus(tenantId: string) {
 		queryFn: () =>
 			clientFetch<PaymentStatus>(`/api/v1/rent-payments/status/${tenantId}`),
 		enabled: !!tenantId,
-		staleTime: 1 * 60 * 1000, // 1 minute (payment status can change)
+		...QUERY_CACHE_TIMES.STATS, // Payment status can change
 		retry: 2
 	})
 }

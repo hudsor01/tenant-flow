@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 
 import { Button } from '#components/ui/button'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogDescription,
+	CrudDialogBody
+} from '#components/ui/crud-dialog'
+import { useModalStore } from '#stores/modal-store'
 
 const QUICK_CREATE_OPTIONS = [
 	{
@@ -39,48 +41,47 @@ const QUICK_CREATE_OPTIONS = [
 	}
 ] as const
 
-export function QuickCreateDialog({
-	open,
-	onOpenChange
-}: {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-}) {
+export function QuickCreateDialog() {
 	const router = useRouter()
+	const { closeModal } = useModalStore()
+
+	const modalId = 'quick-create'
 
 	const handleOptionClick = (href: string) => {
-		onOpenChange(false)
+		closeModal(modalId)
 		router.push(href)
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>Quick Create</DialogTitle>
-					<DialogDescription>
+		<CrudDialog mode="create" modalId={modalId}>
+			<CrudDialogContent>
+				<CrudDialogHeader>
+					<CrudDialogTitle>Quick Create</CrudDialogTitle>
+					<CrudDialogDescription>
 						Choose what you'd like to create
-					</DialogDescription>
-				</DialogHeader>
-				<div className="grid gap-3">
-					{QUICK_CREATE_OPTIONS.map(option => (
-						<Button
-							key={option.title}
-							variant="outline"
-							className="h-auto justify-start gap-4 p-4 text-left"
-							onClick={() => handleOptionClick(option.href)}
-						>
-							<option.icon className="size-8 shrink-0 text-primary" />
-							<div className="flex flex-col gap-1">
-								<span className="font-semibold">{option.title}</span>
-								<span className="text-xs text-muted-foreground">
-									{option.description}
-								</span>
-							</div>
-						</Button>
-					))}
-				</div>
-			</DialogContent>
-		</Dialog>
+					</CrudDialogDescription>
+				</CrudDialogHeader>
+				<CrudDialogBody>
+					<div className="grid gap-3">
+						{QUICK_CREATE_OPTIONS.map(option => (
+							<Button
+								key={option.title}
+								variant="outline"
+								className="h-auto justify-start gap-4 p-4 text-left"
+								onClick={() => handleOptionClick(option.href)}
+							>
+								<option.icon className="size-8 shrink-0 text-primary" />
+								<div className="flex flex-col gap-1">
+									<span className="font-semibold">{option.title}</span>
+									<span className="text-xs text-muted-foreground">
+										{option.description}
+									</span>
+								</div>
+							</Button>
+						))}
+					</div>
+				</CrudDialogBody>
+			</CrudDialogContent>
+		</CrudDialog>
 	)
 }

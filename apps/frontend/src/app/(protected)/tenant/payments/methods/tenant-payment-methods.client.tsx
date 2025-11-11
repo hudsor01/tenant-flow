@@ -3,7 +3,6 @@
 import { CreditCard, ShieldCheck, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
-
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -45,6 +44,7 @@ import {
 	usePaymentMethods,
 	useSetDefaultPaymentMethod
 } from '#hooks/api/use-payment-methods'
+import type { PaymentMethodResponse } from '@repo/shared/types/core'
 
 function formatMethodLabel(type: string) {
 	switch (type) {
@@ -55,6 +55,99 @@ function formatMethodLabel(type: string) {
 		default:
 			return 'Payment Method'
 	}
+}
+
+/**
+ * Enhanced payment method display with Stripe's official formatting and icons
+ */
+function PaymentMethodDisplay({ method }: { method: PaymentMethodResponse }) {
+	// Helper function to format payment methods consistently using Stripe patterns
+	const formatPaymentMethodDetails = (pm: PaymentMethodResponse) => {
+		if (pm.type === 'card') {
+			const brand = pm.brand || 'card'
+			return {
+				icon: `https://js.stripe.com/v3/fingerprinted/img/payment-methods/${brand}-dark.svg`,
+				displayName: brand.charAt(0).toUpperCase() + brand.slice(1),
+				lastFour: `•••• ${pm.last4}`,
+				expiryDate: null, // Card expiry not included in current response
+				description: `${brand.charAt(0).toUpperCase() + brand.slice(1)} ending in ${pm.last4}`,
+				accessibleLabel: `${brand.charAt(0).toUpperCase() + brand.slice(1)} card ending in ${pm.last4}`,
+				accountType: null
+			}
+		}
+		
+		if (pm.type === 'us_bank_account') {
+			return {
+				icon: 'https://js.stripe.com/v3/fingerprinted/img/payment-methods/ach-debit-dark.svg',
+				displayName: 'Bank Account',
+				lastFour: `•••• ${pm.last4}`,
+				accountType: null, // Account type not included in current response
+				bankName: pm.bankName,
+				expiryDate: null,
+				description: pm.bankName
+					? `${pm.bankName} ending in ${pm.last4}`.trim()
+					: `Bank account ending in ${pm.last4}`,
+				accessibleLabel: pm.bankName
+					? `Bank account at ${pm.bankName} ending in ${pm.last4}`
+					: `Bank account ending in ${pm.last4}`
+			}
+		}
+
+		// Default case for other payment methods
+		const typeStr = String(pm.type)
+		return {
+			icon: `https://js.stripe.com/v3/fingerprinted/img/payment-methods/${pm.type}-dark.svg`,
+			displayName: typeStr
+				.split('_')
+				.map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+				.join(' '),
+			description: typeStr
+				.split('_')
+				.map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+				.join(' '),
+			accessibleLabel: `${typeStr
+				.split('_')
+				.map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+				.join(' ')} payment method`,
+			expiryDate: null,
+			accountType: null
+		}
+	}
+
+	const details = formatPaymentMethodDetails(method)
+
+	return (
+		<div
+			className="flex items-center gap-3"
+			role="img"
+			aria-label={details.accessibleLabel}
+		>
+			<img
+				src={details.icon}
+				alt={`${details.displayName} icon`}
+				className="size-6 object-contain"
+				width="24"
+				height="16"
+				loading="lazy"
+			/>
+			<div className="flex flex-col gap-1 min-w-0 flex-1">
+				<span className="font-medium text-sm truncate">
+					{details.description}
+				</span>
+				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+					{details.expiryDate && <span>Expires {details.expiryDate}</span>}
+					{details.accountType && <span>{details.accountType}</span>}
+					{(details.expiryDate || details.accountType) && <span>•</span>}
+					<span>Added {new Date(method.createdAt).toLocaleDateString()}</span>
+				</div>
+			</div>
+			{method.isDefault && (
+				<span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+					Default
+				</span>
+			)}
+		</div>
+	)
 }
 
 export function TenantPaymentMethods() {
@@ -153,16 +246,7 @@ export function TenantPaymentMethods() {
 							{sortedMethods.map(method => (
 								<TableRow key={method.id}>
 									<TableCell>
-										<div className="flex flex-col gap-1">
-											<span className="font-medium">
-												{method.brand
-													? `${method.brand} ending in ${method.last4}`
-													: method.bankName}
-											</span>
-											<span className="text-xs text-muted-foreground">
-												Added {new Date(method.createdAt).toLocaleDateString()}
-											</span>
-										</div>
+										<PaymentMethodDisplay method={method} />
 									</TableCell>
 									<TableCell>{formatMethodLabel(method.type)}</TableCell>
 									<TableCell>

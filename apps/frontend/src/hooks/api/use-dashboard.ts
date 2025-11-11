@@ -38,7 +38,7 @@ import type {
 	TenantStats
 } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 export interface FinancialChartDatum {
 	date: string
@@ -72,8 +72,7 @@ export function useDashboardStats() {
 	return useQuery({
 		queryKey: dashboardKeys.stats(),
 		queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
-		staleTime: 2 * 60 * 1000, // 2 minutes (optimized from 30s to reduce server load by 75%)
-		gcTime: 10 * 60 * 1000, // 10 minutes - remove from cache after this period
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 30s)
 		refetchIntervalInBackground: false, // Stop refreshing when tab inactive (CRITICAL: prevents memory leaks)
 		refetchOnWindowFocus: true, // Refresh when user returns to tab
@@ -90,8 +89,7 @@ export function useDashboardActivity() {
 	return useQuery({
 		queryKey: dashboardKeys.activity(),
 		queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/manage/activity'),
-		staleTime: 2 * 60 * 1000, // 2 minutes (optimized from 60s to reduce server load)
-		gcTime: 10 * 60 * 1000, // 10 minutes - remove from cache after this period
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 60s)
 		refetchIntervalInBackground: false, // Stop refreshing when tab inactive (CRITICAL: prevents memory leaks)
 		refetchOnWindowFocus: true, // Refresh when user returns to tab
@@ -243,7 +241,7 @@ export function usePrefetchDashboardStats() {
 		queryClient.prefetchQuery({
 			queryKey: dashboardKeys.stats(),
 			queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
-			staleTime: 2 * 60 * 1000 // 2 minutes (reduced from 30s)
+			...QUERY_CACHE_TIMES.SECURITY
 		})
 	}
 }
@@ -381,8 +379,7 @@ export function useDashboardPageDataUnified() {
 			stats: DashboardStats
 			activity: ActivityItem[]
 		}>('/api/v1/manage/page-data'),
-		staleTime: 2 * 60 * 1000, // 2 minutes (increased from 30s to reduce server load)
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchInterval: 2 * 60 * 1000, // 2 minutes (reduced from 30s)
 		refetchIntervalInBackground: false, // Stop polling when tab inactive (saves 75% of requests)
 		refetchOnWindowFocus: true, // Refresh when user returns to tab

@@ -20,7 +20,7 @@ import {
 	useCreateRentPayment,
 	usePaymentStatus
 } from '#hooks/api/use-rent-payments'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatCurrency } from '@repo/shared/utils/currency'
 import {
 	AlertCircle,
@@ -105,18 +105,7 @@ export default function TenantPaymentPage() {
 				throw new Error('Payment failed - no success status')
 			}
 		} catch (error) {
-			logger.error('Failed to process rent payment', {
-				action: 'process_rent_payment',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error',
-					leaseId: lease?.id,
-					paymentMethodId: selectedMethodId
-				}
-			})
-			toast.error('Payment failed', {
-				description:
-					'Please try again or contact support if the issue persists.'
-			})
+			handleMutationError(error, 'Process rent payment', 'Payment failed. Please try again or contact support if the issue persists.')
 		}
 	}
 

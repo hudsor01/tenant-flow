@@ -5,7 +5,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen } from '#test/utils'
+import { render, screen } from '#test/utils/test-render'
 import { PropertyForm } from '../property-form.client'
 import type { Property } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

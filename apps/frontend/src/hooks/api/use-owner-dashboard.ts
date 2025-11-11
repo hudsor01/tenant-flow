@@ -22,7 +22,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Activity } from '@repo/shared/types/activity'
 import type {
 	DashboardStats,
@@ -102,8 +102,7 @@ export function useOwnerDashboardStats() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.analytics.stats(),
 		queryFn: () => clientFetch<DashboardStats>('/api/v1/owner/analytics/stats'),
-		staleTime: 2 * 60 * 1000, // 2 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 		refetchIntervalInBackground: false, // Stop when tab inactive
 		refetchOnWindowFocus: true,
@@ -121,8 +120,7 @@ export function useOwnerDashboardActivity() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.analytics.activity(),
 		queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
-		staleTime: 2 * 60 * 1000, // 2 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
@@ -144,8 +142,7 @@ export function useOwnerDashboardPageData() {
 			stats: DashboardStats
 			activity: ActivityItem[]
 		}>('/api/v1/owner/analytics/page-data'),
-		staleTime: 2 * 60 * 1000, // 2 minutes
-		gcTime: 10 * 60 * 1000, // 10 minutes
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 		refetchIntervalInBackground: false, // Stop when tab inactive
 		refetchOnWindowFocus: true,

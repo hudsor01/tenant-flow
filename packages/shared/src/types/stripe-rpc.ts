@@ -17,11 +17,6 @@ export interface StripePortalResponse {
 	url: string
 }
 
-export interface StripeSetupIntentResponse {
-	/** Client secret for confirming the setup intent */
-	clientSecret: string
-}
-
 export interface StripeCustomerTrialResponse {
 	/** Created Stripe customer ID */
 	customerId: string
@@ -81,15 +76,6 @@ export function isStripePortalResponse(
 
 	const obj = data as Record<string, unknown>
 	return 'url' in obj && typeof obj.url === 'string'
-}
-
-export function isStripeSetupIntentResponse(
-	data: unknown
-): data is StripeSetupIntentResponse {
-	if (!data || typeof data !== 'object') return false
-
-	const obj = data as Record<string, unknown>
-	return 'clientSecret' in obj && typeof obj.clientSecret === 'string'
 }
 
 export function isStripeCustomerTrialResponse(

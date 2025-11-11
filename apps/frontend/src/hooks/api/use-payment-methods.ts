@@ -3,22 +3,16 @@
  * Phase 3: Frontend Integration for Tenant Payment System
  */
 import { clientFetch } from '#lib/api/client'
-import type {
-	CreateSetupIntentRequest,
-	PaymentMethodResponse,
-	PaymentMethodSetupIntent
-} from '@repo/shared/types/core'
+import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 /**
  * Query keys for payment methods endpoints
  */
 export const paymentMethodKeys = {
 	all: ['paymentMethods'] as const,
-	list: () => [...paymentMethodKeys.all, 'list'] as const,
-	setupIntent: (type: 'card' | 'us_bank_account') =>
-		[...paymentMethodKeys.all, 'setupIntent', type] as const
+	list: () => [...paymentMethodKeys.all, 'list'] as const
 }
 
 /**
@@ -28,63 +22,14 @@ export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
 		queryFn: async (): Promise<PaymentMethodResponse[]> => {
-			const response = await clientFetch<{ payment_methods: PaymentMethodResponse[] }>('/api/v1/stripe/tenant-payment-methods')
+			const response = await clientFetch<{
+				payment_methods: PaymentMethodResponse[]
+			}>('/api/v1/stripe/tenant-payment-methods')
 			// Backend now returns proper PaymentMethodResponse structure
 			return response.payment_methods
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
-	})
-}
-
-/**
- * Hook to create a setup intent for adding payment methods
- */
-export function useCreateSetupIntent() {
-	return useMutation({
-		mutationFn: async (request: CreateSetupIntentRequest): Promise<PaymentMethodSetupIntent> => {
-			return clientFetch<PaymentMethodSetupIntent>('/api/v1/payment-methods/setup-intent', {
-				method: 'POST',
-				body: JSON.stringify(request)
-			})
-		}
-	})
-}
-
-/**
- * Hook to save payment method after SetupIntent confirmation (Phase 4: Stripe attach)
- */
-export function useSavePaymentMethod() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async (request: {
-			paymentMethodId: string
-			setAsDefault?: boolean
-		}): Promise<{
-			success: boolean
-			payment_method: {
-				id: string
-				type: string
-				card: {
-					brand: string
-					last4: string
-					exp_month: number
-					exp_year: number
-				} | null
-			}
-		}> => {
-			return clientFetch('/api/v1/stripe/attach-tenant-payment-method', {
-				method: 'POST',
-				body: JSON.stringify({
-					payment_method_id: request.paymentMethodId,
-					set_as_default: request.setAsDefault ?? true
-				})
-			})
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: paymentMethodKeys.list() })
-		}
 	})
 }
 
@@ -100,10 +45,15 @@ export function useSetDefaultPaymentMethod() {
 		string,
 		{ previous?: PaymentMethodResponse[] }
 	>({
-		mutationFn: async (paymentMethodId: string): Promise<{ success: boolean }> => {
-			return clientFetch<{ success: boolean }>(`/api/v1/payment-methods/${paymentMethodId}/default`, {
-				method: 'PATCH'
-			})
+		mutationFn: async (
+			paymentMethodId: string
+		): Promise<{ success: boolean }> => {
+			return clientFetch<{ success: boolean }>(
+				`/api/v1/payment-methods/${paymentMethodId}/default`,
+				{
+					method: 'PATCH'
+				}
+			)
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -117,9 +67,12 @@ export function useSetDefaultPaymentMethod() {
 			// Optimistically mark selected method as default and unset others
 			queryClient.setQueryData<PaymentMethodResponse[]>(
 				paymentMethodKeys.list(),
-				old =>
+				(old: PaymentMethodResponse[] | undefined) =>
 					old
-						? old.map(m => ({ ...m, isDefault: m.id === paymentMethodId }))
+						? old.map((m: PaymentMethodResponse) => ({
+								...m,
+								isDefault: m.id === paymentMethodId
+							}))
 						: old
 			)
 			return previous ? { previous } : {}
@@ -155,7 +108,9 @@ export function useDeletePaymentMethod() {
 		string,
 		{ previous?: PaymentMethodResponse[] }
 	>({
-		mutationFn: async (paymentMethodId: string): Promise<{
+		mutationFn: async (
+			paymentMethodId: string
+		): Promise<{
 			success: boolean
 			message?: string
 		}> => {
@@ -177,7 +132,10 @@ export function useDeletePaymentMethod() {
 			)
 			queryClient.setQueryData<PaymentMethodResponse[]>(
 				paymentMethodKeys.list(),
-				old => (old ? old.filter(m => m.id !== paymentMethodId) : old)
+				(old: PaymentMethodResponse[] | undefined) =>
+					old
+						? old.filter((m: PaymentMethodResponse) => m.id !== paymentMethodId)
+						: old
 			)
 			return previous ? { previous } : {}
 		},
@@ -208,10 +166,12 @@ export function usePrefetchPaymentMethods() {
 		queryClient.prefetchQuery({
 			queryKey: paymentMethodKeys.list(),
 			queryFn: async (): Promise<PaymentMethodResponse[]> => {
-				const response = await clientFetch<{ paymentMethods: PaymentMethodResponse[] }>('/api/v1/payment-methods')
+				const response = await clientFetch<{
+					paymentMethods: PaymentMethodResponse[]
+				}>('/api/v1/payment-methods')
 				return response.paymentMethods
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }

@@ -12,7 +12,7 @@
 
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	handleConflictError,
@@ -24,41 +24,43 @@ import type {
 	CreateUnitInput,
 	UpdateUnitInput
 } from '@repo/shared/types/api-inputs'
-import type { Unit, UnitStats } from '@repo/shared/types/core'
+import type { Unit } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { unitQueries, type UnitFilters } from './queries/unit-queries'
 
 /**
- * Query keys for unit endpoints (hierarchical, typed)
+ * @deprecated Use unitQueries from './queries/unit-queries' instead
+ * Keeping for backward compatibility during migration
  */
 export const unitKeys = {
-	all: ['units'] as const,
+	all: unitQueries.all(),
 	list: (params?: {
 		propertyId?: string
 		status?: string
 		search?: string
 		limit?: number
 		offset?: number
-	}) => [...unitKeys.all, 'list', params] as const,
-	detail: (id: string) => [...unitKeys.all, 'detail', id] as const,
-	byProperty: (propertyId: string) =>
-		[...unitKeys.all, 'by-property', propertyId] as const,
-	stats: () => [...unitKeys.all, 'stats'] as const
+	}) => {
+		// Convert params to UnitFilters format, only including defined values
+		const filters: UnitFilters | undefined = params ? Object.assign({},
+			params.propertyId ? { propertyId: params.propertyId } : {},
+			params.status ? { status: params.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' } : {},
+			params.search ? { search: params.search } : {},
+			params.limit !== undefined ? { limit: params.limit } : {},
+			params.offset !== undefined ? { offset: params.offset } : {}
+		) as UnitFilters : undefined
+		return unitQueries.list(filters).queryKey
+	},
+	detail: (id: string) => unitQueries.detail(id).queryKey,
+	byProperty: (propertyId: string) => unitQueries.byProperty(propertyId).queryKey,
+	stats: () => unitQueries.stats().queryKey
 }
 
 /**
- * Hook to fetch unit by ID with optimized caching
- * Uses placeholder data from list cache for instant loading
+ * Hook to fetch unit by ID
  */
 export function useUnit(id: string) {
-	return useQuery({
-		queryKey: unitKeys.detail(id),
-		queryFn: async (): Promise<Unit> => {
-			return clientFetch<Unit>(`/api/v1/units/${id}`)
-		},
-		enabled: !!id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000 // 10 minutes cache time
-	})
+	return useQuery(unitQueries.detail(id))
 }
 
 /**
@@ -152,13 +154,7 @@ export function useUnitList(params?: {
  * Hook to fetch unit statistics
  */
 export function useUnitStats() {
-	return useQuery({
-		queryKey: unitKeys.stats(),
-		queryFn: () => clientFetch<UnitStats>('/api/v1/units/stats'),
-		...QUERY_CACHE_TIMES.LIST,
-		gcTime: 30 * 60 * 1000, // 30 minutes
-		retry: 2
-	})
+	return useQuery(unitQueries.stats())
 }
 
 /**

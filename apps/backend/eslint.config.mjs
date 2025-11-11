@@ -11,7 +11,7 @@ export default defineConfig([
 	...baseConfig,
 	{
 		name: 'backend/ignores',
-		ignores: ['vitest.config.ts', 'jest.config.js']
+		ignores: ['vitest.config.ts', 'jest.config.js', 'eslint.config.mjs']
 	},
 	{
 		name: 'backend/nestjs-overrides',
