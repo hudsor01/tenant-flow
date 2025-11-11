@@ -8,13 +8,15 @@ import {
 	BadRequestException,
 	ConflictException,
 	Injectable,
-	Logger
+	Logger,
+	UnauthorizedException
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -24,7 +26,10 @@ import {
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly queryHelpers: SupabaseQueryHelpers
+	) {}
 
 	/**
 	 * Get user-scoped Supabase client for direct database access
@@ -317,44 +322,27 @@ export class LeasesService {
 	 * Find one lease by ID
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async findOne(token: string, leaseId: string): Promise<Lease | null> {
-		try {
-			if (!token || !leaseId) {
-				this.logger.warn('Find one lease called with missing parameters', {
-					leaseId
-				})
-				return null
-			}
-
-			this.logger.log('Finding one lease via RLS-protected query', {
-				leaseId
-			})
-
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client
-				.from('lease')
-				.select('*')
-				.eq('id', leaseId)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch lease from Supabase', {
-					error: error.message,
-					leaseId
-				})
-				return null
-			}
-
-			return data as Lease
-		} catch (error) {
-			this.logger.error('Leases service failed to find one lease', {
-				error: error instanceof Error ? error.message : String(error),
-				leaseId
-			})
-			return null
+	async findOne(token: string, leaseId: string): Promise<Lease> {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token is required')
 		}
+		if (!leaseId) {
+			throw new BadRequestException('Lease ID is required')
+		}
+
+		this.logger.log('Finding one lease via RLS-protected query', { leaseId })
+
+		// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+		const client = this.supabase.getUserClient(token)
+
+		return this.queryHelpers.querySingle<Lease>(
+			client.from('lease').select('*').eq('id', leaseId).single(),
+			{
+				resource: 'lease',
+				id: leaseId,
+				operation: 'findOne'
+			}
+		)
 	}
 
 	/**
@@ -451,104 +439,69 @@ export class LeasesService {
 		leaseId: string,
 		updateRequest: UpdateLeaseDto,
 		expectedVersion?: number //Optimistic locking
-	): Promise<Lease | null> {
-		try {
-			if (!token || !leaseId) {
-				this.logger.warn('Update lease called with missing parameters', {
-					leaseId
-				})
-				return null
-			}
-
-			this.logger.log('Updating lease via RLS-protected query', {
-				leaseId,
-				updateRequest
-			})
-
-			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const updateData: Database['public']['Tables']['lease']['Update'] = {
-				updatedAt: new Date().toISOString()
-			}
-
-			//Increment version for optimistic locking
-			if (expectedVersion !== undefined) {
-				updateData.version = expectedVersion + 1
-			}
-
-			if (updateRequest.startDate !== undefined)
-				updateData.startDate = updateRequest.startDate
-			if (updateRequest.endDate !== undefined)
-				updateData.endDate = updateRequest.endDate
-			if (
-				updateRequest.rentAmount !== undefined &&
-				updateRequest.rentAmount !== null
-			)
-				updateData.rentAmount = updateRequest.rentAmount
-			if (
-				updateRequest.securityDeposit !== undefined &&
-				updateRequest.securityDeposit !== null
-			)
-				updateData.securityDeposit = updateRequest.securityDeposit
-			if (updateRequest.status !== undefined)
-				updateData.status =
-					updateRequest.status as Database['public']['Enums']['LeaseStatus']
-
-			//Add version check for optimistic locking
-			let query = client.from('lease').update(updateData).eq('id', leaseId)
-
-			// Add version check if expectedVersion provided
-			if (expectedVersion !== undefined) {
-				query = query.eq('version', expectedVersion)
-			}
-
-			const { data, error } = await query.select().single()
-
-			if (error || !data) {
-				//Detect optimistic locking conflict
-				if (error?.code === 'PGRST116') {
-					// PGRST116 = 0 rows affected (version mismatch)
-					this.logger.warn('Optimistic locking conflict detected', {
-						leaseId,
-						expectedVersion
-					})
-					throw new ConflictException(
-						'Lease was modified by another user. Please refresh and try again.'
-					)
-				}
-
-				// Other database errors
-				this.logger.error('Failed to update lease in Supabase', {
-					error: error ? String(error) : 'Unknown error',
-					leaseId,
-					updateRequest
-				})
-				throw new BadRequestException('Failed to update lease')
-			}
-
-			return data as Lease
-		} catch (error) {
-			// Re-throw ConflictException as-is
-			if (error instanceof ConflictException) {
-				throw error
-			}
-
-			this.logger.error('Leases service failed to update lease', {
-				error: error instanceof Error ? error.message : String(error),
-				leaseId,
-				updateRequest
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to update lease'
-			)
+	): Promise<Lease> {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token is required')
 		}
+		if (!leaseId) {
+			throw new BadRequestException('Lease ID is required')
+		}
+
+		this.logger.log('Updating lease via RLS-protected query', {
+			leaseId,
+			updateRequest
+		})
+
+		// Verify ownership via findOne (throws NotFoundException if not found)
+		await this.findOne(token, leaseId)
+
+		// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+		const client = this.supabase.getUserClient(token)
+
+		const updateData: Database['public']['Tables']['lease']['Update'] = {
+			updatedAt: new Date().toISOString()
+		}
+
+		//Increment version for optimistic locking
+		if (expectedVersion !== undefined) {
+			updateData.version = expectedVersion + 1
+		}
+
+		if (updateRequest.startDate !== undefined)
+			updateData.startDate = updateRequest.startDate
+		if (updateRequest.endDate !== undefined)
+			updateData.endDate = updateRequest.endDate
+		if (
+			updateRequest.rentAmount !== undefined &&
+			updateRequest.rentAmount !== null
+		)
+			updateData.rentAmount = updateRequest.rentAmount
+		if (
+			updateRequest.securityDeposit !== undefined &&
+			updateRequest.securityDeposit !== null
+		)
+			updateData.securityDeposit = updateRequest.securityDeposit
+		if (updateRequest.status !== undefined)
+			updateData.status =
+				updateRequest.status as Database['public']['Enums']['LeaseStatus']
+
+		//Add version check for optimistic locking
+		let query = client.from('lease').update(updateData).eq('id', leaseId)
+
+		// Add version check if expectedVersion provided
+		if (expectedVersion !== undefined) {
+			query = query.eq('version', expectedVersion)
+		}
+
+		return this.queryHelpers.querySingleWithVersion<Lease>(
+			query.select().single(),
+			{
+				resource: 'lease',
+				id: leaseId,
+				operation: 'update',
+				metadata: { expectedVersion }
+			}
+		)
 	}
 
 	/**
@@ -570,11 +523,8 @@ export class LeasesService {
 				leaseId
 			})
 
-			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
+			// Verify ownership via findOne (throws NotFoundException if not found)
+			await this.findOne(token, leaseId)
 
 			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
