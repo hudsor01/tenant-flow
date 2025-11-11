@@ -348,7 +348,7 @@ export interface MaintenanceRequestApiResponse {
 	createdAt: string
 	estimatedCost: number | null
 	notes: string | null
-	photos: string | null
+	photos: string[] | null
 	preferredDate: string | null
 	requestedBy: string | null
 	updatedAt: string
