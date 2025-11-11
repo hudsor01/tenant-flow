@@ -5,6 +5,7 @@
  * to reduce the shared types directory by 75% while improving type safety.
  */
 
+import type { ReactNode } from 'react'
 import type { DashboardActivity } from './activity.js'
 
 // NATIVE TYPESCRIPT 5.9.2 UTILITY TYPES (replacing custom implementations)
@@ -193,15 +194,9 @@ export type UpdateInput<T> = Partial<CreateInput<T>>
 export type EntityWithRelations<T, R> = T & R
 
 export type FormErrors<T> = Partial<Record<keyof T, string>>
-export type FormState<T> = {
-	data: T
-	errors: FormErrors<T>
-	isSubmitting: boolean
-}
-
 export type ComponentProps<T = Record<string, unknown>> = T & {
 	className?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export type EventHandler<T = Event> = (event: T) => void

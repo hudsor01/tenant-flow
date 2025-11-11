@@ -11,7 +11,7 @@ import {
 } from '#components/ui/dialog'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { clientFetch } from '#lib/api/client'
-import { isApiError } from '#lib/api/api-error'
+import { ApiErrorCode, isApiError } from '#lib/api/api-error'
 import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
 import { AlertCircle, CheckCircle2, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -146,32 +146,50 @@ export function PropertyBulkImportDialog() {
 
 			// Use structured error codes instead of string matching
 			if (isApiError(error)) {
-				switch (error.code) {
-					case BUSINESS_ERROR_CODES.NETWORK_ERROR:
-					case BUSINESS_ERROR_CODES.CORS_ERROR:
-						errorMessage =
-							'Network error. Please check your connection and try again.'
-						break
-					case BUSINESS_ERROR_CODES.INVALID_FILE_TYPE:
-						errorMessage = 'Invalid file type. Please upload a CSV file.'
-						break
-					case BUSINESS_ERROR_CODES.NO_FILE_UPLOADED:
-						errorMessage = 'No file was uploaded. Please select a file.'
-						break
-					case BUSINESS_ERROR_CODES.FILE_TOO_LARGE:
-						errorMessage = 'File is too large. Maximum size is 5MB.'
-						break
-					case BUSINESS_ERROR_CODES.INVALID_CSV_FORMAT:
-						errorMessage =
-							'Invalid CSV format. Please check your file and try again.'
-						break
-					case BUSINESS_ERROR_CODES.CSV_MISSING_REQUIRED_COLUMNS:
-						errorMessage =
-							'CSV is missing required columns. Please download the template and try again.'
-						break
-					default:
-						// Use the error message from the API if no specific code handler
-						errorMessage = error.message
+				const backendCode = getBackendErrorCode(error.details)
+
+				if (backendCode) {
+					switch (backendCode) {
+						case BUSINESS_ERROR_CODES.NETWORK_ERROR:
+						case BUSINESS_ERROR_CODES.CORS_ERROR:
+							errorMessage =
+								'Network error. Please check your connection and try again.'
+							break
+						case BUSINESS_ERROR_CODES.INVALID_FILE_TYPE:
+							errorMessage = 'Invalid file type. Please upload a CSV file.'
+							break
+						case BUSINESS_ERROR_CODES.NO_FILE_UPLOADED:
+							errorMessage = 'No file was uploaded. Please select a file.'
+							break
+						case BUSINESS_ERROR_CODES.FILE_TOO_LARGE:
+							errorMessage = 'File is too large. Maximum size is 5MB.'
+							break
+						case BUSINESS_ERROR_CODES.INVALID_CSV_FORMAT:
+							errorMessage =
+								'Invalid CSV format. Please check your file and try again.'
+							break
+						case BUSINESS_ERROR_CODES.CSV_MISSING_REQUIRED_COLUMNS:
+							errorMessage =
+								'CSV is missing required columns. Please download the template and try again.'
+							break
+						default:
+							errorMessage = error.message
+					}
+				} else {
+					switch (error.code) {
+						case ApiErrorCode.NETWORK_ERROR:
+						case ApiErrorCode.NETWORK_TIMEOUT:
+						case ApiErrorCode.NETWORK_OFFLINE:
+							errorMessage =
+								'Network error. Please check your connection and try again.'
+							break
+						case ApiErrorCode.API_RATE_LIMITED:
+							errorMessage =
+								'Too many requests. Please wait a moment and try again.'
+							break
+						default:
+							errorMessage = error.message
+					}
 				}
 			} else if (error instanceof Error) {
 				// Fallback for non-API errors (network failures, etc.)
@@ -370,4 +388,13 @@ export function PropertyBulkImportDialog() {
 			</Dialog>
 		</>
 	)
+}
+
+function getBackendErrorCode(details: unknown): string | undefined {
+	if (!details || typeof details !== 'object') {
+		return undefined
+	}
+
+	const code = (details as { code?: unknown }).code
+	return typeof code === 'string' ? code : undefined
 }

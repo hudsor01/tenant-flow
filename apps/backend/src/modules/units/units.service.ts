@@ -16,6 +16,7 @@ import {
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildILikePattern,
 	sanitizeSearchInput
@@ -27,7 +28,10 @@ import type { UpdateUnitDto } from './dto/update-unit.dto'
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService
+	) {}
 
 	/**
 	 * ❌ REMOVED: Manual property filtering violates RLS pattern
@@ -445,7 +449,15 @@ export class UnitsService {
 				return null
 			}
 
-			return data as Unit
+			const updatedUnit = data as Unit
+
+			// Invalidate dependent caches so lease auto-fill returns fresh unit data
+			this.cache.invalidateByEntity('unit', unitId)
+			if (updatedUnit.propertyId) {
+				this.cache.invalidateByEntity('property', updatedUnit.propertyId)
+			}
+
+			return updatedUnit
 		} catch (error) {
 			this.logger.error('Units service failed to update unit', {
 				error: error instanceof Error ? error.message : String(error),

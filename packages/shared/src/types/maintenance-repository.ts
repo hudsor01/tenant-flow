@@ -59,7 +59,7 @@ export interface MaintenanceRepositoryContract
 	): Promise<MaintenanceRequest | null>
 	updateStatus(
 		requestId: string,
-		status: Database['public']['Enums']['MaintenanceStatus'],
+		status: Database['public']['Enums']['RequestStatus'],
 		updatedBy: string,
 		notes?: string
 	): Promise<MaintenanceRequest | null>

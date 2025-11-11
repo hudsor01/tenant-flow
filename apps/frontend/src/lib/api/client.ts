@@ -11,7 +11,7 @@ import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
-import { ApiError } from './api-error'
+import { ApiError, ApiErrorCode } from './api-error'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -163,11 +163,34 @@ export async function clientFetch<T>(
 		})
 	}
 
-	const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
+	let response: Response
+
+	try {
+		response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Network request failed'
+
+		logger.error('Network error during API request', {
+			metadata: {
+				endpoint,
+				error: errorMessage
+			}
+		})
+
+		throw new ApiError(
+			'Network request failed. Please check your connection and try again.',
+			ApiErrorCode.NETWORK_ERROR,
+			undefined,
+			{
+				endpoint,
+				error: errorMessage
+			}
+		)
+	}
 
 	if (!response.ok) {
-		let errorData: { code?: string; message?: string; error?: string } | null =
-			null
+		let errorData: unknown = null
 		let errorText = ''
 
 		try {
@@ -191,9 +214,16 @@ export async function clientFetch<T>(
 			// Not JSON, use text directly
 		}
 
-		const code = errorData?.code
+		const backendCode = extractBackendErrorCode(errorData)
 		const message =
-			errorData?.message || errorData?.error || errorText || response.statusText
+			(typeof errorData === 'object' && errorData && 'message' in errorData
+				? String((errorData as { message?: unknown }).message)
+				: undefined) ||
+			(typeof errorData === 'object' && errorData && 'error' in errorData
+				? String((errorData as { error?: unknown }).error)
+				: undefined) ||
+			errorText ||
+			response.statusText
 
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API request failed', {
@@ -201,37 +231,122 @@ export async function clientFetch<T>(
 				endpoint,
 				status: response.status,
 				statusText: response.statusText,
-				code,
+				code: backendCode,
 				error: message
 			}
 		})
 
-		throw new ApiError(message, code, response.status, errorData)
+		const details = buildErrorDetails(
+			errorData,
+			errorText,
+			response.status,
+			backendCode
+		)
+
+		throw new ApiError(
+			message,
+			mapStatusToApiErrorCode(response.status),
+			response.status,
+			details
+		)
 	}
 
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
-	if ('success' in data && data.success === false) {
-		const code = data.code
-		const message = data.error || data.message || 'API request failed'
+	if (
+		data &&
+		typeof data === 'object' &&
+		'success' in data &&
+		data.success === false
+	) {
+		const statusCode =
+			typeof data.statusCode === 'number' ? data.statusCode : response.status
+		const backendCode = extractBackendErrorCode(data)
+		const message =
+			(typeof data.error === 'string' && data.error) ||
+			(typeof data.message === 'string' && data.message) ||
+			'API request failed'
 
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API returned error response', {
 			metadata: {
 				endpoint,
-				code,
+				code: backendCode,
 				error: message,
 				data
 			}
 		})
 
-		throw new ApiError(message, code, data.statusCode, data)
+		const details = buildErrorDetails(data, '', statusCode, backendCode)
+
+		throw new ApiError(
+			message,
+			mapStatusToApiErrorCode(statusCode),
+			statusCode,
+			details
+		)
 	}
 
-	if ('data' in data) {
-		return data.data as T
+	if (data && typeof data === 'object' && 'data' in data) {
+		return (data as { data: T }).data
 	}
 
 	return data as T
+}
+
+function extractBackendErrorCode(payload: unknown): string | undefined {
+	if (payload && typeof payload === 'object' && 'code' in payload) {
+		const code = (payload as { code?: unknown }).code
+		if (typeof code === 'string') {
+			return code
+		}
+	}
+	return undefined
+}
+
+function buildErrorDetails(
+	payload: unknown,
+	rawText: string,
+	status?: number,
+	backendCode?: string
+): Record<string, unknown> | undefined {
+	const details: Record<string, unknown> =
+		payload && typeof payload === 'object'
+			? { ...(payload as Record<string, unknown>) }
+			: {}
+
+	if (!Object.keys(details).length && rawText) {
+		details.raw = rawText
+	}
+
+	if (backendCode) {
+		details.code = backendCode
+	}
+
+	if (typeof status === 'number') {
+		details.status = status
+	}
+
+	return Object.keys(details).length > 0 ? details : undefined
+}
+
+function mapStatusToApiErrorCode(status?: number): ApiErrorCode {
+	switch (status) {
+		case 400:
+			return ApiErrorCode.API_BAD_REQUEST
+		case 401:
+		case 403:
+			return ApiErrorCode.AUTH_UNAUTHORIZED
+		case 404:
+			return ApiErrorCode.API_NOT_FOUND
+		case 429:
+			return ApiErrorCode.API_RATE_LIMITED
+		case 500:
+			return ApiErrorCode.API_SERVER_ERROR
+		case 503:
+			return ApiErrorCode.API_SERVICE_UNAVAILABLE
+		default:
+			return ApiErrorCode.UNKNOWN_ERROR
+	}
 }

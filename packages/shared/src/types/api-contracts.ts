@@ -436,6 +436,7 @@ export interface CreateMaintenanceRequest {
 	estimatedCost?: number
 	photos?: string[]
 	notes?: string
+	scheduledDate?: string
 }
 
 export interface UpdateMaintenanceRequest {
@@ -444,6 +445,8 @@ export interface UpdateMaintenanceRequest {
 	priority?: Database['public']['Enums']['Priority']
 	category?: Database['public']['Enums']['MaintenanceCategory']
 	status?: Database['public']['Enums']['RequestStatus']
+	scheduledDate?: string
+	completedDate?: string
 	estimatedCost?: number
 	actualCost?: number
 	notes?: string
