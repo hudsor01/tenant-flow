@@ -7,6 +7,20 @@
 
 import type { Database } from './supabase-generated.js'
 
+// PAGINATION CONSTANTS
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_LIMIT = 10;
+export const MAX_LIMIT = 100;
+
+// TIMEOUT CONSTANTS (in milliseconds)
+export const DEFAULT_TIMEOUT = 30000; // 30 seconds
+export const API_TIMEOUT = 60000; // 60 seconds
+
+// RETRY CONSTANTS
+export const DEFAULT_RETRY_ATTEMPTS = 3;
+export const DEFAULT_RETRY_DELAY = 1000; // 1 second
+export const MAX_RETRY_DELAY = 10000; // 10 seconds
+
 // USER AUTHENTICATION CONTRACTS
 export interface LoginRequest {
 	email: string

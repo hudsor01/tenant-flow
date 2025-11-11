@@ -316,15 +316,15 @@ export function PropertyBulkImportDialog() {
 							<div
 								className={`p-4 rounded-lg border ${
 									result.success
-										? 'bg-green-50 border-green-200'
-										: 'bg-red-50 border-red-200'
+										? 'bg-success/5 border-success/20'
+										: 'bg-destructive/5 border-destructive/20'
 								}`}
 							>
 								<div className="flex items-start gap-3">
 									{result.success ? (
-										<CheckCircle2 className="size-5 text-green-600 mt-0.5" />
+										<CheckCircle2 className="size-5 text-success mt-0.5" />
 									) : (
-										<AlertCircle className="size-5 text-red-600 mt-0.5" />
+										<AlertCircle className="size-5 text-destructive mt-0.5" />
 									)}
 									<div className="flex-1">
 										<p className="font-medium text-sm">
@@ -337,12 +337,12 @@ export function PropertyBulkImportDialog() {
 										</p>
 										{result.errors.length > 0 && (
 											<details className="mt-2">
-												<summary className="text-xs cursor-pointer text-red-700">
+												<summary className="text-xs cursor-pointer text-destructive">
 													View errors ({result.errors.length})
 												</summary>
 												<div className="mt-2 max-h-32 overflow-y-auto space-y-1">
 													{result.errors.map((err, idx) => (
-														<p key={idx} className="text-xs text-red-700">
+														<p key={idx} className="text-xs text-destructive/80">
 															Row {err.row}: {err.error}
 														</p>
 													))}

@@ -7,6 +7,7 @@ import type {
 	PropertyFinancialMetrics,
 	UnitStatus
 } from '@repo/shared/types/core'
+import { THIRTY_DAYS_IN_MS } from '@repo/shared/constants/time'
 import { SupabaseService } from '../../database/supabase.service'
 
 @Injectable()
@@ -201,7 +202,7 @@ export class FinancialService {
 						const endDate = new Date(l.endDate)
 						const now = new Date()
 						const thirtyDaysFromNow = new Date(
-							now.getTime() + 30 * 24 * 60 * 60 * 1000
+							now.getTime() + THIRTY_DAYS_IN_MS
 						)
 						return endDate > now && endDate <= thirtyDaysFromNow
 					}).length
@@ -256,7 +257,7 @@ export class FinancialService {
 			const leaseList = leases || []
 			const now = new Date()
 			const thirtyDaysFromNow = new Date(
-				now.getTime() + 30 * 24 * 60 * 60 * 1000
+				now.getTime() + THIRTY_DAYS_IN_MS
 			)
 
 			// Calculate lease financial metrics

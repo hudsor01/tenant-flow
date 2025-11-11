@@ -26,6 +26,10 @@ import type { CreatePropertyInput } from '@repo/shared/types/backend-domain'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'RlsBoundaryTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 // ========================================
 // Multi-User Authentication Utilities
@@ -281,7 +285,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// Cross-User Property Isolation Tests
 	// ========================================
 
-	describe('Property Isolation', () => {
+	describeIfReady('Property Isolation', () => {
 		it("owner A cannot read owner B's properties", async () => {
 			// owner A tries to fetch owner B's property by ID
 			await expectNotFound(ownerA, `/api/v1/properties/${ownerBPropertyId}`)
@@ -329,7 +333,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// Role-Based Access Tests (Tenant vs owner)
 	// ========================================
 
-	describe('Role-Based Access', () => {
+	describeIfReady('Role-Based Access', () => {
 		it('tenant cannot create properties', async () => {
 			await expectForbidden(tenantA, '/api/v1/properties', {
 				method: 'POST',
@@ -368,7 +372,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// Payment Method Isolation Tests (PCI Compliance)
 	// ========================================
 
-	describe('Payment Method Isolation (PCI Compliance)', () => {
+	describeIfReady('Payment Method Isolation (PCI Compliance)', () => {
 		it("owner A cannot read owner B's payment methods", async () => {
 			// Get owner B's payment methods
 			const ownerBMethods = await fetchAsUser<{ paymentMethods: any[] }>(
@@ -427,7 +431,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// Tenant Data Isolation Tests
 	// ========================================
 
-	describe('Tenant Data Isolation', () => {
+	describeIfReady('Tenant Data Isolation', () => {
 		it("tenant A cannot read tenant B's profile", async () => {
 			// Get Tenant B's ID (assuming it's stored in user object)
 			const tenantBId = tenantB.user!.id
@@ -473,7 +477,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// Lease Data Isolation Tests
 	// ========================================
 
-	describe('Lease Data Isolation', () => {
+	describeIfReady('Lease Data Isolation', () => {
 		it("owner A cannot read owner B's leases", async () => {
 			// Get owner B's leases
 			const ownerBLeases = await fetchAsUser<{ leases: any[] }>(
@@ -509,7 +513,7 @@ describe.skip('RLS Boundary Tests', () => {
 	// Maintenance Request Isolation Tests
 	// ========================================
 
-	describe('Maintenance Request Isolation', () => {
+	describeIfReady('Maintenance Request Isolation', () => {
 		it("tenant A cannot read tenant B's maintenance requests", async () => {
 			// Get Tenant B's maintenance requests
 			const tenantBRequests = await fetchAsUser<{ requests: any[] }>(
