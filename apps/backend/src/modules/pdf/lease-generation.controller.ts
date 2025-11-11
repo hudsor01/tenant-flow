@@ -21,6 +21,7 @@ import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 
 // Filename sanitization constants
 const MAX_ADDRESS_LENGTH = 30 // Max characters for property address in filename
@@ -43,7 +44,8 @@ export class LeaseGenerationController {
 
 	constructor(
 		private readonly leasePDF: ReactLeasePDFService,
-		private readonly supabase: SupabaseService
+		private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService
 	) {}
 
 	/**
@@ -150,14 +152,18 @@ export class LeaseGenerationController {
 	 */
 	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:propertyId/:unitId/:tenantId')
-	// NOTE: Caching disabled - @CacheKey doesn't support per-property/per-user keys
-	// User-specific data cannot use global cache without exposing data across users
-	// Each property/unit/tenant combination would need unique cache key: lease-auto-fill:{propertyId}:{unitId}:{tenantId}
 	async autoFillLease(
 		@Param('propertyId', ParseUUIDPipe) propertyId: string,
 		@Param('unitId', ParseUUIDPipe) unitId: string,
 		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	): Promise<Partial<LeaseGenerationFormData>> {
+		// Check cache first with parameterized key
+		const cacheKey = `lease-auto-fill:${propertyId}:${unitId}:${tenantId}`
+		const cached = this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
+		if (cached) {
+			this.logger.debug(`Cache hit for auto-fill: ${cacheKey}`)
+			return cached
+		}
 
 		// OPTIMIZATION: Fetch property, unit, and tenant data in parallel with Promise.all
 		const [
@@ -298,6 +304,16 @@ export class LeaseGenerationController {
 			tenantResponsibleUtilities: ['Electric', 'Gas', 'Water', 'Internet']
 		}
 
+		// Cache the result for 30 seconds (short TTL for fresh data)
+		// Dependencies: invalidate when property, unit, or tenant data changes
+		this.cache.set(
+			cacheKey,
+			autoFilled,
+			30_000, // 30 seconds
+			[`property:${propertyId}`, `unit:${unitId}`, `user:${tenantId}`]
+		)
+
+		this.logger.debug(`Cached auto-fill data: ${cacheKey}`)
 		return autoFilled
 	}
 }

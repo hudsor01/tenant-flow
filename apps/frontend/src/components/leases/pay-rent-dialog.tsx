@@ -20,12 +20,10 @@ import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { useModalStore } from '#stores/modal-store'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCurrency } from '@repo/shared/utils/currency'
+import type { Lease } from '@repo/shared/types/core'
 import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import type { Tables } from '@repo/shared/types/supabase'
-
-type Lease = Tables<'lease'>
 
 interface PayRentDialogProps {
 	lease: Lease

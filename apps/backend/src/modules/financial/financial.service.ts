@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type {
+	ExpenseRecord,
 	FinancialMetrics,
 	Lease,
-	PropertyFinancialMetrics
+	MaintenanceRequest,
+	PropertyFinancialMetrics,
+	UnitStatus
 } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-
-type ExpenseRecord = Tables<'expense'>
 
 @Injectable()
 export class FinancialService {
@@ -121,7 +120,6 @@ export class FinancialService {
 				.select('id, status')
 				.in('propertyId', propertyIds)
 
-			type UnitStatus = Database['public']['Enums']['UnitStatus']
 			const unitRows = (units ?? []).map(unit => ({
 				id: unit.id,
 				status: unit.status as UnitStatus
@@ -142,13 +140,12 @@ export class FinancialService {
 
 			const leases = leasesData.data || []
 			const maintenanceRows = (maintenanceData.data ?? []) as Array<
-				Pick<MaintenanceRow, 'estimatedCost' | 'status'>
+				Pick<MaintenanceRequest, 'estimatedCost' | 'status'>
 			>
 
 			// Calculate stats
-			type LeaseRow = Database['public']['Tables']['lease']['Row']
 			const totalRevenue = leases.reduce(
-				(sum, lease: LeaseRow) => sum + (lease.rentAmount || 0),
+				(sum, lease: Lease) => sum + (lease.rentAmount || 0),
 				0
 			)
 			const expenses = await this.fetchExpenses(
@@ -161,8 +158,6 @@ export class FinancialService {
 				0
 			)
 			const netIncome = totalRevenue - totalExpenses
-			type MaintenanceRow =
-				Database['public']['Tables']['maintenance_request']['Row']
 			const occupancyRate =
 				unitRows.length > 0
 					? Math.round(
@@ -199,8 +194,8 @@ export class FinancialService {
 				},
 				leases: {
 					total: leases.length,
-					active: leases.filter((l: LeaseRow) => l.status === 'ACTIVE').length,
-					expiring: leases.filter((l: LeaseRow) => {
+					active: leases.filter((l: Lease) => l.status === 'ACTIVE').length,
+				expiring: leases.filter((l: Lease) => {
 						// Skip month-to-month leases (endDate is null)
 						if (!l.endDate) return false
 						const endDate = new Date(l.endDate)
@@ -265,9 +260,8 @@ export class FinancialService {
 			)
 
 			// Calculate lease financial metrics
-			type LeaseRow = Database['public']['Tables']['lease']['Row']
 			const totalRevenue = leaseList.reduce(
-				(sum, lease: LeaseRow) => sum + (lease.rentAmount || 0),
+				(sum, lease: Lease) => sum + (lease.rentAmount || 0),
 				0
 			)
 
@@ -275,7 +269,7 @@ export class FinancialService {
 				leaseList.length > 0 ? totalRevenue / leaseList.length : 0
 
 			// Calculate lease duration analytics
-			const totalDuration = leaseList.reduce((sum, lease: LeaseRow) => {
+			const totalDuration = leaseList.reduce((sum, lease: Lease) => {
 				// Skip month-to-month leases (endDate is null)
 				if (!lease.endDate) return sum
 				const start = new Date(lease.startDate)
@@ -291,12 +285,12 @@ export class FinancialService {
 			return {
 				summary: {
 					totalLeases: leaseList.length,
-					activeLeases: leaseList.filter((l: LeaseRow) => l.status === 'ACTIVE')
+					activeLeases: leaseList.filter((l: Lease) => l.status === 'ACTIVE')
 						.length,
 					expiredLeases: leaseList.filter(
-					(l: LeaseRow) => l.endDate && new Date(l.endDate) < now
+					(l: Lease) => l.endDate && new Date(l.endDate) < now
 				).length,
-					expiringSoon: leaseList.filter((l: LeaseRow) => {
+					expiringSoon: leaseList.filter((l: Lease) => {
 					if (!l.endDate) return false
 					const endDate = new Date(l.endDate)
 					return endDate > now && endDate <= thirtyDaysFromNow

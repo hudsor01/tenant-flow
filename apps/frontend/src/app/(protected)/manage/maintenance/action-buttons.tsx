@@ -13,7 +13,7 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '#components/ui/dialog'
-import type { Tables } from '@repo/shared/types/supabase-generated'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 import {
 	AlertTriangle,
 	Calendar,
@@ -25,8 +25,6 @@ import {
 	Wrench
 } from 'lucide-react'
 import { useState } from 'react'
-
-type MaintenanceRequest = Tables<'maintenance_request'>
 
 interface MaintenanceActionButtonsProps {
 	maintenance: MaintenanceRequest & {

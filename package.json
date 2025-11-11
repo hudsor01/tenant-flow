@@ -80,10 +80,10 @@
 		"@tailwindcss/oxide-wasm32-wasi": "4.1.16",
 		"lightningcss-linux-x64-gnu": "1.30.2",
 		"lightningcss-linux-x64-musl": "1.30.2",
-		"turbo-darwin-64": "2.6.0",
-		"turbo-darwin-arm64": "2.6.0",
-		"turbo-linux-64": "2.6.0",
-		"turbo-linux-arm64": "2.6.0"
+		"turbo-darwin-64": "2.6.1",
+		"turbo-darwin-arm64": "2.6.1",
+		"turbo-linux-64": "2.6.1",
+		"turbo-linux-arm64": "2.6.1"
 	},
 	"commitlint": {
 		"extends": [
@@ -112,7 +112,9 @@
 			"inflight": "npm:lru-cache@^11.2.2",
 			"lightningcss": "1.30.2",
 			"esbuild": "^0.25.12",
-			"validator": ">=13.15.20"
+			"validator": ">=13.15.20",
+			"@types/react": "19.2.2",
+			"@types/react-dom": "19.2.2"
 		}
 	},
 	"dependencies": {

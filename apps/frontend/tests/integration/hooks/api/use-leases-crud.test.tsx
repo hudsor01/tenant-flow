@@ -32,6 +32,9 @@ import type {
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseLeasesCrudTest' })
 import { clientFetch } from '#lib/api/client'
 
 const TEST_LEASE_PREFIX = 'TEST-CRUD'
@@ -158,7 +161,9 @@ describe('Leases CRUD Integration Tests', () => {
 			}
 		} catch (error) {
 			// Ignore sign-out errors in test cleanup
-			console.warn('Failed to sign out in afterAll:', error)
+			logger.warn('Failed to sign out in afterAll', {
+				metadata: { error: error instanceof Error ? error.message : String(error) }
+			})
 		}
 	})
 
@@ -174,7 +179,9 @@ describe('Leases CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/leases/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup lease ${id}:`, error)
+				logger.warn(`Failed to cleanup lease ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdLeaseIds = []
@@ -184,7 +191,9 @@ describe('Leases CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/tenants/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup tenant ${id}:`, error)
+				logger.warn(`Failed to cleanup tenant ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdTenantIds = []
@@ -194,7 +203,9 @@ describe('Leases CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/units/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup unit ${id}:`, error)
+				logger.warn(`Failed to cleanup unit ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdUnitIds = []
@@ -204,7 +215,9 @@ describe('Leases CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup property ${id}:`, error)
+				logger.warn(`Failed to cleanup property ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdPropertyIds = []

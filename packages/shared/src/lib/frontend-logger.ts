@@ -29,7 +29,11 @@ export interface LogEntry {
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 
 // Environment checks
-const isDevelopment = () => process.env.NODE_ENV === 'development'
+const isDevelopment = () => process.env["NODE_ENV"] === 'development'
+const devConsole: Partial<Console> | undefined =
+	typeof globalThis !== 'undefined'
+		? (globalThis['console'] as Console | undefined)
+		: undefined
 
 /**
  * Development-only console logger
@@ -48,21 +52,21 @@ const developmentConsoleFallback = (entry: LogEntry) => {
 	switch (entry.level) {
 		case 'DEBUG':
 		case 'INFO':
-			console.info(
+			devConsole?.info?.(
 				message,
 				entry.context?.metadata || '',
 				...(entry.args || [])
 			)
 			break
 		case 'WARN':
-			console.warn(
+			devConsole?.warn?.(
 				message,
 				entry.context?.metadata || '',
 				...(entry.args || [])
 			)
 			break
 		case 'ERROR':
-			console.error(
+			devConsole?.error?.(
 				message,
 				entry.context?.metadata || '',
 				...(entry.args || [])

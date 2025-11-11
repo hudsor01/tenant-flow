@@ -1,10 +1,7 @@
 import { RouteModal } from '#components/ui/route-modal'
 import { CreateTenantForm } from '#app/(protected)/tenant/create-tenant-form.client'
 import { serverFetch } from '#lib/api/server'
-import type { Tables } from '@repo/shared/types/supabase'
-
-type Property = Tables<'property'>
-type Unit = Tables<'unit'>
+import type { Property, Unit } from '@repo/shared/types/core'
 
 /**
  * New Tenant Modal (Intercepting Route)
