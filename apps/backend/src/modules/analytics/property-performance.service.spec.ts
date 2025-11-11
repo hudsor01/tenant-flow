@@ -84,8 +84,8 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 			// Setup mock responses
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties }) // get_property_performance
-				.mockResolvedValueOnce(mockTrends[0]) // get_property_performance_trends
+				.mockResolvedValueOnce({ data: mockProperties, error: null }) // get_property_performance
+				.mockResolvedValueOnce({ data: mockTrends[0]?.data, error: null }) // get_property_performance_trends
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -123,14 +123,12 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 			]
 
 			// Mock empty trend data (new property with no payment history)
-			const mockTrends = {
-				data: []
-			}
+			const mockTrends: [] = []
 
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce(mockTrends)
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -158,8 +156,8 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce({ data: null }) // Null trend data
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: null, error: null }) // Null trend data
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -195,23 +193,21 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				}
 			]
 
-			const mockTrends = {
-				data: [
-					{
-						property_id: 'prop-1',
-						current_month_revenue: 5000,
-						previous_month_revenue: 4800,
-						trend: 'up' as const,
-						trend_percentage: 4.2
-					}
-					// No trend data for prop-2
-				]
-			}
+			const mockTrends = [
+				{
+					property_id: 'prop-1',
+					current_month_revenue: 5000,
+					previous_month_revenue: 4800,
+					trend: 'up' as const,
+					trend_percentage: 4.2
+				}
+				// No trend data for prop-2
+			]
 
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce(mockTrends)
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -246,22 +242,20 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				}
 			]
 
-			const mockTrends = {
-				data: [
-					{
-						property_id: 'prop-1',
-						current_month_revenue: 10000,
-						previous_month_revenue: 9950, // 0.5% change
-						trend: 'stable' as const,
-						trend_percentage: 0 // Changes < 1% are considered stable
-					}
-				]
-			}
+			const mockTrends = [
+				{
+					property_id: 'prop-1',
+					current_month_revenue: 10000,
+					previous_month_revenue: 9950, // 0.5% change
+					trend: 'stable' as const,
+					trend_percentage: 0 // Changes < 1% are considered stable
+				}
+			]
 
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce(mockTrends)
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -276,8 +270,8 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 		it('should handle RPC errors gracefully and return empty array', async () => {
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ error: { message: 'Database error' } })
-				.mockResolvedValueOnce({ data: [] })
+				.mockResolvedValueOnce({ data: null, error: { message: 'Database error' } })
+				.mockResolvedValueOnce({ data: [], error: null })
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -286,12 +280,12 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 
 		it('should call both RPC functions in parallel', async () => {
 			const mockProperties = [{ propertyId: 'prop-1' }]
-			const mockTrends = { data: [] }
+			const mockTrends: [] = []
 
 			const rpcSpy = jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce(mockTrends)
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
 			await service.getPropertyPerformance(mockUserId)
 
@@ -331,22 +325,20 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				}
 			]
 
-			const mockTrends = {
-				data: [
-					{
-						property_id: 'prop-1',
-						current_month_revenue: 2000,
-						previous_month_revenue: 0, // No previous revenue
-						trend: 'stable' as const, // DB returns stable when prev = 0
-						trend_percentage: 0
-					}
-				]
-			}
+			const mockTrends = [
+				{
+					property_id: 'prop-1',
+					current_month_revenue: 2000,
+					previous_month_revenue: 0, // No previous revenue
+					trend: 'stable' as const, // DB returns stable when prev = 0
+					trend_percentage: 0
+				}
+			]
 
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce(mockTrends)
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
 			const result = await service.getPropertyPerformance(mockUserId)
 
@@ -371,22 +363,20 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				}
 			]
 
-			const mockTrends = {
-				data: [
-					{
-						property_id: 'prop-1',
-						current_month_revenue: 5000,
-						previous_month_revenue: 4500,
-						trend: 'up' as const,
-						trend_percentage: 11.1
-					}
-				]
-			}
+			const mockTrends = [
+				{
+					property_id: 'prop-1',
+					current_month_revenue: 5000,
+					previous_month_revenue: 4500,
+					trend: 'up' as const,
+					trend_percentage: 11.1
+				}
+			]
 
 			jest
 				.spyOn(supabaseService, 'rpcWithRetries')
-				.mockResolvedValueOnce({ data: mockProperties })
-				.mockResolvedValueOnce(mockTrends)
+				.mockResolvedValueOnce({ data: mockProperties, error: null })
+				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
 			const result = await service.getPropertyPerformance(mockUserId)
 

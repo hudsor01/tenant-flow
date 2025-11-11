@@ -7,6 +7,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Property, PropertyStats, PropertyPerformance } from '@repo/shared/types/core'
 
 /**
@@ -54,8 +55,7 @@ export const propertyQueries = {
 				const params = searchParams.toString()
 				return clientFetch<Property[]>(`/api/v1/properties${params ? `?${params}` : ''}`)
 			},
-			staleTime: 3 * 60 * 1000, // 3 minutes
-			gcTime: 10 * 60 * 1000, // 10 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -73,8 +73,7 @@ export const propertyQueries = {
 		queryOptions({
 			queryKey: [...propertyQueries.details(), id],
 			queryFn: () => clientFetch<Property>(`/api/v1/properties/${id}`),
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			gcTime: 10 * 60 * 1000, // 10 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
 
@@ -88,8 +87,8 @@ export const propertyQueries = {
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'stats'],
 			queryFn: () => clientFetch<PropertyStats>('/api/v1/properties/stats'),
-			staleTime: 5 * 60 * 1000,
-			gcTime: 30 * 60 * 1000, // 30 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 30 * 60 * 1000, // Keep 30 minutes for stats
 		}),
 
 	/**
@@ -103,7 +102,6 @@ export const propertyQueries = {
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'performance'],
 			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
-			staleTime: 5 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 }

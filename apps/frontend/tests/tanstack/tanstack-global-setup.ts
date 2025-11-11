@@ -109,28 +109,33 @@ async function globalSetup() {
 										key.startsWith('_reactInternalFiber')
 								)
 
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								if (reactKey && (rootElement as any)[reactKey]) {
-									return findQueryClient(
-										(rootElement as any)[reactKey] as FiberNode
-									)
-								}
+								if (reactKey && reactKey in rootElement) {
+							const element = rootElement as Record<string, unknown>
+							const fiberNode = element[reactKey]
+							if (fiberNode) {
+								return findQueryClient(fiberNode as FiberNode)
+							}
+						}
 							}
 							return null
 						}
 
 						// Method 3: Global window attachment (if app exposes it)
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						const windowAny = window as any
-						if (windowAny.queryClient) {
-							windowAny.__QUERY_CLIENT__ = windowAny.queryClient
+						interface WindowWithQueryClient extends Window {
+							queryClient?: unknown
+							__QUERY_CLIENT__?: unknown
+						}
+						const windowWithQueryClient = window as WindowWithQueryClient
+						if (windowWithQueryClient.queryClient) {
+							windowWithQueryClient.__QUERY_CLIENT__ =
+								windowWithQueryClient.queryClient
 							return
 						}
 
 						// Try React root method
 						const queryClient = findReactRoot()
 						if (queryClient) {
-							windowAny.__QUERY_CLIENT__ = queryClient
+							windowWithQueryClient.__QUERY_CLIENT__ = queryClient
 							return
 						}
 
@@ -144,13 +149,18 @@ async function globalSetup() {
 
 			// Also try after React has had time to initialize
 			setTimeout(() => {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const windowAny = window as any
-				if (!windowAny.__QUERY_CLIENT__) {
-					// eslint-disable-next-line no-console, no-restricted-syntax
-					console.log(
-						'⚠️  QueryClient not found, tests may have limited functionality'
-					)
+				interface WindowWithQueryClient extends Window {
+					__QUERY_CLIENT__?: unknown
+				}
+				const windowWithQueryClient = window as WindowWithQueryClient
+				if (!windowWithQueryClient.__QUERY_CLIENT__) {
+					// Log warning for test diagnostics
+					// Using console directly is intentional for test setup diagnostics
+					if (typeof console !== 'undefined' && console.warn) {
+						console.warn(
+							'⚠️  QueryClient not found, tests may have limited functionality'
+						)
+					}
 				}
 			}, 30)
 		})

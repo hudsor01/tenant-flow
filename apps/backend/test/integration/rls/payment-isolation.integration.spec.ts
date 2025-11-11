@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect, beforeAll } from '@jest/globals'
+import { Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import {
 	authenticateAs,
@@ -25,6 +26,7 @@ import {
 } from './setup'
 
 describe('RLS: Payment Isolation', () => {
+	const testLogger = new Logger('RLSPaymentIsolationTest')
 	let ownerA: AuthenticatedTestClient
 	let ownerB: AuthenticatedTestClient
 	let tenantA: AuthenticatedTestClient
@@ -65,7 +67,7 @@ describe('RLS: Payment Isolation', () => {
 			}
 		} catch (error) {
 			// Log but don't fail tests on cleanup errors
-			console.error('Cleanup error in payment-isolation tests:', error)
+			testLogger.error('Cleanup error in payment-isolation tests:', error as Error)
 		}
 	})
 

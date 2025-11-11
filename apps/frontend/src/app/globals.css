@@ -1314,7 +1314,8 @@
 		padding: 0.35rem 0.85rem;
 		font-size: var(--text-sm);
 		font-weight: var(--font-weight-medium);
-		transition: background-color var(--duration-200) var(--ease-out),
+		transition:
+			background-color var(--duration-200) var(--ease-out),
 			color var(--duration-200) var(--ease-out),
 			box-shadow var(--duration-200) var(--ease-out);
 	}

@@ -352,76 +352,76 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
-			<section className="section-compact bg-linear-to-r from-primary/2 via-background to-primary/2">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.2} inView>
-						<div className="text-center space-y-8">
-							{/* Press mentions and awards */}
-							<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
-								<div className="flex items-center space-x-2">
-									<Star className="size-4 fill-current text-accent" />
-									<span className="font-medium">
-										Featured in PropTech Today
-									</span>
+				<section className="section-compact bg-linear-to-r from-primary/2 via-background to-primary/2">
+					<div className="max-w-7xl mx-auto px-6 lg:px-8">
+						<BlurFade delay={0.2} inView>
+							<div className="text-center space-y-8">
+								{/* Press mentions and awards */}
+								<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
+									<div className="flex items-center space-x-2">
+										<Star className="size-4 fill-current text-accent" />
+										<span className="font-medium">
+											Featured in PropTech Today
+										</span>
+									</div>
+									<div className="flex items-center space-x-2">
+										<Badge variant="outline" className="text-xs">
+											SOC 2 Certified
+										</Badge>
+									</div>
+									<div className="flex items-center space-x-2">
+										<span className="font-medium">99.9% Uptime SLA</span>
+									</div>
 								</div>
-								<div className="flex items-center space-x-2">
-									<Badge variant="outline" className="text-xs">
-										SOC 2 Certified
-									</Badge>
-								</div>
-								<div className="flex items-center space-x-2">
-									<span className="font-medium">99.9% Uptime SLA</span>
-								</div>
-							</div>
 
-							{/* Rotating testimonial */}
-							<div className="max-w-4xl mx-auto">
-								<div className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50">
-									<>
-										<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
-											&quot;{t.quote}&quot;
-										</blockquote>
-										<div className="flex items-center justify-center space-x-4">
-											<Image
-												src={t.avatar}
-												alt={t.author}
-												width={48}
-												height={48}
-												className="size-12 rounded-full"
-											/>
-											<div className="text-left">
-												<div className="font-semibold text-foreground">
-													{t.author}
-												</div>
-												<div className="text-muted-foreground text-sm">
-													{t.title}, {t.company}
+								{/* Rotating testimonial */}
+								<div className="max-w-4xl mx-auto">
+									<div className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50">
+										<>
+											<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
+												&quot;{t.quote}&quot;
+											</blockquote>
+											<div className="flex items-center justify-center space-x-4">
+												<Image
+													src={t.avatar}
+													alt={t.author}
+													width={48}
+													height={48}
+													className="size-12 rounded-full"
+												/>
+												<div className="text-left">
+													<div className="font-semibold text-foreground">
+														{t.author}
+													</div>
+													<div className="text-muted-foreground text-sm">
+														{t.title}, {t.company}
+													</div>
 												</div>
 											</div>
-										</div>
-									</>
+										</>
 
-									{/* Testimonial dots */}
-									<div className="flex justify-center space-x-2 mt-6">
-										{testimonials.map((_, index) => (
-											<button
-										type="button"
-										key={index}
-										onClick={() => setCurrentTestimonial(index)}
-												className={cn(
-													'size-2 rounded-full transition-colors duration-300',
-													index === currentTestimonial
-														? 'bg-primary'
-														: 'bg-muted-foreground/30'
-												)}
-											/>
-										))}
+										{/* Testimonial dots */}
+										<div className="flex justify-center space-x-2 mt-6">
+											{testimonials.map((_, index) => (
+												<button
+													type="button"
+													key={index}
+													onClick={() => setCurrentTestimonial(index)}
+													className={cn(
+														'size-2 rounded-full transition-colors duration-300',
+														index === currentTestimonial
+															? 'bg-primary'
+															: 'bg-muted-foreground/30'
+													)}
+												/>
+											))}
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-					</BlurFade>
-				</div>
-			</section>
+						</BlurFade>
+					</div>
+				</section>
 			</LazySection>
 
 			{/* Canonical Bento features grid - Removed: Component deleted during refactoring */}
@@ -431,188 +431,190 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={600} variant="grid" />}
 				minHeight={600}
 			>
-			<section className="section-content">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.3} inView>
-						<div className="text-center mb-16 space-y-6">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-								Your 3-step transformation to{' '}
-								<span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-									maximum profitability
-								</span>
-							</h2>
-							<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
-								See how property managers systematically transform their
-								portfolios with our proven methodology
-							</p>
-						</div>
-
-						{/* Horizontal transformation cards */}
-						<div className="grid md:grid-cols-3 gap-8 relative">
-							{/* Connection lines for desktop */}
-							<div className="hidden md:block absolute top-24 left-1/2 transform translate-x-[-50%] w-full max-w-4xl">
-								<div className="flex items-center justify-between px-16">
-									<ChevronRight className="size-6 text-primary/40" />
-									<ChevronRight className="size-6 text-primary/40" />
-								</div>
+				<section className="section-content">
+					<div className="max-w-7xl mx-auto px-6 lg:px-8">
+						<BlurFade delay={0.3} inView>
+							<div className="text-center mb-16 space-y-6">
+								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+									Your 3-step transformation to{' '}
+									<span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
+										maximum profitability
+									</span>
+								</h2>
+								<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
+									See how property managers systematically transform their
+									portfolios with our proven methodology
+								</p>
 							</div>
 
-							{/* Step 1: Fill Units Faster */}
-							<div className="group relative">
-								<div className="bg-linear-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-									{/* Step indicator */}
-									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-										Step 1
+							{/* Horizontal transformation cards */}
+							<div className="grid md:grid-cols-3 gap-8 relative">
+								{/* Connection lines for desktop */}
+								<div className="hidden md:block absolute top-24 left-1/2 transform translate-x-[-50%] w-full max-w-4xl">
+									<div className="flex items-center justify-between px-16">
+										<ChevronRight className="size-6 text-primary/40" />
+										<ChevronRight className="size-6 text-primary/40" />
 									</div>
+								</div>
 
-									{/* Icon with enhanced visual metaphor */}
-									<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<TrendingUp className="size-8 text-primary-foreground" />
-									</div>
-
-									<h3 className="font-bold text-foreground mb-4 text-xl">
-										Fill Units Faster
-									</h3>
-									<p className="text-muted-foreground mb-6 leading-relaxed">
-										Smart tenant screening and automated marketing reduce
-										vacancy time by 65%
-									</p>
-
-									{/* Key metric highlight */}
-									<div
-										className={cn(
-											'rounded-xl border p-4 mb-4 transition-colors',
-											'bg-card/50',
-											'dark:bg-muted/50',
-											'border-accent/25'
-										)}
-									>
-										<div className="text-2xl font-bold text-accent">65%</div>
-										<div className="text-sm text-muted-foreground">
-											Faster unit filling
+								{/* Step 1: Fill Units Faster */}
+								<div className="group relative">
+									<div className="bg-linear-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+										{/* Step indicator */}
+										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
+											Step 1
 										</div>
-									</div>
 
-									<ul className="space-y-2 text-sm">
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											AI-powered tenant screening
-										</li>
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Automated listing syndication
-										</li>
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Quality tenant matching
-										</li>
-									</ul>
-								</div>
-							</div>
-
-							{/* Step 2: Automate Tasks */}
-							<div className="group relative">
-								<div className="bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-										Step 2
-									</div>
-
-									<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Zap className="size-8 text-primary-foreground" />
-									</div>
-
-									<h3 className="font-bold text-foreground mb-4 text-xl">
-										Automate Operations
-									</h3>
-									<p className="text-muted-foreground mb-6 leading-relaxed">
-										Intelligent workflows handle 80% of daily tasks
-										automatically
-									</p>
-
-									<div
-										className={cn(
-											'rounded-xl border p-4 mb-4 transition-colors',
-											'bg-card/50',
-											'dark:bg-muted/50',
-											'border-primary/25'
-										)}
-									>
-										<div className="text-2xl font-bold text-primary">25+</div>
-										<div className="text-sm text-muted-foreground">
-											Hours saved per week
+										{/* Icon with enhanced visual metaphor */}
+										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+											<TrendingUp className="size-8 text-primary-foreground" />
 										</div>
-									</div>
 
-									<ul className="space-y-2 text-sm">
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Automated rent collection
-										</li>
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Smart lease renewals
-										</li>
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Maintenance coordination
-										</li>
-									</ul>
-								</div>
-							</div>
+										<h3 className="font-bold text-foreground mb-4 text-xl">
+											Fill Units Faster
+										</h3>
+										<p className="text-muted-foreground mb-6 leading-relaxed">
+											Smart tenant screening and automated marketing reduce
+											vacancy time by 65%
+										</p>
 
-							{/* Step 3: Secure Data */}
-							<div className="group relative">
-								<div className="bg-linear-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-									<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-										Step 3
-									</div>
-
-									<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Shield className="size-8 text-primary-foreground" />
-									</div>
-
-									<h3 className="font-bold text-foreground mb-4 text-xl">
-										Secure Everything
-									</h3>
-									<p className="text-muted-foreground mb-6 leading-relaxed">
-										Enterprise-grade security protects your data and ensures
-										compliance
-									</p>
-
-									<div
-										className={cn(
-											'rounded-xl border p-4 mb-4 transition-colors',
-											'bg-card/50',
-											'dark:bg-muted/50',
-											'border-border'
-										)}
-									>
-										<div className="text-2xl font-bold text-primary">SOC 2</div>
-										<div className="text-sm text-muted-foreground">
-											Type II Certified
+										{/* Key metric highlight */}
+										<div
+											className={cn(
+												'rounded-xl border p-4 mb-4 transition-colors',
+												'bg-card/50',
+												'dark:bg-muted/50',
+												'border-accent/25'
+											)}
+										>
+											<div className="text-2xl font-bold text-accent">65%</div>
+											<div className="text-sm text-muted-foreground">
+												Faster unit filling
+											</div>
 										</div>
-									</div>
 
-									<ul className="space-y-2 text-sm">
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											256-bit SSL encryption
-										</li>
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Role-based access control
-										</li>
-										<li className="flex items-center">
-											<Check className="size-4 text-primary mr-3 shrink-0" />
-											Regular security audits
-										</li>
-									</ul>
+										<ul className="space-y-2 text-sm">
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												AI-powered tenant screening
+											</li>
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Automated listing syndication
+											</li>
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Quality tenant matching
+											</li>
+										</ul>
+									</div>
+								</div>
+
+								{/* Step 2: Automate Tasks */}
+								<div className="group relative">
+									<div className="bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
+											Step 2
+										</div>
+
+										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+											<Zap className="size-8 text-primary-foreground" />
+										</div>
+
+										<h3 className="font-bold text-foreground mb-4 text-xl">
+											Automate Operations
+										</h3>
+										<p className="text-muted-foreground mb-6 leading-relaxed">
+											Intelligent workflows handle 80% of daily tasks
+											automatically
+										</p>
+
+										<div
+											className={cn(
+												'rounded-xl border p-4 mb-4 transition-colors',
+												'bg-card/50',
+												'dark:bg-muted/50',
+												'border-primary/25'
+											)}
+										>
+											<div className="text-2xl font-bold text-primary">25+</div>
+											<div className="text-sm text-muted-foreground">
+												Hours saved per week
+											</div>
+										</div>
+
+										<ul className="space-y-2 text-sm">
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Automated rent collection
+											</li>
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Smart lease renewals
+											</li>
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Maintenance coordination
+											</li>
+										</ul>
+									</div>
+								</div>
+
+								{/* Step 3: Secure Data */}
+								<div className="group relative">
+									<div className="bg-linear-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
+											Step 3
+										</div>
+
+										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+											<Shield className="size-8 text-primary-foreground" />
+										</div>
+
+										<h3 className="font-bold text-foreground mb-4 text-xl">
+											Secure Everything
+										</h3>
+										<p className="text-muted-foreground mb-6 leading-relaxed">
+											Enterprise-grade security protects your data and ensures
+											compliance
+										</p>
+
+										<div
+											className={cn(
+												'rounded-xl border p-4 mb-4 transition-colors',
+												'bg-card/50',
+												'dark:bg-muted/50',
+												'border-border'
+											)}
+										>
+											<div className="text-2xl font-bold text-primary">
+												SOC 2
+											</div>
+											<div className="text-sm text-muted-foreground">
+												Type II Certified
+											</div>
+										</div>
+
+										<ul className="space-y-2 text-sm">
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												256-bit SSL encryption
+											</li>
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Role-based access control
+											</li>
+											<li className="flex items-center">
+												<Check className="size-4 text-primary mr-3 shrink-0" />
+												Regular security audits
+											</li>
+										</ul>
+									</div>
 								</div>
 							</div>
-						</div>
-					</BlurFade>
-				</div>
-			</section>
+						</BlurFade>
+					</div>
+				</section>
 			</LazySection>
 
 			{/* Results Proof Section */}
@@ -620,66 +622,68 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={500} variant="grid" />}
 				minHeight={500}
 			>
-			<section className="section-content bg-linear-to-br from-primary/2 via-background to-accent/2">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.4} inView>
-						<div className="text-center mb-16">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
-								Real results from real property managers
-							</h2>
-							<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-								Our customers consistently achieve these results within 90 days
-								of implementation
-							</p>
-						</div>
-
-						{/* Results grid with enhanced visual design */}
-						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-							<div className="text-center group">
-								<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<TrendingUp className="size-10 text-primary-foreground" />
-								</div>
-								<div className="text-4xl font-bold text-foreground mb-2">
-									40%
-								</div>
-								<div className="text-muted-foreground">
-									Average NOI increase
-								</div>
+				<section className="section-content bg-linear-to-br from-primary/2 via-background to-accent/2">
+					<div className="max-w-7xl mx-auto px-6 lg:px-8">
+						<BlurFade delay={0.4} inView>
+							<div className="text-center mb-16">
+								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
+									Real results from real property managers
+								</h2>
+								<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+									Our customers consistently achieve these results within 90
+									days of implementation
+								</p>
 							</div>
 
-							<div className="text-center group">
-								<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<Clock className="size-10 text-primary-foreground" />
+							{/* Results grid with enhanced visual design */}
+							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+								<div className="text-center group">
+									<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<TrendingUp className="size-10 text-primary-foreground" />
+									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">
+										40%
+									</div>
+									<div className="text-muted-foreground">
+										Average NOI increase
+									</div>
 								</div>
-								<div className="text-4xl font-bold text-foreground mb-2">
-									25+
-								</div>
-								<div className="text-muted-foreground">Hours saved weekly</div>
-							</div>
 
-							<div className="text-center group">
-								<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<Users className="size-10 text-primary-foreground" />
+								<div className="text-center group">
+									<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Clock className="size-10 text-primary-foreground" />
+									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">
+										25+
+									</div>
+									<div className="text-muted-foreground">
+										Hours saved weekly
+									</div>
 								</div>
-								<div className="text-4xl font-bold text-foreground mb-2">
-									10K+
-								</div>
-								<div className="text-muted-foreground">Happy customers</div>
-							</div>
 
-							<div className="text-center group">
-								<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-									<BarChart3 className="size-10 text-primary-foreground" />
+								<div className="text-center group">
+									<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Users className="size-10 text-primary-foreground" />
+									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">
+										10K+
+									</div>
+									<div className="text-muted-foreground">Happy customers</div>
 								</div>
-								<div className="text-4xl font-bold text-foreground mb-2">
-									90
+
+								<div className="text-center group">
+									<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<BarChart3 className="size-10 text-primary-foreground" />
+									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">
+										90
+									</div>
+									<div className="text-muted-foreground">Days to ROI</div>
 								</div>
-								<div className="text-muted-foreground">Days to ROI</div>
 							</div>
-						</div>
-					</BlurFade>
-				</div>
-			</section>
+						</BlurFade>
+					</div>
+				</section>
 			</LazySection>
 
 			{/* Final CTA Section with Enhanced Design */}
@@ -687,79 +691,79 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
-			<section className="section-content relative overflow-hidden">
-				{/* Enhanced background */}
-				<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)/0.1),transparent_70%)]" />
-				</div>
+				<section className="section-content relative overflow-hidden">
+					{/* Enhanced background */}
+					<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
+						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)/0.1),transparent_70%)]" />
+					</div>
 
-				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
-					<BlurFade delay={0.5} inView>
-						<div className="text-center space-y-8">
-							<h2 className="font-bold tracking-tight leading-tight">
-								Start your transformation{' '}
-								<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
-									today
-								</span>
-							</h2>
+					<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
+						<BlurFade delay={0.5} inView>
+							<div className="text-center space-y-8">
+								<h2 className="font-bold tracking-tight leading-tight">
+									Start your transformation{' '}
+									<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
+										today
+									</span>
+								</h2>
 
-							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-								Join 10,000+ property managers who&apos;ve transformed their
-								portfolios with TenantFlow.
-								<span className="block mt-2 text-foreground font-semibold">
-									ROI guaranteed in 90 days or your money back.
-								</span>
-							</p>
+								<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
+									Join 10,000+ property managers who&apos;ve transformed their
+									portfolios with TenantFlow.
+									<span className="block mt-2 text-foreground font-semibold">
+										ROI guaranteed in 90 days or your money back.
+									</span>
+								</p>
 
-							<div className="flex flex-col sm:flex-row gap-6 justify-center">
-								<Button
-									size="lg"
-									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
-									asChild
-								>
-									<Link href="/signup" aria-label="Start free trial">
-										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
-										<span className="relative z-10 flex items-center">
-											Start Free Trial
-											<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
-										</span>
-									</Link>
-								</Button>
-								<Button
-									variant="outline"
-									size="lg"
-									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-10 py-5 transition-all duration-300"
-									asChild
-								>
-									<Link href="/contact" aria-label="Schedule demo">
-										<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
-										Schedule Demo
-									</Link>
-								</Button>
+								<div className="flex flex-col sm:flex-row gap-6 justify-center">
+									<Button
+										size="lg"
+										className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
+										asChild
+									>
+										<Link href="/signup" aria-label="Start free trial">
+											<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
+											<span className="relative z-10 flex items-center">
+												Start Free Trial
+												<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
+											</span>
+										</Link>
+									</Button>
+									<Button
+										variant="outline"
+										size="lg"
+										className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-10 py-5 transition-all duration-300"
+										asChild
+									>
+										<Link href="/contact" aria-label="Schedule demo">
+											<ArrowRight className="size-5 mr-3 opacity-70 group-hover:opacity-100" />
+											Schedule Demo
+										</Link>
+									</Button>
+								</div>
+
+								<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 text-sm font-medium">
+									<div className="flex items-center">
+										<Check className="size-4 text-primary mr-2" />
+										No setup fees
+									</div>
+									<div className="flex items-center">
+										<Check className="size-4 text-primary mr-2" />
+										Enterprise security
+									</div>
+									<div className="flex items-center">
+										<Check className="size-4 text-primary mr-2" />
+										99.9% uptime SLA
+									</div>
+									<div className="flex items-center">
+										<Check className="size-4 text-primary mr-2" />
+										Cancel anytime
+									</div>
+								</div>
 							</div>
-
-							<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 text-sm font-medium">
-								<div className="flex items-center">
-									<Check className="size-4 text-primary mr-2" />
-									No setup fees
-								</div>
-								<div className="flex items-center">
-									<Check className="size-4 text-primary mr-2" />
-									Enterprise security
-								</div>
-								<div className="flex items-center">
-									<Check className="size-4 text-primary mr-2" />
-									99.9% uptime SLA
-								</div>
-								<div className="flex items-center">
-									<Check className="size-4 text-primary mr-2" />
-									Cancel anytime
-								</div>
-							</div>
-						</div>
-					</BlurFade>
-				</div>
-			</section>
+						</BlurFade>
+					</div>
+				</section>
 			</LazySection>
 
 			<Footer />

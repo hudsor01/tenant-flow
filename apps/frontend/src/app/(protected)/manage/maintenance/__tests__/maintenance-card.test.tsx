@@ -5,7 +5,8 @@
  * @jest-environment jsdom
  */
 
-import { DEFAULT_MAINTENANCE_REQUEST, render, screen } from '#test/utils'
+import { render, screen } from '#test/utils/test-render'
+import { DEFAULT_MAINTENANCE_REQUEST } from '#test/utils/test-data'
 
 import { MaintenanceCard } from '../maintenance-card'
 

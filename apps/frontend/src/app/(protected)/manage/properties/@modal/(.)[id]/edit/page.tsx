@@ -37,10 +37,14 @@ export default async function EditPropertyModal({
 		}
 
 		return (
-			<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+			<RouteModal
+				modalId={`edit-property-${id}`}
+				className="max-w-3xl max-h-[90vh] overflow-y-auto"
+			>
 				<PropertyForm
 					mode="edit"
 					property={property}
+					modalId={`edit-property-${id}`}
 					showSuccessState={false}
 				/>
 			</RouteModal>
