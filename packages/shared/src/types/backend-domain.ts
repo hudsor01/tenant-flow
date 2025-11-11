@@ -5,9 +5,36 @@
  * Merged from: backend.ts, router.ts, database.ts, and other backend files
  */
 
-import type { Request, Response } from 'express'
-import type { ServiceHealth } from './health.js'
 import type { Database } from './supabase-generated.js'
+import type { Request, Response } from 'express'
+import type { HttpMethod } from './core.js'
+import type { ServiceHealth } from './health.js'
+import type {
+	CreatePropertyRequest,
+	UpdatePropertyRequest,
+	CreateUnitRequest,
+	UpdateUnitRequest,
+	CreateTenantRequest,
+	UpdateTenantRequest,
+	CreateLeaseRequest,
+	UpdateLeaseRequest,
+	CreateMaintenanceRequest,
+	UpdateMaintenanceRequest
+} from './api-contracts.js'
+
+// Re-export request types for backward compatibility
+export type {
+	CreatePropertyRequest,
+	UpdatePropertyRequest,
+	CreateUnitRequest,
+	UpdateUnitRequest,
+	CreateTenantRequest,
+	UpdateTenantRequest,
+	CreateLeaseRequest,
+	UpdateLeaseRequest,
+	CreateMaintenanceRequest,
+	UpdateMaintenanceRequest
+}
 
 export interface TypeProvider {
 	output: Record<string, unknown>
@@ -76,66 +103,6 @@ export interface UserProfileResponse {
 	updatedAt: string
 }
 
-export interface CreatePropertyRequest {
-	name: string
-	address: string
-	city: string
-	state: string
-	zipCode: string
-	propertyType:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_UNIT'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
-		| 'OTHER'
-	unitCount?: number
-	description?: string
-	amenities?: string[]
-	imageUrl?: string
-}
-
-export interface UpdatePropertyRequest {
-	name?: string
-	address?: string
-	city?: string
-	state?: string
-	zipCode?: string
-	unitCount?: number
-	description?: string
-	propertyType?:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_UNIT'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
-		| 'OTHER'
-	amenities?: string[]
-	imageUrl?: string
-
-	// Optional version for optimistic locking from frontend inline edits
-	version?: number
-}
-
-export interface PropertyQueryRequest {
-	search?: string
-	type?:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_UNIT'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
-	city?: string
-	state?: string
-	limit?: number
-	offset?: number
-	sortBy?: 'name' | 'address' | 'unitCount' | 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-}
-
 /**
  * Lease input for service layer operations
  * Centralized type to avoid inline definitions
@@ -148,191 +115,6 @@ export interface LeaseInput {
 	rentAmount: number
 	securityDeposit?: number
 	status: Database['public']['Enums']['LeaseStatus']
-}
-
-// Unit types
-export interface CreateUnitRequest {
-	propertyId: string
-	unitNumber: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	rentAmount?: number
-	isAvailable?: boolean
-	rent?: number
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-}
-
-export interface UpdateUnitRequest {
-	unitNumber?: string
-	bedrooms?: number
-	bathrooms?: number
-	squareFeet?: number
-	rentAmount?: number
-	isAvailable?: boolean
-	rent?: number
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-}
-
-export interface UnitQueryRequest {
-	propertyId?: string
-	isAvailable?: boolean
-	minRent?: number
-	maxRent?: number
-	bedrooms?: number
-	bathrooms?: number
-	sortBy?:
-		| 'unitNumber'
-		| 'rentAmount'
-		| 'squareFeet'
-		| 'bedrooms'
-		| 'bathrooms'
-		| 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-	pageSize?: number
-	page?: number
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-}
-
-// Lease types
-export interface CreateLeaseRequest {
-	tenant: {
-		email: string
-		firstName: string
-		lastName: string
-	}
-	unitId: string
-	startDate: string
-	endDate: string
-	monthlyRent: number
-	securityDeposit: number
-	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-}
-
-export interface UpdateLeaseRequest {
-	startDate?: string
-	endDate?: string
-	monthlyRent?: number
-	securityDeposit?: number
-	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-}
-
-export interface LeaseQueryRequest {
-	tenantId?: string
-	unitId?: string
-	propertyId?: string
-	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
-	limit?: number
-	offset?: number
-	sortBy?: 'startDate' | 'endDate' | 'monthlyRent' | 'createdAt'
-	sortOrder?: 'asc' | 'desc'
-}
-
-// MaintenanceCategory from database enums (Database already imported above)
-type MaintenanceCategory = Database['public']['Enums']['MaintenanceCategory']
-
-export interface CreateMaintenanceRequest {
-	unitId: string
-	title: string
-	description: string
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category?: MaintenanceCategory
-	scheduledDate?: string
-	estimatedCost?: number
-	photos?: string[]
-	allowEntry?: boolean
-	contactPhone?: string
-	notes?: string | null
-}
-
-export interface UpdateMaintenanceRequest {
-	title?: string
-	description?: string
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category?: MaintenanceCategory
-	status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-	scheduledDate?: string
-	completedDate?: string
-	estimatedCost?: number
-	actualCost?: number
-	notes?: string
-	allowEntry?: boolean
-	contactPhone?: string
-}
-
-export interface MaintenanceQueryRequest {
-	unitId?: string
-	propertyId?: string
-	status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
-	priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category?: MaintenanceCategory
-	limit?: number
-	offset?: number
-	sortBy?: 'createdAt' | 'scheduledDate' | 'priority' | 'status'
-	sortOrder?: 'asc' | 'desc'
-}
-
-// Tenant types
-export interface CreateTenantRequest {
-	firstName?: string
-	lastName?: string
-	email: string
-	phone?: string
-	dateOfBirth?: string
-	ssn?: string
-	name?: string
-	emergencyContact?: string
-	avatarUrl?: string
-}
-
-/**
- * ✅ NEW: Complete tenant invitation with lease (Industry Standard - Phase 3.1)
- * Creates tenant + lease + sends Supabase Auth invitation in one atomic operation
- */
-export interface InviteTenantWithLeaseRequest {
-	tenantData: {
-		email: string
-		firstName: string
-		lastName: string
-		phone?: string
-	}
-	leaseData: {
-		propertyId: string
-		unitId?: string
-		rentAmount: number
-		securityDeposit: number
-		startDate: string
-		endDate: string
-	}
-}
-
-export interface InviteTenantWithLeaseResponse {
-	success: boolean
-	tenantId: string
-	leaseId: string
-	authUserId: string
-	message: string
-}
-
-export interface UpdateTenantRequest {
-	firstName?: string
-	lastName?: string
-	email?: string
-	phone?: string
-	dateOfBirth?: string
-	name?: string
-	emergencyContact?: string
-}
-
-export interface TenantQueryRequest {
-	search?: string
-	email?: string
-	phone?: string
-	limit?: number
-	offset?: number
-	sortBy?: 'firstName' | 'lastName' | 'email' | 'createdAt'
 }
 
 // SECURITY TYPES
@@ -838,15 +620,6 @@ export interface PaymentSucceededEvent extends BaseSubscriptionEvent {
 }
 
 // REGISTERED ROUTE SCHEMA
-
-export type HttpMethod =
-	| 'GET'
-	| 'POST'
-	| 'PUT'
-	| 'PATCH'
-	| 'DELETE'
-	| 'HEAD'
-	| 'OPTIONS'
 
 export interface RegisteredRouteSchema {
 	method: HttpMethod
