@@ -21,6 +21,45 @@ import { useModalStore } from '#stores/modal-store'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 
 const logger = createLogger({ component: 'PropertyBulkImportDialog' })
+const CSV_TEMPLATE_HEADERS = [
+	'name',
+	'address',
+	'city',
+	'state',
+	'zipCode',
+	'propertyType',
+	'description'
+] as const
+const CSV_TEMPLATE_SAMPLE_ROWS = [
+	[
+		'Sample Property 1',
+		'123 Main St',
+		'San Francisco',
+		'CA',
+		'94105',
+		'APARTMENT',
+		'Modern apartment building'
+	],
+	[
+		'Sample Property 2',
+		'456 Oak Ave',
+		'Los Angeles',
+		'CA',
+		'90001',
+		'SINGLE_FAMILY',
+		'Single family home'
+	]
+] as const
+const CSV_ACCEPTED_MIME_TYPES = ['text/csv', 'application/csv']
+const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
+const CSV_TEMPLATE_FILENAME = 'property-import-template.csv'
+
+type BulkImportResult = {
+	success: boolean
+	imported: number
+	failed: number
+	errors: Array<{ row: number; error: string }>
+}
 
 export function PropertyBulkImportDialog() {
 	const router = useRouter()
@@ -33,24 +72,14 @@ export function PropertyBulkImportDialog() {
 	} = useModalStore()
 	const [file, setFile] = useState<File | null>(null)
 	const queryClient = useQueryClient()
-	const [result, setResult] = useState<{
-		success: boolean
-		imported: number
-		failed: number
-		errors: Array<{ row: number; error: string }>
-	} | null>(null)
+	const [result, setResult] = useState<BulkImportResult | null>(null)
 
 	const bulkImportMutation = useMutation({
 		mutationFn: async (uploadFile: File) => {
 			const formData = new FormData()
 			formData.append('file', uploadFile)
 
-			return clientFetch<{
-				success: boolean
-				imported: number
-				failed: number
-				errors: Array<{ row: number; error: string }>
-			}>('/api/v1/properties/bulk-import', {
+			return clientFetch<BulkImportResult>('/api/v1/properties/bulk-import', {
 				method: 'POST',
 				body: formData,
 				omitJsonContentType: true
@@ -91,21 +120,14 @@ export function PropertyBulkImportDialog() {
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selectedFile = e.target.files?.[0]
 		if (selectedFile) {
-			// Validate file type
-			const validTypes = ['text/csv', 'application/csv']
-			if (
-				!validTypes.includes(selectedFile.type) &&
-				!selectedFile.name.endsWith('.csv')
-			) {
-				logger.warn('Invalid file type selected', { type: selectedFile.type })
-				alert('Please select a CSV file (.csv)')
-				return
-			}
-
-			// Validate file size (5MB max)
-			if (selectedFile.size > 5 * 1024 * 1024) {
-				logger.warn('File too large', { size: selectedFile.size })
-				alert('File size must be less than 5MB')
+			const validationError = getFileValidationError(selectedFile)
+			if (validationError) {
+				logger.warn('Invalid CSV file selected', {
+					type: selectedFile.type,
+					size: selectedFile.size,
+					validationError
+				})
+				alert(validationError)
 				return
 			}
 
@@ -141,116 +163,14 @@ export function PropertyBulkImportDialog() {
 			}
 		} catch (error) {
 			logger.error('Bulk import failed', { error })
-
-			let errorMessage = 'Failed to import properties. Please try again.'
-
-			// Use structured error codes instead of string matching
-			if (isApiError(error)) {
-				const backendCode = getBackendErrorCode(error.details)
-
-				if (backendCode) {
-					switch (backendCode) {
-						case BUSINESS_ERROR_CODES.NETWORK_ERROR:
-						case BUSINESS_ERROR_CODES.CORS_ERROR:
-							errorMessage =
-								'Network error. Please check your connection and try again.'
-							break
-						case BUSINESS_ERROR_CODES.INVALID_FILE_TYPE:
-							errorMessage = 'Invalid file type. Please upload a CSV file.'
-							break
-						case BUSINESS_ERROR_CODES.NO_FILE_UPLOADED:
-							errorMessage = 'No file was uploaded. Please select a file.'
-							break
-						case BUSINESS_ERROR_CODES.FILE_TOO_LARGE:
-							errorMessage = 'File is too large. Maximum size is 5MB.'
-							break
-						case BUSINESS_ERROR_CODES.INVALID_CSV_FORMAT:
-							errorMessage =
-								'Invalid CSV format. Please check your file and try again.'
-							break
-						case BUSINESS_ERROR_CODES.CSV_MISSING_REQUIRED_COLUMNS:
-							errorMessage =
-								'CSV is missing required columns. Please download the template and try again.'
-							break
-						default:
-							errorMessage = error.message
-					}
-				} else {
-					switch (error.code) {
-						case ApiErrorCode.NETWORK_ERROR:
-						case ApiErrorCode.NETWORK_TIMEOUT:
-						case ApiErrorCode.NETWORK_OFFLINE:
-							errorMessage =
-								'Network error. Please check your connection and try again.'
-							break
-						case ApiErrorCode.API_RATE_LIMITED:
-							errorMessage =
-								'Too many requests. Please wait a moment and try again.'
-							break
-						default:
-							errorMessage = error.message
-					}
-				}
-			} else if (error instanceof Error) {
-				// Fallback for non-API errors (network failures, etc.)
-				errorMessage = error.message
-			}
-
+			const errorMessage = getErrorMessage(error)
 			alert(errorMessage)
 		}
 	}
 
 	const downloadTemplate = () => {
-		// Create sample CSV template (native browser APIs)
-		const headers = [
-			'name',
-			'address',
-			'city',
-			'state',
-			'zipCode',
-			'propertyType',
-			'description'
-		]
-
-		const sampleRows = [
-			[
-				'Sample Property 1',
-				'123 Main St',
-				'San Francisco',
-				'CA',
-				'94105',
-				'APARTMENT',
-				'Modern apartment building'
-			],
-			[
-				'Sample Property 2',
-				'456 Oak Ave',
-				'Los Angeles',
-				'CA',
-				'90001',
-				'SINGLE_FAMILY',
-				'Single family home'
-			]
-		]
-
-		// Convert to CSV format
-		const csvContent = [
-			headers.join(','),
-			...sampleRows.map(row => row.map(cell => `"${cell}"`).join(','))
-		].join('\n')
-
-		// Create download
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-
-		link.setAttribute('href', url)
-		link.setAttribute('download', 'property-import-template.csv')
-		link.style.visibility = 'hidden'
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-
+		const csvContent = buildCsvTemplate(CSV_TEMPLATE_HEADERS, CSV_TEMPLATE_SAMPLE_ROWS)
+		triggerCsvDownload(csvContent, CSV_TEMPLATE_FILENAME)
 		logger.info('CSV template downloaded')
 	}
 
@@ -311,48 +231,7 @@ export function PropertyBulkImportDialog() {
 							</div>
 						</div>
 
-						{/* Result Display */}
-						{result && (
-							<div
-								className={`p-4 rounded-lg border ${
-									result.success
-										? 'bg-success/5 border-success/20'
-										: 'bg-destructive/5 border-destructive/20'
-								}`}
-							>
-								<div className="flex items-start gap-3">
-									{result.success ? (
-										<CheckCircle2 className="size-5 text-success mt-0.5" />
-									) : (
-										<AlertCircle className="size-5 text-destructive mt-0.5" />
-									)}
-									<div className="flex-1">
-										<p className="font-medium text-sm">
-											{result.success ? 'Import Complete' : 'Import Failed'}
-										</p>
-										<p className="text-sm text-muted-foreground">
-											{result.imported > 0 &&
-												`${result.imported} properties imported`}
-											{result.failed > 0 && ` • ${result.failed} failed`}
-										</p>
-										{result.errors.length > 0 && (
-											<details className="mt-2">
-												<summary className="text-xs cursor-pointer text-destructive">
-													View errors ({result.errors.length})
-												</summary>
-												<div className="mt-2 max-h-32 overflow-y-auto space-y-1">
-													{result.errors.map((err, idx) => (
-														<p key={idx} className="text-xs text-destructive/80">
-															Row {err.row}: {err.error}
-														</p>
-													))}
-												</div>
-											</details>
-										)}
-									</div>
-								</div>
-							</div>
-						)}
+						<BulkImportResultPanel result={result} />
 
 						{/* Quick Instructions */}
 						<div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
@@ -390,6 +269,25 @@ export function PropertyBulkImportDialog() {
 	)
 }
 
+const DEFAULT_ERROR_MESSAGE = 'Failed to import properties. Please try again.'
+
+function getErrorMessage(error: unknown): string {
+	if (!isApiError(error)) {
+		return error instanceof Error && error.message
+			? error.message
+			: DEFAULT_ERROR_MESSAGE
+	}
+
+	const fallback = error.message || DEFAULT_ERROR_MESSAGE
+	const backendCode = getBackendErrorCode(error.details)
+
+	if (backendCode) {
+		return getBusinessErrorMessage(backendCode, fallback)
+	}
+
+	return getApiErrorMessage(error.code, fallback)
+}
+
 function getBackendErrorCode(details: unknown): string | undefined {
 	if (!details || typeof details !== 'object') {
 		return undefined
@@ -397,4 +295,129 @@ function getBackendErrorCode(details: unknown): string | undefined {
 
 	const code = (details as { code?: unknown }).code
 	return typeof code === 'string' ? code : undefined
+}
+
+function getBusinessErrorMessage(code: string, fallback: string): string {
+	switch (code) {
+		case BUSINESS_ERROR_CODES.NETWORK_ERROR:
+		case BUSINESS_ERROR_CODES.CORS_ERROR:
+			return 'Network error. Please check your connection and try again.'
+		case BUSINESS_ERROR_CODES.INVALID_FILE_TYPE:
+			return 'Invalid file type. Please upload a CSV file.'
+		case BUSINESS_ERROR_CODES.NO_FILE_UPLOADED:
+			return 'No file was uploaded. Please select a file.'
+		case BUSINESS_ERROR_CODES.FILE_TOO_LARGE:
+			return 'File is too large. Maximum size is 5MB.'
+		case BUSINESS_ERROR_CODES.INVALID_CSV_FORMAT:
+			return 'Invalid CSV format. Please check your file and try again.'
+		case BUSINESS_ERROR_CODES.CSV_MISSING_REQUIRED_COLUMNS:
+			return 'CSV is missing required columns. Please download the template and try again.'
+		case BUSINESS_ERROR_CODES.CSV_INVALID_DATA:
+			return 'CSV contains invalid data. Please review the rows and correct formatting.'
+		case BUSINESS_ERROR_CODES.CSV_DUPLICATE_ENTRIES:
+			return 'CSV contains duplicate entries. Please remove duplicates and try again.'
+		default:
+			return fallback
+	}
+}
+
+function getApiErrorMessage(
+	code: ApiErrorCode | undefined,
+	fallback: string
+): string {
+	switch (code) {
+		case ApiErrorCode.NETWORK_ERROR:
+		case ApiErrorCode.NETWORK_TIMEOUT:
+		case ApiErrorCode.NETWORK_OFFLINE:
+			return 'Network error. Please check your connection and try again.'
+		case ApiErrorCode.API_RATE_LIMITED:
+			return 'Too many requests. Please wait a moment and try again.'
+		default:
+			return fallback
+	}
+}
+
+function getFileValidationError(file: File): string | null {
+	const hasValidType =
+		CSV_ACCEPTED_MIME_TYPES.includes(file.type) || file.name.endsWith('.csv')
+	if (!hasValidType) {
+		return 'Please select a CSV file (.csv)'
+	}
+
+	if (file.size > CSV_MAX_FILE_SIZE_BYTES) {
+		return 'File size must be less than 5MB'
+	}
+
+	return null
+}
+
+function buildCsvTemplate(
+	headers: readonly string[],
+	rows: ReadonlyArray<readonly string[]>
+): string {
+	const contentRows = rows.map(row => row.map(cell => `"${cell}"`).join(','))
+	return [headers.join(','), ...contentRows].join('\n')
+}
+
+function triggerCsvDownload(content: string, filename: string) {
+	const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+	const link = document.createElement('a')
+	const url = URL.createObjectURL(blob)
+
+	link.setAttribute('href', url)
+	link.setAttribute('download', filename)
+	link.style.visibility = 'hidden'
+	document.body.appendChild(link)
+	link.click()
+	document.body.removeChild(link)
+}
+
+function BulkImportResultPanel({ result }: { result: BulkImportResult | null }) {
+	if (!result) {
+		return null
+	}
+
+	const isSuccessful = result.success
+	const hasErrors = result.errors.length > 0
+
+	return (
+		<div
+			className={`p-4 rounded-lg border ${
+				isSuccessful
+					? 'bg-success/5 border-success/20'
+					: 'bg-destructive/5 border-destructive/20'
+			}`}
+		>
+			<div className="flex items-start gap-3">
+				{isSuccessful ? (
+					<CheckCircle2 className="size-5 text-success mt-0.5" />
+				) : (
+					<AlertCircle className="size-5 text-destructive mt-0.5" />
+				)}
+				<div className="flex-1">
+					<p className="font-medium text-sm">
+						{isSuccessful ? 'Import Complete' : 'Import Failed'}
+					</p>
+					<p className="text-sm text-muted-foreground">
+						{result.imported > 0 && `${result.imported} properties imported`}
+						{result.failed > 0 && ` • ${result.failed} failed`}
+					</p>
+					{hasErrors && (
+						<details className="mt-2">
+							<summary className="text-xs cursor-pointer text-destructive">
+								View errors ({result.errors.length})
+							</summary>
+							<div className="mt-2 max-h-32 overflow-y-auto space-y-1">
+								{result.errors.map((err, idx) => (
+									<p key={idx} className="text-xs text-destructive/80">
+										Row {err.row}: {err.error}
+									</p>
+								))}
+							</div>
+						</details>
+					)}
+				</div>
+			</div>
+		</div>
+	)
 }

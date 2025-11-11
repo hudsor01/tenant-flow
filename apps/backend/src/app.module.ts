@@ -146,6 +146,10 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		},
 		{
 			provide: APP_GUARD,
+			useClass: ThrottlerProxyGuard
+		},
+		{
+			provide: APP_GUARD,
 			useClass: JwtAuthGuard
 		},
 		{
@@ -159,10 +163,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		{
 			provide: APP_INTERCEPTOR,
 			useClass: CacheControlInterceptor
-		},
-		{
-			provide: APP_GUARD,
-			useClass: ThrottlerProxyGuard
 		}
 	],
 	exports: []
