@@ -575,23 +575,6 @@ export interface CreateSubscriptionWithSignupResponse {
 	refreshToken: string
 }
 
-// PAGINATION CONTRACTS
-export interface Pagination {
-	page?: number
-	limit?: number
-	offset?: number
-	total?: number
-	hasMore?: boolean
-}
-
-export interface PaginatedResponse<T> {
-	data: T[]
-	total: number
-	page: number
-	limit: number
-	hasMore: boolean
-}
-
 // ERROR RESPONSE CONTRACTS
 export interface ErrorResponse {
 	success: false
@@ -667,65 +650,6 @@ export interface NotificationListResponse {
 	total: number
 	page: number
 	limit: number
-}
-
-// DASHBOARD CONTRACTS
-export interface DashboardMetricsResponse {
-	totalProperties: number
-	totalUnits: number
-	totalTenants: number
-	totalLeases: number
-	occupancyRate: number
-	monthlyRevenue: number
-	maintenanceRequests: number
-	timestamp: string
-}
-
-export interface DashboardSummaryResponse {
-	overview: {
-		properties: number
-		units: number
-		tenants: number
-		occupancyRate: number
-	}
-	revenue: {
-		monthly: number
-		yearly: number
-		growth: number
-	}
-	maintenance: {
-		open: number
-		inProgress: number
-		avgResolutionTime: number
-	}
-	recentActivity: Array<{
-		id: string
-		type: string
-		action: string
-		title: string
-		description: string
-		timestamp: string
-		userId: string
-	}>
-	topPerformingProperties: Array<{
-		property: string
-		propertyId: string
-		units: number
-		totalUnits: number
-		occupiedUnits: number
-		vacantUnits: number
-		occupancy: string
-		occupancyRate: number
-		revenue: number
-		monthlyRevenue: number
-		potentialRevenue: number
-		address: string
-		propertyType: string
-		status: string
-		trend: string
-		trendPercentage: number
-	}>
-	timestamp: string
 }
 
 // HEALTH CHECK CONTRACTS
@@ -813,28 +737,6 @@ export interface MaintenanceAnalyticsResponse {
 	totalCost: number
 }
 
-// PROPERTY PERFORMANCE CONTRACTS
-export interface PropertyPerformanceResponse {
-	properties: Array<{
-		property: string
-		propertyId: string
-		units: number
-		totalUnits: number
-		occupiedUnits: number
-		vacantUnits: number
-		occupancy: string
-		occupancyRate: number
-		revenue: number
-		monthlyRevenue: number
-		potentialRevenue: number
-		address: string
-		propertyType: string
-		status: string
-		trend: 'up' | 'down' | 'stable'
-		trendPercentage: number
-	}>
-}
-
 // LEASE ANALYTICS CONTRACTS
 export interface LeaseAnalyticsResponse {
 	metrics: {
@@ -892,22 +794,6 @@ export type ApiResult<T = void> =
 	| { success: false; error: string; data?: never }
 
 export type AsyncApiResult<T = void> = Promise<ApiResult<T>>
-
-// FORM STATE CONTRACTS
-export interface FormState<T = Record<string, unknown>> {
-	data: Partial<T>
-	errors: Record<string, string[]>
-	isSubmitting: boolean
-	isValid: boolean
-	isDirty: boolean
-}
-
-export interface FormValidationResult {
-	success: boolean
-	errors?: Record<string, string>
-	warnings?: Record<string, string>
-	data?: Record<string, unknown>
-}
 
 // REQUEST/RESPONSE UTILITY TYPES
 export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'

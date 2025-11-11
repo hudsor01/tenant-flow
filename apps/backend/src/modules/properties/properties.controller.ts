@@ -35,6 +35,8 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
+import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
+import { ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
@@ -127,7 +129,7 @@ export class PropertiesController {
 		const property = await this.propertiesService.findOne(req, id)
 		if (!property) {
 			throw new NotFoundException({
-				code: 'PROPERTY_NOT_FOUND',
+				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,
 				message: 'Property not found'
 			})
 		}
@@ -175,7 +177,7 @@ export class PropertiesController {
 
 		if (!file) {
 			throw new BadRequestException({
-				code: 'NO_FILE_UPLOADED',
+				code: BUSINESS_ERROR_CODES.NO_FILE_UPLOADED,
 				message: 'No file uploaded'
 			})
 		}
@@ -193,13 +195,13 @@ export class PropertiesController {
 			file.originalname?.toLowerCase().endsWith('.csv')
 
 		if (!isValidType) {
-				this.logger.warn('Invalid file type for bulk import', {
+			this.logger.warn('Invalid file type for bulk import', {
 				mimetype: file.mimetype,
 				originalname: file.originalname,
 				userId: req.user?.id
 			})
 			throw new BadRequestException({
-				code: 'INVALID_FILE_TYPE',
+				code: BUSINESS_ERROR_CODES.INVALID_FILE_TYPE,
 				message: `Invalid file type: ${file.mimetype}. Only CSV files (.csv) are allowed`
 			})
 		}
@@ -227,7 +229,7 @@ export class PropertiesController {
 		)
 		if (!property) {
 			throw new NotFoundException({
-				code: 'PROPERTY_NOT_FOUND',
+				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,
 				message: 'Property not found'
 			})
 		}
@@ -262,7 +264,7 @@ export class PropertiesController {
 		// Validate timeframe
 		if (!['7d', '30d', '90d', '1y'].includes(timeframe ?? '30d')) {
 			throw new BadRequestException({
-				code: 'VALIDATION_ERROR',
+				code: ERROR_TYPES.VALIDATION_ERROR,
 				message: 'Invalid timeframe. Must be one of: 7d, 30d, 90d, 1y'
 			})
 		}
@@ -297,7 +299,7 @@ export class PropertiesController {
 				if (!allowedMimeTypes.includes(file.mimetype)) {
 					return callback(
 						new BadRequestException({
-							code: 'INVALID_FILE_TYPE',
+							code: BUSINESS_ERROR_CODES.INVALID_FILE_TYPE,
 							message: 'Invalid file type; only images are allowed'
 						}),
 						false
@@ -315,7 +317,7 @@ export class PropertiesController {
 	) {
 		if (!file) {
 			throw new BadRequestException({
-				code: 'NO_FILE_UPLOADED',
+				code: BUSINESS_ERROR_CODES.NO_FILE_UPLOADED,
 				message: 'No file uploaded'
 			})
 		}
@@ -368,8 +370,9 @@ export class PropertiesController {
 			!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')
 		) {
 			throw new BadRequestException({
-				code: 'VALIDATION_ERROR',
-				message: 'Invalid period. Must be one of: daily, weekly, monthly, yearly'
+				code: ERROR_TYPES.VALIDATION_ERROR,
+				message:
+					'Invalid period. Must be one of: daily, weekly, monthly, yearly'
 			})
 		}
 
@@ -393,7 +396,7 @@ export class PropertiesController {
 		// Validate timeframe
 		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
 			throw new BadRequestException({
-				code: 'VALIDATION_ERROR',
+				code: ERROR_TYPES.VALIDATION_ERROR,
 				message: 'Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m'
 			})
 		}
@@ -418,7 +421,7 @@ export class PropertiesController {
 		// Validate timeframe
 		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
 			throw new BadRequestException({
-				code: 'VALIDATION_ERROR',
+				code: ERROR_TYPES.VALIDATION_ERROR,
 				message: 'Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m'
 			})
 		}
@@ -437,7 +440,7 @@ export class PropertiesController {
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException({
-				code: 'UNAUTHORIZED',
+				code: ERROR_TYPES.AUTHORIZATION_ERROR,
 				message: 'Authentication required'
 			})
 		}
