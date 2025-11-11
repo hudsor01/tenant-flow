@@ -12,7 +12,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useCreateTenantMaintenanceRequest } from '#hooks/api/use-tenant-portal'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -96,13 +96,7 @@ export default function NewMaintenanceRequestPage() {
 			toast.success('Maintenance request submitted successfully')
 			router.push('/tenant/maintenance')
 		} catch (error) {
-			logger.error('Failed to submit maintenance request', {
-				action: 'create_maintenance_request',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
-			toast.error('Failed to submit maintenance request')
+			handleMutationError(error, 'Submit maintenance request')
 		}
 	}
 

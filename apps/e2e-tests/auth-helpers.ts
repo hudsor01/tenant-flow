@@ -14,14 +14,21 @@
  */
 
 import { type Page, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'E2EAuthHelpers' })
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, any>()
 
 // Debug logging helper - only logs when DEBUG env var is set
-function debugLog(...args: any[]) {
-	if (process.env.DEBUG) {
-		console.debug(...args)
+const debugLog = (...args: string[]) => {
+	if (!process.env.DEBUG) return
+	const [message, ...rest] = args
+	if (rest.length > 0) {
+		logger.debug(message, { metadata: { details: rest } })
+	} else {
+		logger.debug(message)
 	}
 }
 

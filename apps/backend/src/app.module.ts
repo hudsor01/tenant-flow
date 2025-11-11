@@ -36,7 +36,6 @@ import { TenantsModule } from './modules/tenants/tenants.module'
 import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
-import { CsrfGuard } from './security/csrf.guard'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
@@ -48,6 +47,7 @@ import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
+import { MetricsController } from './modules/metrics/metrics.controller'
 
 /**
  * Core App Module - KISS principle
@@ -94,7 +94,8 @@ import { MetricsModule } from './modules/metrics/metrics.module'
 		PrometheusModule.register({
 			defaultMetrics: {
 				enabled: true
-			}
+			},
+			controller: MetricsController
 		}),
 
 		// Rate limiting - simple configuration
@@ -149,10 +150,6 @@ import { MetricsModule } from './modules/metrics/metrics.module'
 		{
 			provide: APP_GUARD,
 			useClass: SubscriptionGuard
-		},
-		{
-			provide: APP_GUARD,
-			useClass: CsrfGuard
 		},
 		{
 			provide: APP_INTERCEPTOR,

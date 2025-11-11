@@ -82,16 +82,7 @@ describe('ReactLeasePDFService', () => {
 			expect(pdfBuffer.length).toBeGreaterThan(0)
 		})
 
-		it('should generate PDF buffer successfully', async () => {
-			const mockData = createMockLeaseData()
-
-			const pdfBuffer = await service.generateLeasePDF(mockData)
-
-			// Verify a Buffer is returned (mocked renderToBuffer returns "mock-pdf-buffer")
-			expect(pdfBuffer).toBeInstanceOf(Buffer)
-			expect(pdfBuffer.length).toBeGreaterThan(0)
-		})
-
+		
 		it('should handle pets allowed = true', async () => {
 			const mockData: LeaseGenerationFormData = {
 				...createMockLeaseData(),

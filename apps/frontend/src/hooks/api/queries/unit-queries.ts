@@ -7,6 +7,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 
 /**
@@ -54,8 +55,7 @@ export const unitQueries = {
 				const params = searchParams.toString()
 				return clientFetch<Unit[]>(`/api/v1/units${params ? `?${params}` : ''}`)
 			},
-			staleTime: 3 * 60 * 1000, // 3 minutes
-			gcTime: 10 * 60 * 1000, // 10 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -73,8 +73,7 @@ export const unitQueries = {
 		queryOptions({
 			queryKey: [...unitQueries.details(), id],
 			queryFn: () => clientFetch<Unit>(`/api/v1/units/${id}`),
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			gcTime: 10 * 60 * 1000, // 10 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
 
@@ -89,8 +88,7 @@ export const unitQueries = {
 		queryOptions({
 			queryKey: [...unitQueries.all(), 'by-property', propertyId],
 			queryFn: () => clientFetch<Unit[]>(`/api/v1/units/by-property/${propertyId}`),
-			staleTime: 5 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
+			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!propertyId,
 		}),
 
@@ -104,7 +102,7 @@ export const unitQueries = {
 		queryOptions({
 			queryKey: [...unitQueries.all(), 'stats'],
 			queryFn: () => clientFetch<UnitStats>('/api/v1/units/stats'),
-			staleTime: 5 * 60 * 1000,
-			gcTime: 30 * 60 * 1000, // 30 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 30 * 60 * 1000, // Keep 30 minutes for stats
 		}),
 }

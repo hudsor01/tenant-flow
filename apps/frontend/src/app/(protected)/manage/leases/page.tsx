@@ -3,14 +3,6 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -18,9 +10,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import { Field, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
 import {
 	Pagination,
 	PaginationContent,
@@ -41,14 +31,13 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { Textarea } from '#components/ui/textarea'
 import {
 	useDeleteLease,
 	useLeaseList,
 	useRenewLease,
 	useTerminateLease
 } from '#hooks/api/use-lease'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import {
 	Edit,
@@ -63,11 +52,13 @@ import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { RenewLeaseDialog } from '#components/leases/renew-lease-dialog'
+import { TerminateLeaseDialog } from '#components/leases/terminate-lease-dialog'
+import { useModalStore } from '#stores/modal-store'
 
 const ITEMS_PER_PAGE = 25
 
 export default function LeasesPage() {
-	const logger = createLogger({ component: 'LeasesPage' })
 
 	// nuqs: Type-safe URL state with automatic batching and clean URLs
 	const [{ page, search, status }, setUrlState] = useQueryStates(
@@ -84,13 +75,11 @@ export default function LeasesPage() {
 			clearOnDefault: true
 		}
 	)
-	const [renewDialogOpen, setRenewDialogOpen] = useState(false)
-	const [terminateDialogOpen, setTerminateDialogOpen] = useState(false)
-	const [editDialogOpen, setEditDialogOpen] = useState(false)
 	const [selectedLeaseId, setSelectedLeaseId] = useState<string | null>(null)
-	const [selectedLease, setSelectedLease] = useState<Lease | null>(null)
+	const [_selectedLease, setSelectedLease] = useState<Lease | null>(null)
 	const [newEndDate, setNewEndDate] = useState('')
 	const [terminationReason, setTerminationReason] = useState('')
+	const { openModal } = useModalStore()
 
 	// Fetch leases with filters and pagination
 	const params: {
@@ -127,19 +116,7 @@ export default function LeasesPage() {
 	// Terminate mutation
 	const terminateLeaseMutation = useTerminateLease()
 
-	const handleDelete = (leaseId: string) => {
-		if (confirm('Are you sure you want to delete this lease?')) {
-			deleteLeaseMutation.mutate(leaseId)
-		}
-	}
-
-	const handleRenew = (leaseId: string) => {
-		setSelectedLeaseId(leaseId)
-		setNewEndDate('')
-		setRenewDialogOpen(true)
-	}
-
-	const handleRenewSubmit = async () => {
+	const _handleRenewSubmit = async () => {
 		if (!selectedLeaseId || !newEndDate) {
 			toast.error('Please enter a new end date')
 			return
@@ -151,26 +128,14 @@ export default function LeasesPage() {
 				newEndDate
 			})
 			toast.success('Lease renewed successfully')
-			setRenewDialogOpen(false)
 			setSelectedLeaseId(null)
 			setNewEndDate('')
 		} catch (error) {
-			logger.error(
-				'Failed to renew lease',
-				{ leaseId: selectedLeaseId ?? 'unknown' },
-				error
-			)
-			toast.error('Failed to renew lease')
+			handleMutationError(error, 'Renew lease')
 		}
 	}
 
-	const handleTerminate = (leaseId: string) => {
-		setSelectedLeaseId(leaseId)
-		setTerminationReason('')
-		setTerminateDialogOpen(true)
-	}
-
-	const handleTerminateSubmit = async () => {
+	const _handleTerminateSubmit = async () => {
 		if (!selectedLeaseId) return
 
 		try {
@@ -184,16 +149,24 @@ export default function LeasesPage() {
 			}
 			await terminateLeaseMutation.mutateAsync(payload)
 			toast.success('Lease terminated successfully')
-			setTerminateDialogOpen(false)
 			setSelectedLeaseId(null)
 			setTerminationReason('')
 		} catch (error) {
-			logger.error(
-				'Failed to terminate lease',
-				{ leaseId: selectedLeaseId ?? 'unknown' },
-				error
-			)
-			toast.error('Failed to terminate lease')
+			handleMutationError(error, 'Terminate lease')
+		}
+	}
+
+	const handleRenew = (leaseId: string) => {
+		openModal(`renew-lease-${leaseId}`)
+	}
+
+	const handleTerminate = (leaseId: string) => {
+		openModal(`terminate-lease-${leaseId}`)
+	}
+
+	const handleDelete = (leaseId: string) => {
+		if (confirm('Are you sure you want to delete this lease?')) {
+			deleteLeaseMutation.mutate(leaseId)
 		}
 	}
 
@@ -323,7 +296,9 @@ export default function LeasesPage() {
 								<TableRow key={lease.id}>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											{lease.tenantId ? `${lease.tenantId.substring(0, 8)}...` : 'N/A'}
+											{lease.tenantId
+												? `${lease.tenantId.substring(0, 8)}...`
+												: 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>
@@ -334,7 +309,11 @@ export default function LeasesPage() {
 										</span>
 									</TableCell>
 									<TableCell>{formatDate(lease.startDate)}</TableCell>
-									<TableCell>{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}</TableCell>
+									<TableCell>
+										{lease.endDate
+											? formatDate(lease.endDate)
+											: 'Month-to-Month'}
+									</TableCell>
 									<TableCell>${lease.rentAmount.toLocaleString()}</TableCell>
 									<TableCell>
 										${lease.securityDeposit.toLocaleString()}
@@ -353,7 +332,7 @@ export default function LeasesPage() {
 												<DropdownMenuItem
 													onClick={() => {
 														setSelectedLease(lease)
-														setEditDialogOpen(true)
+														openModal(`edit-lease-${lease.id}`)
 													}}
 												>
 													<Edit className="mr-2 size-4" />
@@ -463,128 +442,16 @@ export default function LeasesPage() {
 				</div>
 			)}
 
-			{/* Renew Lease Dialog */}
-			<Dialog open={renewDialogOpen} onOpenChange={setRenewDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Renew Lease</DialogTitle>
-						<DialogDescription>
-							Extend the lease by setting a new end date
-						</DialogDescription>
-					</DialogHeader>
-					<Field>
-						<FieldLabel htmlFor="newEndDate">New End Date</FieldLabel>
-						<Input
-							id="newEndDate"
-							type="date"
-							value={newEndDate}
-							onChange={e => setNewEndDate(e.target.value)}
-						/>
-					</Field>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setRenewDialogOpen(false)}>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleRenewSubmit}
-							disabled={renewLeaseMutation.isPending}
-						>
-							{renewLeaseMutation.isPending ? 'Renewing...' : 'Renew Lease'}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			{/* Terminate Lease Dialog */}
-			<Dialog open={terminateDialogOpen} onOpenChange={setTerminateDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Terminate Lease</DialogTitle>
-						<DialogDescription>
-							End this lease early. This action cannot be undone.
-						</DialogDescription>
-					</DialogHeader>
-					<Field>
-						<FieldLabel htmlFor="terminationReason">
-							Reason (Optional)
-						</FieldLabel>
-						<Textarea
-							id="terminationReason"
-							placeholder="Reason for early termination..."
-							value={terminationReason}
-							onChange={e => setTerminationReason(e.target.value)}
-							rows={3}
-						/>
-					</Field>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setTerminateDialogOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleTerminateSubmit}
-							disabled={terminateLeaseMutation.isPending}
-						>
-							{terminateLeaseMutation.isPending
-								? 'Terminating...'
-								: 'Terminate Lease'}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
-
-			{/* Edit Lease Dialog - Inline (read-only for now, backend handles updates) */}
-			{selectedLease && (
-				<Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-					<DialogContent className="sm:max-w-lg">
-						<DialogHeader>
-							<DialogTitle>Lease Details</DialogTitle>
-							<DialogDescription>View lease information</DialogDescription>
-						</DialogHeader>
-						<div className="space-y-4">
-							<div>
-								<Label>Start Date</Label>
-								<Input type="date" value={selectedLease.startDate} disabled />
-							</div>
-							<div>
-								<Label>End Date</Label>
-								<Input type="date" value={selectedLease.endDate || ''} disabled />
-							</div>
-							<div>
-								<Label>Rent Amount</Label>
-								<Input
-									type="number"
-									value={selectedLease.rentAmount}
-									disabled
-								/>
-							</div>
-							<div>
-								<Label>Security Deposit</Label>
-								<Input
-									type="number"
-									value={selectedLease.securityDeposit}
-									disabled
-								/>
-							</div>
-							<div>
-								<Label>Status</Label>
-								<Badge>{selectedLease.status}</Badge>
-							</div>
-						</div>
-						<DialogFooter>
-							<Button
-								variant="outline"
-								onClick={() => setEditDialogOpen(false)}
-							>
-								Close
-							</Button>
-						</DialogFooter>
-					</DialogContent>
-				</Dialog>
-			)}
+			{/* Lease Dialogs */}
+			{leases.map(lease => (
+				<>
+					<RenewLeaseDialog key={`renew-${lease.id}`} leaseId={lease.id} />
+					<TerminateLeaseDialog
+						key={`terminate-${lease.id}`}
+						leaseId={lease.id}
+					/>
+				</>
+			))}
 		</main>
 	)
 }

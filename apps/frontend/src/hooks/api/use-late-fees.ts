@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { clientFetch } from '#lib/api/client'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 

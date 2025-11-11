@@ -1,13 +1,11 @@
 import {
 	BadRequestException,
-	Body,
 	Controller,
 	Delete,
 	Get,
 	Param,
 	ParseUUIDPipe,
 	Patch,
-	Post,
 	Request
 } from '@nestjs/common'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
@@ -25,60 +23,6 @@ export class PaymentMethodsController {
 	constructor(private readonly paymentMethodsService: PaymentMethodsService) {}
 
 	/**
-	 * Create a SetupIntent for saving a payment method
-	 * POST /payment-methods/setup-intent
-	 */
-	@Post('setup-intent')
-	async createSetupIntent(
-		@JwtToken() token: string,
-		@Request() req: AuthenticatedRequest,
-		@Body() body: { type?: 'card' | 'us_bank_account' }
-	) {
-		const userId = req.user?.id
-		const email = req.user?.email
-		const type = body.type ?? 'card'
-
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
-
-		if (!['card', 'us_bank_account'].includes(type)) {
-			throw new BadRequestException(
-				'Invalid payment method type. Must be "card" or "us_bank_account"'
-			)
-		}
-
-		return this.paymentMethodsService.createSetupIntent(token, userId, email, type)
-	}
-
-	/**
-	 * Save a payment method after SetupIntent confirmation
-	 * POST /payment-methods/save
-	 */
-	@Post('save')
-	async savePaymentMethod(
-		@JwtToken() token: string,
-		@Request() req: AuthenticatedRequest,
-		@Body() body: { paymentMethodId: string }
-	) {
-		const userId = req.user?.id
-
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
-
-		if (!body.paymentMethodId) {
-			throw new BadRequestException('Payment method ID is required')
-		}
-
-		return this.paymentMethodsService.savePaymentMethod(
-			token,
-			userId,
-			body.paymentMethodId
-		)
-	}
-
-	/**
 	 * List all payment methods for the authenticated user
 	 * GET /payment-methods
 	 */
@@ -93,8 +37,10 @@ export class PaymentMethodsController {
 			throw new BadRequestException('User not authenticated')
 		}
 
-		const paymentMethods =
-			await this.paymentMethodsService.listPaymentMethods(token, userId)
+		const paymentMethods = await this.paymentMethodsService.listPaymentMethods(
+			token,
+			userId
+		)
 
 		return { paymentMethods }
 	}

@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
+import { Logger } from '@nestjs/common'
 import {
 	authenticateAs,
 	expectEmptyResult,
@@ -21,6 +22,8 @@ import {
 	TEST_USERS,
 	type AuthenticatedTestClient
 } from './setup'
+
+const testLogger = new Logger('RLSTenantIsolationTest')
 
 describe('RLS: Tenant Isolation', () => {
 	let tenantA: AuthenticatedTestClient
@@ -67,10 +70,7 @@ describe('RLS: Tenant Isolation', () => {
 				.select('id')
 				.single()
 			if (error) {
-				console.error(
-					`Failed to create tenant record for ${tenant.email}:`,
-					error
-				)
+				testLogger.error(`Failed to create tenant record for ${tenant.email}:`, error)
 			} else if (data) {
 				testData.tenants.push(data.id)
 			}
@@ -121,7 +121,7 @@ describe('RLS: Tenant Isolation', () => {
 				.single()
 
 			if (!tenantRecord) {
-				console.warn('Tenant A record not found - skipping update test')
+				testLogger.warn('Tenant A record not found - skipping update test')
 				return
 			}
 
@@ -152,7 +152,7 @@ describe('RLS: Tenant Isolation', () => {
 				.single()
 
 			if (!tenantRecord) {
-				console.warn('Tenant B record not found - skipping test')
+				testLogger.warn('Tenant B record not found - skipping test')
 				return
 			}
 
@@ -217,10 +217,10 @@ describe('RLS: Tenant Isolation', () => {
 		})
 
 		it('tenant A can read their own emergency contact', async () => {
-			if (!tenantAId) {
-				console.warn('Tenant A ID not found - skipping test')
-				return
-			}
+		if (!tenantAId) {
+			testLogger.warn('Tenant A ID not found - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantA.client
 				.from('tenant_emergency_contact')
@@ -234,10 +234,10 @@ describe('RLS: Tenant Isolation', () => {
 		})
 
 		it('tenant B cannot read tenant A emergency contact', async () => {
-			if (!tenantAId) {
-				console.warn('Tenant A ID not found - skipping test')
-				return
-			}
+		if (!tenantAId) {
+			testLogger.warn('Tenant A ID not found - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantB.client
 				.from('tenant_emergency_contact')
@@ -249,10 +249,10 @@ describe('RLS: Tenant Isolation', () => {
 		})
 
 		it('tenant A can create their own emergency contact', async () => {
-			if (!tenantAId) {
-				console.warn('Tenant A ID not found - skipping test')
-				return
-			}
+		if (!tenantAId) {
+			testLogger.warn('Tenant A ID not found - skipping test')
+			return
+		}
 
 			// Create unique contact for this test (don't delete all contacts)
 			const uniquePhone = `+1${Date.now().toString().slice(-9)}`
@@ -277,10 +277,10 @@ describe('RLS: Tenant Isolation', () => {
 		})
 
 		it('tenant A cannot create emergency contact for tenant B', async () => {
-			if (!tenantBId) {
-				console.warn('Tenant B ID not found - skipping test')
-				return
-			}
+		if (!tenantBId) {
+			testLogger.warn('Tenant B ID not found - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantA.client
 				.from('tenant_emergency_contact')
@@ -298,10 +298,10 @@ describe('RLS: Tenant Isolation', () => {
 		})
 
 		it('tenant A can update their own emergency contact', async () => {
-			if (!tenantAId || !tenantAEmergencyContactId) {
-				console.warn('Test data not available - skipping test')
-				return
-			}
+		if (!tenantAId || !tenantAEmergencyContactId) {
+			testLogger.warn('Test data not available - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantA.client
 				.from('tenant_emergency_contact')
@@ -316,10 +316,10 @@ describe('RLS: Tenant Isolation', () => {
 
 		it('tenant A cannot update tenant B emergency contact', async () => {
 			// Create emergency contact for tenant B first
-			if (!tenantBId) {
-				console.warn('Tenant B ID not found - skipping test')
-				return
-			}
+		if (!tenantBId) {
+			testLogger.warn('Tenant B ID not found - skipping test')
+			return
+		}
 
 			const { data: tenantBContact } = await serviceClient
 				.from('tenant_emergency_contact')
@@ -333,9 +333,9 @@ describe('RLS: Tenant Isolation', () => {
 				.single()
 
 			if (!tenantBContact) {
-				console.warn('Failed to create tenant B contact - skipping test')
-				return
-			}
+			testLogger.warn('Failed to create tenant B contact - skipping test')
+			return
+		}
 
 			testData.emergencyContacts.push(tenantBContact.id)
 
@@ -358,10 +358,10 @@ describe('RLS: Tenant Isolation', () => {
 		})
 
 		it('tenant A can delete their own emergency contact', async () => {
-			if (!tenantAId || !tenantAEmergencyContactId) {
-				console.warn('Test data not available - skipping test')
-				return
-			}
+		if (!tenantAId || !tenantAEmergencyContactId) {
+			testLogger.warn('Test data not available - skipping test')
+			return
+		}
 
 			const { error } = await tenantA.client
 				.from('tenant_emergency_contact')
@@ -384,16 +384,16 @@ describe('RLS: Tenant Isolation', () => {
 				.eq('tenant_id', tenantBId)
 				.limit(1)
 
-			if (!contacts || contacts.length === 0) {
-				console.warn('Tenant B has no emergency contact - skipping test')
-				return
-			}
+		if (!contacts || contacts.length === 0) {
+			testLogger.warn('Tenant B has no emergency contact - skipping test')
+			return
+		}
 
-			const contactId = contacts[0]?.id
-			if (!contactId) {
-				console.warn('Contact ID is undefined - skipping test')
-				return
-			}
+		const contactId = contacts[0]?.id
+		if (!contactId) {
+			testLogger.warn('Contact ID is undefined - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantA.client
 				.from('tenant_emergency_contact')
@@ -421,10 +421,10 @@ describe('RLS: Tenant Isolation', () => {
 				.eq('auth_user_id', tenantA.userId)
 				.single()
 
-			if (!tenantRecord) {
-				console.warn('Tenant A record not found - skipping test')
-				return
-			}
+		if (!tenantRecord) {
+			testLogger.warn('Tenant A record not found - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantA.client
 				.from('tenant')
@@ -443,10 +443,10 @@ describe('RLS: Tenant Isolation', () => {
 				.eq('auth_user_id', tenantB.userId)
 				.single()
 
-			if (!tenantRecord) {
-				console.warn('Tenant B record not found - skipping test')
-				return
-			}
+		if (!tenantRecord) {
+			testLogger.warn('Tenant B record not found - skipping test')
+			return
+		}
 
 			const { data, error } = await tenantA.client
 				.from('tenant')

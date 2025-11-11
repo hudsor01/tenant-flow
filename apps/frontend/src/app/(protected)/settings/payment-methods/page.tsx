@@ -27,6 +27,13 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
 
 import {
 	useDeletePaymentMethod,
@@ -34,7 +41,7 @@ import {
 	useSetDefaultPaymentMethod
 } from '#hooks/api/use-payment-methods'
 
-import { AddPaymentMethodDialog } from '#app/(protected)/tenant/payments/methods/add-payment-method-dialog'
+import { AddPaymentMethod } from '#app/(protected)/manage/payments/methods/add-payment-method.client'
 
 // Helper functions inlined from payment-methods-list.tsx
 function getCardBrandDisplay(brand: string) {
@@ -110,6 +117,7 @@ export default function PaymentMethodsPage() {
 
 	const handleAddSuccess = () => {
 		refetch()
+		setShowAddDialog(false)
 	}
 
 	const hasPaymentMethods = paymentMethods && paymentMethods.length > 0
@@ -226,11 +234,17 @@ export default function PaymentMethodsPage() {
 				</Card>
 			</div>
 
-			<AddPaymentMethodDialog
-				open={showAddDialog}
-				onOpenChange={setShowAddDialog}
-				onSuccess={handleAddSuccess}
-			/>
+			<Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+				<DialogContent className="max-w-2xl">
+					<DialogHeader>
+						<DialogTitle>Add Payment Method</DialogTitle>
+						<DialogDescription>
+							Add a new payment method for your account.
+						</DialogDescription>
+					</DialogHeader>
+					<AddPaymentMethod onSuccess={handleAddSuccess} />
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

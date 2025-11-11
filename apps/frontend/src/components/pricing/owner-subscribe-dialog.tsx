@@ -21,10 +21,9 @@ import { signupFormSchema } from '@repo/shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import { useModalStore } from '#stores/modal-store'
 
 interface OwnerSubscribeDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
 	onComplete: (payload: {
 		email: string
 		tenantId?: string
@@ -35,13 +34,14 @@ interface OwnerSubscribeDialogProps {
 }
 
 export function OwnerSubscribeDialog({
-	open,
-	onOpenChange,
 	onComplete,
 	planName,
 	planCta
 }: OwnerSubscribeDialogProps) {
+	const { openModal, closeModal, isModalOpen } = useModalStore()
 	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	const modalId = 'owner-subscribe'
 
 	const supabase = useMemo(() => createClient(), [])
 
@@ -121,6 +121,7 @@ export function OwnerSubscribeDialog({
 				})
 
 				form.reset()
+				closeModal(modalId)
 			} catch (err) {
 				const message =
 					err instanceof Error ? err.message : 'Unable to complete sign up'
@@ -136,214 +137,242 @@ export function OwnerSubscribeDialog({
 		}
 	})
 
+	const isOpen = isModalOpen(modalId)
+
 	useEffect(() => {
-		if (!open) {
+		if (!isOpen) {
 			form.reset()
 		}
-	}, [open, form])
+	}, [isOpen, form])
 
 	const handleClose = useCallback(
 		(nextOpen: boolean) => {
 			if (!nextOpen && !isSubmitting) {
-				onOpenChange(nextOpen)
+				closeModal(modalId)
 			} else if (nextOpen) {
-				onOpenChange(nextOpen)
+				openModal(
+					modalId,
+					{},
+					{
+						type: 'dialog',
+						size: 'lg',
+						animationVariant: 'fade',
+						closeOnOutsideClick: true,
+						closeOnEscape: true
+					}
+				)
 			}
 		},
-		[isSubmitting, onOpenChange]
+		[isSubmitting, openModal, closeModal]
 	)
 
 	return (
-		<Dialog open={open} onOpenChange={handleClose}>
-			<DialogContent className="max-w-lg">
-				<DialogHeader>
-					<DialogTitle>
-						Join TenantFlow {planName ? `· ${planName}` : ''}
-					</DialogTitle>
-					<DialogDescription>
-						Create your account to kick off checkout. You&apos;ll be redirected
-						to Stripe to securely complete your subscription.
-					</DialogDescription>
-				</DialogHeader>
-				<form
-					onSubmit={event => {
-						event.preventDefault()
-						form.handleSubmit()
-					}}
-					className="space-y-4"
-				>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<form.Field name="firstName">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="firstName">First name</FieldLabel>
-									<InputGroup>
-										<InputGroupAddon align="inline-start">
-											<User />
-										</InputGroupAddon>
-										<InputGroupInput
-											id="firstName"
-											placeholder="Jamie"
-											value={field.state.value}
-											onChange={event => field.handleChange(event.target.value)}
-											onBlur={field.handleBlur}
-											disabled={isSubmitting}
-										/>
-									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
-								</Field>
-							)}
-						</form.Field>
-						<form.Field name="lastName">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="lastName">Last name</FieldLabel>
-									<InputGroup>
-										<InputGroupAddon align="inline-start">
-											<User />
-										</InputGroupAddon>
-										<InputGroupInput
-											id="lastName"
-											placeholder="Rivera"
-											value={field.state.value}
-											onChange={event => field.handleChange(event.target.value)}
-											onBlur={field.handleBlur}
-											disabled={isSubmitting}
-										/>
-									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
-								</Field>
-							)}
-						</form.Field>
-					</div>
-
-					<form.Field name="company">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="company">Company</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<Building2 />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="company"
-										placeholder="Rivera Property Group"
-										value={field.state.value}
-										onChange={event => field.handleChange(event.target.value)}
-										onBlur={field.handleBlur}
-										disabled={isSubmitting}
-									/>
-								</InputGroup>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="email">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="email">Work email</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<Mail />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="email"
-										type="email"
-										placeholder="jamie@riverapm.com"
-										value={field.state.value}
-										onChange={event => field.handleChange(event.target.value)}
-										onBlur={field.handleBlur}
-										disabled={isSubmitting}
-									/>
-								</InputGroup>
-								<FieldError>
-									{String(field.state.meta.errors?.[0] ?? '')}
-								</FieldError>
-							</Field>
-						)}
-					</form.Field>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<form.Field name="password">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="password">Password</FieldLabel>
-									<InputGroup>
-										<InputGroupAddon align="inline-start">
-											<Lock />
-										</InputGroupAddon>
-										<InputGroupInput
-											id="password"
-											type="password"
-											placeholder="Create a password"
-											autoComplete="new-password"
-											value={field.state.value}
-											onChange={event => field.handleChange(event.target.value)}
-											onBlur={field.handleBlur}
-											disabled={isSubmitting}
-										/>
-									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
-								</Field>
-							)}
-						</form.Field>
-						<form.Field name="confirmPassword">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="confirmPassword">
-										Confirm password
-									</FieldLabel>
-									<InputGroup>
-										<InputGroupAddon align="inline-start">
-											<Lock />
-										</InputGroupAddon>
-										<InputGroupInput
-											id="confirmPassword"
-											type="password"
-											placeholder="Repeat password"
-											autoComplete="new-password"
-											value={field.state.value}
-											onChange={event => field.handleChange(event.target.value)}
-											onBlur={field.handleBlur}
-											disabled={isSubmitting}
-										/>
-									</InputGroup>
-									<FieldError>
-										{String(field.state.meta.errors?.[0] ?? '')}
-									</FieldError>
-								</Field>
-							)}
-						</form.Field>
-					</div>
-
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="ghost"
-							onClick={() => handleClose(false)}
-							disabled={isSubmitting}
+		<>
+			{isModalOpen(modalId) && (
+				<Dialog open={true} onOpenChange={handleClose}>
+					<DialogContent className="max-w-lg">
+						<DialogHeader>
+							<DialogTitle>
+								Join TenantFlow {planName ? `· ${planName}` : ''}
+							</DialogTitle>
+							<DialogDescription>
+								Create your account to kick off checkout. You&apos;ll be
+								redirected to Stripe to securely complete your subscription.
+							</DialogDescription>
+						</DialogHeader>
+						<form
+							onSubmit={event => {
+								event.preventDefault()
+								form.handleSubmit()
+							}}
+							className="space-y-4"
 						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							disabled={isSubmitting || form.state.isSubmitting}
-						>
-							{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<form.Field name="firstName">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="firstName">First name</FieldLabel>
+											<InputGroup>
+												<InputGroupAddon align="inline-start">
+													<User />
+												</InputGroupAddon>
+												<InputGroupInput
+													id="firstName"
+													placeholder="Jamie"
+													value={field.state.value}
+													onChange={event =>
+														field.handleChange(event.target.value)
+													}
+													onBlur={field.handleBlur}
+													disabled={isSubmitting}
+												/>
+											</InputGroup>
+											<FieldError>
+												{String(field.state.meta.errors?.[0] ?? '')}
+											</FieldError>
+										</Field>
+									)}
+								</form.Field>
+								<form.Field name="lastName">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="lastName">Last name</FieldLabel>
+											<InputGroup>
+												<InputGroupAddon align="inline-start">
+													<User />
+												</InputGroupAddon>
+												<InputGroupInput
+													id="lastName"
+													placeholder="Rivera"
+													value={field.state.value}
+													onChange={event =>
+														field.handleChange(event.target.value)
+													}
+													onBlur={field.handleBlur}
+													disabled={isSubmitting}
+												/>
+											</InputGroup>
+											<FieldError>
+												{String(field.state.meta.errors?.[0] ?? '')}
+											</FieldError>
+										</Field>
+									)}
+								</form.Field>
+							</div>
+
+							<form.Field name="company">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="company">Company</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Building2 />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="company"
+												placeholder="Rivera Property Group"
+												value={field.state.value}
+												onChange={event =>
+													field.handleChange(event.target.value)
+												}
+												onBlur={field.handleBlur}
+												disabled={isSubmitting}
+											/>
+										</InputGroup>
+										<FieldError>
+											{String(field.state.meta.errors?.[0] ?? '')}
+										</FieldError>
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="email">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="email">Work email</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Mail />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="email"
+												type="email"
+												placeholder="jamie@riverapm.com"
+												value={field.state.value}
+												onChange={event =>
+													field.handleChange(event.target.value)
+												}
+												onBlur={field.handleBlur}
+												disabled={isSubmitting}
+											/>
+										</InputGroup>
+										<FieldError>
+											{String(field.state.meta.errors?.[0] ?? '')}
+										</FieldError>
+									</Field>
+								)}
+							</form.Field>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<form.Field name="password">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="password">Password</FieldLabel>
+											<InputGroup>
+												<InputGroupAddon align="inline-start">
+													<Lock />
+												</InputGroupAddon>
+												<InputGroupInput
+													id="password"
+													type="password"
+													placeholder="Create a password"
+													autoComplete="new-password"
+													value={field.state.value}
+													onChange={event =>
+														field.handleChange(event.target.value)
+													}
+													onBlur={field.handleBlur}
+													disabled={isSubmitting}
+												/>
+											</InputGroup>
+											<FieldError>
+												{String(field.state.meta.errors?.[0] ?? '')}
+											</FieldError>
+										</Field>
+									)}
+								</form.Field>
+								<form.Field name="confirmPassword">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="confirmPassword">
+												Confirm password
+											</FieldLabel>
+											<InputGroup>
+												<InputGroupAddon align="inline-start">
+													<Lock />
+												</InputGroupAddon>
+												<InputGroupInput
+													id="confirmPassword"
+													type="password"
+													placeholder="Repeat password"
+													autoComplete="new-password"
+													value={field.state.value}
+													onChange={event =>
+														field.handleChange(event.target.value)
+													}
+													onBlur={field.handleBlur}
+													disabled={isSubmitting}
+												/>
+											</InputGroup>
+											<FieldError>
+												{String(field.state.meta.errors?.[0] ?? '')}
+											</FieldError>
+										</Field>
+									)}
+								</form.Field>
+							</div>
+
+							<DialogFooter>
+								<Button
+									type="button"
+									variant="ghost"
+									onClick={() => handleClose(false)}
+									disabled={isSubmitting}
+								>
+									Cancel
+								</Button>
+								<Button
+									type="submit"
+									disabled={isSubmitting || form.state.isSubmitting}
+								>
+									{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
+								</Button>
+							</DialogFooter>
+						</form>
+					</DialogContent>
+				</Dialog>
+			)}
+		</>
 	)
 }
 

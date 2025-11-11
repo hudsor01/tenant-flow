@@ -25,6 +25,7 @@ import type {
 	TenantPaymentMethod,
 	User
 } from './types'
+import type { CreatePaymentInput } from './dto/create-payment.dto'
 
 type PaymentMethodType = 'card' | 'ach'
 
@@ -266,12 +267,7 @@ export class RentPaymentsService {
 	 * Create a one-time rent payment destination charge in Stripe and persist it.
 	 */
 	async createOneTimePayment(
-		params: {
-			tenantId: string
-			leaseId: string
-			amount: number
-			paymentMethodId: string
-		},
+		params: CreatePaymentInput,
 		requestingUserId: string
 	) {
 		const { tenantId, leaseId, amount, paymentMethodId } = params

@@ -287,10 +287,13 @@ export class StripeConnectService {
 					country: accountCountry,
 					email: params.email,
 					capabilities: {
-						card_payments: { requested: true },
-						transfers: { requested: true }
-					},
-					business_type: 'individual',
+					card_payments: { requested: true },
+					transfers: { requested: true }
+				},
+				tos_acceptance: {
+					service_agreement: 'full'
+				},
+				business_type: 'individual',
 					settings: {
 						payouts: {
 							schedule: {

@@ -423,10 +423,42 @@ export class LateFeesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { error } = await client.from('lease').update(updateData).eq('id', leaseId)
+			let updateResponse
+			try {
+				updateResponse = await client
+					.from('lease')
+					.update(updateData)
+					.eq('id', leaseId)
+					.select()
+			} catch (dbError) {
+				this.logger.error('Lease update threw unexpected error', {
+					leaseId,
+					updateData,
+					error:
+						dbError instanceof Error ? dbError.message : String(dbError)
+				})
+				throw new BadRequestException('Failed to update late fee configuration')
+			}
+
+			const { error, data } = updateResponse
 
 			if (error) {
-				throw error
+				this.logger.error('Failed to update lease for late fee config', {
+					error: error.message,
+					errorCode: error.code,
+					leaseId,
+					updateData
+				})
+				throw new BadRequestException(
+					`Failed to update late fee configuration: ${error.message}`
+				)
+			}
+
+			if (!data || data.length === 0) {
+				this.logger.warn('No lease found to update for late fee config', {
+					leaseId
+				})
+				throw new BadRequestException('Lease not found or unauthorized')
 			}
 
 			this.logger.log('Late fee config updated successfully', { leaseId })

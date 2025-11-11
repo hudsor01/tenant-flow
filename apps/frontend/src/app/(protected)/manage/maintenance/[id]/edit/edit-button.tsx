@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody,
+	CrudDialogFooter
+} from '#components/ui/crud-dialog'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
@@ -27,7 +28,7 @@ import { useUpdateMaintenanceRequest } from '#hooks/api/use-maintenance'
 import { maintenanceRequestUpdateFormSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { Calendar, DollarSign, Edit, FileText } from 'lucide-react'
-import { useState } from 'react'
+import { useModalStore } from '#stores/modal-store'
 import { z } from 'zod'
 
 interface EditMaintenanceButtonProps {
@@ -47,8 +48,10 @@ interface EditMaintenanceButtonProps {
 export function EditMaintenanceButton({
 	maintenance
 }: EditMaintenanceButtonProps) {
-	const [open, setOpen] = useState(false)
+	const { openModal } = useModalStore()
 	const updateMaintenanceRequest = useUpdateMaintenanceRequest()
+
+	const modalId = `edit-maintenance-${maintenance.id}`
 
 	const form = useForm({
 		defaultValues: {
@@ -90,7 +93,7 @@ export function EditMaintenanceButton({
 				{ id: maintenance.id, data: updateData },
 				{
 					onSuccess: () => {
-						setOpen(false)
+						// Close modal will be handled by CrudDialog
 						form.reset()
 					}
 				}
@@ -121,248 +124,270 @@ export function EditMaintenanceButton({
 	]
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="outline" size="sm" className="flex items-center gap-2">
-					<Edit className="size-4" />
-					Edit
-				</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-lg">
-				<DialogHeader>
-					<DialogTitle>Edit Maintenance Request</DialogTitle>
-					<DialogDescription>
-						Update maintenance request details including priority, status, and
-						cost estimates.
-					</DialogDescription>
-				</DialogHeader>
-				<form
-					onSubmit={e => {
-						e.preventDefault()
-						form.handleSubmit()
-					}}
-					className="space-y-4"
-				>
-					<form.Field name="title">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="title">Title</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<FileText className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="title"
-										placeholder="Kitchen faucet leak"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-									/>
-								</InputGroup>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
+		<>
+			<Button
+				variant="outline"
+				size="sm"
+				className="flex items-center gap-2"
+				onClick={() => openModal(modalId)}
+			>
+				<Edit className="size-4" />
+				Edit
+			</Button>
 
-					<form.Field name="description">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="description">Description</FieldLabel>
-								<Textarea
-									id="description"
-									placeholder="Detailed description of the maintenance issue..."
-									rows={3}
-									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
+			<CrudDialog mode="edit" modalId={modalId}>
+				<CrudDialogContent className="sm:max-w-lg">
+					<CrudDialogHeader>
+						<CrudDialogTitle>Edit Maintenance Request</CrudDialogTitle>
+						<CrudDialogDescription>
+							Update maintenance request details including priority, status, and
+							cost estimates.
+						</CrudDialogDescription>
+					</CrudDialogHeader>
 
-					<div className="grid grid-cols-2 gap-4">
-						<form.Field name="category">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="category">Category</FieldLabel>
-									<Select
-										value={field.state.value}
-										onValueChange={(value: string) => field.handleChange(value)}
-									>
-										<SelectTrigger>
-											<SelectValue placeholder="Select category" />
-										</SelectTrigger>
-										<SelectContent>
-											{categories.map(category => (
-												<SelectItem key={category} value={category}>
-													{category}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									{field.state.meta.errors?.length && (
-										<FieldError>
-											{String(field.state.meta.errors[0])}
-										</FieldError>
-									)}
-								</Field>
-							)}
-						</form.Field>
-
-						<form.Field name="priority">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="priority">Priority</FieldLabel>
-									<Select
-										value={field.state.value}
-										onValueChange={(value: string) => field.handleChange(value)}
-									>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="LOW">Low</SelectItem>
-											<SelectItem value="MEDIUM">Medium</SelectItem>
-											<SelectItem value="HIGH">High</SelectItem>
-											<SelectItem value="URGENT">Emergency</SelectItem>
-										</SelectContent>
-									</Select>
-									{field.state.meta.errors?.length && (
-										<FieldError>
-											{String(field.state.meta.errors[0])}
-										</FieldError>
-									)}
-								</Field>
-							)}
-						</form.Field>
-					</div>
-
-					<form.Field name="estimatedCost">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="estimatedCost">
-									Estimated Cost (Optional)
-								</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<DollarSign className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="estimatedCost"
-										type="number"
-										placeholder="250"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-									/>
-								</InputGroup>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="preferredDate">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="preferredDate">
-									Preferred Date (Optional)
-								</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<Calendar className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="preferredDate"
-										type="date"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-									/>
-								</InputGroup>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="notes">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="notes">Notes (Optional)</FieldLabel>
-								<Textarea
-									id="notes"
-									placeholder="Additional notes..."
-									rows={2}
-									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="allowEntry">
-						{field => (
-							<Field>
-								<FieldLabel
-									htmlFor="allowEntry"
-									className="flex items-center gap-2"
-								>
-									<input
-										id="allowEntry"
-										type="checkbox"
-										checked={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.checked)
-										}
-										className="rounded border border-input"
-									/>
-									Allow entry when tenant is not present
-								</FieldLabel>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<div className="flex justify-end gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => setOpen(false)}
+					<CrudDialogBody>
+						<form
+							onSubmit={e => {
+								e.preventDefault()
+								form.handleSubmit()
+							}}
+							className="space-y-4"
 						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={updateMaintenanceRequest.isPending}>
+							<form.Field name="title">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="title">Title</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<FileText className="size-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="title"
+												placeholder="Kitchen faucet leak"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="description">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="description">Description</FieldLabel>
+										<Textarea
+											id="description"
+											placeholder="Detailed description of the maintenance issue..."
+											rows={3}
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<div className="grid grid-cols-2 gap-4">
+								<form.Field name="category">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="category">Category</FieldLabel>
+											<Select
+												value={field.state.value}
+												onValueChange={(value: string) =>
+													field.handleChange(value)
+												}
+											>
+												<SelectTrigger>
+													<SelectValue placeholder="Select category" />
+												</SelectTrigger>
+												<SelectContent>
+													{categories.map(category => (
+														<SelectItem key={category} value={category}>
+															{category}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+											{field.state.meta.errors?.length && (
+												<FieldError>
+													{String(field.state.meta.errors[0])}
+												</FieldError>
+											)}
+										</Field>
+									)}
+								</form.Field>
+
+								<form.Field name="priority">
+									{field => (
+										<Field>
+											<FieldLabel htmlFor="priority">Priority</FieldLabel>
+											<Select
+												value={field.state.value}
+												onValueChange={(value: string) =>
+													field.handleChange(value)
+												}
+											>
+												<SelectTrigger>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="LOW">Low</SelectItem>
+													<SelectItem value="MEDIUM">Medium</SelectItem>
+													<SelectItem value="HIGH">High</SelectItem>
+													<SelectItem value="URGENT">Emergency</SelectItem>
+												</SelectContent>
+											</Select>
+											{field.state.meta.errors?.length && (
+												<FieldError>
+													{String(field.state.meta.errors[0])}
+												</FieldError>
+											)}
+										</Field>
+									)}
+								</form.Field>
+							</div>
+
+							<form.Field name="estimatedCost">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="estimatedCost">
+											Estimated Cost (Optional)
+										</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<DollarSign className="size-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="estimatedCost"
+												type="number"
+												placeholder="250"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="preferredDate">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="preferredDate">
+											Preferred Date (Optional)
+										</FieldLabel>
+										<InputGroup>
+											<InputGroupAddon align="inline-start">
+												<Calendar className="size-4" />
+											</InputGroupAddon>
+											<InputGroupInput
+												id="preferredDate"
+												type="date"
+												value={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.value)
+												}
+												onBlur={field.handleBlur}
+											/>
+										</InputGroup>
+										{field.state.meta.errors?.length && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="notes">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="notes">Notes (Optional)</FieldLabel>
+										<Textarea
+											id="notes"
+											placeholder="Additional notes..."
+											rows={2}
+											value={field.state.value}
+											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+										{field.state.meta.errors?.length && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+
+							<form.Field name="allowEntry">
+								{field => (
+									<Field>
+										<FieldLabel
+											htmlFor="allowEntry"
+											className="flex items-center gap-2"
+										>
+											<input
+												id="allowEntry"
+												type="checkbox"
+												checked={field.state.value}
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+													field.handleChange(e.target.checked)
+												}
+												className="rounded border border-input"
+											/>
+											Allow entry when tenant is not present
+										</FieldLabel>
+										{field.state.meta.errors?.length && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
+						</form>
+					</CrudDialogBody>
+
+					<CrudDialogFooter>
+						<Button
+							type="submit"
+							disabled={updateMaintenanceRequest.isPending}
+							onClick={() => document.querySelector('form')?.requestSubmit()}
+						>
 							{updateMaintenanceRequest.isPending
 								? 'Updating...'
 								: 'Update Request'}
 						</Button>
-					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
+					</CrudDialogFooter>
+				</CrudDialogContent>
+			</CrudDialog>
+		</>
 	)
 }

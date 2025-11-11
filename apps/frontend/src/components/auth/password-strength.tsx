@@ -69,12 +69,12 @@ const PasswordStrength = React.forwardRef<
 		const strength = (passedRules.length / rules.length) * 100
 
 		const getStrengthColor = () => {
-			if (strength === 0) return 'bg-[var(--color-fill-primary)]'
+			if (strength === 0) return 'bg-(--color-fill-primary)'
 			if (strength <= 20) return 'bg-destructive'
 			if (strength <= 40) return 'bg-accent'
 			if (strength <= 60) return 'bg-accent'
-			if (strength <= 80) return 'bg-[var(--color-accent-main)]'
-			return 'bg-[var(--color-accent-main)]'
+			if (strength <= 80) return 'bg-(--color-accent-main)'
+			return 'bg-(--color-accent-main)'
 		}
 
 		const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +100,7 @@ const PasswordStrength = React.forwardRef<
 							type="password"
 						autoComplete="new-password"
 							className={cn(
-								'flex h-10 w-full rounded-[var(--radius-medium)] border border-[var(--color-separator)] bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[var(--color-label-tertiary)] focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-offset-[var(--focus-ring-offset)] disabled:cursor-not-allowed disabled:opacity-50',
+								'flex h-10 w-full rounded-[var(--radius-medium)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-offset-[var(--focus-ring-offset)] disabled:cursor-not-allowed disabled:opacity-50',
 								className
 							)}
 							ref={ref}
@@ -114,7 +114,7 @@ const PasswordStrength = React.forwardRef<
 
 					<Popover.Portal>
 						<Popover.Content
-							className="z-50 w-80 rounded-[var(--radius-large)] bg-popover p-[var(--spacing-4)] shadow-[var(--shadow-medium)] border border-[var(--color-separator)]"
+							className="z-50 w-80 rounded-[var(--radius-large)] bg-popover p-[var(--spacing-4)] shadow-[var(--shadow-medium)] border border-(--color-separator)"
 							sideOffset={5}
 							onOpenAutoFocus={e => e.preventDefault()}
 						>
@@ -128,7 +128,7 @@ const PasswordStrength = React.forwardRef<
 											'flex-1 rounded-full transition-all duration-[var(--duration-standard)]',
 											i < Math.ceil(passedRules.length)
 												? getStrengthColor()
-												: 'bg-[var(--color-fill-primary)] opacity-50'
+												: 'bg-(--color-fill-primary) opacity-50'
 										)}
 									/>
 								))}
@@ -149,7 +149,7 @@ const PasswordStrength = React.forwardRef<
 												'flex items-center gap-x-2 transition-colors',
 												passed
 													? 'text-accent'
-													: 'text-[var(--color-label-tertiary)]'
+													: 'text-(--color-label-tertiary)'
 											)}
 										>
 											{passed ? (

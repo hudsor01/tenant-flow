@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { CreatePaymentDto } from './dto/create-payment.dto'
 
 @Controller('rent-payments')
 @UseGuards(JwtAuthGuard)
@@ -29,12 +30,7 @@ export class RentPaymentsController {
 	@Post()
 	async createPayment(
 		@Body()
-		body: {
-			tenantId: string
-			leaseId: string
-			amount: number
-			paymentMethodId: string
-		},
+		body: CreatePaymentDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		const requestingUserId = req.user.id

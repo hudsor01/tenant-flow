@@ -10,7 +10,10 @@ const environmentSchema = z.object({
 	// Application
 	NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
 	PORT: z.coerce.number().default(4600),
-	FRONTEND_URL: z.string().url('Must be a valid URL').default('https://tenantflow.app'),
+	FRONTEND_URL: z
+		.string()
+		.url('Must be a valid URL')
+		.default('https://tenantflow.app'),
 
 	// Database
 	DATABASE_URL: z.string(),
@@ -20,20 +23,30 @@ const environmentSchema = z.object({
 
 	// Authentication
 	JWT_SECRET: z.string().min(32, 'JWT secret must be at least 32 characters'),
+	// JWT public keys for asymmetric algorithms (supporting key rotation)
+	JWT_PUBLIC_KEY_CURRENT: z.string().optional(),
+	JWT_PUBLIC_KEY_STANDBY: z.string().optional(),
 	JWT_EXPIRES_IN: z.string().default('7d'),
 
 	// Supabase (using modern API key naming convention)
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
 	SUPABASE_SECRET_KEY: z.string(),
+	/**
+	 * Supabase JWT Secret - Get this from your Supabase dashboard under Settings > JWT Keys > Current Signing Key
+	 * This is used for JWT verification instead of relying on JWKS endpoints
+	 */
+	SUPABASE_JWT_SECRET: z
+		.string()
+		.min(32, 'Supabase JWT secret must be at least 32 characters')
+		.optional(),
+	/**
+	 * Supabase JWT Algorithm - Defaults to HS256 (Supabase's default)
+	 * Only HS256 is currently supported for direct key verification
+	 */
 	SUPABASE_JWT_ALGORITHM: z
 		.string()
 		.transform(val => val.toUpperCase().trim())
 		.pipe(z.enum(['HS256', 'RS256', 'ES256']))
-		.optional(),
-	// SUPABASE_JWT_SECRET remains optional for symmetric (HS256) projects
-	SUPABASE_JWT_SECRET: z
-		.string()
-		.min(32, 'Supabase JWT secret must be at least 32 characters')
 		.optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.string(),
 
@@ -70,7 +83,11 @@ const environmentSchema = z.object({
 	LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 
 	// Monitoring
-	ENABLE_METRICS: z.coerce.boolean().default(false),
+	ENABLE_METRICS: z.coerce.boolean().default(true),
+	PROMETHEUS_BEARER_TOKEN: z
+		.string()
+		.min(16, 'PROMETHEUS_BEARER_TOKEN must be at least 16 characters')
+		.optional(),
 
 	// File Storage
 	STORAGE_PROVIDER: z.enum(['local', 'supabase', 's3']).default('supabase'),

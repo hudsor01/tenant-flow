@@ -5,7 +5,7 @@
 import { clientFetch } from '#lib/api/client'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 type ConnectedAccount = Database['public']['Tables']['connected_account']['Row']
 

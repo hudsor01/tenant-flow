@@ -15,6 +15,25 @@ behavior. It does not attempt to cache every request; it focuses on
 assets that meaningfully improve performance and resilience.
 */
 
+const swConsole = globalThis['console']
+const swLogger = {
+	info: (...args) => {
+		if (swConsole?.info) {
+			swConsole.info('[TenantFlowSW]', ...args)
+		}
+	},
+	warn: (...args) => {
+		if (swConsole?.warn) {
+			swConsole.warn('[TenantFlowSW]', ...args)
+		}
+	},
+	error: (...args) => {
+		if (swConsole?.error) {
+			swConsole.error('[TenantFlowSW]', ...args)
+		}
+	}
+}
+
 const CACHE_VERSION = 'v1'
 const PRECACHE = `tenantflow-precache-${CACHE_VERSION}`
 const RUNTIME = `tenantflow-runtime-${CACHE_VERSION}`
@@ -79,7 +98,7 @@ self.addEventListener('install', event => {
 				await cache.addAll(PRECACHE_URLS)
 			} catch (e) {
 				// If precache fails, continue — runtime caching still works
-				console.warn('SW: precache failed', e)
+				swLogger.warn('SW: precache failed', e)
 			}
 			// Activate immediately
 			await self.skipWaiting()

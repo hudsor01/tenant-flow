@@ -1,9 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'CreateTestUsersScript' })
 
 async function createTestUsers() {
 	// Safety guard for production
 	if (process.env.NODE_ENV === 'production') {
-		console.error('Error: This script cannot be run in production environment')
+		logger.error('This script cannot be run in production environment')
 		process.exit(1)
 	}
 
@@ -11,15 +14,8 @@ async function createTestUsers() {
 	const supabaseUrl = process.env.SUPABASE_URL
 	const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
 
-	if (!supabaseUrl) {
-		console.error('Error: SUPABASE_URL environment variable is required')
-		process.exit(1)
-	}
-
-	if (!supabasePublishableKey) {
-		console.error(
-			'Error: SUPABASE_PUBLISHABLE_KEY environment variable is required'
-		)
+	if (!supabaseUrl || !supabasePublishableKey) {
+		logger.error('Missing Supabase URL or publishable key')
 		process.exit(1)
 	}
 
@@ -29,7 +25,7 @@ async function createTestUsers() {
 	// Validate TEST_USER_PASSWORD is provided
 	const testUserPassword = process.env.TEST_USER_PASSWORD
 	if (!testUserPassword) {
-		console.error('Error: TEST_USER_PASSWORD environment variable is required')
+		logger.error('TEST_USER_PASSWORD environment variable is required')
 		process.exit(1)
 	}
 
@@ -54,7 +50,7 @@ async function createTestUsers() {
 		}
 	]
 
-	console.log('Creating test users via signUp (no admin API)...')
+	logger.info('Creating test users via signUp (no admin API)...')
 	let failureCount = 0
 	for (const user of testUsers) {
 		try {
@@ -68,26 +64,35 @@ async function createTestUsers() {
 					error.message.includes('already registered') ||
 					error.message.includes('User already registered')
 				) {
-					console.log(`✅ ${user.email} already exists`)
+					logger.info(`✅ ${user.email} already exists`)
 				} else {
-					console.error(`❌ Error creating ${user.email}:`, error.message)
+					logger.error(`❌ Error creating ${user.email}`, {
+						metadata: { error: error.message }
+					})
 					failureCount++
 				}
 			} else {
-				console.log(`✅ Created ${user.email} (ID: ${data.user?.id})`)
+				logger.info(`✅ Created ${user.email} (ID: ${data.user?.id})`)
 			}
 		} catch (e) {
-			console.error(`❌ Error creating ${user.email}:`, e.message)
+			logger.error(`❌ Error creating ${user.email}`, {
+				metadata: { error: e instanceof Error ? e.message : String(e) }
+			})
 			failureCount++
 		}
 	}
 
 	if (failureCount > 0) {
-		console.error(`\n❌ Failed to create ${failureCount} user(s)`)
+		logger.error(`Failed to create ${failureCount} user(s)`)
 		process.exit(1)
 	} else {
-		console.log('\n✅ All test users created or already exist')
+		logger.info('✅ All test users created or already exist')
 	}
 }
 
-createTestUsers()
+createTestUsers().catch(error => {
+	logger.error('Unexpected failure while creating test users', {
+		metadata: { error: error instanceof Error ? error.message : String(error) }
+	})
+	process.exit(1)
+})

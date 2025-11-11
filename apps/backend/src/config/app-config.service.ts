@@ -10,7 +10,9 @@ import type { Config } from './config.schema'
  */
 @Injectable()
 export class AppConfigService {
-	constructor(private readonly configService: NestConfigService<Config, true>) {}
+	constructor(
+		private readonly configService: NestConfigService<Config, true>
+	) {}
 
 	// ==================== Application ====================
 
@@ -54,11 +56,17 @@ export class AppConfigService {
 		return this.configService.get('JWT_SECRET', { infer: true })
 	}
 
+	getJwtPublicKeyCurrent(): string | undefined {
+		return this.configService.get('JWT_PUBLIC_KEY_CURRENT', { infer: true })
+	}
+
+	getJwtPublicKeyStandby(): string | undefined {
+		return this.configService.get('JWT_PUBLIC_KEY_STANDBY', { infer: true })
+	}
+
 	getJwtExpiresIn(): string {
 		return this.configService.get('JWT_EXPIRES_IN', { infer: true })
 	}
-
-	// ==================== Supabase ====================
 
 	getSupabaseUrl(): string {
 		return this.configService.get('SUPABASE_URL', { infer: true })
@@ -72,12 +80,18 @@ export class AppConfigService {
 		return this.configService.get('SUPABASE_PUBLISHABLE_KEY', { infer: true })
 	}
 
-	getSupabaseJwtAlgorithm(): 'HS256' | 'RS256' | 'ES256' | undefined {
-		return this.configService.get('SUPABASE_JWT_ALGORITHM', { infer: true })
+	get supabaseJwtAlgorithm(): string {
+		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'HS256'
 	}
 
-	getSupabaseJwtSecret(): string | undefined {
-		return this.configService.get('SUPABASE_JWT_SECRET', { infer: true })
+	get supabaseJwtSecret(): string {
+		const secret = this.get('SUPABASE_JWT_SECRET')
+		if (!secret) {
+			throw new Error(
+				'SUPABASE_JWT_SECRET is required. Get this from your Supabase dashboard under Settings > JWT Keys > Current Signing Key'
+			)
+		}
+		return secret
 	}
 
 	// ==================== CORS ====================

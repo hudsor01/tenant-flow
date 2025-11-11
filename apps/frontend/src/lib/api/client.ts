@@ -10,7 +10,7 @@
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ERROR_MESSAGES } from '#lib/constants'
+import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 
 const logger = createLogger({ component: 'ClientAPI' })
 

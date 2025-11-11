@@ -23,9 +23,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 						className={cn(
 							// Typography using design tokens
 							'block',
-							'text-[var(--font-body)]',
+							'text-(--font-body)',
 							'font-[var(--font-weight-medium)]',
-							'text-[var(--color-label-primary)]',
+							'text-(--color-label-primary)',
 							'mb-[var(--spacing-2)]'
 						)}
 					>
@@ -47,30 +47,30 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 
 							// Design tokens: borders, radius, shadows
 							'rounded-[var(--radius-medium)]',
-							'border border-[var(--color-separator)]',
+							'border border-(--color-separator)',
 							'bg-transparent',
 							'shadow-[var(--shadow-small)]',
 							'outline-none',
 
 							// Typography with design tokens
-							'text-[var(--font-body)]',
+							'text-(--font-body)',
 							'font-[var(--font-weight-normal)]',
 							'leading-[var(--line-height-body)]',
 
 							// File input styles using design tokens
 							'file:border-0 file:bg-transparent',
-							'file:text-[var(--font-body)]',
+							'file:text-(--font-body)',
 							'file:font-[var(--font-weight-medium)]',
 
 							// Placeholder using design tokens
-							'placeholder:text-[var(--color-label-tertiary)]',
+							'placeholder:text-(--color-label-tertiary)',
 
 							// Focus state with comprehensive design tokens
 							'focus-visible:outline-none',
 							'focus-visible:ring-[var(--focus-ring-width)]',
 							'focus-visible:ring-[var(--focus-ring-color)]',
 							'focus-visible:ring-offset-[var(--focus-ring-offset)]',
-							'focus-visible:border-[var(--focus-ring-color)]',
+							'focus-visible:border-(--focus-ring-color)',
 
 							// Disabled state using design tokens
 							'disabled:cursor-not-allowed',
@@ -91,9 +91,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
 							'px-[var(--spacing-3)]',
 
 							// Colors using design tokens
-							'text-[var(--color-label-tertiary)]',
-							'hover:text-[var(--color-label-primary)]',
-							'focus:text-[var(--color-accent-main)]',
+							'text-(--color-label-tertiary)',
+							'hover:text-(--color-label-primary)',
+							'focus:text-(--color-accent-main)',
 
 							// Focus and interaction
 							'focus:outline-none',

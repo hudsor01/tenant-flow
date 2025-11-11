@@ -641,11 +641,6 @@ export type { UnitInput, UnitUpdate } from './units-repository'
 
 export type PaymentMethodType = 'card' | 'us_bank_account'
 
-export interface PaymentMethodSetupIntent {
-	clientSecret: string | null
-	setupIntentId: string
-}
-
 export interface PaymentMethodResponse {
 	id: string
 	tenantId: string
@@ -656,10 +651,6 @@ export interface PaymentMethodResponse {
 	bankName: string | null
 	isDefault: boolean
 	createdAt: string
-}
-
-export interface CreateSetupIntentRequest {
-	type: PaymentMethodType
 }
 
 export interface SetDefaultPaymentMethodRequest {

@@ -44,18 +44,18 @@ export function ChartContainer({
 
 // TenantFlow color palette for charts - consistent across all libraries
 export const TENANTFLOW_CHART_COLORS = {
-	primary: 'oklch(var(--primary))',
-	secondary: 'oklch(var(--secondary))',
-	accent: 'oklch(var(--accent))',
-	muted: 'oklch(var(--muted))',
-	success: 'var(--color-system-green)', // Green for positive metrics
-	warning: 'var(--color-system-orange)', // Orange for warnings
-	destructive: 'oklch(var(--destructive))',
-	info: 'var(--color-system-blue)', // Blue for informational
-	revenue: 'var(--color-system-green)', // Green for revenue
-	occupancy: 'var(--color-system-blue)', // Blue for occupancy
-	maintenance: 'var(--color-system-orange)', // Orange for maintenance
-	properties: 'oklch(var(--primary))' // Primary for properties
+	primary: 'oklch(var(--color-primary))',
+	secondary: 'oklch(var(--color-accent))',
+	accent: 'oklch(var(--color-accent-main))',
+	muted: 'oklch(var(--color-gray-secondary))',
+	success: 'oklch(var(--color-system-green))',
+	warning: 'oklch(var(--color-system-orange))',
+	destructive: 'oklch(var(--color-system-red))',
+	info: 'oklch(var(--color-system-blue))',
+	revenue: 'oklch(var(--color-system-green))',
+	occupancy: 'oklch(var(--color-system-blue))',
+	maintenance: 'oklch(var(--color-system-orange))',
+	properties: 'oklch(var(--color-primary))'
 }
 
 // Consistent chart configuration for all libraries

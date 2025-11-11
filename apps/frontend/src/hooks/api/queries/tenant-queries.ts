@@ -14,6 +14,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Tenant, TenantWithLeaseInfo, TenantStats } from '@repo/shared/types/core'
 
 /**
@@ -69,8 +70,7 @@ export const tenantQueries = {
 					`/api/v1/tenants${params ? `?${params}` : ''}`
 				)
 			},
-			staleTime: 3 * 60 * 1000, // 3 minutes
-			gcTime: 10 * 60 * 1000, // 10 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -88,8 +88,7 @@ export const tenantQueries = {
 		queryOptions({
 			queryKey: [...tenantQueries.details(), id],
 			queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			gcTime: 10 * 60 * 1000, // 10 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
 
@@ -104,8 +103,7 @@ export const tenantQueries = {
 			queryKey: [...tenantQueries.all(), 'with-lease', id],
 			queryFn: () =>
 				clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`),
-			staleTime: 5 * 60 * 1000,
-			gcTime: 10 * 60 * 1000,
+			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
 
@@ -119,7 +117,7 @@ export const tenantQueries = {
 		queryOptions({
 			queryKey: [...tenantQueries.all(), 'stats'],
 			queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
-			staleTime: 5 * 60 * 1000,
-			gcTime: 30 * 60 * 1000, // 30 minutes
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 30 * 60 * 1000, // Keep 30 minutes for stats
 		}),
 }

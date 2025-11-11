@@ -2,9 +2,11 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { clientFetch, getAuthHeaders } from '#lib/api/client'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 /**
  * Query keys for lease generation
@@ -27,7 +29,7 @@ export function useLeaseAutoFill(propertyId: string, unitId: string, tenantId: s
 				`/api/v1/leases/auto-fill/${propertyId}/${unitId}/${tenantId}`
 			),
 		enabled: !!propertyId && !!unitId && !!tenantId,
-		staleTime: 5 * 60 * 1000 // 5 minutes
+		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 
@@ -94,11 +96,11 @@ export function useGenerateLease() {
 			})
 		},
 		onError: error => {
-			toast.error('Failed to generate lease')
 			logger.error('Error generating lease', {
 				action: 'generate_lease_error',
 				metadata: { error: String(error) }
 			})
+			handleMutationError(error, 'Generate lease')
 		}
 	})
 }
@@ -134,11 +136,11 @@ export function useEmailLease() {
 			toast.success('Lease generated - email functionality coming soon')
 		},
 		onError: error => {
-			toast.error('Failed to generate lease')
 			logger.error('Error generating lease for email', {
 				action: 'email_lease_error',
 				metadata: { error: String(error) }
 			})
+			handleMutationError(error, 'Generate lease for email')
 		}
 	})
 }
