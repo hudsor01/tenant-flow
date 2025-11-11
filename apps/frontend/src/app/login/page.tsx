@@ -12,14 +12,14 @@ import { Suspense, useEffect, useState } from 'react'
 
 import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { LoginLayout } from '#components/auth/login-layout'
-import { toast } from 'sonner'
+import { useModalStore } from '#stores/modal-store'
 
 const logger = createLogger({ component: 'LoginPage' })
 
 function LoginPageContent() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-	const [showForgotPassword, setShowForgotPassword] = useState(false)
+	const { openModal } = useModalStore()
 	const router = useRouter()
 	const searchParams = useSearchParams()
 
@@ -29,10 +29,7 @@ function LoginPageContent() {
 
 		const error = searchParams.get('error')
 		if (error === 'oauth_failed') {
-			toast.error('Authentication failed', {
-				description:
-					'There was an error signing in with Google. Please try again.'
-			})
+			// Remove toast - let the form handle OAuth errors more gracefully
 			router.replace('/login')
 		}
 	}, [searchParams, router])
@@ -72,12 +69,6 @@ function LoginPageContent() {
 					return
 				}
 
-				// Show error toast for authentication failures
-				toast.error('Sign in failed', {
-					description: error.message.includes('Invalid login credentials')
-						? 'Invalid email or password. Please check your credentials and try again.'
-						: error.message
-				})
 				return
 			}
 
@@ -114,10 +105,6 @@ function LoginPageContent() {
 					}
 				})
 
-				toast.success('Welcome back!', {
-					description: `Signed in as ${credentials.email}`
-				})
-
 				// Redirect to destination
 				router.push(destination)
 			}
@@ -129,20 +116,17 @@ function LoginPageContent() {
 				}
 			})
 			// Show error toast for unexpected errors
-			toast.error('Something went wrong', {
-				description:
-					'An unexpected error occurred during sign in. Please try again.'
-			})
+			// toast.error('Something went wrong', {
+			// 	description:
+			// 		'An unexpected error occurred during sign in. Please try again.'
+			// })
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
 	const handleForgotPassword = () => {
-		logger.info('Forgot password modal opened', {
-			action: 'forgot_password_modal_opened'
-		})
-		setShowForgotPassword(true)
+		openModal('forgot-password')
 	}
 
 	const handleSignUp = () => {
@@ -182,11 +166,6 @@ function LoginPageContent() {
 						error: error.message
 					}
 				})
-				// Show error toast for Google login failures
-				toast.error('Google sign in failed', {
-					description:
-						'Unable to sign in with Google. Please try again or use email and password.'
-				})
 			}
 		} catch (error) {
 			logger.error('Unexpected error during Google login', {
@@ -194,11 +173,6 @@ function LoginPageContent() {
 				metadata: {
 					error: error instanceof Error ? error.message : String(error)
 				}
-			})
-			// Show error toast for unexpected Google login errors
-			toast.error('Something went wrong', {
-				description:
-					'An unexpected error occurred during Google sign in. Please try again.'
 			})
 		} finally {
 			setIsGoogleLoading(false)
@@ -232,10 +206,7 @@ function LoginPageContent() {
 				}}
 			/>
 
-			<ForgotPasswordModal
-				open={showForgotPassword}
-				onOpenChange={setShowForgotPassword}
-			/>
+			<ForgotPasswordModal />
 		</>
 	)
 }

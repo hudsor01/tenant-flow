@@ -10,7 +10,7 @@ import {
 } from '#components/ui/input-group'
 import { Textarea } from '#components/ui/textarea'
 import { useTenant, useUpdateTenant } from '#hooks/api/use-tenant'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	tenantUpdateSchema
 } from '@repo/shared/validation/tenants'
@@ -27,7 +27,6 @@ export interface TenantEditFormProps {
 export function TenantEditForm({ id }: TenantEditFormProps) {
 	// ...existing code...
 	const { data: tenant, isLoading, isError } = useTenant(id)
-	const logger = createLogger({ component: 'TenantEditForm' })
 	const router = useRouter()
 
 	// Use custom hook instead of inline mutation
@@ -47,14 +46,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 				toast.success('Tenant updated successfully')
 				router.push(`/manage/tenants/${id}`)
 			} catch (error) {
-				toast.error('Failed to update tenant', { 
-					description: error instanceof Error ? error.message : 'Unknown error' 
-				})
-				logger.error(
-					'Failed to update tenant',
-					{ action: 'updateTenant' },
-					error
-				)
+				handleMutationError(error, 'Update tenant')
 			}
 		},
 		validators: {

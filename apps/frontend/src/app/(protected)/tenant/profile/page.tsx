@@ -39,17 +39,18 @@ import {
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { useUserProfile } from '#hooks/use-user-profile'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useModalStore } from '#stores/modal-store'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
-	const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 	const [emergencyContactEditing, setEmergencyContactEditing] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const { openModal } = useModalStore()
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const { data: profile, isLoading: profileLoading } = useUserProfile()
 	const updateProfile = useSupabaseUpdateProfile()
@@ -145,13 +146,7 @@ export default function TenantProfilePage() {
 			})
 			setIsEditing(false)
 		} catch (error) {
-			logger.error('Failed to update profile', {
-				action: 'update_profile',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
-			toast.error('Failed to update profile')
+			handleMutationError(error, 'Update profile')
 		}
 	}
 
@@ -165,10 +160,7 @@ export default function TenantProfilePage() {
 		try {
 			await updatePreferences.mutateAsync({ [key]: value })
 		} catch (error) {
-			logger.error('Failed to update notification preference', {
-				action: 'toggle_notification_preference',
-				metadata: { key, value, error }
-			})
+			handleMutationError(error, 'Update notification preference')
 		}
 	}
 
@@ -221,15 +213,7 @@ export default function TenantProfilePage() {
 			}
 			setEmergencyContactEditing(false)
 		} catch (error) {
-			logger.error('Failed to save emergency contact', {
-				action: 'save_emergency_contact',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
-			toast.error('Failed to save emergency contact', {
-				description: error instanceof Error ? error.message : 'Please try again'
-			})
+			handleMutationError(error, 'Save emergency contact')
 		}
 	}
 
@@ -252,12 +236,7 @@ export default function TenantProfilePage() {
 			setEmergencyContactEditing(false)
 			setDeleteDialogOpen(false)
 		} catch (error) {
-			logger.error('Failed to delete emergency contact', {
-				action: 'delete_emergency_contact',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
+			handleMutationError(error, 'Delete emergency contact')
 		}
 	}
 
@@ -628,7 +607,7 @@ export default function TenantProfilePage() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setPasswordDialogOpen(true)}
+							onClick={() => openModal('change-password')}
 						>
 							Change Password
 						</Button>
@@ -637,10 +616,7 @@ export default function TenantProfilePage() {
 			</CardLayout>
 
 			{/* Password Change Dialog */}
-			<ChangePasswordDialog
-				open={passwordDialogOpen}
-				onOpenChange={setPasswordDialogOpen}
-			/>
+			<ChangePasswordDialog />
 
 			{/* Delete Emergency Contact Confirmation Dialog */}
 			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

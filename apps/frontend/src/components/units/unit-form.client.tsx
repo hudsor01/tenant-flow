@@ -20,8 +20,10 @@ import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { UNIT_STATUS, UNIT_STATUS_LABELS, ERROR_MESSAGES } from '#lib/constants'
+import { UNIT_STATUS, UNIT_STATUS_LABELS } from '#lib/constants/status-values'
+import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import { isConflictError, handleConflictError } from '@repo/shared/utils/optimistic-locking'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 interface UnitFormProps {
 	mode: 'create' | 'edit'
@@ -142,7 +144,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					toast.success('Unit updated successfully')
 				}
 
-				onSuccess?.()
+					onSuccess?.()
 			} catch (error) {
 				// Handle optimistic locking conflicts
 				if (mode === 'edit' && unit && isConflictError(error)) {
@@ -154,10 +156,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					return
 				}
 
-				const errorMessage =
-					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'unit')
-				
-				toast.error(errorMessage)
+				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} unit`)
 			}
 		}
 	})

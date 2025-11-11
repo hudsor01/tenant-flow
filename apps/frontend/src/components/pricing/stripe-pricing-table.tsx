@@ -118,7 +118,7 @@ export function StripePricingTable({
 
 function LoadingMessage() {
 	return (
-		<div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-fill-secondary)] p-6 text-center text-sm text-[var(--color-label-secondary)]">
+		<div className="rounded-lg border border-dashed border-border bg-(--color-fill-secondary) p-6 text-center text-sm text-(--color-label-secondary)">
 			Preparing secure Stripe pricing table…
 		</div>
 	)
@@ -126,9 +126,9 @@ function LoadingMessage() {
 
 function ConfigurationErrorMessage() {
 	return (
-		<div className="rounded-lg border border-dashed border-[var(--color-border)] bg-[var(--color-fill-secondary)] p-6 text-center text-sm text-[var(--color-label-secondary)]">
+		<div className="rounded-lg border border-dashed border-border bg-(--color-fill-secondary) p-6 text-center text-sm text-(--color-label-secondary)">
 			Stripe publishable key is missing. Add{' '}
-			<code className="rounded bg-[var(--color-fill-primary)] px-1 py-0.5 text-xs">
+			<code className="rounded bg-(--color-fill-primary) px-1 py-0.5 text-xs">
 				NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 			</code>{' '}
 			to Doppler configuration.
@@ -142,8 +142,8 @@ function StripePricingTablePlaceholder({
 	pricingTableId: string
 }) {
 	return (
-		<div className="rounded-xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-fill-secondary)] p-10 text-left text-[var(--color-label-secondary)]">
-			<h3 className="mb-4 text-center text-xl font-semibold text-[var(--color-label-primary)]">
+		<div className="rounded-xl border-2 border-dashed border-border bg-(--color-fill-secondary) p-10 text-left text-(--color-label-secondary)">
+			<h3 className="mb-4 text-center text-xl font-semibold text-(--color-label-primary)">
 				Stripe Pricing Table Configuration Required
 			</h3>
 			<p className="mx-auto mb-6 max-w-2xl text-center">
@@ -151,15 +151,15 @@ function StripePricingTablePlaceholder({
 				Configure your pricing table in the Stripe Dashboard and update Doppler
 				with the generated ID.
 			</p>
-			<div className="mx-auto max-w-2xl rounded-lg bg-[var(--color-fill-primary)] p-6">
-				<h4 className="mb-3 font-medium text-[var(--color-label-primary)]">
+			<div className="mx-auto max-w-2xl rounded-lg bg-(--color-fill-primary) p-6">
+				<h4 className="mb-3 font-medium text-(--color-label-primary)">
 					Setup Instructions
 				</h4>
 				<ol className="list-decimal space-y-2 pl-6 text-sm">
 					<li>
 						Visit{' '}
 						<a
-							className="text-[var(--color-primary-brand)] underline"
+							className="text-(--color-primary-brand) underline"
 							href="https://dashboard.stripe.com/pricing-tables"
 							rel="noreferrer"
 							target="_blank"
@@ -171,13 +171,13 @@ function StripePricingTablePlaceholder({
 					<li>Copy the generated pricing table ID (starts with prctbl_)</li>
 					<li>
 						Update Doppler:
-						<code className="ml-1 rounded bg-[var(--color-fill-secondary)] px-1 py-0.5 text-xs">
+						<code className="ml-1 rounded bg-(--color-fill-secondary) px-1 py-0.5 text-xs">
 							doppler secrets set STRIPE_PRICING_TABLE_ID {pricingTableId}
 						</code>
 					</li>
 				</ol>
 			</div>
-			<div className="mx-auto mt-6 max-w-2xl rounded-lg bg-[var(--color-system-yellow-bg)] p-4 text-sm text-[var(--color-system-yellow)]">
+			<div className="mx-auto mt-6 max-w-2xl rounded-lg bg-(--color-system-yellow-bg) p-4 text-sm text-(--color-system-yellow)">
 				<strong>Note:</strong> Pricing tables include secure checkout, customer
 				portal links, and automatic tax calculation.
 			</div>

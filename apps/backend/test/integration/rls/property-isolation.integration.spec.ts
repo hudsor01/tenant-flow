@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
+import { Logger } from '@nestjs/common'
 import {
 	authenticateAs,
 	expectEmptyResult,
@@ -25,6 +26,8 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 
 type PropertyRow = Database['public']['Tables']['property']['Row']
 type UnitRow = Database['public']['Tables']['unit']['Row']
+
+const testLogger = new Logger('RLSPropertyIsolationTest')
 
 describe('RLS: Property Isolation', () => {
 	let ownerA: AuthenticatedTestClient
@@ -100,7 +103,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A cannot read owner B properties', async () => {
 			if (!ownerBPropertyId) {
-				console.warn('owner B has no properties - skipping test')
+				testLogger.warn('owner B has no properties - skipping test')
 				return
 			}
 
@@ -115,7 +118,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A can update their own property', async () => {
 			if (!ownerAPropertyId) {
-				console.warn('owner A has no properties - skipping test')
+				testLogger.warn('owner A has no properties - skipping test')
 				return
 			}
 
@@ -132,7 +135,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A cannot update owner B property', async () => {
 			if (!ownerBPropertyId) {
-				console.warn('owner B has no properties - skipping test')
+				testLogger.warn('owner B has no properties - skipping test')
 				return
 			}
 
@@ -152,7 +155,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('tenant cannot read property management data', async () => {
 			if (!ownerAPropertyId) {
-				console.warn('owner A has no properties - skipping test')
+				testLogger.warn('owner A has no properties - skipping test')
 				return
 			}
 
@@ -295,10 +298,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can read units in their own property', async () => {
-			if (!ownerAPropertyId) {
-				console.warn('owner A has no properties - skipping test')
-				return
-			}
+		if (!ownerAPropertyId) {
+			testLogger.warn('owner A has no properties - skipping test')
+			return
+		}
 
 			const { data, error } = await ownerA.client
 				.from('unit')
@@ -310,10 +313,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot read units in owner B property', async () => {
-			if (!ownerBPropertyId) {
-				console.warn('owner B has no properties - skipping test')
-				return
-			}
+		if (!ownerBPropertyId) {
+			testLogger.warn('owner B has no properties - skipping test')
+			return
+		}
 
 			const { data, error } = await ownerA.client
 				.from('unit')
@@ -325,10 +328,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can create unit in their own property', async () => {
-			if (!ownerAPropertyId) {
-				console.warn('owner A has no properties - skipping test')
-				return
-			}
+		if (!ownerAPropertyId) {
+			testLogger.warn('owner A has no properties - skipping test')
+			return
+		}
 
 			const newUnit: Database['public']['Tables']['unit']['Insert'] = {
 				propertyId: ownerAPropertyId,
@@ -354,10 +357,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot create unit in owner B property', async () => {
-			if (!ownerBPropertyId) {
-				console.warn('owner B has no properties - skipping test')
-				return
-			}
+		if (!ownerBPropertyId) {
+			testLogger.warn('owner B has no properties - skipping test')
+			return
+		}
 
 			const maliciousUnit: Database['public']['Tables']['unit']['Insert'] = {
 				propertyId: ownerBPropertyId, // Attempt to create unit in another owner's property
@@ -379,9 +382,9 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can update unit in their own property', async () => {
-			if (!ownerAUnitId) {
-				console.warn('owner A has no units - skipping test')
-				return
+		if (!ownerAUnitId) {
+			testLogger.warn('owner A has no units - skipping test')
+			return
 			}
 
 			const { data, error } = await ownerA.client
@@ -397,10 +400,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot update unit in owner B property', async () => {
-			if (!ownerBUnitId) {
-				console.warn('owner B has no units - skipping test')
-				return
-			}
+		if (!ownerBUnitId) {
+			testLogger.warn('owner B has no units - skipping test')
+			return
+		}
 
 			const { data, error } = await ownerA.client
 				.from('unit')
@@ -446,10 +449,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can mark their property as sold', async () => {
-			if (!testPropertyId) {
-				console.warn('Test property not created - skipping test')
-				return
-			}
+		if (!testPropertyId) {
+			testLogger.warn('Test property not created - skipping test')
+			return
+		}
 
 			const { data, error } = await ownerA.client
 				.from('property')
@@ -467,10 +470,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner B cannot mark owner A property as sold', async () => {
-			if (!testPropertyId) {
-				console.warn('Test property not created - skipping test')
-				return
-			}
+		if (!testPropertyId) {
+			testLogger.warn('Test property not created - skipping test')
+			return
+		}
 
 			const { data, error } = await ownerB.client
 				.from('property')

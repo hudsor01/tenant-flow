@@ -50,12 +50,17 @@ export class LeaseGenerationController {
 	 * Sanitize string for use in filename
 	 * Removes special characters and limits length
 	 */
-	private sanitizeForFilename(value: string, maxLength: number): string {
+	private sanitizeForFilename(value: string | undefined, maxLength: number): string {
+		const fallback = 'file'
+		if (!value?.trim()) return fallback
+
 		return value
+			.trim()
+			.normalize('NFKD') // Unicode normalization to prevent attacks
 			.replace(/[^a-zA-Z0-9]/g, '-')
 			.replace(/-+/g, '-')
 			.replace(/^-|-$/g, '')
-			.slice(0, maxLength)
+			.slice(0, maxLength) || fallback
 	}
 
 	/**
@@ -65,11 +70,11 @@ export class LeaseGenerationController {
 		const sanitizedAddress = this.sanitizeForFilename(
 			dto.propertyAddress || 'property',
 			MAX_ADDRESS_LENGTH
-		)
+		) || 'property'
 		const sanitizedTenant = this.sanitizeForFilename(
 			dto.tenantName || 'tenant',
 			MAX_TENANT_NAME_LENGTH
-		)
+		) || 'tenant'
 		const date = new Date().toISOString().split('T')[0]
 		return `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
 	}
@@ -108,7 +113,7 @@ export class LeaseGenerationController {
 	/**
 	 * Download Texas lease PDF
 	 * POST /api/v1/leases/download
-	 * 
+	 *
 	 * Forces download instead of preview
 	 * NO DATABASE STORAGE - user action in their hands
 	 */

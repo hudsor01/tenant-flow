@@ -24,7 +24,14 @@ import { clientFetch } from '#lib/api/client'
 const logger = createLogger({ component: 'MaintenanceKanban' })
 
 type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
-type Status = 'OPEN' | 'IN_PROGRESS' | 'ON_HOLD' | 'COMPLETED' | 'CANCELED'
+// Define the exact status types that match the database enum
+type Status =
+	| 'OPEN'
+	| 'IN_PROGRESS'
+	| 'COMPLETED'
+	| 'CANCELED'
+	| 'ON_HOLD'
+	| 'CLOSED'
 
 const COLUMNS: {
 	id: Status
@@ -32,9 +39,15 @@ const COLUMNS: {
 	variant: 'default' | 'secondary' | 'outline'
 }[] = [
 	{ id: 'OPEN', title: 'Open', variant: 'default' },
-	{ id: 'IN_PROGRESS', title: 'In Progress', variant: 'secondary' },
+	{
+		id: 'IN_PROGRESS',
+		title: 'In Progress',
+		variant: 'secondary'
+	},
+	{ id: 'COMPLETED', title: 'Completed', variant: 'default' },
+	{ id: 'CANCELED', title: 'Canceled', variant: 'outline' },
 	{ id: 'ON_HOLD', title: 'On Hold', variant: 'outline' },
-	{ id: 'COMPLETED', title: 'Completed', variant: 'default' }
+	{ id: 'CLOSED', title: 'Closed', variant: 'outline' }
 ]
 
 interface MaintenanceKanbanProps {
@@ -105,7 +118,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					})
 				})
 
-			toast.success(
+				toast.success(
 					`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`
 				)
 			} catch (error) {

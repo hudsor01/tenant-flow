@@ -27,7 +27,7 @@ export function Checkout({ className }: CheckoutProps) {
 		<CardLayout
 			title="Checkout"
 			description="Complete your payment securely"
-			className={`border-[var(--color-border)] shadow-sm min-h-150 ${className || ''}`}
+			className={`border-border shadow-sm min-h-150 ${className || ''}`}
 		>
 			<EmbeddedCheckout />
 		</CardLayout>
