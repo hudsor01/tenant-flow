@@ -66,15 +66,15 @@ export const dashboardKeys = {
 }
 
 /**
- * Hook to fetch dashboard statistics with 30-second auto-refresh
+ * Hook to fetch dashboard statistics with optimized refresh interval
  */
 export function useDashboardStats() {
 	return useQuery({
 		queryKey: dashboardKeys.stats(),
 		queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
-		staleTime: 2 * 60 * 1000, // 2 minutes (optimized from 30s to reduce server load by 75%)
+		staleTime: 5 * 60 * 1000, // 5 minutes (stats are relatively static)
 		gcTime: 10 * 60 * 1000, // 10 minutes - remove from cache after this period
-		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 30s)
+		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes (optimized - stats change infrequently)
 		refetchIntervalInBackground: false, // Stop refreshing when tab inactive (CRITICAL: prevents memory leaks)
 		refetchOnWindowFocus: true, // Refresh when user returns to tab
 		refetchOnMount: true, // Always fetch fresh data on component mount
