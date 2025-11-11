@@ -9,9 +9,16 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody } from '#components/ui/crud-dialog'
+import {
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogDescription,
+	CrudDialogBody
+} from '#components/ui/crud-dialog'
 import { useModalStore } from '#stores/modal-store'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Lease } from '@repo/shared/types/core'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import {
@@ -22,9 +29,6 @@ import {
 	Trash2,
 	X
 } from 'lucide-react'
-
-
-type Lease = Tables<'lease'>
 
 interface LeaseActionButtonsProps {
 	lease: Lease

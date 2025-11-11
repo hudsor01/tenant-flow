@@ -11,10 +11,10 @@
  */
 function getApiBaseUrl(): string {
 	const defaultUrl =
-		process.env.NODE_ENV === 'production'
+		process.env["NODE_ENV"] === 'production'
 			? 'https://api.tenantflow.app'
 			: 'http://localhost:4600'
-	return process.env.NEXT_PUBLIC_API_BASE_URL || defaultUrl
+	return process.env["NEXT_PUBLIC_API_BASE_URL"] || defaultUrl
 }
 
 /**

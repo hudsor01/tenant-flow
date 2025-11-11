@@ -17,7 +17,7 @@ import type { Database } from '../types/supabase.js'
 // Platform compatibility: Frontend uses NEXT_PUBLIC_*, Backend uses regular env vars
 // At least one of each pair must be defined
 const SUPABASE_URL = (() => {
-	const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+	const url = process.env["NEXT_PUBLIC_SUPABASE_URL"] || process.env["SUPABASE_URL"]
 	if (!url) {
 		throw new Error(
 			'SUPABASE_URL environment variable is required (NEXT_PUBLIC_SUPABASE_URL for frontend, SUPABASE_URL for backend)'
@@ -28,8 +28,8 @@ const SUPABASE_URL = (() => {
 
 const SUPABASE_PUBLISHABLE_KEY = (() => {
 	const key =
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-		process.env.SUPABASE_PUBLISHABLE_KEY
+		process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||
+		process.env["SUPABASE_PUBLISHABLE_KEY"]
 	if (!key) {
 		throw new Error(
 			'SUPABASE_PUBLISHABLE_KEY environment variable is required (NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for frontend, SUPABASE_PUBLISHABLE_KEY for backend)'
@@ -38,7 +38,7 @@ const SUPABASE_PUBLISHABLE_KEY = (() => {
 	return key
 })()
 
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY
+const SUPABASE_SECRET_KEY = process.env["SUPABASE_SECRET_KEY"]
 
 // Create a lazy-initialized client to avoid build-time errors
 let _client: SupabaseClient<Database> | null = null
@@ -70,7 +70,7 @@ export function getSupabaseClientInstance(): SupabaseClient<Database> {
 // Use lazy initialization to avoid build-time errors
 let _exportedClient: SupabaseClient<Database> | null = null
 export const supabaseClient = new Proxy({} as SupabaseClient<Database>, {
-	get(target, prop) {
+	get(_target, prop) {
 		if (!_exportedClient) {
 			_exportedClient = getSupabaseClient()
 		}

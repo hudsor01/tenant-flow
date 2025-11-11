@@ -8,7 +8,7 @@ import type { authUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
-import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
+import { SUPABASE_ADMIN_CLIENT, RPC_MAX_RETRIES, RPC_BACKOFF_MS, RPC_TIMEOUT_MS } from './supabase.constants'
 import {
 	SupabaseAuthTokenResolver,
 	type ResolvedSupabaseToken
@@ -87,9 +87,9 @@ export class SupabaseService {
 	async rpcWithRetries(
 		fn: string,
 		args: Record<string, unknown>,
-		attempts = 3,
-		backoffMs = 500,
-		timeoutMs = 10000
+		attempts = RPC_MAX_RETRIES,
+		backoffMs = RPC_BACKOFF_MS,
+		timeoutMs = RPC_TIMEOUT_MS
 	) {
 		const client = this.adminClient
 		let lastErr: unknown = null

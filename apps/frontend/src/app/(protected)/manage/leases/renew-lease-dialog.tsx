@@ -13,13 +13,11 @@ import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { useRenewLease } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Lease } from '@repo/shared/types/core'
 import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'
 import { Calendar, DollarSign, Info, TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
-type Lease = Database['public']['Tables']['lease']['Row']
 
 interface RenewLeaseDialogProps {
 	open: boolean

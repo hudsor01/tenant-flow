@@ -19,12 +19,12 @@ import {
 } from '#components/ui/table'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { cn } from '#lib/utils'
-import type { Property } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type {
+	Property,
+	PropertyStatus,
+	PropertyType
+} from '@repo/shared/types/core'
 import { Building2, MapPin } from 'lucide-react'
-
-type PropertyType = Database['public']['Enums']['PropertyType']
-type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 
 // Format property type for display
 const formatPropertyType = (type: PropertyType): string => {

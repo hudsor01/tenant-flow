@@ -37,7 +37,7 @@ import {
 import { unitColumns, type UnitRow } from './columns'
 import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
 import { usePropertyList } from '#hooks/api/use-properties'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { UnitInsert, UnitStatus } from '@repo/shared/types/core'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
@@ -58,9 +58,6 @@ const ChartAreaInteractive = dynamic(
 		ssr: false // Chart renders client-side only
 	}
 )
-
-type InsertUnit = Database['public']['Tables']['unit']['Insert']
-type UnitStatus = Database['public']['Enums']['UnitStatus']
 
 const ITEMS_PER_PAGE = 25
 
@@ -432,7 +429,7 @@ function NewUnitButton() {
 				rent: Number(fd.get('rent') || 0),
 				propertyId: String(fd.get('propertyId') || ''),
 				status: 'VACANT'
-			} as InsertUnit)
+			} as UnitInsert)
 			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
 			toast.success('Unit created successfully')
 			closeButtonRef.current?.click()

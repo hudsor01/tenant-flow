@@ -32,6 +32,9 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseTenantsCrudTest' })
 
 // This is an INTEGRATION test - it calls the REAL API
 // Make sure backend is running before running these tests
@@ -125,7 +128,9 @@ describe('Tenants CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/tenants/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup tenant ${id}:`, error)
+				logger.warn(`Failed to cleanup tenant ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 	})
@@ -501,7 +506,9 @@ describe('Tenants CRUD Integration Tests', () => {
 			await clientFetch(`/api/v1/units/${unit.id}`, { method: 'DELETE' })
 			await clientFetch(`/api/v1/properties/${property.id}`, { method: 'DELETE' })
 		} catch (error) {
-			console.warn('Failed to cleanup invitation test resources:', error)
+			logger.warn('Failed to cleanup invitation test resources', {
+				metadata: { error: error instanceof Error ? error.message : String(error) }
+			})
 		}
 
 		// ⚠️  MANUAL VERIFICATION STILL REQUIRED:

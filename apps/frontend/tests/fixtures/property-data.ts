@@ -3,12 +3,12 @@
  * Provides consistent test data for property CRUD operations and optimistic updates
  */
 
-import type { Database } from '@repo/shared/types/supabase-generated'
-
-type Property = Database['public']['Tables']['Property']['Row']
-type InsertProperty = Database['public']['Tables']['Property']['Insert']
-type PropertyType = Database['public']['Enums']['PropertyType']
-type PropertyStatus = Database['public']['Enums']['PropertyStatus']
+import type {
+	Property,
+	PropertyInsert,
+	PropertyStatus,
+	PropertyType
+} from '@repo/shared/types/core'
 
 export interface TestProperty extends Omit<Property, 'id' | 'createdAt' | 'updatedAt'> {
   id?: string
@@ -19,7 +19,7 @@ export interface TestProperty extends Omit<Property, 'id' | 'createdAt' | 'updat
 /**
  * Base property data for creating test properties
  */
-export const basePropertyData: InsertProperty = {
+export const basePropertyData: PropertyInsert = {
   name: 'Test Property',
   address: '123 Test St',
   city: 'Test City',
@@ -103,7 +103,7 @@ export function createLargePropertyDataset(pageSize: number = 20, totalPages: nu
 /**
  * Properties with validation errors for error testing
  */
-export const invalidPropertyData: Partial<InsertProperty>[] = [
+export const invalidPropertyData: Partial<PropertyInsert>[] = [
   { name: '', address: '123 Test St' }, // Empty name
   { name: 'Test', address: '' }, // Empty address
   { name: 'Test', address: '123 Test St', city: '' }, // Empty city

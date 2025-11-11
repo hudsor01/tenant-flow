@@ -102,7 +102,7 @@ export type {
 	UpdateUnitInput
 }
 
-export interface UnitStats {
+export interface UnitStatistics {
 	totalUnits: number
 	availableUnits: number
 	occupiedUnits: number
@@ -115,7 +115,7 @@ export interface UnitStats {
 	occupancyRate: number
 }
 
-export interface LeaseStats {
+export interface LeaseStatistics {
 	totalLeases: number
 	activeLeases: number
 	expiredLeases: number

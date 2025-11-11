@@ -11,6 +11,7 @@ import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
+import { ApiError } from './api-error'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -138,18 +139,35 @@ export async function clientFetch<T>(
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
 
 	if (!response.ok) {
-		const errorText = await response.text()
+		let errorData: { code?: string; message?: string; error?: string } | null = null
+		let errorText = ''
+		
+		try {
+			errorText = await response.text()
+			errorData = JSON.parse(errorText)
+		} catch {
+			// Not JSON, use text directly
+		}
+		
+		const code = errorData?.code
+		const message = errorData?.message || errorData?.error || errorText || response.statusText
+		
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API request failed', {
 			metadata: {
 				endpoint,
 				status: response.status,
 				statusText: response.statusText,
-				error: errorText
+				code,
+				error: message
 			}
 		})
-		throw new Error(
-			`API Error (${response.status}): ${errorText || response.statusText}`
+		
+		throw new ApiError(
+			message,
+			code,
+			response.status,
+			errorData
 		)
 	}
 
@@ -157,15 +175,20 @@ export async function clientFetch<T>(
 
 	// Handle API response format (success/data pattern)
 	if ('success' in data && data.success === false) {
+		const code = data.code
+		const message = data.error || data.message || 'API request failed'
+		
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API returned error response', {
 			metadata: {
 				endpoint,
-				error: data.error || data.message,
+				code,
+				error: message,
 				data
 			}
 		})
-		throw new Error(data.error || data.message || 'API request failed')
+		
+		throw new ApiError(message, code, data.statusCode, data)
 	}
 
 	if ('data' in data) {

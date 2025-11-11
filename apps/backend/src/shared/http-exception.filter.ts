@@ -11,6 +11,7 @@ import { Request, Response } from 'express'
 type ExceptionResponse = {
 	message?: string | string[]
 	error?: string
+	code?: string
 	[key: string]: unknown
 }
 
@@ -25,6 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 		let status = HttpStatus.INTERNAL_SERVER_ERROR
 		let message = 'Internal server error'
+		let code: string | undefined
 
 		if (exception instanceof HttpException) {
 			status = exception.getStatus()
@@ -38,6 +40,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			) {
 				const responseObj = exceptionResponse as ExceptionResponse
 				const rawMessage = responseObj.message
+				// Extract error code if present
+				if (responseObj.code) {
+					code = responseObj.code
+				}
 				// Handle array messages (e.g., from class-validator)
 				if (Array.isArray(rawMessage)) {
 					message = rawMessage.join('; ')
@@ -75,7 +81,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			message,
 			statusCode: status,
 			timestamp,
-			path: sanitizedPath // Use sanitized path without query params
+			path: sanitizedPath, // Use sanitized path without query params
+			...(code && { code }) // Include error code if present
 		}
 
 		// Only include stack trace in development

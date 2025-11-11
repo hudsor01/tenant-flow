@@ -159,6 +159,6 @@ export function getCSPString(
 ): string {
 	const env =
 		environment ||
-		(process.env.NODE_ENV === 'development' ? 'development' : 'production')
+		(process.env["NODE_ENV"] === 'development' ? 'development' : 'production')
 	return cspDirectivesToString(generateCSPDirectives(env))
 }

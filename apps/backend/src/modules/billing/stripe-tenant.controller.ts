@@ -5,6 +5,7 @@ import {
 	Delete,
 	Get,
 	Param,
+	ParseUUIDPipe,
 	Post,
 	Request,
 	UseGuards
@@ -99,7 +100,7 @@ export class StripeTenantController {
 	@Get('payment-methods/:tenantId')
 	async listPaymentMethods(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId') tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	) {
 		const paymentMethods =
 			await this.stripeTenantService.listPaymentMethods(tenantId)
@@ -116,7 +117,7 @@ export class StripeTenantController {
 	@Get('default-payment-method/:tenantId')
 	async getDefaultPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId') tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	) {
 		const paymentMethod =
 			await this.stripeTenantService.getDefaultPaymentMethod(tenantId)
