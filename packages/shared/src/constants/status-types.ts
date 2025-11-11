@@ -542,13 +542,5 @@ export type Result<T = void, E = string> =
 /**
  * ASYNC RESULT TYPE - For asynchronous operations
  */
-export type AsyncResult<T = void> =
-	| { success: true; data: T; error?: never }
-	| { success: false; error: Error; data?: never }
-
-/**
- * API RESPONSE TYPE - Standardized response pattern
- */
-export type ApiResponse<T = unknown> =
-	| { success: true; data: T; error?: never }
-	| { success: false; error: string; data?: never }
+export type { AsyncResult } from '../types/api'
+export type { ApiResponse } from '../types/api-contracts'

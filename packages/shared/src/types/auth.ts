@@ -328,6 +328,7 @@ export interface AuthContext {
 }
 
 // Form state type alias for auth forms
+import type { FormState } from './forms.js'
 export type AuthFormState = FormState<User>
 
 // FRONTEND AUTH STORE STATE (moved from auth-store.ts)
