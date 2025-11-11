@@ -149,7 +149,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 				</span>
 				<Badge
 					variant="secondary"
-					className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+					className="bg-success/10 text-success dark:bg-success/20 dark:text-success"
 				>
 					Save 17%
 				</Badge>
@@ -206,7 +206,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 											</p>
 										)}
 										{isAnnual && savings.savingsPercent > 0 && (
-											<p className="text-sm text-green-600 dark:text-green-400 mt-1">
+											<p className="text-sm text-success mt-1">
 												Save {savings.savingsPercent}% with annual billing
 											</p>
 										)}
@@ -225,7 +225,7 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 								<ul className="space-y-3">
 									{features.map((feature, index) => (
 										<li key={index} className="flex items-start gap-3">
-											<Check className="size-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+											<Check className="size-5 text-success shrink-0 mt-0.5" />
 											<span className="text-sm text-muted-foreground">
 												{feature}
 											</span>
@@ -280,15 +280,15 @@ export function StripePricingSection({ className }: StripePricingSectionProps) {
 				</p>
 				<div className="flex items-center justify-center gap-8 flex-wrap">
 					<div className="flex items-center gap-2">
-						<Check className="size-4 text-green-600" />
+						<Check className="size-4 text-success" />
 						<span className="text-sm">14-day free trial</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<Check className="size-4 text-green-600" />
+						<Check className="size-4 text-success" />
 						<span className="text-sm">No credit card required</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<Check className="size-4 text-green-600" />
+						<Check className="size-4 text-success" />
 						<span className="text-sm">Cancel anytime</span>
 					</div>
 				</div>

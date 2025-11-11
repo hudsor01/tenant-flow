@@ -255,6 +255,37 @@ export class UtilityService {
 		return data.id
 	}
 
+	async getUserRoleByUserId(userId: string): Promise<Database['public']['Enums']['UserRole'] | null> {
+		const cacheKey = `user:role:${userId}`
+		const cachedRole = await this.cacheManager.get<Database['public']['Enums']['UserRole']>(cacheKey)
+		if (cachedRole) {
+			return cachedRole
+		}
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('role')
+			.eq('id', userId)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to fetch user role', {
+				error: error.message || error,
+				userId
+			})
+			return null
+		}
+
+		if (!data?.role) {
+			this.logger.warn('User role missing from database record', { userId })
+			return null
+		}
+
+		await this.cacheManager.set(cacheKey, data.role, 1800)
+		return data.role
+	}
+
 	/**
 	 * Ensures a user exists in the users table for the given Supabase auth ID
 	 * Creates the user if they don't exist (e.g., OAuth sign-ins)

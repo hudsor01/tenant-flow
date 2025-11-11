@@ -6,13 +6,13 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { CheckSquare, Square, Trash2, Upload, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-const supabase = createClient()
+const supabase = getSupabaseClientInstance()
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const COMPRESSION_QUALITY = 0.8 // 80% quality

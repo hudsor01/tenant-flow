@@ -27,7 +27,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					quantity={60}
 					preset="floating"
 					size={1}
-					color="oklch(var(--primary))"
+					color="var(--primary)"
 					density="medium"
 				/>
 			</ErrorBoundary>
