@@ -10,7 +10,7 @@
 import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ERROR_MESSAGES } from '#lib/constants'
+import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -23,15 +23,19 @@ const logger = createLogger({ component: 'ClientAPI' })
  *
  * @param additionalHeaders - Custom headers to merge with auth headers
  * @param requireAuth - Whether to throw error if no session exists (default: true)
+ * @param omitContentType - Whether to omit Content-Type header (for FormData uploads)
  */
 export async function getAuthHeaders(
 	additionalHeaders?: Record<string, string>,
-	requireAuth: boolean = true
+	requireAuth: boolean = true,
+	omitContentType: boolean = false
 ): Promise<Record<string, string>> {
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json',
-		...additionalHeaders
-	}
+	const headers: Record<string, string> = omitContentType
+		? { ...additionalHeaders }
+		: {
+				'Content-Type': 'application/json',
+				...additionalHeaders
+			}
 
 	const supabase = createClient()
 
@@ -89,15 +93,21 @@ export async function getAuthHeaders(
  *   method: 'POST',
  *   body: JSON.stringify(data)
  * })
+ * // For FormData uploads (file uploads)
+ * mutationFn: (formData) => clientFetch<Result>('/api/v1/upload', {
+ *   method: 'POST',
+ *   body: formData,
+ *   omitJsonContentType: true
+ * })
  * // For public endpoints (no auth required)
  * queryFn: () => clientFetch<Data>('/api/v1/public/data', { requireAuth: false })
  * ```
  */
 export async function clientFetch<T>(
 	endpoint: string,
-	options?: RequestInit & { requireAuth?: boolean }
+	options?: RequestInit & { requireAuth?: boolean; omitJsonContentType?: boolean }
 ): Promise<T> {
-	const { requireAuth = true, ...fetchOptions } = options || {}
+	const { requireAuth = true, omitJsonContentType = false, ...fetchOptions } = options || {}
 
 	// Build headers from options
 	const customHeaders: Record<string, string> = {}
@@ -110,7 +120,8 @@ export async function clientFetch<T>(
 	}
 
 	// Get auth headers (includes Authorization + custom headers)
-	const headers = await getAuthHeaders(customHeaders, requireAuth)
+	// For FormData, omit Content-Type so browser sets multipart/form-data with boundary
+	const headers = await getAuthHeaders(customHeaders, requireAuth, omitJsonContentType)
 
 	// Ensure body is set for methods that require it
 	const finalOptions = { ...fetchOptions, headers }

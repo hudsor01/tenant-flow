@@ -393,89 +393,89 @@ interface StatusClassOptions {
 
 const STATUS_STYLE_MAP: Record<string, { soft: string; outline: string }> = {
 	ACTIVE: {
-		soft: 'border-[var(--color-system-green)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)]',
+		soft: 'border-(--color-system-green) bg-(--color-system-green-10) text-(--color-system-green)',
 		outline:
-			'border-[var(--color-system-green)] text-[var(--color-system-green)] bg-transparent'
+			'border-(--color-system-green) text-(--color-system-green) bg-transparent'
 	},
 	COMPLETED: {
-		soft: 'border-[var(--color-system-green)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)]',
+		soft: 'border-(--color-system-green) bg-(--color-system-green-10) text-(--color-system-green)',
 		outline:
-			'border-[var(--color-system-green)] text-[var(--color-system-green)] bg-transparent'
+			'border-(--color-system-green) text-(--color-system-green) bg-transparent'
 	},
 	SUCCESS: {
-		soft: 'border-[var(--color-system-green)] bg-[var(--color-system-green-10)] text-[var(--color-system-green)]',
+		soft: 'border-(--color-system-green) bg-(--color-system-green-10) text-(--color-system-green)',
 		outline:
-			'border-[var(--color-system-green)] text-[var(--color-system-green)] bg-transparent'
+			'border-(--color-system-green) text-(--color-system-green) bg-transparent'
 	},
 	OPEN: {
-		soft: 'border-[var(--color-system-yellow)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]',
+		soft: 'border-(--color-system-yellow) bg-(--color-system-yellow-10) text-(--color-system-yellow)',
 		outline:
-			'border-[var(--color-system-yellow)] text-[var(--color-system-yellow)] bg-transparent'
+			'border-(--color-system-yellow) text-(--color-system-yellow) bg-transparent'
 	},
 	PENDING: {
-		soft: 'border-[var(--color-system-yellow)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]',
+		soft: 'border-(--color-system-yellow) bg-(--color-system-yellow-10) text-(--color-system-yellow)',
 		outline:
-			'border-[var(--color-system-yellow)] text-[var(--color-system-yellow)] bg-transparent'
+			'border-(--color-system-yellow) text-(--color-system-yellow) bg-transparent'
 	},
 	WARNING: {
-		soft: 'border-[var(--color-system-yellow)] bg-[var(--color-system-yellow-10)] text-[var(--color-system-yellow)]',
+		soft: 'border-(--color-system-yellow) bg-(--color-system-yellow-10) text-(--color-system-yellow)',
 		outline:
-			'border-[var(--color-system-yellow)] text-[var(--color-system-yellow)] bg-transparent'
+			'border-(--color-system-yellow) text-(--color-system-yellow) bg-transparent'
 	},
 	IN_PROGRESS: {
-		soft: 'border-[var(--color-system-blue)] bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)]',
+		soft: 'border-(--color-system-blue) bg-(--color-system-blue-10) text-(--color-system-blue)',
 		outline:
-			'border-[var(--color-system-blue)] text-[var(--color-system-blue)] bg-transparent'
+			'border-(--color-system-blue) text-(--color-system-blue) bg-transparent'
 	},
 	INFO: {
-		soft: 'border-[var(--color-system-blue)] bg-[var(--color-system-blue-10)] text-[var(--color-system-blue)]',
+		soft: 'border-(--color-system-blue) bg-(--color-system-blue-10) text-(--color-system-blue)',
 		outline:
-			'border-[var(--color-system-blue)] text-[var(--color-system-blue)] bg-transparent'
+			'border-(--color-system-blue) text-(--color-system-blue) bg-transparent'
 	},
 	EXPIRED: {
-		soft: 'border-[var(--color-system-red)] bg-[var(--color-system-red-10)] text-[var(--color-system-red)]',
+		soft: 'border-(--color-system-red) bg-(--color-system-red-10) text-(--color-system-red)',
 		outline:
-			'border-[var(--color-system-red)] text-[var(--color-system-red)] bg-transparent'
+			'border-(--color-system-red) text-(--color-system-red) bg-transparent'
 	},
 	OVERDUE: {
-		soft: 'border-[var(--color-system-red)] bg-[var(--color-system-red-10)] text-[var(--color-system-red)]',
+		soft: 'border-(--color-system-red) bg-(--color-system-red-10) text-(--color-system-red)',
 		outline:
-			'border-[var(--color-system-red)] text-[var(--color-system-red)] bg-transparent'
+			'border-(--color-system-red) text-(--color-system-red) bg-transparent'
 	},
 	CANCELED: {
-		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
 		outline:
-			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
 	},
 	CANCELLED: {
-		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
 		outline:
-			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
 	},
 	TERMINATED: {
-		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-tertiary)] text-[var(--color-label-secondary)]',
+		soft: 'border-(--color-border-secondary) bg-(--color-fill-tertiary) text-(--color-label-secondary)',
 		outline:
-			'border-[var(--color-border-secondary)] text-[var(--color-label-secondary)] bg-transparent'
+			'border-(--color-border-secondary) text-(--color-label-secondary) bg-transparent'
 	},
 	ON_HOLD: {
-		soft: 'border-[var(--color-system-orange)] bg-[var(--color-system-orange-10)] text-[var(--color-system-orange)]',
+		soft: 'border-(--color-system-orange) bg-(--color-system-orange-10) text-(--color-system-orange)',
 		outline:
-			'border-[var(--color-system-orange)] text-[var(--color-system-orange)] bg-transparent'
+			'border-(--color-system-orange) text-(--color-system-orange) bg-transparent'
 	},
 	DRAFT: {
-		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-secondary)]',
+		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-secondary)',
 		outline:
-			'border-[var(--color-border-secondary)] text-[var(--color-label-secondary)] bg-transparent'
+			'border-(--color-border-secondary) text-(--color-label-secondary) bg-transparent'
 	},
 	UNKNOWN: {
-		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
 		outline:
-			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
 	},
 	DEFAULT: {
-		soft: 'border-[var(--color-border-secondary)] bg-[var(--color-fill-secondary)] text-[var(--color-label-tertiary)]',
+		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
 		outline:
-			'border-[var(--color-border-secondary)] text-[var(--color-label-tertiary)] bg-transparent'
+			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
 	}
 }
 

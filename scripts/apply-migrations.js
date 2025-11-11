@@ -1,19 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'ApplyMigrationsScript' })
 
 async function applyMigrations() {
 	// Validate environment variables
 	const supabaseUrl = process.env.SUPABASE_URL
 	const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
 
-	if (!supabaseUrl) {
-		console.error('Error: SUPABASE_URL environment variable is required')
-		process.exit(1)
-	}
-
-	if (!supabaseSecretKey) {
-		console.error('Error: SUPABASE_SECRET_KEY environment variable is required')
+	if (!supabaseUrl || !supabaseSecretKey) {
+		logger.error('Missing Supabase configuration', {
+			metadata: {
+				hasUrl: Boolean(supabaseUrl),
+				hasSecret: Boolean(supabaseSecretKey)
+			}
+		})
 		process.exit(1)
 	}
 
@@ -27,16 +30,25 @@ async function applyMigrations() {
 	]
 
 	for (const migration of migrations) {
-		console.log(`Applying ${migration}...`)
+		logger.info(`Applying ${migration}...`)
 		const sql = readFileSync(join('supabase', 'migrations', migration), 'utf8')
 
 		const { error } = await supabase.rpc('exec_sql', { sql })
 		if (error) {
-			console.error(`Error applying ${migration}:`, error)
+			logger.error(`Failed to apply ${migration}`, {
+				metadata: { error: error.message }
+			})
 		} else {
-			console.log(`✅ Applied ${migration}`)
+			logger.info(`✅ Applied ${migration}`)
 		}
 	}
 }
 
-applyMigrations().catch(console.error)
+applyMigrations().catch(error => {
+	logger.error('Migration script failed', {
+		metadata: {
+			error: error instanceof Error ? error.message : String(error)
+		}
+	})
+	process.exit(1)
+})

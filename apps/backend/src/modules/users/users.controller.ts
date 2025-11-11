@@ -76,7 +76,7 @@ export class UsersController {
 					userId: authUserId
 				})
 			} else {
-				stripeCustomerId = data || null
+				stripeCustomerId = (data as string) || null
 			}
 		} catch (error) {
 			// If function doesn't exist yet or stripe schema not ready,

@@ -13,6 +13,7 @@
 import { TenantGuard } from '#components/auth/tenant-guard'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
+import { Checkbox } from '#components/ui/checkbox'
 import { FieldLabel } from '#components/ui/field'
 import {
 	useNotificationPreferences,
@@ -78,61 +79,57 @@ export default function TenantSettingsPage() {
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<div className="space-y-0.5">
-								<FieldLabel>Email Notifications</FieldLabel>
+								<FieldLabel htmlFor="email-notifications">Email Notifications</FieldLabel>
 								<p className="text-sm text-muted-foreground">
 									Receive updates via email
 								</p>
 							</div>
-							<input
-								type="checkbox"
+							<Checkbox
+								id="email-notifications"
 								checked={emailNotifications}
-								onChange={(e) => setEmailNotifications(e.target.checked)}
-								className="size-4 rounded border-gray-300"
+								onCheckedChange={(checked) => setEmailNotifications(!!checked)}
 							/>
 						</div>
 
 						<div className="flex items-center justify-between">
 							<div className="space-y-0.5">
-								<FieldLabel>SMS Notifications</FieldLabel>
+								<FieldLabel htmlFor="sms-notifications">SMS Notifications</FieldLabel>
 								<p className="text-sm text-muted-foreground">
 									Receive updates via text message
 								</p>
 							</div>
-							<input
-								type="checkbox"
+							<Checkbox
+								id="sms-notifications"
 								checked={smsNotifications}
-								onChange={(e) => setSmsNotifications(e.target.checked)}
-								className="size-4 rounded border-gray-300"
+								onCheckedChange={(checked) => setSmsNotifications(!!checked)}
 							/>
 						</div>
 
 						<div className="flex items-center justify-between">
 							<div className="space-y-0.5">
-								<FieldLabel>Maintenance Updates</FieldLabel>
+								<FieldLabel htmlFor="maintenance-updates">Maintenance Updates</FieldLabel>
 								<p className="text-sm text-muted-foreground">
 									Get notified about maintenance request status
 								</p>
 							</div>
-							<input
-								type="checkbox"
+							<Checkbox
+								id="maintenance-updates"
 								checked={maintenanceUpdates}
-								onChange={(e) => setMaintenanceUpdates(e.target.checked)}
-								className="size-4 rounded border-gray-300"
+								onCheckedChange={(checked) => setMaintenanceUpdates(!!checked)}
 							/>
 						</div>
 
 						<div className="flex items-center justify-between">
 							<div className="space-y-0.5">
-								<FieldLabel>Rent Reminders</FieldLabel>
+								<FieldLabel htmlFor="rent-reminders">Rent Reminders</FieldLabel>
 								<p className="text-sm text-muted-foreground">
 									Receive reminders before rent is due
 								</p>
 							</div>
-							<input
-								type="checkbox"
+							<Checkbox
+								id="rent-reminders"
 								checked={rentReminders}
-								onChange={(e) => setRentReminders(e.target.checked)}
-								className="size-4 rounded border-gray-300"
+								onCheckedChange={(checked) => setRentReminders(!!checked)}
 							/>
 						</div>
 					</div>

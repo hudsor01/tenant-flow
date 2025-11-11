@@ -2,6 +2,7 @@
 
 import type { SubscriptionData } from '#types/stripe'
 import { clientFetch } from '#lib/api/client'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -52,8 +53,7 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 		},
 		enabled: !!sessionId, // Only run query if sessionId exists
 		retry: 2,
-		staleTime: 2 * 60 * 1000, // Reduced to 2 minutes for security
-		gcTime: 5 * 60 * 1000, // Reduced to 5 minutes for security
+		...QUERY_CACHE_TIMES.SECURITY,
 		refetchOnWindowFocus: false, // Security: Never refetch payment data on focus
 		refetchOnReconnect: false, // Security: Don't refetch on network reconnect
 		refetchOnMount: false, // Security: Only fetch once per session
@@ -87,8 +87,7 @@ export function useSessionStatus(sessionId: string | null, options: { throwOnErr
 		},
 		enabled: !!sessionId, // Only run query if sessionId exists
 		retry: 2,
-		staleTime: 1 * 60 * 1000, // Reduced to 1 minute for security
-		gcTime: 3 * 60 * 1000, // Reduced to 3 minutes for security
+		...QUERY_CACHE_TIMES.STATS,
 		refetchOnWindowFocus: false, // Security: Never refetch payment data on focus
 		refetchOnReconnect: false, // Security: Don't refetch on network reconnect
 		refetchOnMount: false, // Security: Only fetch once per session
@@ -105,7 +104,7 @@ export function usePrefetchPaymentVerification() {
 	return (sessionId: string) => {
 		queryClient.prefetchQuery({
 			queryKey: paymentQueryKeys.verifySession(sessionId),
-			staleTime: 2 * 60 * 1000
+			...QUERY_CACHE_TIMES.SECURITY
 		})
 	}
 }
@@ -123,7 +122,7 @@ export function usePrefetchSessionStatus() {
 				clientFetch<StripeSessionStatusResponse>(
 					`/stripe/session-status?session_id=${sessionId}`
 				),
-			staleTime: 1 * 60 * 1000
+			...QUERY_CACHE_TIMES.STATS
 		})
 	}
 }

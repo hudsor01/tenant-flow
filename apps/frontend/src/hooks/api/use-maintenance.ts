@@ -11,7 +11,8 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { maintenanceQueries } from './queries/maintenance-queries'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -24,15 +25,16 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 
 /**
- * Query keys for maintenance endpoints (hierarchical structure)
+ * @deprecated Use maintenanceQueries from './queries/maintenance-queries' instead
+ * Keeping for backward compatibility during migration
  */
 export const maintenanceKeys = {
-	all: ['maintenance'] as const,
-	list: () => [...maintenanceKeys.all, 'list'] as const,
-	detail: (id: string) => [...maintenanceKeys.all, 'detail', id] as const,
-	stats: () => [...maintenanceKeys.all, 'stats'] as const,
-	urgent: () => [...maintenanceKeys.all, 'urgent'] as const,
-	overdue: () => [...maintenanceKeys.all, 'overdue'] as const
+	all: maintenanceQueries.all(),
+	list: () => maintenanceQueries.lists(),
+	detail: (id: string) => maintenanceQueries.detail(id).queryKey,
+	stats: () => maintenanceQueries.stats().queryKey,
+	urgent: () => maintenanceQueries.urgent().queryKey,
+	overdue: () => maintenanceQueries.overdue().queryKey
 }
 
 /**
@@ -85,39 +87,16 @@ export function useAllMaintenanceRequests(query?: {
 
 /**
  * Hook to fetch single maintenance request
- * Uses placeholder data from list cache
  */
 export function useMaintenanceRequest(id: string) {
-	return useQuery({
-		queryKey: maintenanceKeys.detail(id),
-		queryFn: async (): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
-		},
-		enabled: !!id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000,
-		retry: 2
-	})
+	return useQuery(maintenanceQueries.detail(id))
 }
 
 /**
  * Hook to fetch maintenance statistics
  */
 export function useMaintenanceStats() {
-	return useQuery({
-		queryKey: maintenanceKeys.stats(),
-		queryFn: async (): Promise<{
-			totalRequests: number
-			pendingRequests: number
-			inProgressRequests: number
-			completedRequests: number
-			urgentRequests: number
-		}> => {
-			return clientFetch(`/api/v1/maintenance/stats`)
-		},
-		...QUERY_CACHE_TIMES.LIST,
-		retry: 2
-	})
+	return useQuery(maintenanceQueries.stats())
 }
 
 /**

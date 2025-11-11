@@ -32,13 +32,18 @@ export async function retryWithExponentialBackoff<T>(
 				`Retrying ${context} after ${delay}ms (attempt ${attempt + 1}/${RETRY_CONFIG.MAX_RETRIES})`
 			)
 			await new Promise(resolve => setTimeout(resolve, delay))
-			return retryWithExponentialBackoff(operation, logger, context, attempt + 1)
+			return retryWithExponentialBackoff(
+				operation,
+				logger,
+				context,
+				attempt + 1
+			)
 		}
 
 		logger.error(`All retries exhausted for ${context}`, {
 			error: error instanceof Error ? error.message : String(error),
 			attempts: RETRY_CONFIG.MAX_RETRIES
 		})
-		return null
+		throw error
 	}
 }

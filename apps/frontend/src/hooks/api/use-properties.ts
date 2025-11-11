@@ -20,7 +20,7 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
 import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
-import type { Property, PropertyStats } from '@repo/shared/types/core'
+import type { Property } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -28,44 +28,47 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { propertyQueries, type PropertyFilters } from './queries/property-queries'
 
 /**
  * Query keys for property endpoints (hierarchical, typed)
  */
+/**
+ * @deprecated Use propertyQueries from './queries/property-queries' instead
+ * Keeping for backward compatibility during migration
+ */
 export const propertiesKeys = {
-	all: ['properties'] as const,
+	all: propertyQueries.all(),
 	list: (params?: {
 		search?: string | null
 		limit?: number
 		offset?: number
-	}) => [...propertiesKeys.all, 'list', params] as const,
-	detail: (id: string) => [...propertiesKeys.all, 'detail', id] as const,
-	withUnits: () => [...propertiesKeys.all, 'with-units'] as const,
-	stats: () => [...propertiesKeys.all, 'stats'] as const,
+	}) => {
+		// Convert params to PropertyFilters format, only including defined values
+		const filters: PropertyFilters | undefined = params ? Object.assign({},
+			params.search ? { search: params.search } : {},
+			params.limit !== undefined ? { limit: params.limit } : {},
+			params.offset !== undefined ? { offset: params.offset } : {}
+		) as PropertyFilters : undefined
+		return propertyQueries.list(filters).queryKey
+	},
+	detail: (id: string) => propertyQueries.detail(id).queryKey,
+	withUnits: () => [...propertyQueries.all(), 'with-units'] as const,
+	stats: () => propertyQueries.stats().queryKey,
 	analytics: {
-		performance: () =>
-			[...propertiesKeys.all, 'analytics', 'performance'] as const,
-		occupancy: () => [...propertiesKeys.all, 'analytics', 'occupancy'] as const,
-		financial: () => [...propertiesKeys.all, 'analytics', 'financial'] as const,
-		maintenance: () =>
-			[...propertiesKeys.all, 'analytics', 'maintenance'] as const
+		performance: () => propertyQueries.performance().queryKey,
+		occupancy: () => [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
+		financial: () => [...propertyQueries.all(), 'analytics', 'financial'] as const,
+		maintenance: () => [...propertyQueries.all(), 'analytics', 'maintenance'] as const
 	}
 }
 
 /**
- * Hook to fetch property by ID with optimized caching
+ * Hook to fetch property by ID
  */
 export function useProperty(id: string) {
-	return useQuery({
-		queryKey: propertiesKeys.detail(id),
-		queryFn: async (): Promise<Property> => {
-			return clientFetch<Property>(`/api/v1/properties/${id}`)
-		},
-		enabled: !!id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 2
-	})
+	return useQuery(propertyQueries.detail(id))
 }
 
 /**
@@ -133,28 +136,14 @@ export function usePropertiesWithUnits() {
  * Hook to fetch property statistics
  */
 export function usePropertyStats() {
-	return useQuery({
-		queryKey: propertiesKeys.stats(),
-		queryFn: async (): Promise<PropertyStats> => {
-			return clientFetch('/api/v1/properties/stats')
-		},
-		...QUERY_CACHE_TIMES.STATS,
-		retry: 2
-	})
+	return useQuery(propertyQueries.stats())
 }
 
 /**
  * Hook to fetch property performance analytics
  */
 export function usePropertyPerformanceAnalytics() {
-	return useQuery({
-		queryKey: propertiesKeys.analytics.performance(),
-		queryFn: async () => {
-			return clientFetch('/api/v1/properties/analytics/performance')
-		},
-		...QUERY_CACHE_TIMES.ANALYTICS,
-		retry: 2
-	})
+	return useQuery(propertyQueries.performance())
 }
 
 /**
@@ -543,7 +532,10 @@ export function useDeleteProperty() {
 		onError: (error, id, context) => {
 			// Rollback on error
 			if (context?.previousList) {
-				queryClient.setQueryData(propertiesKeys.list(), context.previousList)
+				queryClient.setQueryData<{ data: Property[]; total: number }>(
+					propertiesKeys.list(),
+					context.previousList
+				)
 			}
 
 			handleMutationError(error, 'Delete property')

@@ -8,6 +8,7 @@ import { useMutation } from '@tanstack/react-query'
 
 import { clientFetch } from '#lib/api/client'
 import type { StripeCheckoutSessionResponse } from '@repo/shared/types/core'
+import { useModalMutation } from '../hooks/use-modal-mutation'
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
@@ -23,14 +24,16 @@ interface StripeProviderProps {
 	children: React.ReactNode
 	priceId?: string
 	mode?: 'payment' | 'subscription' | 'setup'
+	modalId?: string
 }
 
 export function StripeProvider({
 	children,
 	priceId,
-	mode = 'subscription'
+	mode = 'subscription',
+	modalId
 }: StripeProviderProps) {
-	const { mutateAsync: createClientSecret } = useMutation({
+	const modalMutationOptions = useModalMutation<string, unknown, void>({
 		mutationFn: async () => {
 			const response = await clientFetch<StripeCheckoutSessionResponse>(
 				'/api/v1/stripe/create-embedded-checkout-session',
@@ -45,8 +48,11 @@ export function StripeProvider({
 			)
 
 			return response.client_secret
-		}
+		},
+		modalId
 	})
+
+	const { mutateAsync: createClientSecret } = useMutation(modalMutationOptions)
 
 	const fetchClientSecret = useCallback(async () => {
 		return createClientSecret()

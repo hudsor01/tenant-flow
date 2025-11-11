@@ -4,7 +4,7 @@
  */
 import { API_BASE_URL } from '#lib/api-config'
 import { createClient } from '#lib/supabase/client'
-import { ERROR_MESSAGES } from '#lib/constants'
+import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 
 interface CreateCheckoutSessionRequest {
 	priceId: string

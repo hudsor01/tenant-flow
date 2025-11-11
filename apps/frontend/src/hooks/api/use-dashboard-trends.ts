@@ -22,7 +22,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
   MetricTrend,
   TimeSeriesDataPoint,

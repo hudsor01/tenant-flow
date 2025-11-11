@@ -33,6 +33,11 @@ import type { Request } from 'express'
 import { parse } from 'csv-parse'
 import { Readable } from 'stream'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import {
+	normalizePropertyCsvRow,
+	normalizePropertyType,
+	VALID_PROPERTY_TYPES
+} from './utils/csv-normalizer'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 
@@ -47,16 +52,6 @@ function getTokenFromRequest(req: Request): string | null {
 
 // Validation constants (DRY principle)
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
-const VALID_PROPERTY_TYPES: PropertyType[] = [
-	'SINGLE_FAMILY',
-	'MULTI_UNIT',
-	'APARTMENT',
-	'COMMERCIAL',
-	'CONDO',
-	'TOWNHOUSE',
-	'OTHER'
-]
-
 @Injectable()
 export class PropertiesService {
 	private readonly logger: Logger
@@ -272,7 +267,8 @@ export class PropertiesService {
 								trim: true,
 								relax_quotes: true, // Allow quotes in unquoted fields
 								relax_column_count: true, // Allow variable column counts
-								max_record_size: this.CSV_MAX_RECORD_SIZE_BYTES
+								max_record_size: this.CSV_MAX_RECORD_SIZE_BYTES,
+								bom: true // Strip BOM so Excel exports don't break header mapping
 							})
 						)
 						.on('data', (row: unknown) => {
@@ -320,14 +316,15 @@ export class PropertiesService {
 				if (!row) continue // Skip undefined rows
 
 				const rowNumber = i + 2 // CSV row number (header is row 1)
+				const normalizedRow = normalizePropertyCsvRow(row)
 
 				try {
 					// Required field validation
-					const name = this.getStringValue(row, 'name')
-					const address = this.getStringValue(row, 'address')
-					const city = this.getStringValue(row, 'city')
-					const state = this.getStringValue(row, 'state')
-					const zipCode = this.getStringValue(row, 'zipCode')
+					const name = normalizedRow.name
+					const address = normalizedRow.address
+					const city = normalizedRow.city
+					const state = normalizedRow.state
+					const zipCode = normalizedRow.zipCode
 
 					if (!name?.trim()) {
 						throw new Error('Property name is required')
@@ -340,17 +337,16 @@ export class PropertiesService {
 					}
 
 					// Optional field validation
-					const propertyType = this.getStringValue(row, 'propertyType')
-					if (
-						propertyType &&
-						!VALID_PROPERTY_TYPES.includes(propertyType as PropertyType)
-					) {
+					const normalizedPropertyType = normalizePropertyType(
+						normalizedRow.propertyType
+					)
+					if (normalizedRow.propertyType && !normalizedPropertyType) {
 						throw new Error(
-							`Invalid property type: ${propertyType}. Must be one of: ${VALID_PROPERTY_TYPES.join(', ')}`
+							`Invalid property type: ${normalizedRow.propertyType}. Must be one of: ${VALID_PROPERTY_TYPES.join(', ')}`
 						)
 					}
 
-					const description = this.getStringValue(row, 'description')
+					const description = normalizedRow.description
 
 					// Build insert object
 					const insertData: Database['public']['Tables']['property']['Insert'] =
@@ -361,7 +357,7 @@ export class PropertiesService {
 							city: city.trim(),
 							state: state.trim(),
 							zipCode: zipCode.trim(),
-							propertyType: (propertyType as PropertyType) || 'OTHER'
+							propertyType: normalizedPropertyType ?? 'OTHER'
 						}
 
 					if (description?.trim()) {
@@ -447,18 +443,6 @@ export class PropertiesService {
 			value =>
 				typeof value === 'string' || value === null || value === undefined
 		)
-	}
-
-	/**
-	 * Safe string extraction from CSV row with type guard
-	 */
-	private getStringValue(
-		row: Record<string, string>,
-		key: string
-	): string | undefined {
-		const value = row[key]
-		if (value === null || value === undefined) return undefined
-		return String(value)
 	}
 
 	/**

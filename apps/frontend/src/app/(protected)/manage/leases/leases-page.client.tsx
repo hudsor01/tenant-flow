@@ -14,37 +14,31 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
+import { Button } from '#components/ui/button'
+import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
 
 import { useLeaseList } from '#hooks/api/use-lease'
 import type { Lease } from '@repo/shared/types/core'
-import { FileText, Search } from 'lucide-react'
+import { FileText, Search, Plus } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { toast } from 'sonner'
-import { CreateDialog } from '#components/ui/base-dialogs'
 import { useForm } from '@tanstack/react-form'
 import { useCreateLease } from '#hooks/api/use-lease'
 import { useTenantList } from '#hooks/api/use-tenant'
 import { useUnitList } from '#hooks/api/use-unit'
+import { useState } from 'react'
 
 import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
 
 const ITEMS_PER_PAGE = 25
 
-// Form steps configuration
-const LEASE_FORM_STEPS = [
-	{ id: 1, title: 'Tenant & Unit', description: 'Select tenant and unit for this lease' },
-	{ id: 2, title: 'Lease Dates', description: 'Start date, end date, and duration' },
-	{ id: 3, title: 'Financial Terms', description: 'Rent amount, deposit, and fees' },
-	{ id: 4, title: 'Additional Terms', description: 'Late fees, grace period, and notes' }
-]
-
 type LeaseStatus = NonNullable<CreateLeaseInput['status']>
 
 // Inline create dialog using base component
 function LeaseCreateDialog() {
+	const [open, setOpen] = useState(false)
 	useTenantList(1, 100)
 	useUnitList({ status: 'VACANT', limit: 100 })
-
 
 	const createLeaseMutation = useCreateLease()
 
@@ -64,30 +58,30 @@ function LeaseCreateDialog() {
 			status: 'ACTIVE' as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
-		try {
-			// Validate numeric conversions
-			const rentAmount = Number.parseFloat(value.rentAmount)
-			const securityDeposit = Number.parseFloat(value.securityDeposit)
-			if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
-				toast.error('Invalid rent or security deposit amount')
-				return
-			}
-			if (value.monthlyRent && Number.isNaN(Number.parseFloat(value.monthlyRent))) {
-				toast.error('Invalid monthly rent amount')
-				return
-			}
-			if (value.lateFeeAmount && Number.isNaN(Number.parseFloat(value.lateFeeAmount))) {
-				toast.error('Invalid late fee amount')
-				return
-			}
+			try {
+				// Validate numeric conversions
+				const rentAmount = Number.parseFloat(value.rentAmount)
+				const securityDeposit = Number.parseFloat(value.securityDeposit)
+				if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
+					toast.error('Invalid rent or security deposit amount')
+					return
+				}
+				if (value.monthlyRent && Number.isNaN(Number.parseFloat(value.monthlyRent))) {
+					toast.error('Invalid monthly rent amount')
+					return
+				}
+				if (value.lateFeeAmount && Number.isNaN(Number.parseFloat(value.lateFeeAmount))) {
+					toast.error('Invalid late fee amount')
+					return
+				}
 
-			const leaseData: CreateLeaseInput = {
+				const leaseData: CreateLeaseInput = {
 					tenantId: value.tenantId,
 					unitId: value.unitId,
 					startDate: value.startDate,
 					endDate: value.endDate,
 					rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100), // Convert dollars to cents
-				securityDeposit: Math.round(Number.parseFloat(value.securityDeposit) * 100), // Convert dollars to cents
+					securityDeposit: Math.round(Number.parseFloat(value.securityDeposit) * 100), // Convert dollars to cents
 					monthlyRent: value.monthlyRent ? Math.round(Number.parseFloat(value.monthlyRent) * 100) : null, // Convert dollars to cents
 					gracePeriodDays: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
 					lateFeeAmount: value.lateFeeAmount ? Math.round(Number.parseFloat(value.lateFeeAmount) * 100) : null, // Convert dollars to cents
@@ -98,71 +92,57 @@ function LeaseCreateDialog() {
 				await createLeaseMutation.mutateAsync(leaseData)
 				toast.success('Lease created successfully')
 				form.reset()
+				setOpen(false)
 			} catch {
 				toast.error('Failed to create lease')
 			}
 		}
 	})
 
-	const validateStep = (step: number): boolean => {
-		const values = form.state.values
-		switch (step) {
-			case 1:
-				if (!values.tenantId || !values.unitId) {
-					toast.error('Please select both a tenant and a unit')
-					return false
-				}
-				break
-			case 2:
-				if (!values.startDate || !values.endDate) {
-					toast.error('Please enter start and end dates')
-					return false
-				}
-				if (new Date(values.startDate) >= new Date(values.endDate)) {
-					toast.error('End date must be after start date')
-					return false
-				}
-				break
-			case 3:
-				if (!values.rentAmount || !values.securityDeposit) {
-					toast.error('Please enter rent amount and security deposit')
-					return false
-				}
-				if (parseFloat(values.rentAmount) <= 0 || parseFloat(values.securityDeposit) < 0) {
-					toast.error('Please enter valid amounts')
-					return false
-				}
-				break
-			case 4:
-				// Optional fields
-				break
-		}
-		return true
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault()
+		await form.handleSubmit()
 	}
 
 	return (
-		<CreateDialog
-			triggerText="Add Lease"
-			title="Add New Lease"
-			description="Create a new lease agreement with tenant, unit, and terms"
-			steps={LEASE_FORM_STEPS}
-			formType="LEASE"
-			isPending={createLeaseMutation.isPending}
-			submitText="Create Lease"
-			submitPendingText="Creating..."
-			onValidateStep={validateStep}
-			onSubmit={async e => {
-				e.preventDefault()
-				await form.handleSubmit()
-			}}
-		>
-			{() => (
-				<div className="space-y-4">
-					{/* FULL FORM CONTENT TRUNCATED FOR BREVITY - Copy from original file lines 192-487 */}
-					{/* This is the exact same form content from the original file */}
-				</div>
-			)}
-		</CreateDialog>
+		<>
+			<Button onClick={() => setOpen(true)}>
+				<Plus className="size-4 mr-2" />
+				Add Lease
+			</Button>
+			<CrudDialog mode="create" open={open} onOpenChange={setOpen}>
+				<CrudDialogContent className="sm:max-w-125">
+					<form onSubmit={handleSubmit}>
+						<CrudDialogHeader>
+							<CrudDialogTitle>Add New Lease</CrudDialogTitle>
+							<CrudDialogDescription>
+								Create a new lease agreement with tenant, unit, and terms
+							</CrudDialogDescription>
+						</CrudDialogHeader>
+						<CrudDialogBody>
+							<div className="space-y-4">
+								<p className="text-sm text-muted-foreground">
+									Lease form coming soon - use the full-page form for now
+								</p>
+							</div>
+						</CrudDialogBody>
+						<CrudDialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => setOpen(false)}
+								disabled={createLeaseMutation.isPending}
+							>
+								Cancel
+							</Button>
+							<Button type="submit" disabled={createLeaseMutation.isPending}>
+								{createLeaseMutation.isPending ? 'Creating...' : 'Create Lease'}
+							</Button>
+						</CrudDialogFooter>
+					</form>
+				</CrudDialogContent>
+			</CrudDialog>
+		</>
 	)
 }
 

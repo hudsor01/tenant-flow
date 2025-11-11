@@ -4,16 +4,21 @@
  */
 
 import { setupIntegrationTestUsers } from './setup-test-subscription'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'IntegrationTestSetup' })
 
 export async function setup() {
-	console.log('🔧 Setting up integration test environment...')
+	logger.info('🔧 Setting up integration test environment...')
 
 	try {
 		// Ensure test users have valid subscriptions
 		await setupIntegrationTestUsers()
-		console.log('✅ Integration test environment ready')
+		logger.info('✅ Integration test environment ready')
 	} catch (error) {
-		console.error('❌ Failed to set up integration test environment:', error)
+		logger.error('❌ Failed to set up integration test environment', {
+			metadata: { error: error instanceof Error ? error.message : String(error) }
+		})
 		throw error
 	}
 }

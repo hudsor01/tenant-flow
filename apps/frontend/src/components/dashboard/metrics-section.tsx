@@ -10,7 +10,7 @@ import { SectionCards } from '#app/(protected)/manage/SectionCards'
 export function MetricsSection() {
 	return (
 		<div
-			className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
+			className="border-b bg-background p-6 border-(--color-fill-tertiary)"
 		>
 			<div className="mx-auto max-w-400 py-4">
 				<SectionCards />

@@ -4,7 +4,7 @@ import { Spinner } from '#components/ui/spinner'
 import { API_BASE_URL } from '#lib/api-config'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
@@ -28,6 +28,7 @@ export default function PostCheckoutPage() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const [email, setEmail] = useState<string>('')
+	const mutateRef = useRef<((sessionId: string) => void) | null>(null)
 
 	// TanStack Query mutation for sending magic link
 	const sendMagicLinkMutation = useMutation({
@@ -73,18 +74,21 @@ export default function PostCheckoutPage() {
 		}
 	})
 
+	// Store mutate function in ref for stable reference
+	mutateRef.current = sendMagicLinkMutation.mutate
+
 	// Trigger mutation once on mount with session_id
 	useEffect(() => {
 		const sessionId = searchParams.get('session_id')
 		if (
 			sessionId &&
 			!sendMagicLinkMutation.isSuccess &&
-			!sendMagicLinkMutation.isPending
+			!sendMagicLinkMutation.isPending &&
+			mutateRef.current
 		) {
-			sendMagicLinkMutation.mutate(sessionId)
+			mutateRef.current(sessionId)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [searchParams]) // Only re-run if searchParams changes
+	}, [searchParams, sendMagicLinkMutation.isSuccess, sendMagicLinkMutation.isPending])
 
 	if (sendMagicLinkMutation.isPending) {
 		return (

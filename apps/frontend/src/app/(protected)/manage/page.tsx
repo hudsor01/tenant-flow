@@ -11,9 +11,6 @@ export default async function DashboardPage() {
 	// ✅ Server-side auth - NO client flash, instant 307 redirect
 	await requireSession()
 
-	// Stats are now fetched client-side via TanStack Query in SectionCards
-	// No server-side fetching needed - enables real-time updates with refetchInterval
-
 	return (
 		<main
 			role="main"

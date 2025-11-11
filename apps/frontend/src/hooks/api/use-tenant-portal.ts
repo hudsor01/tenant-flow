@@ -21,7 +21,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { MaintenanceCategory } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 

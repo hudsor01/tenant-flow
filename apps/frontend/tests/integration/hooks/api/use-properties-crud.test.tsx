@@ -30,6 +30,9 @@ import type { Property } from '@repo/shared/types/core'
 import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UsePropertiesCrudTest' })
 
 // This is an INTEGRATION test - it calls the REAL API
 // Make sure backend is running before running these tests
@@ -118,7 +121,9 @@ describe('Properties CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup property ${id}:`, error)
+				logger.warn(`Failed to cleanup property ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdPropertyIds = []

@@ -20,6 +20,9 @@
 import { PDFDocument } from 'pdf-lib'
 import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'AddFormFieldsScript' })
 
 async function addFormFields() {
 	const templatePath = join(
@@ -31,11 +34,11 @@ async function addFormFields() {
 		'Texas_Residential_Lease_Agreement.filled.pdf'
 	)
 
-	console.log('📄 Loading PDF template...')
+	logger.info('📄 Loading PDF template...')
 	const pdfBytes = await readFile(templatePath)
 	const pdfDoc = await PDFDocument.load(pdfBytes)
 
-	console.log('📝 Adding form fields...')
+	logger.info('📝 Adding form fields...')
 	const form = pdfDoc.getForm()
 
 	// Get first page dimensions
@@ -93,13 +96,19 @@ async function addFormFields() {
 	form.createTextField('notice_address')
 	form.createTextField('notice_email')
 
-	console.log('💾 Saving fillable PDF...')
+	logger.info('💾 Saving fillable PDF...')
 	const filledPdfBytes = await pdfDoc.save()
 	await writeFile(outputPath, filledPdfBytes)
 
 	const fields = form.getFields()
-	console.log(`✅ Added ${fields.length} form fields to PDF`)
-	console.log('   Output:', outputPath)
+	logger.info(`✅ Added ${fields.length} form fields to PDF`, {
+		metadata: { outputPath }
+	})
 }
 
-addFormFields().catch(console.error)
+addFormFields().catch(error => {
+	logger.error('Failed to add form fields to lease template', {
+		metadata: { error: error instanceof Error ? error.message : String(error) }
+	})
+	process.exit(1)
+})

@@ -5,7 +5,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils'
+import { render, screen, waitFor } from '#test/utils/test-render'
 import { MaintenanceForm } from '../maintenance-form.client'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

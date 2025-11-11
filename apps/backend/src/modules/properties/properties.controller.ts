@@ -24,7 +24,8 @@ import {
 	Query,
 	Request,
 	UploadedFile,
-	UseInterceptors
+	UseInterceptors,
+	Logger
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
@@ -46,6 +47,8 @@ import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
  */
 @Controller('properties')
 export class PropertiesController {
+	private readonly logger = new Logger(PropertiesController.name)
+
 	constructor(private readonly propertiesService: PropertiesService) {}
 
 	/**
@@ -158,22 +161,39 @@ export class PropertiesController {
 		@UploadedFile() file: Express.Multer.File,
 		@Request() req: AuthenticatedRequest
 	) {
+		// Debug logging for file upload issues
+		this.logger.log('Bulk import request received', {
+			hasFile: !!file,
+			fileName: file?.originalname,
+			fileSize: file?.size,
+			mimetype: file?.mimetype,
+			userId: req.user?.id
+		})
+
 		if (!file) {
 			throw new BadRequestException('No file uploaded')
 		}
 
-		// Validate file type (CSV only)
+		// Validate file type (CSV only) - be more permissive for different browser behaviors
 		const allowedMimeTypes = [
 			'text/csv',
 			'application/csv',
-			'text/plain' // Some browsers send CSV as text/plain
+			'text/plain',
+			'application/octet-stream', // Some browsers send CSV as binary
+			'application/vnd.ms-excel' // Excel CSV format
 		]
-		if (
-			!allowedMimeTypes.includes(file.mimetype) &&
-			!file.originalname?.endsWith('.csv')
-		) {
+		const isValidType =
+			allowedMimeTypes.includes(file.mimetype) ||
+			file.originalname?.toLowerCase().endsWith('.csv')
+
+		if (!isValidType) {
+			this.logger.warn('Invalid file type for bulk import', {
+				mimetype: file.mimetype,
+				originalname: file.originalname,
+				userId: req.user?.id
+			})
 			throw new BadRequestException(
-				'Invalid file type. Only CSV files (.csv) are allowed'
+				`Invalid file type: ${file.mimetype}. Only CSV files (.csv) are allowed`
 			)
 		}
 
