@@ -35,15 +35,12 @@ import {
 	transformPropertyFormData,
 	transformPropertyUpdateData
 } from '@repo/shared/validation/properties'
-import type { Property } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Property, PropertyType } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import { SUPABASE_URL } from '@repo/shared/config/supabase'
 import { handleMutationError } from '#lib/mutation-error-handler'
-
-type PropertyType = Database['public']['Enums']['PropertyType']
 
 interface PropertyFormProps {
 	mode: 'create' | 'edit'

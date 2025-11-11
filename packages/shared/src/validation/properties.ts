@@ -87,8 +87,8 @@ export const propertySchema = propertyInputSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
 	status: propertyStatusSchema,
-	createdAt: z.date(),
-	updatedAt: z.date()
+	createdAt: z.string(),
+	updatedAt: z.string()
 })
 
 // Property update schema (partial input)
@@ -109,8 +109,8 @@ export const propertyQuerySchema = z.object({
 	status: propertyStatusSchema.optional(),
 	sortBy: z.enum(['name', 'createdAt', 'rent', 'city']).optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional(),
-	page: z.coerce.number().int().positive().optional(),
-	limit: z.coerce.number().int().positive().max(100).optional()
+	page: z.coerce.number().int().positive().default(1),
+	limit: z.coerce.number().int().positive().max(100).default(10)
 })
 
 // Property statistics schema
@@ -169,7 +169,8 @@ export const transformPropertyFormData = (
 		city: data.city,
 		state: data.state,
 		zipCode: data.zipCode,
-		propertyType: data.propertyType as Database['public']['Enums']['PropertyType']
+		propertyType:
+			data.propertyType as Database['public']['Enums']['PropertyType']
 	}
 
 	// Only include optional fields if they have truthy values (exactOptionalPropertyTypes)
@@ -240,13 +241,10 @@ export type TransformedPropertyUpdateData = ReturnType<
 
 // Property sold schema (for marking properties as sold with required compliance fields)
 export const propertyMarkedSoldSchema = z.object({
-	dateSold: z.string().refine(
-		val => {
-			const date = new Date(val)
-			return !isNaN(date.getTime()) && date <= new Date()
-		},
-		'Sale date must be valid and cannot be in the future'
-	),
+	dateSold: z.string().refine(val => {
+		const date = new Date(val)
+		return !isNaN(date.getTime()) && date <= new Date()
+	}, 'Sale date must be valid and cannot be in the future'),
 	salePrice: positiveNumberSchema
 		.max(100000000, 'Sale price seems unrealistic')
 		.refine(val => val > 0, 'Sale price must be greater than $0'),
@@ -325,13 +323,10 @@ export const propertyImageUploadSchema = z.object({
 				.string()
 				.toLowerCase()
 				.transform(val => val.trim())
-				.refine(
-					val => ['true', 'false', '1', '0', 'yes', 'no'].includes(val),
-					{
-						message:
-							'isPrimary must be one of: true, false, 1, 0, yes, no (case-insensitive)'
-					}
-				)
+				.refine(val => ['true', 'false', '1', '0', 'yes', 'no'].includes(val), {
+					message:
+						'isPrimary must be one of: true, false, 1, 0, yes, no (case-insensitive)'
+				})
 				.transform(val => ['true', '1', 'yes'].includes(val))
 		])
 		.default(false),

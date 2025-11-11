@@ -7,6 +7,7 @@ import {
 	DEFAULT_RPC_RETRY_ATTEMPTS
 } from './stripe.constants'
 import { userIdByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
+import type { Database } from '@repo/shared/types/supabase'
 
 /**
  * ULTRA-NATIVE: Subscription-based Access Control Service
@@ -142,20 +143,17 @@ export class StripeAccessControlService {
 			// canceled/incomplete_expired subscriptions won't be returned
 
 			// Get user email for sending cancellation notice
-			const { data: userData, error: emailError} = (await this.supabaseService
+			const { data: userData, error: emailError } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('email')
 				.eq('id', userId)
-				.single()) as { data: { email: string } | null; error: unknown }
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
 			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for cancellation notice', {
 					userId,
-					error:
-						emailError instanceof Error
-							? emailError.message
-							: String(emailError as unknown)
+				error: emailError instanceof Error ? emailError.message : String(emailError)
 				})
 			} else {
 				// Send subscription canceled email using React template
@@ -343,12 +341,12 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending failed payment notice
-			const { data: userData, error: emailError } = (await this.supabaseService
+			const { data: userData, error: emailError } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('email')
 				.eq('id', userId)
-				.single()) as { data: { email: string } | null; error: unknown }
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
 			if (emailError || !userData?.email) {
 				this.logger.warn(
@@ -436,20 +434,17 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending receipt
-			const { data: userData, error: emailError } = (await this.supabaseService
+			const { data: userData, error: emailError } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('email')
 				.eq('id', userId)
-				.single()) as { data: { email: string } | null; error: unknown }
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
 			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for payment receipt', {
 					userId,
-					error:
-						emailError instanceof Error
-							? emailError.message
-							: String(emailError as unknown)
+				error: emailError instanceof Error ? emailError.message : String(emailError)
 				})
 				return
 			}

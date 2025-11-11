@@ -87,6 +87,23 @@ export interface Pagination {
 	hasMore?: boolean
 }
 
+// Consolidate all pagination-related interfaces in one place
+export interface PaginationOptions {
+	page?: number
+	limit?: number
+	offset?: number
+}
+
+export interface SortOptions {
+	field: string
+	direction: 'asc' | 'desc'
+}
+
+export interface BaseFilterOptions extends PaginationOptions {
+	sort?: SortOptions
+	search?: string
+}
+
 // Consolidated query parameters
 export interface QueryParams extends Pagination {
 	search?: string
@@ -107,7 +124,7 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Database, Tables } from './supabase-generated.js'
+import type { Database, Tables, TablesInsert } from './supabase-generated.js'
 
 export type User = Tables<'users'>
 export type Property = Tables<'property'>
@@ -116,8 +133,20 @@ export type Tenant = Tables<'tenant'>
 export type Lease = Tables<'lease'>
 export type MaintenanceRequest = Tables<'maintenance_request'>
 export type RentPayment = Tables<'rent_payment'>
+export type ExpenseRecord = Tables<'expense'>
+export type ConnectedAccount = Tables<'connected_account'>
+export type PropertyInsert = TablesInsert<'property'>
+export type UnitInsert = TablesInsert<'unit'>
 export type MaintenanceCategory =
 	Database['public']['Enums']['MaintenanceCategory']
+export type PropertyType = Database['public']['Enums']['PropertyType']
+export type PropertyStatus = Database['public']['Enums']['PropertyStatus']
+export type UnitStatus = Database['public']['Enums']['UnitStatus']
+export type LeaseStatus = Database['public']['Enums']['LeaseStatus']
+export type RentPaymentStatus = Database['public']['Enums']['RentPaymentStatus']
+export type Priority = Database['public']['Enums']['Priority']
+export type ActivityEntityType =
+	Database['public']['Enums']['ActivityEntityType']
 
 // Maintenance API response with relations
 export interface MaintenanceRequestResponse {
@@ -141,6 +170,9 @@ export type {
 } from './supabase-generated.js'
 
 export type EnvConfig = Record<string, string | number | boolean>
+
+// HTTP Method types
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
 // Use template literals for type-safe string patterns
 export type EntityType =
