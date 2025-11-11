@@ -3,7 +3,8 @@ import {
 	ForbiddenException,
 	Injectable,
 	Logger,
-	NotFoundException
+	NotFoundException,
+	UnauthorizedException
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import type {
@@ -15,6 +16,7 @@ import type {
 	TenantAutopayStatusResponse
 } from '@repo/shared/types/stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import type {
@@ -57,7 +59,8 @@ export class RentPaymentsService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
-		private readonly stripeTenantService: StripeTenantService
+		private readonly stripeTenantService: StripeTenantService,
+		private readonly queryHelpers: SupabaseQueryHelpers
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -423,27 +426,23 @@ export class RentPaymentsService {
 	 */
 	async getPaymentHistory(token: string) {
 		if (!token) {
-			this.logger.warn('Payment history requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-			)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load payment history', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load payment history')
-		}
-
-		return (data as RentPayment[]) ?? []
+		return this.queryHelpers.queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
+				)
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'rent_payment',
+				operation: 'findAll'
+			}
+		)
 	}
 
 	/**
@@ -452,43 +451,39 @@ export class RentPaymentsService {
 	 */
 	async getSubscriptionPaymentHistory(subscriptionId: string, token: string) {
 		if (!token) {
-			this.logger.warn('Subscription payment history requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
 
 		// ✅ RLS automatically validates subscription ownership
-		const { data: subscription, error: subscriptionError } = await client
-			.from('rent_subscription')
-			.select('id, ownerId')
-			.eq('id', subscriptionId)
-			.single<RentSubscription>()
-
-		if (subscriptionError || !subscription) {
-			throw new NotFoundException('Subscription not found')
-		}
+		await this.queryHelpers.querySingle<Pick<RentSubscription, 'id' | 'ownerId'>>(
+			client
+				.from('rent_subscription')
+				.select('id, ownerId')
+				.eq('id', subscriptionId)
+				.single(),
+			{
+				resource: 'rent_subscription',
+				id: subscriptionId,
+				operation: 'findOne'
+			}
+		)
 
 		// ✅ RLS automatically filters payments to user's scope
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-			)
-			.eq('subscriptionId', subscriptionId)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load subscription payment history', {
-				subscriptionId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to load subscription payment history'
-			)
-		}
-
-		return (data as RentPayment[]) ?? []
+		return this.queryHelpers.queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
+				)
+				.eq('subscriptionId', subscriptionId)
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'rent_payment',
+				operation: 'findAll'
+			}
+		)
 	}
 
 	/**
@@ -497,28 +492,24 @@ export class RentPaymentsService {
 	 */
 	async getFailedPaymentAttempts(token: string) {
 		if (!token) {
-			this.logger.warn('Failed payment attempts requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-			)
-			.eq('status', 'failed')
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch failed payment attempts', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load failed payment attempts')
-		}
-
-		return (data as RentPayment[]) ?? []
+		return this.queryHelpers.queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
+				)
+				.eq('status', 'failed')
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'rent_payment',
+				operation: 'findAll'
+			}
+		)
 	}
 
 	/**
@@ -527,44 +518,40 @@ export class RentPaymentsService {
 	 */
 	async getSubscriptionFailedAttempts(subscriptionId: string, token: string) {
 		if (!token) {
-			this.logger.warn('Subscription failed attempts requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
 
 		// ✅ RLS automatically validates subscription ownership
-		const { data: subscription, error: subscriptionError } = await client
-			.from('rent_subscription')
-			.select('id, ownerId')
-			.eq('id', subscriptionId)
-			.single<RentSubscription>()
-
-		if (subscriptionError || !subscription) {
-			throw new NotFoundException('Subscription not found')
-		}
+		await this.queryHelpers.querySingle<Pick<RentSubscription, 'id' | 'ownerId'>>(
+			client
+				.from('rent_subscription')
+				.select('id, ownerId')
+				.eq('id', subscriptionId)
+				.single(),
+			{
+				resource: 'rent_subscription',
+				id: subscriptionId,
+				operation: 'findOne'
+			}
+		)
 
 		// ✅ RLS automatically filters payments to user's scope
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-			)
-			.eq('subscriptionId', subscriptionId)
-			.eq('status', 'failed')
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch subscription failed attempts', {
-				subscriptionId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to load subscription failed attempts'
-			)
-		}
-
-		return (data as RentPayment[]) ?? []
+		return this.queryHelpers.queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
+				)
+				.eq('subscriptionId', subscriptionId)
+				.eq('status', 'failed')
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'rent_payment',
+				operation: 'findAll'
+			}
+		)
 	}
 
 	/**
@@ -937,15 +924,17 @@ export class RentPaymentsService {
 	async verifyTenantAccess(userId: string, tenantId: string): Promise<void> {
 		const adminClient = this.supabase.getAdminClient()
 
-		const { data: tenant, error } = await adminClient
-			.from('tenant')
-			.select('auth_user_id')
-			.eq('id', tenantId)
-			.single()
-
-		if (error || !tenant) {
-			throw new NotFoundException('Tenant not found')
-		}
+		const tenant = await this.queryHelpers.querySingle<
+			Pick<Tenant, 'auth_user_id'>
+		>(
+			adminClient.from('tenant').select('auth_user_id').eq('id', tenantId).single(),
+			{
+				resource: 'tenant',
+				id: tenantId,
+				operation: 'findOne',
+				userId
+			}
+		)
 
 		if (tenant.auth_user_id !== userId) {
 			this.logger.warn('Unauthorized tenant access attempt', {
