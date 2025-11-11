@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Constants, type Database } from '../types/supabase-generated.js'
+import { Constants, type Database } from '../types/supabase-generated'
 import
   {
     nonEmptyStringSchema,
@@ -7,7 +7,8 @@ import
     positiveNumberSchema,
     requiredString,
     uuidSchema
-  } from './common.js'
+  } from './common'
+import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Unit status enum - uses auto-generated Supabase enums
 export const unitStatusSchema = z.enum(
@@ -20,23 +21,23 @@ export const unitInputSchema = z.object({
 
 	unitNumber: nonEmptyStringSchema
 		.min(1, 'Unit number is required')
-		.max(20, 'Unit number cannot exceed 20 characters'),
+		.max(VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH, `Unit number cannot exceed ${VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH} characters`),
 
 	bedrooms: positiveNumberSchema
 		.int('Bedrooms must be a whole number')
-		.max(20, 'Maximum 20 bedrooms allowed')
+		.max(VALIDATION_LIMITS.UNIT_MAX_BEDROOMS, `Maximum ${VALIDATION_LIMITS.UNIT_MAX_BEDROOMS} bedrooms allowed`)
 		.default(1),
 
 	bathrooms: positiveNumberSchema
-		.max(20, 'Maximum 20 bathrooms allowed')
+		.max(VALIDATION_LIMITS.UNIT_MAX_BATHROOMS, `Maximum ${VALIDATION_LIMITS.UNIT_MAX_BATHROOMS} bathrooms allowed`)
 		.default(1),
 
 	squareFeet: positiveNumberSchema
 		.int('Square feet must be a whole number')
-		.max(50000, 'Square feet seems unrealistic')
+		.max(VALIDATION_LIMITS.UNIT_MAX_SQUARE_FEET, 'Square feet seems unrealistic')
 		.optional(),
 
-	rent: nonNegativeNumberSchema.max(100000, 'Rent amount seems unrealistic'),
+	rent: nonNegativeNumberSchema.max(VALIDATION_LIMITS.UNIT_RENT_MAXIMUM, 'Rent amount seems unrealistic'),
 
 	lastInspectionDate: z.string().optional()
 })
@@ -76,8 +77,8 @@ export const unitQuerySchema = z.object({
 		])
 		.optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
-	page: z.coerce.number().int().positive().default(1),
-	limit: z.coerce.number().int().positive().max(100).default(10)
+	page: z.coerce.number().int().positive().default(VALIDATION_LIMITS.API_QUERY_DEFAULT_PAGE),
+	limit: z.coerce.number().int().positive().max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT).default(VALIDATION_LIMITS.API_QUERY_DEFAULT_LIMIT)
 })
 
 // Unit statistics schema

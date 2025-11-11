@@ -27,6 +27,7 @@ import type { Algorithm } from 'jsonwebtoken'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AppConfigService } from '../../config/app-config.service'
+import type { Database } from '@repo/shared/types/supabase-generated'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -99,6 +100,30 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error('Token missing expiration or issued-at timestamp')
 		}
 
+		// Allow 30-second grace period for token expiration to handle refresh timing
+		const now = Math.floor(Date.now() / 1000)
+		const expWithGrace = payload.exp + 30 // 30 second grace period
+
+		if (now > expWithGrace) {
+			this.logger.warn('Token expired (including grace period)', {
+				userId: payload.sub,
+				exp: new Date(payload.exp * 1000),
+				now: new Date(now * 1000),
+				gracePeriodSeconds: 30
+			})
+			throw new Error('Token expired')
+		}
+
+		// Log warning if token is close to expiry (within 5 minutes)
+		const fiveMinutesFromNow = now + (5 * 60)
+		if (payload.exp < fiveMinutesFromNow) {
+			this.logger.debug('Token approaching expiry', {
+				userId: payload.sub,
+				expiresInMinutes: Math.round((payload.exp - now) / 60),
+				exp: new Date(payload.exp * 1000)
+			})
+		}
+
 		if (!payload.email) {
 			this.logger.warn('JWT missing email claim', { userId: payload.sub })
 			throw new Error('Invalid token: missing email')
@@ -142,15 +167,41 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 		// ✅ CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
 		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
-		const internalUserId =
-			await this.utilityService.ensureUserExists(userToEnsure)
+		let internalUserId: string
+		try {
+			internalUserId = await this.utilityService.ensureUserExists(userToEnsure)
+		} catch (error) {
+			// If database is unavailable, throw a system error to prevent false 401s
+			const errorMessage = error instanceof Error ? error.message : 'Unknown database error'
+			this.logger.error('Database error during user lookup/creation', {
+				userId: payload.sub,
+				email: payload.email,
+				error: errorMessage
+			})
+			throw new Error(`Authentication service unavailable: ${errorMessage}`)
+		}
+
+		let dbRole: Database['public']['Enums']['UserRole'] | null = null
+		try {
+			dbRole = (await this.utilityService.getUserRoleByUserId(internalUserId)) ?? null
+		} catch (error) {
+			// Log but don't fail - role lookup is not critical for authentication
+			this.logger.warn('Failed to get user role from database, using fallback', {
+				userId: internalUserId,
+				error: error instanceof Error ? error.message : 'Unknown error'
+			})
+		}
+		const fallbackRole =
+			(payload.app_metadata?.role as Database['public']['Enums']['UserRole'] | undefined) ??
+			'OWNER'
+		const resolvedRole = dbRole ?? fallbackRole
 
 		// Create user object from JWT payload
 		const user: authUser = {
 			id: internalUserId, // Use users.id for RLS compatibility
 			aud: actualAud,
 			email: payload.email,
-			role: payload.app_metadata?.role ?? 'authenticated',
+			role: resolvedRole,
 			// Use timestamps from JWT payload instead of hardcoded current time
 			email_confirmed_at: payload.email_confirmed_at ?? '',
 			confirmed_at: payload.confirmed_at ?? '',

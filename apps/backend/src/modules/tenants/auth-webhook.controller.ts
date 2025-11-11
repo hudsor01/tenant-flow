@@ -22,6 +22,7 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { Request } from 'express'
+import { Throttle } from '@nestjs/throttler'
 import { TenantsService } from '../tenants/tenants.service'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -134,6 +135,7 @@ export class AuthWebhookController {
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
 	 * SECURITY: Verifies webhook signature using Standard Webhooks spec
 	 */
+	@Throttle({ default: { ttl: 60000, limit: 30 } })
 	@Post('user-confirmed')
 	@SetMetadata('isPublic', true)
 	async handleUserConfirmed(
