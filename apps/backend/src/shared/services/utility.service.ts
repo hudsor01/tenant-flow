@@ -10,12 +10,20 @@ import type { Cache } from 'cache-manager'
 import { v4 as uuidv4 } from 'uuid'
 import type { SearchResult } from '@repo/shared/types/search'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { USER_ROLE } from '@repo/shared/constants/auth'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildILikePattern,
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../utils/sql-safe.utils'
+
+const VALID_USER_ROLES = Object.values(USER_ROLE) as Database['public']['Enums']['UserRole'][]
+const SAFE_DEFAULT_SIGNUP_ROLE: Database['public']['Enums']['UserRole'] = 'TENANT'
+
+function isValidUserRoleValue(role: unknown): role is Database['public']['Enums']['UserRole'] {
+	return typeof role === 'string' && VALID_USER_ROLES.includes(role as Database['public']['Enums']['UserRole'])
+}
 
 export interface PasswordValidationResult {
 	isValid: boolean
@@ -326,8 +334,24 @@ export class UtilityService {
 				const fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.name
 				const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
 
-				// Determine user role - default to OWNER for new sign-ups
-				const role = authUser.app_metadata?.role === 'TENANT' ? 'TENANT' : 'OWNER'
+				// Determine user role with safe defaults (never silently escalate to OWNER)
+				const requestedRole = authUser.app_metadata?.role
+				let resolvedRole: Database['public']['Enums']['UserRole'] = SAFE_DEFAULT_SIGNUP_ROLE
+
+				if (isValidUserRoleValue(requestedRole)) {
+					resolvedRole = requestedRole
+				} else if (requestedRole) {
+					this.logger.warn('Invalid role supplied in Supabase app_metadata during signup, defaulting to tenant access', {
+						supabaseId: authUser.id,
+						email: authUser.email,
+						requestedRole
+					})
+				} else {
+					this.logger.debug('No role supplied in Supabase app_metadata during signup, defaulting to tenant access', {
+						supabaseId: authUser.id,
+						email: authUser.email
+					})
+				}
 
 				const { data, error: insertError } = await this.supabase
 					.getAdminClient()
@@ -338,7 +362,7 @@ export class UtilityService {
 						email: authUser.email,
 						name: fullName || null,
 						avatarUrl: avatarUrl || null,
-						role: role as Database['public']['Enums']['UserRole'],
+						role: resolvedRole,
 						profileComplete: false,
 						subscription_status: 'trialing' // New users start with trial
 					})
@@ -387,7 +411,7 @@ export class UtilityService {
 					userId: data.id,
 					supabaseId: authUser.id,
 					email: authUser.email,
-					role
+					role: resolvedRole
 				})
 
 				// Cache the new user ID
