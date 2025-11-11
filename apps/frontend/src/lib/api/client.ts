@@ -106,9 +106,16 @@ export async function getAuthHeaders(
  */
 export async function clientFetch<T>(
 	endpoint: string,
-	options?: RequestInit & { requireAuth?: boolean; omitJsonContentType?: boolean }
+	options?: RequestInit & {
+		requireAuth?: boolean
+		omitJsonContentType?: boolean
+	}
 ): Promise<T> {
-	const { requireAuth = true, omitJsonContentType = false, ...fetchOptions } = options || {}
+	const {
+		requireAuth = true,
+		omitJsonContentType = false,
+		...fetchOptions
+	} = options || {}
 
 	// Build headers from options
 	const customHeaders: Record<string, string> = {}
@@ -122,7 +129,11 @@ export async function clientFetch<T>(
 
 	// Get auth headers (includes Authorization + custom headers)
 	// For FormData, omit Content-Type so browser sets multipart/form-data with boundary
-	const headers = await getAuthHeaders(customHeaders, requireAuth, omitJsonContentType)
+	const headers = await getAuthHeaders(
+		customHeaders,
+		requireAuth,
+		omitJsonContentType
+	)
 
 	// Ensure body is set for methods that require it
 	const finalOptions = { ...fetchOptions, headers }
@@ -139,19 +150,35 @@ export async function clientFetch<T>(
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
 
 	if (!response.ok) {
-		let errorData: { code?: string; message?: string; error?: string } | null = null
+		let errorData: { code?: string; message?: string; error?: string } | null =
+			null
 		let errorText = ''
-		
+
 		try {
 			errorText = await response.text()
 			errorData = JSON.parse(errorText)
-		} catch {
+		} catch (parseError) {
+			// Log parsing errors to help diagnose unexpected response formats
+			logger.warn('Failed to parse API error response as JSON', {
+				metadata: {
+					endpoint,
+					status: response.status,
+					contentType: response.headers.get('content-type'),
+					responseLength: errorText.length,
+					responsePreview: errorText.substring(0, 200),
+					parseError:
+						parseError instanceof Error
+							? parseError.message
+							: String(parseError)
+				}
+			})
 			// Not JSON, use text directly
 		}
-		
+
 		const code = errorData?.code
-		const message = errorData?.message || errorData?.error || errorText || response.statusText
-		
+		const message =
+			errorData?.message || errorData?.error || errorText || response.statusText
+
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API request failed', {
 			metadata: {
@@ -162,13 +189,8 @@ export async function clientFetch<T>(
 				error: message
 			}
 		})
-		
-		throw new ApiError(
-			message,
-			code,
-			response.status,
-			errorData
-		)
+
+		throw new ApiError(message, code, response.status, errorData)
 	}
 
 	const data = await response.json()
@@ -177,7 +199,7 @@ export async function clientFetch<T>(
 	if ('success' in data && data.success === false) {
 		const code = data.code
 		const message = data.error || data.message || 'API request failed'
-		
+
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API returned error response', {
 			metadata: {
@@ -187,7 +209,7 @@ export async function clientFetch<T>(
 				data
 			}
 		})
-		
+
 		throw new ApiError(message, code, data.statusCode, data)
 	}
 
