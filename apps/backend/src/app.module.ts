@@ -43,6 +43,7 @@ import { RequestLoggerMiddleware } from './shared/middleware/request-logger.midd
 import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
+import { SupabaseHelpersModule } from './shared/supabase/supabase-helpers.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
@@ -111,6 +112,7 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		// CRITICAL: Global modules must come first for zero-downtime architecture
 		SupabaseModule.forRootAsync(),
 		SharedModule,
+		SupabaseHelpersModule,
 		ServicesModule,
 		HealthModule,
 		MetricsModule,
