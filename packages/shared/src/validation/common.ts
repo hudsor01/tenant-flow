@@ -72,7 +72,7 @@ export function isValidUrl(url: string): boolean {
 
 		// Prevent localhost in production
 		if (
-			process.env.NODE_ENV === 'production' &&
+			process.env["NODE_ENV"] === 'production' &&
 			(parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1')
 		) {
 			return false

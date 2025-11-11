@@ -1,4 +1,4 @@
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+import type { HttpMethod } from '@repo/shared/types/core'
 
 export interface RegisteredRouteSchema {
   method: HttpMethod

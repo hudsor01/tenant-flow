@@ -6,11 +6,6 @@ const nextConfig: NextConfig = {
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
 
-	eslint: {
-		dirs: ['src'],
-		ignoreDuringBuilds: false
-	},
-
 	typedRoutes: true,
 
 	compiler: {
@@ -38,6 +33,8 @@ const nextConfig: NextConfig = {
 			bodySizeLimit: '2mb',
 			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
 		}
+		// Next.js 16: Enable Cache Components (replaces PPR)
+		// cacheComponents: true,
 	},
 
 	async redirects() {
@@ -113,6 +110,11 @@ const nextConfig: NextConfig = {
 		formats: ['image/avif', 'image/webp'],
 		deviceSizes: [640, 828, 1200, 1920],
 		imageSizes: [32, 64, 128, 256]
+		// Next.js 16 defaults (documented for reference):
+		// - minimumCacheTTL: 14400 (4 hours, was 60s in Next.js 15)
+		// - qualities: [75] (was variable range)
+		// - maximumRedirects: 3 (was unlimited)
+		// Override above if needed for custom behavior
 	}
 }
 

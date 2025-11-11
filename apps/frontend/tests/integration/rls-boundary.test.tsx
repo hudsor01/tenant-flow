@@ -23,6 +23,9 @@ import { createBrowserClient } from '@supabase/ssr'
 import { clientFetch } from '#lib/api/client'
 import type { Property } from '@repo/shared/types/core'
 import type { CreatePropertyInput } from '@repo/shared/types/backend-domain'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'RlsBoundaryTest' })
 
 // ========================================
 // Multi-User Authentication Utilities
@@ -124,9 +127,9 @@ async function fetchAsUser<T>(
 	const contentType = response.headers.get('content-type')
 	if (!contentType || !contentType.includes('application/json')) {
 		const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`
-		console.warn(
-			`Non-JSON response from ${url}: status=${response.status}, content-type=${contentType}`
-		)
+		logger.warn('Non-JSON response received', {
+			metadata: { url, status: response.status, contentType }
+		})
 		throw new Error(
 			`Expected JSON response from ${endpoint} but got ${contentType}. Status: ${response.status}`
 		)
@@ -255,7 +258,9 @@ describe.skip('RLS Boundary Tests', () => {
 					method: 'DELETE'
 				})
 			} catch (error) {
-				console.warn('Failed to cleanup ownerA property:', error)
+				logger.warn('Failed to cleanup ownerA property', {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 
@@ -265,7 +270,9 @@ describe.skip('RLS Boundary Tests', () => {
 					method: 'DELETE'
 				})
 			} catch (error) {
-				console.warn('Failed to cleanup ownerB property:', error)
+				logger.warn('Failed to cleanup ownerB property', {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 	})
