@@ -19,8 +19,8 @@ const logger = createLogger({ component: 'ClientAPI' })
  * Get auth headers with Supabase JWT token
  * Extracted for reuse across fetch calls
  *
- * SECURITY: Validates user with getUser() before extracting token from getSession()
- * This prevents using potentially-tampered session data from cookies
+ * SECURITY: Validates session and extracts token in a single atomic operation
+ * This prevents race conditions between user validation and token extraction
  *
  * @param additionalHeaders - Custom headers to merge with auth headers
  * @param requireAuth - Whether to throw error if no session exists (default: true)
@@ -40,28 +40,45 @@ export async function getAuthHeaders(
 
 	const supabase = createClient()
 
-	// SECURITY FIX: Validate user with getUser() before extracting token
-	// This ensures the session is authentic by contacting Supabase Auth server
+	// SECURITY FIX: Get session first (atomic operation) then validate
+	// This prevents race conditions where session might expire between calls
 	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	// Get session for access token (only after user validation)
-	const {
-		data: { session }
+		data: { session },
+		error: sessionError
 	} = await supabase.auth.getSession()
 
-	// Only use access token if user validation succeeded
-	if (!userError && user && session?.access_token) {
-		headers['Authorization'] = `Bearer ${session.access_token}`
+	// Validate session before using token
+	if (session?.access_token) {
+		// SECURITY: Verify session is still valid by checking if we can get user
+		// This ensures the token hasn't been revoked or expired
+		const {
+			data: { user },
+			error: userError
+		} = await supabase.auth.getUser()
+
+		if (!userError && user) {
+			headers['Authorization'] = `Bearer ${session.access_token}`
+		} else {
+			// Session exists but user validation failed - token might be expired or revoked
+			logger.warn('Session token invalid during validation', {
+				metadata: {
+					hasSession: !!session,
+					hasUser: !!user,
+					userError: userError?.message,
+					requireAuth
+				}
+			})
+
+			if (requireAuth) {
+				throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+			}
+		}
 	} else if (requireAuth) {
-		// Log warning - caller should handle error appropriately for their context
-		logger.warn('Authentication session expired', {
+		// No session found
+		logger.warn('No authentication session found', {
 			metadata: {
-				hasUser: !!user,
 				hasSession: !!session,
-				userError: userError?.message,
+				sessionError: sessionError?.message,
 				requireAuth
 			}
 		})
@@ -70,7 +87,6 @@ export async function getAuthHeaders(
 		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {
 			metadata: {
-				hasUser: !!user,
 				hasSession: !!session,
 				requireAuth
 			}

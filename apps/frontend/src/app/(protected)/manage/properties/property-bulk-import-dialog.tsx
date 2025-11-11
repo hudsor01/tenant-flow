@@ -143,13 +143,14 @@ export function PropertyBulkImportDialog() {
 			logger.error('Bulk import failed', { error })
 
 			let errorMessage = 'Failed to import properties. Please try again.'
-			
+
 			// Use structured error codes instead of string matching
 			if (isApiError(error)) {
 				switch (error.code) {
 					case BUSINESS_ERROR_CODES.NETWORK_ERROR:
 					case BUSINESS_ERROR_CODES.CORS_ERROR:
-						errorMessage = 'Network error. Please check your connection and try again.'
+						errorMessage =
+							'Network error. Please check your connection and try again.'
 						break
 					case BUSINESS_ERROR_CODES.INVALID_FILE_TYPE:
 						errorMessage = 'Invalid file type. Please upload a CSV file.'
@@ -161,10 +162,12 @@ export function PropertyBulkImportDialog() {
 						errorMessage = 'File is too large. Maximum size is 5MB.'
 						break
 					case BUSINESS_ERROR_CODES.INVALID_CSV_FORMAT:
-						errorMessage = 'Invalid CSV format. Please check your file and try again.'
+						errorMessage =
+							'Invalid CSV format. Please check your file and try again.'
 						break
 					case BUSINESS_ERROR_CODES.CSV_MISSING_REQUIRED_COLUMNS:
-						errorMessage = 'CSV is missing required columns. Please download the template and try again.'
+						errorMessage =
+							'CSV is missing required columns. Please download the template and try again.'
 						break
 					default:
 						// Use the error message from the API if no specific code handler
@@ -172,14 +175,7 @@ export function PropertyBulkImportDialog() {
 				}
 			} else if (error instanceof Error) {
 				// Fallback for non-API errors (network failures, etc.)
-				if (
-					error.message.includes('CORS') ||
-					error.message.includes('Failed to fetch')
-				) {
-					errorMessage = 'Network error. Please check your connection and try again.'
-				} else {
-					errorMessage = error.message
-				}
+				errorMessage = error.message
 			}
 
 			alert(errorMessage)

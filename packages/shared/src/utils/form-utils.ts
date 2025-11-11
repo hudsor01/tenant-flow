@@ -1,18 +1,9 @@
 import { z } from 'zod'
+import type { FormState } from '../types/forms.js'
 
 /**
  * Utility types and functions for enhanced form state management
  */
-
-// Generic form state type with validation support
-export interface FormState<T> {
-	values: T
-	errors: Record<keyof T, string[]>
-	touched: Record<keyof T, boolean>
-	isValid: boolean
-	isSubmitting: boolean
-	isValidating: boolean
-}
 
 // Form validation result with detailed error information
 export interface FormValidationResult<T> {
