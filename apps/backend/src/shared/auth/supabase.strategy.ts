@@ -28,6 +28,7 @@ import type { Algorithm } from 'jsonwebtoken'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AppConfigService } from '../../config/app-config.service'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { USER_ROLE } from '@repo/shared/constants/auth'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -181,22 +182,73 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			throw new Error(`Authentication service unavailable: ${errorMessage}`)
 		}
 
+		const payloadRoleRaw = payload.app_metadata?.role
+		const payloadRoleValid = isValidUserRoleValue(payloadRoleRaw)
+		const tokenRole = payloadRoleValid ? payloadRoleRaw : null
+
+		if (payloadRoleRaw && !payloadRoleValid) {
+			this.logger.warn('Invalid role present in JWT payload app_metadata; ignoring', {
+				userId: payload.sub,
+				payloadRole: payloadRoleRaw
+			})
+		}
+
 		let dbRole: Database['public']['Enums']['UserRole'] | null = null
+		let dbRoleLookupFailed = false
 		try {
 			dbRole = (await this.utilityService.getUserRoleByUserId(internalUserId)) ?? null
 		} catch (error) {
 			// Log but don't fail - role lookup is not critical for authentication
-			this.logger.warn('Failed to get user role from database, using fallback', {
+			dbRoleLookupFailed = true
+			this.logger.warn('Failed to get user role from database, enforcing least-privilege fallback', {
 				userId: internalUserId,
-				error: error instanceof Error ? error.message : 'Unknown error'
+				error: error instanceof Error ? error.message : 'Unknown error',
+				payloadRole: payloadRoleRaw ?? null,
+				payloadRoleValid
 			})
 		}
-		const fallbackRole =
-			(payload.app_metadata?.role as Database['public']['Enums']['UserRole'] | undefined) ??
-			'OWNER'
-		const resolvedRole = dbRole ?? fallbackRole
+
+		if (!dbRole && !dbRoleLookupFailed) {
+			this.logger.warn('User role not found in database, enforcing least-privilege fallback', {
+				userId: internalUserId,
+				payloadRole: payloadRoleRaw ?? null,
+				payloadRoleValid
+			})
+		}
+
+		const fallbackRole = tokenRole ?? SAFE_FALLBACK_ROLE
+		let roleSource: RoleVerificationStatus = 'safe-default'
+
+		if (dbRole) {
+			roleSource = 'database'
+		} else if (tokenRole) {
+			roleSource = 'token'
+		}
+
+		let resolvedRole = dbRole ?? fallbackRole
+
+		if (
+			roleSource !== 'database' &&
+			(resolvedRole === 'OWNER' || resolvedRole === 'ADMIN')
+		) {
+			this.logger.warn('Downgrading unverified elevated role until database role verification succeeds', {
+				userId: internalUserId,
+				attemptedRole: resolvedRole,
+				payloadRole: payloadRoleRaw ?? null
+			})
+			resolvedRole = SAFE_FALLBACK_ROLE
+			roleSource = 'downgraded'
+		}
+
+		const roleVerified = roleSource === 'database'
 
 		// Create user object from JWT payload
+		const mergedAppMetadata = {
+			...(payload.app_metadata ?? {}),
+			roleVerificationStatus: roleSource,
+			roleVerified
+		}
+
 		const user: authUser = {
 			id: internalUserId, // Use users.id for RLS compatibility
 			aud: actualAud,
@@ -206,7 +258,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			email_confirmed_at: payload.email_confirmed_at ?? '',
 			confirmed_at: payload.confirmed_at ?? '',
 			last_sign_in_at: payload.last_sign_in_at ?? '',
-			app_metadata: payload.app_metadata ?? {},
+			app_metadata: mergedAppMetadata,
 			user_metadata: payload.user_metadata ?? {},
 			identities: [],
 			created_at: payload.created_at ?? new Date().toISOString(),
@@ -217,7 +269,8 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		// Sanitize logs: log only userId and role, never email
 		this.logger.debug('User authenticated successfully', {
 			userId: user.id,
-			role: user.role
+			role: user.role,
+			roleVerificationStatus: roleSource
 		})
 
 		return user
@@ -253,4 +306,13 @@ function resolveSupabaseJwtConfig(config: AppConfigService): {
 		isAsymmetric,
 		secretOrKey: secret
 	}
+}
+
+type RoleVerificationStatus = 'database' | 'token' | 'safe-default' | 'downgraded'
+
+const VALID_USER_ROLES = Object.values(USER_ROLE) as Database['public']['Enums']['UserRole'][]
+const SAFE_FALLBACK_ROLE: Database['public']['Enums']['UserRole'] = 'TENANT'
+
+function isValidUserRoleValue(role: unknown): role is Database['public']['Enums']['UserRole'] {
+	return typeof role === 'string' && VALID_USER_ROLES.includes(role as Database['public']['Enums']['UserRole'])
 }
