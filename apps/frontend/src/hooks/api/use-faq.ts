@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 const logger = createLogger({ component: 'FAQHooks' })
 
@@ -26,12 +26,15 @@ export function useFAQs() {
 		queryFn: async (): Promise<FAQCategoryWithQuestions[]> => {
 			const response = await fetch('/api/v1/faq')
 			if (!response.ok) {
-				throw new Error(`Failed to fetch FAQs: ${response.status} ${response.statusText}`)
+				throw new Error(
+					`Failed to fetch FAQs: ${response.status} ${response.statusText}`
+				)
 			}
 			return response.json()
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000 // 10 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
+		retry: 2
 	})
 }
 
@@ -47,13 +50,16 @@ export function useFAQCategory(slug: string) {
 				return null
 			}
 			if (!response.ok) {
-				throw new Error(`Failed to fetch FAQ category '${slug}': ${response.status} ${response.statusText}`)
+				throw new Error(
+					`Failed to fetch FAQ category '${slug}': ${response.status} ${response.statusText}`
+				)
 			}
 			return response.json()
 		},
 		enabled: !!slug,
 		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000
+		gcTime: 10 * 60 * 1000,
+		retry: 2
 	})
 }
 
@@ -68,7 +74,7 @@ export async function trackQuestionView(questionId: string): Promise<void> {
 				'Content-Type': 'application/json'
 			}
 		})
-		
+
 		if (!response.ok) {
 			logger.warn('Failed to track question view', {
 				status: response.status,
@@ -93,7 +99,7 @@ export async function markQuestionHelpful(questionId: string): Promise<void> {
 				'Content-Type': 'application/json'
 			}
 		})
-		
+
 		if (!response.ok) {
 			logger.warn('Failed to mark question helpful', {
 				status: response.status,

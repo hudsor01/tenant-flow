@@ -151,7 +151,7 @@ describe('Configuration Schema Validation', () => {
 			expect(result.LOG_LEVEL).toBe('info') // Default
 			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default
 			expect(result.STORAGE_BUCKET).toBe('tenant-flow-storage') // Default
-			expect(result.ENABLE_METRICS).toBe(false) // Default
+			expect(result.ENABLE_METRICS).toBe(true) // Default
 			expect(result.ENABLE_SWAGGER).toBe(false) // Default
 			expect(result.ENABLE_RATE_LIMITING).toBe(true) // Default
 			expect(result.ALLOW_LOCALHOST_CORS).toBe(false) // Default

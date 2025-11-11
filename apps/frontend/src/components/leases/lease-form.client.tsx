@@ -27,7 +27,8 @@ import type { Lease, Property, Unit } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { LEASE_STATUS, LEASE_STATUS_LABELS, ERROR_MESSAGES } from '#lib/constants'
+import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 
@@ -103,19 +104,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					stack: error instanceof Error ? error.stack : undefined
 				})
 
-				const errorMessage =
-					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'lease')
-				
-				// Check for 409 conflict via error status or response
-				type ErrorWithStatus = { status?: number; response?: { status?: number } }
-				const errorObj = error as ErrorWithStatus
-				const is409Conflict =
-					errorObj?.status === 409 ||
-					errorObj?.response?.status === 409
-				
-				toast.error(errorMessage, {
-					description: is409Conflict ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
-				})
+				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} lease`)
 			}
 		}
 	})

@@ -40,9 +40,11 @@ ON storage.objects FOR SELECT
 TO authenticated
 USING (
   bucket_id = 'lease-documents'
+  -- Validate that path segment is a valid UUID before querying
+  AND (storage.foldername(name))[2] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
   AND EXISTS (
     SELECT 1 FROM public.lease
-    WHERE id = (storage.foldername(name))[2]  -- Extract leaseId from path
+    WHERE id::text = (storage.foldername(name))[2]  -- Extract leaseId from path
     AND tenant_id = auth.uid()::text
   )
 );

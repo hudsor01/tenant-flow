@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<div
-				className="border-b bg-background p-6 border-[var(--color-fill-tertiary)]"
+				className="border-b bg-background p-6 border-(--color-fill-tertiary)"
 			>
 				<div className="mx-auto max-w-400 py-4">
 					<div className="flex items-center justify-between mb-4">

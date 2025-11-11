@@ -33,6 +33,9 @@ import type {
 } from '@repo/shared/types/api-inputs'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseUnitsCrudTest' })
 
 const TEST_UNIT_PREFIX = 'TEST-CRUD'
 let createdUnitIds: string[] = []
@@ -132,7 +135,9 @@ describe('Units CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/units/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup unit ${id}:`, error)
+				logger.warn(`Failed to cleanup unit ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdUnitIds = []
@@ -142,7 +147,9 @@ describe('Units CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup property ${id}:`, error)
+				logger.warn(`Failed to cleanup property ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdPropertyIds = []

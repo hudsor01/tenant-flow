@@ -26,11 +26,25 @@ export interface CreatePaymentIntentRequest {
 	subscriptionType?: string
 }
 
-export interface CreateSetupIntentRequest {
+export interface CreatePaymentMethodRequest {
 	tenantId: string
 	customerId?: string
 	customerEmail?: string
 	customerName?: string
+	setAsDefault?: boolean
+}
+
+export interface CreateConfirmationTokenRequest {
+	amount: number
+	currency?: string
+	tenantId: string
+	customerId?: string
+	returnUrl?: string
+}
+
+export interface AttachPaymentMethodRequest {
+	payment_method_id: string
+	set_as_default?: boolean
 }
 
 export type {

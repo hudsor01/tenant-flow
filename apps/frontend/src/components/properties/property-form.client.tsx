@@ -20,6 +20,7 @@ import {
 	DropzoneContent,
 	DropzoneEmptyState
 } from '#components/ui/dropzone'
+import { useModalStore } from '#stores/modal-store'
 
 import {
 	useCreateProperty,
@@ -40,7 +41,7 @@ import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 import { SUPABASE_URL } from '@repo/shared/config/supabase'
-import { ERROR_MESSAGES } from '#lib/constants'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 
@@ -48,6 +49,7 @@ interface PropertyFormProps {
 	mode: 'create' | 'edit'
 	property?: Property
 	onSuccess?: () => void
+	modalId?: string // For modal store integration
 	showSuccessState?: boolean
 }
 
@@ -65,6 +67,7 @@ export function PropertyForm({
 	mode,
 	property,
 	onSuccess,
+	modalId,
 	showSuccessState = mode === 'create'
 }: PropertyFormProps) {
 	const [isSubmitted, setIsSubmitted] = useState(false)
@@ -97,6 +100,8 @@ export function PropertyForm({
 	}, [mode, property, queryClient])
 
 	// Initialize form
+	const { trackMutation, closeOnMutationSuccess } = useModalStore()
+
 	const form = useForm({
 		defaultValues: {
 			name: property?.name ?? '',
@@ -121,6 +126,12 @@ export function PropertyForm({
 						action: 'formSubmission',
 						data: transformedData
 					})
+
+					// Track mutation for auto-close if in modal
+					if (modalId) {
+						trackMutation(modalId, 'create-property', queryClient)
+					}
+
 					await createPropertyMutation.mutateAsync(transformedData)
 					toast.success('Property created successfully')
 
@@ -128,6 +139,11 @@ export function PropertyForm({
 						setIsSubmitted(true)
 					}
 					form.reset()
+
+					// Close modal on success if tracked
+					if (modalId) {
+						closeOnMutationSuccess('create-property')
+					}
 				} else {
 					// Edit mode
 					if (!property?.id) {
@@ -140,12 +156,23 @@ export function PropertyForm({
 						propertyId: property.id,
 						data: transformedData
 					})
+
+					// Track mutation for auto-close if in modal
+					if (modalId) {
+						trackMutation(modalId, 'update-property', queryClient)
+					}
+
 					await updatePropertyMutation.mutateAsync({
 						id: property.id,
 						data: transformedData,
 						version: property.version
 					})
 					toast.success('Property updated successfully')
+
+					// Close modal on success if tracked
+					if (modalId) {
+						closeOnMutationSuccess('update-property')
+					}
 
 					// Navigate back if no custom onSuccess handler
 					if (!onSuccess) {
@@ -155,15 +182,7 @@ export function PropertyForm({
 
 				onSuccess?.()
 			} catch (error) {
-				logger.error(`Property ${mode} failed`, {
-					error: error instanceof Error ? error.message : String(error),
-					stack: error instanceof Error ? error.stack : undefined,
-					details: JSON.stringify(error, null, 2)
-				})
-
-				const errorMessage =
-					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'property')
-				toast.error(errorMessage)
+				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} property`)
 			}
 		},
 		validators: {
