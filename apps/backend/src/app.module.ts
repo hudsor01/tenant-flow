@@ -36,7 +36,6 @@ import { TenantsModule } from './modules/tenants/tenants.module'
 import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
-import { CsrfGuard } from './security/csrf.guard'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
@@ -90,7 +89,8 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
 
-		// Prometheus metrics - default metrics enabled with custom controller
+		// Prometheus metrics - default metrics enabled
+		// Custom MetricsController defined in MetricsModule
 		PrometheusModule.register({
 			defaultMetrics: {
 				enabled: true
@@ -150,10 +150,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		{
 			provide: APP_GUARD,
 			useClass: SubscriptionGuard
-		},
-		{
-			provide: APP_GUARD,
-			useClass: CsrfGuard
 		},
 		{
 			provide: APP_INTERCEPTOR,

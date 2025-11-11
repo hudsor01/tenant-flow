@@ -1,9 +1,9 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { RefreshCw } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 interface RefreshButtonProps {
@@ -31,7 +31,6 @@ export function RefreshButton({
 }: RefreshButtonProps) {
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [cooldownRemaining, setCooldownRemaining] = useState(0)
-	const logger = useMemo(() => createLogger({ component: 'RefreshButton' }), [])
 	const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
 	// Cleanup interval on unmount to prevent memory leaks
@@ -80,12 +79,11 @@ export function RefreshButton({
 				})
 			}, 1000)
 		} catch (error) {
-			toast.error('Failed to refresh data')
-			logger.error('Refresh error', { action: 'refresh' }, error)
+			handleMutationError(error, 'Refresh data')
 		} finally {
 			setIsRefreshing(false)
 		}
-	}, [isRefreshing, cooldownRemaining, cooldownSeconds, onRefresh, logger])
+	}, [isRefreshing, cooldownRemaining, cooldownSeconds, onRefresh])
 
 	const isDisabled = isRefreshing || cooldownRemaining > 0
 

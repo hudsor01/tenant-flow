@@ -20,7 +20,9 @@ export default async function NewTenantModal() {
 
 	try {
 		const [propertiesData, unitsData] = await Promise.all([
-			serverFetch<import('@repo/shared/types/core').Property[]>('/api/v1/properties'),
+			serverFetch<import('@repo/shared/types/core').Property[]>(
+				'/api/v1/properties'
+			),
 			serverFetch<import('@repo/shared/types/core').Unit[]>('/api/v1/units')
 		])
 
@@ -31,8 +33,15 @@ export default async function NewTenantModal() {
 	}
 
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
-			<CreateTenantForm properties={properties} units={units} />
+		<RouteModal
+			modalId="new-tenant"
+			className="max-w-3xl max-h-[90vh] overflow-y-auto"
+		>
+			<CreateTenantForm
+				properties={properties}
+				units={units}
+				modalId="new-tenant"
+			/>
 		</RouteModal>
 	)
 }

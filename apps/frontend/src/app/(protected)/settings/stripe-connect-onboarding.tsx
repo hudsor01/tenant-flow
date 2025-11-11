@@ -30,6 +30,9 @@ import {
 	useCreateConnectedAccount,
 	useRefreshOnboarding
 } from '#hooks/api/use-stripe-connect'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const stripeLogger = createLogger({ component: 'StripeConnectOnboarding' })
 
 interface ConnectOnboardingDialogProps {
 	open: boolean
@@ -81,7 +84,25 @@ export function ConnectOnboardingDialog({
 				// Refresh onboarding to get the onboarding URL
 				const onboardingResult = await refreshOnboarding.mutateAsync()
 				if (onboardingResult.success && onboardingResult.data.onboardingUrl) {
-					window.open(onboardingResult.data.onboardingUrl, '_blank')
+					// Validate URL scheme for security
+					try {
+						const url = new URL(onboardingResult.data.onboardingUrl)
+						// Only allow HTTPS protocol for security
+						if (
+							url.protocol !== 'https:' ||
+							!url.hostname.includes('stripe.com')
+						) {
+							stripeLogger.error('Invalid or untrusted URL', { metadata: { url: url.href } })
+							return
+						}
+						// Open with security features
+						window.open(url.href, '_blank', 'noopener,noreferrer')
+					} catch {
+						// Invalid URL, do nothing
+						stripeLogger.error('Invalid URL format', {
+		metadata: { url: onboardingResult.data.onboardingUrl }
+	})
+					}
 				}
 			}
 		} catch {
@@ -172,8 +193,8 @@ export function ConnectOnboardingDialog({
 					</Field>
 					<div className="rounded-lg border p-4 bg-muted/50">
 						<p className="text-sm text-muted-foreground">
-							After creating your account, you&apos;ll be redirected to Stripe to
-							complete onboarding. This includes verifying your identity and
+							After creating your account, you&apos;ll be redirected to Stripe
+							to complete onboarding. This includes verifying your identity and
 							bank account details.
 						</p>
 					</div>
@@ -282,8 +303,26 @@ export function StripeConnectStatus() {
 		try {
 			const result = await refreshOnboarding.mutateAsync()
 			if (result.success && result.data.onboardingUrl) {
-				window.open(result.data.onboardingUrl, '_blank')
-				toast.success('Opening Stripe onboarding in new window')
+				// Validate URL scheme for security
+				try {
+					const url = new URL(result.data.onboardingUrl)
+					// Only allow HTTPS protocol for security
+					if (
+						url.protocol !== 'https:' ||
+						!url.hostname.includes('stripe.com')
+					) {
+						stripeLogger.error('Invalid or untrusted URL', { metadata: { url: url.href } })
+						return
+					}
+					// Open with security features
+					window.open(url.href, '_blank', 'noopener,noreferrer')
+					toast.success('Opening Stripe onboarding in new window')
+			} catch {
+				// Invalid URL, do nothing
+				stripeLogger.error('Invalid URL format', {
+					metadata: { url: result.data.onboardingUrl }
+				})
+			}
 			}
 		} catch {
 			toast.error('Failed to refresh onboarding link')

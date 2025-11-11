@@ -20,17 +20,17 @@ const sizeClasses = {
 
 // OKLCH Color System Compliance: Using design system color tokens
 const variantClasses = {
-	default: 'text-[var(--color-label-secondary)]',
-	primary: 'text-[var(--color-accent-main)]',
-	muted: 'text-[var(--color-label-tertiary)]'
+	default: 'text-(--color-label-secondary)',
+	primary: 'text-(--color-accent-main)',
+	muted: 'text-(--color-label-tertiary)'
 }
 
 // Typography System: Using Roboto Flex scale from globals.css
 const textSizeClasses = {
-	sm: 'text-[var(--font-footnote)]', // 10px
-	default: 'text-[var(--font-body)]', // 13px
-	lg: 'text-[var(--font-title-3)]', // 15px
-	xl: 'text-[var(--font-title-2)]' // 17px
+	sm: 'text-(--font-footnote)', // 10px
+	default: 'text-(--font-body)', // 13px
+	lg: 'text-(--font-title-3)', // 15px
+	xl: 'text-(--font-title-2)' // 17px
 }
 
 function LoadingSpinner({
@@ -102,7 +102,7 @@ function PageLoader({
 				<LoadingSpinner size="xl" variant="primary" />
 				<div className="space-y-2">
 					<p className="text-lg font-semibold text-foreground">{text}</p>
-					<p className="text-sm text-[var(--color-label-tertiary)]">
+					<p className="text-sm text-(--color-label-tertiary)">
 						This should only take a moment
 					</p>
 				</div>
@@ -191,7 +191,7 @@ function InlineLoader({
 			{...props}
 		>
 			<LoadingSpinner size={size} variant="muted" />
-			<span className="text-sm text-[var(--color-label-tertiary)]">
+			<span className="text-sm text-(--color-label-tertiary)">
 				Loading...
 			</span>
 		</div>

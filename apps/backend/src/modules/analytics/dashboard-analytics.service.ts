@@ -51,13 +51,19 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		try {
 			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
 			const client = this.getClientForToken(token)
-			
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const result = await (client as any).rpc(functionName, payload)
-			const res = result as {
+
+			type RpcResult<T> = {
 				data?: T
 				error?: { message?: string } | null
 			}
+			type DynamicRpcClient = {
+				rpc: (name: string, args: Record<string, unknown>) => Promise<RpcResult<T>>
+			}
+			const result = await (client as unknown as DynamicRpcClient).rpc(
+				functionName,
+				payload
+			)
+			const res = result
 
 			if (res.error) {
 				this.logger.warn('Dashboard analytics RPC failed', {

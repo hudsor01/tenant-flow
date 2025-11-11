@@ -15,7 +15,10 @@
  */
 
 import { expect, test } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
+
+const logger = createLogger({ component: 'AuthJwtValidationE2E' })
 
 test.describe('Authentication & JWT Validation', () => {
 	test.beforeEach(async ({ page }) => {
@@ -84,7 +87,9 @@ test.describe('Authentication & JWT Validation', () => {
 
 		// Verify no auth errors occurred
 		if (authErrors.length > 0) {
-			console.error('Auth errors detected:', apiErrors)
+			logger.error('Auth errors detected', {
+				metadata: { apiErrors }
+			})
 		}
 		expect(authErrors).toEqual([])
 	})
@@ -117,7 +122,7 @@ test.describe('Authentication & JWT Validation', () => {
 		]
 
 		for (const route of protectedRoutes) {
-			console.log(`Testing route: ${route}`)
+			logger.info(`Testing route: ${route}`)
 
 			await page.goto(`${baseUrl}${route}`)
 			await page.waitForLoadState('networkidle')
@@ -139,7 +144,9 @@ test.describe('Authentication & JWT Validation', () => {
 
 		// Verify no auth errors across all routes
 		if (authErrors.size > 0) {
-			console.error('Auth errors by route:', Object.fromEntries(authErrors))
+			logger.error('Auth errors by route', {
+				metadata: Object.fromEntries(authErrors)
+			})
 		}
 		expect(authErrors.size).toBe(0)
 	})
@@ -166,10 +173,9 @@ test.describe('Authentication & JWT Validation', () => {
 		expect(authCookies.length).toBeGreaterThan(0)
 
 		// Log cookie names for debugging
-		console.log(
-			'Auth cookies found:',
-			authCookies.map(c => c.name)
-		)
+		logger.info('Auth cookies found', {
+			metadata: { cookies: authCookies.map(c => c.name) }
+		})
 
 		// Verify cookies have httpOnly flag (security best practice)
 		const httpOnlyCookies = authCookies.filter(c => c.httpOnly)
@@ -211,16 +217,17 @@ test.describe('Authentication & JWT Validation', () => {
 
 		// Verify no JWT-related errors
 		if (jwtErrors.length > 0) {
-			console.error('JWT errors detected:', jwtErrors)
+			logger.error('JWT errors detected', { metadata: { jwtErrors } })
 		}
 		expect(jwtErrors).toEqual([])
 
 		// Log other console errors for awareness (but don't fail test)
 		if (consoleErrors.length > 0) {
-			console.warn(
-				'Other console errors (non-JWT):',
-				consoleErrors.filter(e => !jwtErrors.includes(e))
-			)
+			logger.warn('Other console errors (non-JWT)', {
+				metadata: {
+					errors: consoleErrors.filter(e => !jwtErrors.includes(e))
+				}
+			})
 		}
 	})
 
@@ -257,11 +264,13 @@ test.describe('Authentication & JWT Validation', () => {
 			call => call.status === 401 || call.status === 403
 		)
 		if (authErrorCalls.length > 0) {
-			console.error('API auth errors:', authErrorCalls)
+			logger.error('API auth errors detected', {
+				metadata: { authErrorCalls }
+			})
 		}
 		expect(authErrorCalls).toEqual([])
 
-		console.log(`✅ Made ${successfulCalls.length} successful API calls`)
+		logger.info(`✅ Made ${successfulCalls.length} successful API calls`)
 	})
 
 	test('should handle token refresh gracefully', async ({ page }) => {
@@ -329,10 +338,9 @@ test.describe('JWT Security Validation', () => {
 
 		// If found, log for security review
 		if (sensitiveKeys.length > 0) {
-			console.warn(
-				'⚠️  Potential sensitive data in localStorage:',
-				sensitiveKeys
-			)
+			logger.warn('⚠️  Potential sensitive data in localStorage', {
+				metadata: { sensitiveKeys }
+			})
 		}
 
 		// Tokens should be in httpOnly cookies, not localStorage

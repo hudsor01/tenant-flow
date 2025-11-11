@@ -4,42 +4,33 @@ This directory contains static assets required by the backend services.
 
 ## PDF Templates
 
-### Texas_Residential_Lease_Agreement.pdf
+### Texas Residential Lease Agreement
 
-⚠️ **CRITICAL LEGAL NOTICE - READ BEFORE PRODUCTION USE**
+**Implementation**: React PDF Components (`apps/backend/src/modules/pdf/templates/texas-lease-template.tsx`)
 
-- **Purpose**: Template for Texas residential lease agreement generation
-- **Source**: Texas Association of Realtors (TAR) - Standard Residential Lease Form
-- **Copyright**: © Texas Association of Realtors - All Rights Reserved
-- **License**:
-  - ✅ **AUTHORIZED USE**: Licensed real estate professionals with active TAR membership
-  - ✅ **AUTHORIZED USE**: Property management companies with valid TAR form license
-  - ❌ **PROHIBITED**: Unlicensed individuals, unauthorized commercial use, redistribution
-- **Compliance Requirements**:
-  1. **Verify Authorization**: Confirm your organization has written permission from TAR before production use
-  2. **Maintain Records**: Keep proof of TAR form license/membership on file
-  3. **Version Control**: Verify template matches current TAR-approved version (check TAR website quarterly)
-  4. **Attribution**: Include proper TAR attribution on generated documents as required by license
-- **Liability**: Unauthorized use of TAR forms may result in:
-  - Copyright infringement claims
-  - Professional license sanctions (for real estate professionals)
-  - Contract enforceability issues
-- **Usage**: Used by `TexasLeasePDFService` to generate completed lease agreements
-- **Last Verified**: November 2024
-- **Next Review Date**: February 2025
+**Source**: Standard Texas residential lease form (public template) - text extracted and implemented as React components
 
-**PRODUCTION DEPLOYMENT CHECKLIST**:
-- [ ] TAR form license verified and documented
-- [ ] Legal team review completed
-- [ ] Template version verified against current TAR standards
-- [ ] Proper attribution included in generated PDFs
-- [ ] Access controls configured (only authorized users can generate)
+**Usage**: Generate professional lease PDFs programmatically using `@react-pdf/renderer`
 
-**ALTERNATIVE SOLUTIONS**:
-If you do not have TAR authorization:
-1. Obtain TAR membership/license at https://www.texasrealestate.com
-2. Use jurisdiction-specific forms with proper licensing
-3. Consult legal counsel for creating custom lease templates
+**Advantages**:
+- ✅ Full control over layout and styling
+- ✅ No dependency on external PDF files
+- ✅ Easy to modify text and clauses
+- ✅ Professional, clean output
+- ✅ Fully integrated with form data
+
+**Legal Notice**: This is a template lease agreement. Users should consult with a qualified attorney to ensure compliance with current Texas property laws and their specific situation.
+
+**Access Controls**:
+- ✅ Authentication required (JwtAuthGuard)
+- ✅ Role-based access (OWNER and MANAGER roles only)
+- ✅ Property ownership validation (PropertyOwnershipGuard)
+
+**Implementation Files**:
+- `texas-lease-template.tsx` - React PDF template component
+- `react-lease-pdf.service.ts` - PDF generation service
+- `lease-generation.controller.ts` - API endpoints
+- `dto/lease-generation.dto.ts` - Input validation
 
 ## Notes
 
