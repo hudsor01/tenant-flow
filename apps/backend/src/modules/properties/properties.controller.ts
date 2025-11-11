@@ -23,6 +23,7 @@ import {
 	Put,
 	Query,
 	Request,
+	UnauthorizedException,
 	UploadedFile,
 	UseInterceptors,
 	Logger
@@ -439,8 +440,8 @@ export class PropertiesController {
 		@Request() req: AuthenticatedRequest
 	) {
 		if (!req.user?.id) {
-			throw new BadRequestException({
-				code: ERROR_TYPES.AUTHORIZATION_ERROR,
+			throw new UnauthorizedException({
+				code: ERROR_TYPES.AUTHENTICATION_ERROR,
 				message: 'Authentication required'
 			})
 		}

@@ -251,6 +251,18 @@ export async function clientFetch<T>(
 		)
 	}
 
+	const contentType = response.headers.get('content-type')
+	const contentLength = response.headers.get('content-length')
+	const isNoContentStatus = response.status === 204 || response.status === 205
+	const hasExplicitZeroLength =
+		typeof contentLength === 'string' && Number(contentLength) === 0
+	const shouldSkipParsing =
+		isNoContentStatus || hasExplicitZeroLength || !contentType
+
+	if (shouldSkipParsing) {
+		return undefined as T
+	}
+
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
