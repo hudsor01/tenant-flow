@@ -9,9 +9,7 @@ const nextConfig: NextConfig = {
 	typedRoutes: true,
 
 	compiler: {
-		removeConsole: true,
-		// React 19 compiler (https://nextjs.org/docs/app/building-your-application/optimizing/react-compiler)
-		reactCompiler: true
+		removeConsole: true
 	},
 
 	logging: {
