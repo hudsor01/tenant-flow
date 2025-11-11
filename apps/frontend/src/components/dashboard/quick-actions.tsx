@@ -82,15 +82,15 @@ export function QuickActions() {
 							/>
 						</div>
 						<div className="relative flex-1 text-left">
-							<div className="font-bold text-slate-900 group-hover:text-slate-950 transition-colors text-base leading-tight dark:text-white dark:group-hover:text-slate-100">
+							<div className="font-bold text-foreground group-hover:text-foreground transition-colors text-base leading-tight">
 								{action.title}
 							</div>
-							<div className="text-slate-600 text-sm leading-tight font-medium dark:text-slate-400 dark:group-hover:text-slate-300">
+							<div className="text-muted-foreground text-sm leading-tight font-medium group-hover:text-foreground/80">
 								{action.description}
 							</div>
 						</div>
-						<div className="relative flex items-center justify-center size-8 rounded-full bg-slate-100 group-hover:bg-slate-200 transition-colors dark:bg-slate-700 dark:group-hover:bg-slate-600">
-							<ArrowRight className="size-4 text-slate-600 group-hover:text-slate-800 group-hover:translate-x-0.5 transition-all duration-300 dark:text-slate-400 dark:group-hover:text-slate-200" />
+						<div className="relative flex items-center justify-center size-8 rounded-full bg-muted group-hover:bg-muted/80 transition-colors">
+							<ArrowRight className="size-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-300" />
 						</div>
 					</Link>
 				)

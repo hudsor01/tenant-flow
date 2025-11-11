@@ -101,6 +101,10 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
  * Sets up all test users with trial subscriptions
  */
 export async function setupIntegrationTestUsers(): Promise<void> {
+	if (process.env.RUN_INTEGRATION_TESTS !== 'true') {
+		return
+	}
+
 	// Test users for integration tests - MUST be set via environment variables
 	const requiredEnvVars = ['E2E_OWNER_EMAIL', 'E2E_OWNER_PASSWORD']
 	const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName])

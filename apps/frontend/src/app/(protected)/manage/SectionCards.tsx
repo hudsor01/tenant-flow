@@ -49,16 +49,16 @@ export function SectionCards() {
 	return (
 		<div className="grid grid-cols-1 gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{/* Revenue Card */}
-			<div className="group relative overflow-hidden rounded-premium-lg border-2 border-slate-200/60 bg-linear-to-br from-white via-slate-50/30 to-slate-100/20 shadow-premium-sm transition-all duration-500 hover:shadow-premium-xl hover:border-slate-300/80 hover:scale-[1.02] dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20 dark:hover:border-slate-600/80">
-				<div className="absolute inset-0 bg-linear-to-br from-corporate-blue-500/5 via-transparent to-professional-gray-500/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-corporate-blue-400/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
+			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
 					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-slate-600 dark:text-slate-400 tracking-wide uppercase">
+						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
 							Monthly Revenue
 						</p>
 						<div
-							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ${isPositiveGrowth ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' : 'bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'}`}
+							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ${isPositiveGrowth ? 'bg-success/10 text-success border border-success/20 dark:bg-success/20 dark:text-success dark:border-success/30' : 'bg-destructive/10 text-destructive border border-destructive/20 dark:bg-destructive/20 dark:text-destructive dark:border-destructive/30'}`}
 						>
 							{isPositiveGrowth ? (
 								<TrendingUp className="h-3 w-3" />
@@ -69,18 +69,18 @@ export function SectionCards() {
 						</div>
 					</div>
 					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white transition-colors group-hover:text-corporate-blue-600 dark:group-hover:text-corporate-blue-400">
+						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-corporate-blue-600 dark:group-hover:text-corporate-blue-400">
 							{formatCurrency(totalRevenue)}
 						</h3>
-						<p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2 font-medium">
+						<p className="text-sm text-muted-foreground flex items-center gap-2 font-medium">
 							{isPositiveGrowth ? (
 								<>
-									<TrendingUp className="h-4 w-4 text-emerald-500" />
+									<TrendingUp className="h-4 w-4 text-success" />
 									<span>Trending up this month</span>
 								</>
 							) : (
 								<>
-									<TrendingDown className="h-4 w-4 text-red-500" />
+									<TrendingDown className="h-4 w-4 text-destructive" />
 									<span>Down this month</span>
 								</>
 							)}
@@ -90,24 +90,24 @@ export function SectionCards() {
 			</div>
 
 			{/* Tenants Card */}
-			<div className="group relative overflow-hidden rounded-premium-lg border-2 border-slate-200/60 bg-linear-to-br from-white via-slate-50/30 to-slate-100/20 shadow-premium-sm transition-all duration-500 hover:shadow-premium-xl hover:border-slate-300/80 hover:scale-[1.02] dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20 dark:hover:border-slate-600/80">
-				<div className="absolute inset-0 bg-linear-to-br from-professional-gray-500/5 via-transparent to-slate-500/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-professional-gray-400/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
+			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
 					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-slate-600 dark:text-slate-400 tracking-wide uppercase">
+						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
 							Active Tenants
 						</p>
-						<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 transition-all duration-300">
+						<div className="badge badge-professional-gray">
 							<TrendingUp className="h-3 w-3" />
 							{totalTenants} total
 						</div>
 					</div>
 					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white transition-colors group-hover:text-professional-gray-600 dark:group-hover:text-professional-gray-400">
+						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
 							{activeTenants}
 						</h3>
-						<p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+						<p className="text-sm text-muted-foreground font-medium">
 							{activeTenants > 0
 								? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active rate`
 								: 'No active tenants yet'}
@@ -117,24 +117,24 @@ export function SectionCards() {
 			</div>
 
 			{/* Properties Card */}
-			<div className="group relative overflow-hidden rounded-premium-lg border-2 border-slate-200/60 bg-linear-to-br from-white via-slate-50/30 to-slate-100/20 shadow-premium-sm transition-all duration-500 hover:shadow-premium-xl hover:border-slate-300/80 hover:scale-[1.02] dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20 dark:hover:border-slate-600/80">
-				<div className="absolute inset-0 bg-linear-to-br from-clean-accent-500/5 via-transparent to-slate-500/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-clean-accent-400/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
+			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
 					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-slate-600 dark:text-slate-400 tracking-wide uppercase">
+						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
 							Total Properties
 						</p>
-						<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700 transition-all duration-300">
+						<div className="badge badge-clean-accent">
 							<TrendingUp className="h-3 w-3" />
 							{stats.properties?.occupied || 0} occupied
 						</div>
 					</div>
 					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white transition-colors group-hover:text-clean-accent-600 dark:group-hover:text-clean-accent-400">
+						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
 							{totalProperties}
 						</h3>
-						<p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+						<p className="text-sm text-muted-foreground font-medium">
 							{totalProperties > 0
 								? `${stats.properties?.occupied || 0} generating revenue`
 								: 'Add your first property'}
@@ -144,12 +144,12 @@ export function SectionCards() {
 			</div>
 
 			{/* Occupancy Rate Card */}
-			<div className="group relative overflow-hidden rounded-premium-lg border-2 border-slate-200/60 bg-linear-to-br from-white via-slate-50/30 to-slate-100/20 shadow-premium-sm transition-all duration-500 hover:shadow-premium-xl hover:border-slate-300/80 hover:scale-[1.02] dark:border-slate-700/60 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20 dark:hover:border-slate-600/80">
-				<div className="absolute inset-0 bg-linear-to-br from-slate-500/5 via-transparent to-corporate-blue-500/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-linear-to-bl from-slate-400/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
+			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
 					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-slate-600 dark:text-slate-400 tracking-wide uppercase">
+						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
 							Occupancy Rate
 						</p>
 						<div
@@ -164,12 +164,15 @@ export function SectionCards() {
 						</div>
 					</div>
 					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white transition-colors group-hover:text-slate-600 dark:group-hover:text-slate-400">
-							{occupancyRate.toFixed(1)}%
+						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
+							{occupancyRate}%
 						</h3>
-						<p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-							{stats.units?.occupied || 0} of {stats.units?.total || 0} units
-							filled
+						<p className="text-sm text-muted-foreground">
+							{occupancyRate >= 90
+								? "Excellent occupancy - you're doing great!"
+								: occupancyRate >= 75
+								? "Good occupancy - room for improvement"
+								: "Low occupancy - focus on tenant acquisition"}
 						</p>
 					</div>
 				</div>

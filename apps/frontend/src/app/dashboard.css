@@ -1,0 +1,283 @@
+/* Dashboard Styles - Imports global design system */
+@import './globals.css';
+
+/* Dashboard-specific component styles */
+@layer components {
+	/* Dashboard layout utilities */
+	.dashboard-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.dashboard-card {
+		background: var(--card);
+		border: 1px solid var(--border);
+		border-radius: 0.75rem;
+		padding: 1.5rem;
+		box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+		transition: all 0.2s ease-in-out;
+	}
+
+	.dashboard-card:hover {
+		box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+		border-color: var(--border-secondary);
+	}
+
+	/* Dark mode dashboard cards */
+	.dark .dashboard-card {
+		background: var(--card);
+		border-color: var(--border);
+		box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+	}
+
+	.dark .dashboard-card:hover {
+		box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+	}
+
+	/* Metric cards */
+	.metric-card {
+		background: var(--background);
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		padding: 1rem;
+		transition: all 0.2s ease-in-out;
+	}
+
+	.metric-card:hover {
+		background: var(--muted);
+		border-color: var(--border-secondary);
+	}
+
+	/* Status indicators */
+	.status-indicator {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.status-success {
+		background: color-mix(in oklch, var(--success) 10%, transparent);
+		color: var(--success);
+		border: 1px solid color-mix(in oklch, var(--success) 20%, transparent);
+	}
+
+	.status-warning {
+		background: color-mix(in oklch, var(--warning) 10%, transparent);
+		color: var(--warning);
+		border: 1px solid color-mix(in oklch, var(--warning) 20%, transparent);
+	}
+
+	.status-error {
+		background: color-mix(in oklch, var(--destructive) 10%, transparent);
+		color: var(--destructive);
+		border: 1px solid color-mix(in oklch, var(--destructive) 20%, transparent);
+	}
+
+	.status-info {
+		background: color-mix(in oklch, var(--info) 10%, transparent);
+		color: var(--info);
+		border: 1px solid color-mix(in oklch, var(--info) 20%, transparent);
+	}
+
+	/* Activity feed styles */
+	.activity-item {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.activity-item:last-child {
+		border-bottom: none;
+	}
+
+	.activity-icon {
+		flex-shrink: 0;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.375rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--muted);
+		color: var(--muted-foreground);
+	}
+
+	.activity-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.activity-title {
+		font-weight: 600;
+		color: var(--foreground);
+		margin-bottom: 0.25rem;
+	}
+
+	.activity-description {
+		color: var(--muted-foreground);
+		font-size: 0.875rem;
+		line-height: 1.25;
+	}
+
+	.activity-time {
+		color: var(--muted-foreground);
+		font-size: 0.75rem;
+		margin-top: 0.25rem;
+	}
+
+	/* Sidebar styles */
+	.sidebar-section {
+		padding: 1rem;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.sidebar-section:last-child {
+		border-bottom: none;
+	}
+
+	.sidebar-nav-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		color: var(--muted-foreground);
+		text-decoration: none;
+		transition: all 0.2s ease-in-out;
+	}
+
+	.sidebar-nav-item:hover {
+		background: var(--muted);
+		color: var(--foreground);
+	}
+
+	.sidebar-nav-item.active {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	/* Quick actions */
+	.quick-action-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
+		border-radius: 0.5rem;
+		background: var(--background);
+		border: 1px solid var(--border);
+		color: var(--foreground);
+		text-decoration: none;
+		transition: all 0.2s ease-in-out;
+		font-weight: 500;
+	}
+
+	.quick-action-button:hover {
+		background: var(--muted);
+		border-color: var(--border-secondary);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+	}
+
+	/* Chart containers */
+	.chart-container {
+		background: var(--card);
+		border: 1px solid var(--border);
+		border-radius: 0.5rem;
+		padding: 1.5rem;
+	}
+
+	.chart-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1rem;
+	}
+
+	.chart-title {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--foreground);
+	}
+
+	.chart-subtitle {
+		font-size: 0.875rem;
+		color: var(--muted-foreground);
+		margin-top: 0.25rem;
+	}
+
+	/* Performance indicators */
+	.performance-indicator {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+
+	.performance-positive {
+		background: color-mix(in oklch, var(--success) 15%, transparent);
+		color: var(--success);
+	}
+
+	.performance-negative {
+		background: color-mix(in oklch, var(--destructive) 15%, transparent);
+		color: var(--destructive);
+	}
+
+	.performance-neutral {
+		background: var(--muted);
+		color: var(--muted-foreground);
+	}
+
+	/* Loading states */
+	.skeleton {
+		background: var(--muted);
+		border-radius: 0.375rem;
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	@keyframes pulse {
+		0%, 100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
+	}
+
+	/* Responsive design */
+	@media (max-width: 768px) {
+		.dashboard-grid {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+
+		.dashboard-card {
+			padding: 1rem;
+		}
+
+		.chart-container {
+			padding: 1rem;
+		}
+	}
+}
+
+/* Dark mode specific overrides */
+.dark {
+	/* Any dark mode specific dashboard styles can go here */
+	.status-indicator {
+		/* Dark mode status indicators might need adjustment */
+	}
+}

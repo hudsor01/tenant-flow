@@ -35,6 +35,10 @@ import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'UseMaintenanceCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_MAINTENANCE_PREFIX = 'TEST-CRUD'
 let createdMaintenanceIds: string[] = []
@@ -95,7 +99,7 @@ async function createTestUnit(propertyId: string): Promise<string> {
 	return unit.id
 }
 
-describe('Maintenance Requests CRUD Integration Tests', () => {
+describeIfReady('Maintenance Requests CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables

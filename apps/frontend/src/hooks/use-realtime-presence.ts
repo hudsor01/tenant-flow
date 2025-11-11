@@ -5,7 +5,7 @@
 
 'use client'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
@@ -32,7 +32,7 @@ export function useRealtimePresence(channelName: string) {
 		{}
 	)
 	const channelRef = useRef<RealtimeChannel | null>(null)
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	useEffect(() => {
 		const presenceChannel = supabase.channel(channelName, {
@@ -118,7 +118,7 @@ export function useRealtimePresence(channelName: string) {
 export function useTypingIndicator(channelName: string, userId: string) {
 	const [typingUsers, setTypingUsers] = useState<string[]>([])
 	const channelRef = useRef<RealtimeChannel | null>(null)
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	useEffect(() => {
 		const typingChannel = supabase.channel(channelName)

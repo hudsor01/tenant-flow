@@ -9,6 +9,11 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 const logger = createLogger({ component: 'IntegrationTestSetup' })
 
 export async function setup() {
+	if (process.env.RUN_INTEGRATION_TESTS !== 'true') {
+		logger.info('Skipping integration test setup (RUN_INTEGRATION_TESTS != true)')
+		return
+	}
+
 	logger.info('🔧 Setting up integration test environment...')
 
 	try {

@@ -16,8 +16,8 @@ export function BorderGlow({
 	className,
 	duration = '15s',
 	borderWidth = 1,
-	colorFrom = 'oklch(var(--primary))', // primary color
-	colorTo = 'oklch(var(--accent))' // accent color
+	colorFrom = 'var(--primary)', // primary color
+	colorTo = 'var(--accent)' // accent color
 }: BorderGlowProps) {
 	return (
 		<div

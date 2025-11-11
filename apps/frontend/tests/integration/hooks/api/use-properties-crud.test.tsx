@@ -33,6 +33,10 @@ import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'UsePropertiesCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 // This is an INTEGRATION test - it calls the REAL API
 // Make sure backend is running before running these tests
@@ -65,7 +69,7 @@ function createWrapper() {
 	)
 }
 
-describe('Properties CRUD Integration Tests', () => {
+describeIfReady('Properties CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables

@@ -20,6 +20,7 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type { Request } from 'express'
+import { Throttle } from '@nestjs/throttler'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
@@ -435,6 +436,7 @@ export class StripeSyncController {
 	 * Security: Validates Stripe signature
 	 */
 	@Public() // Stripe webhooks don't use JWT auth
+	@Throttle({ default: { ttl: 60000, limit: 30 } })
 	@Post('stripe-sync')
 	@Header('content-type', 'application/json')
 	async handleStripeSyncWebhook(@Req() req: Request) {

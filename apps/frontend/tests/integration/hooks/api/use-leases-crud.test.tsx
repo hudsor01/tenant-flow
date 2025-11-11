@@ -33,9 +33,13 @@ import type {
 } from '@repo/shared/types/api-inputs'
 import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { clientFetch } from '#lib/api/client'
 
 const logger = createLogger({ component: 'UseLeasesCrudTest' })
-import { clientFetch } from '#lib/api/client'
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_LEASE_PREFIX = 'TEST-CRUD'
 let createdLeaseIds: string[] = []
@@ -112,7 +116,7 @@ async function createTestTenant(): Promise<string> {
 	return tenant.id
 }
 
-describe('Leases CRUD Integration Tests', () => {
+describeIfReady('Leases CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables

@@ -222,7 +222,7 @@ export function PropertyForm({
 	if (showSuccessState && isSubmitted) {
 		return (
 			<div className="flex flex-col items-center justify-center space-y-4 text-center">
-				<CheckCircle className="size-16 text-green-500" />
+				<CheckCircle className="size-16 text-success" />
 				<h2 className="text-2xl font-bold">Property Created!</h2>
 				<p className="text-muted-foreground">
 					Your property has been successfully added to your portfolio.

@@ -21,6 +21,7 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
+import { StripeCustomerOwnershipGuard } from '../../shared/guards/stripe-customer-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
@@ -259,6 +260,7 @@ export class StripeController {
 	 * Official Pattern: payment method listing with proper types
 	 */
 	@Get('customers/:id/payment-methods')
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
 	async getPaymentMethods(@Param('id', ParseUUIDPipe) customerId: string) {
 		try {
 			return await this.stripe.paymentMethods.list({
@@ -1415,6 +1417,7 @@ export class StripeController {
 	 * Official Pattern: subscription listing with expand
 	 */
 	@Get('subscriptions/:customerId')
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
 	async getSubscriptions(
 		@Param('customerId', ParseUUIDPipe) customerId: string
 	) {

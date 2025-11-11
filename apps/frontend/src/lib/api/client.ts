@@ -7,7 +7,7 @@
  * NOTE: This utility can be called from both client and server contexts,
  * so it MUST NOT call browser-only APIs like toast()
  */
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
@@ -38,7 +38,7 @@ export async function getAuthHeaders(
 				...additionalHeaders
 			}
 
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	// SECURITY FIX: Get session first (atomic operation) then validate
 	// This prevents race conditions where session might expire between calls

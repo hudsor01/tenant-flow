@@ -4,65 +4,40 @@ import * as React from 'react'
 
 import { cn } from '#lib/utils'
 
-// Base button styles - broken down for maintainability
-const BASE_LAYOUT = 'inline-flex items-center justify-center gap-2'
-const BASE_TEXT = 'whitespace-nowrap text-sm font-semibold'
-const BASE_INTERACTION =
-	'transition-all duration-200 disabled:pointer-events-none disabled:opacity-50'
-const BASE_SVG =
-	"[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0"
-const BASE_FOCUS =
-	'outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
-const BASE_ACCESSIBILITY =
-	'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40'
-const BASE_VISUAL = 'relative overflow-hidden'
-
-// Combine all base styles
-const BASE_BUTTON_CLASSES = [
-	BASE_LAYOUT,
-	BASE_TEXT,
-	BASE_INTERACTION,
-	BASE_SVG,
-	BASE_FOCUS,
-	BASE_ACCESSIBILITY,
-	BASE_VISUAL
-].join(' ')
-
-const buttonVariants = cva(BASE_BUTTON_CLASSES, {
-	variants: {
-		variant: {
-			default:
-				'bg-linear-to-br from-slate-800 to-slate-900 text-white shadow-premium hover:shadow-premium-lg hover:from-slate-700 hover:to-slate-800 border border-slate-700/50 hover:border-slate-600/50 active:scale-[0.98] before:absolute before:inset-0 before:bg-linear-to-r before:from-white/0 before:via-white/10 before:to-white/0 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
-			destructive:
-				'bg-linear-to-br from-red-600 to-red-700 text-white shadow-premium hover:shadow-premium-lg hover:from-red-500 hover:to-red-600 border border-red-500/50 hover:border-red-400/50 active:scale-[0.98] before:absolute before:inset-0 before:bg-linear-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
-			outline:
-				'border-2 border-slate-300 bg-white shadow-premium-sm hover:bg-slate-50 hover:border-slate-400 hover:shadow-premium text-slate-700 hover:text-slate-900 active:scale-[0.98] dark:bg-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:border-slate-600 dark:hover:text-white',
-			secondary:
-				'bg-linear-to-br from-slate-100 to-slate-200 text-slate-900 shadow-premium-sm hover:shadow-premium hover:from-slate-200 hover:to-slate-300 border border-slate-200 hover:border-slate-300 active:scale-[0.98] dark:from-slate-800 dark:to-slate-900 dark:text-slate-100 dark:hover:from-slate-700 dark:hover:to-slate-800 dark:border-slate-700 dark:hover:border-slate-600',
-			ghost:
-				'hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-all duration-200 active:scale-[0.98]',
-			link: 'text-slate-600 underline-offset-4 hover:underline hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-medium',
-			premium:
-				'bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-premium-xl hover:shadow-premium-2xl hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 border border-slate-700/30 hover:border-slate-600/50 active:scale-[0.98] before:absolute before:inset-0 before:bg-linear-to-r before:from-transparent before:via-white/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500 font-bold tracking-wide',
-			masculine:
-				'bg-linear-to-br from-slate-800 to-slate-900 text-white shadow-premium-lg hover:shadow-premium-xl hover:from-slate-700 hover:to-slate-800 border-2 border-slate-600 hover:border-slate-500 active:scale-[0.98] font-bold tracking-wide rounded-none before:absolute before:inset-0 before:bg-linear-to-r before:from-transparent before:via-white/10 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300'
+const buttonVariants = cva(
+	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+	{
+		variants: {
+			variant: {
+				default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+				destructive:
+					'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+				outline:
+					'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+				secondary:
+					'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+				ghost: 'hover:bg-accent hover:text-accent-foreground',
+				link: 'text-primary underline-offset-4 hover:underline',
+				premium:
+					'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl hover:from-primary/90 hover:to-primary/70 font-bold',
+				masculine:
+					'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-2 border-primary/20 hover:border-primary/30 shadow-lg hover:shadow-xl font-bold rounded-none'
+			},
+			size: {
+				default: 'h-10 px-4 py-2',
+				sm: 'h-9 rounded-md px-3',
+				lg: 'h-11 rounded-md px-8',
+				xl: 'h-12 rounded-md px-10',
+				icon: 'h-10 w-10',
+				'icon-sm': 'h-8 w-8'
+			}
 		},
-		size: {
-			default: 'h-12 px-6 py-3 has-[>svg]:px-5', // 48px - premium touch target
-			sm: 'h-10 px-4 py-2 has-[>svg]:px-3 rounded-md gap-1.5', // 40px - smaller but still premium
-			lg: 'h-14 px-8 py-4 has-[>svg]:px-6', // 56px - large premium touch target
-			xl: 'h-16 px-10 py-5 has-[>svg]:px-8', // 64px - extra large premium
-			icon: 'size-12', // 48px - premium touch-friendly
-			'icon-sm': 'size-10', // 40px - smaller icon
-			'icon-lg': 'size-14', // 56px - large icon
-			'icon-xl': 'size-16' // 64px - extra large icon
+		defaultVariants: {
+			variant: 'default',
+			size: 'default'
 		}
-	},
-	defaultVariants: {
-		variant: 'default',
-		size: 'default'
 	}
-})
+)
 
 function Button({
 	className,

@@ -165,7 +165,7 @@ export default function UnitsPage() {
 			{/* Units Content */}
 			<div className="px-4 lg:px-6">
 				<div className="mb-6">
-					<h1 className="text-3xl font-bold text-gradient-authority mb-2">
+					<h1 className="text-3xl font-bold text-foreground mb-2">
 						Unit Management
 					</h1>
 					<p className="text-muted-foreground">
@@ -450,7 +450,7 @@ function NewUnitButton() {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle className="text-gradient-authority">
+					<DialogTitle className="text-foreground">
 						Add New Unit
 					</DialogTitle>
 				</DialogHeader>

@@ -6,17 +6,20 @@ import {
 	Param,
 	ParseUUIDPipe,
 	Post,
+	Req,
 	Res,
 	UseGuards,
 	NotFoundException,
 	BadRequestException,
-	InternalServerErrorException
+	InternalServerErrorException,
+	UnauthorizedException
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
@@ -155,10 +158,16 @@ export class LeaseGenerationController {
 	async autoFillLease(
 		@Param('propertyId', ParseUUIDPipe) propertyId: string,
 		@Param('unitId', ParseUUIDPipe) unitId: string,
-		@Param('tenantId', ParseUUIDPipe) tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string,
+		@Req() req: AuthenticatedRequest
 	): Promise<Partial<LeaseGenerationFormData>> {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new UnauthorizedException('Authenticated user is required')
+		}
+
 		// Check cache first with parameterized key
-		const cacheKey = `lease-auto-fill:${propertyId}:${unitId}:${tenantId}`
+		const cacheKey = `lease-auto-fill:${userId}:${propertyId}:${unitId}:${tenantId}`
 		const cached = this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
 		if (cached) {
 			this.logger.debug(`Cache hit for auto-fill: ${cacheKey}`)
@@ -310,7 +319,12 @@ export class LeaseGenerationController {
 			cacheKey,
 			autoFilled,
 			30_000, // 30 seconds
-			[`property:${propertyId}`, `unit:${unitId}`, `user:${tenantId}`]
+			[
+				`property:${propertyId}`,
+				`unit:${unitId}`,
+				`tenant:${tenantId}`,
+				`user:${userId}`
+			]
 		)
 
 		this.logger.debug(`Cached auto-fill data: ${cacheKey}`)

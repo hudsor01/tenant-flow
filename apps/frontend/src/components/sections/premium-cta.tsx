@@ -53,7 +53,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
 							{/* Primary CTA with Glow */}
 							<GlowingEffect
-								glowColor="oklch(var(--primary))"
+								glowColor="var(--primary)"
 								glowOpacity={0.6}
 								className="group"
 							>

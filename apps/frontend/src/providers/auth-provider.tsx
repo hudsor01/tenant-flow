@@ -1,13 +1,13 @@
 'use client'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 
-const supabaseClient = createClient()
+const supabaseClient = getSupabaseClientInstance()
 const logger = createLogger({ component: 'AuthProvider' })
 
 export const authQueryKeys = {

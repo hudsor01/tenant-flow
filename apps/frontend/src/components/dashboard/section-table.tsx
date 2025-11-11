@@ -191,7 +191,7 @@ export function SectionTable() {
 													: property.status === 'UNDER_CONTRACT'
 														? 'bg-(--color-system-blue-10) text-(--color-system-blue) hover:bg-(--color-system-blue-15)'
 														: property.status === 'SOLD'
-															? 'bg-(--color-system-purple-10) text-(--color-system-purple) hover:bg-(--color-system-purple-15)'
+															? 'bg-(--color-system-teal-10) text-(--color-system-teal) hover:bg-(--color-system-teal-15)'
 															: 'bg-(--color-system-gray-10) text-(--color-label-tertiary) hover:bg-(--color-system-gray-15)'
 											)}
 										>

@@ -355,7 +355,13 @@ export class UnitsService {
 				throw new BadRequestException('Failed to create unit')
 			}
 
-			return data as Unit
+			const createdUnit = data as Unit
+
+			// Invalidate caches so downstream consumers (lease auto-fill, dashboards) get fresh data
+			this.cache.invalidateByEntity('unit', createdUnit.id)
+			this.cache.invalidateByEntity('property', createdUnit.propertyId)
+
+			return createdUnit
 		} catch (error) {
 			this.logger.error('Units service failed to create unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -488,6 +494,19 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
+			// Fetch unit metadata before deletion so we can invalidate property cache afterwards
+			const { data: existingUnit, error: fetchError } = await client
+				.from('unit')
+				.select('id, propertyId')
+				.eq('id', unitId)
+				.single()
+			if (fetchError && fetchError.code !== 'PGRST116') {
+				this.logger.warn('Failed to fetch unit metadata before deletion', {
+					error: fetchError.message,
+					unitId
+				})
+			}
+
 			// RLS automatically verifies unit ownership - no manual propertyId check needed
 			const { error } = await client.from('unit').delete().eq('id', unitId)
 
@@ -497,6 +516,12 @@ export class UnitsService {
 					unitId
 				})
 				throw new BadRequestException('Failed to remove unit')
+			}
+
+			// Invalidate caches tied to this unit/property so data disappears immediately
+			this.cache.invalidateByEntity('unit', unitId)
+			if (existingUnit?.propertyId) {
+				this.cache.invalidateByEntity('property', existingUnit.propertyId)
 			}
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {

@@ -5,7 +5,7 @@
  * Based on:
  * - ESLint v9 flat config documentation
  * - TypeScript ESLint v8 official recommendations
- * - Next.js 15 + React 19 compatibility
+ * - Next.js 16 + React 19.2 compatibility
  * - 2024 monorepo patterns with separate lint/build configs
  */
 
@@ -80,7 +80,7 @@ export default defineConfig([
 		},
 		settings: {
 			react: {
-				version: '19.1.1'
+				version: '19.2.0'
 			},
 			next: {
 				rootDir: import.meta.dirname

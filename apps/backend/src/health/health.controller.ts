@@ -4,6 +4,7 @@
  */
 
 import { Controller, Get, Logger, SetMetadata } from '@nestjs/common'
+import { SkipThrottle, Throttle } from '@nestjs/throttler'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
@@ -11,6 +12,7 @@ import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
 
+@Throttle({ default: { ttl: 60000, limit: 300 } })
 @Controller(['health', 'api/v1/health', 'auth', 'api/v1/auth'])
 export class HealthController {
 	private readonly logger = new Logger(HealthController.name)
@@ -46,6 +48,7 @@ export class HealthController {
 	/**
 	 * Railway readiness probe - zero-downtime deployments
 	 */
+	@SkipThrottle()
 	@Get('ready')
 	@SetMetadata('isPublic', true)
 	@HealthCheck()
