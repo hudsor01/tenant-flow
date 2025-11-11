@@ -1,5 +1,6 @@
 import type { QueryParams, Unit, UnitStats } from './core.js'
 import type { Database } from './supabase-generated.js'
+import type { BaseRepository } from './repository-base.js'
 
 export type UnitInput = Database['public']['Tables']['unit']['Insert']
 export type UnitUpdate = Database['public']['Tables']['unit']['Update']
@@ -10,15 +11,13 @@ export interface UnitQueryOptions extends QueryParams {
 	type?: string
 }
 
-export interface UnitsRepositoryContract {
+export interface UnitsRepositoryContract
+	extends BaseRepository<Unit, UnitInput, UnitUpdate, UnitQueryOptions> {
 	findByUserIdWithSearch(
 		userId: string,
 		options: UnitQueryOptions
 	): Promise<Unit[]>
-	findById(unitId: string): Promise<Unit | null>
 	findByPropertyId(propertyId: string): Promise<Unit[]>
-	create(userId: string, unitData: UnitInput): Promise<Unit>
-	update(unitId: string, unitData: UnitUpdate): Promise<Unit | null>
 	softDelete(
 		userId: string,
 		unitId: string

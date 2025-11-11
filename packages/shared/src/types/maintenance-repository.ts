@@ -4,6 +4,7 @@ import type {
 	QueryParams
 } from './core.js'
 import type { Database } from './supabase-generated.js'
+import type { BaseRepository } from './repository-base.js'
 
 export type MaintenanceRequestInput =
 	Database['public']['Tables']['maintenance_request']['Insert']
@@ -22,23 +23,20 @@ export interface MaintenanceQueryOptions extends QueryParams {
 	dateTo?: Date
 }
 
-export interface MaintenanceRepositoryContract {
+export interface MaintenanceRepositoryContract
+	extends BaseRepository<
+		MaintenanceRequest,
+		MaintenanceRequestInput,
+		MaintenanceRequestUpdate,
+		MaintenanceQueryOptions
+	> {
 	findByUserIdWithSearch(
 		userId: string,
 		options: MaintenanceQueryOptions
 	): Promise<MaintenanceRequest[]>
-	findById(requestId: string): Promise<MaintenanceRequest | null>
 	findByPropertyId(propertyId: string): Promise<MaintenanceRequest[]>
 	findByUnitId(unitId: string): Promise<MaintenanceRequest[]>
 	findByTenantId(tenantId: string): Promise<MaintenanceRequest[]>
-	create(
-		userId: string,
-		requestData: MaintenanceRequestInput
-	): Promise<MaintenanceRequest>
-	update(
-		requestId: string,
-		requestData: MaintenanceRequestUpdate
-	): Promise<MaintenanceRequest | null>
 	softDelete(
 		userId: string,
 		requestId: string
@@ -61,7 +59,7 @@ export interface MaintenanceRepositoryContract {
 	): Promise<MaintenanceRequest | null>
 	updateStatus(
 		requestId: string,
-		status: string,
+		status: Database['public']['Enums']['MaintenanceStatus'],
 		updatedBy: string,
 		notes?: string
 	): Promise<MaintenanceRequest | null>
@@ -69,18 +67,10 @@ export interface MaintenanceRepositoryContract {
 		requestId: string,
 		workLog: {
 			description: string
+			technicianId: string
 			hoursWorked?: number
 			cost?: number
 			materials?: string
-			completedBy: string
 		}
 	): Promise<MaintenanceRequest | null>
-	getCostAnalytics(
-		userId: string,
-		options: { propertyId?: string; period: string }
-	): Promise<MaintenanceRequest[]>
-	getContractorPerformance(
-		userId: string,
-		contractorId?: string
-	): Promise<MaintenanceRequest[]>
 }

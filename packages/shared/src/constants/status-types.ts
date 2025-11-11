@@ -463,8 +463,6 @@ export const HTTP_METHODS = {
 	OPTIONS: 'OPTIONS'
 } as const
 
-export type HttpMethod = (typeof HTTP_METHODS)[keyof typeof HTTP_METHODS]
-
 /**
  * CACHE INVALIDATION REASONS ENUMERATION
  */

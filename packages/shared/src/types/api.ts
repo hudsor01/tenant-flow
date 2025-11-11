@@ -227,65 +227,6 @@ export interface InvitationResponse {
 	}
 }
 
-// Subscription & Billing API Types
-
-// Subscription request types
-export interface CreateSubscriptionRequest {
-	planId: string
-	billingPeriod: string
-	userId?: string
-	userEmail?: string
-	userName?: string
-	createAccount?: boolean
-	paymentMethodCollection?: 'always' | 'if_required'
-}
-
-export interface CreateSubscriptionWithSignupRequest {
-	planId: string
-	billingPeriod: string
-	userEmail: string
-	userName: string
-	createAccount: boolean
-	paymentMethodCollection?: 'always' | 'if_required'
-}
-
-export interface StartTrialRequest {
-	planId?: string // Optional plan ID if trial is plan-specific
-}
-
-export interface CreatePortalSessionRequest {
-	customerId?: string
-	returnUrl?: string
-}
-
-export interface CancelSubscriptionRequest {
-	subscriptionId: string
-}
-
-export interface UpdateSubscriptionRequest {
-	subscriptionId: string
-	planId?: string
-	billingPeriod?: string
-}
-
-// Subscription response types moved to responses.ts for consolidation
-// These are now imported and re-exported above
-
-export interface CreateSubscriptionWithSignupResponse {
-	subscriptionId: string
-	status: string
-	clientSecret?: string | null
-	setupIntentId?: string
-	trialEnd?: number | null
-	user: {
-		id: string
-		email: string
-		fullName: string
-	}
-	accessToken: string
-	refreshToken: string
-}
-
 // ADDITIONAL API TYPES - MIGRATED from inline definitions
 
 export interface WebhookClientOptions {
@@ -407,7 +348,7 @@ export interface MaintenanceRequestApiResponse {
 	createdAt: string
 	estimatedCost: number | null
 	notes: string | null
-	photos: string[] | null
+	photos: string | null
 	preferredDate: string | null
 	requestedBy: string | null
 	updatedAt: string

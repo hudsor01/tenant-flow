@@ -327,15 +327,6 @@ export interface AuthContext {
 	roles: UserRole[]
 }
 
-// Define FormState locally since UI types were moved to frontend-only
-type FormState<T = Record<string, string | number | boolean | null>> = {
-	data: Partial<T>
-	errors: Record<string, string[]>
-	isDirty: boolean
-	isSubmitting: boolean
-	isValid: boolean
-}
-
 // Form state type alias for auth forms
 export type AuthFormState = FormState<User>
 

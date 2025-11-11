@@ -7,6 +7,11 @@ import {
 	Logger
 } from '@nestjs/common'
 import { Request, Response } from 'express'
+import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
+import {
+	API_ERROR_CODES,
+	ERROR_TYPES
+} from '@repo/shared/constants/error-codes'
 
 type ExceptionResponse = {
 	message?: string | string[]
@@ -82,7 +87,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			statusCode: status,
 			timestamp,
 			path: sanitizedPath, // Use sanitized path without query params
-			...(code && { code }) // Include error code if present
+			...(code && this.isValidErrorCode(code) && { code }) // Include error code if present and valid
 		}
 
 		// Only include stack trace in development
@@ -114,5 +119,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			return request.path || '/'
 		}
 		return '/'
+	}
+
+	/**
+	 * Validates that an error code is from the approved constants
+	 * SECURITY: Prevents malicious error code injection
+	 */
+	private isValidErrorCode(code: string): boolean {
+		const allValidCodes = new Set([
+			...Object.values(BUSINESS_ERROR_CODES),
+			...Object.values(API_ERROR_CODES),
+			...Object.values(ERROR_TYPES)
+		] as string[])
+		return allValidCodes.has(code)
 	}
 }
