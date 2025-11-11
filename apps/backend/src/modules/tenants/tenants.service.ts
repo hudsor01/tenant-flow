@@ -27,6 +27,7 @@ import type {
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { activateTenantResultSchema } from '@repo/shared/validation/database-rpc.schemas'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -154,7 +155,8 @@ export class TenantsService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly stripeConnectService: StripeConnectService
+		private readonly stripeConnectService: StripeConnectService,
+		private readonly queryHelpers: SupabaseQueryHelpers
 	) {}
 
 	/**
@@ -776,48 +778,30 @@ export class TenantsService {
 	/**
 	 * Get single tenant via direct Supabase query
 	 */
-	async findOne(userId: string, tenantId: string): Promise<Tenant | null> {
+	async findOne(userId: string, tenantId: string): Promise<Tenant> {
 		// Business logic: Validate inputs
-		if (!userId || !tenantId) {
-			this.logger.warn('Find one tenant requested with missing parameters', {
-				userId,
-				tenantId
-			})
-			return null
+		if (!userId) {
+			throw new BadRequestException('User ID is required')
+		}
+		if (!tenantId) {
+			throw new BadRequestException('Tenant ID is required')
 		}
 
-		try {
-			this.logger.log('Finding tenant by ID via direct Supabase query', {
-				userId,
-				tenantId
-			})
+		this.logger.log('Finding tenant by ID via direct Supabase query', {
+			userId,
+			tenantId
+		})
 
-			const client = this.supabase.getAdminClient()
-			const { data, error } = await client
-				.from('tenant')
-				.select('*')
-				.eq('id', tenantId)
-				.eq('userId', userId)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch tenant from Supabase', {
-					error: error.message,
-					userId,
-					tenantId
-				})
-				return null
+		const client = this.supabase.getAdminClient()
+		return this.queryHelpers.querySingle<Tenant>(
+			client.from('tenant').select('*').eq('id', tenantId).eq('userId', userId).single(),
+			{
+				resource: 'tenant',
+				id: tenantId,
+				operation: 'findOne',
+				userId
 			}
-
-			return data as Tenant
-		} catch (error) {
-			this.logger.error('Tenants service failed to find one tenant', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				tenantId
-			})
-			return null
-		}
+		)
 	}
 
 	/**
