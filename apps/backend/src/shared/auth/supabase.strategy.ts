@@ -1,21 +1,21 @@
 /**
  * Supabase JWT Strategy - Direct JWT Secret Verification
- *
+
  * Uses Supabase's JWT signing secret directly instead of JWKS endpoints.
  * This provides better reliability and performance while maintaining security.
- *
+
  * Key Management:
  * - Uses SUPABASE_JWT_SECRET from Supabase dashboard (Settings > JWT Keys > Current Signing Key)
  * - Supports HS256 algorithm (Supabase's default)
  * - No external dependencies on JWKS endpoints
- *
+
  * Authentication Flow:
  * 1. Frontend sends Authorization: Bearer <token> header
  * 2. Strategy verifies JWT signature using Supabase's secret
  * 3. Validates payload (issuer, audience, expiration)
  * 4. Ensures user exists in users table (creates if needed for OAuth)
  * 5. Returns authUser object for use in request handlers
- *
+
  * Supported Algorithms: HS256 (Supabase default)
  */
 
@@ -166,7 +166,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			userToEnsure.app_metadata = payload.app_metadata
 		}
 
-		// ✅ CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
+		// CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
 		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
 		let internalUserId: string
 		try {
