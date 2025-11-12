@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	Logger,
+	UnauthorizedException
+} from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import type { MaintenanceNotificationData } from '@repo/shared/types/notifications'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -10,6 +15,7 @@ import {
 } from '@repo/shared/validation/common'
 import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { FailedNotificationsService } from './failed-notifications.service'
 import {
 	LeaseExpiringEvent,
@@ -35,6 +41,7 @@ export class NotificationsService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
+		private readonly queryHelpers: SupabaseQueryHelpers,
 		private readonly failedNotifications: FailedNotificationsService
 	) {}
 
@@ -260,15 +267,23 @@ export class NotificationsService {
 		title: string
 	}): Promise<void> {
 		try {
-			// Get user email from database
-			const { data: user, error } = await this.supabaseService
-				.getAdminClient()
-				.from('users')
-				.select('email')
-				.eq('id', notification.recipientId)
-				.single()
+			const client = this.supabaseService.getAdminClient()
 
-			if (error || !user.email) {
+			// Get user email from database
+			const user = await this.queryHelpers.querySingle<{ email: string }>(
+				client
+					.from('users')
+					.select('email')
+					.eq('id', notification.recipientId)
+					.single(),
+				{
+					resource: 'user',
+					id: notification.recipientId,
+					operation: 'sendImmediateNotification'
+				}
+			)
+
+			if (!user.email) {
 				this.logger.warn(
 					{
 						notification: {
@@ -277,8 +292,8 @@ export class NotificationsService {
 							title: notification.title
 						},
 						user: {
-							found: !error,
-							hasEmail: !!user?.email
+							found: true,
+							hasEmail: false
 						}
 					},
 					`Could not find email for user ${notification.recipientId}`
@@ -329,19 +344,23 @@ export class NotificationsService {
 	async getUnreadNotifications(
 		userId: string
 	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.select('*')
-			.eq('userId', userId)
-			.eq('isRead', false)
-			.order('createdAt', { ascending: false })
+		const client = this.supabaseService.getAdminClient()
 
-		if (error) {
-			throw error
-		}
-
-		return data
+		return this.queryHelpers.queryList<
+			Database['public']['Tables']['notifications']['Row']
+		>(
+			client
+				.from('notifications')
+				.select('*')
+				.eq('userId', userId)
+				.eq('isRead', false)
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'notifications',
+				operation: 'getUnreadNotifications',
+				userId
+			}
+		)
 	}
 
 	/**
@@ -351,20 +370,25 @@ export class NotificationsService {
 		notificationId: string,
 		userId: string
 	): Promise<Database['public']['Tables']['notifications']['Row']> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({ isRead: true, readAt: new Date().toISOString() })
-			.eq('id', notificationId)
-			.eq('userId', userId)
-			.select()
-			.single()
+		const client = this.supabaseService.getAdminClient()
 
-		if (error) {
-			throw error
-		}
-
-		return data
+		return this.queryHelpers.querySingle<
+			Database['public']['Tables']['notifications']['Row']
+		>(
+			client
+				.from('notifications')
+				.update({ isRead: true, readAt: new Date().toISOString() })
+				.eq('id', notificationId)
+				.eq('userId', userId)
+				.select()
+				.single(),
+			{
+				resource: 'notification',
+				id: notificationId,
+				operation: 'markAsRead',
+				userId
+			}
+		)
 	}
 
 	/**
@@ -374,23 +398,30 @@ export class NotificationsService {
 		notificationId: string,
 		userId: string
 	): Promise<Database['public']['Tables']['notifications']['Row']> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({
-				metadata: {
-					cancelled: true,
-					cancelledAt: new Date().toISOString()
-				}
-			})
-			.eq('id', notificationId)
-			.eq('userId', userId)
-			.select()
-			.single()
+		const client = this.supabaseService.getAdminClient()
 
-		if (error) {
-			throw error
-		}
+		const data = await this.queryHelpers.querySingle<
+			Database['public']['Tables']['notifications']['Row']
+		>(
+			client
+				.from('notifications')
+				.update({
+					metadata: {
+						cancelled: true,
+						cancelledAt: new Date().toISOString()
+					}
+				})
+				.eq('id', notificationId)
+				.eq('userId', userId)
+				.select()
+				.single(),
+			{
+				resource: 'notification',
+				id: notificationId,
+				operation: 'cancelNotification',
+				userId
+			}
+		)
 
 		this.logger.log(
 			{
@@ -430,28 +461,20 @@ export class NotificationsService {
 	 */
 	async getUnreadCount(userId: string): Promise<number> {
 		try {
-			this.logger.log('Getting unread notification count via direct query', {
-				userId
-			})
+			const client = this.supabaseService.getAdminClient()
 
-			// Type assertion needed due to Supabase generated types limitation
-			// When using head: true with count: 'exact', TypeScript doesn't infer count field
-			const { count, error } = (await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.select('*', { count: 'exact', head: true })
-				.eq('userId', userId)
-				.eq('isRead', false)) as { count: number | null; error: unknown }
-
-			if (error) {
-				this.logger.error('Failed to get unread notification count', {
-					error,
+			return await this.queryHelpers.queryCount(
+				client
+					.from('notifications')
+					.select('*', { count: 'exact', head: true })
+					.eq('userId', userId)
+					.eq('isRead', false),
+				{
+					resource: 'notifications',
+					operation: 'getUnreadCount',
 					userId
-				})
-				return 0
-			}
-
-			return count || 0
+				}
+			)
 		} catch (error) {
 			this.logger.error('Error getting unread notification count', {
 				error: error instanceof Error ? error.message : String(error),
@@ -662,37 +685,53 @@ export class NotificationsService {
 			async () => {
 				const client = this.supabaseService.getAdminClient()
 
-				const [tenantResult, leaseResult] = await Promise.all([
-					client
-						.from('tenant')
-						.select('id, firstName, lastName, email')
-						.eq('id', event.tenantId)
-						.single(),
-					client
-						.from('lease')
-						.select(
-							`
+				const [tenant, lease] = await Promise.all([
+					this.queryHelpers.querySingle<{
+						id: string
+						firstName: string | null
+						lastName: string | null
+						email: string
+					}>(
+						client
+							.from('tenant')
+							.select('id, firstName, lastName, email')
+							.eq('id', event.tenantId)
+							.single(),
+						{
+							resource: 'tenant',
+							id: event.tenantId,
+							operation: 'handleTenantInvited',
+							userId: event.ownerId
+						}
+					),
+					this.queryHelpers.querySingle<{
+						id: string
+						propertyId: string | null
+						unitId: string | null
+						property: { name: string } | null
+						unit: { unitNumber: string } | null
+					}>(
+						client
+							.from('lease')
+							.select(
+								`
 							id,
 							propertyId,
 							unitId,
 							property:propertyId(name),
 							unit:unitId(unitNumber)
 						`
-						)
-						.eq('id', event.leaseId)
-						.single()
+							)
+							.eq('id', event.leaseId)
+							.single(),
+						{
+							resource: 'lease',
+							id: event.leaseId,
+							operation: 'handleTenantInvited',
+							userId: event.ownerId
+						}
+					)
 				])
-
-				if (tenantResult.error) {
-					throw tenantResult.error
-				}
-
-				if (leaseResult.error) {
-					throw leaseResult.error
-				}
-
-				const tenant = tenantResult.data
-				const lease = leaseResult.data
 
 				const tenantNameParts = [tenant?.firstName, tenant?.lastName].filter(
 					(part): part is string => Boolean(part && part.trim())
