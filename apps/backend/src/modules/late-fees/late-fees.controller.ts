@@ -1,6 +1,6 @@
 /**
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
- *
+
  * ONLY built-in NestJS pipes, native exceptions, direct service calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
@@ -362,7 +362,7 @@ export class LateFeesController {
 			reason
 		})
 
-		// ✅ RLS SECURITY: Use user-scoped client to get payment details
+		// RLS SECURITY: Use user-scoped client to get payment details
 		const client = this.supabaseService!.getUserClient(token)
 		const { data: payment, error } =
 			await client
@@ -375,7 +375,7 @@ export class LateFeesController {
 			throw new BadRequestException('Payment not found')
 		}
 
-		// ✅ RLS SECURITY: Use user-scoped client to get user Stripe customer ID
+		// RLS SECURITY: Use user-scoped client to get user Stripe customer ID
 		const { data: userData, error: userError } =
 			await client
 				.from('users')

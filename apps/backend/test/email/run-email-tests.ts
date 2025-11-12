@@ -2,10 +2,10 @@
 
 /**
  * Email System Test Runner
- *
+
  * This script runs all email-related tests and generates a report
  * Can be used in CI/CD pipelines or for local testing
- *
+
  * Usage: npx ts-node test/email/run-email-tests.ts [--env=production] [--verbose]
  */
 
@@ -46,7 +46,7 @@ class EmailTestRunner {
 	 * Run all email tests
 	 */
 	async runAllTests(): Promise<void> {
-		this.logger.log('🧪 Starting Email System Test Suite')
+		this.logger.log(' Starting Email System Test Suite')
 		this.logger.log(`[LOCATION] Environment: ${this.environment}`)
 		this.logger.log(`[INFO] Verbose: ${this.verbose}`)
 		this.logger.log('─'.repeat(50))
@@ -83,7 +83,7 @@ class EmailTestRunner {
 	 * Run a single test suite
 	 */
 	private async runTestSuite(name: string, command: string): Promise<void> {
-		this.logger.log(`\n▶️  Running: ${name}`)
+		this.logger.log(`\n▶️ Running: ${name}`)
 
 		const startTime = Date.now()
 		const result: TestResult = {
@@ -128,10 +128,10 @@ class EmailTestRunner {
 					result.duration = Date.now() - startTime
 
 					if (code === 0) {
-						this.logger.log(`   [OK] Passed (${result.duration}ms)`)
+						this.logger.log(` [OK] Passed (${result.duration}ms)`)
 						resolve()
 					} else {
-						this.logger.log(`   [ERROR] Failed (${result.duration}ms)`)
+						this.logger.log(` [ERROR] Failed (${result.duration}ms)`)
 						if (this.verbose) {
 							this.logger.log(output)
 						}
@@ -142,7 +142,7 @@ class EmailTestRunner {
 				testProcess.on('error', error => {
 					result.errors.push(error.message)
 					result.duration = Date.now() - startTime
-					this.logger.log(`   [WARNING]  Error: ${error.message}`)
+					this.logger.log(` [WARNING] Error: ${error.message}`)
 					resolve()
 				})
 			})
@@ -159,7 +159,7 @@ class EmailTestRunner {
 	 * Run performance tests
 	 */
 	private async runPerformanceTests(): Promise<void> {
-		this.logger.log('\n▶️  Running: Performance Tests')
+		this.logger.log('\n▶️ Running: Performance Tests')
 
 		const result: TestResult = {
 			suite: 'Performance Tests',
@@ -209,11 +209,11 @@ class EmailTestRunner {
 
 				if (renderTime < 500) {
 					result.passed++
-					this.logger.log(`   [OK] ${template}: ${renderTime}ms`)
+					this.logger.log(` [OK] ${template}: ${renderTime}ms`)
 				} else {
 					result.failed++
 					result.errors.push(`${template} rendering too slow: ${renderTime}ms`)
-					this.logger.log(`   [ERROR] ${template}: ${renderTime}ms (>500ms)`)
+					this.logger.log(` [ERROR] ${template}: ${renderTime}ms (>500ms)`)
 				}
 			}
 
@@ -223,12 +223,12 @@ class EmailTestRunner {
 			const maxTime = Math.max(...renderTimes)
 
 			this.logger.log(
-				`   [STATS] Average: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`
+				` [STATS] Average: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`
 			)
 		} catch (error) {
 			result.failed++
 			result.errors.push(error instanceof Error ? error.message : String(error))
-			this.logger.log(`   [WARNING]  Error: ${error}`)
+			this.logger.log(` [WARNING] Error: ${error}`)
 		}
 
 		result.duration = Date.now() - startTime
@@ -251,30 +251,30 @@ class EmailTestRunner {
 		// Summary
 		this.logger.log('\n[METRICS] Summary:')
 		this.logger.log(
-			`   Total Tests: ${totalPassed + totalFailed + totalSkipped}`
+			` Total Tests: ${totalPassed + totalFailed + totalSkipped}`
 		)
-		this.logger.log(`   [OK] Passed: ${totalPassed}`)
-		this.logger.log(`   [ERROR] Failed: ${totalFailed}`)
-		this.logger.log(`   ⏭️  Skipped: ${totalSkipped}`)
-		this.logger.log(`   ⏱️  Duration: ${(totalDuration / 1000).toFixed(2)}s`)
+		this.logger.log(` [OK] Passed: ${totalPassed}`)
+		this.logger.log(` [ERROR] Failed: ${totalFailed}`)
+		this.logger.log(` ⏭️ Skipped: ${totalSkipped}`)
+		this.logger.log(` ⏱️ Duration: ${(totalDuration / 1000).toFixed(2)}s`)
 
 		const passRate = (totalPassed / (totalPassed + totalFailed)) * 100
-		this.logger.log(`   [STATS] Pass Rate: ${passRate.toFixed(1)}%`)
+		this.logger.log(` [STATS] Pass Rate: ${passRate.toFixed(1)}%`)
 
 		// Details by suite
 		this.logger.log('\n[REPORT] Test Suites:')
 		this.results.forEach(result => {
 			const icon = result.failed === 0 ? '[OK]' : '[ERROR]'
-			this.logger.log(`\n   ${icon} ${result.suite}`)
+			this.logger.log(`\n ${icon} ${result.suite}`)
 			this.logger.log(
-				`      Passed: ${result.passed}, Failed: ${result.failed}, Skipped: ${result.skipped}`
+				` Passed: ${result.passed}, Failed: ${result.failed}, Skipped: ${result.skipped}`
 			)
-			this.logger.log(`      Duration: ${(result.duration / 1000).toFixed(2)}s`)
+			this.logger.log(` Duration: ${(result.duration / 1000).toFixed(2)}s`)
 
 			if (result.errors.length > 0 && this.verbose) {
-				this.logger.log('      Errors:')
+				this.logger.log(' Errors:')
 				result.errors.forEach(error => {
-					this.logger.log(`         - ${error.substring(0, 100)}...`)
+					this.logger.log(` - ${error.substring(0, 100)}...`)
 				})
 			}
 		})
@@ -301,27 +301,27 @@ class EmailTestRunner {
 
 		coverageItems.forEach(item => {
 			const icon = item.covered ? '[OK]' : '[ERROR]'
-			this.logger.log(`   ${icon} ${item.name}`)
+			this.logger.log(` ${icon} ${item.name}`)
 		})
 
 		const coverage =
 			(coverageItems.filter(i => i.covered).length / coverageItems.length) * 100
-		this.logger.log(`   [STATS] Overall Coverage: ${coverage.toFixed(0)}%`)
+		this.logger.log(` [STATS] Overall Coverage: ${coverage.toFixed(0)}%`)
 
 		// Recommendations
 		this.logger.log('\n[TIP] Recommendations:')
 		if (totalFailed > 0) {
-			this.logger.log('   [WARNING]  Fix failing tests before deployment')
+			this.logger.log(' [WARNING] Fix failing tests before deployment')
 		}
 		if (passRate < 90) {
-			this.logger.log('   [WARNING]  Pass rate below 90%, investigate failures')
+			this.logger.log(' [WARNING] Pass rate below 90%, investigate failures')
 		}
 		if (coverage < 80) {
-			this.logger.log('   [WARNING]  Coverage below 80%, add more tests')
+			this.logger.log(' [WARNING] Coverage below 80%, add more tests')
 		}
 		if (this.results.some(r => r.duration > 30000)) {
 			this.logger.log(
-				'   [WARNING]  Some tests taking >30s, consider optimization'
+				' [WARNING] Some tests taking >30s, consider optimization'
 			)
 		}
 

@@ -1,6 +1,6 @@
 /**
  * Late Fees Service - Ultra-Native Pattern
- *
+
  * - NO ABSTRACTIONS: Direct Stripe API + Supabase calls
  * - KISS: Simple late fee calculation logic
  * - DRY: Reuse existing patterns from payment modules
@@ -91,7 +91,7 @@ export class LateFeesService {
 				leaseId
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			const { data: lease, error } = await client
@@ -172,7 +172,7 @@ export class LateFeesService {
 				}
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's rent payments
+			// RLS SECURITY: User-scoped client automatically filters to user's rent payments
 			const client = this.supabase.getUserClient(token)
 
 			// Update RentPayment to mark late fee applied
@@ -230,7 +230,7 @@ export class LateFeesService {
 				gracePeriodDays
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's rent payments
+			// RLS SECURITY: User-scoped client automatically filters to user's rent payments
 			const client = this.supabase.getUserClient(token)
 
 			const { data: payments, error } = await client
@@ -322,7 +322,7 @@ export class LateFeesService {
 				}
 			}
 
-			// ✅ RLS SECURITY: User-scoped client filters to authenticated user's data
+			// RLS SECURITY: User-scoped client filters to authenticated user's data
 			const client = this.supabase.getUserClient(token)
 
 			// Get Stripe customer ID from authenticated user
@@ -420,7 +420,7 @@ export class LateFeesService {
 				updateData.lateFeeAmount = config.flatFeeAmount ?? null
 			}
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			let updateResponse

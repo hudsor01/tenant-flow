@@ -31,7 +31,7 @@ type PaymentMethodType = 'card' | 'ach'
 
 /**
  * Current payment status for a tenant
- *
+
  * **All amounts in CENTS (Stripe standard)**
  */
 export interface CurrentPaymentStatus {
@@ -64,19 +64,19 @@ export class RentPaymentsService {
 
 	/**
 	 * CURRENCY CONVENTION: Normalize amount to CENTS for Stripe
-	 *
+
 	 * Accepts both dollar and cent inputs (backward compatibility):
 	 * - If amount < 1,000,000 → assume DOLLARS, convert to cents (amount * 100)
 	 * - If amount >= 1,000,000 → assume CENTS, use as-is
-	 *
+
 	 * Rationale: Threshold of 1M allows rents up to $9,999/month in dollar format
 	 * while supporting high-value properties (e.g., $5,000/month = 500,000 cents)
-	 *
+
 	 * Example:
 	 * - normalizeAmount(2500) → 250,000 cents ($2,500.00)
 	 * - normalizeAmount(5000) → 500,000 cents ($5,000.00)
 	 * - normalizeAmount(500000) → 500,000 cents ($5,000.00)
-	 *
+
 	 * @param amount - Amount in dollars (< 1000000) or cents (>= 1000000)
 	 * @returns Integer amount in CENTS for Stripe
 	 * @throws BadRequestException if amount is invalid or non-positive
@@ -105,7 +105,7 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * ✅ RLS COMPLIANT: Uses admin client for cross-user tenant context
+	 * RLS COMPLIANT: Uses admin client for cross-user tenant context
 	 * (Tenants need to be accessible by both tenant and owner)
 	 */
 	private async getTenantContext(tenantId: string) {
@@ -148,9 +148,9 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to lease context
+	 * AUTHORIZATION ENFORCED: Validates requesting user has access to lease context
 	 * Uses admin client for cross-user queries but enforces authorization checks
-	 *
+
 	 * @param leaseId - The lease ID to fetch context for
 	 * @param tenantId - The tenant ID associated with the lease
 	 * @param requestingUserId - The user making the request (for authorization)
@@ -419,7 +419,7 @@ export class RentPaymentsService {
 
 	/**
 	 * Get payment history for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
 	 */
 	async getPaymentHistory(token: string) {
 		if (!token) {
@@ -448,7 +448,7 @@ export class RentPaymentsService {
 
 	/**
 	 * Get subscription payment history for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
 	 */
 	async getSubscriptionPaymentHistory(subscriptionId: string, token: string) {
 		if (!token) {
@@ -458,7 +458,7 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		// ✅ RLS automatically validates subscription ownership
+		// RLS automatically validates subscription ownership
 		const { data: subscription, error: subscriptionError } = await client
 			.from('rent_subscription')
 			.select('id, ownerId')
@@ -469,7 +469,7 @@ export class RentPaymentsService {
 			throw new NotFoundException('Subscription not found')
 		}
 
-		// ✅ RLS automatically filters payments to user's scope
+		// RLS automatically filters payments to user's scope
 		const { data, error } = await client
 			.from('rent_payment')
 			.select(
@@ -493,7 +493,7 @@ export class RentPaymentsService {
 
 	/**
 	 * Get failed payment attempts for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
 	 */
 	async getFailedPaymentAttempts(token: string) {
 		if (!token) {
@@ -523,7 +523,7 @@ export class RentPaymentsService {
 
 	/**
 	 * Get subscription failed attempts for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
 	 */
 	async getSubscriptionFailedAttempts(subscriptionId: string, token: string) {
 		if (!token) {
@@ -533,7 +533,7 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		// ✅ RLS automatically validates subscription ownership
+		// RLS automatically validates subscription ownership
 		const { data: subscription, error: subscriptionError } = await client
 			.from('rent_subscription')
 			.select('id, ownerId')
@@ -544,7 +544,7 @@ export class RentPaymentsService {
 			throw new NotFoundException('Subscription not found')
 		}
 
-		// ✅ RLS automatically filters payments to user's scope
+		// RLS automatically filters payments to user's scope
 		const { data, error } = await client
 			.from('rent_payment')
 			.select(
@@ -569,7 +569,7 @@ export class RentPaymentsService {
 
 	/**
 	 * Setup autopay (recurring Stripe Subscription) for a Tenant's lease
-	 *
+
 	 * Official Stripe Pattern:
 	 * - Create Subscription with destination charges to Owner's connected account
 	 * - Use application_fee_percent for platform revenue
@@ -851,11 +851,11 @@ export class RentPaymentsService {
 	/**
 	 * Get current payment status for a tenant
 	 * Returns the current balance, next due date, and payment status
-	 *
+
 	 * Task 2.4: Payment Status Tracking
-	 *
-	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
-	 *
+
+	 * AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
+
 	 * IMPORTANT: All amounts use Stripe standard (CENTS, not dollars)
 	 * @param tenantId - The tenant ID to get payment status for
 	 * @param requestingUserId - The user making the request (for authorization)
@@ -870,7 +870,7 @@ export class RentPaymentsService {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
-			// ✅ Authorization check: Verify requesting user has access to this tenant
+			// Authorization check: Verify requesting user has access to this tenant
 			await this.verifyTenantAccess(requestingUserId, tenantId)
 
 			// Get tenant's active lease

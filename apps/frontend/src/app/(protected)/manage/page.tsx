@@ -8,7 +8,7 @@ import { SectionCards } from './SectionCards'
 import { TrendsSection } from './TrendsSection'
 
 export default async function DashboardPage() {
-	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	// Server-side auth - NO client flash, instant 307 redirect
 	await requireSession()
 
 	return (

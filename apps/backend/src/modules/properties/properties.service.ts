@@ -96,17 +96,17 @@ export class PropertiesService {
 		userToken: string,
 		query: { search?: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
-		// ✅ SECURITY FIX: Use user-scoped client (respects RLS with SUPABASE_PUBLISHABLE_KEY)
+		// SECURITY FIX: Use user-scoped client (respects RLS with SUPABASE_PUBLISHABLE_KEY)
 		const userClient = this.supabase.getUserClient(userToken)
 
 		let queryBuilder = userClient
 			.from('property')
 			.select('*')
-			// ✅ No manual ownerId filter needed - RLS automatically applies: WHERE ownerId = auth.uid()
+			// No manual ownerId filter needed - RLS automatically applies: WHERE ownerId = auth.uid()
 			.order('createdAt', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
 
-		// ✅ SECURITY: Already using safe multi-column search
+		// SECURITY: Already using safe multi-column search
 		if (query.search) {
 			const sanitized = sanitizeSearchInput(query.search)
 			if (sanitized) {
@@ -155,7 +155,7 @@ export class PropertiesService {
 
 	/**
 	 * Create property with validation
-	 * ✅ October 2025: Validation now handled by ZodValidationPipe in controller
+	 * October 2025: Validation now handled by ZodValidationPipe in controller
 	 */
 	async create(
 		req: Request,
@@ -167,7 +167,7 @@ export class PropertiesService {
 			throw new BadRequestException('Authentication required')
 		}
 
-		// ✅ NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
+		// NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
 		// RLS policy validates: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
 		// No need to query users table - just use the ID from the authenticated request
 		const ownerId = (req as AuthenticatedRequest).user.id
@@ -222,7 +222,7 @@ export class PropertiesService {
 			)
 		}
 
-		// 🚀 PERFORMANCE: Invalidate property stats cache after mutation
+		// PERFORMANCE: Invalidate property stats cache after mutation
 		await this.invalidatePropertyStatsCache(ownerId)
 
 		this.logger.log('Property created successfully', {
@@ -306,7 +306,7 @@ export class PropertiesService {
 				)
 			}
 
-			// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
+			// Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 			const errors: Array<{ row: number; error: string }> = []
 			const validRows: Array<
 				Database['public']['Tables']['property']['Insert']
@@ -483,7 +483,7 @@ export class PropertiesService {
 		// Build update object conditionally per exactOptionalPropertyTypes
 		const updateData: Database['public']['Tables']['property']['Update'] = {
 			updatedAt: new Date().toISOString(),
-			// 🔐 OPTIMISTIC LOCKING: Increment version on every update
+			// OPTIMISTIC LOCKING: Increment version on every update
 			version: (existing.version || 0) + 1
 		}
 
@@ -531,7 +531,7 @@ export class PropertiesService {
 			throw new BadRequestException('Failed to update property')
 		}
 
-		// 🚀 PERFORMANCE: Invalidate property stats cache after update
+		// PERFORMANCE: Invalidate property stats cache after update
 		const userId = (req as AuthenticatedRequest).user.id
 		await this.invalidatePropertyStatsCache(userId)
 
@@ -553,7 +553,7 @@ export class PropertiesService {
 
 		const client = this.supabase.getUserClient(token)
 		const userId = (req as AuthenticatedRequest).user.id
-		// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
+		// Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 
 		// Verify ownership through RLS
 		const existing = await this.findOne(req, propertyId)
@@ -661,7 +661,7 @@ export class PropertiesService {
 							status:
 								'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
 							updatedAt: new Date().toISOString(),
-							// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
+							// OPTIMISTIC LOCKING: Increment version on soft delete
 							version: (existing.version || 0) + 1
 						})
 						.eq('id', propertyId)
@@ -759,7 +759,7 @@ export class PropertiesService {
 			completedSteps: result.completedSteps
 		})
 
-		// 🚀 PERFORMANCE: Invalidate property stats cache after deletion
+		// PERFORMANCE: Invalidate property stats cache after deletion
 		await this.invalidatePropertyStatsCache(userId)
 
 		return { success: true, message: 'Property deleted successfully' }
@@ -782,7 +782,7 @@ export class PropertiesService {
 			return cached
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -845,7 +845,7 @@ export class PropertiesService {
 
 		let queryBuilder = client
 			.from('property')
-			// 🚀 PERFORMANCE FIX: Eager load nested relations to prevent N+1 queries
+			// PERFORMANCE FIX: Eager load nested relations to prevent N+1 queries
 			// Previously: .select('*, units:unit(*)')
 			// Now includes lease data on units to avoid 200+ additional queries
 			.select('*, units:unit(*, lease(*))')
@@ -902,7 +902,7 @@ export class PropertiesService {
 			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -948,7 +948,7 @@ export class PropertiesService {
 			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -990,7 +990,7 @@ export class PropertiesService {
 			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -1032,7 +1032,7 @@ export class PropertiesService {
 			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')

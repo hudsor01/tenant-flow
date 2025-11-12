@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 }
 
 export default async function PropertiesPage() {
-	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 
 const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
@@ -43,7 +43,7 @@ const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
 	let errorMessage: string | null = null
 
 	try {
-		// ✅ Production pattern: Server Component with explicit token
+		// Production pattern: Server Component with explicit token
 		const [propertiesData, statsData] = await Promise.all([
 			serverFetch<Property[]>('/api/v1/properties'),
 			serverFetch<PropertyStats>('/api/v1/properties/stats')

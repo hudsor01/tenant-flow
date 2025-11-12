@@ -7,17 +7,17 @@ Integration tests verify end-to-end functionality with real backend APIs and aut
 ```
 tests/integration/
 ├── hooks/
-│   └── api/
-│       └── use-property-images.test.tsx    # Property image upload/delete lifecycle
+│ └── api/
+│ └── use-property-images.test.tsx # Property image upload/delete lifecycle
 └── README.md
 ```
 
 ## Requirements
 
-- ✅ **Running backend** (Railway or local)
-- ✅ **Valid authentication session**
-- ✅ **Doppler secrets** configured
-- ✅ **Database access**
+- **Running backend** (Railway or local)
+- **Valid authentication session**
+- **Doppler secrets** configured
+- **Database access**
 
 ## Running Integration Tests
 
@@ -53,14 +53,14 @@ doppler run -- pnpm --filter @repo/frontend test:integration
 
 ## When to Write Integration Tests
 
-✅ **Do write integration tests for:**
+ **Do write integration tests for:**
 - Multi-step workflows (upload → verify → delete)
 - External service integration (Supabase, Stripe)
 - Complex state management across components
 - File upload/download flows
 - Payment processing
 
-❌ **Don't write integration tests for:**
+ **Don't write integration tests for:**
 - Component rendering (use unit tests)
 - Form validation logic (use unit tests)
 - UI interactions (use unit tests)
@@ -71,11 +71,11 @@ doppler run -- pnpm --filter @repo/frontend test:integration
 ```yaml
 # Unit tests run on every PR
 test:
-  - pnpm test:unit
+ - pnpm test:unit
 
 # Integration tests run before deploy
 pre-deploy:
-  - doppler run -- pnpm test:integration
+ - doppler run -- pnpm test:integration
 ```
 
 ## Best Practices
@@ -91,29 +91,29 @@ pre-deploy:
 
 ```typescript
 describe('Property Image Upload Integration', () => {
-  let testPropertyId: string
+ let testPropertyId: string
 
-  // Setup: Create real property
-  beforeAll(async () => {
-    const property = await createProperty({
-      name: `Test ${Date.now()}`,
-      // ...
-    })
-    testPropertyId = property.id
-  })
+ // Setup: Create real property
+ beforeAll(async () => {
+ const property = await createProperty({
+ name: `Test ${Date.now()}`,
+ // ...
+ })
+ testPropertyId = property.id
+ })
 
-  // Cleanup: Delete property
-  afterAll(async () => {
-    await deleteProperty(testPropertyId)
-  })
+ // Cleanup: Delete property
+ afterAll(async () => {
+ await deleteProperty(testPropertyId)
+ })
 
-  it('should upload and delete image', async () => {
-    // Real API calls, real file upload
-    const uploaded = await uploadImage(testPropertyId, file)
-    expect(uploaded.url).toBeDefined()
+ it('should upload and delete image', async () => {
+ // Real API calls, real file upload
+ const uploaded = await uploadImage(testPropertyId, file)
+ expect(uploaded.url).toBeDefined()
 
-    await deleteImage(uploaded.id)
-    // Verify deletion
-  })
+ await deleteImage(uploaded.id)
+ // Verify deletion
+ })
 })
 ```

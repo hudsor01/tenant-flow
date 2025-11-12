@@ -1,10 +1,10 @@
 /**
  * SUPABASE AUTH WEBHOOK CONTROLLER (Phase 3.1)
- * 
+
  * Handles Supabase Auth webhooks for user confirmation events
  * When tenant clicks invitation link and confirms email, this endpoint is called
  * to automatically activate the tenant record.
- * 
+
  * ULTRA-NATIVE ARCHITECTURE:
  * - Uses built-in NestJS decorators and pipes
  * - No custom abstractions
@@ -72,7 +72,7 @@ export class AuthWebhookController {
 	/**
 	 * Verify Standard Webhooks signature using native Node.js crypto
 	 * Implements https://www.standardwebhooks.com/ specification
-	 * 
+
 	 * @param rawBody - Raw request body as string
 	 * @param signature - webhook-signature header (format: v1,base64signature)
 	 * @param timestamp - webhook-timestamp header (UNIX timestamp)
@@ -128,10 +128,10 @@ export class AuthWebhookController {
 	}
 
 	/**
-	 * ✅ Supabase Auth Webhook Handler
+	 * Supabase Auth Webhook Handler
 	 * Called when user confirms email (clicks invitation link)
 	 * Automatically activates tenant record
-	 * 
+
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
 	 * SECURITY: Verifies webhook signature using Standard Webhooks spec
 	 */

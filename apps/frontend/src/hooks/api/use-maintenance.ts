@@ -189,7 +189,7 @@ export function useUpdateMaintenanceRequest() {
 		}): Promise<MaintenanceRequest> => {
 			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
 				method: 'PUT',
-				// 🔐 OPTIMISTIC LOCKING: Include version if provided
+				// OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
 					version !== null && version !== undefined
 						? withVersion(data, version)
@@ -232,7 +232,7 @@ export function useUpdateMaintenanceRequest() {
 				queryClient.setQueryData(maintenanceKeys.detail(id), context.previous)
 			}
 
-			// 🔐 Handle 409 Conflict using helper
+			// Handle 409 Conflict using helper
 			if (isConflictError(_err)) {
 				handleConflictError('maintenance request', id, queryClient, [
 					maintenanceKeys.detail(id),
