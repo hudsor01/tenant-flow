@@ -207,7 +207,9 @@ export function useReports({
 		mutationFn: async (reportId: string): Promise<void> => {
 			// For blob downloads, we can't use clientFetch (it calls .json())
 			// But we still need to add Authorization header manually
-			const supabase = (await import('#lib/supabase/client')).createClient()
+			const supabase = (
+				await import('@repo/shared/lib/supabase-client')
+			).getSupabaseClientInstance()
 
 			// SECURITY FIX: Validate user with getUser() before extracting token
 			const {

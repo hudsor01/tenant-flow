@@ -174,7 +174,7 @@ export function isApiError(error: unknown): error is ApiError {
  * Log error in development mode only
  */
 export function logErrorInDev(error: unknown, context?: string) {
-	if (process.env.NODE_ENV === 'development') {
+	if (process.env["NODE_ENV"] === 'development') {
 		const prefix = context ? `[${context}]` : '[API Error]'
 		if (isApiError(error)) {
 			devLogger.error(prefix, { metadata: error.toJSON() })

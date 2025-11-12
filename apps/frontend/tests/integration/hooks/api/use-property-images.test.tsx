@@ -22,6 +22,9 @@ import {
 } from '../use-properties'
 import type { ReactNode } from 'react'
 import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UsePropertyImagesTest' })
 
 // Type for the property image upload response
 type PropertyImageUploadResult = {
@@ -248,7 +251,9 @@ describe('Property Image Upload Integration', () => {
 				propertyId: testPropertyId
 			})
 		} catch (error) {
-			console.warn('Failed to cleanup uploaded images:', error)
+			logger.warn('Failed to cleanup uploaded images', {
+				metadata: { error: error instanceof Error ? error.message : String(error) }
+			})
 		}
 	})
 

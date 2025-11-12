@@ -1,21 +1,74 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Shared Package Config (October 2025)",
-	"extends": "../typescript-config/library.json",
 	"compilerOptions": {
-		"composite": true,
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"baseUrl": ".",
+		"paths": {
+			"@repo/shared/*": ["./src/*"]
+		},
 		"outDir": "./dist",
 		"rootDir": "./src",
-		"baseUrl": ".",
-		"tsBuildInfoFile": "./dist/.tsbuildinfo"
+
+		// Type checking
+		"strict": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"forceConsistentCasingInFileNames": true,
+
+		// Module and emit options
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"removeComments": false,
+		"importHelpers": true,
+		"importsNotUsedAsValues": "remove",
+
+		// Interop constraints
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"preserveConstEnums": true,
+		"skipLibCheck": true,
+
+		// Performance optimizations
+		"incremental": true,
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"composite": true,
+
+		// Advanced features
+		"useDefineForClassFields": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"resolveJsonModule": true,
+
+		// Strictest settings for type safety
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitAny": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitOverride": true,
+		"useUnknownInCatchVariables": true,
+		"noPropertyAccessFromIndexSignature": false
 	},
-	"include": ["src/**/*"],
+	"include": [
+		"src/**/*"
+	],
 	"exclude": [
 		"node_modules",
 		"dist",
+		"**/__tests__/**",
+		"**/test/**",
 		"**/*.test.ts",
-		"**/*.spec.ts",
-		"src/types/frontend-only.ts",
-		"vitest.config.ts"
+		"**/*.spec.ts"
+	],
+	"references": [
+		{ "path": "../database/tsconfig.json" }
 	]
 }

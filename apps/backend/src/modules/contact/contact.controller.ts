@@ -6,6 +6,7 @@ import {
 	Post,
 	SetMetadata
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import type { ContactFormResponse } from '@repo/shared/types/domain'
 import { ContactService } from './contact.service'
 import { ContactFormDto } from './dto/contact-form.dto'
@@ -14,6 +15,7 @@ import { ContactFormDto } from './dto/contact-form.dto'
 export class ContactController {
 	constructor(private readonly contactService: ContactService) {}
 
+	@Throttle({ default: { ttl: 60000, limit: 5 } })
 	@Post()
 	@SetMetadata('isPublic', true) // Contact forms should be publicly accessible
 	@HttpCode(HttpStatus.OK)

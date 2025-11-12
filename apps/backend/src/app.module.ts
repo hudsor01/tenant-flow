@@ -7,6 +7,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { PrometheusModule } from '@willsoto/nestjs-prometheus'
 import { ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
 import { ZodValidationPipe } from 'nestjs-zod'
@@ -144,6 +145,10 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		{
 			provide: APP_PIPE,
 			useClass: ZodValidationPipe
+		},
+		{
+			provide: APP_GUARD,
+			useClass: ThrottlerProxyGuard
 		},
 		{
 			provide: APP_GUARD,

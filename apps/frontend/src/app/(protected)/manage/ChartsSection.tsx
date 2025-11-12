@@ -8,6 +8,7 @@ import type {
 	OccupancyTrendResponse,
 	RevenueTrendResponse
 } from '@repo/shared/types/database-rpc'
+import { logger } from '@repo/shared/lib/frontend-logger'
 
 const OccupancyTrendsAreaChart = dynamic(
 	() =>
@@ -76,8 +77,12 @@ export function ChartsSection() {
 					const revenueResult = await revenueResponse.json()
 					setRevenueData(revenueResult.data)
 				}
-			} catch {
-				// TODO: Add structured logging
+			} catch (error) {
+				logger.error('Failed to fetch chart data', {
+					component: 'ChartsSection',
+					operation: 'fetchChartData',
+					error: error instanceof Error ? error.message : 'Unknown error'
+				})
 			} finally {
 				setIsLoading(false)
 			}

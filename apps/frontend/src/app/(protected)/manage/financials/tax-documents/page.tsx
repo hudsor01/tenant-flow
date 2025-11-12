@@ -115,13 +115,13 @@ const TaxDocumentsPage = ({
 				}
 
 				const parsedData = data as TaxDocumentsData
-				
+
 				// Import tax documents via API
 				await clientFetch('/api/v1/financials/tax-documents', {
 					method: 'POST',
 					body: JSON.stringify(parsedData)
 				})
-				
+
 				const importYear =
 					typeof parsedData.taxYear === 'number'
 						? parsedData.taxYear
@@ -228,7 +228,7 @@ const TaxDocumentsPage = ({
 									${category.amount.toLocaleString()}
 								</div>
 								<div
-									className={`text-sm ${category.deductible ? 'text-green-600' : 'text-red-600'}`}
+									className={`text-sm ${category.deductible ? 'text-success' : 'text-destructive'}`}
 								>
 									{category.deductible ? 'Deductible' : 'Not Deductible'}
 								</div>
@@ -292,7 +292,7 @@ const TaxDocumentsPage = ({
 										</div>
 										<div>
 											<div className="text-gray-500">Annual Depreciation</div>
-											<div className="font-semibold text-green-600">
+											<div className="font-semibold text-success">
 												${property.annualDepreciation.toLocaleString()}
 											</div>
 										</div>
@@ -380,7 +380,7 @@ const TaxDocumentsPage = ({
 			<div className="p-6">
 				<Card>
 					<CardContent className="p-8 text-center">
-						<div className="text-red-600 mb-4">
+						<div className="text-destructive mb-4">
 							<FileText className="w-12 h-12 mx-auto" />
 						</div>
 						<h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -473,10 +473,10 @@ const TaxDocumentsPage = ({
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Income</CardTitle>
-						<DollarSign className="h-4 w-4 text-green-600" />
+						<DollarSign className="h-4 w-4 text-success" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-green-600">
+						<div className="text-2xl font-bold text-success">
 							${taxData.totals.totalIncome.toLocaleString()}
 						</div>
 						<p className="text-xs text-muted-foreground">
@@ -489,10 +489,10 @@ const TaxDocumentsPage = ({
 						<CardTitle className="text-sm font-medium">
 							Total Deductions
 						</CardTitle>
-						<FileText className="h-4 w-4 text-red-600" />
+						<FileText className="h-4 w-4 text-destructive" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-red-600">
+						<div className="text-2xl font-bold text-destructive">
 							${taxData.totals.totalDeductions.toLocaleString()}
 						</div>
 						<p className="text-xs text-muted-foreground">
@@ -509,7 +509,7 @@ const TaxDocumentsPage = ({
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${taxData.totals.netTaxableIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+							className={`text-2xl font-bold ${taxData.totals.netTaxableIncome >= 0 ? 'text-success' : 'text-destructive'}`}
 						>
 							${Math.abs(taxData.totals.netTaxableIncome).toLocaleString()}
 						</div>
@@ -538,7 +538,7 @@ const TaxDocumentsPage = ({
 						</div>
 						<div className="p-4 bg-gray-50 rounded-lg">
 							<div className="text-sm text-gray-600">Total Expenses</div>
-							<div className="text-xl font-bold text-red-600">
+							<div className="text-xl font-bold text-destructive">
 								${taxData.incomeBreakdown.totalExpenses.toLocaleString()}
 							</div>
 						</div>
@@ -553,21 +553,21 @@ const TaxDocumentsPage = ({
 					<Separator />
 
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div className="p-4 bg-blue-50 rounded-lg">
+						<div className="p-4 bg-info/5 rounded-lg">
 							<div className="text-sm text-gray-600">Depreciation</div>
-							<div className="text-xl font-bold text-green-600">
+							<div className="text-xl font-bold text-success">
 								${taxData.incomeBreakdown.depreciation.toLocaleString()}
 							</div>
 						</div>
-						<div className="p-4 bg-blue-50 rounded-lg">
+						<div className="p-4 bg-info/5 rounded-lg">
 							<div className="text-sm text-gray-600">Mortgage Interest</div>
 							<div className="text-xl font-bold">
 								${taxData.incomeBreakdown.mortgageInterest.toLocaleString()}
 							</div>
 						</div>
-						<div className="p-4 bg-green-50 rounded-lg">
+						<div className="p-4 bg-success/5 rounded-lg">
 							<div className="text-sm text-gray-600">Taxable Income</div>
-							<div className="text-xl font-bold text-green-600">
+							<div className="text-xl font-bold text-success">
 								${taxData.incomeBreakdown.taxableIncome.toLocaleString()}
 							</div>
 						</div>
@@ -686,7 +686,7 @@ const TaxDocumentsPage = ({
 							<div className="p-4 rounded-lg bg-gray-50">
 								<div className="text-sm text-gray-600">Net Taxable Income</div>
 								<div
-									className={`text-xl font-semibold ${taxData.totals.netTaxableIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+									className={`text-xl font-semibold ${taxData.totals.netTaxableIncome >= 0 ? 'text-success' : 'text-destructive'}`}
 								>
 									${Math.abs(taxData.totals.netTaxableIncome).toLocaleString()}
 								</div>
@@ -760,7 +760,7 @@ const TaxDocumentsPage = ({
 														${category.amount.toLocaleString()}
 													</div>
 													<div
-														className={`text-xs ${category.deductible ? 'text-green-600' : 'text-red-600'}`}
+														className={`text-xs ${category.deductible ? 'text-success' : 'text-destructive'}`}
 													>
 														{category.deductible
 															? 'Deductible'

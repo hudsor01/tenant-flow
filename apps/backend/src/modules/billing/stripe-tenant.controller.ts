@@ -5,11 +5,13 @@ import {
 	Delete,
 	Get,
 	Param,
+	ParseUUIDPipe,
 	Post,
 	Request,
 	UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeTenantService } from './stripe-tenant.service'
 
@@ -29,6 +31,7 @@ export class StripeTenantController {
 	 * POST /api/v1/stripe/tenant/create-customer
 	 */
 	@Post('create-customer')
+	@UseGuards(PropertyOwnershipGuard)
 	async createCustomer(
 		@Request() _req: AuthenticatedRequest,
 		@Body()
@@ -99,7 +102,7 @@ export class StripeTenantController {
 	@Get('payment-methods/:tenantId')
 	async listPaymentMethods(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId') tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	) {
 		const paymentMethods =
 			await this.stripeTenantService.listPaymentMethods(tenantId)
@@ -116,7 +119,7 @@ export class StripeTenantController {
 	@Get('default-payment-method/:tenantId')
 	async getDefaultPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId') tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	) {
 		const paymentMethod =
 			await this.stripeTenantService.getDefaultPaymentMethod(tenantId)

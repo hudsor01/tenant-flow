@@ -74,13 +74,15 @@ export default async function RootLayout({
 				<SeoJsonLd />
 			</head>
 			<body
-				className={`${splineSans.variable} ${jetbrainsMono.variable} font-sans`}
+				className={`${splineSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}
 			>
 				<Providers initialThemeMode={initialThemeMode}>
-					<ErrorBoundary>{children}</ErrorBoundary>
-					{/* Register service worker silently for performance/offline */}
-					<RegisterServiceWorker />
-					<Toaster position="top-right" richColors closeButton />
+					<div className="min-h-screen bg-background text-foreground flex flex-col">
+						<ErrorBoundary>{children}</ErrorBoundary>
+						{/* Register service worker silently for performance/offline */}
+						<RegisterServiceWorker />
+						<Toaster position="top-right" richColors closeButton />
+					</div>
 				</Providers>
 				<Analytics />
 				<SpeedInsights />

@@ -1,13 +1,13 @@
 'use client'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 
-const supabaseClient = createClient()
+const supabaseClient = getSupabaseClientInstance()
 const logger = createLogger({ component: 'AuthProvider' })
 
 export const authQueryKeys = {
@@ -95,11 +95,33 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				error
 			} = await supabaseClient.auth.getUser()
 			if (error) {
-				logger.error('Failed to get auth user', {
-					action: 'get_user_error',
-					metadata: { error: error.message }
-				})
-				// Don't throw - user might not be authenticated
+				const errorStatus =
+					typeof error === 'object' &&
+					error !== null &&
+					'status' in error &&
+					typeof (error as { status?: number }).status === 'number'
+						? (error as { status?: number }).status
+						: undefined
+				const errorMessage =
+					typeof error === 'object' && error !== null && 'message' in error
+						? String((error as { message?: string }).message ?? '')
+						: ''
+
+				const isUnauthenticated =
+					errorStatus === 401 || /auth session/i.test(errorMessage)
+
+				if (isUnauthenticated) {
+					logger.debug('No active auth session', {
+						action: 'get_user_missing_session',
+						metadata: { message: errorMessage }
+					})
+				} else {
+					logger.error('Failed to get auth user', {
+						action: 'get_user_error',
+						metadata: { error: errorMessage }
+					})
+				}
+				// Don't throw - user might not be authenticated or the session expired
 				return null
 			}
 			return user

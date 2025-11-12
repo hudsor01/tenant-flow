@@ -196,7 +196,7 @@
 		"@repo/backend#test:unit": {
 			"dependsOn": ["^build"],
 			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
-			"outputs": ["coverage/**"],
+			"outputs": [],
 			"env": [
 				"STRIPE_SECRET_KEY",
 				"STRIPE_WEBHOOK_SECRET",
@@ -246,7 +246,7 @@
 				"vitest.config.js",
 				"package.json"
 			],
-			"outputs": ["coverage/**"],
+			"outputs": [],
 			"env": ["NEXT_PUBLIC_*"],
 			"cache": true,
 			"persistent": false

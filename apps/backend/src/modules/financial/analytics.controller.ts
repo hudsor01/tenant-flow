@@ -9,15 +9,13 @@ import {
 } from '@nestjs/common'
 import type {
 	DashboardSummary,
+	ExpenseRecord,
 	FinancialMetrics,
 	Lease,
 	PropertyFinancialMetrics
 } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase'
-import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
-
-type ExpenseRecord = Tables<'expense'>
+import type { Request } from 'express'
 
 /**
  * Financial Analytics Controller - Ultra-Native Implementation

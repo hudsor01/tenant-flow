@@ -1,5 +1,6 @@
 import type { Lease, LeaseStats, QueryParams, RentPayment } from './core.js'
 import type { Database } from './supabase-generated.js'
+import type { BaseRepository } from './repository-base.js'
 
 export type LeaseInput = Database['public']['Tables']['lease']['Insert']
 export type LeaseUpdate = Database['public']['Tables']['lease']['Update']
@@ -12,16 +13,14 @@ export interface LeaseQueryOptions extends QueryParams {
 	endDate?: Date
 }
 
-export interface LeasesRepositoryContract {
+export interface LeasesRepositoryContract
+	extends BaseRepository<Lease, LeaseInput, LeaseUpdate, LeaseQueryOptions> {
 	findByUserIdWithSearch(
 		userId: string,
 		options: LeaseQueryOptions
 	): Promise<Lease[]>
-	findById(leaseId: string): Promise<Lease | null>
 	findByPropertyId(propertyId: string): Promise<Lease[]>
 	findByTenantId(tenantId: string): Promise<Lease[]>
-	create(userId: string, leaseData: LeaseInput): Promise<Lease>
-	update(leaseId: string, leaseData: LeaseUpdate): Promise<Lease | null>
 	softDelete(
 		userId: string,
 		leaseId: string

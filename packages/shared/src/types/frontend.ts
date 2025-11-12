@@ -3,7 +3,6 @@
  * These are UI component and frontend utility types
  */
 
-import type * as React from 'react'
 import type { PlanId, PricingConfig } from '../config/pricing.js'
 import type { Database, Property, Tenant } from './core.js'
 

@@ -36,6 +36,10 @@ import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'UseUnitsCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_UNIT_PREFIX = 'TEST-CRUD'
 let createdUnitIds: string[] = []
@@ -78,7 +82,7 @@ async function createTestProperty(): Promise<string> {
 	return property.id
 }
 
-describe('Units CRUD Integration Tests', () => {
+describeIfReady('Units CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables

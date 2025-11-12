@@ -4,11 +4,12 @@ import {
 	Delete,
 	Get,
 	Param,
-	ParseUUIDPipe,
 	Patch,
-	Request
+	Request,
+	UseGuards
 } from '@nestjs/common'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PaymentMethodsService } from './payment-methods.service'
 
 interface AuthenticatedRequest extends Request {
@@ -19,6 +20,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 @Controller('payment-methods')
+@UseGuards(JwtAuthGuard)
 export class PaymentMethodsController {
 	constructor(private readonly paymentMethodsService: PaymentMethodsService) {}
 
@@ -31,11 +33,7 @@ export class PaymentMethodsController {
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user?.id
-
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
+		const userId = req.user!.id
 
 		const paymentMethods = await this.paymentMethodsService.listPaymentMethods(
 			token,
@@ -53,12 +51,12 @@ export class PaymentMethodsController {
 	async setDefaultPaymentMethod(
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) paymentMethodId: string
+		@Param('id') paymentMethodId: string
 	) {
-		const userId = req.user?.id
+		const userId = req.user!.id
 
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		return this.paymentMethodsService.setDefaultPaymentMethod(
@@ -76,12 +74,12 @@ export class PaymentMethodsController {
 	async deletePaymentMethod(
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) paymentMethodId: string
+		@Param('id') paymentMethodId: string
 	) {
-		const userId = req.user?.id
+		const userId = req.user!.id
 
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		return this.paymentMethodsService.deletePaymentMethod(

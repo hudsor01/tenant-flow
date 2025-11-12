@@ -8,14 +8,13 @@ import { type NextRequest } from 'next/server'
  * This is a cosmetic Vercel monorepo build warning that does NOT affect functionality.
  * Middleware works correctly in production. See CLAUDE.md Deployment section for details.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	// Update session with production-ready auth, payment gating, and role-based redirects
 	return await updateSession(request)
 }
 
 export const config = {
-	runtime: 'nodejs', // REQUIRED: Supabase SSR is incompatible with Edge Runtime
-	matcher: [
+    matcher: [
 		/*
 		 * Match all request paths except for the ones starting with:
 		 * - _next/static (static files)

@@ -9,7 +9,8 @@ import {
 	getActivityBadgeClass,
 	getActivityColorClass
 } from '#lib/utils/color-helpers'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Activity } from '@repo/shared/types/activity'
+import type { ActivityEntityType } from '@repo/shared/types/core'
 import { formatDistanceToNow } from 'date-fns'
 import {
 	CheckCircle,
@@ -20,11 +21,9 @@ import {
 	Wrench
 } from 'lucide-react'
 
-type Activity = Tables<'activity'>
-
 // Type assertion to handle Supabase entityType as enum
 type ActivityWithEnum = Omit<Activity, 'entityType'> & {
-	entityType: import('@repo/shared/types/supabase-generated').Database['public']['Enums']['ActivityEntityType']
+	entityType: ActivityEntityType
 }
 
 // Modern helpers - assume valid inputs

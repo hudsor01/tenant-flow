@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 
 import { Button } from '#components/ui/button'
 import { safeDom } from '#lib/dom-utils'
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { API_BASE_URL } from '#lib/api-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
@@ -28,7 +28,7 @@ const formatConfig: Record<
 }
 
 async function fetchAccessToken(): Promise<string | null> {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	// SECURITY FIX: Validate user with getUser() before extracting token
 	const {
