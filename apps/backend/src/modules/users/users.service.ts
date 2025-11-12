@@ -83,7 +83,12 @@ export class UsersService {
 		userData: UserInsert
 	): Promise<Database['public']['Tables']['users']['Row']> {
 		return await queryMutation<Database['public']['Tables']['users']['Row']>(
-			this.supabase.getAdminClient().from('users').insert(userData).select().single(),
+			this.supabase
+				.getAdminClient()
+				.from('users')
+				.insert(userData)
+				.select(SAFE_USERS_COLUMNS)
+				.single(),
 			{
 				resource: 'user',
 				operation: 'create',
@@ -102,7 +107,7 @@ export class UsersService {
 				.from('users')
 				.update(userData)
 				.eq('id', userId)
-				.select()
+				.select(SAFE_USERS_COLUMNS)
 				.single(),
 			{
 				resource: 'user',
