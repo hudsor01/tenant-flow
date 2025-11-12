@@ -25,6 +25,7 @@ import type { CreateUnitDto } from './dto/create-unit.dto'
 import type { UpdateUnitDto } from './dto/update-unit.dto'
 import {
 	querySingle,
+	queryList,
 	queryMutation
 } from '../../shared/database/supabase-query-helpers'
 
@@ -152,86 +153,56 @@ export class UnitsService {
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async getStats(token: string): Promise<UnitStats> {
-		try {
-			if (!token) {
-				this.logger.warn('Unit stats requested without token')
-				throw new BadRequestException('Authentication token is required')
-			}
-
-			this.logger.log('Getting unit stats via RLS-protected query')
-
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
-			const client = this.supabase.getUserClient(token)
-
-			// Get total units count (RLS automatically scopes to user's units)
-			const { count: totalCount, error: countError } = await client
-				.from('unit')
-				.select('*', { count: 'exact', head: true })
-
-			if (countError) {
-				this.logger.error('Failed to get total unit count', {
-					error: countError.message
-				})
-				throw new BadRequestException('Failed to get unit statistics')
-			}
-
-			// Get units by status (RLS automatically scopes to user's units)
-			const { data: statusData, error: statusError } = await client
-				.from('unit')
-				.select('status, rent')
-
-			if (statusError) {
-				this.logger.error('Failed to get unit status data', {
-					error: statusError.message
-				})
-				throw new BadRequestException('Failed to get unit statistics')
-			}
-
-			// Calculate statistics
-			type UnitStatusData = {
-				status: Database['public']['Enums']['UnitStatus']
-				rent: number
-			}
-			const occupiedCount = statusData.filter(
-				(u: UnitStatusData) => u.status === 'OCCUPIED'
-			).length
-			const vacantCount = statusData.filter(
-				(u: UnitStatusData) => u.status === 'VACANT'
-			).length
-			const maintenanceCount = statusData.filter(
-				(u: UnitStatusData) => u.status === 'MAINTENANCE'
-			).length
-
-			const totalRent = statusData.reduce(
-				(sum: number, unit: UnitStatusData) => sum + (unit.rent || 0),
-				0
-			)
-			const averageRent =
-				statusData.length > 0 ? totalRent / statusData.length : 0
-			const occupancyRate =
-				totalCount && totalCount > 0
-					? Math.round((occupiedCount / totalCount) * 100)
-					: 0
-
-			return {
-				total: totalCount || 0,
-				occupied: occupiedCount,
-				vacant: vacantCount,
-				maintenance: maintenanceCount,
-				available: vacantCount,
-				occupancyRate,
-				averageRent,
-				totalPotentialRent: totalRent,
-				totalActualRent: occupiedCount * averageRent
-			} as UnitStats
-		} catch (error) {
-			this.logger.error('Units service failed to get stats', {
-				error: error instanceof Error ? error.message : String(error)
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get unit statistics'
-			)
+		if (!token) {
+			this.logger.warn('Unit stats requested without token')
+			throw new BadRequestException('Authentication token is required')
 		}
+
+		this.logger.log('Getting unit stats via RLS-protected query')
+
+		// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+		const client = this.supabase.getUserClient(token)
+
+		// PERF-002: Optimized to single query instead of 2 sequential queries
+		// Get units by status and rent with count in one query (RLS automatically scopes to user's units)
+		const { data: statusData, count: totalCount } = await queryList<{
+			status: Database['public']['Enums']['UnitStatus']
+			rent: number
+		}>(
+			client.from('unit').select('status, rent', { count: 'exact' }),
+			{
+				resource: 'units',
+				operation: 'fetch stats',
+				logger: this.logger
+			}
+		)
+
+		// Calculate statistics client-side
+		// (Database aggregation would require RPC function, keeping simple for now)
+		const occupiedCount = statusData.filter(u => u.status === 'OCCUPIED').length
+		const vacantCount = statusData.filter(u => u.status === 'VACANT').length
+		const maintenanceCount = statusData.filter(
+			u => u.status === 'MAINTENANCE'
+		).length
+
+		const totalRent = statusData.reduce((sum, unit) => sum + (unit.rent || 0), 0)
+		const averageRent = statusData.length > 0 ? totalRent / statusData.length : 0
+		const occupancyRate =
+			totalCount && totalCount > 0
+				? Math.round((occupiedCount / totalCount) * 100)
+				: 0
+
+		return {
+			total: totalCount || 0,
+			occupied: occupiedCount,
+			vacant: vacantCount,
+			maintenance: maintenanceCount,
+			available: vacantCount,
+			occupancyRate,
+			averageRent,
+			totalPotentialRent: totalRent,
+			totalActualRent: occupiedCount * averageRent
+		} as UnitStats
 	}
 
 	/**
