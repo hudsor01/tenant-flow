@@ -1,58 +1,19 @@
 'use client'
-import { GridPattern } from '#components/ui/grid-pattern'
+
 import { FaqsAccordion } from '#app/faq/faq-accordion'
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
+import { GridPattern } from '#components/ui/grid-pattern'
+import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
-import { useFAQs } from '#hooks/api/use-faq'
-import type { FAQQuestion } from '@repo/shared/types/faq'
 
 export default function FAQPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
-	const { data: faqs, isLoading, error, refetch } = useFAQs()
 
-	// Show loading state
-	if (isLoading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-					<p className="text-muted-foreground">Loading FAQs...</p>
-				</div>
-			</div>
-		)
-	}
-
-	// Show error state
-	if (error) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="text-center space-y-4">
-					<h1 className="text-2xl font-bold text-destructive mb-4">
-						Failed to load FAQs
-					</h1>
-					<p className="text-muted-foreground">
-						Unable to load FAQ content. Please try again.
-					</p>
-					<Button onClick={() => refetch()} variant="outline">
-						Retry
-					</Button>
-				</div>
-			</div>
-		)
-	}
-
-	// Transform API data to match the expected format for the accordion
-	const faqCategories =
-		faqs?.map(category => ({
-			category: category.name,
-			questions: category.questions.map((q: FAQQuestion) => ({
-				question: q.question,
-				answer: q.answer
-			}))
-		})) || []
+	// Use static FAQ data
+	const faqCategories = faqData
 
 	// FAQ Schema for Google rich snippets - flatten all questions
 	const allQuestions = faqCategories.flatMap(category =>
@@ -129,7 +90,7 @@ export default function FAQPage() {
 			/>
 
 			{/* FAQ Section */}
-			<section className="section-hero">
+			<section className="section-spacing">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
 					{faqCategories.length === 0 && (
 						<div className="py-8 text-center text-muted-foreground">
@@ -149,7 +110,7 @@ export default function FAQPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-content bg-primary">
+			<section className="section-spacing bg-primary">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 					<h2 className="text-4xl font-bold text-primary-foreground mb-4">
 						Still have questions?

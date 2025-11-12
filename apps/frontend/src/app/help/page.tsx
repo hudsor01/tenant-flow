@@ -55,8 +55,8 @@ export default function HelpPage() {
 					}}
 				/>
 
-				{/* Support Options */}
-				<section className="section-hero">
+			{/* Support Options */}
+			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">
@@ -165,8 +165,8 @@ export default function HelpPage() {
 					</div>
 				</section>
 
-				{/* Success Stories */}
-				<section className="section-hero bg-muted/20">
+			{/* Success Stories */}
+			<section className="section-spacing bg-muted/20">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">
@@ -254,8 +254,8 @@ export default function HelpPage() {
 					</div>
 				</section>
 
-				{/* Popular Resources */}
-				<section className="section-hero">
+			{/* Popular Resources */}
+			<section className="section-spacing">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">Popular resources</h2>
@@ -319,8 +319,8 @@ export default function HelpPage() {
 					</div>
 				</section>
 
-				{/* CTA Section */}
-				<section className="section-content bg-primary">
+			{/* CTA Section */}
+			<section className="section-spacing bg-primary">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 						<h2 className="text-4xl font-bold text-primary-foreground mb-4">
 							Ready to stop losing money?
