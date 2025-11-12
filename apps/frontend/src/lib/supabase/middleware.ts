@@ -77,7 +77,7 @@ export async function updateSession(request: NextRequest) {
 			const claims = await verifyJwtToken(accessToken)
 
 			if (claims) {
-				// ✅ SECURITY: Validate required JWT claims before trusting token
+				// SECURITY: Validate required JWT claims before trusting token
 				const userId = getStringClaim(claims, 'sub')
 				const userEmail = getStringClaim(claims, 'email')
 
@@ -95,7 +95,7 @@ export async function updateSession(request: NextRequest) {
 				// Extract complete user info from verified JWT claims
 				// Map JWT claims to Supabase User type fields
 
-				// ✅ SECURITY FIX: Use deterministic timestamps from JWT (not Date.now())
+				// SECURITY FIX: Use deterministic timestamps from JWT (not Date.now())
 				// Timestamps: Convert UNIX epoch (seconds) to ISO string
 				// IMPORTANT: Always use JWT's 'iat' (issued at) claim, never Date.now()
 				// This prevents timestamp manipulation attacks
@@ -115,7 +115,7 @@ export async function updateSession(request: NextRequest) {
 				const emailVerified = getBooleanClaim(claims, 'email_verified')
 				const phoneVerified = getBooleanClaim(claims, 'phone_verified')
 
-				// ✅ SECURITY: Use JWT auth time for confirmation timestamps (not Date.now())
+				// SECURITY: Use JWT auth time for confirmation timestamps (not Date.now())
 				const confirmationTime = new Date(authTime * 1000).toISOString()
 
 				user = {
@@ -131,7 +131,7 @@ export async function updateSession(request: NextRequest) {
 						'authenticated',
 					created_at: createdAt,
 					updated_at: getStringClaim(claims, 'updated_at') ?? createdAt,
-					// ✅ SECURITY: Use deterministic JWT timestamps for confirmation fields
+					// SECURITY: Use deterministic JWT timestamps for confirmation fields
 					confirmed_at: emailVerified ? confirmationTime : createdAt,
 					email_confirmed_at: emailVerified ? confirmationTime : createdAt,
 					phone_confirmed_at: phoneVerified ? confirmationTime : createdAt,

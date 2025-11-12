@@ -28,12 +28,12 @@ export const metadata: Metadata = {
 }
 
 export default async function TenantsPage() {
-	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 
 	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
 
-	// ✅ Server Component: Fetch data on server during RSC render
+	// Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []
 	let stats: TenantStats = {
 		total: 0,
@@ -49,7 +49,7 @@ export default async function TenantsPage() {
 	let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
 
 	try {
-		// ✅ Fetch data with native fetch() - cookie-based auth
+		// Fetch data with native fetch() - cookie-based auth
 		const [tenantsData, statsData, leasesData] = await Promise.all([
 			serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
 			serverFetch<TenantStats>('/api/v1/tenants/stats'),

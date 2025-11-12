@@ -1,6 +1,6 @@
 /**
  * Units Controller
- *
+
  * Per CLAUDE.md:
  * - Uses nestjs-zod DTOs for validation (native to NestJS ecosystem)
  * - Uses @JwtToken() custom decorator for authentication (per CLAUDE.md Backend section)
@@ -39,7 +39,7 @@ export class UnitsController {
 	/**
 	 * Get all units for the authenticated user
 	 * Uses built-in pipes for automatic validation
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@SkipSubscriptionCheck()
 	@Get()
@@ -76,7 +76,7 @@ export class UnitsController {
 			throw new BadRequestException('Invalid sortOrder value')
 		}
 
-		// ✅ RLS: Pass JWT token to service layer
+		// RLS: Pass JWT token to service layer
 		return this.unitsService.findAll(token, {
 			propertyId,
 			status,
@@ -90,7 +90,7 @@ export class UnitsController {
 
 	/**
 	 * Get unit statistics
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
@@ -99,7 +99,7 @@ export class UnitsController {
 
 	/**
 	 * Get units by property
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('by-property/:propertyId')
 	async findByProperty(
@@ -111,7 +111,7 @@ export class UnitsController {
 
 	/**
 	 * Get single unit by ID
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get(':id')
 	async findOne(
@@ -127,7 +127,7 @@ export class UnitsController {
 
 	/**
 	 * Create new unit
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Post()
 	async create(
@@ -139,7 +139,7 @@ export class UnitsController {
 
 	/**
 	 * Update existing unit
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Put(':id')
 	async update(
@@ -163,7 +163,7 @@ export class UnitsController {
 
 	/**
 	 * Delete unit
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Delete(':id')
 	async remove(

@@ -153,7 +153,7 @@ interface LeasesPageClientProps {
 
 export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClientProps) {
 
-	// ✅ nuqs: Type-safe URL state with automatic batching and clean URLs
+	// nuqs: Type-safe URL state with automatic batching and clean URLs
 	const [{ page, search, status }, setUrlState] = useQueryStates(
 		{
 			page: parseAsInteger.withDefault(1),
