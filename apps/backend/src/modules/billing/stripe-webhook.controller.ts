@@ -27,6 +27,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
@@ -36,6 +37,7 @@ export class StripeWebhookController {
 		private readonly stripeConnect: StripeConnectService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly supabase: SupabaseService,
+		private readonly config: AppConfigService,
 		@Optional() private readonly prometheus: PrometheusService | null
 	) {}
 
@@ -56,7 +58,7 @@ export class StripeWebhookController {
 		}
 
 		const stripe = this.stripeConnect.getStripe()
-		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+		const webhookSecret = this.config.getStripeWebhookSecret()
 
 		if (!webhookSecret) {
 			throw new BadRequestException('Webhook secret not configured')
@@ -64,10 +66,18 @@ export class StripeWebhookController {
 
 		let event: Stripe.Event
 
+		const rawBody: string | Buffer | undefined =
+			req.rawBody ?? (Buffer.isBuffer(req.body) ? req.body : undefined)
+
+		if (!rawBody) {
+			this.logger.error('Stripe webhook invoked without raw body payload')
+			throw new BadRequestException('Webhook body missing')
+		}
+
 		try {
 			// Verify webhook signature
 			event = stripe.webhooks.constructEvent(
-				req.rawBody || '',
+				rawBody,
 				signature,
 				webhookSecret
 			)

@@ -148,7 +148,7 @@ export function createMockJwtToken(
 	overrides?: { [key: string]: unknown }
 ) {
 	const header = Buffer.from(
-		JSON.stringify({ alg: 'HS256', typ: 'JWT' })
+		JSON.stringify({ alg: 'ES256', typ: 'JWT' })
 	).toString('base64')
 	const payload = Buffer.from(
 		JSON.stringify({

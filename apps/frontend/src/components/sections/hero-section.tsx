@@ -25,7 +25,7 @@ export function HeroSection({
 			{trustBadge && (
 				<div className="pt-32 pb-8 text-center">
 					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
-						<div className="size-2 bg-(--color-success) rounded-full mr-3 animate-pulse" />
+						<div className="size-2 bg-(--color-success) rounded-full mr-3 animate-pulse" aria-hidden="true" />
 						<span className="text-muted-foreground font-medium text-sm">
 							{trustBadge}
 						</span>

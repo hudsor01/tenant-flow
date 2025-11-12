@@ -19,6 +19,7 @@ packages/**/*.tgz
 */.envrc
 **/.envrc
 doppler.env
+.env.test
 .serena/
 .supabase/
 *.pdf
@@ -251,6 +252,9 @@ test-videos/
 jest-results/
 test-results.json
 *.test-report.*
+
+# Test setup files (may contain sensitive test data)
+apps/backend/test/setup.ts
 
 # Test cache only (keep test files tracked)
 playwright/.cache/

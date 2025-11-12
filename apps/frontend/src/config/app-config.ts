@@ -1,14 +1,14 @@
-import { API_BASE_URL } from '#lib/api-config'
+import { env } from './env'
 
 // Environment variable validation - only in runtime, not during build
 const isBuildTime =
-	typeof window === 'undefined' && !process.env.NEXT_PUBLIC_APP_URL
+	typeof window === 'undefined' && !env.NEXT_PUBLIC_APP_URL
 
 if (!isBuildTime) {
-	if (!process.env.NEXT_PUBLIC_APP_URL) {
+	if (!env.NEXT_PUBLIC_APP_URL) {
 		throw new Error('NEXT_PUBLIC_APP_URL is required')
 	}
-	if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+	if (!env.NEXT_PUBLIC_API_BASE_URL) {
 		throw new Error('NEXT_PUBLIC_API_BASE_URL is required')
 	}
 }
@@ -16,13 +16,13 @@ if (!isBuildTime) {
 export const APP_CONFIG = {
 	name: 'TenantFlow',
 	description: 'Modern property management platform',
-	url: process.env.NEXT_PUBLIC_APP_URL || '',
+	url: env.NEXT_PUBLIC_APP_URL,
 	copyright: `© ${new Date().getFullYear()} TenantFlow. All rights reserved.`,
 	auth: {
 		redirectUrl: '/auth/callback'
 	},
 	api: {
-		baseUrl: API_BASE_URL
+		baseUrl: env.NEXT_PUBLIC_API_BASE_URL
 	},
 	features: {
 		registration: true,

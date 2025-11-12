@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeTenantService } from './stripe-tenant.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Stripe Tenant Controller
@@ -24,7 +25,10 @@ import { StripeTenantService } from './stripe-tenant.service'
 @Controller('stripe/tenant')
 @UseGuards(JwtAuthGuard)
 export class StripeTenantController {
-	constructor(private readonly stripeTenantService: StripeTenantService) {}
+	constructor(
+		private readonly stripeTenantService: StripeTenantService,
+		private readonly config: AppConfigService
+	) {}
 
 	/**
 	 * Create Stripe Customer for Tenant
@@ -206,7 +210,7 @@ export class StripeTenantController {
 		const session = await stripe.billingPortal.sessions.create({
 			customer: customer.id,
 			return_url:
-				body.returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/tenant/payments`
+				body.returnUrl || `${this.config.getNextPublicAppUrl()}/tenant/payments`
 		})
 
 		return {

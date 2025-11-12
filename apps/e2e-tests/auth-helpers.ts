@@ -54,7 +54,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const password =
 		options.password ||
 		process.env.E2E_OWNER_PASSWORD ||
-		'TestPassword123!'
+		(() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
 	const cacheKey = `owner:${email}`
 
 	// Use cached session if available (unless forceLogin)
@@ -75,9 +75,19 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 
 	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+<<<<<<< Updated upstream
 	debugLog(` Starting fresh login for: ${email}`)
 	debugLog(` Base URL: ${baseUrl}`)
 	
+||||||| Stash base
+	debugLog(`🔐 Starting fresh login for: ${email}`)
+	debugLog(`🌐 Base URL: ${baseUrl}`)
+	
+=======
+	debugLog(`🔐 Starting fresh login for: ${email}`)
+	debugLog(`🌐 Base URL: ${baseUrl}`)
+
+>>>>>>> Stashed changes
 	await page.goto(`${baseUrl}/login`)
 	debugLog(' Navigated to login page')
 	await page.waitForLoadState('networkidle')
@@ -140,7 +150,9 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		process.env.E2E_TENANT_EMAIL ||
 		'test-tenant@tenantflow.app'
 	const password =
-		options.password || process.env.E2E_TENANT_PASSWORD || 'TestPassword123!'
+		options.password ||
+		process.env.E2E_TENANT_PASSWORD ||
+		(() => { throw new Error('E2E_TENANT_PASSWORD environment variable is required') })()
 	const cacheKey = `tenant:${email}`
 
 	// Use cached session if available (unless forceLogin)

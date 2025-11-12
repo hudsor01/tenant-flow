@@ -113,8 +113,8 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 				</div>
 
 				{/* Floating accent dots */}
-				<div className="absolute -top-1 -right-1 size-2 rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse" />
-				<div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150" />
+				<div className="absolute -top-1 -right-1 size-2 rounded-full bg-accent opacity-0 group-hover/feature:opacity-100 transition-all duration-500 group-hover/feature:scale-125 animate-pulse" aria-hidden="true" />
+				<div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 rounded-full bg-primary/50 opacity-0 group-hover/feature:opacity-100 transition-all duration-700 group-hover/feature:scale-150" aria-hidden="true" />
 			</div>
 
 			{/* Title with enhanced hover */}
@@ -129,7 +129,7 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 
 			{/* Animated border beam effect */}
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 rounded overflow-hidden pointer-events-none">
-				<div className="absolute inset-[-2px] bg-primary/10 animate-pulse duration-1000 rounded" />
+				<div className="absolute inset-[-2px] bg-primary/10 animate-pulse duration-1000 rounded" aria-hidden="true" />
 			</div>
 
 			{/* Subtle hover gradient overlay */}
