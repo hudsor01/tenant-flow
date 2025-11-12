@@ -6,10 +6,10 @@ Successfully implemented and deployed centralized Supabase error handling infras
 
 **Status**: ✅ **PRODUCTION READY**
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Total Commits**: 15 commits (pending)
-**Services Migrated**: 13 services (+ infrastructure)
-**Methods Migrated**: 55 methods across all services
-**Code Reduction**: ~450+ lines of boilerplate eliminated (8 services), +94 lines for latest 5 services (more verbose but cleaner)
+**Total Commits**: 16 commits (pending)
+**Services Migrated**: 14 services (+ infrastructure)
+**Methods Migrated**: 59 methods across all services
+**Code Reduction**: ~497+ lines of boilerplate eliminated (9 services), +94 lines for latest 5 services (more verbose but cleaner)
 
 ---
 
@@ -70,7 +70,8 @@ Successfully implemented and deployed centralized Supabase error handling infras
 | **scheduled-report.service.ts** | 4 | 364 | 373 | -9 lines** | TBD |
 | **faq.service.ts** | 2 | 302 | 313 | -11 lines** | TBD |
 | **late-fees.service.ts** | 2 | 477 | 498 | -21 lines** | TBD |
-| **TOTAL** | **55 methods*** | - | - | **~356 lines** | **13 commits** |
+| **stripe-data.service.ts** | 4 | 595 | 548 | 47 lines | TBD |
+| **TOTAL** | **59 methods*** | - | - | **~403 lines** | **14 commits** |
 
 \* *payment-methods.service.ts gained 7 lines due to more verbose type annotations, but has cleaner error handling*
 \*\* *Latest services gained lines due to more verbose type annotations and explicit type handling, but have cleaner error handling and better observability*
@@ -655,6 +656,31 @@ return this.queryHelpers.querySingle<Entity>(
 
 ---
 
+### Phase 13: stripe-data.service.ts (Commit: TBD)
+**Lines Changed**: 595 → 548 (-47 lines, 8% reduction)
+**Methods Migrated**: 4 methods
+
+**Migrated Methods**:
+- ✅ getCustomerSubscriptions() - List query with filter (33 → 18 lines, 45% reduction)
+- ✅ getCustomer() - Single query with validation (38 → 19 lines, 50% reduction)
+- ✅ getPrices() - List query with conditional filter (30 → 18 lines, 40% reduction)
+- ✅ getProducts() - List query with conditional filter (30 → 18 lines, 40% reduction)
+
+**Key Improvements**:
+- Eliminated InternalServerErrorException in favor of centralized error mapping
+- Significantly reduced code by removing try-catch blocks (47 lines saved)
+- Non-nullable return types for all queries
+- Consistent error handling across Stripe data operations
+- Better structured logging with resource context
+
+**Pattern Demonstrated**:
+- Admin client usage for Stripe metadata tables
+- Conditional query building (activeOnly filter)
+- List queries with limits for analytics data
+- Validation before query execution (customerId check)
+
+---
+
 ## 🔄 Migration Patterns
 
 ### Pattern 1: Simple CRUD Service
@@ -720,6 +746,7 @@ return this.queryHelpers.querySingle<Entity>(
 - ✅ scheduled-report.service.ts (4 methods)
 - ✅ faq.service.ts (2 methods)
 - ✅ late-fees.service.ts (2 methods)
+- ✅ stripe-data.service.ts (4 methods)
 
 ### Skipped (Non-Applicable)
 - ⚠️ notification.service.ts - Schema mismatch (uses snake_case columns)
@@ -772,6 +799,7 @@ return this.queryHelpers.querySingle<Entity>(
 - `apps/backend/src/modules/reports/scheduled-report.service.ts` (373 lines, 4 methods)
 - `apps/backend/src/modules/faq/faq.service.ts` (313 lines, 2 methods)
 - `apps/backend/src/modules/late-fees/late-fees.service.ts` (498 lines, 2 methods)
+- `apps/backend/src/modules/billing/stripe-data.service.ts` (548 lines, 4 methods)
 
 ### External References
 - **PostgREST Error Codes**: https://postgrest.org/en/stable/errors.html
@@ -799,13 +827,13 @@ The infrastructure is battle-tested with 100% test coverage, and the migration p
 - **Private helpers**: payment-methods.service.ts resolveTenantId() pattern
 
 **Status**: ✅ Ready for production deployment
-**Progress**: 13 of ~54 services migrated (24% completion)
+**Progress**: 14 of ~54 services migrated (26% completion)
 **Recommendation**: Continue gradual rollout to remaining services over 2-3 weeks
 **Note**: Many services use RPC-only patterns and may not benefit from CRUD error handler migration
 
 ---
 
-**Document Version**: 5.0
+**Document Version**: 6.0
 **Last Updated**: 2025-11-12
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Commits**: 15 commits (infrastructure + 13 service migrations)
+**Commits**: 16 commits (infrastructure + 14 service migrations)
