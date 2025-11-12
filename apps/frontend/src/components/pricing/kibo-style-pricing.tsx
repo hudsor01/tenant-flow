@@ -377,7 +377,7 @@ export function KiboStylePricing() {
 										className="flex gap-2 text-left text-sm leading-6 text-muted-foreground"
 										key={index}
 									>
-										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-green-600 dark:text-green-400" />
+										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-success" />
 										{feature}
 									</div>
 								))}

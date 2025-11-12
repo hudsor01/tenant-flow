@@ -39,7 +39,7 @@ export default function TenantError({
 		<div className="flex min-h-screen flex-col items-center justify-center p-4">
 			<div className="w-full max-w-md space-y-6 text-center">
 				<div className="flex justify-center">
-					<AlertCircle className="size-16 text-red-500" />
+					<AlertCircle className="size-16 text-destructive" />
 				</div>
 
 				<div className="space-y-2">
@@ -50,9 +50,9 @@ export default function TenantError({
 				</div>
 
 				{error.message && (
-					<div className="rounded-lg border border-red-200 bg-red-50 p-4 text-left">
-						<p className="text-sm font-medium text-red-900">Error Details:</p>
-						<p className="mt-1 text-sm text-red-700">{error.message}</p>
+					<div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-left">
+						<p className="text-sm font-medium text-destructive">Error Details:</p>
+						<p className="mt-1 text-sm text-destructive/80">{error.message}</p>
 					</div>
 				)}
 

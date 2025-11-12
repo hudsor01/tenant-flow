@@ -1,6 +1,4 @@
-import type { Database } from '@repo/shared/types/supabase-generated'
-
-export type PropertyType = Database['public']['Enums']['PropertyType']
+import type { PropertyType } from '@repo/shared/types/core'
 
 export type PropertyCsvField =
 	| 'name'

@@ -18,6 +18,7 @@ import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
+import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildILikePattern,
 	sanitizeSearchInput
@@ -31,7 +32,8 @@ export class UnitsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers
+		private readonly queryHelpers: SupabaseQueryHelpers,
+		private readonly cache: ZeroCacheService
 	) {}
 
 	/**
@@ -312,7 +314,7 @@ export class UnitsService {
 			status: createRequest.status ?? 'VACANT'
 		}
 
-		return this.queryHelpers.querySingle<Unit>(
+		const createdUnit = await this.queryHelpers.querySingle<Unit>(
 			client.from('unit').insert(unitData).select().single(),
 			{
 				resource: 'unit',
@@ -320,6 +322,12 @@ export class UnitsService {
 				metadata: { propertyId: createRequest.propertyId }
 			}
 		)
+
+		// Invalidate caches so downstream consumers (lease auto-fill, dashboards) get fresh data
+		this.cache.invalidateByEntity('unit', createdUnit.id)
+		this.cache.invalidateByEntity('property', createdUnit.propertyId)
+
+		return createdUnit
 	}
 
 	/**
@@ -380,7 +388,7 @@ export class UnitsService {
 			query = query.eq('version', expectedVersion)
 		}
 
-		return this.queryHelpers.querySingleWithVersion<Unit>(
+		const updatedUnit = await this.queryHelpers.querySingleWithVersion<Unit>(
 			query.select().single(),
 			{
 				resource: 'unit',
@@ -389,6 +397,14 @@ export class UnitsService {
 				metadata: { expectedVersion }
 			}
 		)
+
+		// Invalidate dependent caches so lease auto-fill returns fresh unit data
+		this.cache.invalidateByEntity('unit', unitId)
+		if (updatedUnit.propertyId) {
+			this.cache.invalidateByEntity('property', updatedUnit.propertyId)
+		}
+
+		return updatedUnit
 	}
 
 	/**
@@ -411,6 +427,19 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
+			// Fetch unit metadata before deletion so we can invalidate property cache afterwards
+			const { data: existingUnit, error: fetchError } = await client
+				.from('unit')
+				.select('id, propertyId')
+				.eq('id', unitId)
+				.single()
+			if (fetchError && fetchError.code !== 'PGRST116') {
+				this.logger.warn('Failed to fetch unit metadata before deletion', {
+					error: fetchError.message,
+					unitId
+				})
+			}
+
 			// RLS automatically verifies unit ownership - no manual propertyId check needed
 			const { error } = await client.from('unit').delete().eq('id', unitId)
 
@@ -420,6 +449,12 @@ export class UnitsService {
 					unitId
 				})
 				throw new BadRequestException('Failed to remove unit')
+			}
+
+			// Invalidate caches tied to this unit/property so data disappears immediately
+			this.cache.invalidateByEntity('unit', unitId)
+			if (existingUnit?.propertyId) {
+				this.cache.invalidateByEntity('property', existingUnit.propertyId)
 			}
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {

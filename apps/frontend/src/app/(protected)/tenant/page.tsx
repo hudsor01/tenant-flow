@@ -113,8 +113,8 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="flex items-center gap-4">
-						<div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
-							<Home className="size-7 text-blue-600 dark:text-blue-400" />
+						<div className="p-3 rounded-lg bg-clean-accent-100 dark:bg-clean-accent-900/30 group-hover:bg-clean-accent-200 dark:group-hover:bg-clean-accent-900/50 transition-colors">
+							<Home className="size-7 text-clean-accent-600 dark:text-clean-accent-400" />
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>
