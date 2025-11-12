@@ -97,15 +97,6 @@ export default function FeaturesPage() {
 	const t = (testimonials[currentTestimonial] ??
 		testimonials[0]) as (typeof testimonials)[number]
 
-	const customerLogos = [
-		{ name: 'Greystar', logo: '/tenant-flow-logo.png' },
-		{ name: 'Avalon Bay', logo: '/tenant-flow-logo.png' },
-		{ name: 'Camden', logo: '/tenant-flow-logo.png' },
-		{ name: 'Essex', logo: '/tenant-flow-logo.png' },
-		{ name: 'BRE Properties', logo: '/tenant-flow-logo.png' },
-		{ name: 'Lincoln Property', logo: '/tenant-flow-logo.png' }
-	]
-
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			<script
@@ -142,9 +133,9 @@ export default function FeaturesPage() {
 			</div>
 
 			{/* Hero Section with Modern Background */}
-			<section className="relative page-content pb-16 overflow-hidden">
-			{/* Solid tint background */}
-			<div className="absolute inset-0 bg-[color:color-mix(in_oklch,var(--primary)_5%,transparent)]" />
+			<section className="relative pt-40 pb-16 overflow-hidden">
+				{/* Solid tint background */}
+				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--primary)_5%,transparent)]" />
 
 				{/* Subtle pattern overlay */}
 				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
@@ -152,30 +143,10 @@ export default function FeaturesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
 						<div className="text-center max-w-5xl mx-auto space-y-8">
-							{/* Trust Band - Moved to prominent position */}
-							<div className="flex flex-col items-center space-y-6">
-								{/* Customer Logos */}
-								<div className="flex flex-wrap items-center justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
-									{customerLogos.slice(0, 4).map(customer => (
-										<div key={customer.name} className="h-11 flex items-center">
-											<Image
-												src={customer.logo}
-												alt={customer.name}
-												width={120}
-												height={40}
-												className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
-											/>
-										</div>
-									))}
-								</div>
-							</div>
-
 							{/* Strengthened headline with premium typography */}
-							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
 								<span className="text-foreground">Transform your portfolio into a</span>{' '}
-				<span className="hero-highlight">
-					profit powerhouse
-				</span>
+								<span className="hero-highlight">profit powerhouse</span>
 							</h1>
 
 							{/* Concise, benefit-driven subtext */}
@@ -191,7 +162,7 @@ export default function FeaturesPage() {
 							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
 									size="lg"
-									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
+									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
 									<Link href="/signup" aria-label="Start free trial">
@@ -227,7 +198,7 @@ export default function FeaturesPage() {
 			</section>
 
 			{/* Feature callouts (concise horizontal pills) */}
-			<section className="pb-10">
+			<section className="section-spacing-compact">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="grid gap-3 md:grid-cols-3">
 						<FeaturePill
@@ -254,7 +225,7 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
-				<section className="section-compact bg-linear-to-r from-primary/2 via-background to-primary/2">
+				<section className="section-spacing-compact bg-muted/50">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.2} inView>
 							<div className="text-center space-y-8">
@@ -326,7 +297,7 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={600} variant="grid" />}
 				minHeight={600}
 			>
-				<section className="section-content">
+				<section className="section-spacing">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-16 space-y-6">
@@ -361,7 +332,7 @@ export default function FeaturesPage() {
 										</div>
 
 										{/* Icon with enhanced visual metaphor */}
-										<div className="size-16 rounded-2xl bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+										<div className="size-16 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
 											<TrendingUp className="size-8 text-primary" />
 										</div>
 
@@ -412,7 +383,7 @@ export default function FeaturesPage() {
 											Step 2
 										</div>
 
-										<div className="size-16 rounded-2xl bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+										<div className="size-16 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
 											<Zap className="size-8 text-primary" />
 										</div>
 
@@ -462,7 +433,7 @@ export default function FeaturesPage() {
 											Step 3
 										</div>
 
-										<div className="size-16 rounded-2xl bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+										<div className="size-16 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
 											<Shield className="size-8 text-primary" />
 										</div>
 
@@ -517,7 +488,7 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={500} variant="grid" />}
 				minHeight={500}
 			>
-				<section className="section-content bg-linear-to-br from-primary/2 via-background to-accent/2">
+				<section className="section-spacing bg-muted/30">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.4} inView>
 							<div className="text-center mb-16">
@@ -533,7 +504,7 @@ export default function FeaturesPage() {
 							{/* Results grid with enhanced visual design */}
 							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<TrendingUp className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -545,7 +516,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Clock className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -557,7 +528,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Users className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -567,7 +538,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<BarChart3 className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -586,11 +557,9 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
-				<section className="section-content relative overflow-hidden">
+				<section className="section-spacing relative overflow-hidden">
 					{/* Enhanced background */}
-					<div className="absolute inset-0 bg-[color:color-mix(in_oklch,var(--primary)_5%,transparent)]">
-						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_12%,transparent),transparent 70%)]" />
-					</div>
+					<div className="absolute inset-0 bg-muted/40" />
 
 					<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 						<BlurFade delay={0.5} inView>
@@ -613,7 +582,7 @@ export default function FeaturesPage() {
 								<div className="flex flex-col sm:flex-row gap-6 justify-center">
 									<Button
 										size="lg"
-										className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
+										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 										asChild
 									>
 										<Link href="/signup" aria-label="Start free trial">

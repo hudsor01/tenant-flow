@@ -45,8 +45,8 @@ export default function BlogPage() {
 					}}
 				/>
 
-				{/* Featured Article - High-Converting Content */}
-				<section className="section-hero">
+			{/* Featured Article - High-Converting Content */}
+			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 shadow-lg">
 							<div className="grid md:grid-cols-2 gap-8 items-center">
@@ -110,8 +110,8 @@ export default function BlogPage() {
 					</div>
 				</section>
 
-				{/* Results-Focused Categories */}
-				<section className="section-hero bg-muted/20">
+			{/* Results-Focused Categories */}
+			<section className="section-spacing bg-muted/20">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">Learn what works</h2>
@@ -176,8 +176,8 @@ export default function BlogPage() {
 					</div>
 				</section>
 
-				{/* High-Converting Articles */}
-				<section className="section-hero">
+			{/* High-Converting Articles */}
+			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">
@@ -231,8 +231,8 @@ export default function BlogPage() {
 					</div>
 				</section>
 
-				{/* Newsletter with Strong Value Prop */}
-				<section className="section-content bg-primary">
+			{/* Newsletter with Strong Value Prop */}
+			<section className="section-spacing bg-primary">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 						<h2 className="text-4xl font-bold text-primary-foreground mb-4">
 							Get the strategies that increase NOI by 40%
