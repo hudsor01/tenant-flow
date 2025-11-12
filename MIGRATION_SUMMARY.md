@@ -6,10 +6,10 @@ Successfully implemented and deployed centralized Supabase error handling infras
 
 **Status**: ✅ **PRODUCTION READY**
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Total Commits**: 17 commits (pending)
-**Services Migrated**: 15 services (+ infrastructure)
-**Methods Migrated**: 61 methods across all services
-**Code Reduction**: ~420+ lines of boilerplate eliminated (10 services), +94 lines for latest 5 services (more verbose but cleaner)
+**Total Commits**: 18 commits (pending)
+**Services Migrated**: 16 services (+ infrastructure)
+**Methods Migrated**: 63 methods across all services
+**Code Reduction**: ~459+ lines of boilerplate eliminated (11 services), +94 lines for latest 5 services (more verbose but cleaner)
 
 ---
 
@@ -72,7 +72,8 @@ Successfully implemented and deployed centralized Supabase error handling infras
 | **late-fees.service.ts** | 2 | 477 | 498 | -21 lines** | TBD |
 | **stripe-data.service.ts** | 4 | 595 | 548 | 47 lines | TBD |
 | **stripe-connect.service.ts** | 2 | 581 | 564 | 17 lines | TBD |
-| **TOTAL** | **61 methods*** | - | - | **~420 lines** | **15 commits** |
+| **lease-transformation.service.ts** | 2 | 451 | 412 | 39 lines | TBD |
+| **TOTAL** | **63 methods*** | - | - | **~459 lines** | **16 commits** |
 
 \* *payment-methods.service.ts gained 7 lines due to more verbose type annotations, but has cleaner error handling*
 \*\* *Latest services gained lines due to more verbose type annotations and explicit type handling, but have cleaner error handling and better observability*
