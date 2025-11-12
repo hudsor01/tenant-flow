@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import type { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { API_BASE_URL } from '#lib/api-config'
 
 const logger = createLogger({ component: 'FAQHooks' })
 
@@ -11,7 +10,7 @@ const logger = createLogger({ component: 'FAQHooks' })
  * Provides React Query hooks for FAQ data fetching
  */
 
-const FAQ_API_BASE = `${API_BASE_URL}/api/v1/faq`
+const FAQ_API_BASE = '/api/v1/faq'
 
 const FAQ_KEYS = {
 	all: ['faq'] as const,
