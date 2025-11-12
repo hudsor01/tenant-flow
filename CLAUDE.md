@@ -126,8 +126,8 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **DTOs**: Create classes in controller `dto/` folders using `createZodDto(schema)`
 
 **WHEN REQUIRED**:
-- ✅ ALL @Post/@Put/@Patch endpoints
-- ⚠️ Simple @Get: Use ParseUUIDPipe, ParseIntPipe, DefaultValuePipe
+- ALL @Post/@Put/@Patch endpoints
+- ️ Simple @Get: Use ParseUUIDPipe, ParseIntPipe, DefaultValuePipe
 
 **FORBIDDEN**: class-validator decorators, DTO factories, manual validation, interfaces as @Body parameters
 

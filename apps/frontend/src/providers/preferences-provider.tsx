@@ -39,7 +39,7 @@ export const PreferencesStoreProvider = ({
 	children,
 	themeMode
 }: PreferencesProviderProps) => {
-	// ✅ FIXED: Use useRef instead of useState (per official Zustand Next.js docs)
+	// FIXED: Use useRef instead of useState (per official Zustand Next.js docs)
 	// This ensures store is created before first render, preventing undefined errors
 	const storeRef = useRef<StoreApi<PreferencesState> | null>(null)
 	

@@ -2,7 +2,7 @@
  * Lease Hooks
  * TanStack Query hooks for lease management with complete CRUD operations
  * React 19 + TanStack Query v5 patterns with Suspense support
- *
+
  * Expanded from read-only to full CRUD following use-tenant.ts pattern:
  * - Complete CRUD mutations (create, update, delete, renew, terminate)
  * - Optimistic updates with rollback
@@ -295,7 +295,7 @@ export function useUpdateLease() {
 		}): Promise<Lease> => {
 			return clientFetch<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
-				// 🔐 OPTIMISTIC LOCKING: Include version if provided
+				// OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
 					version !== null && version !== undefined
 						? withVersion(data, version)
@@ -351,7 +351,7 @@ export function useUpdateLease() {
 				})
 			}
 
-			// 🔐 Handle 409 Conflict using helper
+			// Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('lease', id, queryClient, [
 					leaseKeys.detail(id),
