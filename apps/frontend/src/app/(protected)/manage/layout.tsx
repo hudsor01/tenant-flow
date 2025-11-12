@@ -8,7 +8,7 @@ import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import '../dashboard.css'
+import './dashboard.css'
 
 export default function ManageLayout({ children }: { children: ReactNode }) {
 	const pathname = usePathname()
