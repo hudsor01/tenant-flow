@@ -9,6 +9,7 @@ import {
 	Request,
 	UseGuards
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeTenantService } from './stripe-tenant.service'
@@ -29,6 +30,7 @@ export class StripeTenantController {
 	 * POST /api/v1/stripe/tenant/create-customer
 	 */
 	@Post('create-customer')
+	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 customer creations per minute (SEC-002)
 	async createCustomer(
 		@Request() _req: AuthenticatedRequest,
 		@Body()
@@ -64,6 +66,7 @@ export class StripeTenantController {
 	 * POST /api/v1/stripe/tenant/attach-payment-method
 	 */
 	@Post('attach-payment-method')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment method attachments per minute (SEC-002)
 	async attachPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
 		@Body()
@@ -131,6 +134,7 @@ export class StripeTenantController {
 	 * POST /api/v1/stripe/tenant/set-default-payment-method
 	 */
 	@Post('set-default-payment-method')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 default payment method changes per minute (SEC-002)
 	async setDefaultPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
 		@Body() body: { tenantId: string; paymentMethodId: string }
@@ -154,6 +158,7 @@ export class StripeTenantController {
 	 * DELETE /api/v1/stripe/tenant/detach-payment-method
 	 */
 	@Delete('detach-payment-method')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 payment method detachments per minute (SEC-002)
 	async detachPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
 		@Body() body: { tenantId: string; paymentMethodId: string }

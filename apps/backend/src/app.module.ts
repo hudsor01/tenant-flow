@@ -156,10 +156,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 			useClass: SubscriptionGuard
 		},
 		{
-			provide: APP_GUARD,
-			useClass: CsrfGuard
-		},
-		{
 			provide: APP_INTERCEPTOR,
 			useClass: TimeoutInterceptor
 		},

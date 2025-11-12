@@ -848,8 +848,10 @@ export class PropertiesService {
 
 		const stats: PropertyStats = validationResult.data
 
-		// Cache for 30 seconds with user-specific key
-		await this.cacheManager.set(cacheKey, stats, 30000)
+		// Cache for 5 minutes with user-specific key
+		// Property stats change infrequently (only on property/unit mutations)
+		// 5min cache reduces database load while keeping stats reasonably fresh
+		await this.cacheManager.set(cacheKey, stats, 5 * 60 * 1000)
 
 		return stats
 	}

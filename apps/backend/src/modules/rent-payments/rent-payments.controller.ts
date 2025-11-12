@@ -8,6 +8,7 @@ import {
 	Request,
 	UseGuards
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
@@ -27,6 +28,7 @@ export class RentPaymentsController {
 	 * POST /api/v1/rent-payments
 	 */
 	@Post()
+	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 payment attempts per minute (SEC-002)
 	async createPayment(
 		@Body()
 		body: {
@@ -202,6 +204,7 @@ export class RentPaymentsController {
 	 * POST /api/v1/rent-payments/autopay/setup
 	 */
 	@Post('autopay/setup')
+	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 autopay setup attempts per minute (SEC-002)
 	async setupAutopay(
 		@Body()
 		body: {
@@ -244,6 +247,7 @@ export class RentPaymentsController {
 	 * POST /api/v1/rent-payments/autopay/cancel
 	 */
 	@Post('autopay/cancel')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 cancellation requests per minute (SEC-002)
 	async cancelAutopay(
 		@Body()
 		body: {
@@ -308,6 +312,7 @@ export class RentPaymentsController {
 	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('status/:tenantId')
+	@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 status checks per minute (SEC-002)
 	async getCurrentPaymentStatus(
 		@Param('tenantId') tenantId: string,
 		@Request() req: AuthenticatedRequest
