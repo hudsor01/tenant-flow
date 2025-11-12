@@ -90,7 +90,7 @@ export function LateFeeConfigDialog({
 					</CrudDialogHeader>
 					<CrudDialogBody>
 						{isLoading ? (
-							<div className="flex items-center justify-center py-12">
+							<div className="flex items-center justify-center section-spacing-compact">
 								<Spinner className="size-6 animate-spin text-accent-main" />
 							</div>
 						) : (

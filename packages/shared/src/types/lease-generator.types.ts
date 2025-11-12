@@ -5,7 +5,7 @@
 import type {
 	LeaseTemplateContext,
 	LeaseTemplateSelections
-} from '../templates/lease-template'
+} from '../templates/lease-template.js'
 /**
  * US States with specific lease requirements
  */

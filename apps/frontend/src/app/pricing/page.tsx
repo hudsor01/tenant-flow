@@ -189,7 +189,7 @@ export default function PricingPage() {
 			<Navbar />
 			<main className="flex-1 pt-20">
 				{/* Hero */}
-				<section className="relative overflow-hidden py-24 sm:py-32 animate-in fade-in duration-700">
+				<section className="relative overflow-hidden section-spacing-spacious animate-in fade-in duration-700">
 					<div className="relative mx-auto flex max-w-7xl flex-col gap-16 px-6 text-center lg:px-8">
 						<div className="flex flex-col items-center gap-8">
 							{/* Premium Badge */}
@@ -200,10 +200,8 @@ export default function PricingPage() {
 
 							<div className="space-y-8 text-balance">
 								<h1 className="text-balance text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-									Choose the perfect plan for
-									<span className="block text-primary">
-										your portfolio
-									</span>
+									Choose the perfect plan for{' '}
+									<span className="hero-highlight">your portfolio</span>
 								</h1>
 								<p className="mx-auto max-w-3xl text-balance text-xl leading-relaxed text-muted-foreground sm:text-2xl">
 									Start with our 14-day free trial. Scale seamlessly with transparent pricing
@@ -289,7 +287,7 @@ export default function PricingPage() {
 				</section>
 
 				{/* Pricing Section */}
-				<section className="relative py-24 sm:py-32 animate-in fade-in duration-700 delay-150">
+				<section className="relative section-spacing-spacious animate-in fade-in duration-700 delay-150">
 					<div className="relative mx-auto flex max-w-7xl flex-col gap-16 px-6 lg:px-8">
 						<div className="max-w-4xl text-center sm:mx-auto">
 							<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
@@ -297,8 +295,8 @@ export default function PricingPage() {
 								Transparent pricing, no surprises
 							</div>
 							<h2 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-								Pick the plan that fits today—
-								<span className="block text-primary">upgrade only when you're ready</span>
+								Pick the plan that fits today—{' '}
+								<span className="hero-highlight">upgrade only when you're ready</span>
 							</h2>
 							<p className="mt-6 text-balance text-xl leading-relaxed text-muted-foreground sm:text-2xl">
 								Transparent pricing with flexible billing. Switch between monthly and annual
@@ -310,7 +308,7 @@ export default function PricingPage() {
 				</section>
 
 				{/* Testimonials Section */}
-				<section className="py-20 sm:py-24 animate-in fade-in duration-700 delay-200">
+				<section className="section-spacing animate-in fade-in duration-700 delay-200">
 					<div className="mx-auto max-w-6xl px-6 lg:px-8">
 						<div className="mb-12 text-center">
 							<h2 className="text-section-title tracking-tight text-foreground">
@@ -326,7 +324,7 @@ export default function PricingPage() {
 				</section>
 
 				{/* FAQ Section */}
-				<section className="py-24 animate-in fade-in duration-700 delay-300">
+				<section className="section-spacing-spacious animate-in fade-in duration-700 delay-300">
 					<div className="mx-auto max-w-6xl px-6 lg:px-8">
 						<div className="rounded-3xl border border-border/60 bg-card/60 p-10 shadow-sm backdrop-blur sm:p-14">
 							<div className="mx-auto mb-14 max-w-3xl text-center">
@@ -382,7 +380,7 @@ export default function PricingPage() {
 				</section>
 
 				{/* Final CTA Section */}
-				<section className="py-24 animate-in fade-in duration-700 delay-400">
+				<section className="section-spacing-spacious animate-in fade-in duration-700 delay-400">
 					<div className="mx-auto max-w-6xl px-6 lg:px-8">
 						<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 							<div className="space-y-6 text-left">

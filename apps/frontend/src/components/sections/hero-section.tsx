@@ -53,9 +53,9 @@ export function HeroSection({
 						>
 							<div className="space-y-6">
 								<h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight leading-[1.1]">
-									{title}
+									{title}{' '}
 									{titleHighlight && (
-										<span className="block text-primary">{titleHighlight}</span>
+										<span className="hero-highlight">{titleHighlight}</span>
 									)}
 								</h1>
 
