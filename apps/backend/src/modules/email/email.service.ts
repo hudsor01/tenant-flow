@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Resend } from 'resend'
 import { render } from '@react-email/render'
+import { AppConfigService } from '../../config/app-config.service'
 import { PaymentSuccessEmail } from '../../emails/payment-success-email'
 import { PaymentFailedEmail } from '../../emails/payment-failed-email'
 import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
@@ -17,8 +18,8 @@ export class EmailService {
 	private readonly logger = new Logger(EmailService.name)
 	private readonly resend: Resend | null
 
-	constructor() {
-		const apiKey = process.env.RESEND_API_KEY
+	constructor(private readonly config: AppConfigService) {
+		const apiKey = this.config.getResendApiKey()
 		if (!apiKey) {
 			this.logger.warn(
 				'RESEND_API_KEY not configured - email functionality will be disabled'
@@ -216,7 +217,7 @@ export class EmailService {
 	generateUserConfirmationHtml(dto: ContactFormRequest): string {
 		const name = this.escapeHtml(dto.name)
 		const subject = this.escapeHtml(dto.subject)
-		const supportPhone = this.escapeHtml(process.env.SUPPORT_PHONE || '(555) 123-4567')
+		const supportPhone = this.escapeHtml(this.config.getSupportPhone())
 
 		return `
 <!DOCTYPE html>

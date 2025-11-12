@@ -4,6 +4,7 @@ import * as countries from 'i18n-iso-countries'
 import enLocale from 'i18n-iso-countries/langs/en.json'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Stripe Connect Service
@@ -203,14 +204,15 @@ export class StripeConnectService {
 
 	constructor(
 		private readonly stripeClientService: StripeClientService,
-		private readonly supabaseService: SupabaseService
+		private readonly supabaseService: SupabaseService,
+		private readonly appConfigService: AppConfigService
 	) {
 		// Register the English locale to enable country validation
 		countries.registerLocale(enLocale)
 
 		this.stripe = this.stripeClientService.getClient()
 		this.defaultCountry =
-			this.normalizeCountryCode(process.env.STRIPE_CONNECT_DEFAULT_COUNTRY) ??
+			this.normalizeCountryCode(this.appConfigService.getStripeConnectDefaultCountry()) ??
 			'US'
 	}
 
@@ -424,12 +426,7 @@ export class StripeConnectService {
 	 */
 	async createAccountLink(accountId: string): Promise<Stripe.AccountLink> {
 		// Validate FRONTEND_URL
-		const frontendUrl = process.env.FRONTEND_URL?.trim()
-		if (!frontendUrl) {
-			const error = 'FRONTEND_URL environment variable is not set'
-			this.logger.error(error, { accountId })
-			throw new Error(error)
-		}
+		const frontendUrl = this.appConfigService.getFrontendUrl()
 
 		// Validate URL format
 		try {

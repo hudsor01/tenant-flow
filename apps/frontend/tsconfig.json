@@ -4,6 +4,7 @@
 	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
 		"baseUrl": ".",
+		"verbatimModuleSyntax": false,
 		"paths": {
 			"#app/*": ["./src/app/*"],
 			"#components/*": ["./src/components/*"],
@@ -14,22 +15,18 @@
 			"#stores/*": ["./src/stores/*"],
 			"#types/*": ["./src/types/*"],
 			"#providers/*": ["./src/providers/*"],
-			"#test/*": ["./src/test/*"]
+			"#test/*": ["./src/test/*"],
+			"#config/*": ["./src/config/*"]
 		},
-		"plugins": [
-			{
-				"name": "next"
-			}
-		],
-		"types": ["node", "react", "react-dom", "vitest/globals"]
+		"plugins": [{ "name": "next" }],
+		"types": ["next/types/global", "node", "vitest/globals"]
 	},
 	"include": [
 		"next-env.d.ts",
-		"src/**/*",
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		"src/**/*.d.ts",
 		".next/types/**/*.ts",
-		"src/types/**/*.d.ts",
-		"src/types/jest-dom.d.ts",
-		"node_modules/@types/react/jsx-runtime.d.ts",
 		"playwright.config.ts",
 		"next.config.ts"
 	],
@@ -38,12 +35,7 @@
 		".next",
 		"out",
 		"dist",
-		"build",
-		".tsc-output",
 		"coverage",
-		"*.config.js",
-		"*.config.mjs",
-		"jest.config.js",
-		"vitest.config.production.ts"
+		"playwright-report"
 	]
 }

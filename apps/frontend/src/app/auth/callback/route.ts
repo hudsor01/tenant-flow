@@ -10,17 +10,17 @@ import {
 } from '@repo/shared/config/supabase'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { env } from '#config/env'
+import { isDevelopment } from '#config/env'
 
 const VALID_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
-const SUPPORTED_ALGORITHMS = new Set(['HS256', 'RS256', 'ES256'])
-type SupportedAlgorithm = 'HS256' | 'RS256' | 'ES256'
+const SUPPORTED_ALGORITHMS = new Set(['ES256', 'RS256', 'ES256'])
+type SupportedAlgorithm = 'ES256' | 'RS256' | 'ES256'
 
 const jwksCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
 function getConfiguredAlgorithm(): SupportedAlgorithm | null {
-	const value =
-		process.env.SUPABASE_JWT_ALGORITHM ||
-		process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM
+	const value = env.SUPABASE_JWT_ALGORITHM || env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM
 
 	if (!value) {
 		return null
@@ -58,7 +58,7 @@ function detectTokenAlgorithm(token: string): SupportedAlgorithm | null {
 
 function resolveAlgorithm(token: string): SupportedAlgorithm | null {
 	// SECURITY: Algorithm must be explicitly configured or detected from token.
-	// Never default to HS256 - this prevents accepting tokens with unknown/unsafe algorithms.
+	// Never default to ES256 - this prevents accepting tokens with unknown/unsafe algorithms.
 	// In production, SUPABASE_JWT_ALGORITHM environment variable MUST be set.
 	return getConfiguredAlgorithm() ?? detectTokenAlgorithm(token)
 }
@@ -86,14 +86,14 @@ async function verifySupabaseJwt(
 	}
 
 	try {
-		if (algorithm === 'HS256') {
-			// SECURITY: Only use SUPABASE_JWT_SECRET for HS256 verification
+		if (algorithm === 'ES256') {
+			// SECURITY: Only use SUPABASE_JWT_SECRET for ES256 verification
 			// Do NOT fall back to service key or other secrets
-			const secret = process.env.SUPABASE_JWT_SECRET
+			const secret = env.SUPABASE_JWT_SECRET
 
 			if (!secret) {
 				logger.error(
-					'HS256 JWT verification failed: SUPABASE_JWT_SECRET is not configured. Cannot verify token.',
+					'ES256 JWT verification failed: SUPABASE_JWT_SECRET is not configured. Cannot verify token.',
 					{ algorithm }
 				)
 				return null
@@ -206,7 +206,7 @@ function redirectToPricing(
 	pricingUrl.searchParams.set('redirectTo', redirectToPath)
 
 	const forwardedHost = request.headers.get('x-forwarded-host')
-	const isLocalEnv = process.env.NODE_ENV === 'development'
+	const isLocalEnv = isDevelopment()
 
 	if (isLocalEnv) {
 		return NextResponse.redirect(pricingUrl.toString())
@@ -227,7 +227,7 @@ function finalizeRedirect(
 	nextPath: string
 ) {
 	const forwardedHost = request.headers.get('x-forwarded-host')
-	const isLocalEnv = process.env.NODE_ENV === 'development'
+	const isLocalEnv = isDevelopment()
 
 	if (isLocalEnv) {
 		return NextResponse.redirect(`${origin}${nextPath}`)

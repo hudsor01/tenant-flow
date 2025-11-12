@@ -6,14 +6,13 @@
 		"rootDir": "./tests",
 		"outDir": "./.cache",
 		"noEmit": true,
-		"types": ["@types/node", "@playwright/test"]
+		"types": ["@types/node", "@playwright/test"],
+		"composite": false
 	},
 	"include": ["tests/**/*.ts"],
 	"exclude": ["tests/**/__snapshots__/**"],
 	"references": [
 		{ "path": "../../packages/shared" },
-		{ "path": "../../packages/config" },
-		{ "path": "../../packages/api-client" },
 		{ "path": "../../packages/testing" }
 	]
 }

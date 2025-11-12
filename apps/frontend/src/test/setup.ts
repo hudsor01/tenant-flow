@@ -10,6 +10,24 @@ import '@testing-library/jest-dom/vitest'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 
+// Set up required environment variables for tests before importing env
+process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+process.env.NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
+process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM = process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM || 'ES256'
+
+// Additional required environment variables for validation
+process.env.STRIPE_STARTER_MONTHLY_PRICE_ID = process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'
+process.env.STRIPE_STARTER_ANNUAL_PRICE_ID = process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual'
+process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID = process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly'
+process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID = process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual'
+process.env.STRIPE_MAX_MONTHLY_PRICE_ID = process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
+process.env.STRIPE_MAX_ANNUAL_PRICE_ID = process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
+
+import { isIntegrationTest as isIntegrationTestEnv, env } from '#config/env'
+
 // Create logger instance for structured logging
 const logger = createLogger({ component: 'TestSetup' })
 
@@ -19,7 +37,7 @@ const logger = createLogger({ component: 'TestSetup' })
 
 // Check if we're running unit tests or integration tests
 // Integration tests run via vitest.integration.config.js
-const isIntegrationTest = process.env.VITEST_INTEGRATION === 'true'
+const isIntegrationTest = isIntegrationTestEnv()
 
 // Validate required environment variables only for integration tests
 if (isIntegrationTest) {
@@ -55,8 +73,8 @@ process.env.NEXT_PUBLIC_API_BASE_URL =
 
 // Test credentials loaded from environment (for integration tests)
 // Note: env vars remain SCREAMING_SNAKE_CASE, but local constants use camelCase per CLAUDE.md
-const e2eOwnerEmail = process.env.E2E_OWNER_EMAIL || 'test@example.com'
-const e2eOwnerPassword = process.env.E2E_OWNER_PASSWORD || 'test-password'
+const e2eOwnerEmail = env.E2E_OWNER_EMAIL || 'test@example.com'
+const e2eOwnerPassword = env.E2E_OWNER_PASSWORD || 'test-password'
 
 // Store the authenticated session in a way that mocks can properly access
 const sessionStore = vi.hoisted(() => ({
@@ -67,7 +85,7 @@ const sessionStore = vi.hoisted(() => ({
 
 // Check if backend is available before running integration tests
 beforeAll(async () => {
-	if (process.env.RUN_INTEGRATION_TESTS !== 'true') {
+	if (!env.RUN_INTEGRATION_TESTS) {
 		sessionStore.backendAvailable = false
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
 		return

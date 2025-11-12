@@ -8,15 +8,16 @@ import { Reflector } from '@nestjs/core'
 import { NestFactory } from '@nestjs/core'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { getCORSConfig } from '@repo/shared/security/cors-config'
-import compression from 'compression'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
+import { AppConfigService } from './config/app-config.service'
+import { CONFIG_DEFAULTS } from './config/config.constants'
 import { registerExpressMiddleware } from './config/express.config'
 
 // Trigger Railway deployment after fixing husky script
 import { HEALTH_PATHS } from './shared/constants/routes'
 
-const DEFAULT_PORT = 4600
+const DEFAULT_PORT = CONFIG_DEFAULTS.PORT
 
 function resolvePort(portValue: string | undefined, fallback: number): number {
 	if (!portValue) {
@@ -55,42 +56,20 @@ async function bootstrap() {
 	bootstrapLogger.log('Creating NestFactory application...')
 	const app = await NestFactory.create<NestExpressApplication>(AppModule, {
 		rawBody: true,
-		bufferLogs: true
+		bufferLogs: true,
+		bodyParser: false
 	})
 	bootstrapLogger.log('NestFactory application created successfully')
 
 	app.set('trust proxy', 1)
 
-	// Enable compression (NestJS official pattern)
-	bootstrapLogger.log('Enabling compression middleware...')
-	app.use(
-		compression({
-			threshold: 1024, // Only compress responses > 1KB
-			level: 6, // Balanced compression (0-9)
-			memLevel: 8 // Memory allocated for compression (1-9)
-		})
-	)
-	bootstrapLogger.log('Compression middleware enabled')
-
-	// Register Express middleware with full TypeScript support
-	bootstrapLogger.log('Registering Express middleware...')
-	await registerExpressMiddleware(app)
-	bootstrapLogger.log('Express middleware registered')
-
 	const GLOBAL_PREFIX = 'api/v1'
 
-	// Use native NestJS Logger
-	app.useLogger(bootstrapLogger)
-	// Quick environment summary to help diagnose deploy issues (no secrets)
-	bootstrapLogger.log(
-		{
-			env: process.env.NODE_ENV,
-			port,
-			hasSupabaseUrl: !!process.env.SUPABASE_URL,
-			hasServiceKey: !!process.env.SUPABASE_SECRET_KEY
-		},
-		'Environment summary'
-	)
+	// Register Express middleware with full TypeScript support - moved before global prefix
+	bootstrapLogger.log('Registering Express middleware...')
+	const appConfigService = app.get(AppConfigService)
+	await registerExpressMiddleware(app, appConfigService)
+	bootstrapLogger.log('Express middleware registered')
 
 	// Global API prefix
 	app.setGlobalPrefix(GLOBAL_PREFIX, {
@@ -114,11 +93,6 @@ async function bootstrap() {
 	bootstrapLogger.log('Enabling response serialization...')
 	app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 	bootstrapLogger.log('ClassSerializerInterceptor enabled')
-
-	// Express middleware already registered via registerExpressMiddleware()
-	bootstrapLogger.log(
-		'Express middleware configured with full TypeScript support'
-	)
 
 	// Security: Using built-in NestJS validation and exception handling
 	bootstrapLogger.log('Security: Using native NestJS validation')

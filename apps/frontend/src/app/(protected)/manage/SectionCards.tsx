@@ -13,9 +13,12 @@ export function SectionCards() {
 	// Show loading skeletons
 	if (isLoading) {
 		return (
-			<div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+			<div className="dashboard-cards-container grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 				{[...Array(4)].map((_, i) => (
-					<div key={i} className="rounded-xl border bg-card p-5">
+					<div
+						key={i}
+						className="dashboard-widget rounded-xl border bg-card p-5"
+					>
 						<Skeleton className="h-5 w-32 mb-4" />
 						<Skeleton className="h-9 w-24 mb-2" />
 						<Skeleton className="h-4 w-full" />
@@ -28,8 +31,8 @@ export function SectionCards() {
 	// Show empty state if error or no data
 	if (isError || !stats) {
 		return (
-			<div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-				<div className="rounded-xl border bg-card p-5">
+			<div className="dashboard-cards-container grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+				<div className="dashboard-widget rounded-xl border bg-card p-5">
 					<p className="text-sm text-muted-foreground">Unable to load stats</p>
 				</div>
 			</div>
@@ -47,9 +50,9 @@ export function SectionCards() {
 	const isExcellentOccupancy = occupancyRate >= 90
 
 	return (
-		<div className="grid grid-cols-1 gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+		<div className="dashboard-cards-container grid grid-cols-1 gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 			{/* Revenue Card */}
-			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
@@ -90,7 +93,7 @@ export function SectionCards() {
 			</div>
 
 			{/* Tenants Card */}
-			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
@@ -117,7 +120,7 @@ export function SectionCards() {
 			</div>
 
 			{/* Properties Card */}
-			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">
@@ -144,7 +147,7 @@ export function SectionCards() {
 			</div>
 
 			{/* Occupancy Rate Card */}
-			<div className="group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
+			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 				<div className="relative p-6">

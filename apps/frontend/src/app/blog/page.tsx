@@ -2,7 +2,6 @@
 
 import Footer from '#components/layout/footer'
 import { HeroSection } from '#components/sections/hero-section'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { getAllBlogPosts } from '#lib/blog-posts'
 import {
@@ -112,7 +111,6 @@ export default function BlogPage() {
 			<main className="flex-1">
 				{/* Hero Section */}
 				<HeroSection
-					trustBadge="50,000+ downloads from property managers"
 					title="Free guides to save"
 					titleHighlight="$30,000+ annually"
 					subtitle="Proven playbooks used by 10,000+ property managers to increase NOI by 40%, cut costs by 32%, and reclaim 20+ hours weekly. No fluff, just results."
@@ -134,10 +132,6 @@ export default function BlogPage() {
 						<div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 shadow-lg">
 							<div className="grid md:grid-cols-2 gap-8 items-center">
 								<div>
-									<Badge className="mb-4 bg-primary/10 text-primary">
-										<TrendingUp className="size-3 mr-1" />
-										Downloaded 50,000+ Times
-									</Badge>
 									<h2 className="text-4xl font-bold mb-4">
 										The $30,000 Property Management Savings Playbook
 									</h2>
@@ -257,9 +251,6 @@ export default function BlogPage() {
 									<p className="text-muted-foreground text-sm mb-4">
 										{category.description}
 									</p>
-									<Badge className={category.color}>
-										{category.count} guides
-									</Badge>
 								</Link>
 							))}
 						</div>
@@ -287,9 +278,6 @@ export default function BlogPage() {
 									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 								>
 									<div className="flex items-center justify-between mb-4">
-										<Badge className="bg-primary/10 text-primary">
-											{post.category}
-										</Badge>
 										<div className="text-sm text-muted-foreground">
 											{post.readTime}
 										</div>

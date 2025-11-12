@@ -17,6 +17,7 @@ import {
 	SupabaseUserClientPool,
 	type SupabaseClientPoolMetrics
 } from './supabase-user-client-pool'
+import { AppConfigService } from '../config/app-config.service'
 
 @Injectable()
 export class SupabaseService {
@@ -26,11 +27,12 @@ export class SupabaseService {
 
 	constructor(
 		@Inject(SUPABASE_ADMIN_CLIENT)
-		private readonly adminClient: SupabaseClient<Database>
+		private readonly adminClient: SupabaseClient<Database>,
+		private readonly config: AppConfigService
 	) {
 		this.logger.debug('SupabaseService initialized with injected admin client')
 		this.tokenResolver = new SupabaseAuthTokenResolver(
-			process.env.SUPABASE_PROJECT_REF ?? 'bshjmbshupiibfiewpxb'
+			this.config.getSupabaseProjectRef()
 		)
 	}
 
@@ -41,8 +43,8 @@ export class SupabaseService {
 	}
 	private getUserClientPool(): SupabaseUserClientPool {
 		if (!this.userClientPool) {
-			const supabaseUrl = process.env.SUPABASE_URL
-			const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
+			const supabaseUrl = this.config.getSupabaseUrl()
+			const supabasePublishableKey = this.config.getSupabasePublishableKey()
 
 			if (!supabaseUrl || !supabasePublishableKey) {
 				throw new InternalServerErrorException(

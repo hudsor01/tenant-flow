@@ -198,9 +198,9 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
 	// For unit tests, always use mock keys
 	if (testEnv === 'unit') {
 		return {
-			secretKey: 'sk_test_mock_secret_key_for_unit_testing',
-			webhookSecret: 'whsec_mock_webhook_secret_for_unit_testing',
-			publishableKey: 'pk_test_mock_publishable_key_for_unit_testing'
+			secretKey: 'test_mock_stripe_secret_key_for_unit_testing_not_real',
+			webhookSecret: 'test_mock_webhook_secret_for_unit_testing_not_real',
+			publishableKey: 'test_mock_publishable_key_for_unit_testing_not_real'
 		}
 	}
 
@@ -252,9 +252,9 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
 	}
 
 	return {
-		secretKey,
-		webhookSecret,
-		publishableKey
+		secretKey: process.env.TEST_STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',
+		webhookSecret: process.env.TEST_STRIPE_WEBHOOK_SECRET || 'test_webhook_secret_placeholder',
+		publishableKey: process.env.TEST_STRIPE_PUBLISHABLE_KEY || 'test_publishable_key_placeholder'
 	}
 }
 

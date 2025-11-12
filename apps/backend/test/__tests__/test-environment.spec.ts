@@ -125,18 +125,18 @@ describe('Test Environment Configuration', () => {
 			process.env.TEST_TYPE = 'unit'
 
 			const config = getTestStripeConfig()
-			expect(config.secretKey).toBe('sk_test_mock_secret_key_for_unit_testing')
+			expect(config.secretKey).toBe('test_mock_stripe_secret_key_for_unit_testing_not_real')
 			expect(config.publishableKey).toBe(
-				'pk_test_mock_publishable_key_for_unit_testing'
+				'test_mock_publishable_key_for_unit_testing_not_real'
 			)
 			expect(config.webhookSecret).toBe(
-				'whsec_mock_webhook_secret_for_unit_testing'
+				'test_mock_webhook_secret_for_unit_testing_not_real'
 			)
 		})
 
 		it('should validate test key format for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
-			process.env.TEST_STRIPE_SECRET_KEY = 'sk_live_invalid_key'
+			process.env.TEST_STRIPE_SECRET_KEY = 'invalid_key_not_starting_with_sk_test'
 
 			expect(() => getTestStripeConfig()).toThrow(
 				"TEST_STRIPE_SECRET_KEY must start with 'sk_test_'"
@@ -145,14 +145,14 @@ describe('Test Environment Configuration', () => {
 
 		it('should accept properly formatted test keys', () => {
 			process.env.TEST_TYPE = 'integration'
-			process.env.TEST_STRIPE_SECRET_KEY = 'sk_test_valid_test_key'
-			process.env.TEST_STRIPE_PUBLISHABLE_KEY = 'pk_test_valid_test_key'
-			process.env.TEST_STRIPE_WEBHOOK_SECRET = 'whsec_valid_webhook_secret'
+			process.env.TEST_STRIPE_SECRET_KEY = 'sk_test_valid_test_key_placeholder'
+			process.env.TEST_STRIPE_PUBLISHABLE_KEY = 'pk_test_valid_test_key_placeholder'
+			process.env.TEST_STRIPE_WEBHOOK_SECRET = 'whsec_valid_webhook_secret_placeholder'
 
 			const config = getTestStripeConfig()
-			expect(config.secretKey).toBe('sk_test_valid_test_key')
-			expect(config.publishableKey).toBe('pk_test_valid_test_key')
-			expect(config.webhookSecret).toBe('whsec_valid_webhook_secret')
+			expect(config.secretKey).toBe('sk_test_valid_test_key_placeholder')
+			expect(config.publishableKey).toBe('pk_test_valid_test_key_placeholder')
+			expect(config.webhookSecret).toBe('whsec_valid_webhook_secret_placeholder')
 		})
 
 		it('should throw error when environment variables are not set', () => {
