@@ -1,13 +1,13 @@
 'use client'
 
 import { LoginForm } from '#components/auth/login-form'
-import { SignupForm } from '#components/auth/signup-form'
 import { cn } from '#lib/design-system'
 import type { LoginLayoutProps } from '@repo/shared/types/auth'
 import { Lock, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
+import SignupForm from './signup-form'
 
 interface ImageSectionProps {
 	imageUrl: string
@@ -108,10 +108,10 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 			</div>
 
 			{/* Enhanced floating elements with smoother animations */}
-			<div className="absolute top-1/4 left-1/4 size-2 rounded-full animate-pulse bg-primary/20 [animation-duration:3s]" />
-			<div className="absolute top-2/3 right-1/4 size-1 rounded-full animate-pulse bg-primary/30 [animation-duration:4s] [animation-delay:1s]" />
-			<div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15 [animation-duration:2.5s] [animation-delay:0.5s]" />
-			<div className="absolute top-1/2 right-1/3 size-1 rounded-full animate-pulse bg-primary/15 [animation-duration:3.5s] [animation-delay:2s]" />
+			<div className="absolute top-1/4 left-1/4 size-2 rounded-full animate-pulse bg-primary/20 animation-duration-[3s]" />
+			<div className="absolute top-2/3 right-1/4 size-1 rounded-full animate-pulse bg-primary/30 animation-duration-[4s] [animation-delay:1s]" />
+			<div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full animate-pulse bg-primary/15 animation-duration-[2.5s] [animation-delay:0.5s]" />
+			<div className="absolute top-1/2 right-1/3 size-1 rounded-full animate-pulse bg-primary/15 animation-duration-[3.5s] [animation-delay:2s]" />
 		</div>
 	</div>
 )
