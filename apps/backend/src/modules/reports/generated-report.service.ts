@@ -2,6 +2,11 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import { SupabaseService } from '../../database/supabase.service'
+import {
+	querySingle,
+	queryList,
+	queryMutation
+} from '../../shared/utils/query-helpers'
 
 export interface GeneratedReportData {
 	userId: string
@@ -94,29 +99,29 @@ export class GeneratedReportService {
 			}
 
 			// Insert record into database
-			const { data: record, error } = await client
-				.from('generated_report')
-				.insert({
-					userId: data.userId,
-					reportType: data.reportType,
-					reportName: data.reportName,
-					format: data.format,
-					status: 'completed',
-					filePath,
-					fileSize,
-					startDate: data.startDate,
-					endDate: data.endDate,
-					metadata: (data.metadata || {}) as never
-				})
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error(`Failed to create report record: ${error.message}`)
-				throw error
-			}
-
-			return record as GeneratedReportRecord
+			return await queryMutation<GeneratedReportRecord>(
+				client
+					.from('generated_report')
+					.insert({
+						userId: data.userId,
+						reportType: data.reportType,
+						reportName: data.reportName,
+						format: data.format,
+						status: 'completed',
+						filePath,
+						fileSize,
+						startDate: data.startDate,
+						endDate: data.endDate,
+						metadata: (data.metadata || {}) as never
+					})
+					.select()
+					.single(),
+				{
+					resource: 'generated report',
+					operation: 'create',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error(`Report creation failed: ${error}`)
 			throw error
@@ -139,20 +144,22 @@ export class GeneratedReportService {
 				.eq('userId', userId)
 
 			// Get paginated records
-			const { data: reports, error } = await client
-				.from('generated_report')
-				.select(SAFE_GENERATED_REPORT_COLUMNS)
-				.eq('userId', userId)
-				.order('createdAt', { ascending: false })
-				.range(offset, offset + limit - 1)
-
-			if (error) {
-				this.logger.error(`Failed to fetch reports: ${error.message}`)
-				throw error
-			}
+			const reports = await queryList<GeneratedReportRecord>(
+				client
+					.from('generated_report')
+					.select(SAFE_GENERATED_REPORT_COLUMNS)
+					.eq('userId', userId)
+					.order('createdAt', { ascending: false })
+					.range(offset, offset + limit - 1),
+				{
+					resource: 'generated reports',
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 
 			return {
-				reports: (reports || []) as GeneratedReportRecord[],
+				reports,
 				total: count || 0
 			}
 		} catch (error) {
@@ -168,18 +175,20 @@ export class GeneratedReportService {
 		const client = this.supabase.getAdminClient()
 
 		try {
-			const { data: report, error } = await client
-				.from('generated_report')
-				.select(SAFE_GENERATED_REPORT_COLUMNS)
-				.eq('id', reportId)
-				.eq('userId', userId)
-				.single()
-
-			if (error || !report) {
-				throw new NotFoundException(`Report not found: ${reportId}`)
-			}
-
-			return report as GeneratedReportRecord
+			return await querySingle<GeneratedReportRecord>(
+				client
+					.from('generated_report')
+					.select(SAFE_GENERATED_REPORT_COLUMNS)
+					.eq('id', reportId)
+					.eq('userId', userId)
+					.single(),
+				{
+					resource: 'generated report',
+					id: reportId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error(`Failed to fetch report ${reportId}: ${error}`)
 			throw error
@@ -219,18 +228,15 @@ export class GeneratedReportService {
 			}
 
 			// Delete database record
-			const { error } = await client
-				.from('generated_report')
-				.delete()
-				.eq('id', reportId)
-				.eq('userId', userId)
-
-			if (error) {
-				this.logger.error(
-					`Failed to delete report ${reportId}: ${error.message}`
-				)
-				throw error
-			}
+			await queryMutation(
+				client.from('generated_report').delete().eq('id', reportId).eq('userId', userId),
+				{
+					resource: 'generated report',
+					id: reportId,
+					operation: 'delete',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error(`Failed to delete report ${reportId}: ${error}`)
 			throw error
