@@ -1,4 +1,4 @@
-import type { PropertyType } from './csv-normalizer'
+import type { PropertyType } from '@repo/shared/types/core'
 import {
 	normalizePropertyCsvRow,
 	normalizePropertyType,

@@ -22,6 +22,7 @@ import {
 	Req
 } from '@nestjs/common'
 import { Request } from 'express'
+import { Throttle } from '@nestjs/throttler'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -44,6 +45,7 @@ export class StripeWebhookController {
 	 * IMPORTANT: Requires raw body for signature verification
 	 * Configure in main.ts with rawBody: true
 	 */
+	@Throttle({ default: { ttl: 60000, limit: 30 } })
 	@Post()
 	async handleWebhook(
 		@Req() req: RawBodyRequest<Request>,

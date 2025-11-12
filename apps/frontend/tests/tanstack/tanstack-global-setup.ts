@@ -155,12 +155,13 @@ async function globalSetup() {
 				const windowWithQueryClient = window as WindowWithQueryClient
 				if (!windowWithQueryClient.__QUERY_CLIENT__) {
 					// Log warning for test diagnostics
-					// Using console directly is intentional for test setup diagnostics
-					if (typeof console !== 'undefined' && console.warn) {
-						console.warn(
-							'⚠️  QueryClient not found, tests may have limited functionality'
-						)
-					}
+					const diagnosticConsole =
+						typeof globalThis !== 'undefined'
+							? (globalThis['console'] as Console | undefined)
+							: undefined
+					diagnosticConsole?.warn?.(
+						'⚠️  QueryClient not found, tests may have limited functionality'
+					)
 				}
 			}, 30)
 		})

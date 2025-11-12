@@ -7,10 +7,16 @@ import {
 	Logger
 } from '@nestjs/common'
 import { Request, Response } from 'express'
+import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
+import {
+	API_ERROR_CODES,
+	ERROR_TYPES
+} from '@repo/shared/constants/error-codes'
 
 type ExceptionResponse = {
 	message?: string | string[]
 	error?: string
+	code?: string
 	[key: string]: unknown
 }
 
@@ -25,6 +31,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
 		let status = HttpStatus.INTERNAL_SERVER_ERROR
 		let message = 'Internal server error'
+		let code: string | undefined
 
 		if (exception instanceof HttpException) {
 			status = exception.getStatus()
@@ -38,6 +45,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			) {
 				const responseObj = exceptionResponse as ExceptionResponse
 				const rawMessage = responseObj.message
+				// Extract error code if present
+				if (responseObj.code) {
+					code = responseObj.code
+				}
 				// Handle array messages (e.g., from class-validator)
 				if (Array.isArray(rawMessage)) {
 					message = rawMessage.join('; ')
@@ -75,7 +86,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			message,
 			statusCode: status,
 			timestamp,
-			path: sanitizedPath // Use sanitized path without query params
+			path: sanitizedPath, // Use sanitized path without query params
+			...(code && this.isValidErrorCode(code) && { code }) // Include error code if present and valid
 		}
 
 		// Only include stack trace in development
@@ -107,5 +119,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			return request.path || '/'
 		}
 		return '/'
+	}
+
+	/**
+	 * Validates that an error code is from the approved constants
+	 * SECURITY: Prevents malicious error code injection
+	 */
+	private isValidErrorCode(code: string): boolean {
+		const allValidCodes = new Set([
+			...Object.values(BUSINESS_ERROR_CODES),
+			...Object.values(API_ERROR_CODES),
+			...Object.values(ERROR_TYPES)
+		] as string[])
+		return allValidCodes.has(code)
 	}
 }

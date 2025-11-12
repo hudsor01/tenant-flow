@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from './use-current-user'
 
@@ -16,7 +16,7 @@ export const userProfileKeys = {
  * Hook to fetch user's full profile from database (includes role)
  */
 export function useUserProfile() {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 	const { userId, isAuthenticated } = useCurrentUser()
 
 	return useQuery({

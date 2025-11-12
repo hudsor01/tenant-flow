@@ -18,6 +18,10 @@ import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'UseRentPaymentsCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_PAYMENT_PREFIX = 'TEST-CRUD'
 let createdPaymentIds: string[] = []
@@ -121,7 +125,7 @@ async function createTestLease(
 	return lease.id
 }
 
-describe('Rent Payments Integration Tests', () => {
+describeIfReady('Rent Payments Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables - NO FALLBACKS

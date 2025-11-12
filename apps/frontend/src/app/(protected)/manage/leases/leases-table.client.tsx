@@ -30,9 +30,7 @@ import { useLeaseList, useDeleteLease } from '#hooks/api/use-lease'
 import { useAllTenants } from '#hooks/api/use-tenant'
 import { useAllUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables } from '@repo/shared/types/supabase'
-
-type Lease = Tables<'lease'>
+import type { Lease } from '@repo/shared/types/core'
 
 const logger = createLogger({ component: 'LeasesTable' })
 

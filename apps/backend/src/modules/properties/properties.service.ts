@@ -18,9 +18,13 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
-import type { Property, PropertyStats } from '@repo/shared/types/core'
-import { propertyStatsSchema } from '@repo/shared/validation/database-rpc.schemas'
+import type {
+	Property,
+	PropertyStats,
+	PropertyType
+} from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { propertyStatsSchema } from '@repo/shared/validation/database-rpc.schemas'
 import type { Cache } from 'cache-manager'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -38,8 +42,6 @@ import {
 	normalizePropertyType,
 	VALID_PROPERTY_TYPES
 } from './utils/csv-normalizer'
-
-type PropertyType = Database['public']['Enums']['PropertyType']
 
 // Helper to extract JWT token from request
 function getTokenFromRequest(req: Request): string | null {

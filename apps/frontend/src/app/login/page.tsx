@@ -1,6 +1,6 @@
 'use client'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	LoginCredentials,
@@ -37,7 +37,7 @@ function LoginPageContent() {
 	const handleSubmit = async (data: LoginFormData | SignupFormData) => {
 		setIsLoading(true)
 		try {
-			const supabase = createClient()
+			const supabase = getSupabaseClientInstance()
 
 			// Validate and cast the data to LoginCredentials
 			const credentials: LoginCredentials = {
@@ -136,7 +136,7 @@ function LoginPageContent() {
 	const handleGoogleLogin = async () => {
 		setIsGoogleLoading(true)
 		try {
-			const supabase = createClient()
+			const supabase = getSupabaseClientInstance()
 
 			logger.info('Initiating Google OAuth login', {
 				action: 'google_oauth_init',

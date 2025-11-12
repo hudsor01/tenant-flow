@@ -227,12 +227,12 @@ export default function FeaturesPage() {
 			<section className="relative page-content pb-16 overflow-hidden">
 				{/* Modern gradient background */}
 				<div className="absolute inset-0 bg-linear-to-br from-background via-primary/2 to-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(var(--primary)/0.05),transparent_50%)] bg-size-[100%_100%]" />
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,oklch(var(--accent)/0.03),transparent_50%)] bg-size-[100%_100%]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--primary)_5%,transparent),transparent_50%)] bg-size-[100%_100%]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,color-mix(in_oklch,var(--accent)_3%,transparent),transparent_50%)] bg-size-[100%_100%]" />
 				</div>
 
 				{/* Subtle pattern overlay */}
-				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,oklch(var(--foreground))_1px,transparent_0)] bg-size-[32px_32px]" />
+				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
@@ -694,7 +694,7 @@ export default function FeaturesPage() {
 				<section className="section-content relative overflow-hidden">
 					{/* Enhanced background */}
 					<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
-						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)/0.1),transparent_70%)]" />
+						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)]" />
 					</div>
 
 					<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
