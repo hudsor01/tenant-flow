@@ -2,39 +2,39 @@
 
 Comprehensive end-to-end tests for TanStack Query functionality in the TenantFlow frontend application. These tests verify real browser behavior for optimistic updates, infinite scrolling, cache management, error handling, and complete user workflows.
 
-## 🎯 Purpose
+## Purpose
 
 These tests ensure that TanStack Query integration works correctly from a **user's perspective**, testing:
 
-- ✅ **Optimistic Updates** - Immediate UI feedback with proper rollback on failures
-- ✅ **Infinite Scrolling** - Intersection observer triggers and performance
-- ✅ **Error Handling** - Network failures, API errors, and recovery mechanisms  
-- ✅ **Cache Behavior** - Invalidation, persistence, and stale-while-revalidate
-- ✅ **Real User Workflows** - Complete business scenarios end-to-end
-- ✅ **Performance** - Responsive UI under various network conditions
+- **Optimistic Updates** - Immediate UI feedback with proper rollback on failures
+- **Infinite Scrolling** - Intersection observer triggers and performance
+- **Error Handling** - Network failures, API errors, and recovery mechanisms 
+- **Cache Behavior** - Invalidation, persistence, and stale-while-revalidate
+- **Real User Workflows** - Complete business scenarios end-to-end
+- **Performance** - Responsive UI under various network conditions
 
-## 📁 File Structure
+## File Structure
 
 ```
 tests/tanstack/
-├── README.md                      # This documentation
-├── playwright.config.ts           # TanStack-specific Playwright config
-├── run-tanstack-tests.sh          # Test runner script
-├── tanstack-global-setup.ts       # Global test setup
-├── tanstack-global-teardown.ts    # Global test cleanup
+├── README.md # This documentation
+├── playwright.config.ts # TanStack-specific Playwright config
+├── run-tanstack-tests.sh # Test runner script
+├── tanstack-global-setup.ts # Global test setup
+├── tanstack-global-teardown.ts # Global test cleanup
 ├── fixtures/
-│   └── property-data.ts            # Test data fixtures
+│ └── property-data.ts # Test data fixtures
 ├── utils/
-│   └── tanstack-helpers.ts         # Test utilities and helpers
+│ └── tanstack-helpers.ts # Test utilities and helpers
 └── Test Files:
-    ├── optimistic-updates.spec.ts     # Optimistic update tests
-    ├── infinite-scrolling.spec.ts     # Infinite scroll tests  
-    ├── error-handling.spec.ts         # Network error tests
-    ├── cache-behavior.spec.ts         # Cache management tests
-    └── real-user-workflows.spec.ts    # End-to-end workflow tests
+ ├── optimistic-updates.spec.ts # Optimistic update tests
+ ├── infinite-scrolling.spec.ts # Infinite scroll tests 
+ ├── error-handling.spec.ts # Network error tests
+ ├── cache-behavior.spec.ts # Cache management tests
+ └── real-user-workflows.spec.ts # End-to-end workflow tests
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Run All Tests
 ```bash
@@ -46,7 +46,7 @@ npm run test:tanstack
 # Optimistic updates only
 npm run test:tanstack:optimistic
 
-# Infinite scrolling only  
+# Infinite scrolling only 
 npm run test:tanstack:infinite
 
 # Error handling only
@@ -83,9 +83,9 @@ npm run test:tanstack:debug
 npm run test:tanstack:mobile
 ```
 
-## 📋 Test Categories
+## Test Categories
 
-### 🔄 Optimistic Updates (`optimistic-updates.spec.ts`)
+### Optimistic Updates (`optimistic-updates.spec.ts`)
 
 Tests immediate UI updates for CRUD operations with proper rollback on failures.
 
@@ -98,7 +98,7 @@ Tests immediate UI updates for CRUD operations with proper rollback on failures.
 - Multiple rapid operations handling
 - Concurrent operation management
 
-### ♾️ Infinite Scrolling (`infinite-scrolling.spec.ts`)
+### ️ Infinite Scrolling (`infinite-scrolling.spec.ts`)
 
 Tests infinite scroll implementation with intersection observer and performance.
 
@@ -111,7 +111,7 @@ Tests infinite scroll implementation with intersection observer and performance.
 - Mobile viewport behavior
 - Error recovery during scroll operations
 
-### ⚠️ Error Handling (`error-handling.spec.ts`)
+### ️ Error Handling (`error-handling.spec.ts`)
 
 Tests network error scenarios, retry behavior, and user-friendly error recovery.
 
@@ -125,7 +125,7 @@ Tests network error scenarios, retry behavior, and user-friendly error recovery.
 - Intermittent connection recovery
 - User error recovery experiences
 
-### 💾 Cache Behavior (`cache-behavior.spec.ts`)
+### Cache Behavior (`cache-behavior.spec.ts`)
 
 Tests cache invalidation, persistence, and stale-while-revalidate patterns.
 
@@ -139,7 +139,7 @@ Tests cache invalidation, persistence, and stale-while-revalidate patterns.
 - Cache persistence across navigation
 - Memory management and garbage collection
 
-### 👤 Real User Workflows (`real-user-workflows.spec.ts`)
+### Real User Workflows (`real-user-workflows.spec.ts`)
 
 Tests complete business scenarios from a user's perspective.
 
@@ -152,7 +152,7 @@ Tests complete business scenarios from a user's perspective.
 - Browser back/forward navigation
 - Form validation and completion flows
 
-## 🛠️ Test Utilities
+## ️ Test Utilities
 
 ### Helper Classes
 
@@ -170,14 +170,14 @@ Tests complete business scenarios from a user's perspective.
 - Network delay simulation constants
 - Validation error test cases
 
-## 🔧 Configuration
+## Configuration
 
 ### Playwright Config (`playwright.config.ts`)
 
 Optimized for TanStack Query testing:
 
 - **Timeout**: 60 seconds for complex workflows
-- **Workers**: Single worker to avoid cache conflicts  
+- **Workers**: Single worker to avoid cache conflicts 
 - **Retries**: 2 in CI, 1 locally
 - **Trace**: Retained on failure for debugging
 - **Video**: Retained on failure for visual debugging
@@ -195,7 +195,7 @@ Optimized for TanStack Query testing:
 - **Trace**: Full trace recording for analysis
 - **UI**: Interactive test execution mode
 
-## 📊 Test Reports
+## Test Reports
 
 Test results are generated in multiple formats:
 
@@ -208,7 +208,7 @@ View reports:
 npx playwright show-report tanstack-test-results
 ```
 
-## 🎪 Advanced Usage
+## Advanced Usage
 
 ### Custom Test Runner
 
@@ -264,25 +264,25 @@ Performance metrics are collected during test execution:
 - Memory usage patterns
 - UI responsiveness metrics
 
-## 🐛 Debugging
+## Debugging
 
 ### Common Issues
 
 1. **QueryClient not exposed**
-   - Ensure the global setup properly exposes `window.__QUERY_CLIENT__`
-   - Check browser console for exposure confirmation
+ - Ensure the global setup properly exposes `window.__QUERY_CLIENT__`
+ - Check browser console for exposure confirmation
 
-2. **Cache conflicts between tests**  
-   - Tests run sequentially to avoid cache conflicts
-   - Each test clears cache in `beforeEach`
+2. **Cache conflicts between tests** 
+ - Tests run sequentially to avoid cache conflicts
+ - Each test clears cache in `beforeEach`
 
 3. **Network simulation not working**
-   - Verify route mocking is properly configured
-   - Check browser network tab during test execution
+ - Verify route mocking is properly configured
+ - Check browser network tab during test execution
 
 4. **Intersection observer not triggering**
-   - Verify proper scroll positioning
-   - Check element visibility thresholds
+ - Verify proper scroll positioning
+ - Check element visibility thresholds
 
 ### Debug Mode
 
@@ -310,7 +310,7 @@ Generate and analyze test traces:
 npx playwright show-trace trace.zip
 ```
 
-## 🔄 CI/CD Integration
+## CI/CD Integration
 
 These tests are designed for CI/CD environments:
 
@@ -323,14 +323,14 @@ These tests are designed for CI/CD environments:
 
 ```yaml
 - name: Run TanStack Query Tests
-  run: npm run test:tanstack:critical
+ run: npm run test:tanstack:critical
 
 - name: Run Full TanStack Query Suite
-  run: npm run test:tanstack
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+ run: npm run test:tanstack
+ if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 ```
 
-## 📈 Maintenance
+## Maintenance
 
 ### Adding New Tests
 
@@ -352,18 +352,18 @@ These tests are designed for CI/CD environments:
 Regular performance benchmarking ensures tests remain fast and reliable:
 
 - Monitor test execution times
-- Track memory usage patterns  
+- Track memory usage patterns 
 - Verify scroll performance metrics
 - Analyze network request efficiency
 
-## 🎯 Success Metrics
+## Success Metrics
 
 These tests ensure:
 
-- ✅ **Zero production bugs** related to TanStack Query
-- ✅ **Consistent user experience** across all scenarios
-- ✅ **Proper error handling** and recovery
-- ✅ **Optimal performance** under various conditions
-- ✅ **Reliable cache behavior** and data consistency
+- **Zero production bugs** related to TanStack Query
+- **Consistent user experience** across all scenarios
+- **Proper error handling** and recovery
+- **Optimal performance** under various conditions
+- **Reliable cache behavior** and data consistency
 
 Every test verifies **real user experience** rather than implementation details, ensuring confidence in production deployments.

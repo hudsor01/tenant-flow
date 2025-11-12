@@ -1,6 +1,6 @@
 /**
  * Utility Service - Direct Supabase Implementation
- *
+
  * Handles utility functions and global search operations
  */
 
@@ -67,7 +67,7 @@ export class UtilityService {
 				return []
 			}
 
-			// ✅ SECURITY FIX: Sanitize search input to prevent SQL injection
+			// SECURITY FIX: Sanitize search input to prevent SQL injection
 			const sanitized = sanitizeSearchInput(searchTerm)
 			if (!sanitized) {
 				return []
@@ -76,7 +76,7 @@ export class UtilityService {
 			const searchLimit = Math.min(limit, 50)
 			const client = this.supabase.getAdminClient()
 
-			// ✅ SECURITY FIX: Use safe search pattern building
+			// SECURITY FIX: Use safe search pattern building
 			const pattern = buildILikePattern(sanitized)
 
 			// Search across all entity types in parallel
@@ -87,7 +87,7 @@ export class UtilityService {
 						.select('id, name, address, city, state, propertyType')
 						.eq('userId', userId)
 						.or(
-							// ✅ SAFE: Uses sanitized pattern
+							// SAFE: Uses sanitized pattern
 							buildMultiColumnSearch(sanitized, ['name', 'address', 'city'])
 						)
 						.limit(searchLimit),
@@ -96,7 +96,7 @@ export class UtilityService {
 						.select('id, email, firstName, lastName, phone')
 						.eq('userId', userId)
 						.or(
-							// ✅ SAFE: Uses sanitized pattern
+							// SAFE: Uses sanitized pattern
 							buildMultiColumnSearch(sanitized, ['email', 'firstName', 'lastName'])
 						)
 						.limit(searchLimit),
@@ -106,7 +106,7 @@ export class UtilityService {
 							'id, unitNumber, bedrooms, bathrooms, rent, status, propertyId'
 						)
 						.eq('userId', userId)
-						// ✅ SAFE: Uses sanitized pattern
+						// SAFE: Uses sanitized pattern
 						.ilike('unitNumber', pattern)
 						.limit(searchLimit),
 					client
@@ -229,7 +229,7 @@ export class UtilityService {
 	/**
 	 * Map Supabase Auth ID to internal users.id
 	 * Cached for 5 minutes to reduce database lookups
-	 * 
+
 	 * @param supabaseId - Supabase Auth UID from JWT token
 	 * @returns Internal users.id for RLS policies
 	 */
@@ -298,9 +298,9 @@ export class UtilityService {
 	 * Ensures a user exists in the users table for the given Supabase auth ID
 	 * Creates the user if they don't exist (e.g., OAuth sign-ins)
 	 * Returns the internal users.id
-	 * 
+
 	 * This is the proper way to handle OAuth users who may not have a users table record yet
-	 * 
+
 	 * @param authUser - User data from Supabase auth
 	 * @param retryCount - Internal retry counter to prevent infinite loops (default: 0, max: 1)
 	 */

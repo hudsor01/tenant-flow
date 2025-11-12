@@ -10,13 +10,13 @@ This directory contains tests that **actually work** before committing code. We'
 
 ```
 tests/
-├── api/                          # API tests (Playwright request)
-│   └── tenant-portal.api.spec.ts
-├── component/                    # Component tests (Vitest + React Testing Library)
-│   └── tenant-portal.component.spec.tsx
-├── e2e/                          # E2E tests (minimal, public pages only)
-│   └── notification-system-public.spec.ts
-└── README.md                     # This file
+├── api/ # API tests (Playwright request)
+│ └── tenant-portal.api.spec.ts
+├── component/ # Component tests (Vitest + React Testing Library)
+│ └── tenant-portal.component.spec.tsx
+├── e2e/ # E2E tests (minimal, public pages only)
+│ └── notification-system-public.spec.ts
+└── README.md # This file
 ```
 
 ---
@@ -33,30 +33,30 @@ tests/
 - JSDOM (no real browser)
 
 **What We Test:**
-- ✅ Component rendering with different data states
-- ✅ User interactions (clicks, form inputs)
-- ✅ Conditional rendering logic
-- ✅ Loading and error states
-- ✅ Edge cases
+- Component rendering with different data states
+- User interactions (clicks, form inputs)
+- Conditional rendering logic
+- Loading and error states
+- Edge cases
 
 **Example:**
 ```typescript
 it('should display lease details when lease exists', async () => {
-  const mockLease = {
-    id: 'lease-1',
-    rentAmount: 1500,
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
-  }
+ const mockLease = {
+ id: 'lease-1',
+ rentAmount: 1500,
+ startDate: '2024-01-01',
+ endDate: '2024-12-31',
+ }
 
-  vi.mocked(useCurrentLease).mockReturnValue({
-    data: mockLease,
-    isLoading: false,
-  })
+ vi.mocked(useCurrentLease).mockReturnValue({
+ data: mockLease,
+ isLoading: false,
+ })
 
-  render(<TenantPortalContent />)
+ render(<TenantPortalContent />)
 
-  expect(screen.getByText('$1,500')).toBeInTheDocument()
+ expect(screen.getByText('$1,500')).toBeInTheDocument()
 })
 ```
 
@@ -76,22 +76,22 @@ pnpm test tests/component/
 - No browser (direct HTTP)
 
 **What We Test:**
-- ✅ API response contracts
-- ✅ Request validation
-- ✅ Error handling (4xx, 5xx)
-- ✅ Authorization checks
-- ✅ Business logic
+- API response contracts
+- Request validation
+- Error handling (4xx, 5xx)
+- Authorization checks
+- Business logic
 
 **Example:**
 ```typescript
 test('should create setup intent and return client secret', async () => {
-  const response = await apiContext.post('/payment-methods/setup-intent')
+ const response = await apiContext.post('/payment-methods/setup-intent')
 
-  expect(response.status()).toBe(201)
-  
-  const body = await response.json()
-  expect(body).toHaveProperty('clientSecret')
-  expect(body.clientSecret).toMatch(/^seti_/)
+ expect(response.status()).toBe(201)
+ 
+ const body = await response.json()
+ expect(body).toHaveProperty('clientSecret')
+ expect(body.clientSecret).toMatch(/^seti_/)
 })
 ```
 
@@ -110,9 +110,9 @@ pnpm test:api tests/api/
 - Playwright browser automation
 
 **What We Test:**
-- ✅ Public pages (homepage, pricing, etc.)
-- ✅ UI elements on public pages
-- ❌ NO authenticated flows (impossible to test reliably)
+- Public pages (homepage, pricing, etc.)
+- UI elements on public pages
+- NO authenticated flows (impossible to test reliably)
 
 **Why So Limited?**
 - Auth is external (Supabase OAuth)
@@ -128,21 +128,21 @@ pnpm test:e2e
 
 ## What We DON'T Test (And Why)
 
-### ❌ E2E Auth Flows
+### E2E Auth Flows
 **Reason:** Supabase is external, OAuth requires real providers, test users don't exist
 
 **Alternative:** Production monitoring (Sentry), feature flags, smoke tests
 
 ---
 
-### ❌ Stripe Payment Collection in E2E
+### Stripe Payment Collection in E2E
 **Reason:** Requires Stripe test mode API keys, can't mock in browser
 
 **Alternative:** Component tests (mock Stripe hooks), API tests (mock Stripe SDK)
 
 ---
 
-### ❌ Email Notifications
+### Email Notifications
 **Reason:** External email provider (SendGrid, Resend, etc.)
 
 **Alternative:** Test email service separately, monitor in production
@@ -222,33 +222,33 @@ pnpm lint
 ### Vitest Config (`vitest.config.ts`)
 ```typescript
 export default defineConfig({
-  test: {
-    environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-    },
-  },
+ test: {
+ environment: 'jsdom',
+ setupFiles: ['./tests/setup.ts'],
+ coverage: {
+ provider: 'v8',
+ reporter: ['text', 'json', 'html'],
+ },
+ },
 })
 ```
 
 ### Playwright Config (`playwright.config.ts`)
 ```typescript
 export default defineConfig({
-  testDir: './tests',
-  projects: [
-    {
-      name: 'api',
-      testMatch: /.*\.api\.spec\.ts/,
-      use: { baseURL: 'http://localhost:3001' },
-    },
-    {
-      name: 'e2e-public',
-      testMatch: /.*public\.spec\.ts/,
-      use: { browserName: 'chromium' },
-    },
-  ],
+ testDir: './tests',
+ projects: [
+ {
+ name: 'api',
+ testMatch: /.*\.api\.spec\.ts/,
+ use: { baseURL: 'http://localhost:3001' },
+ },
+ {
+ name: 'e2e-public',
+ testMatch: /.*public\.spec\.ts/,
+ use: { browserName: 'chromium' },
+ },
+ ],
 })
 ```
 
@@ -259,28 +259,28 @@ export default defineConfig({
 ### Mock Hooks (Component Tests)
 ```typescript
 vi.mock('@/hooks/api/use-payment-methods', () => ({
-  usePaymentMethods: vi.fn(),
-  useSetDefaultPaymentMethod: vi.fn(),
+ usePaymentMethods: vi.fn(),
+ useSetDefaultPaymentMethod: vi.fn(),
 }))
 
 // In test
 vi.mocked(usePaymentMethods).mockReturnValue({
-  data: mockData,
-  isLoading: false,
+ data: mockData,
+ isLoading: false,
 })
 ```
 
 ### Mock API (API Tests)
 ```typescript
 const apiContext = await playwright.request.newContext({
-  baseURL: 'http://localhost:3001',
-  extraHTTPHeaders: {
-    Authorization: 'Bearer mock-jwt-token',
-  },
+ baseURL: 'http://localhost:3001',
+ extraHTTPHeaders: {
+ Authorization: 'Bearer mock-jwt-token',
+ },
 })
 
 const response = await apiContext.post('/payment-methods/save', {
-  data: { stripePaymentMethodId: 'pm_test_123' },
+ data: { stripePaymentMethodId: 'pm_test_123' },
 })
 ```
 
@@ -315,9 +315,9 @@ const response = await apiContext.post('/payment-methods/save', {
 
 > **"Test what you can test. Monitor what you can't."**
 
-- ✅ Component tests: Fast, reliable, no dependencies
-- ✅ API tests: Fast, reliable, no browser
-- ❌ E2E auth tests: Slow, flaky, impossible
-- ✅ Production monitoring: Real bugs, real users, real value
+- Component tests: Fast, reliable, no dependencies
+- API tests: Fast, reliable, no browser
+- E2E auth tests: Slow, flaky, impossible
+- Production monitoring: Real bugs, real users, real value
 
 We build **realistic tests** that catch bugs, not **perfect tests** that never run.

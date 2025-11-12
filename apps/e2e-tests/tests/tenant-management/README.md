@@ -8,24 +8,24 @@ Comprehensive end-to-end and visual regression tests for the tenant management f
 Complete user workflow testing from tenant creation to deletion.
 
 **Coverage:**
-- ✅ Full lifecycle: create → view → edit → delete
-- ✅ Form validation and error handling
-- ✅ Search, filter, and pagination
-- ✅ List sorting and bulk operations
-- ✅ Keyboard navigation and accessibility
-- ✅ Export functionality
-- ✅ Network error scenarios
-- ✅ Concurrent edit conflicts
+- Full lifecycle: create → view → edit → delete
+- Form validation and error handling
+- Search, filter, and pagination
+- List sorting and bulk operations
+- Keyboard navigation and accessibility
+- Export functionality
+- Network error scenarios
+- Concurrent edit conflicts
 
 ### 2. `tenant-forms.visual.spec.ts`
 Visual regression testing for UI consistency across states and viewports.
 
 **Coverage:**
-- ✅ Initial, filled, and validation error states
-- ✅ 7 responsive breakpoints (320px to 1920px)
-- ✅ Dark mode compatibility
-- ✅ Focus, hover, and loading states
-- ✅ Multi-step form progression
+- Initial, filled, and validation error states
+- 7 responsive breakpoints (320px to 1920px)
+- Dark mode compatibility
+- Focus, hover, and loading states
+- Multi-step form progression
 
 ## Running Tests
 
@@ -72,34 +72,34 @@ Tests use `@faker-js/faker` for random but realistic test data:
 
 ```typescript
 const tenantData = {
-  firstName: faker.person.firstName(),     // "John"
-  lastName: faker.person.lastName(),       // "Doe"
-  email: faker.internet.email(),           // "john.doe@example.com"
-  phone: faker.phone.number('(###) ###-####'),  // "(555) 123-4567"
+ firstName: faker.person.firstName(), // "John"
+ lastName: faker.person.lastName(), // "Doe"
+ email: faker.internet.email(), // "john.doe@example.com"
+ phone: faker.phone.number('(###) ###-####'), // "(555) 123-4567"
 }
 ```
 
 ## Prerequisites
 
 1. **Frontend Running**: Dev server must be accessible at `http://localhost:3000`
-   ```bash
-   pnpm --filter @repo/frontend dev
-   ```
+ ```bash
+ pnpm --filter @repo/frontend dev
+ ```
 
 2. **Backend Running**: API must be accessible at `http://localhost:3001`
-   ```bash
-   pnpm --filter @repo/backend dev
-   ```
+ ```bash
+ pnpm --filter @repo/backend dev
+ ```
 
 3. **Database Setup**: Supabase must be configured with proper schemas
-   ```bash
-   pnpm db:push
-   ```
+ ```bash
+ pnpm db:push
+ ```
 
 4. **Playwright Installed**: Browsers must be installed
-   ```bash
-   pnpm exec playwright install chromium
-   ```
+ ```bash
+ pnpm exec playwright install chromium
+ ```
 
 ## Configuration
 
@@ -109,9 +109,9 @@ Tests inherit from root `playwright.config.ts`:
 // Root config
 baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 webServer: {
-  command: 'doppler run -- pnpm --filter @repo/frontend dev',
-  url: 'http://localhost:3000',
-  reuseExistingServer: true,
+ command: 'doppler run -- pnpm --filter @repo/frontend dev',
+ url: 'http://localhost:3000',
+ reuseExistingServer: true,
 }
 ```
 
@@ -201,29 +201,29 @@ pnpm exec playwright test --debug -g "create tenant"
 
 ### 1. Use Semantic Locators
 ```typescript
-// ✅ Good - accessible and resilient
+// Good - accessible and resilient
 page.getByRole('button', { name: /create tenant/i })
 page.getByLabel('Email')
 
-// ❌ Bad - brittle
+// Bad - brittle
 page.locator('.btn-primary')
 page.locator('#email-input')
 ```
 
 ### 2. Wait for Stable State
 ```typescript
-// ✅ Good - explicit wait
+// Good - explicit wait
 await page.waitForLoadState('networkidle')
 await expect(page.getByText('Success')).toBeVisible()
 
-// ❌ Bad - arbitrary timeout
+// Bad - arbitrary timeout
 await page.waitForTimeout(5000)
 ```
 
 ### 3. Use Test Steps for Readability
 ```typescript
 await test.step('Create tenant', async () => {
-  // Test implementation
+ // Test implementation
 })
 ```
 
@@ -234,7 +234,7 @@ const uniqueEmail = faker.internet.email()
 
 // Delete created tenants in teardown if needed
 test.afterEach(async () => {
-  await cleanupTestTenant(uniqueEmail)
+ await cleanupTestTenant(uniqueEmail)
 })
 ```
 
@@ -247,10 +247,10 @@ test.afterEach(async () => {
 - Error Scenarios: 5+ failure modes
 
 **Success Criteria:**
-- ✅ All E2E workflows pass in < 10 minutes
-- ✅ Visual regression diffs < 100px changes
-- ✅ Zero flaky tests (pass 100% of the time)
-- ✅ Mobile compatibility verified
+- All E2E workflows pass in < 10 minutes
+- Visual regression diffs < 100px changes
+- Zero flaky tests (pass 100% of the time)
+- Mobile compatibility verified
 
 ## Next Steps
 
