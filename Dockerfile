@@ -61,11 +61,11 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,tar
     if [ -d apps/backend/dist ]; then \
         echo "dist directory exists" && \
         ls -la apps/backend/dist/ && \
-        if [ -f apps/backend/dist/src/main.js ]; then \
+        if [ -f apps/backend/dist/apps/backend/src/main.js ]; then \
             echo "✓ main.js found" && \
             echo "=== Build verification passed ==="; \
         else \
-            echo "ERROR: apps/backend/dist/src/main.js not found" && \
+            echo "ERROR: apps/backend/dist/apps/backend/src/main.js not found" && \
             echo "Contents of dist directory:" && \
             find apps/backend/dist -type f -name "*.js" | head -10 && \
             exit 1; \
@@ -158,7 +158,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD node -e "require('http').get('http://127.0.0.1:' + process.env.PORT + '/health', (r) => { r.statusCode === 200 ? process.exit(0) : process.exit(1) }).on('error', () => process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "apps/backend/dist/src/main.js"]
+CMD ["node", "apps/backend/dist/apps/backend/src/main.js"]
 
 LABEL maintainer="TenantFlow Team" \
       version="1.0.1" \
