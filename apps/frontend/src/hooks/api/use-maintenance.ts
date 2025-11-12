@@ -244,6 +244,11 @@ export function useUpdateMaintenanceRequest() {
 		},
 		onSuccess: () => {
 			handleMutationSuccess('Update maintenance request')
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency (status changes affect stats)
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
+			queryClient.invalidateQueries({ queryKey: maintenanceKeys.stats() })
 		}
 	})
 }
