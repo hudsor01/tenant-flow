@@ -19,12 +19,12 @@ import {
 } from '#components/ui/table'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { cn } from '#lib/utils'
-import type { Property } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type {
+	Property,
+	PropertyStatus,
+	PropertyType
+} from '@repo/shared/types/core'
 import { Building2, MapPin } from 'lucide-react'
-
-type PropertyType = Database['public']['Enums']['PropertyType']
-type PropertyStatus = Database['public']['Enums']['PropertyStatus']
 
 // Format property type for display
 const formatPropertyType = (type: PropertyType): string => {
@@ -191,7 +191,7 @@ export function SectionTable() {
 													: property.status === 'UNDER_CONTRACT'
 														? 'bg-(--color-system-blue-10) text-(--color-system-blue) hover:bg-(--color-system-blue-15)'
 														: property.status === 'SOLD'
-															? 'bg-(--color-system-purple-10) text-(--color-system-purple) hover:bg-(--color-system-purple-15)'
+															? 'bg-(--color-system-teal-10) text-(--color-system-teal) hover:bg-(--color-system-teal-15)'
 															: 'bg-(--color-system-gray-10) text-(--color-label-tertiary) hover:bg-(--color-system-gray-15)'
 											)}
 										>

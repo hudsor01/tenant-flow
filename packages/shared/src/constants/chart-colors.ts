@@ -98,11 +98,11 @@ export const CHART_PALETTES = {
 		SYSTEM_COLORS.primary,
 		SYSTEM_COLORS.success,
 		SYSTEM_COLORS.warning,
-		'oklch(0.647 0.199 285.85)', // purple
-		'oklch(0.617 0.274 352.8)', // pink
 		'oklch(0.717 0.142 213.4)', // teal
 		'oklch(0.623 0.214 259.815)', // indigo
-		'oklch(0.897 0.165 89.23)' // yellow
+		'oklch(0.897 0.165 89.23)', // yellow
+		'oklch(0.55 0.18 180)', // neutral teal
+		'oklch(0.6 0.15 240)' // neutral blue
 	],
 
 	// Dark theme palette
@@ -110,11 +110,11 @@ export const CHART_PALETTES = {
 		SYSTEM_COLORS.primaryDark,
 		SYSTEM_COLORS.successDark,
 		SYSTEM_COLORS.warningDark,
-		'oklch(0.717 0.179 285.85)', // purple dark
-		'oklch(0.617 0.274 352.8)', // pink dark
 		'oklch(0.767 0.122 213.4)', // teal dark
 		'oklch(0.673 0.204 259.815)', // indigo dark
-		'oklch(0.917 0.145 89.23)' // yellow dark
+		'oklch(0.917 0.145 89.23)', // yellow dark
+		'oklch(0.6 0.16 180)', // neutral teal dark
+		'oklch(0.65 0.13 240)' // neutral blue dark
 	],
 
 	// Specific color sets for different chart types
@@ -151,7 +151,7 @@ export const CHART_GRADIENTS = {
 		blue: `linear-gradient(180deg, oklch(0.623 0.214 259.815 / 0.25), oklch(0.623 0.214 259.815 / 0.06), oklch(0.623 0.214 259.815 / 0))`,
 		green: `linear-gradient(180deg, oklch(0.627 0.182 145.7 / 0.25), oklch(0.627 0.182 145.7 / 0.06), oklch(0.627 0.182 145.7 / 0))`,
 		orange: `linear-gradient(180deg, oklch(0.839 0.17 91.67 / 0.25), oklch(0.839 0.17 91.67 / 0.06), oklch(0.839 0.17 91.67 / 0))`,
-		purple: `linear-gradient(180deg, oklch(0.647 0.199 285.85 / 0.25), oklch(0.647 0.199 285.85 / 0.06), oklch(0.647 0.199 285.85 / 0))`
+		teal: `linear-gradient(180deg, oklch(0.55 0.18 180 / 0.25), oklch(0.55 0.18 180 / 0.06), oklch(0.55 0.18 180 / 0))`
 	}
 } as const
 

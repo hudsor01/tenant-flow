@@ -508,14 +508,14 @@ export function PaymentMethodSetupForm({
 			theme: 'stripe',
 			labels: 'floating',
 			variables: {
-				colorPrimary: 'oklch(var(--primary))',
-				colorBackground: 'oklch(var(--background))',
-				colorText: 'oklch(var(--foreground))',
-				colorDanger: 'oklch(var(--destructive))',
-				colorTextSecondary: 'oklch(var(--muted-foreground))',
-				colorTextPlaceholder: 'oklch(var(--muted-foreground))',
-				colorIcon: 'oklch(var(--muted-foreground))',
-				colorSuccess: 'oklch(var(--primary))',
+				colorPrimary: 'var(--primary)',
+				colorBackground: 'var(--background)',
+				colorText: 'var(--foreground)',
+				colorDanger: 'var(--destructive)',
+				colorTextSecondary: 'var(--muted-foreground)',
+				colorTextPlaceholder: 'var(--muted-foreground)',
+				colorIcon: 'var(--muted-foreground)',
+				colorSuccess: 'var(--primary)',
 				fontFamily: 'var(--font-roboto-flex), system-ui, sans-serif',
 				fontSizeBase: '14px',
 				fontSizeSm: '12px',
@@ -527,7 +527,7 @@ export function PaymentMethodSetupForm({
 				fontWeightBold: '600',
 				borderRadius: 'var(--radius)',
 				focusOutline: 'none',
-				focusBoxShadow: '0 0 0 2px oklch(var(--ring))',
+				focusBoxShadow: '0 0 0 2px var(--ring)',
 				spacingUnit: '4px',
 				spacingGridRow: '16px',
 				spacingGridColumn: '16px',
@@ -540,25 +540,25 @@ export function PaymentMethodSetupForm({
 					transition: 'box-shadow 0.15s ease'
 				},
 				'.Input:focus': {
-					boxShadow: '0 0 0 2px oklch(var(--ring))'
+					boxShadow: '0 0 0 2px var(--ring)'
 				},
 				'.Tab': {
-					border: '1px solid oklch(var(--border))',
-					backgroundColor: 'oklch(var(--muted))',
-					color: 'oklch(var(--muted-foreground))'
+					border: '1px solid var(--border)',
+					backgroundColor: 'var(--muted)',
+					color: 'var(--muted-foreground)'
 				},
 				'.Tab:hover': {
-					backgroundColor: 'oklch(var(--accent))',
-					color: 'oklch(var(--accent-foreground))'
+					backgroundColor: 'var(--accent)',
+					color: 'var(--accent-foreground)'
 				},
 				'.Tab--selected': {
-					backgroundColor: 'oklch(var(--primary))',
-					color: 'oklch(var(--primary-foreground))'
+					backgroundColor: 'var(--primary)',
+					color: 'var(--primary-foreground)'
 				},
 				'.AccordionItem': {
-					border: '1px solid oklch(var(--border))',
+					border: '1px solid var(--border)',
 					borderRadius: 'var(--radius)',
-					backgroundColor: 'oklch(var(--card))'
+					backgroundColor: 'var(--card)'
 				}
 			}
 		}

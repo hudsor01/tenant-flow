@@ -11,6 +11,7 @@ import {
 	Logger,
 	NotFoundException,
 	Param,
+	ParseUUIDPipe,
 	Post,
 	Query,
 	Request,
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
+import { StripeCustomerOwnershipGuard } from '../../shared/guards/stripe-customer-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
@@ -134,7 +136,9 @@ export class StripeController {
 		}
 
 		if (error.type === 'StripeRateLimitError') {
-			throw new InternalServerErrorException('Too many requests. Please try again later.')
+			throw new InternalServerErrorException(
+				'Too many requests. Please try again later.'
+			)
 		}
 
 		// Default error
@@ -256,7 +260,8 @@ export class StripeController {
 	 * Official Pattern: payment method listing with proper types
 	 */
 	@Get('customers/:id/payment-methods')
-	async getPaymentMethods(@Param('id') customerId: string) {
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
+	async getPaymentMethods(@Param('id', ParseUUIDPipe) customerId: string) {
 		try {
 			return await this.stripe.paymentMethods.list({
 				customer: customerId,
@@ -541,7 +546,7 @@ export class StripeController {
 	@UseGuards(JwtAuthGuard)
 	async removeTenantPaymentMethod(
 		@Request() req: AuthenticatedRequest,
-		@Param('payment_method_id') paymentMethodId: string
+		@Param('payment_method_id', ParseUUIDPipe) paymentMethodId: string
 	) {
 		const userId = req.user?.id
 		if (!userId) {
@@ -1140,7 +1145,9 @@ export class StripeController {
 	 */
 	@Get('checkout-session/:sessionId')
 	@SetMetadata('isPublic', true)
-	async getCheckoutSession(@Param('sessionId') sessionId: string) {
+	async getCheckoutSession(
+		@Param('sessionId', ParseUUIDPipe) sessionId: string
+	) {
 		if (!sessionId) {
 			throw new BadRequestException('sessionId is required')
 		}
@@ -1410,7 +1417,10 @@ export class StripeController {
 	 * Official Pattern: subscription listing with expand
 	 */
 	@Get('subscriptions/:customerId')
-	async getSubscriptions(@Param('customerId') customerId: string) {
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
+	async getSubscriptions(
+		@Param('customerId', ParseUUIDPipe) customerId: string
+	) {
 		try {
 			return await this.stripe.subscriptions.list({
 				customer: customerId,

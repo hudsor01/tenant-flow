@@ -6,21 +6,25 @@ import {
 	Param,
 	ParseUUIDPipe,
 	Post,
+	Req,
 	Res,
 	UseGuards,
 	NotFoundException,
 	BadRequestException,
-	InternalServerErrorException
+	InternalServerErrorException,
+	UnauthorizedException
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 
 // Filename sanitization constants
 const MAX_ADDRESS_LENGTH = 30 // Max characters for property address in filename
@@ -43,7 +47,8 @@ export class LeaseGenerationController {
 
 	constructor(
 		private readonly leasePDF: ReactLeasePDFService,
-		private readonly supabase: SupabaseService
+		private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService
 	) {}
 
 	/**
@@ -150,14 +155,24 @@ export class LeaseGenerationController {
 	 */
 	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:propertyId/:unitId/:tenantId')
-	// NOTE: Caching disabled - @CacheKey doesn't support per-property/per-user keys
-	// User-specific data cannot use global cache without exposing data across users
-	// Each property/unit/tenant combination would need unique cache key: lease-auto-fill:{propertyId}:{unitId}:{tenantId}
 	async autoFillLease(
 		@Param('propertyId', ParseUUIDPipe) propertyId: string,
 		@Param('unitId', ParseUUIDPipe) unitId: string,
-		@Param('tenantId', ParseUUIDPipe) tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string,
+		@Req() req: AuthenticatedRequest
 	): Promise<Partial<LeaseGenerationFormData>> {
+		const userId = req.user?.id
+		if (!userId) {
+			throw new UnauthorizedException('Authenticated user is required')
+		}
+
+		// Check cache first with parameterized key
+		const cacheKey = `lease-auto-fill:${userId}:${propertyId}:${unitId}:${tenantId}`
+		const cached = this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
+		if (cached) {
+			this.logger.debug(`Cache hit for auto-fill: ${cacheKey}`)
+			return cached
+		}
 
 		// OPTIMIZATION: Fetch property, unit, and tenant data in parallel with Promise.all
 		const [
@@ -298,6 +313,21 @@ export class LeaseGenerationController {
 			tenantResponsibleUtilities: ['Electric', 'Gas', 'Water', 'Internet']
 		}
 
+		// Cache the result for 30 seconds (short TTL for fresh data)
+		// Dependencies: invalidate when property, unit, or tenant data changes
+		this.cache.set(
+			cacheKey,
+			autoFilled,
+			30_000, // 30 seconds
+			[
+				`property:${propertyId}`,
+				`unit:${unitId}`,
+				`tenant:${tenantId}`,
+				`user:${userId}`
+			]
+		)
+
+		this.logger.debug(`Cached auto-fill data: ${cacheKey}`)
 		return autoFilled
 	}
 }

@@ -358,7 +358,7 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+						<div className="flex items-center justify-between p-4 bg-corporate-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
 								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}

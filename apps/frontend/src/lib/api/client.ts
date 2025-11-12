@@ -7,10 +7,11 @@
  * NOTE: This utility can be called from both client and server contexts,
  * so it MUST NOT call browser-only APIs like toast()
  */
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
+import { ApiError, ApiErrorCode } from './api-error'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
@@ -18,8 +19,8 @@ const logger = createLogger({ component: 'ClientAPI' })
  * Get auth headers with Supabase JWT token
  * Extracted for reuse across fetch calls
  *
- * SECURITY: Validates user with getUser() before extracting token from getSession()
- * This prevents using potentially-tampered session data from cookies
+ * SECURITY: Validates session and extracts token in a single atomic operation
+ * This prevents race conditions between user validation and token extraction
  *
  * @param additionalHeaders - Custom headers to merge with auth headers
  * @param requireAuth - Whether to throw error if no session exists (default: true)
@@ -37,30 +38,47 @@ export async function getAuthHeaders(
 				...additionalHeaders
 			}
 
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
-	// SECURITY FIX: Validate user with getUser() before extracting token
-	// This ensures the session is authentic by contacting Supabase Auth server
+	// SECURITY FIX: Get session first (atomic operation) then validate
+	// This prevents race conditions where session might expire between calls
 	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	// Get session for access token (only after user validation)
-	const {
-		data: { session }
+		data: { session },
+		error: sessionError
 	} = await supabase.auth.getSession()
 
-	// Only use access token if user validation succeeded
-	if (!userError && user && session?.access_token) {
-		headers['Authorization'] = `Bearer ${session.access_token}`
+	// Validate session before using token
+	if (session?.access_token) {
+		// SECURITY: Verify session is still valid by checking if we can get user
+		// This ensures the token hasn't been revoked or expired
+		const {
+			data: { user },
+			error: userError
+		} = await supabase.auth.getUser()
+
+		if (!userError && user) {
+			headers['Authorization'] = `Bearer ${session.access_token}`
+		} else {
+			// Session exists but user validation failed - token might be expired or revoked
+			logger.warn('Session token invalid during validation', {
+				metadata: {
+					hasSession: !!session,
+					hasUser: !!user,
+					userError: userError?.message,
+					requireAuth
+				}
+			})
+
+			if (requireAuth) {
+				throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+			}
+		}
 	} else if (requireAuth) {
-		// Log warning - caller should handle error appropriately for their context
-		logger.warn('Authentication session expired', {
+		// No session found
+		logger.warn('No authentication session found', {
 			metadata: {
-				hasUser: !!user,
 				hasSession: !!session,
-				userError: userError?.message,
+				sessionError: sessionError?.message,
 				requireAuth
 			}
 		})
@@ -69,7 +87,6 @@ export async function getAuthHeaders(
 		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {
 			metadata: {
-				hasUser: !!user,
 				hasSession: !!session,
 				requireAuth
 			}
@@ -105,9 +122,16 @@ export async function getAuthHeaders(
  */
 export async function clientFetch<T>(
 	endpoint: string,
-	options?: RequestInit & { requireAuth?: boolean; omitJsonContentType?: boolean }
+	options?: RequestInit & {
+		requireAuth?: boolean
+		omitJsonContentType?: boolean
+	}
 ): Promise<T> {
-	const { requireAuth = true, omitJsonContentType = false, ...fetchOptions } = options || {}
+	const {
+		requireAuth = true,
+		omitJsonContentType = false,
+		...fetchOptions
+	} = options || {}
 
 	// Build headers from options
 	const customHeaders: Record<string, string> = {}
@@ -121,7 +145,11 @@ export async function clientFetch<T>(
 
 	// Get auth headers (includes Authorization + custom headers)
 	// For FormData, omit Content-Type so browser sets multipart/form-data with boundary
-	const headers = await getAuthHeaders(customHeaders, requireAuth, omitJsonContentType)
+	const headers = await getAuthHeaders(
+		customHeaders,
+		requireAuth,
+		omitJsonContentType
+	)
 
 	// Ensure body is set for methods that require it
 	const finalOptions = { ...fetchOptions, headers }
@@ -135,42 +163,202 @@ export async function clientFetch<T>(
 		})
 	}
 
-	const response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
+	let response: Response
+
+	try {
+		response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Network request failed'
+
+		logger.error('Network error during API request', {
+			metadata: {
+				endpoint,
+				error: errorMessage
+			}
+		})
+
+		throw new ApiError(
+			'Network request failed. Please check your connection and try again.',
+			ApiErrorCode.NETWORK_ERROR,
+			undefined,
+			{
+				endpoint,
+				error: errorMessage
+			}
+		)
+	}
 
 	if (!response.ok) {
-		const errorText = await response.text()
+		let errorData: unknown = null
+		let errorText = ''
+
+		try {
+			errorText = await response.text()
+			errorData = JSON.parse(errorText)
+		} catch (parseError) {
+			// Log parsing errors to help diagnose unexpected response formats
+			logger.warn('Failed to parse API error response as JSON', {
+				metadata: {
+					endpoint,
+					status: response.status,
+					contentType: response.headers.get('content-type'),
+					responseLength: errorText.length,
+					responsePreview: errorText.substring(0, 200),
+					parseError:
+						parseError instanceof Error
+							? parseError.message
+							: String(parseError)
+				}
+			})
+			// Not JSON, use text directly
+		}
+
+		const backendCode = extractBackendErrorCode(errorData)
+		const message =
+			(typeof errorData === 'object' && errorData && 'message' in errorData
+				? String((errorData as { message?: unknown }).message)
+				: undefined) ||
+			(typeof errorData === 'object' && errorData && 'error' in errorData
+				? String((errorData as { error?: unknown }).error)
+				: undefined) ||
+			errorText ||
+			response.statusText
+
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API request failed', {
 			metadata: {
 				endpoint,
 				status: response.status,
 				statusText: response.statusText,
-				error: errorText
+				code: backendCode,
+				error: message
 			}
 		})
-		throw new Error(
-			`API Error (${response.status}): ${errorText || response.statusText}`
+
+		const details = buildErrorDetails(
+			errorData,
+			errorText,
+			response.status,
+			backendCode
 		)
+
+		throw new ApiError(
+			message,
+			mapStatusToApiErrorCode(response.status),
+			response.status,
+			details
+		)
+	}
+
+	const contentType = response.headers.get('content-type')
+	const contentLength = response.headers.get('content-length')
+	const isNoContentStatus = response.status === 204 || response.status === 205
+	const hasExplicitZeroLength =
+		typeof contentLength === 'string' && Number(contentLength) === 0
+	const shouldSkipParsing =
+		isNoContentStatus || hasExplicitZeroLength || !contentType
+
+	if (shouldSkipParsing) {
+		return undefined as T
 	}
 
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
-	if ('success' in data && data.success === false) {
+	if (
+		data &&
+		typeof data === 'object' &&
+		'success' in data &&
+		data.success === false
+	) {
+		const statusCode =
+			typeof data.statusCode === 'number' ? data.statusCode : response.status
+		const backendCode = extractBackendErrorCode(data)
+		const message =
+			(typeof data.error === 'string' && data.error) ||
+			(typeof data.message === 'string' && data.message) ||
+			'API request failed'
+
 		// Log error - caller should handle error appropriately for their context
 		logger.error('API returned error response', {
 			metadata: {
 				endpoint,
-				error: data.error || data.message,
+				code: backendCode,
+				error: message,
 				data
 			}
 		})
-		throw new Error(data.error || data.message || 'API request failed')
+
+		const details = buildErrorDetails(data, '', statusCode, backendCode)
+
+		throw new ApiError(
+			message,
+			mapStatusToApiErrorCode(statusCode),
+			statusCode,
+			details
+		)
 	}
 
-	if ('data' in data) {
-		return data.data as T
+	if (data && typeof data === 'object' && 'data' in data) {
+		return (data as { data: T }).data
 	}
 
 	return data as T
+}
+
+function extractBackendErrorCode(payload: unknown): string | undefined {
+	if (payload && typeof payload === 'object' && 'code' in payload) {
+		const code = (payload as { code?: unknown }).code
+		if (typeof code === 'string') {
+			return code
+		}
+	}
+	return undefined
+}
+
+function buildErrorDetails(
+	payload: unknown,
+	rawText: string,
+	status?: number,
+	backendCode?: string
+): Record<string, unknown> | undefined {
+	const details: Record<string, unknown> =
+		payload && typeof payload === 'object'
+			? { ...(payload as Record<string, unknown>) }
+			: {}
+
+	if (!Object.keys(details).length && rawText) {
+		details.raw = rawText
+	}
+
+	if (backendCode) {
+		details.code = backendCode
+	}
+
+	if (typeof status === 'number') {
+		details.status = status
+	}
+
+	return Object.keys(details).length > 0 ? details : undefined
+}
+
+function mapStatusToApiErrorCode(status?: number): ApiErrorCode {
+	switch (status) {
+		case 400:
+			return ApiErrorCode.API_BAD_REQUEST
+		case 401:
+		case 403:
+			return ApiErrorCode.AUTH_UNAUTHORIZED
+		case 404:
+			return ApiErrorCode.API_NOT_FOUND
+		case 429:
+			return ApiErrorCode.API_RATE_LIMITED
+		case 500:
+			return ApiErrorCode.API_SERVER_ERROR
+		case 503:
+			return ApiErrorCode.API_SERVICE_UNAVAILABLE
+		default:
+			return ApiErrorCode.UNKNOWN_ERROR
+	}
 }
