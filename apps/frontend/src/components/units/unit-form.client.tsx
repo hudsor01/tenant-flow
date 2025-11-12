@@ -20,7 +20,10 @@ import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { UNIT_STATUS, UNIT_STATUS_LABELS, ERROR_MESSAGES } from '#lib/constants'
+import { UNIT_STATUS, UNIT_STATUS_LABELS } from '#lib/constants/status-values'
+import { ERROR_MESSAGES } from '#lib/constants/error-messages'
+import { isConflictError, handleConflictError } from '@repo/shared/utils/optimistic-locking'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 interface UnitFormProps {
 	mode: 'create' | 'edit'
@@ -126,10 +129,6 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 
 				if (mode === 'create') {
 					await createUnitMutation.mutateAsync(unitData)
-					await Promise.all([
-						queryClient.invalidateQueries({ queryKey: ['units'] }),
-						queryClient.invalidateQueries({ queryKey: ['properties'] })
-					])
 					toast.success('Unit created successfully')
 					router.push('/manage/units')
 				} else {
@@ -139,26 +138,25 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					}
 					await updateUnitMutation.mutateAsync({
 						id: unit.id,
-						data: { ...unitData, version: unit.version }
+						data: unitData,
+						version: unit.version
 					})
 					toast.success('Unit updated successfully')
 				}
 
-				onSuccess?.()
+					onSuccess?.()
 			} catch (error) {
-				const errorMessage =
-					error instanceof Error ? error.message : ERROR_MESSAGES.GENERIC_FAILED(mode, 'unit')
-				
-				// Check for 409 conflict via error status or response
-				const is409Conflict = 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error as any)?.status === 409 || 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(error as any)?.response?.status === 409
-				
-				toast.error(errorMessage, {
-					description: is409Conflict ? ERROR_MESSAGES.CONFLICT_UPDATE : undefined
-				})
+				// Handle optimistic locking conflicts
+				if (mode === 'edit' && unit && isConflictError(error)) {
+					handleConflictError('unit', unit.id, queryClient, [
+						unitKeys.detail(unit.id),
+						unitKeys.all
+					])
+					toast.error(ERROR_MESSAGES.CONFLICT_UPDATE)
+					return
+				}
+
+				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} unit`)
 			}
 		}
 	})

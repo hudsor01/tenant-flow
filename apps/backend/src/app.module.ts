@@ -5,7 +5,9 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
+import { PrometheusModule } from '@willsoto/nestjs-prometheus'
 import { ThrottlerModule } from '@nestjs/throttler'
+import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
 import { ZodValidationPipe } from 'nestjs-zod'
@@ -37,7 +39,6 @@ import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
-import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
 import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware'
 import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
@@ -46,6 +47,8 @@ import { SharedModule } from './shared/shared.module'
 import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
+import { MetricsModule } from './modules/metrics/metrics.module'
+import { MetricsController } from './modules/metrics/metrics.controller'
 
 /**
  * Core App Module - KISS principle
@@ -87,6 +90,15 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
 
+		// Prometheus metrics - default metrics enabled
+		// Custom MetricsController defined in MetricsModule
+		PrometheusModule.register({
+			defaultMetrics: {
+				enabled: true
+			},
+			controller: MetricsController
+		}),
+
 		// Rate limiting - simple configuration
 		ThrottlerModule.forRoot({
 			throttlers: [
@@ -102,6 +114,7 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		SharedModule,
 		ServicesModule,
 		HealthModule,
+		MetricsModule,
 		AnalyticsModule,
 		StripeModule,
 		StripeSyncModule,
@@ -133,15 +146,15 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 		},
 		{
 			provide: APP_GUARD,
+			useClass: ThrottlerProxyGuard
+		},
+		{
+			provide: APP_GUARD,
 			useClass: JwtAuthGuard
 		},
 		{
 			provide: APP_GUARD,
 			useClass: SubscriptionGuard
-		},
-		{
-			provide: APP_GUARD,
-			useClass: ThrottlerProxyGuard
 		},
 		{
 			provide: APP_INTERCEPTOR,

@@ -96,7 +96,8 @@ async function bootstrap() {
 	app.setGlobalPrefix(GLOBAL_PREFIX, {
 		exclude: [
 			...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
-			{ path: '/', method: RequestMethod.ALL }
+			{ path: '/', method: RequestMethod.ALL },
+			{ path: '/metrics', method: RequestMethod.ALL }
 		]
 	})
 	const healthPaths = HEALTH_PATHS.join(', ')

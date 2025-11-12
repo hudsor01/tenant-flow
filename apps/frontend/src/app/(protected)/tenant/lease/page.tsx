@@ -57,7 +57,7 @@ export default function TenantLeasePage() {
 				{lease?.status === 'ACTIVE' && (
 					<Badge
 						variant="outline"
-						className="bg-green-50 text-green-700 border-green-200"
+						className="bg-success/10 text-success border-success/20"
 					>
 						Active
 					</Badge>
@@ -112,7 +112,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{formatDate(lease.endDate)}</p>
+									<p className="font-semibold">{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}</p>
 								)}
 							</div>
 						</div>

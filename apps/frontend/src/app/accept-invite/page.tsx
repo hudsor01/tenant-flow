@@ -13,12 +13,12 @@ import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/spinner'
 import { API_BASE_URL } from '#lib/api-config'
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { AlertCircle, CheckCircle, Lock } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-const supabase = createClient()
+const supabase = getSupabaseClientInstance()
 
 /**
  * Accept Invite Page - Tenant Onboarding
@@ -184,16 +184,16 @@ export default function AcceptInvitePage() {
 			<div className="flex min-h-screen items-center justify-center p-4">
 				<Card className="w-full max-w-md">
 					<CardHeader>
-						<CardTitle className="flex items-center gap-2 text-green-600">
+						<CardTitle className="flex items-center gap-2 text-success">
 							<CheckCircle className="size-5" />
 							Welcome to TenantFlow!
 						</CardTitle>
 						<CardDescription>Your account has been activated</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
-							<CheckCircle className="size-4 text-green-600" />
-							<AlertDescription className="text-green-900 dark:text-green-100">
+						<Alert className="border-success/20 bg-success/5 dark:border-success/30 dark:bg-success/10">
+							<CheckCircle className="size-4 text-success" />
+							<AlertDescription className="text-success dark:text-success">
 								Redirecting you to your tenant portal...
 							</AlertDescription>
 						</Alert>

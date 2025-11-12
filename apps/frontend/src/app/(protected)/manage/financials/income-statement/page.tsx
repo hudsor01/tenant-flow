@@ -18,97 +18,89 @@ import {
 	Upload,
 	DollarSign,
 	TrendingUp,
-	TrendingDown
+	TrendingDown,
+	Loader2
 } from 'lucide-react'
-import { useState } from 'react'
-
-type FinancialLineItem = {
-	name: string
-	amount: number
-	previous: number
-}
-
-type IncomeStatementData = {
-	revenue: FinancialLineItem[]
-	expenses: FinancialLineItem[]
-	other: FinancialLineItem[]
-}
+import { useState, useMemo } from 'react'
+import { useIncomeStatement } from '#hooks/api/use-financial-statements'
 
 const IncomeStatementPage = () => {
 	const [period, setPeriod] = useState('monthly')
 	const [year, setYear] = useState('2024')
 	const [search, setSearch] = useState('')
 
-	// Mock data for immediate rendering
-	const data: IncomeStatementData = {
-		revenue: [
-			{ name: 'Sales', amount: 10000, previous: 9500 },
-			{ name: 'Services', amount: 5000, previous: 4800 }
-		],
-		expenses: [
-			{ name: 'Rent', amount: 2000, previous: 1900 },
-			{ name: 'Utilities', amount: 500, previous: 450 }
-		],
-		other: [{ name: 'Interest Income', amount: 100, previous: 80 }]
-	}
+	// Calculate date range based on period and year
+	const dateRange = useMemo(() => {
+		const yearNum = parseInt(year)
+		if (period === 'yearly') {
+			return {
+				startDate: `${yearNum}-01-01`,
+				endDate: `${yearNum}-12-31`
+			}
+		} else if (period === 'quarterly') {
+			const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1
+			const quarterStart = (currentQuarter - 1) * 3 + 1
+			const quarterEnd = quarterStart + 2
+			return {
+				startDate: `${yearNum}-${quarterStart.toString().padStart(2, '0')}-01`,
+				endDate: `${yearNum}-${quarterEnd.toString().padStart(2, '0')}-31`
+			}
+		} else {
+			const currentMonth = new Date().getMonth() + 1
+			const lastDay = new Date(yearNum, currentMonth, 0).getDate()
+			return {
+				startDate: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-01`,
+				endDate: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
+			}
+		}
+	}, [period, year])
 
-	const calculateTotal = (items: FinancialLineItem[]) => {
-		return items.reduce((sum, item) => sum + item.amount, 0)
-	}
+	// Fetch data from backend
+	const { data: response, isLoading, error } = useIncomeStatement(dateRange)
 
-	const calculateChange = (current: number, previous: number) => {
-		const change = current - previous
-		const percentage = previous !== 0 ? (change / previous) * 100 : 0
-		return { amount: change, percentage }
-	}
+	// Extract data from API response ({success: true, data: IncomeStatementData})
+	const data = response?.data
 
-	const renderSection = (title: string, items: FinancialLineItem[]) => (
-		<div className="space-y-4">
-			<h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-			<div className="space-y-2">
-				{items.map((item, index) => {
-					const change = calculateChange(item.amount, item.previous)
-					return (
-						<div
-							key={index}
-							className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-						>
-							<div className="flex-1">
-								<div className="font-medium text-gray-900">{item.name}</div>
-								<div className="text-sm text-gray-500">
-									Previous: ${item.previous.toLocaleString()}
-								</div>
-							</div>
-							<div className="text-right">
-								<div className="font-semibold text-gray-900">
-									${item.amount.toLocaleString()}
-								</div>
-								<div
-									className={`text-sm flex items-center gap-1 ${
-										change.amount >= 0 ? 'text-green-600' : 'text-red-600'
-									}`}
-								>
-									{change.amount >= 0 ? (
-										<TrendingUp className="w-3 h-3" />
-									) : (
-										<TrendingDown className="w-3 h-3" />
-									)}
-									{change.amount >= 0 ? '+' : ''}
-									{change.amount.toLocaleString()} (
-									{change.percentage.toFixed(1)}%)
-								</div>
-							</div>
-						</div>
-					)
-				})}
+	// Calculate totals from backend data
+	const totalRevenue = data?.revenue.totalRevenue || 0
+	const totalExpenses = data?.expenses.totalExpenses || 0
+	const netIncome = data?.netIncome || 0
+
+	// Show loading state
+	if (isLoading) {
+		return (
+			<div className="p-6 flex items-center justify-center min-h-[400px]">
+				<div className="flex flex-col items-center gap-4">
+					<Loader2 className="w-8 h-8 animate-spin text-primary" />
+					<p className="text-sm text-muted-foreground">Loading income statement...</p>
+				</div>
 			</div>
-		</div>
-	)
+		)
+	}
 
-	const totalRevenue = calculateTotal(data.revenue)
-	const totalExpenses = calculateTotal(data.expenses)
-	const totalOther = calculateTotal(data.other)
-	const netIncome = totalRevenue - totalExpenses + totalOther
+	// Show error state
+	if (error) {
+		return (
+			<div className="p-6">
+				<Card>
+					<CardContent className="p-6">
+						<div className="flex flex-col items-center gap-4 text-center">
+							<div className="text-red-600">
+								<TrendingDown className="w-12 h-12" />
+							</div>
+							<div>
+								<h3 className="text-lg font-semibold">Failed to Load Income Statement</h3>
+								<p className="text-sm text-muted-foreground mt-2">
+									{error instanceof Error ? error.message : 'An error occurred'}
+								</p>
+							</div>
+							<Button onClick={() => window.location.reload()}>Try Again</Button>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		)
+	}
 
 	return (
 		<div className="p-6 space-y-6">
@@ -178,7 +170,7 @@ const IncomeStatementPage = () => {
 			</Card>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -186,9 +178,11 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold text-green-600">
-							${totalRevenue.toLocaleString()}
+							${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
-						<p className="text-xs text-muted-foreground">Current period</p>
+						<p className="text-xs text-muted-foreground">
+							{data?.period.label || 'Current period'}
+						</p>
 					</CardContent>
 				</Card>
 				<Card>
@@ -200,21 +194,11 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold text-red-600">
-							${totalExpenses.toLocaleString()}
+							${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
-						<p className="text-xs text-muted-foreground">Current period</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Other Items</CardTitle>
-						<DollarSign className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							${totalOther.toLocaleString()}
-						</div>
-						<p className="text-xs text-muted-foreground">Current period</p>
+						<p className="text-xs text-muted-foreground">
+							{data?.period.label || 'Current period'}
+						</p>
 					</CardContent>
 				</Card>
 				<Card>
@@ -226,9 +210,11 @@ const IncomeStatementPage = () => {
 						<div
 							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
 						>
-							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
+							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
-						<p className="text-xs text-muted-foreground">Current period</p>
+						<p className="text-xs text-muted-foreground">
+							Profit Margin: {(data?.profitMargin || 0).toFixed(1)}%
+						</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -243,58 +229,99 @@ const IncomeStatementPage = () => {
 							Revenue
 						</CardTitle>
 					</CardHeader>
-					<CardContent className="space-y-6">
-						{renderSection('Revenue Sources', data.revenue)}
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Rental Income</span>
+								<span className="font-semibold">
+									${(data?.revenue.rentalIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Late Fees Income</span>
+								<span className="font-semibold">
+									${(data?.revenue.lateFeesIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Other Income</span>
+								<span className="font-semibold">
+									${(data?.revenue.otherIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+						</div>
 						<Separator />
 						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
 							<div className="font-semibold">Total Revenue</div>
 							<div className="font-bold text-lg text-green-600">
-								${totalRevenue.toLocaleString()}
+								${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 							</div>
 						</div>
 					</CardContent>
 				</Card>
 
-				{/* Expenses & Other */}
-				<div className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<DollarSign className="w-5 h-5 text-red-600" />
-								Operating Expenses
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							{renderSection('Operating Expenses', data.expenses)}
-							<Separator />
-							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-								<div className="font-semibold">Total Operating Expenses</div>
-								<div className="font-bold text-lg text-red-600">
-									${totalExpenses.toLocaleString()}
-								</div>
+				{/* Expenses */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<DollarSign className="w-5 h-5 text-red-600" />
+							Operating Expenses
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Property Management</span>
+								<span className="font-semibold">
+									${(data?.expenses.propertyManagement || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
 							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<DollarSign className="w-5 h-5 text-yellow-600" />
-								Other Items
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							{renderSection('Other Items', data.other)}
-							<Separator />
-							<div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-								<div className="font-semibold">Total Other Items</div>
-								<div className="font-bold text-lg text-yellow-600">
-									${totalOther.toLocaleString()}
-								</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Maintenance</span>
+								<span className="font-semibold">
+									${(data?.expenses.maintenance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
 							</div>
-						</CardContent>
-					</Card>
-				</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Utilities</span>
+								<span className="font-semibold">
+									${(data?.expenses.utilities || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Insurance</span>
+								<span className="font-semibold">
+									${(data?.expenses.insurance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Property Tax</span>
+								<span className="font-semibold">
+									${(data?.expenses.propertyTax || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Mortgage</span>
+								<span className="font-semibold">
+									${(data?.expenses.mortgage || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+								<span>Other</span>
+								<span className="font-semibold">
+									${(data?.expenses.other || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+						</div>
+						<Separator />
+						<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+							<div className="font-semibold">Total Expenses</div>
+							<div className="font-bold text-lg text-red-600">
+								${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 			</div>
 
 			{/* Net Income Summary */}
@@ -308,31 +335,51 @@ const IncomeStatementPage = () => {
 							<div className="flex justify-between py-2 border-b">
 								<span>Total Revenue</span>
 								<span className="font-semibold text-green-600">
-									${totalRevenue.toLocaleString()}
+									${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
 							<div className="flex justify-between py-2 border-b">
 								<span>Total Operating Expenses</span>
 								<span className="font-semibold text-red-600">
-									-${totalExpenses.toLocaleString()}
+									-${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
 							<div className="flex justify-between py-2 border-b">
-								<span>Other Items</span>
+								<span>Gross Profit</span>
 								<span className="font-semibold">
-									${totalOther.toLocaleString()}
+									${(data?.grossProfit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+								</span>
+							</div>
+							<div className="flex justify-between py-2 border-b">
+								<span>Operating Income</span>
+								<span className="font-semibold">
+									${(data?.operatingIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+						<div className="flex items-center justify-between p-4 bg-corporate-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
 								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
 							>
-								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString()}
+								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 							</div>
 						</div>
+						{data?.previousPeriod && (
+							<div className="mt-4 p-3 bg-gray-50 rounded-lg">
+								<div className="text-sm text-gray-600 mb-2">Period Comparison</div>
+								<div className="flex items-center gap-2">
+									<span className="text-sm">Previous Period:</span>
+									<span className="font-semibold">
+										${data.previousPeriod.netIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+									</span>
+									<span className={`text-sm ${data.previousPeriod.changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+										({data.previousPeriod.changePercent >= 0 ? '+' : ''}{data.previousPeriod.changePercent.toFixed(1)}%)
+									</span>
+								</div>
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</Card>

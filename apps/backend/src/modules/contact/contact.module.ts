@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import emailConfig from 'src/config/email.config'
+import { EmailModule } from '../email/email.module'
 import { ContactController } from './contact.controller'
 import { ContactService } from './contact.service'
 
 @Module({
+	imports: [ConfigModule.forFeature(emailConfig), EmailModule],
 	controllers: [ContactController],
 	providers: [ContactService]
 })

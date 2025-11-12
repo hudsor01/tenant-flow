@@ -15,6 +15,13 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseRentPaymentsCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_PAYMENT_PREFIX = 'TEST-CRUD'
 let createdPaymentIds: string[] = []
@@ -118,15 +125,15 @@ async function createTestLease(
 	return lease.id
 }
 
-describe('Rent Payments Integration Tests', () => {
+describeIfReady('Rent Payments Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables - NO FALLBACKS
 		const requiredEnvVars = [
 			'NEXT_PUBLIC_SUPABASE_URL',
 			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-			'E2E_OWNER_A_EMAIL',
-			'E2E_OWNER_A_PASSWORD'
+			'E2E_OWNER_EMAIL',
+			'E2E_OWNER_PASSWORD'
 		] as const
 
 		for (const envVar of requiredEnvVars) {
@@ -143,8 +150,8 @@ describe('Rent Payments Integration Tests', () => {
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL,
-			password: process.env.E2E_OWNER_A_PASSWORD
+			email: process.env.E2E_OWNER_EMAIL,
+			password: process.env.E2E_OWNER_PASSWORD
 		})
 
 		if (error || !data.session) {
@@ -179,7 +186,9 @@ describe('Rent Payments Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/leases/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup lease ${id}:`, error)
+				logger.warn(`Failed to cleanup lease ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdLeaseIds = []
@@ -188,7 +197,9 @@ describe('Rent Payments Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/tenants/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup tenant ${id}:`, error)
+				logger.warn(`Failed to cleanup tenant ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdTenantIds = []
@@ -197,7 +208,9 @@ describe('Rent Payments Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/units/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup unit ${id}:`, error)
+				logger.warn(`Failed to cleanup unit ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdUnitIds = []
@@ -206,7 +219,9 @@ describe('Rent Payments Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup property ${id}:`, error)
+				logger.warn(`Failed to cleanup property ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdPropertyIds = []
@@ -222,9 +237,7 @@ describe('Rent Payments Integration Tests', () => {
 			const hasStripeTestKey = process.env.STRIPE_SECRET_KEY?.includes('test')
 
 			if (!hasStripeTestKey) {
-				console.log(
-					'⚠️  Skipping rent payment test - requires Stripe test mode'
-				)
+				logger.warn('⚠️  Skipping rent payment test - requires Stripe test mode')
 				return
 			}
 
@@ -355,9 +368,7 @@ describe('Rent Payments Integration Tests', () => {
 		it('completes payment creation workflow', async () => {
 			// Skip if no Stripe test mode
 			if (!process.env.STRIPE_SECRET_KEY?.includes('test')) {
-				console.log(
-					'⚠️  Skipping payment workflow test - requires Stripe test mode'
-				)
+				logger.warn('⚠️  Skipping payment workflow test - requires Stripe test mode')
 				return
 			}
 
@@ -412,7 +423,7 @@ describe('Rent Payments Integration Tests', () => {
 		it('invalidates cache after payment creation', async () => {
 			// Skip if no Stripe test mode
 			if (!process.env.STRIPE_SECRET_KEY?.includes('test')) {
-				console.log('⚠️  Skipping cache test - requires Stripe test mode')
+				logger.warn('⚠️  Skipping cache test - requires Stripe test mode')
 				return
 			}
 
@@ -502,7 +513,7 @@ describe('Rent Payments Integration Tests', () => {
 		it('prevents duplicate simultaneous payments', async () => {
 			// Skip if no Stripe test mode
 			if (!process.env.STRIPE_SECRET_KEY?.includes('test')) {
-				console.log('⚠️  Skipping duplicate test - requires Stripe test mode')
+				logger.warn('⚠️  Skipping duplicate test - requires Stripe test mode')
 				return
 			}
 

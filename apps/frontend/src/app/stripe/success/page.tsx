@@ -16,7 +16,7 @@ function SuccessContent() {
 					<CheckCircle className="mx-auto size-16 text-primary" />
 				</div>
 
-				<h1 className="text-3xl font-bold mb-4 text-gradient-authority">
+				<h1 className="text-3xl font-bold mb-4 text-foreground">
 					Welcome to TenantFlow!
 				</h1>
 

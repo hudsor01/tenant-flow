@@ -171,6 +171,11 @@ const navigation: {
 	],
 	documents: [
 		{
+			name: 'Generate Lease',
+			url: '/manage/leases/generate',
+			icon: FileText
+		},
+		{
 			name: 'Lease Template',
 			url: '/manage/documents/lease-template',
 			icon: ClipboardList

@@ -16,8 +16,8 @@ import type {
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
 import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
-import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleConflictError,
 	isConflictError,
@@ -25,64 +25,44 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { leaseQueries } from './queries/lease-queries'
 
-export type TenantPortalLease = LeaseWithDetails & {
-	metadata: {
-		documentUrl: string | null
-	}
-}
+// Re-export for backward compatibility
+export type { TenantPortalLease } from './queries/lease-queries'
+
+// Re-export query factory
+export { leaseQueries } from './queries/lease-queries'
 
 /**
- * Query keys for lease endpoints (hierarchical, typed)
+ * @deprecated Use leaseQueries instead for type-safe queryOptions pattern
+ * Keeping for backward compatibility during migration
  */
 export const leaseKeys = {
-	all: ['leases'] as const,
-	list: (params?: {
-		status?: string
-		search?: string
-		limit?: number
-		offset?: number
-	}) => [...leaseKeys.all, 'list', params] as const,
-	detail: (id: string) => [...leaseKeys.all, 'detail', id] as const,
-	expiring: () => [...leaseKeys.all, 'expiring'] as const,
-	stats: () => [...leaseKeys.all, 'stats'] as const,
+	all: leaseQueries.all(),
+	list: (params?: Parameters<typeof leaseQueries.list>[0]) => leaseQueries.list(params).queryKey,
+	detail: (id: string) => leaseQueries.detail(id).queryKey,
+	expiring: () => leaseQueries.expiring().queryKey,
+	stats: () => leaseQueries.stats().queryKey,
 	analytics: {
-		performance: () => [...leaseKeys.all, 'analytics', 'performance'] as const,
-		duration: () => [...leaseKeys.all, 'analytics', 'duration'] as const,
-		turnover: () => [...leaseKeys.all, 'analytics', 'turnover'] as const,
-		revenue: () => [...leaseKeys.all, 'analytics', 'revenue'] as const
+		performance: () => leaseQueries.analytics.performance().queryKey,
+		duration: () => leaseQueries.analytics.duration().queryKey,
+		turnover: () => leaseQueries.analytics.turnover().queryKey,
+		revenue: () => leaseQueries.analytics.revenue().queryKey
 	}
 }
 
 /**
- * Hook to fetch lease by ID with optimized caching
+ * Hook to fetch lease by ID
  */
 export function useLease(id: string) {
-	return useQuery({
-		queryKey: leaseKeys.detail(id),
-		queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
-		enabled: !!id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000, // 10 minutes
-		retry: 2
-	})
+	return useQuery(leaseQueries.detail(id))
 }
 
 /**
  * Hook to fetch user's current active lease
  */
 export function useCurrentLease() {
-	return useQuery({
-		queryKey: [...leaseKeys.all, 'tenant-portal', 'active'],
-		queryFn: async (): Promise<TenantPortalLease | null> => {
-			return clientFetch<TenantPortalLease | null>(
-				'/api/v1/tenant-portal/lease'
-			)
-		},
-		staleTime: 60 * 1000,
-		retry: 2
-	})
+	return useQuery(leaseQueries.tenantPortalActive())
 }
 
 /**
@@ -114,7 +94,7 @@ export function useTenantMaintenanceRequests() {
 				...response.summary
 			}
 		},
-		staleTime: 2 * 60 * 1000,
+		...QUERY_CACHE_TIMES.SECURITY,
 		retry: 2
 	})
 }
@@ -135,8 +115,8 @@ export function useLeaseList(params?: {
 		queryKey: leaseKeys.list({
 			...(status && { status }),
 			...(search && { search }),
-			...(limit !== 50 && { limit }),
-			...(offset !== 0 && { offset })
+			limit, // Always include for proper cache keying
+			offset // Always include for proper cache keying
 		}),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams()
@@ -219,14 +199,14 @@ export function useCreateLease() {
 			const tempId = `temp-${Date.now()}`
 			const optimisticLease: Lease = {
 				id: tempId,
-				tenantId: newLease.tenantId,
-				unitId: newLease.unitId || null,
-				propertyId: newLease.propertyId || null,
+				tenantId: newLease.tenantId !== undefined ? newLease.tenantId : null,
+				unitId: newLease.unitId !== undefined ? newLease.unitId : null,
+				propertyId: newLease.propertyId !== undefined ? newLease.propertyId : null,
 				startDate: newLease.startDate,
-				endDate: newLease.endDate,
+				endDate: newLease.endDate ?? null,
 				rentAmount: newLease.rentAmount,
-				securityDeposit: newLease.securityDeposit,
-				monthlyRent: newLease.monthlyRent || null,
+				securityDeposit: newLease.securityDeposit ?? null,
+				monthlyRent: newLease.monthlyRent ?? null,
 				status: newLease.status || 'ACTIVE',
 				terms: newLease.terms || null,
 				gracePeriodDays: newLease.gracePeriodDays || null,

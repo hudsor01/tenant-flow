@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod'
+import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Re-export common validation utilities that auth schemas might need
 export { emailSchema, requiredString } from './common.js'
@@ -24,7 +25,7 @@ export const registerZodSchema = z
 		email: z.string().email('Please enter a valid email address'),
 		password: z
 			.string()
-			.min(8, 'Password must be at least 8 characters')
+			.min(VALIDATION_LIMITS.PASSWORD_MIN_LENGTH, `Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`)
 			.regex(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
 				'Password must contain uppercase, lowercase, and number'
@@ -45,7 +46,7 @@ export const signupFormSchema = z
 		email: z.string().email('Please enter a valid email address'),
 		password: z
 			.string()
-			.min(8, 'Password must be at least 8 characters')
+			.min(VALIDATION_LIMITS.PASSWORD_MIN_LENGTH, `Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`)
 			.regex(
 				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
 				'Password must contain uppercase, lowercase, and number'
@@ -95,7 +96,7 @@ export const contactFormZodSchema = z.object({
 	name: z
 		.string()
 		.min(1, 'Name is required')
-		.max(100, 'Name must be less than 100 characters')
+		.max(VALIDATION_LIMITS.CONTACT_FORM_NAME_MAX_LENGTH, `Name must be less than ${VALIDATION_LIMITS.CONTACT_FORM_NAME_MAX_LENGTH} characters`)
 		.regex(
 			/^[a-zA-Z\s\-']+$/,
 			'Name can only contain letters, spaces, hyphens, and apostrophes'
@@ -103,15 +104,15 @@ export const contactFormZodSchema = z.object({
 	email: z
 		.string()
 		.email('Please enter a valid email address')
-		.max(254, 'Email must be less than 254 characters'),
+		.max(VALIDATION_LIMITS.CONTACT_FORM_EMAIL_MAX_LENGTH, `Email must be less than ${VALIDATION_LIMITS.CONTACT_FORM_EMAIL_MAX_LENGTH} characters`),
 	subject: z
 		.string()
 		.min(1, 'Subject is required')
-		.max(200, 'Subject must be less than 200 characters'),
+		.max(VALIDATION_LIMITS.CONTACT_FORM_SUBJECT_MAX_LENGTH, `Subject must be less than ${VALIDATION_LIMITS.CONTACT_FORM_SUBJECT_MAX_LENGTH} characters`),
 	message: z
 		.string()
-		.min(10, 'Message must be at least 10 characters')
-		.max(5000, 'Message must be less than 5000 characters'),
+		.min(VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MIN_LENGTH, `Message must be at least ${VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MIN_LENGTH} characters`)
+		.max(VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MAX_LENGTH, `Message must be less than ${VALIDATION_LIMITS.CONTACT_FORM_MESSAGE_MAX_LENGTH} characters`),
 	type: z.enum(['sales', 'support', 'general'], {
 		message: 'Please select a contact type'
 	})

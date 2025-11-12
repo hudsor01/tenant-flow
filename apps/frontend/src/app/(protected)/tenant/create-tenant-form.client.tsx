@@ -17,8 +17,9 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Property, Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
 	Building2,
 	Calendar,
@@ -32,9 +33,9 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
-
-type Property = Tables<'property'>
-type Unit = Tables<'unit'>
+import { useModalStore } from '#stores/modal-store'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { clientFetch } from '#lib/api/client'
 
 const logger = createLogger({ component: 'CreateTenantForm' })
 
@@ -71,14 +72,54 @@ const inviteTenantSchema = {
 interface CreateTenantFormProps {
 	properties: Property[]
 	units: Unit[]
+	modalId?: string
 }
 
-import { clientFetch } from '#lib/api/client'
+interface InviteTenantRequest {
+	tenantData: {
+		email: string
+		firstName: string
+		lastName: string
+		phone?: string
+	}
+	leaseData: {
+		propertyId: string
+		unitId?: string
+		rentAmount: number
+		securityDeposit: number
+		startDate: string
+		endDate: string
+	}
+}
 
-export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
+interface InviteTenantResponse {
+	success: boolean
+	tenantId: string
+	leaseId: string
+	checkoutUrl: string
+	message: string
+}
+
+export function CreateTenantForm({
+	properties,
+	units,
+	modalId
+}: CreateTenantFormProps) {
 	const router = useRouter()
+	const queryClient = useQueryClient()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const { trackMutation, closeOnMutationSuccess } = useModalStore()
+
+	const inviteTenantMutation = useMutation({
+		mutationFn: (payload: InviteTenantRequest) =>
+			clientFetch<InviteTenantResponse>('/api/v1/tenants/invite-with-lease', {
+				method: 'POST',
+				body: JSON.stringify(payload)
+			}),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
+		}
+	})
 
 	const form = useForm({
 		defaultValues: {
@@ -95,39 +136,53 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 			endDate: ''
 		},
 		onSubmit: async ({ value }) => {
-			setIsSubmitting(true)
 			try {
-				const response = await clientFetch<{tenantId: string, leaseId: string}>('/api/v1/tenants/invite-with-lease', {
-					method: 'POST',
-					body: JSON.stringify({
-						tenantData: {
-							email: value.email,
-							firstName: value.firstName,
-							lastName: value.lastName,
-							...(value.phone && { phone: value.phone })
-						},
-						leaseData: {
-							propertyId: value.propertyId,
-							...(value.unitId && { unitId: value.unitId }),
-							rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100),
-							securityDeposit: Math.round(
-								Number.parseFloat(value.securityDeposit) * 100
-							),
-							startDate: value.startDate,
-							endDate: value.endDate
-						}
-					})
-				})
+				// Track mutation for auto-close if in modal
+				if (modalId) {
+					trackMutation(modalId, 'create-tenant', queryClient)
+				}
 
+				// Validate numeric conversions
+				const rentAmount = Number.parseFloat(value.rentAmount)
+				const securityDeposit = Number.parseFloat(value.securityDeposit)
+				if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
+					toast.error('Invalid rent or security deposit amount')
+					return
+				}
+
+				const payload: InviteTenantRequest = {
+					tenantData: {
+						email: value.email,
+						firstName: value.firstName,
+						lastName: value.lastName,
+						...(value.phone && { phone: value.phone })
+					},
+					leaseData: {
+						propertyId: value.propertyId,
+						...(value.unitId && { unitId: value.unitId }),
+						rentAmount: Math.round(rentAmount * 100),
+						securityDeposit: Math.round(securityDeposit * 100),
+						startDate: value.startDate,
+						endDate: value.endDate
+					}
+				}
+
+				const response = await inviteTenantMutation.mutateAsync(payload)
 
 				logger.info('Tenant onboarded successfully', {
 					tenantId: response.tenantId,
-					leaseId: response.leaseId
+					leaseId: response.leaseId,
+					checkoutUrl: response.checkoutUrl
 				})
 
-				toast.success('Tenant Onboarded', {
-					description: `${value.firstName} ${value.lastName} has been created and invited to the portal.`
+				toast.success('Tenant Invited Successfully', {
+					description: response.message
 				})
+
+				// Close modal on success if tracked
+				if (modalId) {
+					closeOnMutationSuccess('create-tenant')
+				}
 
 				router.push(`/manage/tenants/${response.tenantId}`)
 			} catch (error) {
@@ -141,8 +196,6 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 							? error.message
 							: 'Please try again or contact support.'
 				})
-			} finally {
-				setIsSubmitting(false)
 			}
 		}
 	})
@@ -555,10 +608,14 @@ export function CreateTenantForm({ properties, units }: CreateTenantFormProps) {
 					{([canSubmit, isFormSubmitting]) => (
 						<Button
 							type="submit"
-							disabled={!canSubmit || isSubmitting || isFormSubmitting}
+							disabled={
+								!canSubmit ||
+								inviteTenantMutation.isPending ||
+								isFormSubmitting
+							}
 							onClick={form.handleSubmit}
 						>
-							{isSubmitting || isFormSubmitting
+							{inviteTenantMutation.isPending || isFormSubmitting
 								? 'Creating Tenant...'
 								: 'Create & Invite Tenant'}
 						</Button>

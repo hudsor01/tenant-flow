@@ -19,6 +19,7 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import type {
+	RentPaymentStatus,
 	Tenant,
 	TenantStats,
 	TenantSummary,
@@ -34,7 +35,6 @@ import {
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
-
 
 /**
  * Emergency contact information for a tenant
@@ -165,7 +165,7 @@ export class TenantsService {
 	 */
 	private calculatePaymentStatus(
 		payment: {
-			status: Database['public']['Enums']['RentPaymentStatus'] | null
+			status: RentPaymentStatus | null
 			dueDate: string | null
 		} | null
 	): string | null {
@@ -191,8 +191,7 @@ export class TenantsService {
 			: null
 
 		// Use enum constants for type-safe comparisons
-		type PaymentStatus = Database['public']['Enums']['RentPaymentStatus']
-		const status: PaymentStatus = payment.status
+		const status = payment.status as RentPaymentStatus
 
 		// Map payment status to user-friendly status
 		if (status === 'PAID' || status === 'SUCCEEDED') {
@@ -380,7 +379,6 @@ export class TenantsService {
 		}
 	}
 
-
 	/**
 	 * Build base Supabase query for tenants with lease information
 	 * Includes all necessary joins for leases, units, and properties
@@ -533,7 +531,7 @@ export class TenantsService {
 		const paymentMap = new Map<
 			string,
 			{
-				status: Database['public']['Enums']['RentPaymentStatus']
+				status: RentPaymentStatus
 				dueDate: string
 			}
 		>()
@@ -542,8 +540,7 @@ export class TenantsService {
 				const key = `${payment.tenantId}-${payment.leaseId}`
 				if (!paymentMap.has(key) && payment.status && payment.dueDate) {
 					paymentMap.set(key, {
-						status:
-							payment.status as Database['public']['Enums']['RentPaymentStatus'],
+						status: payment.status as RentPaymentStatus,
 						dueDate: payment.dueDate
 					})
 				}
@@ -561,7 +558,7 @@ export class TenantsService {
 		paymentMap: Map<
 			string,
 			{
-				status: Database['public']['Enums']['RentPaymentStatus']
+				status: RentPaymentStatus
 				dueDate: string
 			}
 		>
@@ -605,7 +602,7 @@ export class TenantsService {
 				invitation_accepted_at: tenant.invitation_accepted_at,
 				invitation_expires_at: tenant.invitation_expires_at,
 				currentLease: currentLease
-					? {
+					? ({
 							id: currentLease.id,
 							startDate: currentLease.startDate,
 							endDate: currentLease.endDate,
@@ -613,7 +610,7 @@ export class TenantsService {
 							securityDeposit: currentLease.securityDeposit,
 							status: currentLease.status,
 							terms: currentLease.terms
-						}
+						} as TenantWithLeaseInfo['currentLease'])
 					: null,
 				leases: leases.map(lease => ({
 					id: lease.id,
@@ -932,9 +929,7 @@ export class TenantsService {
 					// Type assertion for payment status from database
 					const typedPayment = payment
 						? {
-								status: payment.status as
-									| Database['public']['Enums']['RentPaymentStatus']
-									| null,
+								status: payment.status as RentPaymentStatus | null,
 								dueDate: payment.dueDate
 							}
 						: null
@@ -969,7 +964,7 @@ export class TenantsService {
 				invitation_accepted_at: tenant.invitation_accepted_at,
 				invitation_expires_at: tenant.invitation_expires_at,
 				currentLease: currentLease
-					? {
+					? ({
 							id: currentLease.id,
 							startDate: currentLease.startDate,
 							endDate: currentLease.endDate,
@@ -977,13 +972,13 @@ export class TenantsService {
 							securityDeposit: currentLease.securityDeposit,
 							status: currentLease.status,
 							terms: currentLease.terms
-						}
+						} as TenantWithLeaseInfo['currentLease'])
 					: null,
 				leases: leases.map(lease => {
 					const leaseItem: {
 						id: string
 						startDate: string
-						endDate: string
+						endDate: string | null
 						rentAmount: number
 						status: string
 						property?: { address: string }
@@ -1001,7 +996,7 @@ export class TenantsService {
 						}
 					}
 
-					return leaseItem
+					return leaseItem as NonNullable<TenantWithLeaseInfo['leases']>[number]
 				}),
 				unit: currentLease?.unit
 					? {
@@ -1131,7 +1126,7 @@ export class TenantsService {
 		userId: string,
 		tenantId: string,
 		updateRequest: UpdateTenantRequest,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		expectedVersion?: number //Optimistic locking
 	): Promise<Tenant | null> {
 		// Business logic: Validate inputs
 		if (!userId || !tenantId) {
@@ -1155,7 +1150,7 @@ export class TenantsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
 				updateData.version = expectedVersion + 1
 			}
@@ -1169,7 +1164,7 @@ export class TenantsService {
 			if (updateRequest.phone !== undefined)
 				updateData.phone = updateRequest.phone
 
-			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			//Add version check for optimistic locking
 			let query = client
 				.from('tenant')
 				.update(updateData)
@@ -1184,7 +1179,7 @@ export class TenantsService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				//Detect optimistic locking conflict
 				if (error?.code === 'PGRST116') {
 					// PGRST116 = 0 rows affected (version mismatch)
 					this.logger.warn('Optimistic locking conflict detected', {
@@ -1252,7 +1247,8 @@ export class TenantsService {
 
 		// Return preferences or default values
 		return (
-			(data.notification_preferences as Record<string, boolean>) || DEFAULT_NOTIFICATION_PREFERENCES
+			(data.notification_preferences as Record<string, boolean>) ||
+			DEFAULT_NOTIFICATION_PREFERENCES
 		)
 	}
 
@@ -1522,7 +1518,7 @@ export class TenantsService {
 
 			const client = this.supabase.getAdminClient()
 
-			// 🔐 BUG FIX #1: Atomic check for existing auth user BEFORE invitation
+			//Atomic check for existing auth user BEFORE invitation
 			// This prevents race condition where two simultaneous invitations create duplicate auth users
 			const { data: existingUsers, error: listError } =
 				await client.auth.admin.listUsers()
@@ -1722,19 +1718,19 @@ export class TenantsService {
 
 		/**
 		 * CURRENCY CONVENTION: All rent amounts are stored and processed in CENTS
-		 * 
+		 *
 		 * - Frontend sends: cents (e.g., 250000 = $2,500.00)
 		 * - Backend stores: cents in database
 		 * - Stripe receives: cents (native format)
-		 * 
-		 * BUG FIX: Removed double conversion (backend was multiplying cents by 100 again)
+		 *
+		 *Removed double conversion (backend was multiplying cents by 100 again)
 		 * Previously: Frontend sent cents → Backend multiplied by 100 → Stripe received wrong amount
 		 * Now: Frontend sends cents → Backend validates as-is → Stripe receives correct amount
-		 * 
+		 *
 		 * @param leaseData.rentAmount - Rent amount in CENTS (must be positive integer)
 		 * @throws BadRequestException if rentAmount is invalid or out of Stripe's range
 		 */
-		
+
 		// Validate rent amount presence
 		if (leaseData.rentAmount === null || leaseData.rentAmount === undefined) {
 			throw new BadRequestException('rentAmount is required')
@@ -1750,7 +1746,7 @@ export class TenantsService {
 		if (!Number.isFinite(rentAmountCents)) {
 			throw new BadRequestException('rentAmount must be a valid number')
 		}
-		
+
 		// Validate is integer (cents must be whole numbers)
 		if (!Number.isInteger(rentAmountCents)) {
 			throw new BadRequestException('rentAmount must be an integer (cents)')
@@ -1771,7 +1767,7 @@ export class TenantsService {
 
 		const client = this.supabase.getAdminClient()
 
-		// 🔐 BUG FIX #2: Use Saga pattern for transactional tenant+lease+auth creation
+		//Use Saga pattern for transactional tenant+lease+auth creation
 		// This ensures proper rollback if any step fails, with comprehensive logging
 		let createdTenant: Tenant | null = null
 		let createdLease: { id: string } | null = null
@@ -2026,7 +2022,6 @@ export class TenantsService {
 		}
 	}
 
-
 	/**
 	 * SAGA STEP 1: Check for existing auth user with pagination
 	 * Prevents race conditions by checking all pages of users
@@ -2136,7 +2131,7 @@ export class TenantsService {
 				securityDeposit: leaseData.securityDeposit,
 				startDate: leaseData.startDate,
 				endDate: leaseData.endDate,
-				status: 'PENDING' as Database['public']['Enums']['LeaseStatus']
+				status: 'DRAFT' as Database['public']['Enums']['LeaseStatus'] // FIX: PENDING doesn't exist in LeaseStatus enum
 			})
 			.select()
 			.single()
@@ -2763,7 +2758,7 @@ export class TenantsService {
 	): Promise<EmergencyContactResponse | null> {
 		const client = this.supabase.getAdminClient()
 
-		// BUG FIX #3: Validate complete ownership chain
+		// Validate complete ownership chain
 		// Verify tenant exists and get their info
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
@@ -2828,7 +2823,7 @@ export class TenantsService {
 			return null
 		}
 
-			return mapEmergencyContactToResponse(data)
+		return mapEmergencyContactToResponse(data)
 	}
 
 	/**
@@ -2873,7 +2868,8 @@ export class TenantsService {
 		}
 
 		// Validate phone number format - E.164 international format or common US formats
-		const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/
+		const phoneRegex =
+			/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/
 		if (!phoneRegex.test(data.phoneNumber)) {
 			throw new BadRequestException(
 				'Invalid phone number format. Please enter a valid international or US phone number.'
@@ -2882,9 +2878,12 @@ export class TenantsService {
 
 		// Validate email format if provided - RFC 5322 simplified
 		if (data.email) {
-			const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
+			const emailRegex =
+				/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
 			if (!emailRegex.test(data.email)) {
-				throw new BadRequestException('Invalid email format. Please enter a valid email address.')
+				throw new BadRequestException(
+					'Invalid email format. Please enter a valid email address.'
+				)
 			}
 		}
 
@@ -2924,7 +2923,7 @@ export class TenantsService {
 			contactId: created.id
 		})
 
-			return mapEmergencyContactToResponse(created)
+		return mapEmergencyContactToResponse(created)
 	}
 
 	/**
@@ -2998,7 +2997,7 @@ export class TenantsService {
 			contactId: updated.id
 		})
 
-			return mapEmergencyContactToResponse(updated)
+		return mapEmergencyContactToResponse(updated)
 	}
 
 	/**

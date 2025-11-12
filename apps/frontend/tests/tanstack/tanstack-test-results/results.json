@@ -92,7 +92,7 @@
 				"column": 34,
 				"line": 11
 			},
-			"snippet": "\u001b[90m   at \u001b[39m../../tanstack-global-setup.ts:11\n\n   9 |   console.log('🚀 Setting up TanStack Query test environment...')\n  10 |\n> 11 |   const browser = await chromium.launch()\n     |                                  ^\n  12 |   const context = await browser.newContext()\n  13 |   const page = await context.newPage()\n  14 |"
+			"snippet": "\u001b[90m   at \u001b[39m../../tanstack-global-setup.ts:11\n\n   9 |   console log('🚀 Setting up TanStack Query test environment...')\n  10 |\n> 11 |   const browser = await chromium.launch()\n     |                                  ^\n  12 |   const context = await browser.newContext()\n  13 |   const page = await context.newPage()\n  14 |"
 		},
 		{
 			"message": "Error: browserType.launch: Executable doesn't exist at /Users/richard/Library/Caches/ms-playwright/chromium_headless_shell-1187/chrome-mac/headless_shell\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
@@ -102,7 +102,7 @@
 				"column": 34,
 				"line": 11
 			},
-			"snippet": "\u001b[90m   at \u001b[39m../../tanstack-global-teardown.ts:11\n\n   9 |   console.log('🧹 Starting TanStack Query test cleanup...')\n  10 |\n> 11 |   const browser = await chromium.launch()\n     |                                  ^\n  12 |   const context = await browser.newContext()\n  13 |   const page = await context.newPage()\n  14 |"
+			"snippet": "\u001b[90m   at \u001b[39m../../tanstack-global-teardown.ts:11\n\n   9 |   console log('🧹 Starting TanStack Query test cleanup...')\n  10 |\n> 11 |   const browser = await chromium.launch()\n     |                                  ^\n  12 |   const context = await browser.newContext()\n  13 |   const page = await context.newPage()\n  14 |"
 		}
 	],
 	"stats": {
