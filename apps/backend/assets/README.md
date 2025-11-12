@@ -13,18 +13,18 @@ This directory contains static assets required by the backend services.
 **Usage**: Generate professional lease PDFs programmatically using `@react-pdf/renderer`
 
 **Advantages**:
-- ✅ Full control over layout and styling
-- ✅ No dependency on external PDF files
-- ✅ Easy to modify text and clauses
-- ✅ Professional, clean output
-- ✅ Fully integrated with form data
+- Full control over layout and styling
+- No dependency on external PDF files
+- Easy to modify text and clauses
+- Professional, clean output
+- Fully integrated with form data
 
 **Legal Notice**: This is a template lease agreement. Users should consult with a qualified attorney to ensure compliance with current Texas property laws and their specific situation.
 
 **Access Controls**:
-- ✅ Authentication required (JwtAuthGuard)
-- ✅ Role-based access (OWNER and MANAGER roles only)
-- ✅ Property ownership validation (PropertyOwnershipGuard)
+- Authentication required (JwtAuthGuard)
+- Role-based access (OWNER and MANAGER roles only)
+- Property ownership validation (PropertyOwnershipGuard)
 
 **Implementation Files**:
 - `texas-lease-template.tsx` - React PDF template component

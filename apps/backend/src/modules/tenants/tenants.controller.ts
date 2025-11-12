@@ -1,6 +1,6 @@
 /**
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
- *
+
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
@@ -276,7 +276,7 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
+	 * NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system
 	 */
 	@Post(':id/invite-v2')
@@ -295,8 +295,8 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ MODERN: Invite tenant with lease using Stripe + Supabase
-	 *
+	 * MODERN: Invite tenant with lease using Stripe + Supabase
+
 	 * Architecture:
 	 * - PropertyOwnershipGuard: Verifies user owns the property
 	 * - StripeConnectedGuard: Verifies user has completed Stripe onboarding
@@ -359,7 +359,7 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ NEW: Activate tenant from Supabase Auth user (Phase 3.1)
+	 * NEW: Activate tenant from Supabase Auth user (Phase 3.1)
 	 * Called from frontend after successful invitation acceptance
 	 * Public endpoint - authenticated via Supabase Auth session
 	 */
