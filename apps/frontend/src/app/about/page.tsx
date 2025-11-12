@@ -91,8 +91,8 @@ export default function AboutPage() {
 					}}
 				/>
 
-				{/* Mission Section */}
-				<section className="section-hero">
+			{/* Mission Section */}
+			<section className="section-spacing">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.2} inView>
 							<div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -127,8 +127,8 @@ export default function AboutPage() {
 					</div>
 				</section>
 
-				{/* Values Section */}
-				<section className="section-hero bg-muted/20">
+			{/* Values Section */}
+			<section className="section-spacing bg-muted/20">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-16 space-y-4">
@@ -234,8 +234,8 @@ export default function AboutPage() {
 					</div>
 				</section>
 
-				{/* Stats Section */}
-				<section className="section-hero">
+			{/* Stats Section */}
+			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.5} inView>
 							<div className="text-center mb-16 space-y-4">
@@ -271,8 +271,8 @@ export default function AboutPage() {
 					</div>
 				</section>
 
-				{/* Team Section */}
-				<section className="section-hero bg-muted/20">
+			{/* Team Section */}
+			<section className="section-spacing bg-muted/20">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.7} inView>
 							<div className="text-center mb-16 space-y-4">
@@ -342,8 +342,8 @@ export default function AboutPage() {
 					</div>
 				</section>
 
-				{/* CTA Section */}
-				<section className="section-hero bg-muted/20">
+			{/* CTA Section */}
+			<section className="section-spacing bg-muted/20">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={1.2} inView>
 							<div className="text-center space-y-8">

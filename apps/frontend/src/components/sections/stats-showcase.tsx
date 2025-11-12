@@ -48,7 +48,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 	return (
 		<section
 			className={cn(
-				'relative py-12 lg:py-16 overflow-hidden bg-transparent',
+				'section-spacing relative overflow-hidden bg-transparent',
 				className
 			)}
 		>
