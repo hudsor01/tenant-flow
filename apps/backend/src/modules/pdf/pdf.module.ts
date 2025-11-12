@@ -1,15 +1,18 @@
 import { Module } from '@nestjs/common'
-import { LeasePDFService } from './lease-pdf.service'
 import { PDFGeneratorService } from './pdf-generator.service'
-import { PDFController } from './pdf.controller'
+import { ReactLeasePDFService } from './react-lease-pdf.service'
+import { LeaseGenerationController } from './lease-generation.controller'
+import { SupabaseModule } from '../../database/supabase.module'
+import { CacheConfigurationModule } from '../../cache/cache.module'
 
 /**
  * PDF module for generating PDF documents
  * Provides services for lease PDF generation and other document types
  */
 @Module({
-	controllers: [PDFController],
-	providers: [PDFGeneratorService, LeasePDFService],
-	exports: [PDFGeneratorService, LeasePDFService]
+	imports: [SupabaseModule, CacheConfigurationModule],
+	controllers: [LeaseGenerationController],
+	providers: [PDFGeneratorService, ReactLeasePDFService],
+	exports: [PDFGeneratorService, ReactLeasePDFService]
 })
 export class PDFModule {}

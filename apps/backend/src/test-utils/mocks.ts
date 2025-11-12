@@ -312,7 +312,7 @@ export function createMockProperty(overrides?: Partial<Property>): Property {
 		sale_notes: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
-		version: 1, // 🔐 BUG FIX #2: Optimistic locking
+		version: 1, //Optimistic locking
 		...overrides
 	}
 }
@@ -332,7 +332,7 @@ export function createMockUnit(overrides?: Partial<Unit>): Unit {
 		lastInspectionDate: overrides?.lastInspectionDate || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
-		version: 1, // 🔐 BUG FIX #2: Optimistic locking
+		version: 1, //Optimistic locking
 		...overrides
 	}
 }
@@ -368,7 +368,7 @@ export function createMockTenant(overrides?: Partial<Tenant>): Tenant {
 		notification_preferences: overrides?.notification_preferences || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
-		version: 1, // 🔐 BUG FIX #2: Optimistic locking
+		version: 1, //Optimistic locking
 		...overrides
 	}
 }
@@ -400,7 +400,7 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		signed_at: null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
-		version: 1, // 🔐 BUG FIX #2: Optimistic locking
+		version: 1, //Optimistic locking
 		...overrides
 	}
 }
@@ -432,7 +432,7 @@ export function createMockMaintenanceRequest(
 		requestedBy: overrides?.requestedBy || null,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
-		version: 1, // 🔐 BUG FIX #2: Optimistic locking
+		version: 1, //Optimistic locking
 		...overrides
 	}
 }

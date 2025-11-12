@@ -16,9 +16,6 @@ import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { Eye, EyeOff, Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-
-
 
 export function LoginForm({
 	className,
@@ -54,13 +51,11 @@ export function LoginForm({
 				const message =
 					error instanceof Error ? error.message : 'Please try again'
 				setAuthError(message)
-				toast.error('Sign in failed', {
-					description: message
-				})
+				// Remove toast - we already show the error in the form
 			}
 		},
 		validators: {
-			onBlur: loginZodSchema
+			onSubmit: loginZodSchema // Only validate on submit, not on blur
 		}
 	})
 
@@ -76,16 +71,16 @@ export function LoginForm({
 		<div className={cn('w-full', className)}>
 			{/* Progress restoration indicator */}
 			{progressLoading && (
-				<div className="mb-4 p-3 bg-muted rounded-md">
-					<p className="text-sm text-muted-foreground">
+				<div className="mb-4 p-2 bg-muted/30 rounded text-center">
+					<p className="text-xs text-muted-foreground">
 						Restoring your progress...
 					</p>
 				</div>
 			)}
 
 			{progressData && !progressLoading && (
-				<div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
-					<p className="text-sm text-primary">
+				<div className="mb-4 p-2 bg-primary/5 border border-primary/10 rounded text-center">
+					<p className="text-xs text-primary/80">
 						Welcome back! Your email has been restored.
 					</p>
 				</div>
@@ -135,8 +130,10 @@ export function LoginForm({
 								/>
 							</InputGroup>
 							<FieldError>
-							{getFieldErrorMessage(field.state.meta.errors) || 'Invalid email address'}
-						</FieldError>
+								{field.state.meta.errors?.length
+									? getFieldErrorMessage(field.state.meta.errors)
+									: null}
+							</FieldError>
 						</Field>
 					)}
 				</form.Field>
@@ -179,8 +176,10 @@ export function LoginForm({
 								</InputGroupAddon>
 							</InputGroup>
 							<FieldError>
-							{getFieldErrorMessage(field.state.meta.errors) || 'Password is required'}
-						</FieldError>
+								{field.state.meta.errors?.length
+									? getFieldErrorMessage(field.state.meta.errors)
+									: null}
+							</FieldError>
 						</Field>
 					)}
 				</form.Field>

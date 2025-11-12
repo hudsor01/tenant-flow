@@ -102,7 +102,7 @@ export type {
 	UpdateUnitInput
 }
 
-export interface UnitStats {
+export interface UnitStatistics {
 	totalUnits: number
 	availableUnits: number
 	occupiedUnits: number
@@ -115,7 +115,7 @@ export interface UnitStats {
 	occupancyRate: number
 }
 
-export interface LeaseStats {
+export interface LeaseStatistics {
 	totalLeases: number
 	activeLeases: number
 	expiredLeases: number
@@ -225,65 +225,6 @@ export interface InvitationResponse {
 		token: string
 		expiresAt: string
 	}
-}
-
-// Subscription & Billing API Types
-
-// Subscription request types
-export interface CreateSubscriptionRequest {
-	planId: string
-	billingPeriod: string
-	userId?: string
-	userEmail?: string
-	userName?: string
-	createAccount?: boolean
-	paymentMethodCollection?: 'always' | 'if_required'
-}
-
-export interface CreateSubscriptionWithSignupRequest {
-	planId: string
-	billingPeriod: string
-	userEmail: string
-	userName: string
-	createAccount: boolean
-	paymentMethodCollection?: 'always' | 'if_required'
-}
-
-export interface StartTrialRequest {
-	planId?: string // Optional plan ID if trial is plan-specific
-}
-
-export interface CreatePortalSessionRequest {
-	customerId?: string
-	returnUrl?: string
-}
-
-export interface CancelSubscriptionRequest {
-	subscriptionId: string
-}
-
-export interface UpdateSubscriptionRequest {
-	subscriptionId: string
-	planId?: string
-	billingPeriod?: string
-}
-
-// Subscription response types moved to responses.ts for consolidation
-// These are now imported and re-exported above
-
-export interface CreateSubscriptionWithSignupResponse {
-	subscriptionId: string
-	status: string
-	clientSecret?: string | null
-	setupIntentId?: string
-	trialEnd?: number | null
-	user: {
-		id: string
-		email: string
-		fullName: string
-	}
-	accessToken: string
-	refreshToken: string
 }
 
 // ADDITIONAL API TYPES - MIGRATED from inline definitions

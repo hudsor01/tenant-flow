@@ -216,7 +216,8 @@ describe('StripeController', () => {
 				tenantId: maliciousInput
 			})
 
-			expect(result.clientSecret).toBe('pi_test123_secret')
+			expect(result).toBeDefined()
+			expect(result!.clientSecret).toBe('pi_test123_secret')
 
 			// Verify sanitization removed angle brackets only (other characters preserved)
 			const createCall = (mockStripe.paymentIntents.create as jest.Mock).mock
@@ -587,7 +588,8 @@ describe('StripeController', () => {
 				tenantId: maliciousInput
 			})
 
-			expect(result.clientSecret).toBe('pi_test123_secret')
+			expect(result).toBeDefined()
+			expect(result!.clientSecret).toBe('pi_test123_secret')
 
 			// Verify sanitization removed dangerous characters
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(
@@ -620,7 +622,8 @@ describe('StripeController', () => {
 				tenantId: maliciousInput
 			})
 
-			expect(result.clientSecret).toBe('pi_test123_secret')
+			expect(result).toBeDefined()
+			expect(result!.clientSecret).toBe('pi_test123_secret')
 
 			// Verify sanitization removed dangerous characters
 			expect(mockStripe.paymentIntents.create).toHaveBeenCalledWith(

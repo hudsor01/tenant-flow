@@ -15,49 +15,28 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { Spinner } from '#components/ui/spinner'
-import {
-	useCreateSetupIntent,
-	useSavePaymentMethod
-} from '#hooks/api/use-payment-methods'
 
-export function AddPaymentMethod() {
+
+interface AddPaymentMethodProps {
+	onSuccess?: () => void
+}
+
+export function AddPaymentMethod({ onSuccess }: AddPaymentMethodProps = {}) {
 	const [paymentMethodType, setPaymentMethodType] = useState<
 		'card' | 'us_bank_account'
 	>('card')
-	const [clientSecret, setClientSecret] = useState<string | null>(null)
+	const [showForm, setShowForm] = useState(false)
 
-	const createSetupIntent = useCreateSetupIntent()
-	const savePaymentMethod = useSavePaymentMethod()
-
-	const handleCreateSetupIntent = async () => {
-		try {
-			const result = await createSetupIntent.mutateAsync({
-				type: paymentMethodType
-			})
-			if (result.clientSecret) {
-				setClientSecret(result.clientSecret)
-			} else {
-				toast.error('Unable to initialize payment method setup')
-			}
-		} catch {
-			toast.error('Failed to initialize payment method setup')
-		}
+	const handleContinue = () => {
+		setShowForm(true)
 	}
 
-	const handleSetupSuccess = async (paymentMethodId: string) => {
-		try {
-			const result = await savePaymentMethod.mutateAsync({ paymentMethodId })
-			if (result.success) {
-				toast.success('Payment method saved successfully')
-				setClientSecret(null)
-				setPaymentMethodType('card')
-			} else {
-				toast.error('Failed to save payment method')
-			}
-		} catch {
-			toast.error('Failed to save payment method')
-		}
+	const handleSetupSuccess = async () => {
+		// Payment method is already saved via PaymentMethod.create in PaymentMethodSetupForm
+		toast.success('Payment method saved successfully')
+		setShowForm(false)
+		setPaymentMethodType('card')
+		onSuccess?.()
 	}
 
 	return (
@@ -70,7 +49,7 @@ export function AddPaymentMethod() {
 				<CreditCard className="size-5 text-primary" />
 				Add payment method
 			</div>
-			{!clientSecret ? (
+			{!showForm ? (
 				<div className="space-y-4">
 					<Field>
 						<FieldLabel htmlFor="paymentType">Payment method type</FieldLabel>
@@ -92,25 +71,13 @@ export function AddPaymentMethod() {
 						</Select>
 					</Field>
 
-					<Button
-						onClick={handleCreateSetupIntent}
-						disabled={createSetupIntent.isPending}
-						className="w-full"
-					>
-						{createSetupIntent.isPending ? (
-							<>
-								<Spinner className="mr-2 size-4" />
-								Initializing...
-							</>
-						) : (
-							'Continue'
-						)}
+					<Button onClick={handleContinue} className="w-full">
+						Continue
 					</Button>
 				</div>
 			) : (
 				<div className="space-y-4">
 					<PaymentMethodSetupForm
-						clientSecret={clientSecret}
 						onSuccess={handleSetupSuccess}
 						onError={() => toast.error('Payment method confirmation failed')}
 					/>

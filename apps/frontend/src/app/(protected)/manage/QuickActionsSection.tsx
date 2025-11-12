@@ -9,12 +9,12 @@ import { QuickActions } from '#components/dashboard/quick-actions'
  */
 export function QuickActionsSection() {
 	return (
-		<div className="rounded-lg border-2 border-border/50 bg-card hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-			<div className="border-b border-border/50 bg-linear-to-r from-blue-500/5 to-transparent px-6 py-5">
-				<h3 className="text-lg font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text">
+		<div className="rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border">
+			<div className="border-b-2 border-border bg-gradient-to-r from-muted/50 via-background to-muted/50 px-6 py-6">
+				<h3 className="text-xl font-black text-foreground tracking-tight">
 					Quick Actions
 				</h3>
-				<p className="text-sm text-muted-foreground mt-1.5">
+				<p className="text-sm text-muted-foreground mt-2 font-medium">
 					Common tasks and shortcuts
 				</p>
 			</div>

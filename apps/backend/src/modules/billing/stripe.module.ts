@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
+import { MetricsModule } from '../metrics/metrics.module'
 import { StripeAccessControlService } from './stripe-access-control.service'
 import { StripeDataService } from './stripe-data.service'
 import { StripeRecoveryService } from './stripe-recovery.service'
@@ -14,6 +15,9 @@ import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
 import { StripeConnectService } from './stripe-connect.service'
 import { StripeConnectController } from './stripe-connect.controller'
+import { StripeWebhookListener } from './stripe-webhook.listener'
+import { WebhookRetryService } from './webhook-retry.service'
+import { StripeWebhookController } from './stripe-webhook.controller'
 
 /**
  * Production-Grade Stripe Module
@@ -27,7 +31,7 @@ import { StripeConnectController } from './stripe-connect.controller'
  * - Type-safe DTOs with comprehensive validation
  */
 @Module({
-	imports: [SupabaseModule, EmailModule, SecurityModule],
+	imports: [SupabaseModule, EmailModule, SecurityModule, MetricsModule],
 	providers: [
 		StripeService,
 		StripeSyncService,
@@ -37,9 +41,11 @@ import { StripeConnectController } from './stripe-connect.controller'
 		StripeAccessControlService,
 		StripeTenantService,
 		StripeOwnerService,
-		StripeConnectService
+		StripeConnectService,
+		StripeWebhookListener,
+		WebhookRetryService
 	],
-	controllers: [StripeController, StripeConnectController],
+	controllers: [StripeController, StripeConnectController, StripeWebhookController],
 	exports: [
 		StripeService,
 		StripeSyncService,

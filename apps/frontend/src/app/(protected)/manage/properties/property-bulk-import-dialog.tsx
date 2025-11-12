@@ -7,47 +7,127 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle,
-	DialogTrigger
+	DialogTitle
 } from '#components/ui/dialog'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { clientFetch } from '#lib/api/client'
-import { AlertCircle, CheckCircle2, Download, Upload } from 'lucide-react'
+import { ApiErrorCode, isApiError } from '#lib/api/api-error'
+import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
+import { AlertCircle, CheckCircle2, Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useModalStore } from '#stores/modal-store'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
 
 const logger = createLogger({ component: 'PropertyBulkImportDialog' })
+const CSV_TEMPLATE_HEADERS = [
+	'name',
+	'address',
+	'city',
+	'state',
+	'zipCode',
+	'propertyType',
+	'description'
+] as const
+const CSV_TEMPLATE_SAMPLE_ROWS = [
+	[
+		'Sample Property 1',
+		'123 Main St',
+		'San Francisco',
+		'CA',
+		'94105',
+		'APARTMENT',
+		'Modern apartment building'
+	],
+	[
+		'Sample Property 2',
+		'456 Oak Ave',
+		'Los Angeles',
+		'CA',
+		'90001',
+		'SINGLE_FAMILY',
+		'Single family home'
+	]
+] as const
+const CSV_ACCEPTED_MIME_TYPES = ['text/csv', 'application/csv']
+const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
+const CSV_TEMPLATE_FILENAME = 'property-import-template.csv'
+
+type BulkImportResult = {
+	success: boolean
+	imported: number
+	failed: number
+	errors: Array<{ row: number; error: string }>
+}
 
 export function PropertyBulkImportDialog() {
 	const router = useRouter()
-	const [open, setOpen] = useState(false)
+	const {
+		openModal,
+		closeModal,
+		isModalOpen,
+		trackMutation,
+		closeOnMutationSuccess
+	} = useModalStore()
 	const [file, setFile] = useState<File | null>(null)
-	const [loading, setLoading] = useState(false)
-	const [result, setResult] = useState<{
-		success: boolean
-		imported: number
-		failed: number
-		errors: Array<{ row: number; error: string }>
-	} | null>(null)
+	const queryClient = useQueryClient()
+	const [result, setResult] = useState<BulkImportResult | null>(null)
+
+	const bulkImportMutation = useMutation({
+		mutationFn: async (uploadFile: File) => {
+			const formData = new FormData()
+			formData.append('file', uploadFile)
+
+			return clientFetch<BulkImportResult>('/api/v1/properties/bulk-import', {
+				method: 'POST',
+				body: formData,
+				omitJsonContentType: true
+			})
+		},
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
+		}
+	})
+
+	const modalId = 'bulk-import-properties'
+	const isOpen = isModalOpen(modalId)
+
+	const handleOpenModal = () => {
+		openModal(
+			modalId,
+			{},
+			{
+				type: 'dialog',
+				size: 'lg',
+				animationVariant: 'fade',
+				closeOnOutsideClick: true,
+				closeOnEscape: true
+			}
+		)
+	}
+
+	const handleCloseModal = () => {
+		closeModal(modalId)
+	}
+
+	const handleOpenChange = (open: boolean) => {
+		if (!open) {
+			handleCloseModal()
+		}
+	}
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selectedFile = e.target.files?.[0]
 		if (selectedFile) {
-			// Validate file type
-			const validTypes = ['text/csv', 'application/csv']
-			if (
-				!validTypes.includes(selectedFile.type) &&
-				!selectedFile.name.endsWith('.csv')
-			) {
-				logger.warn('Invalid file type selected', { type: selectedFile.type })
-				alert('Please select a CSV file (.csv)')
-				return
-			}
-
-			// Validate file size (5MB max)
-			if (selectedFile.size > 5 * 1024 * 1024) {
-				logger.warn('File too large', { size: selectedFile.size })
-				alert('File size must be less than 5MB')
+			const validationError = getFileValidationError(selectedFile)
+			if (validationError) {
+				logger.warn('Invalid CSV file selected', {
+					type: selectedFile.type,
+					size: selectedFile.size,
+					validationError
+				})
+				alert(validationError)
 				return
 			}
 
@@ -59,240 +139,285 @@ export function PropertyBulkImportDialog() {
 	const handleUpload = async () => {
 		if (!file) return
 
-		setLoading(true)
 		setResult(null)
 
 		try {
 			logger.info('Starting bulk import', { fileName: file.name })
-			const formData = new FormData()
-			formData.append('file', file)
-			const response = await clientFetch<{
-				success: boolean
-				imported: number
-				failed: number
-				errors: Array<{ row: number; error: string }>
-			}>('/api/v1/properties/bulk-import', {
-				method: 'POST',
-				headers: {},
-				body: formData
-			})
+
+			// Track the mutation for auto-close
+			trackMutation(modalId, 'bulk-import-properties', queryClient)
+
+			const response = await bulkImportMutation.mutateAsync(file)
 
 			logger.info('Bulk import completed', response)
 			setResult(response)
 
-			// If successful, refresh the page data
+			// If successful, refresh the page data and close modal
 			if (response.success && response.imported > 0) {
+				closeOnMutationSuccess('bulk-import-properties')
 				setTimeout(() => {
 					router.refresh()
-					setOpen(false)
 					setFile(null)
 					setResult(null)
 				}, 3000)
 			}
 		} catch (error) {
 			logger.error('Bulk import failed', { error })
-			alert(
-				error instanceof Error
-					? error.message
-					: 'Failed to import properties. Please try again.'
-			)
-		} finally {
-			setLoading(false)
+			const errorMessage = getErrorMessage(error)
+			alert(errorMessage)
 		}
 	}
 
 	const downloadTemplate = () => {
-		// Create sample CSV template (native browser APIs)
-		const headers = [
-			'name',
-			'address',
-			'city',
-			'state',
-			'zipCode',
-			'propertyType',
-			'description'
-		]
-
-		const sampleRows = [
-			[
-				'Sample Property 1',
-				'123 Main St',
-				'San Francisco',
-				'CA',
-				'94105',
-				'APARTMENT',
-				'Modern apartment building'
-			],
-			[
-				'Sample Property 2',
-				'456 Oak Ave',
-				'Los Angeles',
-				'CA',
-				'90001',
-				'SINGLE_FAMILY',
-				'Single family home'
-			]
-		]
-
-		// Convert to CSV format
-		const csvContent = [
-			headers.join(','),
-			...sampleRows.map(row => row.map(cell => `"${cell}"`).join(','))
-		].join('\n')
-
-		// Create download
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-
-		link.setAttribute('href', url)
-		link.setAttribute('download', 'property-import-template.csv')
-		link.style.visibility = 'hidden'
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-
+		const csvContent = buildCsvTemplate(CSV_TEMPLATE_HEADERS, CSV_TEMPLATE_SAMPLE_ROWS)
+		triggerCsvDownload(csvContent, CSV_TEMPLATE_FILENAME)
 		logger.info('CSV template downloaded')
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="outline">
-					<Upload className="size-4 mr-2" />
-					Bulk Import
-				</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-xl">
-				<DialogHeader>
-					<DialogTitle>Bulk Import Properties</DialogTitle>
-					<DialogDescription>
-						Upload a CSV file to import multiple properties at once. Maximum 100
-						properties per import.
-					</DialogDescription>
-				</DialogHeader>
+		<>
+			<Button variant="outline" onClick={handleOpenModal}>
+				<Upload className="size-4 mr-2" />
+				Bulk Import
+			</Button>
 
-				<div className="grid gap-4 py-4">
-					{/* Template Download */}
-					<div className="flex items-center justify-between p-4 border rounded-lg">
-						<div>
-							<p className="font-medium">Download Template</p>
-							<p className="text-sm text-muted-foreground">
-								Get the CSV template with sample data
-							</p>
-						</div>
-						<Button variant="outline" size="sm" onClick={downloadTemplate}>
-							<Download className="size-4 mr-2" />
-							Download
-						</Button>
-					</div>
+			<Dialog open={isOpen} onOpenChange={handleOpenChange}>
+				<DialogContent className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Import Properties</DialogTitle>
+						<DialogDescription>
+							Upload a CSV file to add multiple properties at once.
+						</DialogDescription>
+					</DialogHeader>
 
-					{/* File Upload */}
-					<div className="space-y-2">
-						<label
-							htmlFor="file-upload"
-							className="block text-sm font-medium text-foreground"
-						>
-							Select CSV File
-						</label>
-						<input
-							id="file-upload"
-							type="file"
-							accept=".csv,text/csv"
-							onChange={handleFileChange}
-							className="block w-full text-sm text-muted-foreground
-								file:mr-4 file:py-2 file:px-4
-								file:rounded-md file:border-0
-								file:text-sm file:font-semibold
-								file:bg-primary file:text-primary-foreground
-								hover:file:bg-primary/90
-								cursor-pointer"
-						/>
-						{file && (
-							<p className="text-sm text-muted-foreground">
-								Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
-							</p>
-						)}
-					</div>
-
-					{/* Result Display */}
-					{result && (
-						<div
-							className={`p-4 border rounded-lg ${
-								result.success
-									? 'bg-green-50 border-green-200'
-									: 'bg-red-50 border-red-200'
-							}`}
-						>
-							<div className="flex items-start gap-3">
-								{result.success ? (
-									<CheckCircle2 className="size-5 text-green-600 mt-0.5" />
-								) : (
-									<AlertCircle className="size-5 text-red-600 mt-0.5" />
-								)}
-								<div className="flex-1 space-y-2">
-									<p className="font-medium">
-										{result.success ? 'Import Successful!' : 'Import Failed'}
+					<div className="space-y-6">
+						{/* File Upload Section */}
+						<div className="space-y-3">
+							<div className="space-y-2">
+								<label htmlFor="file-upload" className="text-sm font-medium">
+									Choose CSV File
+								</label>
+								<input
+									id="file-upload"
+									type="file"
+									accept=".csv,text/csv"
+									onChange={handleFileChange}
+									className="block w-full text-sm text-muted-foreground
+									file:mr-4 file:py-2 file:px-4
+									file:rounded-md file:border-0
+									file:text-sm file:font-semibold
+									file:bg-primary file:text-primary-foreground
+									hover:file:bg-primary/90
+									cursor-pointer"
+								/>
+								{file && (
+									<p className="text-xs text-muted-foreground">
+										Selected: {file.name}
 									</p>
-									<div className="text-sm space-y-1">
-										<p>Imported: {result.imported} properties</p>
-										{result.failed > 0 && <p>Failed: {result.failed} rows</p>}
-									</div>
+								)}
+							</div>
 
-									{/* Error Details */}
-									{result.errors.length > 0 && (
-										<div className="mt-3 space-y-1">
-											<p className="font-medium text-sm">Errors:</p>
-											<div className="max-h-40 overflow-y-auto space-y-1">
-												{result.errors.map((err, idx) => (
-													<p key={idx} className="text-xs text-red-700">
-														Row {err.row}: {err.error}
-													</p>
-												))}
-											</div>
-										</div>
-									)}
-								</div>
+							{/* Template Download */}
+							<div className="flex items-center gap-2 text-sm">
+								<span className="text-muted-foreground">Need a template?</span>
+								<Button
+									variant="link"
+									size="sm"
+									className="h-auto p-0 text-primary"
+									onClick={downloadTemplate}
+								>
+									Download CSV template
+								</Button>
 							</div>
 						</div>
-					)}
 
-					{/* Instructions */}
-					<div className="p-4 bg-muted rounded-lg space-y-2">
-						<p className="font-medium text-sm">Required Fields:</p>
-						<ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-							<li>name - Property name</li>
-							<li>address - Street address</li>
-							<li>city, state, zipCode - Location details</li>
-						</ul>
-						<p className="font-medium text-sm mt-3">Optional Fields:</p>
-						<ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-							<li>
-								propertyType - SINGLE_FAMILY, MULTI_UNIT, APARTMENT, COMMERCIAL,
-								CONDO, TOWNHOUSE, OTHER
-							</li>
-							<li>description - Property description</li>
-						</ul>
+						<BulkImportResultPanel result={result} />
+
+						{/* Quick Instructions */}
+						<div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
+							<p className="font-medium mb-1">Required columns:</p>
+							<p>name, address, city, state, zipCode</p>
+							<p className="font-medium mt-2 mb-1">Optional columns:</p>
+							<p>propertyType, description</p>
+						</div>
 					</div>
-				</div>
 
-				<DialogFooter>
-					<Button
-						variant="outline"
-						onClick={() => {
-							setOpen(false)
-							setFile(null)
-							setResult(null)
-						}}
-						disabled={loading}
-					>
-						Cancel
-					</Button>
-					<Button onClick={handleUpload} disabled={!file || loading}>
-						{loading ? 'Importing...' : 'Import Properties'}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+					<DialogFooter className="gap-2">
+						<Button
+							variant="outline"
+							onClick={() => {
+								closeModal(modalId)
+								setFile(null)
+								setResult(null)
+							}}
+							disabled={bulkImportMutation.isPending}
+						>
+							Cancel
+						</Button>
+						<Button
+							onClick={handleUpload}
+							disabled={!file || bulkImportMutation.isPending}
+						>
+							{bulkImportMutation.isPending
+								? 'Importing...'
+								: 'Import Properties'}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
+	)
+}
+
+const DEFAULT_ERROR_MESSAGE = 'Failed to import properties. Please try again.'
+
+function getErrorMessage(error: unknown): string {
+	if (!isApiError(error)) {
+		return error instanceof Error && error.message
+			? error.message
+			: DEFAULT_ERROR_MESSAGE
+	}
+
+	const fallback = error.message || DEFAULT_ERROR_MESSAGE
+	const backendCode = getBackendErrorCode(error.details)
+
+	if (backendCode) {
+		return getBusinessErrorMessage(backendCode, fallback)
+	}
+
+	return getApiErrorMessage(error.code, fallback)
+}
+
+function getBackendErrorCode(details: unknown): string | undefined {
+	if (!details || typeof details !== 'object') {
+		return undefined
+	}
+
+	const code = (details as { code?: unknown }).code
+	return typeof code === 'string' ? code : undefined
+}
+
+function getBusinessErrorMessage(code: string, fallback: string): string {
+	switch (code) {
+		case BUSINESS_ERROR_CODES.NETWORK_ERROR:
+		case BUSINESS_ERROR_CODES.CORS_ERROR:
+			return 'Network error. Please check your connection and try again.'
+		case BUSINESS_ERROR_CODES.INVALID_FILE_TYPE:
+			return 'Invalid file type. Please upload a CSV file.'
+		case BUSINESS_ERROR_CODES.NO_FILE_UPLOADED:
+			return 'No file was uploaded. Please select a file.'
+		case BUSINESS_ERROR_CODES.FILE_TOO_LARGE:
+			return 'File is too large. Maximum size is 5MB.'
+		case BUSINESS_ERROR_CODES.INVALID_CSV_FORMAT:
+			return 'Invalid CSV format. Please check your file and try again.'
+		case BUSINESS_ERROR_CODES.CSV_MISSING_REQUIRED_COLUMNS:
+			return 'CSV is missing required columns. Please download the template and try again.'
+		case BUSINESS_ERROR_CODES.CSV_INVALID_DATA:
+			return 'CSV contains invalid data. Please review the rows and correct formatting.'
+		case BUSINESS_ERROR_CODES.CSV_DUPLICATE_ENTRIES:
+			return 'CSV contains duplicate entries. Please remove duplicates and try again.'
+		default:
+			return fallback
+	}
+}
+
+function getApiErrorMessage(
+	code: ApiErrorCode | undefined,
+	fallback: string
+): string {
+	switch (code) {
+		case ApiErrorCode.NETWORK_ERROR:
+		case ApiErrorCode.NETWORK_TIMEOUT:
+		case ApiErrorCode.NETWORK_OFFLINE:
+			return 'Network error. Please check your connection and try again.'
+		case ApiErrorCode.API_RATE_LIMITED:
+			return 'Too many requests. Please wait a moment and try again.'
+		default:
+			return fallback
+	}
+}
+
+function getFileValidationError(file: File): string | null {
+	const hasValidType =
+		CSV_ACCEPTED_MIME_TYPES.includes(file.type) || file.name.endsWith('.csv')
+	if (!hasValidType) {
+		return 'Please select a CSV file (.csv)'
+	}
+
+	if (file.size > CSV_MAX_FILE_SIZE_BYTES) {
+		return 'File size must be less than 5MB'
+	}
+
+	return null
+}
+
+function buildCsvTemplate(
+	headers: readonly string[],
+	rows: ReadonlyArray<readonly string[]>
+): string {
+	const contentRows = rows.map(row => row.map(cell => `"${cell}"`).join(','))
+	return [headers.join(','), ...contentRows].join('\n')
+}
+
+function triggerCsvDownload(content: string, filename: string) {
+	const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+	const link = document.createElement('a')
+	const url = URL.createObjectURL(blob)
+
+	link.setAttribute('href', url)
+	link.setAttribute('download', filename)
+	link.style.visibility = 'hidden'
+	document.body.appendChild(link)
+	link.click()
+	document.body.removeChild(link)
+}
+
+function BulkImportResultPanel({ result }: { result: BulkImportResult | null }) {
+	if (!result) {
+		return null
+	}
+
+	const isSuccessful = result.success
+	const hasErrors = result.errors.length > 0
+
+	return (
+		<div
+			className={`p-4 rounded-lg border ${
+				isSuccessful
+					? 'bg-success/5 border-success/20'
+					: 'bg-destructive/5 border-destructive/20'
+			}`}
+		>
+			<div className="flex items-start gap-3">
+				{isSuccessful ? (
+					<CheckCircle2 className="size-5 text-success mt-0.5" />
+				) : (
+					<AlertCircle className="size-5 text-destructive mt-0.5" />
+				)}
+				<div className="flex-1">
+					<p className="font-medium text-sm">
+						{isSuccessful ? 'Import Complete' : 'Import Failed'}
+					</p>
+					<p className="text-sm text-muted-foreground">
+						{result.imported > 0 && `${result.imported} properties imported`}
+						{result.failed > 0 && ` • ${result.failed} failed`}
+					</p>
+					{hasErrors && (
+						<details className="mt-2">
+							<summary className="text-xs cursor-pointer text-destructive">
+								View errors ({result.errors.length})
+							</summary>
+							<div className="mt-2 max-h-32 overflow-y-auto space-y-1">
+								{result.errors.map((err, idx) => (
+									<p key={idx} className="text-xs text-destructive/80">
+										Row {err.row}: {err.error}
+									</p>
+								))}
+							</div>
+						</details>
+					)}
+				</div>
+			</div>
+		</div>
 	)
 }

@@ -1,10 +1,7 @@
 import { RouteModal } from '#components/ui/route-modal'
 import { CreateTenantForm } from '#app/(protected)/tenant/create-tenant-form.client'
 import { serverFetch } from '#lib/api/server'
-import type { Tables } from '@repo/shared/types/supabase'
-
-type Property = Tables<'property'>
-type Unit = Tables<'unit'>
+import type { Property, Unit } from '@repo/shared/types/core'
 
 /**
  * New Tenant Modal (Intercepting Route)
@@ -20,7 +17,9 @@ export default async function NewTenantModal() {
 
 	try {
 		const [propertiesData, unitsData] = await Promise.all([
-			serverFetch<import('@repo/shared/types/core').Property[]>('/api/v1/properties'),
+			serverFetch<import('@repo/shared/types/core').Property[]>(
+				'/api/v1/properties'
+			),
 			serverFetch<import('@repo/shared/types/core').Unit[]>('/api/v1/units')
 		])
 
@@ -31,8 +30,15 @@ export default async function NewTenantModal() {
 	}
 
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
-			<CreateTenantForm properties={properties} units={units} />
+		<RouteModal
+			modalId="new-tenant"
+			className="max-w-3xl max-h-[90vh] overflow-y-auto"
+		>
+			<CreateTenantForm
+				properties={properties}
+				units={units}
+				modalId="new-tenant"
+			/>
 		</RouteModal>
 	)
 }

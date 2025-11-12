@@ -6,12 +6,15 @@ import {
 	Param,
 	Post,
 	Request,
-	UseGuards
+	UseGuards,
+	ParseUUIDPipe
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { CreatePaymentDto } from './dto/create-payment.dto'
 
 @Controller('rent-payments')
 @UseGuards(JwtAuthGuard)
@@ -29,12 +32,7 @@ export class RentPaymentsController {
 	@Post()
 	async createPayment(
 		@Body()
-		body: {
-			tenantId: string
-			leaseId: string
-			amount: number
-			paymentMethodId: string
-		},
+		body: CreatePaymentDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		const requestingUserId = req.user.id
@@ -275,9 +273,10 @@ export class RentPaymentsController {
 	 * GET /api/v1/rent-payments/autopay/status/:tenantId/:leaseId
 	 */
 	@Get('autopay/status/:tenantId/:leaseId')
+	@UseGuards(PropertyOwnershipGuard)
 	async getAutopayStatus(
-		@Param('tenantId') tenantId: string,
-		@Param('leaseId') leaseId: string,
+		@Param('tenantId', ParseUUIDPipe) tenantId: string,
+		@Param('leaseId', ParseUUIDPipe) leaseId: string,
 		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
@@ -308,18 +307,17 @@ export class RentPaymentsController {
 	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('status/:tenantId')
+	@UseGuards(PropertyOwnershipGuard)
 	async getCurrentPaymentStatus(
-		@Param('tenantId') tenantId: string,
+		@Param('tenantId', ParseUUIDPipe) tenantId: string,
 		@Request() req: AuthenticatedRequest
 	) {
 		const userId = req.user.id
 		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
 
-		// Verify user has access to this tenant
-		await this.rentPaymentsService.verifyTenantAccess(userId, tenantId)
-
+		// ✅ Authorization now enforced at service layer (defense-in-depth)
 		const paymentStatus =
-			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId)
+			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId, userId)
 
 		return {
 			status: paymentStatus.status,

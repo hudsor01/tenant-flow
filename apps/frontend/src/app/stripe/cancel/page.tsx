@@ -16,7 +16,7 @@ function CancelContent() {
 					<XCircle className="mx-auto size-16 text-destructive" />
 				</div>
 
-				<h1 className="text-3xl font-bold mb-4 text-gradient-authority">
+				<h1 className="text-3xl font-bold mb-4 text-foreground">
 					Payment Cancelled
 				</h1>
 

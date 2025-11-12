@@ -1,10 +1,12 @@
 import { Suspense } from 'react'
 
+import { TenantGuard } from '#components/auth/tenant-guard'
 import { AddPaymentMethod } from '#app/(protected)/manage/payments/methods/add-payment-method.client'
 import { TenantPaymentMethods } from './tenant-payment-methods.client'
 
 export default function TenantPaymentMethodsPage() {
 	return (
+		<TenantGuard>
 		<div className="space-y-10">
 			<div className="space-y-2">
 				<h1 className="text-2xl font-semibold tracking-tight">
@@ -26,5 +28,6 @@ export default function TenantPaymentMethodsPage() {
 			</Suspense>
 			<AddPaymentMethod />
 		</div>
+		</TenantGuard>
 	)
 }

@@ -7,24 +7,31 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
-import type {
-	CreateUnitRequest,
-	UpdateUnitRequest
-} from '@repo/shared/types/backend-domain'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	Logger
+} from '@nestjs/common'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildILikePattern,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
+import type { CreateUnitDto } from './dto/create-unit.dto'
+import type { UpdateUnitDto } from './dto/update-unit.dto'
 
 @Injectable()
 export class UnitsService {
 	private readonly logger = new Logger(UnitsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService
+	) {}
 
 	/**
 	 * ❌ REMOVED: Manual property filtering violates RLS pattern
@@ -59,17 +66,21 @@ export class UnitsService {
 			}
 
 			if (query.status) {
-				const status = String(
-					query.status
-				).toUpperCase() as Database['public']['Enums']['UnitStatus']
+				const statusInput = String(query.status).toUpperCase()
 				const allowedStatuses: Database['public']['Enums']['UnitStatus'][] = [
 					'VACANT',
 					'OCCUPIED',
 					'MAINTENANCE',
 					'RESERVED'
 				]
-				if (allowedStatuses.includes(status)) {
-					queryBuilder = queryBuilder.eq('status', status)
+				const isValidStatus = allowedStatuses.includes(
+					statusInput as Database['public']['Enums']['UnitStatus']
+				)
+				if (isValidStatus) {
+					queryBuilder = queryBuilder.eq(
+						'status',
+						statusInput as Database['public']['Enums']['UnitStatus']
+					)
 				}
 			}
 
@@ -301,7 +312,7 @@ export class UnitsService {
 	 * Create unit via direct Supabase query
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
 	 */
-	async create(token: string, createRequest: CreateUnitRequest): Promise<Unit> {
+	async create(token: string, createRequest: CreateUnitDto): Promise<Unit> {
 		try {
 			if (!token || !createRequest.propertyId || !createRequest.unitNumber) {
 				this.logger.warn('Create unit called with missing parameters', {
@@ -319,15 +330,15 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
 			const client = this.supabase.getUserClient(token)
 
-			// RLS automatically verifies property ownership - no manual check needed
+		// RLS automatically verifies property ownership - no manual check needed
 			const unitData = {
 				propertyId: createRequest.propertyId,
 				unitNumber: createRequest.unitNumber,
 				bedrooms: createRequest.bedrooms || 1,
 				bathrooms: createRequest.bathrooms || 1,
 				squareFeet: createRequest.squareFeet || null,
-				rent: createRequest.rent || createRequest.rentAmount || 0,
-				status: 'VACANT' as const
+				rent: createRequest.rent ?? 0,
+				status: createRequest.status ?? 'VACANT'
 			}
 
 			const { data, error } = await client
@@ -344,7 +355,13 @@ export class UnitsService {
 				throw new BadRequestException('Failed to create unit')
 			}
 
-			return data as Unit
+			const createdUnit = data as Unit
+
+			// Invalidate caches so downstream consumers (lease auto-fill, dashboards) get fresh data
+			this.cache.invalidateByEntity('unit', createdUnit.id)
+			this.cache.invalidateByEntity('property', createdUnit.propertyId)
+
+			return createdUnit
 		} catch (error) {
 			this.logger.error('Units service failed to create unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -363,8 +380,8 @@ export class UnitsService {
 	async update(
 		token: string,
 		unitId: string,
-		updateRequest: UpdateUnitRequest,
-		expectedVersion?: number // 🔐 BUG FIX #2: Optimistic locking
+		updateRequest: UpdateUnitDto,
+		expectedVersion?: number //Optimistic locking
 	): Promise<Unit | null> {
 		try {
 			if (!token || !unitId) {
@@ -402,12 +419,12 @@ export class UnitsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
 				updateData.version = expectedVersion + 1
 			}
 
-			// 🔐 BUG FIX #2: Add version check for optimistic locking
+			//Add version check for optimistic locking
 			// RLS automatically verifies unit ownership - no manual propertyId check needed
 			let query = client.from('unit').update(updateData).eq('id', unitId)
 
@@ -418,7 +435,7 @@ export class UnitsService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 BUG FIX #2: Detect optimistic locking conflict
+				//Detect optimistic locking conflict
 				if (error?.code === 'PGRST116' || !data) {
 					this.logger.warn('Optimistic locking conflict detected', {
 						unitId,
@@ -438,7 +455,15 @@ export class UnitsService {
 				return null
 			}
 
-			return data as Unit
+			const updatedUnit = data as Unit
+
+			// Invalidate dependent caches so lease auto-fill returns fresh unit data
+			this.cache.invalidateByEntity('unit', unitId)
+			if (updatedUnit.propertyId) {
+				this.cache.invalidateByEntity('property', updatedUnit.propertyId)
+			}
+
+			return updatedUnit
 		} catch (error) {
 			this.logger.error('Units service failed to update unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -469,6 +494,19 @@ export class UnitsService {
 			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
+			// Fetch unit metadata before deletion so we can invalidate property cache afterwards
+			const { data: existingUnit, error: fetchError } = await client
+				.from('unit')
+				.select('id, propertyId')
+				.eq('id', unitId)
+				.single()
+			if (fetchError && fetchError.code !== 'PGRST116') {
+				this.logger.warn('Failed to fetch unit metadata before deletion', {
+					error: fetchError.message,
+					unitId
+				})
+			}
+
 			// RLS automatically verifies unit ownership - no manual propertyId check needed
 			const { error } = await client.from('unit').delete().eq('id', unitId)
 
@@ -478,6 +516,12 @@ export class UnitsService {
 					unitId
 				})
 				throw new BadRequestException('Failed to remove unit')
+			}
+
+			// Invalidate caches tied to this unit/property so data disappears immediately
+			this.cache.invalidateByEntity('unit', unitId)
+			if (existingUnit?.propertyId) {
+				this.cache.invalidateByEntity('property', existingUnit.propertyId)
 			}
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {
@@ -544,7 +588,9 @@ export class UnitsService {
 	async getAvailable(token: string, propertyId: string): Promise<Unit[]> {
 		try {
 			if (!token || !propertyId) {
-				this.logger.warn('Available units requested without token or propertyId')
+				this.logger.warn(
+					'Available units requested without token or propertyId'
+				)
 				throw new BadRequestException(
 					'Authentication token and property ID are required'
 				)

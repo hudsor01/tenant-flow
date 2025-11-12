@@ -21,6 +21,7 @@ import {
 	type ReportFormat,
 	type ReportType
 } from '#lib/api/reports-client'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { useAuth } from '#providers/auth-provider'
 import { format, subMonths } from 'date-fns'
 import {
@@ -162,10 +163,8 @@ export default function GenerateReportsPage() {
 
 			toast.success('Report generated successfully')
 		} catch (error) {
-			toast.error(
-				`Failed to generate report: ${error instanceof Error ? error.message : 'Unknown error'}`
-			)
-		} finally {
+			handleMutationError(error, 'Generate report')
+		} finally{
 			setGeneratingReports(prev => ({ ...prev, [reportKey]: false }))
 		}
 	}

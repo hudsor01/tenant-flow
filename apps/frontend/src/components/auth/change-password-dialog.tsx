@@ -9,21 +9,17 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useChangePassword } from '#hooks/api/use-supabase-auth'
+import { useChangePassword } from '#hooks/api/use-auth'
+import { useModalStore } from '#stores/modal-store'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'
 
-interface ChangePasswordDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-}
-
-export function ChangePasswordDialog({
-	open,
-	onOpenChange
-}: ChangePasswordDialogProps) {
+export function ChangePasswordDialog() {
+	const { closeModal, isModalOpen } = useModalStore()
 	const changePassword = useChangePassword()
+
+	const modalId = 'change-password'
 
 	const [formData, setFormData] = useState({
 		currentPassword: '',
@@ -113,7 +109,7 @@ export function ChangePasswordDialog({
 				confirmPassword: ''
 			})
 			setValidationErrors([])
-			onOpenChange(false)
+			closeModal(modalId)
 		} catch (error) {
 			logger.error('Failed to change password', {
 				action: 'change_password',
@@ -136,166 +132,176 @@ export function ChangePasswordDialog({
 			confirmPassword: ''
 		})
 		setValidationErrors([])
-		onOpenChange(false)
+		closeModal(modalId)
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={isOpen => !isOpen && handleCancel()}>
-			<DialogContent className="sm:max-w-[500px]">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						<Lock className="size-5" />
-						Change Password
-					</DialogTitle>
-					<DialogDescription>
-						Enter your current password and choose a new secure password
-					</DialogDescription>
-				</DialogHeader>
+		<>
+			{isModalOpen(modalId) && (
+				<Dialog open={true} onOpenChange={() => closeModal(modalId)}>
+					<DialogContent className="sm:max-w-[500px]">
+						<DialogHeader>
+							<DialogTitle className="flex items-center gap-2">
+								<Lock className="size-5" />
+								Change Password
+							</DialogTitle>
+							<DialogDescription>
+								Enter your current password and choose a new secure password
+							</DialogDescription>
+						</DialogHeader>
 
-				<form onSubmit={handleSubmit} className="space-y-6 mt-4">
-					{/* Current Password */}
-					<Field>
-						<FieldLabel>Current Password *</FieldLabel>
-						<div className="relative">
-							<input
-								type={showPasswords.current ? 'text' : 'password'}
-								className="input w-full pr-10"
-								value={formData.currentPassword}
-								onChange={e => handleChange('currentPassword', e.target.value)}
-								disabled={changePassword.isPending}
-								required
-								autoComplete="current-password"
-							/>
-							<button
-								type="button"
-								onClick={() => togglePasswordVisibility('current')}
-								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-								disabled={changePassword.isPending}
-								aria-label={
-									showPasswords.current
-										? 'Hide current password'
-										: 'Show current password'
-								}
-							>
-								{showPasswords.current ? (
-									<EyeOff className="size-4" />
-								) : (
-									<Eye className="size-4" />
-								)}
-							</button>
-						</div>
-					</Field>
+						<form onSubmit={handleSubmit} className="space-y-6 mt-4">
+							{/* Current Password */}
+							<Field>
+								<FieldLabel>Current Password *</FieldLabel>
+								<div className="relative">
+									<input
+										type={showPasswords.current ? 'text' : 'password'}
+										className="input w-full pr-10"
+										value={formData.currentPassword}
+										onChange={e =>
+											handleChange('currentPassword', e.target.value)
+										}
+										disabled={changePassword.isPending}
+										required
+										autoComplete="current-password"
+									/>
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility('current')}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.current
+												? 'Hide current password'
+												: 'Show current password'
+										}
+									>
+										{showPasswords.current ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</div>
+							</Field>
 
-					{/* New Password */}
-					<Field>
-						<FieldLabel>New Password *</FieldLabel>
-						<div className="relative">
-							<input
-								type={showPasswords.new ? 'text' : 'password'}
-								className="input w-full pr-10"
-								value={formData.newPassword}
-								onChange={e => handleChange('newPassword', e.target.value)}
-								disabled={changePassword.isPending}
-								required
-								autoComplete="new-password"
-							/>
-							<button
-								type="button"
-								onClick={() => togglePasswordVisibility('new')}
-								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-								disabled={changePassword.isPending}
-								aria-label={
-									showPasswords.new ? 'Hide new password' : 'Show new password'
-								}
-							>
-								{showPasswords.new ? (
-									<EyeOff className="size-4" />
-								) : (
-									<Eye className="size-4" />
-								)}
-							</button>
-						</div>
-						<p className="text-sm text-muted-foreground mt-1">
-							Must be at least 8 characters with uppercase, lowercase, number,
-							and special character
-						</p>
-					</Field>
+							{/* New Password */}
+							<Field>
+								<FieldLabel>New Password *</FieldLabel>
+								<div className="relative">
+									<input
+										type={showPasswords.new ? 'text' : 'password'}
+										className="input w-full pr-10"
+										value={formData.newPassword}
+										onChange={e => handleChange('newPassword', e.target.value)}
+										disabled={changePassword.isPending}
+										required
+										autoComplete="new-password"
+									/>
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility('new')}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.new
+												? 'Hide new password'
+												: 'Show new password'
+										}
+									>
+										{showPasswords.new ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</div>
+								<p className="text-sm text-muted-foreground mt-1">
+									Must be at least 8 characters with uppercase, lowercase,
+									number, and special character
+								</p>
+							</Field>
 
-					{/* Confirm Password */}
-					<Field>
-						<FieldLabel>Confirm New Password *</FieldLabel>
-						<div className="relative">
-							<input
-								type={showPasswords.confirm ? 'text' : 'password'}
-								className="input w-full pr-10"
-								value={formData.confirmPassword}
-								onChange={e => handleChange('confirmPassword', e.target.value)}
-								disabled={changePassword.isPending}
-								required
-								autoComplete="new-password"
-							/>
-							<button
-								type="button"
-								onClick={() => togglePasswordVisibility('confirm')}
-								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-								disabled={changePassword.isPending}
-								aria-label={
-									showPasswords.confirm
-										? 'Hide confirm password'
-										: 'Show confirm password'
-								}
-							>
-								{showPasswords.confirm ? (
-									<EyeOff className="size-4" />
-								) : (
-									<Eye className="size-4" />
-								)}
-							</button>
-						</div>
-					</Field>
+							{/* Confirm Password */}
+							<Field>
+								<FieldLabel>Confirm New Password *</FieldLabel>
+								<div className="relative">
+									<input
+										type={showPasswords.confirm ? 'text' : 'password'}
+										className="input w-full pr-10"
+										value={formData.confirmPassword}
+										onChange={e =>
+											handleChange('confirmPassword', e.target.value)
+										}
+										disabled={changePassword.isPending}
+										required
+										autoComplete="new-password"
+									/>
+									<button
+										type="button"
+										onClick={() => togglePasswordVisibility('confirm')}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+										disabled={changePassword.isPending}
+										aria-label={
+											showPasswords.confirm
+												? 'Hide confirm password'
+												: 'Show confirm password'
+										}
+									>
+										{showPasswords.confirm ? (
+											<EyeOff className="size-4" />
+										) : (
+											<Eye className="size-4" />
+										)}
+									</button>
+								</div>
+							</Field>
 
-					{/* Validation Errors */}
-					{validationErrors.length > 0 && (
-						<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-							<p className="font-semibold text-destructive mb-2">
-								Please fix the following errors:
-							</p>
-							<ul className="list-disc list-inside space-y-1 text-sm text-destructive">
-								{validationErrors.map((error, index) => (
-									<li key={index}>{error}</li>
-								))}
-							</ul>
-						</div>
-					)}
-
-					{/* Actions */}
-					<div className="flex gap-3 pt-2">
-						<Button
-							type="button"
-							variant="outline"
-							className="flex-1"
-							onClick={handleCancel}
-							disabled={changePassword.isPending}
-						>
-							Cancel
-						</Button>
-						<Button
-							type="submit"
-							className="flex-1"
-							disabled={changePassword.isPending}
-						>
-							{changePassword.isPending ? (
-								<>
-									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-									Changing...
-								</>
-							) : (
-								'Change Password'
+							{/* Validation Errors */}
+							{validationErrors.length > 0 && (
+								<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+									<p className="font-semibold text-destructive mb-2">
+										Please fix the following errors:
+									</p>
+									<ul className="list-disc list-inside space-y-1 text-sm text-destructive">
+										{validationErrors.map((error, index) => (
+											<li key={index}>{error}</li>
+										))}
+									</ul>
+								</div>
 							)}
-						</Button>
-					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
+
+							{/* Actions */}
+							<div className="flex gap-3 pt-2">
+								<Button
+									type="button"
+									variant="outline"
+									className="flex-1"
+									onClick={handleCancel}
+									disabled={changePassword.isPending}
+								>
+									Cancel
+								</Button>
+								<Button
+									type="submit"
+									className="flex-1"
+									disabled={changePassword.isPending}
+								>
+									{changePassword.isPending ? (
+										<>
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+											Changing...
+										</>
+									) : (
+										'Change Password'
+									)}
+								</Button>
+							</div>
+						</form>
+					</DialogContent>
+				</Dialog>
+			)}
+		</>
 	)
 }

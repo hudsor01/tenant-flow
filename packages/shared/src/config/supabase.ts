@@ -10,7 +10,7 @@
  */
 function getSupabaseUrl(): string {
 	// Prefer server env var, fall back to Next.js public env var
-	const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+	const url = process.env["SUPABASE_URL"] || process.env["NEXT_PUBLIC_SUPABASE_URL"]
 
 	if (!url) {
 		throw new Error(
@@ -30,8 +30,8 @@ function getSupabaseUrl(): string {
 function getSupabasePublishableKey(): string {
 	// Prefer server env var, fall back to Next.js public env var
 	const key =
-		process.env.SUPABASE_PUBLISHABLE_KEY ||
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+		process.env["SUPABASE_PUBLISHABLE_KEY"] ||
+		process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
 
 	if (!key) {
 		throw new Error(
@@ -61,8 +61,8 @@ function getSupabasePublishableKey(): string {
  */
 export const SUPABASE_URL = (() => {
 	// Allow builds to proceed without env vars when explicitly skipped
-	if (process.env.SKIP_ENV_VALIDATION === 'true') {
-		return process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
+		return process.env["SUPABASE_URL"] || process.env["NEXT_PUBLIC_SUPABASE_URL"] || ''
 	}
 	return getSupabaseUrl()
 })()
@@ -85,10 +85,10 @@ export const SUPABASE_URL = (() => {
  */
 export const SUPABASE_PUBLISHABLE_KEY = (() => {
 	// Allow builds to proceed without env vars when explicitly skipped
-	if (process.env.SKIP_ENV_VALIDATION === 'true') {
+	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
-			process.env.SUPABASE_PUBLISHABLE_KEY ||
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+			process.env["SUPABASE_PUBLISHABLE_KEY"] ||
+			process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||
 			''
 		)
 	}

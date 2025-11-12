@@ -32,7 +32,10 @@ import Link from 'next/link'
  */
 function getNextPaymentDate(
 	upcomingPayment: { dueDate?: string | null } | null | undefined,
-	formatDate: (date: string | Date, options?: Intl.DateTimeFormatOptions) => string
+	formatDate: (
+		date: string | Date,
+		options?: Intl.DateTimeFormatOptions
+	) => string
 ): string {
 	if (upcomingPayment?.dueDate) {
 		return formatDate(upcomingPayment.dueDate, {
@@ -62,7 +65,6 @@ export default function TenantDashboardPage() {
 		return str.replace(search, replace)
 	}
 
-	// Removed: useCurrentLease() - redundant, dashboard hook already includes lease data
 	const {
 		data: dashboard,
 		isLoading: dashboardLoading,
@@ -74,9 +76,8 @@ export default function TenantDashboardPage() {
 	const recentRequests = dashboard?.maintenance?.recent ?? []
 	const recentPayments = dashboard?.payments?.recent ?? []
 	const upcomingPayment = dashboard?.payments?.upcoming ?? null
-	// Removed: dashboardLoading - use dashboardLoading directly
 
-	// Calculate next payment date (1st of next month)
+	// Format the next payment date from upcoming payment
 	const nextPaymentDate = getNextPaymentDate(upcomingPayment, formatDate)
 
 	// Single error source
@@ -112,8 +113,8 @@ export default function TenantDashboardPage() {
 					}
 				>
 					<div className="flex items-center gap-4">
-						<div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
-							<Home className="size-7 text-blue-600 dark:text-blue-400" />
+						<div className="p-3 rounded-lg bg-clean-accent-100 dark:bg-clean-accent-900/30 group-hover:bg-clean-accent-200 dark:group-hover:bg-clean-accent-900/50 transition-colors">
+							<Home className="size-7 text-clean-accent-600 dark:text-clean-accent-400" />
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Property</p>

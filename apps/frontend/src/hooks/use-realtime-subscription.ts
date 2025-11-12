@@ -5,7 +5,7 @@
 
 'use client'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -47,7 +47,7 @@ export function useRealtimeSubscription({
 }: UseRealtimeSubscriptionOptions) {
 	const queryClient = useQueryClient()
 	const channelRef = useRef<RealtimeChannel | null>(null)
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	useEffect(() => {
 		if (!enabled) return

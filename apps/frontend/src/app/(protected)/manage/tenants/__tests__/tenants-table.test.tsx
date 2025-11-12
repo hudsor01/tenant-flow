@@ -3,7 +3,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils'
+import { render, screen, waitFor } from '#test/utils/test-render'
 import { TenantsTableClient } from '../tenants-table.client'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

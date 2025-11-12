@@ -18,6 +18,7 @@ import {
 } from '#components/ui/alert-dialog'
 import { PropertyCard } from './property-card'
 import { clientFetch } from '#lib/api/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 interface PropertiesGridClientProps {
 	data: Property[]
@@ -48,9 +49,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 				toast.success('Property deleted successfully')
 				router.refresh() // Refresh server data
 			} catch (error) {
-				toast.error(
-					error instanceof Error ? error.message : 'Failed to delete property'
-				)
+				handleMutationError(error, 'Delete property')
 				// Router refresh will restore the property if deletion failed
 				router.refresh()
 			} finally {

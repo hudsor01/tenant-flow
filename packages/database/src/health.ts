@@ -36,9 +36,9 @@ export interface DatabaseHealthResult {
  * )
  *
  * if (result.healthy) {
- *   console.log('Database is healthy')
+ *   logger.info('Database is healthy')
  * } else {
- *   console.error('Database check failed:', result.error)
+ *   logger.error('Database check failed', { metadata: { error: result.error } })
  * }
  * ```
  */

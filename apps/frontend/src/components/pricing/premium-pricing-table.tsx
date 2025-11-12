@@ -152,7 +152,7 @@ export function PremiumPricingTable({
 		}
 		if (plan.stripeMonthlyPriceId) payload.monthlyPriceId = plan.stripeMonthlyPriceId
 		if (plan.stripeAnnualPriceId) payload.annualPriceId = plan.stripeAnnualPriceId
-		
+
 		subscriptionMutation.mutate(payload)
 	}
 
@@ -186,7 +186,7 @@ export function PremiumPricingTable({
 					<span className={cn('text-sm font-medium', isAnnual && 'text-foreground', !isAnnual && 'text-muted-foreground')}>
 						Annual
 					</span>
-					<Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300">
+					<Badge variant="secondary" className="bg-success/10 text-success dark:bg-success/20 dark:text-success">
 						Save 17%
 					</Badge>
 				</div>
@@ -243,7 +243,7 @@ export function PremiumPricingTable({
 													<p className="text-sm text-muted-foreground mt-2">{formatStripePrice(annualPrice)} billed annually</p>
 												)}
 												{isAnnual && savings.savingsPercent > 0 && (
-													<p className="text-sm text-green-600 dark:text-green-400 mt-1">
+													<p className="text-sm text-success mt-1">
 														Save {savings.savingsPercent}% with annual billing
 													</p>
 												)}
@@ -331,7 +331,7 @@ export function PremiumPricingTable({
 											<div key={product.id} className="text-center">
 												{typeof value === 'boolean' ? (
 													value ? (
-														<Check className="size-5 text-green-600 dark:text-green-400 mx-auto" />
+														<Check className="size-5 text-success mx-auto" />
 													) : (
 														<X className="size-5 text-muted-foreground/30 mx-auto" />
 													)

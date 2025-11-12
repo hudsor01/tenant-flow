@@ -4,10 +4,7 @@
  */
 
 import { z } from 'zod'
-
-// ============================================================================
-// ZOD VALIDATION SCHEMAS
-// ============================================================================
+import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 /** Email validation schema */
 export const emailSchema = z.string().email('Please enter a valid email address')
@@ -19,10 +16,10 @@ export const requiredString = z.string().min(1, 'This field is required')
 export const nonEmptyStringSchema = z.string().trim().min(1, 'This field cannot be empty')
 
 /** Required title schema (1-200 characters) */
-export const requiredTitle = z.string().trim().min(1, 'Title is required').max(200, 'Title cannot exceed 200 characters')
+export const requiredTitle = z.string().trim().min(1, 'Title is required').max(VALIDATION_LIMITS.TITLE_MAX_LENGTH, `Title cannot exceed ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} characters`)
 
 /** Required description schema (1-2000 characters) */
-export const requiredDescription = z.string().trim().min(1, 'Description is required').max(2000, 'Description cannot exceed 2000 characters')
+export const requiredDescription = z.string().trim().min(1, 'Description is required').max(VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH, `Description cannot exceed ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters`)
 
 /** UUID validation schema */
 export const uuidSchema = z.string().uuid('Invalid UUID format')
@@ -44,7 +41,7 @@ export const phoneSchema = z
 	.string()
 	.regex(/^[\d+()-\s]+$/, 'Phone number can only contain digits, +, (), -, and spaces')
 	.min(10, 'Phone number must be at least 10 characters')
-	.max(20, 'Phone number cannot exceed 20 characters')
+	.max(VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH, `Phone number cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH} characters`)
 
 // ============================================================================
 // VALIDATION FUNCTIONS
@@ -72,7 +69,7 @@ export function isValidUrl(url: string): boolean {
 
 		// Prevent localhost in production
 		if (
-			process.env.NODE_ENV === 'production' &&
+			process.env["NODE_ENV"] === 'production' &&
 			(parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1')
 		) {
 			return false

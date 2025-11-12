@@ -22,6 +22,13 @@ import {
 type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
+interface TenantInvitedEventPayload {
+	tenantId: string
+	leaseId: string
+	ownerId: string
+	checkoutUrl: string
+}
+
 @Injectable()
 export class NotificationsService {
 	private readonly logger = new Logger(NotificationsService.name)
@@ -465,15 +472,15 @@ export class NotificationsService {
 			})
 
 			const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({
-				isRead: true,
-				readAt: new Date().toISOString()
-			})
-			.eq('userId', userId)
-			.eq('isRead', false)
-			.select('*')
+				.getAdminClient()
+				.from('notifications')
+				.update({
+					isRead: true,
+					readAt: new Date().toISOString()
+				})
+				.eq('userId', userId)
+				.eq('isRead', false)
+				.select('*')
 
 			if (error) {
 				this.logger.error('Failed to mark all notifications as read', {
@@ -511,7 +518,7 @@ export class NotificationsService {
 			}
 		)
 
-		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createMaintenanceNotification(
@@ -547,7 +554,7 @@ export class NotificationsService {
 			}
 		)
 
-		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createPaymentNotification(
@@ -581,7 +588,7 @@ export class NotificationsService {
 			}
 		)
 
-		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createPaymentNotification(
@@ -618,7 +625,7 @@ export class NotificationsService {
 			}
 		)
 
-		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createSystemNotification(
@@ -639,6 +646,112 @@ export class NotificationsService {
 	}
 
 	/**
+	 * Handle tenant invitation events
+	 */
+	@OnEvent('tenant.invited')
+	async handleTenantInvited(event: TenantInvitedEventPayload) {
+		this.logger.log(
+			`Processing tenant invited event for owner ${event.ownerId}`,
+			{
+				tenantId: event.tenantId,
+				leaseId: event.leaseId
+			}
+		)
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				const client = this.supabaseService.getAdminClient()
+
+				const [tenantResult, leaseResult] = await Promise.all([
+					client
+						.from('tenant')
+						.select('id, firstName, lastName, email')
+						.eq('id', event.tenantId)
+						.single(),
+					client
+						.from('lease')
+						.select(
+							`
+							id,
+							propertyId,
+							unitId,
+							property:propertyId(name),
+							unit:unitId(unitNumber)
+						`
+						)
+						.eq('id', event.leaseId)
+						.single()
+				])
+
+				if (tenantResult.error) {
+					throw tenantResult.error
+				}
+
+				if (leaseResult.error) {
+					throw leaseResult.error
+				}
+
+				const tenant = tenantResult.data
+				const lease = leaseResult.data
+
+				const tenantNameParts = [tenant?.firstName, tenant?.lastName].filter(
+					(part): part is string => Boolean(part && part.trim())
+				)
+				const tenantName =
+					tenantNameParts.length > 0
+						? tenantNameParts.join(' ')
+						: (tenant?.email ?? 'New tenant')
+
+				const propertyName = lease?.property?.name ?? 'their property'
+				const unitNumber = lease?.unit?.unitNumber ?? null
+				const leaseLabel = `${propertyName}${
+					unitNumber ? ` - Unit ${unitNumber}` : ''
+				}`
+
+				const metadata: Record<string, string | null> = {
+					checkoutUrl: event.checkoutUrl,
+					tenantId: event.tenantId,
+					leaseId: event.leaseId,
+					propertyName,
+					tenantName
+				}
+
+				if (unitNumber) {
+					metadata.unitNumber = unitNumber
+				}
+
+				const { error } = await client.from('notifications').insert({
+					userId: event.ownerId,
+					tenantId: tenant?.id ?? event.tenantId,
+					leaseId: lease?.id ?? event.leaseId,
+					propertyId: lease?.propertyId ?? null,
+					title: 'Tenant Invitation Sent',
+					content: `Invitation sent to ${tenantName} for ${leaseLabel}. Payment setup link ready.`,
+					type: 'system',
+					priority: 'low',
+					actionUrl: '/tenants',
+					metadata,
+					isRead: false
+				})
+
+				if (error) {
+					throw error
+				}
+
+				this.logger.log(
+					`Tenant invitation notification stored for owner ${event.ownerId}`,
+					{
+						tenantId: event.tenantId,
+						leaseId: event.leaseId
+					}
+				)
+			},
+			'tenant.invited',
+			event
+		)
+	}
+
+	/**
 	 * Handle lease expiring events
 	 */
 	@OnEvent('lease.expiring')
@@ -653,7 +766,7 @@ export class NotificationsService {
 
 		const priority = event.daysUntilExpiry <= 7 ? 'HIGH' : 'MEDIUM'
 
-		// 🔐 BUG FIX #3: Retry with exponential backoff instead of silent failure
+		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createSystemNotification(

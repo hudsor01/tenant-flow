@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
+const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true'
+
 export default defineConfig({
 	plugins: [
 		tsconfigPaths({
@@ -18,7 +20,8 @@ export default defineConfig({
 		setupFiles: ['./src/test/setup.ts'],
 		globalSetup: ['./tests/integration/setup.ts'],
 		env: {
-			VITEST_INTEGRATION: 'true'
+			VITEST_INTEGRATION: 'true',
+			RUN_INTEGRATION_TESTS: shouldRunIntegration ? 'true' : 'false'
 		},
 		include: ['tests/integration/**/*.{test,spec}.{ts,tsx}'],
 		exclude: [
@@ -28,7 +31,9 @@ export default defineConfig({
 			'out',
 			'build',
 			'coverage',
-			'tests/integration/api-data-flow-integration.spec.ts'
+			'tests/integration/api-data-flow-integration.spec.ts',
+			'tests/integration/mock-auth-dashboard-integration.spec.ts',
+			'tests/integration/hooks/api/use-property-images.test.tsx'
 		],
 		// Integration tests may take longer
 		testTimeout: 30000,

@@ -17,6 +17,8 @@ const logger = createLogger({ component: 'ServerAPI' })
 /**
  * Server-side fetch with Supabase authentication
  * Pattern copied from login/actions.ts
+ *
+ * SECURITY FIX: Added session validation to prevent using stale/expired sessions
  */
 export async function serverFetch<T>(
 	endpoint: string,
@@ -48,12 +50,36 @@ export async function serverFetch<T>(
 		}
 	)
 
-	// Get access token from session
-	// NOTE: getSession() is fast (reads from cookie, no network call)
-	// We trust the session because middleware already validated it
+	// SECURITY FIX: Validate session before using it
+	// Get session first (atomic operation)
 	const {
-		data: { session }
+		data: { session },
+		error: sessionError
 	} = await supabase.auth.getSession()
+
+	// Validate session before using token
+	let accessToken: string | null = null
+	if (session?.access_token) {
+		// SECURITY: Verify session is still valid by checking if we can get user
+		// This ensures the token hasn't been revoked or expired
+		const {
+			data: { user },
+			error: userError
+		} = await supabase.auth.getUser()
+
+		if (!userError && user) {
+			accessToken = session.access_token
+		} else {
+			// Session exists but user validation failed - token might be expired or revoked
+			logger.warn('Session token invalid during validation', {
+				metadata: {
+					hasSession: !!session,
+					hasUser: !!user,
+					userError: userError?.message
+				}
+			})
+		}
+	}
 
 	// Make API request with Bearer token if available
 	const headers: Record<string, string> = {
@@ -69,14 +95,16 @@ export async function serverFetch<T>(
 		})
 	}
 
-	// Add auth header if session exists
-	if (session?.access_token) {
-		headers['Authorization'] = `Bearer ${session.access_token}`
+	// Add auth header if valid session exists
+	if (accessToken) {
+		headers['Authorization'] = `Bearer ${accessToken}`
 	} else {
-		logger.warn('No session found for API request', {
+		logger.warn('No valid session found for API request', {
 			metadata: {
 				endpoint,
-				cookieCount: cookieStore.getAll().length
+				cookieCount: cookieStore.getAll().length,
+				hasSession: !!session,
+				sessionError: sessionError?.message
 			}
 		})
 	}
@@ -100,21 +128,31 @@ export async function serverFetch<T>(
 			}
 		})
 
-		// In production, don't expose detailed error messages to prevent leaking sensitive info
-		if (process.env.NODE_ENV === 'production') {
-			throw new Error(`API request failed with status ${response.status}`)
-		} else {
-			throw new Error(
-				`API Error (${response.status}): ${errorText || response.statusText}`
-			)
+		// Preserve status code for error handling utilities (isConflictError, isNotFoundError)
+		const errorMessage =
+			process.env.NODE_ENV === 'production'
+				? `API request failed with status ${response.status}`
+				: `API Error (${response.status}): ${errorText || response.statusText}`
+
+		const error = new Error(errorMessage) as Error & {
+			status: number
+			statusCode: number
 		}
+		error.status = response.status
+		error.statusCode = response.status
+		throw error
 	}
 
 	const data = await response.json()
 
 	// Handle API response format (success/data pattern)
 	if (data.success === false) {
-		throw new Error(data.error || data.message || 'API request failed')
+		const error = new Error(
+			data.error || data.message || 'API request failed'
+		) as Error & { status: number; statusCode: number }
+		error.status = response.status
+		error.statusCode = response.status
+		throw error
 	}
 
 	// Return data directly or the whole response based on API format

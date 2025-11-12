@@ -34,11 +34,11 @@ export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'oklch(var(--chart-1))'
+		color: 'var(--chart-1)'
 	},
 	expenses: {
 		label: 'Expenses',
-		color: 'oklch(var(--chart-2))'
+		color: 'var(--chart-2)'
 	}
 } satisfies ChartConfig
 
@@ -58,7 +58,7 @@ export function ChartAreaInteractive({
 		if (isMobile && timeRange === '1y') {
 			setTimeRange('6m')
 		}
-	}, [isMobile, timeRange])
+	}, [isMobile, timeRange, setTimeRange])
 
 	// Calculate summary metrics
 	const totalRevenue =
@@ -193,15 +193,29 @@ export function ChartAreaInteractive({
 						<div className="animate-spin rounded-full size-11 border-b-2 border-primary"></div>
 					</div>
 				) : error ? (
-					<div className="flex items-center justify-center h-75 text-muted-foreground">
-						Failed to load chart data
+					<div className="flex flex-col items-center justify-center h-75 gap-2">
+						<p className="text-sm font-medium text-muted-foreground">
+							Failed to load chart data
+						</p>
+						<p className="text-xs text-muted-foreground">
+							Unable to fetch financial data. Please try refreshing the page.
+						</p>
+					</div>
+				) : !chartData || chartData.length === 0 ? (
+					<div className="flex flex-col items-center justify-center h-75 gap-2">
+						<p className="text-sm font-medium text-muted-foreground">
+							No data available
+						</p>
+						<p className="text-xs text-muted-foreground">
+							Add properties and tenants to see financial trends
+						</p>
 					</div>
 				) : (
 					<ChartContainer
 						config={chartConfig}
 						className="aspect-auto h-75 w-full"
 					>
-						<AreaChart data={chartData ?? []}>
+						<AreaChart data={chartData}>
 							<defs>
 								<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
 									<stop

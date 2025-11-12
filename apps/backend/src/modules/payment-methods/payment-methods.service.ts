@@ -51,8 +51,8 @@ export class PaymentMethodsService {
 		if (resolvedEmail) {
 			customerParams.email = resolvedEmail
 		}
-		
-		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate customers
+
+		//Add idempotency key to prevent duplicate customers
 		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
 		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
 		const customer = await this.stripe.customers.create(customerParams, {
@@ -79,18 +79,21 @@ export class PaymentMethodsService {
 
 	/**
 	 * DRY: Resolve tenant ID from auth user ID
-	 * 
-	 * Prevents code duplication across savePaymentMethod and listPaymentMethods.
+	 *
+	 * Prevents code duplication across listPaymentMethods/setDefaultPaymentMethod/deletePaymentMethod.
 	 * RLS policies check: tenant.auth_user_id = auth.uid()
-	 * 
+	 *
 	 * @param token - JWT token for RLS-protected Supabase client
 	 * @param userId - Auth user ID (NOT tenant table ID)
 	 * @returns Tenant ID from tenant table
 	 * @throws NotFoundException if tenant not found for user
 	 */
-	private async resolveTenantId(token: string, userId: string): Promise<string> {
+	private async resolveTenantId(
+		token: string,
+		userId: string
+	): Promise<string> {
 		const client = this.supabase.getUserClient(token)
-		
+
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
 			.select('id')
@@ -106,189 +109,6 @@ export class PaymentMethodsService {
 	}
 
 	/**
-	 * Create a Stripe SetupIntent so the tenant can add a payment method.
-	 * Supports both card and ACH (us_bank_account) payment method types.
-	 */
-	async createSetupIntent(
-		token: string,
-		userId: string,
-		email: string | undefined,
-		paymentMethodType: 'card' | 'us_bank_account'
-	) {
-		if (!token) {
-			this.logger.warn('Create setup intent requested without token')
-			throw new BadRequestException('Authentication token is required')
-		}
-
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
-
-		this.logger.log('Creating payment method SetupIntent', {
-			userId,
-			paymentMethodType
-		})
-
-		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId, email)
-
-		const setupIntentParams: Stripe.SetupIntentCreateParams = {
-			customer: stripeCustomerId,
-			payment_method_types: [paymentMethodType],
-			usage: 'off_session'
-		}
-
-		if (paymentMethodType === 'us_bank_account') {
-			setupIntentParams.payment_method_options = {
-				us_bank_account: {
-					verification_method: 'instant',
-					financial_connections: {
-						permissions: ['payment_method', 'balances']
-					}
-				}
-			}
-		}
-
-		// 🔐 BUG FIX #1: Add idempotency key to prevent duplicate setup intents
-		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
-		const idempotencyKey = `setup-intent-${userId}-${paymentMethodType}-${Date.now()}`
-		const setupIntent = await this.stripe.setupIntents.create(setupIntentParams, {
-			idempotencyKey
-		})
-
-		return {
-			clientSecret: setupIntent.client_secret ?? null,
-			setupIntentId: setupIntent.id
-		}
-	}
-
-	/**
-	 * Save a confirmed Stripe payment method in the TenantPaymentMethod table.
-	 * Automatically flags the first method as default and ensures ownership checks.
-	 */
-	async savePaymentMethod(token: string, userId: string, stripePaymentMethodId: string) {
-		if (!token) {
-			this.logger.warn('Save payment method requested without token')
-			throw new BadRequestException('Authentication token is required')
-		}
-
-		if (!userId || !stripePaymentMethodId) {
-			throw new BadRequestException('Missing required payment method details')
-		}
-
-		this.logger.log('Saving tenant payment method', {
-			userId,
-			stripePaymentMethodId
-		})
-
-		// BUG FIX #3: Resolve tenant ID from auth_user_id using DRY helper
-		const tenantId = await this.resolveTenantId(token, userId)
-		const client = this.supabase.getUserClient(token)
-
-		const stripeCustomerId = await this.getOrCreateStripeCustomer(userId)
-
-		const paymentMethod = await this.stripe.paymentMethods.retrieve(
-			stripePaymentMethodId
-		)
-
-		if (paymentMethod.customer && paymentMethod.customer !== stripeCustomerId) {
-			this.logger.error('Payment method attached to different customer', {
-				userId,
-				expectedCustomer: stripeCustomerId,
-				paymentMethodCustomer: paymentMethod.customer
-			})
-			throw new BadRequestException(
-				'Payment method is linked to a different customer'
-			)
-		}
-
-		if (!paymentMethod.customer) {
-			await this.stripe.paymentMethods.attach(stripePaymentMethodId, {
-				customer: stripeCustomerId
-			})
-		}
-
-		// Now query payment methods using the correct tenant ID
-		const { data: existing, error: existingError } = await client
-			.from('tenant_payment_method')
-			.select('id')
-			.match({
-				tenantId,
-				stripePaymentMethodId
-			})
-			.maybeSingle()
-
-		if (existingError) {
-			this.logger.error('Failed to check for existing payment method', {
-				userId,
-				stripePaymentMethodId,
-				error: existingError.message
-			})
-			throw new BadRequestException('Failed to save payment method')
-		}
-
-		if (existing) {
-			this.logger.log('Payment method already saved, skipping insert', {
-				userId,
-				stripePaymentMethodId
-			})
-			return { success: true }
-		}
-
-		const { data: existingMethods, error: listError } = await client
-			.from('tenant_payment_method')
-			.select('id')
-			.eq('tenantId', tenantId)
-
-		if (listError) {
-			this.logger.error('Failed to load tenant payment methods', {
-				userId,
-				error: listError.message
-			})
-			throw new BadRequestException('Failed to save payment method')
-		}
-
-		const shouldBeDefault = !existingMethods || existingMethods.length === 0
-
-		if (shouldBeDefault) {
-			await client
-				.from('tenant_payment_method')
-				.update({
-					isDefault: false,
-					updatedAt: new Date().toISOString()
-				})
-				.eq('tenantId', tenantId)
-		}
-
-		const { error } = await client.from('tenant_payment_method').insert({
-			tenantId,
-			stripePaymentMethodId,
-			stripeCustomerId,
-			type: paymentMethod.type,
-			last4:
-				paymentMethod.card?.last4 ||
-				paymentMethod.us_bank_account?.last4 ||
-				null,
-			brand: paymentMethod.card?.brand || null,
-			bankName: paymentMethod.us_bank_account?.bank_name || null,
-			isDefault: shouldBeDefault,
-			verificationStatus: 'verified',
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString()
-		})
-
-		if (error) {
-			this.logger.error('Failed to save tenant payment method', {
-				userId,
-				stripePaymentMethodId,
-				error: error.message
-			})
-			throw new BadRequestException('Failed to save payment method')
-		}
-
-		return { success: true }
-	}
-
-	/**
 	 * List payment methods saved by the authenticated tenant.
 	 */
 	async listPaymentMethods(token: string, userId: string) {
@@ -297,7 +117,7 @@ export class PaymentMethodsService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		// BUG FIX #2: Resolve tenant ID from auth_user_id using DRY helper
+		// Resolve tenant ID from auth_user_id using DRY helper
 		const tenantId = await this.resolveTenantId(token, userId)
 		const client = this.supabase.getUserClient(token)
 
@@ -324,7 +144,11 @@ export class PaymentMethodsService {
 	/**
 	 * Mark a tenant payment method as the default option.
 	 */
-	async setDefaultPaymentMethod(token: string, userId: string, paymentMethodId: string) {
+	async setDefaultPaymentMethod(
+		token: string,
+		userId: string,
+		paymentMethodId: string
+	) {
 		if (!token) {
 			this.logger.warn('Set default payment method requested without token')
 			throw new BadRequestException('Authentication token is required')
@@ -336,7 +160,7 @@ export class PaymentMethodsService {
 		const { data: tenant, error: tenantError } = await client
 			.from('tenant')
 			.select('id, stripe_customer_id')
-			.eq('userId', userId)
+			.eq('auth_user_id', userId)
 			.single()
 
 		if (tenantError || !tenant) {
@@ -357,10 +181,13 @@ export class PaymentMethodsService {
 
 		try {
 			// Verify payment method belongs to this customer
-			const paymentMethod = await this.stripe.paymentMethods.retrieve(paymentMethodId)
+			const paymentMethod =
+				await this.stripe.paymentMethods.retrieve(paymentMethodId)
 
 			if (paymentMethod.customer !== tenant.stripe_customer_id) {
-				throw new BadRequestException('Payment method does not belong to this customer')
+				throw new BadRequestException(
+					'Payment method does not belong to this customer'
+				)
 			}
 
 			// Set as default on Stripe customer
@@ -391,7 +218,11 @@ export class PaymentMethodsService {
 	 * Delete a tenant payment method both in Stripe and in the database.
 	 * If the deleted method was default, promote the next oldest method.
 	 */
-	async deletePaymentMethod(token: string, userId: string, paymentMethodId: string) {
+	async deletePaymentMethod(
+		token: string,
+		userId: string,
+		paymentMethodId: string
+	) {
 		if (!token) {
 			this.logger.warn('Delete payment method requested without token')
 			throw new BadRequestException('Authentication token is required')
@@ -399,11 +230,26 @@ export class PaymentMethodsService {
 
 		const client = this.supabase.getUserClient(token)
 
+		// Resolve tenant ID from auth user ID
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found for user', {
+				userId,
+				error: tenantError?.message
+			})
+			throw new NotFoundException('Tenant not found')
+		}
+
 		const { data: paymentMethod, error: fetchError } = await client
 			.from('tenant_payment_method')
 			.select('stripePaymentMethodId, isDefault')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 			.single()
 
 		if (fetchError || !paymentMethod) {
@@ -425,7 +271,7 @@ export class PaymentMethodsService {
 			.from('tenant_payment_method')
 			.delete()
 			.eq('id', paymentMethodId)
-			.eq('tenantId', userId)
+			.eq('tenantId', tenant.id)
 
 		if (error) {
 			this.logger.error('Failed to delete payment method', {
@@ -440,7 +286,7 @@ export class PaymentMethodsService {
 			const { data: nextDefault } = await client
 				.from('tenant_payment_method')
 				.select('id')
-				.eq('tenantId', userId)
+				.eq('tenantId', tenant.id)
 				.order('createdAt', { ascending: true })
 				.limit(1)
 

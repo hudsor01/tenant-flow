@@ -30,6 +30,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 export function UpdatePasswordForm({
 	className,
@@ -58,9 +59,7 @@ export function UpdatePasswordForm({
 			setTimeout(() => router.push('/manage'), 1500)
 		},
 		onError: error => {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to update password'
-			)
+			handleMutationError(error, 'Update password')
 		}
 	})
 

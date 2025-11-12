@@ -33,6 +33,13 @@ import type {
 } from '@repo/shared/types/api-inputs'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseUnitsCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_UNIT_PREFIX = 'TEST-CRUD'
 let createdUnitIds: string[] = []
@@ -75,15 +82,15 @@ async function createTestProperty(): Promise<string> {
 	return property.id
 }
 
-describe('Units CRUD Integration Tests', () => {
+describeIfReady('Units CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables
 		const requiredEnvVars = [
 			'NEXT_PUBLIC_SUPABASE_URL',
 			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-			'E2E_OWNER_A_EMAIL',
-			'E2E_OWNER_A_PASSWORD'
+			'E2E_OWNER_EMAIL',
+			'E2E_OWNER_PASSWORD'
 		] as const
 
 		for (const envVar of requiredEnvVars) {
@@ -100,8 +107,8 @@ describe('Units CRUD Integration Tests', () => {
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL,
-			password: process.env.E2E_OWNER_A_PASSWORD
+			email: process.env.E2E_OWNER_EMAIL,
+			password: process.env.E2E_OWNER_PASSWORD
 		})
 
 		if (error || !data.session) {
@@ -132,7 +139,9 @@ describe('Units CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/units/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup unit ${id}:`, error)
+				logger.warn(`Failed to cleanup unit ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdUnitIds = []
@@ -142,7 +151,9 @@ describe('Units CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup property ${id}:`, error)
+				logger.warn(`Failed to cleanup property ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdPropertyIds = []

@@ -44,18 +44,18 @@ export function ChartContainer({
 
 // TenantFlow color palette for charts - consistent across all libraries
 export const TENANTFLOW_CHART_COLORS = {
-	primary: 'oklch(var(--primary))',
-	secondary: 'oklch(var(--secondary))',
-	accent: 'oklch(var(--accent))',
-	muted: 'oklch(var(--muted))',
-	success: 'var(--color-system-green)', // Green for positive metrics
-	warning: 'var(--color-system-orange)', // Orange for warnings
-	destructive: 'oklch(var(--destructive))',
-	info: 'var(--color-system-blue)', // Blue for informational
-	revenue: 'var(--color-system-green)', // Green for revenue
-	occupancy: 'var(--color-system-blue)', // Blue for occupancy
-	maintenance: 'var(--color-system-orange)', // Orange for maintenance
-	properties: 'oklch(var(--primary))' // Primary for properties
+	primary: 'var(--color-primary)',
+	secondary: 'var(--color-accent)',
+	accent: 'var(--color-accent-main)',
+	muted: 'var(--color-gray-secondary)',
+	success: 'var(--color-system-green)',
+	warning: 'var(--color-system-orange)',
+	destructive: 'var(--color-system-red)',
+	info: 'var(--color-system-blue)',
+	revenue: 'var(--color-system-green)',
+	occupancy: 'var(--color-system-blue)',
+	maintenance: 'var(--color-system-orange)',
+	properties: 'var(--color-primary)'
 }
 
 // Consistent chart configuration for all libraries
@@ -67,12 +67,12 @@ export const TENANTFLOW_CHART_CONFIG = {
 	colors: Object.values(TENANTFLOW_CHART_COLORS),
 	grid: {
 		strokeDasharray: '3 3',
-		stroke: 'oklch(var(--border))',
+		stroke: 'var(--border)',
 		strokeOpacity: 0.5
 	},
 	tooltip: {
-		backgroundColor: 'oklch(var(--popover))',
-		border: '1px solid oklch(var(--border))',
+		backgroundColor: 'var(--popover)',
+		border: '1px solid var(--border)',
 		borderRadius: '8px',
 		padding: '12px',
 		fontSize: '14px',
@@ -83,11 +83,11 @@ export const TENANTFLOW_CHART_CONFIG = {
 	legend: {
 		fontSize: '12px',
 		fontFamily: 'var(--font-sans)',
-		color: 'oklch(var(--foreground))'
+		color: 'var(--foreground)'
 	},
 	axis: {
 		fontSize: '11px',
 		fontFamily: 'var(--font-sans)',
-		color: 'oklch(var(--muted-foreground))'
+		color: 'var(--muted-foreground)'
 	}
 }

@@ -42,6 +42,10 @@ export const ApiErrorCode = {
 
 export type ApiErrorCode = (typeof ApiErrorCode)[keyof typeof ApiErrorCode]
 
+import { createLogger } from '../lib/frontend-logger'
+
+const devLogger = createLogger({ component: 'ApiError' })
+
 export class ApiError extends Error {
 	constructor(
 		message: string,
@@ -170,18 +174,20 @@ export function isApiError(error: unknown): error is ApiError {
  * Log error in development mode only
  */
 export function logErrorInDev(error: unknown, context?: string) {
-	if (process.env.NODE_ENV === 'development') {
+	if (process.env["NODE_ENV"] === 'development') {
 		const prefix = context ? `[${context}]` : '[API Error]'
 		if (isApiError(error)) {
-			console.error(prefix, error.toJSON())
+			devLogger.error(prefix, { metadata: error.toJSON() })
 		} else if (error instanceof Error) {
-			console.error(prefix, {
-				name: error.name,
-				message: error.message,
-				stack: error.stack
+			devLogger.error(prefix, {
+				metadata: {
+					name: error.name,
+					message: error.message,
+					stack: error.stack
+				}
 			})
 		} else {
-			console.error(prefix, error)
+			devLogger.error(prefix, { metadata: { error } })
 		}
 	}
 }

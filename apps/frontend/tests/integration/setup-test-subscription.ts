@@ -9,6 +9,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'SetupTestSubscription' })
 
 interface TestUser {
 	email: string
@@ -59,9 +62,12 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
 		userData.subscription_status === 'trialing' ||
 		userData.subscription_status === 'active'
 	) {
-		console.log(
-			`✅ Test user ${user.email} already has subscription status: ${userData.subscription_status}`
-		)
+		logger.info('Test user already has subscription status', {
+			metadata: {
+				email: user.email,
+				status: userData.subscription_status
+			}
+		})
 		return
 	}
 
@@ -85,7 +91,9 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
 		)
 	}
 
-	console.log(`✅ Set up trial subscription for test user ${user.email}`)
+	logger.info('Set up trial subscription for test user', {
+		metadata: { email: user.email }
+	})
 }
 
 /**
@@ -93,8 +101,12 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
  * Sets up all test users with trial subscriptions
  */
 export async function setupIntegrationTestUsers(): Promise<void> {
+	if (process.env.RUN_INTEGRATION_TESTS !== 'true') {
+		return
+	}
+
 	// Test users for integration tests - MUST be set via environment variables
-	const requiredEnvVars = ['E2E_OWNER_A_EMAIL', 'E2E_OWNER_A_PASSWORD']
+	const requiredEnvVars = ['E2E_OWNER_EMAIL', 'E2E_OWNER_PASSWORD']
 	const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName])
 
 	if (missingEnvVars.length > 0) {
@@ -105,8 +117,8 @@ export async function setupIntegrationTestUsers(): Promise<void> {
 
 	const testUsers: TestUser[] = [
 		{
-			email: process.env.E2E_OWNER_A_EMAIL!,
-			password: process.env.E2E_OWNER_A_PASSWORD!
+			email: process.env.E2E_OWNER_EMAIL!,
+			password: process.env.E2E_OWNER_PASSWORD!
 		}
 	]
 
@@ -114,7 +126,9 @@ export async function setupIntegrationTestUsers(): Promise<void> {
 		try {
 			await setupTestUserWithTrial(user)
 		} catch (error) {
-			console.error(`Failed to set up test user ${user.email}:`, error)
+			logger.error(`Failed to set up test user ${user.email}`, {
+				metadata: { error: error instanceof Error ? error.message : String(error) }
+			})
 			throw error
 		}
 	}

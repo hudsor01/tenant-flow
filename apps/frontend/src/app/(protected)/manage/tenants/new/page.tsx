@@ -1,11 +1,8 @@
 import { serverFetch } from '#lib/api/server'
 import { requireSession } from '#lib/server-auth'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Property, Unit } from '@repo/shared/types/core'
 import { CreateTenantForm } from '../../../tenant/create-tenant-form.client'
-
-type Property = Tables<'property'>
-type Unit = Tables<'unit'>
 
 export default async function NewTenantPage() {
 	const { user, accessToken } = await requireSession()

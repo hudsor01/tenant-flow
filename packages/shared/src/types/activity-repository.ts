@@ -5,6 +5,7 @@ import type {
 	TablesInsert,
 	TablesUpdate
 } from './supabase-generated.js'
+import type { BaseRepository } from './repository-base.js'
 
 export type ActivityInsert = TablesInsert<'activity'>
 export type ActivityUpdate = TablesUpdate<'activity'>
@@ -17,40 +18,18 @@ export interface ActivityQueryOptions extends QueryParams {
 	dateTo?: Date
 }
 
-export interface ActivityRepositoryContract {
+export interface ActivityRepositoryContract
+	extends BaseRepository<
+		Activity,
+		ActivityInsert,
+		ActivityUpdate,
+		ActivityQueryOptions
+	> {
 	findByUserIdWithSearch(
 		userId: string,
 		options: ActivityQueryOptions
 	): Promise<Activity[]>
-	findById(activityId: string): Promise<Activity | null>
 	findByEntity(
-		entityType: Database['public']['Enums']['ActivityEntityType'],
-		entityId: string
-	): Promise<Activity[]>
-	create(activityData: ActivityInsert): Promise<Activity>
-	update(
-		activityId: string,
-		activityData: ActivityUpdate
-	): Promise<Activity | null>
-	delete(activityId: string): Promise<{ success: boolean; message: string }>
-	getRecentActivities(userId: string, limit?: number): Promise<Activity[]>
-	logActivity(
-		userId: string,
-		entityType: Database['public']['Enums']['ActivityEntityType'],
-		entityId: string,
-		action: string,
-		entityName?: string
-	): Promise<Activity>
-	getActivityStats(
-		userId: string,
-		options: { period?: string }
-	): Promise<{
-		total: number
-		today: number
-		thisWeek: number
-		thisMonth: number
-	}>
-	getEntityTimeline(
 		entityType: Database['public']['Enums']['ActivityEntityType'],
 		entityId: string
 	): Promise<Activity[]>

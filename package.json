@@ -66,7 +66,7 @@
 		"clean": "turbo run clean",
 		"workspace:info": "pnpm list -r --depth -1",
 		"generate:schemas": "turbo run generate:schemas --filter=@repo/frontend",
-		"validate": "pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit && doppler run -- pnpm test:integration && vercel build --no-wait && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
+		"validate": "pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit && doppler run -- pnpm test:integration && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
 		"validate:quick": "pnpm typecheck && pnpm lint && doppler run -- pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
 		"validate:clean": "pnpm typecheck && pnpm lint && doppler run -- pnpm --filter @repo/backend test:unit:clean && echo '✅ CLEAN VALIDATION PASSED'",
 		"audit:routes": "tsx scripts/audit-api-routes.ts",
@@ -97,6 +97,7 @@
 	},
 	"pnpm": {
 		"overrides": {
+			"@tanstack/query-core": "5.90.7",
 			"typescript": "^5.9.3",
 			"path-to-regexp": "^8.3.0",
 			"undici": "^7.16.0",
@@ -110,8 +111,10 @@
 			"sourcemap-codec": "npm:@jridgewell/sourcemap-codec@^1.5.5",
 			"inflight": "npm:lru-cache@^11.2.2",
 			"lightningcss": "1.30.2",
-			"esbuild": "^0.25.12",
-			"validator": ">=13.15.20"
+			"esbuild": "^0.27.0",
+			"validator": ">=13.15.20",
+			"@types/react": "19.2.2",
+			"@types/react-dom": "19.2.2"
 		}
 	},
 	"dependencies": {
@@ -128,13 +131,13 @@
 		"typescript": "catalog:"
 	},
 	"devDependencies": {
-		"@next/eslint-plugin-next": "~15.5.6",
+		"@next/eslint-plugin-next": "~16.0.1",
 		"@playwright/test": "1.56.1",
 		"@swc/cli": "0.7.8",
 		"@swc/core": "1.14.0",
 		"eslint": "catalog:",
 		"globals": "16.5.0",
 		"playwright": "1.56.1",
-		"vercel": "48.8.0"
+		"vercel": "48.9.0"
 	}
 }

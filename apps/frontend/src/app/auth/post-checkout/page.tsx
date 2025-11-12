@@ -4,13 +4,13 @@ import { Spinner } from '#components/ui/spinner'
 import { API_BASE_URL } from '#lib/api-config'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { Mail } from 'lucide-react'
 
 /**
@@ -28,6 +28,7 @@ export default function PostCheckoutPage() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const [email, setEmail] = useState<string>('')
+	const mutateRef = useRef<((sessionId: string) => void) | null>(null)
 
 	// TanStack Query mutation for sending magic link
 	const sendMagicLinkMutation = useMutation({
@@ -54,7 +55,7 @@ export default function PostCheckoutPage() {
 			}
 
 			// Send magic link via Supabase OTP
-			const supabase = createClient()
+			const supabase = getSupabaseClientInstance()
 			const { error } = await supabase.auth.signInWithOtp({
 				email: customerEmail,
 				options: {
@@ -73,18 +74,21 @@ export default function PostCheckoutPage() {
 		}
 	})
 
+	// Store mutate function in ref for stable reference
+	mutateRef.current = sendMagicLinkMutation.mutate
+
 	// Trigger mutation once on mount with session_id
 	useEffect(() => {
 		const sessionId = searchParams.get('session_id')
 		if (
 			sessionId &&
 			!sendMagicLinkMutation.isSuccess &&
-			!sendMagicLinkMutation.isPending
+			!sendMagicLinkMutation.isPending &&
+			mutateRef.current
 		) {
-			sendMagicLinkMutation.mutate(sessionId)
+			mutateRef.current(sessionId)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [searchParams]) // Only re-run if searchParams changes
+	}, [searchParams, sendMagicLinkMutation.isSuccess, sendMagicLinkMutation.isPending])
 
 	if (sendMagicLinkMutation.isPending) {
 		return (
@@ -138,9 +142,9 @@ export default function PostCheckoutPage() {
 				description="We sent you a magic login link"
 			>
 				<div className="space-y-4">
-					<Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
-						<Mail className="size-4 text-green-600" />
-						<AlertDescription className="text-green-900 dark:text-green-10">
+					<Alert className="border-success/20 bg-success/5 dark:border-success/30 dark:bg-success/10">
+						<Mail className="size-4 text-success" />
+						<AlertDescription className="text-success dark:text-success">
 							We sent a login link to <strong>{email}</strong>
 						</AlertDescription>
 					</Alert>

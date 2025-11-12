@@ -9,6 +9,7 @@ import { DashboardService } from './dashboard.service'
 @Module({
 	imports: [AnalyticsModule],
 	controllers: [DashboardController],
-	providers: [DashboardService]
+	providers: [DashboardService],
+	exports: [DashboardService]
 })
 export class DashboardModule {}

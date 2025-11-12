@@ -3,14 +3,14 @@
 import { TrendCard } from '#components/dashboard/trend-card'
 import { MiniTrendChart } from '#components/dashboard/mini-trend-chart'
 import { useDashboardTrendData, useDashboardTimeSeries } from '#hooks/api/use-dashboard-trends'
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { useEffect, useState } from 'react'
 
 export function TrendsSection() {
   const [userId, setUserId] = useState<string | undefined>()
 
   useEffect(() => {
-    const supabase = createClient()
+    const supabase = getSupabaseClientInstance()
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id)
     })
@@ -73,7 +73,7 @@ export function TrendsSection() {
           data={occupancyTimeSeries}
           isLoading={isOccupancyLoading}
           valueFormatter={(v) => `${v.toFixed(1)}%`}
-          color="hsl(var(--primary))"
+          color="var(--primary)"
         />
         <MiniTrendChart
           title="Monthly Revenue (30 days)"

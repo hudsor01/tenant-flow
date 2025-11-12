@@ -42,7 +42,7 @@ describe('SubscriptionGuard', () => {
 
 	it('allows tenant role regardless of subscription state', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({ data: false })
+		supabaseService.rpcWithRetries.mockResolvedValue({ data: false, error: null })
 
 		const guard = new SubscriptionGuard(
 			supabaseService as never,
@@ -65,7 +65,7 @@ describe('SubscriptionGuard', () => {
 
 	it('allows owner access when feature access RPC returns true', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({ data: true })
+		supabaseService.rpcWithRetries.mockResolvedValue({ data: true, error: null })
 
 		const guard = new SubscriptionGuard(
 			supabaseService as never,

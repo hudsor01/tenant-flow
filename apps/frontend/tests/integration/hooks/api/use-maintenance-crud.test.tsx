@@ -32,6 +32,13 @@ import type {
 } from '@repo/shared/types/backend-domain'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseMaintenanceCrudTest' })
+const shouldRunIntegrationTests =
+	process.env.RUN_INTEGRATION_TESTS === 'true' &&
+	process.env.SKIP_INTEGRATION_TESTS !== 'true'
+const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 const TEST_MAINTENANCE_PREFIX = 'TEST-CRUD'
 let createdMaintenanceIds: string[] = []
@@ -92,15 +99,15 @@ async function createTestUnit(propertyId: string): Promise<string> {
 	return unit.id
 }
 
-describe('Maintenance Requests CRUD Integration Tests', () => {
+describeIfReady('Maintenance Requests CRUD Integration Tests', () => {
 	// Authenticate before running tests
 	beforeAll(async () => {
 		// Validate ALL required environment variables
 		const requiredEnvVars = [
 			'NEXT_PUBLIC_SUPABASE_URL',
 			'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-			'E2E_OWNER_A_EMAIL',
-			'E2E_OWNER_A_PASSWORD'
+			'E2E_OWNER_EMAIL',
+			'E2E_OWNER_PASSWORD'
 		] as const
 
 		for (const envVar of requiredEnvVars) {
@@ -117,8 +124,8 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 		)
 
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: process.env.E2E_OWNER_A_EMAIL,
-			password: process.env.E2E_OWNER_A_PASSWORD
+			email: process.env.E2E_OWNER_EMAIL,
+			password: process.env.E2E_OWNER_PASSWORD
 		})
 
 		if (error || !data.session) {
@@ -149,7 +156,9 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/maintenance/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup maintenance request ${id}:`, error)
+				logger.warn(`Failed to cleanup maintenance request ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdMaintenanceIds = []
@@ -159,7 +168,9 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/units/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup unit ${id}:`, error)
+				logger.warn(`Failed to cleanup unit ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdUnitIds = []
@@ -169,7 +180,9 @@ describe('Maintenance Requests CRUD Integration Tests', () => {
 			try {
 				await clientFetch(`/api/v1/properties/${id}`, { method: 'DELETE' })
 			} catch (error) {
-				console.warn(`Failed to cleanup property ${id}:`, error)
+				logger.warn(`Failed to cleanup property ${id}`, {
+					metadata: { error: error instanceof Error ? error.message : String(error) }
+				})
 			}
 		}
 		createdPropertyIds = []
