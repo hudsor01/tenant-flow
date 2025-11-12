@@ -6,9 +6,9 @@
  */
 
 import { beforeAll, vi } from 'vitest'
-import { createBrowserClient } from '@supabase/ssr'
 import '@testing-library/jest-dom/vitest'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 
 // Create logger instance for structured logging
 const logger = createLogger({ component: 'TestSetup' })
@@ -54,8 +54,9 @@ process.env.NEXT_PUBLIC_API_BASE_URL =
 	process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 
 // Test credentials loaded from environment (for integration tests)
-const E2E_OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test@example.com'
-const E2E_OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'test-password'
+// Note: env vars remain SCREAMING_SNAKE_CASE, but local constants use camelCase per CLAUDE.md
+const e2eOwnerEmail = process.env.E2E_OWNER_EMAIL || 'test@example.com'
+const e2eOwnerPassword = process.env.E2E_OWNER_PASSWORD || 'test-password'
 
 // Store the authenticated session in a way that mocks can properly access
 const sessionStore = vi.hoisted(() => ({
@@ -66,6 +67,12 @@ const sessionStore = vi.hoisted(() => ({
 
 // Check if backend is available before running integration tests
 beforeAll(async () => {
+	if (process.env.RUN_INTEGRATION_TESTS !== 'true') {
+		sessionStore.backendAvailable = false
+		process.env.SKIP_INTEGRATION_TESTS = 'true'
+		return
+	}
+
 	try {
 		const controller = new AbortController()
 		const timeoutId = setTimeout(() => controller.abort(), 5000)
@@ -81,16 +88,14 @@ beforeAll(async () => {
 
 		// Backend is available, proceed with authentication
 		sessionStore.backendAvailable = true
+		process.env.SKIP_INTEGRATION_TESTS = 'false'
 
-		const supabase = createBrowserClient(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-		)
+		const supabase = getSupabaseClientInstance()
 
 		// Sign in with test credentials
 		const { data, error } = await supabase.auth.signInWithPassword({
-			email: E2E_OWNER_EMAIL,
-			password: E2E_OWNER_PASSWORD
+			email: e2eOwnerEmail,
+			password: e2eOwnerPassword
 		})
 
 		if (error) {
@@ -118,6 +123,7 @@ beforeAll(async () => {
 			error: errorMessage
 		})
 		sessionStore.backendAvailable = false
+		process.env.SKIP_INTEGRATION_TESTS = 'true'
 		// Don't throw - let individual tests check backendAvailable flag
 	}
 })
@@ -138,8 +144,8 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Mock the Supabase client to return our authenticated session
-vi.mock('#lib/supabase/client', () => ({
-	createClient: () => ({
+vi.mock('@repo/shared/lib/supabase-client', () => ({
+	getSupabaseClientInstance: () => ({
 		auth: {
 			getSession: vi.fn().mockImplementation(async () => {
 				if (!sessionStore.session) {

@@ -43,7 +43,7 @@ export default function RegisterServiceWorker() {
 			})
 
 		// When the new worker takes control, reload to ensure clients get latest
-		navigator.serviceWorker.addEventListener('controllerchange', () => {
+		const handleControllerChange = () => {
 			if (refreshing) return
 			refreshing = true
 			try {
@@ -51,7 +51,8 @@ export default function RegisterServiceWorker() {
 			} catch {
 				// ignore reload failures in uncommon browsers
 			}
-		})
+		}
+		navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
 
 		// Periodically message SW to trim caches (best-effort)
 		const trimInterval = setInterval(
@@ -72,6 +73,7 @@ export default function RegisterServiceWorker() {
 
 		return () => {
 			clearInterval(trimInterval)
+			navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
 		}
 	}, [])
 

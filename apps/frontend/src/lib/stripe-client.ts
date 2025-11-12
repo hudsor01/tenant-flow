@@ -3,8 +3,8 @@
  * CLAUDE.md compliant - Native platform integration
  */
 import { API_BASE_URL } from '#lib/api-config'
-import { createClient } from '#lib/supabase/client'
-import { ERROR_MESSAGES } from '#lib/constants'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 
 interface CreateCheckoutSessionRequest {
 	priceId: string
@@ -25,7 +25,7 @@ interface CreateCheckoutSessionResponse {
 export async function createCheckoutSession(
 	request: CreateCheckoutSessionRequest
 ): Promise<CreateCheckoutSessionResponse> {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	// SECURITY FIX: Validate user with getUser() before extracting data
 	const {
@@ -83,7 +83,7 @@ export async function createCheckoutSession(
  * SECURITY: Uses getUser() to validate authentication
  */
 export async function isUserAuthenticated(): Promise<boolean> {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	const {
 		data: { user },
@@ -96,7 +96,7 @@ export async function isUserAuthenticated(): Promise<boolean> {
  * Get authenticated user info
  */
 export async function getCurrentUser() {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	const {
 		data: { user },
@@ -124,7 +124,7 @@ export async function createPaymentIntent({
 	metadata?: Record<string, string>
 	customerEmail?: string
 }) {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	// SECURITY FIX: Validate user with getUser() before extracting token
 	const {
@@ -177,7 +177,7 @@ export async function createPaymentIntent({
 export async function createCustomerPortalSession(
 	returnUrl: string
 ): Promise<{ url: string }> {
-	const supabase = createClient()
+	const supabase = getSupabaseClientInstance()
 
 	// SECURITY FIX: Validate user with getUser() before extracting data
 	const {

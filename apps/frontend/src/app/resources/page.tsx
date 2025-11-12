@@ -48,8 +48,8 @@ export default function ResourcesPage() {
 			description:
 				'Comprehensive guides and tutorials to master property management',
 			href: '/help',
-			color: 'bg-blue-500/10 border-blue-500/20',
-			iconColor: 'text-blue-600 dark:text-blue-400',
+			color: 'bg-muted border-border',
+			iconColor: 'text-muted-foreground',
 			stats: '50+ articles'
 		},
 		{
@@ -58,8 +58,8 @@ export default function ResourcesPage() {
 			description:
 				'Expert insights, industry trends, and best practices for owners',
 			href: '/blog',
-			color: 'bg-purple-500/10 border-purple-500/20',
-			iconColor: 'text-purple-600 dark:text-purple-400',
+			color: 'bg-primary/10 border-primary/20',
+			iconColor: 'text-primary',
 			stats: 'Weekly updates'
 		},
 		{
@@ -68,8 +68,8 @@ export default function ResourcesPage() {
 			description:
 				'Quick answers to the most common questions about TenantFlow',
 			href: '/faq',
-			color: 'bg-green-500/10 border-green-500/20',
-			iconColor: 'text-green-600 dark:text-green-400',
+			color: 'bg-success/10 border-success/20',
+			iconColor: 'text-success',
 			stats: '30+ questions'
 		},
 		{
@@ -221,7 +221,7 @@ export default function ResourcesPage() {
 			{/* Hero Section */}
 			<section className="relative page-content pb-16 overflow-hidden">
 				<div className="absolute inset-0 bg-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(var(--primary)/0.05),transparent_50%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--primary)_5%,transparent),transparent_50%)]" />
 				</div>
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -236,7 +236,7 @@ export default function ResourcesPage() {
 
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
 							Everything you need to{' '}
-							<span className="text-gradient">succeed</span>
+							<span className="text-foreground font-semibold">succeed</span>
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
@@ -377,14 +377,14 @@ export default function ResourcesPage() {
 			{/* CTA Section */}
 			<section className="section-content relative overflow-hidden">
 				<div className="absolute inset-0 bg-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,oklch(var(--primary)/0.1),transparent_70%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)]" />
 				</div>
 
 				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 							Still have questions?{' '}
-							<span className="text-gradient">We're here to help</span>
+							<span className="text-foreground font-semibold">We're here to help</span>
 						</h2>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">

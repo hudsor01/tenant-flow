@@ -2,19 +2,22 @@
 
 import { Button } from '#components/ui/button'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody
+} from '#components/ui/crud-dialog'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { clientFetch } from '#lib/api/client'
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useModalStore } from '#stores/modal-store'
+import { useMutation } from '@tanstack/react-query'
 
 const logger = createLogger({ component: 'InviteTenantDialog' })
 
@@ -44,19 +47,23 @@ export function InviteTenantDialog({
 	leaseId,
 	onSuccess
 }: InviteTenantDialogProps) {
-	const [open, setOpen] = useState(false)
+	const { openModal, closeModal } = useModalStore()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	const handleInvite = async () => {
-		setIsSubmitting(true)
-		try {
+	const modalId = `invite-tenant-${tenantId}`
+
+	const { mutateAsync: sendInvitation } = useMutation({
+		mutationFn: async () => {
 			// Use V2 endpoint (Supabase Auth) with optional property/lease context
 			// Only pass defined values to avoid exactOptionalPropertyTypes errors
 			const params: { propertyId?: string; leaseId?: string } = {}
 			if (propertyId) params.propertyId = propertyId
 			if (leaseId) params.leaseId = leaseId
 
-			const invitationResponse = await clientFetch<{ success: boolean; message?: string }>(`/api/v1/tenants/${tenantId}/send-invitation-v2`, {
+			const invitationResponse = await clientFetch<{
+				success: boolean
+				message?: string
+			}>(`/api/v1/tenants/${tenantId}/send-invitation-v2`, {
 				method: 'POST',
 				body: JSON.stringify(params)
 			})
@@ -72,19 +79,21 @@ export function InviteTenantDialog({
 
 			// Check if invitation was successful
 			if (!invitationResponse.success) {
-				throw new Error(invitationResponse.message || 'Failed to send invitation')
+				throw new Error(
+					invitationResponse.message || 'Failed to send invitation'
+				)
 			}
 
-			toast.success(
-				`Invitation sent to ${tenantName}`,
-				{
-					description: `${tenantEmail} will receive a secure invitation link to access their tenant portal (valid for 24 hours).`
-				}
-			)
-
-			setOpen(false)
+			return invitationResponse
+		},
+		onSuccess: () => {
+			toast.success(`Invitation sent to ${tenantName}`, {
+				description: `${tenantEmail} will receive a secure invitation link to access their tenant portal (valid for 24 hours).`
+			})
+			closeModal(modalId)
 			onSuccess?.()
-		} catch (error) {
+		},
+		onError: error => {
 			const errorContext: Record<string, unknown> = {
 				error: error instanceof Error ? error.message : String(error),
 				tenantId
@@ -93,66 +102,80 @@ export function InviteTenantDialog({
 			if (leaseId) errorContext.leaseId = leaseId
 
 			logger.error('Failed to invite tenant', errorContext)
-			toast.error('Failed to send invitation', {
-				description:
-					error instanceof Error
-						? error.message
-						: 'Please try again or contact support.'
-			})
+			handleMutationError(error, 'Send tenant invitation')
+		},
+		meta: { modalId }
+	})
+
+	const handleInvite = async () => {
+		setIsSubmitting(true)
+		try {
+			await sendInvitation()
 		} finally {
 			setIsSubmitting(false)
 		}
 	}
 
+	const handleOpenModal = () => {
+		openModal(modalId)
+	}
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="ghost" size="sm">
-					<Mail className="size-4" />
-					Invite to Portal
-				</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-lg">
-				<DialogHeader>
-					<DialogTitle>Invite {tenantName} to Tenant Portal</DialogTitle>
-					<DialogDescription>
-						Send an email invitation to {tenantEmail}. They'll receive a link to:
-						<ul className="list-disc list-inside mt-2 space-y-1">
-							<li>Pay rent online via Stripe</li>
-							<li>Submit maintenance requests</li>
-							<li>View lease documents</li>
-							<li>Track payment history</li>
-						</ul>
-					</DialogDescription>
-				</DialogHeader>
+		<>
+			<Button variant="ghost" size="sm" onClick={handleOpenModal}>
+				<Mail className="size-4" />
+				Invite to Portal
+			</Button>
 
-				<div className="bg-muted p-4 rounded-lg space-y-2">
-					<p className="text-sm font-medium">What happens next?</p>
-					<ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-						<li>Secure email sent to {tenantEmail} (via Supabase Auth)</li>
-						<li>Tenant clicks invitation link (valid 24 hours)</li>
-						<li>Tenant sets password & completes onboarding</li>
-						<li>Tenant accesses their portal automatically</li>
-					</ol>
-					<p className="text-xs text-muted-foreground mt-2">
-						Note: Invitation uses secure token authentication. You can resend if it expires.
-					</p>
-				</div>
+			<CrudDialog mode="create" modalId={modalId}>
+				<CrudDialogContent className="sm:max-w-lg">
+					<CrudDialogHeader>
+						<CrudDialogTitle>
+							Invite {tenantName} to Tenant Portal
+						</CrudDialogTitle>
+						<CrudDialogDescription>
+							Send an email invitation to {tenantEmail}. They'll receive a link
+							to:
+							<ul className="list-disc list-inside mt-2 space-y-1">
+								<li>Pay rent online via Stripe</li>
+								<li>Submit maintenance requests</li>
+								<li>View lease documents</li>
+								<li>Track payment history</li>
+							</ul>
+						</CrudDialogDescription>
+					</CrudDialogHeader>
 
-				<DialogFooter>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => setOpen(false)}
-						disabled={isSubmitting}
-					>
-						Cancel
-					</Button>
-					<Button onClick={handleInvite} disabled={isSubmitting}>
-						{isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+					<CrudDialogBody>
+						<div className="bg-muted p-4 rounded-lg space-y-2">
+							<p className="text-sm font-medium">What happens next?</p>
+							<ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+								<li>Secure email sent to {tenantEmail} (via Supabase Auth)</li>
+								<li>Tenant clicks invitation link (valid 24 hours)</li>
+								<li>Tenant sets password & completes onboarding</li>
+								<li>Tenant accesses their portal automatically</li>
+							</ol>
+							<p className="text-xs text-muted-foreground mt-2">
+								Note: Invitation uses secure token authentication. You can
+								resend if it expires.
+							</p>
+						</div>
+					</CrudDialogBody>
+
+					<CrudDialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => closeModal(modalId)}
+							disabled={isSubmitting}
+						>
+							Cancel
+						</Button>
+						<Button onClick={handleInvite} disabled={isSubmitting}>
+							{isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
+						</Button>
+					</CrudDialogFooter>
+				</CrudDialogContent>
+			</CrudDialog>
+		</>
 	)
 }

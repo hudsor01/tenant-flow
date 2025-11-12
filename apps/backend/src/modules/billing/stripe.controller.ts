@@ -7,7 +7,6 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
-	Inject,
 	InternalServerErrorException,
 	Logger,
 	NotFoundException,
@@ -15,16 +14,13 @@ import {
 	Post,
 	Query,
 	Request,
-	ServiceUnavailableException,
 	SetMetadata,
 	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import type { Cache } from 'cache-manager'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
-import { RolesGuard } from '../../shared/guards/roles.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
+import { StripeCustomerOwnershipGuard } from '../../shared/guards/stripe-customer-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
@@ -36,45 +32,14 @@ import type {
 	CreateCheckoutSessionRequest,
 	CreateConnectedPaymentRequest,
 	CreatePaymentIntentRequest,
-	CreateSetupIntentRequest,
+	CreatePaymentMethodRequest,
+	AttachPaymentMethodRequest,
 	EmbeddedCheckoutRequest,
 	VerifyCheckoutSessionRequest
 } from './stripe-interfaces'
 import { StripeService } from './stripe.service'
 import { StripeOwnerService } from './stripe-owner.service'
 import { StripeTenantService } from './stripe-tenant.service'
-
-/**
- * Cached products response structure
- */
-type CachedProductsResponse = {
-	success: boolean
-	products: Array<{
-		id: string
-		name: string
-		description: string | null
-		active: boolean
-		metadata: Stripe.Metadata
-		prices: Array<{
-			id: string
-			unit_amount: number
-			currency: string
-			recurring: {
-				interval: 'month' | 'year'
-				interval_count: number
-			} | null
-		}>
-		default_price: string | Stripe.Price | null | undefined
-	}>
-}
-
-/**
- * Cached prices response structure
- */
-type CachedPricesResponse = {
-	success: boolean
-	prices: Stripe.Price[]
-}
 
 /**
  * Production-Grade Stripe Integration Controller
@@ -97,7 +62,6 @@ export class StripeController {
 		private readonly stripeService: StripeService,
 		private readonly stripeOwnerService: StripeOwnerService,
 		private readonly stripeTenantService: StripeTenantService,
-		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
 		private readonly securityService: SecurityService
 	) {
 		this.stripe = this.stripeService.getStripe()
@@ -124,7 +88,7 @@ export class StripeController {
 		if (!secret) {
 			throw new Error(
 				'Missing IDEMPOTENCY_KEY_SECRET environment variable. ' +
-				'Please set IDEMPOTENCY_KEY_SECRET in your environment configuration.'
+					'Please set IDEMPOTENCY_KEY_SECRET in your environment configuration.'
 			)
 		}
 
@@ -141,6 +105,45 @@ export class StripeController {
 		// Format: operation_hash (e.g., pi_connected_a1b2c3d4...)
 		// This ensures same operation+userId+context always produces same key
 		return `${operation}_${hash}`
+	}
+
+	/**
+	 * Handle Stripe errors with proper HTTP status codes and error messages
+	 * Follows official Stripe error handling patterns
+	 *
+	 * @param error - Stripe error object
+	 * @throws Appropriate NestJS HTTP exception based on error type
+	 */
+	private handleStripeError(error: Stripe.errors.StripeError): never {
+		// Map Stripe error types to HTTP status codes
+		if (error.type === 'StripeCardError') {
+			throw new BadRequestException(error.message || 'Card error')
+		}
+
+		if (error.type === 'StripeInvalidRequestError') {
+			throw new BadRequestException(error.message || 'Invalid request')
+		}
+
+		if (error.type === 'StripeAPIError') {
+			throw new InternalServerErrorException(
+				'Stripe API error. Please try again later.'
+			)
+		}
+
+		if (error.type === 'StripeAuthenticationError') {
+			throw new InternalServerErrorException('Stripe authentication failed')
+		}
+
+		if (error.type === 'StripeRateLimitError') {
+			throw new InternalServerErrorException(
+				'Too many requests. Please try again later.'
+			)
+		}
+
+		// Default error
+		throw new InternalServerErrorException(
+			error.message || 'An error occurred processing your payment'
+		)
 	}
 
 	/**
@@ -256,7 +259,12 @@ export class StripeController {
 	 * Official Pattern: payment method listing with proper types
 	 */
 	@Get('customers/:id/payment-methods')
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
 	async getPaymentMethods(@Param('id') customerId: string) {
+		if (!customerId || !customerId.startsWith('cus_')) {
+			throw new BadRequestException('Invalid customer ID format')
+		}
+
 		try {
 			return await this.stripe.paymentMethods.list({
 				customer: customerId,
@@ -339,12 +347,13 @@ export class StripeController {
 	}
 
 	/**
-	 * Setup Intent for Saving Payment Methods
-	 * Official Pattern: Setup Intent creation for future payments
+	 * Modern Payment Method Creation (2025)
+	 * Creates payment method directly using Elements data, no SetupIntent required
+	 * Official Pattern: Direct PaymentMethod.create with Elements.submit()
 	 */
-	@Post('create-setup-intent')
+	@Post('create-payment-method')
 	@SkipSubscriptionCheck()
-	async createSetupIntent(@Body() body: CreateSetupIntentRequest) {
+	async createPaymentMethod(@Body() body: CreatePaymentMethodRequest) {
 		// Native validation - CLAUDE.md compliant (outside try-catch)
 		if (!body.tenantId) {
 			throw new BadRequestException('tenantId is required')
@@ -365,41 +374,26 @@ export class StripeController {
 						name: body.customerName ?? null,
 						metadata: {
 							tenant_id: sanitizedTenantId,
-							created_from: 'setup_intent'
+							created_from: 'payment_method_direct'
 						}
 					})
 
 				customerId = customer.id
-				this.logger.log('Tenant Stripe customer ensured for setup intent', {
-					tenantId: body.tenantId,
-					customerId,
-					status
-				})
+				this.logger.log(
+					'Tenant Stripe customer ensured for direct payment method creation',
+					{
+						tenantId: body.tenantId,
+						customerId,
+						status
+					}
+				)
 			}
 
-			const setupIntent = await this.stripe.setupIntents.create(
-				{
-					customer: customerId,
-					usage: 'off_session',
-					payment_method_types: ['card'],
-					metadata: {
-						tenant_id: sanitizedTenantId
-					}
-				},
-				{
-					idempotencyKey: this.generateIdempotencyKey('si', body.tenantId)
-				}
-			)
-
-			this.logger.log(`Setup Intent created: ${setupIntent.id}`, {
-				customer: customerId,
-				tenant_id: body.tenantId
-			})
-
+			// Return customer info - frontend will use Elements.submit() + stripe.createPaymentMethod()
+			// Then call attach-tenant-payment-method with the created payment method ID
 			return {
-				client_secret: setupIntent.client_secret || '',
-				setup_intent_id: setupIntent.id,
-				customer_id: customerId
+				customer_id: customerId,
+				ready_for_elements: true
 			}
 		} catch (error) {
 			this.handleStripeError(error as Stripe.errors.StripeError)
@@ -407,26 +401,28 @@ export class StripeController {
 	}
 
 	/**
-	 * Attach payment method to tenant customer
-	 * Phase 4.1: Tenant Portal Payment Method Management
+	 * Attach tenant payment method
+	 * Modern Pattern: Attach PaymentMethod created via Elements.submit() + stripe.createPaymentMethod()
+	 * Official Pattern: Direct attachment with optional default setting
 	 */
 	@Post('attach-tenant-payment-method')
 	@UseGuards(JwtAuthGuard)
 	async attachTenantPaymentMethod(
-		@Request() req: AuthenticatedRequest,
-		@Body() body: { payment_method_id: string; set_as_default?: boolean }
+		@Body() body: AttachPaymentMethodRequest,
+		@Request() req: AuthenticatedRequest
 	) {
 		const userId = req.user?.id
 		if (!userId) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
+		// Native validation - CLAUDE.md compliant (outside try-catch)
 		if (!body.payment_method_id) {
 			throw new BadRequestException('payment_method_id is required')
 		}
 
 		try {
-			// Get tenant record for current user
+			// Get tenant record with Stripe customer ID
 			const { data: tenant, error: tenantError } = await this.supabaseService
 				.getAdminClient()
 				.from('tenant')
@@ -434,87 +430,37 @@ export class StripeController {
 				.eq('userId', userId)
 				.single()
 
-			if (tenantError || !tenant) {
-				throw new NotFoundException('Tenant record not found')
+			if (tenantError || !tenant || !tenant.stripe_customer_id) {
+				throw new NotFoundException('Tenant Stripe customer not found')
 			}
 
-			const { customer, status } =
-				await this.stripeTenantService.ensureStripeCustomer({
-					tenantId: tenant.id,
-					userId,
-					metadata: {
-						tenant_id: tenant.id,
-						created_from: 'tenant_portal'
-					}
-				})
-
-			const customerId = customer.id
-
-			this.logger.log('Tenant Stripe customer ensured for payment method', {
-				tenantId: tenant.id,
-				userId,
-				customerId,
-				status
-			})
-
 			// Attach payment method to customer
-			const paymentMethod = await this.stripe.paymentMethods.attach(
-				body.payment_method_id,
-				{
-					customer: customerId
-				}
-			)
+			await this.stripe.paymentMethods.attach(body.payment_method_id, {
+				customer: tenant.stripe_customer_id
+			})
 
 			// Set as default if requested
 			if (body.set_as_default) {
-				await this.stripe.customers.update(
-					customerId,
-					{
-						invoice_settings: {
-							default_payment_method: body.payment_method_id
-						}
-					},
-					{
-						idempotencyKey: this.generateIdempotencyKey(
-							'cus_update',
-							userId,
-							customerId
-						)
+				await this.stripe.customers.update(tenant.stripe_customer_id, {
+					invoice_settings: {
+						default_payment_method: body.payment_method_id
 					}
-				)
+				})
 			}
 
-			this.logger.log(
-				`Payment method ${body.payment_method_id} attached to tenant`,
-				{
-					tenantId: tenant.id,
-					customerId,
-					setAsDefault: body.set_as_default
-				}
-			)
+			this.logger.log('Payment method attached to tenant customer', {
+				tenantId: tenant.id,
+				customerId: tenant.stripe_customer_id,
+				paymentMethodId: body.payment_method_id,
+				setAsDefault: body.set_as_default
+			})
 
 			return {
 				success: true,
-				payment_method: {
-					id: paymentMethod.id,
-					type: paymentMethod.type,
-					card: paymentMethod.card
-						? {
-								brand: paymentMethod.card.brand,
-								last4: paymentMethod.card.last4,
-								exp_month: paymentMethod.card.exp_month,
-								exp_year: paymentMethod.card.exp_year
-							}
-						: null
-				},
-				customer_id: customerId
+				payment_method_id: body.payment_method_id,
+				set_as_default: body.set_as_default
 			}
 		} catch (error) {
-			this.logger.error('Failed to attach payment method', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				paymentMethodId: body.payment_method_id
-			})
 			this.handleStripeError(error as Stripe.errors.StripeError)
 		}
 	}
@@ -610,8 +556,8 @@ export class StripeController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		if (!paymentMethodId) {
-			throw new BadRequestException('payment_method_id is required')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		try {
@@ -1078,7 +1024,7 @@ export class StripeController {
 	@Post('create-embedded-checkout-session')
 	@SetMetadata('isPublic', true)
 	async createEmbeddedCheckoutSession(@Body() body: EmbeddedCheckoutRequest) {
-		// Native validation - CLAUDE.md compliant
+		// Native validation - CLAUDE.md compliant (outside try-catch)
 		if (!body.mode) {
 			throw new BadRequestException(
 				'mode is required (payment, subscription, or setup)'
@@ -1202,9 +1148,11 @@ export class StripeController {
 	 */
 	@Get('checkout-session/:sessionId')
 	@SetMetadata('isPublic', true)
-	async getCheckoutSession(@Param('sessionId') sessionId: string) {
-		if (!sessionId) {
-			throw new BadRequestException('sessionId is required')
+	async getCheckoutSession(
+		@Param('sessionId') sessionId: string
+	) {
+		if (!sessionId || !sessionId.startsWith('cs_')) {
+			throw new BadRequestException('Invalid session ID format')
 		}
 
 		try {
@@ -1236,7 +1184,13 @@ export class StripeController {
 	 */
 	@Post('invite-tenant')
 	async inviteTenant(
-		@Body() body: { email: string; ownerId?: string; propertyId?: string; leaseId?: string }
+		@Body()
+		body: {
+			email: string
+			ownerId?: string
+			propertyId?: string
+			leaseId?: string
+		}
 	) {
 		// Native validation - CLAUDE.md compliant
 		if (!body.email) {
@@ -1252,12 +1206,15 @@ export class StripeController {
 
 		// Emit deprecation warning if only propertyId was provided
 		if (!body.ownerId && body.propertyId) {
-			this.logger.warn('propertyId parameter is deprecated, use ownerId instead', {
-				endpoint: 'POST /stripe/invite-tenant',
-				providedParam: 'propertyId',
-				preferredParam: 'ownerId',
-				email: body.email
-			})
+			this.logger.warn(
+				'propertyId parameter is deprecated, use ownerId instead',
+				{
+					endpoint: 'POST /stripe/invite-tenant',
+					providedParam: 'propertyId',
+					preferredParam: 'ownerId',
+					email: body.email
+				}
+			)
 		}
 
 		// Validate email format
@@ -1285,8 +1242,8 @@ export class StripeController {
 				await supabase.auth.admin.createUser({
 					email: body.email,
 					email_confirm: false, // User must confirm via invite link
-				user_metadata: {
-					invited_by: ownerId,
+					user_metadata: {
+						invited_by: ownerId,
 						invited_at: new Date().toISOString(),
 						...(body.leaseId && { lease_id: body.leaseId })
 					}
@@ -1463,7 +1420,14 @@ export class StripeController {
 	 * Official Pattern: subscription listing with expand
 	 */
 	@Get('subscriptions/:customerId')
-	async getSubscriptions(@Param('customerId') customerId: string) {
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
+	async getSubscriptions(
+		@Param('customerId') customerId: string
+	) {
+		if (!customerId || !customerId.startsWith('cus_')) {
+			throw new BadRequestException('Invalid customer ID format')
+		}
+
 		try {
 			return await this.stripe.subscriptions.list({
 				customer: customerId,
@@ -1520,22 +1484,16 @@ export class StripeController {
 				const periodEnds = items
 					.map(item => item.current_period_end)
 					.filter((value): value is number => typeof value === 'number')
-				const currentPeriodStart =
-					periodStarts.length > 0 ? Math.min(...periodStarts) : null
-				const currentPeriodEnd =
-					periodEnds.length > 0 ? Math.max(...periodEnds) : null
 
 				subscription = {
 					id: subData.id,
 					status: subData.status,
 					current_period_start:
-						typeof currentPeriodStart === 'number'
-							? Number(currentPeriodStart)
+						typeof periodStarts[0] === 'number'
+							? Number(periodStarts[0])
 							: null,
 					current_period_end:
-						typeof currentPeriodEnd === 'number'
-							? Number(currentPeriodEnd)
-							: null,
+						typeof periodEnds[0] === 'number' ? Number(periodEnds[0]) : null,
 					cancelAt_period_end: subData.cancel_at_period_end,
 					items: subData.items.data.map(item => ({
 						id: item.id,
@@ -1571,429 +1529,6 @@ export class StripeController {
 			}
 		} catch (error) {
 			this.handleStripeError(error as Stripe.errors.StripeError)
-		}
-	}
-
-	// REMOVED: emitStripeEvent() - Event emission now handled by Stripe Sync Engine
-
-	// Helper methods for webhook handlers
-
-	// private generateRetryPaymentUrl(paymentIntentId: string): string {
-	//	if (!process.env.NEXT_PUBLIC_APP_URL) {
-	//		throw new InternalServerErrorException('NEXT_PUBLIC_APP_URL not configured')
-	//	}
-	//	const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-	//	return `${baseUrl}/payment/retry?payment_intent=${paymentIntentId}`
-	// }
-
-	// private async updatePaymentStatus(paymentIntentId: string, status: string) {
-	//	const supabase = this.supabaseService.getAdminClient()
-
-	//	// Update RentPayment status based on Stripe payment intent
-	//	await supabase
-	//		.from('rent_payments')
-	//		.update({
-	//			status: status.toUpperCase() as Database['public']['Enums']['RentPaymentStatus'],
-	//			updatedAt: new Date().toISOString()
-	//		})
-	//		.eq('stripePaymentIntentId', paymentIntentId)
-	// }
-
-	/**
-	 * Get all active products from Stripe
-	 * Dynamic product configuration instead of hardcoding
-	 * PUBLIC ENDPOINT - Used on pricing page
-	 */
-	@SetMetadata('isPublic', true)
-	@Get('products')
-	@HttpCode(HttpStatus.OK)
-	async getProducts(): Promise<{
-		success: boolean
-		products: Array<{
-			id: string
-			name: string
-			description: string | null
-			active: boolean
-			metadata: Stripe.Metadata
-			prices: Array<{
-				id: string
-				unit_amount: number
-				currency: string
-				recurring: {
-					interval: 'month' | 'year'
-					interval_count: number
-				} | null
-			}>
-			default_price: string | Stripe.Price | null | undefined
-		}>
-	}> {
-		const cacheKey = 'stripe:products'
-
-		// Try cache first (5 minute TTL for public pricing data)
-		const cached = (await this.cacheManager.get(cacheKey)) as
-			| CachedProductsResponse
-			| undefined
-		if (cached) {
-			this.logger.debug('Returning cached products')
-			return cached
-		}
-
-		this.logger.log('Fetching products from Stripe API')
-
-		try {
-			// Fetch products and prices in parallel for better performance
-			const [products, prices] = await Promise.all([
-				this.stripe.products.list({
-					active: true,
-					limit: 100,
-					expand: ['data.default_price']
-				}),
-				this.stripe.prices.list({
-					active: true,
-					limit: 100
-				})
-			])
-
-			// Group prices by product
-			const pricesByProduct = new Map<
-				string,
-				Array<{
-					id: string
-					unit_amount: number
-					currency: string
-					recurring: {
-						interval: 'month' | 'year'
-						interval_count: number
-					} | null
-				}>
-			>()
-
-			for (const price of prices.data) {
-				const productId =
-					typeof price.product === 'string' ? price.product : price.product.id
-				if (!pricesByProduct.has(productId)) {
-					pricesByProduct.set(productId, [])
-				}
-				pricesByProduct.get(productId)!.push({
-					id: price.id,
-					unit_amount: price.unit_amount || 0,
-					currency: price.currency,
-					recurring: price.recurring
-						? {
-								interval: price.recurring.interval as 'month' | 'year',
-								interval_count: price.recurring.interval_count
-							}
-						: null
-				})
-			}
-
-			// Combine products with their prices
-			const productsWithPrices = products.data.map(product => ({
-				id: product.id,
-				name: product.name,
-				description: product.description,
-				active: product.active,
-				metadata: product.metadata,
-				prices: pricesByProduct.get(product.id) || [],
-				default_price: product.default_price
-			}))
-
-			const result = {
-				success: true,
-				products: productsWithPrices
-			}
-
-			// Cache for 5 minutes (300000ms)
-			await this.cacheManager.set(cacheKey, result, 300000)
-
-			this.logger.log(
-				`Successfully fetched ${productsWithPrices.length} products with prices`
-			)
-			return result
-		} catch (error) {
-			this.logger.error('Failed to fetch products from Stripe', error)
-
-			if (error instanceof Stripe.errors.StripeError) {
-				throw new BadRequestException(
-					'Failed to fetch products from Stripe: ' + error.message
-				)
-			}
-
-			throw new InternalServerErrorException(
-				'Internal server error while fetching products'
-			)
-		}
-	}
-
-	// Removed unused private handler methods: handleSetupIntentSucceeded, handleSubscriptionCreated, handleSubscriptionUpdated, handleSubscriptionDeleted, handleInvoicePaymentSucceeded, handleInvoicePaymentFailed
-
-	/**
-	 * Get all active prices from Stripe
-	 * Dynamic pricing configuration instead of hardcoding
-	 */
-	@Get('prices')
-	@HttpCode(HttpStatus.OK)
-	async getPrices(): Promise<CachedPricesResponse> {
-		const cacheKey = 'stripe:prices'
-
-		// Try cache first (5 minute TTL)
-		const cached = (await this.cacheManager.get(cacheKey)) as
-			| CachedPricesResponse
-			| undefined
-		if (cached) {
-			this.logger.debug('Returning cached prices')
-			return cached
-		}
-
-		this.logger.log('Fetching prices from Stripe API')
-
-		try {
-			const prices = await this.stripe.prices.list({
-				active: true,
-				limit: 100,
-				expand: ['data.product']
-			})
-
-			const result: CachedPricesResponse = {
-				success: true,
-				prices: prices.data
-			}
-
-			// Cache for 5 minutes (300000ms)
-			await this.cacheManager.set(cacheKey, result, 300000)
-
-			this.logger.log(`Successfully fetched ${prices.data.length} prices`)
-
-			return result
-		} catch (error) {
-			this.logger.error('Failed to fetch prices from Stripe', error)
-			if (error instanceof Stripe.errors.StripeError) {
-				this.handleStripeError(error)
-			}
-			throw new InternalServerErrorException('Failed to fetch prices')
-		}
-	}
-
-	/**
-	 * Get pricing configuration with products and prices combined
-	 * Returns data in format suitable for frontend pricing components
-	 * PUBLIC ENDPOINT - Used on pricing page
-	 */
-	@SetMetadata('isPublic', true)
-	@Get('pricing-config')
-	@HttpCode(HttpStatus.OK)
-	async getPricingConfig() {
-		const cacheKey = 'stripe:pricing-config'
-
-		// Try cache first (10 minute TTL for pricing config - longer since it changes rarely)
-		const cached = await this.cacheManager.get(cacheKey)
-		if (cached) {
-			this.logger.debug('Returning cached pricing configuration')
-			return cached
-		}
-
-		this.logger.log('Fetching pricing configuration from Stripe API')
-
-		try {
-			// Fetch products and prices in parallel
-			const [productsResponse, pricesResponse] = await Promise.all([
-				this.stripe.products.list({
-					active: true,
-					limit: 100
-				}),
-				this.stripe.prices.list({
-					active: true,
-					limit: 100,
-					expand: ['data.product']
-				})
-			])
-
-			// Group prices by product
-			const productPriceMap = new Map<string, Stripe.Price[]>()
-			pricesResponse.data.forEach(price => {
-				const productId =
-					typeof price.product === 'string' ? price.product : price.product.id
-				if (!productPriceMap.has(productId)) {
-					productPriceMap.set(productId, [])
-				}
-				productPriceMap.get(productId)!.push(price)
-			})
-
-			// Build pricing configuration
-			const pricingConfig = productsResponse.data
-				.filter(product => {
-					// Only include products that match our TenantFlow naming pattern
-					return (
-						product.id.includes('tenantflow_') ||
-						product.name.toLowerCase().includes('tenantflow') ||
-						product.name.toLowerCase().includes('starter') ||
-						product.name.toLowerCase().includes('growth') ||
-						product.name.toLowerCase().includes('trial')
-					)
-				})
-				.map(product => {
-					const prices = productPriceMap.get(product.id) || []
-					const monthlyPrice = prices.find(
-						p => p.recurring?.interval === 'month'
-					)
-					const annualPrice = prices.find(p => p.recurring?.interval === 'year')
-
-					// Parse features from metadata - handle both JSON array and plain string
-					let features: string[] = []
-					if (product.metadata.features) {
-						try {
-							// Try parsing as JSON array first
-							features = JSON.parse(product.metadata.features) as string[]
-						} catch {
-							// If parsing fails, treat as comma-separated string or single feature
-							features = product.metadata.features
-								.split(',')
-								.map(f => f.trim())
-								.filter(f => f.length > 0)
-						}
-					}
-
-					return {
-						id: product.id,
-						name: product.name,
-						description: product.description || '',
-						metadata: product.metadata,
-						prices: {
-							monthly: monthlyPrice
-								? {
-										id: monthlyPrice.id,
-										amount: monthlyPrice.unit_amount || 0,
-										currency: monthlyPrice.currency
-									}
-								: null,
-							annual: annualPrice
-								? {
-										id: annualPrice.id,
-										amount: annualPrice.unit_amount || 0,
-										currency: annualPrice.currency
-									}
-								: null
-						},
-						features,
-						limits: {
-							properties: parseInt(product.metadata.propertyLimit || '0', 10),
-							units: parseInt(product.metadata.unitLimit || '0', 10),
-							storage: parseInt(product.metadata.storageGB || '0', 10)
-						},
-						support: product.metadata.support || '',
-						order: parseInt(product.metadata.order || '999', 10)
-					}
-				})
-				.sort((a, b) => a.order - b.order)
-
-			const result = {
-				success: true,
-				config: pricingConfig,
-				lastUpdated: new Date().toISOString()
-			}
-
-			// Cache for 10 minutes (600000ms) - pricing config changes rarely
-			await this.cacheManager.set(cacheKey, result, 600000)
-
-			this.logger.log(
-				`Successfully built pricing configuration for ${pricingConfig.length} products`
-			)
-
-			return result
-		} catch (error) {
-			this.logger.error(
-				'Failed to fetch pricing configuration from Stripe',
-				error
-			)
-			if (error instanceof Stripe.errors.StripeError) {
-				this.handleStripeError(error)
-			}
-			throw new InternalServerErrorException(
-				'Pricing service unavailable [STR-004]'
-			)
-		}
-	}
-
-	/**
-	 * Clear pricing cache (admin only)
-	 * Use this when products/prices are updated in Stripe dashboard
-	 * Rate limiting and IP whitelist should be configured at infrastructure level
-	 */
-	@Post('pricing-config/invalidate-cache')
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@SetMetadata('admin-only', true)
-	@HttpCode(HttpStatus.OK)
-	async invalidatePricingCache() {
-		this.logger.log('Invalidating pricing cache')
-
-		try {
-			await Promise.all([
-				this.cacheManager.del('stripe:products'),
-				this.cacheManager.del('stripe:prices'),
-				this.cacheManager.del('stripe:pricing-config')
-			])
-
-			this.logger.log('Successfully invalidated pricing cache')
-
-			return {
-				success: true,
-				message: 'Pricing cache invalidated successfully'
-			}
-		} catch (error) {
-			this.logger.error('Failed to invalidate pricing cache', error)
-			throw new InternalServerErrorException('Failed to invalidate cache')
-		}
-	}
-
-	/**
-	 * Official Error Handling Pattern from Server SDK docs
-	 * Comprehensive error mapping for production use
-	 */
-	private handleStripeError(error: Stripe.errors.StripeError): never {
-		this.logger.error('Stripe API error:', {
-			type: error.type,
-			message: error.message,
-			code: error.code,
-			decline_code: error.decline_code,
-			request_id: error.requestId
-		})
-
-		switch (error.type) {
-			case 'StripeCardError':
-				throw new BadRequestException({
-					message: `Payment error: ${error.message}`,
-					code: error.code,
-					decline_code: error.decline_code
-				})
-
-			case 'StripeInvalidRequestError':
-				throw new BadRequestException({
-					message: 'Invalid request to Stripe',
-					details: error.message
-				})
-
-			case 'StripeRateLimitError':
-				throw new ServiceUnavailableException('Too many requests to Stripe API')
-
-			case 'StripeConnectionError':
-				throw new ServiceUnavailableException(
-					'Network error connecting to Stripe'
-				)
-
-			case 'StripeAuthenticationError':
-				throw new InternalServerErrorException(
-					'Payment service authentication error [STR-001]'
-				)
-
-			case 'StripePermissionError':
-				throw new InternalServerErrorException(
-					'Payment service authorization error [STR-002]'
-				)
-
-			default:
-				throw new InternalServerErrorException(
-					'Payment processing error [STR-003]'
-				)
 		}
 	}
 }

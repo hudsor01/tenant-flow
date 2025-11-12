@@ -22,6 +22,7 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { useMarkTenantAsMovedOut, useTenantWithLease } from '#hooks/api/use-tenant'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -73,15 +74,24 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 	const [additionalNotes, setAdditionalNotes] = React.useState('')
 
 	const handleMarkAsMovedOut = async () => {
+		// Validate move-out date before mutation
 		try {
-			// Validate move-out date
 			validateMoveOutDate(moveOutDate)
+		} catch (error) {
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Invalid move-out date'
+			)
+			return
+		}
 
-			if (!moveOutReason) {
-				toast.error('Please select a reason')
-				return
-			}
+		if (!moveOutReason) {
+			toast.error('Please select a reason')
+			return
+		}
 
+		try {
 			await markAsMovedOut.mutateAsync({
 				id,
 				data: {
@@ -93,11 +103,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 			setMoveOutDialogOpen(false)
 			router.push('/manage/tenants')
 		} catch (error) {
-			toast.error(
-				error instanceof Error
-					? error.message
-					: 'Failed to mark tenant as moved out'
-			)
+			handleMutationError(error, 'Mark tenant as moved out')
 		}
 	}
 
@@ -234,7 +240,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.startDate)} -{' '}
-												{formatDate(lease.endDate)}
+												{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}
 											</span>
 											<span>${lease.rentAmount}/mo</span>
 										</div>

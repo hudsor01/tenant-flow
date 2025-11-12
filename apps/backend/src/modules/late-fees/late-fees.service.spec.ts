@@ -486,7 +486,12 @@ describe('LateFeesService', () => {
 			}
 
 			// Mock the full chain for update
-			mockAdminClient.eq.mockResolvedValue({ data: {}, error: null })
+			mockAdminClient.select.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: [{ id: leaseId }],
+					error: null
+				})
+			)
 
 			await service.updateLateFeeConfig(leaseId, userId, config)
 
@@ -499,10 +504,12 @@ describe('LateFeesService', () => {
 		})
 
 		it('should throw BadRequestException on database error', async () => {
-			mockAdminClient.update.mockResolvedValue({
-				data: null,
-				error: { message: 'Database error' }
-			})
+			mockAdminClient.select.mockImplementationOnce(() =>
+				Promise.resolve({
+					data: null,
+					error: { message: 'Database error' }
+				})
+			)
 
 			await expect(
 				service.updateLateFeeConfig(generateUUID(), generateUUID(), {})

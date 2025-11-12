@@ -21,6 +21,7 @@ packages/**/*.tgz
 doppler.env
 .serena/
 .supabase/
+*.pdf
 
 # Local environment files
 .env.local
@@ -192,16 +193,6 @@ test/**/.next*
 test/tmp/**
 test/.trace
 test/traces
-
-# Editors
-**/.idea
-**/.#*
-
-# examples
-examples/**/out/*
-examples/**/.env*.local
-
-pr-stats.md
 test-timings.json
 
 # Vercel
@@ -270,7 +261,6 @@ playwright/.auth/
 .cache
 .parcel-cache
 .fusebox/
-.DS_Store
 **/.DS_Store
 Thumbs.db
 **/Thumbs.db
@@ -323,13 +313,6 @@ documentation/
 *_GUIDE.md
 *_PLAN.md
 *_ANALYSIS.md
-
-# Examples and demos
-*.example.*
-*.demo.*
-*.sample.*
-examples/
-demos/
 .env.example
 
 # BACKUP & TEMP FILES
@@ -363,14 +346,11 @@ pids
 .supabase/
 .playwright-mcp/
 .eslintcache
-.claude/
 .eslint/
 
 # Build outputs
 dist/
 coverage/
-.tsbuildinfo
-*.tsbuildinfo
 
 # Cache directories
 .cache/
@@ -389,31 +369,25 @@ playwright-report/
 .temp/
 .tmp/
 
-# TenantFlow Production Data (CRITICAL)
-**/uploads/
-**/user-uploads/
-**/tenant-files/
-**/property-documents/
-**/lease-agreements/
-**/financial-reports/
-**/backup-*.sql
-**/dump-*.sql
-**/production-db-*
-**/tenant-data-*
-**/property-data-*
-
 # Stripe webhook endpoints (local testing)
 stripe-webhooks.log
 **/stripe-events.log
 **/webhook-*.log
 
 # Development databases
-*.sqlite
-*.sqlite3
 *.db
 database.dev
 db.dev
 local.db
+*.sqlite
+*.sqlite3
+
+# CRITICAL: Production user data and uploads
+**/uploads/
+**/tenant-files/
+**/lease-agreements/
+**/documents/uploads/
+**/storage/user-files/
 
 # Generated types that may contain sensitive info
 **/generated-types.secret.ts

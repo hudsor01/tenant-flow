@@ -6,10 +6,11 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { clientFetch } from '#lib/api/client'
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 // ========================================
 // Types
@@ -129,7 +130,7 @@ export function useCreateEmergencyContact(tenantId: string) {
 				action: 'create_emergency_contact',
 				metadata: { error: err }
 			})
-			toast.error('Failed to save emergency contact')
+			handleMutationError(err, 'Create emergency contact')
 		},
 
 		onSuccess: () => {
@@ -197,7 +198,7 @@ export function useUpdateEmergencyContact(tenantId: string) {
 				action: 'update_emergency_contact',
 				metadata: { error: err }
 			})
-			toast.error('Failed to update emergency contact')
+			handleMutationError(err, 'Update emergency contact')
 		},
 
 		onSuccess: () => {
@@ -258,7 +259,7 @@ export function useDeleteEmergencyContact(tenantId: string) {
 				action: 'delete_emergency_contact',
 				metadata: { error: err }
 			})
-			toast.error('Failed to delete emergency contact')
+			handleMutationError(err, 'Delete emergency contact')
 		},
 
 		onSuccess: () => {

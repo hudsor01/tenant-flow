@@ -10,6 +10,8 @@ export interface PropertyPerformanceEntry {
 	address?: string
 	status?: string
 	propertyType?: string
+	trend: 'up' | 'down' | 'stable'
+	trendPercentage: number
 }
 
 export interface PropertyPerformanceSummary {

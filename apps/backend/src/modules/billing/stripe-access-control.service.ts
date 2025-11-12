@@ -6,6 +6,8 @@ import {
 	MAX_STRIPE_PAYMENT_ATTEMPTS,
 	DEFAULT_RPC_RETRY_ATTEMPTS
 } from './stripe.constants'
+import { userIdByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
+import type { Database } from '@repo/shared/types/supabase'
 
 /**
  * ULTRA-NATIVE: Subscription-based Access Control Service
@@ -38,13 +40,24 @@ export class StripeAccessControlService {
 					? subscription.customer
 					: subscription.customer.id
 
-			// Get user_id from stripe.customers
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			// Get user_id from stripe.customers with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for subscription', {
@@ -90,15 +103,25 @@ export class StripeAccessControlService {
 					? subscription.customer
 					: subscription.customer.id
 
-			// Get user_id from stripe.customers
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			// Get user_id from stripe.customers with Zod validation
+		const rpcResult = await this.supabaseService.rpcWithRetries(
+			'get_user_id_by_stripe_customer',
+			{ p_stripe_customer_id: customerId },
+			DEFAULT_RPC_RETRY_ATTEMPTS
+		)
 
-			if (userError || !userId) {
+		const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+		if (!validatedResult.success) {
+			this.logger.error('RPC response validation failed', {
+				errors: validatedResult.error.issues,
+				customerId
+			})
+			return
+		}
+
+		const { data: userId, error: userError } = validatedResult.data
+
+		if (userError || !userId) {
 				this.logger.warn('Could not find user for subscription cancellation', {
 					subscriptionId: subscription.id,
 					customerId,
@@ -116,39 +139,41 @@ export class StripeAccessControlService {
 			})
 
 			// Access is automatically revoked via stripe.subscriptions table
-		// The get_user_active_subscription() function filters by status
-		// canceled/incomplete_expired subscriptions won't be returned
+			// The get_user_active_subscription() function filters by status
+			// canceled/incomplete_expired subscriptions won't be returned
 
-		// Get user email for sending cancellation notice
-		const { data: userData, error: emailError } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select('email')
-			.eq('id', userId)
-			.single()
+			// Get user email for sending cancellation notice
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
-		if (emailError || !userData?.email) {
-			this.logger.warn('Could not fetch user email for cancellation notice', {
-				userId,
-				error: emailError?.message
-			})
-		} else {
-			// Send subscription canceled email using React template
-			// Type assertion needed because Stripe types don't expose all fields
-			const sub = subscription as Stripe.Subscription & { current_period_end?: number }
-			const currentPeriodEnd = sub.current_period_end
-				? new Date(sub.current_period_end * 1000)
-				: null
+			if (emailError || !userData?.email) {
+				this.logger.warn('Could not fetch user email for cancellation notice', {
+					userId,
+				error: emailError instanceof Error ? emailError.message : String(emailError)
+				})
+			} else {
+				// Send subscription canceled email using React template
+				// Type assertion needed because Stripe types don't expose all fields
+				const sub = subscription as Stripe.Subscription & {
+					current_period_end?: number
+				}
+				const currentPeriodEnd = sub.current_period_end
+					? new Date(sub.current_period_end * 1000)
+					: null
 
-			await this.emailService.sendSubscriptionCanceledEmail({
-				customerEmail: userData.email,
-				subscriptionId: subscription.id,
-				cancelAtPeriodEnd: subscription.cancel_at_period_end,
-				currentPeriodEnd
-			})
-		}
+				await this.emailService.sendSubscriptionCanceledEmail({
+					customerEmail: userData.email,
+					subscriptionId: subscription.id,
+					cancelAtPeriodEnd: subscription.cancel_at_period_end,
+					currentPeriodEnd
+				})
+			}
 
-		// No additional database writes needed - stripe.* schema is source of truth
+			// No additional database writes needed - stripe.* schema is source of truth
 		} catch (error) {
 			this.logger.error('Failed to revoke subscription access', {
 				subscriptionId: subscription.id,
@@ -169,13 +194,24 @@ export class StripeAccessControlService {
 					? subscription.customer
 					: subscription.customer.id
 
-			// Get user_id and email
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			// Get user_id with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for trial ending', {
@@ -200,17 +236,43 @@ export class StripeAccessControlService {
 				trialEnd
 			})
 
-			// Send trial ending email via Supabase function
-			if (trialEnd) {
-				await this.supabaseService
-					.getAdminClient()
-					.rpc('send_trial_ending_email', {
+			// Send trial ending email via Supabase function with retries
+		if (trialEnd) {
+			try {
+				const result = await this.supabaseService.rpcWithRetries(
+					'send_trial_ending_email',
+					{
 						p_user_id: userId,
 						p_subscription_id: subscription.id,
 						p_days_remaining: daysRemaining,
 						p_trial_end: trialEnd.toISOString()
+					},
+					DEFAULT_RPC_RETRY_ATTEMPTS
+				)
+				if (result.error) {
+					this.logger.warn('Failed to send trial ending email after retries', {
+						userId,
+						subscriptionId: subscription.id,
+						error:
+							result.error instanceof Error
+								? result.error.message
+								: String(result.error as unknown)
 					})
+				} else {
+					this.logger.log('Trial ending email sent successfully', {
+						userId,
+						subscriptionId: subscription.id,
+						daysRemaining
+					})
+				}
+			} catch (emailError) {
+				this.logger.error('Exception sending trial ending email', {
+					userId,
+					subscriptionId: subscription.id,
+					error: emailError instanceof Error ? emailError.message : String(emailError)
+				})
 			}
+		}
 		} catch (error) {
 			this.logger.error('Failed to handle trial ending', {
 				subscriptionId: subscription.id,
@@ -239,13 +301,24 @@ export class StripeAccessControlService {
 				return
 			}
 
-			// Get user_id
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			// Get user_id with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					invoiceId: invoice.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				this.logger.warn('Could not find user for failed payment', {
@@ -268,33 +341,39 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending failed payment notice
-		const { data: userData, error: emailError } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select('email')
-			.eq('id', userId)
-			.single()
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
-		if (emailError || !userData?.email) {
-			this.logger.warn('Could not fetch user email for payment failed notice', {
-				userId,
-				error: emailError?.message
+			if (emailError || !userData?.email) {
+				this.logger.warn(
+					'Could not fetch user email for payment failed notice',
+					{
+						userId,
+						error:
+							emailError instanceof Error
+								? emailError.message
+								: String(emailError)
+					}
+				)
+				return
+			}
+
+			// Determine if this is the last attempt
+			const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
+
+			// Send payment failed email using React template
+			await this.emailService.sendPaymentFailedEmail({
+				customerEmail: userData.email,
+				amount: invoice.amount_due,
+				currency: invoice.currency,
+				attemptCount: invoice.attempt_count,
+				invoiceUrl: invoice.hosted_invoice_url ?? null,
+				isLastAttempt
 			})
-			return
-		}
-
-		// Determine if this is the last attempt
-		const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
-
-		// Send payment failed email using React template
-		await this.emailService.sendPaymentFailedEmail({
-			customerEmail: userData.email,
-			amount: invoice.amount_due,
-			currency: invoice.currency,
-			attemptCount: invoice.attempt_count,
-			invoiceUrl: invoice.hosted_invoice_url ?? null,
-			isLastAttempt
-		})
 		} catch (error) {
 			this.logger.error('Failed to handle payment failure', {
 				invoiceId: invoice.id,
@@ -320,13 +399,24 @@ export class StripeAccessControlService {
 				return
 			}
 
-			// Get user_id
-			const { data: userId, error: userError } =
-				await this.supabaseService.rpcWithRetries(
-					'get_user_id_by_stripe_customer',
-					{ p_stripe_customer_id: customerId },
-					DEFAULT_RPC_RETRY_ATTEMPTS
-				)
+			// Get user_id with Zod validation
+			const rpcResult = await this.supabaseService.rpcWithRetries(
+				'get_user_id_by_stripe_customer',
+				{ p_stripe_customer_id: customerId },
+				DEFAULT_RPC_RETRY_ATTEMPTS
+			)
+
+			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			if (!validatedResult.success) {
+				this.logger.error('RPC response validation failed', {
+					errors: validatedResult.error.issues,
+					customerId,
+					invoiceId: invoice.id
+				})
+				return
+			}
+
+			const { data: userId, error: userError } = validatedResult.data
 
 			if (userError || !userId) {
 				return
@@ -344,29 +434,29 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending receipt
-		const { data: userData, error: emailError } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select('email')
-			.eq('id', userId)
-			.single()
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
-		if (emailError || !userData?.email) {
-			this.logger.warn('Could not fetch user email for payment receipt', {
-				userId,
-				error: emailError?.message
+			if (emailError || !userData?.email) {
+				this.logger.warn('Could not fetch user email for payment receipt', {
+					userId,
+				error: emailError instanceof Error ? emailError.message : String(emailError)
+				})
+				return
+			}
+
+			// Send payment success receipt email using React template
+			await this.emailService.sendPaymentSuccessEmail({
+				customerEmail: userData.email,
+				amount: invoice.amount_paid,
+				currency: invoice.currency,
+				invoiceUrl: invoice.hosted_invoice_url ?? null,
+				invoicePdf: invoice.invoice_pdf ?? null
 			})
-			return
-		}
-
-		// Send payment success receipt email using React template
-		await this.emailService.sendPaymentSuccessEmail({
-			customerEmail: userData.email,
-			amount: invoice.amount_paid,
-			currency: invoice.currency,
-			invoiceUrl: invoice.hosted_invoice_url ?? null,
-			invoicePdf: invoice.invoice_pdf ?? null
-		})
 		} catch (error) {
 			this.logger.error('Failed to handle payment success', {
 				invoiceId: invoice.id,

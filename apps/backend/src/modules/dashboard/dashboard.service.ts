@@ -21,6 +21,7 @@ import {
 	dashboardActivityResponseSchema
 } from '@repo/shared/validation/dashboard'
 import { z } from 'zod'
+import { ValidationException } from '../../shared/exceptions/validation.exception'
 
 @Injectable()
 export class DashboardService {
@@ -145,7 +146,9 @@ export class DashboardService {
 	): Promise<z.infer<typeof billingInsightsSchema> | null> {
 		if (!userId) {
 			this.logger.warn('getBillingInsights called without userId')
-			return null
+			throw new ValidationException(
+				'User ID is required to retrieve billing insights'
+			)
 		}
 		try {
 			const result = await this.dashboardAnalyticsService.getBillingInsights(
@@ -167,14 +170,19 @@ export class DashboardService {
 					userId,
 					validationErrors: parsed.error.format()
 				})
-				return null
+				throw new ValidationException('Billing insights validation failed', {
+					errors: parsed.error.format()
+				})
 			}
 		} catch (error) {
 			this.logger.error('Failed to get billing insights', {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
-			return null
+			if (error instanceof ValidationException) {
+				throw error
+			}
+			throw new ValidationException('Failed to retrieve billing insights')
 		}
 	}
 

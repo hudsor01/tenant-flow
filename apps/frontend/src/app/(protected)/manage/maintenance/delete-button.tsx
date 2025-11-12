@@ -1,18 +1,12 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
+import { ConfirmDialog } from '#components/ui/confirm-dialog'
 import { Trash2 } from 'lucide-react'
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import { toast } from 'sonner'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { useModalStore } from '#stores/modal-store'
 
 interface DeleteMaintenanceButtonProps {
 	maintenance: {
@@ -26,63 +20,43 @@ export function DeleteMaintenanceButton({
 	maintenance,
 	deleteAction
 }: DeleteMaintenanceButtonProps) {
-	const [open, setOpen] = useState(false)
+	const { openModal } = useModalStore()
 	const [isPending, startTransition] = useTransition()
+
+	const modalId = `delete-maintenance-${maintenance.id}`
 
 	const handleDelete = () => {
 		startTransition(async () => {
 			try {
 				await deleteAction(maintenance.id)
 				toast.success('Maintenance request deleted successfully')
-				setOpen(false)
-			} catch {
-				toast.error('Failed to delete request')
+			} catch (error) {
+				handleMutationError(error, 'Delete maintenance request')
 			}
 		})
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button
-					variant="outline"
-					size="sm"
-					className="flex items-center gap-2 text-(--color-system-red) hover:text-(--color-system-red-85)"
-				>
-					<Trash2 className="size-4" />
-					Delete
-				</Button>
-			</DialogTrigger>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Delete Maintenance Request</DialogTitle>
-					<DialogDescription>
-						Are you sure you want to delete this maintenance request? This
-						action cannot be undone.
-					</DialogDescription>
-				</DialogHeader>
-				<div className="py-4">
-					<p className="text-sm text-(--color-label-secondary)">
-						<strong>Request:</strong> {maintenance.title}
-					</p>
-				</div>
-				<DialogFooter>
-					<Button
-						variant="outline"
-						onClick={() => setOpen(false)}
-						disabled={isPending}
-					>
-						Cancel
-					</Button>
-					<Button
-						variant="destructive"
-						onClick={handleDelete}
-						disabled={isPending}
-					>
-						{isPending ? 'Deleting...' : 'Delete Request'}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+		<>
+			<Button
+				variant="outline"
+				size="sm"
+				className="flex items-center gap-2 text-(--color-system-red) hover:text-(--color-system-red-85)"
+				onClick={() => openModal(modalId)}
+			>
+				<Trash2 className="size-4" />
+				Delete
+			</Button>
+
+			<ConfirmDialog
+				modalId={modalId}
+				title="Delete Maintenance Request"
+				description={`Are you sure you want to delete "${maintenance.title}"? This action cannot be undone.`}
+				confirmText="Delete Request"
+				confirmVariant="destructive"
+				onConfirm={handleDelete}
+				loading={isPending}
+			/>
+		</>
 	)
 }

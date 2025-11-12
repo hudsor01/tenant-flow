@@ -48,7 +48,26 @@ export class RolesGuard implements CanActivate {
 
 		// Handle role-based access
 		if (requiredRoles && requiredRoles.length > 0) {
-			return requiredRoles.some(role => user.role === role)
+			return requiredRoles.some(role => {
+				if (user.role !== role) {
+					return false
+				}
+
+				if (
+					this.requiresDatabaseVerifiedRole(role) &&
+					!this.hasVerifiedOwnerPrivileges(user)
+				) {
+					this.logger.warn('Access denied: elevated role not verified via database lookup', {
+						userId: user.id,
+						requestedRole: role,
+						roleVerificationStatus: this.getRoleVerificationStatus(user),
+						route: request.route?.path ?? 'unknown route'
+					})
+					return false
+				}
+
+				return true
+			})
 		}
 
 		// No specific role requirements
@@ -63,6 +82,15 @@ export class RolesGuard implements CanActivate {
 			this.logger.warn('Admin access denied: User is not admin', {
 				userId: user.id,
 				userRole: user.role,
+				route: request.route?.path ?? 'unknown route'
+			})
+			return false
+		}
+
+		if (!this.hasVerifiedOwnerPrivileges(user)) {
+			this.logger.warn('Admin access denied: Role not verified via database lookup', {
+				userId: user.id,
+				roleVerificationStatus: this.getRoleVerificationStatus(user),
 				route: request.route?.path ?? 'unknown route'
 			})
 			return false
@@ -131,5 +159,28 @@ export class RolesGuard implements CanActivate {
 			typeof userObj.role === 'string' &&
 			['OWNER', 'MANAGER', 'TENANT', 'ADMIN'].includes(userObj.role)
 		)
+	}
+
+	private requiresDatabaseVerifiedRole(role: UserRole): boolean {
+		return role === 'OWNER' || role === 'ADMIN'
+	}
+
+	private hasVerifiedOwnerPrivileges(user: authUser): boolean {
+		const metadata = this.getRoleVerificationMetadata(user)
+		return metadata.roleVerificationStatus === 'database' || metadata.roleVerified === true
+	}
+
+	private getRoleVerificationStatus(user: authUser): string | undefined {
+		return this.getRoleVerificationMetadata(user).roleVerificationStatus
+	}
+
+	private getRoleVerificationMetadata(
+		user: authUser
+	): { roleVerificationStatus?: string; roleVerified?: boolean } {
+		const appMetadata = user.app_metadata as {
+			roleVerificationStatus?: string
+			roleVerified?: boolean
+		}
+		return appMetadata ?? {}
 	}
 }
