@@ -1,6 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import {
+	Injectable,
+	InternalServerErrorException,
+	Logger,
+	NotFoundException
+} from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import {
+	querySingle,
+	queryMutation
+} from '../../shared/utils/query-helpers'
 
 type UserInsert = Database['public']['Tables']['users']['Insert']
 type UserUpdate = Database['public']['Tables']['users']['Update']
@@ -40,79 +49,94 @@ const SAFE_USERS_COLUMNS = `
 
 @Injectable()
 export class UsersService {
+	private readonly logger = new Logger(UsersService.name)
+
 	constructor(private readonly supabase: SupabaseService) {}
 
 	async findUserByEmail(
 		email: string
 	): Promise<Database['public']['Tables']['users']['Row'] | null> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select(SAFE_USERS_COLUMNS)
-			.eq('email', email)
-			.single()
-
-		if (error) {
-			return null
+		try {
+			return await querySingle<Database['public']['Tables']['users']['Row']>(
+				this.supabase
+					.getAdminClient()
+					.from('users')
+					.select(SAFE_USERS_COLUMNS)
+					.eq('email', email)
+					.single(),
+				{
+					resource: 'user',
+					operation: 'fetch by email',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			// Return null for not found (soft failure for optional user lookup)
+			if (error instanceof NotFoundException) {
+				return null
+			}
+			throw error
 		}
-
-		return data
 	}
 
 	async createUser(
 		userData: UserInsert
 	): Promise<Database['public']['Tables']['users']['Row']> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.insert(userData)
-			.select()
-			.single()
-
-		if (error) {
-			throw new InternalServerErrorException(
-				`Failed to create user: ${error.message}`
-			)
-		}
-
-		return data
+		return await queryMutation<Database['public']['Tables']['users']['Row']>(
+			this.supabase.getAdminClient().from('users').insert(userData).select().single(),
+			{
+				resource: 'user',
+				operation: 'create',
+				logger: this.logger
+			}
+		)
 	}
 
 	async updateUser(
 		userId: string,
 		userData: UserUpdate
 	): Promise<Database['public']['Tables']['users']['Row']> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.update(userData)
-			.eq('id', userId)
-			.select()
-			.single()
-
-		if (error) {
-			throw new InternalServerErrorException(
-				`Failed to update user: ${error.message}`
-			)
-		}
-
-		return data
+		return await queryMutation<Database['public']['Tables']['users']['Row']>(
+			this.supabase
+				.getAdminClient()
+				.from('users')
+				.update(userData)
+				.eq('id', userId)
+				.select()
+				.single(),
+			{
+				resource: 'user',
+				id: userId,
+				operation: 'update',
+				logger: this.logger
+			}
+		)
 	}
 
 	async getUserById(
 		userId: string
 	): Promise<Database['public']['Tables']['users']['Row'] | null> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select(SAFE_USERS_COLUMNS)
-			.eq('id', userId)
-			.single()
-
-		if (error) {
-			return null
+		try {
+			return await querySingle<Database['public']['Tables']['users']['Row']>(
+				this.supabase
+					.getAdminClient()
+					.from('users')
+					.select(SAFE_USERS_COLUMNS)
+					.eq('id', userId)
+					.single(),
+				{
+					resource: 'user',
+					id: userId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			// Return null for not found (soft failure for optional user lookup)
+			if (error instanceof NotFoundException) {
+				return null
+			}
+			throw error
 		}
-
-		return data
 	}
 }
