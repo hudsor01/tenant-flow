@@ -38,7 +38,7 @@ export class MaintenanceService {
 
 	/**
 	 * Get all maintenance requests for a user with search and filters
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async findAll(
 		token: string,
@@ -59,7 +59,7 @@ export class MaintenanceService {
 				}
 			)
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual userId filtering needed)
@@ -171,7 +171,7 @@ export class MaintenanceService {
 
 	/**
 	 * Get maintenance statistics
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async getStats(
 		token: string
@@ -186,7 +186,7 @@ export class MaintenanceService {
 
 			this.logger.log('Getting maintenance stats via RLS-protected query')
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
@@ -269,7 +269,7 @@ export class MaintenanceService {
 
 	/**
 	 * Get urgent maintenance requests (HIGH and URGENT priority)
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async getUrgent(token: string): Promise<MaintenanceRequest[]> {
 		try {
@@ -282,7 +282,7 @@ export class MaintenanceService {
 				'Getting urgent maintenance requests via RLS-protected query'
 			)
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
@@ -320,7 +320,7 @@ export class MaintenanceService {
 
 	/**
 	 * Get overdue maintenance requests
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async getOverdue(token: string): Promise<MaintenanceRequest[]> {
 		try {
@@ -333,7 +333,7 @@ export class MaintenanceService {
 				'Getting overdue maintenance requests via RLS-protected query'
 			)
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
@@ -370,7 +370,7 @@ export class MaintenanceService {
 
 	/**
 	 * Find one maintenance request by ID
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's maintenance requests
 	 */
 	async findOne(
 		token: string,
@@ -392,7 +392,7 @@ export class MaintenanceService {
 				}
 			)
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
+			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
@@ -424,7 +424,7 @@ export class MaintenanceService {
 
 	/**
 	 * Create maintenance request with event emission
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit access
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit access
 	 */
 	async create(
 		token: string,
@@ -457,7 +457,7 @@ export class MaintenanceService {
 				}
 			}
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies unit access
+			// RLS SECURITY: User-scoped client automatically verifies unit access
 			const client = this.supabase.getUserClient(token)
 
 			// Map priority
@@ -531,13 +531,13 @@ export class MaintenanceService {
 
 	/**
 	 * Update maintenance request
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async update(
 		token: string,
 		maintenanceId: string,
 		updateRequest: UpdateMaintenanceRequest,
-		expectedVersion?: number // 🔐 Optimistic locking
+		expectedVersion?: number // Optimistic locking
 	): Promise<MaintenanceRequest | null> {
 		try {
 			if (!token || !maintenanceId) {
@@ -562,7 +562,7 @@ export class MaintenanceService {
 				updateRequest
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
 			// Map status and priority
@@ -611,7 +611,7 @@ export class MaintenanceService {
 					updateRequest.completedDate
 				).toISOString()
 
-			// 🔐 Optimistic locking: Add version check
+			// Optimistic locking: Add version check
 			let query = client
 				.from('maintenance_request')
 				.update(updateData)
@@ -625,7 +625,7 @@ export class MaintenanceService {
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				// 🔐 Detect optimistic locking conflict
+				// Detect optimistic locking conflict
 				if (error?.code === 'PGRST116') {
 					// PGRST116 = 0 rows affected (version mismatch)
 					this.logger.warn('Optimistic locking conflict detected', {
@@ -709,7 +709,7 @@ export class MaintenanceService {
 
 	/**
 	 * Remove maintenance request (soft delete)
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async remove(token: string, maintenanceId: string): Promise<void> {
 		try {
@@ -727,7 +727,7 @@ export class MaintenanceService {
 				maintenanceId
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
 			const { error } = await client
@@ -760,7 +760,7 @@ export class MaintenanceService {
 
 	/**
 	 * Update status - consolidated method (replaces complete and cancel)
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async updateStatus(
 		token: string,
@@ -783,7 +783,7 @@ export class MaintenanceService {
 				notes
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
@@ -826,7 +826,7 @@ export class MaintenanceService {
 
 	/**
 	 * Complete maintenance request - convenience method for marking as completed
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
 	 */
 	async complete(
 		token: string,
@@ -841,7 +841,7 @@ export class MaintenanceService {
 				notes
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
+			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
@@ -908,7 +908,7 @@ export class MaintenanceService {
 
 	/**
 	 * Cancel maintenance request - convenience method for marking as canceled
-	 * ✅ RLS COMPLIANT: Delegates to updateStatus() which uses getUserClient(token)
+	 * RLS COMPLIANT: Delegates to updateStatus() which uses getUserClient(token)
 	 */
 	async cancel(
 		token: string,

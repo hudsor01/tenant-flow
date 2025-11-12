@@ -15,16 +15,16 @@ export const metadata: Metadata = {
 }
 
 export default async function MaintenancePage() {
-	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 	
 const logger = createLogger({ component: 'MaintenancePage', userId: user.id })
 
-	// ✅ Server Component: Fetch data on server during RSC render
+	// Server Component: Fetch data on server during RSC render
 	let requests: MaintenanceRequestResponse['data'] = []
 	
 	try {
-		// ✅ Production pattern: Server Component with explicit token
+		// Production pattern: Server Component with explicit token
 		const result: MaintenanceRequestResponse = await serverFetch('/api/v1/maintenance')
 		requests = result?.data ?? []
 	} catch (err) {

@@ -192,7 +192,7 @@ export function TenantsTable({
 }: TenantsTableProps) {
 	const { prefetchTenant } = usePrefetchTenant()
 
-	// ✅ React 19 useOptimistic for instant delete feedback
+	// React 19 useOptimistic for instant delete feedback
 	const [optimisticTenants, removeOptimistic] = useOptimistic(
 		initialTenants,
 		(state, tenantId: string) => state.filter(t => t.id !== tenantId)
@@ -201,7 +201,7 @@ export function TenantsTable({
 
 	const handleDelete = (tenantId: string) => {
 		startTransition(async () => {
-			removeOptimistic(tenantId) // ✅ Instant UI update
+			removeOptimistic(tenantId) // Instant UI update
 			try {
 				await deleteTenantAction(tenantId) // Server action with revalidatePath
 				toast.success('Tenant deleted successfully')

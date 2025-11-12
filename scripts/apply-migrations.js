@@ -39,7 +39,7 @@ async function applyMigrations() {
 				metadata: { error: error.message }
 			})
 		} else {
-			logger.info(`✅ Applied ${migration}`)
+			logger.info(` Applied ${migration}`)
 		}
 	}
 }

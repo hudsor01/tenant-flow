@@ -14,7 +14,7 @@ import { Button } from '#components/ui/button'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
-// ⚡ Dynamic imports: Defer loading heavy visual components (~50KB combined)
+// Dynamic imports: Defer loading heavy visual components (~50KB combined)
 const KiboStylePricing = dynamic(
 	() =>
 		import('#components/pricing/kibo-style-pricing').then(
