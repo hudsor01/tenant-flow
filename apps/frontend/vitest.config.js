@@ -16,6 +16,13 @@ export default defineConfig({
 		watch: process.env.CI ? false : undefined,
 		globals: true,
 		setupFiles: ['./src/test/setup.ts'],
+		// Use vmThreads pool for better stability
+		pool: 'vmThreads',
+		poolOptions: {
+			vmThreads: {
+				singleThread: true
+			}
+		},
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
