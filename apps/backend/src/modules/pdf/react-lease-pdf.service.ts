@@ -25,6 +25,10 @@ export class ReactLeasePDFService {
 		try {
 			this.logger.log('Generating Texas lease PDF with React')
 
+			if (!formData || Object.keys(formData).length === 0) {
+				throw new Error('Lease form data is empty')
+			}
+
 			// Render React component to PDF buffer
 			const pdfBuffer = await renderToBuffer(
 				TexasLeaseTemplate({ data: formData })

@@ -75,6 +75,13 @@ const getOrdinalSuffix = (day: number): string => {
 	return 'th'
 }
 
+// Defensive helpers to avoid runtime crashes when optional numeric data is missing
+const getNumberOrFallback = (value: number | undefined | null, fallback = 0): number =>
+	typeof value === 'number' && Number.isFinite(value) ? value : fallback
+
+const formatCurrency = (value: number | undefined | null, fallback = 0): string =>
+	getNumberOrFallback(value, fallback).toFixed(2)
+
 export function TexasLeaseTemplate({
 	data
 }: TexasLeaseTemplateProps) {
@@ -97,7 +104,9 @@ export function TexasLeaseTemplate({
 	const agreementYear = agreementDate.getFullYear()
 
 	// Calculate hold over rent
-	const holdOverRent = data.monthlyRent * data.holdOverRentMultiplier
+	const holdOverRent =
+		getNumberOrFallback(data.monthlyRent) *
+		getNumberOrFallback(data.holdOverRentMultiplier, 1.2)
 
 	return (
 		<Document>
@@ -171,7 +180,7 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>3. RENT.</Text>
 					<Text style={styles.paragraph}>
-						Tenant shall pay to Landlord the sum of ${data.monthlyRent.toFixed(2)}{' '}
+						Tenant shall pay to Landlord the sum of ${formatCurrency(data.monthlyRent)}{' '}
 						per month as Rent for the Term of the Agreement. Due date for Rent
 						payment shall be the {data.rentDueDay}
 						{getOrdinalSuffix(data.rentDueDay)}{' '}
@@ -189,7 +198,7 @@ export function TexasLeaseTemplate({
 							{data.rentDueDay + 1}{getOrdinalSuffix(data.rentDueDay + 1)} day of
 							each calendar month. If Tenant fails to timely pay any month's rent,
 							Tenant will pay Landlord a late charge of $
-							{(data.lateFeeAmount ?? 0).toFixed(2)} per day until rent is paid
+							{formatCurrency(data.lateFeeAmount)} per day until rent is paid
 							in full. If Landlord receives the monthly rent by the{' '}
 							{data.lateFeeGraceDays + 1}
 							{getOrdinalSuffix(data.lateFeeGraceDays + 1)} day of the month,
@@ -214,7 +223,7 @@ export function TexasLeaseTemplate({
 						<Text style={styles.paragraph}>
 							In the event that any payment by Tenant is returned for insufficient
 							funds ("NSF") or if Tenant stops payment, Tenant will pay $
-							{data.nsfFee.toFixed(2)} to Landlord for each such check, plus late
+							{formatCurrency(data.nsfFee)} to Landlord for each such check, plus late
 							charges, as described above, until Landlord has received payment.
 							Furthermore, Landlord may require in writing that Tenant pay all future
 							Rent payments by cash, money order, or cashier's check.
@@ -250,7 +259,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>4. SECURITY DEPOSIT.</Text>
 					<Text style={styles.paragraph}>
 						Upon execution of this Texas Lease Agreement, Tenant shall deposit with
-						Landlord the sum of ${data.securityDeposit.toFixed(2)}, receipt of
+						Landlord the sum of ${formatCurrency(data.securityDeposit)}, receipt of
 						which is hereby acknowledged by Landlord, as security for any damage
 						caused to the Premises during the term hereof.
 					</Text>
@@ -517,7 +526,7 @@ export function TexasLeaseTemplate({
 						Landlord after the natural expiration of this Texas Lease Agreement, a new
 						tenancy from month-to-month shall be created between Landlord and Tenant
 						which shall be subject to all of the terms and conditions hereof except
-						that rent shall then be due and owing at ${holdOverRent.toFixed(2)} per
+						that rent shall then be due and owing at ${formatCurrency(holdOverRent)} per
 						month and except that such tenancy shall be terminable upon fifteen (15)
 						days written notice served by either party.
 					</Text>
@@ -537,10 +546,10 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>18. ANIMALS.</Text>
 					<Text style={styles.paragraph}>
 						{data.petsAllowed
-							? `Pets are permitted on the Premises with a pet deposit of $${(data.petDeposit ?? 0).toFixed(2)} and monthly pet rent of $${(data.petRent ?? 0).toFixed(2)}.`
+							? `Pets are permitted on the Premises with a pet deposit of $${formatCurrency(data.petDeposit)} and monthly pet rent of $${formatCurrency(data.petRent)}.`
 							: 'THERE WILL BE NO ANIMALS, unless authorized by a separate written Pet Addendum to this Residential Lease Agreement. Tenant shall not permit any animal, including mammals, reptiles, birds, fish, rodents, or insects on the property, even temporarily, unless otherwise agreed by a separate written Pet Agreement.'}{' '}
 						If tenant violates the pet restrictions of this Lease, Tenant will pay to
-						Landlord a fee of ${(data.petDeposit ?? 0).toFixed(2)} per day per animal for
+						Landlord a fee of ${formatCurrency(data.petDeposit)} per day per animal for
 						each day Tenant violates the animal restrictions as additional rent for any
 						unauthorized animal. Landlord may remove or cause to be removed any
 						unauthorized animal and deliver it to appropriate local authorities by

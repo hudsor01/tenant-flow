@@ -22,7 +22,7 @@ export function TrendCard({
 }: TrendCardProps) {
   if (isLoading) {
     return (
-      <Card className={cn('animate-pulse', className)}>
+      <Card className={cn('dashboard-card-surface animate-pulse', className)}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
@@ -36,7 +36,7 @@ export function TrendCard({
 
   if (!metric) {
     return (
-      <Card className={className}>
+      <Card className={cn('dashboard-card-surface', className)}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
@@ -61,7 +61,7 @@ export function TrendCard({
       : 'text-muted-foreground'
 
   return (
-    <Card className={className}>
+    <Card className={cn('dashboard-card-surface', className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <TrendIcon className={cn('h-4 w-4', trendColor)} />

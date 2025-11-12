@@ -7,12 +7,12 @@ import type {
 	LoginFormData,
 	SignupFormData
 } from '@repo/shared/types/auth'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-
+import React from 'react'
 import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { LoginLayout } from '#components/auth/login-layout'
 import { useModalStore } from '#stores/modal-store'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const logger = createLogger({ component: 'LoginPage' })
 
@@ -60,25 +60,41 @@ function LoginPageContent() {
 					}
 				})
 
-				// Redirect to email confirmation page if email not confirmed
 				if (error.message.includes('Email not confirmed')) {
-					logger.info('Email not confirmed, redirecting to confirmation page', {
-						action: 'redirect_to_email_confirmation'
-					})
 					router.push('/auth/confirm-email')
-					return
+					throw new Error(
+						'Please confirm your email address before signing in.'
+					)
 				}
 
-				return
+				throw new Error(
+					error.message === 'Invalid login credentials'
+						? 'Invalid email or password. Please try again.'
+						: error.message
+				)
 			}
 
 			if (authData.user) {
-				// Fetch user role from database to determine redirect
-				const { data: userProfile } = await supabase
+				// Fetch user role from database to determine redirect with proper org_id filtering
+				let profileQuery = supabase
 					.from('users')
-					.select('role')
+					.select('role, orgId')
 					.eq('supabaseId', authData.user.id)
-					.single()
+				const orgId = authData.user.app_metadata?.['orgId']
+				if (orgId) {
+					profileQuery = profileQuery.eq('orgId', orgId)
+				}
+				const { data: userProfile, error: profileError } = await profileQuery.single()
+
+				if (profileError) {
+					logger.warn('Unable to resolve user profile after login', {
+						action: 'user_profile_lookup_failed',
+						metadata: {
+							userId: authData.user.id,
+							error: profileError.message
+						}
+					})
+				}
 
 				// Determine destination based on user role
 				let destination = '/manage' // Default for OWNER, MANAGER, ADMIN
@@ -107,6 +123,7 @@ function LoginPageContent() {
 
 				// Redirect to destination
 				router.push(destination)
+				router.refresh()
 			}
 		} catch (error) {
 			logger.error('Unexpected error during login', {

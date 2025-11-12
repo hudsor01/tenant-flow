@@ -65,15 +65,24 @@ Please set these variables in your environment or .env.local file before running
 	)
 }
 
-// Validate password strength - must not be the weak default
-const WEAK_PASSWORD = 'TestPassword123!'
+// Validate password strength - must not be a weak default password
+const WEAK_PASSWORDS = [
+	'TestPassword123!',
+	'password',
+	'password123',
+	'123456',
+	'admin',
+	'test123',
+	'default'
+]
+
 Object.entries(TEST_USERS).forEach(([key, user]) => {
 	if (!user.email || !user.password) {
 		throw new Error(`Test user ${key} is missing email or password. Check environment variables.`)
 	}
-	if (user.password === WEAK_PASSWORD) {
+	if (WEAK_PASSWORDS.some(weak => user.password.toLowerCase().includes(weak.toLowerCase()))) {
 		throw new Error(
-			`Test user ${key} is using the weak default password. ` +
+			`Test user ${key} is using a weak or default password. ` +
 			`Please set a secure password in environment variables.`
 		)
 	}

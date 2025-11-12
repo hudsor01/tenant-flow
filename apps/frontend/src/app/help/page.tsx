@@ -2,7 +2,6 @@
 
 import Footer from '#components/layout/footer'
 import { HeroSection } from '#components/sections/hero-section'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { GridPattern } from '#components/ui/grid-pattern'
@@ -123,7 +122,6 @@ export default function HelpPage() {
 			<main className="flex-1">
 				{/* Hero Section */}
 				<HeroSection
-					trustBadge="Expert support team standing by"
 					title="We guarantee your success"
 					titleHighlight="or your money back"
 					subtitle="Get white-glove support from property management experts who've helped 10,000+ managers save $30,000+ annually. Average response time: 90 seconds. Success rate: 98.7%."
@@ -163,13 +161,7 @@ export default function HelpPage() {
 										Instant answers from property management specialists
 									</ItemDescription>
 									<div className="mt-2 space-y-2">
-										<Badge
-											variant="outline"
-											className="text-success border-success/30"
-										>
-											<div className="size-2 bg-primary rounded-full mr-2"></div>
-											Online Now
-										</Badge>
+										{/* Online Now */}
 										<p className="text-sm text-muted-foreground">
 											Average response: 90 seconds
 										</p>
@@ -395,9 +387,6 @@ export default function HelpPage() {
 										<h3 className="font-semibold text-lg leading-tight pr-4">
 											{resource.title}
 										</h3>
-										<Badge className={resource.badgeColor}>
-											{resource.badge}
-										</Badge>
 									</div>
 									<p className="text-muted-foreground mb-4">
 										{resource.description}

@@ -1,7 +1,6 @@
 'use client'
 
 import Footer from '#components/layout/footer'
-import { Badge } from '#components/ui/badge'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
@@ -239,14 +238,6 @@ export default function FeaturesPage() {
 						<div className="text-center max-w-5xl mx-auto space-y-8">
 							{/* Trust Band - Moved to prominent position */}
 							<div className="flex flex-col items-center space-y-6">
-								<Badge
-									variant="secondary"
-									className="px-4 py-2 text-sm font-medium bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors"
-								>
-									<Star className="size-4 mr-2 fill-current" />
-									Trusted by 10,000+ property managers worldwide
-								</Badge>
-
 								{/* Customer Logos */}
 								<div className="flex flex-wrap items-center justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
 									{customerLogos.slice(0, 4).map(customer => (
@@ -363,11 +354,6 @@ export default function FeaturesPage() {
 										<span className="font-medium">
 											Featured in PropTech Today
 										</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<Badge variant="outline" className="text-xs">
-											SOC 2 Certified
-										</Badge>
 									</div>
 									<div className="flex items-center space-x-2">
 										<span className="font-medium">99.9% Uptime SLA</span>

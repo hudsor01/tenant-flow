@@ -194,16 +194,17 @@ export async function createCustomerPortalSession(
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	if (!session?.access_token) {
-		throw new Error(ERROR_MESSAGES.SESSION_EXPIRED)
-	}
+		if (!session?.access_token) {
+			throw new Error(ERROR_MESSAGES.SESSION_EXPIRED)
+		}
 
-	// Get user's Stripe customer ID
-	const { data: userData, error: dbError } = await supabase
-		.from('users')
-		.select('stripeCustomerId')
-		.eq('id', user.id)
-		.single()
+		// Get user's Stripe customer ID with proper org_id filtering
+		const { data: userData, error: dbError } = await supabase
+			.from('users')
+			.select('stripeCustomerId, orgId')
+			.eq('id', user.id)
+			.eq('orgId', user.app_metadata?.['org_id'])
+			.single()
 
 	if (dbError || !userData?.stripeCustomerId) {
 		throw new Error(ERROR_MESSAGES.NO_STRIPE_CUSTOMER)

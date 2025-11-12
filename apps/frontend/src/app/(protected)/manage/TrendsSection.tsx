@@ -30,16 +30,15 @@ export function TrendsSection() {
   )
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-1">Trends & Performance</h2>
-        <p className="text-sm text-muted-foreground">
+    <section className="dashboard-section">
+      <div className="dashboard-section-header">
+        <h2 className="dashboard-section-title">Trends & Performance</h2>
+        <p className="dashboard-section-description">
           30-day comparison with previous period
         </p>
       </div>
 
-      {/* Trend Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="dashboard-trend-grid">
         <TrendCard
           title="Occupancy Rate"
           metric={trends?.occupancyRate}
@@ -56,7 +55,12 @@ export function TrendsSection() {
           title="Monthly Revenue"
           metric={trends?.monthlyRevenue}
           isLoading={isLoading}
-          valueFormatter={(v) => `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          valueFormatter={(v) =>
+            `$${(v / 100).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`
+          }
         />
         <TrendCard
           title="Open Maintenance"
@@ -66,8 +70,7 @@ export function TrendsSection() {
         />
       </div>
 
-      {/* Time Series Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="dashboard-grid">
         <MiniTrendChart
           title="Occupancy Rate (30 days)"
           data={occupancyTimeSeries}
@@ -79,10 +82,12 @@ export function TrendsSection() {
           title="Monthly Revenue (30 days)"
           data={revenueTimeSeries}
           isLoading={isRevenueLoading}
-          valueFormatter={(v) => `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-          color="hsl(142, 71%, 45%)" // Green for revenue
+          valueFormatter={(v) =>
+            `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+          }
+          color="var(--color-success)"
         />
       </div>
-    </div>
+    </section>
   )
 }

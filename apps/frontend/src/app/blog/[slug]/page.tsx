@@ -1,7 +1,6 @@
 'use client'
 
 import Footer from '#components/layout/footer'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { getBlogPost } from '#lib/blog-posts'
@@ -148,10 +147,6 @@ export default function BlogArticlePage({
 				{/* Article Header */}
 				<article className="container mx-auto px-6 pb-16 max-w-4xl">
 					<header className="mb-12">
-						<Badge className="mb-4 bg-primary/10 text-primary">
-							{post.category}
-						</Badge>
-
 						<h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
 							{post.title}
 						</h1>
@@ -194,17 +189,6 @@ export default function BlogArticlePage({
 								__html: sanitizedContent
 							}}
 						/>
-					</div>
-
-					{/* Tags */}
-					<div className="mt-12 pt-8 border-t border-border">
-						<div className="flex flex-wrap gap-2">
-							{post.tags.map(tag => (
-								<Badge key={tag} variant="outline" className="text-sm">
-									{tag}
-								</Badge>
-							))}
-						</div>
 					</div>
 
 					{/* CTA Section */}

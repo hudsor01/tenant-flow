@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import Stripe from 'stripe'
+import { Stripe } from 'stripe'
+import { AppConfigService } from '../config/app-config.service'
 
 /**
  * Centralized Stripe Client Service
@@ -13,14 +14,8 @@ import Stripe from 'stripe'
 export class StripeClientService {
 	private readonly stripe: Stripe
 
-	constructor() {
-		const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-
-		if (!stripeSecretKey) {
-			throw new Error(
-				'STRIPE_SECRET_KEY environment variable is required for Stripe integration'
-			)
-		}
+	constructor(private readonly config: AppConfigService) {
+		const stripeSecretKey = this.config.getStripeSecretKey()
 
 		// Initialize Stripe client with recommended configuration
 		// Using pinned API version to prevent breaking changes (2025 best practice)

@@ -1,7 +1,8 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter'
 import {
 	createMockSupabaseService,
-	createMockStripeConnectService
+	createMockStripeConnectService,
+	createMockAppConfigService
 } from '../../test-utils/mocks'
 import { TenantsService } from './tenants.service'
 
@@ -15,19 +16,22 @@ function createTenantsServiceWithMocks() {
 	const mockEventEmitter = {
 		emit: jest.fn()
 	} as unknown as jest.Mocked<EventEmitter2>
+	const mockAppConfigService = createMockAppConfigService()
 
 	// Directly instantiate the service to avoid Nest DI resolution issues
 	const tenantsService = new TenantsService(
 		mockSupabaseService as any,
 		mockEventEmitter as any,
-		mockStripeConnectService as any
+		mockStripeConnectService as any,
+		mockAppConfigService as any
 	)
 
 	return {
 		tenantsService,
 		mockSupabaseService,
 		mockStripeConnectService,
-		mockEventEmitter
+		mockEventEmitter,
+		mockAppConfigService
 	}
 }
 

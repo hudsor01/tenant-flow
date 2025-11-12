@@ -1,5 +1,26 @@
 import 'reflect-metadata'
 import { validate } from './config.schema'
+import { CONFIG_DEFAULTS } from './config.constants'
+
+type MutableConfig = Record<string, any>
+
+const BASE_CONFIG = {
+	DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
+	JWT_SECRET: 'a'.repeat(32),
+	SUPABASE_URL: 'https://project.supabase.co',
+	SUPABASE_SECRET_KEY: 'secret-key',
+	SUPABASE_JWT_SECRET: 'b'.repeat(32),
+	SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
+	SUPABASE_PROJECT_REF: 'project-ref',
+	STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',
+	STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret',
+	SUPPORT_EMAIL: 'support@tenantflow.app',
+	RESEND_API_KEY: 're_test_1234567890',
+	IDEMPOTENCY_KEY_SECRET: 'c'.repeat(32),
+	NEXT_PUBLIC_APP_URL: 'https://tenantflow.app'
+} as const
+
+const createValidConfig = (): MutableConfig => ({ ...BASE_CONFIG })
 
 describe('Configuration Schema Validation', () => {
 	let originalEnv: NodeJS.ProcessEnv
@@ -14,16 +35,7 @@ describe('Configuration Schema Validation', () => {
 
 	describe('Required Fields Validation', () => {
 		it('should validate minimal required configuration', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
 
 			expect(() => validate(config)).not.toThrow()
 			const result = validate(config)
@@ -33,30 +45,15 @@ describe('Configuration Schema Validation', () => {
 		})
 
 		it('should throw error for missing DATABASE_URL', () => {
-			const config = {
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
+			delete config.DATABASE_URL
 
 			expect(() => validate(config)).toThrow('DATABASE_URL')
 		})
 
 		it('should throw error for short JWT_SECRET', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'short', // Less than 32 characters
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
+			config.JWT_SECRET = 'short' // Less than 32 characters
 
 			expect(() => validate(config)).toThrow(
 				'JWT secret must be at least 32 characters'
@@ -64,16 +61,8 @@ describe('Configuration Schema Validation', () => {
 		})
 
 		it('should throw error for short SUPABASE_JWT_SECRET', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'short',
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
+			config.SUPABASE_JWT_SECRET = 'short'
 
 			expect(() => validate(config)).toThrow(
 				'Supabase JWT secret must be at least 32 characters'
@@ -81,50 +70,25 @@ describe('Configuration Schema Validation', () => {
 		})
 
 		it('should normalize SUPABASE_JWT_ALGORITHM to uppercase', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_ALGORITHM: 'rs256',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
+			config.SUPABASE_JWT_ALGORITHM = 'rs256'
 
 			const result = validate(config)
 			expect(result.SUPABASE_JWT_ALGORITHM).toBe('RS256')
 		})
 
 		it('should throw error for invalid SUPABASE_JWT_ALGORITHM', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_ALGORITHM: 'HS512',
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
+			config.SUPABASE_JWT_ALGORITHM = 'HS512'
 
 			expect(() => validate(config)).toThrow(
-				'Invalid option: expected one of "HS256"|"RS256"|"ES256"'
+				'Invalid option: expected one of "ES256"|"RS256"'
 			)
 		})
 
 		it('should throw error for invalid SUPABASE_URL', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'not-a-valid-url',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
+			config.SUPABASE_URL = 'not-a-valid-url'
 
 			expect(() => validate(config)).toThrow('Must be a valid URL')
 		})
@@ -132,41 +96,25 @@ describe('Configuration Schema Validation', () => {
 
 	describe('Default Values', () => {
 		it('should apply default values for optional fields', () => {
-			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123'
-			}
+			const config = createValidConfig()
 
 			const result = validate(config)
 
-			expect(result.NODE_ENV).toBe('production') // Default
-			expect(result.PORT).toBe(4600) // Default
-			expect(result.JWT_EXPIRES_IN).toBe('7d') // Default
-			expect(result.LOG_LEVEL).toBe('info') // Default
-			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default
-			expect(result.STORAGE_BUCKET).toBe('tenant-flow-storage') // Default
-			expect(result.ENABLE_METRICS).toBe(true) // Default
-			expect(result.ENABLE_SWAGGER).toBe(false) // Default
-			expect(result.ENABLE_RATE_LIMITING).toBe(true) // Default
-			expect(result.ALLOW_LOCALHOST_CORS).toBe(false) // Default
+			expect(result.NODE_ENV).toBe(CONFIG_DEFAULTS.NODE_ENV) // Default
+			expect(result.PORT).toBe(CONFIG_DEFAULTS.PORT) // Default
+			expect(result.JWT_EXPIRES_IN).toBe(CONFIG_DEFAULTS.JWT_EXPIRES_IN) // Default
+			expect(result.LOG_LEVEL).toBe(CONFIG_DEFAULTS.LOG_LEVEL) // Default
+			expect(result.STORAGE_PROVIDER).toBe(CONFIG_DEFAULTS.STORAGE_PROVIDER) // Default
+			expect(result.STORAGE_BUCKET).toBe(CONFIG_DEFAULTS.STORAGE_BUCKET) // Default
+			expect(result.ENABLE_METRICS).toBe(CONFIG_DEFAULTS.ENABLE_METRICS) // Default
+			expect(result.ENABLE_SWAGGER).toBe(CONFIG_DEFAULTS.ENABLE_SWAGGER) // Default
+			expect(result.ENABLE_RATE_LIMITING).toBe(CONFIG_DEFAULTS.ENABLE_RATE_LIMITING) // Default
+			expect(result.ALLOW_LOCALHOST_CORS).toBe(CONFIG_DEFAULTS.ALLOW_LOCALHOST_CORS) // Default
 		})
 
 		it('should override defaults with provided values', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				NODE_ENV: 'development',
 				PORT: '3000',
 				JWT_EXPIRES_IN: '1d',
@@ -189,14 +137,7 @@ describe('Configuration Schema Validation', () => {
 	describe('Type Transformations', () => {
 		it('should transform string port to number', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				PORT: '8080'
 			}
 
@@ -207,14 +148,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should transform string booleans to actual booleans', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				ENABLE_METRICS: 'true',
 				ENABLE_SWAGGER: false,
 				DOCKER_CONTAINER: 'true',
@@ -230,14 +164,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should handle STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS number transformation', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: '20'
 			}
 
@@ -253,14 +180,7 @@ describe('Configuration Schema Validation', () => {
 
 			for (const env of validEnvs) {
 				const config = {
-					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-					JWT_SECRET: 'a'.repeat(32),
-					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'secret-key',
-					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-					STRIPE_SECRET_KEY: 'sk_test_123',
-					STRIPE_WEBHOOK_SECRET: 'whsec_123',
+					...createValidConfig(),
 					NODE_ENV: env
 				}
 
@@ -272,14 +192,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should reject invalid NODE_ENV values', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				NODE_ENV: 'invalid-env'
 			}
 
@@ -291,14 +204,7 @@ describe('Configuration Schema Validation', () => {
 
 			for (const level of validLogLevels) {
 				const config = {
-					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-					JWT_SECRET: 'a'.repeat(32),
-					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'secret-key',
-					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-					STRIPE_SECRET_KEY: 'sk_test_123',
-					STRIPE_WEBHOOK_SECRET: 'whsec_123',
+					...createValidConfig(),
 					LOG_LEVEL: level
 				}
 
@@ -313,14 +219,7 @@ describe('Configuration Schema Validation', () => {
 
 			for (const provider of validProviders) {
 				const config = {
-					DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-					JWT_SECRET: 'a'.repeat(32),
-					SUPABASE_URL: 'https://project.supabase.co',
-					SUPABASE_SECRET_KEY: 'secret-key',
-					SUPABASE_JWT_SECRET: 'b'.repeat(32),
-					SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-					STRIPE_SECRET_KEY: 'sk_test_123',
-					STRIPE_WEBHOOK_SECRET: 'whsec_123',
+					...createValidConfig(),
 					STORAGE_PROVIDER: provider
 				}
 
@@ -334,14 +233,7 @@ describe('Configuration Schema Validation', () => {
 	describe('Email Validation', () => {
 		it('should validate email format for FROM_EMAIL', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				FROM_EMAIL: 'noreply@example.com'
 			}
 
@@ -350,14 +242,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should reject invalid email format for FROM_EMAIL', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				FROM_EMAIL: 'not-an-email'
 			}
 
@@ -366,14 +251,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should validate email format for RESEND_FROM_EMAIL', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				RESEND_FROM_EMAIL: 'support@tenantflow.app'
 			}
 
@@ -384,14 +262,7 @@ describe('Configuration Schema Validation', () => {
 	describe('Number String Validation', () => {
 		it('should validate number string fields', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				DATABASE_MAX_CONNECTIONS: '20',
 				DATABASE_CONNECTION_TIMEOUT: '30000',
 				RATE_LIMIT_TTL: '900',
@@ -406,14 +277,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should reject non-numeric strings for number fields', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				DATABASE_MAX_CONNECTIONS: 'not-a-number'
 			}
 
@@ -425,14 +289,7 @@ describe('Configuration Schema Validation', () => {
 	describe('Session Secret Validation', () => {
 		it('should validate minimum length for SESSION_SECRET', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				SESSION_SECRET: 'c'.repeat(32)
 			}
 
@@ -441,14 +298,7 @@ describe('Configuration Schema Validation', () => {
 
 		it('should reject short SESSION_SECRET', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
-				JWT_SECRET: 'a'.repeat(32),
-				SUPABASE_URL: 'https://project.supabase.co',
-				SUPABASE_SECRET_KEY: 'secret-key',
-				SUPABASE_JWT_SECRET: 'b'.repeat(32),
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
+				...createValidConfig(),
 				SESSION_SECRET: 'short'
 			}
 
@@ -461,14 +311,10 @@ describe('Configuration Schema Validation', () => {
 	describe('Multiple Validation Errors', () => {
 		it('should report multiple validation errors', () => {
 			const config = {
-				DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
+				...createValidConfig(),
 				JWT_SECRET: 'short', // Too short
 				SUPABASE_URL: 'not-a-url', // Invalid URL
-				SUPABASE_SECRET_KEY: 'secret-key',
 				SUPABASE_JWT_SECRET: 'also-short', // Too short
-				SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-				STRIPE_SECRET_KEY: 'sk_test_123',
-				STRIPE_WEBHOOK_SECRET: 'whsec_123',
 				FROM_EMAIL: 'not-an-email', // Invalid email
 				NODE_ENV: 'invalid-env' // Invalid enum
 			}

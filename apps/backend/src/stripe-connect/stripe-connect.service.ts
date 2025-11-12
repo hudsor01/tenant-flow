@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import * as countries from 'i18n-iso-countries'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
+import { AppConfigService } from '../config/app-config.service'
 
 export interface CreateConnectedAccountParams {
 	userId: string
@@ -49,10 +50,11 @@ export class StripeConnectService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService
+		private readonly stripeClientService: StripeClientService,
+		private readonly appConfigService: AppConfigService
 	) {
 		this.stripe = this.stripeClientService.getClient()
-		this.defaultCountry = process.env.STRIPE_CONNECT_DEFAULT_COUNTRY || 'US'
+		this.defaultCountry = this.appConfigService.getStripeConnectDefaultCountry()
 	}
 
 	/**
@@ -140,8 +142,8 @@ export class StripeConnectService {
 			// Create account link for onboarding
 			const accountLink = await this.stripe.accountLinks.create({
 				account: account.id,
-				refresh_url: `${process.env.FRONTEND_URL}/settings/connect/refresh`,
-				return_url: `${process.env.FRONTEND_URL}/settings/connect/success`,
+				refresh_url: `${this.appConfigService.getFrontendUrl()}/settings/connect/refresh`,
+				return_url: `${this.appConfigService.getFrontendUrl()}/settings/connect/success`,
 				type: 'account_onboarding'
 			})
 
@@ -213,8 +215,8 @@ export class StripeConnectService {
 	async createAccountLink(accountId: string): Promise<string> {
 		const accountLink = await this.stripe.accountLinks.create({
 			account: accountId,
-			refresh_url: `${process.env.FRONTEND_URL}/settings/connect/refresh`,
-			return_url: `${process.env.FRONTEND_URL}/settings/connect/success`,
+			refresh_url: `${this.appConfigService.getFrontendUrl()}/settings/connect/refresh`,
+			return_url: `${this.appConfigService.getFrontendUrl()}/settings/connect/success`,
 			type: 'account_onboarding'
 		})
 

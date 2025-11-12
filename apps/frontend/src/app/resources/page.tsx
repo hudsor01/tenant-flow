@@ -1,7 +1,6 @@
 'use client'
 
 import Footer from '#components/layout/footer'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import {
@@ -226,14 +225,6 @@ export default function ResourcesPage() {
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center max-w-4xl mx-auto space-y-8">
-						<Badge
-							variant="secondary"
-							className="px-4 py-2 text-sm font-medium bg-primary/5 text-primary border-primary/20"
-						>
-							<Sparkles className="size-4 mr-2" />
-							Learning Resources
-						</Badge>
-
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
 							Everything you need to{' '}
 							<span className="text-foreground font-semibold">succeed</span>
@@ -266,14 +257,6 @@ export default function ResourcesPage() {
 								href={link.href}
 								className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
 							>
-								{link.badge && (
-									<Badge
-										variant="secondary"
-										className="absolute top-4 right-4 text-xs bg-primary/10 text-primary border-primary/20"
-									>
-										{link.badge}
-									</Badge>
-								)}
 								<div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
 									{link.icon}
 								</div>
@@ -323,13 +306,6 @@ export default function ResourcesPage() {
 												<h3 className="font-bold text-foreground text-2xl">
 													{resource.title}
 												</h3>
-												<Badge
-													variant="outline"
-													className="text-xs border-border"
-												>
-													<Clock className="size-3 mr-1" />
-													{resource.stats}
-												</Badge>
 											</div>
 											<p className="text-muted-foreground mb-6 leading-relaxed">
 												{resource.description}

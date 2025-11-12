@@ -75,7 +75,7 @@ function PaymentMethodDisplay({ method }: { method: PaymentMethodResponse }) {
 				accountType: null
 			}
 		}
-		
+
 		if (pm.type === 'us_bank_account') {
 			return {
 				icon: 'https://js.stripe.com/v3/fingerprinted/img/payment-methods/ach-debit-dark.svg',

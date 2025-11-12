@@ -50,6 +50,8 @@ import { StripeAccessControlService } from '../billing/stripe-access-control.ser
 import { StripeSyncController } from './stripe-sync.controller'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
+import { AppConfigService } from '../../config/app-config.service'
+import { createMockAppConfigService } from '../../test-utils/mocks'
 
 describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 	let controller: StripeSyncController
@@ -105,6 +107,10 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				{
 					provide: WebhookMonitoringService,
 					useValue: webhookMonitoringService
+				},
+				{
+					provide: AppConfigService,
+					useValue: createMockAppConfigService()
 				},
 				{
 					provide: CACHE_MANAGER,
