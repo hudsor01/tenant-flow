@@ -1,9 +1,7 @@
 'use client'
 
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { UserRole } from '@repo/shared/types/auth'
 import { useUserProfile } from './use-user-profile'
-
-type UserRole = Database['public']['Enums']['UserRole']
 
 /**
  * Hook to get user's role

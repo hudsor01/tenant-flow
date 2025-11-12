@@ -247,12 +247,12 @@ export default function AnalyticsPage() {
 											>
 												<stop
 													offset="5%"
-													stopColor="oklch(var(--chart-1))"
+													stopColor="var(--chart-1)"
 													stopOpacity={0.3}
 												/>
 												<stop
 													offset="95%"
-													stopColor="oklch(var(--chart-1))"
+													stopColor="var(--chart-1)"
 													stopOpacity={0}
 												/>
 											</linearGradient>
@@ -265,12 +265,12 @@ export default function AnalyticsPage() {
 											>
 												<stop
 													offset="5%"
-													stopColor="oklch(var(--chart-3))"
+													stopColor="var(--chart-3)"
 													stopOpacity={0.3}
 												/>
 												<stop
 													offset="95%"
-													stopColor="oklch(var(--chart-3))"
+													stopColor="var(--chart-3)"
 													stopOpacity={0}
 												/>
 											</linearGradient>
@@ -282,17 +282,17 @@ export default function AnalyticsPage() {
 										<XAxis
 											dataKey="month"
 											className="text-xs"
-											tick={{ fill: 'oklch(var(--muted-foreground))' }}
+											tick={{ fill: 'var(--muted-foreground)' }}
 										/>
 										<YAxis
 											className="text-xs"
-											tick={{ fill: 'oklch(var(--muted-foreground))' }}
+											tick={{ fill: 'var(--muted-foreground)' }}
 											tickFormatter={formatCurrency}
 										/>
 										<Tooltip
 											contentStyle={{
-												backgroundColor: 'oklch(var(--background))',
-												border: '1px solid oklch(var(--border))',
+												backgroundColor: 'var(--background)',
+												border: '1px solid var(--border)',
 												borderRadius: '8px'
 											}}
 											formatter={(value: number) => formatCurrency(value)}
@@ -301,7 +301,7 @@ export default function AnalyticsPage() {
 										<Area
 											type="monotone"
 											dataKey="revenue"
-											stroke="oklch(var(--chart-1))"
+											stroke="var(--chart-1)"
 											fillOpacity={1}
 											fill="url(#colorRevenue)"
 											name="Revenue"
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
 										<Area
 											type="monotone"
 											dataKey="profit"
-											stroke="oklch(var(--chart-3))"
+											stroke="var(--chart-3)"
 											fillOpacity={1}
 											fill="url(#colorProfit)"
 											name="Profit"
@@ -357,20 +357,20 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="name"
 												className="text-xs"
-												tick={{ fill: 'oklch(var(--muted-foreground))' }}
+												tick={{ fill: 'var(--muted-foreground)' }}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'oklch(var(--muted-foreground))' }}
+												tick={{ fill: 'var(--muted-foreground)' }}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'oklch(var(--background))',
-													border: '1px solid oklch(var(--border))',
+													backgroundColor: 'var(--background)',
+													border: '1px solid var(--border)',
 													borderRadius: '8px'
 												}}
 											/>
-											<Bar dataKey="count" fill="oklch(var(--chart-2))" />
+											<Bar dataKey="count" fill="var(--chart-2)" />
 										</BarChart>
 									</ResponsiveContainer>
 								) : (
@@ -403,21 +403,21 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="propertyName"
 												className="text-xs"
-												tick={{ fill: 'oklch(var(--muted-foreground))' }}
+												tick={{ fill: 'var(--muted-foreground)' }}
 												angle={-45}
 												textAnchor="end"
 												height={80}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'oklch(var(--muted-foreground))' }}
+												tick={{ fill: 'var(--muted-foreground)' }}
 												domain={[0, 100]}
 												tickFormatter={formatPercent}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'oklch(var(--background))',
-													border: '1px solid oklch(var(--border))',
+													backgroundColor: 'var(--background)',
+													border: '1px solid var(--border)',
 													borderRadius: '8px'
 												}}
 												formatter={(value: number) => formatPercent(value)}
@@ -425,7 +425,7 @@ export default function AnalyticsPage() {
 											<Line
 												type="monotone"
 												dataKey="occupancyRate"
-												stroke="oklch(var(--chart-4))"
+												stroke="var(--chart-4)"
 												strokeWidth={2}
 												name="Occupancy Rate"
 											/>

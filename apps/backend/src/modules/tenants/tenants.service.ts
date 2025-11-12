@@ -19,6 +19,7 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import type {
+	RentPaymentStatus,
 	Tenant,
 	TenantStats,
 	TenantSummary,
@@ -164,7 +165,7 @@ export class TenantsService {
 	 */
 	private calculatePaymentStatus(
 		payment: {
-			status: Database['public']['Enums']['RentPaymentStatus'] | null
+			status: RentPaymentStatus | null
 			dueDate: string | null
 		} | null
 	): string | null {
@@ -190,8 +191,7 @@ export class TenantsService {
 			: null
 
 		// Use enum constants for type-safe comparisons
-		type PaymentStatus = Database['public']['Enums']['RentPaymentStatus']
-		const status: PaymentStatus = payment.status
+		const status = payment.status as RentPaymentStatus
 
 		// Map payment status to user-friendly status
 		if (status === 'PAID' || status === 'SUCCEEDED') {
@@ -531,7 +531,7 @@ export class TenantsService {
 		const paymentMap = new Map<
 			string,
 			{
-				status: Database['public']['Enums']['RentPaymentStatus']
+				status: RentPaymentStatus
 				dueDate: string
 			}
 		>()
@@ -540,8 +540,7 @@ export class TenantsService {
 				const key = `${payment.tenantId}-${payment.leaseId}`
 				if (!paymentMap.has(key) && payment.status && payment.dueDate) {
 					paymentMap.set(key, {
-						status:
-							payment.status as Database['public']['Enums']['RentPaymentStatus'],
+						status: payment.status as RentPaymentStatus,
 						dueDate: payment.dueDate
 					})
 				}
@@ -559,7 +558,7 @@ export class TenantsService {
 		paymentMap: Map<
 			string,
 			{
-				status: Database['public']['Enums']['RentPaymentStatus']
+				status: RentPaymentStatus
 				dueDate: string
 			}
 		>
@@ -930,9 +929,7 @@ export class TenantsService {
 					// Type assertion for payment status from database
 					const typedPayment = payment
 						? {
-								status: payment.status as
-									| Database['public']['Enums']['RentPaymentStatus']
-									| null,
+								status: payment.status as RentPaymentStatus | null,
 								dueDate: payment.dueDate
 							}
 						: null
