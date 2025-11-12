@@ -2,7 +2,6 @@
 
 import NumberFlow from '@number-flow/react'
 import { OwnerSubscribeDialog } from '#components/pricing/owner-subscribe-dialog'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
 	Card,
@@ -289,7 +288,7 @@ export function KiboStylePricing() {
 		<>
 			<div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-16 text-center sm:px-6 lg:px-0">
 				<div className="flex flex-col items-center justify-center gap-8">
-					<h1 className="mb-0 text-balance font-medium text-5xl tracking-tighter">
+					<h1 className="mb-0 text-section-title tracking-tight text-foreground">
 						Simple, transparent pricing
 					</h1>
 					<p className="mx-auto mt-0 mb-0 max-w-2xl text-balance text-lg text-muted-foreground">
@@ -307,18 +306,12 @@ export function KiboStylePricing() {
 					defaultValue={frequency}
 					onValueChange={value => setFrequency(value as 'monthly' | 'yearly')}
 				>
-					<TabsList className="inline-flex rounded-full bg-muted/60 p-1 shadow-sm">
-						<TabsTrigger value="monthly" className="rounded-full px-5 py-2">
+					<TabsList className="inline-flex rounded-lg bg-muted/60 p-1 shadow-sm">
+						<TabsTrigger value="monthly" className="rounded-md px-5 py-2">
 							Monthly
 						</TabsTrigger>
-						<TabsTrigger value="yearly" className="rounded-full px-5 py-2">
+						<TabsTrigger value="yearly" className="rounded-md px-5 py-2">
 							Yearly
-							<Badge
-								variant="secondary"
-								className="ml-2 rounded-full bg-primary/10 text-primary"
-							>
-								Save 17%
-							</Badge>
 						</TabsTrigger>
 					</TabsList>
 				</Tabs>
@@ -331,11 +324,6 @@ export function KiboStylePricing() {
 							)}
 							key={plan.id}
 						>
-							{plan.popular && (
-								<Badge className="absolute right-4 top-4 rounded-full bg-primary text-primary-foreground">
-									Most Popular
-								</Badge>
-							)}
 							<CardHeader className="space-y-4 pb-6 text-left">
 								<CardTitle className="text-2xl font-semibold tracking-tight">
 									{plan.name}
