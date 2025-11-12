@@ -599,25 +599,18 @@ export class MaintenanceService {
 				}
 			)
 
-			// Emit maintenance updated event with inline context
-			// Get unit and property names for event
-			const { data: unit } = await client
+			// PERF-001: Optimized to single query with JOIN instead of sequential queries
+			// Get unit and property names for event in one roundtrip
+			const { data: unitData } = await client
 				.from('unit')
-				.select('unitNumber, propertyId')
+				.select('unitNumber, property:property(name)')
 				.eq('id', updated.unitId)
 				.single()
 
-			let propertyName = 'Unknown Property'
-			const unitName = unit?.unitNumber || 'Unknown Unit'
-
-			if (unit?.propertyId) {
-				const { data: property } = await client
-					.from('property')
-					.select('name')
-					.eq('id', unit.propertyId)
-					.single()
-				propertyName = property?.name || 'Unknown Property'
-			}
+			const unitName = unitData?.unitNumber || 'Unknown Unit'
+			const propertyName =
+				(unitData?.property as { name: string } | null)?.name ||
+				'Unknown Property'
 
 			this.eventEmitter.emit(
 				'maintenance.updated',
