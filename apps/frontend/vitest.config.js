@@ -16,7 +16,9 @@ export default defineConfig({
 		watch: process.env.CI ? false : undefined,
 		globals: true,
 		setupFiles: ['./src/test/setup.ts'],
-		// Use vmThreads pool for better stability
+		// Use vmThreads pool with singleThread to prevent "Timeout starting forks runner" errors
+		// The default forks pool was causing timeout issues during test initialization
+		// vmThreads provides better stability for React component tests with jsdom environment
 		pool: 'vmThreads',
 		poolOptions: {
 			vmThreads: {
