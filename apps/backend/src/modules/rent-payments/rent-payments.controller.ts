@@ -13,6 +13,11 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import {
+	CreateRentPaymentDto,
+	SetupAutopayDto,
+	CancelAutopayDto
+} from './dto/rent-payment.dto'
 
 @Controller('rent-payments')
 @UseGuards(JwtAuthGuard)
@@ -26,17 +31,12 @@ export class RentPaymentsController {
 	 * Phase 5: One-time Payments
 	 *
 	 * POST /api/v1/rent-payments
+	 * SECURITY (SEC-003): Validated with Zod schema via ZodValidationPipe
 	 */
 	@Post()
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 payment attempts per minute (SEC-002)
 	async createPayment(
-		@Body()
-		body: {
-			tenantId: string
-			leaseId: string
-			amount: number
-			paymentMethodId: string
-		},
+		@Body() body: CreateRentPaymentDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		const requestingUserId = req.user.id
@@ -202,32 +202,23 @@ export class RentPaymentsController {
 	/**
 	 * Setup autopay (recurring rent subscription) for a tenant
 	 * POST /api/v1/rent-payments/autopay/setup
+	 * SECURITY (SEC-003): Validated with Zod schema via ZodValidationPipe
 	 */
 	@Post('autopay/setup')
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 autopay setup attempts per minute (SEC-002)
 	async setupAutopay(
-		@Body()
-		body: {
-			tenantId: string
-			leaseId: string
-			paymentMethodId?: string
-		},
+		@Body() body: SetupAutopayDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
 			`Setting up autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
 		)
 
-		const params: {
-			tenantId: string
-			leaseId: string
-			paymentMethodId?: string
-		} = {
+		// Extract validated properties (DTO is validated by ZodValidationPipe)
+		const params = {
 			tenantId: body.tenantId,
-			leaseId: body.leaseId
-		}
-		if (body.paymentMethodId !== undefined) {
-			params.paymentMethodId = body.paymentMethodId
+			leaseId: body.leaseId,
+			...(body.paymentMethodId && { paymentMethodId: body.paymentMethodId })
 		}
 
 		const result = await this.rentPaymentsService.setupTenantAutopay(
@@ -245,28 +236,19 @@ export class RentPaymentsController {
 	/**
 	 * Cancel autopay for a tenant
 	 * POST /api/v1/rent-payments/autopay/cancel
+	 * SECURITY (SEC-003): Validated with Zod schema via ZodValidationPipe
 	 */
 	@Post('autopay/cancel')
 	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 cancellation requests per minute (SEC-002)
 	async cancelAutopay(
-		@Body()
-		body: {
-			tenantId: string
-			leaseId: string
-		},
+		@Body() body: CancelAutopayDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
 			`Canceling autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
 		)
 
-		await this.rentPaymentsService.cancelTenantAutopay(
-			{
-				tenantId: body.tenantId,
-				leaseId: body.leaseId
-			},
-			req.user.id
-		)
+		await this.rentPaymentsService.cancelTenantAutopay(body, req.user.id)
 
 		return {
 			success: true,
