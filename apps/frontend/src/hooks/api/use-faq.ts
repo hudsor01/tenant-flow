@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { API_BASE_URL } from '#lib/api-config'
 
 const logger = createLogger({ component: 'FAQHooks' })
 
@@ -10,12 +11,16 @@ const logger = createLogger({ component: 'FAQHooks' })
  * Provides React Query hooks for FAQ data fetching
  */
 
+const FAQ_API_BASE = `${API_BASE_URL}/api/v1/faq`
+
 const FAQ_KEYS = {
 	all: ['faq'] as const,
 	categories: () => [...FAQ_KEYS.all, 'categories'] as const,
 	category: (slug: string) => [...FAQ_KEYS.all, 'category', slug] as const,
 	analytics: () => [...FAQ_KEYS.all, 'analytics'] as const
 }
+
+const faqEndpoint = (path: string = '') => `${FAQ_API_BASE}${path}`
 
 /**
  * Hook to fetch all FAQ categories with their questions
@@ -24,7 +29,7 @@ export function useFAQs() {
 	return useQuery({
 		queryKey: FAQ_KEYS.categories(),
 		queryFn: async (): Promise<FAQCategoryWithQuestions[]> => {
-			const response = await fetch('/api/v1/faq')
+			const response = await fetch(faqEndpoint())
 			if (!response.ok) {
 				throw new Error(
 					`Failed to fetch FAQs: ${response.status} ${response.statusText}`
@@ -45,7 +50,7 @@ export function useFAQCategory(slug: string) {
 	return useQuery({
 		queryKey: FAQ_KEYS.category(slug),
 		queryFn: async (): Promise<FAQCategoryWithQuestions | null> => {
-			const response = await fetch(`/api/v1/faq/category/${slug}`)
+			const response = await fetch(faqEndpoint(`/category/${slug}`))
 			if (response.status === 404) {
 				return null
 			}
@@ -68,7 +73,7 @@ export function useFAQCategory(slug: string) {
  */
 export async function trackQuestionView(questionId: string): Promise<void> {
 	try {
-		const response = await fetch(`/api/v1/faq/question/${questionId}/view`, {
+		const response = await fetch(faqEndpoint(`/question/${questionId}/view`), {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -93,12 +98,15 @@ export async function trackQuestionView(questionId: string): Promise<void> {
  */
 export async function markQuestionHelpful(questionId: string): Promise<void> {
 	try {
-		const response = await fetch(`/api/v1/faq/question/${questionId}/helpful`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
+		const response = await fetch(
+			faqEndpoint(`/question/${questionId}/helpful`),
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
 			}
-		})
+		)
 
 		if (!response.ok) {
 			logger.warn('Failed to mark question helpful', {

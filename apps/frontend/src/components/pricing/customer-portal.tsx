@@ -184,32 +184,32 @@ export function CustomerPortalCard({
 	// Plan tier configuration
 	const tierConfig = {
 		starter: {
-			gradient: 'from-primary to-primary',
-			bgGradient: 'from-primary/5 to-primary/10',
+			gradient: 'bg-primary',
+			bgGradient: 'bg-primary/5',
 			borderColor: 'border-primary/20',
 			textColor: 'text-primary'
 		},
 		growth: {
-			gradient: 'from-accent to-accent',
-			bgGradient: 'from-accent/5 to-accent/10',
+			gradient: 'bg-accent',
+			bgGradient: 'bg-accent/5',
 			borderColor: 'border-accent/20',
 			textColor: 'text-accent'
 		},
 		professional: {
-			gradient: 'from-primary to-primary',
-			bgGradient: 'from-primary/5 to-primary/10',
+			gradient: 'bg-primary',
+			bgGradient: 'bg-primary/5',
 			borderColor: 'border-primary/20',
 			textColor: 'text-primary'
 		},
 		tenantflow_max: {
-			gradient: 'from-primary to-primary',
-			bgGradient: 'from-primary/5 to-primary/10',
+			gradient: 'bg-primary',
+			bgGradient: 'bg-primary/5',
 			borderColor: 'border-primary/20',
 			textColor: 'text-primary'
 		},
 		enterprise: {
-			gradient: 'from-accent to-accent',
-			bgGradient: 'from-accent/5 to-accent/10',
+			gradient: 'bg-accent',
+			bgGradient: 'bg-accent/5',
 			borderColor: 'border-accent/20',
 			textColor: 'text-accent'
 		}
