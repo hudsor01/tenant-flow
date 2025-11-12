@@ -12,7 +12,7 @@ export default function TermsPage() {
 	return (
 		<div className="relative min-h-screen flex flex-col">
 			<Navbar />
-			<div className="mx-auto min-h-screen max-w-4xl px-6 py-16 pt-32">
+			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing pt-32">
 			<h1 className="mb-8 text-4xl font-bold">Terms of Service</h1>
 			<p className="mb-6 text-sm text-muted-foreground">
 				Last Updated: October 5, 2025

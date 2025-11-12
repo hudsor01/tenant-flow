@@ -115,7 +115,7 @@ export interface StorageUploadResult {
 	bucket: string
 }
 
-export type { FileUploadOptions } from './file-upload'
+export type { FileUploadOptions } from './file-upload.js'
 
 export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
@@ -265,7 +265,7 @@ export type StripeWebhookEventTypes =
 
 // NOTE: Import Stripe webhook types from '@repo/shared/types/stripe' instead
 
-export type { WebhookNotification } from './stripe'
+export type { WebhookNotification } from './stripe.js'
 
 // SECURITY DOMAIN
 
@@ -288,7 +288,7 @@ export interface CSPReportBody {
 	'csp-report': CSPViolationReport
 }
 
-export type { SecurityEvent } from './security'
+export type { SecurityEvent } from './security.js'
 
 // SecurityMetrics moved to security.ts to eliminate duplication
 
