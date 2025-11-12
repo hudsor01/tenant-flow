@@ -1,6 +1,6 @@
 /**
  * Tenants Service - Ultra-Native NestJS Implementation
- *
+
  * Direct Supabase access, no repository abstractions
  * Controller → Service → Supabase
  */
@@ -1470,9 +1470,9 @@ export class TenantsService {
 	// These are kept as RPC calls since they involve complex workflows beyond basic CRUD
 
 	/**
-	 * ✅ NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
+	 * NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system instead of custom tokens
-	 *
+
 	 * @param userId - Owner user ID
 	 * @param tenantId - Tenant ID to invite
 	 * @param propertyId - Optional property ID for context
@@ -1683,7 +1683,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * ✅ NEW: Complete tenant invitation with lease creation (Industry Standard)
+	 * NEW: Complete tenant invitation with lease creation (Industry Standard)
 	 * Creates tenant + lease + sends Supabase Auth invitation in one atomic operation
 	 * Based on Buildium/AppFolio/TurboTenant best practices
 	 */
@@ -1718,15 +1718,15 @@ export class TenantsService {
 
 		/**
 		 * CURRENCY CONVENTION: All rent amounts are stored and processed in CENTS
-		 *
+
 		 * - Frontend sends: cents (e.g., 250000 = $2,500.00)
 		 * - Backend stores: cents in database
 		 * - Stripe receives: cents (native format)
-		 *
+
 		 *Removed double conversion (backend was multiplying cents by 100 again)
 		 * Previously: Frontend sent cents → Backend multiplied by 100 → Stripe received wrong amount
 		 * Now: Frontend sends cents → Backend validates as-is → Stripe receives correct amount
-		 *
+
 		 * @param leaseData.rentAmount - Rent amount in CENTS (must be positive integer)
 		 * @throws BadRequestException if rentAmount is invalid or out of Stripe's range
 		 */
@@ -2655,7 +2655,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * ✅ NEW: Activate tenant from Supabase Auth user ID (Phase 3.1)
+	 * NEW: Activate tenant from Supabase Auth user ID (Phase 3.1)
 	 * Called from frontend after successful invitation acceptance
 	 * Calls database function to update tenant status
 	 */

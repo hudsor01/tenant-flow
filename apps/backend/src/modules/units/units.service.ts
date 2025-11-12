@@ -1,6 +1,6 @@
 /**
  * Units Service - Supabase Functions Pattern Implementation
- *
+
  * - NO ABSTRACTIONS: Service delegates to Supabase Functions directly
  * - KISS: Simple, focused service methods
  * - DRY: Supabase Functions handles data access logic
@@ -34,13 +34,13 @@ export class UnitsService {
 	) {}
 
 	/**
-	 * ❌ REMOVED: Manual property filtering violates RLS pattern
+	 * REMOVED: Manual property filtering violates RLS pattern
 	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */
 
 	/**
 	 * Get all units for a user via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async findAll(
 		token: string,
@@ -54,7 +54,7 @@ export class UnitsService {
 
 			this.logger.log('Finding all units via RLS-protected query', { query })
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual userId/propertyId filtering needed)
@@ -129,7 +129,7 @@ export class UnitsService {
 
 	/**
 	 * Get unit statistics via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async getStats(token: string): Promise<UnitStats> {
 		try {
@@ -140,7 +140,7 @@ export class UnitsService {
 
 			this.logger.log('Getting unit stats via RLS-protected query')
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// Get total units count (RLS automatically scopes to user's units)
@@ -216,7 +216,7 @@ export class UnitsService {
 
 	/**
 	 * Get units by property via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
 	 */
 	async findByProperty(token: string, propertyId: string): Promise<Unit[]> {
 		try {
@@ -233,7 +233,7 @@ export class UnitsService {
 				propertyId
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// RLS automatically verifies property ownership - no manual check needed
@@ -267,7 +267,7 @@ export class UnitsService {
 
 	/**
 	 * Find one unit by ID via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async findOne(token: string, unitId: string): Promise<Unit | null> {
 		try {
@@ -280,7 +280,7 @@ export class UnitsService {
 
 			this.logger.log('Finding one unit via RLS-protected query', { unitId })
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// RLS automatically verifies unit belongs to user's property
@@ -310,7 +310,7 @@ export class UnitsService {
 
 	/**
 	 * Create unit via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
 	 */
 	async create(token: string, createRequest: CreateUnitDto): Promise<Unit> {
 		try {
@@ -327,7 +327,7 @@ export class UnitsService {
 				createRequest
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
+			// RLS SECURITY: User-scoped client automatically verifies property ownership
 			const client = this.supabase.getUserClient(token)
 
 		// RLS automatically verifies property ownership - no manual check needed
@@ -375,7 +375,7 @@ export class UnitsService {
 
 	/**
 	 * Update unit via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
 	 */
 	async update(
 		token: string,
@@ -396,7 +396,7 @@ export class UnitsService {
 				updateRequest
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
+			// RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
 			const updateData: Record<string, unknown> = {
@@ -476,7 +476,7 @@ export class UnitsService {
 
 	/**
 	 * Remove unit via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
 	 */
 	async remove(token: string, unitId: string): Promise<void> {
 		try {
@@ -491,7 +491,7 @@ export class UnitsService {
 
 			this.logger.log('Removing unit via RLS-protected query', { unitId })
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
+			// RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
 			// Fetch unit metadata before deletion so we can invalidate property cache afterwards
@@ -536,7 +536,7 @@ export class UnitsService {
 
 	/**
 	 * Get units analytics via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async getAnalytics(
 		token: string,
@@ -552,7 +552,7 @@ export class UnitsService {
 				options
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			let queryBuilder = client.from('unit').select('*')
@@ -583,7 +583,7 @@ export class UnitsService {
 
 	/**
 	 * Get available units for a property via Supabase Functions
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
 	 */
 	async getAvailable(token: string, propertyId: string): Promise<Unit[]> {
 		try {
@@ -600,7 +600,7 @@ export class UnitsService {
 				propertyId
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('unit')
@@ -630,7 +630,7 @@ export class UnitsService {
 
 	/**
 	 * Update unit status via Supabase RPC function
-	 * ✅ RLS COMPLIANT: Delegates to update() which uses getUserClient(token)
+	 * RLS COMPLIANT: Delegates to update() which uses getUserClient(token)
 	 */
 	async updateStatus(
 		token: string,
@@ -666,7 +666,7 @@ export class UnitsService {
 	/**
 	 * Get unit statistics - replaces get_unit_statistics function
 	 * Uses Supabase Functions pattern instead of database function
-	 * ✅ RLS COMPLIANT: Delegates to getStats() and getAnalytics() which use getUserClient(token)
+	 * RLS COMPLIANT: Delegates to getStats() and getAnalytics() which use getUserClient(token)
 	 */
 	async getUnitStatistics(
 		token: string,

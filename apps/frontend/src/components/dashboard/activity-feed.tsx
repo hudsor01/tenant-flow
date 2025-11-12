@@ -114,7 +114,7 @@ export function ActivityFeed() {
 	return (
 		<div className="space-y-4">
 			{activities.map((activity: ActivityWithEnum) => {
-				// ✅ Null-safe icon retrieval with fallback
+				// Null-safe icon retrieval with fallback
 				const Icon = getIconForType(activity.entityType) ?? Clock
 
 				return (

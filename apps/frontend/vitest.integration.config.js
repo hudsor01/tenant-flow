@@ -38,8 +38,15 @@ export default defineConfig({
 		// Integration tests may take longer
 		testTimeout: 30000,
 		hookTimeout: 30000,
-		// Run serially to avoid conflicts with shared resources
-		threads: false,
+		// Use vmThreads pool with singleThread for cache-sensitive tests
+		// These tests share TanStack Query cache and require serial execution to avoid race conditions
+		// singleThread prevents tests from interfering with each other's optimistic locking and cache updates
+		pool: 'vmThreads',
+		poolOptions: {
+			vmThreads: {
+				singleThread: true
+			}
+		},
 		// Retry failed tests (network issues, etc.)
 		retry: 1
 	}
