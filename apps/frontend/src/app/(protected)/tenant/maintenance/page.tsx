@@ -40,13 +40,13 @@ export default function TenantMaintenancePage() {
 	const getStatusBadge = (status: string) => {
 		switch (status) {
 			case 'OPEN':
-				return 'bg-blue-50 text-blue-700 border-blue-200'
+				return 'badge badge-secondary'
 			case 'IN_PROGRESS':
-				return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+				return 'badge badge-warning'
 			case 'COMPLETED':
-				return 'bg-green-50 text-green-700 border-green-200'
+				return 'badge badge-success'
 			case 'CANCELED':
-				return 'bg-gray-50 text-gray-700 border-gray-200'
+				return 'badge badge-outline'
 			default:
 				return ''
 		}

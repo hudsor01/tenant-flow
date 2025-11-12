@@ -57,7 +57,7 @@ export function ModernExplodedPieChart({
 		},
 		maintenance: {
 			label: 'Maintenance',
-			color: 'oklch(var(--destructive))' // Destructive red
+			color: 'var(--destructive)' // Destructive red
 		},
 		pending: {
 			label: 'Pending',

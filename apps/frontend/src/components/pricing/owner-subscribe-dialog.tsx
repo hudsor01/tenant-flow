@@ -15,7 +15,7 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { Button } from '#components/ui/button'
-import { createClient } from '#lib/supabase/client'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { useForm } from '@tanstack/react-form'
 import { signupFormSchema } from '@repo/shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'
@@ -43,7 +43,7 @@ export function OwnerSubscribeDialog({
 
 	const modalId = 'owner-subscribe'
 
-	const supabase = useMemo(() => createClient(), [])
+	const supabase = useMemo(() => getSupabaseClientInstance(), [])
 
 	const form = useForm({
 		defaultValues: {

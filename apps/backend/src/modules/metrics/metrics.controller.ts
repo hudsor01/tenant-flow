@@ -1,4 +1,5 @@
 import { Controller, Get, Req, Res, UnauthorizedException, SetMetadata, Logger } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { PrometheusController } from '@willsoto/nestjs-prometheus'
 import { ConfigService } from '@nestjs/config'
 import { timingSafeEqual } from 'crypto'
@@ -22,6 +23,7 @@ export class MetricsController extends PrometheusController {
 	}
 
 	@SetMetadata('isPublic', true)
+	@Throttle({ default: { ttl: 60000, limit: 60 } })
 	@Get()
 	async getMetrics(@Req() req: Request, @Res() res: Response) {
 		// Validate bearer token

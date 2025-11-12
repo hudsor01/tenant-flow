@@ -17,3 +17,15 @@ export type FormFieldApi<TValue = unknown> = {
   handleChange: (value: TValue | ((prev: TValue) => TValue)) => void
   handleBlur: () => void
 }
+
+/**
+ * Generic form state type with validation support
+ */
+export interface FormState<T> {
+	values: T
+	errors: Record<keyof T, string[]>
+	touched: Record<keyof T, boolean>
+	isValid: boolean
+	isSubmitting: boolean
+	isValidating: boolean
+}

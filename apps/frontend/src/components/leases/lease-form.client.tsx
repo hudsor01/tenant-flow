@@ -23,14 +23,11 @@ import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitsByProperty } from '#hooks/api/use-unit'
 import { useTenantList } from '#hooks/api/use-tenant'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Lease, Property, Unit } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Lease, LeaseStatus, Property, Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
 import { handleMutationError } from '#lib/mutation-error-handler'
-
-type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 
 interface LeaseFormProps {
 	mode: 'create' | 'edit'

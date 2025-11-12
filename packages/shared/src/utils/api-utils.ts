@@ -14,7 +14,7 @@
  */
 export function getApiBaseUrl(): string {
 	// Prefer explicit env var when available
-	const envBase = process.env.NEXT_PUBLIC_API_BASE_URL
+	const envBase = process.env["NEXT_PUBLIC_API_BASE_URL"]
 
 	if (envBase) {
 		const cleaned = envBase.replace(/\/$/, '')

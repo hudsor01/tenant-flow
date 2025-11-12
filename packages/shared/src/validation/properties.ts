@@ -10,6 +10,7 @@ import {
 	uuidSchema
 } from './common.js'
 import { imageUrlSchema } from './image-url.schemas.js'
+import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Property type schema - uses auto-generated Supabase enums
 export const propertyTypeSchema = z.enum(
@@ -24,11 +25,11 @@ export const propertyStatusSchema = z.enum(
 export const propertyInputSchema = z.object({
 	name: nonEmptyStringSchema
 		.min(3, 'Property name must be at least 3 characters')
-		.max(100, 'Property name cannot exceed 100 characters'),
+		.max(VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH, `Property name cannot exceed ${VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH} characters`),
 
 	description: z
 		.string()
-		.max(2000, 'Description cannot exceed 2000 characters')
+		.max(VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH, `Description cannot exceed ${VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH} characters`)
 		.optional()
 		.or(z.literal('')),
 
@@ -57,24 +58,24 @@ export const propertyInputSchema = z.object({
 
 	bedrooms: positiveNumberSchema
 		.int('Bedrooms must be a whole number')
-		.max(50, 'Maximum 50 bedrooms allowed')
+		.max(VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS, `Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS} bedrooms allowed`)
 		.optional(),
 
 	bathrooms: positiveNumberSchema
-		.max(50, 'Maximum 50 bathrooms allowed')
+		.max(VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS, `Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS} bathrooms allowed`)
 		.optional(),
 
 	squareFootage: positiveNumberSchema
 		.int('Square footage must be a whole number')
-		.max(1000000, 'Square footage seems unrealistic')
+		.max(VALIDATION_LIMITS.SQUARE_FOOTAGE_MAXIMUM, 'Square footage seems unrealistic')
 		.optional(),
 
 	rent: nonNegativeNumberSchema
-		.max(1000000, 'Rent amount seems unrealistic')
+		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, 'Rent amount seems unrealistic')
 		.optional(),
 
 	deposit: nonNegativeNumberSchema
-		.max(1000000, 'Deposit amount seems unrealistic')
+		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, 'Deposit amount seems unrealistic')
 		.optional(),
 
 	images: z.array(urlSchema).optional(),
@@ -87,8 +88,8 @@ export const propertySchema = propertyInputSchema.extend({
 	id: uuidSchema,
 	ownerId: uuidSchema,
 	status: propertyStatusSchema,
-	createdAt: z.date(),
-	updatedAt: z.date()
+	createdAt: z.string(),
+	updatedAt: z.string()
 })
 
 // Property update schema (partial input)
@@ -109,8 +110,8 @@ export const propertyQuerySchema = z.object({
 	status: propertyStatusSchema.optional(),
 	sortBy: z.enum(['name', 'createdAt', 'rent', 'city']).optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional(),
-	page: z.coerce.number().int().positive().optional(),
-	limit: z.coerce.number().int().positive().max(100).optional()
+	page: z.coerce.number().int().positive().default(VALIDATION_LIMITS.API_QUERY_DEFAULT_PAGE),
+	limit: z.coerce.number().int().positive().max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT).default(VALIDATION_LIMITS.API_QUERY_DEFAULT_LIMIT)
 })
 
 // Property statistics schema
@@ -169,7 +170,8 @@ export const transformPropertyFormData = (
 		city: data.city,
 		state: data.state,
 		zipCode: data.zipCode,
-		propertyType: data.propertyType as Database['public']['Enums']['PropertyType']
+		propertyType:
+			data.propertyType as Database['public']['Enums']['PropertyType']
 	}
 
 	// Only include optional fields if they have truthy values (exactOptionalPropertyTypes)
@@ -240,19 +242,16 @@ export type TransformedPropertyUpdateData = ReturnType<
 
 // Property sold schema (for marking properties as sold with required compliance fields)
 export const propertyMarkedSoldSchema = z.object({
-	dateSold: z.string().refine(
-		val => {
-			const date = new Date(val)
-			return !isNaN(date.getTime()) && date <= new Date()
-		},
-		'Sale date must be valid and cannot be in the future'
-	),
+	dateSold: z.string().refine(val => {
+		const date = new Date(val)
+		return !isNaN(date.getTime()) && date <= new Date()
+	}, 'Sale date must be valid and cannot be in the future'),
 	salePrice: positiveNumberSchema
-		.max(100000000, 'Sale price seems unrealistic')
+		.max(VALIDATION_LIMITS.SALE_PRICE_MAXIMUM, 'Sale price seems unrealistic')
 		.refine(val => val > 0, 'Sale price must be greater than $0'),
 	saleNotes: z
 		.string()
-		.max(2000, 'Sale notes cannot exceed 2000 characters')
+		.max(VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH, `Sale notes cannot exceed ${VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH} characters`)
 		.optional()
 		.or(z.literal(''))
 })
@@ -325,13 +324,10 @@ export const propertyImageUploadSchema = z.object({
 				.string()
 				.toLowerCase()
 				.transform(val => val.trim())
-				.refine(
-					val => ['true', 'false', '1', '0', 'yes', 'no'].includes(val),
-					{
-						message:
-							'isPrimary must be one of: true, false, 1, 0, yes, no (case-insensitive)'
-					}
-				)
+				.refine(val => ['true', 'false', '1', '0', 'yes', 'no'].includes(val), {
+					message:
+						'isPrimary must be one of: true, false, 1, 0, yes, no (case-insensitive)'
+				})
 				.transform(val => ['true', '1', 'yes'].includes(val))
 		])
 		.default(false),
