@@ -106,7 +106,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					<BlurFade delay={0.5} inView>
 						<div className="mt-16 pt-8 border-t border-border/20">
 							<p className="text-muted-foreground/80 text-sm">
-								🔒 Your data is secure with SOC 2 Type II certification and
+								 Your data is secure with SOC 2 Type II certification and
 								bank-level encryption
 							</p>
 						</div>
