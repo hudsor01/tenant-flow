@@ -1,16 +1,15 @@
 import {
 	BadRequestException,
-	Body,
 	Controller,
 	Delete,
 	Get,
 	Param,
-	ParseUUIDPipe,
 	Patch,
-	Post,
-	Request
+	Request,
+	UseGuards
 } from '@nestjs/common'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PaymentMethodsService } from './payment-methods.service'
 
 interface AuthenticatedRequest extends Request {
@@ -21,62 +20,9 @@ interface AuthenticatedRequest extends Request {
 }
 
 @Controller('payment-methods')
+@UseGuards(JwtAuthGuard)
 export class PaymentMethodsController {
 	constructor(private readonly paymentMethodsService: PaymentMethodsService) {}
-
-	/**
-	 * Create a SetupIntent for saving a payment method
-	 * POST /payment-methods/setup-intent
-	 */
-	@Post('setup-intent')
-	async createSetupIntent(
-		@JwtToken() token: string,
-		@Request() req: AuthenticatedRequest,
-		@Body() body: { type?: 'card' | 'us_bank_account' }
-	) {
-		const userId = req.user?.id
-		const email = req.user?.email
-		const type = body.type ?? 'card'
-
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
-
-		if (!['card', 'us_bank_account'].includes(type)) {
-			throw new BadRequestException(
-				'Invalid payment method type. Must be "card" or "us_bank_account"'
-			)
-		}
-
-		return this.paymentMethodsService.createSetupIntent(token, userId, email, type)
-	}
-
-	/**
-	 * Save a payment method after SetupIntent confirmation
-	 * POST /payment-methods/save
-	 */
-	@Post('save')
-	async savePaymentMethod(
-		@JwtToken() token: string,
-		@Request() req: AuthenticatedRequest,
-		@Body() body: { paymentMethodId: string }
-	) {
-		const userId = req.user?.id
-
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
-
-		if (!body.paymentMethodId) {
-			throw new BadRequestException('Payment method ID is required')
-		}
-
-		return this.paymentMethodsService.savePaymentMethod(
-			token,
-			userId,
-			body.paymentMethodId
-		)
-	}
 
 	/**
 	 * List all payment methods for the authenticated user
@@ -87,14 +33,12 @@ export class PaymentMethodsController {
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user?.id
+		const userId = req.user!.id
 
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
-		}
-
-		const paymentMethods =
-			await this.paymentMethodsService.listPaymentMethods(token, userId)
+		const paymentMethods = await this.paymentMethodsService.listPaymentMethods(
+			token,
+			userId
+		)
 
 		return { paymentMethods }
 	}
@@ -107,12 +51,12 @@ export class PaymentMethodsController {
 	async setDefaultPaymentMethod(
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) paymentMethodId: string
+		@Param('id') paymentMethodId: string
 	) {
-		const userId = req.user?.id
+		const userId = req.user!.id
 
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		return this.paymentMethodsService.setDefaultPaymentMethod(
@@ -130,12 +74,12 @@ export class PaymentMethodsController {
 	async deletePaymentMethod(
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) paymentMethodId: string
+		@Param('id') paymentMethodId: string
 	) {
-		const userId = req.user?.id
+		const userId = req.user!.id
 
-		if (!userId) {
-			throw new BadRequestException('User not authenticated')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		return this.paymentMethodsService.deletePaymentMethod(

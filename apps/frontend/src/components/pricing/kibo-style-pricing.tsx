@@ -24,6 +24,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { getAllPricingPlans } from '@repo/shared/config/pricing'
+import { useModalStore } from '#stores/modal-store'
 
 const logger = createLogger({ component: 'KiboStylePricing' })
 
@@ -80,8 +81,8 @@ interface PricingPlan {
 
 export function KiboStylePricing() {
 	const [frequency, setFrequency] = useState<'monthly' | 'yearly'>('monthly')
-	const [isSignupOpen, setIsSignupOpen] = useState(false)
 	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
+	const { openModal, closeModal } = useModalStore()
 	const { products, isLoading } = useStripeProducts()
 
 	const subscriptionMutation = useMutation({
@@ -258,7 +259,7 @@ export function KiboStylePricing() {
 		const authenticated = await isUserAuthenticated()
 		if (!authenticated) {
 			setPendingPlan(plan)
-			setIsSignupOpen(true)
+			openModal('owner-subscribe')
 			return
 		}
 
@@ -376,7 +377,7 @@ export function KiboStylePricing() {
 										className="flex gap-2 text-left text-sm leading-6 text-muted-foreground"
 										key={index}
 									>
-										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-green-600 dark:text-green-400" />
+										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-success" />
 										{feature}
 									</div>
 								))}
@@ -406,13 +407,6 @@ export function KiboStylePricing() {
 				</div>
 			</div>
 			<OwnerSubscribeDialog
-				open={isSignupOpen}
-				onOpenChange={open => {
-					setIsSignupOpen(open)
-					if (!open) {
-						setPendingPlan(null)
-					}
-				}}
 				{...(pendingPlan?.name && { planName: pendingPlan.name })}
 				{...(pendingPlan?.cta && { planCta: pendingPlan.cta })}
 				onComplete={async ({ email, tenantId, requiresEmailConfirmation }) => {
@@ -422,7 +416,7 @@ export function KiboStylePricing() {
 							customerEmail: email,
 							...(tenantId && { tenantId })
 						})
-						setIsSignupOpen(false)
+						closeModal('owner-subscribe')
 						setPendingPlan(null)
 						if (requiresEmailConfirmation) {
 							logger.info(

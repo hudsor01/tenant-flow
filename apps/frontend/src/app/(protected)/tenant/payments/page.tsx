@@ -9,6 +9,7 @@
 
 'use client'
 
+import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -19,7 +20,7 @@ import {
 	useCreateRentPayment,
 	usePaymentStatus
 } from '#hooks/api/use-rent-payments'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatCurrency } from '@repo/shared/utils/currency'
 import {
 	AlertCircle,
@@ -104,22 +105,12 @@ export default function TenantPaymentPage() {
 				throw new Error('Payment failed - no success status')
 			}
 		} catch (error) {
-			logger.error('Failed to process rent payment', {
-				action: 'process_rent_payment',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error',
-					leaseId: lease?.id,
-					paymentMethodId: selectedMethodId
-				}
-			})
-			toast.error('Payment failed', {
-				description:
-					'Please try again or contact support if the issue persists.'
-			})
+			handleMutationError(error, 'Process rent payment', 'Payment failed. Please try again or contact support if the issue persists.')
 		}
 	}
 
 	return (
+		<TenantGuard>
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">Pay Rent</h1>
@@ -252,8 +243,9 @@ export default function TenantPaymentPage() {
 					{!methodsLoading &&
 						paymentMethods.map(method => (
 							<button
-								key={method.id}
-								onClick={() => setSelectedMethodId(method.id)}
+							type="button"
+							key={method.id}
+							onClick={() => setSelectedMethodId(method.id)}
 								className={`w-full flex items-center justify-between p-4 border rounded-lg transition-all ${
 									selectedMethodId === method.id
 										? 'border-primary bg-primary/5 ring-2 ring-primary/20'
@@ -379,5 +371,6 @@ export default function TenantPaymentPage() {
 				</Link>
 			</div>
 		</div>
+		</TenantGuard>
 	)
 }

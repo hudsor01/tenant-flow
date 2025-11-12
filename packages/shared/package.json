@@ -67,6 +67,7 @@
 		"@types/react-dom": "catalog:",
 		"eslint": "catalog:",
 		"rimraf": "^6.1.0",
+		"tslib": "2.8.1",
 		"typescript": "catalog:"
 	}
 }

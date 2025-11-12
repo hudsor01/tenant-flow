@@ -53,7 +53,8 @@ export class CompressionService {
 			}
 		} catch (error) {
 			// If compression fails, return original buffer
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+			const errorMessage =
+				error instanceof Error ? error.message : 'Unknown error'
 			this.logger.warn(
 				`Compression failed for ${mimeType}: ${errorMessage}. Returning original.`
 			)
@@ -96,8 +97,10 @@ export class CompressionService {
 	/**
 	 * PDF compression disabled (pdf-lib removed)
 	 * Returns original buffer without compression
-	 * TODO: Implement PDF compression using Ghostscript or similar if needed
 	 */
+
+	// TODO: Implement PDF compression using Ghostscript or similar if needed
+
 	private async compressPDF(buffer: Buffer): Promise<Buffer> {
 		this.logger.debug('PDF compression disabled - returning original')
 		return buffer

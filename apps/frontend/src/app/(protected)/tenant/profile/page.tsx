@@ -26,7 +26,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
 import { ToggleSwitch } from '#components/ui/toggle-switch'
-import { useSupabaseUpdateProfile } from '#hooks/api/use-supabase-auth'
+import { useSupabaseUpdateProfile } from '#hooks/api/use-auth'
 import {
 	useNotificationPreferences,
 	useUpdateNotificationPreferences
@@ -38,17 +38,19 @@ import {
 	useDeleteEmergencyContact
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
-import { useUserProfile } from '#hooks/use-user-role'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { useUserProfile } from '#hooks/use-user-profile'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useModalStore } from '#stores/modal-store'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
-	const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
 	const [emergencyContactEditing, setEmergencyContactEditing] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+	const { openModal } = useModalStore()
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const { data: profile, isLoading: profileLoading } = useUserProfile()
 	const updateProfile = useSupabaseUpdateProfile()
@@ -117,8 +119,8 @@ export default function TenantProfilePage() {
 
 		// Validate email format if provided
 		if (formData.email && formData.email.trim()) {
-			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-			if (!emailRegex.test(formData.email)) {
+			const emailResult = emailSchema.safeParse(formData.email)
+			if (!emailResult.success) {
 				toast.error('Please enter a valid email address')
 				return
 			}
@@ -127,7 +129,10 @@ export default function TenantProfilePage() {
 		// Validate phone format if provided
 		if (formData.phone && formData.phone.trim()) {
 			const phoneRegex = /^\+?[\d\s\-()]+$/
-			if (!phoneRegex.test(formData.phone) || formData.phone.replace(/\D/g, '').length < 10) {
+			if (
+				!phoneRegex.test(formData.phone) ||
+				formData.phone.replace(/\D/g, '').length < 10
+			) {
 				toast.error('Please enter a valid phone number (at least 10 digits)')
 				return
 			}
@@ -141,13 +146,7 @@ export default function TenantProfilePage() {
 			})
 			setIsEditing(false)
 		} catch (error) {
-			logger.error('Failed to update profile', {
-				action: 'update_profile',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
-			toast.error('Failed to update profile')
+			handleMutationError(error, 'Update profile')
 		}
 	}
 
@@ -161,10 +160,7 @@ export default function TenantProfilePage() {
 		try {
 			await updatePreferences.mutateAsync({ [key]: value })
 		} catch (error) {
-			logger.error('Failed to update notification preference', {
-				action: 'toggle_notification_preference',
-				metadata: { key, value, error }
-			})
+			handleMutationError(error, 'Update notification preference')
 		}
 	}
 
@@ -188,6 +184,15 @@ export default function TenantProfilePage() {
 			return
 		}
 
+		// Validate email format if provided
+		if (emergencyContactForm.email && emergencyContactForm.email.trim()) {
+			const emailResult = emailSchema.safeParse(emergencyContactForm.email)
+			if (!emailResult.success) {
+				toast.error('Emergency contact email is invalid')
+				return
+			}
+		}
+
 		try {
 			if (emergencyContact) {
 				// Update existing contact
@@ -208,12 +213,7 @@ export default function TenantProfilePage() {
 			}
 			setEmergencyContactEditing(false)
 		} catch (error) {
-			logger.error('Failed to save emergency contact', {
-				action: 'save_emergency_contact',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
+			handleMutationError(error, 'Save emergency contact')
 		}
 	}
 
@@ -236,12 +236,7 @@ export default function TenantProfilePage() {
 			setEmergencyContactEditing(false)
 			setDeleteDialogOpen(false)
 		} catch (error) {
-			logger.error('Failed to delete emergency contact', {
-				action: 'delete_emergency_contact',
-				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
+			handleMutationError(error, 'Delete emergency contact')
 		}
 	}
 
@@ -498,7 +493,9 @@ export default function TenantProfilePage() {
 									onClick={() => setEmergencyContactEditing(true)}
 									disabled={emergencyContactLoading}
 								>
-									{emergencyContact ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
+									{emergencyContact
+										? 'Edit Emergency Contact'
+										: 'Add Emergency Contact'}
 								</Button>
 								{emergencyContact && (
 									<Button
@@ -506,7 +503,8 @@ export default function TenantProfilePage() {
 										variant="outline"
 										onClick={handleDeleteEmergencyContact}
 										disabled={
-											emergencyContactLoading || deleteEmergencyContact.isPending
+											emergencyContactLoading ||
+											deleteEmergencyContact.isPending
 										}
 									>
 										Remove Contact
@@ -558,7 +556,9 @@ export default function TenantProfilePage() {
 						description="Get notified before rent is due"
 						checked={notificationPrefs?.rentReminders ?? true}
 						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked => handleTogglePreference('rentReminders', checked)}
+						onChange={checked =>
+							handleTogglePreference('rentReminders', checked)
+						}
 					/>
 
 					<ToggleSwitch
@@ -567,7 +567,9 @@ export default function TenantProfilePage() {
 						description="Updates on your maintenance requests"
 						checked={notificationPrefs?.maintenanceUpdates ?? true}
 						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked => handleTogglePreference('maintenanceUpdates', checked)}
+						onChange={checked =>
+							handleTogglePreference('maintenanceUpdates', checked)
+						}
 					/>
 
 					<ToggleSwitch
@@ -576,7 +578,9 @@ export default function TenantProfilePage() {
 						description="Important announcements and updates"
 						checked={notificationPrefs?.propertyNotices ?? true}
 						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked => handleTogglePreference('propertyNotices', checked)}
+						onChange={checked =>
+							handleTogglePreference('propertyNotices', checked)
+						}
 					/>
 				</div>
 			</CardLayout>
@@ -603,7 +607,7 @@ export default function TenantProfilePage() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => setPasswordDialogOpen(true)}
+							onClick={() => openModal('change-password')}
 						>
 							Change Password
 						</Button>
@@ -612,10 +616,7 @@ export default function TenantProfilePage() {
 			</CardLayout>
 
 			{/* Password Change Dialog */}
-			<ChangePasswordDialog
-				open={passwordDialogOpen}
-				onOpenChange={setPasswordDialogOpen}
-			/>
+			<ChangePasswordDialog />
 
 			{/* Delete Emergency Contact Confirmation Dialog */}
 			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -623,8 +624,8 @@ export default function TenantProfilePage() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Remove Emergency Contact</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to remove this emergency contact? This action
-							cannot be undone.
+							Are you sure you want to remove this emergency contact? This
+							action cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

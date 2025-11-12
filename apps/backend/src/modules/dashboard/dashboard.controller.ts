@@ -17,6 +17,23 @@ import { SupabaseService } from '../../database/supabase.service'
 
 // Validation schemas removed - service handles validation
 
+/**
+ * DEPRECATED: This controller uses legacy /manage routes.
+ * 
+ * Migration: Use /owner routes from OwnerDashboardModule instead.
+ * - /manage/stats → /owner/analytics/stats
+ * - /manage/activity → /owner/analytics/activity
+ * - /manage/billing/insights → /owner/financial/billing/insights
+ * - /manage/property-performance → /owner/properties/performance
+ * - /manage/maintenance-analytics → /owner/maintenance/analytics
+ * - /manage/occupancy-trends → /owner/tenants/occupancy-trends
+ * - /manage/revenue-trends → /owner/financial/revenue-trends
+ * - /manage/time-series → /owner/reports/time-series
+ * - /manage/metric-trend → /owner/reports/metric-trend
+ * 
+ * Sunset Date: 2025-09-01
+ * See: apps/backend/src/modules/owner-dashboard/README.md
+ */
 @Controller('manage')
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)

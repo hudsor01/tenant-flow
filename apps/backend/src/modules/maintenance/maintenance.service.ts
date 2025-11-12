@@ -4,7 +4,12 @@
  * Simplified: Removed helper methods, consolidated status updates
  */
 
-import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	Logger
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateMaintenanceRequest,
@@ -58,9 +63,7 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual userId filtering needed)
-			let queryBuilder = client
-				.from('maintenance_request')
-				.select('*')
+			let queryBuilder = client.from('maintenance_request').select('*')
 
 			// Apply filters
 			if (query.propertyId) {
@@ -322,9 +325,7 @@ export class MaintenanceService {
 	async getOverdue(token: string): Promise<MaintenanceRequest[]> {
 		try {
 			if (!token) {
-				this.logger.warn(
-					'Overdue maintenance requests requested without token'
-				)
+				this.logger.warn('Overdue maintenance requests requested without token')
 				throw new BadRequestException('Authentication token is required')
 			}
 
@@ -436,15 +437,14 @@ export class MaintenanceService {
 					'Create maintenance request called with missing parameters',
 					{ createRequest }
 				)
-				throw new BadRequestException('Authentication token, user ID, and title are required')
+				throw new BadRequestException(
+					'Authentication token, user ID, and title are required'
+				)
 			}
 
-			this.logger.log(
-				'Creating maintenance request via RLS-protected query',
-				{
-					createRequest
-				}
-			)
+			this.logger.log('Creating maintenance request via RLS-protected query', {
+				createRequest
+			})
 
 			// Validate photo URLs if provided (inline validation)
 			if (createRequest.photos?.length) {
@@ -557,13 +557,10 @@ export class MaintenanceService {
 				return null
 			}
 
-			this.logger.log(
-				'Updating maintenance request via RLS-protected query',
-				{
-					maintenanceId,
-					updateRequest
-				}
-			)
+			this.logger.log('Updating maintenance request via RLS-protected query', {
+				maintenanceId,
+				updateRequest
+			})
 
 			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
@@ -594,7 +591,7 @@ export class MaintenanceService {
 					updatedAt: new Date().toISOString()
 				}
 
-			// 🔐 BUG FIX #2: Increment version for optimistic locking
+			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
 				updateData.version = expectedVersion + 1
 			}
@@ -703,7 +700,9 @@ export class MaintenanceService {
 				}
 			)
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to update maintenance request'
+				error instanceof Error
+					? error.message
+					: 'Failed to update maintenance request'
 			)
 		}
 	}
@@ -719,15 +718,14 @@ export class MaintenanceService {
 					'Remove maintenance request called with missing parameters',
 					{ maintenanceId }
 				)
-				throw new BadRequestException('Authentication token and maintenance ID are required')
+				throw new BadRequestException(
+					'Authentication token and maintenance ID are required'
+				)
 			}
 
-			this.logger.log(
-				'Removing maintenance request via RLS-protected query',
-				{
-					maintenanceId
-				}
-			)
+			this.logger.log('Removing maintenance request via RLS-protected query', {
+				maintenanceId
+			})
 
 			// ✅ RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)

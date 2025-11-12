@@ -1,15 +1,11 @@
 /**
- * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
+ * Units Controller
  *
- * This file implements the ULTRA-NATIVE pattern. DO NOT MODIFY:
- * [OK] ONLY built-in NestJS pipes (ParseUUIDPipe, DefaultValuePipe, ParseIntPipe)
- * [OK] ONLY native exceptions (BadRequestException, NotFoundException)
- * [OK] ONLY direct service calls with PostgreSQL RPC functions
- *
- * FORBIDDEN: Custom decorators, DTOs, validation classes, service layers
- * FORBIDDEN: Middleware, interceptors, custom validators, wrapper functions
- *
- * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md for complete rules
+ * Per CLAUDE.md:
+ * - Uses nestjs-zod DTOs for validation (native to NestJS ecosystem)
+ * - Uses @JwtToken() custom decorator for authentication (per CLAUDE.md Backend section)
+ * - Uses RLS-protected Supabase queries via service layer
+ * - Global ZodValidationPipe handles validation automatically
  */
 
 import {
@@ -27,10 +23,8 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import type {
-	CreateUnitRequest,
-	UpdateUnitRequest
-} from '@repo/shared/types/backend-domain'
+import { CreateUnitDto } from './dto/create-unit.dto'
+import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
@@ -138,9 +132,9 @@ export class UnitsController {
 	@Post()
 	async create(
 		@JwtToken() token: string,
-		@Body() createUnitRequest: CreateUnitRequest
+		@Body() createUnitDto: CreateUnitDto
 	) {
-		return this.unitsService.create(token, createUnitRequest)
+		return this.unitsService.create(token, createUnitDto)
 	}
 
 	/**
@@ -151,14 +145,14 @@ export class UnitsController {
 	async update(
 		@JwtToken() token: string,
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body() updateUnitRequest: UpdateUnitRequest
+		@Body() updateUnitDto: UpdateUnitDto
 	) {
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
-		const expectedVersion = (updateUnitRequest as { version?: number }).version
+		//Pass version for optimistic locking
+		const expectedVersion = (updateUnitDto as { version?: number }).version
 		const unit = await this.unitsService.update(
 			token,
 			id,
-			updateUnitRequest,
+			updateUnitDto,
 			expectedVersion
 		)
 		if (!unit) {

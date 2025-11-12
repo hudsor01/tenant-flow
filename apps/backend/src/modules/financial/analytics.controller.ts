@@ -9,15 +9,13 @@ import {
 } from '@nestjs/common'
 import type {
 	DashboardSummary,
+	ExpenseRecord,
 	FinancialMetrics,
 	Lease,
 	PropertyFinancialMetrics
 } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase'
-import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
-
-type ExpenseRecord = Tables<'expense'>
+import type { Request } from 'express'
 
 /**
  * Financial Analytics Controller - Ultra-Native Implementation
@@ -547,7 +545,8 @@ export class FinancialAnalyticsController {
 			let monthlyRevenue = 0
 			for (const lease of leases) {
 				const startDate = new Date(lease.startDate)
-				const endDate = new Date(lease.endDate)
+				// Month-to-month leases (endDate is null) are always active
+				const endDate = lease.endDate ? new Date(lease.endDate) : new Date('9999-12-31')
 				if (startDate <= monthEnd && endDate >= monthStart) {
 					monthlyRevenue += lease.rentAmount || 0
 				}

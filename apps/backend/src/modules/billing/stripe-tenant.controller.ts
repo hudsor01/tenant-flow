@@ -5,11 +5,13 @@ import {
 	Delete,
 	Get,
 	Param,
+	ParseUUIDPipe,
 	Post,
 	Request,
 	UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeTenantService } from './stripe-tenant.service'
 
@@ -29,9 +31,11 @@ export class StripeTenantController {
 	 * POST /api/v1/stripe/tenant/create-customer
 	 */
 	@Post('create-customer')
+	@UseGuards(PropertyOwnershipGuard)
 	async createCustomer(
 		@Request() _req: AuthenticatedRequest,
-		@Body() body: { tenantId: string; email: string; name?: string; phone?: string }
+		@Body()
+		body: { tenantId: string; email: string; name?: string; phone?: string }
 	) {
 		if (!body.tenantId || !body.email) {
 			throw new BadRequestException('tenantId and email are required')
@@ -49,7 +53,8 @@ export class StripeTenantController {
 		if (body.name) params.name = body.name
 		if (body.phone) params.phone = body.phone
 
-		const customer = await this.stripeTenantService.createStripeCustomerForTenant(params)
+		const customer =
+			await this.stripeTenantService.createStripeCustomerForTenant(params)
 
 		return {
 			success: true,
@@ -64,7 +69,8 @@ export class StripeTenantController {
 	@Post('attach-payment-method')
 	async attachPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Body() body: { tenantId: string; paymentMethodId: string; setAsDefault?: boolean }
+		@Body()
+		body: { tenantId: string; paymentMethodId: string; setAsDefault?: boolean }
 	) {
 		if (!body.tenantId || !body.paymentMethodId) {
 			throw new BadRequestException('tenantId and paymentMethodId are required')
@@ -80,7 +86,8 @@ export class StripeTenantController {
 		}
 		if (body.setAsDefault !== undefined) params.setAsDefault = body.setAsDefault
 
-		const paymentMethod = await this.stripeTenantService.attachPaymentMethod(params)
+		const paymentMethod =
+			await this.stripeTenantService.attachPaymentMethod(params)
 
 		return {
 			success: true,
@@ -95,9 +102,10 @@ export class StripeTenantController {
 	@Get('payment-methods/:tenantId')
 	async listPaymentMethods(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId') tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	) {
-		const paymentMethods = await this.stripeTenantService.listPaymentMethods(tenantId)
+		const paymentMethods =
+			await this.stripeTenantService.listPaymentMethods(tenantId)
 
 		return {
 			paymentMethods
@@ -111,9 +119,10 @@ export class StripeTenantController {
 	@Get('default-payment-method/:tenantId')
 	async getDefaultPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId') tenantId: string
+		@Param('tenantId', ParseUUIDPipe) tenantId: string
 	) {
-		const paymentMethod = await this.stripeTenantService.getDefaultPaymentMethod(tenantId)
+		const paymentMethod =
+			await this.stripeTenantService.getDefaultPaymentMethod(tenantId)
 
 		return {
 			paymentMethod
@@ -133,7 +142,10 @@ export class StripeTenantController {
 			throw new BadRequestException('tenantId and paymentMethodId are required')
 		}
 
-		await this.stripeTenantService.setDefaultPaymentMethod(body.tenantId, body.paymentMethodId)
+		await this.stripeTenantService.setDefaultPaymentMethod(
+			body.tenantId,
+			body.paymentMethodId
+		)
 
 		return {
 			success: true
@@ -153,13 +165,15 @@ export class StripeTenantController {
 			throw new BadRequestException('tenantId and paymentMethodId are required')
 		}
 
-		await this.stripeTenantService.detachPaymentMethod(body.tenantId, body.paymentMethodId)
+		await this.stripeTenantService.detachPaymentMethod(
+			body.tenantId,
+			body.paymentMethodId
+		)
 
 		return {
 			success: true
 		}
 	}
-
 
 	/**
 	 * Create Billing Portal session for Tenant
@@ -176,8 +190,10 @@ export class StripeTenantController {
 		}
 
 		// Get or create Stripe Customer for tenant
-		const customer = await this.stripeTenantService.getStripeCustomerForTenant(body.tenantId)
-		
+		const customer = await this.stripeTenantService.getStripeCustomerForTenant(
+			body.tenantId
+		)
+
 		if (!customer) {
 			// Customer doesn't exist yet, we need tenant info to create one
 			throw new BadRequestException(
@@ -189,7 +205,8 @@ export class StripeTenantController {
 		const stripe = this.stripeTenantService['stripe'] // Access private stripe instance
 		const session = await stripe.billingPortal.sessions.create({
 			customer: customer.id,
-			return_url: body.returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/tenant/payments`
+			return_url:
+				body.returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/tenant/payments`
 		})
 
 		return {

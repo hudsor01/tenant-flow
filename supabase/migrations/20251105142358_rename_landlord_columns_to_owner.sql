@@ -1,4 +1,4 @@
--- This migration was originally intended to rename "landlord" columns to "owner" columns
+-- This migration was originally intended to rename legacy columns to "owner" columns
 -- However, the columns in rent_payment and rent_subscription tables already use "ownerId" naming
 -- Therefore, no actual column renames are needed
 -- 

@@ -30,9 +30,7 @@ import { useLeaseList, useDeleteLease } from '#hooks/api/use-lease'
 import { useAllTenants } from '#hooks/api/use-tenant'
 import { useAllUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables } from '@repo/shared/types/supabase'
-
-type Lease = Tables<'lease'>
+import type { Lease } from '@repo/shared/types/core'
 
 const logger = createLogger({ component: 'LeasesTable' })
 
@@ -111,9 +109,11 @@ export function LeasesTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{leases.map((lease: Lease) => {
-							const tenantName = tenantMap.get(lease.tenantId) ?? 'Unassigned'
-							const unit = unitMap.get(lease.unitId ?? '')
+					{leases.map((lease: Lease) => {
+						const tenantName = lease.tenantId
+							? tenantMap.get(lease.tenantId) ?? 'Unassigned'
+							: 'Unassigned'
+							const unit = unitMap.get(lease.unitId || '')
 							return (
 								<TableRow key={lease.id}>
 									<TableCell>

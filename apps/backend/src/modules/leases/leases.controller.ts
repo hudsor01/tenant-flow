@@ -267,10 +267,7 @@ export class LeasesController {
 	}
 
 	@Post()
-	async create(
-		@Body() dto: CreateLeaseDto,
-		@JwtToken() token: string
-	) {
+	async create(@Body() dto: CreateLeaseDto, @JwtToken() token: string) {
 		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.create(token, dto)
 	}
@@ -281,7 +278,7 @@ export class LeasesController {
 		@Body() dto: UpdateLeaseDto,
 		@JwtToken() token: string
 	) {
-		// 🔐 BUG FIX #2: Pass version for optimistic locking
+		//Pass version for optimistic locking
 		const expectedVersion = (dto as { version?: number }).version
 		const lease = await this.leasesService.update(
 			token,
