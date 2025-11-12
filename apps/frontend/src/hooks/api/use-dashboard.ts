@@ -72,8 +72,7 @@ export function useDashboardStats() {
 	return useQuery({
 		queryKey: dashboardKeys.stats(),
 		queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
-		staleTime: 5 * 60 * 1000, // 5 minutes (stats are relatively static)
-		gcTime: 10 * 60 * 1000, // 10 minutes - remove from cache after this period
+		...QUERY_CACHE_TIMES.DASHBOARD, // Centralized cache timing (5 minutes)
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes (optimized - stats change infrequently)
 		refetchIntervalInBackground: false, // Stop refreshing when tab inactive (CRITICAL: prevents memory leaks)
 		refetchOnWindowFocus: true, // Refresh when user returns to tab

@@ -33,6 +33,11 @@ import type { Request } from 'express'
 import { parse } from 'csv-parse'
 import { Readable } from 'stream'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import {
+	querySingle,
+	queryList,
+	queryMutation
+} from '../../shared/database/supabase-query-helpers'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 
@@ -164,20 +169,23 @@ export class PropertiesService {
 		}
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error} = await client
-			.from('property')
-			.select(SAFE_PROPERTY_COLUMNS)
-			.eq('id', propertyId)
-			.single()
-
-		if (error || !data) {
-			this.logger.warn('Property not found or access denied', {
-				propertyId
-			})
-			return null
+		try {
+			return await querySingle<Property>(
+				client.from('property').select(SAFE_PROPERTY_COLUMNS).eq('id', propertyId).single(),
+				{
+					resource: 'property',
+					id: propertyId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			// Return null for not found (soft failure for RLS/ownership checks)
+			if (error instanceof NotFoundException) {
+				return null
+			}
+			throw error
 		}
-
-		return data as Property
 	}
 
 	/**
@@ -224,38 +232,22 @@ export class PropertiesService {
 
 		this.logger.debug('Attempting to create property', { insertData })
 
-		const { data, error } = await client
-			.from('property')
-			.insert(insertData)
-			.select()
-			.single()
-
-		this.logger.debug('Supabase insert result', {
-			data,
-			error,
-			hasData: !!data,
-			hasError: !!error
-		})
-
-		if (error) {
-			this.logger.error('Failed to create property', { error })
-			throw new BadRequestException('Failed to create property')
-		}
-
-		if (!data) {
-			this.logger.error('No data returned from insert')
-			throw new BadRequestException(
-				'Failed to create property - no data returned'
-			)
-		}
+		const property = await queryMutation<Property>(
+			client.from('property').insert(insertData).select().single(),
+			{
+				resource: 'property',
+				operation: 'create',
+				logger: this.logger
+			}
+		)
 
 		// 🚀 PERFORMANCE: Invalidate property stats cache after mutation
 		await this.invalidatePropertyStatsCache(ownerId)
 
 		this.logger.log('Property created successfully', {
-			propertyId: data.id
+			propertyId: property.id
 		})
-		return data as Property
+		return property
 	}
 
 	/**
@@ -1116,21 +1108,15 @@ export class PropertiesService {
 		if (!property)
 			throw new BadRequestException('Property not found or access denied')
 
-		const { data, error } = await client
-			.from('unit')
-			.select('*')
-			.eq('propertyId', propertyId)
-			.order('unitNumber', { ascending: true })
-
-		if (error) {
-			this.logger.error('Failed to get property units', {
-				error,
-				propertyId
-			})
-			return []
-		}
-
-		return data || []
+		return queryList(
+			client.from('unit').select('*').eq('propertyId', propertyId).order('unitNumber', { ascending: true }),
+			{
+				resource: 'units',
+				id: propertyId,
+				operation: 'list',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**

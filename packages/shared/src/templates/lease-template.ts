@@ -491,14 +491,9 @@ function renderCustomClauses(customClauses: CustomClause[] | undefined) {
 	return customClauses
 		.map(
 			clause => `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause">
-<<<<<<< HEAD
 	<h3>${escapeHtml(clause.title)}</h3>
 	<p>${escapeHtml(clause.body)}</p>
 </article>`
-=======
-      <h3>${escapeHtml(clause.title)}</h3>
-      <p>${escapeHtml(clause.body)}</p>`
->>>>>>> origin/main
 		)
 		.join('')
 }
