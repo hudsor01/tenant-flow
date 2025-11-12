@@ -7,10 +7,10 @@ const logger = createLogger({ component: 'LeaseTemplatePDFTest' })
 
 /**
  * E2E tests for Lease Template Builder (NOT Texas Lease Generation)
- * 
+
  * NOTE: This tests the lease template builder feature, which is different from
  * the Texas Residential Lease Agreement generation (tested in texas-lease-generation.spec.ts)
- * 
+
  * Tests the complete user journey:
  * 1. Navigate to lease template builder
  * 2. Configure template selections (state, clauses)
@@ -49,13 +49,13 @@ test.describe('Lease Template PDF Generation', () => {
 			}
 			
 			authenticationAvailable = true
-			logger.info('✅ Authentication successful - tests will run')
+			logger.info(' Authentication successful - tests will run')
 		} catch (error) {
 			authenticationAvailable = false
-			logger.warn('⚠️  Authentication failed - tests will be SKIPPED')
-			logger.info('   Set up test account at http://localhost:3000/signup')
+			logger.warn('️ Authentication failed - tests will be SKIPPED')
+			logger.info(' Set up test account at http://localhost:3000/signup')
 			logger.info(
-				`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
+				` Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
 			)
 		} finally {
 			clearTimeout(timeoutId)

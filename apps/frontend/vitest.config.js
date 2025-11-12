@@ -16,6 +16,10 @@ export default defineConfig({
 		watch: process.env.CI ? false : undefined,
 		globals: true,
 		setupFiles: ['./src/test/setup.ts'],
+		// Use vmThreads pool for React component tests with jsdom environment
+		// The default forks pool causes "Timeout starting forks runner" errors with jsdom
+		// Unit tests can run in parallel - only integration tests need singleThread for cache safety
+		pool: 'vmThreads',
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],

@@ -2,10 +2,10 @@
  * Rent Payments Integration Tests
  * Tests rent payment creation and history with real API calls
  * Mirrors production implementation patterns from use-rent-payments.ts
- *
+
  * Note: Rent payments are immutable (no UPDATE/DELETE operations)
  * This follows accounting best practices - payment records should not be modified
- *
+
  * @vitest-environment jsdom
  */
 
@@ -237,7 +237,7 @@ describeIfReady('Rent Payments Integration Tests', () => {
 			const hasStripeTestKey = process.env.STRIPE_SECRET_KEY?.includes('test')
 
 			if (!hasStripeTestKey) {
-				logger.warn('⚠️  Skipping rent payment test - requires Stripe test mode')
+				logger.warn('️ Skipping rent payment test - requires Stripe test mode')
 				return
 			}
 
@@ -264,7 +264,7 @@ describeIfReady('Rent Payments Integration Tests', () => {
 						success: boolean
 						payment: { id: string; amount: number; status: string }
 						paymentIntent: { id: string; status: string }
-				  }
+				 }
 				| undefined
 
 			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
@@ -368,7 +368,7 @@ describeIfReady('Rent Payments Integration Tests', () => {
 		it('completes payment creation workflow', async () => {
 			// Skip if no Stripe test mode
 			if (!process.env.STRIPE_SECRET_KEY?.includes('test')) {
-				logger.warn('⚠️  Skipping payment workflow test - requires Stripe test mode')
+				logger.warn('️ Skipping payment workflow test - requires Stripe test mode')
 				return
 			}
 
@@ -397,7 +397,7 @@ describeIfReady('Rent Payments Integration Tests', () => {
 				| {
 						success: boolean
 						payment: { id: string; status: string }
-				  }
+				 }
 				| undefined
 
 			// Direct await instead of waitFor for mutations (prevents 30s timeouts)
@@ -423,7 +423,7 @@ describeIfReady('Rent Payments Integration Tests', () => {
 		it('invalidates cache after payment creation', async () => {
 			// Skip if no Stripe test mode
 			if (!process.env.STRIPE_SECRET_KEY?.includes('test')) {
-				logger.warn('⚠️  Skipping cache test - requires Stripe test mode')
+				logger.warn('️ Skipping cache test - requires Stripe test mode')
 				return
 			}
 
@@ -513,7 +513,7 @@ describeIfReady('Rent Payments Integration Tests', () => {
 		it('prevents duplicate simultaneous payments', async () => {
 			// Skip if no Stripe test mode
 			if (!process.env.STRIPE_SECRET_KEY?.includes('test')) {
-				logger.warn('⚠️  Skipping duplicate test - requires Stripe test mode')
+				logger.warn('️ Skipping duplicate test - requires Stripe test mode')
 				return
 			}
 

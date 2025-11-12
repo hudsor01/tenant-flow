@@ -64,18 +64,18 @@ async function createTestUsers() {
 					error.message.includes('already registered') ||
 					error.message.includes('User already registered')
 				) {
-					logger.info(`✅ ${user.email} already exists`)
+					logger.info(` ${user.email} already exists`)
 				} else {
-					logger.error(`❌ Error creating ${user.email}`, {
+					logger.error(` Error creating ${user.email}`, {
 						metadata: { error: error.message }
 					})
 					failureCount++
 				}
 			} else {
-				logger.info(`✅ Created ${user.email} (ID: ${data.user?.id})`)
+				logger.info(` Created ${user.email} (ID: ${data.user?.id})`)
 			}
 		} catch (e) {
-			logger.error(`❌ Error creating ${user.email}`, {
+			logger.error(` Error creating ${user.email}`, {
 				metadata: { error: e instanceof Error ? e.message : String(e) }
 			})
 			failureCount++
@@ -86,7 +86,7 @@ async function createTestUsers() {
 		logger.error(`Failed to create ${failureCount} user(s)`)
 		process.exit(1)
 	} else {
-		logger.info('✅ All test users created or already exist')
+		logger.info(' All test users created or already exist')
 	}
 }
 
