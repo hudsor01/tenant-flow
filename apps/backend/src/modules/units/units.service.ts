@@ -11,7 +11,8 @@ import {
 	BadRequestException,
 	ConflictException,
 	Injectable,
-	Logger
+	Logger,
+	NotFoundException
 } from '@nestjs/common'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
@@ -22,6 +23,10 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import type { CreateUnitDto } from './dto/create-unit.dto'
 import type { UpdateUnitDto } from './dto/update-unit.dto'
+import {
+	querySingle,
+	queryMutation
+} from '../../shared/database/supabase-query-helpers'
 
 /**
  * Safe column list for unit queries
@@ -285,40 +290,32 @@ export class UnitsService {
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async findOne(token: string, unitId: string): Promise<Unit | null> {
-		try {
-			if (!token || !unitId) {
-				this.logger.warn('Find one unit called with missing parameters', {
-					unitId
-				})
-				return null
-			}
-
-			this.logger.log('Finding one unit via RLS-protected query', { unitId })
-
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
-			const client = this.supabase.getUserClient(token)
-
-			// RLS automatically verifies unit belongs to user's property
-			const { data, error } = await client
-				.from('unit')
-				.select(SAFE_UNIT_COLUMNS)
-				.eq('id', unitId)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch unit from Supabase', {
-					error: error.message,
-					unitId
-				})
-				return null
-			}
-
-			return data as Unit
-		} catch (error) {
-			this.logger.error('Units service failed to find one unit', {
-				error: error instanceof Error ? error.message : String(error),
+		if (!token || !unitId) {
+			this.logger.warn('Find one unit called with missing parameters', {
 				unitId
 			})
+			return null
+		}
+
+		this.logger.log('Finding one unit via RLS-protected query', { unitId })
+
+		// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+		const client = this.supabase.getUserClient(token)
+
+		try {
+			// RLS automatically verifies unit belongs to user's property
+			return await querySingle<Unit>(
+				client.from('unit').select(SAFE_UNIT_COLUMNS).eq('id', unitId).single(),
+				{
+					resource: 'unit',
+					id: unitId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			// Return null for not found (soft failure for RLS/ownership checks)
+			this.logger.warn('Unit not found or access denied', { unitId })
 			return null
 		}
 	}
@@ -328,58 +325,41 @@ export class UnitsService {
 	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
 	 */
 	async create(token: string, createRequest: CreateUnitDto): Promise<Unit> {
-		try {
-			if (!token || !createRequest.propertyId || !createRequest.unitNumber) {
-				this.logger.warn('Create unit called with missing parameters', {
-					createRequest
-				})
-				throw new BadRequestException(
-					'Authentication token, property ID, and unit number are required'
-				)
-			}
-
-			this.logger.log('Creating unit via RLS-protected query', {
-				createRequest
-			})
-
-			// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
-			const client = this.supabase.getUserClient(token)
-
-		// RLS automatically verifies property ownership - no manual check needed
-			const unitData = {
-				propertyId: createRequest.propertyId,
-				unitNumber: createRequest.unitNumber,
-				bedrooms: createRequest.bedrooms || 1,
-				bathrooms: createRequest.bathrooms || 1,
-				squareFeet: createRequest.squareFeet || null,
-				rent: createRequest.rent ?? 0,
-				status: createRequest.status ?? 'VACANT'
-			}
-
-			const { data, error } = await client
-				.from('unit')
-				.insert(unitData)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to create unit in Supabase', {
-					error: error.message,
-					createRequest
-				})
-				throw new BadRequestException('Failed to create unit')
-			}
-
-			return data as Unit
-		} catch (error) {
-			this.logger.error('Units service failed to create unit', {
-				error: error instanceof Error ? error.message : String(error),
+		if (!token || !createRequest.propertyId || !createRequest.unitNumber) {
+			this.logger.warn('Create unit called with missing parameters', {
 				createRequest
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to create unit'
+				'Authentication token, property ID, and unit number are required'
 			)
 		}
+
+		this.logger.log('Creating unit via RLS-protected query', {
+			createRequest
+		})
+
+		// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
+		const client = this.supabase.getUserClient(token)
+
+		// RLS automatically verifies property ownership - no manual check needed
+		const unitData = {
+			propertyId: createRequest.propertyId,
+			unitNumber: createRequest.unitNumber,
+			bedrooms: createRequest.bedrooms || 1,
+			bathrooms: createRequest.bathrooms || 1,
+			squareFeet: createRequest.squareFeet || null,
+			rent: createRequest.rent ?? 0,
+			status: createRequest.status ?? 'VACANT'
+		}
+
+		return queryMutation<Unit>(
+			client.from('unit').insert(unitData).select().single(),
+			{
+				resource: 'unit',
+				operation: 'create',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -392,84 +372,82 @@ export class UnitsService {
 		updateRequest: UpdateUnitDto,
 		expectedVersion?: number //Optimistic locking
 	): Promise<Unit | null> {
-		try {
-			if (!token || !unitId) {
-				this.logger.warn('Update unit called with missing parameters', {
-					unitId
-				})
-				return null
-			}
-
-			this.logger.log('Updating unit via RLS-protected query', {
-				unitId,
-				updateRequest
+		if (!token || !unitId) {
+			this.logger.warn('Update unit called with missing parameters', {
+				unitId
 			})
+			return null
+		}
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
-			const client = this.supabase.getUserClient(token)
+		this.logger.log('Updating unit via RLS-protected query', {
+			unitId,
+			updateRequest
+		})
 
-			const updateData: Record<string, unknown> = {
-				...(updateRequest.bedrooms !== undefined && {
-					bedrooms: updateRequest.bedrooms
-				}),
-				...(updateRequest.bathrooms !== undefined && {
-					bathrooms: updateRequest.bathrooms
-				}),
-				...(updateRequest.squareFeet !== undefined && {
-					squareFeet: updateRequest.squareFeet
-				}),
-				...(updateRequest.rent !== undefined && { rent: updateRequest.rent }),
-				...(updateRequest.status !== undefined && {
-					status: updateRequest.status
-				}),
-				...(updateRequest.unitNumber !== undefined && {
-					unitNumber: updateRequest.unitNumber
-				}),
-				updatedAt: new Date().toISOString()
-			}
+		// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
+		const client = this.supabase.getUserClient(token)
 
-			//Increment version for optimistic locking
-			if (expectedVersion !== undefined) {
-				updateData.version = expectedVersion + 1
-			}
+		const updateData: Record<string, unknown> = {
+			...(updateRequest.bedrooms !== undefined && {
+				bedrooms: updateRequest.bedrooms
+			}),
+			...(updateRequest.bathrooms !== undefined && {
+				bathrooms: updateRequest.bathrooms
+			}),
+			...(updateRequest.squareFeet !== undefined && {
+				squareFeet: updateRequest.squareFeet
+			}),
+			...(updateRequest.rent !== undefined && { rent: updateRequest.rent }),
+			...(updateRequest.status !== undefined && {
+				status: updateRequest.status
+			}),
+			...(updateRequest.unitNumber !== undefined && {
+				unitNumber: updateRequest.unitNumber
+			}),
+			updatedAt: new Date().toISOString()
+		}
 
-			//Add version check for optimistic locking
-			// RLS automatically verifies unit ownership - no manual propertyId check needed
-			let query = client.from('unit').update(updateData).eq('id', unitId)
+		//Increment version for optimistic locking
+		if (expectedVersion !== undefined) {
+			updateData.version = expectedVersion + 1
+		}
 
-			if (expectedVersion !== undefined) {
-				query = query.eq('version', expectedVersion)
-			}
+		//Add version check for optimistic locking
+		// RLS automatically verifies unit ownership - no manual propertyId check needed
+		let query = client.from('unit').update(updateData).eq('id', unitId)
 
-			const { data, error } = await query.select().single()
+		if (expectedVersion !== undefined) {
+			query = query.eq('version', expectedVersion)
+		}
 
-			if (error || !data) {
-				//Detect optimistic locking conflict
-				if (error?.code === 'PGRST116' || !data) {
-					this.logger.warn('Optimistic locking conflict detected', {
-						unitId,
-						expectedVersion
-					})
-					throw new ConflictException(
-						'Unit was modified by another user. Please refresh and try again.'
-					)
+		try {
+			return await queryMutation<Unit>(
+				query.select().single(),
+				{
+					resource: 'unit',
+					id: unitId,
+					operation: 'update',
+					logger: this.logger
 				}
-
-				// If we get here, there was a different error
-				this.logger.error('Failed to update unit in Supabase', {
-					error: error,
+			)
+		} catch (error) {
+			// Optimistic locking conflict detection
+			// When version check fails, PGRST116 (0 rows) → NotFoundException from query helper
+			// Convert to ConflictException for optimistic locking semantics
+			if (error instanceof NotFoundException && expectedVersion !== undefined) {
+				this.logger.warn('Optimistic locking conflict detected', {
 					unitId,
-					updateRequest
+					expectedVersion
 				})
-				return null
+				throw new ConflictException(
+					'Unit was modified by another user. Please refresh and try again.'
+				)
 			}
 
-			return data as Unit
-		} catch (error) {
-			this.logger.error('Units service failed to update unit', {
-				error: error instanceof Error ? error.message : String(error),
+			// Soft failure for other errors (null return for RLS/ownership checks)
+			this.logger.warn('Unit update failed', {
 				unitId,
-				updateRequest
+				error: error instanceof Error ? error.message : String(error)
 			})
 			return null
 		}
