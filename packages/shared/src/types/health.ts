@@ -69,7 +69,7 @@ export interface HealthCheckResponse {
 }
 
 // Security monitoring types
-export type { SecurityEvent } from './security'
+export type { SecurityEvent } from './security.js'
 
 export type SecurityEventType =
 	| 'sql_injection_attempt'

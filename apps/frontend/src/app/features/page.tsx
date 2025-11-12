@@ -1,6 +1,7 @@
 'use client'
 
 import Footer from '#components/layout/footer'
+import Navbar from '#components/layout/navbar'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
@@ -117,89 +118,7 @@ export default function FeaturesPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
-				<div className="flex items-center justify-between gap-12">
-					<Link
-						href="/"
-						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
-					>
-						<div className="size-11 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="size-5 text-primary-foreground"
-							>
-								<path
-									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
-						<span className="text-xl font-bold text-foreground tracking-tight">
-							TenantFlow
-						</span>
-					</Link>
-
-					<div className="hidden md:flex items-center space-x-1">
-						<Link
-							href="/features"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Features
-						</Link>
-						<Link
-							href="/pricing"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Pricing
-						</Link>
-						<Link
-							href="/about"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							About
-						</Link>
-						<Link
-							href="/blog"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Blog
-						</Link>
-						<Link
-							href="/faq"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							FAQ
-						</Link>
-						<Link
-							href="/contact"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Contact
-						</Link>
-					</div>
-
-					<div className="flex items-center space-x-3">
-						<Link
-							href="/login"
-							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
-						>
-							Sign In
-						</Link>
-						<Link
-							href="/signup"
-							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
-						>
-							Get Started
-							<ArrowRight className="ml-2 size-4" />
-						</Link>
-					</div>
-				</div>
-			</nav>
+			<Navbar />
 
 			{/* Sticky CTA */}
 			<div
@@ -224,11 +143,8 @@ export default function FeaturesPage() {
 
 			{/* Hero Section with Modern Background */}
 			<section className="relative page-content pb-16 overflow-hidden">
-				{/* Modern gradient background */}
-				<div className="absolute inset-0 bg-linear-to-br from-background via-primary/2 to-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--primary)_5%,transparent),transparent_50%)] bg-size-[100%_100%]" />
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,color-mix(in_oklch,var(--accent)_3%,transparent),transparent_50%)] bg-size-[100%_100%]" />
-				</div>
+			{/* Solid tint background */}
+			<div className="absolute inset-0 bg-[color:color-mix(in_oklch,var(--primary)_5%,transparent)]" />
 
 				{/* Subtle pattern overlay */}
 				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
@@ -255,14 +171,11 @@ export default function FeaturesPage() {
 							</div>
 
 							{/* Strengthened headline with premium typography */}
-							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-								Transform your portfolio into a{' '}
-								<span className="relative inline-block">
-									<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
-										profit powerhouse
-									</span>
-									<div className="absolute -bottom-2 left-0 right-0 h-1 bg-linear-to-r from-primary/60 to-accent/60 rounded-full" />
-								</span>
+							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+								<span className="text-foreground">Transform your portfolio into a</span>{' '}
+				<span className="hero-highlight">
+					profit powerhouse
+				</span>
 							</h1>
 
 							{/* Concise, benefit-driven subtext */}
@@ -312,8 +225,6 @@ export default function FeaturesPage() {
 					</BlurFade>
 				</div>
 			</section>
-
-			{/* Video demo removed (no assets). Keeping streamlined journey below. */}
 
 			{/* Feature callouts (concise horizontal pills) */}
 			<section className="pb-10">
@@ -410,8 +321,6 @@ export default function FeaturesPage() {
 				</section>
 			</LazySection>
 
-			{/* Canonical Bento features grid - Removed: Component deleted during refactoring */}
-
 			{/* Transformation Journey - Redesigned Feature Callouts */}
 			<LazySection
 				fallback={<SectionSkeleton height={600} variant="grid" />}
@@ -423,7 +332,7 @@ export default function FeaturesPage() {
 							<div className="text-center mb-16 space-y-6">
 								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
 									Your 3-step transformation to{' '}
-									<span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
+									<span className="hero-highlight">
 										maximum profitability
 									</span>
 								</h2>
@@ -445,15 +354,15 @@ export default function FeaturesPage() {
 
 								{/* Step 1: Fill Units Faster */}
 								<div className="group relative">
-									<div className="bg-linear-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+									<div className="rounded-3xl p-8 border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02] bg-card/60 border-accent/25 dark:bg-muted/60 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50">
 										{/* Step indicator */}
 										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 											Step 1
 										</div>
 
 										{/* Icon with enhanced visual metaphor */}
-										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-											<TrendingUp className="size-8 text-primary-foreground" />
+										<div className="size-16 rounded-2xl bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+											<TrendingUp className="size-8 text-primary" />
 										</div>
 
 										<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -498,13 +407,13 @@ export default function FeaturesPage() {
 
 								{/* Step 2: Automate Tasks */}
 								<div className="group relative">
-									<div className="bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+									<div className="rounded-3xl p-8 border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02] bg-card/60 border-primary/25 dark:bg-muted/60 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50">
 										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 											Step 2
 										</div>
 
-										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-											<Zap className="size-8 text-primary-foreground" />
+										<div className="size-16 rounded-2xl bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+											<Zap className="size-8 text-primary" />
 										</div>
 
 										<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -548,13 +457,13 @@ export default function FeaturesPage() {
 
 								{/* Step 3: Secure Data */}
 								<div className="group relative">
-									<div className="bg-linear-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
+									<div className="rounded-3xl p-8 border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02] bg-card/60 border-border dark:bg-muted/60 hover:border-primary/30">
 										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
 											Step 3
 										</div>
 
-										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-											<Shield className="size-8 text-primary-foreground" />
+										<div className="size-16 rounded-2xl bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+											<Shield className="size-8 text-primary" />
 										</div>
 
 										<h3 className="font-bold text-foreground mb-4 text-xl">
@@ -624,8 +533,8 @@ export default function FeaturesPage() {
 							{/* Results grid with enhanced visual design */}
 							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<TrendingUp className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<TrendingUp className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										40%
@@ -636,8 +545,8 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Clock className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Clock className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										25+
@@ -648,8 +557,8 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Users className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Users className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										10K+
@@ -658,8 +567,8 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<BarChart3 className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color:color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<BarChart3 className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										90
@@ -679,16 +588,16 @@ export default function FeaturesPage() {
 			>
 				<section className="section-content relative overflow-hidden">
 					{/* Enhanced background */}
-					<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
-						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)]" />
+					<div className="absolute inset-0 bg-[color:color-mix(in_oklch,var(--primary)_5%,transparent)]">
+						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_12%,transparent),transparent 70%)]" />
 					</div>
 
 					<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 						<BlurFade delay={0.5} inView>
 							<div className="text-center space-y-8">
 								<h2 className="font-bold tracking-tight leading-tight">
-									Start your transformation{' '}
-									<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
+									<span className="text-foreground">Start your transformation{' '}</span>
+									<span className="hero-highlight">
 										today
 									</span>
 								</h2>

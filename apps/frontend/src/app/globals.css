@@ -397,6 +397,21 @@
 	--spacing-80: 20rem;
 	--spacing-96: 24rem;
 
+	/* Semantic Layout Spacing - purpose-driven spacing tokens for consistent layout structure */
+	--layout-section-padding-y: var(--spacing-20); /* Default section vertical padding */
+	--layout-section-padding-y-compact: var(--spacing-12); /* Compact sections */
+	--layout-section-padding-y-spacious: var(--spacing-24); /* Hero sections */
+	--layout-container-padding-x: clamp(1.5rem, 4vw, 3rem); /* Responsive horizontal padding */
+	--layout-container-padding-x-narrow: clamp(1rem, 2vw, 1.5rem); /* Tight horizontal padding */
+	--layout-content-padding: var(--spacing-8); /* Standard content block padding */
+	--layout-content-padding-compact: var(--spacing-4); /* Compact content padding */
+	--layout-gap-section: var(--spacing-16); /* Gap between major sections */
+	--layout-gap-group: var(--spacing-8); /* Gap between related groups */
+	--layout-gap-items: var(--spacing-4); /* Gap between individual items */
+	--layout-stack-loose: var(--spacing-12); /* Loose vertical rhythm */
+	--layout-stack-default: var(--spacing-6); /* Default vertical rhythm */
+	--layout-stack-tight: var(--spacing-3); /* Tight vertical rhythm */
+
 	/* Typography helpers */
 	--text-xs: 0.75rem;
 	--text-sm: 0.875rem;
@@ -418,6 +433,12 @@
 	--z-toast: 9999;
 	--z-modal: 1300;
 	--z-modal-backdrop: 1200;
+
+	/* Spacing tokens for consistent section/page spacing */
+	--spacing-section: 5rem; /* 80px - Standard section vertical spacing */
+	--spacing-section-sm: 3rem; /* 48px - Smaller section spacing */
+	--spacing-page-block: 2rem; /* 32px - Page content vertical padding */
+	--spacing-container-inline: clamp(1.5rem, 4vw, 3rem); /* Responsive horizontal padding */
 }
 
 @layer base {
@@ -680,13 +701,39 @@
 }
 
 @layer components {
+	/* Layout Utility Classes - apply semantic spacing tokens */
 	.page-content {
 		width: min(96rem, 100%);
 		margin: 0 auto;
-		padding-inline: clamp(1.25rem, 3vw, 3rem);
-		padding-block: clamp(1.5rem, 2vw, 2.5rem);
+		padding-inline: var(--layout-container-padding-x);
+		padding-block: var(--layout-content-padding);
 	}
 
+	.section-spacing {
+		padding-block: var(--layout-section-padding-y);
+	}
+
+	.section-spacing-compact {
+		padding-block: var(--layout-section-padding-y-compact);
+	}
+
+	.section-spacing-spacious {
+		padding-block: var(--layout-section-padding-y-spacious);
+	}
+
+	.stack-loose > * + * {
+		margin-block-start: var(--layout-stack-loose);
+	}
+
+	.stack-default > * + * {
+		margin-block-start: var(--layout-stack-default);
+	}
+
+	.stack-tight > * + * {
+		margin-block-start: var(--layout-stack-tight);
+	}
+
+	/* Typography Utility Classes */
 	.text-page-title {
 		font-size: var(--font-large-title);
 		line-height: var(--line-height-large-title);
@@ -1648,6 +1695,23 @@
 			forced-color-adjust: none;
 			border: 1px solid CanvasText;
 		}
+	}
+
+	/* Hero highlight treatment */
+	.hero-highlight {
+		@apply relative inline-block text-primary font-semibold;
+	}
+
+	.hero-highlight::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -0.25rem;
+		height: 0.275rem;
+		border-radius: 999px;
+		background: color-mix(in oklch, var(--primary) 70%, transparent);
+		opacity: 0.65;
 	}
 
 	@layer utilities {
