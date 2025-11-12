@@ -14,7 +14,6 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import {
 	createSnapModifier,
-	restrictToParentElement,
 	restrictToWindowEdges
 } from '@dnd-kit/modifiers'
 import { Badge } from '#components/ui/badge'
@@ -122,7 +121,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					method: 'PUT',
 					body: JSON.stringify({
 						status: newStatus,
-						completedAt: undefined
+						completedAt: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined
 					})
 				})
 
@@ -149,7 +148,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			collisionDetection={closestCorners}
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
-			modifiers={[snapToGrid, restrictToParentElement, restrictToWindowEdges]}
+			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 				{COLUMNS.map(column => {
