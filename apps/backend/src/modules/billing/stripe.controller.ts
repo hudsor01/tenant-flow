@@ -11,7 +11,6 @@ import {
 	Logger,
 	NotFoundException,
 	Param,
-	ParseUUIDPipe,
 	Post,
 	Query,
 	Request,
@@ -261,7 +260,11 @@ export class StripeController {
 	 */
 	@Get('customers/:id/payment-methods')
 	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
-	async getPaymentMethods(@Param('id', ParseUUIDPipe) customerId: string) {
+	async getPaymentMethods(@Param('id') customerId: string) {
+		if (!customerId || !customerId.startsWith('cus_')) {
+			throw new BadRequestException('Invalid customer ID format')
+		}
+
 		try {
 			return await this.stripe.paymentMethods.list({
 				customer: customerId,
@@ -546,15 +549,15 @@ export class StripeController {
 	@UseGuards(JwtAuthGuard)
 	async removeTenantPaymentMethod(
 		@Request() req: AuthenticatedRequest,
-		@Param('payment_method_id', ParseUUIDPipe) paymentMethodId: string
+		@Param('payment_method_id') paymentMethodId: string
 	) {
 		const userId = req.user?.id
 		if (!userId) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		if (!paymentMethodId) {
-			throw new BadRequestException('payment_method_id is required')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		try {
@@ -1146,10 +1149,10 @@ export class StripeController {
 	@Get('checkout-session/:sessionId')
 	@SetMetadata('isPublic', true)
 	async getCheckoutSession(
-		@Param('sessionId', ParseUUIDPipe) sessionId: string
+		@Param('sessionId') sessionId: string
 	) {
-		if (!sessionId) {
-			throw new BadRequestException('sessionId is required')
+		if (!sessionId || !sessionId.startsWith('cs_')) {
+			throw new BadRequestException('Invalid session ID format')
 		}
 
 		try {
@@ -1419,8 +1422,12 @@ export class StripeController {
 	@Get('subscriptions/:customerId')
 	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
 	async getSubscriptions(
-		@Param('customerId', ParseUUIDPipe) customerId: string
+		@Param('customerId') customerId: string
 	) {
+		if (!customerId || !customerId.startsWith('cus_')) {
+			throw new BadRequestException('Invalid customer ID format')
+		}
+
 		try {
 			return await this.stripe.subscriptions.list({
 				customer: customerId,
