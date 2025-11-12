@@ -34,6 +34,10 @@ import {
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
+import {
+	querySingle,
+	queryMutation
+} from '../../shared/database/supabase-query-helpers'
 
 /**
  * Safe column list for tenant queries
@@ -825,37 +829,34 @@ export class TenantsService {
 			return null
 		}
 
+		this.logger.log('Finding tenant by ID via direct Supabase query', {
+			userId,
+			tenantId
+		})
+
+		const client = this.supabase.getAdminClient()
+
 		try {
-			this.logger.log('Finding tenant by ID via direct Supabase query', {
-				userId,
-				tenantId
-			})
-
-			const client = this.supabase.getAdminClient()
-			const { data, error } = await client
-				.from('tenant')
-				.select(SAFE_TENANT_COLUMNS)
-				.eq('id', tenantId)
-				.eq('userId', userId)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch tenant from Supabase', {
-					error: error.message,
-					userId,
-					tenantId
-				})
+			return await querySingle<Tenant>(
+				client
+					.from('tenant')
+					.select(SAFE_TENANT_COLUMNS)
+					.eq('id', tenantId)
+					.eq('userId', userId)
+					.single(),
+				{
+					resource: 'tenant',
+					id: tenantId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			// Return null for not found (soft failure for ownership checks)
+			if (error instanceof NotFoundException) {
 				return null
 			}
-
-			return data as Tenant
-		} catch (error) {
-			this.logger.error('Tenants service failed to find one tenant', {
-				error: error instanceof Error ? error.message : String(error),
-				userId,
-				tenantId
-			})
-			return null
+			throw error
 		}
 	}
 
@@ -1100,65 +1101,50 @@ export class TenantsService {
 			throw new BadRequestException('Email is required')
 		}
 
-		try {
-			this.logger.log('Creating tenant via direct Supabase query', {
-				userId
-			})
+		this.logger.log('Creating tenant via direct Supabase query', {
+			userId
+		})
 
-			const client = this.supabase.getAdminClient()
-			// Use authenticated userId (from JWT) - never trust client-provided userId
-			const tenantData: Database['public']['Tables']['tenant']['Insert'] = {
-				userId: userId,
-				email: createRequest.email,
-				firstName: createRequest.firstName || null,
-				lastName: createRequest.lastName || null,
-				phone: createRequest.phone || null,
-				emergencyContact: createRequest.emergencyContact || null,
-				name: createRequest.name || null,
-				avatarUrl: createRequest.avatarUrl || null,
-				status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
-				invitation_status:
-					'PENDING' as Database['public']['Enums']['invitation_status']
-			}
-
-			const { data, error } = await client
-				.from('tenant')
-				.insert(tenantData)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to create tenant in Supabase', {
-					error: error.message,
-					userId
-				})
-				throw new BadRequestException('Failed to create tenant')
-			}
-
-			const tenant = data as Tenant
-
-			// Business logic: Emit tenant created event for notification service
-			this.eventEmitter.emit(
-				'tenant.created',
-				new TenantCreatedEvent(
-					userId,
-					tenant.id,
-					tenant.firstName && tenant.lastName
-						? `${tenant.firstName} ${tenant.lastName}`
-						: tenant.email,
-					tenant.email,
-					`New tenant ${tenant.firstName && tenant.lastName ? `${tenant.firstName} ${tenant.lastName}` : tenant.email} has been added to your property`
-				)
-			)
-
-			return tenant
-		} catch (error) {
-			this.logger.error('Tenants service failed to create tenant', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
-			})
-			throw new BadRequestException('Failed to create tenant')
+		const client = this.supabase.getAdminClient()
+		// Use authenticated userId (from JWT) - never trust client-provided userId
+		const tenantData: Database['public']['Tables']['tenant']['Insert'] = {
+			userId: userId,
+			email: createRequest.email,
+			firstName: createRequest.firstName || null,
+			lastName: createRequest.lastName || null,
+			phone: createRequest.phone || null,
+			emergencyContact: createRequest.emergencyContact || null,
+			name: createRequest.name || null,
+			avatarUrl: createRequest.avatarUrl || null,
+			status: 'PENDING' as Database['public']['Enums']['TenantStatus'],
+			invitation_status:
+				'PENDING' as Database['public']['Enums']['invitation_status']
 		}
+
+		const tenant = await queryMutation<Tenant>(
+			client.from('tenant').insert(tenantData).select().single(),
+			{
+				resource: 'tenant',
+				operation: 'create',
+				logger: this.logger
+			}
+		)
+
+		// Business logic: Emit tenant created event for notification service
+		this.eventEmitter.emit(
+			'tenant.created',
+			new TenantCreatedEvent(
+				userId,
+				tenant.id,
+				tenant.firstName && tenant.lastName
+					? `${tenant.firstName} ${tenant.lastName}`
+					: tenant.email,
+				tenant.email,
+				`New tenant ${tenant.firstName && tenant.lastName ? `${tenant.firstName} ${tenant.lastName}` : tenant.email} has been added to your property`
+			)
+		)
+
+		return tenant
 	}
 
 	/**
@@ -1168,7 +1154,7 @@ export class TenantsService {
 		userId: string,
 		tenantId: string,
 		updateRequest: UpdateTenantRequest,
-		expectedVersion?: number //Optimistic locking
+		expectedVersion?: number // 🔐 Optimistic locking
 	): Promise<Tenant | null> {
 		// Business logic: Validate inputs
 		if (!userId || !tenantId) {
@@ -1179,77 +1165,67 @@ export class TenantsService {
 			return null
 		}
 
+		this.logger.log('Updating tenant via direct Supabase query', {
+			userId,
+			tenantId
+		})
+
+		const client = this.supabase.getAdminClient()
+
+		// Build update object dynamically
+		const updateData: Database['public']['Tables']['tenant']['Update'] = {
+			updatedAt: new Date().toISOString()
+		}
+
+		// Increment version for optimistic locking
+		if (expectedVersion !== undefined) {
+			updateData.version = expectedVersion + 1
+		}
+
+		if (updateRequest.firstName !== undefined)
+			updateData.firstName = updateRequest.firstName
+		if (updateRequest.lastName !== undefined)
+			updateData.lastName = updateRequest.lastName
+		if (updateRequest.email !== undefined)
+			updateData.email = updateRequest.email
+		if (updateRequest.phone !== undefined)
+			updateData.phone = updateRequest.phone
+
+		// 🔐 Optimistic locking: Build query with version check
+		let query = client
+			.from('tenant')
+			.update(updateData)
+			.eq('id', tenantId)
+			.eq('userId', userId)
+
+		if (expectedVersion !== undefined) {
+			query = query.eq('version', expectedVersion)
+		}
+
 		try {
-			this.logger.log('Updating tenant via direct Supabase query', {
-				userId,
-				tenantId
+			return await queryMutation<Tenant>(query.select().single(), {
+				resource: 'tenant',
+				id: tenantId,
+				operation: 'update',
+				logger: this.logger
 			})
-
-			const client = this.supabase.getAdminClient()
-
-			// Build update object dynamically
-			const updateData: Database['public']['Tables']['tenant']['Update'] = {
-				updatedAt: new Date().toISOString()
-			}
-
-			//Increment version for optimistic locking
-			if (expectedVersion !== undefined) {
-				updateData.version = expectedVersion + 1
-			}
-
-			if (updateRequest.firstName !== undefined)
-				updateData.firstName = updateRequest.firstName
-			if (updateRequest.lastName !== undefined)
-				updateData.lastName = updateRequest.lastName
-			if (updateRequest.email !== undefined)
-				updateData.email = updateRequest.email
-			if (updateRequest.phone !== undefined)
-				updateData.phone = updateRequest.phone
-
-			//Add version check for optimistic locking
-			let query = client
-				.from('tenant')
-				.update(updateData)
-				.eq('id', tenantId)
-				.eq('userId', userId)
-
-			// Add version check if expectedVersion provided
-			if (expectedVersion !== undefined) {
-				query = query.eq('version', expectedVersion)
-			}
-
-			const { data, error } = await query.select().single()
-
-			if (error || !data) {
-				//Detect optimistic locking conflict
-				if (error?.code === 'PGRST116') {
-					// PGRST116 = 0 rows affected (version mismatch)
-					this.logger.warn('Optimistic locking conflict detected', {
-						userId,
-						tenantId,
-						expectedVersion
-					})
-					throw new ConflictException(
-						'Tenant was modified by another user. Please refresh and try again.'
-					)
-				}
-
-				// Other database errors
-				this.logger.error('Failed to update tenant in Supabase', {
-					error: error ? String(error) : 'Unknown error',
-					userId,
-					tenantId
-				})
-				throw new BadRequestException('Failed to update tenant')
-			}
-
-			return data as Tenant
 		} catch (error) {
-			// Re-throw ConflictException as-is
-			if (error instanceof ConflictException) {
+			// 🔐 Convert NotFoundException to ConflictException for optimistic locking failures
+			if (error instanceof NotFoundException && expectedVersion !== undefined) {
+				throw new ConflictException(
+					'Tenant was modified by another user. Please refresh and try again.'
+				)
+			}
+
+			// Re-throw other NestJS exceptions as-is
+			if (
+				error instanceof BadRequestException ||
+				error instanceof ConflictException
+			) {
 				throw error
 			}
 
+			// Wrap unknown errors
 			this.logger.error('Tenants service failed to update tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				userId,
