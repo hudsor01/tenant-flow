@@ -2,7 +2,7 @@
  * Zod validation schemas for contact form
  */
 import { z } from 'zod'
-import type { ContactFormRequest } from '../types/domain'
+import type { ContactFormRequest } from '../types/domain.js'
 
 export const contactFormSchema = z
 	.object({
