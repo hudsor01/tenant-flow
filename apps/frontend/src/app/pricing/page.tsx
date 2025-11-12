@@ -10,7 +10,7 @@ import {
 	AccordionTrigger
 } from '#components/ui/accordion'
 import { Button } from '#components/ui/button'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Building, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
 
 // ⚡ Dynamic imports: Defer loading heavy visual components (~50KB combined)
@@ -213,13 +213,13 @@ export default function PricingPage() {
 
 							{/* Enhanced CTA Buttons */}
 							<div className="flex flex-col items-center gap-4 sm:flex-row">
-								<Button size="xl" className="px-10 py-4 text-lg shadow-2xl hover:shadow-primary/25 transition-all duration-300" asChild>
+								<Button className="h-12 px-10 py-4 text-lg shadow-2xl hover:shadow-primary/25 transition-all duration-300" asChild>
 									<Link href="/signup">
 										Start free trial
 										<ArrowRight className="ml-2 h-5 w-5" />
 									</Link>
 								</Button>
-								<Button size="xl" variant="outline" className="px-10 py-4 text-lg border-2 hover:bg-accent/5 transition-all duration-300" asChild>
+								<Button variant="outline" className="h-12 px-10 py-4 text-lg border-2 hover:bg-accent/5 transition-all duration-300" asChild>
 									<Link href="/contact">Book a demo</Link>
 								</Button>
 							</div>
@@ -248,28 +248,30 @@ export default function PricingPage() {
 									label: 'Active Properties',
 									value: '35,000+',
 									description: 'Properties managed across North America',
-									icon: 'Building'
+									icon: Building
 								},
 								{
 									label: 'Time Saved',
 									value: '20+ hrs/week',
 									description: 'Average automation savings per team',
-									icon: 'Clock'
+									icon: Clock
 								},
 								{
 									label: 'Customer Rating',
 									value: '4.9/5',
 									description: 'Based on 2,500+ user reviews',
-									icon: 'Star'
+									icon: Star
 								}
 							].map((stat, index) => (
 								<div
 									key={stat.label}
-									className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card/60 p-8 shadow-lg backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10"
+									className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card/60 p-8 shadow-lg backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 animate-in fade-in"
 									style={{ animationDelay: `${index * 150}ms` }}
 								>
 									<div className="relative">
-										<div className="mb-4 text-3xl font-bold text-primary">{stat.icon}</div>
+										<div className="mb-4 text-3xl font-bold text-primary">
+											<stat.icon className="h-8 w-8" />
+										</div>
 										<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
 											{stat.label}
 										</p>
