@@ -17,7 +17,7 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Property, Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -36,9 +36,6 @@ import { z } from 'zod'
 import { useModalStore } from '#stores/modal-store'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { clientFetch } from '#lib/api/client'
-
-type Property = Tables<'property'>
-type Unit = Tables<'unit'>
 
 const logger = createLogger({ component: 'CreateTenantForm' })
 

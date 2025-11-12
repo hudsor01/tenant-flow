@@ -357,8 +357,10 @@ export async function getAuthHeaders(): Promise<Record<string, string>> {
 	try {
 		if (typeof window !== 'undefined') {
 			// Use Supabase session (consistent with rest of app)
-			const { createClient } = await import('#lib/supabase/client')
-			const supabase = createClient()
+			const { getSupabaseClientInstance } = await import(
+				'@repo/shared/lib/supabase-client'
+			)
+			const supabase = getSupabaseClientInstance()
 
 			// SECURITY FIX: Validate user with getUser() before extracting token
 			const {

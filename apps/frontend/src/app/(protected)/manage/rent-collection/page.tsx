@@ -141,7 +141,7 @@ function RentCollectionContent() {
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold text-gradient-authority">
+					<h1 className="text-3xl font-bold text-foreground">
 						Rent Collection
 					</h1>
 					<p className="text-muted-foreground mt-1">
@@ -174,7 +174,7 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Active Subscriptions
 						</CardTitle>
-						<CheckCircle className="size-4 text-green-600" />
+						<CheckCircle className="size-4 text-success" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -206,7 +206,7 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Failed Payments
 						</CardTitle>
-						<AlertTriangle className="size-4 text-red-600" />
+						<AlertTriangle className="size-4 text-destructive" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
@@ -621,7 +621,7 @@ function RentCollectionContent() {
 												</TableCell>
 												<TableCell>{attempt.attemptNumber}</TableCell>
 												<TableCell className="max-w-xs">
-													<span className="text-sm text-red-600">
+													<span className="text-sm text-destructive">
 														{attempt.failureReason}
 													</span>
 												</TableCell>

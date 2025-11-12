@@ -6,12 +6,10 @@ import { Label } from '#components/ui/label'
 import { Textarea } from '#components/ui/textarea'
 import { useTerminateLease } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Lease } from '@repo/shared/types/core'
 import { AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
-type Lease = Database['public']['Tables']['lease']['Row']
 
 interface TerminateLeaseDialogProps {
 	open: boolean

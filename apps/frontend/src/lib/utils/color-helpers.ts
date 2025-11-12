@@ -9,7 +9,7 @@ export function getActivityColorClass(type: string): string {
 		payment: 'text-success bg-success/10',
 		maintenance: 'text-info bg-info/10',
 		lease: 'text-primary bg-primary/10',
-		property: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950',
+		property: 'text-primary bg-primary/10',
 		tenant: 'text-warning bg-warning/10'
 	}
 	return colorMap[type] || 'text-muted-foreground bg-muted'
@@ -24,7 +24,7 @@ export function getActivityBadgeClass(type: string): string {
 		payment: 'text-success bg-success/10 border-success/20',
 		maintenance: 'text-info bg-info/10 border-info/20',
 		lease: 'text-primary bg-primary/10 border-primary/20',
-		property: 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950 dark:border-blue-800',
+		property: 'text-primary bg-primary/10 border-primary/20',
 		tenant: 'text-warning bg-warning/10 border-warning/20'
 	}
 	return colorMap[type] || 'text-muted-foreground bg-muted border-border'
