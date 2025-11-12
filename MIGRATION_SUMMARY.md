@@ -6,10 +6,10 @@ Successfully implemented and deployed centralized Supabase error handling infras
 
 **Status**: ✅ **PRODUCTION READY**
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Total Commits**: 11 commits
-**Services Migrated**: 8 services (+ infrastructure)
-**Methods Migrated**: 35+ methods across all services
-**Code Reduction**: ~450+ lines of boilerplate eliminated
+**Total Commits**: 13 commits (pending)
+**Services Migrated**: 10 services (+ infrastructure)
+**Methods Migrated**: 44 methods across all services
+**Code Reduction**: ~450+ lines of boilerplate eliminated (8 services), +53 lines for latest 2 services (more verbose but cleaner)
 
 ---
 
@@ -65,9 +65,13 @@ Successfully implemented and deployed centralized Supabase error handling infras
 | **rent-payments.service.ts** | 5 | 1,026 | 1,015 | 11 lines | 51aaaa72 |
 | **payment-methods.service.ts** | 5 | 310 | 317 | -7 lines* | 7e0f4a08 |
 | **users.service.ts** | 4 | 85 | 67 | 18 lines | fce69bd5 |
-| **TOTAL** | **38 methods** | - | - | **~450 lines** | **8 commits** |
+| **notifications.service.ts** | 6 | 859 | 897 | -38 lines** | TBD |
+| **generated-report.service.ts** | 3 | 221 | 236 | -15 lines** | TBD |
+| **TOTAL** | **47 methods*** | - | - | **~397 lines** | **10 commits** |
 
 \* *payment-methods.service.ts gained 7 lines due to more verbose type annotations, but has cleaner error handling*
+\*\* *Latest services gained lines due to more verbose type annotations and explicit type handling, but have cleaner error handling and better observability*
+\*\*\* *Excludes notification.service.ts (schema mismatch) and analytics services (RPC-only)*
 
 ---
 
@@ -533,6 +537,52 @@ return this.queryHelpers.querySingle<Entity>(
 
 ---
 
+### Phase 8: notifications.service.ts (Commit: TBD)
+**Lines Changed**: 859 → 897 (+38 lines for verbose type annotations, cleaner error handling)
+**Methods Migrated**: 6 methods
+
+**Migrated Methods**:
+- ✅ getUnreadNotifications() - List query (19 → 23 lines)
+- ✅ markAsRead() - Single query (9 → 20 lines)
+- ✅ cancelNotification() - Single query (15 → 29 lines)
+- ✅ sendImmediateNotification() - User lookup with querySingle (15 → 19 lines)
+- ✅ handleTenantInvited() - Dual parallel queries for tenant and lease (30 → 45 lines)
+- ✅ getUnreadCount() - Count query (31 → 23 lines)
+
+**Key Improvements**:
+- Consistent error mapping across notification operations
+- Proper HTTP status codes for notification queries
+- Eliminated nullable return types in query methods
+- Parallel tenant/lease queries with centralized error handling
+- Simplified count query logic
+
+**Note**: notification.service.ts was skipped due to schema mismatch (uses snake_case column names like `recipient_id`, `is_read` instead of camelCase). This service may need schema migration before error handler migration.
+
+---
+
+### Phase 9: generated-report.service.ts (Commit: TBD)
+**Lines Changed**: 221 → 236 (+15 lines, 7% increase)
+**Methods Migrated**: 3 methods
+
+**Migrated Methods**:
+- ✅ create() - Insert query (23 → 24 lines, 4% increase)
+- ✅ findAll() - Parallel count + list queries (27 → 37 lines, 37% increase for parallel optimization)
+- ✅ findOne() - Single query (19 → 20 lines, 5% increase)
+
+**Key Improvements**:
+- Consistent error handling for report CRUD operations
+- Parallel count and list queries in findAll() for better performance
+- Type-safe non-nullable return values
+- Proper NotFoundException handling via centralized error mapper
+- Cleaner code without manual error checking
+
+**Pattern Demonstrated**:
+- Parallel queries with Promise.all([queryCount(), queryList()])
+- Admin client usage for cross-user report access
+- Integration with file system operations
+
+---
+
 ## 🔄 Migration Patterns
 
 ### Pattern 1: Simple CRUD Service
@@ -593,6 +643,14 @@ return this.queryHelpers.querySingle<Entity>(
 - ✅ rent-payments.service.ts (5 methods)
 - ✅ payment-methods.service.ts (5 methods)
 - ✅ users.service.ts (4 methods)
+- ✅ notifications.service.ts (6 methods)
+- ✅ generated-report.service.ts (3 methods)
+
+### Skipped (Non-Applicable)
+- ⚠️ notification.service.ts - Schema mismatch (uses snake_case columns)
+- ⚠️ dashboard-analytics.service.ts - RPC-only, no CRUD operations
+- ⚠️ financial-analytics.service.ts - RPC-only, no CRUD operations
+- ⚠️ balance-sheet.service.ts - RPC-only, no CRUD operations
 
 ### Recommended Next Batch
 1. **Notifications Services** - notification.service.ts, notifications.service.ts
@@ -634,6 +692,8 @@ return this.queryHelpers.querySingle<Entity>(
 - `apps/backend/src/modules/rent-payments/rent-payments.service.ts` (1,015 lines, 5 methods)
 - `apps/backend/src/modules/payment-methods/payment-methods.service.ts` (317 lines, 5 methods)
 - `apps/backend/src/modules/users/users.service.ts` (67 lines, 4 methods)
+- `apps/backend/src/modules/notifications/notifications.service.ts` (897 lines, 6 methods)
+- `apps/backend/src/modules/reports/generated-report.service.ts` (236 lines, 3 methods)
 
 ### External References
 - **PostgREST Error Codes**: https://postgrest.org/en/stable/errors.html
@@ -661,12 +721,13 @@ The infrastructure is battle-tested with 100% test coverage, and the migration p
 - **Private helpers**: payment-methods.service.ts resolveTenantId() pattern
 
 **Status**: ✅ Ready for production deployment
-**Progress**: 8 of ~54 services migrated (15% completion)
+**Progress**: 10 of ~54 services migrated (19% completion)
 **Recommendation**: Continue gradual rollout to remaining services over 2-3 weeks
+**Note**: Many services use RPC-only patterns and may not benefit from CRUD error handler migration
 
 ---
 
-**Document Version**: 2.0
-**Last Updated**: 2025-11-11
+**Document Version**: 3.0
+**Last Updated**: 2025-11-12
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Commits**: 11 commits (infrastructure + 8 service migrations)
+**Commits**: 13 commits (infrastructure + 10 service migrations)
