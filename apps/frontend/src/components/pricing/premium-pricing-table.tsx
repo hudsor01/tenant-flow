@@ -1,12 +1,11 @@
 'use client'
 
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '#components/ui/card'
 import { Switch } from '#components/ui/switch'
 import { Spinner } from '#components/ui/spinner'
 import { cn } from '#lib/utils'
-import { Check, X, Sparkles } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { useState } from 'react'
 import { useStripeProducts, formatStripePrice, calculateAnnualSavings } from '#hooks/use-stripe-products'
 import { createCheckoutSession, isUserAuthenticated } from '#lib/stripe-client'
@@ -186,16 +185,12 @@ export function PremiumPricingTable({
 					<span className={cn('text-sm font-medium', isAnnual && 'text-foreground', !isAnnual && 'text-muted-foreground')}>
 						Annual
 					</span>
-					<Badge variant="secondary" className="bg-success/10 text-success dark:bg-success/20 dark:text-success">
-						Save 17%
-					</Badge>
 				</div>
 
 				{/* Pricing Cards */}
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					{mainProducts.map(product => {
 						const planId = product.metadata.planId || product.name.toLowerCase()
-						const isPopular = product.metadata.popular === 'true'
 
 						const monthlyPrice = product.prices.monthly?.unit_amount || 0
 						const annualPrice = product.prices.annual?.unit_amount || 0
@@ -212,19 +207,9 @@ export function PremiumPricingTable({
 								className={cn(
 									'relative flex flex-col',
 									cardSize,
-									isPopular && 'border-2 border-primary shadow-xl ring-2 ring-primary/20 scale-105',
 									theme === 'classic' && 'bg-card/80'
 								)}
 							>
-								{isPopular && (
-									<div className="absolute -top-4 left-1/2 -translate-x-1/2">
-										<Badge className="bg-primary text-primary-foreground px-4 py-1 shadow-lg">
-											<Sparkles className="size-3 mr-1" />
-											Most Popular
-										</Badge>
-									</div>
-								)}
-
 								<CardHeader className="pb-6">
 									<CardTitle className="text-2xl">{product.name}</CardTitle>
 									<CardDescription className="text-base">{product.description}</CardDescription>
@@ -259,8 +244,8 @@ export function PremiumPricingTable({
 
 								<CardFooter>
 									<Button
-										className={cn('w-full h-12 text-base', isPopular && 'bg-primary hover:bg-primary/90 shadow-lg')}
-										variant={isPopular ? 'default' : 'outline'}
+										className="w-full h-12 text-base"
+										variant="outline"
 										size={size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'default'}
 										disabled={subscriptionMutation.isPending}
 										onClick={() => {

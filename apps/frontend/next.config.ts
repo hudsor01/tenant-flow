@@ -54,6 +54,11 @@ const nextConfig: NextConfig = {
 				source: '/security',
 				destination: '/privacy',
 				permanent: true
+			},
+			{
+				source: '/signup',
+				destination: '/pricing',
+				permanent: false
 			}
 		]
 	},
