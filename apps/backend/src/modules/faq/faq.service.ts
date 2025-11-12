@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { FAQCategoryWithQuestions } from '@repo/shared/types/faq'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { queryList, querySingle } from '../../shared/utils/query-helpers'
 
 @Injectable()
 export class FAQService {
@@ -103,10 +104,15 @@ export class FAQService {
 		const client = this.supabase.getAdminClient()
 
 		// Get categories with questions in a single query
-		const { data, error } = await client
-			.from('faq_categories')
-			.select(
-				`
+		const data = await queryList<
+			Database['public']['Tables']['faq_categories']['Row'] & {
+				faq_questions?: Database['public']['Tables']['faq_questions']['Row'][]
+			}
+		>(
+			client
+				.from('faq_categories')
+				.select(
+					`
                     id,
                     name,
                     slug,
@@ -128,26 +134,22 @@ export class FAQService {
                         updated_at
                     )
                 `
-			)
-			.eq('is_active', true)
-			.order('display_order', { ascending: true })
-			.order('faq_questions.display_order', {
-				ascending: true,
-				foreignTable: 'faq_questions'
-			})
-
-		if (error) {
-			this.logger.error('Failed to fetch FAQs', { error: error.message })
-			throw new HttpException(
-				'Failed to fetch FAQs',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
+				)
+				.eq('is_active', true)
+				.order('display_order', { ascending: true })
+				.order('faq_questions.display_order', {
+					ascending: true,
+					foreignTable: 'faq_questions'
+				}),
+			{
+				resource: 'FAQ categories',
+				operation: 'fetch',
+				logger: this.logger
+			}
+		)
 
 		// Transform the data using the mapper helper
-		return (data || []).map(category =>
-			this.mapCategoryWithQuestions(category)
-		)
+		return data.map(category => this.mapCategoryWithQuestions(category))
 	}
 
 	/**
@@ -156,10 +158,16 @@ export class FAQService {
 	async getFAQBySlug(slug: string): Promise<FAQCategoryWithQuestions | null> {
 		const client = this.supabase.getAdminClient()
 
-		const { data, error } = await client
-			.from('faq_categories')
-			.select(
-				`
+		try {
+			const data = await querySingle<
+				Database['public']['Tables']['faq_categories']['Row'] & {
+					faq_questions?: Database['public']['Tables']['faq_questions']['Row'][]
+				}
+			>(
+				client
+					.from('faq_categories')
+					.select(
+						`
                     id,
                     name,
                     slug,
@@ -181,28 +189,29 @@ export class FAQService {
                         updated_at
                     )
                 `
+					)
+					.eq('slug', slug)
+					.eq('is_active', true)
+					.order('faq_questions.display_order', {
+						ascending: true,
+						foreignTable: 'faq_questions'
+					})
+					.single(),
+				{
+					resource: 'FAQ category',
+					operation: 'fetch by slug',
+					logger: this.logger
+				}
 			)
-			.eq('slug', slug)
-			.eq('is_active', true)
-			.order('faq_questions.display_order', {
-				ascending: true,
-				foreignTable: 'faq_questions'
-			})
-			.single()
 
-		if (error) {
-			if (error.code === 'PGRST116') return null
-			this.logger.error('Failed to fetch FAQ by slug', {
-				error: error.message,
-				slug
-			})
-			throw new HttpException(
-				error.message || 'Failed to fetch FAQ category',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
+			return this.mapCategoryWithQuestions(data)
+		} catch (error) {
+			// Return null for not found (soft failure for FAQ lookup)
+			if (error instanceof HttpException && error.getStatus() === HttpStatus.NOT_FOUND) {
+				return null
+			}
+			throw error
 		}
-
-		return this.mapCategoryWithQuestions(data)
 	}
 
 	/**
