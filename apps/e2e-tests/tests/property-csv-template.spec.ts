@@ -26,16 +26,16 @@ test.describe('Property CSV Template Download', () => {
 		page
 	}) => {
 		// Step 1: Navigate to properties page (will redirect to login)
-		logStep('📍 Step 1: Navigating to /manage/properties')
+		logStep(' Step 1: Navigating to /manage/properties')
 		await page.goto('http://localhost:3000/manage/properties')
 
 		// Wait for login page (page.goto already waits for navigation, just verify URL)
 		await page.waitForURL('**/login**', { timeout: 10000 })
-		logStep('✅ Redirected to login page')
+		logStep(' Redirected to login page')
 
 		// Step 2: Login with test credentials
-		logStep('🔑 Step 2: Logging in with test credentials')
-		logStep(`   Email: ${TEST_EMAIL}`)
+		logStep(' Step 2: Logging in with test credentials')
+		logStep(` Email: ${TEST_EMAIL}`)
 
 		await page.fill('input[name="email"]', TEST_EMAIL)
 		await page.fill('input[name="password"]', TEST_PASSWORD)
@@ -43,16 +43,16 @@ test.describe('Property CSV Template Download', () => {
 
 		// Wait for redirect after login (goes to /manage by default)
 		await page.waitForURL('**/manage**', { timeout: 15000 })
-		logStep('✅ Successfully logged in')
+		logStep(' Successfully logged in')
 
 		// Step 3: Navigate to properties page
-		logStep('📍 Step 3: Navigating to properties page')
+		logStep(' Step 3: Navigating to properties page')
 		await page.goto('http://localhost:3000/manage/properties')
 		await page.waitForLoadState('networkidle')
-		logStep('✅ Properties page loaded')
+		logStep(' Properties page loaded')
 
 		// Step 4: Click "Bulk Import" button to open dialog
-		logStep('📂 Step 4: Opening Bulk Import dialog')
+		logStep(' Step 4: Opening Bulk Import dialog')
 		const bulkImportButton = page.locator('button:has-text("Bulk Import")')
 		await expect(bulkImportButton).toBeVisible({ timeout: 5000 })
 		await bulkImportButton.click()
@@ -60,15 +60,15 @@ test.describe('Property CSV Template Download', () => {
 		// Wait for dialog to appear
 		const dialog = page.locator('role=dialog')
 		await expect(dialog).toBeVisible({ timeout: 5000 })
-		logStep('✅ Bulk Import dialog opened')
+		logStep(' Bulk Import dialog opened')
 
 		// Verify dialog title
 		const dialogTitle = page.locator('role=dialog >> text=Bulk Import Properties')
 		await expect(dialogTitle).toBeVisible()
-		logStep('✅ Dialog title confirmed')
+		logStep(' Dialog title confirmed')
 
 		// Step 5: Click "Download" button and capture download
-		logStep('⬇️  Step 5: Clicking Download button')
+		logStep('⬇️ Step 5: Clicking Download button')
 
 		// Set up download listener
 		const downloadPromise = page.waitForEvent('download', { timeout: 10000 })
@@ -82,10 +82,10 @@ test.describe('Property CSV Template Download', () => {
 
 		// Wait for download
 		const download = await downloadPromise
-		logStep('✅ Download started')
+		logStep(' Download started')
 
 		// Step 6: Save downloaded file
-		logStep('💾 Step 6: Saving downloaded file')
+		logStep(' Step 6: Saving downloaded file')
 		const downloadPath = path.join(
 			process.cwd(),
 			'downloads',
@@ -99,16 +99,16 @@ test.describe('Property CSV Template Download', () => {
 		}
 
 		await download.saveAs(downloadPath)
-		logStep(`✅ File saved to: ${downloadPath}`)
+		logStep(` File saved to: ${downloadPath}`)
 
 		// Verify file exists
 		expect(fs.existsSync(downloadPath)).toBe(true)
 
 		// Step 7: Verify file content
-		logStep('🔍 Step 7: Verifying file content')
+		logStep(' Step 7: Verifying file content')
 		const fileContent = fs.readFileSync(downloadPath, 'utf-8')
 
-		logStep('📄 File Content:')
+		logStep(' File Content:')
 		logStep('─'.repeat(80))
 		logStep(fileContent)
 		logStep('─'.repeat(80))
@@ -132,8 +132,8 @@ test.describe('Property CSV Template Download', () => {
 		const headerLine = lines[0]
 		const headers = headerLine.split(',')
 
-		logStep('✅ Expected Headers:', expectedHeaders.join(', '))
-		logStep('✅ Actual Headers:', headers.join(', '))
+		logStep(' Expected Headers:', expectedHeaders.join(', '))
+		logStep(' Actual Headers:', headers.join(', '))
 
 		// Check all expected headers are present
 		for (const expectedHeader of expectedHeaders) {
@@ -141,7 +141,7 @@ test.describe('Property CSV Template Download', () => {
 		}
 
 		// Verify sample data rows exist
-		logStep(`✅ File has ${lines.length} lines (including header)`)
+		logStep(` File has ${lines.length} lines (including header)`)
 		expect(lines.length).toBeGreaterThanOrEqual(2) // At least header + 1 sample
 
 		// Verify sample data contains expected property types
@@ -149,12 +149,12 @@ test.describe('Property CSV Template Download', () => {
 		expect(fileText).toContain('apartment') // Sample property type
 		expect(fileText).toContain('single_family') // Sample property type
 
-		logStep('✅ Sample data verified')
+		logStep(' Sample data verified')
 
 		// Clean up downloaded file
 		fs.unlinkSync(downloadPath)
-		logStep('🧹 Cleaned up downloaded file')
+		logStep(' Cleaned up downloaded file')
 
-		logStep('🎉 TEST PASSED: CSV template download working correctly!')
+		logStep(' TEST PASSED: CSV template download working correctly!')
 	})
 })
