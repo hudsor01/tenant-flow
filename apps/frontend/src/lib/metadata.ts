@@ -1,25 +1,13 @@
 import type { Metadata } from 'next'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'Metadata' })
+import { env } from '#config/env'
 
 export const siteMetadata: Metadata = (() => {
-	const appUrl = process.env.NEXT_PUBLIC_APP_URL
-	if (!appUrl) {
-		if (process.env.NODE_ENV === 'production') {
-			// In production, fail fast with a clear error
-			throw new Error(
-				'NEXT_PUBLIC_APP_URL is required for site metadata. Please set this environment variable in your deployment configuration.'
-			)
-		} else {
-			// In development, fallback to localhost and warn
-			logger.warn(
-				'NEXT_PUBLIC_APP_URL is missing. Using http://localhost:3000 as fallback.'
-			)
-		}
-	}
+	const appUrl = env.NEXT_PUBLIC_APP_URL
+
+	// No need for validation - env.NEXT_PUBLIC_APP_URL is guaranteed to be a valid URL string
+	// The validation happens at startup, so if we get here, it's valid
 	return {
-		metadataBase: new URL(appUrl || 'http://localhost:3000'),
+		metadataBase: new URL(appUrl),
 		title:
 			'TenantFlow - Simplify Property Management | Professional Property Management Software',
 		description:

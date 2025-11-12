@@ -34,8 +34,16 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
 
  * These tests require a local test account to be set up in your database:
  * Email: process.env.E2E_OWNER_EMAIL (default: test-owner@example.com)
+<<<<<<< Updated upstream
  * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
 
+||||||| Stash base
+ * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
+ *
+=======
+ * Password: process.env.E2E_OWNER_PASSWORD (must be set via environment variable)
+ *
+>>>>>>> Stashed changes
  * To set up:
  * 1. Sign up at http://localhost:3000/signup with the test credentials
  * 2. Verify the email in your local Supabase dashboard

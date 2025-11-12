@@ -194,7 +194,7 @@ export default function PricingPage() {
 						<div className="flex flex-col items-center gap-8">
 							{/* Premium Badge */}
 							<div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
-								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
 								Trusted by 35,000+ property professionals
 							</div>
 
@@ -293,7 +293,7 @@ export default function PricingPage() {
 					<div className="relative mx-auto flex max-w-7xl flex-col gap-16 px-6 lg:px-8">
 						<div className="max-w-4xl text-center sm:mx-auto">
 							<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
-								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
 								Transparent pricing, no surprises
 							</div>
 							<h2 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">

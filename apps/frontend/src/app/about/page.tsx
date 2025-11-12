@@ -161,13 +161,11 @@ export default function AboutPage() {
 			<main className="flex-1">
 				{/* Hero Section */}
 				<HeroSection
-					trustBadge="Trusted by 10,000+ property managers"
 					title="Simplifying property management"
 					titleHighlight="for thousands of professionals"
 					subtitle="We're on a mission to transform how property managers work, grow, and succeed. Our platform empowers professionals to streamline operations and scale their business with confidence."
 					primaryCta={{ label: 'Start Free Trial', href: '/signup' }}
 					secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
-					trustSignals="10,000+ properties managed • 500+ managers • 99.9% uptime"
 					image={{
 						src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop',
 						alt: 'Professional team collaborating on property management solutions'

@@ -111,8 +111,8 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 									<div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-linear-to-br from-primary/4 to-accent/4 rounded pointer-events-none transition-all duration-500" />
 
 									{/* Floating accent particles */}
-									<div className="absolute top-3 right-3 size-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-125 animate-pulse" />
-									<div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-primary/60 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150" />
+									<div className="absolute top-3 right-3 size-2 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-125 animate-pulse" aria-hidden="true" />
+									<div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-primary/60 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150" aria-hidden="true" />
 								</div>
 							</div>
 						</BlurFade>

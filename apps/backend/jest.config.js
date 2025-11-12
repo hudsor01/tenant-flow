@@ -48,9 +48,17 @@ module.exports = {
 		'^@/(.*)$': '<rootDir>/src/$1',
 		'^src/(.*)$': '<rootDir>/src/$1',
 		'^@react-pdf/renderer$': '<rootDir>/__mocks__/@react-pdf__renderer.js',
-		'^uuid$': '<rootDir>/__mocks__/uuid.js'
+		'^uuid$': '<rootDir>/__mocks__/uuid.js',
+		'^@repo/shared$': '<rootDir>/../../packages/shared/src/index.ts',
+		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
+		'^@repo/database/(.*)$': '<rootDir>/../../packages/database/src/$1',
+		'^@repo/testing/(.*)$': '<rootDir>/../../packages/testing/src/$1',
+		'^\\.\\./(constants|types|validation|utils|config|stripe|lib)/(.*)\\.js$':
+			'<rootDir>/../../packages/shared/src/$1/$2.ts'
 	},
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+	extensionsToTreatAsEsm: ['.ts'],
+	resolver: '<rootDir>/jest.resolver.js',
 	setupFilesAfterEnv,
 	testTimeout: 10000,
 	maxWorkers: 1,
