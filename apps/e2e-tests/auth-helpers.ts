@@ -14,9 +14,6 @@
  */
 
 import { type Page, expect } from '@playwright/test'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'E2EAuthHelpers' })
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, any>()
@@ -26,9 +23,9 @@ const debugLog = (...args: string[]) => {
 	if (!process.env.DEBUG) return
 	const [message, ...rest] = args
 	if (rest.length > 0) {
-		logger.debug(message, { metadata: { details: rest } })
+		console.log(message, ...rest)
 	} else {
-		logger.debug(message)
+		console.log(message)
 	}
 }
 
@@ -75,19 +72,9 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 
 	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-<<<<<<< Updated upstream
 	debugLog(` Starting fresh login for: ${email}`)
 	debugLog(` Base URL: ${baseUrl}`)
-	
-||||||| Stash base
-	debugLog(`🔐 Starting fresh login for: ${email}`)
-	debugLog(`🌐 Base URL: ${baseUrl}`)
-	
-=======
-	debugLog(`🔐 Starting fresh login for: ${email}`)
-	debugLog(`🌐 Base URL: ${baseUrl}`)
 
->>>>>>> Stashed changes
 	await page.goto(`${baseUrl}/login`)
 	debugLog(' Navigated to login page')
 	await page.waitForLoadState('networkidle')
