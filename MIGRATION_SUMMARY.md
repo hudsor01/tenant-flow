@@ -6,10 +6,10 @@ Successfully implemented and deployed centralized Supabase error handling infras
 
 **Status**: ✅ **PRODUCTION READY**
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Total Commits**: 14 commits (pending)
-**Services Migrated**: 11 services (+ infrastructure)
-**Methods Migrated**: 51 methods across all services
-**Code Reduction**: ~450+ lines of boilerplate eliminated (8 services), +62 lines for latest 3 services (more verbose but cleaner)
+**Total Commits**: 15 commits (pending)
+**Services Migrated**: 13 services (+ infrastructure)
+**Methods Migrated**: 55 methods across all services
+**Code Reduction**: ~450+ lines of boilerplate eliminated (8 services), +94 lines for latest 5 services (more verbose but cleaner)
 
 ---
 
@@ -68,7 +68,9 @@ Successfully implemented and deployed centralized Supabase error handling infras
 | **notifications.service.ts** | 6 | 859 | 897 | -38 lines** | TBD |
 | **generated-report.service.ts** | 3 | 221 | 236 | -15 lines** | TBD |
 | **scheduled-report.service.ts** | 4 | 364 | 373 | -9 lines** | TBD |
-| **TOTAL** | **51 methods*** | - | - | **~388 lines** | **11 commits** |
+| **faq.service.ts** | 2 | 302 | 313 | -11 lines** | TBD |
+| **late-fees.service.ts** | 2 | 477 | 498 | -21 lines** | TBD |
+| **TOTAL** | **55 methods*** | - | - | **~356 lines** | **13 commits** |
 
 \* *payment-methods.service.ts gained 7 lines due to more verbose type annotations, but has cleaner error handling*
 \*\* *Latest services gained lines due to more verbose type annotations and explicit type handling, but have cleaner error handling and better observability*
@@ -608,6 +610,51 @@ return this.queryHelpers.querySingle<Entity>(
 
 ---
 
+### Phase 11: faq.service.ts (Commit: TBD)
+**Lines Changed**: 302 → 313 (+11 lines, 4% increase)
+**Methods Migrated**: 2 methods
+
+**Migrated Methods**:
+- ✅ getAllFAQs() - List query with nested relations (46 → 45 lines, 2% reduction)
+- ✅ getFAQBySlug() - Single query with nested relations (51 → 59 lines, 16% increase for error handling)
+
+**Key Improvements**:
+- Consistent error handling for FAQ CRUD operations
+- Eliminated HttpException usage in favor of centralized error mapping
+- Non-nullable return types for getAllFAQs()
+- Maintains backwards compatibility (returns null for 404 in getFAQBySlug)
+- Better structured logging with resource context
+
+**Pattern Demonstrated**:
+- Nested relations queries (category with questions join)
+- Admin client usage for public FAQ access
+- Backwards compatibility with nullable return types using try-catch
+
+---
+
+### Phase 12: late-fees.service.ts (Commit: TBD)
+**Lines Changed**: 477 → 498 (+21 lines, 4% increase)
+**Methods Migrated**: 2 methods
+
+**Migrated Methods**:
+- ✅ getLateFeeConfig() - Single query with nested tenant/user relations (23 → 35 lines, 52% increase for type safety)
+- ✅ processLateFees() - User lookup in multi-step workflow (8 → 20 lines, 150% increase for explicit error handling)
+
+**Key Improvements**:
+- Type-safe queries with explicit type annotations
+- Maintains fallback behavior (returns defaults on error in getLateFeeConfig)
+- Better error messages for missing Stripe customer IDs
+- Consistent error handling across late fee operations
+- RLS-protected queries with user-scoped client
+
+**Pattern Demonstrated**:
+- User-scoped client for RLS-protected queries
+- Multi-step workflows with error handling
+- Fallback behavior on database errors
+- Integration with Stripe API after database queries
+
+---
+
 ## 🔄 Migration Patterns
 
 ### Pattern 1: Simple CRUD Service
@@ -671,6 +718,8 @@ return this.queryHelpers.querySingle<Entity>(
 - ✅ notifications.service.ts (6 methods)
 - ✅ generated-report.service.ts (3 methods)
 - ✅ scheduled-report.service.ts (4 methods)
+- ✅ faq.service.ts (2 methods)
+- ✅ late-fees.service.ts (2 methods)
 
 ### Skipped (Non-Applicable)
 - ⚠️ notification.service.ts - Schema mismatch (uses snake_case columns)
@@ -721,6 +770,8 @@ return this.queryHelpers.querySingle<Entity>(
 - `apps/backend/src/modules/notifications/notifications.service.ts` (897 lines, 6 methods)
 - `apps/backend/src/modules/reports/generated-report.service.ts` (236 lines, 3 methods)
 - `apps/backend/src/modules/reports/scheduled-report.service.ts` (373 lines, 4 methods)
+- `apps/backend/src/modules/faq/faq.service.ts` (313 lines, 2 methods)
+- `apps/backend/src/modules/late-fees/late-fees.service.ts` (498 lines, 2 methods)
 
 ### External References
 - **PostgREST Error Codes**: https://postgrest.org/en/stable/errors.html
@@ -748,13 +799,13 @@ The infrastructure is battle-tested with 100% test coverage, and the migration p
 - **Private helpers**: payment-methods.service.ts resolveTenantId() pattern
 
 **Status**: ✅ Ready for production deployment
-**Progress**: 11 of ~54 services migrated (20% completion)
+**Progress**: 13 of ~54 services migrated (24% completion)
 **Recommendation**: Continue gradual rollout to remaining services over 2-3 weeks
 **Note**: Many services use RPC-only patterns and may not benefit from CRUD error handler migration
 
 ---
 
-**Document Version**: 4.0
+**Document Version**: 5.0
 **Last Updated**: 2025-11-12
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Commits**: 14 commits (infrastructure + 11 service migrations)
+**Commits**: 15 commits (infrastructure + 13 service migrations)
