@@ -20,6 +20,7 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
+import { StripeCustomerOwnershipGuard } from '../../shared/guards/stripe-customer-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
@@ -134,7 +135,9 @@ export class StripeController {
 		}
 
 		if (error.type === 'StripeRateLimitError') {
-			throw new InternalServerErrorException('Too many requests. Please try again later.')
+			throw new InternalServerErrorException(
+				'Too many requests. Please try again later.'
+			)
 		}
 
 		// Default error
@@ -256,7 +259,12 @@ export class StripeController {
 	 * Official Pattern: payment method listing with proper types
 	 */
 	@Get('customers/:id/payment-methods')
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
 	async getPaymentMethods(@Param('id') customerId: string) {
+		if (!customerId || !customerId.startsWith('cus_')) {
+			throw new BadRequestException('Invalid customer ID format')
+		}
+
 		try {
 			return await this.stripe.paymentMethods.list({
 				customer: customerId,
@@ -548,8 +556,8 @@ export class StripeController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		if (!paymentMethodId) {
-			throw new BadRequestException('payment_method_id is required')
+		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+			throw new BadRequestException('Invalid payment method ID format')
 		}
 
 		try {
@@ -1140,9 +1148,11 @@ export class StripeController {
 	 */
 	@Get('checkout-session/:sessionId')
 	@SetMetadata('isPublic', true)
-	async getCheckoutSession(@Param('sessionId') sessionId: string) {
-		if (!sessionId) {
-			throw new BadRequestException('sessionId is required')
+	async getCheckoutSession(
+		@Param('sessionId') sessionId: string
+	) {
+		if (!sessionId || !sessionId.startsWith('cs_')) {
+			throw new BadRequestException('Invalid session ID format')
 		}
 
 		try {
@@ -1410,7 +1420,14 @@ export class StripeController {
 	 * Official Pattern: subscription listing with expand
 	 */
 	@Get('subscriptions/:customerId')
-	async getSubscriptions(@Param('customerId') customerId: string) {
+	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
+	async getSubscriptions(
+		@Param('customerId') customerId: string
+	) {
+		if (!customerId || !customerId.startsWith('cus_')) {
+			throw new BadRequestException('Invalid customer ID format')
+		}
+
 		try {
 			return await this.stripe.subscriptions.list({
 				customer: customerId,

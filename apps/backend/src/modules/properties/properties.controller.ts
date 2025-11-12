@@ -23,6 +23,7 @@ import {
 	Put,
 	Query,
 	Request,
+	UnauthorizedException,
 	UploadedFile,
 	UseInterceptors,
 	Logger
@@ -35,6 +36,8 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/backend-domain'
+import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
+import { ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
@@ -126,7 +129,10 @@ export class PropertiesController {
 	) {
 		const property = await this.propertiesService.findOne(req, id)
 		if (!property) {
-			throw new NotFoundException('Property not found')
+			throw new NotFoundException({
+				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,
+				message: 'Property not found'
+			})
 		}
 		return property
 	}
@@ -171,7 +177,10 @@ export class PropertiesController {
 		})
 
 		if (!file) {
-			throw new BadRequestException('No file uploaded')
+			throw new BadRequestException({
+				code: BUSINESS_ERROR_CODES.NO_FILE_UPLOADED,
+				message: 'No file uploaded'
+			})
 		}
 
 		// Validate file type (CSV only) - be more permissive for different browser behaviors
@@ -192,9 +201,10 @@ export class PropertiesController {
 				originalname: file.originalname,
 				userId: req.user?.id
 			})
-			throw new BadRequestException(
-				`Invalid file type: ${file.mimetype}. Only CSV files (.csv) are allowed`
-			)
+			throw new BadRequestException({
+				code: BUSINESS_ERROR_CODES.INVALID_FILE_TYPE,
+				message: `Invalid file type: ${file.mimetype}. Only CSV files (.csv) are allowed`
+			})
 		}
 
 		return this.propertiesService.bulkImport(req, file.buffer)
@@ -219,7 +229,10 @@ export class PropertiesController {
 			expectedVersion
 		)
 		if (!property) {
-			throw new NotFoundException('Property not found')
+			throw new NotFoundException({
+				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,
+				message: 'Property not found'
+			})
 		}
 		return property
 	}
@@ -251,9 +264,10 @@ export class PropertiesController {
 	) {
 		// Validate timeframe
 		if (!['7d', '30d', '90d', '1y'].includes(timeframe ?? '30d')) {
-			throw new BadRequestException(
-				'Invalid timeframe. Must be one of: 7d, 30d, 90d, 1y'
-			)
+			throw new BadRequestException({
+				code: ERROR_TYPES.VALIDATION_ERROR,
+				message: 'Invalid timeframe. Must be one of: 7d, 30d, 90d, 1y'
+			})
 		}
 
 		return this.propertiesService.getPropertyPerformanceAnalytics(req, {
@@ -285,9 +299,10 @@ export class PropertiesController {
 				]
 				if (!allowedMimeTypes.includes(file.mimetype)) {
 					return callback(
-						new BadRequestException(
-							'Invalid file type; only images are allowed'
-						),
+						new BadRequestException({
+							code: BUSINESS_ERROR_CODES.INVALID_FILE_TYPE,
+							message: 'Invalid file type; only images are allowed'
+						}),
 						false
 					)
 				}
@@ -302,7 +317,10 @@ export class PropertiesController {
 		@Request() req: AuthenticatedRequest
 	) {
 		if (!file) {
-			throw new BadRequestException('No file uploaded')
+			throw new BadRequestException({
+				code: BUSINESS_ERROR_CODES.NO_FILE_UPLOADED,
+				message: 'No file uploaded'
+			})
 		}
 
 		return this.propertiesService.uploadPropertyImage(
@@ -352,9 +370,11 @@ export class PropertiesController {
 		if (
 			!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')
 		) {
-			throw new BadRequestException(
-				'Invalid period. Must be one of: daily, weekly, monthly, yearly'
-			)
+			throw new BadRequestException({
+				code: ERROR_TYPES.VALIDATION_ERROR,
+				message:
+					'Invalid period. Must be one of: daily, weekly, monthly, yearly'
+			})
 		}
 
 		return this.propertiesService.getPropertyOccupancyAnalytics(req, {
@@ -376,9 +396,10 @@ export class PropertiesController {
 	) {
 		// Validate timeframe
 		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
-			throw new BadRequestException(
-				'Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m'
-			)
+			throw new BadRequestException({
+				code: ERROR_TYPES.VALIDATION_ERROR,
+				message: 'Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m'
+			})
 		}
 
 		return this.propertiesService.getPropertyFinancialAnalytics(req, {
@@ -400,9 +421,10 @@ export class PropertiesController {
 	) {
 		// Validate timeframe
 		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
-			throw new BadRequestException(
-				'Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m'
-			)
+			throw new BadRequestException({
+				code: ERROR_TYPES.VALIDATION_ERROR,
+				message: 'Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m'
+			})
 		}
 
 		return this.propertiesService.getPropertyMaintenanceAnalytics(req, {
@@ -418,7 +440,10 @@ export class PropertiesController {
 		@Request() req: AuthenticatedRequest
 	) {
 		if (!req.user?.id) {
-			throw new BadRequestException('Authentication required')
+			throw new UnauthorizedException({
+				code: ERROR_TYPES.AUTHENTICATION_ERROR,
+				message: 'Authentication required'
+			})
 		}
 
 		return this.propertiesService.markAsSold(

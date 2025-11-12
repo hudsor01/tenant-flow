@@ -55,9 +55,9 @@ export function TrendCard({
 
   const TrendIcon = isPositive ? ArrowUp : isNegative ? ArrowDown : Minus
   const trendColor = isPositive
-    ? 'text-green-600 dark:text-green-400'
+    ? 'text-success'
     : isNegative
-      ? 'text-red-600 dark:text-red-400'
+      ? 'text-destructive'
       : 'text-muted-foreground'
 
   return (

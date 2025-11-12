@@ -17,7 +17,7 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 		FREETRIAL_monthly: 'price_freetrial_monthly',
 		FREETRIAL_annual: 'price_freetrial_annual',
 		STARTER_monthly:
-			process.env.NEXT_PUBLIC_STRIPE_STARTER_MONTHLY ||
+			process.env["NEXT_PUBLIC_STRIPE_STARTER_MONTHLY"] ||
 			(() => {
 				throw new Error(
 					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
@@ -26,7 +26,7 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 				)
 			})(),
 		STARTER_annual:
-			process.env.NEXT_PUBLIC_STRIPE_STARTER_ANNUAL ||
+			process.env["NEXT_PUBLIC_STRIPE_STARTER_ANNUAL"] ||
 			(() => {
 				throw new Error(
 					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
@@ -35,7 +35,7 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 				)
 			})(),
 		GROWTH_monthly:
-			process.env.NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY ||
+			process.env["NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY"] ||
 			(() => {
 				throw new Error(
 					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
@@ -44,7 +44,7 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 				)
 			})(),
 		GROWTH_annual:
-			process.env.NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL ||
+			process.env["NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL"] ||
 			(() => {
 				throw new Error(
 					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
@@ -53,7 +53,7 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 				)
 			})(),
 		TENANTFLOW_MAX_monthly:
-			process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY ||
+			process.env["NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY"] ||
 			(() => {
 				throw new Error(
 					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(
@@ -62,7 +62,7 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 				)
 			})(),
 		TENANTFLOW_MAX_annual:
-			process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL ||
+			process.env["NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL"] ||
 			(() => {
 				throw new Error(
 					SHARED_ERROR_MESSAGES.STRIPE_ENV_VAR_REQUIRED(

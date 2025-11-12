@@ -9,7 +9,7 @@ import {
 @Global()
 @Module({
 	providers: [ZeroCacheService],
-	exports: [ZeroCacheService, NestCacheModule]
+	exports: [ZeroCacheService]
 })
 export class CacheConfigurationModule extends ConfigurableModuleClass {
 	static override forRoot(options: CacheModuleOptions) {
