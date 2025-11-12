@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
 
-	typedRoutes: true,
+	// Disabled due to Next.js path-to-regexp bug with intercepting routes + dynamic segments.
+	typedRoutes: false,
 
 	compiler: {
 		removeConsole: true
