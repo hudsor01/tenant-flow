@@ -6,6 +6,7 @@ import {
 	safeNumber
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
+import { querySingle, queryList } from '../../shared/utils/query-helpers'
 
 interface FinancialMetricsResponse {
 	total_revenue?: number
@@ -46,63 +47,69 @@ export class IncomeStatementService {
 
 		// Use existing calculate_financial_metrics RPC
 		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: metrics, error } = await client.rpc(
-			'calculate_financial_metrics',
-			{
+		const metrics = await querySingle<FinancialMetricsResponse>(
+			client.rpc('calculate_financial_metrics', {
 				p_start_date: startDate,
 				p_end_date: endDate,
 				p_user_id: user.id
+			}) as any,
+			{
+				resource: 'financial metrics',
+				id: user.id,
+				operation: 'calculate via RPC',
+				logger: this.logger
 			}
 		)
-
-		if (error) {
-			this.logger.error(`Failed to calculate metrics: ${error.message}`)
-			throw error
-		}
 
 		// Get maintenance costs
 		// Note: maintenance_request links to unit, which links to property
 		// We need to join through unit to filter by property owner
 		// RLS automatically filters maintenance requests by user's properties
-		const { data: maintenanceData, error: maintenanceError } = await client
-			.from('maintenance_request')
-			.select(
-				`
-				estimatedCost,
-				unit!inner(
-					property!inner(
-						id
+		let maintenanceCosts = 0
+		try {
+			const maintenanceData = await queryList<{ estimatedCost: number | null }>(
+				client
+					.from('maintenance_request')
+					.select(
+						`
+					estimatedCost,
+					unit!inner(
+						property!inner(
+							id
+						)
 					)
-				)
-			`
+				`
+					)
+					.gte('createdAt', startDate)
+					.lte('createdAt', endDate)
+					.eq('status', 'COMPLETED') as any,
+				{
+					resource: 'maintenance requests',
+					operation: 'fetch for income statement',
+					logger: this.logger
+				}
 			)
-			.gte('createdAt', startDate)
-			.lte('createdAt', endDate)
-			.eq('status', 'COMPLETED')
 
-		if (maintenanceError) {
-			this.logger.error(
-				`Failed to get maintenance costs: ${maintenanceError.message}`
-			)
-		}
-
-		const maintenanceCosts =
-			maintenanceData?.reduce(
+			maintenanceCosts = maintenanceData.reduce(
 				(sum, req) => sum + (req.estimatedCost || 0),
 				0
-			) || 0
+			)
+		} catch (error) {
+			this.logger.error('Failed to get maintenance costs', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			// Soft-fail: continue with 0 maintenance costs
+		}
 
 		// Calculate revenue components from metrics
-		const metricsData = (
-			Array.isArray(metrics) ? metrics[0] : metrics
-		) as FinancialMetricsResponse
-		const totalRevenue = safeNumber(metricsData?.total_revenue)
+		const metricsData = metrics
+		const totalRevenue = safeNumber(metricsData.total_revenue)
 		const rentalIncome = totalRevenue * 0.95 // Estimate 95% from rent
 		const lateFeesIncome = totalRevenue * 0.03 // Estimate 3% from late fees
 		const otherIncome = totalRevenue * 0.02 // Estimate 2% from other
 
 		// Calculate expense components
-		const operatingExpenses = safeNumber(metricsData?.operating_expenses)
+		const operatingExpenses = safeNumber(metricsData.operating_expenses)
 		const propertyManagement = operatingExpenses * 0.1 // Estimate 10% management
 		const utilities = operatingExpenses * 0.15 // Estimate 15% utilities
 		const insurance = operatingExpenses * 0.1 // Estimate 10% insurance
