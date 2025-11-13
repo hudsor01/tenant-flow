@@ -5,7 +5,7 @@ export default async function GenerateLeasePage({
 	searchParams
 }: PageProps<'/manage/leases/generate'>) {
 	await requireSession()
-	const params = await searchParams
+	const params = (await searchParams) ?? {}
 
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">

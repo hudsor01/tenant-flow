@@ -50,7 +50,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 	const createMockStripeEvent = (type: string, dataObject: any = {}): Stripe.Event => ({
 		id: `evt_test_${Math.random().toString(36).substring(7)}`,
 		object: 'event',
-		api_version: '2025-10-29',
+		api_version: '2025-10-29.clover',
 		created: Math.floor(Date.now() / 1000),
 		data: {
 			object: dataObject

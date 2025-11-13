@@ -83,8 +83,8 @@ describe('StripeIdentityService', () => {
 		expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
 			userRow.id,
 			expect.objectContaining({
-				identityVerificationSessionId: 'sess_1',
-				identityVerificationStatus: 'created'
+				identityverificationsessionid: 'sess_1',
+				identityverificationstatus: 'created'
 			})
 		)
 	})
@@ -136,8 +136,8 @@ describe('StripeIdentityService', () => {
 		expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
 			userRow.id,
 			expect.objectContaining({
-				identityVerificationStatus: 'verified',
-				identityVerifiedAt: expect.any(String)
+				identityverificationstatus: 'verified',
+				identityverifiedat: expect.any(String)
 			})
 		)
 	})

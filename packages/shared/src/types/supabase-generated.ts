@@ -3370,6 +3370,11 @@ export type Database = {
           email: string
           firstName: string | null
           id: string
+          identityverificationdata: Json | null
+          identityverificationerror: string | null
+          identityverificationsessionid: string | null
+          identityverificationstatus: string | null
+          identityverifiedat: string | null
           lastLoginAt: string | null
           lastName: string | null
           name: string | null
@@ -3387,11 +3392,6 @@ export type Database = {
           supabaseId: string
           updatedAt: string
           version: number
-          identityVerificationSessionId: string | null
-          identityVerificationStatus: string | null
-          identityVerifiedAt: string | null
-          identityVerificationData: Json | null
-          identityVerificationError: string | null
         }
         Insert: {
           avatarUrl?: string | null
@@ -3403,6 +3403,11 @@ export type Database = {
           email: string
           firstName?: string | null
           id: string
+          identityverificationdata?: Json | null
+          identityverificationerror?: string | null
+          identityverificationsessionid?: string | null
+          identityverificationstatus?: string | null
+          identityverifiedat?: string | null
           lastLoginAt?: string | null
           lastName?: string | null
           name?: string | null
@@ -3420,11 +3425,6 @@ export type Database = {
           supabaseId: string
           updatedAt?: string
           version?: number
-          identityVerificationSessionId?: string | null
-          identityVerificationStatus?: string | null
-          identityVerifiedAt?: string | null
-          identityVerificationData?: Json | null
-          identityVerificationError?: string | null
         }
         Update: {
           avatarUrl?: string | null
@@ -3436,6 +3436,11 @@ export type Database = {
           email?: string
           firstName?: string | null
           id?: string
+          identityverificationdata?: Json | null
+          identityverificationerror?: string | null
+          identityverificationsessionid?: string | null
+          identityverificationstatus?: string | null
+          identityverifiedat?: string | null
           lastLoginAt?: string | null
           lastName?: string | null
           name?: string | null
@@ -3453,11 +3458,6 @@ export type Database = {
           supabaseId?: string
           updatedAt?: string
           version?: number
-          identityVerificationSessionId?: string | null
-          identityVerificationStatus?: string | null
-          identityVerifiedAt?: string | null
-          identityVerificationData?: Json | null
-          identityVerificationError?: string | null
         }
         Relationships: []
       }

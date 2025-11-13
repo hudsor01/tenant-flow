@@ -43,7 +43,6 @@ import { RequestLoggerMiddleware } from './shared/middleware/request-logger.midd
 import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
-import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
@@ -129,7 +128,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		MaintenanceModule,
 		NotificationsModule,
 		RentPaymentsModule,
-		StripeConnectModule,
 		SubscriptionsModule,
 		UsersModule,
 		SecurityModule,
