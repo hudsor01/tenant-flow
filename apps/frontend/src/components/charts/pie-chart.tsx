@@ -49,11 +49,11 @@ export function ModernExplodedPieChart({
 		},
 		occupied: {
 			label: 'Occupied',
-			color: 'var(--color-system-green)' // Success green
+			color: 'var(--chart-1)' // Success green
 		},
 		vacant: {
 			label: 'Vacant',
-			color: 'var(--color-system-orange)' // Warning orange
+			color: 'var(--chart-2)' // Warning orange
 		},
 		maintenance: {
 			label: 'Maintenance',
@@ -61,7 +61,7 @@ export function ModernExplodedPieChart({
 		},
 		pending: {
 			label: 'Pending',
-			color: 'var(--color-system-blue)' // Info blue
+			color: 'var(--chart-3)' // Info blue
 		}
 	} satisfies ChartConfig
 
@@ -143,9 +143,9 @@ export function ModernExplodedPieChart({
 												? 'drop-shadow(0 4px 8px var(--color-fill-primary))'
 												: 'none',
 										transform:
-											index === activeIndex ? 'scale(1.05)' : 'scale(1)',
+											index === activeIndex ? 'scale(var(--scale-hover))' : 'scale(1)',
 										transformOrigin: 'center',
-										transition: 'all 0.2s ease-in-out'
+										transition: `all var(--duration-200) var(--ease-in-out)`
 									}}
 								/>
 							))}

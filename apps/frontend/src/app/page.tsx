@@ -37,7 +37,7 @@ const PremiumCta = dynamic(
 
 export default function HomePage() {
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<Navbar />
 
 			{/* Hero Section - Loaded immediately (above fold) */}
@@ -45,7 +45,7 @@ export default function HomePage() {
 				title="Stop juggling"
 				titleHighlight="multiple tools"
 				subtitle="TenantFlow brings all your property management needs together. Streamline operations, automate workflows, and scale your business."
-				primaryCta={{ label: 'Start Managing Properties', href: '/signup' }}
+				primaryCta={{ label: 'Start Managing Properties', href: '/pricing' }}
 				secondaryCta={{ label: 'View Pricing', href: '/pricing' }}
 				image={{
 					src: 'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3',

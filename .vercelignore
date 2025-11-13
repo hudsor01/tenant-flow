@@ -50,7 +50,6 @@ packages/prettier-config
 
 # packages/shared (required by frontend)
 
-# packages/database (required by shared)
 
 # packages/tailwind-config (required by frontend)
 

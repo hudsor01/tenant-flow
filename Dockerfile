@@ -51,7 +51,6 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,tar
     set -e && \
     echo "=== Starting builds ===" && \
     pnpm build:shared && echo "✓ shared built" && \
-    pnpm build:database && echo "✓ database built" && \
     echo "=== Building backend ===" && \
     pnpm --filter @repo/backend build && \
     echo "✓ backend built" && \
@@ -120,8 +119,6 @@ COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages
 COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
 
 # Copy database package artifacts for runtime usage
-COPY --from=build --chown=node:node /app/packages/database/package.json ./packages/database/package.json
-COPY --from=build --chown=node:node /app/packages/database/dist ./packages/database/dist
 
 # Create reports directory with proper permissions before switching to node user
 RUN mkdir -p /app/reports && chown -R node:node /app/reports

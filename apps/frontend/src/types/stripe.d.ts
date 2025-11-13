@@ -1,54 +1,37 @@
-// TypeScript declarations for Stripe integration
-import * as React from 'react'
+/**
+ * Stripe-related types
+ */
 
-declare module 'react' {
-	namespace JSX {
-		interface IntrinsicElements {
-			'stripe-pricing-table': React.DetailedHTMLProps<
-				React.HTMLAttributes<HTMLElement> & {
-					'pricing-table-id'?: string
-					'publishable-key'?: string
-					'client-reference-id'?: string
-					'customer-email'?: string
-					'customer-session-client-secret'?: string
-				},
-				HTMLElement
-			>
-		}
-	}
+// Subscription data from Stripe
+export interface SubscriptionData {
+	status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing'
+	planName: string
+	currentPeriodEnd: string
+	cancelAtPeriodEnd: boolean
 }
 
 // Stripe environment configuration
 export interface StripeEnvironmentConfig {
 	publishableKey: string
 	secretKey?: string
-	prices?: {
-		starter_monthly?: string
-		starter_annual?: string
-		growth_monthly?: string
-		growth_annual?: string
-		max_monthly?: string
-		max_annual?: string
-	}
-	products?: {
-		starter?: string
-		growth?: string
-		max?: string
-	}
+	webhookSecret?: string
+	products?: Record<string, string>
+	prices?: Record<string, string>
 }
 
-// Subscription data from Stripe
-export interface SubscriptionData {
-	id: string
-	status: string
-	currentPeriodEnd: number
-	cancelAtPeriodEnd: boolean
-	customerId: string
-	planName?: string
-	interval?: 'monthly' | 'annual'
-	items: {
-		id: string
-		priceId: string
-		quantity: number
-	}[]
+// Backend response from /stripe/verify-checkout-session
+export interface StripeVerifyCheckoutSessionResponse {
+	session: any; // Define more precisely if needed (e.g., Stripe.Checkout.Session)
+	subscription: {
+		id: string;
+		status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
+		current_period_end: number;
+		cancel_at_period_end: boolean;
+		items: Array<{
+			price: {
+				nickname?: string;
+				product: string;
+			};
+		}>;
+	};
 }
