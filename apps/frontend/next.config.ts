@@ -30,7 +30,9 @@ const nextConfig: NextConfig = {
 
 	// Next.js 16: Cache Components for PPR and instant navigation
 	// Currently disabled - requires Suspense boundaries around all data fetching
-	// Enable when ready to fully implement streaming architecture
+	// Currently disabled - requires Suspense boundaries around all data fetching.
+	// Suspense boundaries have been added to the dashboard page, but more are needed elsewhere.
+	// Enable when ready to fully implement streaming architecture.
 	cacheComponents: false,
 	
 	// Next.js 16: These still need to be in experimental

@@ -14,7 +14,7 @@ import {
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
 import { Badge } from '#components/ui/badge'
-import { DataTableColumnHeader } from '#components/ui/data-table-column-header'
+import { DataTableColumnHeader } from '#components/ui/data-tables/data-table-column-header.jsx'
 
 /**
  * Reusable Column Helpers for TanStack Table

@@ -23,8 +23,8 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { DataTablePagination } from '#components/ui/data-table-pagination'
-import { DataTableViewOptions } from '#components/ui/data-table-view-options'
+import { DataTablePagination } from '#components/ui/data-tables/data-table-pagination.jsx'
+import { DataTableViewOptions } from '#components/ui/data-tables/data-table-view-options.jsx'
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
