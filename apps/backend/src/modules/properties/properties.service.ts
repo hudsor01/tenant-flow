@@ -130,24 +130,23 @@ export class PropertiesService {
 	 * Get single property by ID
 	 */
 	async findOne(req: AuthenticatedRequest, propertyId: string): Promise<Property | null> {
-		const userId = req.user?.id
-		if (!userId) {
-			this.logger.warn('Authenticated user missing for property lookup', { propertyId })
+		const token = getTokenFromRequest(req)
+		if (!token) {
+			this.logger.warn('Property lookup requested without auth token', { propertyId })
 			return null
 		}
-		const client = this.supabase.getAdminClient()
+
+		const client = this.supabase.getUserClient(token)
 
 		const { data, error } = await client
 			.from('property')
 			.select('*')
 			.eq('id', propertyId)
-			.eq('ownerId', userId)
 			.single()
 
 		if (error || !data) {
 			this.logger.warn('Property not found or access denied', {
 				propertyId,
-				userId,
 				error
 			})
 			return null
