@@ -23,13 +23,13 @@ export const PUBLIC_AUTH_ROUTES = [
 export const MARKETING_REDIRECT_ROUTES = [
 	'/',
 	'/features',
-	'/about'
+	'/about',
+	'/pricing'
 ] as const
 
 // Routes that don't require payment (public pages + payment flow itself)
 export const PAYMENT_EXEMPT_ROUTES = [
 	'/login',
-	'/pricing',
 	'/auth',
 	'/stripe',
 	'/',

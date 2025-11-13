@@ -37,7 +37,7 @@ const PremiumCta = dynamic(
 
 export default function HomePage() {
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<Navbar />
 
 			{/* Hero Section - Loaded immediately (above fold) */}

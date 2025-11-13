@@ -1,7 +1,3 @@
-'use client'
-
-import dynamic from 'next/dynamic'
-import Footer from '#components/layout/footer'
 import { Navbar } from '#components/layout/navbar'
 import {
 	Accordion,
@@ -12,39 +8,9 @@ import {
 import { Button } from '#components/ui/button'
 import { ArrowRight, CheckCircle2, Building, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
-
-// Dynamic imports: Defer loading heavy visual components (~50KB combined)
-const KiboStylePricing = dynamic(
-	() =>
-		import('#components/pricing/kibo-style-pricing').then(
-			mod => mod.KiboStylePricing
-		),
-	{
-		loading: () => (
-			<div className="min-h-[600px] flex items-center justify-center">
-				<div className="w-full max-w-6xl grid gap-6 md:grid-cols-3 px-4 animate-pulse">
-					{[1, 2, 3].map(i => (
-						<div key={i} className="h-[500px] rounded-lg border bg-card" />
-					))}
-				</div>
-			</div>
-		),
-		ssr: false
-	}
-)
-
-const TestimonialsSection = dynamic(
-	() =>
-		import('#components/sections/testimonials-section').then(
-			mod => mod.TestimonialsSection
-		),
-	{
-		loading: () => (
-			<div className="h-[400px] rounded-lg border bg-card shadow-sm animate-pulse" />
-		),
-		ssr: false
-	}
-)
+import { TestimonialsSection } from '#components/sections/testimonials-section'
+import { PricingSection } from './_components/pricing-section'
+import Footer from '#components/layout/footer'
 
 const faqs = [
 	{
@@ -167,7 +133,7 @@ export default function PricingPage() {
 	}
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -187,59 +153,53 @@ export default function PricingPage() {
 				}}
 			/>
 			<Navbar />
-			<main className="flex-1 pt-20">
-				{/* Hero */}
-				<section className="relative overflow-hidden section-spacing-spacious animate-in fade-in duration-700">
-					<div className="relative mx-auto flex max-w-7xl flex-col gap-16 px-6 text-center lg:px-8">
-						<div className="flex flex-col items-center gap-8">
-							{/* Premium Badge */}
+			<main className="flex-1">
+				{/* Minimal Hero with Pricing Above the Fold */}
+				<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
+					<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">
+						{/* Compact Hero */}
+						<div className="flex flex-col items-center gap-6">
 							<div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
 								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
 								Trusted by 35,000+ property professionals
 							</div>
 
-							<div className="space-y-8 text-balance">
-								<h1 className="text-balance text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-									Choose the perfect plan for{' '}
-									<span className="hero-highlight">your portfolio</span>
-								</h1>
-								<p className="mx-auto max-w-3xl text-balance text-xl leading-relaxed text-muted-foreground sm:text-2xl">
-									Start with our 14-day free trial. Scale seamlessly with transparent pricing
-									and enterprise-grade features designed for modern property management.
-								</p>
-							</div>
+							<h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+								Simple, transparent pricing for{' '}
+								<span className="hero-highlight">every portfolio</span>
+							</h1>
 
-							{/* Enhanced CTA Buttons */}
-							<div className="flex flex-col items-center gap-4 sm:flex-row">
-								<Button className="h-12 px-10 py-4 text-lg shadow-2xl hover:shadow-primary/25 transition-all duration-300" asChild>
-									<Link href="#plans">
-										Start free trial
-										<ArrowRight className="ml-2 h-5 w-5" />
-									</Link>
-								</Button>
-								<Button variant="outline" className="h-12 px-10 py-4 text-lg border-2 hover:bg-accent/5 transition-all duration-300" asChild>
-									<Link href="/contact">Book a demo</Link>
-								</Button>
-							</div>
-
-							{/* Trust Indicators */}
-							<div className="flex items-center gap-8 text-sm text-muted-foreground">
-								<div className="flex items-center gap-2">
-									<CheckCircle2 className="h-4 w-4 text-success" />
-									No credit card required
-								</div>
-								<div className="flex items-center gap-2">
-									<CheckCircle2 className="h-4 w-4 text-success" />
-									14-day free trial
-								</div>
-								<div className="flex items-center gap-2">
-									<CheckCircle2 className="h-4 w-4 text-success" />
-									Cancel anytime
-								</div>
-							</div>
+							<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground">
+								Choose your plan and start your 14-day free trial. Upgrade anytime as your portfolio grows.
+							</p>
 						</div>
 
-						{/* Enhanced Stats Grid */}
+						{/* Pricing Cards - Above the Fold */}
+						<div id="plans">
+							<PricingSection />
+						</div>
+
+						{/* Trust Indicators Below Pricing */}
+						<div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2">
+								<CheckCircle2 className="h-4 w-4 text-success" />
+								No credit card required
+							</div>
+							<div className="flex items-center gap-2">
+								<CheckCircle2 className="h-4 w-4 text-success" />
+								14-day free trial
+							</div>
+							<div className="flex items-center gap-2">
+								<CheckCircle2 className="h-4 w-4 text-success" />
+								Cancel anytime
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Stats Grid - Social Proof After Conversion Point */}
+				<section className="section-spacing animate-in fade-in duration-700 delay-150">
+					<div className="mx-auto max-w-7xl px-6 lg:px-8">
 						<div className="grid gap-8 text-left sm:grid-cols-3">
 							{[
 								{
@@ -286,44 +246,8 @@ export default function PricingPage() {
 					</div>
 				</section>
 
-				{/* Pricing Section */}
-				<section className="relative section-spacing-spacious animate-in fade-in duration-700 delay-150">
-					<div className="relative mx-auto flex max-w-7xl flex-col gap-16 px-6 lg:px-8">
-						<div className="max-w-4xl text-center sm:mx-auto">
-							<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
-								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
-								Transparent pricing, no surprises
-							</div>
-							<h2 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-								Pick the plan that fits today—{' '}
-								<span className="hero-highlight">upgrade only when you're ready</span>
-							</h2>
-							<p className="mt-6 text-balance text-xl leading-relaxed text-muted-foreground sm:text-2xl">
-								Transparent pricing with flexible billing. Switch between monthly and annual
-								inside the cards, and keep every integration, automation, and workflow intact.
-							</p>
-					</div>
-					<div id="plans">
-						<KiboStylePricing />
-					</div>
-				</div>
-				</section>
-
 				{/* Testimonials Section */}
-				<section className="section-spacing animate-in fade-in duration-700 delay-200">
-					<div className="mx-auto max-w-6xl px-6 lg:px-8">
-						<div className="mb-12 text-center">
-							<h2 className="text-section-title tracking-tight text-foreground">
-								Loved by property teams who scale with clarity
-							</h2>
-							<p className="mt-4 text-base text-muted-foreground sm:text-lg">
-								Hear from customers who moved their operations, communications,
-								and payments into one workspace.
-							</p>
-						</div>
-						<TestimonialsSection />
-					</div>
-				</section>
+				<TestimonialsSection className="animate-in fade-in duration-700 delay-200" />
 
 				{/* FAQ Section */}
 				<section className="section-spacing-spacious animate-in fade-in duration-700 delay-300">

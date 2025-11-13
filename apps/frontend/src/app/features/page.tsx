@@ -1,5 +1,7 @@
 'use client'
+'use client'
 
+import { useState, useEffect } from 'react'
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -12,17 +14,137 @@ import {
 	ArrowRight,
 	BarChart3,
 	Check,
-	ChevronRight,
 	Clock,
 	Shield,
 	Star,
 	TrendingUp,
 	Users,
-	Zap
+	Zap,
+	Bell,
+	Share2,
+	Building,
+	DollarSign,
+	FileText
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
+
+// Animated background components for bento grid
+const FileMarquee = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute top-4 left-4 space-y-2 animate-pulse">
+			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm">
+				<FileText className="size-4 text-primary" />
+				<span className="text-xs font-medium">Lease_Agreement.pdf</span>
+			</div>
+			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm animate-delay-100">
+				<FileText className="size-4 text-primary" />
+				<span className="text-xs font-medium">Tenant_Application.docx</span>
+			</div>
+			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm animate-delay-200">
+				<FileText className="size-4 text-primary" />
+				<span className="text-xs font-medium">Maintenance_Report.xlsx</span>
+			</div>
+		</div>
+	</div>
+)
+
+const NotificationList = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute top-4 right-4 space-y-2">
+			{[
+				"Rent payment received - $2,450",
+				"Maintenance request submitted",
+				"Lease renewal reminder sent",
+				"New tenant application"
+			].map((notification, i) => (
+				<div
+					key={i}
+					className="flex items-center space-x-2 bg-card/90 rounded-lg p-2 shadow-sm animate-fade-in"
+					style={{ animationDelay: `${i * 0.5}s` }}
+				>
+					<Bell className="size-3 text-primary animate-bounce" />
+					<span className="text-xs">{notification}</span>
+				</div>
+			))}
+		</div>
+	</div>
+)
+
+const FinancialDashboard = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute top-4 left-4 right-4 space-y-3">
+			{/* Revenue Chart */}
+			<div className="bg-card/90 rounded-lg p-3 shadow-sm">
+				<div className="flex items-center justify-between mb-2">
+					<span className="text-sm font-medium">Monthly Revenue</span>
+					<DollarSign className="size-4 text-primary" />
+				</div>
+				<div className="flex items-end space-x-1 h-12">
+					{[40, 60, 45, 80, 65, 90, 75, 85, 95, 88, 92, 98].map((height, i) => (
+						<div
+							key={i}
+							className="bg-primary/80 rounded-sm flex-1 animate-pulse"
+							style={{
+								height: `${height}%`,
+								animationDelay: `${i * 0.1}s`
+							}}
+						/>
+					))}
+				</div>
+				<div className="text-xs text-muted-foreground mt-1">$124,500</div>
+			</div>
+
+			{/* Key Metrics */}
+			<div className="grid grid-cols-2 gap-2">
+				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
+					<div className="text-xs text-muted-foreground">Occupancy</div>
+					<div className="text-lg font-bold text-primary animate-pulse">96.2%</div>
+				</div>
+				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
+					<div className="text-xs text-muted-foreground">Avg. Rent</div>
+					<div className="text-lg font-bold text-primary animate-pulse">$2,450</div>
+				</div>
+			</div>
+		</div>
+	</div>
+)
+
+const IntegrationBeam = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute inset-0 flex items-center justify-center">
+			<div className="relative">
+				{/* Central hub */}
+				<div className="size-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+					<Building className="size-4 text-primary-foreground" />
+				</div>
+				{/* Connecting beams */}
+				{[
+					{ angle: 0, icon: DollarSign, label: "Stripe" },
+					{ angle: 90, icon: Share2, label: "Supabase" },
+					{ angle: 180, icon: Bell, label: "Resend" },
+					{ angle: 270, icon: Shield, label: "Auth" }
+				].map(({ angle, icon: Icon, label }, i) => (
+					<div
+						key={i}
+						className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+						style={{
+							transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(60px)`
+						}}
+					>
+						<div className="flex flex-col items-center space-y-1 animate-fade-in" style={{ animationDelay: `${i * 0.3}s` }}>
+							<div className="size-6 bg-card rounded-full flex items-center justify-center shadow-sm border">
+								<Icon className="size-3 text-primary" />
+							</div>
+							<span className="text-xs font-medium transform -rotate-90 whitespace-nowrap">{label}</span>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	</div>
+)
 
 export default function FeaturesPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
@@ -98,7 +220,7 @@ export default function FeaturesPage() {
 		testimonials[0]) as (typeof testimonials)[number]
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -133,7 +255,7 @@ export default function FeaturesPage() {
 			</div>
 
 			{/* Hero Section with Modern Background */}
-			<section className="relative pt-40 pb-16 overflow-hidden">
+			<section className="relative pb-16 overflow-hidden">
 				{/* Solid tint background */}
 				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--primary)_5%,transparent)]" />
 
@@ -292,7 +414,7 @@ export default function FeaturesPage() {
 				</section>
 			</LazySection>
 
-			{/* Transformation Journey - Redesigned Feature Callouts */}
+			{/* Animated Feature Showcase */}
 			<LazySection
 				fallback={<SectionSkeleton height={600} variant="grid" />}
 				minHeight={600}
@@ -302,182 +424,51 @@ export default function FeaturesPage() {
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-16 space-y-6">
 								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-									Your 3-step transformation to{' '}
+									See TenantFlow in action -{' '}
 									<span className="hero-highlight">
-										maximum profitability
+										live & interactive
 									</span>
 								</h2>
 								<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
-									See how property managers systematically transform their
-									portfolios with our proven methodology
+									Experience our platform&apos;s power through animated demonstrations
+									of real property management workflows
 								</p>
 							</div>
 
-							{/* Horizontal transformation cards */}
-							<div className="grid md:grid-cols-3 gap-8 relative">
-								{/* Connection lines for desktop */}
-								<div className="hidden md:block absolute top-24 left-1/2 transform translate-x-[-50%] w-full max-w-4xl">
-									<div className="flex items-center justify-between px-16">
-										<ChevronRight className="size-6 text-primary/40" />
-										<ChevronRight className="size-6 text-primary/40" />
-									</div>
-								</div>
-
-								{/* Step 1: Fill Units Faster */}
-								<div className="group relative">
-									<div className="rounded-3xl p-8 border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02] bg-card/60 border-accent/25 dark:bg-muted/60 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50">
-										{/* Step indicator */}
-										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-											Step 1
-										</div>
-
-										{/* Icon with enhanced visual metaphor */}
-										<div className="size-16 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
-											<TrendingUp className="size-8 text-primary" />
-										</div>
-
-										<h3 className="font-bold text-foreground mb-4 text-xl">
-											Fill Units Faster
-										</h3>
-										<p className="text-muted-foreground mb-6 leading-relaxed">
-											Smart tenant screening and automated marketing reduce
-											vacancy time by 65%
-										</p>
-
-										{/* Key metric highlight */}
-										<div
-											className={cn(
-												'rounded-xl border p-4 mb-4 transition-colors',
-												'bg-card/50',
-												'dark:bg-muted/50',
-												'border-accent/25'
-											)}
-										>
-											<div className="text-2xl font-bold text-accent">65%</div>
-											<div className="text-sm text-muted-foreground">
-												Faster unit filling
-											</div>
-										</div>
-
-										<ul className="space-y-2 text-sm">
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												AI-powered tenant screening
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Automated listing syndication
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Quality tenant matching
-											</li>
-										</ul>
-									</div>
-								</div>
-
-								{/* Step 2: Automate Tasks */}
-								<div className="group relative">
-									<div className="rounded-3xl p-8 border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02] bg-card/60 border-primary/25 dark:bg-muted/60 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50">
-										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-											Step 2
-										</div>
-
-										<div className="size-16 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
-											<Zap className="size-8 text-primary" />
-										</div>
-
-										<h3 className="font-bold text-foreground mb-4 text-xl">
-											Automate Operations
-										</h3>
-										<p className="text-muted-foreground mb-6 leading-relaxed">
-											Intelligent workflows handle 80% of daily tasks
-											automatically
-										</p>
-
-										<div
-											className={cn(
-												'rounded-xl border p-4 mb-4 transition-colors',
-												'bg-card/50',
-												'dark:bg-muted/50',
-												'border-primary/25'
-											)}
-										>
-											<div className="text-2xl font-bold text-primary">25+</div>
-											<div className="text-sm text-muted-foreground">
-												Hours saved per week
-											</div>
-										</div>
-
-										<ul className="space-y-2 text-sm">
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Automated rent collection
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Smart lease renewals
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Maintenance coordination
-											</li>
-										</ul>
-									</div>
-								</div>
-
-								{/* Step 3: Secure Data */}
-								<div className="group relative">
-									<div className="rounded-3xl p-8 border transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02] bg-card/60 border-border dark:bg-muted/60 hover:border-primary/30">
-										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-											Step 3
-										</div>
-
-										<div className="size-16 rounded-2xl bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-6 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
-											<Shield className="size-8 text-primary" />
-										</div>
-
-										<h3 className="font-bold text-foreground mb-4 text-xl">
-											Secure Everything
-										</h3>
-										<p className="text-muted-foreground mb-6 leading-relaxed">
-											Enterprise-grade security protects your data and ensures
-											compliance
-										</p>
-
-										<div
-											className={cn(
-												'rounded-xl border p-4 mb-4 transition-colors',
-												'bg-card/50',
-												'dark:bg-muted/50',
-												'border-border'
-											)}
-										>
-											<div className="text-2xl font-bold text-primary">
-												SOC 2
-											</div>
-											<div className="text-sm text-muted-foreground">
-												Type II Certified
-											</div>
-										</div>
-
-										<ul className="space-y-2 text-sm">
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												256-bit SSL encryption
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Role-based access control
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Regular security audits
-											</li>
-										</ul>
-									</div>
-								</div>
-							</div>
+							<BentoGrid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+								<BentoCard
+									name="Smart Document Processing"
+									background={<FileMarquee />}
+									Icon={FileText}
+									description="AI-powered document analysis and automated lease processing with real-time file previews"
+									href="/features/documents"
+									cta="Explore Documents"
+								/>
+								<BentoCard
+									name="Real-Time Notifications"
+									background={<NotificationList />}
+									Icon={Bell}
+									description="Intelligent notification system that keeps you updated on all property activities and deadlines"
+									href="/features/notifications"
+									cta="View Notifications"
+								/>
+								<BentoCard
+									name="Financial Analytics"
+									background={<FinancialDashboard />}
+									Icon={TrendingUp}
+									description="Real-time revenue tracking, occupancy metrics, and financial insights to maximize your NOI"
+									href="/features/analytics"
+									cta="View Analytics"
+								/>
+								<BentoCard
+									name="Seamless Integrations"
+									background={<IntegrationBeam />}
+									Icon={Building}
+									description="Connect with Stripe, Supabase, and more for a unified property management ecosystem"
+									href="/features/integrations"
+									cta="See Integrations"
+								/>
+							</BentoGrid>
 						</BlurFade>
 					</div>
 				</section>

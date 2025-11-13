@@ -64,7 +64,7 @@ export default function AboutPage() {
 	}
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{

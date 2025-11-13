@@ -143,9 +143,9 @@ export function ModernExplodedPieChart({
 												? 'drop-shadow(0 4px 8px var(--color-fill-primary))'
 												: 'none',
 										transform:
-											index === activeIndex ? 'scale(1.05)' : 'scale(1)',
+											index === activeIndex ? 'scale(var(--scale-hover))' : 'scale(1)',
 										transformOrigin: 'center',
-										transition: 'all 0.2s ease-in-out'
+										transition: `all var(--duration-200) var(--ease-in-out)`
 									}}
 								/>
 							))}
