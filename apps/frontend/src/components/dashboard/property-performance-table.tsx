@@ -54,20 +54,23 @@ export function PropertyPerformanceTable() {
 
 	if (isLoading) {
 		return (
-			<div className="flex items-center justify-center py-8">
-				<Spinner className="size-6 animate-spin" />
-				<span className="ml-2 text-sm text-muted-foreground">
+			<div className="dashboard-empty-state">
+				<Spinner className="size-5 animate-spin" />
+				<p className="text-sm font-medium text-muted-foreground">
 					Loading property performance...
-				</span>
+				</p>
 			</div>
 		)
 	}
 
 	if (error) {
 		return (
-			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">
+			<div className="dashboard-empty-state">
+				<p className="text-sm font-medium text-muted-foreground">
 					Failed to load property performance data
+				</p>
+				<p className="text-xs text-muted-foreground">
+					Please refresh to try again.
 				</p>
 			</div>
 		)
@@ -75,9 +78,12 @@ export function PropertyPerformanceTable() {
 
 	if (!properties || properties.length === 0) {
 		return (
-			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">
+			<div className="dashboard-empty-state">
+				<p className="text-sm font-medium text-muted-foreground">
 					No property data available
+				</p>
+				<p className="text-xs text-muted-foreground">
+					Add properties to see performance insights.
 				</p>
 			</div>
 		)
@@ -85,8 +91,8 @@ export function PropertyPerformanceTable() {
 
 	return (
 		<div className="space-y-4">
-			<div className="rounded-lg border">
-				<Table>
+			<div className="dashboard-table-wrapper">
+				<Table className="dashboard-table">
 					<TableHeader>
 						<TableRow>
 							<TableHead>Property</TableHead>
@@ -170,7 +176,7 @@ export function PropertyPerformanceTable() {
 			</div>
 
 			{/* View All Properties Button */}
-			<Button variant="outline" className="w-full">
+			<Button variant="outline" className="w-full min-h-11">
 				View All Properties
 			</Button>
 		</div>

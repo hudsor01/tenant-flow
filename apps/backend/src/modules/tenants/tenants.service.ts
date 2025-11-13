@@ -35,6 +35,7 @@ import {
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Emergency contact information for a tenant
@@ -155,7 +156,8 @@ export class TenantsService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly stripeConnectService: StripeConnectService
+		private readonly stripeConnectService: StripeConnectService,
+		private readonly appConfigService: AppConfigService
 	) {}
 
 	/**
@@ -1303,7 +1305,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Mark tenant as moved out (soft delete with 7-year retention)
+	 * Mark tenant as moved out (soft delete)
 	 */
 	async markAsMovedOut(
 		userId: string,
@@ -1590,7 +1592,8 @@ export class TenantsService {
 			}
 
 			// 4. Send invitation via Supabase Auth Admin API
-			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+			const frontendUrl = this.appConfigService.getFrontendUrl()
+
 			const { data: authUser, error: authError } =
 				await client.auth.admin.inviteUserByEmail(tenant.email, {
 					data: {
@@ -2356,6 +2359,7 @@ export class TenantsService {
 			unitId?: string
 			startDate: string
 			endDate: string
+
 		},
 		leaseId: string,
 		rentAmountCents: number
@@ -2380,7 +2384,7 @@ export class TenantsService {
 		}
 
 		const propertyName = property?.name || 'Your Property'
-		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+		const frontendUrl = this.appConfigService.getFrontendUrl()
 
 		const { data: authUser, error: authError } =
 			await client.auth.admin.inviteUserByEmail(tenant.email, {

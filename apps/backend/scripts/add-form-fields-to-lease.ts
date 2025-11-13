@@ -44,7 +44,10 @@ async function addFormFields() {
 	// Get first page dimensions
 	const pages = pdfDoc.getPages()
 	const firstPage = pages[0]
-	const { height } = firstPage.getSize()
+	if (!firstPage) {
+		throw new Error('PDF template has no pages')
+	}
+	firstPage.getSize()
 
 
 	// Page 1 - Agreement Information

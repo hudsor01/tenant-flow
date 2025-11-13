@@ -14,9 +14,6 @@
  */
 
 import { type Page, expect } from '@playwright/test'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'E2EAuthHelpers' })
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, any>()
@@ -26,9 +23,9 @@ const debugLog = (...args: string[]) => {
 	if (!process.env.DEBUG) return
 	const [message, ...rest] = args
 	if (rest.length > 0) {
-		logger.debug(message, { metadata: { details: rest } })
+		console.log(message, ...rest)
 	} else {
-		logger.debug(message)
+		console.log(message)
 	}
 }
 
@@ -54,7 +51,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const password =
 		options.password ||
 		process.env.E2E_OWNER_PASSWORD ||
-		'TestPassword123!'
+		(() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
 	const cacheKey = `owner:${email}`
 
 	// Use cached session if available (unless forceLogin)
@@ -77,7 +74,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 	debugLog(` Starting fresh login for: ${email}`)
 	debugLog(` Base URL: ${baseUrl}`)
-	
+
 	await page.goto(`${baseUrl}/login`)
 	debugLog(' Navigated to login page')
 	await page.waitForLoadState('networkidle')
@@ -140,7 +137,9 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		process.env.E2E_TENANT_EMAIL ||
 		'test-tenant@tenantflow.app'
 	const password =
-		options.password || process.env.E2E_TENANT_PASSWORD || 'TestPassword123!'
+		options.password ||
+		process.env.E2E_TENANT_PASSWORD ||
+		(() => { throw new Error('E2E_TENANT_PASSWORD environment variable is required') })()
 	const cacheKey = `tenant:${email}`
 
 	// Use cached session if available (unless forceLogin)

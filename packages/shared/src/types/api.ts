@@ -53,7 +53,7 @@ export interface RegisterData extends AuthCredentials {
 
 // Note: AuthResponse is defined in auth.ts
 
-export type { RefreshTokenRequest } from './auth'
+export type { RefreshTokenRequest } from './auth.js'
 
 // User API types
 export type UserProfileResponse = User
@@ -160,7 +160,7 @@ export interface UpdateMaintenanceDto {
 export type {
 	CreateNotificationDto,
 	UpdateNotificationDto
-} from './notifications'
+} from './notifications.js'
 
 // File upload types
 export interface FileUploadResponse {
@@ -185,7 +185,7 @@ export type {
 
 // DashboardStats moved to core.ts to follow single source of truth architecture
 
-export type { ActivityItem } from './activity'
+export type { ActivityItem } from './activity.js'
 
 export interface DashboardActivity {
 	activities: {

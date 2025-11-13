@@ -1,4 +1,3 @@
-
 import { CardLayout } from '#components/ui/card-layout'
 import { Suspense, lazy, use } from 'react'
 

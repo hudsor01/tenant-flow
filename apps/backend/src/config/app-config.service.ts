@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService as NestConfigService } from '@nestjs/config'
 import type { Config } from './config.schema'
+import { CONFIG_DEFAULTS, type NodeEnvironment } from './config.constants'
 
 /**
  * Typed wrapper around NestJS ConfigService
@@ -16,7 +17,7 @@ export class AppConfigService {
 
 	// ==================== Application ====================
 
-	getNodeEnv(): 'development' | 'production' | 'test' {
+	getNodeEnv(): NodeEnvironment {
 		return this.configService.get('NODE_ENV', { infer: true })
 	}
 
@@ -36,8 +37,20 @@ export class AppConfigService {
 		return this.configService.get('PORT', { infer: true })
 	}
 
+	getBackendTimeoutMs(): number {
+		return this.configService.get('BACKEND_TIMEOUT_MS', { infer: true })
+	}
+
+	getApiBaseUrl(): string {
+		return this.configService.get('API_BASE_URL', { infer: true })
+	}
+
 	getFrontendUrl(): string {
 		return this.configService.get('FRONTEND_URL', { infer: true })
+	}
+
+	getNextPublicAppUrl(): string {
+		return this.configService.get('NEXT_PUBLIC_APP_URL', { infer: true })
 	}
 
 	// ==================== Database ====================
@@ -81,7 +94,7 @@ export class AppConfigService {
 	}
 
 	get supabaseJwtAlgorithm(): string {
-		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'HS256'
+		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'ES256'
 	}
 
 	get supabaseJwtSecret(): string {
@@ -92,6 +105,17 @@ export class AppConfigService {
 			)
 		}
 		return secret
+	}
+
+	getSupabaseProjectRef(): string {
+		return (
+			this.configService.get('SUPABASE_PROJECT_REF', { infer: true }) ??
+			CONFIG_DEFAULTS.SUPABASE_PROJECT_REF
+		)
+	}
+
+	getSupabaseAuthWebhookSecret(): string | undefined {
+		return this.configService.get('SUPABASE_AUTH_WEBHOOK_SECRET', { infer: true })
 	}
 
 	// ==================== CORS ====================
@@ -155,6 +179,14 @@ export class AppConfigService {
 				infer: true
 			})
 		}
+	}
+
+	getStripeConnectDefaultCountry(): string {
+		return (
+			this.configService.get('STRIPE_CONNECT_DEFAULT_COUNTRY', {
+				infer: true
+			}) ?? CONFIG_DEFAULTS.STRIPE_CONNECT_DEFAULT_COUNTRY
+		)
 	}
 
 	// ==================== Redis ====================
@@ -250,6 +282,10 @@ export class AppConfigService {
 		return this.configService.get('RESEND_FROM_EMAIL', { infer: true })
 	}
 
+	getResendApiKey(): string | undefined {
+		return this.configService.get('RESEND_API_KEY', { infer: true })
+	}
+
 	// ==================== Security ====================
 
 	getCsrfSecret(): string | undefined {
@@ -288,5 +324,17 @@ export class AppConfigService {
 
 	get<K extends keyof Config>(key: K): Config[K] {
 		return this.configService.get(key, { infer: true })
+	}
+
+	getSupportEmail(): string {
+		return this.configService.get('SUPPORT_EMAIL', { infer: true })
+	}
+
+	getSupportPhone(): string {
+		return this.configService.get('SUPPORT_PHONE', { infer: true }) || '(555) 123-4567'
+	}
+
+	getIdempotencyKeySecret(): string {
+		return this.configService.get('IDEMPOTENCY_KEY_SECRET', { infer: true })
 	}
 }

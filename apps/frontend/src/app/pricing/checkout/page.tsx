@@ -53,7 +53,7 @@ function CheckoutPageContent() {
 						</Link>
 					</div>
 				</div>
-				<div className="container mx-auto px-4 py-16">
+				<div className="container mx-auto px-4 section-spacing">
 					<div className="max-w-2xl mx-auto">
 						<CardLayout
 							title="Unable to Load Plan"
@@ -104,7 +104,7 @@ function CheckoutPageContent() {
 	if (!priceId) {
 		return (
 			<main className="min-h-screen bg-linear-to-br from-slate-50 to-white">
-				<div className="container mx-auto px-4 py-16">
+				<div className="container mx-auto px-4 section-spacing">
 					<div className="max-w-2xl mx-auto">
 						<CardLayout
 							title="Pricing Configuration Error"

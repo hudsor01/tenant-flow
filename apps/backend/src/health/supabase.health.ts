@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { HealthIndicatorService } from '@nestjs/terminus'
+import { AppConfigService } from '../config/app-config.service'
 import { SupabaseService } from '../database/supabase.service'
 
 @Injectable()
 export class SupabaseHealthIndicator {
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly healthIndicatorService: HealthIndicatorService
+		private readonly healthIndicatorService: HealthIndicatorService,
+		private readonly appConfigService: AppConfigService
 	) {}
 
 	async pingCheck<const TKey extends string>(key: TKey) {
@@ -27,11 +29,8 @@ export class SupabaseHealthIndicator {
 					message: result.message || 'Database connection check',
 					responseTime,
 					supabaseStatus: result.status,
-					hasUrl: !!process.env.SUPABASE_URL,
-					hasKey:
-						!!(
-							process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
-						)
+					hasUrl: !!this.appConfigService.getSupabaseUrl(),
+					hasKey: !!this.appConfigService.getSupabaseSecretKey()
 				})
 			}
 
@@ -39,11 +38,8 @@ export class SupabaseHealthIndicator {
 				message: result.message || 'Database connection healthy',
 				responseTime,
 				supabaseStatus: result.status,
-				hasUrl: !!process.env.SUPABASE_URL,
-				hasKey:
-					!!(
-						process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
-					)
+				hasUrl: !!this.appConfigService.getSupabaseUrl(),
+				hasKey: !!this.appConfigService.getSupabaseSecretKey()
 			})
 		} catch (error: unknown) {
 			const responseTime = Date.now() - startTime

@@ -4,7 +4,6 @@ import Footer from '#components/layout/footer'
 import { Navbar } from '#components/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { CustomerPortalButton } from '#components/pricing/customer-portal'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { usePaymentVerification } from '#hooks/api/use-payment-verification'
@@ -95,35 +94,6 @@ export default function CheckoutSuccessPage() {
 						</div>
 
 						<div className="space-y-6">
-							{subscription && (
-								<div className="bg-muted/50 rounded-lg p-6 text-left">
-									<h3 className="font-semibold mb-4">Subscription Details</h3>
-									<div className="space-y-2 text-sm">
-										<div className="flex justify-between">
-											<span className="text-muted-foreground">Plan:</span>
-											<Badge variant="secondary">{subscription.planName}</Badge>
-										</div>
-										<div className="flex justify-between">
-											<span className="text-muted-foreground">Billing:</span>
-											<span>
-												{subscription.interval === 'annual'
-													? 'Annual'
-													: 'Monthly'}
-											</span>
-										</div>
-										<div className="flex justify-between">
-											<span className="text-muted-foreground">Status:</span>
-											<Badge
-												variant="default"
-												className="bg-accent/10 text-accent"
-											>
-												Active
-											</Badge>
-										</div>
-									</div>
-								</div>
-							)}
-
 							<div className="space-y-4">
 								<h3 className="font-semibold">What&apos;s next?</h3>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">

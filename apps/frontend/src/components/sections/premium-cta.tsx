@@ -15,7 +15,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 	return (
 		<section
 			className={cn(
-				'relative py-16 lg:py-20 overflow-hidden bg-transparent',
+				'section-spacing relative overflow-hidden bg-transparent',
 				className
 			)}
 		>

@@ -63,7 +63,6 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 				errorType: error instanceof Error ? error.constructor.name : 'Unknown',
 				errorMessage: error instanceof Error ? error.message : String(error)
 			})
-			// Continue without security headers rather than blocking request
 			next()
 		}
 	}
