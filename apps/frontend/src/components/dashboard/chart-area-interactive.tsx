@@ -211,7 +211,7 @@ export function ChartAreaInteractive({
 					</Empty>
 				) : (
 					<ChartContainer
-						config={chartConfig || {}}
+						config={chartConfig}
 						className="aspect-auto h-75 w-full"
 					>
 						<AreaChart data={chartData}>
