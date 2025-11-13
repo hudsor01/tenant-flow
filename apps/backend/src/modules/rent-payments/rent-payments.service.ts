@@ -17,6 +17,7 @@ import type {
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
+import { queryList } from '../../shared/utils/query-helpers'
 import type {
 	Lease,
 	RentPayment,
@@ -433,21 +434,19 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-			)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load payment history', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load payment history')
-		}
-
-		return (data as RentPayment[]) ?? []
+		return await queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
+				)
+				.order('createdAt', { ascending: false }) as any,
+			{
+				resource: 'rent payments',
+				operation: 'fetch history',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -474,25 +473,21 @@ export class RentPaymentsService {
 		}
 
 		// ✅ RLS automatically filters payments to user's scope
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-			)
-			.eq('subscriptionId', subscriptionId)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load subscription payment history', {
-				subscriptionId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to load subscription payment history'
-			)
-		}
-
-		return (data as RentPayment[]) ?? []
+		return await queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
+				)
+				.eq('subscriptionId', subscriptionId)
+				.order('createdAt', { ascending: false }) as any,
+			{
+				resource: 'rent payments',
+				id: subscriptionId,
+				operation: 'fetch subscription history',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -507,22 +502,20 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-			)
-			.eq('status', 'failed')
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch failed payment attempts', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load failed payment attempts')
-		}
-
-		return (data as RentPayment[]) ?? []
+		return await queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
+				)
+				.eq('status', 'failed')
+				.order('createdAt', { ascending: false }) as any,
+			{
+				resource: 'rent payments',
+				operation: 'fetch failed attempts',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -549,26 +542,22 @@ export class RentPaymentsService {
 		}
 
 		// ✅ RLS automatically filters payments to user's scope
-		const { data, error } = await client
-			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-			)
-			.eq('subscriptionId', subscriptionId)
-			.eq('status', 'failed')
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch subscription failed attempts', {
-				subscriptionId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to load subscription failed attempts'
-			)
-		}
-
-		return (data as RentPayment[]) ?? []
+		return await queryList<RentPayment>(
+			client
+				.from('rent_payment')
+				.select(
+					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
+				)
+				.eq('subscriptionId', subscriptionId)
+				.eq('status', 'failed')
+				.order('createdAt', { ascending: false }) as any,
+			{
+				resource: 'rent payments',
+				id: subscriptionId,
+				operation: 'fetch subscription failed attempts',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
