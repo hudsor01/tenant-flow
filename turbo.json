@@ -104,6 +104,7 @@
 				"DATABASE_URL",
 				"SUPABASE_URL",
 				"SUPABASE_SECRET_KEY",
+				"SUPABASE_PROJECT_REF",
 				"JWT_SECRET"
 			],
 			"cache": true,
