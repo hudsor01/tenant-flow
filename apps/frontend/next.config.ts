@@ -33,9 +33,10 @@ const nextConfig: NextConfig = {
 		serverActions: {
 			bodySizeLimit: '2mb',
 			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
-		},
-		cacheComponents: true
+		}
 	},
+
+	cacheComponents: true,
 
 	async redirects() {
 		return [

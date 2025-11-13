@@ -3,6 +3,7 @@ import {
 	Body,
 	Controller,
 	Delete,
+	ForbiddenException,
 	Get,
 	Logger,
 	NotFoundException,
@@ -14,13 +15,14 @@ import {
 	Res,
 	UseGuards
 } from '@nestjs/common'
-import type { Response } from 'express'
+import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { ExportService } from './export.service'
 import { GeneratedReportService } from './generated-report.service'
 import { ReportsService } from './reports.service'
 import { ScheduledReportService } from './scheduled-report.service'
+import { SupabaseService } from '../../database/supabase.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
@@ -72,6 +74,7 @@ export class ReportsController {
 		private readonly generatedReportService: GeneratedReportService,
 		private readonly reportsService: ReportsService,
 		private readonly scheduledReportService: ScheduledReportService,
+		private readonly supabaseService: SupabaseService,
 		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
@@ -693,12 +696,20 @@ export class ReportsController {
 			throw new NotFoundException('User not authenticated')
 		}
 
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new ForbiddenException('Authentication token missing')
+		}
+
 		this.logger.log('Creating scheduled report', { userId, ...body })
 
-		const schedule = await this.scheduledReportService.createSchedule({
-			userId,
-			...body
-		})
+		const schedule = await this.scheduledReportService.createSchedule(
+			{
+				userId,
+				...body
+			},
+			token
+		)
 
 		return {
 			success: true,
@@ -717,7 +728,12 @@ export class ReportsController {
 			throw new NotFoundException('User not authenticated')
 		}
 
-		const schedules = await this.scheduledReportService.listSchedules(userId)
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new ForbiddenException('Authentication token missing')
+		}
+
+		const schedules = await this.scheduledReportService.listSchedules(userId, token)
 
 		return {
 			success: true,
@@ -739,7 +755,12 @@ export class ReportsController {
 			throw new NotFoundException('User not authenticated')
 		}
 
-		await this.scheduledReportService.deleteSchedule(scheduleId, userId)
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new ForbiddenException('Authentication token missing')
+		}
+
+		await this.scheduledReportService.deleteSchedule(scheduleId, userId, token)
 
 		return {
 			success: true,
