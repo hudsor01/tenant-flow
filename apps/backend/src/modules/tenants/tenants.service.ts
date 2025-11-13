@@ -2902,16 +2902,16 @@ export class TenantsService {
 		}
 	}
 
-	private async getTenantByUserId(userId: string): Promise<{ id: string }> {
+	private async getTenantByAuthUserId(authUserId: string): Promise<{ id: string }> {
 		const client = this.supabase.getAdminClient()
 		const { data, error } = await client
 			.from('tenant')
 			.select('id')
-			.eq('userId', userId)
+			.eq('auth_user_id', authUserId)
 			.single()
 
 		if (error || !data) {
-			this.logger.warn('Tenant record not found for user', { userId, error })
+			this.logger.warn('Tenant record not found for auth user', { authUserId, error })
 			throw new NotFoundException('Tenant record not found')
 		}
 
@@ -2949,10 +2949,10 @@ export class TenantsService {
 	}
 
 	async getTenantPaymentHistoryForTenant(
-		userId: string,
+		authUserId: string,
 		limit = 20
 	): Promise<{ payments: TenantPaymentRecord[] }> {
-		const { id: tenantId } = await this.getTenantByUserId(userId)
+		const { id: tenantId } = await this.getTenantByAuthUserId(authUserId)
 		return { payments: await this.queryTenantPayments(tenantId, limit) }
 	}
 
