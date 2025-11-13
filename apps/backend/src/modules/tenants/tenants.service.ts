@@ -2843,7 +2843,9 @@ export class TenantsService {
 			.from('lease')
 			.select('id, propertyId, unitId')
 			.eq('tenantId', tenantId)
-			.single()
+			.order('startDate', { ascending: false })
+			.limit(1)
+			.maybeSingle()
 
 		if (leaseError || !lease) {
 			this.logger.warn('No lease found for tenant when checking ownership', {
