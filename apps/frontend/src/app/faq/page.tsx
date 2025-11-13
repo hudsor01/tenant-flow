@@ -79,7 +79,7 @@ export default function FAQPage() {
 				subtitle="Everything you need to know about how TenantFlow delivers guaranteed 40% NOI increase, saves 20+ hours weekly, and pays for itself in 60 days. Real answers from real results."
 				primaryCta={{
 					label: 'Calculate Your Savings Now',
-					href: '/signup'
+					href: '/pricing'
 				}}
 				secondaryCta={{ label: 'Talk to Success Manager', href: '/pricing' }}
 				trustSignals="40% NOI increase • 20+ hours saved weekly • 60-day ROI"
