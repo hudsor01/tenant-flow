@@ -7,6 +7,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Spinner } from '#components/ui/spinner'
 import { getStripe } from '#lib/stripe/stripe-client'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IdentityVerificationStatus } from '@repo/shared/types/identity'
 import {
 	useCreateIdentityVerificationSession,
@@ -18,6 +19,8 @@ import {
 	ShieldCheck,
 	XCircle
 } from 'lucide-react'
+
+const logger = createLogger({ component: 'IdentityVerificationCard' })
 
 const statusMap: Record<
 	IdentityVerificationStatus,
@@ -107,7 +110,9 @@ export function IdentityVerificationCard() {
 
 			toast.success('Opening Stripe Identity flow')
 		} catch (error) {
-			console.error(error)
+			logger.error('Failed to start identity verification', {
+				error: error instanceof Error ? error.message : String(error)
+			})
 			toast.error(
 				typeof error === 'string'
 					? error

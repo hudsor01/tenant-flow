@@ -93,32 +93,6 @@ export interface TenantQuery extends BaseQuery {
 }
 
 /**
- * Payment query parameters
- */
-export interface PaymentQuery extends BaseQuery {
-	leaseId?: string
-	tenantId?: string
-	propertyId?: string
-	status?: string
-	type?: string
-	dateFrom?: string
-	dateTo?: string
-	amountMin?: number
-	amountMax?: number
-}
-
-/**
- * Invoice query parameters
- */
-export interface InvoiceQuery extends BaseQuery {
-	customerId?: string
-	status?: string
-	dateFrom?: string
-	dateTo?: string
-	overdue?: boolean
-}
-
-/**
  * Notification query parameters
  */
 export interface NotificationQuery extends BaseQuery {

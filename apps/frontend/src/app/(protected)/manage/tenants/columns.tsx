@@ -3,6 +3,7 @@
 import { InviteTenantDialog } from '#components/tenants/invite-tenant-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
+import { TenantPaymentsDialog } from './tenant-payments-dialog'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { ColumnDef } from '@tanstack/react-table'
 import { Mail } from 'lucide-react'
@@ -186,6 +187,14 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 			}
 
 			return null
+		}
+	},
+	{
+		id: 'payments',
+		header: 'Payments',
+		cell: ({ row }) => {
+			const tenant = row.original
+			return <TenantPaymentsDialog tenantId={tenant.id} tenantName={tenant.name} />
 		}
 	}
 ]

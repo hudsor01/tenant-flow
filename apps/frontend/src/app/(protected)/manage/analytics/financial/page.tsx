@@ -17,6 +17,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getFinancialAnalyticsPageData } from '#lib/api/analytics-server'
+import { serverFetch } from '#lib/api/server'
 import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
 import type {
 	FinancialBreakdownRow,
@@ -30,6 +31,8 @@ import {
 	NetOperatingIncomeChart,
 	RevenueExpenseChart
 } from './financial-charts'
+import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
+import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 
 // Next.js 16: Dynamic behavior is controlled by cacheComponents
 // Remove force-dynamic as it's incompatible with cacheComponents
@@ -141,8 +144,11 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	)
 }
 
-async function FinancialAnalyticsContent() {
-	const data = await getFinancialAnalyticsPageData()
+	async function FinancialAnalyticsContent() {
+		const data = await getFinancialAnalyticsPageData()
+		const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
+			'/api/v1/tenants/payments/summary'
+		)
 	const {
 		metrics,
 		breakdown,
@@ -156,6 +162,7 @@ async function FinancialAnalyticsContent() {
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
+				<OwnerPaymentSummary summary={paymentSummary} />
 				<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
 					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
@@ -346,6 +353,7 @@ async function FinancialAnalyticsContent() {
 function FinancialAnalyticsSkeleton() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
+# Additional component after top metrics
 			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
 				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
@@ -373,6 +381,7 @@ function FinancialAnalyticsSkeleton() {
 					</div>
 				</div>
 			</div>
+			<OwnerPaymentSummary summary={null} />
 			<div className="flex-1 bg-muted/30 p-6">
 				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
 					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">

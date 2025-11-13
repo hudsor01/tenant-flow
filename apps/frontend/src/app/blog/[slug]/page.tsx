@@ -16,7 +16,8 @@ export default function BlogArticlePage({
 }: {
 	params: { slug: string }
 }) {
-	const post = getBlogPost(params.slug)
+	const { slug } = params
+	const post = getBlogPost(slug)
 
 	if (!post) {
 		notFound()

@@ -74,11 +74,16 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+	// Guard against undefined config during SSR/static generation
+	if (!config || typeof config !== 'object') {
+		return null
+	}
+	
 	const colorConfig = Object.entries(config).filter(
-		([, config]) => config.theme || config.color
+		([, config]) => config?.theme || config?.color
 	)
 
-	if (!colorConfig.length) {
+	if (!colorConfig || !colorConfig.length) {
 		return null
 	}
 
