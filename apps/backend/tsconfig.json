@@ -8,18 +8,17 @@
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest", "express"],
 		"composite": false,
-		"declaration": false,
-		"declarationMap": false,
-		"incremental": false,
+		"declaration": true,
+		"declarationMap": true,
+		"incremental": true,
 		"removeComments": true,
 		"paths": {
 			"@repo/shared": ["../../packages/shared/src/index.ts"],
 			"@repo/shared/*": ["../../packages/shared/src/*"],
-			"@repo/database/*": ["../../packages/database/src/*"],
 			"@repo/testing/*": ["../../packages/testing/src/*"]
 		}
 	},
-	"include": ["src/**/*.ts", "test/**/*.ts", "tests/**/*.ts"],
+	"include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "tests/**/*.ts"],
 	"exclude": [
 		"node_modules",
 		"dist",

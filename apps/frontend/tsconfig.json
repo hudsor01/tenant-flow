@@ -19,7 +19,10 @@
 			"#config/*": ["./src/config/*"]
 		},
 		"plugins": [{ "name": "next" }],
-		"types": ["next/types/global", "node", "vitest/globals"]
+		"types": ["next/types/global", "node", "vitest/globals"],
+		"composite": false,
+		"declaration": false,
+		"incremental": true
 	},
 	"include": [
 		"next-env.d.ts",

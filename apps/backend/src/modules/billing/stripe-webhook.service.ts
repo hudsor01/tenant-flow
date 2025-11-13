@@ -15,6 +15,17 @@ export class StripeWebhookService {
 	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
+	 * Type predicate to check if an object has lock_acquired property set to true
+	 */
+	private isObjectWithLockAcquired(value: unknown): value is { lock_acquired: true } {
+		return value !== null &&
+			   value !== undefined &&
+			   typeof value === 'object' &&
+			   'lock_acquired' in value &&
+			   (value as { lock_acquired?: unknown }).lock_acquired === true
+	}
+
+	/**
 	 * Check if an event has already been processed
 	 * Uses database for persistent idempotency across service restarts
 	 */
@@ -56,9 +67,7 @@ export class StripeWebhookService {
 	}
 
 	/**
-	 * Record that an event is being processed
-	 * Prevents concurrent processing of the same event using database-level locking
-	 * SECURITY FIX #5: Race condition fix - uses INSERT with conflict check for atomic lock acquisition
+	 * SECURITY FIX #5: Race condition fix - uses RPC-backed lock for atomic acquisition
 	 */
 	async recordEventProcessing(
 		eventId: string,
@@ -66,30 +75,20 @@ export class StripeWebhookService {
 	): Promise<boolean> {
 		try {
 			const client = this.supabaseService.getAdminClient()
+			const processedAt = new Date().toISOString()
 
-			// SECURITY FIX #5: Use INSERT to atomically acquire lock
-			// First attempt will succeed, concurrent attempts will fail due to unique constraint
-			const { error } = await client
-				.from('processed_stripe_events')
-				.insert({
-					stripe_event_id: eventId,
-					event_type: eventType,
-					processed_at: new Date().toISOString(),
-					status: 'processing' as const
-				})
-				.select()
-
-			// Check if insert succeeded (got the lock) or failed (someone else got it)
-			if (error) {
-				// Check if error is due to unique constraint violation (23505)
-				if (error.code === '23505' || error.message?.includes('duplicate')) {
-					this.logger.debug(
-						`Event ${eventId} already being processed by another request`
-					)
-					return false // Lock acquisition failed - event is being processed
+			// SECURITY FIX #5: Use RPC-backed lock to avoid race windows
+			const { data, error } = await client.rpc(
+				'record_processed_stripe_event_lock',
+				{
+					p_stripe_event_id: eventId,
+					p_event_type: eventType,
+					p_processed_at: processedAt,
+					p_status: 'processing' as const
 				}
+			)
 
-				// Other error - log and throw
+			if (error) {
 				this.logger.error('Failed to record event processing', {
 					eventId,
 					eventType,
@@ -98,8 +97,34 @@ export class StripeWebhookService {
 				throw error
 			}
 
-			this.logger.debug(`Successfully acquired lock for event ${eventId}`)
-			return true // Lock acquisition succeeded
+			// SECURITY: Explicitly handle missing RPC data (null/empty)
+			// Null data indicates RPC function error or missing function
+			if (!data || (Array.isArray(data) && data.length === 0)) {
+				this.logger.error('RPC returned no data - lock acquisition failed', {
+					eventId,
+					eventType,
+					data,
+					warning: 'Check if record_processed_stripe_event_lock function exists'
+				})
+				return false
+			}
+
+			const rows = Array.isArray(data) ? data : [data]
+			const lockAcquired = rows.some(row => this.isObjectWithLockAcquired(row))
+
+			if (!lockAcquired) {
+				this.logger.debug(
+					`Event ${eventId} already being processed by another request`,
+					{ eventId, eventType }
+				)
+				return false
+			}
+
+			this.logger.debug(
+				`Successfully acquired lock for event ${eventId}`,
+				{ eventId, eventType, processedAt }
+			)
+			return true
 		} catch (error) {
 			this.logger.error('Error recording event processing', {
 				eventId,
