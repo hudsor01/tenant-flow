@@ -231,22 +231,22 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 
 		// Simple hover animation styles (using CSS transitions instead of hooks-in-callbacks)
 		const getNavItemStyle = (itemName: string) => ({
-			transform: hoveredNavItem === itemName ? 'scale(1.05)' : 'scale(1)',
-			transition: 'transform 0.2s ease-out'
+			transform: hoveredNavItem === itemName ? `scale(var(--scale-hover))` : 'scale(1)',
+			transition: `transform var(--duration-200) var(--ease-out)`
 		})
 
 		// Dropdown item hover styles
 		const getDropdownItemStyle = (itemName: string) => ({
 			transform:
-				hoveredDropdownItem === itemName ? 'translateX(4px)' : 'translateX(0)',
-			transition: 'transform 0.2s ease-out'
+				hoveredDropdownItem === itemName ? `translateX(var(--translate-hover-x))` : 'translateX(0)',
+			transition: `transform var(--duration-200) var(--ease-out)`
 		})
 
 		// Mobile item hover styles
 		const getMobileItemStyle = (itemName: string) => ({
 			transform:
-				hoveredMobileItem === itemName ? 'translateX(4px)' : 'translateX(0)',
-			transition: 'transform 0.2s ease-out'
+				hoveredMobileItem === itemName ? `translateX(var(--translate-hover-x))` : 'translateX(0)',
+			transition: `transform var(--duration-200) var(--ease-out)`
 		})
 
 		return (

@@ -359,6 +359,13 @@
 	--focus-ring-color: var(--ring);
 	--focus-ring-offset: 2px;
 
+	/* Animation transforms */
+	--scale-hover: 1.05;
+	--scale-tap: 0.95;
+	--translate-hover-x: 4px;
+	--translate-hover-y: -1px;
+	--translate-slide-y: 20px;
+
 	/* Spacing scale (8px grid) */
 	--spacing: 0.25rem;
 	--spacing-0: 0rem;
@@ -411,6 +418,8 @@
 	--layout-stack-loose: var(--spacing-12); /* Loose vertical rhythm */
 	--layout-stack-default: var(--spacing-6); /* Default vertical rhythm */
 	--layout-stack-tight: var(--spacing-3); /* Tight vertical rhythm */
+	--layout-navbar-height: var(--spacing-16); /* Fixed navbar height */
+	--layout-navbar-spacing: var(--spacing-20); /* Space below fixed navbar */
 
 	/* Typography helpers */
 	--text-xs: 0.75rem;
@@ -731,6 +740,11 @@
 
 	.stack-tight > * + * {
 		margin-block-start: var(--layout-stack-tight);
+	}
+
+	/* Marketing Page Layout */
+	.marketing-page {
+		padding-top: var(--layout-navbar-spacing);
 	}
 
 	/* Typography Utility Classes */

@@ -129,23 +129,26 @@ export class PropertiesService {
 	/**
 	 * Get single property by ID
 	 */
-	async findOne(req: Request, propertyId: string): Promise<Property | null> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
+	async findOne(req: AuthenticatedRequest, propertyId: string): Promise<Property | null> {
+		const userId = req.user?.id
+		if (!userId) {
+			this.logger.warn('Authenticated user missing for property lookup', { propertyId })
 			return null
 		}
-		const client = this.supabase.getUserClient(token)
+		const client = this.supabase.getAdminClient()
 
 		const { data, error } = await client
 			.from('property')
 			.select('*')
 			.eq('id', propertyId)
+			.eq('ownerId', userId)
 			.single()
 
 		if (error || !data) {
 			this.logger.warn('Property not found or access denied', {
-				propertyId
+				propertyId,
+				userId,
+				error
 			})
 			return null
 		}
@@ -237,7 +240,7 @@ export class PropertiesService {
 	 * Returns summary of success/errors for user feedback
 	 */
 	async bulkImport(
-		req: Request,
+		req: AuthenticatedRequest,
 		fileBuffer: Buffer
 	): Promise<{
 		success: boolean
@@ -252,7 +255,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 
 		try {
 			// Parse CSV file using csv-parse (RFC 4180 compliant streaming parser)
@@ -451,7 +454,7 @@ export class PropertiesService {
 	 * Update property with validation
 	 */
 	async update(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string,
 		request: UpdatePropertyRequest,
 		expectedVersion?: number //Optimistic locking
@@ -532,7 +535,7 @@ export class PropertiesService {
 		}
 
 		// PERFORMANCE: Invalidate property stats cache after update
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 		await this.invalidatePropertyStatsCache(userId)
 
 		return data as Property
@@ -542,7 +545,7 @@ export class PropertiesService {
 	 * Delete property (soft delete)
 	 */
 	async remove(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string
 	): Promise<{ success: boolean; message: string }> {
 		const token = getTokenFromRequest(req)
@@ -552,7 +555,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 		// Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 
 		// Verify ownership through RLS
@@ -769,8 +772,8 @@ export class PropertiesService {
 	 * Get property statistics with caching
 	 * SECURITY FIX #6: User-specific cache key to prevent cache poisoning
 	 */
-	async getStats(req: Request): Promise<PropertyStats> {
-		const userId = (req as AuthenticatedRequest).user.id
+	async getStats(req: AuthenticatedRequest): Promise<PropertyStats> {
+		const userId = req.user.id
 
 		// SECURITY FIX #6: Include userId in cache key to prevent cross-user data leakage
 		const cacheKey = `property-stats:${userId}`
@@ -878,10 +881,10 @@ export class PropertiesService {
 	 * Get property performance analytics
 	 */
 	async getPropertyPerformanceAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; timeframe: string; limit?: number }
 	) {
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 
 		// Validate using constant
 		if (
@@ -935,10 +938,10 @@ export class PropertiesService {
 	 * Get property occupancy analytics
 	 */
 	async getPropertyOccupancyAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; period?: string }
 	): Promise<unknown[]> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		if (query.propertyId) {
@@ -977,10 +980,10 @@ export class PropertiesService {
 	 * Get property financial analytics
 	 */
 	async getPropertyFinancialAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; timeframe?: string }
 	): Promise<unknown[]> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		if (query.propertyId) {
@@ -1019,10 +1022,10 @@ export class PropertiesService {
 	 * Get property maintenance analytics
 	 */
 	async getPropertyMaintenanceAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; timeframe?: string }
 	): Promise<unknown[]> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		if (query.propertyId) {
@@ -1064,7 +1067,7 @@ export class PropertiesService {
 	/**
 	 * Get property units
 	 */
-	async getPropertyUnits(req: Request, propertyId: string): Promise<unknown[]> {
+	async getPropertyUnits(req: AuthenticatedRequest, propertyId: string): Promise<unknown[]> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.error('No authentication token found in request')
@@ -1103,7 +1106,7 @@ export class PropertiesService {
 	 * Upload property image
 	 */
 	async uploadPropertyImage(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string,
 		file: Express.Multer.File,
 		isPrimary: boolean,
@@ -1116,7 +1119,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const userId = req.user.id
 
 		// Verify property ownership
 		const { data: property } = await client
@@ -1274,7 +1277,7 @@ export class PropertiesService {
 	}
 
 	async markAsSold(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string,
 		dateSold: Date,
 		salePrice: number,
