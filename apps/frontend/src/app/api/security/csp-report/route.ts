@@ -7,8 +7,6 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { env } from '#config/env'
 
-export const runtime = 'edge'
-
 const logger = createLogger({ component: 'CSPReportAPI' })
 
 // Simple in-file rate limiter to replace deleted shared rate-limiter abstraction
