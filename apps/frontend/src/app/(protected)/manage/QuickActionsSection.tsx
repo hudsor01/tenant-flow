@@ -9,18 +9,16 @@ import { QuickActions } from '#components/dashboard/quick-actions'
  */
 export function QuickActionsSection() {
 	return (
-		<div className="rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border">
-			<div className="border-b-2 border-border bg-gradient-to-r from-muted/50 via-background to-muted/50 px-6 py-6">
-				<h3 className="text-xl font-black text-foreground tracking-tight">
-					Quick Actions
-				</h3>
-				<p className="text-sm text-muted-foreground mt-2 font-medium">
+		<section className="dashboard-panel" data-density="compact">
+			<div className="dashboard-panel-header" data-variant="actions">
+				<h3 className="dashboard-panel-title">Quick Actions</h3>
+				<p className="dashboard-panel-description">
 					Common tasks and shortcuts
 				</p>
 			</div>
-			<div className="p-6">
+			<div className="dashboard-panel-body">
 				<QuickActions />
 			</div>
-		</div>
+		</section>
 	)
 }

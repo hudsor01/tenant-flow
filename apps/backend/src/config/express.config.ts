@@ -8,6 +8,7 @@
  */
 
 import type { NestExpressApplication } from '@nestjs/platform-express'
+import type { AppConfigService } from './app-config.service'
 import cookieParser from 'cookie-parser'
 import express, {
 	type NextFunction,
@@ -16,16 +17,92 @@ import express, {
 } from 'express'
 import helmet from 'helmet'
 
-export async function registerExpressMiddleware(app: NestExpressApplication) {
-	// Stripe webhooks need raw body for signature verification
-	app.use(
-		'/api/v1/stripe/webhook',
-		express.raw({ type: 'application/json', limit: '1mb' })
+type RawBodyRequest = Request & { rawBody?: Buffer }
+
+const STRIPE_WEBHOOK_BASE_PATHS = [
+	'/stripe/webhook',
+	'/webhooks/stripe-sync',
+	'/webhooks/stripe'
+]
+
+const ensureLeadingSlash = (path: string): string =>
+	path.startsWith('/') ? path : `/${path}`
+
+const normalizeRoutePath = (path: string): string => {
+	if (!path) return '/'
+	const trimmed = ensureLeadingSlash(path.trim())
+	if (trimmed.length > 1 && trimmed.endsWith('/')) {
+		return trimmed.replace(/\/+$/, '')
+	}
+	return trimmed
+}
+
+const normalizePrefix = (prefix?: string): string => {
+	if (!prefix) return ''
+	const trimmed = prefix.replace(/^\/|\/$/g, '')
+	return trimmed.length ? `/${trimmed}` : ''
+}
+
+const buildStripeWebhookPaths = (globalPrefix?: string): string[] => {
+	const prefix = normalizePrefix(globalPrefix)
+	const uniquePaths = new Set<string>()
+
+	for (const basePath of STRIPE_WEBHOOK_BASE_PATHS) {
+		const normalizedBase = normalizeRoutePath(basePath)
+		uniquePaths.add(normalizedBase)
+		if (prefix) {
+			uniquePaths.add(
+				normalizeRoutePath(`${prefix}${normalizedBase}`)
+			)
+		}
+	}
+
+	return Array.from(uniquePaths)
+}
+
+const sanitizeRequestPath = (req: Request): string => {
+	const rawPath = req.originalUrl || req.url || req.path || '/'
+	const pathOnly = rawPath.split('?')[0] || '/'
+	return normalizeRoutePath(pathOnly)
+}
+
+const isStripeWebhookRequest = (
+	req: Request,
+	webhookPaths: string[]
+): boolean => {
+	const requestPath = sanitizeRequestPath(req)
+	return webhookPaths.some(
+		registeredPath =>
+			requestPath === registeredPath ||
+			requestPath.startsWith(`${registeredPath}/`)
 	)
-	app.use(
-		'/api/v1/webhooks/stripe-sync',
-		express.raw({ type: 'application/json', limit: '1mb' })
-	)
+}
+
+export interface ExpressMiddlewareOptions {
+	globalPrefix?: string
+}
+
+export async function registerExpressMiddleware(
+	app: NestExpressApplication,
+	appConfigService: AppConfigService,
+	options: ExpressMiddlewareOptions = {}
+) {
+	const stripeWebhookPaths = buildStripeWebhookPaths(options.globalPrefix)
+
+	// Stripe webhooks need raw body for signature verification. Register middleware for both
+	// prefixed (e.g., /api/v1/...) and unprefixed routes to support local testing.
+	for (const path of stripeWebhookPaths) {
+		app.use(
+			path,
+			express.raw({ type: '*/*', limit: '1mb' }),
+			(req: RawBodyRequest, _res: Response, next: NextFunction) => {
+				if (!req.rawBody && Buffer.isBuffer(req.body)) {
+					req.rawBody = req.body
+				}
+				next()
+			}
+		)
+	}
 
 	// Security headers with full TypeScript support
 	app.use(
@@ -55,10 +132,7 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 	// Cookie parsing
 	app.use(
 		cookieParser(
-			process.env.JWT_SECRET ||
-				(() => {
-					throw new Error('JWT_SECRET environment variable is required')
-				})()
+			appConfigService.getJwtSecret()
 		)
 	)
 
@@ -68,20 +142,14 @@ export async function registerExpressMiddleware(app: NestExpressApplication) {
 	const urlencodedParser = express.urlencoded({ extended: true, limit: '10mb' })
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (
-			req.path === '/api/v1/stripe/webhook' ||
-			req.path === '/api/v1/webhooks/stripe-sync'
-		) {
+		if (isStripeWebhookRequest(req, stripeWebhookPaths)) {
 			return next() // Skip JSON parsing for webhooks
 		}
 		jsonParser(req, res, next)
 	})
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (
-			req.path === '/api/v1/stripe/webhook' ||
-			req.path === '/api/v1/webhooks/stripe-sync'
-		) {
+		if (isStripeWebhookRequest(req, stripeWebhookPaths)) {
 			return next() // Skip URL encoding for webhooks
 		}
 		urlencodedParser(req, res, next)

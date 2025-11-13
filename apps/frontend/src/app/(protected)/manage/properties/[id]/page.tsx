@@ -22,7 +22,7 @@ export default function PropertyDetailPage() {
 
 	if (isError || !property) {
 		return (
-			<div className="flex flex-col items-center justify-center space-y-4 text-center py-12">
+			<div className="flex flex-col items-center justify-center space-y-4 text-center section-spacing-compact">
 				<div className="text-2xl">Property not found</div>
 				<Button asChild>
 					<Link href="/manage/properties">Back to Properties</Link>

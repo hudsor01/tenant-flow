@@ -1,4 +1,4 @@
-import type { LeaseFormData, USState } from '../types/lease-generator.types'
+import type { LeaseFormData, USState } from '../types/lease-generator.types.js'
 
 export interface LeaseTemplateClause {
 	id: string

@@ -11,6 +11,7 @@ import {
 	SUPABASE_URL,
 	SUPABASE_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
+import { isProduction } from '#config/env'
 
 const logger = createLogger({ component: 'ServerAPI' })
 
@@ -130,7 +131,7 @@ export async function serverFetch<T>(
 
 		// Preserve status code for error handling utilities (isConflictError, isNotFoundError)
 		const errorMessage =
-			process.env.NODE_ENV === 'production'
+			isProduction()
 				? `API request failed with status ${response.status}`
 				: `API Error (${response.status}): ${errorText || response.statusText}`
 

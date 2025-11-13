@@ -1,4 +1,10 @@
 import { z } from 'zod'
+import {
+	CONFIG_DEFAULTS,
+	LOG_LEVELS,
+	NODE_ENVIRONMENTS,
+	STORAGE_PROVIDERS
+} from './config.constants'
 
 /**
  * Environment Configuration using Zod (CLAUDE.md compliant)
@@ -8,12 +14,19 @@ import { z } from 'zod'
 
 const environmentSchema = z.object({
 	// Application
-	NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
-	PORT: z.coerce.number().default(4600),
+	NODE_ENV: z
+		.enum(NODE_ENVIRONMENTS)
+		.default(CONFIG_DEFAULTS.NODE_ENV),
+	PORT: z.coerce.number().default(CONFIG_DEFAULTS.PORT),
+  BACKEND_TIMEOUT_MS: z.coerce.number().default(Number(CONFIG_DEFAULTS.BACKEND_TIMEOUT_MS)),
+	API_BASE_URL: z.string().url('Must be a valid URL').default(CONFIG_DEFAULTS.API_BASE_URL),
+
+	// Frontend
 	FRONTEND_URL: z
 		.string()
 		.url('Must be a valid URL')
-		.default('https://tenantflow.app'),
+		.default(CONFIG_DEFAULTS.FRONTEND_URL),
+	NEXT_PUBLIC_APP_URL: z.string().url('Must be a valid URL'),
 
 	// Database
 	DATABASE_URL: z.string(),
@@ -26,7 +39,7 @@ const environmentSchema = z.object({
 	// JWT public keys for asymmetric algorithms (supporting key rotation)
 	JWT_PUBLIC_KEY_CURRENT: z.string().optional(),
 	JWT_PUBLIC_KEY_STANDBY: z.string().optional(),
-	JWT_EXPIRES_IN: z.string().default('7d'),
+	JWT_EXPIRES_IN: z.string().default(CONFIG_DEFAULTS.JWT_EXPIRES_IN),
 
 	// Supabase (using modern API key naming convention)
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
@@ -40,15 +53,17 @@ const environmentSchema = z.object({
 		.min(32, 'Supabase JWT secret must be at least 32 characters')
 		.optional(),
 	/**
-	 * Supabase JWT Algorithm - Defaults to HS256 (Supabase's default)
-	 * Only HS256 is currently supported for direct key verification
+	 * Supabase JWT Algorithm - Defaults to ES256 (Supabase's default)
+	 * Only ES256 is currently supported for direct key verification
 	 */
 	SUPABASE_JWT_ALGORITHM: z
 		.string()
 		.transform(val => val.toUpperCase().trim())
-		.pipe(z.enum(['HS256', 'RS256', 'ES256']))
+		.pipe(z.enum(['ES256', 'RS256']))
 		.optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.string(),
+	SUPABASE_PROJECT_REF: z.string().default(CONFIG_DEFAULTS.SUPABASE_PROJECT_REF),
+	SUPABASE_AUTH_WEBHOOK_SECRET: z.string().optional(),
 
 	// CORS
 	CORS_ORIGINS: z.string().optional(),
@@ -63,14 +78,25 @@ const environmentSchema = z.object({
 	STRIPE_WEBHOOK_SECRET: z.string(),
 
 	// Stripe Sync Engine Configuration (hardcoded industry best practice defaults)
-	STRIPE_SYNC_DATABASE_SCHEMA: z.string().default('stripe'),
-	STRIPE_SYNC_AUTO_EXPAND_LISTS: z.coerce.boolean().default(true),
-	STRIPE_SYNC_BACKFILL_RELATED_ENTITIES: z.coerce.boolean().default(true),
-	STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: z.coerce.number().default(10),
+	STRIPE_SYNC_DATABASE_SCHEMA: z
+		.string()
+		.default(CONFIG_DEFAULTS.STRIPE_SYNC_DATABASE_SCHEMA),
+	STRIPE_SYNC_AUTO_EXPAND_LISTS: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.STRIPE_SYNC_AUTO_EXPAND_LISTS),
+	STRIPE_SYNC_BACKFILL_RELATED_ENTITIES: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.STRIPE_SYNC_BACKFILL_RELATED_ENTITIES),
+	STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: z
+		.coerce.number()
+		.default(CONFIG_DEFAULTS.STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS),
 	STRIPE_PRICE_ID_STARTER: z.string().optional(),
 	STRIPE_PRICE_ID_GROWTH: z.string().optional(),
 	STRIPE_PRICE_ID_BUSINESS: z.string().optional(),
 	STRIPE_PRICE_ID_TENANTFLOW_MAX: z.string().optional(),
+	STRIPE_CONNECT_DEFAULT_COUNTRY: z
+		.string()
+		.default(CONFIG_DEFAULTS.STRIPE_CONNECT_DEFAULT_COUNTRY),
 
 	// Redis
 	REDIS_URL: z.string().optional(),
@@ -80,18 +106,22 @@ const environmentSchema = z.object({
 	REDIS_DB: z.string().optional(),
 
 	// Logging
-	LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+	LOG_LEVEL: z.enum(LOG_LEVELS).default(CONFIG_DEFAULTS.LOG_LEVEL),
 
 	// Monitoring
-	ENABLE_METRICS: z.coerce.boolean().default(true),
+	ENABLE_METRICS: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.ENABLE_METRICS),
 	PROMETHEUS_BEARER_TOKEN: z
 		.string()
 		.min(16, 'PROMETHEUS_BEARER_TOKEN must be at least 16 characters')
 		.optional(),
 
 	// File Storage
-	STORAGE_PROVIDER: z.enum(['local', 'supabase', 's3']).default('supabase'),
-	STORAGE_BUCKET: z.string().default('tenant-flow-storage'),
+	STORAGE_PROVIDER: z
+		.enum(STORAGE_PROVIDERS)
+		.default(CONFIG_DEFAULTS.STORAGE_PROVIDER),
+	STORAGE_BUCKET: z.string().default(CONFIG_DEFAULTS.STORAGE_BUCKET),
 
 	// Email
 	SMTP_HOST: z.string().optional(),
@@ -99,17 +129,19 @@ const environmentSchema = z.object({
 	SMTP_USER: z.string().optional(),
 	SMTP_PASS: z.string().optional(),
 	FROM_EMAIL: z.string().email('Must be a valid email address').optional(),
+	SUPPORT_EMAIL: z.string().email('Must be a valid email address'),
+	SUPPORT_PHONE: z.string().optional(),
 
 	// Resend
-	TEST_RESEND_API_KEY: z.string().optional(),
+	RESEND_API_KEY: z.string(),
 	RESEND_FROM_EMAIL: z
 		.string()
 		.email('Must be a valid email address')
-		.default('noreply@tenantflow.app'),
-
-	// Analytics
+		.default(CONFIG_DEFAULTS.RESEND_FROM_EMAIL),
+	TEST_RESEND_API_KEY: z.string().optional(),
 
 	// Security
+	IDEMPOTENCY_KEY_SECRET: z.string().min(32, 'Idempotency key secret must be at least 32 characters'),
 	CSRF_SECRET: z.string().optional(),
 	SESSION_SECRET: z
 		.string()
@@ -117,8 +149,12 @@ const environmentSchema = z.object({
 		.optional(),
 
 	// Production Features
-	ENABLE_SWAGGER: z.coerce.boolean().default(false),
-	ENABLE_RATE_LIMITING: z.coerce.boolean().default(true),
+	ENABLE_SWAGGER: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.ENABLE_SWAGGER),
+	ENABLE_RATE_LIMITING: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.ENABLE_RATE_LIMITING),
 
 	// Platform Detection
 	RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
@@ -129,13 +165,17 @@ const environmentSchema = z.object({
 	RAILWAY_PROJECT_ID: z.string().optional(),
 	RAILWAY_ENVIRONMENT_ID: z.string().optional(),
 	RAILWAY_SERVICE_ID: z.string().optional(),
-	ALLOW_LOCALHOST_CORS: z.coerce.boolean().default(false),
+	ALLOW_LOCALHOST_CORS: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.ALLOW_LOCALHOST_CORS),
 	REDISHOST: z.string().optional(),
 	REDISPASSWORD: z.string().optional(),
 	REDISPORT: z.string().optional(),
 	VERCEL_ENV: z.string().optional(),
 	VERCEL_URL: z.string().optional(),
-	DOCKER_CONTAINER: z.coerce.boolean().default(false)
+	DOCKER_CONTAINER: z
+		.coerce.boolean()
+		.default(CONFIG_DEFAULTS.DOCKER_CONTAINER)
 })
 
 export function validate(config: Record<string, unknown>) {

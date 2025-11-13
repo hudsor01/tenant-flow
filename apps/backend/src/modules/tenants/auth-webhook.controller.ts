@@ -1,10 +1,22 @@
 /**
  * SUPABASE AUTH WEBHOOK CONTROLLER (Phase 3.1)
+<<<<<<< Updated upstream
 
+||||||| Stash base
+ * 
+=======
+ *
+>>>>>>> Stashed changes
  * Handles Supabase Auth webhooks for user confirmation events
  * When tenant clicks invitation link and confirms email, this endpoint is called
  * to automatically activate the tenant record.
+<<<<<<< Updated upstream
 
+||||||| Stash base
+ * 
+=======
+ *
+>>>>>>> Stashed changes
  * ULTRA-NATIVE ARCHITECTURE:
  * - Uses built-in NestJS decorators and pipes
  * - No custom abstractions
@@ -27,6 +39,7 @@ import { TenantsService } from '../tenants/tenants.service'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { AppConfigService } from '../../config/app-config.service'
 
 interface SupabaseAuthWebhookPayload {
 	type: 'user.created' | 'user.updated' | 'user.deleted'
@@ -55,11 +68,14 @@ export class AuthWebhookController {
 	private readonly logger = new Logger(AuthWebhookController.name)
 	private readonly supabase
 
-	constructor(private readonly tenantsService: TenantsService) {
+	constructor(
+		private readonly tenantsService: TenantsService,
+		private readonly appConfigService: AppConfigService
+	) {
 		// Initialize Supabase client for webhook log writes
 		this.supabase = createClient<Database>(
-			process.env.SUPABASE_URL!,
-			process.env.SUPABASE_SECRET_KEY!,
+			this.appConfigService.getSupabaseUrl(),
+			this.appConfigService.getSupabaseSecretKey(),
 			{
 				auth: {
 					autoRefreshToken: false,
@@ -72,7 +88,13 @@ export class AuthWebhookController {
 	/**
 	 * Verify Standard Webhooks signature using native Node.js crypto
 	 * Implements https://www.standardwebhooks.com/ specification
+<<<<<<< Updated upstream
 
+||||||| Stash base
+	 * 
+=======
+	 *
+>>>>>>> Stashed changes
 	 * @param rawBody - Raw request body as string
 	 * @param signature - webhook-signature header (format: v1,base64signature)
 	 * @param timestamp - webhook-timestamp header (UNIX timestamp)
@@ -87,27 +109,27 @@ export class AuthWebhookController {
 		try {
 			// Standard Webhooks signed payload format: "timestamp.body"
 			const signedPayload = `${timestamp}.${rawBody}`
-			
+
 			// Compute HMAC-SHA256 signature
 			const expectedSignature = createHmac('sha256', secret)
 				.update(signedPayload, 'utf8')
 				.digest('base64')
-			
+
 			// Extract v1 signature from header (format: "v1,signature1,v1,signature2,...")
 			// Standard Webhooks spec allows multiple signatures for secret rotation
 			const signatures = signature.split(',')
 			const v1Signatures: string[] = []
-			
+
 			for (let i = 0; i < signatures.length; i += 2) {
 				if (signatures[i] === 'v1' && signatures[i + 1]) {
 					v1Signatures.push(signatures[i + 1]!) // Non-null assertion - checked in if condition
 				}
 			}
-			
+
 			if (v1Signatures.length === 0) {
 				return false
 			}
-			
+
 			// Check if any of the provided signatures match (timing-safe comparison)
 			return v1Signatures.some(providedSig => {
 				try {
@@ -131,7 +153,13 @@ export class AuthWebhookController {
 	 * Supabase Auth Webhook Handler
 	 * Called when user confirms email (clicks invitation link)
 	 * Automatically activates tenant record
+<<<<<<< Updated upstream
 
+||||||| Stash base
+	 * 
+=======
+	 *
+>>>>>>> Stashed changes
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
 	 * SECURITY: Verifies webhook signature using Standard Webhooks spec
 	 */
@@ -149,8 +177,8 @@ export class AuthWebhookController {
 
 		try {
 			// SECURITY: Verify webhook signature
-			const webhookSecret = process.env.SUPABASE_AUTH_WEBHOOK_SECRET
-			
+			const webhookSecret = this.appConfigService.getSupabaseAuthWebhookSecret()
+
 			if (!webhookSecret) {
 				throw new BadRequestException('Webhook secret not configured')
 			}
@@ -162,7 +190,7 @@ export class AuthWebhookController {
 			// Extract secret from Standard Webhooks format (v1,whsec_<base64>)
 			const secret = webhookSecret.replace(/^v1,whsec_/, '')
 			const rawBody = req.rawBody?.toString('utf8') || ''
-			
+
 			// At this point, webhookSignature and webhookTimestamp are guaranteed to be strings
 			// (we checked for undefined above)
 			const isValid = this.verifyWebhookSignature(
@@ -171,7 +199,7 @@ export class AuthWebhookController {
 				webhookTimestamp!, // Non-null assertion - checked above
 				secret
 			)
-			
+
 			if (!isValid) {
 				this.logger.error('Webhook signature verification failed', {
 					webhookId,
@@ -179,7 +207,7 @@ export class AuthWebhookController {
 				})
 				throw new BadRequestException('Invalid webhook signature')
 			}
-			
+
 			// Parse payload after verification
 			try {
 				payload = JSON.parse(rawBody) as SupabaseAuthWebhookPayload
@@ -213,12 +241,12 @@ export class AuthWebhookController {
 					userId: confirmedPayload.record.id,
 					email: confirmedPayload.record.email
 				})
-				
+
 				// Log to webhook table
 				await this.logWebhookEvent(confirmedPayload, false, 'User not yet confirmed')
-				
-				return { 
-					success: false, 
+
+				return {
+					success: false,
 					message: 'User not yet confirmed',
 					skipped: true
 				}
@@ -226,18 +254,18 @@ export class AuthWebhookController {
 
 			// Extract tenant metadata
 			const tenantId = confirmedPayload.record.raw_user_meta_data?.tenantId
-			
+
 			if (!tenantId) {
 				this.logger.warn('No tenantId in user metadata, not a tenant invitation', {
 					userId: confirmedPayload.record.id,
 					email: confirmedPayload.record.email
 				})
-				
+
 				// Log to webhook table
 				await this.logWebhookEvent(confirmedPayload, false, 'No tenantId in metadata')
-				
-				return { 
-					success: false, 
+
+				return {
+					success: false,
 					message: 'Not a tenant invitation',
 					skipped: true
 				}
@@ -275,7 +303,7 @@ export class AuthWebhookController {
 		} catch (error) {
 			const duration = Date.now() - startTime
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			
+
 			this.logger.error('Failed to process auth webhook', {
 				error: errorMessage,
 				userId: payload?.record?.id,

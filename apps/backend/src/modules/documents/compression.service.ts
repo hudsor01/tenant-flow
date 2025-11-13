@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { PDFDocument } from 'pdf-lib'
 import sharp from 'sharp'
+import { performanceConfig } from '../../config/performance.config'
 
 export interface CompressionResult {
 	compressed: Buffer
@@ -95,14 +97,41 @@ export class CompressionService {
 	}
 
 	/**
-	 * PDF compression disabled (pdf-lib removed)
-	 * Returns original buffer without compression
+	 * Compress PDFs by re-saving via pdf-lib using object streams.
+	 * Skips work for empty or tiny files to avoid wasted CPU.
 	 */
-
-	// TODO: Implement PDF compression using Ghostscript or similar if needed
-
 	private async compressPDF(buffer: Buffer): Promise<Buffer> {
-		this.logger.debug('PDF compression disabled - returning original')
-		return buffer
+		const { threshold } = performanceConfig.optimization.compression
+		if (buffer.length === 0) {
+			this.logger.debug('Empty PDF buffer received - skipping compression')
+			return buffer
+		}
+
+		if (buffer.length < threshold) {
+			this.logger.debug(
+				`PDF size ${buffer.length}B below threshold ${threshold}B - skipping compression`
+			)
+			return buffer
+		}
+
+		this.logger.debug('Compressing PDF using pdf-lib object streams')
+
+		const pdfDoc = await PDFDocument.load(buffer, {
+			updateMetadata: false,
+			ignoreEncryption: true
+		})
+
+		// Drop metadata that often bloats storage
+		pdfDoc.setProducer('TenantFlow Compression Service')
+		pdfDoc.setCreator('TenantFlow Compression Service')
+		pdfDoc.setSubject('Compressed document')
+
+		const compressedBytes = await pdfDoc.save({
+			useObjectStreams: true,
+			addDefaultPage: false,
+			objectsPerTick: 20
+		})
+
+		return Buffer.from(compressedBytes)
 	}
 }

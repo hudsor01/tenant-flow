@@ -10,8 +10,16 @@
  * 3. Verify no 401/403 errors on protected pages
  * 4. Verify JWT tokens are valid and properly signed
  * 5. Verify no legacy JWT signing key errors
+<<<<<<< Updated upstream
 
  * Run with: E2E_OWNER_EMAIL=test-admin@tenantflow.app E2E_OWNER_PASSWORD='TestPassword123!' npx playwright test auth-jwt-validation.spec.ts
+||||||| Stash base
+ *
+ * Run with: E2E_OWNER_EMAIL=test-admin@tenantflow.app E2E_OWNER_PASSWORD='TestPassword123!' npx playwright test auth-jwt-validation.spec.ts
+=======
+ *
+ * Run with: E2E_OWNER_EMAIL=test-admin@tenantflow.app E2E_OWNER_PASSWORD=your_secure_password npx playwright test auth-jwt-validation.spec.ts
+>>>>>>> Stashed changes
  */
 
 import { expect, test } from '@playwright/test'
