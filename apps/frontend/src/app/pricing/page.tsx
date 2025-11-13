@@ -45,7 +45,11 @@ const faqs = [
 	}
 ]
 
-export default function PricingPage() {
+export default async function PricingPage() {
+	'use cache'
+	// Cache the pricing page for 1 hour since pricing doesn't change often
+	// This provides instant loading for all users
+	
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
 
 	// FAQ Schema for Google rich snippets

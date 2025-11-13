@@ -3,9 +3,7 @@ import { requireSession } from '#lib/server-auth'
 
 export default async function GenerateLeasePage({
 	searchParams
-}: {
-	searchParams: Promise<{ propertyId: string; unitId: string; tenantId: string }>
-}) {
+}: PageProps<'/manage/leases/generate'>) {
 	await requireSession()
 	const params = await searchParams
 
@@ -21,9 +19,9 @@ export default async function GenerateLeasePage({
 
 			<div className="rounded-xl border bg-card p-6">
 				<LeaseGenerationForm
-					propertyId={params.propertyId}
-					unitId={params.unitId}
-					tenantId={params.tenantId}
+					propertyId={typeof params?.propertyId === 'string' ? params.propertyId : ''}
+					unitId={typeof params?.unitId === 'string' ? params.unitId : ''}
+					tenantId={typeof params?.tenantId === 'string' ? params.tenantId : ''}
 				/>
 			</div>
 		</div>

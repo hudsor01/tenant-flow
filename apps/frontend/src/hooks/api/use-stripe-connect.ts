@@ -5,7 +5,7 @@
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { ConnectedAccount } from '@repo/shared/types/core'
+import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe-connect'
 
 interface CreateConnectAccountRequest {
 	displayName: string
@@ -16,7 +16,7 @@ interface CreateConnectAccountRequest {
 
 interface ConnectAccountResponse {
 	success: boolean
-	data: ConnectedAccount
+	data: ConnectedAccountWithIdentity
 }
 
 interface OnboardingUrlResponse {
@@ -40,7 +40,7 @@ export const stripeConnectKeys = {
 export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
-		queryFn: async (): Promise<ConnectedAccount> => {
+		queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
 			const response = await clientFetch<ConnectAccountResponse>(
 				'/api/v1/stripe-connect/account'
 			)
@@ -99,7 +99,7 @@ export function usePrefetchConnectedAccount() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: stripeConnectKeys.account(),
-			queryFn: async (): Promise<ConnectedAccount> => {
+			queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
 				const response = await clientFetch<ConnectAccountResponse>(
 					'/api/v1/stripe-connect/account'
 				)

@@ -9,7 +9,7 @@ export function SignupForm({
 	className,
 	onSubmit: _onSubmit,
 	isLoading: _isLoading
-}: Pick<AuthFormProps, 'className' | 'onSubmit' | 'isLoading'>) {
+}: Partial<Pick<AuthFormProps, 'className' | 'onSubmit' | 'isLoading'>>) {
 	// For this product tenants must be invited by an OWNER. The signup form
 	// is intentionally disabled for tenant self-registration. We keep the
 	// component shape so imports do not break, but render a clear message and

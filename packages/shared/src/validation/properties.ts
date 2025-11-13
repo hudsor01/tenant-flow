@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Constants, type Database } from '../types/supabase-generated.js'
-import type { CreatePropertyRequest } from '../types/backend-domain.js'
+import type { CreatePropertyRequest } from '../types/api-contracts.js'
 import {
 	nonEmptyStringSchema,
 	nonNegativeNumberSchema,

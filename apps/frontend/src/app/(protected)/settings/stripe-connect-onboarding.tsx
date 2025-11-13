@@ -31,6 +31,7 @@ import {
 	useRefreshOnboarding
 } from '#hooks/api/use-stripe-connect'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { IdentityVerificationCard } from '#components/identity/identity-verification-card'
 
 const stripeLogger = createLogger({ component: 'StripeConnectOnboarding' })
 
@@ -330,76 +331,83 @@ export function StripeConnectStatus() {
 	}
 
 	return (
-		<CardLayout
-			title="Payment Collection"
-			description="Stripe Connect account status"
-		>
-			<div className="space-y-4">
-				<div className="flex items-center justify-between rounded-lg border p-4">
-					<div className="space-y-1">
-						<div className="flex items-center gap-2">
-							{getStatusIcon(account.accountStatus || 'incomplete')}
-							<span
-								className={`font-medium capitalize ${getStatusColor(account.accountStatus || 'incomplete')}`}
-							>
-								{account.accountStatus || 'incomplete'}
-							</span>
+		<>
+			<CardLayout
+				title="Payment Collection"
+				description="Stripe Connect account status"
+			>
+				<div className="space-y-4">
+					<div className="flex items-center justify-between rounded-lg border p-4">
+						<div className="space-y-1">
+							<div className="flex items-center gap-2">
+								{getStatusIcon(account.accountStatus || 'incomplete')}
+								<span
+									className={`font-medium capitalize ${getStatusColor(
+										account.accountStatus || 'incomplete'
+									)}`}
+								>
+									{account.accountStatus || 'incomplete'}
+								</span>
+							</div>
+							<p className="text-sm text-muted-foreground">
+								Stripe Account ID: {account.stripeAccountId || 'N/A'}
+							</p>
 						</div>
-						<p className="text-sm text-muted-foreground">
-							Stripe Account ID: {account.stripeAccountId || 'N/A'}
-						</p>
 					</div>
-				</div>
 
-				<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-					<div className="space-y-1">
-						<p className="text-sm font-medium">Charges</p>
-						<p className="text-sm text-muted-foreground">
-							{account.chargesEnabled ? (
-								<span className="text-green-600">Enabled</span>
-							) : (
-								<span className="text-gray-600">Disabled</span>
-							)}
-						</p>
+					<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+						<div className="space-y-1">
+							<p className="text-sm font-medium">Charges</p>
+							<p className="text-sm text-muted-foreground">
+								{account.chargesEnabled ? (
+									<span className="text-green-600">Enabled</span>
+								) : (
+									<span className="text-gray-600">Disabled</span>
+								)}
+							</p>
+						</div>
+						<div className="space-y-1">
+							<p className="text-sm font-medium">Payouts</p>
+							<p className="text-sm text-muted-foreground">
+								{account.payoutsEnabled ? (
+									<span className="text-green-600">Enabled</span>
+								) : (
+									<span className="text-gray-600">Disabled</span>
+								)}
+							</p>
+						</div>
 					</div>
-					<div className="space-y-1">
-						<p className="text-sm font-medium">Payouts</p>
-						<p className="text-sm text-muted-foreground">
-							{account.payoutsEnabled ? (
-								<span className="text-green-600">Enabled</span>
-							) : (
-								<span className="text-gray-600">Disabled</span>
-							)}
-						</p>
-					</div>
-				</div>
 
-				{account.accountStatus !== 'active' && (
-					<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
-						<p className="text-sm text-amber-900 dark:text-amber-100 mb-3">
-							Complete your Stripe onboarding to start collecting payments.
-						</p>
-						<Button
-							onClick={handleRefreshOnboarding}
-							disabled={refreshOnboarding.isPending}
-							variant="outline"
-							size="sm"
-						>
-							{refreshOnboarding.isPending ? (
-								<>
-									<Spinner className="mr-2 size-4 animate-spin" />
-									Loading...
-								</>
-							) : (
-								<>
-									Complete Onboarding
-									<ExternalLink className="ml-2 size-4" />
-								</>
-							)}
-						</Button>
-					</div>
-				)}
+					{account.accountStatus !== 'active' && (
+						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
+							<p className="text-sm text-amber-900 dark:text-amber-100 mb-3">
+								Complete your Stripe onboarding to start collecting payments.
+							</p>
+							<Button
+								onClick={handleRefreshOnboarding}
+								disabled={refreshOnboarding.isPending}
+								variant="outline"
+								size="sm"
+							>
+								{refreshOnboarding.isPending ? (
+									<>
+										<Spinner className="mr-2 size-4 animate-spin" />
+										Loading...
+									</>
+								) : (
+									<>
+										Complete Onboarding
+										<ExternalLink className="ml-2 size-4" />
+									</>
+								)}
+							</Button>
+						</div>
+					)}
+				</div>
+			</CardLayout>
+			<div className="mt-6">
+				<IdentityVerificationCard />
 			</div>
-		</CardLayout>
+		</>
 	)
 }

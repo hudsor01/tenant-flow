@@ -5,7 +5,7 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
-import type { authUser } from '@repo/shared/types/backend-domain'
+import type { AuthUser } from '@repo/shared/types/api-contracts'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
@@ -20,7 +20,7 @@ export class MaintenanceInsightsController {
 		private readonly supabaseService: SupabaseService
 	) {}
 
-	private async getAuthenticatedUser(request: Request): Promise<authUser> {
+	private async getAuthenticatedUser(request: Request): Promise<AuthUser> {
 		const user = await this.supabaseService.getUser(request)
 		if (!user) {
 			this.logger.warn('Maintenance analytics request missing authentication', {
@@ -30,7 +30,7 @@ export class MaintenanceInsightsController {
 			throw new UnauthorizedException('Authentication required')
 		}
 
-		return user as unknown as authUser
+		return user as unknown as AuthUser
 	}
 
 	@Get('maintenance-metrics')

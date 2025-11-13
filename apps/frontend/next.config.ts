@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
 		}
 	},
 
+	// Next.js 16: Turbopack is default bundler (use --webpack flag to opt out)
 	turbopack: {
 		resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mdx']
 	},
@@ -27,17 +28,20 @@ const nextConfig: NextConfig = {
 		'/api/*': ['./node_modules/**/*.node']
 	},
 
+	// Next.js 16: Cache Components for PPR and instant navigation
+	// Currently disabled - requires Suspense boundaries around all data fetching
+	// Enable when ready to fully implement streaming architecture
+	cacheComponents: false,
+	
+	// Next.js 16: These still need to be in experimental
 	experimental: {
 		optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
-		serverComponentsHmrCache: true,
 		serverActions: {
 			bodySizeLimit: '2mb',
 			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
 		}
 	},
-
-	cacheComponents: true,
-
+	
 	async redirects() {
 		return [
 			{
@@ -115,7 +119,13 @@ const nextConfig: NextConfig = {
 		],
 		formats: ['image/avif', 'image/webp'],
 		deviceSizes: [640, 828, 1200, 1920],
-		imageSizes: [32, 64, 128, 256]
+		// Next.js 16 removed 16 from default imageSizes
+		imageSizes: [32, 64, 128, 256],
+		// Next.js 16 defaults: minimumCacheTTL is now 4 hours (14400)
+		minimumCacheTTL: 14400,
+		// Next.js 16: quality is set via individual image components or defaults to 75
+		// Security: Block local IP optimization by default in v16
+		dangerouslyAllowLocalIP: false
 	}
 }
 

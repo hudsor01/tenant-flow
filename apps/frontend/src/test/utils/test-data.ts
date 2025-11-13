@@ -99,6 +99,11 @@ export const DEFAULT_USER: User = {
 	orgId: null,
 	profileComplete: true,
 	lastLoginAt: null,
+	identityVerificationSessionId: null,
+	identityVerificationStatus: null,
+	identityVerifiedAt: null,
+	identityVerificationData: null,
+	identityVerificationError: null,
 	createdAt: '2024-01-01T00:00:00Z',
 	updatedAt: '2024-01-01T00:00:00Z',
 	version: 1 //Optimistic locking

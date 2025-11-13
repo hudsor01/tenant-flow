@@ -4,13 +4,11 @@
  */
 
 import type {
-	TypeProvider,
 	ExpressTypeProvider,
 	JSONSchema
 } from '@repo/shared/types/backend-domain'
 
-// Re-export for backward compatibility
-export type { TypeProvider, ExpressTypeProvider, JSONSchema }
+export type { JSONSchema }
 
 export const defaultTypeProvider: ExpressTypeProvider = {
 	output: {},

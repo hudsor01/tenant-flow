@@ -1,3 +1,20 @@
+# Agent Notes - TenantFlow Backend
+
+## Compile-Time Config Constants
+- Source of truth: `apps/backend/src/config/config.constants.ts`.
+- Exposes readonly tuples for `NODE_ENVIRONMENTS`, `LOG_LEVELS`, `STORAGE_PROVIDERS`.
+- `CONFIG_DEFAULTS` stores every static env default (PORT, FRONTEND_URL, Stripe sync toggles, Supabase project ref, etc.).
+- Always import from this file instead of retyping literals to keep bundles tree-shakable and avoid drift.
+
+## Schema + Services
+- `config.schema.ts` now pulls defaults/enums directly from `config.constants`.
+- `AppConfigService` relies on `CONFIG_DEFAULTS` for fallback logic (Supabase project ref, Stripe country) and exports typed getters.
+- Bootstrapping (`main.ts`) references `CONFIG_DEFAULTS.PORT` so runtime logic matches schema defaults.
+
+## Testing Guidance
+- Use the helper in `config.schema.spec.ts` (`createValidConfig()`) when validating new env fields. Extend the base config rather than redefining mocks.
+- When adding constants, update both `CONFIG_DEFAULTS` and the spec helper, then run `pnpm --filter @repo/backend test:unit -- config.schema.spec.ts`.
+
 # TenantFlow Development Guide
 
 **BEFORE EVERY ACTION: USE MCP SERVER SERENA! Activate project if not available.**
@@ -15,7 +32,7 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 - **PRODUCTION MINDSET**: Security first, platform-native, performance-conscious
 
 ## Tech Stack
-**Frontend**: Next.js 16 + React 19.2 + TailwindCSS 4 + ShadCN/UI + TanStack Query 5 + Zustand 5 (UI preferences only)
+**Frontend**: Next.js 15 + React 19 + TailwindCSS 4 + ShadCN/UI + TanStack Query 5 + Zustand 5 (UI preferences only)
 **Backend**: NestJS + Supabase + Stripe + Resend
 **Shared**: Node.js 22, pnpm, Turborepo, TypeScript strict, Zod
 
@@ -61,36 +78,6 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 
 **Hook Organization**: `hooks/api/use-{entity}.ts` - Query hooks, `hooks/use-{entity}-form.ts` - Form hooks
 
-## Next.js 16 Migration (November 2025)
-
-**Configuration** (`next.config.ts`):
-- **Turbopack**: Default bundler (5-10x faster dev, 2-5x faster builds)
-- **Cache Components**: `cacheComponents: false` (enable when ready for full Suspense architecture)
-- **Experimental**: `optimizePackageImports`, `serverActions` remain in experimental
-- **Images**: `minimumCacheTTL: 14400` (4 hours), removed `quality` field
-
-**Async Request APIs**:
-- ALL pages with params use `Promise<{params}>` pattern
-- Must `await params` before use: `const { id } = await params`
-- SearchParams can be undefined, use optional chaining: `params?.propertyId ?? ''`
-- Removed `export const dynamic = 'force-dynamic'` (incompatible with cacheComponents)
-
-**TypeScript Typed Routes**:
-- Global utility types: `PageProps<'/route/[param]'>` and `LayoutProps<'/route'>`
-- No imports needed - globally available after `next typegen`
-- Automatic typing for params and parallel routes (@modal slots)
-- Example: `export default async function Page(props: PageProps<'/blog/[slug]'>)`
-
-**Performance Optimizations**:
-- `'use cache'` directive on static pages (pricing)
-- Suspense boundaries for streaming (dashboard sections)
-- Removed force-dynamic exports for compatibility
-
-**Build Requirements**:
-- Node.js 20.9+ (v18 no longer supported)
-- TypeScript 5.1.0+
-- Browser minimums: Chrome 111+, Edge 111+, Firefox 111+, Safari 16.4+
-
 ## Frontend - Routing
 
 **ARCHITECTURE**: Intercepting Routes + Parallel Routes for modal UX with URL support
@@ -105,11 +92,8 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **FORBIDDEN**: Inline dialogs, CreateDialog base components, separate create/edit forms
 
 ## Frontend - Testing
-
 **Philosophy**: Test production usage ONLY, not every hook that exists
-
 **Pattern**: Integration tests with `renderHook`, cleanup in `afterEach`, shared QueryClient for cache tests
-
 **Critical**:
 - Share QueryClient between mutation and query hooks
 - Populate cache before testing optimistic locking
@@ -121,11 +105,10 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 - Rent Payments: YES CREATE/READ, NO UPDATE/DELETE (immutable)
 
 **Run**: `pnpm --filter @repo/frontend test:integration`
-
 **Config**: `vitest.integration.config.js`, jsdom, 30s timeout, serial execution
 
 ## CSS
-
+Implement globals.css for marketing pages and dashboard.css for the (protected) route.
 **TailwindCSS 4.1**: 90% utilities, 10% design tokens
 **NEVER**: Inline styles, CSS modules, custom classes, pixel values
 **Touch-first**: 44px min height (`min-h-11`)
@@ -133,9 +116,7 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **Component Libraries**: ShadCN/UI, Magic UI
 
 ## Backend - NestJS
-
 **PHILOSOPHY**: Official NestJS patterns ONLY. Published under @nestjs/* = ALLOWED. Custom abstractions = FORBIDDEN.
-
 **ALLOWED**:
 - Built-in decorators/pipes/guards
 - Native exceptions (BadRequestException, etc.)
@@ -154,12 +135,7 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **Method**: `nestjs-zod` + `createZodDto()` + global `ZodValidationPipe`
 **Schemas**: `packages/shared/src/validation/*.schemas.ts`
 **DTOs**: Create classes in controller `dto/` folders using `createZodDto(schema)`
-
-**WHEN REQUIRED**:
-- ALL @Post/@Put/@Patch endpoints
-- ️ Simple @Get: Use ParseUUIDPipe, ParseIntPipe, DefaultValuePipe
-
-**FORBIDDEN**: class-validator decorators, DTO factories, manual validation, interfaces as @Body parameters
+**FORBIDDEN**: DTO factories, manual validation
 
 ### Architecture
 
@@ -187,41 +163,5 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 - `experimentalDecorators: true` - REQUIRED for decorators
 
 **Why**: Prevents TS1272 error, allows official NestJS patterns without custom type workarounds
-
 **Alternative Considered**: `verbatimModuleSyntax` - Rejected (requires `.js` extensions in ~2000+ imports)
-
-## Code Quality
-
-**Commands**: `pnpm lint:fix`, `pnpm typecheck`, `pnpm validate`
-
-**Pre-Change Checklist**:
-1. Does this exist? (`rg -r "pattern"`)
-2. Native platform feature?
-3. Can I delete instead?
-4. Simplest solution?
-5. Immediately understandable?
-6. Accessible? (WCAG 2.1 AA)
-
-## Deployment
-
-## Deployment
-
-**Frontend**: Vercel (<https://tenantflow.app>) - auto-deploy from main
-**Backend**: Railway (<https://api.tenantflow.app>) - Dockerfile
-**Known**: Vercel middleware warning (cosmetic), validator.js CVE-2025-56200 (LOW risk, transitive)
-
-## Turborepo
-
-**TypeScript**: NO Project References (conflicts with Turbo), YES independent tsconfig per package, YES Node.js `imports` over TS `paths`
-**Frontend imports**: `#components/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`
-**Doppler**: All env vars via `doppler run --`
-**Caching**: `.turbo` cached in CI (70-90% speedup)
-**Env Validation**: `eslint-config-turbo` validates `process.env.*` in `turbo.json`
-
 **AVOID**: Project References, TypeScript `paths`, missing env vars in turbo.json, root file changes (invalidates caches)
-
-## Reference Files
-
-**Frontend**: `hooks/api/use-tenant.ts`, `stores/tenant-store.ts`, `components/ui/route-modal.tsx`
-**Backend**: `modules/tenants/tenants.service.ts`, `shared/auth/jwt-auth.guard.ts`, `modules/billing/stripe-webhook.controller.ts`
-**Shared**: `packages/shared/src/types/`, `packages/shared/src/validation/`

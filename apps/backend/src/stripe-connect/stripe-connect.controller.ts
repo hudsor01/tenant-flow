@@ -12,8 +12,9 @@ import {
 } from '@nestjs/common'
 import type { Request as ExpressRequest } from 'express'
 import { JwtAuthGuard } from '../shared/auth/jwt-auth.guard'
+import { SupabaseService } from '../database/supabase.service'
 import { StripeConnectService } from './stripe-connect.service'
-
+import type { IdentityVerificationRecord } from '@repo/shared/types/identity'
 interface AuthenticatedRequest extends ExpressRequest {
 	user?: {
 		id: string
@@ -31,7 +32,10 @@ interface CreateConnectAccountDto {
 @Controller('stripe-connect')
 @UseGuards(JwtAuthGuard)
 export class StripeConnectController {
-	constructor(private readonly stripeConnectService: StripeConnectService) {}
+	constructor(
+		private readonly stripeConnectService: StripeConnectService,
+		private readonly supabase: SupabaseService
+	) {}
 
 	/**
 	 * POST /stripe-connect/create
@@ -112,9 +116,37 @@ export class StripeConnectController {
 			throw new NotFoundException('No connected account found')
 		}
 
+		const identityVerification = await this.fetchIdentityVerificationStatus(
+			userId
+		)
+
 		return {
 			success: true,
-			data: account
+			data: {
+				...account,
+				identityVerification
+			}
+		}
+	}
+
+	private async fetchIdentityVerificationStatus(
+		userId: string
+	): Promise<IdentityVerificationRecord> {
+		const { data } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select(
+				'identityVerificationSessionId, identityVerificationStatus, identityVerifiedAt, identityVerificationError, identityVerificationData'
+			)
+			.eq('id', userId)
+			.single()
+
+		return {
+			sessionId: data?.identityVerificationSessionId ?? null,
+			status: data?.identityVerificationStatus ?? null,
+			verifiedAt: data?.identityVerifiedAt ?? null,
+			lastError: data?.identityVerificationError ?? null,
+			data: data?.identityVerificationData ?? null
 		}
 	}
 
