@@ -8,7 +8,7 @@ import { clientFetch } from '#lib/api/client'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { maintenanceQueries } from './queries/maintenance-queries'

@@ -21,14 +21,10 @@ export enum SecurityEventType {
 	TOKEN_REFRESH = 'TOKEN_REFRESH',
 	SESSION_INVALIDATED = 'SESSION_INVALIDATED',
 	ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
-
-	// Authorization events
 	PERMISSION_DENIED = 'PERMISSION_DENIED',
 	FORBIDDEN_ACCESS = 'FORBIDDEN_ACCESS',
 	RLS_BYPASS_ATTEMPT = 'RLS_BYPASS_ATTEMPT',
 	UNAUTHORIZED_QUERY = 'UNAUTHORIZED_QUERY',
-
-	// Input validation & security threats
 	VALIDATION_FAILURE = 'VALIDATION_FAILURE',
 	INVALID_INPUT_DETECTED = 'INVALID_INPUT_DETECTED',
 	INJECTION_ATTEMPT = 'INJECTION_ATTEMPT',
@@ -40,22 +36,16 @@ export enum SecurityEventType {
 	FILE_TYPE_VIOLATION = 'FILE_TYPE_VIOLATION',
 	FILE_SIZE_VIOLATION = 'FILE_SIZE_VIOLATION',
 	MALICIOUS_FILE_UPLOAD = 'MALICIOUS_FILE_UPLOAD',
-
-	// Rate limiting & suspicious activity
 	RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
 	SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY',
 	SUSPICIOUS_REQUEST = 'SUSPICIOUS_REQUEST',
 	SUSPICIOUS_PATTERN = 'SUSPICIOUS_PATTERN',
-
-	// Administrative & system events
 	ADMIN_ACTION = 'ADMIN_ACTION',
 	DATA_EXPORT = 'DATA_EXPORT',
 	CONFIGURATION_CHANGE = 'CONFIGURATION_CHANGE',
 	CONFIG_ACCESS = 'CONFIG_ACCESS',
 	PII_ACCESS = 'PII_ACCESS',
 	SYSTEM_ERROR = 'SYSTEM_ERROR',
-
-	// Additional security event types for comprehensive monitoring
 	SESSION_HIJACK_ATTEMPT = 'SESSION_HIJACK_ATTEMPT',
 	COMMAND_INJECTION_ATTEMPT = 'COMMAND_INJECTION_ATTEMPT',
 	BRUTE_FORCE_ATTEMPT = 'BRUTE_FORCE_ATTEMPT',
@@ -378,4 +368,23 @@ export interface SecurityEventMetadata {
 	configChangeType?: string
 	previousConfig?: unknown
 	updates?: unknown
+}
+
+export interface SecurityHeadersConfig {
+  csp: {
+    enabled: boolean
+    reportOnly: boolean
+    reportUri?: string
+  }
+  hsts: {
+    enabled: boolean
+    maxAge: number
+    includeSubDomains: boolean
+    preload: boolean
+  }
+  frameOptions: 'DENY' | 'SAMEORIGIN'
+  contentTypeOptions: boolean
+  xssProtection: boolean
+  referrerPolicy: string
+  permissionsPolicy: Record<string, string[]>
 }
