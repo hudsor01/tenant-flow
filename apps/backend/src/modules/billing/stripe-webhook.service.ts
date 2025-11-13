@@ -97,6 +97,18 @@ export class StripeWebhookService {
 				throw error
 			}
 
+			// SECURITY: Explicitly handle missing RPC data (null/empty)
+			// Null data indicates RPC function error or missing function
+			if (!data || (Array.isArray(data) && data.length === 0)) {
+				this.logger.error('RPC returned no data - lock acquisition failed', {
+					eventId,
+					eventType,
+					data,
+					warning: 'Check if record_processed_stripe_event_lock function exists'
+				})
+				return false
+			}
+
 			const rows = Array.isArray(data) ? data : [data]
 			const lockAcquired = rows.some(row => this.isObjectWithLockAcquired(row))
 

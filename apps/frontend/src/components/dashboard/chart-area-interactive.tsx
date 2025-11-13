@@ -220,24 +220,24 @@ export function ChartAreaInteractive({
 								<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="var(--color-revenue)"
+										stopColor="var(--chart-1)"
 										stopOpacity={0.8}
 									/>
 									<stop
 										offset="95%"
-										stopColor="var(--color-revenue)"
+										stopColor="var(--chart-1)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
 								<linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="var(--color-expenses)"
+										stopColor="var(--chart-2)"
 										stopOpacity={0.8}
 									/>
 									<stop
 										offset="95%"
-										stopColor="var(--color-expenses)"
+										stopColor="var(--chart-2)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -273,14 +273,14 @@ export function ChartAreaInteractive({
 								dataKey="expenses"
 								type="natural"
 								fill="url(#fillExpenses)"
-								stroke="var(--color-expenses)"
+								stroke="var(--chart-2)"
 								strokeWidth={2}
 							/>
 							<Area
 								dataKey="revenue"
 								type="natural"
 								fill="url(#fillRevenue)"
-								stroke="var(--color-revenue)"
+								stroke="var(--chart-1)"
 								strokeWidth={2}
 							/>
 						</AreaChart>
