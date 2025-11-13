@@ -153,7 +153,7 @@ async function FinancialAnalyticsContent() {
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
-				<div className="border-b bg-background p-6 border-fill-tertiary">
+				<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
 					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
 							<h1 className="text-3xl font-semibold tracking-tight">
@@ -343,7 +343,7 @@ async function FinancialAnalyticsContent() {
 function FinancialAnalyticsSkeleton() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6 border-fill-tertiary">
+			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
 				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
