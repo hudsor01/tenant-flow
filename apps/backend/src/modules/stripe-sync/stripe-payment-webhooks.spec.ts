@@ -150,7 +150,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'checkout.session.completed',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCheckoutSession
@@ -251,7 +251,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'checkout.session.completed',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCheckoutSession
@@ -308,7 +308,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'checkout.session.completed',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCheckoutSession
@@ -370,7 +370,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'checkout.session.completed',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCheckoutSession
@@ -456,7 +456,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'payment_intent.succeeded',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockPaymentIntent
@@ -516,7 +516,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'invoice.payment_succeeded',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockInvoice
@@ -572,7 +572,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'invoice.payment_failed',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockInvoice
@@ -666,7 +666,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'payment_intent.succeeded',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockPaymentIntent
@@ -723,7 +723,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				id: mockEventId,
 				type: 'payment_intent.payment_failed',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockPaymentIntent

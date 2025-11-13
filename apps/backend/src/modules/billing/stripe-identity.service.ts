@@ -42,14 +42,14 @@ export class StripeIdentityService {
 			throw new NotFoundException('User not found')
 		}
 
-		if (user.identityVerificationStatus === 'verified') {
+		if (user.identityverificationstatus === 'verified') {
 			throw new BadRequestException('Identity already verified')
 		}
 
-		if (user.identityVerificationSessionId) {
+		if (user.identityverificationsessionid) {
 			const reused = await this.tryReuseSession(
 				userId,
-				user.identityVerificationSessionId
+				user.identityverificationsessionid
 			)
 			if (reused) {
 				return reused
@@ -156,11 +156,11 @@ export class StripeIdentityService {
 		user: Database['public']['Tables']['users']['Row']
 	): IdentityVerificationRecord {
 		return {
-			sessionId: user.identityVerificationSessionId ?? null,
-			status: user.identityVerificationStatus ?? null,
-			verifiedAt: user.identityVerifiedAt ?? null,
-			lastError: user.identityVerificationError ?? null,
-			data: user.identityVerificationData ?? null
+			sessionId: user.identityverificationsessionid ?? null,
+			status: user.identityverificationstatus ?? null,
+			verifiedAt: user.identityverifiedat ?? null,
+			lastError: user.identityverificationerror ?? null,
+			data: user.identityverificationdata ?? null
 		}
 	}
 
@@ -169,12 +169,12 @@ export class StripeIdentityService {
 		session: Stripe.Identity.VerificationSession
 	) {
 		await this.usersService.updateUser(userId, {
-			identityVerificationSessionId: session.id,
-			identityVerificationStatus: this.coerceStatus(session.status),
-			identityVerificationData: this.sanitizeSession(session),
-			identityVerificationError:
+			identityverificationsessionid: session.id,
+			identityverificationstatus: this.coerceStatus(session.status),
+			identityverificationdata: this.sanitizeSession(session),
+			identityverificationerror:
 				session.last_error?.reason ?? null,
-			identityVerifiedAt:
+			identityverifiedat:
 				session.status === 'verified'
 					? new Date().toISOString()
 					: null
