@@ -208,22 +208,19 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client.from('lease').select('*')
+			type LeaseRow = Database['public']['Tables']['lease']['Row']
 
-			if (error) {
-				this.logger.error('Failed to get lease stats from Supabase', {
-					error: error.message
-				})
-				throw new BadRequestException('Failed to get lease statistics')
-			}
-
-			const leases = data || []
+			const leases = await this.queryHelpers.queryList<LeaseRow>(
+				client.from('lease').select('*'),
+				{
+					resource: 'lease',
+					operation: 'findAll'
+				}
+			)
 			const now = new Date()
 			const thirtyDaysFromNow = new Date(
 				now.getTime() + 30 * 24 * 60 * 60 * 1000
 			)
-
-			type LeaseRow = Database['public']['Tables']['lease']['Row']
 
 			const stats = {
 				totalLeases: leases.length,
