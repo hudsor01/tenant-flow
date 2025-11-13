@@ -31,6 +31,9 @@ import {
 	RevenueExpenseChart
 } from './financial-charts'
 
+// Next.js 16: Dynamic behavior is controlled by cacheComponents
+// Remove force-dynamic as it's incompatible with cacheComponents
+
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
 		return null

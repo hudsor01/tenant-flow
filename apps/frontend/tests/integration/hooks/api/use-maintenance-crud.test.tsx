@@ -29,7 +29,7 @@ import type { MaintenanceRequest } from '@repo/shared/types/core'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'

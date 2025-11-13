@@ -1,5 +1,8 @@
 import { StripeConnectStatus } from '../stripe-connect-onboarding'
 
+// Next.js 16: Dynamic behavior is controlled by cacheComponents
+// Remove force-dynamic as it's incompatible with cacheComponents
+
 export default function StripeConnectPage() {
        return (
 	       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">

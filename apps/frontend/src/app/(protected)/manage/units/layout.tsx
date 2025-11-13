@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 
 /**
  * Units Layout with Modal Slot
@@ -8,10 +7,7 @@ import type { ReactNode } from 'react'
 export default function UnitsLayout({
 	children,
 	modal
-}: {
-	children: ReactNode
-	modal: ReactNode
-}) {
+}: LayoutProps<'/manage/units'>) {
 	return (
 		<>
 			{children}

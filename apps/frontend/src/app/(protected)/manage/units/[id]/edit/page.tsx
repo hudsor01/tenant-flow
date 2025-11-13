@@ -1,10 +1,6 @@
 import { UnitForm } from '#components/units/unit-form.client'
 import { requireSession } from '#lib/server-auth'
 
-interface EditUnitPageProps {
-	params: Promise<{ id: string }>
-}
-
 /**
  * Edit Unit Page (Full-Page)
  *
@@ -12,7 +8,7 @@ interface EditUnitPageProps {
  * - Hard navigation (direct URL, refresh, new tab)
  * - Fallback when intercepting route fails
  */
-export default async function EditUnitPage({ params }: EditUnitPageProps) {
+export default async function EditUnitPage({ params }: PageProps<'/manage/units/[id]/edit'>) {
 	await requireSession()
 	const { id } = await params
 

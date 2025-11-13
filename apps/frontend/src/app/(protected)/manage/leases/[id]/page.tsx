@@ -1,10 +1,7 @@
 import { LeaseDetails } from './lease-details.client'
 
-interface LeaseDetailPageProps {
-	params: { id: string }
-}
-
-export default function LeaseDetailPage({ params }: LeaseDetailPageProps) {
+export default async function LeaseDetailPage({ params }: PageProps<'/manage/leases/[id]'>) {
+	const { id } = await params
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -15,7 +12,7 @@ export default function LeaseDetailPage({ params }: LeaseDetailPageProps) {
 					Review lease terms, tenant assignment, and unit information.
 				</p>
 			</div>
-			<LeaseDetails id={params.id} />
+			<LeaseDetails id={id} />
 		</div>
 	)
 }

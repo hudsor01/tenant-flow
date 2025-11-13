@@ -67,5 +67,3 @@ export interface BlurFadeProps extends Omit<ComponentPropsWithChildren, 'childre
 	onAnimationComplete?: () => void
 	className?: string
 }
-
-// Add other frontend UI types here as needed

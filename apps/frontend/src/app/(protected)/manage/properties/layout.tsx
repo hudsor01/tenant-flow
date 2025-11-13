@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+
 
 /**
  * Properties Layout with Modal Slot
@@ -13,10 +13,7 @@ import type { ReactNode } from 'react'
 export default function PropertiesLayout({
 	children,
 	modal
-}: {
-	children: ReactNode
-	modal: ReactNode
-}) {
+}: LayoutProps<'/manage/properties'>) {
 	return (
 		<>
 			{children}

@@ -61,50 +61,6 @@ export type Activity = ActivityItem & {
 }
 
 /**
- * Activity feed pagination
- */
-export interface ActivityFeed {
-	items: ActivityItem[]
-	hasMore: boolean
-	nextCursor?: string
-}
-
-/**
- * Query parameters for activity filtering
- */
-export interface ActivityQuery {
-	limit?: number
-	cursor?: string
-	type?: string
-	since?: string
-	userId?: string
-	[key: string]: string | number | boolean | null | undefined
-}
-
-/**
- * Activity creation payload
- */
-export interface CreateActivityInput {
-	action: string
-	entityType: string
-	entityId: string
-	entityName: string
-	type?: ActivityType
-	priority?: ActivityPriority
-	description?: string
-	metadata?: ActivityMetadata
-}
-
-/**
- * Activity update payload
- */
-export interface UpdateActivityInput {
-	priority?: ActivityPriority
-	description?: string
-	metadata?: ActivityMetadata
-}
-
-/**
  * Dashboard activity from optimized RPC function
  * Manual override required because PostgreSQL RETURNS TABLE doesn't support nullable columns
  * in the type declaration, but returns NULL values at runtime

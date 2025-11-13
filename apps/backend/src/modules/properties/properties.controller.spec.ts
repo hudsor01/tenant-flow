@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing'
 import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'

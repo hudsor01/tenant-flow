@@ -657,12 +657,7 @@ export type FormProgressData = {
 
 // REPOSITORY INPUT TYPES (Database table Insert/Update types)
 // Re-export from repository files (single source of truth per domain)
-export type {
-	MaintenanceRequestInput,
-	MaintenanceRequestUpdate
-} from './maintenance-repository.js'
-export type { TenantInput, TenantUpdate } from './tenants-repository.js'
-export type { UnitInput, UnitUpdate } from './units-repository.js'
+
 
 // PAYMENT METHOD TYPES - Tenant payment system (Phase 2-3)
 
@@ -735,3 +730,6 @@ export interface SubscriptionActionResponse {
 	subscription?: RentSubscriptionResponse
 	message?: string
 }
+
+// Re-exports from api-contracts for backward compatibility
+export type { TenantInput, TenantUpdate } from './api-contracts.js'
