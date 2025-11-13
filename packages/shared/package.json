@@ -53,12 +53,12 @@
 		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"lint:fix": "pnpm lint --fix",
 		"update-types": "node scripts/update-supabase-types.js",
-		"clean": "rimraf dist .turbo && find src -name '*.js' -o -name '*.js.map' -delete"
+		"clean": "rimraf dist .turbo && find src -name '*.js' -delete && find src -name '*.js.map' -delete"
 	},
 	"dependencies": {
 		"@supabase/ssr": "catalog:",
 		"@supabase/supabase-js": "catalog:",
-		"@tanstack/react-query": "5.90.6",
+		"@tanstack/react-query": "5.90.7",
 		"zod": "4.1.12"
 	},
 	"devDependencies": {

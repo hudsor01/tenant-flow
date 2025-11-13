@@ -26,10 +26,44 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 
 			let data
 			try {
-				data = await clientFetch<{ subscription: SubscriptionData }>('/stripe/verify-session', {
+				const response = await clientFetch<{
+					session: unknown
+					subscription: {
+						id: string
+						status: string
+						current_period_start: number | null
+						current_period_end: number | null
+						cancelAt_period_end: boolean
+						items: Array<{
+							price: {
+								nickname: string | null
+								product: {
+									name: string
+								}
+							}
+						}>
+					} | null
+				}>('/stripe/verify-checkout-session', {
 					method: 'POST',
 					body: JSON.stringify({ sessionId })
 				})
+
+				// Map backend response to SubscriptionData
+				if (!response.subscription) {
+					throw new Error('No subscription found in response')
+				}
+
+				const sub = response.subscription
+				const planName = sub.items[0]?.price?.nickname || sub.items[0]?.price?.product?.name || 'Unknown Plan'
+
+				data = {
+					subscription: {
+						status: sub.status as SubscriptionData['status'],
+						planName,
+						currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : '',
+						cancelAtPeriodEnd: sub.cancelAt_period_end
+					}
+				}
 			} catch (error) {
 				logger.error('Payment verification failed', {
 					action: 'payment_verification_failed',

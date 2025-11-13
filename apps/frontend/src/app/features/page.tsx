@@ -1,7 +1,7 @@
 'use client'
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -631,7 +631,7 @@ function FeaturePill({
 	title,
 	description
 }: {
-	icon: React.ReactNode
+	icon: ReactNode
 	title: string
 	description: string
 }) {
