@@ -45,13 +45,18 @@ export class ScheduledReportService {
 		private readonly generatedReportService: GeneratedReportService
 	) {}
 
+	private getUserClient(token: string) {
+		return this.supabaseService.getUserClient(token)
+	}
+
 	/**
 	 * Create a new scheduled report
 	 */
 	async createSchedule(
-		data: CreateScheduleData
+		data: CreateScheduleData,
+		token: string
 	): Promise<ScheduledReportRecord> {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.getUserClient(token)
 
 		// Calculate next run time
 		const nextRunAt = this.calculateNextRunAt(
@@ -93,13 +98,15 @@ export class ScheduledReportService {
 	/**
 	 * List all schedules for a user
 	 */
-	async listSchedules(userId: string): Promise<ScheduledReportRecord[]> {
-		const client = this.supabaseService.getAdminClient()
+	async listSchedules(
+		_userId: string,
+		token: string
+	): Promise<ScheduledReportRecord[]> {
+		const client = this.getUserClient(token)
 
 		const { data, error } = await client
 			.from('scheduled_report')
 			.select('*')
-			.eq('userId', userId)
 			.order('createdAt', { ascending: false })
 
 		if (error) {
@@ -113,15 +120,18 @@ export class ScheduledReportService {
 	/**
 	 * Delete a schedule (with ownership validation)
 	 */
-	async deleteSchedule(scheduleId: string, userId: string): Promise<void> {
-		const client = this.supabaseService.getAdminClient()
+	async deleteSchedule(
+		scheduleId: string,
+		_userId: string,
+		token: string
+	): Promise<void> {
+		const client = this.getUserClient(token)
 
 		// First verify ownership
 		const { data: schedule, error: fetchError } = await client
 			.from('scheduled_report')
 			.select('id')
 			.eq('id', scheduleId)
-			.eq('userId', userId)
 			.single()
 
 		if (fetchError || !schedule) {
@@ -133,7 +143,6 @@ export class ScheduledReportService {
 			.from('scheduled_report')
 			.delete()
 			.eq('id', scheduleId)
-			.eq('userId', userId)
 
 		if (deleteError) {
 			this.logger.error(`Failed to delete schedule: ${deleteError.message}`)

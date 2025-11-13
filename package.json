@@ -31,6 +31,7 @@
 		"build:backend": "turbo run build --filter=@repo/backend",
 		"build:frontend": "turbo run build --filter=@repo/frontend",
 		"build:shared": "turbo run build --filter=@repo/shared",
+		"build:database": "echo \"No database workspace defined; skipping\"",
 		"build:ci": "turbo run build",
 		"lint": "turbo run lint",
 		"lint:fix": "turbo run lint:fix",

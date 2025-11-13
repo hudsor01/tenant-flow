@@ -3,10 +3,6 @@
 
 ALTER TABLE public.lease ENABLE ROW LEVEL SECURITY;
 
--- Helper condition for owner access via the property-owner relationship
--- Only allow authenticated users whose Supabase ID matches a property's owner
--- to read or modify leases tied to that property.
-
 -- Owner SELECT policy
 DROP POLICY IF EXISTS "lease_owner_select" ON public.lease;
 CREATE POLICY "lease_owner_select"
@@ -19,15 +15,31 @@ USING (
     FROM property p
     JOIN users u ON p."ownerId" = u.id
     WHERE p.id = lease."propertyId"
-      AND u.supabaseId = auth.uid()
+      AND u."supabaseId" = auth.uid()::text
   )
 );
 
--- Owner modification policy (INSERT/UPDATE/DELETE)
-DROP POLICY IF EXISTS "lease_owner_modify" ON public.lease;
-CREATE POLICY "lease_owner_modify"
+-- Owner INSERT policy
+DROP POLICY IF EXISTS "lease_owner_insert" ON public.lease;
+CREATE POLICY "lease_owner_insert"
 ON public.lease
-FOR INSERT, UPDATE, DELETE
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  EXISTS (
+    SELECT 1
+    FROM property p
+    JOIN users u ON p."ownerId" = u.id
+    WHERE p.id = lease."propertyId"
+      AND u."supabaseId" = auth.uid()::text
+  )
+);
+
+-- Owner UPDATE policy
+DROP POLICY IF EXISTS "lease_owner_update" ON public.lease;
+CREATE POLICY "lease_owner_update"
+ON public.lease
+FOR UPDATE
 TO authenticated
 USING (
   EXISTS (
@@ -35,7 +47,7 @@ USING (
     FROM property p
     JOIN users u ON p."ownerId" = u.id
     WHERE p.id = lease."propertyId"
-      AND u.supabaseId = auth.uid()
+      AND u."supabaseId" = auth.uid()::text
   )
 )
 WITH CHECK (
@@ -44,11 +56,27 @@ WITH CHECK (
     FROM property p
     JOIN users u ON p."ownerId" = u.id
     WHERE p.id = lease."propertyId"
-      AND u.supabaseId = auth.uid()
+      AND u."supabaseId" = auth.uid()::text
   )
 );
 
--- Tenant SELECT policy (tenants can only read their own lease)
+-- Owner DELETE policy
+DROP POLICY IF EXISTS "lease_owner_delete" ON public.lease;
+CREATE POLICY "lease_owner_delete"
+ON public.lease
+FOR DELETE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1
+    FROM property p
+    JOIN users u ON p."ownerId" = u.id
+    WHERE p.id = lease."propertyId"
+      AND u."supabaseId" = auth.uid()::text
+  )
+);
+
+-- Tenant SELECT policy
 DROP POLICY IF EXISTS "lease_tenant_select" ON public.lease;
 CREATE POLICY "lease_tenant_select"
 ON public.lease
@@ -63,7 +91,7 @@ USING (
   )
 );
 
--- Service role should be able to manage leases for background jobs / migrations
+-- Service role access
 DROP POLICY IF EXISTS "lease_service_role_access" ON public.lease;
 CREATE POLICY "lease_service_role_access"
 ON public.lease
