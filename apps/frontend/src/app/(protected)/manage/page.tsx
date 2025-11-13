@@ -1,5 +1,6 @@
 import { requireSession } from '#lib/server-auth'
 import { ErrorBoundary } from '#components/ui/error-boundary'
+import { Suspense } from 'react'
 import { ActivitySection } from './ActivitySection'
 import { ChartsSection } from './ChartsSection'
 import { PerformanceSection } from './PerformanceSection'
@@ -32,7 +33,14 @@ export default async function DashboardPage() {
 								</div>
 							}
 						>
-							<SectionCards />
+							{/* Next.js 16: Suspense enables streaming for instant page shell */}
+							<Suspense fallback={
+								<div className="animate-pulse rounded-xl border bg-card p-5">
+									<div className="h-24 bg-muted rounded" />
+								</div>
+							}>
+								<SectionCards />
+							</Suspense>
 						</ErrorBoundary>
 					</div>
 				</div>

@@ -19,7 +19,7 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
-import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
