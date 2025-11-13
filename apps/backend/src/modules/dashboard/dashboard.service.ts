@@ -21,6 +21,7 @@ import {
 	dashboardActivityResponseSchema
 } from '@repo/shared/validation/dashboard'
 import { z } from 'zod'
+import { queryList } from '../../shared/utils/query-helpers'
 
 @Injectable()
 export class DashboardService {
@@ -83,24 +84,22 @@ export class DashboardService {
 		}
 		try {
 			// Use optimized RPC function - eliminates N+1 query pattern
-			const { data, error } = await this.supabase
-				.getAdminClient()
-				.rpc('get_user_dashboard_activities', {
+			const data = await queryList(
+				this.supabase.getAdminClient().rpc('get_user_dashboard_activities', {
 					p_user_id: userId,
 					p_limit: 20
-				})
-
-			if (error) {
-				this.logger.error('Failed to fetch activities', {
-					error: error.message,
-					userId
-				})
-				return { activities: [] }
-			}
+				}) as any,
+				{
+					resource: 'dashboard activities',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
 
 			// Validate response with dashboardActivityResponseSchema (pass data directly to safeParse)
 			const validation = dashboardActivityResponseSchema.safeParse({
-				activities: data || []
+				activities: data
 			})
 			if (validation.success) {
 				return validation.data
@@ -198,20 +197,17 @@ export class DashboardService {
 
 			// Check if billing insights are available by checking if there's billing data for the user
 			// RLS will automatically filter to user's data
-			const { count, error } = await client
-				.from('rent_payment')
-				.select('*', { count: 'exact', head: true })
-				.limit(1)
+			const payments = await queryList<{ id: string }>(
+				client.from('rent_payment').select('id').limit(1) as any,
+				{
+					resource: 'rent payments',
+					id: userId,
+					operation: 'check billing insights availability',
+					logger: this.logger
+				}
+			)
 
-			if (error) {
-				this.logger.error('Error checking billing insights availability', {
-					error: error.message,
-					userId
-				})
-				return false
-			}
-
-			return count !== null && count > 0
+			return payments.length > 0
 		} catch (error) {
 			this.logger.error(
 				'Dashboard service failed to check billing insights availability',
