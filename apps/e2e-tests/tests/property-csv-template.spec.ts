@@ -20,7 +20,7 @@ const logStep = (message: string, detail?: unknown) => {
 
 test.describe('Property CSV Template Download', () => {
 	const TEST_EMAIL = process.env.E2E_OWNER_EMAIL || 'rhudsontspr+46@gmail.com'
-	const TEST_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
+	const TEST_PASSWORD = process.env.E2E_OWNER_PASSWORD || (() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
 
 	test('should download CSV template with correct headers and sample data', async ({
 		page

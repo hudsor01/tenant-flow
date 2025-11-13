@@ -71,7 +71,7 @@ function LoadingSpinner({
 						// Design System Typography: Roboto Flex medium weight
 						'font-medium tracking-[var(--tracking-body)] leading-[var(--line-height-body)]',
 						// Design System Animation: Using actual globals.css variables
-						'animate-pulse [animation-duration:var(--duration-500)] [animation-timing-function:var(--ease-in-out)]'
+						'animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]'
 					)}
 				>
 					{text}

@@ -257,7 +257,7 @@ export interface QueryPerformanceMetric {
 
 // Note: PerformanceMetrics interface moved to health.ts to resolve conflicts
 
-export type { HealthCheckResponse } from './health'
+export type { HealthCheckResponse } from './health.js'
 
 // Row describing index usage metrics (derived from pg_stat_* views or RPC)
 export interface DbIndexUsageRow {
@@ -422,7 +422,7 @@ export interface ServiceMetrics {
 }
 
 // SECURITY MONITORING TYPES
-export type { SecurityEvent } from './security'
+export type { SecurityEvent } from './security.js'
 
 export type SecurityEventType =
 	| 'unauthorized_access'
@@ -447,7 +447,7 @@ export type SecurityEventType =
 
 // SECURITY EXCEPTION FILTER TYPES
 
-export type { ErrorResponse } from './errors'
+export type { ErrorResponse } from './errors.js'
 
 export interface SecurityErrorContext {
 	ip: string

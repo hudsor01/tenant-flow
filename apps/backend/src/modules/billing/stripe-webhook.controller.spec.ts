@@ -21,11 +21,14 @@ import { StripeWebhookController } from './stripe-webhook.controller'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
+import { AppConfigService } from '../../config/app-config.service'
+import { createMockAppConfigService } from '../../test-utils/mocks'
 
-describe('StripeWebhookController', () => {
-	let controller: StripeWebhookController
-	let eventEmitter: jest.Mocked<EventEmitter2>
-	let prometheus: jest.Mocked<PrometheusService>
+	describe('StripeWebhookController', () => {
+		let controller: StripeWebhookController
+		let eventEmitter: jest.Mocked<EventEmitter2>
+		let prometheus: jest.Mocked<PrometheusService>
+		let mockAppConfigService: jest.Mocked<AppConfigService>
 
 	// Mock Stripe SDK
 	const mockStripe = {
@@ -65,11 +68,16 @@ describe('StripeWebhookController', () => {
 		body: {}
 	})
 
-	beforeEach(async () => {
-		// Reset all mocks
-		jest.clearAllMocks()
+		beforeEach(async () => {
+			// Reset all mocks
+			jest.clearAllMocks()
 
-		const module: TestingModule = await Test.createTestingModule({
+			mockAppConfigService = createMockAppConfigService()
+			mockAppConfigService.getStripeWebhookSecret.mockImplementation(
+			() => process.env.STRIPE_WEBHOOK_SECRET || 'test_webhook_secret_placeholder_not_real'
+		)
+
+			const module: TestingModule = await Test.createTestingModule({
 			controllers: [StripeWebhookController],
 			providers: [
 				{
@@ -91,6 +99,10 @@ describe('StripeWebhookController', () => {
 					}
 				},
 				{
+					provide: AppConfigService,
+					useValue: mockAppConfigService
+				},
+				{
 					provide: PrometheusService,
 					useValue: {
 						recordIdempotencyHit: jest.fn(),
@@ -106,7 +118,7 @@ describe('StripeWebhookController', () => {
 		prometheus = module.get(PrometheusService) as jest.Mocked<PrometheusService>
 
 		// Set up environment
-		process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret'
+		process.env.STRIPE_WEBHOOK_SECRET = 'test_webhook_secret_placeholder_not_real'
 	})
 
 	afterEach(() => {
@@ -127,7 +139,8 @@ describe('StripeWebhookController', () => {
 		})
 
 		it('should reject webhook when STRIPE_WEBHOOK_SECRET not configured', async () => {
-			delete process.env.STRIPE_WEBHOOK_SECRET
+		delete process.env.STRIPE_WEBHOOK_SECRET
+		mockAppConfigService.getStripeWebhookSecret.mockReturnValue(undefined as any)
 
 			const req = createMockRequest('{"type":"test"}')
 			const signature = 't=1234,v1=signature'
@@ -160,7 +173,7 @@ describe('StripeWebhookController', () => {
 			expect(mockStripe.webhooks.constructEvent).toHaveBeenCalledWith(
 				'{"type":"test"}',
 				signature,
-				'whsec_test_secret'
+				'test_webhook_secret_placeholder_not_real'
 			)
 		})
 
@@ -183,27 +196,23 @@ describe('StripeWebhookController', () => {
 			expect(mockStripe.webhooks.constructEvent).toHaveBeenCalledWith(
 				'{"type":"payment_intent.succeeded"}',
 				signature,
-				'whsec_test_secret'
+				'test_webhook_secret_placeholder_not_real'
 			)
 		})
 
-		it('should handle empty raw body', async () => {
+		it('should reject when raw body is missing', async () => {
 			const req = createMockRequest('')
 			const signature = 't=1234,v1=signature'
-
-			mockStripe.webhooks.constructEvent.mockImplementation(() => {
-				throw new Error('No body provided')
-			})
 
 			await expect(
 				controller.handleWebhook(req as any, signature)
 			).rejects.toThrow(BadRequestException)
 
-			expect(mockStripe.webhooks.constructEvent).toHaveBeenCalledWith(
-				'',
-				signature,
-				'whsec_test_secret'
-			)
+			await expect(
+				controller.handleWebhook(req as any, signature)
+			).rejects.toThrow('Webhook body missing')
+
+			expect(mockStripe.webhooks.constructEvent).not.toHaveBeenCalled()
 		})
 
 		it('should handle Buffer raw body', async () => {
@@ -221,7 +230,7 @@ describe('StripeWebhookController', () => {
 			expect(mockStripe.webhooks.constructEvent).toHaveBeenCalledWith(
 				Buffer.from('{"type":"customer.created"}'),
 				signature,
-				'whsec_test_secret'
+				'test_webhook_secret_placeholder_not_real'
 			)
 		})
 	})
@@ -388,7 +397,7 @@ describe('StripeWebhookController', () => {
 			expect(result).toEqual({ received: true })
 
 			// Prometheus is optional - only check duration if it was called
-			if (prometheus.recordWebhookProcessing && 
+			if (prometheus.recordWebhookProcessing &&
 				(prometheus.recordWebhookProcessing as jest.Mock).mock.calls.length > 0) {
 				const duration = (prometheus.recordWebhookProcessing as jest.Mock).mock.calls[0][1]
 				expect(duration).toBeGreaterThanOrEqual(0)
@@ -564,6 +573,10 @@ describe('StripeWebhookController', () => {
 						useValue: {
 							getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
 						}
+					},
+					{
+						provide: AppConfigService,
+						useValue: mockAppConfigService
 					},
 					{
 						provide: PrometheusService,

@@ -41,7 +41,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 	]
 
 	return (
-		<section className={cn('relative py-20 overflow-hidden', className)}>
+		<section className={cn('section-spacing relative overflow-hidden', className)}>
 			<div className="container px-4 mx-auto">
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
