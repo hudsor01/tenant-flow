@@ -67,18 +67,18 @@ export const animationTokens = {
 export const animationPresets = {
 	microHover: {
 		transition: `all ${animationTokens.durations.quick} ${animationTokens.easings.out}`,
-		transform: 'scale(1.02)'
+		transform: 'scale(var(--scale-hover))'
 	},
 
 	lift: {
 		transition: `all ${animationTokens.durations.standard} ${animationTokens.easings.out}`,
-		transform: 'translateY(-4px)',
+		transform: 'translateY(var(--translate-hover-y))',
 		boxShadow: 'var(--shadow-large)'
 	},
 
 	scale: {
 		transition: `transform ${animationTokens.durations.quick} ${animationTokens.easings.out}`,
-		transform: 'scale(1.05)'
+		transform: 'scale(var(--scale-hover))'
 	},
 
 	fadeIn: {

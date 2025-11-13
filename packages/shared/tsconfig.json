@@ -22,8 +22,5 @@
 		"**/test/**",
 		"**/*.test.ts",
 		"**/*.spec.ts"
-	],
-	"references": [
-		{ "path": "../database/tsconfig.json" }
 	]
 }

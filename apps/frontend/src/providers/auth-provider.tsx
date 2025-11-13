@@ -132,9 +132,9 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	})
 
 	// Get session for access token (only after user validation)
-	const { data: session, isLoading: isSessionLoading } = useQuery({
-		queryKey: authQueryKeys.session,
-		queryFn: async () => {
+const { data: session, isLoading: isSessionLoading } = useQuery({
+	queryKey: authQueryKeys.session,
+	queryFn: async () => {
 			logger.info('Fetching session', { action: 'fetchSession' })
 			const {
 				data: { session },
@@ -149,14 +149,20 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				return null
 			}
 			return session
-		},
-		staleTime: 5 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 1,
-		enabled: !!user // Only fetch session if user is validated
-	})
+	},
+	staleTime: 5 * 60 * 1000,
+	refetchOnWindowFocus: false,
+	retry: 1,
+	enabled: !!user // Only fetch session if user is validated
+})
 
-	const isLoading = isUserLoading || isSessionLoading
+	useEffect(() => {
+		if (user === null) {
+			queryClient.setQueryData(authQueryKeys.session, null)
+		}
+	}, [user, queryClient])
+
+const isLoading = isUserLoading || isSessionLoading
 
 	const authState: AuthContextType = useMemo(
 		() => ({
