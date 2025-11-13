@@ -15,7 +15,6 @@ export const PROTECTED_ROUTE_PREFIXES = [
 // Routes that should redirect to management dashboard if already authenticated
 export const PUBLIC_AUTH_ROUTES = [
 	'/login',
-	'/pricing',
 	'/auth/register'
 ] as const
 
@@ -32,7 +31,6 @@ export const PAYMENT_EXEMPT_ROUTES = [
 	'/login',
 	'/pricing',
 	'/auth',
-	'/pricing',
 	'/stripe',
 	'/',
 	'/help',
