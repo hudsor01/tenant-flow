@@ -24,6 +24,7 @@ doppler.env
 **/lease-documents/**/*.pdf
 apps/backend/assets/generated-*.pdf
 *.pdf
+*.md
 
 # Local environment files
 .env.local

@@ -20,7 +20,18 @@ import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
 
 export default async function LeaseAnalyticsPage() {
 	const data = await getLeaseAnalyticsPageData()
-	const { metrics, profitability, lifecycle, statusBreakdown } = data
+	const {
+		metrics = {
+			totalLeases: 0,
+			activeLeases: 0,
+			expiringSoon: 0,
+			totalMonthlyRent: 0,
+			averageLeaseValue: 0
+		},
+		profitability = [],
+		lifecycle = [],
+		statusBreakdown = []
+	} = data || {}
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
@@ -134,29 +145,37 @@ export default async function LeaseAnalyticsPage() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{profitability.slice(0, 8).map(lease => (
-										<TableRow key={lease.leaseId}>
-											<TableCell className="font-medium">
-												{lease.leaseId}
-											</TableCell>
-											<TableCell>{lease.tenantName}</TableCell>
-											<TableCell>{lease.propertyName}</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(lease.monthlyRent)}
-											</TableCell>
-											<TableCell className="text-right">
-												{formatCurrency(lease.outstandingBalance)}
-											</TableCell>
-											<TableCell className="text-right">
-												{lease.profitabilityScore !== null &&
-												lease.profitabilityScore !== undefined
-													? formatNumber(lease.profitabilityScore, {
-															maximumFractionDigits: 1
-														})
-													: '—'}
+									{profitability && profitability.length > 0 ? (
+										profitability.slice(0, 8).map(lease => (
+											<TableRow key={lease.leaseId}>
+												<TableCell className="font-medium">
+													{lease.leaseId}
+												</TableCell>
+												<TableCell>{lease.tenantName}</TableCell>
+												<TableCell>{lease.propertyName}</TableCell>
+												<TableCell className="text-right">
+													{formatCurrency(lease.monthlyRent)}
+												</TableCell>
+												<TableCell className="text-right">
+													{formatCurrency(lease.outstandingBalance)}
+												</TableCell>
+												<TableCell className="text-right">
+													{lease.profitabilityScore !== null &&
+													lease.profitabilityScore !== undefined
+														? formatNumber(lease.profitabilityScore, {
+																maximumFractionDigits: 1
+															})
+														: '—'}
+												</TableCell>
+											</TableRow>
+										))
+									) : (
+										<TableRow>
+											<TableCell colSpan={6} className="text-center text-muted-foreground">
+												No lease profitability data available
 											</TableCell>
 										</TableRow>
-									))}
+									)}
 								</TableBody>
 							</Table>
 						</CardContent>

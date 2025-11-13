@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { Spinner } from '#components/ui/spinner'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import {
@@ -120,7 +122,7 @@ export default function PaymentMethodsPage() {
 		setShowAddDialog(false)
 	}
 
-	const hasPaymentMethods = paymentMethods && paymentMethods.length > 0
+	const hasPaymentMethods = Array.isArray(paymentMethods) && paymentMethods.length > 0
 
 	return (
 		<>
@@ -169,7 +171,7 @@ export default function PaymentMethodsPage() {
 							</div>
 						) : (
 							<div className="space-y-3">
-								{paymentMethods.map(method => {
+								{paymentMethods && paymentMethods.map(method => {
 									const display = formatPaymentMethod(method)
 
 									return (
