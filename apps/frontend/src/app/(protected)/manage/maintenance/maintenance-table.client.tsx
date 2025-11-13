@@ -9,7 +9,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table.jsx'
+import { DataTable } from '#components/ui/data-tables/data-table'
 import {
 	AlertDialog,
 	AlertDialogAction,

@@ -1,5 +1,12 @@
+'use client'
+
 import { redirect } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function AnalyticsIndexPage() {
-	redirect('/manage/analytics/overview')
+	useEffect(() => {
+		redirect('/manage/analytics/overview')
+	}, [])
+	
+	return null
 }

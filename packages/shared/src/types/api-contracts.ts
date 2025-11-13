@@ -5,7 +5,7 @@
  * using TypeScript 5.9.2 performance patterns with const assertions and type inference.
  */
 
-import type { Database } from './supabase-generated.js'
+import type { Database, Json } from './supabase-generated.js'
 
 // PAGINATION CONSTANTS
 export const DEFAULT_PAGE = 1;
@@ -166,6 +166,40 @@ export interface PropertyDetailResponse {
 
 export type CreatePropertyInput = Database['public']['Tables']['property']['Insert']
 export type UpdatePropertyInput = Database['public']['Tables']['property']['Update']
+
+export interface TenantPaymentRecord {
+	id: string
+	amount: number
+	currency: string | null
+	status: string
+	description: string | null
+	receiptEmail: string | null
+	metadata: Json | null
+	createdAt: string | null
+}
+
+export interface TenantPaymentHistoryResponse {
+	payments: TenantPaymentRecord[]
+}
+
+export interface OwnerPaymentSummaryResponse {
+	lateFeeTotal: number
+	unpaidTotal: number
+	unpaidCount: number
+	tenantCount: number
+}
+
+export interface SendPaymentReminderRequest {
+	tenantId: string
+	message?: string
+}
+
+export interface SendPaymentReminderResponse {
+	success: true
+	tenantId: string
+	notificationId: string
+	message: string
+}
 
 // UNIT API CONTRACTS
 export interface CreateUnitRequest {

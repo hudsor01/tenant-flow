@@ -60,7 +60,7 @@ interface MaintenanceKanbanProps {
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const [requests, setRequests] =
-		useState<MaintenanceRequest[]>(initialRequests)
+		useState<MaintenanceRequest[]>(initialRequests || [])
 	const [activeRequest, setActiveRequest] = useState<MaintenanceRequest | null>(
 		null
 	)
@@ -78,7 +78,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const snapToGrid = createSnapModifier(16)
 
 	// Group requests by status
-	const requestsByStatus = requests.reduce(
+	const requestsByStatus = (requests || []).reduce(
 		(acc, request) => {
 			const status = request.status as Status
 			if (!acc[status]) acc[status] = []

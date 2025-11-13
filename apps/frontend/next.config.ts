@@ -29,12 +29,11 @@ const nextConfig: NextConfig = {
 	},
 
 	// Next.js 16: Cache Components for PPR and instant navigation
-	// Currently disabled - requires Suspense boundaries around all data fetching
 	// Currently disabled - requires Suspense boundaries around all data fetching.
-	// Suspense boundaries have been added to the dashboard page, but more are needed elsewhere.
 	// Enable when ready to fully implement streaming architecture.
+	// Suspense boundaries have been added to the dashboard page, but more are needed elsewhere.
 	cacheComponents: false,
-	
+
 	// Next.js 16: These still need to be in experimental
 	experimental: {
 		optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
@@ -43,7 +42,7 @@ const nextConfig: NextConfig = {
 			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
 		}
 	},
-	
+
 	async redirects() {
 		return [
 			{
