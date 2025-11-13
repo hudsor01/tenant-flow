@@ -24,6 +24,7 @@ import type {
 } from '@repo/shared/types/financial-analytics'
 import { ArrowDownRight, ArrowUpRight, FileDown } from 'lucide-react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import {
 	BillingTimelineChart,
 	NetOperatingIncomeChart,
@@ -137,17 +138,15 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	)
 }
 
-export default async function FinancialAnalyticsPage() {
+async function FinancialAnalyticsContent() {
 	const data = await getFinancialAnalyticsPageData()
 	const {
 		metrics,
 		breakdown,
 		netOperatingIncome,
 		billingInsights,
-		expenseSummary,
 		invoiceSummary,
 		monthlyMetrics,
-		leaseSummary,
 		leaseAnalytics
 	} = data
 
@@ -230,180 +229,189 @@ export default async function FinancialAnalyticsPage() {
 						</div>
 					</div>
 				</div>
-
-				<div className="flex-1 p-6 pt-6 pb-6">
-					<div className="mx-auto max-w-400 space-y-8 px-4 lg:px-6">
+				<div className="flex-1 bg-muted/30 p-6">
+					<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
 						<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-							<Card className="xl:col-span-2">
-								<CardHeader>
-									<CardTitle>Revenue vs. Expenses</CardTitle>
-									<CardDescription>
-										Month-over-month performance
-									</CardDescription>
-								</CardHeader>
-								<CardContent>
-									<RevenueExpenseChart data={monthlyMetrics} />
-								</CardContent>
-							</Card>
+							<div className="xl:col-span-2">
+								<Card>
+									<CardHeader>
+										<CardTitle>Revenue & Expenses</CardTitle>
+										<CardDescription>
+											Monthly breakdown of income and costs
+										</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<RevenueExpenseChart data={monthlyMetrics} />
+									</CardContent>
+								</Card>
+							</div>
+							<div className="space-y-6">
+								<Card>
+									<CardHeader>
+										<CardTitle>Revenue Breakdown</CardTitle>
+										<CardDescription>By category</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<BreakdownList
+											title="Revenue Sources"
+											rows={breakdown.revenue}
+										/>
+									</CardContent>
+								</Card>
+								<Card>
+									<CardHeader>
+										<CardTitle>Expense Breakdown</CardTitle>
+										<CardDescription>By category</CardDescription>
+									</CardHeader>
+									<CardContent>
+										<BreakdownList
+											title="Expense Categories"
+											rows={breakdown.expenses}
+										/>
+									</CardContent>
+								</Card>
+							</div>
+						</div>
+						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 							<Card>
 								<CardHeader>
-									<CardTitle>Top Properties by NOI</CardTitle>
-									<CardDescription>Property performance</CardDescription>
+									<CardTitle>Net Operating Income</CardTitle>
+									<CardDescription>
+										Revenue minus operating expenses over time
+									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<NetOperatingIncomeChart data={netOperatingIncome} />
 								</CardContent>
 							</Card>
-						</div>
-
-						<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 							<Card>
 								<CardHeader>
-									<CardTitle>Revenue & Expense Breakdown</CardTitle>
+									<CardTitle>Lease Profitability</CardTitle>
 									<CardDescription>
-										Top categories contributing to performance
+										Top performing leases by profitability score
 									</CardDescription>
 								</CardHeader>
-								<CardContent className="space-y-6">
-									<BreakdownList
-										title="Revenue streams"
-										rows={breakdown.revenue}
-									/>
-									<BreakdownList
-										title="Expense drivers"
-										rows={breakdown.expenses}
-									/>
+								<CardContent>
+									<LeaseTable leases={leaseAnalytics} />
 								</CardContent>
 							</Card>
-
+						</div>
+						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 							<Card>
 								<CardHeader>
-									<CardTitle>Billing timeline</CardTitle>
+									<CardTitle>Billing Timeline</CardTitle>
 									<CardDescription>
-										Invoices, payments, and overdue balances
+										Invoice status and payment patterns
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<BillingTimelineChart data={billingInsights} />
 								</CardContent>
 							</Card>
-						</div>
-
-						<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 							<Card>
 								<CardHeader>
-									<CardTitle>Expense summary</CardTitle>
-									<CardDescription>
-										Year-to-date spending by category
-									</CardDescription>
+									<CardTitle>Invoice Summary</CardTitle>
+									<CardDescription>Status breakdown</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									<Table>
-										<TableHeader>
-											<TableRow>
-												<TableHead>Category</TableHead>
-												<TableHead className="text-right">Amount</TableHead>
-												<TableHead className="text-right">Share</TableHead>
-											</TableRow>
-										</TableHeader>
-										<TableBody>
-											{expenseSummary.categories.slice(0, 6).map(category => (
-												<TableRow key={category.category}>
-													<TableCell className="font-medium">
-														{category.category}
-													</TableCell>
-													<TableCell className="text-right">
-														{formatCurrency(category.amount)}
-													</TableCell>
-													<TableCell className="text-right">
-														{formatPercentage(category.percentage)}
-													</TableCell>
-												</TableRow>
-											))}
-										</TableBody>
-									</Table>
-									<div className="flex items-center justify-between rounded-lg bg-muted/40 p-4 text-sm">
-										<div>
-											<p className="font-medium">Total expenses</p>
-											<p className="text-muted-foreground">
-												Monthly average{' '}
-												{formatCurrency(
-													expenseSummary?.totals?.monthlyAverage ?? 0
-												)}
+									{invoiceSummary.map(status => (
+										<div
+											key={status.status}
+											className="flex items-center justify-between"
+										>
+											<div className="flex items-center gap-2">
+												<span className="text-sm font-medium">
+													{status.status}
+												</span>
+												<Badge variant="outline">{status.count}</Badge>
+											</div>
+											<p className="text-xs text-muted-foreground">
+												{formatCurrency(status.amount)}
 											</p>
 										</div>
-										<div className="text-right">
-											<p className="font-semibold">
-												{formatCurrency(expenseSummary?.totals?.amount ?? 0)}
-											</p>
-											{expenseSummary?.totals?.yearOverYearChange !== null &&
-												expenseSummary?.totals?.yearOverYearChange !==
-													undefined && (
-													<TrendPill
-														value={expenseSummary.totals.yearOverYearChange}
-													/>
-												)}
-										</div>
-									</div>
-								</CardContent>
-							</Card>
-
-							<Card>
-								<CardHeader>
-									<CardTitle>Lease profitability</CardTitle>
-									<CardDescription>
-										Revenue contribution and outstanding balances
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<div className="grid grid-cols-2 gap-4 text-sm">
-										<div className="rounded-lg bg-muted/40 p-4">
-											<p className="text-muted-foreground">Active leases</p>
-											<p className="text-2xl font-semibold">
-												{formatNumber(leaseSummary?.activeLeases ?? 0)}
-											</p>
-										</div>
-										<div className="rounded-lg bg-muted/40 p-4">
-											<p className="text-muted-foreground">Monthly rent</p>
-											<p className="text-2xl font-semibold">
-												{formatCurrency(leaseSummary?.totalMonthlyRent ?? 0)}
-											</p>
-										</div>
-									</div>
-									<LeaseTable leases={leaseAnalytics} />
+									))}
 								</CardContent>
 							</Card>
 						</div>
-
-						<Card>
-							<CardHeader>
-								<CardTitle>Invoice status</CardTitle>
-								<CardDescription>
-									Current distribution across the billing pipeline
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
-								{invoiceSummary.map(status => (
-									<div
-										key={status.status}
-										className="rounded-lg border p-4 shadow-sm"
-									>
-										<p className="text-sm font-medium text-muted-foreground">
-											{status.status}
-										</p>
-										<p className="text-2xl font-semibold">
-											{formatCurrency(status.amount)}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											{formatNumber(status.count)} invoices
-										</p>
-									</div>
-								))}
-							</CardContent>
-						</Card>
 					</div>
 				</div>
 			</div>
 		</RefreshableAnalytics>
+	)
+}
+
+function FinancialAnalyticsSkeleton() {
+	return (
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="flex flex-col gap-2">
+						<h1 className="text-3xl font-semibold tracking-tight">
+							Financial Analytics
+						</h1>
+						<p className="text-muted-foreground">
+							Track revenue, profitability, and portfolio cash flow in real
+							time.
+						</p>
+					</div>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i} className="@container/card">
+								<CardHeader>
+									<div className="h-4 bg-muted rounded animate-pulse" />
+									<div className="h-3 bg-muted rounded animate-pulse w-2/3" />
+								</CardHeader>
+								<CardContent className="space-y-3">
+									<div className="h-8 bg-muted rounded animate-pulse" />
+									<div className="h-5 bg-muted rounded animate-pulse w-1/2" />
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				</div>
+			</div>
+			<div className="flex-1 bg-muted/30 p-6">
+				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
+					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+						<div className="xl:col-span-2">
+							<Card>
+								<CardHeader>
+									<div className="h-5 bg-muted rounded animate-pulse" />
+									<div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+								</CardHeader>
+								<CardContent>
+									<div className="h-64 bg-muted rounded animate-pulse" />
+								</CardContent>
+							</Card>
+						</div>
+						<div className="space-y-6">
+							{Array.from({ length: 2 }).map((_, i) => (
+								<Card key={i}>
+									<CardHeader>
+										<div className="h-5 bg-muted rounded animate-pulse" />
+										<div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+									</CardHeader>
+									<CardContent>
+										<div className="space-y-3">
+											{Array.from({ length: 3 }).map((_, j) => (
+												<div key={j} className="h-4 bg-muted rounded animate-pulse" />
+											))}
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default function FinancialAnalyticsPage() {
+	return (
+		<Suspense fallback={<FinancialAnalyticsSkeleton />}>
+			<FinancialAnalyticsContent />
+		</Suspense>
 	)
 }

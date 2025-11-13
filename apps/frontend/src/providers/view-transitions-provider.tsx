@@ -57,8 +57,7 @@ export function ViewTransitionsProvider({
 				<div
 					className="fixed inset-0 pointer-events-none z-[9999]"
 					style={{
-						background:
-							'linear-gradient(90deg, transparent, rgba(var(--color-primary-brand-rgb), 0.1), transparent)',
+						background: 'var(--gradient-primary)',
 						animation: 'shimmer 1s ease-in-out infinite'
 					}}
 				/>

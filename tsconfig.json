@@ -7,7 +7,6 @@
     "noEmit": true,
     "paths": {
       "@repo/shared/*": ["./packages/shared/src/*"],
-      "@repo/database/*": ["./packages/database/src/*"],
       "@repo/testing/*": ["./packages/testing/src/*"],
       "@repo/eslint-config/*": ["./packages/eslint-config/*"],
       "@repo/typescript-config/*": ["./packages/typescript-config/*"]
@@ -29,13 +28,5 @@
     "playwright-report",
     "apps/**/dist",
     "packages/**/dist"
-  ],
-  "references": [
-    { "path": "./apps/frontend" },
-    { "path": "./apps/backend" },
-    { "path": "./apps/e2e-tests" },
-    { "path": "./packages/shared" },
-    { "path": "./packages/database" },
-    { "path": "./packages/testing" }
   ]
 }
