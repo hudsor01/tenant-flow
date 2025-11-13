@@ -15,6 +15,17 @@ export class StripeWebhookService {
 	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
+	 * Type predicate to check if an object has lock_acquired property set to true
+	 */
+	private isObjectWithLockAcquired(value: unknown): value is { lock_acquired: true } {
+		return value !== null &&
+			   value !== undefined &&
+			   typeof value === 'object' &&
+			   'lock_acquired' in value &&
+			   (value as { lock_acquired?: unknown }).lock_acquired === true
+	}
+
+	/**
 	 * Check if an event has already been processed
 	 * Uses database for persistent idempotency across service restarts
 	 */
@@ -87,12 +98,7 @@ export class StripeWebhookService {
 			}
 
 			const rows = Array.isArray(data) ? data : [data]
-			const lockAcquired = rows.some(row => {
-				if (!row || typeof row !== 'object') {
-					return false
-				}
-				return (row as { lock_acquired?: unknown }).lock_acquired === true
-			})
+			const lockAcquired = rows.some(row => this.isObjectWithLockAcquired(row))
 
 			if (!lockAcquired) {
 				this.logger.debug(

@@ -808,8 +808,8 @@ importers:
         specifier: 'catalog:'
         version: 2.80.0
       '@tanstack/react-query':
-        specifier: 5.90.6
-        version: 5.90.6(react@19.2.0)
+        specifier: 5.90.7
+        version: 5.90.7(react@19.2.0)
       zod:
         specifier: 4.1.12
         version: 4.1.12
@@ -4081,11 +4081,6 @@ packages:
     resolution: {integrity: sha512-IcdOPGmk5KoQQxbsZboyurA9n6CKqdnz7BS2TAuPgbCxhVdpXloQ99hJPOk4QEtV3QhdQyAVrntiGfr/ReYobg==}
     peerDependencies:
       '@tanstack/react-query': ^5.90.6
-      react: ^18 || ^19
-
-  '@tanstack/react-query@5.90.6':
-    resolution: {integrity: sha512-gB1sljYjcobZKxjPbKSa31FUTyr+ROaBdoH+wSSs9Dk+yDCmMs+TkTV3PybRRVLC7ax7q0erJ9LvRWnMktnRAw==}
-    peerDependencies:
       react: ^18 || ^19
 
   '@tanstack/react-query@5.90.7':
@@ -13708,11 +13703,6 @@ snapshots:
     dependencies:
       '@tanstack/query-persist-client-core': 5.91.5
       '@tanstack/react-query': 5.90.7(react@19.2.0)
-      react: 19.2.0
-
-  '@tanstack/react-query@5.90.6(react@19.2.0)':
-    dependencies:
-      '@tanstack/query-core': 5.90.7
       react: 19.2.0
 
   '@tanstack/react-query@5.90.7(react@19.2.0)':
