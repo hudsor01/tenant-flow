@@ -1,6 +1,11 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { GeneratedReportService } from './generated-report.service'
+import {
+	querySingle,
+	queryList,
+	queryMutation
+} from '../../shared/utils/query-helpers'
 
 export interface CreateScheduleData {
 	userId: string
@@ -81,32 +86,34 @@ export class ScheduledReportService {
 			data.timezone || 'UTC'
 		)
 
-		const { data: record, error } = await client
-			.from('scheduled_report')
-			.insert({
-				userId: data.userId,
-				reportType: data.reportType,
-				reportName: data.reportName,
-				format: data.format,
-				frequency: data.frequency,
-				dayOfWeek: data.dayOfWeek || null,
-				dayOfMonth: data.dayOfMonth || null,
-				hour: data.hour || 9,
-				timezone: data.timezone || 'UTC',
-				isActive: true,
-				nextRunAt: nextRunAt.toISOString(),
-				metadata: (data.metadata || {}) as never
-			})
-			.select()
-			.single()
-
-		if (error) {
-			this.logger.error(`Failed to create schedule: ${error.message}`)
-			throw error
-		}
+		const record = await queryMutation<ScheduledReportRecord>(
+			client
+				.from('scheduled_report')
+				.insert({
+					userId: data.userId,
+					reportType: data.reportType,
+					reportName: data.reportName,
+					format: data.format,
+					frequency: data.frequency,
+					dayOfWeek: data.dayOfWeek || null,
+					dayOfMonth: data.dayOfMonth || null,
+					hour: data.hour || 9,
+					timezone: data.timezone || 'UTC',
+					isActive: true,
+					nextRunAt: nextRunAt.toISOString(),
+					metadata: (data.metadata || {}) as never
+				})
+				.select()
+				.single(),
+			{
+				resource: 'scheduled report',
+				operation: 'create',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log(`Created schedule ${record.id} for user ${data.userId}`)
-		return record as ScheduledReportRecord
+		return record
 	}
 
 	/**
@@ -115,18 +122,18 @@ export class ScheduledReportService {
 	async listSchedules(userId: string): Promise<ScheduledReportRecord[]> {
 		const client = this.supabaseService.getAdminClient()
 
-		const { data, error } = await client
-			.from('scheduled_report')
-			.select(SAFE_SCHEDULED_REPORT_COLUMNS)
-			.eq('userId', userId)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error(`Failed to list schedules: ${error.message}`)
-			throw error
-		}
-
-		return data as ScheduledReportRecord[]
+		return await queryList<ScheduledReportRecord>(
+			client
+				.from('scheduled_report')
+				.select(SAFE_SCHEDULED_REPORT_COLUMNS)
+				.eq('userId', userId)
+				.order('createdAt', { ascending: false}) as any,
+			{
+				resource: 'scheduled reports',
+				operation: 'fetch',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -136,28 +143,35 @@ export class ScheduledReportService {
 		const client = this.supabaseService.getAdminClient()
 
 		// First verify ownership
-		const { data: schedule, error: fetchError } = await client
-			.from('scheduled_report')
-			.select('id')
-			.eq('id', scheduleId)
-			.eq('userId', userId)
-			.single()
-
-		if (fetchError || !schedule) {
-			throw new NotFoundException('Schedule not found or access denied')
-		}
+		await querySingle<{ id: string }>(
+			client
+				.from('scheduled_report')
+				.select('id')
+				.eq('id', scheduleId)
+				.eq('userId', userId)
+				.single(),
+			{
+				resource: 'scheduled report',
+				id: scheduleId,
+				operation: 'verify ownership',
+				logger: this.logger
+			}
+		)
 
 		// Delete the schedule
-		const { error: deleteError } = await client
-			.from('scheduled_report')
-			.delete()
-			.eq('id', scheduleId)
-			.eq('userId', userId)
-
-		if (deleteError) {
-			this.logger.error(`Failed to delete schedule: ${deleteError.message}`)
-			throw deleteError
-		}
+		await queryMutation(
+			client
+				.from('scheduled_report')
+				.delete()
+				.eq('id', scheduleId)
+				.eq('userId', userId),
+			{
+				resource: 'scheduled report',
+				id: scheduleId,
+				operation: 'delete',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log(`Deleted schedule ${scheduleId}`)
 	}
@@ -172,42 +186,51 @@ export class ScheduledReportService {
 
 		this.logger.log('Checking for due schedules...')
 
-		// Fetch all active schedules that are due
-		const { data: schedules, error } = await client
-			.from('scheduled_report')
-			.select(SAFE_SCHEDULED_REPORT_COLUMNS)
-			.eq('isActive', true)
-			.lte('nextRunAt', now.toISOString())
+		try {
+			// Fetch all active schedules that are due
+			const schedules = await queryList<ScheduledReportRecord>(
+				client
+					.from('scheduled_report')
+					.select(SAFE_SCHEDULED_REPORT_COLUMNS)
+					.eq('isActive', true)
+					.lte('nextRunAt', now.toISOString()) as any,
+				{
+					resource: 'due scheduled reports',
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 
-		if (error) {
-			this.logger.error(`Failed to fetch due schedules: ${error.message}`)
-			return 0
-		}
-
-		if (!schedules || schedules.length === 0) {
-			this.logger.log('No due schedules found')
-			return 0
-		}
-
-		this.logger.log(`Found ${schedules.length} due schedules to execute`)
-
-		let successCount = 0
-
-		for (const schedule of schedules) {
-			try {
-				await this.executeSchedule(schedule as ScheduledReportRecord)
-				successCount++
-			} catch (error) {
-				this.logger.error(
-					`Failed to execute schedule ${schedule.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
-				)
+			if (schedules.length === 0) {
+				this.logger.log('No due schedules found')
+				return 0
 			}
-		}
 
-		this.logger.log(
-			`Executed ${successCount} of ${schedules.length} schedules successfully`
-		)
-		return successCount
+			this.logger.log(`Found ${schedules.length} due schedules to execute`)
+
+			let successCount = 0
+
+			for (const schedule of schedules) {
+				try {
+					await this.executeSchedule(schedule)
+					successCount++
+				} catch (error) {
+					this.logger.error(
+						`Failed to execute schedule ${schedule.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
+					)
+				}
+			}
+
+			this.logger.log(
+				`Executed ${successCount} of ${schedules.length} schedules successfully`
+			)
+			return successCount
+		} catch (error) {
+			this.logger.error(
+				`Failed to fetch due schedules: ${error instanceof Error ? error.message : 'Unknown error'}`
+			)
+			return 0
+		}
 	}
 
 	/**
@@ -252,16 +275,27 @@ export class ScheduledReportService {
 			)
 
 			const client = this.supabaseService.getAdminClient()
-			const { error } = await client
-				.from('scheduled_report')
-				.update({
-					lastRunAt: new Date().toISOString(),
-					nextRunAt: nextRunAt.toISOString()
-				})
-				.eq('id', schedule.id)
 
-			if (error) {
-				this.logger.error(`Failed to update schedule: ${error.message}`)
+			try {
+				await queryMutation(
+					client
+						.from('scheduled_report')
+						.update({
+							lastRunAt: new Date().toISOString(),
+							nextRunAt: nextRunAt.toISOString()
+						})
+						.eq('id', schedule.id),
+					{
+						resource: 'scheduled report',
+						id: schedule.id,
+						operation: 'update run times',
+						logger: this.logger
+					}
+				)
+			} catch (error) {
+				this.logger.error(
+					`Failed to update schedule: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 
 			this.logger.log(`Successfully executed schedule ${schedule.id}`)
