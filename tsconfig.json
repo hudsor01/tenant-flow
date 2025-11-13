@@ -28,12 +28,5 @@
     "playwright-report",
     "apps/**/dist",
     "packages/**/dist"
-  ],
-  "references": [
-    { "path": "./apps/frontend" },
-    { "path": "./apps/backend" },
-    { "path": "./apps/e2e-tests" },
-    { "path": "./packages/shared" },
-    { "path": "./packages/testing" }
   ]
 }
