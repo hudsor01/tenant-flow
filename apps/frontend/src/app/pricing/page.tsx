@@ -212,7 +212,7 @@ export default function PricingPage() {
 							{/* Enhanced CTA Buttons */}
 							<div className="flex flex-col items-center gap-4 sm:flex-row">
 								<Button className="h-12 px-10 py-4 text-lg shadow-2xl hover:shadow-primary/25 transition-all duration-300" asChild>
-									<Link href="/signup">
+									<Link href="/pricing">
 										Start free trial
 										<ArrowRight className="ml-2 h-5 w-5" />
 									</Link>
@@ -395,7 +395,7 @@ export default function PricingPage() {
 								</p>
 								<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 									<Button size="lg" className="px-8" asChild>
-										<Link href="/signup">
+										<Link href="/pricing">
 											Start your free trial
 											<ArrowRight className="ml-2 h-4 w-4" />
 										</Link>

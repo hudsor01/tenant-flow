@@ -147,7 +147,7 @@ function LoginPageContent() {
 	}
 
 	const handleSignUp = () => {
-		router.push('/signup')
+		router.push('/pricing')
 	}
 
 	const handleGoogleLogin = async () => {

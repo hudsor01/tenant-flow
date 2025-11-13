@@ -35,7 +35,7 @@ export default function BlogPage() {
 					subtitle="Proven playbooks used by 10,000+ property managers to increase NOI by 40%, cut costs by 32%, and reclaim 20+ hours weekly. No fluff, just results."
 					primaryCta={{
 						label: 'Get Instant Access to All Guides',
-						href: '/signup'
+						href: '/pricing'
 					}}
 					secondaryCta={{ label: 'Calculate Your Savings', href: '/pricing' }}
 					trustSignals="50,000+ downloads • 40% NOI increase • 32% cost reduction"

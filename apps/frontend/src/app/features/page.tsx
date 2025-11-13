@@ -125,7 +125,7 @@ export default function FeaturesPage() {
 					className="shadow-2xl shadow-primary/25 font-semibold"
 					asChild
 				>
-					<Link href="/signup" aria-label="Get started free">
+					<Link href="/pricing" aria-label="Get started free">
 						Start Free Trial
 						<ArrowRight className="size-4 ml-2" />
 					</Link>
@@ -165,7 +165,7 @@ export default function FeaturesPage() {
 									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
-									<Link href="/signup" aria-label="Start free trial">
+									<Link href="/pricing" aria-label="Start free trial">
 										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
@@ -585,7 +585,7 @@ export default function FeaturesPage() {
 										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 										asChild
 									>
-										<Link href="/signup" aria-label="Start free trial">
+										<Link href="/pricing" aria-label="Start free trial">
 											<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 											<span className="relative z-10 flex items-center">
 												Start Free Trial
