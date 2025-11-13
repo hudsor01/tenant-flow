@@ -6,11 +6,11 @@ describe('StripeIdentityService', () => {
 	const userRow = {
 		id: 'user_1',
 		email: 'owner@tenantflow.app',
-		identityVerificationSessionId: null,
-		identityVerificationStatus: null,
-		identityVerificationError: null,
-		identityVerifiedAt: null,
-		identityVerificationData: null
+		identityverificationsessionid: null,
+		identityverificationstatus: null,
+		identityverificationerror: null,
+		identityverifiedat: null,
+		identityverificationdata: null
 	}
 
 	const stripeClientMock = {
@@ -100,7 +100,7 @@ describe('StripeIdentityService', () => {
 	it('throws BadRequestException if identity is already verified', async () => {
 		usersServiceMock.getUserById.mockResolvedValueOnce({
 			...userRow,
-			identityVerificationStatus: 'verified'
+			identityverificationstatus: 'verified'
 		})
 
 		await expect(service.createVerificationSession(userRow.id)).rejects.toThrow(
