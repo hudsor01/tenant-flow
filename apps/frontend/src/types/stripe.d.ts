@@ -18,3 +18,20 @@ export interface StripeEnvironmentConfig {
 	products?: Record<string, string>
 	prices?: Record<string, string>
 }
+
+// Backend response from /stripe/verify-checkout-session
+export interface StripeVerifyCheckoutSessionResponse {
+	session: any; // Define more precisely if needed (e.g., Stripe.Checkout.Session)
+	subscription: {
+		id: string;
+		status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';
+		current_period_end: number;
+		cancel_at_period_end: boolean;
+		items: Array<{
+			price: {
+				nickname?: string;
+				product: string;
+			};
+		}>;
+	};
+}

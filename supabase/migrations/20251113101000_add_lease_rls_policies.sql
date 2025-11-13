@@ -87,7 +87,7 @@ USING (
     SELECT 1
     FROM tenant t
     WHERE t.id = lease."tenantId"
-      AND t.auth_user_id = auth.uid()
+      AND t.auth_user_id = auth.uid()::text
   )
 );
 
