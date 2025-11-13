@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
+import { queryList } from '../../shared/utils/query-helpers'
 
 const SAFE_WEBHOOK_FAILURES_COLUMNS = `
 	id,
@@ -39,20 +40,29 @@ export class WebhookRetryService {
 		const client = this.supabase.getAdminClient()
 
 		// Query webhook_failures table
-		const { data: failures, error } = await client
-			.from('webhook_failures')
-			.select(SAFE_WEBHOOK_FAILURES_COLUMNS)
-			.is('resolved_at', null)
-			.lt('retry_count', 3) // Max 3 retries
-			.order('created_at', { ascending: true })
-			.limit(10)
+		const failures = await queryList<{
+			id: string
+			stripe_event_id: string | null
+			event_type: string | null
+			retry_count: number | null
+			created_at: string | null
+			raw_event_data: unknown
+		}>(
+			client
+				.from('webhook_failures')
+				.select(SAFE_WEBHOOK_FAILURES_COLUMNS)
+				.is('resolved_at', null)
+				.lt('retry_count', 3) // Max 3 retries
+				.order('created_at', { ascending: true })
+				.limit(10) as any,
+			{
+				resource: 'webhook failures',
+				operation: 'fetch for retry',
+				logger: this.logger
+			}
+		)
 
-		if (error) {
-			this.logger.error('Failed to query webhook_failures', error)
-			return
-		}
-
-		if (!failures || failures.length === 0) {
+		if (failures.length === 0) {
 			this.logger.log('No failed webhooks to retry')
 			return
 		}
