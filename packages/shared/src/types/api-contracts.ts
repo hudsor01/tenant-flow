@@ -21,6 +21,9 @@ export const DEFAULT_RETRY_ATTEMPTS = 3;
 export const DEFAULT_RETRY_DELAY = 1000; // 1 second
 export const MAX_RETRY_DELAY = 10000; // 10 seconds
 
+// DATABASE TYPE ALIASES
+export type AuthUser = Database['public']['Tables']['users']['Row']
+
 // USER AUTHENTICATION CONTRACTS
 export interface LoginRequest {
 	email: string
@@ -161,6 +164,9 @@ export interface PropertyDetailResponse {
 	}>
 }
 
+export type CreatePropertyInput = Database['public']['Tables']['property']['Insert']
+export type UpdatePropertyInput = Database['public']['Tables']['property']['Update']
+
 // UNIT API CONTRACTS
 export interface CreateUnitRequest {
 	propertyId: string
@@ -272,6 +278,10 @@ export interface UpdateTenantRequest {
 	name?: string
 	avatarUrl?: string
 }
+
+// Type aliases for backward compatibility with frontend hooks
+export type TenantInput = CreateTenantRequest
+export type TenantUpdate = UpdateTenantRequest
 
 export interface TenantQueryRequest {
 	search?: string

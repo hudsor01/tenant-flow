@@ -1,9 +1,6 @@
 import { TenantDetails } from '../../../tenant/tenant-details.client'
 
-interface TenantPageProps {
-	params: { id: string }
-}
-
-export default function TenantPage({ params }: TenantPageProps) {
-	return <TenantDetails id={params.id} />
+export default async function TenantPage({ params }: PageProps<'/manage/tenants/[id]'>) {
+	const { id } = await params
+	return <TenantDetails id={id} />
 }

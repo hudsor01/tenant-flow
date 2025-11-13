@@ -21,7 +21,7 @@ import {
 	useDeleteProperty
 } from '../use-properties'
 import type { ReactNode } from 'react'
-import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'UsePropertyImagesTest' })

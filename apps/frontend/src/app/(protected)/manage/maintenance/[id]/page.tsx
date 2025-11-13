@@ -1,12 +1,9 @@
 import { MaintenanceDetails } from './maintenance-details.client'
 
-interface MaintenanceDetailPageProps {
-	params: { id: string }
-}
-
-export default function MaintenanceDetailPage({
+export default async function MaintenanceDetailPage({
 	params
-}: MaintenanceDetailPageProps) {
+}: PageProps<'/manage/maintenance/[id]'>) {
+	const { id } = await params
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -17,7 +14,7 @@ export default function MaintenanceDetailPage({
 					Review request details, contact information, and work status.
 				</p>
 			</div>
-			<MaintenanceDetails id={params.id} />
+			<MaintenanceDetails id={id} />
 		</div>
 	)
 }
