@@ -144,11 +144,11 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	)
 }
 
-	async function FinancialAnalyticsContent() {
-		const data = await getFinancialAnalyticsPageData()
-		const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
-			'/api/v1/tenants/payments/summary'
-		)
+async function FinancialAnalyticsContent() {
+	const data = await getFinancialAnalyticsPageData()
+	const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
+		'/api/v1/tenants/payments/summary'
+	)
 	const {
 		metrics,
 		breakdown,
