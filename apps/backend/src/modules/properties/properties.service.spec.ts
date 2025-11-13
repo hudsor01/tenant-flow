@@ -198,7 +198,7 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockProperty, error: null })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			const result = await service.findOne(
 				createMockRequest('user-123'),
@@ -219,7 +219,7 @@ describe('PropertiesService', () => {
 					.mockResolvedValue({ data: null, error: { message: 'Not found' } })
 			}
 
-			mockAdminClient.from.mockReturnValue(mockQueryBuilder)
+			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			const result = await service.findOne(
 				createMockRequest('user-123'),
