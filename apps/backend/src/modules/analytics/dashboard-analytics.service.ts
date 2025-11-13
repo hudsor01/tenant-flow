@@ -14,6 +14,7 @@ import {
 	BillingInsights,
 	IDashboardAnalyticsService
 } from './interfaces/dashboard-analytics.interface'
+import { querySingle } from '../../shared/utils/query-helpers'
 
 /**
  * Dashboard Analytics Service
@@ -402,23 +403,16 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				params.end_date_param = options.endDate.toISOString()
 			}
 
-			const { data, error } = await client.rpc('get_billing_insights', params)
-
-			if (error) {
-				this.logger.error('Failed to get billing insights via RPC', {
-					error: error.message,
-					userId,
-					options
-				})
-				return {
-					totalRevenue: 0,
-					churnRate: 0,
-					mrr: 0
-				}
-			}
-
-			// Parse RPC response (returns JSON)
-			const result = data as { totalRevenue: number; mrr: number; churnRate: number }
+			const result = await querySingle<{
+				totalRevenue: number
+				mrr: number
+				churnRate: number
+			}>(client.rpc('get_billing_insights', params) as any, {
+				resource: 'billing insights',
+				id: userId,
+				operation: 'fetch via RPC',
+				logger: this.logger
+			})
 
 			return {
 				totalRevenue: result.totalRevenue || 0,
