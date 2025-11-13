@@ -54,7 +54,7 @@ export function ChartsSection() {
 
 	// Animation for chart containers
 	const chartAnimation = useSpring({
-		from: { opacity: 0, transform: 'translateY(20px)' },
+		from: { opacity: 0, transform: 'translateY(var(--translate-slide-y))' },
 		to: { opacity: 1, transform: 'translateY(0px)' },
 		config: { tension: 280, friction: 60 }
 	})

@@ -11,8 +11,6 @@ import { ArrowRight } from 'lucide-react'
 
 export default function FAQPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
-
-	// Use static FAQ data
 	const faqCategories = faqData
 
 	// FAQ Schema for Google rich snippets - flatten all questions
@@ -65,13 +63,8 @@ export default function FAQPage() {
 					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-			{/* Full page grid background */}
 			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
 			<Navbar />
-
-			{/* Hero Section */}
 			<HeroSection
 				trustBadge="Real answers from real results"
 				title="Your $30,000 annual savings"
@@ -79,7 +72,7 @@ export default function FAQPage() {
 				subtitle="Everything you need to know about how TenantFlow delivers guaranteed 40% NOI increase, saves 20+ hours weekly, and pays for itself in 60 days. Real answers from real results."
 				primaryCta={{
 					label: 'Calculate Your Savings Now',
-					href: '/signup'
+					href: '/pricing'
 				}}
 				secondaryCta={{ label: 'Talk to Success Manager', href: '/pricing' }}
 				trustSignals="40% NOI increase • 20+ hours saved weekly • 60-day ROI"
@@ -88,8 +81,6 @@ export default function FAQPage() {
 					alt: 'Modern office workspace showcasing property management efficiency'
 				}}
 			/>
-
-			{/* FAQ Section */}
 			<section className="section-spacing">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8">
 					{faqCategories.length === 0 && (
@@ -108,8 +99,6 @@ export default function FAQPage() {
 						))}
 				</div>
 			</section>
-
-			{/* CTA Section */}
 			<section className="section-spacing bg-primary">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 					<h2 className="text-4xl font-bold text-primary-foreground mb-4">
@@ -134,7 +123,6 @@ export default function FAQPage() {
 					</div>
 				</div>
 			</section>
-
 			<Footer />
 		</div>
 	)

@@ -45,7 +45,7 @@ export default function HelpPage() {
 					subtitle="Get white-glove support from property management experts who've helped 10,000+ managers save $30,000+ annually. Average response time: 90 seconds. Success rate: 98.7%."
 					primaryCta={{
 						label: 'Get Instant Expert Help',
-						href: '/signup'
+						href: '/pricing'
 					}}
 					secondaryCta={{ label: 'Schedule Success Call', href: '/contact' }}
 					trustSignals="24/7 Expert Support • 90-second response • 98.7% success rate"

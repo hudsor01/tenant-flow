@@ -17,10 +17,13 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase-generated'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	SUPABASE_URL,
 	SUPABASE_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
+
+const logger = createLogger({ component: 'ApiAuth' })
 
 /**
  * Authentication result for API routes
@@ -67,22 +70,33 @@ export async function createApiClient(): Promise<ApiAuthResult> {
 			error
 		} = await supabase.auth.getUser()
 
-		if (error) {
-			return {
-				user: null,
-				error: error.message,
-				supabase
-			}
+	if (error) {
+		logger.warn('Supabase auth.getUser returned an error', {
+			errorCode: error.code,
+			errorStatus: error.status
+		})
+
+		return {
+			user: null,
+			error: 'Authentication validation failed',
+			supabase
 		}
+	}
 
 		return {
 			user,
 			supabase
 		}
 	} catch (error) {
+		const familiarName =
+			error instanceof Error ? error.name || error.constructor.name : typeof error
+		logger.error('Unexpected error validating Supabase session', {
+			error: familiarName
+		})
+
 		return {
 			user: null,
-			error: error instanceof Error ? error.message : 'Authentication failed',
+			error: 'Authentication validation failed',
 			supabase
 		}
 	}

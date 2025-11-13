@@ -12,6 +12,7 @@ import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxPreparationTemplate } from './templates/tax-preparation.template'
+import { SupabaseService } from '../../database/supabase.service'
 
 describe('ReportsController', () => {
 	let controller: ReportsController
@@ -41,6 +42,10 @@ describe('ReportsController', () => {
 				},
 				{
 					provide: ScheduledReportService,
+					useValue: {}
+				},
+				{
+					provide: SupabaseService,
 					useValue: {}
 				},
 				{

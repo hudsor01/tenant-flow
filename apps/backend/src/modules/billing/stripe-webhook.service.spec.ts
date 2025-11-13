@@ -32,7 +32,11 @@ describe('StripeWebhookService', () => {
 		lt: jest.fn().mockReturnThis(),
 		gte: jest.fn().mockReturnThis(),
 		in: jest.fn().mockReturnThis(),
-		single: jest.fn().mockReturnThis()
+		single: jest.fn().mockReturnThis(),
+		rpc: jest.fn().mockResolvedValue({
+			data: [{ lock_acquired: true }],
+			error: null
+		})
 	})
 
 	let mockSupabaseClient: ReturnType<typeof createMockSupabaseClient>
@@ -127,50 +131,35 @@ describe('StripeWebhookService', () => {
 	})
 
 	describe('recordEventProcessing', () => {
-		it('should successfully acquire lock for new event', async () => {
-			const eventId = 'evt_test_lock'
+		it('should acquire lock using RPC', async () => {
+			const eventId = 'evt_record_rpc'
 			const eventType = 'payment_intent.succeeded'
 
-			mockSupabaseClient.select.mockResolvedValue({ error: null })
+			mockSupabaseClient.rpc.mockResolvedValue({
+				data: [{ lock_acquired: true }],
+				error: null
+			})
 
 			const result = await service.recordEventProcessing(eventId, eventType)
 
 			expect(result).toBe(true)
-			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
-				stripe_event_id: eventId,
-				event_type: eventType,
-				processed_at: expect.any(String),
-				status: 'processing'
-			})
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'record_processed_stripe_event_lock',
+				expect.objectContaining({
+					p_stripe_event_id: eventId,
+					p_event_type: eventType,
+					p_status: 'processing'
+				})
+			)
 		})
 
-		it('should fail to acquire lock if event already being processed (duplicate key)', async () => {
-			const eventId = 'evt_test_duplicate'
+		it('should return false when lock already held', async () => {
+			const eventId = 'evt_record_taken'
 			const eventType = 'payment_intent.succeeded'
 
-			// Simulate duplicate key violation (SECURITY FIX #5)
-			mockSupabaseClient.select.mockResolvedValue({
-				error: {
-					code: '23505',
-					message: 'duplicate key value violates unique constraint'
-				}
-			})
-
-			const result = await service.recordEventProcessing(eventId, eventType)
-
-			expect(result).toBe(false)
-		})
-
-		it('should fail to acquire lock if error message contains "duplicate"', async () => {
-			const eventId = 'evt_test_duplicate_msg'
-			const eventType = 'payment_intent.succeeded'
-
-			// Some databases return different error codes but include "duplicate" in message
-			mockSupabaseClient.select.mockResolvedValue({
-				error: {
-					code: '42P01',
-					message: 'duplicate entry detected for stripe_event_id'
-				}
+			mockSupabaseClient.rpc.mockResolvedValue({
+				data: [{ lock_acquired: false }],
+				error: null
 			})
 
 			const result = await service.recordEventProcessing(eventId, eventType)
@@ -178,42 +167,48 @@ describe('StripeWebhookService', () => {
 			expect(result).toBe(false)
 		})
 
-		it('should throw error for non-duplicate database errors', async () => {
-			const eventId = 'evt_test_db_error'
+		it('should throw when RPC fails', async () => {
+			const eventId = 'evt_record_rpc_error'
 			const eventType = 'payment_intent.succeeded'
+			const rpcError = { code: 'PGRST500', message: 'Database unavailable' }
 
-			// Mock the insert chain to return an error
-			mockSupabaseClient.insert = jest.fn().mockReturnThis()
-			mockSupabaseClient.select.mockResolvedValue({
-				error: {
-					code: 'PGRST500',
-					message: 'Database connection failed'
-				}
+			mockSupabaseClient.rpc.mockResolvedValue({
+				data: [{ lock_acquired: true }],
+				error: rpcError
 			})
 
 			await expect(
 				service.recordEventProcessing(eventId, eventType)
-			).rejects.toMatchObject({
-				code: 'PGRST500'
-			})
+			).rejects.toBe(rpcError)
 		})
 
-		it('should include correct timestamp in ISO format', async () => {
-			const eventId = 'evt_test_timestamp'
+		it('should send ISO timestamps to RPC payload', async () => {
+			const eventId = 'evt_record_timestamp'
 			const eventType = 'payment_intent.succeeded'
 
-			mockSupabaseClient.select.mockResolvedValue({ error: null })
+			mockSupabaseClient.rpc.mockResolvedValue({
+				data: [{ lock_acquired: true }],
+				error: null
+			})
 
 			await service.recordEventProcessing(eventId, eventType)
 
-			const insertCall = (mockSupabaseClient.insert as jest.Mock).mock
-				.calls[0][0]
-			const timestamp = insertCall.processed_at
-
-			// Verify ISO format
-			expect(timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-			expect(new Date(timestamp).toISOString()).toBe(timestamp)
+			const rpcArgs = (mockSupabaseClient.rpc as jest.Mock).mock.calls[0][1]
+			expect(rpcArgs.p_processed_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+			expect(new Date(rpcArgs.p_processed_at).toISOString()).toBe(rpcArgs.p_processed_at)
 		})
+
+		it('should treat missing RPC rows as lock failures', async () => {
+			const eventId = 'evt_record_missing'
+			const eventType = 'payment_intent.succeeded'
+
+			mockSupabaseClient.rpc.mockResolvedValue({ data: null, error: null })
+
+			const result = await service.recordEventProcessing(eventId, eventType)
+
+			expect(result).toBe(false)
+		})
+
 	})
 
 	describe('markEventProcessed', () => {
@@ -655,87 +650,6 @@ describe('StripeWebhookService', () => {
 		})
 	})
 
-	describe('Race Condition Prevention (SECURITY FIX #5)', () => {
-		it('should prevent concurrent processing using INSERT-based locking', async () => {
-			const eventId = 'evt_test_race'
-			const eventType = 'payment_intent.succeeded'
-
-			// First request succeeds (acquires lock)
-			mockSupabaseClient.select.mockResolvedValueOnce({ error: null })
-
-			const firstResult = await service.recordEventProcessing(
-				eventId,
-				eventType
-			)
-			expect(firstResult).toBe(true)
-
-			// Second concurrent request fails (duplicate key)
-			mockSupabaseClient.select.mockResolvedValueOnce({
-				error: {
-					code: '23505',
-					message: 'duplicate key value violates unique constraint'
-				}
-			})
-
-			const secondResult = await service.recordEventProcessing(
-				eventId,
-				eventType
-			)
-			expect(secondResult).toBe(false)
-		})
-
-		it('should use database unique constraint for atomic lock acquisition', async () => {
-			const eventId = 'evt_test_atomic'
-			const eventType = 'payment_intent.succeeded'
-
-			mockSupabaseClient.select.mockResolvedValue({ error: null })
-
-			await service.recordEventProcessing(eventId, eventType)
-
-			// Verify INSERT was used (not UPDATE or SELECT FOR UPDATE)
-			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
-				expect.objectContaining({
-					stripe_event_id: eventId,
-					status: 'processing'
-				})
-			)
-		})
-
-		it('should handle concurrent requests with different error message formats', async () => {
-		const eventId = 'evt_test_formats'
-		const eventType = 'payment_intent.succeeded'
-
-		// Test error formats that should be detected as duplicates
-		const errorFormats = [
-			{
-				code: '23505',
-				message:
-					'duplicate key value violates unique constraint "processed_stripe_events_pkey"'
-			},
-			{
-				code: 'OTHER_CODE',
-				message: 'duplicate entry for stripe_event_id'
-			}
-		]
-
-		for (const errorFormat of errorFormats) {
-			// Create fresh mock chain for each test
-			const mockChain = {
-				from: jest.fn().mockReturnThis(),
-				insert: jest.fn().mockReturnThis(),
-				select: jest.fn().mockResolvedValue({
-					error: errorFormat
-				})
-			}
-
-			supabase.getAdminClient = jest.fn().mockReturnValue(mockChain)
-
-			const result = await service.recordEventProcessing(eventId, eventType)
-			expect(result).toBe(false)
-		}
-	})
-	})
-
 	describe('Idempotency Workflow Integration', () => {
 	it('should handle complete workflow: check → record → mark processed', async () => {
 		const eventId = 'evt_test_workflow'
@@ -759,9 +673,10 @@ describe('StripeWebhookService', () => {
 
 		// Step 2: Record processing (acquire lock) - fresh chain
 		const recordChain = {
-			from: jest.fn().mockReturnThis(),
-			insert: jest.fn().mockReturnThis(),
-			select: jest.fn().mockResolvedValue({ error: null })
+			rpc: jest.fn().mockResolvedValue({
+				data: [{ lock_acquired: true }],
+				error: null
+			})
 		}
 
 		supabase.getAdminClient = jest.fn().mockReturnValue(recordChain)
@@ -806,9 +721,10 @@ describe('StripeWebhookService', () => {
 
 		// First attempt: Lock acquired - fresh chain
 		const lockChain1 = {
-			from: jest.fn().mockReturnThis(),
-			insert: jest.fn().mockReturnThis(),
-			select: jest.fn().mockResolvedValue({ error: null })
+			rpc: jest.fn().mockResolvedValue({
+				data: [{ lock_acquired: true }],
+				error: null
+			})
 		}
 
 		supabase.getAdminClient = jest.fn().mockReturnValue(lockChain1)
@@ -820,13 +736,9 @@ describe('StripeWebhookService', () => {
 
 		// Retry attempt: Should fail to acquire lock (already processing) - fresh chain
 		const lockChain2 = {
-			from: jest.fn().mockReturnThis(),
-			insert: jest.fn().mockReturnThis(),
-			select: jest.fn().mockResolvedValue({
-				error: {
-					code: '23505',
-					message: 'duplicate key'
-				}
+			rpc: jest.fn().mockResolvedValue({
+				data: [{ lock_acquired: false }],
+				error: null
 			})
 		}
 

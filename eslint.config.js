@@ -71,9 +71,6 @@ export default defineConfig([
 	{
 		name: 'root/generated-files-ignore',
 		ignores: [
-			'packages/database/src/generated/**/*.js',
-			'packages/database/src/generated/**/*.ts',
-			'packages/database/src/generated/**',
 			'apps/backend/test/email/**/*', // Excluded from tsconfig, ignore in ESLint too
 			'tests/**/*', // Performance and other test utilities not in tsconfig
 			'apps/frontend/src/lib/__tests__/**/*' // Test files not in tsconfig

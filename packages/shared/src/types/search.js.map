@@ -1,1 +1,0 @@
-{"version":3,"file":"search.js","sourceRoot":"","sources":["search.ts"],"names":[],"mappings":"","sourcesContent":["export type SearchResultType = 'property' | 'tenant' | 'unit' | 'lease'\n\nexport interface SearchResult {\n  id: string\n  type: SearchResultType\n  name: string\n  description?: string\n  metadata?: Record<string, unknown>\n}\n"]}

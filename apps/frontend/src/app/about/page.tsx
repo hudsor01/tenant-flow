@@ -64,7 +64,7 @@ export default function AboutPage() {
 	}
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -83,7 +83,7 @@ export default function AboutPage() {
 					title="Simplifying property management"
 					titleHighlight="for thousands of professionals"
 					subtitle="We're on a mission to transform how property managers work, grow, and succeed. Our platform empowers professionals to streamline operations and scale their business with confidence."
-					primaryCta={{ label: 'Start Free Trial', href: '/signup' }}
+					primaryCta={{ label: 'Start Free Trial', href: '/pricing' }}
 					secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
 					image={{
 						src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop',
@@ -358,7 +358,7 @@ export default function AboutPage() {
 								</p>
 								<div className="flex flex-col sm:flex-row gap-4 justify-center">
 									<Button asChild size="lg" className="group">
-										<Link href="/signup">
+										<Link href="/pricing">
 											Start Free Trial
 											<ArrowRight className="size-4 ml-2 transition-transform group-hover:translate-x-1" />
 										</Link>

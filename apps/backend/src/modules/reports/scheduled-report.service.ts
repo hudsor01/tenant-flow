@@ -45,13 +45,18 @@ export class ScheduledReportService {
 		private readonly generatedReportService: GeneratedReportService
 	) {}
 
+	private getUserClient(token: string) {
+		return this.supabaseService.getUserClient(token)
+	}
+
 	/**
 	 * Create a new scheduled report
 	 */
 	async createSchedule(
-		data: CreateScheduleData
+		data: CreateScheduleData,
+		token: string
 	): Promise<ScheduledReportRecord> {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.getUserClient(token)
 
 		// Calculate next run time
 		const nextRunAt = this.calculateNextRunAt(
@@ -93,9 +98,14 @@ export class ScheduledReportService {
 	/**
 	 * List all schedules for a user
 	 */
-	async listSchedules(userId: string): Promise<ScheduledReportRecord[]> {
-		const client = this.supabaseService.getAdminClient()
+	async listSchedules(
+		userId: string,
+		token: string
+	): Promise<ScheduledReportRecord[]> {
+		const client = this.getUserClient(token)
 
+		// Defense-in-depth: Explicit userId filter even though RLS should handle this
+		// This ensures users can only see their own scheduled reports
 		const { data, error } = await client
 			.from('scheduled_report')
 			.select('*')
@@ -113,10 +123,15 @@ export class ScheduledReportService {
 	/**
 	 * Delete a schedule (with ownership validation)
 	 */
-	async deleteSchedule(scheduleId: string, userId: string): Promise<void> {
-		const client = this.supabaseService.getAdminClient()
+	async deleteSchedule(
+		scheduleId: string,
+		userId: string,
+		token: string
+	): Promise<void> {
+		const client = this.getUserClient(token)
 
-		// First verify ownership
+		// Defense-in-depth: Verify ownership with explicit userId filter
+		// RLS should already enforce this, but we add an extra layer of security
 		const { data: schedule, error: fetchError } = await client
 			.from('scheduled_report')
 			.select('id')
@@ -133,7 +148,6 @@ export class ScheduledReportService {
 			.from('scheduled_report')
 			.delete()
 			.eq('id', scheduleId)
-			.eq('userId', userId)
 
 		if (deleteError) {
 			this.logger.error(`Failed to delete schedule: ${deleteError.message}`)

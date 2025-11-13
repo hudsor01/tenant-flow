@@ -10,9 +10,5 @@
 		"composite": false
 	},
 	"include": ["tests/**/*.ts"],
-	"exclude": ["tests/**/__snapshots__/**"],
-	"references": [
-		{ "path": "../../packages/shared" },
-		{ "path": "../../packages/testing" }
-	]
+	"exclude": ["tests/**/__snapshots__/**"]
 }
