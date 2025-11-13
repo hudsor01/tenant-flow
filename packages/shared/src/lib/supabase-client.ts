@@ -165,11 +165,3 @@ export type {
 	TablesInsert,
 	TablesUpdate
 } from '../types/supabase-generated.js'
-
-export type {
-	QueryData,
-	QueryError,
-	TenantFlowOrganizationSettings,
-	TenantFlowPropertyMetadata,
-	TenantFlowUserMetadata
-} from '../types/supabase.js'

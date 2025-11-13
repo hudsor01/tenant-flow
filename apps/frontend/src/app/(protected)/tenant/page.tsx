@@ -16,7 +16,7 @@ import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
-// import { TenantAutopayCard } from './autopay-card'
+import { TenantAutopayCard } from './autopay-card'
 import { TenantPaymentMethods } from './payments/methods/tenant-payment-methods.client'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { formatCurrency } from '@repo/shared/utils/formatting'
@@ -252,8 +252,7 @@ export default function TenantDashboardPage() {
 					</p>
 				</div>
 				<div className="grid gap-6 lg:grid-cols-2">
-					{/* TODO: Replace with Stripe Customer Portal for autopay management */}
-					{/* <TenantAutopayCard /> */}
+					<TenantAutopayCard />
 					<TenantPaymentMethods />
 				</div>
 			</section>
