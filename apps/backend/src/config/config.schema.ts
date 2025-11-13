@@ -62,7 +62,7 @@ const environmentSchema = z.object({
 		.pipe(z.enum(['ES256', 'RS256']))
 		.optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.string(),
-	SUPABASE_PROJECT_REF: z.string(),
+	SUPABASE_PROJECT_REF: z.string().default(CONFIG_DEFAULTS.SUPABASE_PROJECT_REF),
 	SUPABASE_AUTH_WEBHOOK_SECRET: z.string().optional(),
 
 	// CORS
