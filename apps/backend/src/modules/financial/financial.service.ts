@@ -7,6 +7,7 @@ import type {
 import type { Tables } from '@repo/shared/types/supabase'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { queryList } from '../../shared/utils/query-helpers'
 
 type ExpenseRecord = Tables<'expense'>
 
@@ -293,16 +294,14 @@ export class FinancialService {
 				return this.getEmptyLeaseSummary()
 			}
 
-			const { data: leases, error } = await client
-				.from('lease')
-				.select(SAFE_LEASE_COLUMNS)
-				.in('unitId', unitIds)
-
-			if (error) {
-				throw new Error(`Failed to fetch leases: ${error.message}`)
-			}
-
-			const leaseList = leases || []
+			const leaseList = await queryList<Database['public']['Tables']['lease']['Row']>(
+				client.from('lease').select(SAFE_LEASE_COLUMNS).in('unitId', unitIds) as any,
+				{
+					resource: 'leases',
+					operation: 'fetch for financial summary',
+					logger: this.logger
+				}
+			)
 			const now = new Date()
 			const thirtyDaysFromNow = new Date(
 				now.getTime() + 30 * 24 * 60 * 60 * 1000
@@ -555,21 +554,11 @@ export class FinancialService {
 				query = query.lte('date', endDate.toISOString())
 			}
 
-			const { data, error } = await query
-			if (error) {
-				this.logger.error(
-					'Failed to fetch expense data for financial metrics',
-					{
-						error: error.message,
-						propertyCount: propertyIds.length,
-						startDate: startDate?.toISOString(),
-						endDate: endDate?.toISOString()
-					}
-				)
-				return []
-			}
-
-			return (data as ExpenseRecord[]) ?? []
+			return await queryList<ExpenseRecord>(query as any, {
+				resource: 'expenses',
+				operation: 'fetch for financial metrics',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error(
 				'Unexpected error fetching expenses for financial metrics',
