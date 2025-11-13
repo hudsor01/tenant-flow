@@ -12,6 +12,11 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import {
+	querySingle,
+	queryList,
+	queryMutation
+} from '../../shared/utils/query-helpers'
 
 export interface LateFeeConfig {
 	leaseId: string
@@ -94,10 +99,16 @@ export class LateFeesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data: lease, error } = await client
-				.from('lease')
-				.select(
-					`
+			const lease = await querySingle<{
+				id: string
+				gracePeriodDays: number | null
+				lateFeeAmount: number | null
+				lateFeePercentage: number | null
+			}>(
+				client
+					.from('lease')
+					.select(
+						`
 					id,
 					gracePeriodDays,
 					lateFeeAmount,
@@ -106,11 +117,16 @@ export class LateFeesService {
 						users!tenant_userId_fkey(id, email, firstName, lastName)
 					)
 				`
-				)
-				.eq('id', leaseId)
-				.single()
-
-			if (error) throw error
+					)
+					.eq('id', leaseId)
+					.single() as any,
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'fetch late fee config',
+					logger: this.logger
+				}
+			)
 
 			return {
 				leaseId: lease.id,
@@ -176,14 +192,22 @@ export class LateFeesService {
 			const client = this.supabase.getUserClient(token)
 
 			// Update RentPayment to mark late fee applied
-			await client
-				.from('rent_payment')
-				.update({
-					lateFeeApplied: true,
-					lateFeeAmount: Math.round(lateFeeAmount * 100), // Store in cents
-					lateFeeAppliedAt: new Date().toISOString()
-				})
-				.eq('id', rentPaymentId)
+			await queryMutation(
+				client
+					.from('rent_payment')
+					.update({
+						lateFeeApplied: true,
+						lateFeeAmount: Math.round(lateFeeAmount * 100), // Store in cents
+						lateFeeAppliedAt: new Date().toISOString()
+					})
+					.eq('id', rentPaymentId),
+				{
+					resource: 'rent payment',
+					id: rentPaymentId,
+					operation: 'mark late fee applied',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log('Late fee applied successfully', {
 				invoiceItemId: invoiceItem.id,
@@ -233,17 +257,28 @@ export class LateFeesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's rent payments
 			const client = this.supabase.getUserClient(token)
 
-			const { data: payments, error } = await client
-				.from('rent_payment')
-				.select('id, amount, dueDate, lateFeeApplied, status')
-				.eq('leaseId', leaseId)
-				.in('status', ['PENDING', 'FAILED'])
-				.order('dueDate', { ascending: true })
-
-			if (error) throw error
+			const payments = await queryList<{
+				id: string
+				amount: number
+				dueDate: string | null
+				lateFeeApplied: boolean | null
+				status: string
+			}>(
+				client
+					.from('rent_payment')
+					.select('id, amount, dueDate, lateFeeApplied, status')
+					.eq('leaseId', leaseId)
+					.in('status', ['PENDING', 'FAILED'])
+					.order('dueDate', { ascending: true }) as any,
+				{
+					resource: 'rent payments',
+					operation: 'fetch overdue',
+					logger: this.logger
+				}
+			)
 
 			const now = new Date()
-			const overduePayments = (payments || [])
+			const overduePayments = payments
 				.filter(payment => payment.dueDate !== null) // Filter out payments without due dates
 				.map(payment => {
 					const dueDate = new Date(payment.dueDate!)
@@ -326,13 +361,19 @@ export class LateFeesService {
 			const client = this.supabase.getUserClient(token)
 
 			// Get Stripe customer ID from authenticated user
-			const { data: userData, error: userError } = await client
-				.from('users')
-				.select('stripeCustomerId')
-				.eq('id', ownerId) // Use the validated ownerId
-				.single()
+			const userData = await querySingle<{
+				stripeCustomerId: string | null
+			}>(
+				client.from('users').select('stripeCustomerId').eq('id', ownerId).single(),
+				{
+					resource: 'user',
+					id: ownerId,
+					operation: 'fetch Stripe customer ID',
+					logger: this.logger
+				}
+			)
 
-			if (userError || !userData?.stripeCustomerId) {
+			if (!userData.stripeCustomerId) {
 				throw new BadRequestException('Owner Stripe customer not found')
 			}
 
@@ -423,11 +464,15 @@ export class LateFeesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { error } = await client.from('lease').update(updateData).eq('id', leaseId)
-
-			if (error) {
-				throw error
-			}
+			await queryMutation(
+				client.from('lease').update(updateData).eq('id', leaseId),
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'update late fee config',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log('Late fee config updated successfully', { leaseId })
 		} catch (error) {
