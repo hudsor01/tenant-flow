@@ -42,7 +42,7 @@ export function useConnectedAccount() {
 		queryKey: stripeConnectKeys.account(),
 		queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
 			const response = await clientFetch<ConnectAccountResponse>(
-				'/api/v1/stripe-connect/account'
+				'/api/v1/stripe/connect/account'
 			)
 			return response.data
 		},
@@ -62,7 +62,7 @@ export function useCreateConnectedAccount() {
 		mutationFn: async (
 			request: CreateConnectAccountRequest
 		): Promise<ConnectAccountResponse> => {
-			return clientFetch('/api/v1/stripe-connect/create', {
+		return clientFetch('/api/v1/stripe/connect/onboard', {
 				method: 'POST',
 				body: JSON.stringify(request)
 			})
@@ -80,8 +80,8 @@ export function useCreateConnectedAccount() {
 export function useRefreshOnboarding() {
 	return useMutation({
 		mutationFn: async (): Promise<OnboardingUrlResponse> => {
-			return clientFetch<OnboardingUrlResponse>(
-				'/api/v1/stripe-connect/refresh-onboarding',
+		return clientFetch<OnboardingUrlResponse>(
+			'/api/v1/stripe/connect/refresh-link',
 				{
 					method: 'POST'
 				}
@@ -101,7 +101,7 @@ export function usePrefetchConnectedAccount() {
 			queryKey: stripeConnectKeys.account(),
 			queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
 				const response = await clientFetch<ConnectAccountResponse>(
-					'/api/v1/stripe-connect/account'
+					'/api/v1/stripe/connect/account'
 				)
 				return response.data
 			},
