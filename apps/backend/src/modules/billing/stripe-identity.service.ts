@@ -208,7 +208,7 @@ export class StripeIdentityService {
 			.getAdminClient()
 			.from('users')
 			.select('id')
-			.eq('identityVerificationSessionId', session.id)
+			.eq('identityverificationsessionid', session.id)
 			.single()
 
 		return data?.id ?? null
