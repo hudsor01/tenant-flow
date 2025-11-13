@@ -1,4 +1,7 @@
 /**
+'use client'
+
+/**
  * Tenant Documents
  *
  * Shows all documents related to the tenant's lease:
@@ -10,8 +13,6 @@
  * - Important notices
  */
 
-'use client'
-
 import { useTenantPortalDocuments } from '#hooks/api/use-tenant-portal'
 import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
@@ -21,7 +22,11 @@ import { Skeleton } from '#components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
+
 const logger = createLogger({ component: 'TenantDocumentsPage' })
+
+// Next.js 16: Dynamic behavior is controlled by cacheComponents
+// Remove force-dynamic as it's incompatible with cacheComponents
 
 export default function TenantDocumentsPage() {
 	const { data, isLoading, error, refetch } = useTenantPortalDocuments()

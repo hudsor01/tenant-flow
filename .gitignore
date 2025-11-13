@@ -21,7 +21,6 @@ packages/**/*.tgz
 doppler.env
 .env.test
 .serena/
-# Generated lease documents only
 **/lease-documents/**/*.pdf
 apps/backend/assets/generated-*.pdf
 *.pdf
@@ -299,8 +298,6 @@ docker-compose.secrets.yml
 temp/
 
 # Development files
-CLAUDE.md
-claude.md
 mcp.json
 .mcp.json
 .claude/
@@ -312,7 +309,6 @@ backend_logs.json
 # DOCUMENTATION & EXAMPLES
 docs/
 documentation/
-*.md
 !README.md
 !LICENSE.md
 !SECURITY.md

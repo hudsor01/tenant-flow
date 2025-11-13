@@ -441,7 +441,7 @@ export default function FeaturesPage() {
 									background={<FileMarquee />}
 									Icon={FileText}
 									description="AI-powered document analysis and automated lease processing with real-time file previews"
-									href="/features/documents"
+									href="/manage/documents"
 									cta="Explore Documents"
 								/>
 								<BentoCard
@@ -449,7 +449,7 @@ export default function FeaturesPage() {
 									background={<NotificationList />}
 									Icon={Bell}
 									description="Intelligent notification system that keeps you updated on all property activities and deadlines"
-									href="/features/notifications"
+									href="/manage/settings"
 									cta="View Notifications"
 								/>
 								<BentoCard
@@ -457,7 +457,7 @@ export default function FeaturesPage() {
 									background={<FinancialDashboard />}
 									Icon={TrendingUp}
 									description="Real-time revenue tracking, occupancy metrics, and financial insights to maximize your NOI"
-									href="/features/analytics"
+									href="/manage/analytics/financial"
 									cta="View Analytics"
 								/>
 								<BentoCard
@@ -465,7 +465,7 @@ export default function FeaturesPage() {
 									background={<IntegrationBeam />}
 									Icon={Building}
 									description="Connect with Stripe, Supabase, and more for a unified property management ecosystem"
-									href="/features/integrations"
+									href="/pricing"
 									cta="See Integrations"
 								/>
 							</BentoGrid>

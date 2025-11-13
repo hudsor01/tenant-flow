@@ -1,11 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Unit } from '@repo/shared/types/core'
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
-} from '@repo/shared/types/backend-domain'
-import type { Unit } from '@repo/shared/types/core'
+} from '@repo/shared/types/api-contracts'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'

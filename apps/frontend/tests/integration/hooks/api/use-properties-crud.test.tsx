@@ -27,7 +27,7 @@ import {
 	propertiesKeys
 } from '#hooks/api/use-properties'
 import type { Property } from '@repo/shared/types/core'
-import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
