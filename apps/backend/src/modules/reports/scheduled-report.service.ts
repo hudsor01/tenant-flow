@@ -99,14 +99,17 @@ export class ScheduledReportService {
 	 * List all schedules for a user
 	 */
 	async listSchedules(
-		_userId: string,
+		userId: string,
 		token: string
 	): Promise<ScheduledReportRecord[]> {
 		const client = this.getUserClient(token)
 
+		// Defense-in-depth: Explicit userId filter even though RLS should handle this
+		// This ensures users can only see their own scheduled reports
 		const { data, error } = await client
 			.from('scheduled_report')
 			.select('*')
+			.eq('userId', userId)
 			.order('createdAt', { ascending: false })
 
 		if (error) {
@@ -122,16 +125,18 @@ export class ScheduledReportService {
 	 */
 	async deleteSchedule(
 		scheduleId: string,
-		_userId: string,
+		userId: string,
 		token: string
 	): Promise<void> {
 		const client = this.getUserClient(token)
 
-		// First verify ownership
+		// Defense-in-depth: Verify ownership with explicit userId filter
+		// RLS should already enforce this, but we add an extra layer of security
 		const { data: schedule, error: fetchError } = await client
 			.from('scheduled_report')
 			.select('id')
 			.eq('id', scheduleId)
+			.eq('userId', userId)
 			.single()
 
 		if (fetchError || !schedule) {

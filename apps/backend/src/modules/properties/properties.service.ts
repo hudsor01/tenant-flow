@@ -160,7 +160,7 @@ export class PropertiesService {
 	 * October 2025: Validation now handled by ZodValidationPipe in controller
 	 */
 	async create(
-		req: Request,
+		req: AuthenticatedRequest,
 		request: CreatePropertyRequest
 	): Promise<Property> {
 		const token = getTokenFromRequest(req)
@@ -172,7 +172,7 @@ export class PropertiesService {
 		// NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
 		// RLS policy validates: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
 		// No need to query users table - just use the ID from the authenticated request
-		const ownerId = (req as AuthenticatedRequest).user.id
+		const ownerId = req.user.id
 
 		// Zod validation already handles trim().min(1) - no need for redundant checks
 

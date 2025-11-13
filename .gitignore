@@ -21,7 +21,9 @@ packages/**/*.tgz
 doppler.env
 .env.test
 .serena/
-.supabase/
+# Generated lease documents only
+**/lease-documents/**/*.pdf
+apps/backend/assets/generated-*.pdf
 *.pdf
 
 # Local environment files

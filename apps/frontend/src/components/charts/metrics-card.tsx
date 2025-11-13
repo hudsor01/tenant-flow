@@ -10,13 +10,13 @@ import type { MetricsCardProps } from '@repo/shared/types/frontend-ui'
 import * as React from 'react'
 
 const colorMap = {
-	success: 'metric-success',
-	primary: 'metric-primary',
-	revenue: 'metric-revenue',
-	property: 'metric-primary',
-	warning: 'metric-warning',
-	info: 'metric-info',
-	neutral: 'metric-neutral'
+	success: 'success',
+	primary: 'primary',
+	revenue: 'success',
+	property: 'primary',
+	warning: 'warning',
+	info: 'info',
+	neutral: 'muted-foreground'
 } as const
 
 export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
@@ -48,7 +48,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				)}
 				style={{
 					borderLeftColor: `var(--color-${colorToken})`,
-					backgroundColor: `var(--color-${colorToken}-bg)`
+					backgroundColor: `var(--color-${colorToken}-10)`
 				}}
 				{...props}
 			>
@@ -61,8 +61,8 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 							<div
 								className="flex shrink-0 items-center justify-center rounded-lg size-10"
 								style={{
-									backgroundColor: `var(--color-${colorToken}-bg)`,
-									border: `1px solid var(--color-${colorToken}-border)`
+									backgroundColor: `var(--color-${colorToken}-10)`,
+									border: `1px solid var(--color-${colorToken}-25)`
 								}}
 							>
 								<Icon className="size-5" />
@@ -72,7 +72,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 					<CardTitle
 						className="tabular-nums @[250px]/card:text-3xl font-semibold text-2xl leading-tight"
 						style={{
-							color: `var(--color-${colorToken}-text)`
+							color: `var(--color-${colorToken})`
 						}}
 					>
 						{value}

@@ -35,7 +35,7 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/backend-domain'
 import { TenantsService } from './tenants.service'
-import { TenantInvitationService } from './tenant-invitation.service'
+import { TenantInvitationService, type TenantInvitationResult } from './tenant-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
@@ -311,7 +311,7 @@ export class TenantsController {
 		@Body() body: InviteWithLeaseDto,
 		@Req() req: AuthenticatedRequest,
 		@ConnectedAccountId() connectedAccountId: string
-	) {
+	): Promise<TenantInvitationResult> {
 		const userId = req.user.id
 
 		return this.tenantInvitationService.inviteTenantWithLease(

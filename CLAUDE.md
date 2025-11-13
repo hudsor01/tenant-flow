@@ -174,8 +174,10 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 
 ## Deployment
 
-**Frontend**: Vercel (https://tenantflow.app) - auto-deploy from main
-**Backend**: Railway (https://api.tenantflow.app) - Dockerfile
+## Deployment
+
+**Frontend**: Vercel (<https://tenantflow.app>) - auto-deploy from main
+**Backend**: Railway (<https://api.tenantflow.app>) - Dockerfile
 **Known**: Vercel middleware warning (cosmetic), validator.js CVE-2025-56200 (LOW risk, transitive)
 
 ## Turborepo
