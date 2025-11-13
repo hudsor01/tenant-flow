@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { queryMutation } from '../../shared/utils/query-helpers'
 
 type NotificationType =
 	| 'subscription_created'
@@ -71,19 +72,14 @@ export class NotificationService {
 				updatedAt: now
 			}
 
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.insert(record)
-
-			if (error) {
-				this.logger.error('Failed to create notification', {
-					error,
-					userId: params.userId,
-					type: params.type
-				})
-				throw error
-			}
+			await queryMutation(
+				this.supabaseService.getAdminClient().from('notifications').insert(record),
+				{
+					resource: 'notification',
+					operation: 'create',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log('Notification created', {
 				userId: params.userId,
@@ -140,18 +136,14 @@ export class NotificationService {
 					}
 				})
 
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.insert(records)
-
-			if (error) {
-				this.logger.error('Failed to create bulk notifications', {
-					error,
-					count: notifications.length
-				})
-				throw error
-			}
+			await queryMutation(
+				this.supabaseService.getAdminClient().from('notifications').insert(records),
+				{
+					resource: 'notifications',
+					operation: 'bulk create',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log('Bulk notifications created', {
 				count: notifications.length
@@ -170,22 +162,22 @@ export class NotificationService {
 	 */
 	async markAsRead(notificationId: string): Promise<void> {
 		try {
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.update({
-					isRead: true,
-					readAt: new Date().toISOString()
-				})
-				.eq('id', notificationId)
-
-			if (error) {
-				this.logger.error('Failed to mark notification as read', {
-					error,
-					notificationId
-				})
-				throw error
-			}
+			await queryMutation(
+				this.supabaseService
+					.getAdminClient()
+					.from('notifications')
+					.update({
+						isRead: true,
+						readAt: new Date().toISOString()
+					})
+					.eq('id', notificationId),
+				{
+					resource: 'notification',
+					id: notificationId,
+					operation: 'mark as read',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Error marking notification as read', {
 				error: error instanceof Error ? error.message : String(error),
@@ -233,19 +225,21 @@ export class NotificationService {
 			const thirtyDaysAgo = new Date()
 			thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-			const { error, count } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.delete()
-				.lt('created_at', thirtyDaysAgo.toISOString())
-				.eq('is_read', true)
+			await queryMutation(
+				this.supabaseService
+					.getAdminClient()
+					.from('notifications')
+					.delete()
+					.lt('created_at', thirtyDaysAgo.toISOString())
+					.eq('is_read', true),
+				{
+					resource: 'notifications',
+					operation: 'cleanup old',
+					logger: this.logger
+				}
+			)
 
-			if (error) {
-				this.logger.error('Failed to cleanup old notifications', { error })
-				throw error
-			}
-
-			this.logger.log('Old notifications cleaned up', { count })
+			this.logger.log('Old notifications cleaned up')
 		} catch (error) {
 			this.logger.error('Error cleaning up old notifications', {
 				error: error instanceof Error ? error.message : String(error)
