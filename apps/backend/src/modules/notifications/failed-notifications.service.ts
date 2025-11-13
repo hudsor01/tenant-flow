@@ -8,6 +8,7 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { queryList, queryMutation } from '../../shared/utils/query-helpers'
 
 const SAFE_FAILED_NOTIFICATIONS_COLUMNS = `
 	id,
@@ -52,10 +53,14 @@ export class FailedNotificationsService implements OnModuleDestroy {
 		last_attempt_at: string
 	}) {
 		const client = this.supabase.getAdminClient()
-		return await client
-			.schema('public')
-			.from('failed_notifications')
-			.insert(data)
+		return await queryMutation(
+			client.schema('public').from('failed_notifications').insert(data),
+			{
+				resource: 'failed notification',
+				operation: 'insert',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -75,7 +80,7 @@ export class FailedNotificationsService implements OnModuleDestroy {
 					? normalizedEventData
 					: { payload: normalizedEventData }
 
-			const { error: insertError } = await this.insertFailedNotification({
+			await this.insertFailedNotification({
 				event_type: eventType,
 				event_data: normalizedEventData,
 				error_message: error.message,
@@ -83,16 +88,6 @@ export class FailedNotificationsService implements OnModuleDestroy {
 				attempt_count: safeAttemptCount,
 				last_attempt_at: new Date().toISOString()
 			})
-
-			if (insertError) {
-				this.logger.error('Failed to persist notification failure', {
-					eventType,
-					eventData: eventDataForLogging,
-					errorMessage: error.message,
-					insertError: insertError.message
-				})
-				return
-			}
 
 			this.logger.error('Failed notification logged', {
 				eventType,
@@ -166,21 +161,19 @@ export class FailedNotificationsService implements OnModuleDestroy {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			const { data, error } = await client
-				.schema('public')
-				.from('failed_notifications')
-				.select(SAFE_FAILED_NOTIFICATIONS_COLUMNS)
-				.order('created_at', { ascending: false })
-				.limit(limit)
-
-			if (error) {
-				this.logger.error('Failed to query failed notifications', {
-					error: error.message
-				})
-				return []
-			}
-
-			return data ?? []
+			return await queryList<FailedNotification>(
+				client
+					.schema('public')
+					.from('failed_notifications')
+					.select(SAFE_FAILED_NOTIFICATIONS_COLUMNS)
+					.order('created_at', { ascending: false })
+					.limit(limit) as any,
+				{
+					resource: 'failed notifications',
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Failed to get failed notifications', {
 				error: error instanceof Error ? error.message : String(error)
