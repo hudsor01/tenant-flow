@@ -17,6 +17,7 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
+import { queryMutation } from '../../shared/utils/query-helpers'
 
 // Zod schemas for runtime validation
 // Note: RPC returns subset of full Tenant/Lease types - validate essential fields only
@@ -340,29 +341,32 @@ export class TenantInvitationService {
 	) {
 		const client = this.supabase.getAdminClient()
 
-		const results = await Promise.all([
-			client
-				.from('tenant')
-				.update({ stripeCustomerId: customerId })
-				.eq('id', tenantId),
-			client
-				.from('lease')
-				.update({ stripeSubscriptionId: subscriptionId })
-				.eq('id', leaseId)
+		await Promise.all([
+			queryMutation(
+				client
+					.from('tenant')
+					.update({ stripeCustomerId: customerId })
+					.eq('id', tenantId),
+				{
+					resource: 'tenant',
+					id: tenantId,
+					operation: 'update Stripe customer ID',
+					logger: this.logger
+				}
+			),
+			queryMutation(
+				client
+					.from('lease')
+					.update({ stripeSubscriptionId: subscriptionId })
+					.eq('id', leaseId),
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'update Stripe subscription ID',
+					logger: this.logger
+				}
+			)
 		])
-
-		for (const { error } of results) {
-			if (error) {
-				this.logger.error('Failed to link Stripe resources', {
-					tenantId,
-					leaseId,
-					error: error.message
-				})
-				throw new BadRequestException(
-					'Failed to link Stripe subscription. Please contact support.'
-				)
-			}
-		}
 	}
 
 	/**
@@ -426,21 +430,23 @@ export class TenantInvitationService {
 		const authUserId = authUser.user.id
 
 		// Link auth user to tenant
-		const { error: updateError } = await client
-			.from('tenant')
-			.update({
-				auth_user_id: authUserId,
-				invitation_status:
-					'SENT' as Database['public']['Enums']['invitation_status'],
-				invitation_sent_at: new Date().toISOString()
-			})
-			.eq('id', tenant.id)
-
-		if (updateError) {
-			throw new BadRequestException(
-				`Failed to link auth user: ${updateError.message}`
-			)
-		}
+		await queryMutation(
+			client
+				.from('tenant')
+				.update({
+					auth_user_id: authUserId,
+					invitation_status:
+						'SENT' as Database['public']['Enums']['invitation_status'],
+					invitation_sent_at: new Date().toISOString()
+				})
+				.eq('id', tenant.id),
+			{
+				resource: 'tenant',
+				id: tenant.id,
+				operation: 'link auth user',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log('Invitation email sent', {
 			tenantId: tenant.id,
