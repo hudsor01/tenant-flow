@@ -8,7 +8,7 @@ export function useTenantPortalSetupAutopay() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (params: { tenantId: string; leaseId: string }) => {
+		mutationFn: async (params: { tenantId: string; leaseId: string; paymentMethodId?: string }) => {
 			return clientFetch('/api/v1/rent-payments/autopay/setup', {
 				method: 'POST',
 				body: JSON.stringify(params)
@@ -26,7 +26,7 @@ export function useTenantPortalCancelAutopay() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (params: { tenantId: string; leaseId: string }) => {
+		mutationFn: async (params: { tenantId: string; leaseId: string; paymentMethodId?: string }) => {
 			return clientFetch('/api/v1/rent-payments/autopay/cancel', {
 				method: 'POST',
 				body: JSON.stringify(params)

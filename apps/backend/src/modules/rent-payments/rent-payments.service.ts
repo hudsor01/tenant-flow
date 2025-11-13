@@ -643,16 +643,33 @@ export class RentPaymentsService {
 				})
 			}
 
-			// Create Stripe Subscription for recurring rent (no platform fee)
-			const amountInCents = this.normalizeAmount(lease.rentAmount)
+		// Create Stripe Subscription for recurring rent (no platform fee)
+		const amountInCents = this.normalizeAmount(lease.rentAmount)
+
+		const { data: nextRentPayment } = await adminClient
+			.from('rent_payment')
+			.select('dueDate')
+			.eq('leaseId', lease.id)
+			.in('status', ['DUE', 'PENDING'])
+			.order('dueDate', { ascending: true })
+			.limit(1)
+			.maybeSingle()
+
+		let billingCycleAnchor: number | undefined
+		if (nextRentPayment?.dueDate) {
+			const anchor = new Date(nextRentPayment.dueDate)
+			if (anchor.getTime() > Date.now()) {
+				billingCycleAnchor = Math.floor(anchor.getTime() / 1000)
+			}
+		}
 
 			// Idempotency key prevents duplicate subscriptions - uses stable identifiers only
 			const subscriptionIdempotencyKey = `subscription-${tenantId}-${leaseId}`
 			const subscription = await this.stripe.subscriptions.create(
-				{
-					customer: stripeCustomer.id,
-					items: [
-						{
+			{
+				customer: stripeCustomer.id,
+				items: [
+					{
 							price_data: {
 								currency: 'usd',
 								product_data: {
@@ -670,12 +687,18 @@ export class RentPaymentsService {
 							} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
 						}
 					],
-					transfer_data: {
-						destination: owner.stripeAccountId as string
-					},
-					metadata: {
-						tenantId,
-						leaseId: lease.id,
+				transfer_data: {
+					destination: owner.stripeAccountId as string
+				},
+				...(billingCycleAnchor
+					? {
+							billing_cycle_anchor: billingCycleAnchor,
+							proration_behavior: 'none'
+					  }
+					: {}),
+				metadata: {
+					tenantId,
+					leaseId: lease.id,
 						ownerId: owner.id,
 						paymentType: 'autopay'
 					},
