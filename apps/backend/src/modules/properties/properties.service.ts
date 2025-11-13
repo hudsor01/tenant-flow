@@ -17,7 +17,7 @@ import {
 import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type {
 	Property,
 	PropertyStats,

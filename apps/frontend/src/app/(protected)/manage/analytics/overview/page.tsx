@@ -13,6 +13,9 @@ import { getAnalyticsPageData } from '#lib/api/dashboard-server'
 import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
 
+// Next.js 16: Dynamic behavior is controlled by cacheComponents
+// Remove force-dynamic as it's incompatible with cacheComponents
+
 export default async function AnalyticsPage() {
 	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
 	const {
