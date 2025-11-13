@@ -14,7 +14,7 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
-import { usePaymentHistory } from '#hooks/api/use-payment-history'
+import { PaymentHistoryItem, usePaymentHistory } from '#hooks/api/use-payment-history'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCurrency } from '@repo/shared/utils/formatting'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
@@ -137,9 +137,9 @@ export default function TenantPaymentHistoryPage() {
 					)}
 
 					{/* Payment Rows */}
-					{!paymentsLoading &&
-						hasPayments &&
-						payments.map(payment => (
+				{!paymentsLoading &&
+					hasPayments &&
+					payments.map((payment: PaymentHistoryItem) => (
 							<div
 								key={payment.id}
 								className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
