@@ -10,14 +10,13 @@
  */
 
 import { InternalServerErrorException, Logger } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { AppConfigService } from '../config/app-config.service'
 import { SilentLogger } from '../__test__/silent-logger'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
-import { SupabaseModule } from './supabase.module'
 import { SupabaseService } from './supabase.service'
 
 describe('SupabaseService', () => {
@@ -41,9 +40,26 @@ describe('SupabaseService', () => {
 		mockAdminClient = {
 			rpc: jest.fn(),
 			from: jest.fn(),
-			auth: {},
-			storage: {}
+			auth: {
+				signIn: jest.fn(),
+				signUp: jest.fn(),
+				signOut: jest.fn(),
+				getSession: jest.fn()
+			},
+			storage: {
+				from: jest.fn(() => ({
+					upload: jest.fn(),
+					download: jest.fn(),
+					remove: jest.fn()
+				}))
+			}
 		} as unknown as SupabaseClient<Database>
+
+		const mockAppConfigService = {
+			getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
+			getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
+			getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+		}
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -51,6 +67,10 @@ describe('SupabaseService', () => {
 				{
 					provide: SUPABASE_ADMIN_CLIENT,
 					useValue: mockAdminClient
+				},
+				{
+					provide: AppConfigService,
+					useValue: mockAppConfigService
 				}
 			]
 		})
@@ -81,45 +101,18 @@ describe('SupabaseService', () => {
 			)
 		})
 
-		it('should throw error when SUPABASE configuration is missing in module factory', () => {
-			const moduleDefinition = SupabaseModule.forRootAsync()
-			const adminProvider = moduleDefinition.providers?.find(
-				provider =>
-					typeof provider === 'object' &&
-					'provide' in provider &&
-					provider.provide === SUPABASE_ADMIN_CLIENT
-			)
-
-			expect(adminProvider).toBeDefined()
-			if (
-				!adminProvider ||
-				typeof adminProvider !== 'object' ||
-				!('useFactory' in adminProvider)
-			) {
-				throw new Error('Supabase admin provider not found')
+		it('should handle missing environment variables correctly', () => {
+			const mockAppConfigService = {
+				getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
+				getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
+				getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
 			}
 
-			const mockConfigService = {
-				get: jest.fn((key: string) => {
-					if (key === 'SUPABASE_URL') return undefined
-					if (key === 'SUPABASE_SECRET_KEY') return 'test-key'
-					return undefined
-				})
-			} as unknown as ConfigService
+			const testService = new SupabaseService(mockAdminClient as any, mockAppConfigService as any)
 
-			const previousUrl = process.env.SUPABASE_URL
-			const previousKey = process.env.SUPABASE_SECRET_KEY
-			delete process.env.SUPABASE_URL
-			delete process.env.SUPABASE_SECRET_KEY
-
-			expect(() =>
-				(
-					adminProvider as { useFactory: (config: ConfigService) => unknown }
-				).useFactory(mockConfigService)
-			).toThrow(/Missing Supabase configuration/i)
-
-			if (previousUrl) process.env.SUPABASE_URL = previousUrl
-			if (previousKey) process.env.SUPABASE_SECRET_KEY = previousKey
+			// The service should be created but getUserClient should throw when called with missing publishable key
+			expect(testService).toBeDefined()
+			expect(() => testService.getUserClient('test-token')).toThrow(InternalServerErrorException)
 		})
 	})
 
@@ -149,19 +142,29 @@ describe('SupabaseService', () => {
 		})
 
 		it('should throw error when creating user client without SUPABASE_URL', () => {
-			delete process.env.SUPABASE_URL
-			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key'
+			const mockAppConfigService = {
+				getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
+				getSupabaseUrl: jest.fn().mockReturnValue(undefined),
+				getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+			}
 
-			expect(() => service.getUserClient('test-token')).toThrow(
+			const testService = new SupabaseService(mockAdminClient as any, mockAppConfigService as any)
+
+			expect(() => testService.getUserClient('test-token')).toThrow(
 				InternalServerErrorException
 			)
 		})
 
 		it('should throw error when creating user client without SUPABASE_PUBLISHABLE_KEY', () => {
-			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-			delete process.env.SUPABASE_PUBLISHABLE_KEY
+			const mockAppConfigService = {
+				getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
+				getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
+				getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
+			}
 
-			expect(() => service.getUserClient('test-token')).toThrow(
+			const testService = new SupabaseService(mockAdminClient as any, mockAppConfigService as any)
+
+			expect(() => testService.getUserClient('test-token')).toThrow(
 				InternalServerErrorException
 			)
 		})
@@ -213,11 +216,15 @@ describe('SupabaseService', () => {
 		})
 
 		it('should handle missing environment variables correctly', () => {
-			// Test environment variable validation
-			delete process.env.SUPABASE_URL
-			delete process.env.SUPABASE_PUBLISHABLE_KEY
+			const mockAppConfigService = {
+				getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
+				getSupabaseUrl: jest.fn().mockReturnValue(undefined),
+				getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
+			}
 
-			expect(() => service.getUserClient('test-token')).toThrow()
+			const testService = new SupabaseService(mockAdminClient as any, mockAppConfigService as any)
+
+			expect(() => testService.getUserClient('test-token')).toThrow()
 		})
 	})
 

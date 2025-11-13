@@ -1,18 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "TenantFlow Database Package Config (Modernized 2025)",
-  "extends": "../typescript-config/base.json",
+  "extends": "../typescript-config/node-library.json",
   "compilerOptions": {
-    "lib": ["ES2022"],
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "noEmit": false,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "types": ["node"]
   },

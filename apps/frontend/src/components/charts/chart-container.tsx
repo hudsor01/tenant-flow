@@ -73,7 +73,7 @@ export const TENANTFLOW_CHART_CONFIG = {
 	tooltip: {
 		backgroundColor: 'var(--popover)',
 		border: '1px solid var(--border)',
-		borderRadius: '8px',
+		borderRadius: 'var(--radius-medium)',
 		padding: '12px',
 		fontSize: '14px',
 		fontFamily: 'var(--font-sans)',

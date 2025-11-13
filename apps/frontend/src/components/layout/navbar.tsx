@@ -255,9 +255,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
-					'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-full px-4 py-2 w-auto',
+					'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-(--radius-medium) px-6 py-3 w-auto',
 					isScrolled
-						? 'top-0 bg-card backdrop-blur-2xl shadow-2xl border border-(--color-fill-secondary)/30 scale-[0.98]'
+						? 'top-2 bg-card backdrop-blur-2xl shadow-2xl border border-(--color-fill-secondary)/30 scale-[0.98]'
 						: 'top-4 bg-card/90 backdrop-blur-xl shadow-lg border border-(--color-fill-secondary)/20',
 					'hover:bg-card hover:shadow-xl',
 					className
@@ -376,7 +376,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								</div>
 								<button
 									onClick={handleSignOut}
-									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-xl hover:bg-muted/50 transition-all duration-300 font-medium"
+									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-(--radius-medium) hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign Out
 								</button>
@@ -385,7 +385,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							<>
 								<Link
 									href="/login"
-									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-xl hover:bg-muted/50 transition-all duration-300 font-medium"
+									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-(--radius-medium) hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign In
 								</Link>
@@ -399,7 +399,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								>
 									<Link
 										href={ctaHref}
-										className="hidden sm:flex items-center px-6 py-2.5 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
+										className="hidden sm:flex items-center px-6 py-2.5 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-(--radius-medium) hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
 									>
 										{ctaText}
 										<ArrowRight className="ml-2 size-4" />
@@ -418,7 +418,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								isOpen ? 'Close navigation menu' : 'Open navigation menu'
 							}
 							data-testid="mobile-nav-toggle"
-							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
+							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200"
 						>
 							{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 						</animated.button>
@@ -444,7 +444,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												href={item.href}
 												onClick={() => !item.hasDropdown && setIsOpen(false)}
 												className={cn(
-													'relative flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200',
+													'relative flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200',
 													isActiveLink(item.href) &&
 														'text-foreground bg-muted/50 border-l-2 border-l-[--color-accent-main]'
 												)}

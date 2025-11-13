@@ -203,38 +203,17 @@ process.env.HEALTH_CHECK_FUNCTION = 'get_system_health'
 process.env.PUBLIC_CACHE_MAX_AGE = '3600'
 
 // Provide test environment variables if not already set (for CI/CD)
-if (!process.env.SUPABASE_URL)
-	process.env.SUPABASE_URL = 'https://bshjmbshupiibfiewpxb.supabase.co'
-if (!process.env.SUPABASE_PUBLISHABLE_KEY)
-	process.env.SUPABASE_PUBLISHABLE_KEY =
-		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MDc1MDYsImV4cCI6MjA2Mzk4MzUwNn0.K9cR4SN_MtutRWPJsymtAtlHpEJFyfnQgtu8BjQRqko'
-if (!process.env.SUPABASE_SECRET_KEY)
-	process.env.SUPABASE_SECRET_KEY =
-		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGptYnNodXBpaWJmaWV3cHhiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0ODQwNzUwNiwiZXhwIjoyMDYzOTgzNTA2fQ.PFaXW2WMhUSF9cFpZLdc8gA2zPwtNQSUW9MSiVINdKs'
-const DEFAULT_TEST_JWT_SECRET = 'test-jwt-secret-for-authentication-2025!!'
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-	process.env.JWT_SECRET = DEFAULT_TEST_JWT_SECRET
+// NOTE: These should be loaded from .env.test file instead of hardcoded here
+// The .env.test file contains mock/test values that are safe to commit
+if (!process.env.SUPABASE_URL) {
+	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
-// DIRECT_URL should fall back to DATABASE_URL if not set (same database)
-if (!process.env.DATABASE_URL)
-	process.env.DATABASE_URL =
-		'postgresql://postgres.bshjmbshupiibfiewpxb:bornir-7fyxbi-Timgen@aws-0-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true'
-if (!process.env.DIRECT_URL && process.env.DATABASE_URL)
-	process.env.DIRECT_URL = process.env.DATABASE_URL
-if (!process.env.DIRECT_URL)
-	process.env.DIRECT_URL =
-		'postgresql://postgres.bshjmbshupiibfiewpxb:kidmEr-mipsiz-8wazvo@aws-0-us-east-2.pooler.supabase.com:5432/postgres'
-if (!process.env.CORS_ORIGINS)
-	process.env.CORS_ORIGINS = 'https://tenantflow.app'
-// Use mock test keys that don't match real Stripe patterns
-// These are for testing only and will not work with actual Stripe API
-if (!process.env.STRIPE_SECRET_KEY)
-	process.env.STRIPE_SECRET_KEY = 'test_stripe_secret_key_mock'
-if (!process.env.STRIPE_WEBHOOK_SECRET)
-	process.env.STRIPE_WEBHOOK_SECRET = 'test_webhook_secret_mock'
-if (!process.env.STRIPE_PUBLISHABLE_KEY)
-	process.env.STRIPE_PUBLISHABLE_KEY = 'test_stripe_publishable_key_mock'
-
+if (!process.env.SUPABASE_PUBLISHABLE_KEY) {
+	process.env.SUPABASE_PUBLISHABLE_KEY = 'mock_publishable_key'
+}
+if (!process.env.SUPABASE_SECRET_KEY) {
+	process.env.SUPABASE_SECRET_KEY = 'demo-service-key-mock'
+}
 if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
 	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
 }

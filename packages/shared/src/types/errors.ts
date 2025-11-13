@@ -140,7 +140,7 @@ export interface StandardApiResponse<T = unknown> {
 }
 
 // Generic API response - union type for type-safe error handling
-export type { ApiResponse } from './core'
+export type { ApiResponse } from './core.js'
 
 // Export StandardApiResponse as ApiResponse for backend controllers
 export type { StandardApiResponse as ControllerApiResponse }
@@ -188,4 +188,4 @@ export interface UserFriendlyError {
 }
 
 // Error type for categorization
-export type { ErrorType } from './api'
+export type { ErrorType } from './api.js'
