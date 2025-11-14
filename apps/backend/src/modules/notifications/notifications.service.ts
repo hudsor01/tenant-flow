@@ -1,8 +1,7 @@
 import {
 	BadRequestException,
 	Injectable,
-	Logger,
-	UnauthorizedException
+	Logger
 } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import type { MaintenanceNotificationData } from '@repo/shared/types/notifications'
