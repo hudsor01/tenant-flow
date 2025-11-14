@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { RefreshableAnalytics } from '#app/(protected)/manage/analytics/refreshable-analytics'
 import { ExportButtons } from '#components/export/export-buttons'
 import { Badge } from '#components/ui/badge'
@@ -33,9 +35,6 @@ import {
 } from './financial-charts'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
-
-// Next.js 16: Dynamic behavior is controlled by cacheComponents
-// Remove force-dynamic as it's incompatible with cacheComponents
 
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
@@ -144,11 +143,13 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	)
 }
 
-async function FinancialAnalyticsContent() {
-	const data = await getFinancialAnalyticsPageData()
-	const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
-		'/api/v1/tenants/payments/summary'
-	)
+	async function FinancialAnalyticsContent() {
+		const [data, paymentSummary] = await Promise.all([
+		getFinancialAnalyticsPageData(),
+		serverFetch<OwnerPaymentSummaryResponse>(
+			'/api/v1/tenants/payments/summary'
+		)
+	])
 	const {
 		metrics,
 		breakdown,
