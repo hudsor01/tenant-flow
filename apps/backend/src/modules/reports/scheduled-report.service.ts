@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { GeneratedReportService } from './generated-report.service'

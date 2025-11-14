@@ -9,7 +9,6 @@
 
 import {
 	BadRequestException,
-	ConflictException,
 	Injectable,
 	Logger,
 	UnauthorizedException
@@ -382,21 +381,32 @@ export class UnitsService {
 
 		//Add version check for optimistic locking
 		// RLS automatically verifies unit ownership - no manual propertyId check needed
-		let query = client.from('unit').update(updateData).eq('id', unitId)
+		const query = client.from('unit').update(updateData).eq('id', unitId)
 
+		let updatedUnit: Unit
+
+		// Use version-aware query if expectedVersion provided
 		if (expectedVersion !== undefined) {
-			query = query.eq('version', expectedVersion)
+			updatedUnit = await this.queryHelpers.querySingleWithVersion<Unit>(
+				query.eq('version', expectedVersion).select().single(),
+				{
+					resource: 'unit',
+					id: unitId,
+					operation: 'update',
+					metadata: { expectedVersion }
+				}
+			)
+		} else {
+			// Otherwise use regular query
+			updatedUnit = await this.queryHelpers.querySingle<Unit>(
+				query.select().single(),
+				{
+					resource: 'unit',
+					id: unitId,
+					operation: 'update'
+				}
+			)
 		}
-
-		const updatedUnit = await this.queryHelpers.querySingleWithVersion<Unit>(
-			query.select().single(),
-			{
-				resource: 'unit',
-				id: unitId,
-				operation: 'update',
-				metadata: { expectedVersion }
-			}
-		)
 
 		// Invalidate dependent caches so lease auto-fill returns fresh unit data
 		this.cache.invalidateByEntity('unit', unitId)
