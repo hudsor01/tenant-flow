@@ -235,6 +235,94 @@ describe('TenantsService.sendTenantInvitationV2', () => {
 	})
 })
 
+describe('TenantsService.sendPaymentReminder', () => {
+	let tenantsService: TenantsService
+	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>
+
+	beforeEach(() => {
+		const mocks = createTenantsServiceWithMocks()
+		tenantsService = mocks.tenantsService
+		mockSupabaseService = mocks.mockSupabaseService
+	})
+
+	it('creates a notification and returns reminder payload', async () => {
+		const tenantRow = {
+			id: 'tenant-1',
+			name: 'Jane Tenant',
+			userId: 'user-tenant',
+			auth_user_id: null
+		}
+
+		const duePayment = {
+			amount: 150000,
+			dueDate: '2025-12-01T00:00:00Z'
+		}
+
+		const notificationId = 'notif-1'
+
+		const tenantQueryBuilder = {
+			select: jest.fn().mockReturnThis(),
+			eq: jest.fn().mockReturnThis(),
+			single: jest.fn().mockResolvedValue({ data: tenantRow, error: null })
+		}
+
+		const rentPaymentQueryBuilder = {
+			select: jest.fn().mockReturnThis(),
+			eq: jest.fn().mockReturnThis(),
+			in: jest.fn().mockReturnThis(),
+			order: jest.fn().mockReturnThis(),
+			limit: jest.fn().mockReturnThis(),
+			maybeSingle: jest.fn().mockResolvedValue({ data: duePayment, error: null })
+		}
+
+		const insertResult = {
+			select: jest.fn().mockReturnThis(),
+			single: jest.fn().mockResolvedValue({ data: { id: notificationId }, error: null })
+		}
+
+		const notificationsBuilder = {
+			insert: jest.fn().mockReturnValue(insertResult)
+		}
+
+		const mockAdminClient = {
+			from: jest.fn().mockImplementation((table: string) => {
+				if (table === 'tenant') return tenantQueryBuilder
+				if (table === 'rent_payment') return rentPaymentQueryBuilder
+				if (table === 'notifications') return notificationsBuilder
+				return tenantQueryBuilder
+			})
+		}
+
+		mockSupabaseService.getAdminClient.mockReturnValue(mockAdminClient as any)
+		jest.spyOn(tenantsService as any, 'ensureTenantOwnedByUser').mockResolvedValue(undefined)
+
+		const reminderMessage = 'Please pay within 3 days.'
+		const response = await tenantsService.sendPaymentReminder(
+			'owner-1',
+			tenantRow.id,
+			reminderMessage
+		)
+
+		expect(response).toEqual({
+			success: true,
+			tenantId: tenantRow.id,
+			notificationId,
+			message: reminderMessage
+		})
+
+		expect(mockAdminClient.from).toHaveBeenCalledWith('tenant')
+		expect(mockAdminClient.from).toHaveBeenCalledWith('rent_payment')
+		expect(mockAdminClient.from).toHaveBeenCalledWith('notifications')
+		expect(notificationsBuilder.insert).toHaveBeenCalledWith(
+			expect.objectContaining({
+				userId: tenantRow.userId,
+				tenantId: tenantRow.id
+			})
+		)
+		expect(insertResult.select).toHaveBeenCalledWith('id')
+	})
+})
+
 describe('TenantsService.activateTenantFromAuthUser', () => {
 	let tenantsService: TenantsService
 	let mockSupabaseService: ReturnType<typeof createMockSupabaseService>

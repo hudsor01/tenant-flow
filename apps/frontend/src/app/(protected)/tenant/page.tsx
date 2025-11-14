@@ -16,6 +16,8 @@ import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
+import { TenantAutopayCard } from './autopay-card'
+import { TenantPaymentMethods } from './payments/methods/tenant-payment-methods.client'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { formatCurrency } from '@repo/shared/utils/formatting'
 import {
@@ -134,7 +136,7 @@ export default function TenantDashboardPage() {
 					description="Upcoming rent payment"
 					className="dashboard-widget group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
 					footer={
-						<Link href="/tenant/payments">
+						<Link href="/tenant/payments/new">
 							<Button className="w-full">Pay Now</Button>
 						</Link>
 					}
@@ -191,7 +193,7 @@ export default function TenantDashboardPage() {
 				className="dashboard-section dashboard-widget border-2"
 			>
 				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-					<Link href="/tenant/payments" className="group">
+					<Link href="/tenant/payments/new" className="group">
 						<Button
 							variant="outline"
 							className="w-full h-auto flex-col gap-3 py-8 border-2 hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 hover:scale-105 hover:shadow-md"
@@ -239,7 +241,21 @@ export default function TenantDashboardPage() {
 						</Button>
 					</Link>
 				</div>
-			</CardLayout>
+		</CardLayout>
+
+			{/* Autopay & Payment Methods */}
+			<section className="dashboard-section space-y-6 border-2 border-border bg-card p-6">
+				<div className="flex flex-col gap-1">
+					<h2 className="text-2xl font-semibold">Automate payments</h2>
+					<p className="text-sm text-muted-foreground">
+						Control autopay and manage the payment methods on file.
+					</p>
+				</div>
+				<div className="grid gap-6 lg:grid-cols-2">
+					<TenantAutopayCard />
+					<TenantPaymentMethods />
+				</div>
+			</section>
 
 			{/* Recent Activity */}
 			<div className="dashboard-section grid gap-6 lg:grid-cols-2">

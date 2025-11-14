@@ -10,11 +10,11 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { getAnalyticsPageData } from '#lib/api/dashboard-server'
+import { serverFetch } from '#lib/api/server'
 import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
+import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
-
-// Next.js 16: Dynamic behavior is controlled by cacheComponents
-// Remove force-dynamic as it's incompatible with cacheComponents
+import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 
 export default async function AnalyticsPage() {
 	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
@@ -23,6 +23,9 @@ export default async function AnalyticsPage() {
 		propertyPerformance: propertyData,
 		financialStats
 	} = await getAnalyticsPageData()
+	const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
+		'/api/v1/tenants/payments/summary'
+	)
 
 	const revenueGrowth = dashboardData?.revenue?.growth || 0
 	const occupancyChange = dashboardData?.units?.occupancyChange || 0
@@ -31,7 +34,7 @@ export default async function AnalyticsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			{/* Top Metric Cards Section - Matching Dashboard */}
-			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+			<div className="border-b bg-background p-6 border-muted">
 				<div className="mx-auto max-w-400 py-4">
 					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{/* Total Revenue */}
@@ -160,6 +163,7 @@ export default async function AnalyticsPage() {
 					</div>
 				</div>
 			</div>
+			<OwnerPaymentSummary summary={paymentSummary} />
 
 			{/* Main Content Section - Matching Dashboard */}
 			<div className="flex-1 p-6 pt-6 pb-6">

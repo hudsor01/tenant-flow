@@ -67,7 +67,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
-	if (!points.length) {
+	if (!points || !Array.isArray(points) || points.length === 0) {
 		return (
 			<EmptyState message="No lifecycle events recorded for the selected leases." />
 		)
@@ -114,7 +114,7 @@ export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 }
 
 export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
-	if (!breakdown.length) {
+	if (!breakdown || !Array.isArray(breakdown) || breakdown.length === 0) {
 		return <EmptyState message="No lease status breakdown available." />
 	}
 

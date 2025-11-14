@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { RefreshableAnalytics } from '#app/(protected)/manage/analytics/refreshable-analytics'
 import { ExportButtons } from '#components/export/export-buttons'
 import { Badge } from '#components/ui/badge'
@@ -17,6 +19,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getFinancialAnalyticsPageData } from '#lib/api/analytics-server'
+import { serverFetch } from '#lib/api/server'
 import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
 import type {
 	FinancialBreakdownRow,
@@ -30,9 +33,8 @@ import {
 	NetOperatingIncomeChart,
 	RevenueExpenseChart
 } from './financial-charts'
-
-// Next.js 16: Dynamic behavior is controlled by cacheComponents
-// Remove force-dynamic as it's incompatible with cacheComponents
+import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
+import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
@@ -141,8 +143,13 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	)
 }
 
-async function FinancialAnalyticsContent() {
-	const data = await getFinancialAnalyticsPageData()
+	async function FinancialAnalyticsContent() {
+		const [data, paymentSummary] = await Promise.all([
+		getFinancialAnalyticsPageData(),
+		serverFetch<OwnerPaymentSummaryResponse>(
+			'/api/v1/tenants/payments/summary'
+		)
+	])
 	const {
 		metrics,
 		breakdown,
@@ -156,7 +163,8 @@ async function FinancialAnalyticsContent() {
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
-				<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+				<OwnerPaymentSummary summary={paymentSummary} />
+				<div className="border-b bg-background p-6 border-fill-tertiary">
 					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
 							<h1 className="text-3xl font-semibold tracking-tight">
@@ -346,7 +354,8 @@ async function FinancialAnalyticsContent() {
 function FinancialAnalyticsSkeleton() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+# Additional component after top metrics
+			<div className="border-b bg-background p-6 border-fill-tertiary">
 				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
@@ -373,6 +382,7 @@ function FinancialAnalyticsSkeleton() {
 					</div>
 				</div>
 			</div>
+			<OwnerPaymentSummary summary={null} />
 			<div className="flex-1 bg-muted/30 p-6">
 				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
 					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">

@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table.jsx'
+import { DataTable } from '#components/ui/data-tables/data-table'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 import Link from 'next/link'

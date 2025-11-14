@@ -120,15 +120,15 @@ export function ChartsSection() {
 							height={400}
 							className="h-full"
 						/>
-					) : (
-						<div className="dashboard-chart-placeholder">
-							<div className="space-y-2">
-								<p className="font-medium text-(--color-label-primary)">
-									No occupancy data available
-								</p>
-								<p className="text-sm text-(--color-label-secondary)">
-									Add properties with tracking enabled to see historical data.
-								</p>
+				) : (
+					<div className="dashboard-chart-placeholder">
+						<div className="space-y-2">
+							<p className="font-medium text-label-primary">
+								No occupancy data available
+							</p>
+							<p className="text-sm text-label-secondary">
+								Add properties with tracking enabled to see historical data.
+							</p>
 								{occupancyData !== undefined && (
 									<pre className="mt-3 max-h-48 overflow-auto rounded-lg border border-dashed border-border bg-background/60 p-3 text-left text-[0.7rem] text-muted-foreground">
 										{JSON.stringify(occupancyData, null, 2)}

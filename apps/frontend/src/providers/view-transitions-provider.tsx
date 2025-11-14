@@ -55,7 +55,7 @@ export function ViewTransitionsProvider({
 			<ViewTransitionStyles />
 			{isPending && (
 				<div
-					className="fixed inset-0 pointer-events-none z-[9999]"
+					className="fixed inset-0 pointer-events-none z-9999"
 					style={{
 						background: 'var(--color-primary-10)',
 						animation: 'shimmer 1s ease-in-out infinite'

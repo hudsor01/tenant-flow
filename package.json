@@ -123,7 +123,7 @@
 		"rimraf": "^6.1.0",
 		"syncpack": "^13.0.4",
 		"tsx": "^4.20.6",
-		"turbo": "catalog:",
+		"turbo": "2.6.1",
 		"typescript": "catalog:"
 	},
 	"devDependencies": {
