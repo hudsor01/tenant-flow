@@ -15,7 +15,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type {
 	MaintenanceRequest,
 	MaintenanceStats

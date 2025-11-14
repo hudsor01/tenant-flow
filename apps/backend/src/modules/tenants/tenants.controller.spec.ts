@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type { Tenant } from '@repo/shared/types/core'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'

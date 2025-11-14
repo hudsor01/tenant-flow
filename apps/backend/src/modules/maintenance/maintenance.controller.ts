@@ -20,7 +20,7 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/backend-domain'
+import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/api-contracts'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { UserId } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'

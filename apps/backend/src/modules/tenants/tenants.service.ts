@@ -17,7 +17,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type {
 	RentPaymentStatus,
 	Tenant,

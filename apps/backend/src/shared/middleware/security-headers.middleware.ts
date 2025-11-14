@@ -12,7 +12,7 @@
  */
 
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
-import type { SecurityHeadersConfig } from '@repo/shared/types/backend-domain'
+import type { SecurityHeadersConfig } from '@repo/shared/types/api-contracts'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { Request, Response } from 'express'
 
