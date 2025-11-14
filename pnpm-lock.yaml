@@ -27,9 +27,6 @@ catalogs:
     prettier:
       specifier: ^3.6.2
       version: 3.6.2
-    turbo:
-      specifier: ^2.6.1
-      version: 2.6.1
 
 overrides:
   '@tanstack/query-core': 5.90.7
@@ -83,7 +80,7 @@ importers:
         specifier: ^4.20.6
         version: 4.20.6
       turbo:
-        specifier: 'catalog:'
+        specifier: 2.6.1
         version: 2.6.1
       typescript:
         specifier: ^5.9.3

@@ -2303,7 +2303,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "rentpayment_landlordid_fkey"
+            foreignKeyName: "rentpayment_property_owner_id_fkey"
             columns: ["ownerId"]
             isOneToOne: false
             referencedRelation: "users"

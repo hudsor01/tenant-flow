@@ -5,6 +5,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
+import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import { serverFetch } from '#lib/api/server'
 import { getLeasesPageData } from '#lib/api/dashboard-server'
 import { requireSession } from '#lib/server-auth'
@@ -62,7 +63,7 @@ export default async function TenantsPage() {
 
 		tenants = tenantsData ?? []
 		stats = statsData ?? stats
-		
+
 		// Note: Summary endpoint not yet in createServerApi - keeping null for now
 		summary = null
 
@@ -137,38 +138,13 @@ export default async function TenantsPage() {
 				</Card>
 		</div>
 
-		<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-			<Card>
-				<CardHeader>
-					<CardDescription>Late fees</CardDescription>
-					<CardTitle className="text-2xl font-semibold text-destructive">
-						{formatCents(paymentSummary?.lateFeeTotal ?? 0)}
-					</CardTitle>
-				</CardHeader>
-			</Card>
-			<Card>
-				<CardHeader>
-					<CardDescription>Unpaid invoices</CardDescription>
-					<CardTitle className="text-2xl font-semibold">
-						{formatCents(paymentSummary?.unpaidTotal ?? 0)}
-					</CardTitle>
-				</CardHeader>
-			</Card>
-			<Card>
-				<CardHeader>
-					<CardDescription>Tenants with unpaid payments</CardDescription>
-					<CardTitle className="text-2xl font-semibold">
-						{paymentSummary?.unpaidCount ?? 0}
-					</CardTitle>
-				</CardHeader>
-			</Card>
-		</div>
+		<OwnerPaymentSummary summary={paymentSummary} />
 
-			{/* Client Component for Delete Functionality */}
-			<section className="flex flex-col gap-4">
-				<h2 className="text-xl font-semibold">Tenant Directory</h2>
-				<TenantsTableClient columns={columns} initialTenants={tenants} />
-			</section>
+		{/* Client Component for Delete Functionality */}
+		<section className="flex flex-col gap-4">
+			<h2 className="text-xl font-semibold">Tenant Directory</h2>
+			<TenantsTableClient columns={columns} initialTenants={tenants} />
+		</section>
 		</main>
 	)
 }
