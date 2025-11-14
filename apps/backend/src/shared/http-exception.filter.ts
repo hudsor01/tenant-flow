@@ -6,12 +6,8 @@ import {
 	HttpStatus,
 	Logger
 } from '@nestjs/common'
+import { BUSINESS_ERROR_CODES, API_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { Request, Response } from 'express'
-import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
-import {
-	API_ERROR_CODES,
-	ERROR_TYPES
-} from '@repo/shared/constants/error-codes'
 
 type ExceptionResponse = {
 	message?: string | string[]

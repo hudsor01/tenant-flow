@@ -6,6 +6,19 @@
  * Use native Express error handling patterns without custom wrappers
  */
 
+import type {
+	HTTP_STATUS_CODES,
+	BUSINESS_ERROR_CODES,
+	API_ERROR_CODES,
+	ERROR_SEVERITY,
+	ERROR_CATEGORIES,
+	ERROR_TYPES,
+	ERROR_CONTEXT_TYPES,
+	ERROR_ACTIONS,
+	ERROR_METRICS,
+	ERROR_REPORTING_LEVELS
+} from '../constants/error-codes'
+
 export interface ApiErrorResponse {
 	success: false
 	statusCode: number
@@ -28,90 +41,31 @@ export interface ApiBusinessErrorResponse extends ApiErrorResponse {
 	details?: Record<string, unknown>
 }
 
-/**
- * Standard HTTP error codes for consistent responses
- */
-export const API_ERROR_CODES = {
-	// Client errors (4xx)
-	BAD_REQUEST: 400,
-	UNAUTHORIZED: 401,
-	PAYMENT_REQUIRED: 402,
-	FORBIDDEN: 403,
-	NOT_FOUND: 404,
-	METHOD_NOT_ALLOWED: 405,
-	CONFLICT: 409,
-	UNPROCESSABLE_ENTITY: 422,
-	TOO_MANY_REQUESTS: 429,
+export type HttpStatusCode =
+	(typeof HTTP_STATUS_CODES)[keyof typeof HTTP_STATUS_CODES]
 
-	// Server errors (5xx)
-	INTERNAL_SERVER_ERROR: 500,
-	NOT_IMPLEMENTED: 501,
-	BAD_GATEWAY: 502,
-	SERVICE_UNAVAILABLE: 503,
-	GATEWAY_TIMEOUT: 504
-} as const
+export type BusinessErrorCode =
+	(typeof BUSINESS_ERROR_CODES)[keyof typeof BUSINESS_ERROR_CODES]
 
 export type ApiErrorCode =
 	(typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES]
 
-/**
- * Standard error messages for common scenarios
- */
-export const API_ERROR_MESSAGES = {
-	VALIDATION_FAILED: 'Validation failed',
-	UNAUTHORIZED_ACCESS: 'Unauthorized access',
-	RESOURCE_NOT_FOUND: 'Resource not found',
-	INTERNAL_ERROR: 'Internal server error',
-	BAD_REQUEST: 'Bad request',
-	FORBIDDEN: 'Access forbidden',
-	CONFLICT: 'Resource conflict',
-	TOO_MANY_REQUESTS: 'Too many requests',
-	SERVICE_UNAVAILABLE: 'Service temporarily unavailable'
-} as const
+export type ErrorSeverity = (typeof ERROR_SEVERITY)[keyof typeof ERROR_SEVERITY]
 
-/**
- * Business error codes for domain-specific errors
- */
-export const BUSINESS_ERROR_CODES = {
-	// Property errors
-	PROPERTY_NOT_FOUND: 'PROPERTY_NOT_FOUND',
-	UNIT_NOT_AVAILABLE: 'UNIT_NOT_AVAILABLE',
-	
-	// Tenant errors
-	TENANT_ALREADY_EXISTS: 'TENANT_ALREADY_EXISTS',
-	
-	// Lease errors
-	LEASE_OVERLAP: 'LEASE_OVERLAP',
-	INVALID_LEASE_DATES: 'INVALID_LEASE_DATES',
-	
-	// Maintenance errors
-	MAINTENANCE_REQUEST_CLOSED: 'MAINTENANCE_REQUEST_CLOSED',
-	
-	// Billing errors
-	BILLING_ERROR: 'BILLING_ERROR',
-	SUBSCRIPTION_INACTIVE: 'SUBSCRIPTION_INACTIVE',
-	
-	// File upload errors
-	INVALID_CSV_FORMAT: 'INVALID_CSV_FORMAT',
-	FILE_TOO_LARGE: 'FILE_TOO_LARGE',
-	INVALID_FILE_TYPE: 'INVALID_FILE_TYPE',
-	NO_FILE_UPLOADED: 'NO_FILE_UPLOADED',
-	
-	// CSV-specific validation errors
-	CSV_MISSING_REQUIRED_COLUMNS: 'CSV_MISSING_REQUIRED_COLUMNS',
-	CSV_INVALID_DATA: 'CSV_INVALID_DATA',
-	CSV_DUPLICATE_ENTRIES: 'CSV_DUPLICATE_ENTRIES',
-	
-	// Permission errors
-	INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
-	
-	// Network errors
-	NETWORK_ERROR: 'NETWORK_ERROR',
-	CORS_ERROR: 'CORS_ERROR'
-} as const
+export type ErrorCategory =
+	(typeof ERROR_CATEGORIES)[keyof typeof ERROR_CATEGORIES]
 
-export type BusinessErrorCode =
-	(typeof BUSINESS_ERROR_CODES)[keyof typeof BUSINESS_ERROR_CODES]
+export type ErrorType = (typeof ERROR_TYPES)[keyof typeof ERROR_TYPES]
+
+export type ErrorContextType =
+	(typeof ERROR_CONTEXT_TYPES)[keyof typeof ERROR_CONTEXT_TYPES]
+
+export type ErrorAction = (typeof ERROR_ACTIONS)[keyof typeof ERROR_ACTIONS]
+
+export type ErrorMetric = (typeof ERROR_METRICS)[keyof typeof ERROR_METRICS]
+
+export type ErrorReportingLevel =
+	(typeof ERROR_REPORTING_LEVELS)[keyof typeof ERROR_REPORTING_LEVELS]
 
 /**
  * Helper types for error context logging
