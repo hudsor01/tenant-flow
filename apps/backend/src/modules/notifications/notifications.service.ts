@@ -12,6 +12,11 @@ import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import {
+	querySingle,
+	queryList,
+	queryMutation
+} from '../../shared/utils/query-helpers'
+import {
 	LeaseExpiringEvent,
 	MaintenanceUpdatedEvent,
 	PaymentFailedEvent,
@@ -215,29 +220,32 @@ export class NotificationsService {
 		}
 
 		// Store notification in database using existing notifications table
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.insert({
-				userId: notification.recipientId,
-				title: notification.title,
-				content: notification.message,
-				type: notification.type,
-				priority: notification.priority.toLowerCase(),
-				metadata: {
-					actionUrl: notification.actionUrl,
-					maintenanceId: notification.maintenanceId,
-					...notification.data
-				},
-				maintenanceRequestId: notification.maintenanceId,
-				isRead: false
-			})
-			.select()
-			.single()
-
-		if (error) {
-			throw error
-		}
+		await queryMutation(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.insert({
+					userId: notification.recipientId,
+					title: notification.title,
+					content: notification.message,
+					type: notification.type,
+					priority: notification.priority.toLowerCase(),
+					metadata: {
+						actionUrl: notification.actionUrl,
+						maintenanceId: notification.maintenanceId,
+						...notification.data
+					},
+					maintenanceRequestId: notification.maintenanceId,
+					isRead: false
+				})
+				.select()
+				.single(),
+			{
+				resource: 'notification',
+				operation: 'create',
+				logger: this.logger
+			}
+		)
 
 		// If high priority, trigger immediate sending
 		if (this.shouldSendImmediately(priority)) {
@@ -350,19 +358,21 @@ export class NotificationsService {
 	async getUnreadNotifications(
 		userId: string
 	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.select(SAFE_NOTIFICATIONS_COLUMNS)
-			.eq('userId', userId)
-			.eq('isRead', false)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			throw error
-		}
-
-		return data
+		return await queryList(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.select(SAFE_NOTIFICATIONS_COLUMNS)
+				.eq('userId', userId)
+				.eq('isRead', false)
+				.order('createdAt', { ascending: false}) as any,
+			{
+				resource: 'unread notifications',
+				id: userId,
+				operation: 'fetch',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -372,20 +382,22 @@ export class NotificationsService {
 		notificationId: string,
 		userId: string
 	): Promise<Database['public']['Tables']['notifications']['Row']> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({ isRead: true, readAt: new Date().toISOString() })
-			.eq('id', notificationId)
-			.eq('userId', userId)
-			.select()
-			.single()
-
-		if (error) {
-			throw error
-		}
-
-		return data
+		return await queryMutation(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.update({ isRead: true, readAt: new Date().toISOString() })
+				.eq('id', notificationId)
+				.eq('userId', userId)
+				.select()
+				.single(),
+			{
+				resource: 'notification',
+				id: notificationId,
+				operation: 'mark as read',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -395,23 +407,27 @@ export class NotificationsService {
 		notificationId: string,
 		userId: string
 	): Promise<Database['public']['Tables']['notifications']['Row']> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({
-				metadata: {
-					cancelled: true,
-					cancelledAt: new Date().toISOString()
-				}
-			})
-			.eq('id', notificationId)
-			.eq('userId', userId)
-			.select()
-			.single()
-
-		if (error) {
-			throw error
-		}
+		const data = await queryMutation<Database['public']['Tables']['notifications']['Row']>(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.update({
+					metadata: {
+						cancelled: true,
+						cancelledAt: new Date().toISOString()
+					}
+				})
+				.eq('id', notificationId)
+				.eq('userId', userId)
+				.select()
+				.single(),
+			{
+				resource: 'notification',
+				id: notificationId,
+				operation: 'cancel',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log(
 			{
@@ -433,16 +449,19 @@ export class NotificationsService {
 		const cutoffDate = new Date()
 		cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
 
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.delete()
-			.lt('createdAt', cutoffDate.toISOString())
-			.eq('isRead', true)
-
-		if (error) {
-			throw error
-		}
+		await queryMutation(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.delete()
+				.lt('createdAt', cutoffDate.toISOString())
+				.eq('isRead', true),
+			{
+				resource: 'old notifications',
+				operation: 'delete',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -492,18 +511,28 @@ export class NotificationsService {
 				userId
 			})
 
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.update({
-					isRead: true,
-					readAt: new Date().toISOString()
-				})
-				.eq('userId', userId)
-				.eq('isRead', false)
-				.select('*')
-
-			if (error) {
+			// Soft-fail pattern: Return 0 on error
+			let data
+			try {
+				data = await queryMutation(
+					this.supabaseService
+						.getAdminClient()
+						.from('notifications')
+						.update({
+							isRead: true,
+							readAt: new Date().toISOString()
+						})
+						.eq('userId', userId)
+						.eq('isRead', false)
+						.select('*'),
+					{
+						resource: 'notifications',
+						id: userId,
+						operation: 'mark all as read',
+						logger: this.logger
+					}
+				)
+			} catch (error) {
 				this.logger.error('Failed to mark all notifications as read', {
 					error,
 					userId
@@ -741,23 +770,26 @@ export class NotificationsService {
 					metadata.unitNumber = unitNumber
 				}
 
-				const { error } = await client.from('notifications').insert({
-					userId: event.ownerId,
-					tenantId: tenant?.id ?? event.tenantId,
-					leaseId: lease?.id ?? event.leaseId,
-					propertyId: lease?.propertyId ?? null,
-					title: 'Tenant Invitation Sent',
-					content: `Invitation sent to ${tenantName} for ${leaseLabel}. Payment setup link ready.`,
-					type: 'system',
-					priority: 'low',
-					actionUrl: '/tenants',
-					metadata,
-					isRead: false
-				})
-
-				if (error) {
-					throw error
-				}
+				await queryMutation(
+					client.from('notifications').insert({
+						userId: event.ownerId,
+						tenantId: tenant?.id ?? event.tenantId,
+						leaseId: lease?.id ?? event.leaseId,
+						propertyId: lease?.propertyId ?? null,
+						title: 'Tenant Invitation Sent',
+						content: `Invitation sent to ${tenantName} for ${leaseLabel}. Payment setup link ready.`,
+						type: 'system',
+						priority: 'low',
+						actionUrl: '/tenants',
+						metadata,
+						isRead: false
+					}),
+					{
+						resource: 'notification',
+						operation: 'create for tenant invitation',
+						logger: this.logger
+					}
+				)
 
 				this.logger.log(
 					`Tenant invitation notification stored for owner ${event.ownerId}`,
@@ -824,27 +856,30 @@ export class NotificationsService {
 		paymentId?: string,
 		actionUrl?: string
 	): Promise<void> {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.insert({
-				userId,
-				title,
-				content: message,
-				type: 'payment',
-				priority: priority.toLowerCase(),
-				metadata: {
-					actionUrl: actionUrl || '/billing',
-					paymentId,
-					propertyName,
-					unitNumber
-				},
-				isRead: false
-			})
-
-		if (error) {
-			throw error
-		}
+		await queryMutation(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.insert({
+					userId,
+					title,
+					content: message,
+					type: 'payment',
+					priority: priority.toLowerCase(),
+					metadata: {
+						actionUrl: actionUrl || '/billing',
+						paymentId,
+						propertyName,
+						unitNumber
+					},
+					isRead: false
+				}),
+			{
+				resource: 'notification',
+				operation: 'create payment notification',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -857,23 +892,26 @@ export class NotificationsService {
 		priority: Priority,
 		actionUrl?: string
 	): Promise<void> {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.insert({
-				userId,
-				title,
-				content: message,
-				type: 'system',
-				priority: priority.toLowerCase(),
-				metadata: {
-					actionUrl: actionUrl || '/manage'
-				},
-				isRead: false
-			})
-
-		if (error) {
-			throw error
-		}
+		await queryMutation(
+			this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.insert({
+					userId,
+					title,
+					content: message,
+					type: 'system',
+					priority: priority.toLowerCase(),
+					metadata: {
+						actionUrl: actionUrl || '/manage'
+					},
+					isRead: false
+				}),
+			{
+				resource: 'notification',
+				operation: 'create system notification',
+				logger: this.logger
+			}
+		)
 	}
 }
