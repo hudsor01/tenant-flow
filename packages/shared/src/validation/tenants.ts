@@ -184,6 +184,12 @@ export const validateTenantForm = (
 	return validationResult
 }
 
+// Payload schema for sending payment reminders to tenants
+export const sendPaymentReminderSchema = z.object({
+	tenantId: uuidSchema,
+	message: z.string().max(500, 'Reminder message cannot exceed 500 characters').optional()
+})
+
 // Backend DTO schemas - match CreateTenantRequest/UpdateTenantRequest from backend-domain.ts
 export const createTenantRequestSchema = z.object({
 	firstName: nonEmptyStringSchema.max(100).optional(),

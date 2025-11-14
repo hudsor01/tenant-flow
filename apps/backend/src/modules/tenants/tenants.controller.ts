@@ -32,6 +32,8 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
+	OwnerPaymentSummaryResponse,
+	TenantPaymentHistoryResponse,
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
 import { TenantsService } from './tenants.service'
@@ -43,6 +45,7 @@ import {
 	CreateEmergencyContactDto,
 	UpdateEmergencyContactDto
 } from './dto/emergency-contact.dto'
+import { SendPaymentReminderDto } from './dto/send-payment-reminder.dto'
 
 @Controller('tenants')
 export class TenantsController {
@@ -137,6 +140,18 @@ export class TenantsController {
 			throw new NotFoundException('Tenant not found')
 		}
 		return tenant
+	}
+
+	@Get(':id/payments')
+	async getPayments(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest,
+		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
+	): Promise<TenantPaymentHistoryResponse> {
+		const userId = req.user.id
+		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
+
+		return this.tenantsService.getTenantPaymentHistory(userId, id, normalizedLimit)
 	}
 
 	@Post()
@@ -477,5 +492,37 @@ export class TenantsController {
 		}
 
 		return { success: true, message: 'Emergency contact deleted successfully' }
+	}
+
+	@Get('me/payments')
+	async getMyPayments(
+		@Req() req: AuthenticatedRequest,
+		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
+	): Promise<TenantPaymentHistoryResponse> {
+		const userId = req.user.id
+		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
+
+		return this.tenantsService.getTenantPaymentHistoryForTenant(userId, normalizedLimit)
+	}
+
+	@Get('payments/summary')
+	async getPaymentSummary(
+		@Req() req: AuthenticatedRequest
+	): Promise<OwnerPaymentSummaryResponse> {
+		const userId = req.user.id
+		return this.tenantsService.getOwnerPaymentSummary(userId)
+	}
+
+	@Post('payments/reminders')
+	async sendPaymentReminder(
+		@Body() body: SendPaymentReminderDto,
+		@Req() req: AuthenticatedRequest
+	) {
+		const userId = req.user.id
+		return this.tenantsService.sendPaymentReminder(
+			userId,
+			body.tenantId,
+			body.message
+		)
 	}
 }

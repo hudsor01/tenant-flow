@@ -46,6 +46,7 @@ interface TenantAutopayStatus {
 	autopayEnabled: boolean
 	subscriptionId: string | null
 	leaseId?: string
+	tenantId?: string
 	rentAmount?: number
 	nextPaymentDate?: string | null
 	message?: string

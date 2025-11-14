@@ -15,9 +15,9 @@ VALUES (
 -- Enable RLS on storage.objects
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
--- RLS Policy: Landlords (property owners) can read their own lease documents
+-- RLS Policy: Property owners can read their own lease documents
 -- Path structure: lease-documents/{userId}/{leaseId}/lease-{timestamp}-{uuid}.pdf
-CREATE POLICY "Landlords can read own lease documents"
+CREATE POLICY "Property owners can read own lease documents"
 ON storage.objects FOR SELECT
 TO authenticated
 USING (

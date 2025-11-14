@@ -11,7 +11,7 @@ export default function Error({
 			<h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
 			<button
 				onClick={() => reset()}
-				className="px-6 py-3 text-white border-none rounded-lg text-base cursor-pointer bg-(--color-accent-main)"
+				className="px-6 py-3 text-white border-none rounded-lg text-base cursor-pointer bg-accent-main"
 			>
 				Try again
 			</button>

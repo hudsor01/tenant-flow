@@ -431,18 +431,19 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		return this.queryHelpers.queryList<RentPayment>(
-			client
-				.from('rent_payment')
-				.select(
-					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-				)
-				.order('createdAt', { ascending: false }),
-			{
-				resource: 'rent_payment',
-				operation: 'findAll'
-			}
-		)
+		const { data, error } = await client
+			.from('rent_payment')
+			.select('*')
+			.order('createdAt', { ascending: false })
+
+		if (error) {
+			this.logger.error('Failed to load payment history', {
+				error: error.message
+			})
+			throw new BadRequestException('Failed to load payment history')
+		}
+
+		return (data as RentPayment[]) ?? []
 	}
 
 	/**
@@ -456,19 +457,33 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		// ✅ RLS automatically validates subscription ownership
-		await this.queryHelpers.querySingle<Pick<RentSubscription, 'id' | 'ownerId'>>(
-			client
-				.from('rent_subscription')
-				.select('id, ownerId')
-				.eq('id', subscriptionId)
-				.single(),
-			{
-				resource: 'rent_subscription',
-				id: subscriptionId,
-				operation: 'findOne'
-			}
-		)
+		// RLS automatically validates subscription ownership
+		const { data: subscription, error: subscriptionError } = await client
+			.from('rent_subscription')
+			.select('id, ownerId')
+			.eq('id', subscriptionId)
+			.single<RentSubscription>()
+
+		if (subscriptionError || !subscription) {
+			throw new NotFoundException('Subscription not found')
+		}
+
+		// RLS automatically filters payments to user's scope
+		const { data, error } = await client
+			.from('rent_payment')
+			.select('id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId')
+			.eq('subscriptionId', subscriptionId)
+			.order('createdAt', { ascending: false })
+
+		if (error) {
+			this.logger.error('Failed to load subscription payment history', {
+				subscriptionId,
+				error: error.message
+			})
+			throw new BadRequestException(
+				'Failed to load subscription payment history'
+			)
+		}
 
 		// ✅ RLS automatically filters payments to user's scope
 		return this.queryHelpers.queryList<RentPayment>(
@@ -497,19 +512,21 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		return this.queryHelpers.queryList<RentPayment>(
-			client
-				.from('rent_payment')
-				.select(
-					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-				)
-				.eq('status', 'failed')
-				.order('createdAt', { ascending: false }),
-			{
-				resource: 'rent_payment',
-				operation: 'findAll'
-			}
-		)
+		const { data, error } = await client
+			.from('rent_payment')
+			.select('*')
+			.eq('status', 'failed')
+			.order('createdAt', { ascending: false })
+
+
+		if (error) {
+			this.logger.error('Failed to fetch failed payment attempts', {
+				error: error.message
+			})
+			throw new BadRequestException('Failed to load failed payment attempts')
+		}
+
+		return (data as RentPayment[]) ?? []
 	}
 
 	/**
@@ -523,19 +540,34 @@ export class RentPaymentsService {
 
 		const client = this.supabase.getUserClient(token)
 
-		// ✅ RLS automatically validates subscription ownership
-		await this.queryHelpers.querySingle<Pick<RentSubscription, 'id' | 'ownerId'>>(
-			client
-				.from('rent_subscription')
-				.select('id, ownerId')
-				.eq('id', subscriptionId)
-				.single(),
-			{
-				resource: 'rent_subscription',
-				id: subscriptionId,
-				operation: 'findOne'
-			}
-		)
+		// RLS automatically validates subscription ownership
+		const { data: subscription, error: subscriptionError } = await client
+			.from('rent_subscription')
+			.select('id, ownerId')
+			.eq('id', subscriptionId)
+			.single<RentSubscription>()
+
+		if (subscriptionError || !subscription) {
+			throw new NotFoundException('Subscription not found')
+		}
+
+		// RLS automatically filters payments to user's scope
+		const { data, error } = await client
+			.from('rent_payment')
+			.select('*')
+			.eq('subscriptionId', subscriptionId)
+			.eq('status', 'failed')
+			.order('createdAt', { ascending: false })
+
+		if (error) {
+			this.logger.error('Failed to fetch subscription failed attempts', {
+				subscriptionId,
+				error: error.message
+			})
+			throw new BadRequestException(
+				'Failed to load subscription failed attempts'
+			)
+		}
 
 		// ✅ RLS automatically filters payments to user's scope
 		return this.queryHelpers.queryList<RentPayment>(
@@ -630,16 +662,33 @@ export class RentPaymentsService {
 				})
 			}
 
-			// Create Stripe Subscription for recurring rent (no platform fee)
-			const amountInCents = this.normalizeAmount(lease.rentAmount)
+		// Create Stripe Subscription for recurring rent (no platform fee)
+		const amountInCents = this.normalizeAmount(lease.rentAmount)
+
+		const { data: nextRentPayment } = await adminClient
+			.from('rent_payment')
+			.select('dueDate')
+			.eq('leaseId', lease.id)
+			.in('status', ['DUE', 'PENDING'])
+			.order('dueDate', { ascending: true })
+			.limit(1)
+			.maybeSingle()
+
+		let billingCycleAnchor: number | undefined
+		if (nextRentPayment?.dueDate) {
+			const anchor = new Date(nextRentPayment.dueDate)
+			if (anchor.getTime() > Date.now()) {
+				billingCycleAnchor = Math.floor(anchor.getTime() / 1000)
+			}
+		}
 
 			// Idempotency key prevents duplicate subscriptions - uses stable identifiers only
 			const subscriptionIdempotencyKey = `subscription-${tenantId}-${leaseId}`
 			const subscription = await this.stripe.subscriptions.create(
-				{
-					customer: stripeCustomer.id,
-					items: [
-						{
+			{
+				customer: stripeCustomer.id,
+				items: [
+					{
 							price_data: {
 								currency: 'usd',
 								product_data: {
@@ -657,12 +706,18 @@ export class RentPaymentsService {
 							} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
 						}
 					],
-					transfer_data: {
-						destination: owner.stripeAccountId as string
-					},
-					metadata: {
-						tenantId,
-						leaseId: lease.id,
+				transfer_data: {
+					destination: owner.stripeAccountId as string
+				},
+				...(billingCycleAnchor
+					? {
+							billing_cycle_anchor: billingCycleAnchor,
+							proration_behavior: 'none'
+					  }
+					: {}),
+				metadata: {
+					tenantId,
+					leaseId: lease.id,
 						ownerId: owner.id,
 						paymentType: 'autopay'
 					},

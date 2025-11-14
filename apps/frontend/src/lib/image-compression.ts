@@ -196,12 +196,26 @@ export async function compressImage(
 			})
 
 			// heic2any can return Blob or Blob[], handle both cases
-			const blob = Array.isArray(convertedBlob) 
-				? (convertedBlob.length > 0 ? convertedBlob[0] : undefined)
+			const blob = Array.isArray(convertedBlob)
+				? (convertedBlob.length > 0 ? convertedBlob[0] : null)
 				: convertedBlob
 
 			if (!blob) {
-				throw new Error('HEIC conversion returned empty result')
+				throw new HEICConversionError('HEIC conversion returned empty result')
+			}
+
+			// Validate that the blob is actually a Blob object
+			if (!(blob instanceof Blob)) {
+				throw new HEICConversionError('HEIC conversion did not return a valid Blob object')
+			}
+
+			// Validate blob size and type
+			if (blob.size === 0) {
+				throw new HEICConversionError('HEIC conversion resulted in empty file')
+			}
+
+			if (blob.type !== 'image/jpeg') {
+				throw new HEICConversionError('HEIC conversion failed - invalid output type')
 			}
 
 			// Create a new File from the converted Blob

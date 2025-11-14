@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { GeneratedReportService } from './generated-report.service'
@@ -32,7 +33,7 @@ export interface ScheduledReportRecord {
 	isActive: boolean
 	lastRunAt: string | null
 	nextRunAt: string | null
-	metadata: Record<string, unknown>
+	metadata: Json | null
 	createdAt: string
 	updatedAt: string
 }
@@ -221,7 +222,7 @@ export class ScheduledReportService {
 				startDate,
 				endDate,
 				metadata: {
-					...(schedule.metadata || {}),
+					...(schedule.metadata && typeof schedule.metadata === 'object' && !Array.isArray(schedule.metadata) ? schedule.metadata : {}),
 					scheduledReportId: schedule.id,
 					generatedByScheduler: true
 				}
