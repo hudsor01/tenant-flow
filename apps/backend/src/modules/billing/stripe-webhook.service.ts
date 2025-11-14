@@ -1,6 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { SupabaseService } from '../../database/supabase.service'
+import {
+	querySingle,
+	queryList,
+	queryMutation
+} from '../../shared/utils/query-helpers'
+import { NotFoundException } from '@nestjs/common'
 
 /**
  * Stripe Webhook Service - Database-backed idempotency and event tracking
@@ -22,29 +28,30 @@ export class StripeWebhookService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 
-			const { data, error } = await client
-				.from('processed_stripe_events')
-				.select('id')
-				.eq('stripe_event_id', eventId)
-				.single()
+			await querySingle(
+				client
+					.from('processed_stripe_events')
+					.select('id')
+					.eq('stripe_event_id', eventId)
+					.single(),
+				{
+					resource: 'processed_stripe_event',
+					id: eventId,
+					operation: 'check if processed',
+					logger: this.logger
+				}
+			)
 
-			if (error && error.code !== 'PGRST116') {
-				// PGRST116 = no rows returned
-				this.logger.error('Failed to check event processed status', {
-					eventId,
-					error
-				})
-				throw error
-			}
-
-			const isProcessed = !!data
-
-			if (isProcessed) {
-				this.logger.debug(`Event ${eventId} already processed`)
-			}
-
-			return isProcessed
+			// If we get here, event exists (already processed)
+			this.logger.debug(`Event ${eventId} already processed`)
+			return true
 		} catch (error) {
+			// NotFoundException means event not found (not processed yet)
+			if (error instanceof NotFoundException) {
+				return false
+			}
+
+			// Other database errors - log but don't block webhooks
 			this.logger.error('Error checking event processed status', {
 				eventId,
 				error
@@ -69,38 +76,36 @@ export class StripeWebhookService {
 
 			// SECURITY FIX #5: Use INSERT to atomically acquire lock
 			// First attempt will succeed, concurrent attempts will fail due to unique constraint
-			const { error } = await client
-				.from('processed_stripe_events')
-				.insert({
-					stripe_event_id: eventId,
-					event_type: eventType,
-					processed_at: new Date().toISOString(),
-					status: 'processing' as const
-				})
-				.select()
-
-			// Check if insert succeeded (got the lock) or failed (someone else got it)
-			if (error) {
-				// Check if error is due to unique constraint violation (23505)
-				if (error.code === '23505' || error.message?.includes('duplicate')) {
-					this.logger.debug(
-						`Event ${eventId} already being processed by another request`
-					)
-					return false // Lock acquisition failed - event is being processed
+			await queryMutation(
+				client
+					.from('processed_stripe_events')
+					.insert({
+						stripe_event_id: eventId,
+						event_type: eventType,
+						processed_at: new Date().toISOString(),
+						status: 'processing' as const
+					})
+					.select(),
+				{
+					resource: 'processed_stripe_event',
+					id: eventId,
+					operation: 'record processing',
+					logger: this.logger
 				}
-
-				// Other error - log and throw
-				this.logger.error('Failed to record event processing', {
-					eventId,
-					eventType,
-					error
-				})
-				throw error
-			}
+			)
 
 			this.logger.debug(`Successfully acquired lock for event ${eventId}`)
 			return true // Lock acquisition succeeded
-		} catch (error) {
+		} catch (error: any) {
+			// ConflictException (409) means duplicate key - someone else got the lock
+			if (error?.status === 409 || error?.message?.includes('duplicate')) {
+				this.logger.debug(
+					`Event ${eventId} already being processed by another request`
+				)
+				return false // Lock acquisition failed - event is being processed
+			}
+
+			// Other errors - log and re-throw
 			this.logger.error('Error recording event processing', {
 				eventId,
 				eventType,
@@ -115,33 +120,25 @@ export class StripeWebhookService {
 	 * Updates the processed_at timestamp and status
 	 */
 	async markEventProcessed(eventId: string): Promise<void> {
-		try {
-			const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getAdminClient()
 
-			const { error } = await client
+		await queryMutation(
+			client
 				.from('processed_stripe_events')
 				.update({
 					processed_at: new Date().toISOString(),
 					status: 'processed' as const
 				})
-				.eq('stripe_event_id', eventId)
-
-			if (error) {
-				this.logger.error('Failed to mark event as processed', {
-					eventId,
-					error
-				})
-				throw error
+				.eq('stripe_event_id', eventId),
+			{
+				resource: 'processed_stripe_event',
+				id: eventId,
+				operation: 'mark as processed',
+				logger: this.logger
 			}
+		)
 
-			this.logger.debug(`Marked event ${eventId} as processed`)
-		} catch (error) {
-			this.logger.error('Error marking event as processed', {
-				eventId,
-				error
-			})
-			throw error
-		}
+		this.logger.debug(`Marked event ${eventId} as processed`)
 	}
 
 	/**
@@ -167,18 +164,17 @@ export class StripeWebhookService {
 			}
 
 			// Delete old events
-			const { error } = await client
-				.from('processed_stripe_events')
-				.delete()
-				.lt('processed_at', cutoffDate.toISOString())
-
-			if (error) {
-				this.logger.error('Failed to cleanup old events', {
-					error,
-					daysToKeep
-				})
-				throw error
-			}
+			await queryMutation(
+				client
+					.from('processed_stripe_events')
+					.delete()
+					.lt('processed_at', cutoffDate.toISOString()),
+				{
+					resource: 'processed_stripe_events',
+					operation: 'cleanup old events',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log(`Cleaned up ${count} old webhook events`)
 			return count
@@ -275,36 +271,27 @@ export class StripeWebhookService {
 	async batchCheckEventsProcessed(
 		eventIds: string[]
 	): Promise<Map<string, boolean>> {
-		try {
-			const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getAdminClient()
 
-			const { data, error } = await client
+		const data = await queryList<{ stripe_event_id: string }>(
+			client
 				.from('processed_stripe_events')
 				.select('stripe_event_id')
-				.in('stripe_event_id', eventIds)
-
-			if (error) {
-				this.logger.error('Failed to batch check events', {
-					eventIds,
-					error
-				})
-				throw error
+				.in('stripe_event_id', eventIds) as any,
+			{
+				resource: 'processed_stripe_events',
+				operation: 'batch check',
+				logger: this.logger
 			}
+		)
 
-			const processedIds = new Set(data?.map(row => row.stripe_event_id) || [])
-			const result = new Map<string, boolean>()
+		const processedIds = new Set(data.map(row => row.stripe_event_id))
+		const result = new Map<string, boolean>()
 
-			eventIds.forEach(id => {
-				result.set(id, processedIds.has(id))
-			})
+		eventIds.forEach(id => {
+			result.set(id, processedIds.has(id))
+		})
 
-			return result
-		} catch (error) {
-			this.logger.error('Error batch checking events', {
-				eventIds,
-				error
-			})
-			throw error
-		}
+		return result
 	}
 }
