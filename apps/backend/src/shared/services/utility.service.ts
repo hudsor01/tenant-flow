@@ -16,6 +16,7 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../utils/sql-safe.utils'
+import { querySingle, queryMutation } from '../utils/query-helpers'
 
 export interface PasswordValidationResult {
 	isValid: boolean
@@ -230,26 +231,20 @@ export class UtilityService {
 		const cached = await this.cacheManager.get<string>(cacheKey)
 		if (cached) return cached
 
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id')
-			.eq('supabaseId', supabaseId)
-			.single()
-
-		// Handle database errors separately from missing user
-		if (error) {
-			this.logger.error('Database error during user ID lookup', { 
-				error: error.message || error, 
-				supabaseId 
-			})
-			throw new InternalServerErrorException('Failed to lookup user information')
-		}
-
-		if (!data) {
-			this.logger.error('User not found in database', { supabaseId })
-			throw new NotFoundException('User not found')
-		}
+		const data = await querySingle<{ id: string }>(
+			this.supabase
+				.getAdminClient()
+				.from('users')
+				.select('id')
+				.eq('supabaseId', supabaseId)
+				.single(),
+			{
+				resource: 'user',
+				id: supabaseId,
+				operation: 'lookup by Supabase ID',
+				logger: this.logger
+			}
+		)
 
 		await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
 		return data.id
@@ -298,26 +293,46 @@ export class UtilityService {
 				// Determine user role - default to OWNER for new sign-ups
 				const role = authUser.app_metadata?.role === 'TENANT' ? 'TENANT' : 'OWNER'
 
-				const { data, error: insertError } = await this.supabase
-					.getAdminClient()
-					.from('users')
-					.insert({
-						id: uuidv4(),
+				try {
+					const data = await queryMutation<{ id: string }>(
+						this.supabase
+							.getAdminClient()
+							.from('users')
+							.insert({
+								id: uuidv4(),
+								supabaseId: authUser.id,
+								email: authUser.email,
+								name: fullName || null,
+								avatarUrl: avatarUrl || null,
+								role: role as Database['public']['Enums']['UserRole'],
+								profileComplete: false,
+								subscription_status: 'trialing' // New users start with trial
+							})
+							.select('id')
+							.single(),
+						{
+							resource: 'user',
+							operation: 'create for OAuth',
+							logger: this.logger
+						}
+					)
+
+					this.logger.log('User record created successfully', {
+						userId: data.id,
 						supabaseId: authUser.id,
 						email: authUser.email,
-						name: fullName || null,
-						avatarUrl: avatarUrl || null,
-						role: role as Database['public']['Enums']['UserRole'],
-						profileComplete: false,
-						subscription_status: 'trialing' // New users start with trial
+						role
 					})
-					.select('id')
-					.single()
 
-				if (insertError) {
+					// Cache the new user ID
+					const cacheKey = `user:supabaseId:${authUser.id}`
+					await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
+
+					return data.id
+				} catch (insertError: any) {
 					// Check if it's a unique constraint violation (race condition)
-					// PostgreSQL error code 23505 = unique_violation
-					if ((insertError as { code?: string }).code === '23505' || insertError.message?.includes('duplicate')) {
+					// ConflictException (409) from queryMutation for duplicate key
+					if (insertError?.status === 409 || insertError?.message?.includes('duplicate')) {
 						// Prevent infinite retry loops
 						if (retryCount >= 1) {
 							this.logger.error('Max retries exceeded for user creation race condition', {
@@ -327,7 +342,7 @@ export class UtilityService {
 							})
 							throw new InternalServerErrorException('Failed to create user account after retry')
 						}
-						
+
 						this.logger.warn('User creation race condition detected, retrying lookup', {
 							supabaseId: authUser.id,
 							email: authUser.email,
@@ -344,26 +359,6 @@ export class UtilityService {
 					})
 					throw new InternalServerErrorException('Failed to create user account')
 				}
-
-				if (!data) {
-					this.logger.error('No data returned from user insert', {
-						supabaseId: authUser.id
-					})
-					throw new InternalServerErrorException('Failed to create user account')
-				}
-
-				this.logger.log('User record created successfully', {
-					userId: data.id,
-					supabaseId: authUser.id,
-					email: authUser.email,
-					role
-				})
-
-				// Cache the new user ID
-				const cacheKey = `user:supabaseId:${authUser.id}`
-				await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
-
-				return data.id
 			}
 
 			// Re-throw if it's not a NotFoundException
