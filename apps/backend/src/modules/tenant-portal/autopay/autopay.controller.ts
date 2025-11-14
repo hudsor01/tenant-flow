@@ -50,6 +50,7 @@ export class TenantAutopayController {
 			autopayEnabled: !!lease.stripe_subscription_id,
 			subscriptionId: lease.stripe_subscription_id,
 			leaseId: lease.id,
+			tenantId: tenant.id,
 			rentAmount: lease.rentAmount,
 			nextPaymentDate: lease.stripe_subscription_id
 				? await this.getNextPaymentDate(token, lease.id)
