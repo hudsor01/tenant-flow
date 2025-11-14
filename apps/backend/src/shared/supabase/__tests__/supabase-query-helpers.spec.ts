@@ -25,7 +25,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.querySingle(mockQuery, {
+			const result = await queryHelpers.querySingle(mockQuery as any, {
 				resource: 'property',
 				id: '123',
 				operation: 'findOne'
@@ -40,19 +40,20 @@ describe('SupabaseQueryHelpers', () => {
 				code: 'PGRST116',
 				message: 'Not found',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 			const mockQuery = Promise.resolve({
 				data: null,
 				error: mockError
 			})
 
-			;(errorHandler.mapAndThrow as jest.Mock).mockImplementation(() => {
+			;(errorHandler.mapAndThrow as unknown as jest.Mock).mockImplementation(() => {
 				throw new NotFoundException('property (123) not found')
 			})
 
 			await expect(
-				queryHelpers.querySingle(mockQuery, {
+				queryHelpers.querySingle(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'findOne'
@@ -73,7 +74,7 @@ describe('SupabaseQueryHelpers', () => {
 			})
 
 			await expect(
-				queryHelpers.querySingle(mockQuery, {
+				queryHelpers.querySingle(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'findOne'
@@ -81,7 +82,7 @@ describe('SupabaseQueryHelpers', () => {
 			).rejects.toThrow(NotFoundException)
 
 			await expect(
-				queryHelpers.querySingle(mockQuery, {
+				queryHelpers.querySingle(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'findOne'
@@ -95,7 +96,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			await expect(queryHelpers.querySingle(mockQuery)).rejects.toThrow('Resource not found')
+			await expect(queryHelpers.querySingle(mockQuery as any)).rejects.toThrow('Resource not found')
 		})
 	})
 
@@ -107,7 +108,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.querySingleWithVersion(mockQuery, {
+			const result = await queryHelpers.querySingleWithVersion(mockQuery as any, {
 				resource: 'property',
 				id: '123',
 				operation: 'update',
@@ -123,20 +124,21 @@ describe('SupabaseQueryHelpers', () => {
 				code: 'PGRST116',
 				message: 'Not found',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 			const mockQuery = Promise.resolve({
 				data: null,
 				error: mockError
 			})
 
-			;(errorHandler.isOptimisticLockingConflict as jest.Mock).mockReturnValue(true)
-			;(errorHandler.throwOptimisticLockingError as jest.Mock).mockImplementation(() => {
+			;(errorHandler.isOptimisticLockingConflict as unknown as jest.Mock).mockReturnValue(true)
+			;(errorHandler.throwOptimisticLockingError as unknown as jest.Mock).mockImplementation(() => {
 				throw new ConflictException('property (123) was modified by another user')
 			})
 
 			await expect(
-				queryHelpers.querySingleWithVersion(mockQuery, {
+				queryHelpers.querySingleWithVersion(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'update',
@@ -158,20 +160,21 @@ describe('SupabaseQueryHelpers', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 			const mockQuery = Promise.resolve({
 				data: null,
 				error: mockError
 			})
 
-			;(errorHandler.isOptimisticLockingConflict as jest.Mock).mockReturnValue(false)
-			;(errorHandler.mapAndThrow as jest.Mock).mockImplementation(() => {
+			;(errorHandler.isOptimisticLockingConflict as unknown as jest.Mock).mockReturnValue(false)
+			;(errorHandler.mapAndThrow as unknown as jest.Mock).mockImplementation(() => {
 				throw new ConflictException('property already exists')
 			})
 
 			await expect(
-				queryHelpers.querySingleWithVersion(mockQuery, {
+				queryHelpers.querySingleWithVersion(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'update',
@@ -195,10 +198,10 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			;(errorHandler.isOptimisticLockingConflict as jest.Mock).mockReturnValue(false)
+			;(errorHandler.isOptimisticLockingConflict as unknown as jest.Mock).mockReturnValue(false)
 
 			await expect(
-				queryHelpers.querySingleWithVersion(mockQuery, {
+				queryHelpers.querySingleWithVersion(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'update',
@@ -207,7 +210,7 @@ describe('SupabaseQueryHelpers', () => {
 			).rejects.toThrow(NotFoundException)
 
 			await expect(
-				queryHelpers.querySingleWithVersion(mockQuery, {
+				queryHelpers.querySingleWithVersion(mockQuery as any, {
 					resource: 'property',
 					id: '123',
 					operation: 'update',
@@ -228,7 +231,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.queryList(mockQuery, {
+			const result = await queryHelpers.queryList(mockQuery as any, {
 				resource: 'property',
 				operation: 'findAll',
 				userId: 'user-123'
@@ -244,7 +247,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.queryList(mockQuery, {
+			const result = await queryHelpers.queryList(mockQuery as any, {
 				resource: 'property',
 				operation: 'findAll'
 			})
@@ -258,14 +261,15 @@ describe('SupabaseQueryHelpers', () => {
 				code: '42501',
 				message: 'Insufficient privilege',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 			const mockQuery = Promise.resolve({
 				data: null,
 				error: mockError
 			})
 
-			;(errorHandler.mapAndThrow as jest.Mock).mockImplementation(() => {
+			;(errorHandler.mapAndThrow as unknown as jest.Mock).mockImplementation(() => {
 				throw new Error('Insufficient permissions')
 			})
 
@@ -302,7 +306,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.queryCount(mockQuery, {
+			const result = await queryHelpers.queryCount(mockQuery as any, {
 				resource: 'property',
 				operation: 'count',
 				userId: 'user-123'
@@ -319,7 +323,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.queryCount(mockQuery, {
+			const result = await queryHelpers.queryCount(mockQuery as any, {
 				resource: 'property',
 				operation: 'count'
 			})
@@ -332,7 +336,8 @@ describe('SupabaseQueryHelpers', () => {
 				code: '42501',
 				message: 'Insufficient privilege',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 			const mockQuery = Promise.resolve({
 				data: null,
@@ -340,12 +345,12 @@ describe('SupabaseQueryHelpers', () => {
 				error: mockError
 			})
 
-			;(errorHandler.mapAndThrow as jest.Mock).mockImplementation(() => {
+			;(errorHandler.mapAndThrow as unknown as jest.Mock).mockImplementation(() => {
 				throw new Error('Insufficient permissions')
 			})
 
 			await expect(
-				queryHelpers.queryCount(mockQuery, {
+				queryHelpers.queryCount(mockQuery as any, {
 					resource: 'property',
 					operation: 'count'
 				})
@@ -364,7 +369,7 @@ describe('SupabaseQueryHelpers', () => {
 				error: null
 			})
 
-			const result = await queryHelpers.queryCount(mockQuery)
+			const result = await queryHelpers.queryCount(mockQuery as any)
 
 			expect(result).toBe(0)
 		})
