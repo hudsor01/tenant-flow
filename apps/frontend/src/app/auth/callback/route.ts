@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { createServerClient } from '@supabase/ssr'

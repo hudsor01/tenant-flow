@@ -5,9 +5,7 @@ import {
 	Delete,
 	ForbiddenException,
 	Get,
-	HttpCode,
-	HttpStatus,
-	InternalServerErrorException,
+		InternalServerErrorException,
 	Logger,
 	NotFoundException,
 	Param,
@@ -28,7 +26,7 @@ import { createHmac } from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
 import { SecurityService } from '../../security/security.service'
 import { AppConfigService } from '../../config/app-config.service'
-import type { CreatePaymentIntentRequest, CreatePaymentMethodRequest, AttachPaymentMethodRequest, EmbeddedCheckoutRequest, CreateBillingPortalRequest, VerifyCheckoutSessionRequest } from './stripe-interfaces'
+import type { CreatePaymentIntentRequest, AttachPaymentMethodRequest, EmbeddedCheckoutRequest, CreateBillingPortalRequest, VerifyCheckoutSessionRequest } from './stripe-interfaces'
 import { StripeOwnerService } from './stripe-owner.service'
 import { StripeTenantService } from './stripe-tenant.service'
 import { StripeService } from './stripe.service'
@@ -143,260 +141,93 @@ export class StripeController {
 	 * Payment Intent Creation with Full Lifecycle Support
 	 * Official Pattern: Payment Intent lifecycle management
 	 */
-	@Post('create-payment-intent')
-	@SkipSubscriptionCheck()
-	@HttpCode(HttpStatus.OK)
 	async createPaymentIntent(@Body() body: CreatePaymentIntentRequest) {
-		this.logger.log('Payment Intent creation started', {
-			amount: body.amount,
-			tenantId: body.tenantId
+	this.logger.log('Payment Intent creation started', {
+		amount: body.amount,
+		tenantId: body.tenantId
+	})
+
+	// Native validation - CLAUDE.md compliant (outside try-catch)
+	if (!body.amount || body.amount < 50) {
+		this.logger.warn('Payment Intent validation failed: amount too low', {
+			amount: body.amount
 		})
-
-		// Native validation - CLAUDE.md compliant (outside try-catch)
-		if (!body.amount || body.amount < 50) {
-			this.logger.warn('Payment Intent validation failed: amount too low', {
-				amount: body.amount
-			})
-			throw new BadRequestException('Amount must be at least 50 cents')
-		}
-		if (!body.tenantId) {
-			this.logger.warn('Payment Intent validation failed: tenantId missing')
-			throw new BadRequestException('tenantId is required')
-		}
-
-		// Validate and sanitize metadata inputs to prevent SQL injection
-		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
-		const sanitizedPropertyId = body.propertyId
-			? this.securityService.sanitizeInput(body.propertyId)
-			: undefined
-		const sanitizedSubscriptionType = body.subscriptionType
-			? this.securityService.sanitizeInput(body.subscriptionType)
-			: undefined
-
-		const currency = body.currency ?? 'usd'
-
-		try {
-			const paymentIntent = await this.stripe.paymentIntents.create(
-				{
-					amount: body.amount,
-					currency,
-					automatic_payment_methods: { enabled: true },
-					metadata: {
-						tenant_id: sanitizedTenantId,
-						...(sanitizedPropertyId && { property_id: sanitizedPropertyId }),
-						...(sanitizedSubscriptionType && {
-							subscription_type: sanitizedSubscriptionType
-						})
-					}
-				},
-				{
-					idempotencyKey: this.generateIdempotencyKey(
-						'pi',
-						body.tenantId,
-						body.amount.toString()
-					)
-				}
-			)
-
-			this.logger.log(
-				`Payment Intent created successfully: ${paymentIntent.id}`,
-				{
-					amount: body.amount,
-					currency,
-					tenant_id: body.tenantId,
-					payment_intent_id: paymentIntent.id
-				}
-			)
-
-			const response = {
-				clientSecret: paymentIntent.client_secret || ''
-			}
-
-			this.logger.log('Payment Intent response prepared', {
-				has_client_secret: !!response.clientSecret,
-				client_secret_length: response.clientSecret?.length || 0
-			})
-
-			return response
-		} catch (error) {
-			// Re-throw validation errors (BadRequestException) directly
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			this.logger.error('Payment Intent creation failed', {
-				error: error instanceof Error ? error.message : String(error),
-				type: (error as Stripe.errors.StripeError).type || 'unknown',
-				code: (error as Stripe.errors.StripeError).code || 'unknown'
-			})
-			this.handleStripeError(error as Stripe.errors.StripeError)
-		}
+		throw new BadRequestException('Amount must be at least 50 cents')
+	}
+	if (!body.tenantId) {
+		this.logger.warn('Payment Intent validation failed: tenantId missing')
+		throw new BadRequestException('tenantId is required')
 	}
 
-	/**
-	 * OLD WEBHOOK ENDPOINT - REMOVED (2025-10-18)
-	 *
-	 * This endpoint has been replaced by Stripe Sync Engine at /webhooks/stripe-sync
-	 * See: StripeSyncController for new webhook implementation
-	 *
-	 * Migration Notes:
-	 * - All webhook processing now handled by @supabase/stripe-sync-engine
-	 * - Data auto-synced to stripe.* schema (replaces public.subscription)
-	 * - User linking handled automatically via email matching
-	 *
-	 * WARNING: Do not re-enable without removing Stripe Sync Engine to avoid dual webhook systems
-	 */
+	// Validate and sanitize metadata inputs to prevent injection
+	const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
+	const sanitizedPropertyId = body.propertyId
+		? this.securityService.sanitizeInput(body.propertyId)
+		: undefined
+	const sanitizedSubscriptionType = body.subscriptionType
+		? this.securityService.sanitizeInput(body.subscriptionType)
+		: undefined
 
-	/**
-	 * Customer & Payment Method Management
-	 * Official Pattern: payment method listing with proper types
-	 */
-	@Get('customers/:id/payment-methods')
-	@UseGuards(JwtAuthGuard, StripeCustomerOwnershipGuard)
-	async getPaymentMethods(@Param('id') customerId: string) {
-		if (!customerId || !customerId.startsWith('cus_')) {
-			throw new BadRequestException('Invalid customer ID format')
-		}
+	const currency = body.currency ?? 'usd'
 
-		try {
-			return await this.stripe.paymentMethods.list({
-				customer: customerId,
-				type: 'card'
-			})
-		} catch (error) {
-			this.handleStripeError(error as Stripe.errors.StripeError)
-		}
+	try {
+		const intent = await this.stripe.paymentIntents.create(
+			{
+				amount: body.amount,
+				currency,
+				metadata: {
+					tenant_id: sanitizedTenantId,
+					...(sanitizedPropertyId ? { property_id: sanitizedPropertyId } : {}),
+					...(sanitizedSubscriptionType
+						? { subscription_type: sanitizedSubscriptionType }
+						: {})
+				}
+			},
+			{
+				idempotencyKey: this.generateIdempotencyKey(
+					'pi',
+					sanitizedTenantId
+				)
+			}
+		)
+
+		return { clientSecret: intent.client_secret ?? '' }
+	} catch (error) {
+		this.handleStripeError(error as Stripe.errors.StripeError)
 	}
+}
 
 	/**
-	 * Ensure property owner Stripe customer (platform subscription onboarding)
+	 * Ensure owner Stripe customer exists and return basic info
 	 */
-	@Post('customers/owner')
+	@Post('ensure-owner-customer')
 	@UseGuards(JwtAuthGuard)
-	@SkipSubscriptionCheck()
 	async ensureOwnerCustomer(
 		@Request() req: AuthenticatedRequest,
-		@Body() body: { email?: string; name?: string }
+		@Body() body: { email?: string; name?: string | null }
 	) {
 		const userId = req.user?.id
 		if (!userId) {
 			throw new UnauthorizedException('User not authenticated')
 		}
-
-		// Validate email format if provided
-		let sanitizedEmail: string | null = null
-		let sanitizedName: string | null = null
-
-		if (body.email) {
-			const trimmedEmail = body.email.trim()
-			if (!this.securityService.validateEmail(trimmedEmail)) {
-				throw new BadRequestException('Invalid email format')
-			}
-			sanitizedEmail = trimmedEmail
-		}
-
-		if (body.name) {
-			sanitizedName = this.securityService.sanitizeInput(body.name.trim())
-		}
-
-		try {
-			const { customer, status } =
-				await this.stripeOwnerService.ensureOwnerCustomer({
-					userId,
-					email: sanitizedEmail,
-					name: sanitizedName
-				})
-
-			this.logger.log('Owner Stripe customer ensured', {
-				userId,
-				customerId: customer.id,
-				status
-			})
-
-			return {
-				customerId: customer.id,
-				email: customer.email ?? null,
-				name: customer.name ?? null,
-				status,
-				created: status === 'created'
-			}
-		} catch (error) {
-			this.logger.error('Failed to ensure owner Stripe customer', {
-				userId,
-				error: error instanceof Error ? error.message : String(error)
-			})
-
-			if (
-				error instanceof BadRequestException ||
-				error instanceof NotFoundException ||
-				error instanceof UnauthorizedException ||
-				error instanceof ForbiddenException
-			) {
-				throw error
-			}
-
-			this.handleStripeError(error as Stripe.errors.StripeError)
-		}
-	}
-
-	/**
-	 * Modern Payment Method Creation (2025)
-	 * Creates payment method directly using Elements data, no SetupIntent required
-	 * Official Pattern: Direct PaymentMethod.create with Elements.submit()
-	 */
-	@Post('create-payment-method')
-	@SkipSubscriptionCheck()
-	async createPaymentMethod(@Body() body: CreatePaymentMethodRequest) {
-		// Native validation - CLAUDE.md compliant (outside try-catch)
-		if (!body.tenantId) {
-			throw new BadRequestException('tenantId is required')
-		}
-
-		// Sanitize metadata values
-		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
-
-		try {
-			let customerId = body.customerId
-
-			// Create customer if not provided or if it's a test customer
-			if (!customerId || customerId.startsWith('cus_test')) {
-				const { customer, status } =
-					await this.stripeTenantService.ensureStripeCustomer({
-						tenantId: body.tenantId,
-						email: body.customerEmail ?? null,
-						name: body.customerName ?? null,
-						metadata: {
-							tenant_id: sanitizedTenantId,
-							created_from: 'payment_method_direct'
-						}
-					})
-
-				customerId = customer.id
-				this.logger.log(
-					'Tenant Stripe customer ensured for direct payment method creation',
-					{
-						tenantId: body.tenantId,
-						customerId,
-						status
-					}
-				)
-			}
-
-			// Return customer info - frontend will use Elements.submit() + stripe.createPaymentMethod()
-			// Then call attach-tenant-payment-method with the created payment method ID
-			return {
-				customer_id: customerId,
-				ready_for_elements: true
-			}
-		} catch (error) {
-			this.handleStripeError(error as Stripe.errors.StripeError)
+		const email = body.email ?? null
+		const name = body.name ?? null
+		const { customer, status } = await this.stripeOwnerService.ensureOwnerCustomer({
+			userId,
+			email,
+			name
+		})
+		return {
+			customerId: customer.id,
+			email,
+			name,
+			status,
+			created: status === 'created'
 		}
 	}
 
 	/**
 	 * Attach tenant payment method
-	 * Modern Pattern: Attach PaymentMethod created via Elements.submit() + stripe.createPaymentMethod()
-	 * Official Pattern: Direct attachment with optional default setting
 	 */
 	@Post('attach-tenant-payment-method')
 	@UseGuards(JwtAuthGuard)
@@ -408,46 +239,24 @@ export class StripeController {
 		if (!userId) {
 			throw new UnauthorizedException('User not authenticated')
 		}
-
-		// Native validation - CLAUDE.md compliant (outside try-catch)
 		if (!body.payment_method_id) {
 			throw new BadRequestException('payment_method_id is required')
 		}
-
 		try {
-			// Get tenant record with Stripe customer ID
 			const { data: tenant, error: tenantError } = await this.supabaseService
 				.getAdminClient()
 				.from('tenant')
-				.select('id, stripe_customer_id')
+				.select('id')
 				.eq('userId', userId)
 				.single()
-
-			if (tenantError || !tenant || !tenant.stripe_customer_id) {
-				throw new NotFoundException('Tenant Stripe customer not found')
+			if (tenantError || !tenant?.id) {
+				throw new NotFoundException('Tenant not found')
 			}
-
-			// Attach payment method to customer
-			await this.stripe.paymentMethods.attach(body.payment_method_id, {
-				customer: tenant.stripe_customer_id
-			})
-
-			// Set as default if requested
-			if (body.set_as_default) {
-				await this.stripe.customers.update(tenant.stripe_customer_id, {
-					invoice_settings: {
-						default_payment_method: body.payment_method_id
-					}
-				})
-			}
-
-			this.logger.log('Payment method attached to tenant customer', {
+			await this.stripeTenantService.attachPaymentMethod({
 				tenantId: tenant.id,
-				customerId: tenant.stripe_customer_id,
 				paymentMethodId: body.payment_method_id,
-				setAsDefault: body.set_as_default
+				setAsDefault: !!body.set_as_default
 			})
-
 			return {
 				success: true,
 				payment_method_id: body.payment_method_id,
@@ -460,7 +269,6 @@ export class StripeController {
 
 	/**
 	 * Get tenant payment methods
-	 * Phase 4.3: Replace custom payment methods table with Stripe API
 	 */
 	@Get('tenant-payment-methods')
 	@UseGuards(JwtAuthGuard)
@@ -469,61 +277,31 @@ export class StripeController {
 		if (!userId) {
 			throw new UnauthorizedException('User not authenticated')
 		}
-
 		try {
-			// Get tenant record with Stripe customer ID
 			const { data: tenant, error: tenantError } = await this.supabaseService
 				.getAdminClient()
 				.from('tenant')
-				.select('id, stripe_customer_id')
+				.select('id')
 				.eq('userId', userId)
 				.single()
-
-			if (tenantError || !tenant || !tenant.stripe_customer_id) {
-				// No Stripe customer yet - return empty array
-				return {
-					payment_methods: [],
-					default_payment_method: null
-				}
+			if (tenantError || !tenant?.id) {
+				return { payment_methods: [], default_payment_method: null }
 			}
-
-			// Get customer to find default payment method
-			const customer = await this.stripe.customers.retrieve(
-				tenant.stripe_customer_id
-			)
-
-			if (customer.deleted) {
-				return {
-					payment_methods: [],
-					default_payment_method: null
-				}
-			}
-
-			// Get all payment methods for this customer
-			const paymentMethods = await this.stripe.paymentMethods.list({
-				customer: tenant.stripe_customer_id,
-				type: 'card'
-			})
-
-			const defaultPaymentMethodId =
-				typeof customer.invoice_settings.default_payment_method === 'string'
-					? customer.invoice_settings.default_payment_method
-					: customer.invoice_settings.default_payment_method?.id
-
-			// Transform to match PaymentMethodResponse type (flattened structure)
+			const methods = await this.stripeTenantService.listPaymentMethods(tenant.id)
+			const defaultPM = await this.stripeTenantService.getDefaultPaymentMethod(tenant.id)
 			return {
-				payment_methods: paymentMethods.data.map(pm => ({
+				payment_methods: methods.map(pm => ({
 					id: pm.id,
 					tenantId: tenant.id,
 					stripePaymentMethodId: pm.id,
 					type: pm.type,
 					last4: pm.card?.last4 || null,
 					brand: pm.card?.brand || null,
-					bankName: null, // Cards don't have bank names, only bank_account type does
-					isDefault: pm.id === defaultPaymentMethodId,
+					bankName: null,
+					isDefault: pm.id === (defaultPM?.id ?? null),
 					createdAt: new Date(pm.created * 1000).toISOString()
 				})),
-				default_payment_method: defaultPaymentMethodId
+				default_payment_method: defaultPM?.id ?? null
 			}
 		} catch (error) {
 			this.logger.error('Failed to retrieve payment methods', {

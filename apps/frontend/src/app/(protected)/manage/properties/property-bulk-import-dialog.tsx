@@ -10,9 +10,9 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { BUSINESS_ERROR_CODES } from '@repo/shared/constants/error-codes'
 import { clientFetch } from '#lib/api/client'
 import { ApiErrorCode, isApiError } from '#lib/api/api-error'
-import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
 import { AlertCircle, CheckCircle2, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
