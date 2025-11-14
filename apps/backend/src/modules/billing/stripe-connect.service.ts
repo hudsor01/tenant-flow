@@ -4,6 +4,7 @@ import * as countries from 'i18n-iso-countries'
 import enLocale from 'i18n-iso-countries/langs/en.json'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { queryMutation } from '../../shared/utils/query-helpers'
 
 /**
  * Stripe Connect Service
@@ -540,25 +541,25 @@ export class StripeConnectService {
 				onboardingCompletedAt = null
 			}
 
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('users')
-				.update({
-					onboardingComplete: isNowComplete,
-					detailsSubmitted: account.details_submitted,
-					chargesEnabled: account.charges_enabled,
-					payoutsEnabled: account.payouts_enabled,
-					onboardingCompletedAt
-				})
-				.eq('id', userId)
-
-			if (error) {
-				this.logger.error('Failed to update onboarding status', {
-					error,
-					userId
-				})
-				throw error
-			}
+			await queryMutation(
+				this.supabaseService
+					.getAdminClient()
+					.from('users')
+					.update({
+						onboardingComplete: isNowComplete,
+						detailsSubmitted: account.details_submitted,
+						chargesEnabled: account.charges_enabled,
+						payoutsEnabled: account.payouts_enabled,
+						onboardingCompletedAt
+					})
+					.eq('id', userId),
+				{
+					resource: 'user',
+					id: userId,
+					operation: 'update onboarding status',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log('Updated onboarding status', {
 				userId,
