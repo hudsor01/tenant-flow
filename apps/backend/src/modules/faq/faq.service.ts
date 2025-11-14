@@ -278,19 +278,22 @@ export class FAQService {
 	}> {
 		const client = this.supabase.getAdminClient()
 
-		const { data, error } = await client.rpc('get_faq_analytics')
+		const data = await queryList<{
+			total_categories: number
+			total_questions: number
+			total_views: number
+			total_helpful: number
+			avg_helpful_rate: number
+		}>(
+			client.rpc('get_faq_analytics') as any,
+			{
+				resource: 'FAQ analytics',
+				operation: 'fetch via RPC',
+				logger: this.logger
+			}
+		)
 
-		if (error) {
-			this.logger.error('Failed to fetch FAQ analytics', {
-				error: error.message
-			})
-			throw new HttpException(
-				'Failed to fetch FAQ analytics',
-				HttpStatus.INTERNAL_SERVER_ERROR
-			)
-		}
-
-		return data?.[0]
+		return data[0]
 			? {
 					totalCategories: data[0].total_categories ?? 0,
 					totalQuestions: data[0].total_questions ?? 0,
