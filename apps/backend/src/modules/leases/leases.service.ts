@@ -22,8 +22,9 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import {
 	querySingle,
+	queryList,
 	queryMutation
-} from '../../shared/database/supabase-query-helpers'
+} from '../../shared/utils/query-helpers'
 
 /**
  * Safe column list for lease queries
@@ -194,18 +195,14 @@ export class LeasesService {
 				ascending: sortOrder === 'asc'
 			})
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error('Failed to fetch leases from Supabase', {
-					error: error.message,
-					query
-				})
-				throw new BadRequestException('Failed to fetch leases')
-			}
+			const data = await queryList<Lease>(queryBuilder as any, {
+				resource: 'leases',
+				operation: 'fetch with filters',
+				logger: this.logger
+			})
 
 			return {
-				data: data as Lease[],
+				data,
 				total: count ?? 0,
 				limit,
 				offset
@@ -237,14 +234,14 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client.from('lease').select(SAFE_LEASE_COLUMNS)
-
-			if (error) {
-				this.logger.error('Failed to get lease stats from Supabase', {
-					error: error.message
-				})
-				throw new BadRequestException('Failed to get lease statistics')
-			}
+			const data = await queryList<Lease>(
+				client.from('lease').select(SAFE_LEASE_COLUMNS) as any,
+				{
+					resource: 'lease stats',
+					operation: 'fetch for statistics',
+					logger: this.logger
+				}
+			)
 
 			const leases = data || []
 			const now = new Date()
@@ -319,23 +316,20 @@ export class LeasesService {
 			const now = new Date()
 			const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
 
-			const { data, error } = await client
-				.from('lease')
-				.select(SAFE_LEASE_COLUMNS)
-				.eq('status', 'ACTIVE')
-				.gte('end_date', now.toISOString())
-				.lte('end_date', futureDate.toISOString())
-				.order('end_date', { ascending: true })
-
-			if (error) {
-				this.logger.error('Failed to get expiring leases from Supabase', {
-					error: error.message,
-					days
-				})
-				throw new BadRequestException('Failed to get expiring leases')
-			}
-
-			return data as Lease[]
+			return await queryList<Lease>(
+				client
+					.from('lease')
+					.select(SAFE_LEASE_COLUMNS)
+					.eq('status', 'ACTIVE')
+					.gte('end_date', now.toISOString())
+					.lte('end_date', futureDate.toISOString())
+					.order('end_date', { ascending: true }) as any,
+				{
+					resource: 'expiring leases',
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Leases service failed to get expiring leases', {
 				error: error instanceof Error ? error.message : String(error),
@@ -648,22 +642,15 @@ export class LeasesService {
 			}
 			if (newRentAmount) updateData.rentAmount = newRentAmount
 
-			const { data, error } = await client
-				.from('lease')
-				.update(updateData)
-				.eq('id', leaseId)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to renew lease in Supabase', {
-					error: error.message,
-					leaseId
-				})
-				throw new BadRequestException('Failed to renew lease')
-			}
-
-			return data as Lease
+			return await queryMutation<Lease>(
+				client.from('lease').update(updateData).eq('id', leaseId).select().single(),
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'renew',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Failed to renew lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -721,27 +708,25 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client
-				.from('lease')
-				.update({
-					status: 'TERMINATED' as Database['public']['Enums']['LeaseStatus'],
-					endDate: terminationDate,
-					terms: reason || null,
-					updatedAt: new Date().toISOString()
-				})
-				.eq('id', leaseId)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to terminate lease in Supabase', {
-					error: error.message,
-					leaseId
-				})
-				throw new BadRequestException('Failed to terminate lease')
-			}
-
-			return data as Lease
+			return await queryMutation<Lease>(
+				client
+					.from('lease')
+					.update({
+						status: 'TERMINATED' as Database['public']['Enums']['LeaseStatus'],
+						endDate: terminationDate,
+						terms: reason || null,
+						updatedAt: new Date().toISOString()
+					})
+					.eq('id', leaseId)
+					.select()
+					.single(),
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'terminate',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Failed to terminate lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -796,17 +781,11 @@ export class LeasesService {
 				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
 			}
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error('Failed to fetch lease analytics from Supabase', {
-					error: error.message,
-					options
-				})
-				throw new BadRequestException('Failed to get lease analytics')
-			}
-
-			return data || []
+			return await queryList(queryBuilder as any, {
+				resource: 'lease analytics',
+				operation: 'fetch',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error('Leases service failed to get analytics', {
 				error: error instanceof Error ? error.message : String(error),
@@ -846,21 +825,28 @@ export class LeasesService {
 			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client
-				.from('rent_payment')
-				.select('*')
-				.eq('lease_id', leaseId)
-				.order('payment_date', { ascending: false })
-
-			if (error) {
+			// Soft-fail pattern: Return empty array on error
+			try {
+				return await queryList(
+					client
+						.from('rent_payment')
+						.select('*')
+						.eq('lease_id', leaseId)
+						.order('payment_date', { ascending: false }) as any,
+					{
+						resource: 'rent payment history',
+						id: leaseId,
+						operation: 'fetch',
+						logger: this.logger
+					}
+				)
+			} catch (error) {
 				this.logger.error('Failed to fetch payment history from Supabase', {
-					error: error.message,
+					error: error instanceof Error ? error.message : 'Unknown error',
 					leaseId
 				})
 				return []
 			}
-
-			return data || []
 		} catch (error) {
 			this.logger.error('Leases service failed to get payment history', {
 				error: error instanceof Error ? error.message : String(error),
