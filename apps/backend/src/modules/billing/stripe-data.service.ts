@@ -11,6 +11,7 @@ import type {
 } from '@repo/shared/types/domain'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { querySingle, queryList } from '../../shared/utils/query-helpers'
 
 // Type aliases for Supabase database types
 type StripePaymentIntentDB =
@@ -126,25 +127,19 @@ export class StripeDataService {
 			)
 
 			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await client
-				.from('stripe_subscriptions')
-				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
-				.eq('customer_id', customerId)
 
-			if (error) {
-				this.logger.error(
-					'Failed to fetch customer subscriptions from Supabase',
-					{
-						error: error.message,
-						customerId
-					}
-				)
-				throw new InternalServerErrorException(
-					'Failed to fetch customer subscriptions'
-				)
-			}
-
-			return (data as StripeSubscriptionDB[]) || []
+			return await queryList<StripeSubscriptionDB>(
+				client
+					.from('stripe_subscriptions')
+					.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
+					.eq('customer_id', customerId) as any,
+				{
+					resource: 'stripe subscriptions',
+					id: customerId,
+					operation: 'fetch by customer',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Error fetching customer subscriptions:', error)
 			throw new InternalServerErrorException(
@@ -168,25 +163,20 @@ export class StripeDataService {
 			})
 
 			const client = this.supabaseService.getAdminClient()
-			const { data, error } = await client
-				.from('stripe_customers')
-				.select(SAFE_STRIPE_CUSTOMERS_COLUMNS)
-				.eq('id', customerId)
-				.single()
 
-			if (error) {
-				this.logger.error('Failed to fetch customer from Supabase', {
-					error: error.message,
-					customerId
-				})
-				throw new InternalServerErrorException('Customer not found')
-			}
-
-			if (!data) {
-				throw new InternalServerErrorException('Customer not found')
-			}
-
-			return data as StripeCustomerDB
+			return await querySingle<StripeCustomerDB>(
+				client
+					.from('stripe_customers')
+					.select(SAFE_STRIPE_CUSTOMERS_COLUMNS)
+					.eq('id', customerId)
+					.single() as any,
+				{
+					resource: 'stripe customer',
+					id: customerId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			if (error instanceof BadRequestException) {
 				throw error
@@ -214,17 +204,11 @@ export class StripeDataService {
 				queryBuilder = queryBuilder.eq('active', true)
 			}
 
-			const { data, error } = await queryBuilder.limit(1000)
-
-			if (error) {
-				this.logger.error('Failed to fetch prices from Supabase', {
-					error: error.message,
-					activeOnly
-				})
-				throw new InternalServerErrorException('Failed to fetch prices')
-			}
-
-			return (data as StripePriceDB[]) || []
+			return await queryList<StripePriceDB>(queryBuilder.limit(1000) as any, {
+				resource: 'stripe prices',
+				operation: 'fetch',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error('Error fetching prices:', error)
 			throw new InternalServerErrorException('Failed to fetch prices')
@@ -249,17 +233,11 @@ export class StripeDataService {
 				queryBuilder = queryBuilder.eq('active', true)
 			}
 
-			const { data, error } = await queryBuilder.limit(1000)
-
-			if (error) {
-				this.logger.error('Failed to fetch products from Supabase', {
-					error: error.message,
-					activeOnly
-				})
-				throw new InternalServerErrorException('Failed to fetch products')
-			}
-
-			return (data as StripeProductDB[]) || []
+			return await queryList<StripeProductDB>(queryBuilder.limit(1000) as any, {
+				resource: 'stripe products',
+				operation: 'fetch',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error('Error fetching products:', error)
 			throw new InternalServerErrorException('Failed to fetch products')
@@ -296,23 +274,23 @@ export class StripeDataService {
 			this.logger.log('Calculating revenue analytics', { startDate, endDate })
 
 			const client = this.supabaseService.getAdminClient()
-			const { data: paymentIntents, error } = await client
-				.from('stripe_payment_intents')
-				.select(SAFE_STRIPE_PAYMENT_INTENTS_COLUMNS)
-				.gte('createdAt', startDate.toISOString())
-				.lte('createdAt', endDate.toISOString())
-				.limit(1000)
 
-			if (error) {
-				throw new InternalServerErrorException(
-					'Failed to fetch payment intents'
-				)
-			}
+			const paymentIntents = await queryList<StripePaymentIntentDB>(
+				client
+					.from('stripe_payment_intents')
+					.select(SAFE_STRIPE_PAYMENT_INTENTS_COLUMNS)
+					.gte('createdAt', startDate.toISOString())
+					.lte('createdAt', endDate.toISOString())
+					.limit(1000) as any,
+				{
+					resource: 'stripe payment intents',
+					operation: 'fetch for revenue analytics',
+					logger: this.logger
+				}
+			)
 
 			// Ultra-native: Simple aggregation in code, not complex SQL
-			const typedPaymentIntents =
-				(paymentIntents as StripePaymentIntentDB[]) || []
-			return this.calculateRevenueAnalytics(typedPaymentIntents)
+			return this.calculateRevenueAnalytics(paymentIntents)
 		} catch (error) {
 			this.logger.error('Error calculating revenue analytics:', error)
 			throw new InternalServerErrorException(
@@ -374,18 +352,21 @@ export class StripeDataService {
 			this.logger.log('Calculating churn analytics')
 
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
-				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
-				.limit(1000)
 
-			if (error) {
-				throw new InternalServerErrorException('Failed to fetch subscriptions')
-			}
+			const subscriptions = await queryList<StripeSubscriptionDB>(
+				client
+					.from('stripe_subscriptions')
+					.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
+					.limit(1000) as any,
+				{
+					resource: 'stripe subscriptions',
+					operation: 'fetch for churn analytics',
+					logger: this.logger
+				}
+			)
 
 			// Ultra-native: Simple churn calculation in code
-			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
-			return this.calculateChurnAnalytics(typedSubscriptions)
+			return this.calculateChurnAnalytics(subscriptions)
 		} catch (error) {
 			this.logger.error('Error calculating churn analytics:', error)
 			throw new InternalServerErrorException(
@@ -546,19 +527,19 @@ export class StripeDataService {
 	async getMRRTrend(months: number): Promise<StripeSubscriptionDB[]> {
 		try {
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
-				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
-				.limit(months * 100) // Adjust limit based on months
-
-			if (error) {
-				throw new InternalServerErrorException(
-					'Failed to fetch subscriptions for MRR trend'
-				)
-			}
 
 			// Simple MRR calculation
-			return (subscriptions as StripeSubscriptionDB[]) || []
+			return await queryList<StripeSubscriptionDB>(
+				client
+					.from('stripe_subscriptions')
+					.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
+					.limit(months * 100) as any, // Adjust limit based on months
+				{
+					resource: 'stripe subscriptions',
+					operation: 'fetch for MRR trend',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Error calculating MRR trend:', error)
 			throw new InternalServerErrorException('Failed to calculate MRR trend')
@@ -574,21 +555,22 @@ export class StripeDataService {
 	}> {
 		try {
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
-				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
-				.limit(1000)
 
-			if (error) {
-				throw new InternalServerErrorException(
-					'Failed to fetch subscriptions for status breakdown'
-				)
-			}
+			const subscriptions = await queryList<StripeSubscriptionDB>(
+				client
+					.from('stripe_subscriptions')
+					.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
+					.limit(1000) as any,
+				{
+					resource: 'stripe subscriptions',
+					operation: 'fetch for status breakdown',
+					logger: this.logger
+				}
+			)
 
 			// Calculate status breakdown
 			const breakdown: { [status: string]: number } = {}
-			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
-			typedSubscriptions.forEach(sub => {
+			subscriptions.forEach(sub => {
 				breakdown[sub.status] = (breakdown[sub.status] || 0) + 1
 			})
 
@@ -620,23 +602,25 @@ export class StripeDataService {
 			})
 
 			const client = this.supabaseService.getAdminClient()
-			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
-				.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
-				.eq('customer_id', customerId)
 
-			if (error) {
-				throw new InternalServerErrorException(
-					'Failed to fetch customer subscriptions for predictive metrics'
-				)
-			}
+			const subscriptions = await queryList<StripeSubscriptionDB>(
+				client
+					.from('stripe_subscriptions')
+					.select(SAFE_STRIPE_SUBSCRIPTIONS_COLUMNS)
+					.eq('customer_id', customerId) as any,
+				{
+					resource: 'stripe subscriptions',
+					id: customerId,
+					operation: 'fetch for predictive metrics',
+					logger: this.logger
+				}
+			)
 
 			// Ultra-native: Simple predictive calculation
-			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
-			const activeSubscriptions = typedSubscriptions.filter(
+			const activeSubscriptions = subscriptions.filter(
 				sub => sub.status === 'active'
 			)
-			const canceledSubscriptions = typedSubscriptions.filter(
+			const canceledSubscriptions = subscriptions.filter(
 				sub => sub.status === 'canceled'
 			)
 
@@ -647,9 +631,7 @@ export class StripeDataService {
 				canceledSubscriptions.length > 0
 					? Math.min(
 							100,
-							(canceledSubscriptions.length /
-								(typedSubscriptions.length || 1)) *
-								100
+							(canceledSubscriptions.length / (subscriptions.length || 1)) * 100
 						)
 					: 0
 			const expansion_opportunity_score =
