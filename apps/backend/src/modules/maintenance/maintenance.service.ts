@@ -499,25 +499,35 @@ export class MaintenanceService {
 			).toISOString()
 
 		// 🔐 Optimistic locking: Add version check
-		let query = client
+		const query = client
 			.from('maintenance_request')
 			.update(updateData)
 			.eq('id', maintenanceId)
 
-		// Add version check if expectedVersion provided
-		if (expectedVersion !== undefined) {
-			query = query.eq('version', expectedVersion)
-		}
+		let updated: MaintenanceRequest
 
-		const updated = await this.queryHelpers.querySingleWithVersion<MaintenanceRequest>(
-			query.select().single(),
-			{
-				resource: 'maintenance_request',
-				id: maintenanceId,
-				operation: 'update',
-				metadata: { expectedVersion: expectedVersion ?? 0 }
-			}
-		)
+		// Use version-aware query if expectedVersion provided
+		if (expectedVersion !== undefined) {
+			updated = await this.queryHelpers.querySingleWithVersion<MaintenanceRequest>(
+				query.eq('version', expectedVersion).select().single(),
+				{
+					resource: 'maintenance_request',
+					id: maintenanceId,
+					operation: 'update',
+					metadata: { expectedVersion }
+				}
+			)
+		} else {
+			// Otherwise use regular query
+			updated = await this.queryHelpers.querySingle<MaintenanceRequest>(
+				query.select().single(),
+				{
+					resource: 'maintenance_request',
+					id: maintenanceId,
+					operation: 'update'
+				}
+			)
+		}
 
 		// Emit maintenance updated event with inline context
 		// Get unit and property names inline
