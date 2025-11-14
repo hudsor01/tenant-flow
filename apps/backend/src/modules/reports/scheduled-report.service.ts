@@ -227,7 +227,7 @@ export class ScheduledReportService {
 				startDate,
 				endDate,
 				metadata: {
-					...(schedule.metadata && typeof schedule.metadata === 'object' ? schedule.metadata : {}),
+					...(schedule.metadata && typeof schedule.metadata === 'object' && !Array.isArray(schedule.metadata) ? schedule.metadata : {}),
 					scheduledReportId: schedule.id,
 					generatedByScheduler: true
 				}
