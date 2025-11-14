@@ -20,7 +20,7 @@ export interface GeneratedReportRecord {
 	reportType: string
 	reportName: string
 	format: string
-	status: 'generating' | 'completed' | 'failed'
+	status: string
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
