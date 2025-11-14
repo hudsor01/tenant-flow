@@ -425,20 +425,28 @@ export class StripeAccessControlService {
 		supportLevel: string
 	} | null> {
 		try {
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('get_user_plan_limits', {
-					p_user_id: userId
-				})
-				.single()
-
-			if (error || !data) {
-				this.logger.warn('Could not get plan limits', {
-					userId,
-					error: error?.message
-				})
-				return null
-			}
+			const data = await querySingle<{
+				property_limit: number
+				unit_limit: number
+				user_limit: number
+				storage_gb: number
+				has_api_access: boolean
+				has_white_label: boolean
+				support_level: string
+			}>(
+				this.supabaseService
+					.getAdminClient()
+					.rpc('get_user_plan_limits', {
+						p_user_id: userId
+					})
+					.single() as any,
+				{
+					resource: 'user plan limits',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
 
 			return {
 				propertyLimit: data.property_limit,
@@ -450,7 +458,7 @@ export class StripeAccessControlService {
 				supportLevel: data.support_level
 			}
 		} catch (error) {
-			this.logger.error('Exception getting plan limits', {
+			this.logger.warn('Could not get plan limits', {
 				userId,
 				error: error instanceof Error ? error.message : String(error)
 			})

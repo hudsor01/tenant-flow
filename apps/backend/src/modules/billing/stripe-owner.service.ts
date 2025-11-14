@@ -2,13 +2,13 @@ import {
 	BadRequestException,
 	ForbiddenException,
 	Injectable,
-	Logger,
-	NotFoundException
+	Logger
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { querySingle } from '../../shared/utils/query-helpers'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 
@@ -206,24 +206,23 @@ export class StripeOwnerService {
 			return cached.user
 		}
 
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select(
-				'id, email, firstName, lastName, name, role, stripeCustomerId, updatedAt'
-			)
-			.eq('id', userId)
-			.single()
+		const user = await querySingle<UserRow>(
+			this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select(
+					'id, email, firstName, lastName, name, role, stripeCustomerId, updatedAt'
+				)
+				.eq('id', userId)
+				.single(),
+			{
+				resource: 'owner',
+				id: userId,
+				operation: 'fetch',
+				logger: this.logger
+			}
+		)
 
-		if (error || !data) {
-			this.logger.error('Owner record not found', {
-				userId,
-				error: error?.message
-			})
-			throw new NotFoundException('Owner not found')
-		}
-
-		const user = data as UserRow
 		this.ownerCache.set(userId, { user, cachedAt: Date.now() })
 		return user
 	}
