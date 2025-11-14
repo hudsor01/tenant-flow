@@ -235,7 +235,9 @@ describe('LeasesController', () => {
 
 		it('should throw NotFoundException when lease not found', async () => {
 			const leaseId = generateUUID()
-			mockLeasesService.findOne.mockResolvedValue(null)
+			mockLeasesService.findOne.mockRejectedValue(
+				new NotFoundException('Lease not found')
+			)
 
 			await expect(
 				controller.findOne(leaseId, 'mock-jwt-token')
