@@ -160,7 +160,7 @@ async function globalSetup() {
 							? (globalThis['console'] as Console | undefined)
 							: undefined
 					diagnosticConsole?.warn?.(
-						'⚠️  QueryClient not found, tests may have limited functionality'
+						'️ QueryClient not found, tests may have limited functionality'
 					)
 				}
 			}, 30)

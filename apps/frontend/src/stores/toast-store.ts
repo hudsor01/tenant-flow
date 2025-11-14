@@ -36,7 +36,7 @@ export interface EnhancedToast extends Omit<ToastT, 'id'> {
 	metadata?: Record<string, unknown>
 }
 
-interface ToastStoreState {
+export interface ToastStoreState {
 	// Active toasts
 	toasts: EnhancedToast[]
 

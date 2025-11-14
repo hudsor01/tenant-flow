@@ -19,7 +19,6 @@
   "scripts": {
     "dev": "doppler run -- next dev",
     "dev:clean": "pnpm clean && pnpm dev",
-    "dev:https": "doppler run -- next dev --experimental-https --experimental-https-key ./certs/localhost+2-key.pem --experimental-https-cert ./certs/localhost+2.pem",
     "build": "next build",
     "start": "next start",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
@@ -28,11 +27,6 @@
     "test": "vitest",
     "test:unit": "vitest --run",
     "test:integration": "doppler run -- sh -c 'pnpm --filter @repo/backend dev & BACKEND_PID=$!; if [ $? -ne 0 ]; then echo \"Failed to start backend\"; exit 1; fi; trap \"kill $BACKEND_PID 2>/dev/null || true\" EXIT INT TERM; COUNT=0; MAX_WAIT=60; until curl -s http://localhost:4600/health > /dev/null 2>&1; do COUNT=$((COUNT+1)); if [ $COUNT -gt $MAX_WAIT ]; then echo \"Backend health check timeout after ${MAX_WAIT}s\"; kill $BACKEND_PID 2>/dev/null || true; exit 1; fi; sleep 1; done; vitest --config vitest.integration.config.js --run; TEST_EXIT=$?; kill $BACKEND_PID 2>/dev/null || true; exit $TEST_EXIT'",
-    "test:all": "pnpm test:unit && pnpm test:integration",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage",
-    "test:watch": "vitest --watch",
-    "clean": "rimraf .next coverage .turbo node_modules/.cache",
     "generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts"
   },
   "dependencies": {

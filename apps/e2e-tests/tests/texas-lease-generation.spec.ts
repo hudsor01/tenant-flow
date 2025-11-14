@@ -6,7 +6,7 @@ const logger = createLogger({ component: 'TexasLeaseGenerationTest' })
 
 /**
  * E2E tests for Texas Residential Lease Agreement Generation
- *
+
  * Tests the complete user journey:
  * 1. Navigate to lease generation page (requires property + unit + tenant selection)
  * 2. Auto-fill form data from backend (GET /api/v1/leases/auto-fill/:propertyId/:unitId/:tenantId)
@@ -15,7 +15,7 @@ const logger = createLogger({ component: 'TexasLeaseGenerationTest' })
  * 5. Backend generates PDF via POST /api/v1/leases/generate (form-fill PDF with AcroForm fields)
  * 6. Frontend receives PDF binary and triggers download
  * 7. PDF file downloads successfully
- *
+
  * Security Tests:
  * - Verifies PropertyOwnershipGuard prevents unauthorized access
  * - Verifies DTO validation rejects invalid data
@@ -31,16 +31,24 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
 
 /**
  * E2E AUTHENTICATION SETUP REQUIRED
- *
+
  * These tests require a local test account to be set up in your database:
  * Email: process.env.E2E_OWNER_EMAIL (default: test-owner@example.com)
+<<<<<<< Updated upstream
+ * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
+
+||||||| Stash base
  * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
  *
+=======
+ * Password: process.env.E2E_OWNER_PASSWORD (must be set via environment variable)
+ *
+>>>>>>> Stashed changes
  * To set up:
  * 1. Sign up at http://localhost:3000/signup with the test credentials
  * 2. Verify the email in your local Supabase dashboard
  * 3. Run these tests
- *
+
  * Tests will be SKIPPED if authentication fails.
  */
 test.describe('Texas Lease Generation', () => {
@@ -62,13 +70,13 @@ test.describe('Texas Lease Generation', () => {
 			])
 
 			authenticationAvailable = true
-			logger.info('✅ Authentication successful - tests will run')
+			logger.info(' Authentication successful - tests will run')
 		} catch (error) {
 			authenticationAvailable = false
-			logger.warn('⚠️  Authentication failed - tests will be SKIPPED')
-			logger.info('   Set up test account at http://localhost:3000/signup')
+			logger.warn('️ Authentication failed - tests will be SKIPPED')
+			logger.info(' Set up test account at http://localhost:3000/signup')
 			logger.info(
-				`   Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
+				` Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
 			)
 		} finally {
 			await page.close()

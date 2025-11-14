@@ -9,32 +9,6 @@ import type { Database } from './supabase-generated.js'
 import type { Request, Response } from 'express'
 import type { HttpMethod } from './core.js'
 import type { ServiceHealth } from './health.js'
-import type {
-	CreatePropertyRequest,
-	UpdatePropertyRequest,
-	CreateUnitRequest,
-	UpdateUnitRequest,
-	CreateTenantRequest,
-	UpdateTenantRequest,
-	CreateLeaseRequest,
-	UpdateLeaseRequest,
-	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
-} from './api-contracts.js'
-
-// Re-export request types for backward compatibility
-export type {
-	CreatePropertyRequest,
-	UpdatePropertyRequest,
-	CreateUnitRequest,
-	UpdateUnitRequest,
-	CreateTenantRequest,
-	UpdateTenantRequest,
-	CreateLeaseRequest,
-	UpdateLeaseRequest,
-	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
-}
 
 export interface TypeProvider {
 	output: Record<string, unknown>
@@ -72,15 +46,14 @@ export interface JSONSchema {
 	default?: unknown
 }
 
-export type authUser = Database['public']['Tables']['users']['Row']
 
 export interface Context {
 	req: Request
 	res: Response
-	user?: authUser
+	user?: Database['public']['Tables']['users']['Row']
 }
 
-export type AuthenticatedContext = Context & { user: authUser }
+export type AuthenticatedContext = Context & { user: Database['public']['Tables']['users']['Row'] }
 
 export interface RequestContext {
 	requestId: string
@@ -90,147 +63,9 @@ export interface RequestContext {
 	metadata: Record<string, unknown>
 }
 
-export interface UserProfileResponse {
-	id: string
-	email: string
-	name: string
-	company?: string
-	phone?: string
-	bio?: string
-	avatarUrl?: string
-	emailVerified: boolean
-	createdAt: string
-	updatedAt: string
-}
 
-/**
- * Lease input for service layer operations
- * Centralized type to avoid inline definitions
- */
-export interface LeaseInput {
-	tenantId: string
-	unitId: string
-	startDate: string
-	endDate: string
-	rentAmount: number
-	securityDeposit?: number
-	status: Database['public']['Enums']['LeaseStatus']
-}
 
-// SECURITY TYPES
 
-export interface SanitizationConfig {
-	enabled: boolean
-	maxDepth: number
-	maxStringLength: number
-	maxArrayLength: number
-	maxObjectKeys: number
-	allowHTML: boolean
-	strictMode: boolean
-}
-
-export interface ThreatPattern {
-	name: string
-	pattern: RegExp
-	severity: 'low' | 'medium' | 'high'
-	block: boolean
-}
-
-export interface SecurityHeadersConfig {
-	csp: {
-		enabled: boolean
-		reportOnly: boolean
-		reportUri?: string
-	}
-	hsts: {
-		enabled: boolean
-		maxAge: number
-		includeSubDomains: boolean
-		preload: boolean
-	}
-	frameOptions: 'DENY' | 'SAMEORIGIN'
-	contentTypeOptions: boolean
-	xssProtection: boolean
-	referrerPolicy: string
-	permissionsPolicy: Record<string, string[]>
-}
-
-type MaintenanceRequest =
-	Database['public']['Tables']['maintenance_request']['Row']
-type Property = Database['public']['Tables']['property']['Row']
-type Tenant = Database['public']['Tables']['tenant']['Row']
-type Unit = Database['public']['Tables']['unit']['Row']
-type Lease = Database['public']['Tables']['lease']['Row']
-
-// Maintenance router outputs
-export interface MaintenanceRequestListOutput {
-	requests: MaintenanceRequest[]
-	total: number
-	page: number
-	limit: number
-}
-
-export interface MaintenanceRequestDetailOutput {
-	request: MaintenanceRequest
-}
-
-// Property router outputs
-export interface PropertyListOutput {
-	properties: Property[]
-	total: number
-	page: number
-	limit: number
-}
-
-export interface PropertyDetailOutput {
-	property: Property
-	units?: Unit[]
-	tenants?: Tenant[]
-}
-
-// Tenant router outputs
-export interface TenantListOutput {
-	tenants: Tenant[]
-	total: number
-	page: number
-	limit: number
-}
-
-export interface TenantDetailOutput {
-	tenant: Tenant
-	leases?: Lease[]
-	currentLease?: Lease
-}
-
-// Unit router outputs
-export interface UnitListOutput {
-	units: Unit[]
-	total: number
-	page: number
-	limit: number
-}
-
-export interface UnitDetailOutput {
-	unit: Unit
-	property?: Property
-	currentTenant?: Tenant
-	currentLease?: Lease
-}
-
-// Lease router outputs
-export interface LeaseListOutput {
-	leases: Lease[]
-	total: number
-	page: number
-	limit: number
-}
-
-export interface LeaseDetailOutput {
-	lease: Lease
-	tenant?: Tenant
-	unit?: Unit
-	property?: Property
-}
 
 // DATABASE OPTIMIZATION TYPES
 
@@ -257,7 +92,7 @@ export interface QueryPerformanceMetric {
 
 // Note: PerformanceMetrics interface moved to health.ts to resolve conflicts
 
-export type { HealthCheckResponse } from './health'
+export type { HealthCheckResponse } from './health.js'
 
 // Row describing index usage metrics (derived from pg_stat_* views or RPC)
 export interface DbIndexUsageRow {
@@ -422,7 +257,7 @@ export interface ServiceMetrics {
 }
 
 // SECURITY MONITORING TYPES
-export type { SecurityEvent } from './security'
+export type { SecurityEvent } from './security.js'
 
 export type SecurityEventType =
 	| 'unauthorized_access'
@@ -447,7 +282,7 @@ export type SecurityEventType =
 
 // SECURITY EXCEPTION FILTER TYPES
 
-export type { ErrorResponse } from './errors'
+export type { ErrorResponse } from './errors.js'
 
 export interface SecurityErrorContext {
 	ip: string
@@ -473,7 +308,7 @@ export type StripeSubscriptionStatus =
 
 // Authenticated request with user attached
 export interface AuthenticatedRequest extends Request {
-	user: authUser
+	user: Database['public']['Tables']['users']['Row']
 	startTime?: number
 	id?: string
 }
@@ -557,67 +392,6 @@ export interface CircuitBreakerStatus {
 	overall: 'healthy' | 'degraded' | 'unhealthy'
 }
 
-// STRIPE WEBHOOK AND BILLING TYPES
-
-export interface BackendCreatePaymentIntentRequest {
-	amount: number
-	tenantId: string
-}
-
-export interface EmbeddedCheckoutRequest {
-	priceId?: string // Required for payment/subscription, not needed for setup
-	domain: string
-}
-
-export interface CreateBillingPortalRequest {
-	customerId: string
-	returnUrl: string
-}
-
-export interface VerifyCheckoutSessionRequest {
-	sessionId: string
-}
-
-// SUBSCRIPTION EVENT TYPES
-
-export interface BaseSubscriptionEvent {
-	userId: string
-	subscriptionId: string
-	timestamp?: Date
-}
-
-export interface SubscriptionCreatedEvent extends BaseSubscriptionEvent {
-	planType: string
-	status?: string
-}
-
-export interface SubscriptionUpdatedEvent extends BaseSubscriptionEvent {
-	previousStatus?: string
-	newStatus?: string
-	planType?: string
-}
-
-export interface SubscriptionCanceledEvent extends BaseSubscriptionEvent {
-	canceledAt?: Date
-	cancelationReason?: string
-}
-
-export interface TrialWillEndEvent extends BaseSubscriptionEvent {
-	trialEndDate: Date
-	planType: string
-}
-
-export interface PaymentFailedEvent extends BaseSubscriptionEvent {
-	paymentIntentId: string
-	error: string
-	attemptCount?: number
-}
-
-export interface PaymentSucceededEvent extends BaseSubscriptionEvent {
-	paymentIntentId: string
-	amount: number
-	currency?: string
-}
 
 // REGISTERED ROUTE SCHEMA
 
@@ -668,28 +442,6 @@ export interface ValidationResult {
 }
 
 // MINIMAL BILLING TYPES
-
-export interface PaymentNotificationData {
-	subscriptionId: string
-	customerId: string
-	amount?: number
-	status?: string
-}
-
-export interface MinimalSubscription {
-	id: string
-	customer: string | { id: string }
-	status: string
-	current_period_end?: number
-}
-
-export interface MinimalInvoice {
-	id: string
-	subscriptionId: string
-	customerId: string
-	amount?: number
-	status?: string
-}
 
 // EXPRESS PERFORMANCE SERIALIZER
 

@@ -12,6 +12,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { PaymentFailedEvent } from '../notifications/events/notification.events'
+import { StripeIdentityService } from './stripe-identity.service'
 
 @Injectable()
 export class StripeWebhookListener {
@@ -20,7 +21,8 @@ export class StripeWebhookListener {
 	constructor(
 		private readonly supabase: SupabaseService,
 		@Optional() private readonly prometheus: PrometheusService | null,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly identityService: StripeIdentityService
 	) {}
 
 	/**
@@ -394,5 +396,38 @@ export class StripeWebhookListener {
 			// Re-throw to propagate error to controller
 			throw error
 		}
+	}
+
+	@OnEvent('stripe.identity.verification_session.verified')
+	async handleIdentityVerified(event: Stripe.Identity.VerificationSession & { eventType?: string }) {
+		await this.identityService.handleVerificationSessionEvent(
+			event as Stripe.Identity.VerificationSession
+		)
+
+		this.logger.log('Updated user identity verification status to verified', {
+			sessionId: event.id
+		})
+	}
+
+	@OnEvent('stripe.identity.verification_session.requires_input')
+	async handleIdentityRequiresInput(event: Stripe.Identity.VerificationSession & { eventType?: string }) {
+		await this.identityService.handleVerificationSessionEvent(
+			event as Stripe.Identity.VerificationSession
+		)
+
+		this.logger.log('Identity verification requires input', {
+			sessionId: event.id
+		})
+	}
+
+	@OnEvent('stripe.identity.verification_session.canceled')
+	async handleIdentityCanceled(event: Stripe.Identity.VerificationSession & { eventType?: string }) {
+		await this.identityService.handleVerificationSessionEvent(
+			event as Stripe.Identity.VerificationSession
+		)
+
+		this.logger.log('Identity verification session canceled', {
+			sessionId: event.id
+		})
 	}
 }

@@ -1,16 +1,13 @@
-import { EventEmitter2 } from '@nestjs/event-emitter'
+import { createMock } from '@golevelup/ts-jest'
 import { ForbiddenException } from '@nestjs/common'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import type { TestingModule } from '@nestjs/testing'
-import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
-import { SupabaseService } from '../../database/supabase.service'
-import { StripeWebhookService } from './stripe-webhook.service'
+import type { SupabaseService } from '../../database/supabase.service'
 import { StripeController } from './stripe.controller'
-import { StripeService } from './stripe.service'
-import { StripeOwnerService } from './stripe-owner.service'
-import { StripeTenantService } from './stripe-tenant.service'
+import type { StripeService } from './stripe.service'
+import type { StripeOwnerService } from './stripe-owner.service'
+import type { StripeTenantService } from './stripe-tenant.service'
 import { SecurityService } from '../../security/security.service'
+import { createMockAppConfigService } from '../../test-utils/mocks'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 
 // Create properly typed mock objects
@@ -52,90 +49,53 @@ describe('StripeController', () => {
 	let controller: StripeController
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 	let mockStripe: jest.Mocked<Stripe>
-	let mockStripeOwnerService: { ensureOwnerCustomer: jest.Mock }
-	let mockStripeTenantService: {
-		ensureStripeCustomer: jest.Mock
-	}
+let mockStripeOwnerService: jest.Mocked<StripeOwnerService>
+let mockStripeTenantService: jest.Mocked<StripeTenantService>
 
-	beforeEach(async () => {
-		// Set required environment variables for controller
+	beforeEach(() => {
 		process.env.IDEMPOTENCY_KEY_SECRET = 'test-secret-key-for-tests-only'
-
-		// Mock setInterval to prevent timer from running in tests
 		jest.useFakeTimers()
 
-		// Create mock instances
 		mockSupabaseService = createMockSupabaseService()
 		mockStripe = createMockStripe()
-		mockStripeOwnerService = {
-			ensureOwnerCustomer: jest.fn().mockResolvedValue({
-				customer: {
-					id: 'cus_owner',
-					email: 'owner@example.com'
-				} as unknown as Stripe.Customer,
-				status: 'existing'
-			})
-		}
-		mockStripeTenantService = {
-			ensureStripeCustomer: jest.fn().mockResolvedValue({
-				customer: { id: 'cus_tenant' } as unknown as Stripe.Customer,
-				status: 'existing'
-			})
-		}
+		mockStripeOwnerService = createMock<StripeOwnerService>()
+		mockStripeOwnerService.ensureOwnerCustomer.mockResolvedValue({
+			customer: {
+				id: 'cus_owner',
+				email: 'owner@example.com'
+			} as unknown as Stripe.Customer,
+			status: 'existing'
+		})
 
-		const module: TestingModule = await Test.createTestingModule({
-			controllers: [StripeController],
-			providers: [
-				{
-					provide: SupabaseService,
-					useValue: mockSupabaseService
-				},
-				{
-					provide: StripeWebhookService,
-					useValue: {
-						handleWebhook: jest.fn().mockResolvedValue(true),
-						processEvent: jest.fn().mockResolvedValue(true)
-					}
-				},
-				{
-					provide: EventEmitter2,
-					useValue: {
-						emit: jest.fn(),
-						emitAsync: jest.fn().mockResolvedValue(true)
-					}
-				},
-				{
-					provide: StripeService,
-					useValue: {
-						getStripe: jest.fn(() => mockStripe),
-						createCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' }),
-						createSubscription: jest.fn().mockResolvedValue({ id: 'sub_test' }),
-						getCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' })
-					}
-				},
-				{
-					provide: StripeOwnerService,
-					useValue: mockStripeOwnerService
-				},
-				{
-					provide: StripeTenantService,
-					useValue: mockStripeTenantService
-				},
-				{
-					provide: CACHE_MANAGER,
-					useValue: {
-						get: jest.fn(),
-						set: jest.fn(),
-						del: jest.fn()
-					}
-				},
-				SecurityService // Use real SecurityService for security tests
-			]
-		}).compile()
+		mockStripeTenantService = createMock<StripeTenantService>()
+		mockStripeTenantService.ensureStripeCustomer.mockResolvedValue({
+			customer: { id: 'cus_tenant' } as unknown as Stripe.Customer,
+			status: 'existing'
+		})
 
-		controller = module.get<StripeController>(StripeController)
+		const securityService = new SecurityService()
 
-		// Spy on the actual logger instance created by the controller
+		const mockStripeService = {
+			getStripe: jest.fn(() => mockStripe),
+			createCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' }),
+			createSubscription: jest.fn().mockResolvedValue({ id: 'sub_test' }),
+			getCustomer: jest.fn().mockResolvedValue({ id: 'cus_test' })
+		} as unknown as jest.Mocked<StripeService>
+
+		const mockAppConfigService = createMockAppConfigService()
+		mockAppConfigService.getIdempotencyKeySecret.mockReturnValue(
+			'test-secret-key-for-tests-only'
+		)
+
+		controller = new StripeController(
+			mockSupabaseService,
+			mockStripeService,
+			mockStripeOwnerService,
+			mockStripeTenantService,
+			securityService,
+			mockAppConfigService
+		)
+
 		jest.spyOn(controller['logger'], 'log').mockImplementation(() => {})
 		jest.spyOn(controller['logger'], 'warn').mockImplementation(() => {})
 		jest.spyOn(controller['logger'], 'error').mockImplementation(() => {})

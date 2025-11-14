@@ -1,6 +1,5 @@
-
 import { CardLayout } from '#components/ui/card-layout'
-import { Suspense, lazy, use } from 'react'
+import { Suspense, lazy } from 'react'
 
 // Dynamic import with code splitting
 const TenantEditForm = lazy(() =>
@@ -34,8 +33,8 @@ function TenantEditFormSkeleton() {
 	)
 }
 
-export default function TenantEditPage({ params }: TenantEditPageProps) {
-	const { id } = use(params)
+export default async function TenantEditPage({ params }: TenantEditPageProps) {
+	const { id } = await params
 
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">

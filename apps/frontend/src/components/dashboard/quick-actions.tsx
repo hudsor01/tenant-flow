@@ -59,38 +59,28 @@ const quickActions = [
 
 export function QuickActions() {
 	return (
-		<div className="flex flex-col gap-4">
-			{quickActions.map((action, index) => {
+		<div className="dashboard-quick-actions">
+			{quickActions.map(action => {
 				const Icon = action.icon
 				return (
 					<Link
 						key={action.href}
 						href={action.href}
-						className="group relative flex w-full items-center rounded-premium border-2 border-slate-200/60 bg-linear-to-r from-white to-slate-50/50 shadow-premium-sm transition-all duration-300 hover:shadow-premium-lg hover:border-slate-300/80 hover:bg-linear-to-r hover:from-slate-50 hover:to-slate-100 hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:ring-offset-2 min-h-14 p-5 gap-4 overflow-hidden dark:border-slate-700/60 dark:from-slate-900 dark:to-slate-800/50 dark:hover:from-slate-800 dark:hover:to-slate-700 dark:hover:border-slate-600/80 dark:focus:ring-slate-400/50"
-						style={{
-							animationDelay: `${index * 75}ms`
-						}}
+						className="dashboard-quick-action group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
 						role="button"
-						tabIndex={0}
 						aria-label={`${action.title}: ${action.description}`}
 					>
-						<div className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-						<div className="relative flex shrink-0 items-center justify-center rounded-premium bg-linear-to-br from-slate-100 to-slate-200 group-hover:from-slate-200 group-hover:to-slate-300 transition-all duration-300 size-12 p-3 shadow-premium-inner dark:from-slate-700 dark:to-slate-800 dark:group-hover:from-slate-600 dark:group-hover:to-slate-700">
-							<Icon
-								className="text-slate-700 group-hover:text-slate-900 transition-all duration-300 size-5 group-hover:scale-110 dark:text-slate-300 dark:group-hover:text-white"
-								aria-hidden="true"
-							/>
+						<div className="dashboard-quick-action-icon">
+							<Icon className="size-5" aria-hidden="true" />
 						</div>
-						<div className="relative flex-1 text-left">
-							<div className="font-bold text-foreground group-hover:text-foreground transition-colors text-base leading-tight">
-								{action.title}
-							</div>
-							<div className="text-muted-foreground text-sm leading-tight font-medium group-hover:text-foreground/80">
+						<div className="dashboard-quick-action-content">
+							<p className="dashboard-quick-action-title">{action.title}</p>
+							<p className="dashboard-quick-action-description">
 								{action.description}
-							</div>
+							</p>
 						</div>
-						<div className="relative flex items-center justify-center size-8 rounded-full bg-muted group-hover:bg-muted/80 transition-colors">
-							<ArrowRight className="size-4 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-300" />
+						<div className="dashboard-quick-action-chevron">
+							<ArrowRight className="size-4 transition-transform duration-200" />
 						</div>
 					</Link>
 				)

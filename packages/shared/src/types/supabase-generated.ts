@@ -3370,6 +3370,11 @@ export type Database = {
           email: string
           firstName: string | null
           id: string
+          identityverificationdata: Json | null
+          identityverificationerror: string | null
+          identityverificationsessionid: string | null
+          identityverificationstatus: string | null
+          identityverifiedat: string | null
           lastLoginAt: string | null
           lastName: string | null
           name: string | null
@@ -3398,6 +3403,11 @@ export type Database = {
           email: string
           firstName?: string | null
           id: string
+          identityverificationdata?: Json | null
+          identityverificationerror?: string | null
+          identityverificationsessionid?: string | null
+          identityverificationstatus?: string | null
+          identityverifiedat?: string | null
           lastLoginAt?: string | null
           lastName?: string | null
           name?: string | null
@@ -3426,6 +3436,11 @@ export type Database = {
           email?: string
           firstName?: string | null
           id?: string
+          identityverificationdata?: Json | null
+          identityverificationerror?: string | null
+          identityverificationsessionid?: string | null
+          identityverificationstatus?: string | null
+          identityverifiedat?: string | null
           lastLoginAt?: string | null
           lastName?: string | null
           name?: string | null
@@ -4365,6 +4380,17 @@ export type Database = {
       mark_stripe_event_failed: {
         Args: { p_event_id: string; p_failure_reason: string }
         Returns: boolean
+      }
+      record_processed_stripe_event_lock: {
+        Args: {
+          p_event_type: string
+          p_processed_at: string
+          p_status?: string
+          p_stripe_event_id: string
+        }
+        Returns: {
+          lock_acquired: boolean
+        }[]
       }
       record_stripe_event: {
         Args: { p_event_id: string; p_event_type: string }

@@ -180,7 +180,7 @@ export default function TenantPaymentHistoryPage() {
 
 					{/* Empty State */}
 					{!paymentsLoading && !hasPayments && (
-						<div className="text-center py-12">
+						<div className="text-center section-spacing-compact">
 							<p className="text-muted-foreground">No payment history yet</p>
 							<Link href="/tenant/payments">
 								<Button variant="outline" className="mt-4">

@@ -2,7 +2,7 @@
  * Properties Hooks
  * TanStack Query hooks for property management with complete CRUD operations
  * React 19 + TanStack Query v5 patterns with Suspense support
- *
+
  * Expanded from read-only to full CRUD following use-tenant.ts pattern:
  * - Complete CRUD mutations (create, update, delete)
  * - Analytics hooks for performance, occupancy, financial, maintenance
@@ -19,7 +19,7 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
-import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import { compressImage } from '#lib/image-compression'
@@ -312,7 +312,7 @@ export function useUpdateProperty() {
 		}): Promise<Property> => {
 			return clientFetch<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
-				// 🔐 OPTIMISTIC LOCKING: Include version if provided
+				// OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
 					version !== null && version !== undefined
 						? withVersion(data, version)

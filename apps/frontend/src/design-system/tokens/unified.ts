@@ -198,6 +198,45 @@ export const spacing = {
 } as const
 
 // ============================================================================
+// SEMANTIC LAYOUT TOKENS - Purpose-driven spacing for consistent layouts
+// ============================================================================
+
+export const layout = {
+	// Section Spacing - Vertical padding for page sections
+	section: {
+		paddingY: '5rem', // spacing.20 - Default section vertical spacing
+		paddingYCompact: '3rem', // spacing.12 - Compact sections (cards, modals)
+		paddingYSpacious: '6rem' // spacing.24 - Hero sections, landing pages
+	},
+
+	// Container Spacing - Horizontal padding for content containers
+	container: {
+		paddingX: 'clamp(1.5rem, 4vw, 3rem)', // Responsive container horizontal padding
+		paddingXNarrow: 'clamp(1rem, 2vw, 1.5rem)' // Tight horizontal padding
+	},
+
+	// Content Block Spacing - Padding for content areas
+	content: {
+		padding: '2rem', // spacing.8 - Standard content block padding
+		paddingCompact: '1rem' // spacing.4 - Compact content padding
+	},
+
+	// Component Gap Spacing - Gaps between elements
+	gap: {
+		section: '4rem', // spacing.16 - Gap between major sections
+		group: '2rem', // spacing.8 - Gap between related groups
+		items: '1rem' // spacing.4 - Gap between individual items
+	},
+
+	// Stack Spacing - Vertical spacing in stacked layouts
+	stack: {
+		loose: '3rem', // spacing.12 - Loose vertical rhythm
+		default: '1.5rem', // spacing.6 - Default vertical rhythm
+		tight: '0.75rem' // spacing.3 - Tight vertical rhythm
+	}
+} as const
+
+// ============================================================================
 // BORDER RADIUS TOKENS
 // ============================================================================
 
@@ -357,6 +396,7 @@ export const tokens = {
 	typography,
 	colors,
 	spacing,
+	layout,
 	radius,
 	shadows,
 	animation,
@@ -374,6 +414,7 @@ export const tokens = {
 export type TypographyTokens = typeof typography
 export type ColorTokens = typeof colors
 export type SpacingTokens = typeof spacing
+export type LayoutTokens = typeof layout
 export type RadiusTokens = typeof radius
 export type ShadowTokens = typeof shadows
 export type AnimationTokens = typeof animation

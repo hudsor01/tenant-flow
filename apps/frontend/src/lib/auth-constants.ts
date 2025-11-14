@@ -15,7 +15,6 @@ export const PROTECTED_ROUTE_PREFIXES = [
 // Routes that should redirect to management dashboard if already authenticated
 export const PUBLIC_AUTH_ROUTES = [
 	'/login',
-	'/signup',
 	'/auth/register'
 ] as const
 
@@ -24,15 +23,14 @@ export const PUBLIC_AUTH_ROUTES = [
 export const MARKETING_REDIRECT_ROUTES = [
 	'/',
 	'/features',
-	'/about'
+	'/about',
+	'/pricing'
 ] as const
 
 // Routes that don't require payment (public pages + payment flow itself)
 export const PAYMENT_EXEMPT_ROUTES = [
 	'/login',
-	'/signup',
 	'/auth',
-	'/pricing',
 	'/stripe',
 	'/',
 	'/help',

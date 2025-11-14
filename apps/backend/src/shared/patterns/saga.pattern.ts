@@ -1,9 +1,9 @@
 /**
  * Saga Pattern Implementation for Transaction Compensation
- *
+
  * Implements the Saga pattern for distributed transactions across Supabase, Stripe, and Storage.
  * Provides automatic compensation (rollback) when operations fail.
- *
+
  * @see docs/CRUD_BUGS_FIXES_2025.md - Bug #3: Transaction Compensation
  */
 
@@ -30,19 +30,19 @@ export interface SagaResult<T> {
 
 /**
  * Execute a saga with automatic compensation on failure
- *
+
  * @example
  * const result = await executeSaga([
- *   {
- *     name: 'Delete from Supabase',
- *     execute: () => supabase.from('properties').delete().eq('id', id),
- *     compensate: () => supabase.from('properties').insert(originalData)
- *   },
- *   {
- *     name: 'Delete Stripe customer',
- *     execute: () => stripe.customers.del(stripeId),
- *     compensate: () => stripe.customers.create(originalStripeData)
- *   }
+ * {
+ * name: 'Delete from Supabase',
+ * execute: () => supabase.from('properties').delete().eq('id', id),
+ * compensate: () => supabase.from('properties').insert(originalData)
+ * },
+ * {
+ * name: 'Delete Stripe customer',
+ * execute: () => stripe.customers.del(stripeId),
+ * compensate: () => stripe.customers.create(originalStripeData)
+ * }
  * ])
  */
 export async function executeSaga<T = unknown>(
@@ -61,7 +61,7 @@ export async function executeSaga<T = unknown>(
 			const result = await step.execute()
 			executedSteps.push({ name: step.name, result })
 			completedSteps.push(step.name)
-			log.log(`✓ Saga step completed: ${step.name}`)
+			log.log(` Saga step completed: ${step.name}`)
 		}
 
 		// All steps succeeded
@@ -92,9 +92,9 @@ export async function executeSaga<T = unknown>(
 				log.warn(`Compensating saga step: ${name}`)
 				await step.compensate(result)
 				compensatedSteps.push(name)
-				log.log(`✓ Saga step compensated: ${name}`)
+				log.log(` Saga step compensated: ${name}`)
 			} catch (compensationError) {
-				log.error(`✗ Failed to compensate saga step: ${name}`, {
+				log.error(` Failed to compensate saga step: ${name}`, {
 					error:
 						compensationError instanceof Error
 							? compensationError.message
@@ -122,20 +122,20 @@ export function noCompensation(): Promise<void> {
 
 /**
  * Saga builder for fluent API
- *
+
  * @example
  * const result = await new SagaBuilder()
- *   .addStep({
- *     name: 'Delete property',
- *     execute: () => deleteProperty(),
- *     compensate: () => restoreProperty()
- *   })
- *   .addStep({
- *     name: 'Delete images',
- *     execute: () => deleteImages(),
- *     compensate: () => restoreImages()
- *   })
- *   .execute()
+ * .addStep({
+ * name: 'Delete property',
+ * execute: () => deleteProperty(),
+ * compensate: () => restoreProperty()
+ * })
+ * .addStep({
+ * name: 'Delete images',
+ * execute: () => deleteImages(),
+ * compensate: () => restoreImages()
+ * })
+ * .execute()
  */
 export class SagaBuilder {
 	private steps: SagaStep<unknown>[] = []

@@ -42,7 +42,7 @@ export const ApiErrorCode = {
 
 export type ApiErrorCode = (typeof ApiErrorCode)[keyof typeof ApiErrorCode]
 
-import { createLogger } from '../lib/frontend-logger'
+import { createLogger } from '../lib/frontend-logger.js'
 
 const devLogger = createLogger({ component: 'ApiError' })
 

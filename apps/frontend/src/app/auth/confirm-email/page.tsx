@@ -2,11 +2,64 @@
 
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { ArrowRight, CheckCircle2, Mail } from 'lucide-react'
+import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { logger } from '@repo/shared/lib/frontend-logger'
+import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
+import { toast } from 'sonner'
+
+const supabase = getSupabaseClientInstance()
 
 export default function ConfirmEmailPage() {
+	const [isResending, setIsResending] = useState(false)
+
+	const handleResendEmail = async () => {
+		setIsResending(true)
+
+		try {
+			// Get the current session to extract the email
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
+
+			if (!session?.user?.email) {
+				toast.error('Unable to resend email', {
+					description: 'Please sign up again or contact support.'
+				})
+				return
+			}
+
+			// Resend the confirmation email
+			const { error } = await supabase.auth.resend({
+				type: 'signup',
+				email: session.user.email
+			})
+
+			if (error) throw error
+
+			toast.success('Email sent!', {
+				description: 'Check your inbox for the confirmation link.'
+			})
+		} catch (error) {
+			logger.error('Failed to resend confirmation email', {
+				action: 'resend_confirmation_email_failed',
+				metadata: {
+					error: error instanceof Error ? error.message : 'Unknown error'
+				}
+			})
+			toast.error('Failed to resend email', {
+				description:
+					error instanceof Error
+						? error.message
+						: 'Please try again or contact support.'
+			})
+		} finally {
+			setIsResending(false)
+		}
+	}
+
 	return (
 		<div className="relative min-h-screen flex flex-col lg:flex-row">
 			{/* Full page grid background */}
@@ -36,7 +89,7 @@ export default function ConfirmEmailPage() {
 						{/* Semi-transparent panel */}
 						<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
 
-						<div className="relative text-center space-y-6 py-12 px-8 z-20">
+						<div className="relative text-center space-y-6 section-spacing-compact px-8 z-20">
 							{/* Logo */}
 							<div className="size-16 mx-auto mb-8 relative group">
 								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
@@ -210,9 +263,17 @@ export default function ConfirmEmailPage() {
 								variant="outline"
 								size="lg"
 								className="flex-1"
-								onClick={() => window.location.reload()}
+								onClick={handleResendEmail}
+								disabled={isResending}
 							>
-								Resend Email
+								{isResending ? (
+									<>
+										<Loader2 className="mr-2 size-4 animate-spin" />
+										Sending...
+									</>
+								) : (
+									'Resend Email'
+								)}
 							</Button>
 
 							<Button variant="default" size="lg" className="flex-1" asChild>

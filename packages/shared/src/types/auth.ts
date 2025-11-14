@@ -5,7 +5,7 @@
 
 // Import constants from the single source of truth
 import type { USER_ROLE } from '../constants/auth.js'
-import type { authUser as BackendauthUser } from './backend-domain.js'
+import type { AuthUser as BackendAuthUser } from './api-contracts.js'
 
 // Use Supabase User type directly - matches what we get from auth
 import type { User } from '@supabase/supabase-js'
@@ -241,7 +241,7 @@ export interface ChangePasswordRequest {
 // Extended auth context and guard types
 // MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
 export interface AuthenticatedRequest {
-	user: BackendauthUser
+	user: BackendAuthUser
 	// Additional authenticated request context could be added here with specific types
 }
 

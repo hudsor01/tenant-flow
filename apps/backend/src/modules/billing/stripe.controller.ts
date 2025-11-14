@@ -22,24 +22,16 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { StripeCustomerOwnershipGuard } from '../../shared/guards/stripe-customer-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
-import type { CreateBillingSubscriptionRequest } from '@repo/shared/types/core'
+import type { CreateBillingSubscriptionRequest, CreateCheckoutSessionRequest, CreateConnectedPaymentRequest } from '@repo/shared/types/core'
 import Stripe from 'stripe'
 import { createHmac } from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
 import { SecurityService } from '../../security/security.service'
-import type {
-	CreateBillingPortalRequest,
-	CreateCheckoutSessionRequest,
-	CreateConnectedPaymentRequest,
-	CreatePaymentIntentRequest,
-	CreatePaymentMethodRequest,
-	AttachPaymentMethodRequest,
-	EmbeddedCheckoutRequest,
-	VerifyCheckoutSessionRequest
-} from './stripe-interfaces'
-import { StripeService } from './stripe.service'
+import { AppConfigService } from '../../config/app-config.service'
+import type { CreatePaymentIntentRequest, CreatePaymentMethodRequest, AttachPaymentMethodRequest, EmbeddedCheckoutRequest, CreateBillingPortalRequest, VerifyCheckoutSessionRequest } from './stripe-interfaces'
 import { StripeOwnerService } from './stripe-owner.service'
 import { StripeTenantService } from './stripe-tenant.service'
+import { StripeService } from './stripe.service'
 
 /**
  * Production-Grade Stripe Integration Controller
@@ -62,7 +54,8 @@ export class StripeController {
 		private readonly stripeService: StripeService,
 		private readonly stripeOwnerService: StripeOwnerService,
 		private readonly stripeTenantService: StripeTenantService,
-		private readonly securityService: SecurityService
+		private readonly securityService: SecurityService,
+		private readonly config: AppConfigService
 	) {
 		this.stripe = this.stripeService.getStripe()
 	}
@@ -83,7 +76,7 @@ export class StripeController {
 		additionalContext?: string
 	): string {
 		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
-		const secret = process.env.IDEMPOTENCY_KEY_SECRET
+		const secret = this.config.getIdempotencyKeySecret()
 
 		if (!secret) {
 			throw new Error(
@@ -1285,7 +1278,7 @@ export class StripeController {
 					type: 'invite',
 					email: body.email,
 					options: {
-						redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite`
+						redirectTo: `${this.config.getNextPublicAppUrl()}/accept-invite`
 					}
 				})
 
