@@ -17,7 +17,7 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
-import { queryMutation } from '../../shared/utils/query-helpers'
+import { queryMutation, querySingle } from '../../shared/utils/query-helpers'
 
 // Zod schemas for runtime validation
 // Note: RPC returns subset of full Tenant/Lease types - validate essential fields only
@@ -192,29 +192,26 @@ export class TenantInvitationService {
 	): Promise<{ tenant: Tenant; lease: Lease }> {
 		const client = this.supabase.getAdminClient()
 
-		const { data, error } = await client.rpc('create_tenant_with_lease', {
-			p_owner_id: ownerId,
-			p_tenant_email: input.tenantEmail,
-			p_tenant_first_name: input.tenantFirstName,
-			p_tenant_last_name: input.tenantLastName,
-			p_property_id: input.propertyId,
-			p_rent_amount: input.rentAmount,
-			p_security_deposit: input.securityDeposit,
-			p_start_date: input.startDate,
-			p_end_date: input.endDate,
-			...(input.tenantPhone && { p_tenant_phone: input.tenantPhone }),
-			...(input.unitId && { p_unit_id: input.unitId })
-		})
-
-		if (error || !data) {
-			this.logger.error('Failed to create tenant via RPC', {
-				ownerId,
-				error: error?.message
-			})
-			throw new BadRequestException(
-				'Failed to create tenant. Please verify the property and tenant details.'
-			)
-		}
+		const data = await querySingle<Record<string, any>>(
+			client.rpc('create_tenant_with_lease', {
+				p_owner_id: ownerId,
+				p_tenant_email: input.tenantEmail,
+				p_tenant_first_name: input.tenantFirstName,
+				p_tenant_last_name: input.tenantLastName,
+				p_property_id: input.propertyId,
+				p_rent_amount: input.rentAmount,
+				p_security_deposit: input.securityDeposit,
+				p_start_date: input.startDate,
+				p_end_date: input.endDate,
+				...(input.tenantPhone && { p_tenant_phone: input.tenantPhone }),
+				...(input.unitId && { p_unit_id: input.unitId })
+			}) as any,
+			{
+				resource: 'tenant with lease',
+				operation: 'create via RPC',
+				logger: this.logger
+			}
+		)
 
 		// Validate JSON result with Zod for runtime type safety
 		const validationResult = TenantLeaseRpcResultSchema.safeParse(data)
