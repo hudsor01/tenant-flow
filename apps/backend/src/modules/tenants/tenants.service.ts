@@ -36,8 +36,9 @@ import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 import {
 	querySingle,
+	queryList,
 	queryMutation
-} from '../../shared/database/supabase-query-helpers'
+} from '../../shared/utils/query-helpers'
 
 /**
  * Safe column list for tenant queries
@@ -334,18 +335,11 @@ export class TenantsService {
 			const offset = query.offset ? Number(query.offset) : 0
 			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error('Failed to fetch tenants from Supabase', {
-					error: error.message,
-					userId,
-					query
-				})
-				throw new BadRequestException('Failed to retrieve tenants')
-			}
-
-			return (data as Tenant[]) || []
+			return await queryList<Tenant>(queryBuilder as any, {
+				resource: 'tenants',
+				operation: 'fetch with filters',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error('Tenants service failed to find all tenants', {
 				error: error instanceof Error ? error.message : String(error),
@@ -385,19 +379,11 @@ export class TenantsService {
 			let queryBuilder = this._buildTenantQuery(userId)
 			queryBuilder = this._applyTenantFilters(queryBuilder, query)
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error(
-					'Failed to fetch tenants with lease info from Supabase',
-					{
-						error: error.message,
-						userId,
-						query
-					}
-				)
-				throw new BadRequestException('Failed to retrieve tenants')
-			}
+			const data = await queryList(queryBuilder as any, {
+				resource: 'tenants with lease info',
+				operation: 'fetch',
+				logger: this.logger
+			})
 
 			if (!data || data.length === 0) {
 				return []
@@ -715,20 +701,15 @@ export class TenantsService {
 			})
 
 			const client = this.supabase.getAdminClient()
-			const { data, error } = await client
-				.from('tenant')
-				.select('createdAt, status')
-				.eq('userId', userId)
-
-			if (error) {
-				this.logger.error('Failed to fetch tenant stats from Supabase', {
-					error: error.message,
-					userId
-				})
-				throw new BadRequestException('Failed to retrieve tenant statistics')
-			}
-
-			const tenants = data || []
+			const tenants = await queryList<{ createdAt: string; status: string }>(
+				client.from('tenant').select('createdAt, status').eq('userId', userId) as any,
+				{
+					resource: 'tenant stats',
+					id: userId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 			const now = new Date()
 			const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
@@ -1248,14 +1229,24 @@ export class TenantsService {
 
 		// Fetch tenant's notification preferences
 		// FIX: Use userId instead of ownerId to match tenant table schema
-		const { data, error } = await client
-			.from('tenant')
-			.select('notification_preferences')
-			.eq('id', tenantId)
-			.eq('userId', userId)
-			.single()
-
-		if (error) {
+		// Soft-fail pattern: Return null on error
+		let data: { notification_preferences: unknown } | null
+		try {
+			data = await querySingle<{ notification_preferences: unknown }>(
+				client
+					.from('tenant')
+					.select('notification_preferences')
+					.eq('id', tenantId)
+					.eq('userId', userId)
+					.single() as any,
+				{
+					resource: 'tenant notification preferences',
+					id: tenantId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
 			this.logger.error(
 				`Failed to fetch notification preferences for tenant ${tenantId}`,
 				{ error }
@@ -1301,21 +1292,21 @@ export class TenantsService {
 
 		// Update preferences
 		// FIX: Use userId instead of ownerId to match tenant table schema
-		const { data, error } = await client
-			.from('tenant')
-			.update({ notification_preferences: updatedPreferences })
-			.eq('id', tenantId)
-			.eq('userId', userId)
-			.select('notification_preferences')
-			.single()
-
-		if (error) {
-			this.logger.error(
-				`Failed to update notification preferences for tenant ${tenantId}`,
-				{ error }
-			)
-			throw new BadRequestException('Failed to update notification preferences')
-		}
+		const data = await queryMutation<{ notification_preferences: Record<string, boolean> }>(
+			client
+				.from('tenant')
+				.update({ notification_preferences: updatedPreferences })
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.select('notification_preferences')
+				.single(),
+			{
+				resource: 'tenant notification preferences',
+				id: tenantId,
+				operation: 'update',
+				logger: this.logger
+			}
+		)
 
 		return data.notification_preferences as Record<string, boolean>
 	}
@@ -1355,17 +1346,27 @@ export class TenantsService {
 				updatedAt: new Date().toISOString()
 			}
 
-			const { data, error } = await client
-				.from('tenant')
-				.update(updateData)
-				.eq('id', tenantId)
-				.eq('userId', userId)
-				.select()
-				.single()
-
-			if (error) {
+			// Soft-fail pattern: Return null on error
+			let data
+			try {
+				data = await queryMutation(
+					client
+						.from('tenant')
+						.update(updateData)
+						.eq('id', tenantId)
+						.eq('userId', userId)
+						.select()
+						.single(),
+					{
+						resource: 'tenant',
+						id: tenantId,
+						operation: 'mark as moved out',
+						logger: this.logger
+					}
+				)
+			} catch (error) {
 				this.logger.error('Failed to mark tenant as moved out in Supabase', {
-					error: error.message,
+					error: error instanceof Error ? error.message : 'Unknown error',
 					userId,
 					tenantId
 				})
@@ -1440,20 +1441,15 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 
 			// Hard delete after 7-year retention check
-			const { error } = await client
-				.from('tenant')
-				.delete()
-				.eq('id', tenantId)
-				.eq('userId', userId)
-
-			if (error) {
-				this.logger.error('Failed to permanently delete tenant in Supabase', {
-					error: error.message,
-					userId,
-					tenantId
-				})
-				throw new BadRequestException('Failed to permanently delete tenant')
-			}
+			await queryMutation(
+				client.from('tenant').delete().eq('id', tenantId).eq('userId', userId),
+				{
+					resource: 'tenant',
+					id: tenantId,
+					operation: 'permanent delete',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Tenants service failed to hard delete tenant', {
 				error: error instanceof Error ? error.message : String(error),
@@ -2688,20 +2684,17 @@ export class TenantsService {
 			const client = this.supabase.getAdminClient()
 
 			// Call database function to activate tenant
-			const { data, error } = await client.rpc(
-				'activate_tenant_from_auth_user',
-				{
+			const data = await querySingle(
+				client.rpc('activate_tenant_from_auth_user', {
 					p_auth_user_id: authUserId
+				}) as any,
+				{
+					resource: 'tenant activation',
+					id: authUserId,
+					operation: 'activate via RPC',
+					logger: this.logger
 				}
 			)
-
-			if (error) {
-				this.logger.error('Database function failed', {
-					error: error.message,
-					authUserId
-				})
-				throw new BadRequestException('Failed to activate tenant')
-			}
 
 			// Database function returns { tenant_id, activated }
 			// Runtime validation with Zod
@@ -2823,25 +2816,33 @@ export class TenantsService {
 		}
 
 		// Fetch emergency contact (RLS will double-check access)
-		const { data, error } = await client
-			.from('tenant_emergency_contact')
-			.select('*')
-			.eq('tenant_id', tenantId)
-			.single()
-
-		if (error) {
-			// No emergency contact found is not an error
-			if (error.code === 'PGRST116') {
+		// Soft-fail pattern: Return null if not found or on error
+		try {
+			const data = await querySingle(
+				client
+					.from('tenant_emergency_contact')
+					.select('*')
+					.eq('tenant_id', tenantId)
+					.single() as any,
+				{
+					resource: 'tenant emergency contact',
+					id: tenantId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
+			return mapEmergencyContactToResponse(data)
+		} catch (error) {
+			// No emergency contact found is not an error (NotFoundException from querySingle)
+			if (error instanceof NotFoundException) {
 				return null
 			}
 			this.logger.error('Failed to fetch emergency contact', {
-				error: error.message,
+				error: error instanceof Error ? error.message : 'Unknown error',
 				tenantId
 			})
 			return null
 		}
-
-		return mapEmergencyContactToResponse(data)
 	}
 
 	/**
@@ -2906,35 +2907,26 @@ export class TenantsService {
 		}
 
 		// Create emergency contact
-		const { data: created, error } = await client
-			.from('tenant_emergency_contact')
-			.insert({
-				tenant_id: tenantId,
-				contact_name: data.contactName,
-				relationship: data.relationship,
-				phone_number: data.phoneNumber,
-				email: data.email || null
-			})
-			.select('*')
-			.single()
-
-		if (error) {
-			// Handle unique constraint violation (one-to-one)
-			if (error.code === '23505') {
-				this.logger.warn('Emergency contact already exists for tenant', {
-					tenantId
+		// Note: queryMutation maps code 23505 (unique violation) to ConflictException
+		const created = await queryMutation(
+			client
+				.from('tenant_emergency_contact')
+				.insert({
+					tenant_id: tenantId,
+					contact_name: data.contactName,
+					relationship: data.relationship,
+					phone_number: data.phoneNumber,
+					email: data.email || null
 				})
-				throw new ConflictException(
-					'Emergency contact already exists for this tenant. Use update instead.'
-				)
+				.select('*')
+				.single(),
+			{
+				resource: 'tenant emergency contact',
+				id: tenantId,
+				operation: 'create',
+				logger: this.logger
 			}
-
-			this.logger.error('Failed to create emergency contact', {
-				error: error.message,
-				tenantId
-			})
-			throw new BadRequestException('Failed to create emergency contact')
-		}
+		)
 
 		this.logger.log('Emergency contact created', {
 			tenantId,
@@ -2995,20 +2987,20 @@ export class TenantsService {
 		if (data.email !== undefined) updateData.email = data.email
 
 		// Update emergency contact
-		const { data: updated, error } = await client
-			.from('tenant_emergency_contact')
-			.update(updateData)
-			.eq('tenant_id', tenantId)
-			.select('*')
-			.single()
-
-		if (error) {
-			this.logger.error('Failed to update emergency contact', {
-				error: error.message,
-				tenantId
-			})
-			throw new BadRequestException('Failed to update emergency contact')
-		}
+		const updated = await queryMutation(
+			client
+				.from('tenant_emergency_contact')
+				.update(updateData)
+				.eq('tenant_id', tenantId)
+				.select('*')
+				.single(),
+			{
+				resource: 'tenant emergency contact',
+				id: tenantId,
+				operation: 'update',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log('Emergency contact updated', {
 			tenantId,
@@ -3044,18 +3036,15 @@ export class TenantsService {
 		}
 
 		// Delete emergency contact
-		const { error } = await client
-			.from('tenant_emergency_contact')
-			.delete()
-			.eq('tenant_id', tenantId)
-
-		if (error) {
-			this.logger.error('Failed to delete emergency contact', {
-				error: error.message,
-				tenantId
-			})
-			throw new BadRequestException('Failed to delete emergency contact')
-		}
+		await queryMutation(
+			client.from('tenant_emergency_contact').delete().eq('tenant_id', tenantId),
+			{
+				resource: 'tenant emergency contact',
+				id: tenantId,
+				operation: 'delete',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log('Emergency contact deleted', { tenantId })
 		return true
