@@ -40,6 +40,7 @@ const nextConfig: NextConfig = {
 		maxInactiveAge: 25 * 1000,
 		pagesBufferLength: 2
 	},
+	// NOTE: To reduce bundle size for Vercel serverless limit, use `output: 'standalone'`, optimize imports, or split large components. `onDemandEntries` only affects the development server.
 
 	// Next.js 16: These still need to be in experimental
 	experimental: {
