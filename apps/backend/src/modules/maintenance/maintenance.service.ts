@@ -31,7 +31,7 @@ import {
 	querySingle,
 	queryList,
 	queryMutation
-} from '../../shared/database/supabase-query-helpers'
+} from '../../shared/utils/query-helpers'
 
 /**
  * Safe column list for maintenance_request queries
@@ -174,20 +174,11 @@ export class MaintenanceService {
 				ascending: sortOrder === 'asc'
 			})
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error(
-					'Failed to fetch maintenance requests from Supabase',
-					{
-						error: error.message,
-						query
-					}
-				)
-				throw new BadRequestException('Failed to fetch maintenance requests')
-			}
-
-			return data as MaintenanceRequest[]
+			return await queryList<MaintenanceRequest>(queryBuilder as any, {
+				resource: 'maintenance requests',
+				operation: 'fetch with filters',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error(
 				'Maintenance service failed to find all maintenance requests',
@@ -224,24 +215,23 @@ export class MaintenanceService {
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client
-				.from('maintenance_request')
-				.select('status, priority, estimatedCost, createdAt, completedAt')
-
-			if (error) {
-				this.logger.error('Failed to get maintenance stats from Supabase', {
-					error: error.message
-				})
-				throw new BadRequestException('Failed to get maintenance statistics')
-			}
-
 			type MaintenanceRow =
 				Database['public']['Tables']['maintenance_request']['Row']
 			type RequestPick = Pick<
 				MaintenanceRow,
 				'createdAt' | 'completedAt' | 'estimatedCost' | 'priority' | 'status'
 			>
-			const requests = (data ?? []) as RequestPick[]
+
+			const requests = await queryList<RequestPick>(
+				client
+					.from('maintenance_request')
+					.select('status, priority, estimatedCost, createdAt, completedAt') as any,
+				{
+					resource: 'maintenance statistics',
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 			const now = new Date()
 			const todayStart = new Date(
 				now.getFullYear(),
