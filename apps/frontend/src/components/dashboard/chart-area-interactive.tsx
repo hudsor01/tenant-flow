@@ -1,6 +1,7 @@
 'use client'
 
 import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react'
+import { Empty, EmptyDescription, EmptyTitle } from '#components/ui/empty'
 import * as React from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
@@ -201,15 +202,13 @@ export function ChartAreaInteractive({
 							Unable to fetch financial data. Please try refreshing the page.
 						</p>
 					</div>
-				) : !chartData || chartData.length === 0 ? (
-					<div className="flex flex-col items-center justify-center h-75 gap-2">
-						<p className="text-sm font-medium text-muted-foreground">
-							No data available
-						</p>
-						<p className="text-xs text-muted-foreground">
+				) : !chartData || !Array.isArray(chartData) || chartData.length === 0 ? (
+					<Empty className="h-75 flex items-center justify-center">
+						<EmptyTitle>No data available</EmptyTitle>
+						<EmptyDescription>
 							Add properties and tenants to see financial trends
-						</p>
-					</div>
+						</EmptyDescription>
+					</Empty>
 				) : (
 					<ChartContainer
 						config={chartConfig}

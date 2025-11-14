@@ -24,6 +24,7 @@ doppler.env
 **/lease-documents/**/*.pdf
 apps/backend/assets/generated-*.pdf
 *.pdf
+*.md
 
 # Local environment files
 .env.local
@@ -305,6 +306,9 @@ ROADMAP.md
 roadmap.md
 backend_logs.json
 .claude/*
+CLAUDE.md
+AGENTS.md
+
 
 # DOCUMENTATION & EXAMPLES
 docs/
