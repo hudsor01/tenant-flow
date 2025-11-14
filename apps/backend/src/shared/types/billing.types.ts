@@ -2,7 +2,7 @@ import type {
 	MinimalInvoice,
 	MinimalSubscription,
 	PaymentNotificationData
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type { Database } from '@repo/shared/types/supabase-generated'
 
 // Use Database schema for billing types - NO DUPLICATION
