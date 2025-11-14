@@ -18,7 +18,7 @@ import {
 import type {
 	RateLimitConfig,
 	RateLimitWindow
-} from '@repo/shared/types/api-contracts'
+} from '@repo/shared/types/backend-domain'
 import type { Request, Response } from 'express'
 
 // Extend the shared interfaces for local needs
