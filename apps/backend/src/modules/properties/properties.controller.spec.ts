@@ -203,7 +203,7 @@ describe('PropertiesController', () => {
 		})
 
 		it('should throw NotFoundException when property not found', async () => {
-			mockPropertiesServiceInstance.findOne.mockResolvedValue(null)
+			mockPropertiesServiceInstance.findOne.mockImplementation(() => Promise.resolve(null))
 
 			await expect(
 				controller.findOne(
