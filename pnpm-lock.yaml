@@ -27,9 +27,6 @@ catalogs:
     prettier:
       specifier: ^3.6.2
       version: 3.6.2
-    turbo:
-      specifier: ^2.6.1
-      version: 2.6.1
 
 overrides:
   '@tanstack/query-core': 5.90.7
@@ -83,8 +80,8 @@ importers:
         specifier: ^4.20.6
         version: 4.20.6
       turbo:
-        specifier: 'catalog:'
-        version: 2.6.1
+        specifier: 2.6.0
+        version: 2.6.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -200,7 +197,7 @@ importers:
         version: link:../../packages/shared
       '@supabase/stripe-sync-engine':
         specifier: 0.45.0
-        version: 0.45.0(stripe@19.2.0(@types/node@24.10.0))
+        version: 0.45.0(stripe@19.3.1(@types/node@24.10.0))
       '@supabase/supabase-js':
         specifier: ^2.80.0
         version: 2.80.0
@@ -304,8 +301,8 @@ importers:
         specifier: ^0.34.4
         version: 0.34.4
       stripe:
-        specifier: ^19.2.0
-        version: 19.2.0(@types/node@24.10.0)
+        specifier: ^19.3.0
+        version: 19.3.1(@types/node@24.10.0)
       uuid:
         specifier: 13.0.0
         version: 13.0.0
@@ -788,10 +785,10 @@ importers:
         version: 10.1.8(eslint@9.39.0(jiti@2.6.1))
       eslint-config-turbo:
         specifier: ^2.5.8
-        version: 2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.1)
+        version: 2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.0)
       eslint-plugin-turbo:
         specifier: ^2.5.8
-        version: 2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.1)
+        version: 2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.0)
       globals:
         specifier: 16.4.0
         version: 16.4.0
@@ -9352,8 +9349,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@19.2.0:
-    resolution: {integrity: sha512-strzN8luMGMC1LEleGKg7pJGXFx0kSS4y/uSjK8yPQV9SUBMtJVAp/v8XMQLRnMbXaSaWLrIaHcMlKcsizdRDQ==}
+  stripe@19.3.1:
+    resolution: {integrity: sha512-5NXhLxTZ+4uO1wnsmNysILVuyeZ1Xia7niz/8ykBkGJkCcrY2WyQZwcfYuWZmZEJtWr2+0j49JXwNC6y9CHL7Q==}
     engines: {node: '>=16'}
     peerDependencies:
       '@types/node': '>=16'
@@ -9710,18 +9707,8 @@ packages:
     cpu: [x64]
     os: [darwin]
 
-  turbo-darwin-64@2.6.1:
-    resolution: {integrity: sha512-Dm0HwhyZF4J0uLqkhUyCVJvKM9Rw7M03v3J9A7drHDQW0qAbIGBrUijQ8g4Q9Cciw/BXRRd8Uzkc3oue+qn+ZQ==}
-    cpu: [x64]
-    os: [darwin]
-
   turbo-darwin-arm64@2.6.0:
     resolution: {integrity: sha512-IU+gWMEXNBw8H0pxvE7nPEa5p6yahxbN8g/Q4Bf0AHymsAFqsScgV0peeNbWybdmY9jk1LPbALOsF2kY1I7ZiQ==}
-    cpu: [arm64]
-    os: [darwin]
-
-  turbo-darwin-arm64@2.6.1:
-    resolution: {integrity: sha512-U0PIPTPyxdLsrC3jN7jaJUwgzX5sVUBsKLO7+6AL+OASaa1NbT1pPdiZoTkblBAALLP76FM0LlnsVQOnmjYhyw==}
     cpu: [arm64]
     os: [darwin]
 
@@ -9730,33 +9717,23 @@ packages:
     cpu: [x64]
     os: [linux]
 
-  turbo-linux-64@2.6.1:
-    resolution: {integrity: sha512-eM1uLWgzv89bxlK29qwQEr9xYWBhmO/EGiH22UGfq+uXr+QW1OvNKKMogSN65Ry8lElMH4LZh0aX2DEc7eC0Mw==}
-    cpu: [x64]
-    os: [linux]
-
   turbo-linux-arm64@2.6.0:
     resolution: {integrity: sha512-WroVCdCvJbrhNxNdw7XB7wHAfPPJPV+IXY+ZKNed+9VdfBu/2mQNfKnvqTuFTH7n+Pdpv8to9qwhXRTJe26upg==}
     cpu: [arm64]
     os: [linux]
 
-  turbo-linux-arm64@2.6.1:
-    resolution: {integrity: sha512-MFFh7AxAQAycXKuZDrbeutfWM5Ep0CEZ9u7zs4Hn2FvOViTCzIfEhmuJou3/a5+q5VX1zTxQrKGy+4Lf5cdpsA==}
-    cpu: [arm64]
-    os: [linux]
-
-  turbo-windows-64@2.6.1:
-    resolution: {integrity: sha512-buq7/VAN7KOjMYi4tSZT5m+jpqyhbRU2EUTTvp6V0Ii8dAkY2tAAjQN1q5q2ByflYWKecbQNTqxmVploE0LVwQ==}
+  turbo-windows-64@2.6.0:
+    resolution: {integrity: sha512-7pZo5aGQPR+A7RMtWCZHusarJ6y15LQ+o3jOmpMxTic/W6Bad+jSeqo07TWNIseIWjCVzrSv27+0odiYRYtQdA==}
     cpu: [x64]
     os: [win32]
 
-  turbo-windows-arm64@2.6.1:
-    resolution: {integrity: sha512-7w+AD5vJp3R+FB0YOj1YJcNcOOvBior7bcHTodqp90S3x3bLgpr7tE6xOea1e8JkP7GK6ciKVUpQvV7psiwU5Q==}
+  turbo-windows-arm64@2.6.0:
+    resolution: {integrity: sha512-1Ty+NwIksQY7AtFUCPrTpcKQE7zmd/f7aRjdT+qkqGFQjIjFYctEtN7qo4vpQPBgCfS1U3ka83A2u/9CfJQ3wQ==}
     cpu: [arm64]
     os: [win32]
 
-  turbo@2.6.1:
-    resolution: {integrity: sha512-qBwXXuDT3rA53kbNafGbT5r++BrhRgx3sAo0cHoDAeG9g1ItTmUMgltz3Hy7Hazy1ODqNpR+C7QwqL6DYB52yA==}
+  turbo@2.6.0:
+    resolution: {integrity: sha512-kC5VJqOXo50k0/0jnJDDjibLAXalqT9j7PQ56so0pN+81VR4Fwb2QgIE9dTzT3phqOTQuEXkPh3sCpnv5Isz2g==}
     hasBin: true
 
   tw-animate-css@1.4.0:
@@ -13456,11 +13433,11 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@supabase/stripe-sync-engine@0.45.0(stripe@19.2.0(@types/node@24.10.0))':
+  '@supabase/stripe-sync-engine@0.45.0(stripe@19.3.1(@types/node@24.10.0))':
     dependencies:
       pg: 8.16.3
       pg-node-migrations: 0.0.8
-      stripe: 19.2.0(@types/node@24.10.0)
+      stripe: 19.3.1(@types/node@24.10.0)
       yesql: 7.0.0
     transitivePeerDependencies:
       - pg-native
@@ -16280,11 +16257,11 @@ snapshots:
     dependencies:
       eslint: 9.39.0(jiti@2.6.1)
 
-  eslint-config-turbo@2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.1):
+  eslint-config-turbo@2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.0):
     dependencies:
       eslint: 9.39.0(jiti@2.6.1)
-      eslint-plugin-turbo: 2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.1)
-      turbo: 2.6.1
+      eslint-plugin-turbo: 2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.0)
+      turbo: 2.6.0
 
   eslint-import-resolver-node@0.3.9:
     dependencies:
@@ -16401,11 +16378,11 @@ snapshots:
       string.prototype.matchall: 4.0.12
       string.prototype.repeat: 1.0.0
 
-  eslint-plugin-turbo@2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.1):
+  eslint-plugin-turbo@2.6.0(eslint@9.39.0(jiti@2.6.1))(turbo@2.6.0):
     dependencies:
       dotenv: 16.0.3
       eslint: 9.39.0(jiti@2.6.1)
-      turbo: 2.6.1
+      turbo: 2.6.0
 
   eslint-scope@5.1.1:
     dependencies:
@@ -19914,7 +19891,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stripe@19.2.0(@types/node@24.10.0):
+  stripe@19.3.1(@types/node@24.10.0):
     dependencies:
       qs: 6.14.0
     optionalDependencies:
@@ -20300,41 +20277,29 @@ snapshots:
   turbo-darwin-64@2.6.0:
     optional: true
 
-  turbo-darwin-64@2.6.1:
-    optional: true
-
   turbo-darwin-arm64@2.6.0:
-    optional: true
-
-  turbo-darwin-arm64@2.6.1:
     optional: true
 
   turbo-linux-64@2.6.0:
     optional: true
 
-  turbo-linux-64@2.6.1:
-    optional: true
-
   turbo-linux-arm64@2.6.0:
     optional: true
 
-  turbo-linux-arm64@2.6.1:
+  turbo-windows-64@2.6.0:
     optional: true
 
-  turbo-windows-64@2.6.1:
+  turbo-windows-arm64@2.6.0:
     optional: true
 
-  turbo-windows-arm64@2.6.1:
-    optional: true
-
-  turbo@2.6.1:
+  turbo@2.6.0:
     optionalDependencies:
-      turbo-darwin-64: 2.6.1
-      turbo-darwin-arm64: 2.6.1
-      turbo-linux-64: 2.6.1
-      turbo-linux-arm64: 2.6.1
-      turbo-windows-64: 2.6.1
-      turbo-windows-arm64: 2.6.1
+      turbo-darwin-64: 2.6.0
+      turbo-darwin-arm64: 2.6.0
+      turbo-linux-64: 2.6.0
+      turbo-linux-arm64: 2.6.0
+      turbo-windows-64: 2.6.0
+      turbo-windows-arm64: 2.6.0
 
   tw-animate-css@1.4.0: {}
 
