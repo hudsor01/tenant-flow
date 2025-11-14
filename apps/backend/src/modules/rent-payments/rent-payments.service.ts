@@ -431,9 +431,7 @@ export class RentPaymentsService {
 
 		const { data, error } = await client
 			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-			)
+			.select('*')
 			.order('createdAt', { ascending: false })
 
 		if (error) {
@@ -472,9 +470,7 @@ export class RentPaymentsService {
 		// RLS automatically filters payments to user's scope
 		const { data, error } = await client
 			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-			)
+			.select('id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId')
 			.eq('subscriptionId', subscriptionId)
 			.order('createdAt', { ascending: false })
 
@@ -505,11 +501,10 @@ export class RentPaymentsService {
 
 		const { data, error } = await client
 			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-			)
+			.select('*')
 			.eq('status', 'failed')
 			.order('createdAt', { ascending: false })
+
 
 		if (error) {
 			this.logger.error('Failed to fetch failed payment attempts', {
@@ -547,9 +542,7 @@ export class RentPaymentsService {
 		// RLS automatically filters payments to user's scope
 		const { data, error } = await client
 			.from('rent_payment')
-			.select(
-				'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-			)
+			.select('*')
 			.eq('subscriptionId', subscriptionId)
 			.eq('status', 'failed')
 			.order('createdAt', { ascending: false })
