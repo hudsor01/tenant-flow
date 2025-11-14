@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	productionBrowserSourceMaps: false,
 	poweredByHeader: false,
+	compress: true,
 
 	// Disabled due to Next.js path-to-regexp bug with intercepting routes + dynamic segments.
 	typedRoutes: false,
@@ -33,6 +34,12 @@ const nextConfig: NextConfig = {
 	// Enable when ready to fully implement streaming architecture.
 	// Suspense boundaries have been added to the dashboard page, but more are needed elsewhere.
 	cacheComponents: false,
+
+	// Reduce bundle size for Vercel serverless limit
+	onDemandEntries: {
+		maxInactiveAge: 25 * 1000,
+		pagesBufferLength: 2
+	},
 
 	// Next.js 16: These still need to be in experimental
 	experimental: {
