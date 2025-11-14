@@ -1,91 +1,32 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow Monorepo Root",
+  "extends": "./packages/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
     "baseUrl": ".",
+    "noEmit": true,
     "paths": {
       "@repo/shared/*": ["./packages/shared/src/*"],
-      "@repo/database/*": ["./packages/database/src/*"],
-      "@repo/typescript-config/*": ["./packages/typescript-config/*"],
+      "@repo/testing/*": ["./packages/testing/src/*"],
       "@repo/eslint-config/*": ["./packages/eslint-config/*"],
-      "@repo/testing/*": ["./packages/testing/src/*"]
-    },
-    "outDir": "./dist",
-    "rootDir": ".",
-
-    // Type checking
-    "strict": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "forceConsistentCasingInFileNames": true,
-
-    // Module and emit options
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": false,
-    "importHelpers": true,
-    "importsNotUsedAsValues": "remove",
-
-    // Interop constraints
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "preserveConstEnums": true,
-    "skipLibCheck": true,
-
-    // Performance optimizations
-    "incremental": true,
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "composite": true,
-
-    // Advanced features
-    "useDefineForClassFields": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "resolveJsonModule": true,
-
-    // Strictest settings for type safety
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitOverride": true,
-    "useUnknownInCatchVariables": true,
-    "noPropertyAccessFromIndexSignature": true
+      "@repo/typescript-config/*": ["./packages/typescript-config/*"]
+    }
   },
   "include": [
+    "apps/**/*",
     "packages/**/*",
-    "apps/**/*"
+    "scripts/**/*.ts",
+    "scripts/**/*.tsx",
+    "turbo.d.ts"
   ],
   "exclude": [
     "node_modules",
+    ".next",
+    ".turbo",
     "dist",
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/build/**",
-    "**/coverage/**",
-    "**/test-report/**",
-    "**/__tests__/**",
-    "**/test/**",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "**/test-utils/**",
-    "**/fixtures/**",
-    "**/playwright-report/**",
-    "**/test-results/**",
-    "**/e2e-tests/**"
-  ],
-  "references": [
-    { "path": "./packages/shared" },
-    { "path": "./packages/database" },
-    { "path": "./packages/testing" }
+    "coverage",
+    "playwright-report",
+    "apps/**/dist",
+    "packages/**/dist"
   ]
 }

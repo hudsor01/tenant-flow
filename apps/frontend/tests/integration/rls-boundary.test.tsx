@@ -22,7 +22,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { createBrowserClient } from '@supabase/ssr'
 import { clientFetch } from '#lib/api/client'
 import type { Property } from '@repo/shared/types/core'
-import type { CreatePropertyInput } from '@repo/shared/types/backend-domain'
+import type { CreatePropertyInput } from '@repo/shared/types/api-contracts'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'RlsBoundaryTest' })

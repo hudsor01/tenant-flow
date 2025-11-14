@@ -36,7 +36,7 @@ const missingEnv = requiredEnv.filter(key => !process.env[key])
 // Check for missing environment variables and skip tests if any are missing
 if (missingEnv.length > 0) {
 	process.stderr.write(
-		`⚠️  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n`
+		`️ Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n`
 	)
 }
 

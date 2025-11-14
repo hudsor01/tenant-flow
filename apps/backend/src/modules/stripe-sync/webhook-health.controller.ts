@@ -18,6 +18,7 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 // Public decorator for monitoring endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
@@ -25,7 +26,8 @@ const Public = () => SetMetadata('isPublic', true)
 @Controller('webhooks/health')
 export class WebhookHealthController {
 	constructor(
-		private readonly webhookMonitoringService: WebhookMonitoringService
+		private readonly webhookMonitoringService: WebhookMonitoringService,
+		private readonly appConfigService: AppConfigService
 	) {}
 
 	/**
@@ -127,8 +129,8 @@ export class WebhookHealthController {
 	 */
 	@Get('configuration')
 	async getConfiguration() {
-		const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
-		const stripeKey = process.env.STRIPE_SECRET_KEY || process.env.TEST_STRIPE_SECRET_KEY
+		const webhookSecret = this.appConfigService.getStripeWebhookSecret()
+		const stripeKey = this.appConfigService.getStripeSecretKey()
 
 		// Check environment configuration
 		const checks = {
@@ -180,9 +182,7 @@ export class WebhookHealthController {
 			status: allChecksPassed ? 'configured' : 'misconfigured',
 			checks,
 			recommendations,
-			endpoint_url: process.env.API_BASE_URL
-				? `${process.env.API_BASE_URL}/webhooks/stripe-sync`
-				: 'https://api.tenantflow.app/webhooks/stripe-sync'
+			endpoint_url: `${this.appConfigService.getApiBaseUrl()}/webhooks/stripe-sync`
 		}
 	}
 }

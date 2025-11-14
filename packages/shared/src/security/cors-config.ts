@@ -1,7 +1,3 @@
-import { createLogger } from '../lib/frontend-logger'
-
-const logger = createLogger({ component: 'CorsConfig' })
-
 /**
  * Unified CORS Configuration for TenantFlow
  * Ensures alignment between backend CORS and frontend CSP policies
@@ -41,10 +37,7 @@ function getApplicationDomains() {
 
 		// Fallback to known production domains if env vars are missing
 		if (!frontendUrl || !backendUrl) {
-			// Log a warning but do not throw — CI/deploy should still set these.
-			logger.warn(
-				'Missing NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_API_BASE_URL during production build; falling back to known production domains.'
-			)
+			// CI/deploy should set these, but we'll use fallback domains for local production builds
 			// Known production domains for TenantFlow
 			frontendList.push('https://tenantflow.app', 'https://www.tenantflow.app')
 			backendList.push('https://api.tenantflow.app')

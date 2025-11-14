@@ -4,6 +4,10 @@ dist/
 *.tsbuildinfo
 .turbo/
 
+# TypeScript build artifacts in source directory (should only be in dist/)
+src/**/*.js
+src/**/*.js.map
+
 # OS and editor files
 .DS_Store
 *.swp

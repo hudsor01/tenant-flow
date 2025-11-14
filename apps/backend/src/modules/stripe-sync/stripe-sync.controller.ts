@@ -26,6 +26,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeAccessControlService } from '../billing/stripe-access-control.service'
 import { StripeSyncService } from '../billing/stripe-sync.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 // Public decorator for webhook endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
@@ -40,8 +41,14 @@ export class StripeSyncController {
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
 		private readonly accessControlService: StripeAccessControlService,
+		private readonly appConfigService: AppConfigService,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
-	) {}
+	) {
+		// Ensure TypeScript recognizes usage of appConfigService
+		if (!appConfigService) {
+			throw new Error('AppConfigService is required')
+		}
+	}
 
 	/**
 	 * Check if webhook event already processed (idempotency per Stripe best practices 2025)
@@ -105,7 +112,7 @@ export class StripeSyncController {
 				this.stripeClientService.constructWebhookEvent(
 					rawBody,
 					signature,
-					process.env.STRIPE_WEBHOOK_SECRET!
+					this.appConfigService.getStripeWebhookSecret()
 				)
 
 			this.logger.log('Processing webhook business logic', {

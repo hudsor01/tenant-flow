@@ -24,10 +24,12 @@ export function useUserProfile() {
 		queryFn: async () => {
 			if (!userId) throw new Error('No user ID')
 
+			const { data: authData } = await supabase.auth.getUser()
 			const { data, error } = await supabase
 				.from('users')
-				.select('id, email, firstName, lastName, role, profileComplete')
+				.select('id, email, firstName, lastName, role, profileComplete, orgId')
 				.eq('supabaseId', userId)
+				.eq('orgId', authData.user?.app_metadata?.org_id)
 				.single()
 
 			if (error) throw error

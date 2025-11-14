@@ -19,11 +19,11 @@ export const metadata: Metadata = {
 }
 
 export default async function ScheduleReportsPage() {
-	// ✅ Server-side auth - NO client flash, instant 307 redirect
+	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 	const logger = createLogger({ component: 'ScheduleReportsPage', userId: user.id })
 
-	// ✅ Server Component: Fetch data on server during RSC render
+	// Server Component: Fetch data on server during RSC render
 	let schedules: ScheduledReport[] = []
 
 	try {

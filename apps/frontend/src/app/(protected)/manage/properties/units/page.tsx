@@ -45,7 +45,7 @@ import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useRef } from 'react'
 import { toast } from 'sonner'
 
-// ⚡ Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
+// Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
 const ChartAreaInteractive = dynamic(
 	() =>
 		import('#components/dashboard/chart-area-interactive').then(
@@ -62,7 +62,7 @@ const ChartAreaInteractive = dynamic(
 const ITEMS_PER_PAGE = 25
 
 export default function UnitsPage() {
-	// ✅ nuqs: Type-safe URL state with automatic batching and clean URLs
+	// nuqs: Type-safe URL state with automatic batching and clean URLs
 	const [{ page, status, property }, setUrlState] = useQueryStates(
 		{
 			page: parseAsInteger.withDefault(1),

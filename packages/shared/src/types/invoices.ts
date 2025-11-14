@@ -3,8 +3,7 @@
  * All types related to customer invoices, invoice items, and invoice generation
  */
 
-// Remove frontend-specific dependencies - use generic form types instead
-// Define CustomerInvoiceForm inline instead of importing
+
 export interface CustomerInvoiceForm {
 	businessName: string
 	businessEmail: string

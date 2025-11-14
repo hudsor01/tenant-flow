@@ -23,9 +23,9 @@ export function HeroSection({
 		<section className="relative flex-1 flex flex-col">
 			{/* Trust Badge */}
 			{trustBadge && (
-				<div className="pt-32 pb-8 text-center">
+				<div className="pb-8 text-center">
 					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
-						<div className="size-2 bg-(--color-success) rounded-full mr-3 animate-pulse" />
+						<div className="size-2 bg-(--color-success) rounded-full mr-3 animate-pulse" aria-hidden="true" />
 						<span className="text-muted-foreground font-medium text-sm">
 							{trustBadge}
 						</span>
@@ -53,9 +53,9 @@ export function HeroSection({
 						>
 							<div className="space-y-6">
 								<h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight leading-[1.1]">
-									{title}
+									{title}{' '}
 									{titleHighlight && (
-										<span className="block text-primary">{titleHighlight}</span>
+										<span className="hero-highlight">{titleHighlight}</span>
 									)}
 								</h1>
 

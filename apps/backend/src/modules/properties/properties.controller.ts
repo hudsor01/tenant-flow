@@ -1,6 +1,6 @@
 /**
  * Properties Controller - Ultra-Native Implementation
- *
+
  * Uses:
  * - Zod DTOs via nestjs-zod + createZodDto pattern
  * - Built-in NestJS pipes for validation
@@ -64,13 +64,13 @@ export class PropertiesController {
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@JwtToken() token: string // ✅ Extract JWT token for user-scoped client
+		@JwtToken() token: string // Extract JWT token for user-scoped client
 	) {
 		// Clamp limit/offset to safe bounds
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
 
-		// ✅ Pass JWT token to service for RLS-enforced queries
+		// Pass JWT token to service for RLS-enforced queries
 		return this.propertiesService.findAll(token, {
 			search,
 			limit: safeLimit,
@@ -139,7 +139,7 @@ export class PropertiesController {
 
 	/**
 	 * Create new property
-	 * ✅ October 2025: Zod schema validation with shared validation rules
+	 * October 2025: Zod schema validation with shared validation rules
 	 */
 	@Post()
 	async create(

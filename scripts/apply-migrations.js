@@ -26,7 +26,8 @@ async function applyMigrations() {
 	const migrations = [
 		'20251105142400_add_rent_payment_rls.sql',
 		'20251105142401_add_tenant_payment_method_rls.sql',
-		'20251105142402_add_notification_preferences_rls.sql'
+		'20251105142402_add_notification_preferences_rls.sql',
+		'20251113101000_add_lease_rls_policies.sql'
 	]
 
 	for (const migration of migrations) {
@@ -39,7 +40,7 @@ async function applyMigrations() {
 				metadata: { error: error.message }
 			})
 		} else {
-			logger.info(`✅ Applied ${migration}`)
+			logger.info(` Applied ${migration}`)
 		}
 	}
 }

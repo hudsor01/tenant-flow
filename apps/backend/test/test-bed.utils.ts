@@ -92,7 +92,7 @@ export async function createTestBed<T>(
  *       provide: ConfigService,
  *       useValue: {
  *         get: jest.fn((key) => {
- *           if (key === 'STRIPE_SECRET_KEY') return 'sk_test_123'
+ *           if (key === 'STRIPE_SECRET_KEY') return process.env.STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder'
  *           return undefined
  *         })
  *       }
@@ -190,7 +190,6 @@ export function createSupabaseChainMock(
  * @example
  * ```typescript
  * const configService = createMockConfigService({
- *   STRIPE_SECRET_KEY: 'sk_test_123',
  *   DATABASE_URL: 'postgresql://localhost/test'
  * })
  * ```

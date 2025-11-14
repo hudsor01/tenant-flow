@@ -20,7 +20,7 @@ export interface ErrorState {
 	context?: string
 }
 
-interface ErrorBoundaryState {
+export interface ErrorBoundaryState {
 	// Current error state
 	errorState: ErrorState
 

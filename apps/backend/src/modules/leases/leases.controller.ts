@@ -1,6 +1,6 @@
 /**
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
- *
+
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
  */
@@ -80,7 +80,7 @@ export class LeasesController {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.findAll(token, {
 			tenantId,
 			unitId,
@@ -95,7 +95,7 @@ export class LeasesController {
 
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getStats(token)
 	}
 
@@ -131,7 +131,7 @@ export class LeasesController {
 			)
 		}
 
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
 			...(leaseId ? { leaseId } : {}),
 			...(propertyId ? { propertyId } : {}),
@@ -162,7 +162,7 @@ export class LeasesController {
 			)
 		}
 
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: '90d',
@@ -193,7 +193,7 @@ export class LeasesController {
 			)
 		}
 
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
 			...(propertyId ? { propertyId } : {}),
 			timeframe: timeframe ?? '12m'
@@ -232,7 +232,7 @@ export class LeasesController {
 			)
 		}
 
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
 			...(leaseId ? { leaseId } : {}),
 			...(propertyId ? { propertyId } : {}),
@@ -249,7 +249,7 @@ export class LeasesController {
 		if (days && (days < 1 || days > 365)) {
 			throw new BadRequestException('Days must be between 1 and 365')
 		}
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getExpiring(token, days ?? 30)
 	}
 
@@ -258,7 +258,7 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@JwtToken() token: string
 	) {
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		const lease = await this.leasesService.findOne(token, id)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
@@ -268,7 +268,7 @@ export class LeasesController {
 
 	@Post()
 	async create(@Body() dto: CreateLeaseDto, @JwtToken() token: string) {
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.create(token, dto)
 	}
 
@@ -297,7 +297,7 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@JwtToken() token: string
 	) {
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		await this.leasesService.remove(token, id)
 		return { message: 'Lease deleted successfully' }
 	}
@@ -312,7 +312,7 @@ export class LeasesController {
 		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.renew(token, id, endDate)
 	}
 
@@ -322,7 +322,7 @@ export class LeasesController {
 		@JwtToken() token: string,
 		@Body('reason') reason?: string
 	) {
-		// ✅ RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.terminate(
 			token,
 			id,

@@ -26,7 +26,7 @@ export class RentPaymentsController {
 	/**
 	 * Create a one-time rent payment
 	 * Phase 5: One-time Payments
-	 *
+
 	 * POST /api/v1/rent-payments
 	 */
 	@Post()
@@ -59,9 +59,9 @@ export class RentPaymentsController {
 	/**
 	 * Get payment history for all subscriptions
 	 * Phase 4: Payment History Enhancement
-	 *
+
 	 * GET /api/v1/payments/history
-	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('history')
 	async getPaymentHistory(@JwtToken() token: string) {
@@ -93,9 +93,9 @@ export class RentPaymentsController {
 	/**
 	 * Get payment history for a specific subscription
 	 * Phase 4: Payment History Enhancement
-	 *
+
 	 * GET /api/v1/payments/history/subscription/:subscriptionId
-	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('history/subscription/:subscriptionId')
 	async getSubscriptionPaymentHistory(
@@ -136,9 +136,9 @@ export class RentPaymentsController {
 	/**
 	 * Get failed payment attempts for all subscriptions
 	 * Phase 4: Payment History Enhancement
-	 *
+
 	 * GET /api/v1/payments/failed-attempts
-	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('failed-attempts')
 	async getFailedPaymentAttempts(@JwtToken() token: string) {
@@ -163,9 +163,9 @@ export class RentPaymentsController {
 	/**
 	 * Get failed payment attempts for a specific subscription
 	 * Phase 4: Payment History Enhancement
-	 *
+
 	 * GET /api/v1/payments/failed-attempts/subscription/:subscriptionId
-	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('failed-attempts/subscription/:subscriptionId')
 	async getSubscriptionFailedAttempts(
@@ -302,9 +302,9 @@ export class RentPaymentsController {
 	/**
 	 * Get current payment status for a tenant
 	 * Task 2.4: Payment Status Tracking
-	 *
+
 	 * GET /api/v1/rent-payments/status/:tenantId
-	 * ✅ RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('status/:tenantId')
 	@UseGuards(PropertyOwnershipGuard)
@@ -315,7 +315,7 @@ export class RentPaymentsController {
 		const userId = req.user.id
 		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
 
-		// ✅ Authorization now enforced at service layer (defense-in-depth)
+		// Authorization now enforced at service layer (defense-in-depth)
 		const paymentStatus =
 			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId, userId)
 

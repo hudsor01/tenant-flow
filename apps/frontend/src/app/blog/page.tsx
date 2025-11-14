@@ -1,8 +1,8 @@
 'use client'
 
 import Footer from '#components/layout/footer'
+import Navbar from '#components/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { getAllBlogPosts } from '#lib/blog-posts'
 import {
@@ -25,100 +25,17 @@ export default function BlogPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
-				<div className="flex items-center justify-between gap-12">
-					<Link
-						href="/"
-						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
-					>
-						<div className="size-11 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="size-5 text-primary-foreground"
-							>
-								<path
-									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
-						<span className="text-xl font-bold text-foreground tracking-tight">
-							TenantFlow
-						</span>
-					</Link>
-
-					<div className="hidden md:flex items-center space-x-1">
-						<Link
-							href="/features"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Features
-						</Link>
-						<Link
-							href="/pricing"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Pricing
-						</Link>
-						<Link
-							href="/about"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							About
-						</Link>
-						<Link
-							href="/blog"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Blog
-						</Link>
-						<Link
-							href="/faq"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							FAQ
-						</Link>
-						<Link
-							href="/contact"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Contact
-						</Link>
-					</div>
-
-					<div className="flex items-center space-x-3">
-						<Link
-							href="/login"
-							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
-						>
-							Sign In
-						</Link>
-						<Link
-							href="/signup"
-							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
-						>
-							Get Started
-							<ArrowRight className="ml-2 size-4" />
-						</Link>
-					</div>
-				</div>
-			</nav>
+			<Navbar />
 
 			<main className="flex-1">
 				{/* Hero Section */}
 				<HeroSection
-					trustBadge="50,000+ downloads from property managers"
 					title="Free guides to save"
 					titleHighlight="$30,000+ annually"
 					subtitle="Proven playbooks used by 10,000+ property managers to increase NOI by 40%, cut costs by 32%, and reclaim 20+ hours weekly. No fluff, just results."
 					primaryCta={{
 						label: 'Get Instant Access to All Guides',
-						href: '/signup'
+						href: '/pricing'
 					}}
 					secondaryCta={{ label: 'Calculate Your Savings', href: '/pricing' }}
 					trustSignals="50,000+ downloads • 40% NOI increase • 32% cost reduction"
@@ -128,16 +45,12 @@ export default function BlogPage() {
 					}}
 				/>
 
-				{/* Featured Article - High-Converting Content */}
-				<section className="section-hero">
+			{/* Featured Article - High-Converting Content */}
+			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 shadow-lg">
 							<div className="grid md:grid-cols-2 gap-8 items-center">
 								<div>
-									<Badge className="mb-4 bg-primary/10 text-primary">
-										<TrendingUp className="size-3 mr-1" />
-										Downloaded 50,000+ Times
-									</Badge>
 									<h2 className="text-4xl font-bold mb-4">
 										The $30,000 Property Management Savings Playbook
 									</h2>
@@ -197,8 +110,8 @@ export default function BlogPage() {
 					</div>
 				</section>
 
-				{/* Results-Focused Categories */}
-				<section className="section-hero bg-muted/20">
+			{/* Results-Focused Categories */}
+			<section className="section-spacing bg-muted/20">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">Learn what works</h2>
@@ -257,17 +170,14 @@ export default function BlogPage() {
 									<p className="text-muted-foreground text-sm mb-4">
 										{category.description}
 									</p>
-									<Badge className={category.color}>
-										{category.count} guides
-									</Badge>
 								</Link>
 							))}
 						</div>
 					</div>
 				</section>
 
-				{/* High-Converting Articles */}
-				<section className="section-hero">
+			{/* High-Converting Articles */}
+			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
 							<h2 className="text-4xl font-bold mb-4">
@@ -287,9 +197,6 @@ export default function BlogPage() {
 									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 								>
 									<div className="flex items-center justify-between mb-4">
-										<Badge className="bg-primary/10 text-primary">
-											{post.category}
-										</Badge>
 										<div className="text-sm text-muted-foreground">
 											{post.readTime}
 										</div>
@@ -324,8 +231,8 @@ export default function BlogPage() {
 					</div>
 				</section>
 
-				{/* Newsletter with Strong Value Prop */}
-				<section className="section-content bg-primary">
+			{/* Newsletter with Strong Value Prop */}
+			<section className="section-spacing bg-primary">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 						<h2 className="text-4xl font-bold text-primary-foreground mb-4">
 							Get the strategies that increase NOI by 40%

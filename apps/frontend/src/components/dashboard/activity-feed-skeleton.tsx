@@ -6,31 +6,27 @@ interface ActivityFeedSkeletonProps {
 
 export function ActivityFeedSkeleton({ items = 3 }: ActivityFeedSkeletonProps) {
 	return (
-		<div className="space-y-4">
+		<div className="dashboard-activity-feed">
 			{Array.from({ length: items }).map((_, index) => (
-				<div key={index} className="flex items-start gap-4 p-3 rounded-lg">
+				<div key={index} className="dashboard-activity-item">
 					{/* Activity Icon Skeleton */}
-					<Skeleton className="size-10 rounded-full" />
+					<Skeleton className="dashboard-activity-icon" />
 
 					{/* Activity Content Skeleton */}
-					<div className="min-w-0 flex-1">
-						<div className="flex items-start justify-between gap-2">
-							<div className="min-w-0 flex-1">
-								<div className="flex items-center gap-2 mb-2">
-									<Skeleton className="w-30 h-4 rounded-sm" />
-									<Skeleton className="w-15 h-5 rounded-full" />
-								</div>
-								<Skeleton className="mb-2 w-45 h-3.5 rounded-sm" />
-								<Skeleton className="w-20 h-3 rounded-sm" />
-							</div>
+					<div className="min-w-0 flex-1 space-y-2">
+						<div className="flex items-center gap-2">
+							<Skeleton className="h-4 w-32 rounded-sm" />
+							<Skeleton className="h-5 w-16 rounded-full" />
 						</div>
+						<Skeleton className="h-3.5 w-48 rounded-sm" />
+						<Skeleton className="h-3 w-28 rounded-sm" />
 					</div>
 				</div>
 			))}
 
 			{/* View All Activities Button Skeleton */}
-			<div className="pt-4 border-t">
-				<Skeleton className="w-full h-10 rounded-md" />
+			<div className="dashboard-activity-footer">
+				<Skeleton className="h-11 w-full rounded-lg" />
 			</div>
 		</div>
 	)

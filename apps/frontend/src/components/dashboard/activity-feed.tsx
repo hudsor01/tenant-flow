@@ -1,10 +1,11 @@
 'use client'
 
+import { ActivityFeedSkeleton } from '#components/dashboard/activity-feed-skeleton'
 import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { Spinner } from '#components/ui/spinner'
 import { useDashboardActivity } from '#hooks/api/use-dashboard'
+import { cn } from '#lib/utils'
 import {
 	getActivityBadgeClass,
 	getActivityColorClass
@@ -82,14 +83,7 @@ export function ActivityFeed() {
 	const activities: ActivityWithEnum[] = (data?.activities || []) as ActivityWithEnum[]
 
 	if (isLoading) {
-		return (
-			<div className="flex items-center justify-center py-8">
-				<Spinner className="size-6 animate-spin" />
-				<span className="ml-2 text-muted-foreground text-body-md">
-					Loading activities...
-				</span>
-			</div>
-		)
+		return <ActivityFeedSkeleton items={4} />
 	}
 
 	if (error) {
@@ -105,53 +99,50 @@ export function ActivityFeed() {
 
 	if (!activities || activities.length === 0) {
 		return (
-			<div className="text-center py-8">
-				<p className="text-sm text-muted-foreground">No recent activities</p>
+			<div className="dashboard-activity-empty">
+				<p className="text-sm font-medium text-muted-foreground">
+					No recent activities
+				</p>
+				<p className="text-xs text-muted-foreground">
+					Workflow updates will appear here as they happen.
+				</p>
 			</div>
 		)
 	}
 
 	return (
-		<div className="space-y-4">
+		<div className="dashboard-activity-feed">
 			{activities.map((activity: ActivityWithEnum) => {
-				// ✅ Null-safe icon retrieval with fallback
+				// Null-safe icon retrieval with fallback
 				const Icon = getIconForType(activity.entityType) ?? Clock
 
 				return (
 					<div
 						key={activity.id}
-						className="flex items-start gap-4 p-3 rounded-lg hover:bg-(--color-muted) transition-colors duration-200"
+						className="dashboard-activity-item"
 					>
 						{/* Activity Icon */}
 						<div
-							className={
-								getActivityColorClass(activity.entityType) +
-								' flex size-10 items-center justify-center rounded-full border border-(--color-border)'
-							}
+							className={cn(
+								'dashboard-activity-icon',
+								getActivityColorClass(activity.entityType)
+							)}
 						>
-							<Icon className="size-4" />
+							<Icon className="size-4" aria-hidden="true" />
 						</div>
 
 						{/* Activity Content */}
 						<div className="min-w-0 flex-1">
-							<div className="flex items-start justify-between gap-2">
-								<div className="min-w-0 flex-1">
-									<div className="flex items-center gap-2 mb-2">
-										<p className="font-medium text-(--color-label-primary) text-body-md">
-											{activity.action}
-										</p>
-										{getActivityBadge(activity.entityType)}
-									</div>
-									<p className="mb-2 text-(--color-label-secondary) text-body-md">
-										{safeEntityDisplay(activity.entityName, activity.entityId)}
-									</p>
-									<div className="flex items-center gap-2">
-										<span className="flex items-center gap-1 text-(--color-label-tertiary) text-body-xs">
-											<Clock className="size-3" />
-											{formatDate(activity.createdAt)}
-										</span>
-									</div>
-								</div>
+							<div className="flex flex-wrap items-center gap-2">
+								<p className="dashboard-activity-title">{activity.action}</p>
+								{getActivityBadge(activity.entityType)}
+							</div>
+							<p className="dashboard-activity-entity">
+								{safeEntityDisplay(activity.entityName, activity.entityId)}
+							</p>
+							<div className="dashboard-activity-meta">
+								<Clock className="size-3" aria-hidden="true" />
+								{formatDate(activity.createdAt)}
 							</div>
 						</div>
 					</div>
@@ -159,8 +150,8 @@ export function ActivityFeed() {
 			})}
 
 			{/* View All Activities Button */}
-			<div className="pt-4 border-t">
-				<Button variant="outline" className="w-full">
+			<div className="dashboard-activity-footer">
+				<Button variant="outline" className="w-full min-h-11">
 					View All Activities
 				</Button>
 			</div>

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { StripeSync } from '@supabase/stripe-sync-engine'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Ultra-Native Stripe Sync Service
@@ -17,7 +18,7 @@ export class StripeSyncService {
 	private readonly logger = new Logger(StripeSyncService.name)
 	private stripeSync: StripeSync | null = null
 
-	constructor() {
+	constructor(private readonly config: AppConfigService) {
 		// Stripe Sync Engine is initialized lazily on first use
 		// to avoid blocking app startup
 	}
@@ -29,10 +30,9 @@ export class StripeSyncService {
 
 		// Initialize Stripe Sync Engine per official documentation
 		// https://supabase.com/blog/stripe-engine-as-sync-library
-		const databaseUrl =
-			process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL
-		const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-		const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+		const databaseUrl = this.config.getDirectUrl() || this.config.getDatabaseUrl()
+		const stripeSecretKey = this.config.getStripeSecretKey()
+		const stripeWebhookSecret = this.config.getStripeWebhookSecret()
 
 		if (!databaseUrl || !stripeSecretKey || !stripeWebhookSecret) {
 			throw new Error(
@@ -122,10 +122,9 @@ export class StripeSyncService {
 	} {
 		try {
 			// Check required environment variables
-			const databaseUrl =
-				process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL
-			const stripeSecretKey = process.env.STRIPE_SECRET_KEY
-			const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+			const databaseUrl = this.config.getDirectUrl() || this.config.getDatabaseUrl()
+			const stripeSecretKey = this.config.getStripeSecretKey()
+			const stripeWebhookSecret = this.config.getStripeWebhookSecret()
 
 			if (!databaseUrl || !stripeSecretKey || !stripeWebhookSecret) {
 				return {

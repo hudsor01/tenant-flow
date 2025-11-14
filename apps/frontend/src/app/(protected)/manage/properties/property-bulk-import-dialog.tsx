@@ -14,7 +14,6 @@ import { clientFetch } from '#lib/api/client'
 import { ApiErrorCode, isApiError } from '#lib/api/api-error'
 import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
 import { AlertCircle, CheckCircle2, Upload } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useModalStore } from '#stores/modal-store'
@@ -62,7 +61,6 @@ type BulkImportResult = {
 }
 
 export function PropertyBulkImportDialog() {
-	const router = useRouter()
 	const {
 		openModal,
 		closeModal,
@@ -85,8 +83,27 @@ export function PropertyBulkImportDialog() {
 				omitJsonContentType: true
 			})
 		},
-		onSuccess: async () => {
+		onSuccess: async (data) => {
+			// Invalidate and refetch properties immediately
 			await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
+
+			// If successful, set result and let UI show success message
+			if (data.success && data.imported > 0) {
+				setResult(data)
+				// Close modal after showing success briefly
+				setTimeout(() => {
+					closeOnMutationSuccess('bulk-import-properties')
+					setFile(null)
+					setResult(null)
+				}, 2000)
+			} else {
+				setResult(data)
+			}
+		},
+		onError: (error) => {
+			logger.error('Bulk import failed', { error })
+			const errorMessage = getErrorMessage(error)
+			alert(errorMessage)
 		}
 	})
 
@@ -147,24 +164,13 @@ export function PropertyBulkImportDialog() {
 			// Track the mutation for auto-close
 			trackMutation(modalId, 'bulk-import-properties', queryClient)
 
-			const response = await bulkImportMutation.mutateAsync(file)
+			// Mutation handles success/error via onSuccess/onError callbacks
+			await bulkImportMutation.mutateAsync(file)
 
-			logger.info('Bulk import completed', response)
-			setResult(response)
-
-			// If successful, refresh the page data and close modal
-			if (response.success && response.imported > 0) {
-				closeOnMutationSuccess('bulk-import-properties')
-				setTimeout(() => {
-					router.refresh()
-					setFile(null)
-					setResult(null)
-				}, 3000)
-			}
+			logger.info('Bulk import initiated successfully')
 		} catch (error) {
-			logger.error('Bulk import failed', { error })
-			const errorMessage = getErrorMessage(error)
-			alert(errorMessage)
+			// Error already logged in onError callback
+			logger.error('Bulk import mutation failed', { error })
 		}
 	}
 

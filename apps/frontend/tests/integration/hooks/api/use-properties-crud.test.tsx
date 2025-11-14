@@ -1,7 +1,7 @@
 /**
  * Properties CRUD Integration Tests
  * Tests complete Create, Read, Update, Delete operations with real API calls
- *
+
  * @vitest-environment jsdom
  */
 
@@ -27,7 +27,7 @@ import {
 	propertiesKeys
 } from '#hooks/api/use-properties'
 import type { Property } from '@repo/shared/types/core'
-import type { CreatePropertyRequest } from '@repo/shared/types/backend-domain'
+import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -369,7 +369,7 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 			const updated = await result.current.mutateAsync({
 				id: testPropertyId,
 				data: updatedData,
-				version: currentProperty.version // 🔐 Pass version for optimistic locking
+				version: currentProperty.version // Pass version for optimistic locking
 			})
 
 			expect(updated).toBeDefined()
@@ -447,7 +447,7 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 			const updated = await result.current.mutateAsync({
 				id: testPropertyId,
 				data: { description: 'Only description changed' },
-				version: currentProperty.version // 🔐 Pass version for optimistic locking
+				version: currentProperty.version // Pass version for optimistic locking
 			})
 
 			// Name should remain unchanged
@@ -572,7 +572,7 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 			const updated = await updateResult.current.mutateAsync({
 				id: propertyId,
 				data: { description: 'Updated lifecycle description' },
-				version: currentVersion // 🔐 Pass version for optimistic locking
+				version: currentVersion // Pass version for optimistic locking
 			})
 
 			expect(updated.description).toBe('Updated lifecycle description')

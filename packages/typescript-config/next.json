@@ -3,10 +3,20 @@
 	"display": "TenantFlow Next.js TypeScript Config - App Router (October 2025)",
 	"extends": "./base.json",
 	"compilerOptions": {
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
 		"composite": false,
 		"declaration": false,
 		"declarationMap": false,
 		"noEmit": true,
-		"jsx": "preserve"
+		"jsx": "preserve",
+		"allowJs": true,
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"incremental": true,
+		"plugins": [
+			{
+				"name": "next"
+			}
+		]
 	}
 }

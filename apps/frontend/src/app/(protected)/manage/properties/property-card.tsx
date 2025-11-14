@@ -49,7 +49,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 					: 'sold'
 
 	return (
-		<Card className="overflow-hidden group hover:shadow-lg transition-shadow">
+		<Card className="overflow-hidden group hover:shadow-lg transition-shadow" data-testid="property-card">
 			{/* Property Image */}
 			<div className="relative aspect-video w-full overflow-hidden bg-muted">
 				{property.imageUrl ? (

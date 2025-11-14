@@ -184,32 +184,32 @@ export function CustomerPortalCard({
 	// Plan tier configuration
 	const tierConfig = {
 		starter: {
-			gradient: 'from-primary to-primary',
-			bgGradient: 'from-primary/5 to-primary/10',
+			background: 'bg-primary',
+			cardBg: 'bg-primary/5',
 			borderColor: 'border-primary/20',
 			textColor: 'text-primary'
 		},
 		growth: {
-			gradient: 'from-accent to-accent',
-			bgGradient: 'from-accent/5 to-accent/10',
+			background: 'bg-accent',
+			cardBg: 'bg-accent/5',
 			borderColor: 'border-accent/20',
 			textColor: 'text-accent'
 		},
 		professional: {
-			gradient: 'from-primary to-primary',
-			bgGradient: 'from-primary/5 to-primary/10',
+			background: 'bg-primary',
+			cardBg: 'bg-primary/5',
 			borderColor: 'border-primary/20',
 			textColor: 'text-primary'
 		},
 		tenantflow_max: {
-			gradient: 'from-primary to-primary',
-			bgGradient: 'from-primary/5 to-primary/10',
+			background: 'bg-primary',
+			cardBg: 'bg-primary/5',
 			borderColor: 'border-primary/20',
 			textColor: 'text-primary'
 		},
 		enterprise: {
-			gradient: 'from-accent to-accent',
-			bgGradient: 'from-accent/5 to-accent/10',
+			background: 'bg-accent',
+			cardBg: 'bg-accent/5',
 			borderColor: 'border-accent/20',
 			textColor: 'text-accent'
 		}
@@ -261,7 +261,7 @@ export function CustomerPortalCard({
 						<Badge
 							className={cn(
 								'px-4 py-2 text-sm font-bold border-2',
-								config.bgGradient,
+								config.cardBg,
 								config.borderColor,
 								config.textColor
 							)}
@@ -270,7 +270,7 @@ export function CustomerPortalCard({
 							{currentPlan}
 						</Badge>
 						<div className="flex items-center gap-2 mt-2">
-							<div className="size-2 bg-primary rounded-full animate-pulse" />
+							<div className="size-2 bg-primary rounded-full animate-pulse" aria-hidden="true" />
 							<span className="text-xs text-muted-foreground font-medium">
 								Active Plan
 							</span>

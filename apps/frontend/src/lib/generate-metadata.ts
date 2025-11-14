@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
+import { env } from '#config/env'
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://tenantflow.app'
+const SITE_URL = env.NEXT_PUBLIC_APP_URL
 
 export const defaultMetadata: Metadata = {
 	metadataBase: new URL(SITE_URL),

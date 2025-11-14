@@ -19,9 +19,9 @@ const buttonVariants = cva(
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
 				premium:
-					'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl hover:from-primary/90 hover:to-primary/70 font-bold',
+					'bg-primary text-primary-foreground shadow-lg hover:shadow-xl font-bold',
 				masculine:
-					'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground border-2 border-primary/20 hover:border-primary/30 shadow-lg hover:shadow-xl font-bold rounded-none'
+					'bg-primary text-primary-foreground border-2 border-primary/20 hover:border-primary/30 shadow-lg hover:shadow-xl font-bold rounded-none'
 			},
 			size: {
 				default: 'h-10 px-4 py-2',

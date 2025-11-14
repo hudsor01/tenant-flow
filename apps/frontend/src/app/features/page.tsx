@@ -1,7 +1,9 @@
 'use client'
+'use client'
 
+import { useState, useEffect, type ReactNode } from 'react'
 import Footer from '#components/layout/footer'
-import { Badge } from '#components/ui/badge'
+import Navbar from '#components/layout/navbar'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
@@ -12,17 +14,137 @@ import {
 	ArrowRight,
 	BarChart3,
 	Check,
-	ChevronRight,
 	Clock,
 	Shield,
 	Star,
 	TrendingUp,
 	Users,
-	Zap
+	Zap,
+	Bell,
+	Share2,
+	Building,
+	DollarSign,
+	FileText
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
+
+// Animated background components for bento grid
+const FileMarquee = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute top-4 left-4 space-y-2 animate-pulse">
+			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm">
+				<FileText className="size-4 text-primary" />
+				<span className="text-xs font-medium">Lease_Agreement.pdf</span>
+			</div>
+			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm animate-delay-100">
+				<FileText className="size-4 text-primary" />
+				<span className="text-xs font-medium">Tenant_Application.docx</span>
+			</div>
+			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm animate-delay-200">
+				<FileText className="size-4 text-primary" />
+				<span className="text-xs font-medium">Maintenance_Report.xlsx</span>
+			</div>
+		</div>
+	</div>
+)
+
+const NotificationList = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute top-4 right-4 space-y-2">
+			{[
+				"Rent payment received - $2,450",
+				"Maintenance request submitted",
+				"Lease renewal reminder sent",
+				"New tenant application"
+			].map((notification, i) => (
+				<div
+					key={i}
+					className="flex items-center space-x-2 bg-card/90 rounded-lg p-2 shadow-sm animate-fade-in"
+					style={{ animationDelay: `${i * 0.5}s` }}
+				>
+					<Bell className="size-3 text-primary animate-bounce" />
+					<span className="text-xs">{notification}</span>
+				</div>
+			))}
+		</div>
+	</div>
+)
+
+const FinancialDashboard = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute top-4 left-4 right-4 space-y-3">
+			{/* Revenue Chart */}
+			<div className="bg-card/90 rounded-lg p-3 shadow-sm">
+				<div className="flex items-center justify-between mb-2">
+					<span className="text-sm font-medium">Monthly Revenue</span>
+					<DollarSign className="size-4 text-primary" />
+				</div>
+				<div className="flex items-end space-x-1 h-12">
+					{[40, 60, 45, 80, 65, 90, 75, 85, 95, 88, 92, 98].map((height, i) => (
+						<div
+							key={i}
+							className="bg-primary/80 rounded-sm flex-1 animate-pulse"
+							style={{
+								height: `${height}%`,
+								animationDelay: `${i * 0.1}s`
+							}}
+						/>
+					))}
+				</div>
+				<div className="text-xs text-muted-foreground mt-1">$124,500</div>
+			</div>
+
+			{/* Key Metrics */}
+			<div className="grid grid-cols-2 gap-2">
+				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
+					<div className="text-xs text-muted-foreground">Occupancy</div>
+					<div className="text-lg font-bold text-primary animate-pulse">96.2%</div>
+				</div>
+				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
+					<div className="text-xs text-muted-foreground">Avg. Rent</div>
+					<div className="text-lg font-bold text-primary animate-pulse">$2,450</div>
+				</div>
+			</div>
+		</div>
+	</div>
+)
+
+const IntegrationBeam = () => (
+	<div className="absolute inset-0 overflow-hidden">
+		<div className="absolute inset-0 flex items-center justify-center">
+			<div className="relative">
+				{/* Central hub */}
+				<div className="size-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+					<Building className="size-4 text-primary-foreground" />
+				</div>
+				{/* Connecting beams */}
+				{[
+					{ angle: 0, icon: DollarSign, label: "Stripe" },
+					{ angle: 90, icon: Share2, label: "Supabase" },
+					{ angle: 180, icon: Bell, label: "Resend" },
+					{ angle: 270, icon: Shield, label: "Auth" }
+				].map(({ angle, icon: Icon, label }, i) => (
+					<div
+						key={i}
+						className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+						style={{
+							transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(60px)`
+						}}
+					>
+						<div className="flex flex-col items-center space-y-1 animate-fade-in" style={{ animationDelay: `${i * 0.3}s` }}>
+							<div className="size-6 bg-card rounded-full flex items-center justify-center shadow-sm border">
+								<Icon className="size-3 text-primary" />
+							</div>
+							<span className="text-xs font-medium transform -rotate-90 whitespace-nowrap">{label}</span>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	</div>
+)
 
 export default function FeaturesPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
@@ -97,17 +219,8 @@ export default function FeaturesPage() {
 	const t = (testimonials[currentTestimonial] ??
 		testimonials[0]) as (typeof testimonials)[number]
 
-	const customerLogos = [
-		{ name: 'Greystar', logo: '/tenant-flow-logo.png' },
-		{ name: 'Avalon Bay', logo: '/tenant-flow-logo.png' },
-		{ name: 'Camden', logo: '/tenant-flow-logo.png' },
-		{ name: 'Essex', logo: '/tenant-flow-logo.png' },
-		{ name: 'BRE Properties', logo: '/tenant-flow-logo.png' },
-		{ name: 'Lincoln Property', logo: '/tenant-flow-logo.png' }
-	]
-
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<div className="relative min-h-screen flex flex-col marketing-page">
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -118,89 +231,7 @@ export default function FeaturesPage() {
 			<GridPattern className="fixed inset-0 -z-10" />
 
 			{/* Navigation */}
-			<nav className="fixed top-6 left-1/2 z-50 w-auto translate-x-[-50%] transform rounded-full px-8 py-4 backdrop-blur-xl border border-border shadow-lg bg-background/90">
-				<div className="flex items-center justify-between gap-12">
-					<Link
-						href="/"
-						className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200"
-					>
-						<div className="size-11 rounded-lg overflow-hidden bg-primary border border-border flex items-center justify-center">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="size-5 text-primary-foreground"
-							>
-								<path
-									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						</div>
-						<span className="text-xl font-bold text-foreground tracking-tight">
-							TenantFlow
-						</span>
-					</Link>
-
-					<div className="hidden md:flex items-center space-x-1">
-						<Link
-							href="/features"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Features
-						</Link>
-						<Link
-							href="/pricing"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Pricing
-						</Link>
-						<Link
-							href="/about"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							About
-						</Link>
-						<Link
-							href="/blog"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Blog
-						</Link>
-						<Link
-							href="/faq"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							FAQ
-						</Link>
-						<Link
-							href="/contact"
-							className="px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-accent transition-all duration-200"
-						>
-							Contact
-						</Link>
-					</div>
-
-					<div className="flex items-center space-x-3">
-						<Link
-							href="/login"
-							className="hidden sm:flex px-4 py-2 text-foreground rounded-xl hover:bg-accent transition-all duration-300 font-medium"
-						>
-							Sign In
-						</Link>
-						<Link
-							href="/signup"
-							className="flex items-center px-6 py-2.5 bg-primary text-primary-foreground font-medium text-sm rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
-						>
-							Get Started
-							<ArrowRight className="ml-2 size-4" />
-						</Link>
-					</div>
-				</div>
-			</nav>
+			<Navbar />
 
 			{/* Sticky CTA */}
 			<div
@@ -216,7 +247,7 @@ export default function FeaturesPage() {
 					className="shadow-2xl shadow-primary/25 font-semibold"
 					asChild
 				>
-					<Link href="/signup" aria-label="Get started free">
+					<Link href="/pricing" aria-label="Get started free">
 						Start Free Trial
 						<ArrowRight className="size-4 ml-2" />
 					</Link>
@@ -224,12 +255,9 @@ export default function FeaturesPage() {
 			</div>
 
 			{/* Hero Section with Modern Background */}
-			<section className="relative page-content pb-16 overflow-hidden">
-				{/* Modern gradient background */}
-				<div className="absolute inset-0 bg-linear-to-br from-background via-primary/2 to-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--primary)_5%,transparent),transparent_50%)] bg-size-[100%_100%]" />
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,color-mix(in_oklch,var(--accent)_3%,transparent),transparent_50%)] bg-size-[100%_100%]" />
-				</div>
+			<section className="relative pb-16 overflow-hidden">
+				{/* Solid tint background */}
+				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--primary)_5%,transparent)]" />
 
 				{/* Subtle pattern overlay */}
 				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
@@ -237,41 +265,10 @@ export default function FeaturesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
 						<div className="text-center max-w-5xl mx-auto space-y-8">
-							{/* Trust Band - Moved to prominent position */}
-							<div className="flex flex-col items-center space-y-6">
-								<Badge
-									variant="secondary"
-									className="px-4 py-2 text-sm font-medium bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors"
-								>
-									<Star className="size-4 mr-2 fill-current" />
-									Trusted by 10,000+ property managers worldwide
-								</Badge>
-
-								{/* Customer Logos */}
-								<div className="flex flex-wrap items-center justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
-									{customerLogos.slice(0, 4).map(customer => (
-										<div key={customer.name} className="h-11 flex items-center">
-											<Image
-												src={customer.logo}
-												alt={customer.name}
-												width={120}
-												height={40}
-												className="h-8 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity"
-											/>
-										</div>
-									))}
-								</div>
-							</div>
-
 							{/* Strengthened headline with premium typography */}
-							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-								Transform your portfolio into a{' '}
-								<span className="relative inline-block">
-									<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
-										profit powerhouse
-									</span>
-									<div className="absolute -bottom-2 left-0 right-0 h-1 bg-linear-to-r from-primary/60 to-accent/60 rounded-full" />
-								</span>
+							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
+								<span className="text-foreground">Transform your portfolio into a</span>{' '}
+								<span className="hero-highlight">profit powerhouse</span>
 							</h1>
 
 							{/* Concise, benefit-driven subtext */}
@@ -287,10 +284,10 @@ export default function FeaturesPage() {
 							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
 									size="lg"
-									className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
+									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
 									asChild
 								>
-									<Link href="/signup" aria-label="Start free trial">
+									<Link href="/pricing" aria-label="Start free trial">
 										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
@@ -322,10 +319,8 @@ export default function FeaturesPage() {
 				</div>
 			</section>
 
-			{/* Video demo removed (no assets). Keeping streamlined journey below. */}
-
 			{/* Feature callouts (concise horizontal pills) */}
-			<section className="pb-10">
+			<section className="section-spacing-compact">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="grid gap-3 md:grid-cols-3">
 						<FeaturePill
@@ -352,7 +347,7 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
-				<section className="section-compact bg-linear-to-r from-primary/2 via-background to-primary/2">
+				<section className="section-spacing-compact bg-muted/50">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.2} inView>
 							<div className="text-center space-y-8">
@@ -363,11 +358,6 @@ export default function FeaturesPage() {
 										<span className="font-medium">
 											Featured in PropTech Today
 										</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<Badge variant="outline" className="text-xs">
-											SOC 2 Certified
-										</Badge>
 									</div>
 									<div className="flex items-center space-x-2">
 										<span className="font-medium">99.9% Uptime SLA</span>
@@ -424,194 +414,61 @@ export default function FeaturesPage() {
 				</section>
 			</LazySection>
 
-			{/* Canonical Bento features grid - Removed: Component deleted during refactoring */}
-
-			{/* Transformation Journey - Redesigned Feature Callouts */}
+			{/* Animated Feature Showcase */}
 			<LazySection
 				fallback={<SectionSkeleton height={600} variant="grid" />}
 				minHeight={600}
 			>
-				<section className="section-content">
+				<section className="section-spacing">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-16 space-y-6">
 								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-									Your 3-step transformation to{' '}
-									<span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
-										maximum profitability
+									See TenantFlow in action -{' '}
+									<span className="hero-highlight">
+										live & interactive
 									</span>
 								</h2>
 								<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
-									See how property managers systematically transform their
-									portfolios with our proven methodology
+									Experience our platform&apos;s power through animated demonstrations
+									of real property management workflows
 								</p>
 							</div>
 
-							{/* Horizontal transformation cards */}
-							<div className="grid md:grid-cols-3 gap-8 relative">
-								{/* Connection lines for desktop */}
-								<div className="hidden md:block absolute top-24 left-1/2 transform translate-x-[-50%] w-full max-w-4xl">
-									<div className="flex items-center justify-between px-16">
-										<ChevronRight className="size-6 text-primary/40" />
-										<ChevronRight className="size-6 text-primary/40" />
-									</div>
-								</div>
-
-								{/* Step 1: Fill Units Faster */}
-								<div className="group relative">
-									<div className="bg-linear-to-br from-accent/5 to-accent/10 dark:from-accent/10 dark:to-accent/20 rounded-3xl p-8 border border-accent/20 dark:border-accent/30 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-										{/* Step indicator */}
-										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-											Step 1
-										</div>
-
-										{/* Icon with enhanced visual metaphor */}
-										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-accent mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-											<TrendingUp className="size-8 text-primary-foreground" />
-										</div>
-
-										<h3 className="font-bold text-foreground mb-4 text-xl">
-											Fill Units Faster
-										</h3>
-										<p className="text-muted-foreground mb-6 leading-relaxed">
-											Smart tenant screening and automated marketing reduce
-											vacancy time by 65%
-										</p>
-
-										{/* Key metric highlight */}
-										<div
-											className={cn(
-												'rounded-xl border p-4 mb-4 transition-colors',
-												'bg-card/50',
-												'dark:bg-muted/50',
-												'border-accent/25'
-											)}
-										>
-											<div className="text-2xl font-bold text-accent">65%</div>
-											<div className="text-sm text-muted-foreground">
-												Faster unit filling
-											</div>
-										</div>
-
-										<ul className="space-y-2 text-sm">
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												AI-powered tenant screening
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Automated listing syndication
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Quality tenant matching
-											</li>
-										</ul>
-									</div>
-								</div>
-
-								{/* Step 2: Automate Tasks */}
-								<div className="group relative">
-									<div className="bg-linear-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-3xl p-8 border border-primary/20 dark:border-primary/30 hover:border-primary/40 dark:hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-											Step 2
-										</div>
-
-										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-											<Zap className="size-8 text-primary-foreground" />
-										</div>
-
-										<h3 className="font-bold text-foreground mb-4 text-xl">
-											Automate Operations
-										</h3>
-										<p className="text-muted-foreground mb-6 leading-relaxed">
-											Intelligent workflows handle 80% of daily tasks
-											automatically
-										</p>
-
-										<div
-											className={cn(
-												'rounded-xl border p-4 mb-4 transition-colors',
-												'bg-card/50',
-												'dark:bg-muted/50',
-												'border-primary/25'
-											)}
-										>
-											<div className="text-2xl font-bold text-primary">25+</div>
-											<div className="text-sm text-muted-foreground">
-												Hours saved per week
-											</div>
-										</div>
-
-										<ul className="space-y-2 text-sm">
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Automated rent collection
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Smart lease renewals
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Maintenance coordination
-											</li>
-										</ul>
-									</div>
-								</div>
-
-								{/* Step 3: Secure Data */}
-								<div className="group relative">
-									<div className="bg-linear-to-br from-primary/5 to-accent/5 dark:from-primary/10 dark:to-accent/10 rounded-3xl p-8 border border-border hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group-hover:scale-[1.02]">
-										<div className="absolute -top-4 left-8 bg-primary text-primary-foreground text-sm font-bold px-3 py-1 rounded-full">
-											Step 3
-										</div>
-
-										<div className="size-16 rounded-2xl bg-linear-to-r from-primary to-primary/80 mx-auto mb-6 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-											<Shield className="size-8 text-primary-foreground" />
-										</div>
-
-										<h3 className="font-bold text-foreground mb-4 text-xl">
-											Secure Everything
-										</h3>
-										<p className="text-muted-foreground mb-6 leading-relaxed">
-											Enterprise-grade security protects your data and ensures
-											compliance
-										</p>
-
-										<div
-											className={cn(
-												'rounded-xl border p-4 mb-4 transition-colors',
-												'bg-card/50',
-												'dark:bg-muted/50',
-												'border-border'
-											)}
-										>
-											<div className="text-2xl font-bold text-primary">
-												SOC 2
-											</div>
-											<div className="text-sm text-muted-foreground">
-												Type II Certified
-											</div>
-										</div>
-
-										<ul className="space-y-2 text-sm">
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												256-bit SSL encryption
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Role-based access control
-											</li>
-											<li className="flex items-center">
-												<Check className="size-4 text-primary mr-3 shrink-0" />
-												Regular security audits
-											</li>
-										</ul>
-									</div>
-								</div>
-							</div>
+							<BentoGrid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+								<BentoCard
+									name="Smart Document Processing"
+									background={<FileMarquee />}
+									Icon={FileText}
+									description="AI-powered document analysis and automated lease processing with real-time file previews"
+									href="/manage/documents"
+									cta="Explore Documents"
+								/>
+								<BentoCard
+									name="Real-Time Notifications"
+									background={<NotificationList />}
+									Icon={Bell}
+									description="Intelligent notification system that keeps you updated on all property activities and deadlines"
+									href="/manage/settings"
+									cta="View Notifications"
+								/>
+								<BentoCard
+									name="Financial Analytics"
+									background={<FinancialDashboard />}
+									Icon={TrendingUp}
+									description="Real-time revenue tracking, occupancy metrics, and financial insights to maximize your NOI"
+									href="/manage/analytics/financial"
+									cta="View Analytics"
+								/>
+								<BentoCard
+									name="Seamless Integrations"
+									background={<IntegrationBeam />}
+									Icon={Building}
+									description="Connect with Stripe, Supabase, and more for a unified property management ecosystem"
+									href="/pricing"
+									cta="See Integrations"
+								/>
+							</BentoGrid>
 						</BlurFade>
 					</div>
 				</section>
@@ -622,7 +479,7 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={500} variant="grid" />}
 				minHeight={500}
 			>
-				<section className="section-content bg-linear-to-br from-primary/2 via-background to-accent/2">
+				<section className="section-spacing bg-muted/30">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.4} inView>
 							<div className="text-center mb-16">
@@ -638,8 +495,8 @@ export default function FeaturesPage() {
 							{/* Results grid with enhanced visual design */}
 							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<TrendingUp className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<TrendingUp className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										40%
@@ -650,8 +507,8 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Clock className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Clock className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										25+
@@ -662,8 +519,8 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-primary to-primary/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Users className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Users className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										10K+
@@ -672,8 +529,8 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-linear-to-br from-accent to-accent/80 mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<BarChart3 className="size-10 text-primary-foreground" />
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<BarChart3 className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
 										90
@@ -691,18 +548,16 @@ export default function FeaturesPage() {
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
-				<section className="section-content relative overflow-hidden">
+				<section className="section-spacing relative overflow-hidden">
 					{/* Enhanced background */}
-					<div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-accent/5">
-						<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)]" />
-					</div>
+					<div className="absolute inset-0 bg-muted/40" />
 
 					<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 						<BlurFade delay={0.5} inView>
 							<div className="text-center space-y-8">
 								<h2 className="font-bold tracking-tight leading-tight">
-									Start your transformation{' '}
-									<span className="bg-linear-to-r from-primary via-primary/90 to-accent bg-clip-text text-transparent">
+									<span className="text-foreground">Start your transformation{' '}</span>
+									<span className="hero-highlight">
 										today
 									</span>
 								</h2>
@@ -718,10 +573,10 @@ export default function FeaturesPage() {
 								<div className="flex flex-col sm:flex-row gap-6 justify-center">
 									<Button
 										size="lg"
-										className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
+										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
 										asChild
 									>
-										<Link href="/signup" aria-label="Start free trial">
+										<Link href="/pricing" aria-label="Start free trial">
 											<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 											<span className="relative z-10 flex items-center">
 												Start Free Trial
@@ -776,7 +631,7 @@ function FeaturePill({
 	title,
 	description
 }: {
-	icon: React.ReactNode
+	icon: ReactNode
 	title: string
 	description: string
 }) {

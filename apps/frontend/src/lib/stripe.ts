@@ -2,11 +2,12 @@
 
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { env } from '#config/env'
 
 const logger = createLogger({ component: 'StripeClient' })
 
 // Initialize Stripe with publishable key - handle missing env var gracefully
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+const publishableKey = env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
 let stripePromise: Promise<Stripe | null>
 

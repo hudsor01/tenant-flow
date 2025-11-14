@@ -15,7 +15,7 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 - **PRODUCTION MINDSET**: Security first, platform-native, performance-conscious
 
 ## Tech Stack
-**Frontend**: Next.js 15 + React 19 + TailwindCSS 4 + ShadCN/UI + TanStack Query 5 + Zustand 5 (UI preferences only)
+**Frontend**: Next.js 16 + React 19.2 + TailwindCSS 4 + ShadCN/UI + TanStack Query 5 + Zustand 5 (UI preferences only)
 **Backend**: NestJS + Supabase + Stripe + Resend
 **Shared**: Node.js 22, pnpm, Turborepo, TypeScript strict, Zod
 
@@ -60,6 +60,36 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **Cache**: Lists 10min, Details 5min, Stats 1min, Real-time 30s refetch
 
 **Hook Organization**: `hooks/api/use-{entity}.ts` - Query hooks, `hooks/use-{entity}-form.ts` - Form hooks
+
+## Next.js 16 Migration (November 2025)
+
+**Configuration** (`next.config.ts`):
+- **Turbopack**: Default bundler (5-10x faster dev, 2-5x faster builds)
+- **Cache Components**: `cacheComponents: false` (enable when ready for full Suspense architecture)
+- **Experimental**: `optimizePackageImports`, `serverActions` remain in experimental
+- **Images**: `minimumCacheTTL: 14400` (4 hours), removed `quality` field
+
+**Async Request APIs**:
+- ALL pages with params use `Promise<{params}>` pattern
+- Must `await params` before use: `const { id } = await params`
+- SearchParams can be undefined, use optional chaining: `params?.propertyId ?? ''`
+- Removed `export const dynamic = 'force-dynamic'` (incompatible with cacheComponents)
+
+**TypeScript Typed Routes**:
+- Global utility types: `PageProps<'/route/[param]'>` and `LayoutProps<'/route'>`
+- No imports needed - globally available after `next typegen`
+- Automatic typing for params and parallel routes (@modal slots)
+- Example: `export default async function Page(props: PageProps<'/blog/[slug]'>)`
+
+**Performance Optimizations**:
+- `'use cache'` directive on static pages (pricing)
+- Suspense boundaries for streaming (dashboard sections)
+- Removed force-dynamic exports for compatibility
+
+**Build Requirements**:
+- Node.js 20.9+ (v18 no longer supported)
+- TypeScript 5.1.0+
+- Browser minimums: Chrome 111+, Edge 111+, Firefox 111+, Safari 16.4+
 
 ## Frontend - Routing
 
@@ -126,8 +156,8 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 **DTOs**: Create classes in controller `dto/` folders using `createZodDto(schema)`
 
 **WHEN REQUIRED**:
-- ✅ ALL @Post/@Put/@Patch endpoints
-- ⚠️ Simple @Get: Use ParseUUIDPipe, ParseIntPipe, DefaultValuePipe
+- ALL @Post/@Put/@Patch endpoints
+- ️ Simple @Get: Use ParseUUIDPipe, ParseIntPipe, DefaultValuePipe
 
 **FORBIDDEN**: class-validator decorators, DTO factories, manual validation, interfaces as @Body parameters
 
@@ -174,8 +204,10 @@ Turborepo monorepo: `apps/frontend` (Next.js 15/React 19), `apps/backend` (NestJ
 
 ## Deployment
 
-**Frontend**: Vercel (https://tenantflow.app) - auto-deploy from main
-**Backend**: Railway (https://api.tenantflow.app) - Dockerfile
+## Deployment
+
+**Frontend**: Vercel (<https://tenantflow.app>) - auto-deploy from main
+**Backend**: Railway (<https://api.tenantflow.app>) - Dockerfile
 **Known**: Vercel middleware warning (cosmetic), validator.js CVE-2025-56200 (LOW risk, transitive)
 
 ## Turborepo
