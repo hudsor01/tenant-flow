@@ -6,7 +6,6 @@
 
 import {
 	BadRequestException,
-	ConflictException,
 	Injectable,
 	Logger,
 	UnauthorizedException
@@ -483,20 +482,28 @@ export class LeasesService {
 				updateRequest.status as Database['public']['Enums']['LeaseStatus']
 
 		//Add version check for optimistic locking
-		let query = client.from('lease').update(updateData).eq('id', leaseId)
+		const query = client.from('lease').update(updateData).eq('id', leaseId)
 
-		// Add version check if expectedVersion provided
+		// Use version-aware query if expectedVersion provided
 		if (expectedVersion !== undefined) {
-			query = query.eq('version', expectedVersion)
+			return this.queryHelpers.querySingleWithVersion<Lease>(
+				query.eq('version', expectedVersion).select().single(),
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'update',
+					metadata: { expectedVersion }
+				}
+			)
 		}
 
-		return this.queryHelpers.querySingleWithVersion<Lease>(
+		// Otherwise use regular query
+		return this.queryHelpers.querySingle<Lease>(
 			query.select().single(),
 			{
 				resource: 'lease',
 				id: leaseId,
-				operation: 'update',
-				metadata: { expectedVersion }
+				operation: 'update'
 			}
 		)
 	}

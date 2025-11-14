@@ -6,7 +6,6 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import {
 	BadRequestException,
-	ConflictException,
 	Inject,
 	Injectable,
 	Logger,
@@ -477,28 +476,37 @@ export class PropertiesService {
 		}
 
 		//Add version check for optimistic locking
-		let query = client.from('property').update(updateData).eq('id', propertyId)
-
-		// Add version check if expectedVersion provided
-		if (expectedVersion !== undefined) {
-			query = query.eq('version', expectedVersion)
-		}
-
+		const query = client.from('property').update(updateData).eq('id', propertyId)
 		const userId = (req as AuthenticatedRequest).user.id
 
-		// Use querySingleWithVersion for automatic optimistic locking conflict detection
-		const updatedProperty = await this.queryHelpers.querySingleWithVersion<Property>(
-			query.select().single(),
-			{
-				resource: 'property',
-				id: propertyId,
-				operation: 'update',
-				userId,
-				metadata: { expectedVersion }
-			}
-		)
+		let updatedProperty: Property
 
-		// 🚀 PERFORMANCE: Invalidate property stats cache after update
+		// Use version-aware query if expectedVersion provided
+		if (expectedVersion !== undefined) {
+			updatedProperty = await this.queryHelpers.querySingleWithVersion<Property>(
+				query.eq('version', expectedVersion).select().single(),
+				{
+					resource: 'property',
+					id: propertyId,
+					operation: 'update',
+					userId,
+					metadata: { expectedVersion }
+				}
+			)
+		} else {
+			// Otherwise use regular query
+			updatedProperty = await this.queryHelpers.querySingle<Property>(
+				query.select().single(),
+				{
+					resource: 'property',
+					id: propertyId,
+					operation: 'update',
+					userId
+				}
+			)
+		}
+
+		// PERFORMANCE: Invalidate property stats cache after update
 		await this.invalidatePropertyStatsCache(userId)
 
 		return updatedProperty
