@@ -37,7 +37,7 @@ import {
 	querySingle,
 	queryList,
 	queryMutation
-} from '../../shared/database/supabase-query-helpers'
+} from '../../shared/utils/query-helpers'
 
 type PropertyType = Database['public']['Enums']['PropertyType']
 
@@ -148,14 +148,17 @@ export class PropertiesService {
 			}
 		}
 
-		const { data, error } = await queryBuilder
-
-		if (error) {
+		// Soft-fail pattern: Return empty array on error
+		try {
+			return await queryList<Property>(queryBuilder as any, {
+				resource: 'properties',
+				operation: 'fetch with search',
+				logger: this.logger
+			})
+		} catch (error) {
 			this.logger.error('Failed to fetch properties', { error })
 			return []
 		}
-
-		return (data || []) as Property[]
 	}
 
 	/**
@@ -412,17 +415,14 @@ export class PropertiesService {
 			}
 
 			// PHASE 3: Atomic batch insert (all or nothing)
-			const { data, error } = await client
-				.from('property')
-				.insert(validRows)
-				.select()
-
-			if (error) {
-				this.logger.error('Bulk insert failed', { error, userId })
-				throw new BadRequestException(
-					`Database insert failed: ${error.message}`
-				)
-			}
+			const data = await queryMutation<Property[]>(
+				client.from('property').insert(validRows).select() as any,
+				{
+					resource: 'properties',
+					operation: 'bulk insert',
+					logger: this.logger
+				}
+			)
 
 			this.logger.log('Bulk import successful', {
 				userId,
@@ -539,12 +539,25 @@ export class PropertiesService {
 			query = query.eq('version', expectedVersion)
 		}
 
-		const { data, error } = await query.select().single()
+		try {
+			const data = await queryMutation<Property>(
+				query.select().single(),
+				{
+					resource: 'property',
+					id: propertyId,
+					operation: 'update',
+					logger: this.logger
+				}
+			)
 
-		if (error || !data) {
-			//Detect optimistic locking conflict
-			if (error?.code === 'PGRST116' || !data) {
-				// PGRST116 = 0 rows affected (version mismatch)
+			// 🚀 PERFORMANCE: Invalidate property stats cache after update
+			const userId = (req as AuthenticatedRequest).user.id
+			await this.invalidatePropertyStatsCache(userId)
+
+			return data
+		} catch (error) {
+			// Detect optimistic locking conflict (NotFoundException means PGRST116 = no rows matched)
+			if (error instanceof NotFoundException && expectedVersion !== undefined) {
 				this.logger.warn('Optimistic locking conflict detected', {
 					propertyId,
 					expectedVersion
@@ -553,19 +566,8 @@ export class PropertiesService {
 					'Property was modified by another user. Please refresh and try again.'
 				)
 			}
-
-			this.logger.error('Failed to update property', {
-				error,
-				propertyId
-			})
-			throw new BadRequestException('Failed to update property')
+			throw error
 		}
-
-		// 🚀 PERFORMANCE: Invalidate property stats cache after update
-		const userId = (req as AuthenticatedRequest).user.id
-		await this.invalidatePropertyStatsCache(userId)
-
-		return data as Property
 	}
 
 	/**
@@ -685,52 +687,47 @@ export class PropertiesService {
 			.addStep({
 				name: 'Mark property as INACTIVE in database',
 				execute: async () => {
-					const { data, error } = await client
-						.from('property')
-						.update({
-							status:
-								'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
-							updatedAt: new Date().toISOString(),
-							// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
-							version: (existing.version || 0) + 1
-						})
-						.eq('id', propertyId)
-						.select()
-						.single()
-
-					if (error) {
-						this.logger.error('Failed to mark property as inactive', {
-							error,
-							userId,
-							propertyId
-						})
-						throw new BadRequestException('Failed to delete property')
-					}
+					const data = await queryMutation<Property>(
+						client
+							.from('property')
+							.update({
+								status:
+									'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
+								updatedAt: new Date().toISOString(),
+								// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
+								version: (existing.version || 0) + 1
+							})
+							.eq('id', propertyId)
+							.select()
+							.single(),
+						{
+							resource: 'property',
+							id: propertyId,
+							operation: 'soft delete',
+							logger: this.logger
+						}
+					)
 
 					this.logger.log('Marked property as INACTIVE', { propertyId })
 					return { previousStatus: existing.status, data }
 				},
 				compensate: async result => {
 					// Compensation: Restore original status
-					const { error } = await client
-						.from('property')
-						.update({
-							status: result.previousStatus,
-							updatedAt: new Date().toISOString()
-						})
-						.eq('id', propertyId)
-
-					if (error) {
-						this.logger.error(
-							'Failed to restore property status during compensation',
-							{
-								error,
-								propertyId,
-								previousStatus: result.previousStatus
-							}
-						)
-						throw error
-					}
+					await queryMutation(
+						client
+							.from('property')
+							.update({
+								status: result.previousStatus,
+								updatedAt: new Date().toISOString()
+							})
+							.eq('id', propertyId),
+						{
+							resource: 'property',
+							id: propertyId,
+							operation: 'restore status',
+							logger: this.logger
+						}
+					)
 
 					this.logger.log('Restored property status during compensation', {
 						propertyId,
@@ -818,11 +815,22 @@ export class PropertiesService {
 			throw new UnauthorizedException('No authentication token found')
 		}
 		const client = this.supabase.getUserClient(token)
-		const { data, error } = await client.rpc('get_property_stats', {
-			p_user_id: userId
-		} satisfies Database['public']['Functions']['get_property_stats']['Args'])
 
-		if (error || !data) {
+		// Soft-fail pattern: Return default stats on error
+		let data: unknown
+		try {
+			data = await querySingle(
+				client.rpc('get_property_stats', {
+					p_user_id: userId
+				} satisfies Database['public']['Functions']['get_property_stats']['Args']) as any,
+				{
+					resource: 'property stats',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
 			this.logger.error('Failed to get property stats', { error, userId })
 			return {
 				total: 0,
@@ -894,16 +902,17 @@ export class PropertiesService {
 			}
 		}
 
-		const { data, error } = await queryBuilder
-
-		if (error) {
-			this.logger.error('Failed to fetch properties with units', {
-				error
+		// Soft-fail pattern: Return empty array on error
+		try {
+			return await queryList<Property>(queryBuilder as any, {
+				resource: 'properties with units',
+				operation: 'fetch with nested relations',
+				logger: this.logger
 			})
+		} catch (error) {
+			this.logger.error('Failed to fetch properties with units', { error })
 			return []
 		}
-
-		return (data || []) as Property[]
 	}
 
 	/**
@@ -947,20 +956,24 @@ export class PropertiesService {
 		if (query.timeframe) rpcParams.p_timeframe = query.timeframe
 		if (query.propertyId) rpcParams.p_property_id = query.propertyId
 
-		const { data, error } = await client.rpc(
-			'get_property_maintenance_analytics',
-			rpcParams as Database['public']['Functions']['get_property_maintenance_analytics']['Args']
-		)
-
-		if (error) {
-			this.logger.error('Failed to get maintenance analytics', {
-				error,
-				userId
-			})
+		// Soft-fail pattern: Return empty array on error
+		try {
+			return await queryList(
+				client.rpc(
+					'get_property_maintenance_analytics',
+					rpcParams as Database['public']['Functions']['get_property_maintenance_analytics']['Args']
+				) as any,
+				{
+					resource: 'property maintenance analytics',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			this.logger.error('Failed to get maintenance analytics', { error, userId })
 			return []
 		}
-
-		return data || []
 	}
 
 	/**
@@ -992,17 +1005,24 @@ export class PropertiesService {
 		if (query.period) rpcParams.p_period = query.period
 		if (query.propertyId) rpcParams.p_property_id = query.propertyId
 
-		const { data, error } = await client.rpc(
-			'get_property_occupancy_analytics',
-			rpcParams as Database['public']['Functions']['get_property_occupancy_analytics']['Args']
-		)
-
-		if (error) {
+		// Soft-fail pattern: Return empty array on error
+		try {
+			return await queryList(
+				client.rpc(
+					'get_property_occupancy_analytics',
+					rpcParams as Database['public']['Functions']['get_property_occupancy_analytics']['Args']
+				) as any,
+				{
+					resource: 'property occupancy analytics',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
 			this.logger.error('Failed to get occupancy analytics', { error, userId })
 			return []
 		}
-
-		return data || []
 	}
 
 	/**
@@ -1034,17 +1054,24 @@ export class PropertiesService {
 		if (query.timeframe) rpcParams.p_timeframe = query.timeframe
 		if (query.propertyId) rpcParams.p_property_id = query.propertyId
 
-		const { data, error } = await client.rpc(
-			'get_property_financial_analytics',
-			rpcParams as Database['public']['Functions']['get_property_financial_analytics']['Args']
-		)
-
-		if (error) {
+		// Soft-fail pattern: Return empty array on error
+		try {
+			return await queryList(
+				client.rpc(
+					'get_property_financial_analytics',
+					rpcParams as Database['public']['Functions']['get_property_financial_analytics']['Args']
+				) as any,
+				{
+					resource: 'property financial analytics',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
 			this.logger.error('Failed to get financial analytics', { error, userId })
 			return []
 		}
-
-		return data || []
 	}
 
 	/**
@@ -1077,20 +1104,24 @@ export class PropertiesService {
 		if (query.timeframe) rpcParams.p_timeframe = query.timeframe
 		if (query.propertyId) rpcParams.p_property_id = query.propertyId
 
-		const { data, error } = await client.rpc(
-			'get_property_maintenance_analytics',
-			rpcParams as Database['public']['Functions']['get_property_maintenance_analytics']['Args']
-		)
-
-		if (error) {
-			this.logger.error('Failed to get maintenance analytics', {
-				error,
-				userId
-			})
+		// Soft-fail pattern: Return empty array on error
+		try {
+			return await queryList(
+				client.rpc(
+					'get_property_maintenance_analytics',
+					rpcParams as Database['public']['Functions']['get_property_maintenance_analytics']['Args']
+				) as any,
+				{
+					resource: 'property maintenance analytics',
+					id: userId,
+					operation: 'fetch via RPC',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
+			this.logger.error('Failed to get maintenance analytics', { error, userId })
 			return []
 		}
-
-		return data || []
 	}
 
 	/**
@@ -1173,42 +1204,48 @@ export class PropertiesService {
 			.select('*', { count: 'exact', head: true })
 			.eq('propertyId', propertyId)
 
-		// Insert image record with error handling
-		const { data, error } = await client
-			.from('property_images')
-			.insert({
-				propertyId,
-				url: uploadResult.url,
-				displayOrder: (count || 0) + 1,
-				isPrimary,
-				caption: caption || null,
-				uploadedById: userId
-			})
-			.select()
-			.single()
-
-		if (error) {
+		// Insert image record with error handling and cleanup
+		try {
+			return await queryMutation(
+				client
+					.from('property_images')
+					.insert({
+						propertyId,
+						url: uploadResult.url,
+						displayOrder: (count || 0) + 1,
+						isPrimary,
+						caption: caption || null,
+						uploadedById: userId
+					})
+					.select()
+					.single(),
+				{
+					resource: 'property image',
+					id: propertyId,
+					operation: 'insert',
+					logger: this.logger
+				}
+			)
+		} catch (error) {
 			// Cleanup: Delete uploaded file if DB insert fails
 			try {
 				await this.storage.deleteFile('property-images', filename)
 				this.logger.warn('Cleaned up orphaned file after DB insert failure', {
 					filename,
-					error: error.message
+					error: error instanceof Error ? error.message : 'Unknown error'
 				})
 			} catch (cleanupError) {
 				this.logger.error('Failed to cleanup orphaned file', {
 					filename,
-					dbError: error.message,
+					dbError: error instanceof Error ? error.message : 'Unknown error',
 					cleanupError:
 						cleanupError instanceof Error
 							? cleanupError.message
 							: String(cleanupError)
 				})
 			}
-			throw new BadRequestException(`Failed to save image: ${error.message}`)
+			throw error
 		}
-
-		return data
 	}
 
 	/**
@@ -1234,17 +1271,19 @@ export class PropertiesService {
 			throw new NotFoundException('Property not found')
 		}
 
-		const { data, error } = await client
-			.from('property_images')
-			.select('*')
-			.eq('propertyId', propertyId)
-			.order('displayOrder', { ascending: true })
-
-		if (error) {
-			throw new BadRequestException(`Failed to fetch images: ${error.message}`)
-		}
-
-		return data || []
+		return await queryList(
+			client
+				.from('property_images')
+				.select('*')
+				.eq('propertyId', propertyId)
+				.order('displayOrder', { ascending: true }) as any,
+			{
+				resource: 'property images',
+				id: propertyId,
+				operation: 'fetch',
+				logger: this.logger
+			}
+		)
 	}
 
 	/**
@@ -1279,14 +1318,15 @@ export class PropertiesService {
 		const bucketPath = pathParts[1]
 
 		// Delete database record FIRST
-		const { error } = await client
-			.from('property_images')
-			.delete()
-			.eq('id', imageId)
-
-		if (error) {
-			throw new BadRequestException(`Failed to delete image: ${error.message}`)
-		}
+		await queryMutation(
+			client.from('property_images').delete().eq('id', imageId),
+			{
+				resource: 'property image',
+				id: imageId,
+				operation: 'delete',
+				logger: this.logger
+			}
+		)
 
 		// Delete from storage SECOND (non-blocking, log failures)
 		try {
@@ -1327,26 +1367,24 @@ export class PropertiesService {
 			)
 		}
 
-		const { error } = await client
-			.from('property')
-			.update({
-				status: 'SOLD',
-				date_sold: dateSold.toISOString(),
-				sale_price: salePrice,
-				sale_notes: saleNotes || null,
-				updatedAt: new Date().toISOString()
-			})
-			.eq('id', propertyId)
-
-		if (error) {
-			this.logger.error('Failed to mark property as sold', {
-				error,
-				propertyId
-			})
-			throw new BadRequestException(
-				'Failed to mark property as sold: ' + error.message
-			)
-		}
+		await queryMutation(
+			client
+				.from('property')
+				.update({
+					status: 'SOLD',
+					date_sold: dateSold.toISOString(),
+					sale_price: salePrice,
+					sale_notes: saleNotes || null,
+					updatedAt: new Date().toISOString()
+				})
+				.eq('id', propertyId),
+			{
+				resource: 'property',
+				id: propertyId,
+				operation: 'mark as sold',
+				logger: this.logger
+			}
+		)
 
 		this.logger.log('Property marked as sold', {
 			propertyId,
