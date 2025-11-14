@@ -7,7 +7,6 @@
 import { Inject, Injectable, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
-import { v4 as uuidv4 } from 'uuid'
 import type { SearchResult } from '@repo/shared/types/search'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { USER_ROLE } from '@repo/shared/constants/auth'
@@ -247,9 +246,9 @@ export class UtilityService {
 
 		// Handle database errors separately from missing user
 		if (error) {
-			this.logger.error('Database error during user ID lookup', { 
-				error: error.message || error, 
-				supabaseId 
+			this.logger.error('Database error during user ID lookup', {
+				error: error.message || error,
+				supabaseId
 			})
 			throw new InternalServerErrorException('Failed to lookup user information')
 		}
@@ -306,8 +305,8 @@ export class UtilityService {
 	 */
 	async ensureUserExists(authUser: {
 		id: string
-		email: string
-		user_metadata?: {
+	email: string
+	user_metadata?: {
 			full_name?: string
 			name?: string
 			avatar_url?: string
@@ -319,11 +318,11 @@ export class UtilityService {
 			[key: string]: unknown
 		}
 	}, retryCount = 0): Promise<string> {
+		// Try to get existing user first using atomic upsert
 		try {
-			// First try to get existing user
 			return await this.getUserIdFromSupabaseId(authUser.id)
 		} catch (error) {
-			// User doesn't exist - create them
+			// User doesn't exist - proceed with atomic upsert to prevent race conditions
 			if (error instanceof NotFoundException) {
 				this.logger.log('Creating new user record for OAuth user', {
 					supabaseId: authUser.id,
@@ -353,28 +352,30 @@ export class UtilityService {
 					})
 				}
 
-				const { data, error: insertError } = await this.supabase
+				// Use atomic upsert to prevent race conditions
+				const { data, error: upsertError } = await this.supabase
 					.getAdminClient()
 					.from('users')
-					.insert({
-						id: uuidv4(),
+					.upsert({
 						supabaseId: authUser.id,
 						email: authUser.email,
 						name: fullName || null,
 						avatarUrl: avatarUrl || null,
 						role: resolvedRole,
 						profileComplete: false,
-						subscription_status: 'trialing' // New users start with trial
+						subscription_status: 'trialing' as Database['public']['Enums']['SubStatus'] // New users start with trial
+					} as Database['public']['Tables']['users']['Insert'], {
+						onConflict: 'supabaseId', // Use supabaseId as conflict key
 					})
 					.select('id')
 					.single()
 
-				if (insertError) {
-					// Check if it's a unique constraint violation (race condition)
-					// PostgreSQL error code 23505 = unique_violation
-					if ((insertError as { code?: string }).code === '23505' || insertError.message?.includes('duplicate')) {
-						// Prevent infinite retry loops
-						if (retryCount >= 1) {
+				if (upsertError) {
+					// Check if it's a constraint violation
+					const errorCode = (upsertError as { code?: string }).code
+					if (errorCode === '23505' || upsertError.message?.includes('duplicate')) {
+						// Race condition: another request created the user, retry lookup
+						if (retryCount >= 2) { // Increase max retries slightly
 							this.logger.error('Max retries exceeded for user creation race condition', {
 								supabaseId: authUser.id,
 								email: authUser.email,
@@ -382,18 +383,19 @@ export class UtilityService {
 							})
 							throw new InternalServerErrorException('Failed to create user account after retry')
 						}
-						
+
 						this.logger.warn('User creation race condition detected, retrying lookup', {
 							supabaseId: authUser.id,
 							email: authUser.email,
 							retryCount
 						})
-						// Another request created the user, retry the lookup with incremented counter
+						// Wait briefly to allow database consistency before retrying
+						await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)))
 						return await this.ensureUserExists(authUser, retryCount + 1)
 					}
 
 					this.logger.error('Failed to create user record', {
-						error: insertError.message || insertError,
+						error: upsertError.message || upsertError,
 						supabaseId: authUser.id,
 						email: authUser.email
 					})
@@ -401,13 +403,13 @@ export class UtilityService {
 				}
 
 				if (!data) {
-					this.logger.error('No data returned from user insert', {
+					this.logger.error('No data returned from user upsert', {
 						supabaseId: authUser.id
 					})
 					throw new InternalServerErrorException('Failed to create user account')
 				}
 
-				this.logger.log('User record created successfully', {
+				this.logger.log('User record created/updated successfully', {
 					userId: data.id,
 					supabaseId: authUser.id,
 					email: authUser.email,

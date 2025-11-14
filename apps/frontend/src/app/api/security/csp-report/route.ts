@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CSPReportBody,

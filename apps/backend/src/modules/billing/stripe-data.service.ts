@@ -11,6 +11,15 @@ import type {
 } from '@repo/shared/types/domain'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import {
+	stripeCustomerSchema,
+	stripeSubscriptionSchema,
+	stripePriceSchema,
+	stripeProductSchema,
+	stripePaymentIntentSchema,
+	createValidatedArray,
+	validateDatabaseResponse
+} from '@repo/shared/validation/database-rpc.schemas'
 
 // Type aliases for Supabase database types
 type StripePaymentIntentDB =
@@ -71,7 +80,10 @@ export class StripeDataService {
 				)
 			}
 
-			return (data as StripeSubscriptionDB[]) || []
+			return validateDatabaseResponse(
+				data || [],
+				createValidatedArray(stripeSubscriptionSchema)
+			)
 		} catch (error) {
 			this.logger.error('Error fetching customer subscriptions:', error)
 			throw new InternalServerErrorException(
@@ -113,7 +125,7 @@ export class StripeDataService {
 				throw new InternalServerErrorException('Customer not found')
 			}
 
-			return data as StripeCustomerDB
+			return validateDatabaseResponse(data, stripeCustomerSchema)
 		} catch (error) {
 			if (error instanceof BadRequestException) {
 				throw error
@@ -149,7 +161,10 @@ export class StripeDataService {
 				throw new InternalServerErrorException('Failed to fetch prices')
 			}
 
-			return (data as StripePriceDB[]) || []
+			return validateDatabaseResponse(
+				data || [],
+				createValidatedArray(stripePriceSchema)
+			)
 		} catch (error) {
 			this.logger.error('Error fetching prices:', error)
 			throw new InternalServerErrorException('Failed to fetch prices')
@@ -182,7 +197,10 @@ export class StripeDataService {
 				throw new InternalServerErrorException('Failed to fetch products')
 			}
 
-			return (data as StripeProductDB[]) || []
+			return validateDatabaseResponse(
+				data || [],
+				createValidatedArray(stripeProductSchema)
+			)
 		} catch (error) {
 			this.logger.error('Error fetching products:', error)
 			throw new InternalServerErrorException('Failed to fetch products')
@@ -233,8 +251,10 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple aggregation in code, not complex SQL
-			const typedPaymentIntents =
-				(paymentIntents as StripePaymentIntentDB[]) || []
+			const typedPaymentIntents = validateDatabaseResponse(
+				paymentIntents || [],
+				createValidatedArray(stripePaymentIntentSchema)
+			)
 			return this.calculateRevenueAnalytics(typedPaymentIntents)
 		} catch (error) {
 			this.logger.error('Error calculating revenue analytics:', error)
@@ -307,7 +327,10 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple churn calculation in code
-			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
+			const typedSubscriptions = validateDatabaseResponse(
+				subscriptions || [],
+				createValidatedArray(stripeSubscriptionSchema)
+			)
 			return this.calculateChurnAnalytics(typedSubscriptions)
 		} catch (error) {
 			this.logger.error('Error calculating churn analytics:', error)
