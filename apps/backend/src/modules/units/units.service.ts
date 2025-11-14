@@ -27,7 +27,7 @@ import {
 	querySingle,
 	queryList,
 	queryMutation
-} from '../../shared/database/supabase-query-helpers'
+} from '../../shared/utils/query-helpers'
 
 /**
  * Safe column list for unit queries
@@ -126,17 +126,11 @@ export class UnitsService {
 				ascending: sortOrder === 'asc'
 			})
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error('Failed to fetch units from Supabase', {
-					error: error.message,
-					query
-				})
-				throw new BadRequestException('Failed to fetch units')
-			}
-
-			return data as Unit[]
+			return await queryList<Unit>(queryBuilder as any, {
+				resource: 'units',
+				operation: 'fetch with filters',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error('Units service failed to find all units', {
 				error: error instanceof Error ? error.message : String(error),
@@ -228,21 +222,19 @@ export class UnitsService {
 			const client = this.supabase.getUserClient(token)
 
 			// RLS automatically verifies property ownership - no manual check needed
-			const { data, error } = await client
-				.from('unit')
-				.select(SAFE_UNIT_COLUMNS)
-				.eq('propertyId', propertyId)
-				.order('unitNumber', { ascending: true })
-
-			if (error) {
-				this.logger.error('Failed to fetch units by property from Supabase', {
-					error: error.message,
-					propertyId
-				})
-				throw new BadRequestException('Failed to retrieve property units')
-			}
-
-			return data as Unit[]
+			return await queryList<Unit>(
+				client
+					.from('unit')
+					.select(SAFE_UNIT_COLUMNS)
+					.eq('propertyId', propertyId)
+					.order('unitNumber', { ascending: true }) as any,
+				{
+					resource: 'units',
+					id: propertyId,
+					operation: 'fetch by property',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Units service failed to find units by property', {
 				error: error instanceof Error ? error.message : String(error),
@@ -445,15 +437,12 @@ export class UnitsService {
 			const client = this.supabase.getUserClient(token)
 
 			// RLS automatically verifies unit ownership - no manual propertyId check needed
-			const { error } = await client.from('unit').delete().eq('id', unitId)
-
-			if (error) {
-				this.logger.error('Failed to remove unit in Supabase', {
-					error: error.message,
-					unitId
-				})
-				throw new BadRequestException('Failed to remove unit')
-			}
+			await queryMutation(client.from('unit').delete().eq('id', unitId), {
+				resource: 'unit',
+				id: unitId,
+				operation: 'delete',
+				logger: this.logger
+			})
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {
 				error: error instanceof Error ? error.message : String(error),
@@ -492,17 +481,20 @@ export class UnitsService {
 				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
 			}
 
-			const { data, error } = await queryBuilder
-
-			if (error) {
+			// Soft-fail pattern: Return empty array on error
+			try {
+				return await queryList<Unit>(queryBuilder as any, {
+					resource: 'unit analytics',
+					operation: 'fetch',
+					logger: this.logger
+				})
+			} catch (error) {
 				this.logger.error('Failed to get unit analytics', {
-					error: error.message,
+					error: error instanceof Error ? error.message : 'Unknown error',
 					options
 				})
 				return []
 			}
-
-			return (data as Unit[]) || []
 		} catch (error) {
 			this.logger.error('Units service failed to get analytics', {
 				error: error instanceof Error ? error.message : String(error),
@@ -533,21 +525,19 @@ export class UnitsService {
 
 			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
-			const { data, error } = await client
-				.from('unit')
-				.select(SAFE_UNIT_COLUMNS)
-				.eq('propertyId', propertyId)
-				.eq('status', 'VACANT')
-
-			if (error) {
-				this.logger.error('Failed to get available units from Supabase', {
-					error: error.message,
-					propertyId
-				})
-				throw new BadRequestException('Failed to get available units')
-			}
-
-			return (data as Unit[]) || []
+			return await queryList<Unit>(
+				client
+					.from('unit')
+					.select(SAFE_UNIT_COLUMNS)
+					.eq('propertyId', propertyId)
+					.eq('status', 'VACANT') as any,
+				{
+					resource: 'available units',
+					id: propertyId,
+					operation: 'fetch',
+					logger: this.logger
+				}
+			)
 		} catch (error) {
 			this.logger.error('Units service failed to get available units', {
 				error: error instanceof Error ? error.message : String(error),
