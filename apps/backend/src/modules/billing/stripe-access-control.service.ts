@@ -6,6 +6,7 @@ import {
 	MAX_STRIPE_PAYMENT_ATTEMPTS,
 	DEFAULT_RPC_RETRY_ATTEMPTS
 } from './stripe.constants'
+import { querySingle } from '../../shared/utils/query-helpers'
 
 /**
  * ULTRA-NATIVE: Subscription-based Access Control Service
@@ -386,21 +387,18 @@ export class StripeAccessControlService {
 	 */
 	async checkFeatureAccess(userId: string, feature: string): Promise<boolean> {
 		try {
-			const { data: hasAccess, error } = await this.supabaseService
-				.getAdminClient()
-				.rpc('check_user_feature_access', {
+			const hasAccess = await querySingle<boolean>(
+				this.supabaseService.getAdminClient().rpc('check_user_feature_access', {
 					p_user_id: userId,
 					p_feature: feature
-				})
-
-			if (error) {
-				this.logger.error('Failed to check feature access', {
-					userId,
-					feature,
-					error: error.message
-				})
-				return false
-			}
+				}) as any,
+				{
+					resource: 'feature access',
+					id: userId,
+					operation: 'check via RPC',
+					logger: this.logger
+				}
+			)
 
 			return hasAccess ?? false
 		} catch (error) {
