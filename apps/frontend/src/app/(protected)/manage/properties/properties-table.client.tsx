@@ -3,8 +3,8 @@
 
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table.jsx'
-import { DataTableColumnHeader } from '#components/ui/data-tables/data-table-column-header.jsx'
+import { DataTable } from '#components/ui/data-tables/data-table'
+import { DataTableColumnHeader } from '#components/ui/data-tables/data-table-column-header'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Trash2, MapPin } from 'lucide-react'
