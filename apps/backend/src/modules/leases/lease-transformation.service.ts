@@ -2,7 +2,6 @@ import {
 	Injectable,
 	Logger,
 	NotFoundException,
-	BadRequestException,
 	InternalServerErrorException
 } from '@nestjs/common'
 import type {
@@ -11,6 +10,7 @@ import type {
 	USState
 } from '@repo/shared/types/lease-generator.types'
 import { LeasesService } from './leases.service'
+import { querySingle } from '../../shared/utils/query-helpers'
 
 const SAFE_LEASE_COLUMNS = `
 	id,
@@ -89,27 +89,19 @@ export class LeaseTransformationService {
 			// Fallback: fetch basic lease and use transformLeaseToFormData
 			try {
 				const client = this.leasesService.getUserClient(token)
-				const { data: basicLease, error: basicError } = await client
-					.from('lease')
-					.select(SAFE_LEASE_COLUMNS)
-					.eq('id', leaseId)
-					.single()
-
-				if (basicError || !basicLease) {
-					// Check if it's a not found error (PGRST116 is PostgREST not found code)
-					if (basicError?.code === 'PGRST116' || !basicLease) {
-						this.logger.warn('Lease not found', { leaseId })
-						throw new NotFoundException(`Lease not found: ${leaseId}`)
+				const basicLease = await querySingle<Record<string, unknown>>(
+					client
+						.from('lease')
+						.select(SAFE_LEASE_COLUMNS)
+						.eq('id', leaseId)
+						.single(),
+					{
+						resource: 'lease',
+						id: leaseId,
+						operation: 'fetch basic lease',
+						logger: this.logger
 					}
-
-					this.logger.error('Failed to fetch basic lease data', {
-						leaseId,
-						error: basicError
-							? (basicError as { message?: string }).message
-							: 'Unknown error'
-					})
-					throw new BadRequestException('Failed to fetch lease data')
-				}
+				)
 
 				return this.transformLeaseToFormData(basicLease)
 			} catch (fallbackError) {
@@ -144,10 +136,11 @@ export class LeaseTransformationService {
 		const client = this.leasesService.getUserClient(token)
 
 		// Fetch lease with related data in a single query
-		const { data, error } = await client
-			.from('lease')
-			.select(
-				`
+		return await querySingle<Record<string, unknown>>(
+			client
+				.from('lease')
+				.select(
+					`
 				${SAFE_LEASE_COLUMNS},
 				unit:unit_id (
 					${SAFE_UNIT_COLUMNS},
@@ -174,27 +167,16 @@ export class LeaseTransformationService {
 					phone
 				)
 			`
-			)
-			.eq('id', leaseId)
-			.single()
-
-		if (error || !data) {
-			// Check if it's a not found error (PGRST116 is PostgREST not found code)
-			if (error?.code === 'PGRST116' || !data) {
-				this.logger.warn('Lease not found in fetchLeaseWithRelations', {
-					leaseId
-				})
-				throw new NotFoundException(`Lease not found: ${leaseId}`)
+				)
+				.eq('id', leaseId)
+				.single(),
+			{
+				resource: 'lease with relations',
+				id: leaseId,
+				operation: 'fetch',
+				logger: this.logger
 			}
-
-			this.logger.error('Failed to fetch lease with relations', {
-				leaseId,
-				error: error ? (error as { message?: string }).message : 'Unknown error'
-			})
-			throw new BadRequestException('Failed to fetch lease data')
-		}
-
-		return data
+		)
 	}
 
 	/**
