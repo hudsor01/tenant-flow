@@ -10,12 +10,15 @@ import {
 	ConflictException,
 	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	Logger,
 	NotFoundException
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
+	OwnerPaymentSummaryResponse,
+	TenantPaymentRecord,
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
 import type {
@@ -61,6 +64,9 @@ const DEFAULT_NOTIFICATION_PREFERENCES = {
 	emailNotifications: true,
 	smsNotifications: false
 } as const
+
+type StripePaymentIntentRow = Database['public']['Tables']['stripe_payment_intents']['Row']
+type RentPaymentRow = Database['public']['Tables']['rent_payment']['Row']
 
 /**
  * Maps database emergency contact record to API response format
@@ -2807,7 +2813,396 @@ export class TenantsService {
 			return null
 		}
 
-		return mapEmergencyContactToResponse(data)
+	return mapEmergencyContactToResponse(data)
+}
+
+	private async ensureTenantOwnedByUser(userId: string, tenantId: string) {
+		const client = this.supabase.getAdminClient()
+
+		const { data: lease, error: leaseError } = await client
+			.from('lease')
+			.select('id, propertyId, unitId')
+			.eq('tenantId', tenantId)
+			.order('startDate', { ascending: false })
+			.limit(1)
+			.maybeSingle()
+
+		if (leaseError || !lease) {
+			this.logger.warn('No lease found for tenant when checking ownership', {
+				tenantId,
+				error: leaseError
+			})
+			throw new NotFoundException('Lease not found for tenant')
+		}
+
+		let propertyId = lease.propertyId
+
+		if (!propertyId && lease.unitId) {
+			const { data: unit, error: unitError } = await client
+				.from('unit')
+				.select('propertyId')
+				.eq('id', lease.unitId)
+				.single()
+
+			if (unitError || !unit?.propertyId) {
+				this.logger.warn('Unit missing property when verifying tenant ownership', {
+					unitId: lease.unitId,
+					error: unitError
+				})
+				throw new NotFoundException('Property not found for tenant lease')
+			}
+			propertyId = unit.propertyId
+		}
+
+		if (!propertyId) {
+			this.logger.warn('Tenant lease has no associated property', { tenantId, leaseId: lease.id })
+			throw new NotFoundException('Property not associated with tenant lease')
+		}
+
+		const { data: property, error: propertyError } = await client
+			.from('property')
+			.select('ownerId')
+			.eq('id', propertyId)
+			.single()
+
+		if (propertyError || !property) {
+			this.logger.warn('Property not found during tenant ownership check', {
+				propertyId,
+				error: propertyError
+			})
+			throw new NotFoundException('Property not found for tenant')
+		}
+
+		if (property.ownerId !== userId) {
+			this.logger.warn('User is not property owner', {
+				userId,
+				propertyOwnerId: property.ownerId
+			})
+			throw new ForbiddenException('Access denied: Not property owner')
+		}
+	}
+
+	private async getTenantByAuthUserId(authUserId: string): Promise<{ id: string }> {
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client
+			.from('tenant')
+			.select('id')
+			.eq('auth_user_id', authUserId)
+			.single()
+
+		if (error || !data) {
+			this.logger.warn('Tenant record not found for auth user', { authUserId, error })
+			throw new NotFoundException('Tenant record not found')
+		}
+
+		return { id: data.id }
+	}
+
+	async getTenantPaymentHistory(
+		userId: string,
+		tenantId: string,
+		limit = 20
+	): Promise<{ payments: TenantPaymentRecord[] }> {
+		await this.ensureTenantOwnedByUser(userId, tenantId)
+
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client
+			.from('stripe_payment_intents')
+			.select('*')
+			.contains('metadata', { tenantId })
+			.order('createdAt', { ascending: false })
+			.limit(limit)
+
+		if (error) {
+			this.logger.error('Failed to fetch tenant payment history', {
+				userId,
+				tenantId,
+				error: error.message
+			})
+			throw new InternalServerErrorException('Failed to fetch tenant payment history')
+		}
+
+		const paymentIntents = (data as StripePaymentIntentRow[]) || []
+		const payments = paymentIntents.map(intent => this.mapPaymentIntentToRecord(intent))
+
+		return { payments }
+	}
+
+	async getTenantPaymentHistoryForTenant(
+		authUserId: string,
+		limit = 20
+	): Promise<{ payments: TenantPaymentRecord[] }> {
+		const { id: tenantId } = await this.getTenantByAuthUserId(authUserId)
+		return { payments: await this.queryTenantPayments(tenantId, limit) }
+	}
+
+	private async getOwnerPropertyIds(ownerId: string): Promise<string[]> {
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client
+			.from('property')
+			.select('id')
+			.eq('ownerId', ownerId)
+
+		if (error) {
+			this.logger.error('Failed to fetch owner properties for payment summary', {
+				ownerId,
+				error: error.message
+			})
+			throw new InternalServerErrorException('Failed to fetch owner properties')
+		}
+
+		return (data || []).map(p => p.id)
+	}
+
+	private async getTenantIdsForOwner(ownerId: string): Promise<string[]> {
+		const propertyIds = await this.getOwnerPropertyIds(ownerId)
+
+		if (!propertyIds.length) {
+			return []
+		}
+
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client
+			.from('lease')
+			.select('tenantId')
+			.in('propertyId', propertyIds)
+			.not('tenantId', 'is', null)
+
+		if (error) {
+			this.logger.error('Failed to fetch leases for owner payment summary', {
+				ownerId,
+				error: error.message
+			})
+			throw new InternalServerErrorException('Failed to fetch owner leases')
+		}
+
+		const tenantIds = (data || [])
+			.map((lease: { tenantId: string | null }) => lease.tenantId)
+			.filter((id): id is string => id !== null && id !== undefined)
+
+		return Array.from(new Set(tenantIds))
+	}
+
+	private isLateFeeRecord(payment: TenantPaymentRecord): boolean {
+		const description = payment.description?.toLowerCase() ?? ''
+		const metadata = payment.metadata ?? {}
+		const hasLateFlag =
+			(metadata as Record<string, unknown>).lateFee === true ||
+			(metadata as Record<string, unknown>).lateFee === 'true' ||
+			(metadata as Record<string, unknown>).isLateFee === true ||
+			(metadata as Record<string, unknown>).isLateFee === 'true' ||
+			(metadata as Record<string, unknown>).type === 'late_fee'
+
+		return hasLateFlag || description.includes('late fee')
+	}
+
+	async getOwnerPaymentSummary(
+		userId: string,
+		limitPerTenant = 50
+	): Promise<OwnerPaymentSummaryResponse> {
+		const tenantIds = await this.getTenantIdsForOwner(userId)
+
+		if (!tenantIds.length) {
+			return {
+				lateFeeTotal: 0,
+				unpaidTotal: 0,
+				unpaidCount: 0,
+				tenantCount: 0
+			}
+		}
+
+		let lateFeeTotal = 0
+		let unpaidTotal = 0
+		let unpaidCount = 0
+
+		for (const tenantId of tenantIds) {
+			const payments = await this.queryTenantPayments(tenantId, limitPerTenant)
+			for (const payment of payments) {
+				if (payment.status !== 'succeeded') {
+					unpaidTotal += payment.amount
+					unpaidCount += 1
+				}
+				if (this.isLateFeeRecord(payment)) {
+					lateFeeTotal += payment.amount
+				}
+			}
+		}
+
+		return {
+			lateFeeTotal,
+			unpaidTotal,
+			unpaidCount,
+			tenantCount: tenantIds.length
+		}
+	}
+
+	private mapPaymentIntentToRecord(intent: StripePaymentIntentRow): TenantPaymentRecord {
+		return {
+			id: intent.id,
+			amount: intent.amount,
+			currency: intent.currency,
+			status: intent.status,
+			description: intent.description,
+			receiptEmail: intent.receipt_email,
+			metadata: intent.metadata,
+			createdAt: intent.createdAt
+		}
+	}
+
+	private async queryTenantPayments(
+		tenantId: string,
+		limit: number
+	): Promise<TenantPaymentRecord[]> {
+		const client = this.supabase.getAdminClient()
+		const { data, error } = await client
+			.from('stripe_payment_intents')
+			.select('*')
+			.contains('metadata', { tenantId })
+			.order('createdAt', { ascending: false })
+			.limit(limit)
+
+		if (error) {
+			this.logger.error('Failed to query tenant payment intents', {
+				tenantId,
+				error: error.message
+			})
+			throw new InternalServerErrorException('Failed to fetch tenant payment history')
+		}
+
+		return ((data as StripePaymentIntentRow[]) || []).map(intent =>
+			this.mapPaymentIntentToRecord(intent)
+		)
+	}
+
+	/** Send a rent payment reminder notification to a tenant */
+	async sendPaymentReminder(
+		userId: string,
+		tenantId: string,
+		note?: string
+	): Promise<{
+		success: true
+		tenantId: string
+		notificationId: string
+		message: string
+	}> {
+		await this.ensureTenantOwnedByUser(userId, tenantId)
+
+		const client = this.supabase.getAdminClient()
+		const { data: tenant, error: tenantError } = await client
+			.from('tenant')
+			.select('id, name, userId, auth_user_id')
+			.eq('id', tenantId)
+			.single()
+
+		if (tenantError || !tenant) {
+			this.logger.warn('Tenant not found during reminder send', {
+				userId,
+				tenantId,
+				error: tenantError?.message
+			})
+			throw new NotFoundException('Tenant not found')
+		}
+
+		let recipientId: string | null = tenant.userId ?? null
+		if (!recipientId && tenant.auth_user_id) {
+			const { data: linkedUser, error: userError } = await client
+				.from('users')
+				.select('id')
+				.eq('supabaseId', tenant.auth_user_id)
+				.single()
+
+			if (userError) {
+				this.logger.warn('Failed to resolve tenant user by supabase_id', {
+					tenantId,
+					authUserId: tenant.auth_user_id,
+					error: userError.message
+				})
+			}
+
+			recipientId = linkedUser?.id ?? null
+		}
+
+		if (!recipientId) {
+			this.logger.warn('Tenant has no linked user account for reminder delivery', {
+				tenantId
+			})
+			throw new BadRequestException('Tenant is not linked to a user account')
+		}
+
+		const { data: duePayment, error: dueError } = await client
+			.from('rent_payment')
+			.select('amount, dueDate')
+			.eq('tenantId', tenantId)
+			.in('status', ['DUE', 'PENDING'])
+			.order('dueDate', { ascending: true })
+			.limit(1)
+			.maybeSingle<RentPaymentRow>()
+
+		if (dueError) {
+			this.logger.warn('Unable to fetch upcoming rent payment for reminder', {
+				tenantId,
+				error: dueError.message
+			})
+		}
+
+		const formattedAmount =
+			typeof duePayment?.amount === 'number'
+				? `$${(duePayment.amount / 100).toFixed(2)}`
+				: null
+		const dueDateText = duePayment?.dueDate
+			? new Date(duePayment.dueDate).toLocaleDateString('en-US', {
+					month: 'short',
+					day: 'numeric'
+			  })
+			: 'soon'
+
+		const defaultMessage = formattedAmount
+			? `Reminder: ${tenant.name ?? 'Your rent'} payment of ${formattedAmount} is due ${dueDateText}.`
+			: `Reminder: Rent payment is due ${dueDateText}.`
+		const reminderMessage = note?.trim() || defaultMessage
+
+		const now = new Date().toISOString()
+		const { data: notification, error: notificationError } = await client
+			.from('notifications')
+			.insert({
+				userId: recipientId,
+				tenantId,
+				title: 'Rent Payment Reminder',
+				content: reminderMessage,
+				type: 'payment',
+				priority: 'MEDIUM',
+				actionUrl: '/tenant/payments',
+				metadata: {
+					amount: duePayment?.amount ?? null,
+					dueDate: duePayment?.dueDate ?? null
+				},
+				createdAt: now,
+				updatedAt: now,
+				isRead: false
+			})
+			.select('id')
+			.single()
+
+		if (notificationError || !notification) {
+			this.logger.error('Failed to create payment reminder notification', {
+				tenantId,
+				ownerId: userId,
+				error: notificationError?.message
+			})
+			throw new InternalServerErrorException('Failed to send payment reminder')
+		}
+
+		this.logger.log('Payment reminder sent', {
+			tenantId,
+			notificationId: notification.id
+		})
+
+		return {
+			success: true,
+			tenantId,
+			notificationId: notification.id,
+			message: reminderMessage
+		}
 	}
 
 	/**

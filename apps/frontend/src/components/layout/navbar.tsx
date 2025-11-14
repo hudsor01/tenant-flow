@@ -256,23 +256,21 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				style={navbarSpring}
 				className={cn(
 					'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-(--radius-medium) px-6 py-3 w-auto',
-					isScrolled
-						? 'top-2 bg-card backdrop-blur-2xl shadow-2xl border border-(--color-fill-secondary)/30 scale-[0.98]'
-						: 'top-4 bg-card/90 backdrop-blur-xl shadow-lg border border-(--color-fill-secondary)/20',
+				isScrolled
+					? 'top-2 bg-card backdrop-blur-2xl shadow-2xl border border-fill-secondary/30 scale-[0.98]'
+					: 'top-4 bg-card/90 backdrop-blur-xl shadow-lg border border-fill-secondary/20',
 					'hover:bg-card hover:shadow-xl',
 					className
 				)}
-				{...props}
-			>
-				{/* Scroll Progress Bar */}
-				<div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[--color-fill-secondary] rounded-full overflow-hidden">
-					<div
-						className="h-full bg-[--color-accent-main] transition-all duration-150 ease-out"
-						style={{ width: `${scrollProgress}%` }}
-					/>
-				</div>
-
-				<div className="flex items-center justify-between">
+			{...props}
+		>
+			{/* Scroll Progress Bar */}
+			<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[--color-fill-secondary] rounded-full overflow-hidden">
+				<div
+					className="h-full bg-[--color-accent-main] transition-all duration-150 ease-out"
+					style={{ width: `${scrollProgress}%` }}
+				/>
+			</div>				<div className="flex items-center justify-between">
 					{/* Logo */}
 					<animated.div
 						style={logoSpring}
@@ -309,20 +307,20 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								}}
 							>
 								<animated.div style={getNavItemStyle(item.name)}>
-									<Link
-										href={item.href}
-										onKeyDown={e => handleKeyDown(e, item)}
-										className={cn(
-											'relative flex items-center px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-muted/50 transition-all duration-200',
-											isActiveLink(item.href) &&
-												'text-foreground after:absolute after:bottom-0 after:left-4 after:right-4 after:h-[2px] after:bg-[--color-accent-main] after:animate-in after:slide-in-from-bottom-1'
-										)}
-									>
-										{item.name}
-										{item.hasDropdown && (
-											<ChevronDown className="ml-1 size-4 transition-transform duration-200" />
-										)}
-									</Link>
+								<Link
+									href={item.href}
+									onKeyDown={e => handleKeyDown(e, item)}
+									className={cn(
+										'relative flex items-center px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-muted/50 transition-all duration-200',
+										isActiveLink(item.href) &&
+											'text-foreground after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-[--color-accent-main] after:animate-in after:slide-in-from-bottom-1'
+									)}
+								>
+									{item.name}
+									{item.hasDropdown && (
+										<ChevronDown className="ml-1 size-4 transition-transform duration-200" />
+									)}
+								</Link>
 								</animated.div>
 
 								{/* Professional Dropdown */}

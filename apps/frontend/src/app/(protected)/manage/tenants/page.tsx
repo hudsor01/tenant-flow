@@ -5,6 +5,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
+import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import { serverFetch } from '#lib/api/server'
 import { getLeasesPageData } from '#lib/api/dashboard-server'
 import { requireSession } from '#lib/server-auth'
@@ -15,6 +16,7 @@ import type {
 	TenantSummary,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
+import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { Mail } from 'lucide-react'
 import Link from 'next/link'
@@ -47,23 +49,27 @@ export default async function TenantsPage() {
 
 	// Fetch leases for invitation dialog
 	let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
+	let paymentSummary: OwnerPaymentSummaryResponse | null = null
 
 	try {
 		// Fetch data with native fetch() - cookie-based auth
-		const [tenantsData, statsData, leasesData] = await Promise.all([
-			serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
-			serverFetch<TenantStats>('/api/v1/tenants/stats'),
-			getLeasesPageData()
-		])
+		const [tenantsData, statsData, leasesData, paymentsData] =
+			await Promise.all([
+				serverFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
+				serverFetch<TenantStats>('/api/v1/tenants/stats'),
+				getLeasesPageData(),
+				serverFetch<OwnerPaymentSummaryResponse>('/api/v1/tenants/payments/summary')
+			])
 
 		tenants = tenantsData ?? []
 		stats = statsData ?? stats
-		
+
 		// Note: Summary endpoint not yet in createServerApi - keeping null for now
 		summary = null
 
 		availableLeases =
 			leasesData?.leases?.filter((lease: import('@repo/shared/types/core').Lease) => !lease.tenantId) ?? []
+		paymentSummary = paymentsData ?? null
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
 		logger.warn('Failed to fetch tenants page data for TenantsPage', {
@@ -95,7 +101,7 @@ export default async function TenantsPage() {
 			</div>
 
 			{/* Summary / Stats Cards */}
-			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+		<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Tenants</CardDescription>
@@ -130,13 +136,15 @@ export default async function TenantsPage() {
 						</CardTitle>
 					</CardHeader>
 				</Card>
-			</div>
+		</div>
 
-			{/* Client Component for Delete Functionality */}
-			<section className="flex flex-col gap-4">
-				<h2 className="text-xl font-semibold">Tenant Directory</h2>
-				<TenantsTableClient columns={columns} initialTenants={tenants} />
-			</section>
+		<OwnerPaymentSummary summary={paymentSummary} />
+
+		{/* Client Component for Delete Functionality */}
+		<section className="flex flex-col gap-4">
+			<h2 className="text-xl font-semibold">Tenant Directory</h2>
+			<TenantsTableClient columns={columns} initialTenants={tenants} />
+		</section>
 		</main>
 	)
 }

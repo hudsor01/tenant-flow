@@ -118,7 +118,7 @@ export function TexasLeaseTemplate({
 						THIS AGREEMENT (hereinafter referred to as the "Texas Lease
 						Agreement") is made and entered into this {agreementDay} day of{' '}
 						{agreementMonth}, {agreementYear}, by and between {data.ownerName}{' '}
-						(hereinafter referred to as "Landlord") and {data.tenantName}{' '}
+						(hereinafter referred to as "Property Owner") and {data.tenantName}{' '}
 						(hereinafter referred to as "Tenant.") For and in consideration of the
 						covenants and obligations contained herein and other good and valuable
 						consideration, the receipt and sufficiency of which is hereby
@@ -129,11 +129,11 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>1. PROPERTY.</Text>
 					<Text style={styles.paragraph}>
-						Landlord owns certain real property and improvements located at{' '}
+						Property Owner owns certain real property and improvements located at{' '}
 						{data.propertyAddress} (hereinafter referred to as the "Property").
-						Landlord desires to lease the Premises to Tenant upon the terms and
+						Property Owner desires to lease the Premises to Tenant upon the terms and
 						conditions contained herein. Tenant desires to lease the Premises from
-						Landlord on the terms and conditions as contained herein.
+						Property Owner on the terms and conditions as contained herein.
 					</Text>
 				</View>
 
@@ -149,17 +149,17 @@ export function TexasLeaseTemplate({
 					</Text>
 					<View style={styles.subsection}>
 						<Text style={styles.paragraph}>
-							(i) Landlord and Tenant formally extend this Texas Lease Agreement in
+							(i) Property Owner and Tenant formally extend this Texas Lease Agreement in
 							writing or create and execute a new, written, and signed Texas Lease
 							Agreement; or
 						</Text>
 						<Text style={styles.paragraph}>
-							(ii) Landlord willingly accepts new Rent from Tenant, which does not
+							(ii) Property Owner willingly accepts new Rent from Tenant, which does not
 							constitute past due Rent.
 						</Text>
 					</View>
 					<Text style={styles.paragraph}>
-						In the event that Landlord accepts new rent from Tenant after the
+						In the event that Property Owner accepts new rent from Tenant after the
 						termination date, a month-to-month tenancy shall be created. If at any
 						time either party desires to terminate the month-to-month tenancy, such
 						party may do so by providing to the other party written notice of
@@ -180,7 +180,7 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>3. RENT.</Text>
 					<Text style={styles.paragraph}>
-						Tenant shall pay to Landlord the sum of ${formatCurrency(data.monthlyRent)}{' '}
+						Tenant shall pay to Property Owner the sum of ${formatCurrency(data.monthlyRent)}{' '}
 						per month as Rent for the Term of the Agreement. Due date for Rent
 						payment shall be the {data.rentDueDay}
 						{getOrdinalSuffix(data.rentDueDay)}{' '}
@@ -197,14 +197,14 @@ export function TexasLeaseTemplate({
 							overdue and delinquent on the{' '}
 							{data.rentDueDay + 1}{getOrdinalSuffix(data.rentDueDay + 1)} day of
 							each calendar month. If Tenant fails to timely pay any month's rent,
-							Tenant will pay Landlord a late charge of $
+							Tenant will pay Property Owner a late charge of $
 							{formatCurrency(data.lateFeeAmount)} per day until rent is paid
-							in full. If Landlord receives the monthly rent by the{' '}
+							in full. If Property Owner receives the monthly rent by the{' '}
 							{data.lateFeeGraceDays + 1}
 							{getOrdinalSuffix(data.lateFeeGraceDays + 1)} day of the month,
-							Landlord will waive the late charges for that month. Any waiver of
+							Property Owner will waive the late charges for that month. Any waiver of
 							late charges under this paragraph will not affect or diminish any
-							other right or remedy Landlord may exercise for Tenant's failure to
+							other right or remedy Property Owner may exercise for Tenant's failure to
 							timely pay rent.
 						</Text>
 					</View>
@@ -223,9 +223,9 @@ export function TexasLeaseTemplate({
 						<Text style={styles.paragraph}>
 							In the event that any payment by Tenant is returned for insufficient
 							funds ("NSF") or if Tenant stops payment, Tenant will pay $
-							{formatCurrency(data.nsfFee)} to Landlord for each such check, plus late
-							charges, as described above, until Landlord has received payment.
-							Furthermore, Landlord may require in writing that Tenant pay all future
+							{formatCurrency(data.nsfFee)} to Property Owner for each such check, plus late
+							charges, as described above, until Property Owner has received payment.
+							Furthermore, Property Owner may require in writing that Tenant pay all future
 							Rent payments by cash, money order, or cashier's check.
 						</Text>
 					</View>
@@ -233,7 +233,7 @@ export function TexasLeaseTemplate({
 					<View style={styles.subsection}>
 						<Text style={styles.sectionTitle}>D. Order in which funds are applied.</Text>
 						<Text style={styles.paragraph}>
-							Landlord will apply all funds received from Tenant first to any
+							Property Owner will apply all funds received from Tenant first to any
 							non-rent obligations of Tenant including late charges, returned check
 							charges, charge-backs for repairs, brokerage fees, and periodic
 							utilities, then to rent, regardless of any notations on a check.
@@ -244,7 +244,7 @@ export function TexasLeaseTemplate({
 						<Text style={styles.sectionTitle}>E. Rent Increases.</Text>
 						<Text style={styles.paragraph}>
 							There will be no rent increases through the Termination Date. If this
-							lease is renewed automatically on a month to month basis, Landlord may
+							lease is renewed automatically on a month to month basis, Property Owner may
 							increase the rent during the renewal period by providing written notice
 							to Tenant that becomes effective the month following the 30th day after
 							the notice is provided.
@@ -259,16 +259,16 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>4. SECURITY DEPOSIT.</Text>
 					<Text style={styles.paragraph}>
 						Upon execution of this Texas Lease Agreement, Tenant shall deposit with
-						Landlord the sum of ${formatCurrency(data.securityDeposit)}, receipt of
-						which is hereby acknowledged by Landlord, as security for any damage
+						Property Owner the sum of ${formatCurrency(data.securityDeposit)}, receipt of
+						which is hereby acknowledged by Property Owner, as security for any damage
 						caused to the Premises during the term hereof.
 					</Text>
 
 					<Text style={styles.sectionTitle}>REFUND OF SECURITY DEPOSIT.</Text>
 					<Text style={styles.paragraph}>
-						Upon termination of the tenancy, all funds held by the landlord as
+						Upon termination of the tenancy, all funds held by the property owner as
 						security deposit may be applied to the payment of accrued rent and the
-						amount of damages that the landlord has suffered by reason of the
+						amount of damages that the property owner has suffered by reason of the
 						tenant's noncompliance with the terms of this Texas Lease Agreement or
 						with any and all laws, ordinances, rules and orders of any and all
 						governmental or quasi-governmental authorities affecting the cleanliness,
@@ -291,7 +291,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.paragraph}>
 						Tenant shall not allow any other person, other than Tenant's immediate
 						family or transient relatives and friends who are guests of Tenant, to
-						use or occupy the Premises without first obtaining Landlord's written
+						use or occupy the Premises without first obtaining Property Owner's written
 						consent to such use. Tenant shall comply with any and all laws,
 						ordinances, rules and orders of any and all governmental or
 						quasi-governmental authorities affecting the cleanliness, use, occupancy
@@ -313,12 +313,12 @@ export function TexasLeaseTemplate({
 					<Text style={styles.paragraph}>
 						Tenant shall not assign this Texas Lease Agreement, or sub-let or grant
 						any license to use the Premises or any part thereof without the prior
-						written consent of Landlord. A consent by Landlord to one such
+						written consent of Property Owner. A consent by Property Owner to one such
 						assignment, sub-letting or license shall not be deemed to be a consent to
 						any subsequent assignment, sub-letting or license. An assignment,
-						sub-letting or license without the prior written consent of Landlord or
+						sub-letting or license without the prior written consent of Property Owner or
 						an assignment or sub-letting by operation of law shall be absolutely null
-						and void and shall, at Landlord's option, terminate this Texas Lease
+						and void and shall, at Property Owner's option, terminate this Texas Lease
 						Agreement.
 					</Text>
 				</View>
@@ -328,11 +328,11 @@ export function TexasLeaseTemplate({
 					<Text style={styles.paragraph}>
 						Tenant shall make no alterations to the buildings or improvements on the
 						Premises or construct any building or make any other improvements on the
-						Premises without the prior written consent of Landlord. Any and all
+						Premises without the prior written consent of Property Owner. Any and all
 						alterations, changes, and/or improvements built, constructed or placed on
 						the Premises by Tenant shall, unless otherwise provided by written
-						agreement between Landlord and Tenant, be and become the property of
-						Landlord and remain on the Premises at the expiration or earlier
+						agreement between Property Owner and Tenant, be and become the property of
+						Property Owner and remain on the Premises at the expiration or earlier
 						termination of this Texas Lease Agreement.
 					</Text>
 				</View>
@@ -340,15 +340,15 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>9. NON-DELIVERY OF POSSESSION.</Text>
 					<Text style={styles.paragraph}>
-						In the event Landlord cannot deliver possession of the Premises to Tenant
-						upon the commencement of the Lease term, through no fault of Landlord or
-						its agents, then Landlord or its agents shall have no liability, but the
-						rental herein provided shall abate until possession is given. Landlord or
+						In the event Property Owner cannot deliver possession of the Premises to Tenant
+						upon the commencement of the Lease term, through no fault of Property Owner or
+						its agents, then Property Owner or its agents shall have no liability, but the
+						rental herein provided shall abate until possession is given. Property Owner or
 						its agents shall have thirty (30) days in which to give possession, and
 						if possession is tendered within such time, Tenant agrees to accept the
 						demised Premises and pay the rental herein provided from that date. In
 						the event possession cannot be delivered within such time, through no
-						fault of Landlord or its agents, then this Texas Lease Agreement and all
+						fault of Property Owner or its agents, then this Texas Lease Agreement and all
 						rights hereunder shall terminate.
 					</Text>
 				</View>
@@ -372,7 +372,7 @@ export function TexasLeaseTemplate({
 							: 'all'}{' '}
 						utility services required on the Premises.
 						{data.utilitiesIncluded?.length
-							? ` Landlord will pay for ${data.utilitiesIncluded.join(', ')}.`
+							? ` Property Owner will pay for ${data.utilitiesIncluded.join(', ')}.`
 							: ''}
 					</Text>
 				</View>
@@ -415,7 +415,7 @@ export function TexasLeaseTemplate({
 						</Text>
 						<Text style={styles.paragraph}>
 							F. Not cause or permit any locks or hooks to be placed upon any door or
-							window without the prior written consent of Landlord;
+							window without the prior written consent of Property Owner;
 						</Text>
 						<Text style={styles.paragraph}>
 							G. Keep all air conditioning filters clean and free from dirt;
@@ -462,24 +462,24 @@ export function TexasLeaseTemplate({
 						of Tenant, this Texas Lease Agreement shall terminate from such time
 						except for the purpose of enforcing rights that may have then accrued
 						hereunder. The rental provided for herein shall then be accounted for by
-						and between Landlord and Tenant up to the time of such injury or
+						and between Property Owner and Tenant up to the time of such injury or
 						destruction of the Premises, Tenant paying rentals up to such date and
-						Landlord refunding rentals collected beyond such date. Should a portion of
-						the Premises thereby be rendered uninhabitable, the Landlord shall have
+						Property Owner refunding rentals collected beyond such date. Should a portion of
+						the Premises thereby be rendered uninhabitable, the Property Owner shall have
 						the option of either repairing such injured or damaged portion or
-						terminating this Lease. In the event that Landlord exercises its right to
+						terminating this Lease. In the event that Property Owner exercises its right to
 						repair such uninhabitable portion, the rental shall abate in the
 						proportion that the injured parts bears to the whole Premises, and such
-						part so injured shall be restored by Landlord as speedily as practicable,
+						part so injured shall be restored by Property Owner as speedily as practicable,
 						after which the full rent shall recommence and the Texas Lease Agreement
 						continue according to its terms.
 					</Text>
 				</View>
 
 				<View style={styles.section}>
-					<Text style={styles.sectionTitle}>14. ACCESS BY LANDLORD.</Text>
+					<Text style={styles.sectionTitle}>14. ACCESS BY PROPERTY OWNER.</Text>
 					<Text style={styles.paragraph}>
-						Landlord and Landlord's agents shall have the right at all reasonable
+						Property Owner and Property Owner's agents shall have the right at all reasonable
 						times, and by all reasonable means, without notice, during the term of
 						this Texas Lease Agreement and any renewal thereof to enter the Premises
 						for the following purposes:
@@ -496,7 +496,7 @@ export function TexasLeaseTemplate({
 						<Text style={styles.paragraph}>F. Seize nonexempt property after default.</Text>
 					</View>
 					<Text style={styles.paragraph}>
-						Landlord may prominently display a "For Sale" or "For Lease" or similarly
+						Property Owner may prominently display a "For Sale" or "For Lease" or similarly
 						worded sign on the Property during the term of this Lease or any renewal
 						period. If Tenant fails to permit reasonable access under this Paragraph,
 						Tenant will be in default.
@@ -508,7 +508,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.paragraph}>
 						This Texas Lease Agreement and Tenant's interest hereunder are and shall
 						be subordinate, junior and inferior to any and all mortgages, liens or
-						encumbrances now or hereafter placed on the Premises by Landlord, all
+						encumbrances now or hereafter placed on the Premises by Property Owner, all
 						advances made under any such mortgages, liens or encumbrances (including,
 						but not limited to, future advances), the interest payable on such
 						mortgages, liens or encumbrances and any and all renewals, extensions or
@@ -523,8 +523,8 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>16. TENANT'S HOLD OVER.</Text>
 					<Text style={styles.paragraph}>
 						If Tenant remains in possession of the Premises with the consent of
-						Landlord after the natural expiration of this Texas Lease Agreement, a new
-						tenancy from month-to-month shall be created between Landlord and Tenant
+						Property Owner after the natural expiration of this Texas Lease Agreement, a new
+						tenancy from month-to-month shall be created between Property Owner and Tenant
 						which shall be subject to all of the terms and conditions hereof except
 						that rent shall then be due and owing at ${formatCurrency(holdOverRent)} per
 						month and except that such tenancy shall be terminable upon fifteen (15)
@@ -549,15 +549,15 @@ export function TexasLeaseTemplate({
 							? `Pets are permitted on the Premises with a pet deposit of $${formatCurrency(data.petDeposit)} and monthly pet rent of $${formatCurrency(data.petRent)}.`
 							: 'THERE WILL BE NO ANIMALS, unless authorized by a separate written Pet Addendum to this Residential Lease Agreement. Tenant shall not permit any animal, including mammals, reptiles, birds, fish, rodents, or insects on the property, even temporarily, unless otherwise agreed by a separate written Pet Agreement.'}{' '}
 						If tenant violates the pet restrictions of this Lease, Tenant will pay to
-						Landlord a fee of ${formatCurrency(data.petDeposit)} per day per animal for
+						Property Owner a fee of ${formatCurrency(data.petDeposit)} per day per animal for
 						each day Tenant violates the animal restrictions as additional rent for any
-						unauthorized animal. Landlord may remove or cause to be removed any
+						unauthorized animal. Property Owner may remove or cause to be removed any
 						unauthorized animal and deliver it to appropriate local authorities by
-						providing at least 24-hour written notice to Tenant of Landlord's intention
-						to remove the unauthorized animal. Landlord will not be liable for any
+						providing at least 24-hour written notice to Tenant of Property Owner's intention
+						to remove the unauthorized animal. Property Owner will not be liable for any
 						harm, injury, death, or sickness to any unauthorized animal. Tenant is
 						responsible and liable for any damage or required cleaning to the Property
-						caused by any unauthorized animal and for all costs Landlord may incur in
+						caused by any unauthorized animal and for all costs Property Owner may incur in
 						removing or causing any unauthorized animal to be removed.
 					</Text>
 				</View>
@@ -584,12 +584,12 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>21. INDEMNIFICATION.</Text>
 					<Text style={styles.paragraph}>
-						Landlord shall not be liable for any damage or injury of or to the Tenant,
+						Property Owner shall not be liable for any damage or injury of or to the Tenant,
 						Tenant's family, guests, invitees, agents or employees or to any person
 						entering the Premises or the building of which the Premises are a part or
 						to goods or equipment, or in the structure or equipment of the structure of
 						which the Premises are a part, and Tenant hereby agrees to indemnify,
-						defend and hold Landlord harmless from any and all claims or assertions of
+						defend and hold Property Owner harmless from any and all claims or assertions of
 						every kind and nature.
 					</Text>
 				</View>
@@ -597,19 +597,19 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>22. DEFAULT.</Text>
 					<Text style={styles.paragraph}>
-						If Landlord breaches this Lease, Tenant may seek any relief provided by
+						If Property Owner breaches this Lease, Tenant may seek any relief provided by
 						law. If Tenant fails to comply with any of the material provisions of this
 						Texas Lease Agreement, other than the covenant to pay rent, or of any
 						present rules and regulations or any that may be hereafter prescribed by
-						Landlord, or materially fails to comply with any duties imposed on Tenant
+						Property Owner, or materially fails to comply with any duties imposed on Tenant
 						by statute, within seven (7) days after delivery of written notice by
-						Landlord specifying the non-compliance and indicating the intention of
-						Landlord to terminate the Lease by reason thereof, Landlord may terminate
+						Property Owner specifying the non-compliance and indicating the intention of
+						Property Owner to terminate the Lease by reason thereof, Property Owner may terminate
 						this Texas Lease Agreement. If Tenant fails to pay rent when due and the
-						default continues for seven (7) days thereafter, Landlord may, at
-						Landlord's option, declare the entire balance of rent payable hereunder to
+						default continues for seven (7) days thereafter, Property Owner may, at
+						Property Owner's option, declare the entire balance of rent payable hereunder to
 						be immediately due and payable and may exercise any and all rights and
-						remedies available to Landlord at law or in equity or may immediately
+						remedies available to Property Owner at law or in equity or may immediately
 						terminate this Texas Lease Agreement.
 					</Text>
 				</View>
@@ -618,17 +618,17 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>23. ABANDONMENT.</Text>
 					<Text style={styles.paragraph}>
 						If at any time during the term of this Texas Lease Agreement Tenant
-						abandons the Premises or any part thereof, Landlord may, at Landlord's
+						abandons the Premises or any part thereof, Property Owner may, at Property Owner's
 						option, obtain possession of the Premises in the manner provided by law,
 						and without becoming liable to Tenant for damages or for any payment of any
-						kind whatever. Landlord may, at Landlord's discretion, as agent for Tenant,
+						kind whatever. Property Owner may, at Property Owner's discretion, as agent for Tenant,
 						relet the Premises, or any part thereof, for the whole or any part thereof,
 						for the whole or any part of the then unexpired term, and may receive and
-						collect all rent payable by virtue of such reletting, and, at Landlord's
+						collect all rent payable by virtue of such reletting, and, at Property Owner's
 						option, hold Tenant liable for any difference between the rent that would
 						have been payable under this Texas Lease Agreement during the balance of
 						the unexpired term, if this Texas Lease Agreement had continued in force,
-						and the net rent for such period realized by Landlord by means of such
+						and the net rent for such period realized by Property Owner by means of such
 						reletting.
 					</Text>
 				</View>
@@ -639,7 +639,7 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>24. ATTORNEYS' FEES.</Text>
 					<Text style={styles.paragraph}>
-						Should it become necessary for Landlord to employ an attorney to enforce
+						Should it become necessary for Property Owner to employ an attorney to enforce
 						any of the conditions or covenants hereof, including the collection of
 						rentals or gaining possession of the Premises, Tenant agrees to pay all
 						expenses so incurred, including a reasonable attorneys' fee.
@@ -653,8 +653,8 @@ export function TexasLeaseTemplate({
 					<Text style={styles.paragraph}>
 						Tenant shall not record this Texas Lease Agreement on the Public Records of
 						any public office. In the event that Tenant shall record this Texas Lease
-						Agreement, this Texas Lease Agreement shall, at Landlord's option,
-						terminate immediately and Landlord shall be entitled to all rights and
+						Agreement, this Texas Lease Agreement shall, at Property Owner's option,
+						terminate immediately and Property Owner shall be entitled to all rights and
 						remedies that it has at law or in equity.
 					</Text>
 				</View>
@@ -693,7 +693,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.paragraph}>
 						The descriptive headings used herein are for convenience of reference only
 						and they are not intended to have any effect whatsoever in determining the
-						rights or obligations of the Landlord or Tenant.
+						rights or obligations of the Property Owner or Tenant.
 					</Text>
 				</View>
 
@@ -709,7 +709,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>31. NON-WAIVER.</Text>
 					<Text style={styles.paragraph}>
 						No delay, indulgence, waiver, non-enforcement, election or non-election by
-						Landlord under this Texas Lease Agreement will be deemed to be a waiver of
+						Property Owner under this Texas Lease Agreement will be deemed to be a waiver of
 						any other breach by Tenant, nor shall it affect Tenant's duties,
 						obligations, and liabilities hereunder.
 					</Text>
@@ -729,7 +729,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>33. NOTICE.</Text>
 					<Text style={styles.paragraph}>
 						Any notice required or permitted under this Lease or under state law shall
-						be delivered to Tenant at the Property address, and to Landlord at the
+						be delivered to Tenant at the Property address, and to Property Owner at the
 						following address: {data.noticeAddress || data.ownerAddress}
 						{data.noticeEmail ? `, Email: ${data.noticeEmail}` : ''}
 					</Text>
@@ -747,10 +747,10 @@ export function TexasLeaseTemplate({
 				{/* Signature Section */}
 				<View style={styles.signatureSection}>
 					<Text style={styles.paragraph}>
-						As to Landlord this {agreementDay} day of {agreementMonth},{' '}
+						As to Property Owner this {agreementDay} day of {agreementMonth},{' '}
 						{agreementYear}.
 					</Text>
-					<Text style={styles.bold}>LANDLORD:</Text>
+					<Text style={styles.bold}>PROPERTY OWNER:</Text>
 					<View style={styles.signatureLine} />
 					<Text>Signature</Text>
 					<Text style={{ marginTop: 10 }}>Print: {data.ownerName}</Text>

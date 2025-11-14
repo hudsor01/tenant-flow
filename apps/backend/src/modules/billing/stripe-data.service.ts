@@ -11,7 +11,15 @@ import type {
 } from '@repo/shared/types/domain'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
+import {
+	stripeCustomerSchema,
+	stripeSubscriptionSchema,
+	stripePriceSchema,
+	stripeProductSchema,
+	stripePaymentIntentSchema,
+	createValidatedArray,
+	validateDatabaseResponse
+} from '@repo/shared/validation/database-rpc.schemas'
 
 // Type aliases for Supabase database types
 type StripePaymentIntentDB =
@@ -64,7 +72,17 @@ export class StripeDataService {
 				operation: 'getCustomerSubscriptions',
 				metadata: { customerId }
 			}
-		)
+
+			return validateDatabaseResponse(
+				data || [],
+				createValidatedArray(stripeSubscriptionSchema)
+			)
+		} catch (error) {
+			this.logger.error('Error fetching customer subscriptions:', error)
+			throw new InternalServerErrorException(
+				'Failed to fetch customer subscriptions'
+			)
+		}
 	}
 
 	/**
@@ -82,12 +100,10 @@ export class StripeDataService {
 
 		const client = this.supabaseService.getAdminClient()
 
-		return this.queryHelpers.querySingle<StripeCustomerDB>(
-			client.from('stripe_customers').select('*').eq('id', customerId).single(),
-			{
-				resource: 'stripe_customer',
-				id: customerId,
-				operation: 'getCustomer'
+			return validateDatabaseResponse(data, stripeCustomerSchema)
+		} catch (error) {
+			if (error instanceof BadRequestException) {
+				throw error
 			}
 		)
 	}
@@ -114,7 +130,15 @@ export class StripeDataService {
 				operation: 'getPrices',
 				metadata: { activeOnly }
 			}
-		)
+
+			return validateDatabaseResponse(
+				data || [],
+				createValidatedArray(stripePriceSchema)
+			)
+		} catch (error) {
+			this.logger.error('Error fetching prices:', error)
+			throw new InternalServerErrorException('Failed to fetch prices')
+		}
 	}
 
 	/**
@@ -139,7 +163,15 @@ export class StripeDataService {
 				operation: 'getProducts',
 				metadata: { activeOnly }
 			}
-		)
+
+			return validateDatabaseResponse(
+				data || [],
+				createValidatedArray(stripeProductSchema)
+			)
+		} catch (error) {
+			this.logger.error('Error fetching products:', error)
+			throw new InternalServerErrorException('Failed to fetch products')
+		}
 	}
 
 	/**
@@ -186,8 +218,10 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple aggregation in code, not complex SQL
-			const typedPaymentIntents =
-				(paymentIntents as StripePaymentIntentDB[]) || []
+			const typedPaymentIntents = validateDatabaseResponse(
+				paymentIntents || [],
+				createValidatedArray(stripePaymentIntentSchema)
+			)
 			return this.calculateRevenueAnalytics(typedPaymentIntents)
 		} catch (error) {
 			this.logger.error('Error calculating revenue analytics:', error)
@@ -260,7 +294,10 @@ export class StripeDataService {
 			}
 
 			// Ultra-native: Simple churn calculation in code
-			const typedSubscriptions = (subscriptions as StripeSubscriptionDB[]) || []
+			const typedSubscriptions = validateDatabaseResponse(
+				subscriptions || [],
+				createValidatedArray(stripeSubscriptionSchema)
+			)
 			return this.calculateChurnAnalytics(typedSubscriptions)
 		} catch (error) {
 			this.logger.error('Error calculating churn analytics:', error)
