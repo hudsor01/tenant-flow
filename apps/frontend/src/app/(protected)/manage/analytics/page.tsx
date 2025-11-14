@@ -1,12 +1,7 @@
-'use client'
-
 import { redirect } from 'next/navigation'
-import { useEffect } from 'react'
+
+export const dynamic = 'force-dynamic'
 
 export default function AnalyticsIndexPage() {
-	useEffect(() => {
-		redirect('/manage/analytics/overview')
-	}, [])
-	
-	return null
+	redirect('/manage/analytics/overview')
 }

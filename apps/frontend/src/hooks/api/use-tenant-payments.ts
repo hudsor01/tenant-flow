@@ -1,7 +1,7 @@
 'use client'
 
 import { clientFetch } from '#lib/api/client'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	SendPaymentReminderRequest,
@@ -55,7 +55,7 @@ export function useTenantPaymentsHistory(options?: PaymentQueryOptions) {
 
 type SendReminderVariables = {
 	request: SendPaymentReminderRequest
-	ownerQueryKey?: readonly unknown[]
+	ownerQueryKey?: QueryKey
 }
 
 export function useSendTenantPaymentReminder() {
