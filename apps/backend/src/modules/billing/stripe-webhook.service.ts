@@ -67,6 +67,56 @@ export class StripeWebhookService {
 	}
 
 	/**
+	 * Process webhook event with atomic operations for consistency
+	 * Uses individual operations wrapped in error handling for reliability
+	 */
+	async processWebhookEvent(
+		eventId: string,
+		eventType: string,
+		processFunction: () => Promise<void>
+	): Promise<boolean> {
+		// First, acquire the lock using RPC
+		const lockAcquired = await this.recordEventProcessing(eventId, eventType)
+		if (!lockAcquired) {
+			return false
+		}
+
+		try {
+			// Process the webhook event
+			await processFunction()
+
+			// Mark event as processed after successful processing
+			await this.markEventProcessed(eventId)
+
+			this.logger.log('Webhook event processed successfully', {
+				eventId,
+				eventType
+			})
+
+			return true
+		} catch (error) {
+			this.logger.error('Webhook processing failed', {
+				eventId,
+				eventType,
+				error: error instanceof Error ? error.message : String(error)
+			})
+
+			// Still mark as processed to prevent infinite retries of a broken event
+			// This prevents the webhook from continuously failing
+			try {
+				await this.markEventProcessed(eventId)
+			} catch (markError) {
+				this.logger.error('Failed to mark event as processed after error', {
+					eventId,
+					error: markError instanceof Error ? markError.message : String(markError)
+				})
+			}
+
+			throw error
+		}
+	}
+
+	/**
 	 * SECURITY FIX #5: Race condition fix - uses RPC-backed lock for atomic acquisition
 	 */
 	async recordEventProcessing(
