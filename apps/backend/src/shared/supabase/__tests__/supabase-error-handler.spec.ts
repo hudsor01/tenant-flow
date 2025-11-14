@@ -27,7 +27,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'PGRST116',
 				message: 'Not found',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -44,7 +45,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'PGRST116',
 				message: 'Not found',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -57,7 +59,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: 'Key (email)=(test@example.com) already exists.',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -74,7 +77,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -87,7 +91,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23503',
 				message: 'Foreign key violation',
 				details: 'Key (property_id)=(123) is not present in table "property".',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -104,7 +109,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '42501',
 				message: 'Insufficient privilege',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -121,7 +127,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'PGRST301',
 				message: 'JWT expired',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -138,7 +145,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'PGRST302',
 				message: 'JWT invalid',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -151,7 +159,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '22P02',
 				message: 'Invalid input syntax',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -168,7 +177,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23514',
 				message: 'Check constraint violation',
 				details: 'Check constraint "rent_amount_positive" failed',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -185,7 +195,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'UNKNOWN_CODE',
 				message: 'Unknown error',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -205,7 +216,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'UNKNOWN_CODE',
 				message: 'Unknown error',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -218,7 +230,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'PGRST116',
 				message: 'Not found',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -233,7 +246,8 @@ describe('SupabaseErrorHandler', () => {
 				code: 'PGRST116',
 				message: 'Not found',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(errorHandler.isOptimisticLockingConflict(error)).toBe(true)
@@ -244,7 +258,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: '',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(errorHandler.isOptimisticLockingConflict(error)).toBe(false)
@@ -287,7 +302,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: 'Key (email)=(test@example.com) already exists.',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -300,7 +316,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: 'Key (property_id, unit_number)=(123, 101) already exists.',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {
@@ -313,7 +330,8 @@ describe('SupabaseErrorHandler', () => {
 				code: '23505',
 				message: 'Unique violation',
 				details: 'Some custom constraint message',
-				hint: ''
+				hint: '',
+				name: 'PostgrestError'
 			}
 
 			expect(() => {

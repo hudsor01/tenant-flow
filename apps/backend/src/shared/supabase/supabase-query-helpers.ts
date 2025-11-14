@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import type { PostgrestSingleResponse, PostgrestResponse, PostgrestFilterBuilder } from '@supabase/supabase-js'
+import type { PostgrestSingleResponse, PostgrestResponse } from '@supabase/supabase-js'
 import { SupabaseErrorHandler, type SupabaseErrorContext } from './supabase-error-handler'
 
 /**
@@ -120,7 +120,7 @@ export class SupabaseQueryHelpers {
 	 * ```
 	 */
 	async queryList<T>(
-		queryPromise: PromiseLike<PostgrestResponse<T>> | PostgrestFilterBuilder<any, any, T>,
+		queryPromise: PromiseLike<PostgrestResponse<T>> | any,
 		context: SupabaseErrorContext = {}
 	): Promise<T[]> {
 		const { data, error } = await queryPromise
