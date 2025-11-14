@@ -57,7 +57,47 @@ export async function getAuthHeaders(
 		} = await supabase.auth.getUser()
 
 		if (!userError && user) {
-			headers['Authorization'] = `Bearer ${session.access_token}`
+			// Additional JWT validation: check token expiration
+			try {
+				const tokenParts = session.access_token.split('.')
+				if (tokenParts.length !== 3) {
+					throw new Error('Invalid JWT format')
+				}
+				const payloadPart = tokenParts[1]
+				if (!payloadPart) {
+					throw new Error('Invalid JWT payload')
+				}
+				const tokenPayload = JSON.parse(atob(payloadPart))
+				const currentTime = Math.floor(Date.now() / 1000)
+
+				if (tokenPayload.exp < currentTime) {
+					// Token expired - attempt refresh
+					const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession()
+					if (refreshError || !refreshed?.session) {
+						if (requireAuth) {
+							throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+						}
+					} else {
+						// Use refreshed token
+						headers['Authorization'] = `Bearer ${refreshed.session.access_token}`
+					}
+				} else {
+					// Token is valid and not expired
+					headers['Authorization'] = `Bearer ${session.access_token}`
+				}
+			} catch (jwtError) {
+				// Invalid JWT format - treat as expired
+				logger.warn('Invalid JWT token format', {
+					metadata: {
+						hasSession: !!session,
+						hasUser: !!user,
+						jwtError: jwtError instanceof Error ? jwtError.message : String(jwtError)
+					}
+				})
+				if (requireAuth) {
+					throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+				}
+			}
 		} else {
 			// Session exists but user validation failed - token might be expired or revoked
 			logger.warn('Session token invalid during validation', {
@@ -108,7 +148,7 @@ export async function getAuthHeaders(
  * queryFn: () => clientFetch<Property>('/api/v1/properties/123')
  * mutationFn: (data) => clientFetch<Property>('/api/v1/properties', {
  *   method: 'POST',
- *   body: JSON.stringify(data)
+ *   body: JSON.striangify(data)
  * })
  * // For FormData uploads (file uploads)
  * mutationFn: (formData) => clientFetch<Result>('/api/v1/upload', {
