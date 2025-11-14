@@ -1,4 +1,3 @@
-
 import { Button } from '#components/ui/button'
 import {
 	Empty,
@@ -9,14 +8,15 @@ import {
 	EmptyTitle
 } from '#components/ui/empty'
 import { BarChart3, FileText, Filter, Plus } from 'lucide-react'
-
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 
 export default function ReportsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			{/* Top Section - Matching Dashboard */}
-			<div className="border-b bg-background p-6 border-(--color-fill-tertiary)">
+			<div className="border-b bg-background p-6 border-fill-tertiary">
 				<div className="mx-auto max-w-400 py-4">
 					<div className="flex items-center justify-between mb-4">
 						<div>

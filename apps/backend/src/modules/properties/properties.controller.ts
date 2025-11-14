@@ -36,8 +36,7 @@ import type {
 	CreatePropertyRequest,
 	UpdatePropertyRequest
 } from '@repo/shared/types/api-contracts'
-import { BUSINESS_ERROR_CODES } from '@repo/shared/types/api-errors'
-import { ERROR_TYPES } from '@repo/shared/constants/error-codes'
+import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
