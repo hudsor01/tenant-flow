@@ -55,7 +55,7 @@ interface CreateTenantWithLeaseInput {
 	endDate: string
 }
 
-interface TenantInvitationResult {
+export interface TenantInvitationResult {
 	success: boolean
 	tenantId: string
 	leaseId: string

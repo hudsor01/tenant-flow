@@ -122,7 +122,7 @@ export default function TenantMaintenancePage() {
 					)}
 
 					{!isLoading && !error && activeRequests.length === 0 && (
-						<div className="text-center py-12 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
+						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
 							<Wrench className="size-12 text-muted-foreground mx-auto mb-3" />
 							<p className="text-sm text-muted-foreground">
 								No active maintenance requests
@@ -187,7 +187,7 @@ export default function TenantMaintenancePage() {
 					)}
 
 					{!isLoading && !error && completedRequests.length === 0 && (
-						<div className="text-center py-12 bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
+						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
 							<p className="text-sm text-muted-foreground">
 								No request history yet
 							</p>

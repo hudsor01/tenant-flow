@@ -3,14 +3,16 @@
 	"display": "TenantFlow NestJS TypeScript Config - NodeNext Mode (October 2025)",
 	"extends": "./base.json",
 	"compilerOptions": {
+		"lib": ["ES2022"],
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext",
+		"target": "ES2022",
 		"jsx": "react-jsx",
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"isolatedModules": false,
+		"verbatimModuleSyntax": false,
 		"noEmit": false,
-		"allowImportingTsExtensions": false,
 		"inlineSources": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true

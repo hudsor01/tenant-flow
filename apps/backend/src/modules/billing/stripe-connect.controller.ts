@@ -6,13 +6,15 @@ import {
 	UseGuards,
 	Request,
 	BadRequestException,
-	Logger
+	Logger,
+	NotFoundException
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeIdentityService } from './stripe-identity.service'
 
 /**
  * Stripe-supported countries for Express accounts
@@ -81,7 +83,8 @@ export class StripeConnectController {
 
 	constructor(
 		private readonly stripeConnectService: StripeConnectService,
-		private readonly supabaseService: SupabaseService
+		private readonly supabaseService: SupabaseService,
+		private readonly identityService: StripeIdentityService
 	) {}
 
 	/**
@@ -281,6 +284,28 @@ export class StripeConnectController {
 				userId
 			})
 			throw error
+		}
+	}
+
+	@Get('account')
+	async getConnectedAccountDetails(@Request() req: AuthenticatedRequest) {
+		const userId = req.user.id
+
+		const account = await this.stripeConnectService.getConnectedAccount(userId)
+
+		if (!account) {
+			throw new NotFoundException('No connected account found')
+		}
+
+		const identityVerification =
+			await this.identityService.getIdentityStatus(userId)
+
+		return {
+			success: true,
+			data: {
+				...account,
+				identityVerification
+			}
 		}
 	}
 

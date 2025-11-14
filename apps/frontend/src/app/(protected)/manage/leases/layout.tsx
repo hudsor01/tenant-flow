@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+
 
 /**
  * Leases Layout with Modal Slot
@@ -8,10 +8,7 @@ import type { ReactNode } from 'react'
 export default function LeasesLayout({
 	children,
 	modal
-}: {
-	children: ReactNode
-	modal: ReactNode
-}) {
+}: LayoutProps<'/manage/leases'>) {
 	return (
 		<>
 			{children}

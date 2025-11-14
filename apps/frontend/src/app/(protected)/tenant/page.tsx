@@ -11,6 +11,7 @@
 
 'use client'
 
+import '../manage/dashboard.css'
 import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -87,9 +88,10 @@ export default function TenantDashboardPage() {
 	}
 
 	return (
-		<div className="space-y-10">
-			{/* Welcome Section */}
-			<div className="space-y-3">
+		<div className="dashboard-root">
+			<div className="dashboard-main space-y-10">
+				{/* Welcome Section */}
+				<div className="space-y-3">
 				<h1 className="text-4xl font-bold tracking-tight bg-linear-to-br from-foreground to-foreground/70 bg-clip-text">
 					My Tenant Portal
 				</h1>
@@ -99,11 +101,11 @@ export default function TenantDashboardPage() {
 			</div>
 
 			{/* Quick Stats */}
-			<div className="grid gap-6 md:grid-cols-3">
+			<div className="dashboard-cards-container grid gap-6 md:grid-cols-3">
 				<CardLayout
 					title="Current Lease"
 					description="Your active lease information"
-					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-blue-50/50 to-card dark:from-blue-950/20 dark:to-card border-2 hover:border-blue-200 dark:hover:border-blue-900"
+					className="dashboard-widget group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-blue-50/50 to-card dark:from-blue-950/20 dark:to-card border-2 hover:border-blue-200 dark:hover:border-blue-900"
 					footer={
 						<Link href="/tenant/lease">
 							<Button variant="ghost" size="sm" className="w-full">
@@ -130,7 +132,7 @@ export default function TenantDashboardPage() {
 				<CardLayout
 					title="Next Payment"
 					description="Upcoming rent payment"
-					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
+					className="dashboard-widget group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-green-50/50 to-card dark:from-green-950/20 dark:to-card border-2 hover:border-green-200 dark:hover:border-green-900"
 					footer={
 						<Link href="/tenant/payments">
 							<Button className="w-full">Pay Now</Button>
@@ -155,7 +157,7 @@ export default function TenantDashboardPage() {
 				<CardLayout
 					title="Maintenance"
 					description="Active requests"
-					className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card border-2 hover:border-amber-200 dark:hover:border-amber-900"
+					className="dashboard-widget group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] bg-linear-to-br from-amber-50/50 to-card dark:from-amber-950/20 dark:to-card border-2 hover:border-amber-200 dark:hover:border-amber-900"
 					footer={
 						<Link href="/tenant/maintenance">
 							<Button variant="outline" size="sm" className="w-full">
@@ -186,7 +188,7 @@ export default function TenantDashboardPage() {
 			<CardLayout
 				title="Quick Actions"
 				description="Common tasks and shortcuts"
-				className="border-2"
+				className="dashboard-section dashboard-widget border-2"
 			>
 				<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 					<Link href="/tenant/payments" className="group">
@@ -240,11 +242,11 @@ export default function TenantDashboardPage() {
 			</CardLayout>
 
 			{/* Recent Activity */}
-			<div className="grid gap-6 lg:grid-cols-2">
+			<div className="dashboard-section grid gap-6 lg:grid-cols-2">
 				<CardLayout
 					title="Recent Payments"
 					description="Your last 5 rent payments"
-					className="border-2"
+					className="dashboard-widget border-2"
 					footer={
 						<Link href="/tenant/payments/history">
 							<Button variant="ghost" size="sm">
@@ -340,7 +342,7 @@ export default function TenantDashboardPage() {
 				<CardLayout
 					title="Maintenance Requests"
 					description="Your recent requests"
-					className="border-2"
+					className="dashboard-widget border-2"
 					footer={
 						<Link href="/tenant/maintenance">
 							<Button variant="ghost" size="sm">
@@ -410,5 +412,6 @@ export default function TenantDashboardPage() {
 				</CardLayout>
 			</div>
 		</div>
+	</div>
 	)
 }

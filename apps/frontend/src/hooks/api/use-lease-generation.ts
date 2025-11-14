@@ -7,6 +7,7 @@ import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-gene
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { env } from '#config/env'
 
 /**
  * Query keys for lease generation
@@ -41,9 +42,9 @@ export function useGenerateLease() {
 		mutationFn: async (data: LeaseGenerationFormData) => {
 			// Get auth headers for authenticated request
 			const headers = await getAuthHeaders()
-			
+
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
+				`${env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
 				{
 					method: 'POST',
 					headers,
@@ -114,9 +115,9 @@ export function useEmailLease() {
 		mutationFn: async (data: LeaseGenerationFormData & { emailTo: string }) => {
 			// Get auth headers for authenticated request
 			const headers = await getAuthHeaders()
-			
+
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
+				`${env.NEXT_PUBLIC_API_BASE_URL}/api/v1/leases/generate`,
 				{
 					method: 'POST',
 					headers,

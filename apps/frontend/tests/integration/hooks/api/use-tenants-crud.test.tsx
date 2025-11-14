@@ -1,7 +1,7 @@
 /**
  * Tenants CRUD Integration Tests
  * Tests complete Create, Read, Update, Delete operations with real API calls
- *
+
  * @vitest-environment jsdom
  */
 
@@ -29,7 +29,7 @@ import type { Tenant } from '@repo/shared/types/core'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import { clientFetch } from '#lib/api/client'
 import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -288,7 +288,7 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 	 * TODO: Add search/filter tests when useTenantList is extended
 	 * Backend supports: search, invitationStatus, sortBy, sortOrder
 	 * Hook currently only supports: page, limit
-	 * 
+
 	 * Future tests:
 	 * - it('filters by search query')
 	 * - it('filters by invitationStatus (PENDING, ACTIVE, etc.)')
@@ -389,22 +389,22 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 
 		/**
 	 * TEST: Invitation Flow (with Supabase Auth verification)
-	 * 
+
 	 * What we CAN test (now automated):
-	 * - ✅ useInviteTenant() creates tenant with PENDING status
-	 * - ✅ Tenant is associated with lease
-	 * - ✅ API call succeeds
-	 * - ✅ Supabase Auth user is created (auth_user_id populated)
-	 * - ✅ invitation_status changes to 'SENT'
-	 * - ✅ invitation_sent_at timestamp is set
-	 * 
+	 * - useInviteTenant() creates tenant with PENDING status
+	 * - Tenant is associated with lease
+	 * - API call succeeds
+	 * - Supabase Auth user is created (auth_user_id populated)
+	 * - invitation_status changes to 'SENT'
+	 * - invitation_sent_at timestamp is set
+
 	 * What still requires MANUAL verification:
-	 * - ⚠️  Email delivery to inbox (Supabase handles this)
-	 * - ⚠️  Email content and formatting
-	 * - ⚠️  Invitation link works and redirects correctly
-	 * - ⚠️  Tenant onboarding flow completion
-	 * - ⚠️  Status changes from PENDING → ACTIVE after onboarding
-	 * 
+	 * - ️ Email delivery to inbox (Supabase handles this)
+	 * - ️ Email content and formatting
+	 * - ️ Invitation link works and redirects correctly
+	 * - ️ Tenant onboarding flow completion
+	 * - ️ Status changes from PENDING → ACTIVE after onboarding
+
 	 * For full E2E testing of invitation flow, see Playwright tests.
 	 */
 	it('creates tenant with invitation and verifies Supabase Auth integration', async () => {
@@ -467,7 +467,7 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 		expect(invitedTenant.firstName).toBe(invitationData.firstName)
 		expect(invitedTenant.status).toBe('PENDING') // Still PENDING until onboarding
 
-		// ✅ NEW: Verify Supabase Auth integration
+		// NEW: Verify Supabase Auth integration
 		// After invitation, backend should have:
 		// 1. Created Supabase Auth user
 		// 2. Linked tenant to auth user (auth_user_id populated)
@@ -485,14 +485,14 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 
 		const fetchedTenant = fetchResult.current.data!
 
-		// ✅ Verify Supabase Auth user was created and linked
+		// Verify Supabase Auth user was created and linked
 		expect(fetchedTenant.auth_user_id).toBeDefined()
 		expect(fetchedTenant.auth_user_id).toBeTruthy()
 
-		// ✅ Verify invitation status was updated
+		// Verify invitation status was updated
 		expect(fetchedTenant.invitation_status).toBe('SENT')
 
-		// ✅ Verify invitation timestamp was set
+		// Verify invitation timestamp was set
 		expect(fetchedTenant.invitation_sent_at).toBeDefined()
 		expect(fetchedTenant.invitation_sent_at).toBeTruthy()
 		
@@ -515,7 +515,7 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 			})
 		}
 
-		// ⚠️  MANUAL VERIFICATION STILL REQUIRED:
+		// ️ MANUAL VERIFICATION STILL REQUIRED:
 		// 1. Check email inbox for invitation email (Supabase sends automatically)
 		// 2. Verify email contains invitation link with correct redirect URL
 		// 3. Click link and complete tenant onboarding
@@ -554,7 +554,7 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 		expect(response).toBeDefined()
 		expect(response.message).toBeDefined()
 
-		// ✅ NEW: Verify invitation_sent_at timestamp was updated
+		// NEW: Verify invitation_sent_at timestamp was updated
 		const { result: fetchResult } = renderHook(() => useTenant(pendingTenant.id), {
 			wrapper: createWrapper()
 		})
@@ -578,7 +578,7 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
 		const diffSeconds = (now.getTime() - sentAt.getTime()) / 1000
 		expect(diffSeconds).toBeLessThan(5)
 
-		// ⚠️  MANUAL VERIFICATION STILL REQUIRED:
+		// ️ MANUAL VERIFICATION STILL REQUIRED:
 		// 1. Check email inbox for new invitation email
 		// 2. Verify email timestamp matches invitation_sent_at
 		// 3. Verify new link is different from original (if using tokens)
@@ -766,122 +766,122 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
  * ================================================================
  * MANUAL VERIFICATION CHECKLIST
  * ================================================================
- * 
+
  * The integration tests above cover API functionality, but some flows
  * require manual verification due to external dependencies (email, auth, etc.)
- * 
+
  * 1. TENANT INVITATION FLOW (Supabase Auth Integration)
- *    ✅ Automated: API creates tenant with PENDING status
- *    ✅ Automated: Tenant is associated with lease
- *    ✅ Automated: Supabase Auth user is created (auth_user_id populated)
- *    ✅ Automated: invitation_status changes to 'SENT'
- *    ✅ Automated: invitation_sent_at timestamp is set and recent
- *    ⚠️  Manual Required:
- *        - Check email inbox for invitation email (Supabase sends via SMTP)
- *        - Verify email contains correct property/unit details
- *        - Verify email has invitation link with proper redirect URL
- *        - Verify email formatting/branding is professional
- * 
+ * Automated: API creates tenant with PENDING status
+ * Automated: Tenant is associated with lease
+ * Automated: Supabase Auth user is created (auth_user_id populated)
+ * Automated: invitation_status changes to 'SENT'
+ * Automated: invitation_sent_at timestamp is set and recent
+ * ️ Manual Required:
+ * - Check email inbox for invitation email (Supabase sends via SMTP)
+ * - Verify email contains correct property/unit details
+ * - Verify email has invitation link with proper redirect URL
+ * - Verify email formatting/branding is professional
+
  * 2. TENANT ONBOARDING FLOW
- *    ✅ Automated: N/A (frontend integration tests don't cover this)
- *    ⚠️  Manual Required:
- *        - Click invitation link in email
- *        - Complete tenant onboarding form
- *        - Create Supabase Auth account
- *        - Verify redirect to tenant portal
- *        - Verify tenant status changes PENDING → ACTIVE
- *        - Verify tenant can log in
- * 
+ * Automated: N/A (frontend integration tests don't cover this)
+ * ️ Manual Required:
+ * - Click invitation link in email
+ * - Complete tenant onboarding form
+ * - Create Supabase Auth account
+ * - Verify redirect to tenant portal
+ * - Verify tenant status changes PENDING → ACTIVE
+ * - Verify tenant can log in
+
  * 3. RESEND INVITATION
- *    ✅ Automated: API call succeeds
- *    ✅ Automated: invitation_sent_at timestamp is updated
- *    ✅ Automated: New timestamp is more recent than original
- *    ⚠️  Manual Required:
- *        - Check email inbox for new invitation
- *        - Verify new email was actually sent (not just DB update)
- *        - Verify link is different from original (if using one-time tokens)
- * 
+ * Automated: API call succeeds
+ * Automated: invitation_sent_at timestamp is updated
+ * Automated: New timestamp is more recent than original
+ * ️ Manual Required:
+ * - Check email inbox for new invitation
+ * - Verify new email was actually sent (not just DB update)
+ * - Verify link is different from original (if using one-time tokens)
+
  * 4. TENANT PORTAL ACCESS
- *    ✅ Automated: N/A (E2E tests cover this)
- *    ⚠️  Manual Required:
- *        - Log in as active tenant
- *        - Verify access to lease details
- *        - Verify can make rent payments
- *        - Verify can submit maintenance requests
- *        - Verify can view payment history
- * 
+ * Automated: N/A (E2E tests cover this)
+ * ️ Manual Required:
+ * - Log in as active tenant
+ * - Verify access to lease details
+ * - Verify can make rent payments
+ * - Verify can submit maintenance requests
+ * - Verify can view payment history
+
  * 5. OWNER DASHBOARD (Multi-Tenant View)
- *    ✅ Automated: LIST endpoint returns tenants
- *    ⚠️  Manual Required:
- *        - Verify owner sees all their tenants (ACTIVE + PENDING)
- *        - Verify filtering by status works in UI
- *        - Verify search works in UI
- *        - Verify pagination works in UI
- *        - Verify tenant details display correctly
- * 
+ * Automated: LIST endpoint returns tenants
+ * ️ Manual Required:
+ * - Verify owner sees all their tenants (ACTIVE + PENDING)
+ * - Verify filtering by status works in UI
+ * - Verify search works in UI
+ * - Verify pagination works in UI
+ * - Verify tenant details display correctly
+
  * 6. EMAIL CONTENT VERIFICATION
- *    ⚠️  Manual Required:
- *        - Invitation subject line is professional
- *        - Email body has correct property/unit details
- *        - Link doesn't expire prematurely
- *        - Unsubscribe link works (if applicable)
- *        - Mobile rendering looks good
- * 
+ * ️ Manual Required:
+ * - Invitation subject line is professional
+ * - Email body has correct property/unit details
+ * - Link doesn't expire prematurely
+ * - Unsubscribe link works (if applicable)
+ * - Mobile rendering looks good
+
  * 7. EDGE CASES (Manual Testing)
- *    ⚠️  Manual Required:
- *        - Expired invitation link behavior
- *        - Invitation to existing user email
- *        - Multiple pending invitations for same email
- *        - Invitation after tenant moved out
- *        - Network errors during invitation send
- * 
+ * ️ Manual Required:
+ * - Expired invitation link behavior
+ * - Invitation to existing user email
+ * - Multiple pending invitations for same email
+ * - Invitation after tenant moved out
+ * - Network errors during invitation send
+
  * 8. MULTI-TENANT ISOLATION (RLS Testing)
- *    ✅ Automated: Covered in RLS tests (use-tenants-rls.test.tsx)
- *    ⚠️  Manual Verification:
- *        - Owner A can't see Owner B's tenants
- *        - Tenant A can't see Tenant B's data
- *        - API returns 403 for unauthorized access
- * 
+ * Automated: Covered in RLS tests (use-tenants-rls.test.tsx)
+ * ️ Manual Verification:
+ * - Owner A can't see Owner B's tenants
+ * - Tenant A can't see Tenant B's data
+ * - API returns 403 for unauthorized access
+
  * ================================================================
  * HOW TO RUN MANUAL VERIFICATION
  * ================================================================
- * 
+
  * 1. Start dev environment:
- *    doppler run -- pnpm dev
- * 
+ * doppler run -- pnpm dev
+
  * 2. Create test property/unit/lease via UI or API
- * 
+
  * 3. Invite a tenant using your personal email (so you can check inbox):
- *    - Go to Leases page
- *    - Click "Invite Tenant" on a lease
- *    - Enter your email address
- *    - Submit form
- * 
+ * - Go to Leases page
+ * - Click "Invite Tenant" on a lease
+ * - Enter your email address
+ * - Submit form
+
  * 4. Check email inbox:
- *    - Verify email received within 1 minute
- *    - Verify email content/formatting
- *    - Click invitation link
- * 
+ * - Verify email received within 1 minute
+ * - Verify email content/formatting
+ * - Click invitation link
+
  * 5. Complete onboarding:
- *    - Fill out onboarding form
- *    - Create password
- *    - Verify redirect to tenant portal
- * 
+ * - Fill out onboarding form
+ * - Create password
+ * - Verify redirect to tenant portal
+
  * 6. Verify as owner:
- *    - Log back in as owner
- *    - Check tenant shows as ACTIVE
- *    - Verify lease shows tenant name
- * 
+ * - Log back in as owner
+ * - Check tenant shows as ACTIVE
+ * - Verify lease shows tenant name
+
  * 7. Test resend invitation:
- *    - Create another invitation (different email)
- *    - Wait 5 minutes (don't complete onboarding)
- *    - Click "Resend Invitation" in owner dashboard
- *    - Verify new email received
- * 
+ * - Create another invitation (different email)
+ * - Wait 5 minutes (don't complete onboarding)
+ * - Click "Resend Invitation" in owner dashboard
+ * - Verify new email received
+
  * ================================================================
  * FOR E2E TESTING (Playwright)
  * ================================================================
- * 
+
  * The following should be covered in E2E tests (not integration):
  * - Full invitation → onboarding → login flow
  * - Email link clicking and navigation
@@ -889,7 +889,7 @@ describeIfReady('Tenants CRUD Integration Tests', () => {
  * - Cross-user scenarios (owner + tenant)
  * - Browser-specific behaviors
  * - Screenshot comparisons for UI
- * 
+
  * See: apps/e2e-tests/ for Playwright test suite
  * ================================================================
  */

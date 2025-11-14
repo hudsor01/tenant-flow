@@ -22,7 +22,7 @@ export interface LoadingOperation {
 	modalId?: string
 }
 
-interface LoadingStoreState {
+export interface LoadingStoreState {
 	// Active loading operations
 	operations: Record<string, LoadingOperation>
 

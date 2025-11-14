@@ -8,12 +8,16 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
+import { AppConfigService } from '../config/app-config.service'
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
 	private readonly logger = new Logger(CsrfGuard.name)
 
-	constructor(private reflector: Reflector) {}
+	constructor(
+		private reflector: Reflector,
+		private readonly appConfigService: AppConfigService
+	) {}
 
 	canActivate(context: ExecutionContext): boolean {
 		// Check if route is exempt from CSRF protection
@@ -47,9 +51,7 @@ export class CsrfGuard implements CanActivate {
 		const allowedOrigins = [
 			'https://tenantflow.app',
 			'https://www.tenantflow.app',
-			...(process.env.CORS_ORIGINS?.split(',') || (() => {
-				throw new Error('CORS_ORIGINS environment variable is required for CSRF protection')
-			})())
+			...this.appConfigService.getCorsOriginsArray()
 		]
 			.flat()
 			.filter(Boolean)

@@ -1,15 +1,15 @@
 /**
 /**
  * DEV-ONLY SCRIPT: Add form fields to Texas Residential Lease Agreement PDF
- *
+
  * Classification: Development/Testing Tool (NOT production code)
  * Purpose: Manually add AcroForm fields to the PDF template for testing the pdf-lib form filling API
- *
+
  * Usage:
  * 1. Place Texas_Residential_Lease_Agreement.pdf in project root
  * 2. Run: pnpm tsx apps/backend/scripts/add-form-fields-to-lease.ts
  * 3. Output: Texas_Residential_Lease_Agreement.filled.pdf with editable form fields
- *
+
  * IMPORTANT:
  * - This script is for template preparation ONLY
  * - DO NOT use in production code or deployment pipelines
@@ -34,17 +34,20 @@ async function addFormFields() {
 		'Texas_Residential_Lease_Agreement.filled.pdf'
 	)
 
-	logger.info('📄 Loading PDF template...')
+	logger.info(' Loading PDF template...')
 	const pdfBytes = await readFile(templatePath)
 	const pdfDoc = await PDFDocument.load(pdfBytes)
 
-	logger.info('📝 Adding form fields...')
+	logger.info(' Adding form fields...')
 	const form = pdfDoc.getForm()
 
 	// Get first page dimensions
 	const pages = pdfDoc.getPages()
 	const firstPage = pages[0]
-	const { height } = firstPage.getSize()
+	if (!firstPage) {
+		throw new Error('PDF template has no pages')
+	}
+	firstPage.getSize()
 
 
 	// Page 1 - Agreement Information
@@ -96,12 +99,12 @@ async function addFormFields() {
 	form.createTextField('notice_address')
 	form.createTextField('notice_email')
 
-	logger.info('💾 Saving fillable PDF...')
+	logger.info(' Saving fillable PDF...')
 	const filledPdfBytes = await pdfDoc.save()
 	await writeFile(outputPath, filledPdfBytes)
 
 	const fields = form.getFields()
-	logger.info(`✅ Added ${fields.length} form fields to PDF`, {
+	logger.info(` Added ${fields.length} form fields to PDF`, {
 		metadata: { outputPath }
 	})
 }

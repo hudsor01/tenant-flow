@@ -1,22 +1,30 @@
 /**
  * Supabase JWT Strategy - Direct JWT Secret Verification
- *
+
  * Uses Supabase's JWT signing secret directly instead of JWKS endpoints.
  * This provides better reliability and performance while maintaining security.
- *
+
  * Key Management:
  * - Uses SUPABASE_JWT_SECRET from Supabase dashboard (Settings > JWT Keys > Current Signing Key)
- * - Supports HS256 algorithm (Supabase's default)
+ * - Supports ES256 algorithm (Supabase's default)
  * - No external dependencies on JWKS endpoints
- *
+
  * Authentication Flow:
  * 1. Frontend sends Authorization: Bearer <token> header
  * 2. Strategy verifies JWT signature using Supabase's secret
  * 3. Validates payload (issuer, audience, expiration)
  * 4. Ensures user exists in users table (creates if needed for OAuth)
  * 5. Returns authUser object for use in request handlers
+<<<<<<< Updated upstream
+
+ * Supported Algorithms: HS256 (Supabase default)
+||||||| Stash base
  *
  * Supported Algorithms: HS256 (Supabase default)
+=======
+ *
+ * Supported Algorithms: ES256 (Supabase default)
+>>>>>>> Stashed changes
  */
 
 import { Injectable, Logger } from '@nestjs/common'
@@ -34,6 +42,7 @@ import { USER_ROLE } from '@repo/shared/constants/auth'
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
 	private readonly utilityService: UtilityService
+	private readonly config: AppConfigService
 
 	constructor(utilityService: UtilityService, config: AppConfigService) {
 		// Validate environment before super() - no 'this' access allowed
@@ -45,7 +54,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		const baseConfig = {
 			jwtFromRequest: ExtractJwt.fromExtractors(extractors),
 			ignoreExpiration: false,
-			issuer: `${process.env.SUPABASE_URL}/auth/v1`,
+			issuer: `${config.getSupabaseUrl()}/auth/v1`,
 			audience: 'authenticated',
 			algorithms: [algorithm],
 			secretOrKey: secretOrKey! // We validated this exists in resolveSupabaseJwtConfig
@@ -55,6 +64,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 		// NOW safe to assign to 'this' after super()
 		this.utilityService = utilityService
+		this.config = config
 
 		// HEADERS-ONLY AUTHENTICATION: Frontend and backend are on separate deployments (Vercel + Railway)
 		// All API calls MUST use Authorization: Bearer <token> header - NO cookie support
@@ -79,7 +89,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		}
 
 		// Validate issuer matches Supabase project
-		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseUrl = this.config.getSupabaseUrl()
 		if (
 			supabaseUrl &&
 			payload.iss &&
@@ -166,7 +176,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			userToEnsure.app_metadata = payload.app_metadata
 		}
 
-		// ✅ CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
+		// CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
 		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
 		let internalUserId: string
 		try {
@@ -284,23 +294,23 @@ function resolveSupabaseJwtConfig(config: AppConfigService): {
 	jwksUri?: string
 } {
 	const logger = new Logger('SupabaseJwtConfig')
-	const explicitAlg = process.env.SUPABASE_JWT_ALGORITHM?.toUpperCase().trim()
+	const explicitAlg = config.supabaseJwtAlgorithm?.toUpperCase().trim()
 
 	logger.log(
-		`SUPABASE_JWT_ALGORITHM env var: "${process.env.SUPABASE_JWT_ALGORITHM}"`
+		`SUPABASE_JWT_ALGORITHM env var: "${config.supabaseJwtAlgorithm}"`
 	)
 	logger.log(`Parsed explicitAlg: "${explicitAlg}"`)
 
-	// Only HS256 is supported with direct secret verification
-	const algorithm: Algorithm = explicitAlg === 'HS256' ? 'HS256' : 'HS256'
+	// Only ES256 is supported with direct secret verification
+	const algorithm: Algorithm = explicitAlg === 'ES256' ? 'ES256' : 'ES256'
 	const isAsymmetric = false
 
-	logger.log(`Using HS256 algorithm with Supabase JWT secret`)
+	logger.log(`Using ES256 algorithm with Supabase JWT secret`)
 
-	// HS256: Use Supabase's JWT secret (from dashboard)
+	// ES256: Use Supabase's JWT secret (from dashboard)
 	const secret = config.supabaseJwtSecret
 
-	logger.log('Using HS256 with Supabase JWT secret verification')
+	logger.log('Using ES256 with Supabase JWT secret verification')
 	return {
 		algorithm,
 		isAsymmetric,
