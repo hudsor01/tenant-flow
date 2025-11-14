@@ -7,6 +7,7 @@ import type {
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import type { PostgrestError } from '@supabase/supabase-js'
 
 type TenantRow = Database['public']['Tables']['tenant']['Row']
 
@@ -225,10 +226,22 @@ export class StripeTenantService {
 			.single()
 
 		if (error || !data) {
-			this.logger.error('Tenant record not found while ensuring customer', {
-				tenantId: params.tenantId,
-				error
-			})
+			const message = 'Tenant record not found while ensuring customer'
+			const err = (error as PostgrestError | null) ?? null
+			const errCode = err?.code
+			const errMsg = err?.message
+
+			const isNotFound = errCode === 'PGRST116' || (errMsg ? /not found/i.test(errMsg) : false)
+
+			if (isNotFound) {
+				this.logger.warn('Tenant not found while ensuring Stripe customer', {
+					tenantId: params.tenantId,
+					error: errMsg ?? undefined
+				})
+			} else {
+				this.logger.error(message, { tenantId: params.tenantId, error })
+			}
+
 			throw new NotFoundException(`Tenant not found: ${params.tenantId}`)
 		}
 
