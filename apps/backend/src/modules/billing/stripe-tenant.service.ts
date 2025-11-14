@@ -7,6 +7,10 @@ import type {
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import {
+	querySingle,
+	queryMutation
+} from '../../shared/utils/query-helpers'
 
 type TenantRow = Database['public']['Tables']['tenant']['Row']
 
@@ -49,22 +53,20 @@ export class StripeTenantService {
 	): Promise<Stripe.Customer> {
 		try {
 			// Check if Tenant already has a Stripe Customer
-			const { data: existingTenant, error: tenantError } = await this.supabase
-				.getAdminClient()
-				.from('tenant' as never)
-				.select('stripe_customer_id' as never)
-				.eq('id' as never, params.tenantId as never)
-				.single()
-
-			if (tenantError) {
-				this.logger.error('Failed to fetch tenant', {
-					tenantId: params.tenantId,
-					error: tenantError
-				})
-				throw new NotFoundException(`Tenant not found: ${params.tenantId}`)
-			}
-
-			const tenant = existingTenant as { stripe_customer_id: string | null }
+			const tenant = await querySingle<{ stripe_customer_id: string | null }>(
+				this.supabase
+					.getAdminClient()
+					.from('tenant' as never)
+					.select('stripe_customer_id' as never)
+					.eq('id' as never, params.tenantId as never)
+					.single(),
+				{
+					resource: 'tenant',
+					id: params.tenantId,
+					operation: 'check existing Stripe customer',
+					logger: this.logger
+				}
+			)
 
 			// If Customer already exists, return it
 			if (tenant.stripe_customer_id) {
@@ -109,13 +111,21 @@ export class StripeTenantService {
 			const customer = await this.stripe.customers.create(customerParams)
 
 			// Update tenant table with Stripe Customer ID
-			const { error: updateError } = await this.supabase
-				.getAdminClient()
-				.from('tenant' as never)
-				.update({ stripe_customer_id: customer.id } as never)
-				.eq('id' as never, params.tenantId as never)
-
-			if (updateError) {
+			try {
+				await queryMutation(
+					this.supabase
+						.getAdminClient()
+						.from('tenant' as never)
+						.update({ stripe_customer_id: customer.id } as never)
+						.eq('id' as never, params.tenantId as never),
+					{
+						resource: 'tenant',
+						id: params.tenantId,
+						operation: 'update with Stripe customer ID',
+						logger: this.logger
+					}
+				)
+			} catch (updateError) {
 				this.logger.error('Failed to update tenant with stripe_customer_id', {
 					tenantId: params.tenantId,
 					customerId: customer.id,
@@ -153,19 +163,20 @@ export class StripeTenantService {
 		tenantId: string
 	): Promise<Stripe.Customer | null> {
 		try {
-			const { data, error } = await this.supabase
-				.getAdminClient()
-				.from('tenant' as never)
-				.select('stripe_customer_id' as never)
-				.eq('id' as never, tenantId as never)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch tenant', { tenantId, error })
-				return null
-			}
-
-			const tenant = data as { stripe_customer_id: string | null }
+			const tenant = await querySingle<{ stripe_customer_id: string | null }>(
+				this.supabase
+					.getAdminClient()
+					.from('tenant' as never)
+					.select('stripe_customer_id' as never)
+					.eq('id' as never, tenantId as never)
+					.single(),
+				{
+					resource: 'tenant',
+					id: tenantId,
+					operation: 'fetch for Stripe customer',
+					logger: this.logger
+				}
+			)
 
 			if (!tenant.stripe_customer_id) {
 				return null
@@ -215,24 +226,22 @@ export class StripeTenantService {
 			return { customer: existingCustomer, status: 'existing' }
 		}
 
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('tenant' as never)
-			.select(
-				'id, email, name, firstName, lastName, stripe_customer_id, userId' as never
-			)
-			.eq('id' as never, params.tenantId as never)
-			.single()
-
-		if (error || !data) {
-			this.logger.error('Tenant record not found while ensuring customer', {
-				tenantId: params.tenantId,
-				error
-			})
-			throw new NotFoundException(`Tenant not found: ${params.tenantId}`)
-		}
-
-		const tenant = data as TenantRow
+		const tenant = await querySingle<TenantRow>(
+			this.supabase
+				.getAdminClient()
+				.from('tenant' as never)
+				.select(
+					'id, email, name, firstName, lastName, stripe_customer_id, userId' as never
+				)
+				.eq('id' as never, params.tenantId as never)
+				.single(),
+			{
+				resource: 'tenant',
+				id: params.tenantId,
+				operation: 'ensure Stripe customer',
+				logger: this.logger
+			}
+		)
 
 		const resolvedEmail = params.email ?? tenant.email ?? undefined
 		const resolvedName =
