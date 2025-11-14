@@ -7,7 +7,7 @@ import type {
 	TypeProvider,
 	ExpressTypeProvider,
 	JSONSchema
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 
 // Re-export for backward compatibility
 export type { TypeProvider, ExpressTypeProvider, JSONSchema }

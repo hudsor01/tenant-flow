@@ -33,7 +33,7 @@ import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import { TenantsService } from './tenants.service'
 import { TenantInvitationService } from './tenant-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'

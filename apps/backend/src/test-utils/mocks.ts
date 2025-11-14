@@ -2,7 +2,7 @@ import type {
 	CreatePropertyRequest,
 	CreateTenantRequest,
 	CreateUnitRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type {
 	DashboardStats,
 	LeaseStats,
