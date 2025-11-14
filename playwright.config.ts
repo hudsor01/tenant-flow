@@ -1,15 +1,12 @@
 import { defineConfig } from '@playwright/test'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	baseConfig,
 	productionProject,
 	smokeProjects,
 	stagingProject
 } from './apps/e2e-tests/playwright.config.base'
-
-const logger = createLogger({ component: 'PlaywrightConfig' })
 
 // Default NODE_ENV for deterministic Playwright behaviour
 if (!process.env.NODE_ENV) {
@@ -63,8 +60,8 @@ export default defineConfig({
 				const port = process.env.PLAYWRIGHT_PORT || '3000'
 				const url =
 					process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
-				logger.info('Configured Playwright projects', {
-					metadata: { names: projects.map(project => project.name) }
+				console.log('Configured Playwright projects:', {
+					names: projects.map(project => project.name)
 				})
 				return {
 					// Forward the desired port via env so doppler/next receive it consistently.

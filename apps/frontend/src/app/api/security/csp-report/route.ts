@@ -5,8 +5,7 @@ import type {
 } from '@repo/shared/types/domain'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-
-export const runtime = 'edge'
+import { env } from '#config/env'
 
 const logger = createLogger({ component: 'CSPReportAPI' })
 
@@ -173,14 +172,14 @@ async function logToSecurityMonitoring(
 		metadata: securityEvent
 	})
 
-	const monitoringWebhook = process.env.SECURITY_MONITORING_WEBHOOK
+	const monitoringWebhook = env.SECURITY_MONITORING_WEBHOOK
 	if (monitoringWebhook) {
 		try {
 			await fetch(monitoringWebhook, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${process.env.SECURITY_MONITORING_TOKEN}`
+					Authorization: `Bearer ${env.SECURITY_MONITORING_TOKEN}`
 				},
 				body: JSON.stringify(securityEvent)
 			})

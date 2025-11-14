@@ -11,6 +11,7 @@ import { StripeAccessControlService } from '../billing/stripe-access-control.ser
 import { StripeSyncController } from './stripe-sync.controller'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 describe('StripeSyncController - Webhook Processing', () => {
 	let controller: StripeSyncController
@@ -20,6 +21,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 	let supabaseService: DeepMocked<SupabaseService>
 	let accessControlService: DeepMocked<StripeAccessControlService>
 	let webhookMonitoringService: DeepMocked<WebhookMonitoringService>
+	let appConfigService: DeepMocked<AppConfigService>
 
 	const validUserId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
 	const mockCustomerId = 'cus_test123'
@@ -34,6 +36,8 @@ describe('StripeSyncController - Webhook Processing', () => {
 		stripeClientService = createMock<StripeClientService>()
 		accessControlService = createMock<StripeAccessControlService>()
 		webhookMonitoringService = createMock<WebhookMonitoringService>()
+		appConfigService = createMock<AppConfigService>()
+		appConfigService.getStripeWebhookSecret.mockReturnValue('whsec_test')
 
 		// Setup SupabaseService to return our mock client
 		supabaseService = createMock<SupabaseService>()
@@ -63,6 +67,10 @@ describe('StripeSyncController - Webhook Processing', () => {
 					useValue: accessControlService
 				},
 				{
+					provide: AppConfigService,
+					useValue: appConfigService
+				},
+				{
 					provide: WebhookMonitoringService,
 					useValue: webhookMonitoringService
 				},
@@ -88,7 +96,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.subscription.created',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: {
@@ -140,7 +148,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.subscription.created',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: {
@@ -185,7 +193,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.subscription.created',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: {
@@ -259,7 +267,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.subscription.created',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockSubscription
@@ -311,7 +319,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.subscription.updated',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockSubscription
@@ -363,7 +371,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.subscription.deleted',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockSubscription
@@ -411,7 +419,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.created',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCustomer
@@ -455,7 +463,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.updated',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCustomer
@@ -499,7 +507,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 				id: mockEventId,
 				type: 'customer.deleted',
 				object: 'event',
-				api_version: '2023-10-16',
+				api_version: '2025-10-29.clover',
 				created: Math.floor(Date.now() / 1000),
 				data: {
 					object: mockCustomer

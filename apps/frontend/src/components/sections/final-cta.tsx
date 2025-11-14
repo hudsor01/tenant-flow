@@ -58,7 +58,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 								className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-xl font-semibold px-12 py-6"
 								asChild
 							>
-								<Link href="/signup" aria-label="Start free trial">
+								<Link href="/pricing" aria-label="Start free trial">
 									<span className="relative z-10 flex items-center">
 										Start Free 14-Day Trial
 										<ArrowRight className="size-6 ml-3 transition-transform group-hover:translate-x-1" />
@@ -106,7 +106,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					<BlurFade delay={0.5} inView>
 						<div className="mt-16 pt-8 border-t border-border/20">
 							<p className="text-muted-foreground/80 text-sm">
-								🔒 Your data is secure with SOC 2 Type II certification and
+								 Your data is secure with SOC 2 Type II certification and
 								bank-level encryption
 							</p>
 						</div>

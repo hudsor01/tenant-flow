@@ -4,8 +4,9 @@ import {
 	Logger,
 	Module
 } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ConfigModule } from '@nestjs/config'
 import { createClient } from '@supabase/supabase-js'
+import { AppConfigService } from '../config/app-config.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { SupabaseService } from './supabase.service'
 
@@ -19,12 +20,9 @@ export class SupabaseModule {
 			providers: [
 				{
 					provide: SUPABASE_ADMIN_CLIENT,
-					useFactory: (config: ConfigService) => {
-						const envUrl = process.env.SUPABASE_URL
-						const envKey = process.env.SUPABASE_SECRET_KEY
-
-						const url = envUrl ?? config.get<string>('SUPABASE_URL')
-						const key = envKey ?? config.get<string>('SUPABASE_SECRET_KEY')
+					useFactory: (config: AppConfigService) => {
+						const url = config.getSupabaseUrl()
+						const key = config.getSupabaseSecretKey()
 
 						if (!url || !key) {
 							// Helpful error to aid developers who forget to run with Doppler
@@ -34,21 +32,15 @@ export class SupabaseModule {
 						}
 
 						const logger = new Logger('SupabaseModule')
-						if (envUrl || envKey) {
-							logger.debug(
-								'Supabase admin client: using environment variables (Doppler) for credentials'
-							)
-						} else {
-							logger.debug(
-								'Supabase admin client: using ConfigService for credentials'
-							)
-						}
+						logger.debug(
+							'Supabase admin client: using AppConfigService for credentials'
+						)
 
 						return createClient(url, key, {
 							auth: { persistSession: false, autoRefreshToken: false }
 						})
 					},
-					inject: [ConfigService]
+					inject: [AppConfigService]
 				},
 				SupabaseService
 			],

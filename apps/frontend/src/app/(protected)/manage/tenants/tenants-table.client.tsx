@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-table'
+import { DataTable } from '#components/ui/data-tables/data-table.jsx'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
 import { Trash2 } from 'lucide-react'
 import Link from 'next/link'
@@ -30,7 +30,7 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 	)
 
 	const resendInvitationMutation = useResendInvitation()
-	
+
 	// Store mutation in ref to prevent re-registering event listener
 	const mutationRef = useRef(resendInvitationMutation)
 	mutationRef.current = resendInvitationMutation

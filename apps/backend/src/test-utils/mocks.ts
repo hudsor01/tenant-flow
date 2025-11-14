@@ -22,6 +22,7 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 import type { User } from '@supabase/supabase-js'
 import type { EmailService } from '../modules/email/email.service'
 import type { SupabaseService } from '../database/supabase.service'
+import type { AppConfigService } from '../config/app-config.service'
 
 type DatabaseUser = Database['public']['Tables']['users']['Row']
 
@@ -454,4 +455,103 @@ export function createMockStripeConnectService(): jest.Mocked<{
 			}
 		})
 	}
+}
+
+/**
+ * Create a mock AppConfigService for testing
+ */
+export function createMockAppConfigService(): jest.Mocked<AppConfigService> {
+	return {
+		getNodeEnv: jest.fn().mockReturnValue('test'),
+		isProduction: jest.fn().mockReturnValue(false),
+		isDevelopment: jest.fn().mockReturnValue(true),
+		isTest: jest.fn().mockReturnValue(true),
+		getPort: jest.fn().mockReturnValue(3000),
+		getBackendTimeoutMs: jest.fn().mockReturnValue(30000),
+		getApiBaseUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+		getFrontendUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+		getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+
+		// Database
+		getDatabaseUrl: jest.fn().mockReturnValue('postgresql://localhost:5432/test'),
+		getDirectUrl: jest.fn().mockReturnValue(undefined),
+
+		// Authentication
+		getJwtSecret: jest.fn().mockReturnValue('test-jwt-secret'),
+		getJwtPublicKeyCurrent: jest.fn().mockReturnValue(undefined),
+		getJwtPublicKeyStandby: jest.fn().mockReturnValue(undefined),
+		getJwtExpiresIn: jest.fn().mockReturnValue('7d'),
+		getSupabaseUrl: jest.fn().mockReturnValue('https://test.supabase.co'),
+		getSupabaseSecretKey: jest.fn().mockReturnValue('test-supabase-key'),
+		getSupabasePublishableKey: jest.fn().mockReturnValue('test-pub-key'),
+		getSupabaseProjectRef: jest.fn().mockReturnValue('test-project-ref'),
+		getSupabaseAuthWebhookSecret: jest.fn().mockReturnValue('test-webhook-secret'),
+
+		// CORS
+		getCorsOrigins: jest.fn().mockReturnValue(undefined),
+		getCorsOriginsArray: jest.fn().mockReturnValue([]),
+
+		// Rate Limiting
+		getRateLimitTtl: jest.fn().mockReturnValue(undefined),
+		getRateLimitLimit: jest.fn().mockReturnValue(undefined),
+		isRateLimitingEnabled: jest.fn().mockReturnValue(true),
+
+		// Stripe
+		getStripeSecretKey: jest.fn().mockReturnValue('test-stripe-key'),
+		getStripePublishableKey: jest.fn().mockReturnValue('test-stripe-pub-key'),
+		getStripeWebhookSecret: jest.fn().mockReturnValue('test-stripe-secret'),
+		getStripePriceIds: jest.fn().mockReturnValue({}),
+		getStripeConnectDefaultCountry: jest.fn().mockReturnValue('US'),
+
+		// Redis
+		getRedisUrl: jest.fn().mockReturnValue(undefined),
+		getRedisHost: jest.fn().mockReturnValue(undefined),
+		getRedisPort: jest.fn().mockReturnValue(undefined),
+		getRedisPassword: jest.fn().mockReturnValue(undefined),
+		getRedisDb: jest.fn().mockReturnValue(undefined),
+		getRedisConfig: jest.fn().mockReturnValue({}),
+
+		// Logging
+		getLogLevel: jest.fn().mockReturnValue('debug'),
+
+		// Monitoring
+		isMetricsEnabled: jest.fn().mockReturnValue(false),
+
+		// File Storage
+		getStorageProvider: jest.fn().mockReturnValue('local'),
+		getStorageBucket: jest.fn().mockReturnValue('test-bucket'),
+
+		// Email
+		getFromEmail: jest.fn().mockReturnValue(undefined),
+		getTestResendApiKey: jest.fn().mockReturnValue(undefined),
+		getResendFromEmail: jest.fn().mockReturnValue('test@example.com'),
+		getResendApiKey: jest.fn().mockReturnValue('test-resend-key'),
+
+		// Security
+		getCsrfSecret: jest.fn().mockReturnValue(undefined),
+		getSessionSecret: jest.fn().mockReturnValue(undefined),
+
+		// Features
+		isSwaggerEnabled: jest.fn().mockReturnValue(false),
+
+		// Platform Detection
+		isRailway: jest.fn().mockReturnValue(false),
+		isVercel: jest.fn().mockReturnValue(false),
+		isDocker: jest.fn().mockReturnValue(false),
+		isLocalhostCorsAllowed: jest.fn().mockReturnValue(true),
+
+		// Generic Getter
+		get: jest.fn(),
+
+		// Support
+		getSupportEmail: jest.fn().mockReturnValue('support@example.com'),
+		getSupportPhone: jest.fn().mockReturnValue('(555) 123-4567'),
+
+		// Security
+		getIdempotencyKeySecret: jest.fn().mockReturnValue('test-idempotency-key'),
+
+		// Additional properties that might exist on the service
+		supabaseJwtAlgorithm: 'ES256',
+		supabaseJwtSecret: 'test-jwt-secret'
+	} as unknown as jest.Mocked<AppConfigService>
 }

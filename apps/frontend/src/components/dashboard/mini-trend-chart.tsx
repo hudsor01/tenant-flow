@@ -24,7 +24,12 @@ export function MiniTrendChart({
 }: MiniTrendChartProps) {
   if (isLoading) {
     return (
-      <Card className={cn('animate-pulse', className)}>
+      <Card
+        className={cn(
+          'dashboard-card-surface dashboard-mini-chart animate-pulse',
+          className
+        )}
+      >
         <CardHeader>
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
@@ -37,7 +42,9 @@ export function MiniTrendChart({
 
   if (!data || data.length === 0) {
     return (
-      <Card className={className}>
+      <Card
+        className={cn('dashboard-card-surface dashboard-mini-chart', className)}
+      >
         <CardHeader>
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
@@ -51,7 +58,9 @@ export function MiniTrendChart({
   }
 
   return (
-    <Card className={className}>
+    <Card
+      className={cn('dashboard-card-surface dashboard-mini-chart', className)}
+    >
       <CardHeader>
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>

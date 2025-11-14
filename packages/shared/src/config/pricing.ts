@@ -319,5 +319,41 @@ export function getStripePriceId(
 		: plan.stripePriceIds.annual
 }
 
+// Plan features for UI display
+export const PLAN_FEATURES = {
+	starter: [
+		'Up to 5 properties',
+		'Up to 25 units',
+		'Unlimited tenants',
+		'Online rent collection',
+		'Lease management',
+		'Maintenance tracking',
+		'10GB document storage',
+		'Priority email support'
+	],
+	growth: [
+		'Up to 20 properties',
+		'Up to 100 units',
+		'Everything in Starter',
+		'Automated rent reminders',
+		'Late fee automation',
+		'Advanced reporting',
+		'50GB document storage',
+		'Phone & email support',
+		'Mobile app access'
+	],
+	max: [
+		'Unlimited properties',
+		'Unlimited units',
+		'Everything in Growth',
+		'Custom integrations (API)',
+		'White-label options',
+		'Dedicated account manager',
+		'Unlimited storage',
+		'24/7 phone & chat support',
+		'Custom reports & analytics'
+	]
+} as const
+
 // Backward compatibility - alias the new name to the old one
 export const ENHANCED_PRODUCT_TIERS = PRICING_PLANS

@@ -4,7 +4,7 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
-} from '@repo/shared/types/backend-domain'
+} from '@repo/shared/types/api-contracts'
 import type {
 	MaintenanceRequest,
 	MaintenanceCategory

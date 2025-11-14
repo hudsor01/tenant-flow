@@ -1,6 +1,6 @@
 /**
- *  ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
- *
+ * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
+
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators (except @JwtToken/@UserId), validation layers, middleware
  */
@@ -33,7 +33,7 @@ export class MaintenanceController {
 
 	/**
 	 * Get all maintenance requests
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get()
 	async findAll(
@@ -98,7 +98,7 @@ export class MaintenanceController {
 			throw new BadRequestException('Limit must be between 1 and 50')
 		}
 
-		// ✅ RLS: Pass JWT token to service layer
+		// RLS: Pass JWT token to service layer
 		return this.maintenanceService.findAll(token, {
 			unitId,
 			propertyId,
@@ -114,7 +114,7 @@ export class MaintenanceController {
 
 	/**
 	 * Get maintenance statistics
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
@@ -123,7 +123,7 @@ export class MaintenanceController {
 
 	/**
 	 * Get urgent maintenance requests
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('urgent')
 	async getUrgent(@JwtToken() token: string) {
@@ -132,7 +132,7 @@ export class MaintenanceController {
 
 	/**
 	 * Get overdue maintenance requests
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get('overdue')
 	async getOverdue(@JwtToken() token: string) {
@@ -141,7 +141,7 @@ export class MaintenanceController {
 
 	/**
 	 * Get one maintenance request by ID
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Get(':id')
 	async findOne(
@@ -157,7 +157,7 @@ export class MaintenanceController {
 
 	/**
 	 * Create maintenance request
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() and @UserId() decorators
+	 * RLS COMPLIANT: Uses @JwtToken() and @UserId() decorators
 	 */
 	@Post()
 	async create(
@@ -170,7 +170,7 @@ export class MaintenanceController {
 
 	/**
 	 * Update maintenance request
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Put(':id')
 	async update(
@@ -178,7 +178,7 @@ export class MaintenanceController {
 		@Body() dto: UpdateMaintenanceDto,
 		@JwtToken() token: string
 	) {
-		// 🔐 Pass version for optimistic locking
+		// Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const maintenance = await this.maintenanceService.update(
 			token,
@@ -194,7 +194,7 @@ export class MaintenanceController {
 
 	/**
 	 * Delete maintenance request
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Delete(':id')
 	async remove(
@@ -207,7 +207,7 @@ export class MaintenanceController {
 
 	/**
 	 * Complete maintenance request
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Post(':id/complete')
 	async complete(
@@ -224,7 +224,7 @@ export class MaintenanceController {
 
 	/**
 	 * Cancel maintenance request
-	 * ✅ RLS COMPLIANT: Uses @JwtToken() decorator
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
 	@Post(':id/cancel')
 	async cancel(

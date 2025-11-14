@@ -12,7 +12,7 @@
  */
 
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
-import type { SecurityHeadersConfig } from '@repo/shared/types/api-contracts'
+import type { SecurityHeadersConfig } from '@repo/shared/types/security'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { Request, Response } from 'express'
 
@@ -63,7 +63,6 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 				errorType: error instanceof Error ? error.constructor.name : 'Unknown',
 				errorMessage: error instanceof Error ? error.message : String(error)
 			})
-			// Continue without security headers rather than blocking request
 			next()
 		}
 	}

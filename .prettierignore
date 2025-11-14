@@ -8,7 +8,6 @@ coverage/
 # Generated files
 apps/frontend/src/routeTree.gen.ts
 apps/frontend/src/types/backend-app-router.d.ts
-packages/database/src/generated/
 
 # Node modules
 node_modules/

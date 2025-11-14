@@ -1,6 +1,6 @@
 /**
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
- *
+
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
  * FORBIDDEN: Custom decorators, DTOs, validation layers, middleware
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
@@ -35,7 +35,7 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
 import { TenantsService } from './tenants.service'
-import { TenantInvitationService } from './tenant-invitation.service'
+import { TenantInvitationService, type TenantInvitationResult } from './tenant-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
@@ -276,7 +276,7 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
+	 * NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system
 	 */
 	@Post(':id/invite-v2')
@@ -295,8 +295,8 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ MODERN: Invite tenant with lease using Stripe + Supabase
-	 *
+	 * MODERN: Invite tenant with lease using Stripe + Supabase
+
 	 * Architecture:
 	 * - PropertyOwnershipGuard: Verifies user owns the property
 	 * - StripeConnectedGuard: Verifies user has completed Stripe onboarding
@@ -311,7 +311,7 @@ export class TenantsController {
 		@Body() body: InviteWithLeaseDto,
 		@Req() req: AuthenticatedRequest,
 		@ConnectedAccountId() connectedAccountId: string
-	) {
+	): Promise<TenantInvitationResult> {
 		const userId = req.user.id
 
 		return this.tenantInvitationService.inviteTenantWithLease(
@@ -359,7 +359,7 @@ export class TenantsController {
 	}
 
 	/**
-	 * ✅ NEW: Activate tenant from Supabase Auth user (Phase 3.1)
+	 * NEW: Activate tenant from Supabase Auth user (Phase 3.1)
 	 * Called from frontend after successful invitation acceptance
 	 * Public endpoint - authenticated via Supabase Auth session
 	 */

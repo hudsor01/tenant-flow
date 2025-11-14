@@ -23,7 +23,6 @@ import { AnalyticsModule } from './modules/analytics/analytics.module'
 import { StripeModule } from './modules/billing/stripe.module'
 import { ContactModule } from './modules/contact/contact.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
-import { FAQModule } from './modules/faq/faq.module'
 import { FinancialModule } from './modules/financial/financial.module'
 import { LateFeesModule } from './modules/late-fees/late-fees.module'
 import { LeasesModule } from './modules/leases/leases.module'
@@ -45,7 +44,6 @@ import { RequestTimingMiddleware } from './shared/middleware/request-timing.midd
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { SupabaseHelpersModule } from './shared/supabase/supabase-helpers.module'
-import { StripeConnectModule } from './stripe-connect/stripe-connect.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
@@ -121,7 +119,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		StripeModule,
 		StripeSyncModule,
 		ContactModule,
-		FAQModule,
 		DashboardModule,
 		FinancialModule,
 		PropertiesModule,
@@ -133,7 +130,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		MaintenanceModule,
 		NotificationsModule,
 		RentPaymentsModule,
-		StripeConnectModule,
 		SubscriptionsModule,
 		UsersModule,
 		SecurityModule,

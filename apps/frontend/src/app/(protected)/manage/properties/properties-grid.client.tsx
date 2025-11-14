@@ -60,7 +60,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 
 	if (optimisticProperties.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center py-16 text-center">
+			<div className="flex flex-col items-center justify-center section-spacing text-center">
 				<Building2 className="size-16 text-muted-foreground mb-4" />
 				<h3 className="text-lg font-semibold mb-2">No properties yet</h3>
 				<p className="text-sm text-muted-foreground max-w-md">
