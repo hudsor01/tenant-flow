@@ -39,7 +39,6 @@ tests
 apps/backend
 
 # Package managers - keep only package.json and pnpm lock
-pnpm-lock.yaml
 !pnpm-lock.yaml
 
 # Dependencies that are heavy and not needed in serverless
@@ -90,7 +89,6 @@ _.sqlite
 
 # Reduce deployment size
 
-node_modules
 .turbo
 dist/
 build/

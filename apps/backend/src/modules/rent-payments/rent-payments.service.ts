@@ -432,6 +432,7 @@ export class RentPaymentsService {
 		const { data, error } = await client
 			.from('rent_payment')
 			.select('*')
+			.order('createdAt', { ascending: false })
 
 		if (error) {
 			this.logger.error('Failed to load payment history', {
@@ -469,7 +470,7 @@ export class RentPaymentsService {
 		// RLS automatically filters payments to user's scope
 		const { data, error } = await client
 			.from('rent_payment')
-			.select('*')
+			.select('id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId')
 			.eq('subscriptionId', subscriptionId)
 			.order('createdAt', { ascending: false })
 
@@ -501,7 +502,9 @@ export class RentPaymentsService {
 		const { data, error } = await client
 			.from('rent_payment')
 			.select('*')
+			.eq('status', 'failed')
 			.order('createdAt', { ascending: false })
+
 
 		if (error) {
 			this.logger.error('Failed to fetch failed payment attempts', {
