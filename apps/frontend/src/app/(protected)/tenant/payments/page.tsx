@@ -1,376 +1,44 @@
-/**
- * Tenant Rent Payment Page
- *
- * Allows tenants to make one-time rent payments using:
- * - Saved payment methods
- * - New payment method (Stripe Elements)
- * - Displays current rent amount and due date
- */
-
 'use client'
 
-import { TenantGuard } from '#components/auth/tenant-guard'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import { useCurrentLease } from '#hooks/api/use-lease'
-import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import {
-	useCreateRentPayment,
-	usePaymentStatus
-} from '#hooks/api/use-rent-payments'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { formatCurrency } from '@repo/shared/utils/currency'
-import {
-	AlertCircle,
-	Calendar,
-	CheckCircle2,
-	CreditCard,
-	DollarSign
-} from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { TenantPaymentRecord } from '@repo/shared/types/api-contracts'
+import { useTenantPaymentsHistory } from '#hooks/api/use-tenant-payments'
+import { formatCents } from '@repo/shared/lib/format'
 
-export default function TenantPaymentPage() {
-	const router = useRouter()
-	const { data: lease, isLoading: leaseLoading } = useCurrentLease()
-	const { data: paymentMethods = [], isLoading: methodsLoading } =
-		usePaymentMethods()
-	const createRentPayment = useCreateRentPayment()
-
-	// Get real payment status from backend
-	const { data: paymentStatus, isLoading: statusLoading } = usePaymentStatus(
-		lease?.tenantId ?? ''
-	)
-
-	const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null)
-
-	useEffect(() => {
-		if (methodsLoading || selectedMethodId) return
-		if (paymentMethods.length === 0) return
-
-		const preferredMethod =
-			paymentMethods.find(method => method.isDefault) ?? paymentMethods[0]
-		if (preferredMethod) {
-			setSelectedMethodId(preferredMethod.id)
-		}
-	}, [methodsLoading, paymentMethods, selectedMethodId])
-
-	// Format next due date for display
-	const formatDueDate = (dateString: string | null) => {
-		if (!dateString) return 'No upcoming payment'
-		return new Date(dateString).toLocaleDateString('en-US', {
-			month: 'long',
-			day: 'numeric',
-			year: 'numeric'
-		})
-	}
-
-	const handlePayment = async () => {
-		if (!selectedMethodId) {
-			toast.error('Please select a payment method')
-			return
-		}
-
-		if (!lease || !lease.tenantId) {
-			toast.error('No active lease found')
-			return
-		}
-
-		try {
-			// Use outstanding balance from payment status if available, otherwise fall back to lease rent amount
-			const amountInCents =
-				paymentStatus && typeof paymentStatus.outstandingBalance === 'number'
-					? Math.max(0, paymentStatus.outstandingBalance) // Already in cents from backend
-					: Math.round(lease.rentAmount * 100) // Convert dollars to cents
-
-			const response = await createRentPayment.mutateAsync({
-				tenantId: lease.tenantId,
-				leaseId: lease.id,
-				amount: amountInCents,
-				paymentMethodId: selectedMethodId
-			})
-
-			if (response.success) {
-				toast.success('Payment submitted successfully!', {
-					description: `${formatCurrency(lease.rentAmount)} has been charged to your payment method.`
-				})
-
-				// Redirect to payment history after success
-				router.push('/tenant/payments/history')
-			} else {
-				throw new Error('Payment failed - no success status')
-			}
-		} catch (error) {
-			handleMutationError(error, 'Process rent payment', 'Payment failed. Please try again or contact support if the issue persists.')
-		}
-	}
+export default function TenantPaymentsPage() {
+	const paymentsQuery = useTenantPaymentsHistory({ limit: 20 })
 
 	return (
-		<TenantGuard>
-		<div className="max-w-4xl mx-auto space-y-8">
-			<div>
-				<h1 className="text-3xl font-bold tracking-tight">Pay Rent</h1>
-				<p className="text-muted-foreground">
-					Make a one-time rent payment using your saved payment method
-				</p>
-			</div>
-
-			{/* Payment Summary */}
-			<div className="grid gap-4 md:grid-cols-3">
-				<CardLayout title="Amount Due" description="Outstanding balance">
-					<div className="flex items-center gap-3">
-						<DollarSign className="size-8 text-primary" />
-						<div>
-							{statusLoading || !paymentStatus ? (
-								<Skeleton className="h-8 w-32" />
-							) : (
-								<p className="text-3xl font-bold text-primary">
-									{formatCurrency(paymentStatus.outstandingBalance / 100)}
-								</p>
-							)}
-							<p className="text-sm text-muted-foreground mt-1">
-								{leaseLoading || !lease ? (
-									<Skeleton className="h-4 w-24" />
-								) : (
-									`Monthly rent: ${formatCurrency(lease.rentAmount)}`
-								)}
-							</p>
-						</div>
-					</div>
-				</CardLayout>
-
-				<CardLayout title="Due Date" description="Next payment deadline">
-					<div className="flex items-center gap-3">
-						<Calendar className="size-8 text-amber-600 dark:text-amber-400" />
-						<div>
-							{statusLoading || !paymentStatus ? (
-								<Skeleton className="h-7 w-40" />
-							) : (
-								<p className="text-2xl font-bold">
-									{formatDueDate(paymentStatus.nextDueDate)}
-								</p>
-							)}
-							<p className="text-sm text-muted-foreground mt-1">
-								{statusLoading || !paymentStatus ? (
-									<Skeleton className="h-4 w-16" />
-								) : paymentStatus.isOverdue ? (
-									<span className="text-destructive font-medium">Overdue</span>
-								) : (
-									'On time'
-								)}
-							</p>
-						</div>
-					</div>
-				</CardLayout>
-
-				<CardLayout title="Payment Status" description="Current status">
-					<div className="flex items-center gap-3">
-						{statusLoading || !paymentStatus ? (
-							<Skeleton className="h-8 w-32" />
-						) : paymentStatus.status === 'OVERDUE' ||
-						  paymentStatus.status === 'DUE' ? (
-							<>
-								<AlertCircle className="size-8 text-destructive" />
-								<div>
-									<p className="text-lg font-semibold text-destructive">
-										{paymentStatus.status === 'OVERDUE'
-											? 'Overdue'
-											: 'Payment Due'}
-									</p>
-									<p className="text-sm text-muted-foreground mt-1">
-										Please pay now
-									</p>
-								</div>
-							</>
-						) : paymentStatus.status === 'PENDING' ? (
-							<>
-								<AlertCircle className="size-8 text-amber-600 dark:text-amber-400" />
-								<div>
-									<p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
-										Processing
-									</p>
-									<p className="text-sm text-muted-foreground mt-1">
-										Payment pending
-									</p>
-								</div>
-							</>
-						) : (
-							<>
-								<CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
-								<div>
-									<p className="text-lg font-semibold text-green-600 dark:text-green-400">
-										Paid
-									</p>
-									<p className="text-sm text-muted-foreground mt-1">
-										Up to date
-									</p>
-								</div>
-							</>
-						)}
-					</div>
-				</CardLayout>
-			</div>
-
-			{/* Payment Method Selection */}
-			<CardLayout
-				title="Select Payment Method"
-				description="Choose how you want to pay"
-			>
-				<div className="space-y-4">
-					{methodsLoading && (
-						<div className="space-y-2">
-							<Skeleton className="h-16 w-full" />
-							<Skeleton className="h-16 w-full" />
-						</div>
-					)}
-
-					{!methodsLoading && paymentMethods.length === 0 && (
-						<div className="text-center py-8">
-							<CreditCard className="size-12 text-muted-foreground mx-auto mb-4" />
-							<p className="text-muted-foreground mb-4">
-								No payment methods saved yet
-							</p>
-							<Link href="/tenant/payments/methods">
-								<Button>Add Payment Method</Button>
-							</Link>
-						</div>
-					)}
-
-					{!methodsLoading &&
-						paymentMethods.map(method => (
-							<button
-							type="button"
-							key={method.id}
-							onClick={() => setSelectedMethodId(method.id)}
-								className={`w-full flex items-center justify-between p-4 border rounded-lg transition-all ${
-									selectedMethodId === method.id
-										? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-										: 'border-border hover:border-primary/40 hover:bg-accent/30'
-								}`}
-								disabled={createRentPayment.isPending}
-							>
-								<div className="flex items-center gap-4">
-									<div
-										className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-											selectedMethodId === method.id
-												? 'border-primary bg-primary'
-												: 'border-border'
-										}`}
-									>
-										{selectedMethodId === method.id && (
-											<div className="w-2 h-2 rounded-full bg-white" />
-										)}
+		<main className="flex-1 space-y-6 px-6 py-8">
+			<Card>
+				<CardHeader>
+					<CardTitle>Payment history</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{paymentsQuery.isLoading ? (
+						<Skeleton className="h-32" />
+					) : (
+						<div className="divide-y">
+						{paymentsQuery.data?.payments.length ? (
+							paymentsQuery.data.payments.map((payment: TenantPaymentRecord) => (
+									<div key={payment.id} className="flex items-center justify-between py-3">
+										<div>
+											<div className="text-sm font-semibold">{formatCents(payment.amount)}</div>
+											<div className="text-xs text-muted-foreground">
+												{payment.description || 'Stripe payment intent'}
+											</div>
+										</div>
+										<div className="text-xs text-muted-foreground">{payment.createdAt ?? 'Date pending'}</div>
 									</div>
-									<CreditCard className="size-5 text-primary" />
-									<div className="text-left">
-										<p className="font-medium">
-											{method.brand || 'Card'} •••• {method.last4}
-										</p>
-									</div>
-								</div>
-								{method.isDefault && (
-									<Badge variant="outline" className="bg-primary/10">
-										Default
-									</Badge>
-								)}
-							</button>
-						))}
-
-					{!methodsLoading && paymentMethods.length > 0 && (
-						<Link href="/tenant/payments/methods">
-							<Button variant="outline" className="w-full">
-								Add New Payment Method
-							</Button>
-						</Link>
+								))
+							) : (
+								<div className="text-sm text-muted-foreground">No payments recorded yet.</div>
+							)}
+						</div>
 					)}
-				</div>
-			</CardLayout>
-
-			{/* Payment Summary & Submit */}
-			{lease && paymentMethods.length > 0 && (
-				<CardLayout title="Payment Summary" description="Review before paying">
-					<div className="space-y-6">
-						<div className="space-y-3">
-							<div className="flex items-center justify-between py-2">
-								<span className="text-muted-foreground">Monthly Rent</span>
-								<span className="font-semibold">
-									{formatCurrency(lease.rentAmount)}
-								</span>
-							</div>
-							<div className="flex items-center justify-between py-2 border-t">
-								<span className="text-muted-foreground">Processing Fee</span>
-								<span className="font-semibold">$0.00</span>
-							</div>
-							<div className="flex items-center justify-between py-3 border-t border-border/60">
-								<span className="text-lg font-bold">Total Amount</span>
-								<span className="text-2xl font-bold text-primary">
-									{formatCurrency(lease.rentAmount)}
-								</span>
-							</div>
-						</div>
-
-						<div className="flex gap-4 pt-4">
-							<Link href="/tenant" className="flex-1">
-								<Button
-									variant="outline"
-									className="w-full"
-									disabled={createRentPayment.isPending}
-								>
-									Cancel
-								</Button>
-							</Link>
-							<Button
-								className="flex-1"
-								onClick={handlePayment}
-								disabled={!selectedMethodId || createRentPayment.isPending}
-							>
-								{createRentPayment.isPending ? (
-									<>
-										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-										Processing...
-									</>
-								) : (
-									<>
-										<CreditCard className="size-4 mr-2" />
-										Pay {formatCurrency(lease.rentAmount)}
-									</>
-								)}
-							</Button>
-						</div>
-
-						<p className="text-xs text-center text-muted-foreground">
-							Your payment will be processed securely through Stripe. You will
-							receive an email receipt upon successful payment.
-						</p>
-					</div>
-				</CardLayout>
-			)}
-
-			{/* Quick Links */}
-			<div className="flex gap-4 text-sm">
-				<Link
-					href="/tenant/payments/history"
-					className="text-primary hover:underline"
-				>
-					View Payment History
-				</Link>
-				<span className="text-muted-foreground">•</span>
-				<Link
-					href="/tenant/payments/methods"
-					className="text-primary hover:underline"
-				>
-					Manage Payment Methods
-				</Link>
-				<span className="text-muted-foreground">•</span>
-				<Link href="/tenant/lease" className="text-primary hover:underline">
-					View Lease Details
-				</Link>
-			</div>
-		</div>
-		</TenantGuard>
+				</CardContent>
+			</Card>
+		</main>
 	)
 }

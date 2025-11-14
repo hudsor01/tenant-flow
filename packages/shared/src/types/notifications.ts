@@ -82,12 +82,7 @@ export interface WebSocketMessage {
 	id?: string
 }
 
-export interface WebSocketState {
-	isConnected: boolean
-	lastMessage: WebSocketMessage | null
-	error: string | null
-	reconnectCount: number
-}
+
 
 export interface UseWebSocketOptions {
 	autoConnect?: boolean
