@@ -15,18 +15,21 @@ import {
 	NestMiddleware,
 	OnModuleDestroy
 } from '@nestjs/common'
-import type {
-	RateLimitConfig,
-	RateLimitWindow
-} from '@repo/shared/types/backend-domain'
 import type { Request, Response } from 'express'
 
 // Extend the shared interfaces for local needs
-interface ExtendedRateLimitWindow extends RateLimitWindow {
+interface ExtendedRateLimitWindow {
+	requests: number
+	resetTime: number
 	firstRequest: number
 }
 
-interface ExtendedRateLimitConfig extends RateLimitConfig {
+interface ExtendedRateLimitConfig {
+	windowMs: number
+	maxRequests: number
+	keyGenerator?: (req: Request) => string
+	skipSuccessfulRequests?: boolean
+	skipFailedRequests?: boolean
 	burst?: number
 }
 
