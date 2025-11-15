@@ -141,7 +141,7 @@ describe('LateFeesService', () => {
 			}
 
 			// Mock queryHelpers.querySingle to return lease data directly (production behavior)
-			mockQueryHelpers.querySingle!.mockResolvedValue(mockLease)
+			;(mockQueryHelpers.querySingle as jest.Mock).mockResolvedValue(mockLease)
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -165,7 +165,7 @@ describe('LateFeesService', () => {
 
 			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
 			const { NotFoundException } = require('@nestjs/common')
-			mockQueryHelpers.querySingle!.mockRejectedValue(
+			;(mockQueryHelpers.querySingle as jest.Mock).mockRejectedValue(
 				new NotFoundException('lease not found')
 			)
 
@@ -188,7 +188,7 @@ describe('LateFeesService', () => {
 			}
 
 			// Mock queryHelpers.querySingle to return lease with null values
-			mockQueryHelpers.querySingle!.mockResolvedValue(mockLease)
+			;(mockQueryHelpers.querySingle as jest.Mock).mockResolvedValue(mockLease)
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -415,7 +415,7 @@ describe('LateFeesService', () => {
 				.mockResolvedValue(mockOverduePayments)
 
 			// Mock queryHelpers.querySingle for user data (production behavior)
-			mockQueryHelpers.querySingle!.mockResolvedValue({
+			;(mockQueryHelpers.querySingle as jest.Mock).mockResolvedValue({
 				stripeCustomerId: 'cus_123'
 			})
 
@@ -483,7 +483,7 @@ describe('LateFeesService', () => {
 
 			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
 			const { NotFoundException } = require('@nestjs/common')
-			mockQueryHelpers.querySingle!.mockRejectedValue(
+			;(mockQueryHelpers.querySingle as jest.Mock).mockRejectedValue(
 				new NotFoundException('user not found')
 			)
 

@@ -45,10 +45,7 @@ const STANDARD_SUBSCRIPTION_VALUE = 2999
 export class StripeDataService {
 	private readonly logger = new Logger(StripeDataService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
 	 * Get customer subscriptions - Direct Supabase query
@@ -63,14 +60,18 @@ export class StripeDataService {
 			}
 		)
 
-		const client = this.supabaseService.getAdminClient()
+		try {
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client
+				.from('stripe_subscriptions')
+				.select('*')
+				.eq('customer_id', customerId)
+				.limit(1000)
 
-		return this.queryHelpers.queryList<StripeSubscriptionDB>(
-			client.from('stripe_subscriptions').select('*').eq('customer_id', customerId),
-			{
-				resource: 'stripe_subscriptions',
-				operation: 'getCustomerSubscriptions',
-				metadata: { customerId }
+			if (error) {
+				throw new InternalServerErrorException(
+					'Failed to fetch customer subscriptions'
+				)
 			}
 
 			return validateDatabaseResponse(
@@ -98,14 +99,27 @@ export class StripeDataService {
 			customerId
 		})
 
-		const client = this.supabaseService.getAdminClient()
+		try {
+			const client = this.supabaseService.getAdminClient()
+			const { data, error } = await client
+				.from('stripe_customers')
+				.select('*')
+				.eq('id', customerId)
+				.limit(1)
+				.single()
 
-			return validateDatabaseResponse(data, stripeCustomerSchema)
+			if (error) {
+				throw new InternalServerErrorException('Failed to fetch customer')
+			}
+
+			return validateDatabaseResponse(data as StripeCustomerDB, stripeCustomerSchema)
 		} catch (error) {
 			if (error instanceof BadRequestException) {
 				throw error
 			}
-		)
+			this.logger.error('Error fetching customer:', error)
+			throw new InternalServerErrorException('Failed to fetch customer')
+		}
 	}
 
 	/**
@@ -116,19 +130,18 @@ export class StripeDataService {
 			activeOnly
 		})
 
-		const client = this.supabaseService.getAdminClient()
-		let queryBuilder = client.from('stripe_prices').select('*')
+		try {
+			const client = this.supabaseService.getAdminClient()
+			let queryBuilder = client.from('stripe_prices').select('*')
 
-		if (activeOnly) {
-			queryBuilder = queryBuilder.eq('active', true)
-		}
+			if (activeOnly) {
+				queryBuilder = queryBuilder.eq('active', true)
+			}
 
-		return this.queryHelpers.queryList<StripePriceDB>(
-			queryBuilder.limit(1000),
-			{
-				resource: 'stripe_prices',
-				operation: 'getPrices',
-				metadata: { activeOnly }
+			const { data, error } = await queryBuilder.limit(1000)
+
+			if (error) {
+				throw new InternalServerErrorException('Failed to fetch prices')
 			}
 
 			return validateDatabaseResponse(
@@ -149,19 +162,18 @@ export class StripeDataService {
 			activeOnly
 		})
 
-		const client = this.supabaseService.getAdminClient()
-		let queryBuilder = client.from('stripe_products').select('*')
+		try {
+			const client = this.supabaseService.getAdminClient()
+			let queryBuilder = client.from('stripe_products').select('*')
 
-		if (activeOnly) {
-			queryBuilder = queryBuilder.eq('active', true)
-		}
+			if (activeOnly) {
+				queryBuilder = queryBuilder.eq('active', true)
+			}
 
-		return this.queryHelpers.queryList<StripeProductDB>(
-			queryBuilder.limit(1000),
-			{
-				resource: 'stripe_products',
-				operation: 'getProducts',
-				metadata: { activeOnly }
+			const { data, error } = await queryBuilder.limit(1000)
+
+			if (error) {
+				throw new InternalServerErrorException('Failed to fetch products')
 			}
 
 			return validateDatabaseResponse(
