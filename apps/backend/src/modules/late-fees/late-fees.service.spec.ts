@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto'
 import type Stripe from 'stripe'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { LateFeesService } from './late-fees.service'
 
@@ -54,6 +55,12 @@ describe('LateFeesService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: SupabaseQueryHelpers,
+					useValue: {
+						querySingle: jest.fn()
+					}
 				},
 				{
 					provide: StripeClientService,
