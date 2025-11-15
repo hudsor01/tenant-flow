@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
+import { SupabaseHelpersModule } from '../../shared/supabase/supabase-helpers.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
 import { MetricsModule } from '../metrics/metrics.module'
@@ -35,6 +36,7 @@ import { UsersModule } from '../users/users.module'
 @Module({
 	imports: [
 		SupabaseModule,
+		SupabaseHelpersModule,
 		EmailModule,
 		SecurityModule,
 		MetricsModule,
