@@ -385,6 +385,13 @@ export class LeasesService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
+			// Validate rent amount (defense in depth - DTO should already validate)
+			if (!dto.rentAmount || dto.rentAmount <= 0) {
+				throw new BadRequestException(
+					'Rent amount must be greater than zero'
+				)
+			}
+
 			// Insert lease directly from DTO (matches database schema)
 			const { data, error } = await client
 				.from('lease')
@@ -470,8 +477,15 @@ export class LeasesService {
 		if (
 			updateRequest.rentAmount !== undefined &&
 			updateRequest.rentAmount !== null
-		)
+		) {
+			// Validate rent amount (defense in depth - DTO should already validate)
+			if (updateRequest.rentAmount <= 0) {
+				throw new BadRequestException(
+					'Rent amount must be greater than zero'
+				)
+			}
 			updateData.rentAmount = updateRequest.rentAmount
+		}
 		if (
 			updateRequest.securityDeposit !== undefined &&
 			updateRequest.securityDeposit !== null
