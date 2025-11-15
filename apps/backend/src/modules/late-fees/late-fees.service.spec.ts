@@ -87,7 +87,7 @@ describe('LateFeesService', () => {
 	})
 
 	afterEach(() => {
-		jest.clearAllMocks()
+		jest.resetAllMocks()
 	})
 
 	describe('calculateLateFee', () => {
@@ -141,7 +141,7 @@ describe('LateFeesService', () => {
 			}
 
 			// Mock queryHelpers.querySingle to return lease data directly (production behavior)
-			mockQueryHelpers.querySingle = jest.fn().mockResolvedValue(mockLease)
+			mockQueryHelpers.querySingle!.mockResolvedValue(mockLease)
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -165,9 +165,9 @@ describe('LateFeesService', () => {
 
 			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
 			const { NotFoundException } = require('@nestjs/common')
-			mockQueryHelpers.querySingle = jest
-				.fn()
-				.mockRejectedValue(new NotFoundException('lease not found'))
+			mockQueryHelpers.querySingle!.mockRejectedValue(
+				new NotFoundException('lease not found')
+			)
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -188,7 +188,7 @@ describe('LateFeesService', () => {
 			}
 
 			// Mock queryHelpers.querySingle to return lease with null values
-			mockQueryHelpers.querySingle = jest.fn().mockResolvedValue(mockLease)
+			mockQueryHelpers.querySingle!.mockResolvedValue(mockLease)
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -415,9 +415,9 @@ describe('LateFeesService', () => {
 				.mockResolvedValue(mockOverduePayments)
 
 			// Mock queryHelpers.querySingle for user data (production behavior)
-			mockQueryHelpers.querySingle = jest
-				.fn()
-				.mockResolvedValue({ stripeCustomerId: 'cus_123' })
+			mockQueryHelpers.querySingle!.mockResolvedValue({
+				stripeCustomerId: 'cus_123'
+			})
 
 			// Mock Stripe invoice item creation
 			const applyLateFeeToInvoiceSpy = jest
@@ -483,9 +483,9 @@ describe('LateFeesService', () => {
 
 			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
 			const { NotFoundException } = require('@nestjs/common')
-			mockQueryHelpers.querySingle = jest
-				.fn()
-				.mockRejectedValue(new NotFoundException('user not found'))
+			mockQueryHelpers.querySingle!.mockRejectedValue(
+				new NotFoundException('user not found')
+			)
 
 			await expect(
 				service.processLateFees(leaseId, 'mock-jwt-token', ownerId)
