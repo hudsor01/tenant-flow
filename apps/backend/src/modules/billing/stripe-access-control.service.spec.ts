@@ -2,7 +2,6 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import type { Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase'
 import { EmailService } from '../email/email.service'
 import { createMockEmailService } from '../../test-utils/mocks'
 import { StripeAccessControlService } from './stripe-access-control.service'
@@ -29,12 +28,6 @@ describe('StripeAccessControlService', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
-				},
-				{
-					provide: SupabaseQueryHelpers,
-					useValue: {
-						querySingle: jest.fn()
-					}
 				},
 				{
 					provide: EmailService,

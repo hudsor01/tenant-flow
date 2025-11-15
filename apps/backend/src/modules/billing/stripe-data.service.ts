@@ -53,22 +53,28 @@ export class StripeDataService {
 	async getCustomerSubscriptions(
 		customerId: string
 	): Promise<StripeSubscriptionDB[]> {
-		this.logger.log(
-			'Fetching customer subscriptions via direct Supabase query',
-			{
-				customerId
-			}
-		)
-
 		try {
+			this.logger.log(
+				'Fetching customer subscriptions via direct Supabase query',
+				{
+					customerId
+				}
+			)
+
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client
 				.from('stripe_subscriptions')
 				.select('*')
 				.eq('customer_id', customerId)
-				.limit(1000)
 
 			if (error) {
+				this.logger.error(
+					'Failed to fetch customer subscriptions from Supabase',
+					{
+						error: error.message,
+						customerId
+					}
+				)
 				throw new InternalServerErrorException(
 					'Failed to fetch customer subscriptions'
 				)
@@ -90,29 +96,36 @@ export class StripeDataService {
 	 * Get customer by ID - Direct Supabase query
 	 */
 	async getCustomer(customerId: string): Promise<StripeCustomerDB> {
-		if (!customerId) {
-			this.logger.error('Customer ID is required')
-			throw new BadRequestException('Customer ID is required')
-		}
-
-		this.logger.log('Fetching customer via direct Supabase query', {
-			customerId
-		})
-
 		try {
+			if (!customerId) {
+				this.logger.error('Customer ID is required')
+				throw new BadRequestException('Customer ID is required')
+			}
+
+			this.logger.log('Fetching customer via direct Supabase query', {
+				customerId
+			})
+
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client
 				.from('stripe_customers')
 				.select('*')
 				.eq('id', customerId)
-				.limit(1)
 				.single()
 
 			if (error) {
-				throw new InternalServerErrorException('Failed to fetch customer')
+				this.logger.error('Failed to fetch customer from Supabase', {
+					error: error.message,
+					customerId
+				})
+				throw new InternalServerErrorException('Customer not found')
 			}
 
-			return validateDatabaseResponse(data as StripeCustomerDB, stripeCustomerSchema)
+			if (!data) {
+				throw new InternalServerErrorException('Customer not found')
+			}
+
+			return validateDatabaseResponse(data, stripeCustomerSchema)
 		} catch (error) {
 			if (error instanceof BadRequestException) {
 				throw error
@@ -126,11 +139,11 @@ export class StripeDataService {
 	 * Get prices - Direct Supabase query
 	 */
 	async getPrices(activeOnly: boolean = true): Promise<StripePriceDB[]> {
-		this.logger.log('Fetching prices via direct Supabase query', {
-			activeOnly
-		})
-
 		try {
+			this.logger.log('Fetching prices via direct Supabase query', {
+				activeOnly
+			})
+
 			const client = this.supabaseService.getAdminClient()
 			let queryBuilder = client.from('stripe_prices').select('*')
 
@@ -141,6 +154,10 @@ export class StripeDataService {
 			const { data, error } = await queryBuilder.limit(1000)
 
 			if (error) {
+				this.logger.error('Failed to fetch prices from Supabase', {
+					error: error.message,
+					activeOnly
+				})
 				throw new InternalServerErrorException('Failed to fetch prices')
 			}
 
@@ -158,11 +175,11 @@ export class StripeDataService {
 	 * Get products - Direct Supabase query
 	 */
 	async getProducts(activeOnly: boolean = true): Promise<StripeProductDB[]> {
-		this.logger.log('Fetching products via direct Supabase query', {
-			activeOnly
-		})
-
 		try {
+			this.logger.log('Fetching products via direct Supabase query', {
+				activeOnly
+			})
+
 			const client = this.supabaseService.getAdminClient()
 			let queryBuilder = client.from('stripe_products').select('*')
 
@@ -173,6 +190,10 @@ export class StripeDataService {
 			const { data, error } = await queryBuilder.limit(1000)
 
 			if (error) {
+				this.logger.error('Failed to fetch products from Supabase', {
+					error: error.message,
+					activeOnly
+				})
 				throw new InternalServerErrorException('Failed to fetch products')
 			}
 

@@ -9,16 +9,12 @@ import type {
 } from '@repo/shared/types/core'
 import { THIRTY_DAYS_IN_MS } from '@repo/shared/constants/time'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 
 @Injectable()
 export class FinancialService {
 	private readonly logger = new Logger(FinancialService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers
-	) {}
+	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
 	 * Helper: Get unit IDs for user's properties
@@ -249,18 +245,16 @@ export class FinancialService {
 				return this.getEmptyLeaseSummary()
 			}
 
-			const leases = await this.queryHelpers.queryList<Lease>(
-				client
-					.from('lease')
-					.select('*')
-					.in('unitId', unitIds),
-				{
-					resource: 'lease',
-					operation: 'findAll'
-				}
-			)
+			const { data: leases, error } = await client
+				.from('lease')
+				.select('*')
+				.in('unitId', unitIds)
 
-			const leaseList = leases
+			if (error) {
+				throw new Error(`Failed to fetch leases: ${error.message}`)
+			}
+
+			const leaseList = leases || []
 			const now = new Date()
 			const thirtyDaysFromNow = new Date(
 				now.getTime() + THIRTY_DAYS_IN_MS
@@ -512,18 +506,21 @@ export class FinancialService {
 				query = query.lte('date', endDate.toISOString())
 			}
 
-			return await this.queryHelpers.queryList<ExpenseRecord>(
-				query,
-				{
-					resource: 'expense',
-					operation: 'findAll',
-					metadata: {
+			const { data, error } = await query
+			if (error) {
+				this.logger.error(
+					'Failed to fetch expense data for financial metrics',
+					{
+						error: error.message,
 						propertyCount: propertyIds.length,
 						startDate: startDate?.toISOString(),
 						endDate: endDate?.toISOString()
 					}
-				}
-			)
+				)
+				return []
+			}
+
+			return (data as ExpenseRecord[]) ?? []
 		} catch (error) {
 			this.logger.error(
 				'Unexpected error fetching expenses for financial metrics',

@@ -1,9 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 
 export interface GeneratedReportData {
 	userId: string
@@ -13,7 +11,7 @@ export interface GeneratedReportData {
 	startDate: string
 	endDate: string
 	fileBuffer?: Buffer
-	metadata?: Json
+	metadata?: Record<string, unknown>
 }
 
 export interface GeneratedReportRecord {
@@ -22,13 +20,13 @@ export interface GeneratedReportRecord {
 	reportType: string
 	reportName: string
 	format: string
-	status: string
+	status: 'generating' | 'completed' | 'failed'
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
 	startDate: string
 	endDate: string
-	metadata: Json | null
+	metadata: Record<string, unknown>
 	errorMessage: string | null
 	createdAt: string
 	updatedAt: string
@@ -39,10 +37,7 @@ export class GeneratedReportService {
 	private readonly logger = new Logger(GeneratedReportService.name)
 	private readonly reportsDir = path.join(process.cwd(), 'reports')
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers
-	) {
+	constructor(private readonly supabase: SupabaseService) {
 		this.ensureReportsDirectory()
 	}
 
@@ -81,29 +76,29 @@ export class GeneratedReportService {
 			}
 
 			// Insert record into database
-			return await this.queryHelpers.querySingle<GeneratedReportRecord>(
-				client
-					.from('generated_report')
-					.insert({
-						userId: data.userId,
-						reportType: data.reportType,
-						reportName: data.reportName,
-						format: data.format,
-						status: 'completed',
-						filePath,
-						fileSize,
-						startDate: data.startDate,
-						endDate: data.endDate,
-						metadata: data.metadata ?? null
-					})
-					.select()
-					.single(),
-				{
-					resource: 'generated_report',
-					operation: 'create',
-					userId: data.userId
-				}
-			)
+			const { data: record, error } = await client
+				.from('generated_report')
+				.insert({
+					userId: data.userId,
+					reportType: data.reportType,
+					reportName: data.reportName,
+					format: data.format,
+					status: 'completed',
+					filePath,
+					fileSize,
+					startDate: data.startDate,
+					endDate: data.endDate,
+					metadata: (data.metadata || {}) as never
+				})
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error(`Failed to create report record: ${error.message}`)
+				throw error
+			}
+
+			return record as GeneratedReportRecord
 		} catch (error) {
 			this.logger.error(`Report creation failed: ${error}`)
 			throw error
@@ -119,37 +114,28 @@ export class GeneratedReportService {
 		const offset = options?.offset || 0
 
 		try {
-			// Get total count and paginated records in parallel
-			const [count, reports] = await Promise.all([
-				this.queryHelpers.queryCount(
-					client
-						.from('generated_report')
-						.select('*', { count: 'exact', head: true })
-						.eq('userId', userId),
-					{
-						resource: 'generated_report',
-						operation: 'count',
-						userId
-					}
-				),
-				this.queryHelpers.queryList<GeneratedReportRecord>(
-					client
-						.from('generated_report')
-						.select('*')
-						.eq('userId', userId)
-						.order('createdAt', { ascending: false })
-						.range(offset, offset + limit - 1),
-					{
-						resource: 'generated_report',
-						operation: 'findAll',
-						userId
-					}
-				)
-			])
+			// Get total count
+			const { count } = await client
+				.from('generated_report')
+				.select('*', { count: 'exact', head: true })
+				.eq('userId', userId)
+
+			// Get paginated records
+			const { data: reports, error } = await client
+				.from('generated_report')
+				.select('*')
+				.eq('userId', userId)
+				.order('createdAt', { ascending: false })
+				.range(offset, offset + limit - 1)
+
+			if (error) {
+				this.logger.error(`Failed to fetch reports: ${error.message}`)
+				throw error
+			}
 
 			return {
-				reports,
-				total: count
+				reports: (reports || []) as GeneratedReportRecord[],
+				total: count || 0
 			}
 		} catch (error) {
 			this.logger.error(`Failed to fetch reports: ${error}`)
@@ -164,20 +150,18 @@ export class GeneratedReportService {
 		const client = this.supabase.getAdminClient()
 
 		try {
-			return await this.queryHelpers.querySingle<GeneratedReportRecord>(
-				client
-					.from('generated_report')
-					.select('*')
-					.eq('id', reportId)
-					.eq('userId', userId)
-					.single(),
-				{
-					resource: 'generated_report',
-					id: reportId,
-					operation: 'findOne',
-					userId
-				}
-			)
+			const { data: report, error } = await client
+				.from('generated_report')
+				.select('*')
+				.eq('id', reportId)
+				.eq('userId', userId)
+				.single()
+
+			if (error || !report) {
+				throw new NotFoundException(`Report not found: ${reportId}`)
+			}
+
+			return report as GeneratedReportRecord
 		} catch (error) {
 			this.logger.error(`Failed to fetch report ${reportId}: ${error}`)
 			throw error

@@ -1,67 +1,85 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 
 type UserInsert = Database['public']['Tables']['users']['Insert']
 type UserUpdate = Database['public']['Tables']['users']['Update']
-type UserRow = Database['public']['Tables']['users']['Row']
 
 @Injectable()
 export class UsersService {
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers
-	) {}
+	constructor(private readonly supabase: SupabaseService) {}
 
-	async findUserByEmail(email: string): Promise<UserRow> {
-		const client = this.supabase.getAdminClient()
+	async findUserByEmail(
+		email: string
+	): Promise<Database['public']['Tables']['users']['Row'] | null> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('*')
+			.eq('email', email)
+			.single()
 
-		return this.queryHelpers.querySingle<UserRow>(
-			client.from('users').select('*').eq('email', email).single(),
-			{
-				resource: 'user',
-				operation: 'findOne',
-				metadata: { email }
-			}
-		)
+		if (error) {
+			return null
+		}
+
+		return data
 	}
 
-	async createUser(userData: UserInsert): Promise<UserRow> {
-		const client = this.supabase.getAdminClient()
+	async createUser(
+		userData: UserInsert
+	): Promise<Database['public']['Tables']['users']['Row']> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.insert(userData)
+			.select()
+			.single()
 
-		return this.queryHelpers.querySingle<UserRow>(
-			client.from('users').insert(userData).select().single(),
-			{
-				resource: 'user',
-				operation: 'create'
-			}
-		)
+		if (error) {
+			throw new InternalServerErrorException(
+				`Failed to create user: ${error.message}`
+			)
+		}
+
+		return data
 	}
 
-	async updateUser(userId: string, userData: UserUpdate): Promise<UserRow> {
-		const client = this.supabase.getAdminClient()
+	async updateUser(
+		userId: string,
+		userData: UserUpdate
+	): Promise<Database['public']['Tables']['users']['Row']> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.update(userData)
+			.eq('id', userId)
+			.select()
+			.single()
 
-		return this.queryHelpers.querySingle<UserRow>(
-			client.from('users').update(userData).eq('id', userId).select().single(),
-			{
-				resource: 'user',
-				id: userId,
-				operation: 'update'
-			}
-		)
+		if (error) {
+			throw new InternalServerErrorException(
+				`Failed to update user: ${error.message}`
+			)
+		}
+
+		return data
 	}
 
-	async getUserById(userId: string): Promise<UserRow> {
-		const client = this.supabase.getAdminClient()
+	async getUserById(
+		userId: string
+	): Promise<Database['public']['Tables']['users']['Row'] | null> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('*')
+			.eq('id', userId)
+			.single()
 
-		return this.queryHelpers.querySingle<UserRow>(
-			client.from('users').select('*').eq('id', userId).single(),
-			{
-				resource: 'user',
-				id: userId,
-				operation: 'findOne'
-			}
-		)
+		if (error) {
+			return null
+		}
+
+		return data
 	}
 }
