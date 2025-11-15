@@ -6,6 +6,7 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import {
 	BadRequestException,
+	ConflictException,
 	Inject,
 	Injectable,
 	Logger,
@@ -27,7 +28,6 @@ import { propertyStatsSchema } from '@repo/shared/validation/database-rpc.schema
 import type { Cache } from 'cache-manager'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -52,15 +52,6 @@ function getTokenFromRequest(req: Request): string | null {
 	return authHeader.substring(7)
 }
 
-// Helper to safely extract authenticated user from request
-function requireAuthenticatedUser(req: Request): { id: string } {
-	const user = (req as AuthenticatedRequest).user
-	if (!user?.id) {
-		throw new UnauthorizedException('User information not available')
-	}
-	return user
-}
-
 // Validation constants (DRY principle)
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
 @Injectable()
@@ -73,7 +64,6 @@ export class PropertiesService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly storage: StorageService,
-		private readonly queryHelpers: SupabaseQueryHelpers,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
 		@Optional() @Inject(Logger) logger?: Logger
 	) {
@@ -106,17 +96,17 @@ export class PropertiesService {
 		userToken: string,
 		query: { search?: string | null; limit: number; offset: number }
 	): Promise<Property[]> {
-		// ✅ SECURITY FIX: Use user-scoped client (respects RLS with SUPABASE_PUBLISHABLE_KEY)
+		// SECURITY FIX: Use user-scoped client (respects RLS with SUPABASE_PUBLISHABLE_KEY)
 		const userClient = this.supabase.getUserClient(userToken)
 
 		let queryBuilder = userClient
 			.from('property')
 			.select('*')
-			// ✅ No manual ownerId filter needed - RLS automatically applies: WHERE ownerId = auth.uid()
+			// No manual ownerId filter needed - RLS automatically applies: WHERE ownerId = auth.uid()
 			.order('createdAt', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
 
-		// ✅ SECURITY: Already using safe multi-column search
+		// SECURITY: Already using safe multi-column search
 		if (query.search) {
 			const sanitized = sanitizeSearchInput(query.search)
 			if (sanitized) {
@@ -126,40 +116,51 @@ export class PropertiesService {
 			}
 		}
 
-		return this.queryHelpers.queryList<Property>(queryBuilder, {
-			resource: 'property',
-			operation: 'findAll'
-		})
+		const { data, error } = await queryBuilder
+
+		if (error) {
+			this.logger.error('Failed to fetch properties', { error })
+			return []
+		}
+
+		return (data || []) as Property[]
 	}
 
 	/**
 	 * Get single property by ID
 	 */
-	async findOne(req: Request, propertyId: string): Promise<Property> {
+	async findOne(req: AuthenticatedRequest, propertyId: string): Promise<Property | null> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new UnauthorizedException('Authentication required')
+			this.logger.warn('Property lookup requested without auth token', { propertyId })
+			return null
 		}
-		const client = this.supabase.getUserClient(token)
-		const { id: userId } = requireAuthenticatedUser(req)
 
-		return this.queryHelpers.querySingle<Property>(
-			client.from('property').select('*').eq('id', propertyId).single(),
-			{
-				resource: 'property',
-				id: propertyId,
-				operation: 'findOne',
-				userId
-			}
-		)
+		const client = this.supabase.getUserClient(token)
+
+		const { data, error } = await client
+			.from('property')
+			.select('*')
+			.eq('id', propertyId)
+			.single()
+
+		if (error || !data) {
+			this.logger.warn('Property not found or access denied', {
+				propertyId,
+				error
+			})
+			return null
+		}
+
+		return data as Property
 	}
 
 	/**
 	 * Create property with validation
-	 * ✅ October 2025: Validation now handled by ZodValidationPipe in controller
+	 * October 2025: Validation now handled by ZodValidationPipe in controller
 	 */
 	async create(
-		req: Request,
+		req: AuthenticatedRequest,
 		request: CreatePropertyRequest
 	): Promise<Property> {
 		const token = getTokenFromRequest(req)
@@ -168,10 +169,10 @@ export class PropertiesService {
 			throw new BadRequestException('Authentication required')
 		}
 
-		// ✅ NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
+		// NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
 		// RLS policy validates: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
 		// No need to query users table - just use the ID from the authenticated request
-		const { id: ownerId } = requireAuthenticatedUser(req)
+		const ownerId = req.user.id
 
 		// Zod validation already handles trim().min(1) - no need for redundant checks
 
@@ -198,22 +199,38 @@ export class PropertiesService {
 
 		this.logger.debug('Attempting to create property', { insertData })
 
-		const property = await this.queryHelpers.querySingle<Property>(
-			client.from('property').insert(insertData).select().single(),
-			{
-				resource: 'property',
-				operation: 'create',
-				userId: ownerId
-			}
-		)
+		const { data, error } = await client
+			.from('property')
+			.insert(insertData)
+			.select()
+			.single()
 
-		// 🚀 PERFORMANCE: Invalidate property stats cache after mutation
+		this.logger.debug('Supabase insert result', {
+			data,
+			error,
+			hasData: !!data,
+			hasError: !!error
+		})
+
+		if (error) {
+			this.logger.error('Failed to create property', { error })
+			throw new BadRequestException('Failed to create property')
+		}
+
+		if (!data) {
+			this.logger.error('No data returned from insert')
+			throw new BadRequestException(
+				'Failed to create property - no data returned'
+			)
+		}
+
+		// PERFORMANCE: Invalidate property stats cache after mutation
 		await this.invalidatePropertyStatsCache(ownerId)
 
 		this.logger.log('Property created successfully', {
-			propertyId: property.id
+			propertyId: data.id
 		})
-		return property
+		return data as Property
 	}
 
 	/**
@@ -222,7 +239,7 @@ export class PropertiesService {
 	 * Returns summary of success/errors for user feedback
 	 */
 	async bulkImport(
-		req: Request,
+		req: AuthenticatedRequest,
 		fileBuffer: Buffer
 	): Promise<{
 		success: boolean
@@ -237,7 +254,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const { id: userId } = requireAuthenticatedUser(req)
+		const userId = req.user.id
 
 		try {
 			// Parse CSV file using csv-parse (RFC 4180 compliant streaming parser)
@@ -291,7 +308,7 @@ export class PropertiesService {
 				)
 			}
 
-			// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
+			// Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 			const errors: Array<{ row: number; error: string }> = []
 			const validRows: Array<
 				Database['public']['Tables']['property']['Insert']
@@ -436,11 +453,11 @@ export class PropertiesService {
 	 * Update property with validation
 	 */
 	async update(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string,
 		request: UpdatePropertyRequest,
 		expectedVersion?: number //Optimistic locking
-	): Promise<Property> {
+	): Promise<Property | null> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.error('No authentication token found in request')
@@ -449,8 +466,10 @@ export class PropertiesService {
 
 		const client = this.supabase.getUserClient(token)
 
-		// Verify ownership through RLS (throws NotFoundException if not found)
+		// Verify ownership through RLS
 		const existing = await this.findOne(req, propertyId)
+		if (!existing)
+			throw new BadRequestException('Property not found or access denied')
 
 		// Validate fields if provided
 		if (request.name && !request.name.trim()) {
@@ -466,7 +485,7 @@ export class PropertiesService {
 		// Build update object conditionally per exactOptionalPropertyTypes
 		const updateData: Database['public']['Tables']['property']['Update'] = {
 			updatedAt: new Date().toISOString(),
-			// 🔐 OPTIMISTIC LOCKING: Increment version on every update
+			// OPTIMISTIC LOCKING: Increment version on every update
 			version: (existing.version || 0) + 1
 		}
 
@@ -485,47 +504,47 @@ export class PropertiesService {
 		}
 
 		//Add version check for optimistic locking
-		const query = client.from('property').update(updateData).eq('id', propertyId)
-		const { id: userId } = requireAuthenticatedUser(req)
+		let query = client.from('property').update(updateData).eq('id', propertyId)
 
-		let updatedProperty: Property
-
-		// Use version-aware query if expectedVersion provided
+		// Add version check if expectedVersion provided
 		if (expectedVersion !== undefined) {
-			updatedProperty = await this.queryHelpers.querySingleWithVersion<Property>(
-				query.eq('version', expectedVersion).select().single(),
-				{
-					resource: 'property',
-					id: propertyId,
-					operation: 'update',
-					userId,
-					metadata: { expectedVersion }
-				}
-			)
-		} else {
-			// Otherwise use regular query
-			updatedProperty = await this.queryHelpers.querySingle<Property>(
-				query.select().single(),
-				{
-					resource: 'property',
-					id: propertyId,
-					operation: 'update',
-					userId
-				}
-			)
+			query = query.eq('version', expectedVersion)
+		}
+
+		const { data, error } = await query.select().single()
+
+		if (error || !data) {
+			//Detect optimistic locking conflict
+			if (error?.code === 'PGRST116' || !data) {
+				// PGRST116 = 0 rows affected (version mismatch)
+				this.logger.warn('Optimistic locking conflict detected', {
+					propertyId,
+					expectedVersion
+				})
+				throw new ConflictException(
+					'Property was modified by another user. Please refresh and try again.'
+				)
+			}
+
+			this.logger.error('Failed to update property', {
+				error,
+				propertyId
+			})
+			throw new BadRequestException('Failed to update property')
 		}
 
 		// PERFORMANCE: Invalidate property stats cache after update
+		const userId = req.user.id
 		await this.invalidatePropertyStatsCache(userId)
 
-		return updatedProperty
+		return data as Property
 	}
 
 	/**
 	 * Delete property (soft delete)
 	 */
 	async remove(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string
 	): Promise<{ success: boolean; message: string }> {
 		const token = getTokenFromRequest(req)
@@ -535,11 +554,13 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const { id: userId } = requireAuthenticatedUser(req)
-		// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
+		const userId = req.user.id
+		// Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 
-		// Verify ownership through RLS (throws NotFoundException if not found)
+		// Verify ownership through RLS
 		const existing = await this.findOne(req, propertyId)
+		if (!existing)
+			throw new BadRequestException('Property not found or access denied')
 
 		//Use Saga pattern for transactional delete with compensation
 		let imageFilePath: string | null = null
@@ -642,7 +663,7 @@ export class PropertiesService {
 							status:
 								'INACTIVE' as Database['public']['Enums']['PropertyStatus'],
 							updatedAt: new Date().toISOString(),
-							// 🔐 OPTIMISTIC LOCKING: Increment version on soft delete
+							// OPTIMISTIC LOCKING: Increment version on soft delete
 							version: (existing.version || 0) + 1
 						})
 						.eq('id', propertyId)
@@ -740,7 +761,7 @@ export class PropertiesService {
 			completedSteps: result.completedSteps
 		})
 
-		// 🚀 PERFORMANCE: Invalidate property stats cache after deletion
+		// PERFORMANCE: Invalidate property stats cache after deletion
 		await this.invalidatePropertyStatsCache(userId)
 
 		return { success: true, message: 'Property deleted successfully' }
@@ -750,8 +771,8 @@ export class PropertiesService {
 	 * Get property statistics with caching
 	 * SECURITY FIX #6: User-specific cache key to prevent cache poisoning
 	 */
-	async getStats(req: Request): Promise<PropertyStats> {
-		const { id: userId } = requireAuthenticatedUser(req)
+	async getStats(req: AuthenticatedRequest): Promise<PropertyStats> {
+		const userId = req.user.id
 
 		// SECURITY FIX #6: Include userId in cache key to prevent cross-user data leakage
 		const cacheKey = `property-stats:${userId}`
@@ -763,7 +784,7 @@ export class PropertiesService {
 			return cached
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -814,11 +835,11 @@ export class PropertiesService {
 	): Promise<Property[]> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new UnauthorizedException('Authentication required')
+			this.logger.error('No authentication token found in request')
+			return []
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const { id: userId } = requireAuthenticatedUser(req)
 
 		// Clamp pagination values
 		const limit = Math.min(Math.max(query.limit || 10, 1), 100)
@@ -826,7 +847,7 @@ export class PropertiesService {
 
 		let queryBuilder = client
 			.from('property')
-			// 🚀 PERFORMANCE FIX: Eager load nested relations to prevent N+1 queries
+			// PERFORMANCE FIX: Eager load nested relations to prevent N+1 queries
 			// Previously: .select('*, units:unit(*)')
 			// Now includes lease data on units to avoid 200+ additional queries
 			.select('*, units:unit(*, lease(*))')
@@ -843,21 +864,26 @@ export class PropertiesService {
 			}
 		}
 
-		return this.queryHelpers.queryList<Property>(queryBuilder, {
-			resource: 'property',
-			operation: 'findAllWithUnits',
-			userId
-		})
+		const { data, error } = await queryBuilder
+
+		if (error) {
+			this.logger.error('Failed to fetch properties with units', {
+				error
+			})
+			return []
+		}
+
+		return (data || []) as Property[]
 	}
 
 	/**
 	 * Get property performance analytics
 	 */
 	async getPropertyPerformanceAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; timeframe: string; limit?: number }
 	) {
-		const { id: userId } = requireAuthenticatedUser(req)
+		const userId = req.user.id
 
 		// Validate using constant
 		if (
@@ -871,12 +897,14 @@ export class PropertiesService {
 		}
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
-		// findOne() throws NotFoundException if not found or access denied
 		if (query.propertyId) {
-			await this.findOne(req, query.propertyId)
+			const property = await this.findOne(req, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -909,18 +937,20 @@ export class PropertiesService {
 	 * Get property occupancy analytics
 	 */
 	async getPropertyOccupancyAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; period?: string }
 	): Promise<unknown[]> {
-		const { id: userId } = requireAuthenticatedUser(req)
+		const userId = req.user.id
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
-		// findOne() throws NotFoundException if not found or access denied
 		if (query.propertyId) {
-			await this.findOne(req, query.propertyId)
+			const property = await this.findOne(req, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -949,18 +979,20 @@ export class PropertiesService {
 	 * Get property financial analytics
 	 */
 	async getPropertyFinancialAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; timeframe?: string }
 	): Promise<unknown[]> {
-		const { id: userId } = requireAuthenticatedUser(req)
+		const userId = req.user.id
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
-		// findOne() throws NotFoundException if not found or access denied
 		if (query.propertyId) {
-			await this.findOne(req, query.propertyId)
+			const property = await this.findOne(req, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -989,18 +1021,20 @@ export class PropertiesService {
 	 * Get property maintenance analytics
 	 */
 	async getPropertyMaintenanceAnalytics(
-		req: Request,
+		req: AuthenticatedRequest,
 		query: { propertyId?: string; timeframe?: string }
 	): Promise<unknown[]> {
-		const { id: userId } = requireAuthenticatedUser(req)
+		const userId = req.user.id
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
-		// findOne() throws NotFoundException if not found or access denied
 		if (query.propertyId) {
-			await this.findOne(req, query.propertyId)
+			const property = await this.findOne(req, query.propertyId)
+			if (!property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
 		}
 
-		// ✅ RLS COMPLIANT: Use user-scoped client for RPC calls
+		// RLS COMPLIANT: Use user-scoped client for RPC calls
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			throw new UnauthorizedException('No authentication token found')
@@ -1032,31 +1066,35 @@ export class PropertiesService {
 	/**
 	 * Get property units
 	 */
-	async getPropertyUnits(req: Request, propertyId: string): Promise<unknown[]> {
+	async getPropertyUnits(req: AuthenticatedRequest, propertyId: string): Promise<unknown[]> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
-			throw new UnauthorizedException('Authentication required')
+			this.logger.error('No authentication token found in request')
+			throw new BadRequestException('Authentication required')
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const { id: userId } = requireAuthenticatedUser(req)
 
-		// Verify ownership through RLS (throws NotFoundException if not found)
-		await this.findOne(req, propertyId)
+		// Verify ownership through RLS
+		const property = await this.findOne(req, propertyId)
+		if (!property)
+			throw new BadRequestException('Property not found or access denied')
 
-		return this.queryHelpers.queryList(
-			client
-				.from('unit')
-				.select('*')
-				.eq('propertyId', propertyId)
-				.order('unitNumber', { ascending: true }),
-			{
-				resource: 'unit',
-				operation: 'findAll',
-				userId,
-				metadata: { propertyId }
-			}
-		)
+		const { data, error } = await client
+			.from('unit')
+			.select('*')
+			.eq('propertyId', propertyId)
+			.order('unitNumber', { ascending: true })
+
+		if (error) {
+			this.logger.error('Failed to get property units', {
+				error,
+				propertyId
+			})
+			return []
+		}
+
+		return data || []
 	}
 
 	/**
@@ -1067,7 +1105,7 @@ export class PropertiesService {
 	 * Upload property image
 	 */
 	async uploadPropertyImage(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string,
 		file: Express.Multer.File,
 		isPrimary: boolean,
@@ -1080,7 +1118,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const { id: userId } = requireAuthenticatedUser(req)
+		const userId = req.user.id
 
 		// Verify property ownership
 		const { data: property } = await client
@@ -1238,7 +1276,7 @@ export class PropertiesService {
 	}
 
 	async markAsSold(
-		req: Request,
+		req: AuthenticatedRequest,
 		propertyId: string,
 		dateSold: Date,
 		salePrice: number,
@@ -1252,8 +1290,11 @@ export class PropertiesService {
 
 		const client = this.supabase.getUserClient(token)
 
-		// Verify ownership before allowing sale marking (throws NotFoundException if not found)
+		// Verify ownership before allowing sale marking
 		const property = await this.findOne(req, propertyId)
+		if (!property) {
+			throw new BadRequestException('Property not found or access denied')
+		}
 
 		// Prevent marking already sold properties (check date_sold field for accuracy)
 		if (property.date_sold) {

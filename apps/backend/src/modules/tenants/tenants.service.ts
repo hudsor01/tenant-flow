@@ -1,6 +1,6 @@
 /**
  * Tenants Service - Ultra-Native NestJS Implementation
- *
+
  * Direct Supabase access, no repository abstractions
  * Controller → Service → Supabase
  */
@@ -31,7 +31,6 @@ import type {
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { activateTenantResultSchema } from '@repo/shared/validation/database-rpc.schemas'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -39,6 +38,7 @@ import {
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import { StripeConnectService } from '../billing/stripe-connect.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Emergency contact information for a tenant
@@ -163,7 +163,7 @@ export class TenantsService {
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly stripeConnectService: StripeConnectService,
-		private readonly queryHelpers: SupabaseQueryHelpers
+		private readonly appConfigService: AppConfigService
 	) {}
 
 	/**
@@ -783,30 +783,48 @@ export class TenantsService {
 	/**
 	 * Get single tenant via direct Supabase query
 	 */
-	async findOne(userId: string, tenantId: string): Promise<Tenant> {
+	async findOne(userId: string, tenantId: string): Promise<Tenant | null> {
 		// Business logic: Validate inputs
-		if (!userId) {
-			throw new BadRequestException('User ID is required')
-		}
-		if (!tenantId) {
-			throw new BadRequestException('Tenant ID is required')
+		if (!userId || !tenantId) {
+			this.logger.warn('Find one tenant requested with missing parameters', {
+				userId,
+				tenantId
+			})
+			return null
 		}
 
-		this.logger.log('Finding tenant by ID via direct Supabase query', {
-			userId,
-			tenantId
-		})
+		try {
+			this.logger.log('Finding tenant by ID via direct Supabase query', {
+				userId,
+				tenantId
+			})
 
-		const client = this.supabase.getAdminClient()
-		return this.queryHelpers.querySingle<Tenant>(
-			client.from('tenant').select('*').eq('id', tenantId).eq('userId', userId).single(),
-			{
-				resource: 'tenant',
-				id: tenantId,
-				operation: 'findOne',
-				userId
+			const client = this.supabase.getAdminClient()
+			const { data, error } = await client
+				.from('tenant')
+				.select('*')
+				.eq('id', tenantId)
+				.eq('userId', userId)
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to fetch tenant from Supabase', {
+					error: error.message,
+					userId,
+					tenantId
+				})
+				return null
 			}
-		)
+
+			return data as Tenant
+		} catch (error) {
+			this.logger.error('Tenants service failed to find one tenant', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				tenantId
+			})
+			return null
+		}
 	}
 
 	/**
@@ -1293,7 +1311,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * Mark tenant as moved out (soft delete with 7-year retention)
+	 * Mark tenant as moved out (soft delete)
 	 */
 	async markAsMovedOut(
 		userId: string,
@@ -1460,9 +1478,9 @@ export class TenantsService {
 	// These are kept as RPC calls since they involve complex workflows beyond basic CRUD
 
 	/**
-	 * ✅ NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
+	 * NEW: Send tenant invitation via Supabase Auth (Phase 3.1)
 	 * Uses Supabase Auth's built-in invitation system instead of custom tokens
-	 *
+
 	 * @param userId - Owner user ID
 	 * @param tenantId - Tenant ID to invite
 	 * @param propertyId - Optional property ID for context
@@ -1580,7 +1598,8 @@ export class TenantsService {
 			}
 
 			// 4. Send invitation via Supabase Auth Admin API
-			const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+			const frontendUrl = this.appConfigService.getFrontendUrl()
+
 			const { data: authUser, error: authError } =
 				await client.auth.admin.inviteUserByEmail(tenant.email, {
 					data: {
@@ -1673,7 +1692,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * ✅ NEW: Complete tenant invitation with lease creation (Industry Standard)
+	 * NEW: Complete tenant invitation with lease creation (Industry Standard)
 	 * Creates tenant + lease + sends Supabase Auth invitation in one atomic operation
 	 * Based on Buildium/AppFolio/TurboTenant best practices
 	 */
@@ -1708,15 +1727,15 @@ export class TenantsService {
 
 		/**
 		 * CURRENCY CONVENTION: All rent amounts are stored and processed in CENTS
-		 *
+
 		 * - Frontend sends: cents (e.g., 250000 = $2,500.00)
 		 * - Backend stores: cents in database
 		 * - Stripe receives: cents (native format)
-		 *
+
 		 *Removed double conversion (backend was multiplying cents by 100 again)
 		 * Previously: Frontend sent cents → Backend multiplied by 100 → Stripe received wrong amount
 		 * Now: Frontend sends cents → Backend validates as-is → Stripe receives correct amount
-		 *
+
 		 * @param leaseData.rentAmount - Rent amount in CENTS (must be positive integer)
 		 * @throws BadRequestException if rentAmount is invalid or out of Stripe's range
 		 */
@@ -2346,6 +2365,7 @@ export class TenantsService {
 			unitId?: string
 			startDate: string
 			endDate: string
+
 		},
 		leaseId: string,
 		rentAmountCents: number
@@ -2370,7 +2390,7 @@ export class TenantsService {
 		}
 
 		const propertyName = property?.name || 'Your Property'
-		const frontendUrl = process.env.FRONTEND_URL || 'https://tenantflow.app'
+		const frontendUrl = this.appConfigService.getFrontendUrl()
 
 		const { data: authUser, error: authError } =
 			await client.auth.admin.inviteUserByEmail(tenant.email, {
@@ -2645,7 +2665,7 @@ export class TenantsService {
 	}
 
 	/**
-	 * ✅ NEW: Activate tenant from Supabase Auth user ID (Phase 3.1)
+	 * NEW: Activate tenant from Supabase Auth user ID (Phase 3.1)
 	 * Called from frontend after successful invitation acceptance
 	 * Calls database function to update tenant status
 	 */

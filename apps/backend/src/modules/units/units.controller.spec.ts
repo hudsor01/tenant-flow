@@ -1,11 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Unit } from '@repo/shared/types/core'
 import type {
 	CreateUnitRequest,
 	UpdateUnitRequest
 } from '@repo/shared/types/api-contracts'
-import type { Unit } from '@repo/shared/types/core'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
@@ -190,9 +190,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should throw NotFoundException when unit not found', async () => {
-			mockUnitsServiceInstance.findOne.mockRejectedValue(
-				new NotFoundException('Unit not found')
-			)
+			mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.resolve(null))
 
 			await expect(
 				controller.findOne(

@@ -4,7 +4,7 @@ import * as countries from 'i18n-iso-countries'
 import enLocale from 'i18n-iso-countries/langs/en.json'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Stripe Connect Service
@@ -205,14 +205,14 @@ export class StripeConnectService {
 	constructor(
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers
+		private readonly appConfigService: AppConfigService
 	) {
 		// Register the English locale to enable country validation
 		countries.registerLocale(enLocale)
 
 		this.stripe = this.stripeClientService.getClient()
 		this.defaultCountry =
-			this.normalizeCountryCode(process.env.STRIPE_CONNECT_DEFAULT_COUNTRY) ??
+			this.normalizeCountryCode(this.appConfigService.getStripeConnectDefaultCountry()) ??
 			'US'
 	}
 
@@ -235,24 +235,22 @@ export class StripeConnectService {
 		country?: string
 	}): Promise<{ accountId: string; onboardingUrl: string }> {
 		// Check if user already has a connected account (idempotent)
-		const client = this.supabaseService.getAdminClient()
+		const { data: existingUser, error: fetchError } = await this.supabaseService
+			.getAdminClient()
+			.from('users')
+			.select('connectedAccountId')
+			.eq('id', params.userId)
+			.single()
 
-		const existingUser = await this.queryHelpers.querySingle<{
-			connectedAccountId: string | null
-		}>(
-			client
-				.from('users')
-				.select('connectedAccountId')
-				.eq('id', params.userId)
-				.single(),
-			{
-				resource: 'user',
-				id: params.userId,
-				operation: 'createConnectedAccount'
-			}
-		)
+		if (fetchError) {
+			this.logger.error('Failed to fetch user', {
+				error: fetchError,
+				userId: params.userId
+			})
+			throw new BadRequestException('Failed to fetch user')
+		}
 
-		if (existingUser.connectedAccountId) {
+		if (existingUser?.connectedAccountId) {
 			this.logger.log('User already has connected account', {
 				userId: params.userId,
 				accountId: existingUser.connectedAccountId
@@ -428,12 +426,7 @@ export class StripeConnectService {
 	 */
 	async createAccountLink(accountId: string): Promise<Stripe.AccountLink> {
 		// Validate FRONTEND_URL
-		const frontendUrl = process.env.FRONTEND_URL?.trim()
-		if (!frontendUrl) {
-			const error = 'FRONTEND_URL environment variable is not set'
-			this.logger.error(error, { accountId })
-			throw new Error(error)
-		}
+		const frontendUrl = this.appConfigService.getFrontendUrl()
 
 		// Validate URL format
 		try {
@@ -513,25 +506,27 @@ export class StripeConnectService {
 			const account = await this.getConnectedAccount(accountId)
 
 			// Fetch existing user to check current onboardingCompletedAt
-			const client = this.supabaseService.getAdminClient()
-
-			const existingUser = await this.queryHelpers.querySingle<{
-				onboardingCompletedAt: string | null
-			}>(
-				client
+			const { data: existingUser, error: fetchError } =
+				await this.supabaseService
+					.getAdminClient()
 					.from('users')
 					.select('onboardingCompletedAt')
 					.eq('id', userId)
-					.single(),
-				{
-					resource: 'user',
-					id: userId,
-					operation: 'updateOnboardingStatus'
-				}
-			)
+					.single()
+
+			if (fetchError) {
+				this.logger.error(
+					'Failed to fetch existing user for onboarding status',
+					{
+						error: fetchError,
+						userId
+					}
+				)
+				throw fetchError
+			}
 
 			const isNowComplete = account.charges_enabled && account.payouts_enabled
-			const existingTimestamp = existingUser.onboardingCompletedAt
+			const existingTimestamp = existingUser?.onboardingCompletedAt
 
 			// Only set timestamp if:
 			// 1. Account is now complete AND existing timestamp is falsy (first completion)

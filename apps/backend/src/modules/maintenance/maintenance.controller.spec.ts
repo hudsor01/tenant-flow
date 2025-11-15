@@ -70,7 +70,7 @@ describe('MaintenanceController', () => {
 	})
 
 	it('throws NotFoundException when findOne not found', async () => {
-		service.findOne.mockImplementation(() => Promise.resolve(null) as any)
+		service.findOne.mockImplementation(() => Promise.resolve(null))
 		await expect(
 			controller.findOne(randomUUID(), mockToken)
 		).rejects.toThrow(NotFoundException)
@@ -102,7 +102,7 @@ describe('MaintenanceController', () => {
 	})
 
 	it('throws NotFoundException when update not found', async () => {
-		service.update.mockImplementation(() => Promise.resolve(null) as any)
+		service.update.mockImplementation(() => Promise.resolve(null))
 		await expect(
 			controller.update(randomUUID(), {}, mockToken)
 		).rejects.toThrow(NotFoundException)

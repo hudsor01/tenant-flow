@@ -3,8 +3,7 @@ import {
 	ForbiddenException,
 	Injectable,
 	Logger,
-	NotFoundException,
-	UnauthorizedException
+	NotFoundException
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import type {
@@ -16,7 +15,6 @@ import type {
 	TenantAutopayStatusResponse
 } from '@repo/shared/types/stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import type {
@@ -33,7 +31,7 @@ type PaymentMethodType = 'card' | 'ach'
 
 /**
  * Current payment status for a tenant
- *
+
  * **All amounts in CENTS (Stripe standard)**
  */
 export interface CurrentPaymentStatus {
@@ -59,27 +57,26 @@ export class RentPaymentsService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
-		private readonly stripeTenantService: StripeTenantService,
-		private readonly queryHelpers: SupabaseQueryHelpers
+		private readonly stripeTenantService: StripeTenantService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
 	/**
 	 * CURRENCY CONVENTION: Normalize amount to CENTS for Stripe
-	 *
+
 	 * Accepts both dollar and cent inputs (backward compatibility):
 	 * - If amount < 1,000,000 → assume DOLLARS, convert to cents (amount * 100)
 	 * - If amount >= 1,000,000 → assume CENTS, use as-is
-	 *
+
 	 * Rationale: Threshold of 1M allows rents up to $9,999/month in dollar format
 	 * while supporting high-value properties (e.g., $5,000/month = 500,000 cents)
-	 *
+
 	 * Example:
 	 * - normalizeAmount(2500) → 250,000 cents ($2,500.00)
 	 * - normalizeAmount(5000) → 500,000 cents ($5,000.00)
 	 * - normalizeAmount(500000) → 500,000 cents ($5,000.00)
-	 *
+
 	 * @param amount - Amount in dollars (< 1000000) or cents (>= 1000000)
 	 * @returns Integer amount in CENTS for Stripe
 	 * @throws BadRequestException if amount is invalid or non-positive
@@ -108,7 +105,7 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * ✅ RLS COMPLIANT: Uses admin client for cross-user tenant context
+	 * RLS COMPLIANT: Uses admin client for cross-user tenant context
 	 * (Tenants need to be accessible by both tenant and owner)
 	 */
 	private async getTenantContext(tenantId: string) {
@@ -151,9 +148,9 @@ export class RentPaymentsService {
 	}
 
 	/**
-	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to lease context
+	 * AUTHORIZATION ENFORCED: Validates requesting user has access to lease context
 	 * Uses admin client for cross-user queries but enforces authorization checks
-	 *
+
 	 * @param leaseId - The lease ID to fetch context for
 	 * @param tenantId - The tenant ID associated with the lease
 	 * @param requestingUserId - The user making the request (for authorization)
@@ -279,11 +276,6 @@ export class RentPaymentsService {
 			throw new BadRequestException('Missing required payment details')
 		}
 
-		// Additional validation for amount (DTO should already validate, but double-check)
-		if (!amount || amount <= 0) {
-			throw new BadRequestException('Payment amount must be greater than zero')
-		}
-
 		const adminClient = this.supabase.getAdminClient()
 		const { tenant, tenantUser } = await this.getTenantContext(tenantId)
 		// Authorization is now handled within getLeaseContext
@@ -295,18 +287,15 @@ export class RentPaymentsService {
 
 		const amountInCents = this.normalizeAmount(amount)
 
-		const paymentMethod = await this.queryHelpers.querySingle<TenantPaymentMethod>(
-			adminClient
-				.from('tenant_payment_method')
-				.select('tenantId, stripePaymentMethodId, type, stripeCustomerId')
-				.eq('id', paymentMethodId)
-				.single(),
-			{
-				resource: 'tenant_payment_method',
-				id: paymentMethodId,
-				operation: 'createOneTimePayment'
-			}
-		)
+		const { data: paymentMethod, error: paymentMethodError } = await adminClient
+			.from('tenant_payment_method')
+			.select('tenantId, stripePaymentMethodId, type, stripeCustomerId')
+			.eq('id', paymentMethodId)
+			.single<TenantPaymentMethod>()
+
+		if (paymentMethodError || !paymentMethod) {
+			throw new NotFoundException('Payment method not found')
+		}
 
 		if (paymentMethod.tenantId !== tenant.id) {
 			this.logger.warn('Payment method does not belong to tenant', {
@@ -430,11 +419,12 @@ export class RentPaymentsService {
 
 	/**
 	 * Get payment history for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
 	 */
 	async getPaymentHistory(token: string) {
 		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
+			this.logger.warn('Payment history requested without token')
+			throw new BadRequestException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
@@ -456,11 +446,12 @@ export class RentPaymentsService {
 
 	/**
 	 * Get subscription payment history for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
 	 */
 	async getSubscriptionPaymentHistory(subscriptionId: string, token: string) {
 		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
+			this.logger.warn('Subscription payment history requested without token')
+			throw new BadRequestException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
@@ -477,7 +468,7 @@ export class RentPaymentsService {
 		}
 
 		// RLS automatically filters payments to user's scope
-		const { error } = await client
+		const { data, error } = await client
 			.from('rent_payment')
 			.select('id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId')
 			.eq('subscriptionId', subscriptionId)
@@ -493,27 +484,17 @@ export class RentPaymentsService {
 			)
 		}
 
-		// ✅ RLS automatically filters payments to user's scope
-		return this.queryHelpers.queryList<RentPayment>(
-			client
-				.from('rent_payment')
-				.select('*')
-				.eq('subscriptionId', subscriptionId)
-				.order('createdAt', { ascending: false }),
-			{
-				resource: 'rent_payment',
-				operation: 'findAll'
-			}
-		)
+		return (data as RentPayment[]) ?? []
 	}
 
 	/**
 	 * Get failed payment attempts for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's payments
 	 */
 	async getFailedPaymentAttempts(token: string) {
 		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
+			this.logger.warn('Failed payment attempts requested without token')
+			throw new BadRequestException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
@@ -537,11 +518,12 @@ export class RentPaymentsService {
 
 	/**
 	 * Get subscription failed attempts for authenticated user
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's subscriptions
 	 */
 	async getSubscriptionFailedAttempts(subscriptionId: string, token: string) {
 		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
+			this.logger.warn('Subscription failed attempts requested without token')
+			throw new BadRequestException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
@@ -558,7 +540,7 @@ export class RentPaymentsService {
 		}
 
 		// RLS automatically filters payments to user's scope
-		const { error } = await client
+		const { data, error } = await client
 			.from('rent_payment')
 			.select('*')
 			.eq('subscriptionId', subscriptionId)
@@ -575,24 +557,12 @@ export class RentPaymentsService {
 			)
 		}
 
-		// ✅ RLS automatically filters payments to user's scope
-		return this.queryHelpers.queryList<RentPayment>(
-			client
-				.from('rent_payment')
-				.select('*')
-				.eq('subscriptionId', subscriptionId)
-				.eq('status', 'failed')
-				.order('createdAt', { ascending: false }),
-			{
-				resource: 'rent_payment',
-				operation: 'findAll'
-			}
-		)
+		return (data as RentPayment[]) ?? []
 	}
 
 	/**
 	 * Setup autopay (recurring Stripe Subscription) for a Tenant's lease
-	 *
+
 	 * Official Stripe Pattern:
 	 * - Create Subscription with destination charges to Owner's connected account
 	 * - Use application_fee_percent for platform revenue
@@ -897,11 +867,11 @@ export class RentPaymentsService {
 	/**
 	 * Get current payment status for a tenant
 	 * Returns the current balance, next due date, and payment status
-	 *
+
 	 * Task 2.4: Payment Status Tracking
-	 *
-	 * ✅ AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
-	 *
+
+	 * AUTHORIZATION ENFORCED: Validates requesting user has access to tenant payment data
+
 	 * IMPORTANT: All amounts use Stripe standard (CENTS, not dollars)
 	 * @param tenantId - The tenant ID to get payment status for
 	 * @param requestingUserId - The user making the request (for authorization)
@@ -916,7 +886,7 @@ export class RentPaymentsService {
 		try {
 			const adminClient = this.supabase.getAdminClient()
 
-			// ✅ Authorization check: Verify requesting user has access to this tenant
+			// Authorization check: Verify requesting user has access to this tenant
 			await this.verifyTenantAccess(requestingUserId, tenantId)
 
 			// Get tenant's active lease
@@ -931,19 +901,7 @@ export class RentPaymentsService {
 				throw new NotFoundException('Active lease not found for tenant')
 			}
 
-			// Validate rent amount is present and positive
-			if (!lease.rentAmount || lease.rentAmount <= 0) {
-				this.logger.error('Invalid rent amount in lease', {
-					leaseId: lease.id,
-					tenantId,
-					rentAmount: lease.rentAmount
-				})
-				throw new BadRequestException(
-					'Lease has invalid rent amount. Please contact support.'
-				)
-			}
-
-			const rentAmount = lease.rentAmount
+			const rentAmount = lease.rentAmount || 0
 
 			// Get the most recent payment for this lease
 			const { data: lastPayment } = await adminClient
@@ -995,17 +953,15 @@ export class RentPaymentsService {
 	async verifyTenantAccess(userId: string, tenantId: string): Promise<void> {
 		const adminClient = this.supabase.getAdminClient()
 
-		const tenant = await this.queryHelpers.querySingle<
-			Pick<Tenant, 'auth_user_id'>
-		>(
-			adminClient.from('tenant').select('auth_user_id').eq('id', tenantId).single(),
-			{
-				resource: 'tenant',
-				id: tenantId,
-				operation: 'findOne',
-				userId
-			}
-		)
+		const { data: tenant, error } = await adminClient
+			.from('tenant')
+			.select('auth_user_id')
+			.eq('id', tenantId)
+			.single()
+
+		if (error || !tenant) {
+			throw new NotFoundException('Tenant not found')
+		}
 
 		if (tenant.auth_user_id !== userId) {
 			this.logger.warn('Unauthorized tenant access attempt', {

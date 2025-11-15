@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { EmailService } from '../email/email.service'
 import {
 	MAX_STRIPE_PAYMENT_ATTEMPTS,
@@ -25,7 +24,6 @@ export class StripeAccessControlService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers,
 		private readonly emailService: EmailService
 	) {}
 
@@ -145,22 +143,19 @@ export class StripeAccessControlService {
 			// canceled/incomplete_expired subscriptions won't be returned
 
 			// Get user email for sending cancellation notice
-			try {
-				const userData = await this.queryHelpers.querySingle<Pick<Database['public']['Tables']['users']['Row'], 'email'>>(
-					this.supabaseService
-						.getAdminClient()
-						.from('users')
-						.select('email')
-						.eq('id', userId)
-						.single(),
-					{
-						resource: 'user',
-						id: userId,
-						operation: 'findOne'
-					}
-				)
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
-				if (userData?.email) {
+			if (emailError || !userData?.email) {
+				this.logger.warn('Could not fetch user email for cancellation notice', {
+					userId,
+				error: emailError instanceof Error ? emailError.message : String(emailError)
+				})
+			} else {
 				// Send subscription canceled email using React template
 				// Type assertion needed because Stripe types don't expose all fields
 				const sub = subscription as Stripe.Subscription & {
@@ -170,17 +165,11 @@ export class StripeAccessControlService {
 					? new Date(sub.current_period_end * 1000)
 					: null
 
-					await this.emailService.sendSubscriptionCanceledEmail({
-						customerEmail: userData.email,
-						subscriptionId: subscription.id,
-						cancelAtPeriodEnd: subscription.cancel_at_period_end,
-						currentPeriodEnd
-					})
-				}
-			} catch (emailError) {
-				this.logger.warn('Could not fetch user email for cancellation notice', {
-					userId,
-					error: emailError instanceof Error ? emailError.message : String(emailError)
+				await this.emailService.sendSubscriptionCanceledEmail({
+					customerEmail: userData.email,
+					subscriptionId: subscription.id,
+					cancelAtPeriodEnd: subscription.cancel_at_period_end,
+					currentPeriodEnd
 				})
 			}
 
@@ -352,47 +341,39 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending failed payment notice
-			try {
-				const userData = await this.queryHelpers.querySingle<Pick<Database['public']['Tables']['users']['Row'], 'email'>>(
-					this.supabaseService
-						.getAdminClient()
-						.from('users')
-						.select('email')
-						.eq('id', userId)
-						.single(),
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
+
+			if (emailError || !userData?.email) {
+				this.logger.warn(
+					'Could not fetch user email for payment failed notice',
 					{
-						resource: 'user',
-						id: userId,
-						operation: 'findOne'
+						userId,
+						error:
+							emailError instanceof Error
+								? emailError.message
+								: String(emailError)
 					}
 				)
-
-				if (!userData?.email) {
-					this.logger.warn('User email not found for payment failed notice', {
-						userId
-					})
-					return
-				}
-
-				// Determine if this is the last attempt
-				const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
-
-				// Send payment failed email using React template
-				await this.emailService.sendPaymentFailedEmail({
-					customerEmail: userData.email,
-					amount: invoice.amount_due,
-					currency: invoice.currency,
-					attemptCount: invoice.attempt_count,
-					invoiceUrl: invoice.hosted_invoice_url ?? null,
-					isLastAttempt
-				})
-			} catch (emailError) {
-				this.logger.warn('Could not fetch user email for payment failed notice', {
-					userId,
-					error: emailError instanceof Error ? emailError.message : String(emailError)
-				})
 				return
 			}
+
+			// Determine if this is the last attempt
+			const isLastAttempt = invoice.attempt_count >= MAX_STRIPE_PAYMENT_ATTEMPTS
+
+			// Send payment failed email using React template
+			await this.emailService.sendPaymentFailedEmail({
+				customerEmail: userData.email,
+				amount: invoice.amount_due,
+				currency: invoice.currency,
+				attemptCount: invoice.attempt_count,
+				invoiceUrl: invoice.hosted_invoice_url ?? null,
+				isLastAttempt
+			})
 		} catch (error) {
 			this.logger.error('Failed to handle payment failure', {
 				invoiceId: invoice.id,
@@ -453,43 +434,29 @@ export class StripeAccessControlService {
 			})
 
 			// Get user email for sending receipt
-			try {
-				const userData = await this.queryHelpers.querySingle<Pick<Database['public']['Tables']['users']['Row'], 'email'>>(
-					this.supabaseService
-						.getAdminClient()
-						.from('users')
-						.select('email')
-						.eq('id', userId)
-						.single(),
-					{
-						resource: 'user',
-						id: userId,
-						operation: 'findOne'
-					}
-				)
+			const { data: userData, error: emailError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('email')
+				.eq('id', userId)
+				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
-				if (!userData?.email) {
-					this.logger.warn('User email not found for payment receipt', {
-						userId
-					})
-					return
-				}
-
-				// Send payment success receipt email using React template
-				await this.emailService.sendPaymentSuccessEmail({
-					customerEmail: userData.email,
-					amount: invoice.amount_paid,
-					currency: invoice.currency,
-					invoiceUrl: invoice.hosted_invoice_url ?? null,
-					invoicePdf: invoice.invoice_pdf ?? null
-				})
-			} catch (emailError) {
+			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for payment receipt', {
 					userId,
-					error: emailError instanceof Error ? emailError.message : String(emailError)
+				error: emailError instanceof Error ? emailError.message : String(emailError)
 				})
 				return
 			}
+
+			// Send payment success receipt email using React template
+			await this.emailService.sendPaymentSuccessEmail({
+				customerEmail: userData.email,
+				amount: invoice.amount_paid,
+				currency: invoice.currency,
+				invoiceUrl: invoice.hosted_invoice_url ?? null,
+				invoicePdf: invoice.invoice_pdf ?? null
+			})
 		} catch (error) {
 			this.logger.error('Failed to handle payment success', {
 				invoiceId: invoice.id,

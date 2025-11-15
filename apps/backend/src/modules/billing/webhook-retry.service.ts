@@ -1,12 +1,8 @@
 import { Injectable, Logger, Optional } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { PrometheusService } from '../observability/prometheus.service'
-
-type WebhookFailureRow = Database['public']['Tables']['webhook_failures']['Row']
 
 @Injectable()
 export class WebhookRetryService {
@@ -14,7 +10,6 @@ export class WebhookRetryService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers,
 		private readonly eventEmitter: EventEmitter2,
 		@Optional() private readonly prometheus: PrometheusService | null
 	) {}
@@ -30,21 +25,20 @@ export class WebhookRetryService {
 		const client = this.supabase.getAdminClient()
 
 		// Query webhook_failures table
-		const failures = await this.queryHelpers.queryList<WebhookFailureRow>(
-			client
-				.from('webhook_failures')
-				.select('*')
-				.is('resolved_at', null)
-				.lt('retry_count', 3) // Max 3 retries
-				.order('created_at', { ascending: true })
-				.limit(10),
-			{
-				resource: 'webhook_failure',
-				operation: 'findAll'
-			}
-		)
+		const { data: failures, error } = await client
+			.from('webhook_failures')
+			.select('*')
+			.is('resolved_at', null)
+			.lt('retry_count', 3) // Max 3 retries
+			.order('created_at', { ascending: true })
+			.limit(10)
 
-		if (failures.length === 0) {
+		if (error) {
+			this.logger.error('Failed to query webhook_failures', error)
+			return
+		}
+
+		if (!failures || failures.length === 0) {
 			this.logger.log('No failed webhooks to retry')
 			return
 		}
