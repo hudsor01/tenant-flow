@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
 import * as fs from 'fs/promises'
 import * as path from 'path'
+import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 
@@ -21,13 +22,13 @@ export interface GeneratedReportRecord {
 	reportType: string
 	reportName: string
 	format: string
-	status: 'generating' | 'completed' | 'failed'
+	status: string
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
 	startDate: string
 	endDate: string
-	metadata: Record<string, unknown>
+	metadata: Json | null
 	errorMessage: string | null
 	createdAt: string
 	updatedAt: string
@@ -119,7 +120,7 @@ export class GeneratedReportService {
 
 		try {
 			// Get total count and paginated records in parallel
-			const [count, reportsData] = await Promise.all([
+			const [count, reports] = await Promise.all([
 				this.queryHelpers.queryCount(
 					client
 						.from('generated_report')
@@ -131,7 +132,7 @@ export class GeneratedReportService {
 						userId
 					}
 				),
-				this.queryHelpers.queryList(
+				this.queryHelpers.queryList<GeneratedReportRecord>(
 					client
 						.from('generated_report')
 						.select('*')
@@ -145,9 +146,6 @@ export class GeneratedReportService {
 					}
 				)
 			])
-
-			// Cast database type to application type
-			const reports = reportsData as unknown as GeneratedReportRecord[]
 
 			return {
 				reports,
