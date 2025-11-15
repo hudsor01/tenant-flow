@@ -28,6 +28,15 @@ import {
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 
+// Helper to safely parse dates and throw proper errors
+function parseDateOrThrow(dateString: string, fieldName: string): string {
+	const date = new Date(dateString)
+	if (Number.isNaN(date.getTime())) {
+		throw new BadRequestException(`Invalid ${fieldName} format`)
+	}
+	return date.toISOString()
+}
+
 @Injectable()
 export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
@@ -106,13 +115,13 @@ export class MaintenanceService {
 		if (query.dateFrom) {
 			queryBuilder = queryBuilder.gte(
 				'createdAt',
-				new Date(query.dateFrom as string).toISOString()
+				parseDateOrThrow(query.dateFrom as string, 'dateFrom')
 			)
 		}
 		if (query.dateTo) {
 			queryBuilder = queryBuilder.lte(
 				'createdAt',
-				new Date(query.dateTo as string).toISOString()
+				parseDateOrThrow(query.dateTo as string, 'dateTo')
 			)
 		}
 		// SECURITY FIX #2: Use safe search to prevent SQL injection
@@ -396,7 +405,7 @@ export class MaintenanceService {
 				allowEntry: true,
 				photos: createRequest.photos || null,
 				preferredDate: createRequest.scheduledDate
-					? new Date(createRequest.scheduledDate).toISOString()
+					? parseDateOrThrow(createRequest.scheduledDate, 'scheduledDate')
 					: null,
 				category: createRequest.category || null,
 				estimatedCost: createRequest.estimatedCost || null
@@ -494,9 +503,10 @@ export class MaintenanceService {
 		if (updateRequest.estimatedCost !== undefined)
 			updateData.estimatedCost = updateRequest.estimatedCost
 		if (updateRequest.completedDate !== undefined)
-			updateData.completedAt = new Date(
-				updateRequest.completedDate
-			).toISOString()
+		updateData.completedAt = parseDateOrThrow(
+			updateRequest.completedDate,
+			'completedDate'
+		)
 
 		// 🔐 Optimistic locking: Add version check
 		const query = client

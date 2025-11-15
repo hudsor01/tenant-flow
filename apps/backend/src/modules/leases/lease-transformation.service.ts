@@ -1,8 +1,12 @@
 import {
+	BadRequestException,
+	ConflictException,
+	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	Logger,
 	NotFoundException,
-	InternalServerErrorException
+	UnauthorizedException
 } from '@nestjs/common'
 import type {
 	LeaseFormData,
@@ -62,8 +66,15 @@ export class LeaseTransformationService {
 
 				return this.transformLeaseToFormData(basicLease)
 			} catch (fallbackError) {
-				// Re-throw NotFoundException
-				if (fallbackError instanceof NotFoundException) {
+				// Re-throw all HTTP exceptions (NotFoundException, UnauthorizedException, ForbiddenException, etc.)
+				// Only wrap unexpected errors as InternalServerErrorException
+				if (
+					fallbackError instanceof NotFoundException ||
+					fallbackError instanceof UnauthorizedException ||
+					fallbackError instanceof ForbiddenException ||
+					fallbackError instanceof ConflictException ||
+					fallbackError instanceof BadRequestException
+				) {
 					throw fallbackError
 				}
 
