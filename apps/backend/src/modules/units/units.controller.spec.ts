@@ -190,7 +190,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should throw NotFoundException when unit not found', async () => {
-			mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.resolve(null))
+			mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.resolve(null) as any)
 
 			await expect(
 				controller.findOne(

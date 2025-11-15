@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common'
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
@@ -164,7 +164,6 @@ describe('LateFeesService', () => {
 			const leaseId = generateUUID()
 
 			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
-			const { NotFoundException } = require('@nestjs/common')
 			;(mockQueryHelpers.querySingle as jest.Mock).mockRejectedValue(
 				new NotFoundException('lease not found')
 			)
@@ -482,7 +481,6 @@ describe('LateFeesService', () => {
 			])
 
 			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
-			const { NotFoundException } = require('@nestjs/common')
 			;(mockQueryHelpers.querySingle as jest.Mock).mockRejectedValue(
 				new NotFoundException('user not found')
 			)

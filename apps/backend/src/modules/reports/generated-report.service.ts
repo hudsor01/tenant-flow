@@ -119,7 +119,7 @@ export class GeneratedReportService {
 
 		try {
 			// Get total count and paginated records in parallel
-			const [count, reports] = await Promise.all([
+			const [count, reportsData] = await Promise.all([
 				this.queryHelpers.queryCount(
 					client
 						.from('generated_report')
@@ -131,7 +131,7 @@ export class GeneratedReportService {
 						userId
 					}
 				),
-				this.queryHelpers.queryList<GeneratedReportRecord>(
+				this.queryHelpers.queryList(
 					client
 						.from('generated_report')
 						.select('*')
@@ -145,6 +145,9 @@ export class GeneratedReportService {
 					}
 				)
 			])
+
+			// Cast database type to application type
+			const reports = reportsData as unknown as GeneratedReportRecord[]
 
 			return {
 				reports,
