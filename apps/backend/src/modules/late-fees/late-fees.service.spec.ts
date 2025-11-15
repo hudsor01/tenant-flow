@@ -1,11 +1,10 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
 import type Stripe from 'stripe'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { LateFeesService } from './late-fees.service'
 
@@ -13,7 +12,6 @@ describe('LateFeesService', () => {
 	let service: LateFeesService
 	let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
 	let mockStripeClientService: jest.Mocked<Partial<StripeClientService>>
-	let mockQueryHelpers: jest.Mocked<Partial<SupabaseQueryHelpers>>
 	let mockStripe: jest.Mocked<Partial<Stripe>>
 	let mockAdminClient: any
 
@@ -38,11 +36,6 @@ describe('LateFeesService', () => {
 			getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token')
 		}
 
-		// Mock SupabaseQueryHelpers (production uses this instead of direct .single() calls)
-		mockQueryHelpers = {
-			querySingle: jest.fn()
-		}
-
 		// Mock Stripe instance
 		mockStripe = {
 			invoiceItems: {
@@ -63,10 +56,6 @@ describe('LateFeesService', () => {
 					useValue: mockSupabaseService
 				},
 				{
-					provide: SupabaseQueryHelpers,
-					useValue: mockQueryHelpers
-				},
-				{
 					provide: StripeClientService,
 					useValue: mockStripeClientService
 				}
@@ -76,9 +65,6 @@ describe('LateFeesService', () => {
 			.compile()
 
 		service = module.get<LateFeesService>(LateFeesService)
-		mockQueryHelpers = module.get(SupabaseQueryHelpers) as jest.Mocked<
-			Partial<SupabaseQueryHelpers>
-		>
 
 		// Spy on logger to suppress output
 		jest.spyOn(service['logger'], 'log').mockImplementation(() => {})
@@ -87,7 +73,7 @@ describe('LateFeesService', () => {
 	})
 
 	afterEach(() => {
-		jest.resetAllMocks()
+		jest.clearAllMocks()
 	})
 
 	describe('calculateLateFee', () => {
@@ -140,8 +126,10 @@ describe('LateFeesService', () => {
 				lateFeePercentage: 0.06
 			}
 
-			// Mock queryHelpers.querySingle to return lease data directly (production behavior)
-			;(mockQueryHelpers.querySingle as jest.Mock).mockResolvedValue(mockLease)
+			mockAdminClient.single.mockResolvedValue({
+				data: mockLease,
+				error: null
+			})
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -150,23 +138,17 @@ describe('LateFeesService', () => {
 				gracePeriodDays: 7,
 				flatFeeAmount: 75
 			})
-			expect(mockQueryHelpers.querySingle).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.objectContaining({
-					resource: 'lease',
-					id: leaseId,
-					operation: 'getLateFeeConfig'
-				})
-			)
+			expect(mockAdminClient.from).toHaveBeenCalledWith('lease')
+			expect(mockAdminClient.eq).toHaveBeenCalledWith('id', leaseId)
 		})
 
 		it('should return default configuration when lease not found', async () => {
 			const leaseId = generateUUID()
 
-			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
-			;(mockQueryHelpers.querySingle as jest.Mock).mockRejectedValue(
-				new NotFoundException('lease not found')
-			)
+			mockAdminClient.single.mockResolvedValue({
+				data: null,
+				error: { message: 'Not found' }
+			})
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -186,8 +168,10 @@ describe('LateFeesService', () => {
 				lateFeePercentage: null
 			}
 
-			// Mock queryHelpers.querySingle to return lease with null values
-			;(mockQueryHelpers.querySingle as jest.Mock).mockResolvedValue(mockLease)
+			mockAdminClient.single.mockResolvedValue({
+				data: mockLease,
+				error: null
+			})
 
 			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
 
@@ -413,9 +397,10 @@ describe('LateFeesService', () => {
 				.spyOn(service, 'getOverduePayments')
 				.mockResolvedValue(mockOverduePayments)
 
-			// Mock queryHelpers.querySingle for user data (production behavior)
-			;(mockQueryHelpers.querySingle as jest.Mock).mockResolvedValue({
-				stripeCustomerId: 'cus_123'
+			// Mock owner Stripe customer
+			mockAdminClient.single.mockResolvedValue({
+				data: { stripeCustomerId: 'cus_123' },
+				error: null
 			})
 
 			// Mock Stripe invoice item creation
@@ -480,10 +465,10 @@ describe('LateFeesService', () => {
 				}
 			])
 
-			// Mock queryHelpers.querySingle to throw NotFoundException (production behavior)
-			;(mockQueryHelpers.querySingle as jest.Mock).mockRejectedValue(
-				new NotFoundException('user not found')
-			)
+			mockAdminClient.single.mockResolvedValue({
+				data: null,
+				error: { message: 'Not found' }
+			})
 
 			await expect(
 				service.processLateFees(leaseId, 'mock-jwt-token', ownerId)

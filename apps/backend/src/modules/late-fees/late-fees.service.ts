@@ -11,7 +11,6 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
 export interface LateFeeConfig {
@@ -36,7 +35,6 @@ export class LateFeesService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers,
 		private readonly stripeClientService: StripeClientService
 	) {
 		this.stripe = this.stripeClientService.getClient()
@@ -96,16 +94,10 @@ export class LateFeesService {
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const lease = await this.queryHelpers.querySingle<{
-				id: string
-				gracePeriodDays: number | null
-				lateFeeAmount: number | null
-				lateFeePercentage: number | null
-			}>(
-				client
-					.from('lease')
-					.select(
-						`
+			const { data: lease, error } = await client
+				.from('lease')
+				.select(
+					`
 					id,
 					gracePeriodDays,
 					lateFeeAmount,
@@ -114,15 +106,11 @@ export class LateFeesService {
 						users!tenant_userId_fkey(id, email, firstName, lastName)
 					)
 				`
-					)
-					.eq('id', leaseId)
-					.single(),
-				{
-					resource: 'lease',
-					id: leaseId,
-					operation: 'getLateFeeConfig'
-				}
-			)
+				)
+				.eq('id', leaseId)
+				.single()
+
+			if (error) throw error
 
 			return {
 				leaseId: lease.id,
@@ -338,22 +326,13 @@ export class LateFeesService {
 			const client = this.supabase.getUserClient(token)
 
 			// Get Stripe customer ID from authenticated user
-			const userData = await this.queryHelpers.querySingle<{
-				stripeCustomerId: string | null
-			}>(
-				client
-					.from('users')
-					.select('stripeCustomerId')
-					.eq('id', ownerId) // Use the validated ownerId
-					.single(),
-				{
-					resource: 'user',
-					id: ownerId,
-					operation: 'processLateFees'
-				}
-			)
+			const { data: userData, error: userError } = await client
+				.from('users')
+				.select('stripeCustomerId')
+				.eq('id', ownerId) // Use the validated ownerId
+				.single()
 
-			if (!userData.stripeCustomerId) {
+			if (userError || !userData?.stripeCustomerId) {
 				throw new BadRequestException('Owner Stripe customer not found')
 			}
 
