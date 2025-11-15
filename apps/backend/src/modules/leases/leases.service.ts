@@ -7,8 +7,7 @@
 import {
 	BadRequestException,
 	Injectable,
-	Logger,
-	UnauthorizedException
+	Logger
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
@@ -320,7 +319,7 @@ export class LeasesService {
 	 */
 	async findOne(token: string, leaseId: string): Promise<Lease> {
 		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
+			throw new BadRequestException('Authentication token is required')
 		}
 		if (!leaseId) {
 			throw new BadRequestException('Lease ID is required')
@@ -444,7 +443,7 @@ export class LeasesService {
 		expectedVersion?: number //Optimistic locking
 	): Promise<Lease> {
 		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
+			throw new BadRequestException('Authentication token is required')
 		}
 		if (!leaseId) {
 			throw new BadRequestException('Lease ID is required')
