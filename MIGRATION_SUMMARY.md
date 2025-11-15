@@ -414,63 +414,6 @@ onError: (err) => {
 
 ---
 
-## 🔄 Migration Patterns
-
-### Pattern 1: Simple CRUD Service
-
-```typescript
-// 1. Add imports
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
-import { UnauthorizedException } from '@nestjs/common'
-
-// 2. Inject in constructor
-constructor(
-  private readonly supabase: SupabaseService,
-  private readonly queryHelpers: SupabaseQueryHelpers
-) {}
-
-// 3. Replace findOne()
-async findOne(token: string, id: string): Promise<Entity> {
-  if (!token) throw new UnauthorizedException('Authentication required')
-  const client = this.supabase.getUserClient(token)
-
-  return this.queryHelpers.querySingle<Entity>(
-    client.from('table').select('*').eq('id', id).single(),
-    { resource: 'entity', id, operation: 'findOne' }
-  )
-}
-
-// 4. Replace update() with optimistic locking
-async update(token: string, id: string, dto: UpdateDto, version?: number): Promise<Entity> {
-  const query = client.from('table').update(data).eq('id', id)
-  if (version !== undefined) query.eq('version', version)
-
-  return this.queryHelpers.querySingleWithVersion<Entity>(
-    query.select().single(),
-    { resource: 'entity', id, operation: 'update', metadata: { expectedVersion: version } }
-  )
-}
-
-// 5. Update call sites
-// BEFORE: if (!entity) throw new BadRequestException()
-// AFTER: (nothing needed, querySingle throws NotFoundException)
-
-```
-
-### Pattern 2: Admin Client Services
-
-```typescript
-// Works with getAdminClient() too
-const client = this.supabase.getAdminClient()
-return this.queryHelpers.querySingle<Entity>(
-  client.from('table').select('*').eq('id', id).single(),
-  { resource: 'entity', id, operation: 'findOne', userId }
-)
-
-```
-
----
-
 ### Phase 4: maintenance.service.ts (Commit: `28bc74e9`)
 **Lines Changed**: 934 → 755 (-179 lines, 19% reduction)
 **Methods Migrated**: 9 methods
@@ -807,8 +750,9 @@ return this.queryHelpers.querySingle<Entity>(
 - `apps/backend/src/modules/billing/stripe-data.service.ts` (548 lines, 4 methods)
 
 ### External References
-- **PostgREST Error Codes**: https://postgrest.org/en/stable/errors.html
-- **NestJS Exception Filters**: https://docs.nestjs.com/exception-filters
+
+- **PostgREST Error Codes**: [https://postgrest.org/en/stable/errors.html](https://postgrest.org/en/stable/errors.html)
+- **NestJS Exception Filters**: [https://docs.nestjs.com/exception-filters](https://docs.nestjs.com/exception-filters)
 - **Frontend Error Handler**: `apps/frontend/src/lib/mutation-error-handler.ts`
 - **Frontend Query Config**: `apps/frontend/src/lib/constants/query-config.ts`
 
