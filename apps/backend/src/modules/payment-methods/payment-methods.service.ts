@@ -2,11 +2,30 @@ import {
 	BadRequestException,
 	Injectable,
 	Logger,
-	NotFoundException
+	UnauthorizedException
 } from '@nestjs/common'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
+
+/**
+ * Tenant payment method record from database.
+ * Represents a payment method (card, bank account) attached to a tenant.
+ */
+export interface TenantPaymentMethodRecord {
+	id: string
+	tenantId: string
+	stripePaymentMethodId: string | null
+	type: string | null
+	last4: string | null
+	brand: string | null
+	bankName: string | null
+	isDefault: boolean | null
+	verificationStatus: string | null
+	createdAt: string | null
+	updatedAt: string | null
+}
 
 @Injectable()
 export class PaymentMethodsService {
@@ -15,7 +34,8 @@ export class PaymentMethodsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService
+		private readonly stripeClientService: StripeClientService,
+		private readonly queryHelpers: SupabaseQueryHelpers
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	} /**
@@ -25,21 +45,23 @@ export class PaymentMethodsService {
 	async getOrCreateStripeCustomer(userId: string, email?: string) {
 		const adminClient = this.supabase.getAdminClient()
 
-		const { data: user, error } = await adminClient
-			.from('users')
-			.select('stripeCustomerId, email')
-			.eq('id', userId)
-			.single()
+		const user = await this.queryHelpers.querySingle<{
+			stripeCustomerId: string | null
+			email: string | null
+		}>(
+			adminClient
+				.from('users')
+				.select('stripeCustomerId, email')
+				.eq('id', userId)
+				.single(),
+			{
+				resource: 'user',
+				id: userId,
+				operation: 'findOne'
+			}
+		)
 
-		if (error) {
-			this.logger.error('Failed to load user while resolving Stripe customer', {
-				userId,
-				error: error.message
-			})
-			throw new NotFoundException('User not found for Stripe customer lookup')
-		}
-
-		if (user?.stripeCustomerId) {
+		if (user.stripeCustomerId) {
 			return user.stripeCustomerId
 		}
 
@@ -47,7 +69,7 @@ export class PaymentMethodsService {
 		const customerParams: Stripe.CustomerCreateParams = {
 			metadata: { userId }
 		}
-		const resolvedEmail = email || user?.email
+		const resolvedEmail = email || user.email
 		if (resolvedEmail) {
 			customerParams.email = resolvedEmail
 		}
@@ -94,16 +116,14 @@ export class PaymentMethodsService {
 	): Promise<string> {
 		const client = this.supabase.getUserClient(token)
 
-		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
-			.select('id')
-			.eq('auth_user_id', userId)
-			.single()
-
-		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found for user', { userId })
-			throw new NotFoundException('Tenant not found')
-		}
+		const tenant = await this.queryHelpers.querySingle<{ id: string }>(
+			client.from('tenant').select('id').eq('auth_user_id', userId).single(),
+			{
+				resource: 'tenant',
+				operation: 'findOne',
+				userId
+			}
+		)
 
 		return tenant.id
 	}
@@ -113,8 +133,7 @@ export class PaymentMethodsService {
 	 */
 	async listPaymentMethods(token: string, userId: string) {
 		if (!token) {
-			this.logger.warn('List payment methods requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		// Resolve tenant ID from auth_user_id using DRY helper
@@ -122,23 +141,18 @@ export class PaymentMethodsService {
 		const client = this.supabase.getUserClient(token)
 
 		// Now query payment methods using the correct tenant ID
-		const { data, error } = await client
-			.from('tenant_payment_method')
-			.select(
-				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
-			)
-			.eq('tenantId', tenantId)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch tenant payment methods', {
-				userId,
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load payment methods')
-		}
-
-		return data ?? []
+		return this.queryHelpers.queryList<TenantPaymentMethodRecord>(
+			client
+				.from('tenant_payment_method')
+				.select('*')
+				.eq('tenantId', tenantId)
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'tenant_payment_method',
+				operation: 'findAll',
+				userId
+			}
+		)
 	}
 
 	/**
@@ -150,26 +164,27 @@ export class PaymentMethodsService {
 		paymentMethodId: string
 	) {
 		if (!token) {
-			this.logger.warn('Set default payment method requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
 
 		// Get tenant with Stripe customer ID
-		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
-			.select('id, stripe_customer_id')
-			.eq('auth_user_id', userId)
-			.single()
-
-		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found for user', {
-				userId,
-				error: tenantError?.message
-			})
-			throw new NotFoundException('Tenant not found')
-		}
+		const tenant = await this.queryHelpers.querySingle<{
+			id: string
+			stripe_customer_id: string | null
+		}>(
+			client
+				.from('tenant')
+				.select('id, stripe_customer_id')
+				.eq('auth_user_id', userId)
+				.single(),
+			{
+				resource: 'tenant',
+				operation: 'findOne',
+				userId
+			}
+		)
 
 		if (!tenant.stripe_customer_id) {
 			this.logger.warn('No Stripe customer for tenant', {
@@ -224,42 +239,38 @@ export class PaymentMethodsService {
 		paymentMethodId: string
 	) {
 		if (!token) {
-			this.logger.warn('Delete payment method requested without token')
-			throw new BadRequestException('Authentication token is required')
+			throw new UnauthorizedException('Authentication token is required')
 		}
 
 		const client = this.supabase.getUserClient(token)
 
 		// Resolve tenant ID from auth user ID
-		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
-			.select('id')
-			.eq('auth_user_id', userId)
-			.single()
+		const tenant = await this.queryHelpers.querySingle<{ id: string }>(
+			client.from('tenant').select('id').eq('auth_user_id', userId).single(),
+			{
+				resource: 'tenant',
+				operation: 'findOne',
+				userId
+			}
+		)
 
-		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found for user', {
-				userId,
-				error: tenantError?.message
-			})
-			throw new NotFoundException('Tenant not found')
-		}
-
-		const { data: paymentMethod, error: fetchError } = await client
-			.from('tenant_payment_method')
-			.select('stripePaymentMethodId, isDefault')
-			.eq('id', paymentMethodId)
-			.eq('tenantId', tenant.id)
-			.single()
-
-		if (fetchError || !paymentMethod) {
-			this.logger.warn('Attempted to delete unknown payment method', {
-				userId,
-				paymentMethodId,
-				error: fetchError?.message
-			})
-			throw new NotFoundException('Payment method not found')
-		}
+		const paymentMethod = await this.queryHelpers.querySingle<{
+			stripePaymentMethodId: string | null
+			isDefault: boolean
+		}>(
+			client
+				.from('tenant_payment_method')
+				.select('stripePaymentMethodId, isDefault')
+				.eq('id', paymentMethodId)
+				.eq('tenantId', tenant.id)
+				.single(),
+			{
+				resource: 'tenant_payment_method',
+				id: paymentMethodId,
+				operation: 'findOne',
+				userId
+			}
+		)
 
 		if (paymentMethod.stripePaymentMethodId) {
 			await this.stripe.paymentMethods.detach(

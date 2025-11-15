@@ -189,6 +189,16 @@ export class TenantInvitationService {
 		ownerId: string,
 		input: CreateTenantWithLeaseInput
 	): Promise<{ tenant: Tenant; lease: Lease }> {
+		// Validate rent amount before RPC call (defense in depth)
+		if (!input.rentAmount || input.rentAmount <= 0) {
+			throw new BadRequestException('Rent amount must be greater than zero')
+		}
+
+		// Validate security deposit is non-negative
+		if (input.securityDeposit !== undefined && input.securityDeposit < 0) {
+			throw new BadRequestException('Security deposit cannot be negative')
+		}
+
 		const client = this.supabase.getAdminClient()
 
 		const { data, error } = await client.rpc('create_tenant_with_lease', {

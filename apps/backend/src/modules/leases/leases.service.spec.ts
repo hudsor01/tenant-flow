@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { LeasesService } from './leases.service';
 import { TenantsService } from '../tenants/tenants.service';
 import { SupabaseService } from '../../database/supabase.service';
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers';
 import { EmailService } from '../email/email.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -122,6 +123,15 @@ describe('LeasesService', () => {
         LeasesService,
         { provide: TenantsService, useValue: mockTenantsService },
         { provide: SupabaseService, useValue: mockSupabaseService },
+        {
+          provide: SupabaseQueryHelpers,
+          useValue: {
+            querySingle: jest.fn(),
+            queryList: jest.fn(),
+            querySingleWithVersion: jest.fn(),
+            queryCount: jest.fn()
+          }
+        },
         { provide: EmailService, useValue: mockEmailService },
         EventEmitter2,
       ],

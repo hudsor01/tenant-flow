@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { RentPaymentsService } from './rent-payments.service'
@@ -50,6 +51,15 @@ describe('RentPaymentsService', () => {
 				{
 					provide: StripeTenantService,
 					useValue: mockStripeTenantService
+				},
+				{
+					provide: SupabaseQueryHelpers,
+					useValue: {
+						querySingle: jest.fn().mockResolvedValue(null),
+						queryList: jest.fn().mockResolvedValue([]),
+						querySingleWithVersion: jest.fn().mockResolvedValue({ data: null, version: undefined }),
+						queryCount: jest.fn().mockResolvedValue(0)
+					}
 				}
 			]
 		}).compile()

@@ -1,11 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { Tenant } from '@repo/shared/types/core'
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
+import type { Tenant } from '@repo/shared/types/core'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'

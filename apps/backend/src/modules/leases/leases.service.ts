@@ -6,7 +6,6 @@
 
 import {
 	BadRequestException,
-	ConflictException,
 	Injectable,
 	Logger
 } from '@nestjs/common'
@@ -15,6 +14,7 @@ import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -24,7 +24,10 @@ import {
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly queryHelpers: SupabaseQueryHelpers
+	) {}
 
 	/**
 	 * Get user-scoped Supabase client for direct database access
@@ -35,13 +38,13 @@ export class LeasesService {
 	}
 
 	/**
-	 * REMOVED: Manual unit filtering violates RLS pattern
+	 * ❌ REMOVED: Manual unit filtering violates RLS pattern
 	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */
 
 	/**
 	 * Get all leases for a user with search and filters
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
 	async findAll(
 		token: string,
@@ -57,7 +60,7 @@ export class LeasesService {
 				query
 			})
 
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			// Build base query for counting (NO manual userId/unitId filtering needed)
@@ -189,7 +192,7 @@ export class LeasesService {
 
 	/**
 	 * Get lease statistics
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
 	async getStats(token: string): Promise<LeaseStatsResponse> {
 		try {
@@ -200,25 +203,22 @@ export class LeasesService {
 
 			this.logger.log('Getting lease stats via RLS-protected query')
 
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client.from('lease').select('*')
+			type LeaseRow = Database['public']['Tables']['lease']['Row']
 
-			if (error) {
-				this.logger.error('Failed to get lease stats from Supabase', {
-					error: error.message
-				})
-				throw new BadRequestException('Failed to get lease statistics')
-			}
-
-			const leases = data || []
+			const leases = await this.queryHelpers.queryList<LeaseRow>(
+				client.from('lease').select('*'),
+				{
+					resource: 'lease',
+					operation: 'findAll'
+				}
+			)
 			const now = new Date()
 			const thirtyDaysFromNow = new Date(
 				now.getTime() + 30 * 24 * 60 * 60 * 1000
 			)
-
-			type LeaseRow = Database['public']['Tables']['lease']['Row']
 
 			const stats = {
 				totalLeases: leases.length,
@@ -266,7 +266,7 @@ export class LeasesService {
 
 	/**
 	 * Get leases expiring soon
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
 	async getExpiring(token: string, days: number = 30): Promise<Lease[]> {
 		try {
@@ -279,7 +279,7 @@ export class LeasesService {
 				days
 			})
 
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			const now = new Date()
@@ -315,51 +315,34 @@ export class LeasesService {
 
 	/**
 	 * Find one lease by ID
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async findOne(token: string, leaseId: string): Promise<Lease | null> {
-		try {
-			if (!token || !leaseId) {
-				this.logger.warn('Find one lease called with missing parameters', {
-					leaseId
-				})
-				return null
-			}
-
-			this.logger.log('Finding one lease via RLS-protected query', {
-				leaseId
-			})
-
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client
-				.from('lease')
-				.select('*')
-				.eq('id', leaseId)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch lease from Supabase', {
-					error: error.message,
-					leaseId
-				})
-				return null
-			}
-
-			return data as Lease
-		} catch (error) {
-			this.logger.error('Leases service failed to find one lease', {
-				error: error instanceof Error ? error.message : String(error),
-				leaseId
-			})
-			return null
+	async findOne(token: string, leaseId: string): Promise<Lease> {
+		if (!token) {
+			throw new BadRequestException('Authentication token is required')
 		}
+		if (!leaseId) {
+			throw new BadRequestException('Lease ID is required')
+		}
+
+		this.logger.log('Finding one lease via RLS-protected query', { leaseId })
+
+		// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
+		const client = this.supabase.getUserClient(token)
+
+		return this.queryHelpers.querySingle<Lease>(
+			client.from('lease').select('*').eq('id', leaseId).single(),
+			{
+				resource: 'lease',
+				id: leaseId,
+				operation: 'findOne'
+			}
+		)
 	}
 
 	/**
 	 * Create lease
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async create(token: string, dto: CreateLeaseDto): Promise<Lease> {
 		try {
@@ -376,7 +359,7 @@ export class LeasesService {
 				dto
 			})
 
-			// RLS SECURITY: User-scoped client automatically validates unit/tenant ownership
+			// ✅ RLS SECURITY: User-scoped client automatically validates unit/tenant ownership
 			const client = this.supabase.getUserClient(token)
 
 			// Verify unit exists and belongs to user (RLS will enforce ownership)
@@ -399,6 +382,13 @@ export class LeasesService {
 
 			if (!tenant) {
 				throw new BadRequestException('Tenant not found or access denied')
+			}
+
+			// Validate rent amount (defense in depth - DTO should already validate)
+			if (!dto.rentAmount || dto.rentAmount <= 0) {
+				throw new BadRequestException(
+					'Rent amount must be greater than zero'
+				)
 			}
 
 			// Insert lease directly from DTO (matches database schema)
@@ -444,116 +434,96 @@ export class LeasesService {
 
 	/**
 	 * Update lease
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async update(
 		token: string,
 		leaseId: string,
 		updateRequest: UpdateLeaseDto,
 		expectedVersion?: number //Optimistic locking
-	): Promise<Lease | null> {
-		try {
-			if (!token || !leaseId) {
-				this.logger.warn('Update lease called with missing parameters', {
-					leaseId
-				})
-				return null
+	): Promise<Lease> {
+		if (!token) {
+			throw new BadRequestException('Authentication token is required')
+		}
+		if (!leaseId) {
+			throw new BadRequestException('Lease ID is required')
+		}
+
+		this.logger.log('Updating lease via RLS-protected query', {
+			leaseId,
+			updateRequest
+		})
+
+		// Verify ownership via findOne (throws NotFoundException if not found)
+		await this.findOne(token, leaseId)
+
+		// ✅ RLS SECURITY: User-scoped client automatically validates ownership
+		const client = this.supabase.getUserClient(token)
+
+		const updateData: Database['public']['Tables']['lease']['Update'] = {
+			updatedAt: new Date().toISOString()
+		}
+
+		//Increment version for optimistic locking
+		if (expectedVersion !== undefined) {
+			updateData.version = expectedVersion + 1
+		}
+
+		if (updateRequest.startDate !== undefined)
+			updateData.startDate = updateRequest.startDate
+		if (updateRequest.endDate !== undefined)
+			updateData.endDate = updateRequest.endDate
+		if (
+			updateRequest.rentAmount !== undefined &&
+			updateRequest.rentAmount !== null
+		) {
+			// Validate rent amount (defense in depth - DTO should already validate)
+			if (updateRequest.rentAmount <= 0) {
+				throw new BadRequestException(
+					'Rent amount must be greater than zero'
+				)
 			}
+			updateData.rentAmount = updateRequest.rentAmount
+		}
+		if (
+			updateRequest.securityDeposit !== undefined &&
+			updateRequest.securityDeposit !== null
+		)
+			updateData.securityDeposit = updateRequest.securityDeposit
+		if (updateRequest.status !== undefined)
+			updateData.status =
+				updateRequest.status as Database['public']['Enums']['LeaseStatus']
 
-			this.logger.log('Updating lease via RLS-protected query', {
-				leaseId,
-				updateRequest
-			})
+		//Add version check for optimistic locking
+		const query = client.from('lease').update(updateData).eq('id', leaseId)
 
-			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			// RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const updateData: Database['public']['Tables']['lease']['Update'] = {
-				updatedAt: new Date().toISOString()
-			}
-
-			//Increment version for optimistic locking
-			if (expectedVersion !== undefined) {
-				updateData.version = expectedVersion + 1
-			}
-
-			if (updateRequest.startDate !== undefined)
-				updateData.startDate = updateRequest.startDate
-			if (updateRequest.endDate !== undefined)
-				updateData.endDate = updateRequest.endDate
-			if (
-				updateRequest.rentAmount !== undefined &&
-				updateRequest.rentAmount !== null
-			)
-				updateData.rentAmount = updateRequest.rentAmount
-			if (
-				updateRequest.securityDeposit !== undefined &&
-				updateRequest.securityDeposit !== null
-			)
-				updateData.securityDeposit = updateRequest.securityDeposit
-			if (updateRequest.status !== undefined)
-				updateData.status =
-					updateRequest.status as Database['public']['Enums']['LeaseStatus']
-
-			//Add version check for optimistic locking
-			let query = client.from('lease').update(updateData).eq('id', leaseId)
-
-			// Add version check if expectedVersion provided
-			if (expectedVersion !== undefined) {
-				query = query.eq('version', expectedVersion)
-			}
-
-			const { data, error } = await query.select().single()
-
-			if (error || !data) {
-				//Detect optimistic locking conflict
-				if (error?.code === 'PGRST116') {
-					// PGRST116 = 0 rows affected (version mismatch)
-					this.logger.warn('Optimistic locking conflict detected', {
-						leaseId,
-						expectedVersion
-					})
-					throw new ConflictException(
-						'Lease was modified by another user. Please refresh and try again.'
-					)
+		// Use version-aware query if expectedVersion provided
+		if (expectedVersion !== undefined) {
+			return this.queryHelpers.querySingleWithVersion<Lease>(
+				query.eq('version', expectedVersion).select().single(),
+				{
+					resource: 'lease',
+					id: leaseId,
+					operation: 'update',
+					metadata: { expectedVersion }
 				}
-
-				// Other database errors
-				this.logger.error('Failed to update lease in Supabase', {
-					error: error ? String(error) : 'Unknown error',
-					leaseId,
-					updateRequest
-				})
-				throw new BadRequestException('Failed to update lease')
-			}
-
-			return data as Lease
-		} catch (error) {
-			// Re-throw ConflictException as-is
-			if (error instanceof ConflictException) {
-				throw error
-			}
-
-			this.logger.error('Leases service failed to update lease', {
-				error: error instanceof Error ? error.message : String(error),
-				leaseId,
-				updateRequest
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to update lease'
 			)
 		}
+
+		// Otherwise use regular query
+		return this.queryHelpers.querySingle<Lease>(
+			query.select().single(),
+			{
+				resource: 'lease',
+				id: leaseId,
+				operation: 'update'
+			}
+		)
 	}
 
 	/**
 	 * Remove lease (hard delete - no soft delete column in schema)
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async remove(token: string, leaseId: string): Promise<void> {
 		try {
@@ -570,13 +540,10 @@ export class LeasesService {
 				leaseId
 			})
 
-			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
+			// Verify ownership via findOne (throws NotFoundException if not found)
+			await this.findOne(token, leaseId)
 
-			// RLS SECURITY: User-scoped client automatically validates ownership
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
 			const { error } = await client.from('lease').delete().eq('id', leaseId)
@@ -601,7 +568,7 @@ export class LeasesService {
 
 	/**
 	 * Renew lease - consolidated method with validation
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async renew(
 		token: string,
@@ -643,7 +610,7 @@ export class LeasesService {
 				throw new BadRequestException('Rent amount must be positive')
 			}
 
-			// RLS SECURITY: User-scoped client automatically validates ownership
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
 			const updateData: Database['public']['Tables']['lease']['Update'] = {
@@ -686,7 +653,7 @@ export class LeasesService {
 
 	/**
 	 * Terminate lease - consolidated method with validation
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async terminate(
 		token: string,
@@ -722,7 +689,7 @@ export class LeasesService {
 				throw new BadRequestException('Lease is already terminated or expired')
 			}
 
-			// RLS SECURITY: User-scoped client automatically validates ownership
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
@@ -766,7 +733,7 @@ export class LeasesService {
 	 * Get lease analytics - consolidated single method
 	 * Replaces: getAnalytics, getLeasePerformanceAnalytics, getLeaseDurationAnalytics,
 	 * getLeaseTurnoverAnalytics, getLeaseRevenueAnalytics
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
 	async getAnalytics(
 		token: string,
@@ -787,7 +754,7 @@ export class LeasesService {
 				options
 			})
 
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
+			// ✅ RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			let queryBuilder = client.from('lease').select('*')
@@ -824,7 +791,7 @@ export class LeasesService {
 
 	/**
 	 * Get lease payment history
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async getPaymentHistory(token: string, leaseId: string): Promise<unknown[]> {
 		try {
@@ -847,7 +814,7 @@ export class LeasesService {
 				leaseId
 			})
 
-			// RLS SECURITY: User-scoped client automatically validates ownership
+			// ✅ RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
