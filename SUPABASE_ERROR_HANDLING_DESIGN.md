@@ -360,13 +360,13 @@ export class SupabaseQueryHelpers {
     const { data, error } = await queryPromise
 
     // Detect optimistic locking conflict (PGRST116 = 0 rows affected)
-    if (error || !data) {
+    if (error) {
       if (this.errorHandler.isOptimisticLockingConflict(error)) {
         this.errorHandler.throwOptimisticLockingError(context)
       }
-      if (error) {
-        this.errorHandler.mapAndThrow(error, context)
-      }
+      this.errorHandler.mapAndThrow(error, context)
+    }
+    if (!data) {
       // Data is null but no error = not found
       const { resource = 'Resource', id } = context
       throw new NotFoundException(`${resource}${id ? ` (${id})` : ''} not found`)
@@ -410,7 +410,7 @@ export class SupabaseQueryHelpers {
    *
    * @param queryPromise - Supabase query promise with .count()
    * @param context - Error context for logging
-   * @returns Total count (defaults to 0 on error)
+   * @returns Total count (defaults to 0 when count is null; throws on errors)
    *
    * @example
    * ```typescript
@@ -942,8 +942,8 @@ If issues arise during migration:
 - **Existing global filter**: `apps/backend/src/shared/filters/database-exception.filter.ts`
 - **Frontend error handler**: `apps/frontend/src/lib/mutation-error-handler.ts`
 - **Query cache constants**: `apps/frontend/src/lib/constants/query-config.ts`
-- **PostgREST error codes**: https://postgrest.org/en/stable/errors.html
-- **NestJS exception filters**: https://docs.nestjs.com/exception-filters
+- **PostgREST error codes**: [https://postgrest.org/en/stable/errors.html](https://postgrest.org/en/stable/errors.html)
+- **NestJS exception filters**: [https://docs.nestjs.com/exception-filters](https://docs.nestjs.com/exception-filters)
 
 ---
 

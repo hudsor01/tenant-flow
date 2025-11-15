@@ -6,10 +6,10 @@ Successfully implemented and deployed centralized Supabase error handling infras
 
 **Status**: ✅ **PRODUCTION READY**
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Total Commits**: 18 commits (pending)
-**Services Migrated**: 16 services (+ infrastructure)
-**Methods Migrated**: 63 methods across all services
-**Code Reduction**: ~459+ lines of boilerplate eliminated (11 services), +94 lines for latest 5 services (more verbose but cleaner)
+**Total Commits**: 9 service migration commits (infrastructure + 8 services)
+**Services Migrated**: 8 services (completed)
+**Methods Migrated**: 38 methods across completed services
+**Code Reduction**: ~440 lines of boilerplate eliminated
 
 ---
 
@@ -73,7 +73,7 @@ Successfully implemented and deployed centralized Supabase error handling infras
 | **stripe-data.service.ts** | 4 | 595 | 548 | 47 lines | TBD |
 | **stripe-connect.service.ts** | 2 | 581 | 564 | 17 lines | TBD |
 | **lease-transformation.service.ts** | 2 | 451 | 412 | 39 lines | TBD |
-| **TOTAL** | **63 methods*** | - | - | **~459 lines** | **16 commits** |
+| **TOTAL** | **38 methods** | - | - | **~440 lines** | **9 commits** |
 
 \* *payment-methods.service.ts gained 7 lines due to more verbose type annotations, but has cleaner error handling*
 \*\* *Latest services gained lines due to more verbose type annotations and explicit type handling, but have cleaner error handling and better observability*
@@ -222,8 +222,8 @@ return this.queryHelpers.querySingleWithVersion<Property>(
 
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| **Services Migrated** | 0/54 | 4/54 | 7.4% complete |
-| **Lines Eliminated** | - | ~300 lines | 45% avg reduction |
+| **Services Migrated** | 0/54 | 8/54 | 14.8% complete |
+| **Lines Eliminated** | - | ~440 lines | ~52% avg reduction |
 | **Nullable Returns** | ~15 methods | 0 methods | 100% eliminated |
 | **Error Consistency** | Varied | 100% | Standardized |
 | **Structured Logging** | Inconsistent | 100% | Uniform context |
@@ -735,20 +735,14 @@ return this.queryHelpers.querySingle<Entity>(
 ## 🚦 Next Steps (Optional)
 
 ### Completed Migrations ✅
-- ✅ properties.service.ts (6 methods)
-- ✅ units.service.ts (5 methods)
-- ✅ leases.service.ts (3 methods)
-- ✅ tenants.service.ts (1 method, partial)
-- ✅ maintenance.service.ts (9 methods)
-- ✅ rent-payments.service.ts (5 methods)
-- ✅ payment-methods.service.ts (5 methods)
-- ✅ users.service.ts (4 methods)
-- ✅ notifications.service.ts (6 methods)
-- ✅ generated-report.service.ts (3 methods)
-- ✅ scheduled-report.service.ts (4 methods)
-- ✅ faq.service.ts (2 methods)
-- ✅ late-fees.service.ts (2 methods)
-- ✅ stripe-data.service.ts (4 methods)
+- ✅ properties.service.ts (6 methods, 77 lines saved)
+- ✅ units.service.ts (5 methods, 65 lines saved)
+- ✅ leases.service.ts (3 methods, 81 lines saved)
+- ✅ tenants.service.ts (1 method, 16 lines saved)
+- ✅ maintenance.service.ts (9 methods, 179 lines saved)
+- ✅ rent-payments.service.ts (5 methods, 11 lines saved)
+- ✅ payment-methods.service.ts (5 methods, cleaner error handling)
+- ✅ users.service.ts (4 methods, 18 lines saved)
 
 ### Skipped (Non-Applicable)
 - ⚠️ notification.service.ts - Schema mismatch (uses snake_case columns)
@@ -829,13 +823,13 @@ The infrastructure is battle-tested with 100% test coverage, and the migration p
 - **Private helpers**: payment-methods.service.ts resolveTenantId() pattern
 
 **Status**: ✅ Ready for production deployment
-**Progress**: 14 of ~54 services migrated (26% completion)
-**Recommendation**: Continue gradual rollout to remaining services over 2-3 weeks
+**Progress**: 8 of ~54 services migrated (14.8% completion)
+**Recommendation**: Continue gradual rollout to remaining services
 **Note**: Many services use RPC-only patterns and may not benefit from CRUD error handler migration
 
 ---
 
-**Document Version**: 6.0
-**Last Updated**: 2025-11-12
+**Document Version**: 7.0
+**Last Updated**: 2025-11-15
 **Branch**: `claude/centralize-supabase-error-handling-011CV1ZDsGfnU533X115aCQA`
-**Commits**: 16 commits (infrastructure + 14 service migrations)
+**Commits**: 9 service migration commits (infrastructure + 8 services)
