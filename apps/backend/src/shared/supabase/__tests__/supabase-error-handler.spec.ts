@@ -6,7 +6,7 @@ import {
 	NotFoundException,
 	UnauthorizedException
 } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import type { ConfigService } from '@nestjs/config'
 import type { PostgrestError } from '@supabase/supabase-js'
 import { SupabaseErrorHandler } from '../supabase-error-handler'
 
