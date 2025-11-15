@@ -266,7 +266,10 @@ describe('SupabaseQueryHelpers', () => {
 			}
 			const mockQuery = Promise.resolve({
 				data: null,
-				error: mockError
+				error: mockError,
+				count: null,
+				status: 401,
+				statusText: 'Unauthorized'
 			})
 
 			;(errorHandler.mapAndThrow as unknown as jest.Mock).mockImplementation(() => {
@@ -289,6 +292,9 @@ describe('SupabaseQueryHelpers', () => {
 		it('should handle empty result set', async () => {
 			const mockQuery = Promise.resolve({
 				data: [],
+				count: null,
+				status: 200,
+				statusText: 'OK',
 				error: null
 			})
 

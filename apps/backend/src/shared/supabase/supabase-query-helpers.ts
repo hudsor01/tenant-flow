@@ -120,7 +120,7 @@ export class SupabaseQueryHelpers {
 	 * ```
 	 */
 	async queryList<T>(
-		queryPromise: PromiseLike<PostgrestResponse<T>> | any,
+		queryPromise: PromiseLike<PostgrestResponse<T>>,
 		context: SupabaseErrorContext = {}
 	): Promise<T[]> {
 		const { data, error } = await queryPromise

@@ -131,16 +131,14 @@ export class PaymentMethodsService {
 			last4: string | null
 			brand: string | null
 			bankName: string | null
-			isDefault: boolean
+			isDefault: boolean | null
 			verificationStatus: string | null
-			createdAt: string
-			updatedAt: string
+			createdAt: string | null
+			updatedAt: string | null
 		}>(
 			client
 				.from('tenant_payment_method')
-				.select(
-					'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
-				)
+				.select('*')
 				.eq('tenantId', tenantId)
 				.order('createdAt', { ascending: false }),
 			{
