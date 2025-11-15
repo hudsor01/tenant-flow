@@ -55,10 +55,10 @@ describe('RentPaymentsService', () => {
 				{
 					provide: SupabaseQueryHelpers,
 					useValue: {
-						querySingle: jest.fn(),
-						queryList: jest.fn(),
-						querySingleWithVersion: jest.fn(),
-						queryCount: jest.fn()
+						querySingle: jest.fn().mockResolvedValue(null),
+						queryList: jest.fn().mockResolvedValue([]),
+						querySingleWithVersion: jest.fn().mockResolvedValue({ data: null, version: undefined }),
+						queryCount: jest.fn().mockResolvedValue(0)
 					}
 				}
 			]

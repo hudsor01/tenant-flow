@@ -16,10 +16,10 @@ function createTenantsServiceWithMocks() {
 		emit: jest.fn()
 	} as unknown as jest.Mocked<EventEmitter2>
 	const mockQueryHelpers = {
-		querySingle: jest.fn(),
-		queryList: jest.fn(),
-		querySingleWithVersion: jest.fn(),
-		queryCount: jest.fn()
+		querySingle: jest.fn().mockResolvedValue(null),
+		queryList: jest.fn().mockResolvedValue([]),
+		querySingleWithVersion: jest.fn().mockResolvedValue({ data: null, version: undefined }),
+		queryCount: jest.fn().mockResolvedValue(0)
 	}
 
 	// Directly instantiate the service to avoid Nest DI resolution issues
