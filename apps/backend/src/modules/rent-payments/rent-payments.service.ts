@@ -279,6 +279,11 @@ export class RentPaymentsService {
 			throw new BadRequestException('Missing required payment details')
 		}
 
+		// Additional validation for amount (DTO should already validate, but double-check)
+		if (!amount || amount <= 0) {
+			throw new BadRequestException('Payment amount must be greater than zero')
+		}
+
 		const adminClient = this.supabase.getAdminClient()
 		const { tenant, tenantUser } = await this.getTenantContext(tenantId)
 		// Authorization is now handled within getLeaseContext
@@ -926,7 +931,19 @@ export class RentPaymentsService {
 				throw new NotFoundException('Active lease not found for tenant')
 			}
 
-			const rentAmount = lease.rentAmount || 0
+			// Validate rent amount is present and positive
+			if (!lease.rentAmount || lease.rentAmount <= 0) {
+				this.logger.error('Invalid rent amount in lease', {
+					leaseId: lease.id,
+					tenantId,
+					rentAmount: lease.rentAmount
+				})
+				throw new BadRequestException(
+					'Lease has invalid rent amount. Please contact support.'
+				)
+			}
+
+			const rentAmount = lease.rentAmount
 
 			// Get the most recent payment for this lease
 			const { data: lastPayment } = await adminClient
