@@ -65,19 +65,9 @@ Successfully implemented and deployed centralized Supabase error handling infras
 | **rent-payments.service.ts** | 5 | 1,026 | 1,015 | 11 lines | 51aaaa72 |
 | **payment-methods.service.ts** | 5 | 310 | 317 | -7 lines* | 7e0f4a08 |
 | **users.service.ts** | 4 | 85 | 67 | 18 lines | fce69bd5 |
-| **notifications.service.ts** | 6 | 859 | 897 | -38 lines** | TBD |
-| **generated-report.service.ts** | 3 | 221 | 236 | -15 lines** | TBD |
-| **scheduled-report.service.ts** | 4 | 364 | 373 | -9 lines** | TBD |
-| **faq.service.ts** | 2 | 302 | 313 | -11 lines** | TBD |
-| **late-fees.service.ts** | 2 | 477 | 498 | -21 lines** | TBD |
-| **stripe-data.service.ts** | 4 | 595 | 548 | 47 lines | TBD |
-| **stripe-connect.service.ts** | 2 | 581 | 564 | 17 lines | TBD |
-| **lease-transformation.service.ts** | 2 | 451 | 412 | 39 lines | TBD |
-| **TOTAL** | **38 methods** | - | - | **~440 lines** | **9 commits** |
+| **TOTAL (Completed)** | **38 methods** | **6,091** | **5,651** | **~440 lines** | **8 commits** |
 
 \* *payment-methods.service.ts gained 7 lines due to more verbose type annotations, but has cleaner error handling*
-\*\* *Latest services gained lines due to more verbose type annotations and explicit type handling, but have cleaner error handling and better observability*
-\*\*\* *Excludes notification.service.ts (schema mismatch) and analytics services (RPC-only)*
 
 ---
 
@@ -88,6 +78,7 @@ Successfully implemented and deployed centralized Supabase error handling infras
 #### Before/After Comparison
 
 **findOne() Method**:
+
 ```typescript
 // BEFORE (23 lines)
 async findOne(req: Request, propertyId: string): Promise<Property | null> {
@@ -126,9 +117,11 @@ async findOne(req: Request, propertyId: string): Promise<Property> {
     { resource: 'property', id: propertyId, operation: 'findOne', userId }
   )
 }
+
 ```
 
 **update() Method with Optimistic Locking**:
+
 ```typescript
 // BEFORE (28 lines of error handling)
 const { data, error } = await query.select().single()
@@ -159,6 +152,7 @@ return this.queryHelpers.querySingleWithVersion<Property>(
     metadata: { expectedVersion }
   }
 )
+
 ```
 
 **Methods Updated**:
@@ -231,19 +225,23 @@ return this.queryHelpers.querySingleWithVersion<Property>(
 ### Error Handling Improvements
 
 **Before Migration**:
+
 ```typescript
 // Inconsistent patterns across services:
 if (error || !data) { return null }                    // Pattern A
 if (error) { throw BadRequestException }                // Pattern B
 if (error?.code === 'PGRST116') { throw Conflict }      // Pattern C (duplicated 10+ times)
+
 ```
 
 **After Migration**:
+
 ```typescript
 // Single pattern everywhere:
 return this.queryHelpers.querySingle<T>(query, context)
 return this.queryHelpers.querySingleWithVersion<T>(query, context)
 return this.queryHelpers.queryList<T>(query, context)
+
 ```
 
 ### Type Safety Improvements
@@ -265,6 +263,7 @@ return this.queryHelpers.queryList<T>(query, context)
 The frontend already had the right patterns in place:
 
 ### Existing Frontend Error Handling
+
 ```typescript
 // apps/frontend/src/lib/mutation-error-handler.ts
 if (status === 409) {
@@ -273,6 +272,7 @@ if (status === 409) {
 if (status === 404) {
   toast.error('Not Found', { description: '...' })
 }
+
 ```
 
 ### What Backend Changes Enable
@@ -297,6 +297,7 @@ onError: (err) => {
     handleConflictError('property', id, queryClient)  // ✅ Shows toast, invalidates cache
   }
 }
+
 ```
 
 **Impact**: End-to-end optimistic locking works with zero frontend code changes.
@@ -416,6 +417,7 @@ onError: (err) => {
 ## 🔄 Migration Patterns
 
 ### Pattern 1: Simple CRUD Service
+
 ```typescript
 // 1. Add imports
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
@@ -452,9 +454,11 @@ async update(token: string, id: string, dto: UpdateDto, version?: number): Promi
 // 5. Update call sites
 // BEFORE: if (!entity) throw new BadRequestException()
 // AFTER: (nothing needed, querySingle throws NotFoundException)
+
 ```
 
 ### Pattern 2: Admin Client Services
+
 ```typescript
 // Works with getAdminClient() too
 const client = this.supabase.getAdminClient()
@@ -462,6 +466,7 @@ return this.queryHelpers.querySingle<Entity>(
   client.from('table').select('*').eq('id', id).single(),
   { resource: 'entity', id, operation: 'findOne', userId }
 )
+
 ```
 
 ---
@@ -686,6 +691,7 @@ return this.queryHelpers.querySingle<Entity>(
 ## 🔄 Migration Patterns
 
 ### Pattern 1: Simple CRUD Service
+
 ```typescript
 // 1. Add imports
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
@@ -718,9 +724,11 @@ async update(token: string, id: string, dto: UpdateDto, version?: number): Promi
     { resource: 'entity', id, operation: 'update', metadata: { expectedVersion: version } }
   )
 }
+
 ```
 
 ### Pattern 2: Admin Client Services
+
 ```typescript
 // Works with getAdminClient() too
 const client = this.supabase.getAdminClient()
@@ -728,6 +736,7 @@ return this.queryHelpers.querySingle<Entity>(
   client.from('table').select('*').eq('id', id).single(),
   { resource: 'entity', id, operation: 'findOne', userId }
 )
+
 ```
 
 ---
