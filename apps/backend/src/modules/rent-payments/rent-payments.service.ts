@@ -469,7 +469,7 @@ export class RentPaymentsService {
 		}
 
 		// RLS automatically filters payments to user's scope
-		const { data, error } = await client
+		const { error } = await client
 			.from('rent_payment')
 			.select('id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId')
 			.eq('subscriptionId', subscriptionId)
@@ -489,9 +489,7 @@ export class RentPaymentsService {
 		return this.queryHelpers.queryList<RentPayment>(
 			client
 				.from('rent_payment')
-				.select(
-					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, subscriptionId, paymentType, failureReason, paidAt, createdAt, platformFee, stripeFee, ownerReceives, dueDate'
-				)
+				.select('*')
 				.eq('subscriptionId', subscriptionId)
 				.order('createdAt', { ascending: false }),
 			{
@@ -552,7 +550,7 @@ export class RentPaymentsService {
 		}
 
 		// RLS automatically filters payments to user's scope
-		const { data, error } = await client
+		const { error } = await client
 			.from('rent_payment')
 			.select('*')
 			.eq('subscriptionId', subscriptionId)
@@ -573,9 +571,7 @@ export class RentPaymentsService {
 		return this.queryHelpers.queryList<RentPayment>(
 			client
 				.from('rent_payment')
-				.select(
-					'id, tenantId, leaseId, amount, status, stripePaymentIntentId, failureReason, createdAt, subscriptionId, paymentType'
-				)
+				.select('*')
 				.eq('subscriptionId', subscriptionId)
 				.eq('status', 'failed')
 				.order('createdAt', { ascending: false }),
