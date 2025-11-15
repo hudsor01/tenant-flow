@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common'
 import type { PostgrestError } from '@supabase/supabase-js'
-import { SupabaseErrorHandler } from '../supabase-error-handler'
+import type { SupabaseErrorHandler } from '../supabase-error-handler'
 import { SupabaseQueryHelpers } from '../supabase-query-helpers'
 
 describe('SupabaseQueryHelpers', () => {
