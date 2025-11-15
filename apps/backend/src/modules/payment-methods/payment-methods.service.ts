@@ -9,6 +9,24 @@ import { SupabaseService } from '../../database/supabase.service'
 import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
+/**
+ * Tenant payment method record from database.
+ * Represents a payment method (card, bank account) attached to a tenant.
+ */
+export interface TenantPaymentMethodRecord {
+	id: string
+	tenantId: string
+	stripePaymentMethodId: string | null
+	type: string | null
+	last4: string | null
+	brand: string | null
+	bankName: string | null
+	isDefault: boolean | null
+	verificationStatus: string | null
+	createdAt: string | null
+	updatedAt: string | null
+}
+
 @Injectable()
 export class PaymentMethodsService {
 	private readonly logger = new Logger(PaymentMethodsService.name)
@@ -123,19 +141,7 @@ export class PaymentMethodsService {
 		const client = this.supabase.getUserClient(token)
 
 		// Now query payment methods using the correct tenant ID
-		return this.queryHelpers.queryList<{
-			id: string
-			tenantId: string
-			stripePaymentMethodId: string | null
-			type: string | null
-			last4: string | null
-			brand: string | null
-			bankName: string | null
-			isDefault: boolean | null
-			verificationStatus: string | null
-			createdAt: string | null
-			updatedAt: string | null
-		}>(
+		return this.queryHelpers.queryList<TenantPaymentMethodRecord>(
 			client
 				.from('tenant_payment_method')
 				.select('*')
