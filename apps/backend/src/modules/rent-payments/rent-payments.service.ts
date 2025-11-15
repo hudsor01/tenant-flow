@@ -290,15 +290,18 @@ export class RentPaymentsService {
 
 		const amountInCents = this.normalizeAmount(amount)
 
-		const { data: paymentMethod, error: paymentMethodError } = await adminClient
-			.from('tenant_payment_method')
-			.select('tenantId, stripePaymentMethodId, type, stripeCustomerId')
-			.eq('id', paymentMethodId)
-			.single<TenantPaymentMethod>()
-
-		if (paymentMethodError || !paymentMethod) {
-			throw new NotFoundException('Payment method not found')
-		}
+		const paymentMethod = await this.queryHelpers.querySingle<TenantPaymentMethod>(
+			adminClient
+				.from('tenant_payment_method')
+				.select('tenantId, stripePaymentMethodId, type, stripeCustomerId')
+				.eq('id', paymentMethodId)
+				.single(),
+			{
+				resource: 'tenant_payment_method',
+				id: paymentMethodId,
+				operation: 'createOneTimePayment'
+			}
+		)
 
 		if (paymentMethod.tenantId !== tenant.id) {
 			this.logger.warn('Payment method does not belong to tenant', {
