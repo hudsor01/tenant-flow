@@ -1,6 +1,6 @@
 /**
  * Units Service - Supabase Functions Pattern Implementation
- *
+
  * - NO ABSTRACTIONS: Service delegates to Supabase Functions directly
  * - KISS: Simple, focused service methods
  * - DRY: Supabase Functions handles data access logic
@@ -9,14 +9,13 @@
 
 import {
 	BadRequestException,
+	ConflictException,
 	Injectable,
-	Logger,
-	UnauthorizedException
+	Logger
 } from '@nestjs/common'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
-import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildILikePattern,
@@ -31,18 +30,17 @@ export class UnitsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly queryHelpers: SupabaseQueryHelpers,
 		private readonly cache: ZeroCacheService
 	) {}
 
 	/**
-	 * ❌ REMOVED: Manual property filtering violates RLS pattern
+	 * REMOVED: Manual property filtering violates RLS pattern
 	 * RLS policies automatically filter data to user's scope via getUserClient(token)
 	 */
 
 	/**
 	 * Get all units for a user via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async findAll(
 		token: string,
@@ -56,7 +54,7 @@ export class UnitsService {
 
 			this.logger.log('Finding all units via RLS-protected query', { query })
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual userId/propertyId filtering needed)
@@ -107,10 +105,17 @@ export class UnitsService {
 				ascending: sortOrder === 'asc'
 			})
 
-			return this.queryHelpers.queryList<Unit>(queryBuilder, {
-				resource: 'unit',
-				operation: 'findAll'
-			})
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error('Failed to fetch units from Supabase', {
+					error: error.message,
+					query
+				})
+				throw new BadRequestException('Failed to fetch units')
+			}
+
+			return data as Unit[]
 		} catch (error) {
 			this.logger.error('Units service failed to find all units', {
 				error: error instanceof Error ? error.message : String(error),
@@ -124,7 +129,7 @@ export class UnitsService {
 
 	/**
 	 * Get unit statistics via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async getStats(token: string): Promise<UnitStats> {
 		try {
@@ -135,7 +140,7 @@ export class UnitsService {
 
 			this.logger.log('Getting unit stats via RLS-protected query')
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// Get total units count (RLS automatically scopes to user's units)
@@ -211,7 +216,7 @@ export class UnitsService {
 
 	/**
 	 * Get units by property via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
 	 */
 	async findByProperty(token: string, propertyId: string): Promise<Unit[]> {
 		try {
@@ -228,22 +233,25 @@ export class UnitsService {
 				propertyId
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			// RLS automatically verifies property ownership - no manual check needed
-			return this.queryHelpers.queryList<Unit>(
-				client
-					.from('unit')
-					.select('*')
-					.eq('propertyId', propertyId)
-					.order('unitNumber', { ascending: true }),
-				{
-					resource: 'unit',
-					operation: 'findByProperty',
-					metadata: { propertyId }
-				}
-			)
+			const { data, error } = await client
+				.from('unit')
+				.select('*')
+				.eq('propertyId', propertyId)
+				.order('unitNumber', { ascending: true })
+
+			if (error) {
+				this.logger.error('Failed to fetch units by property from Supabase', {
+					error: error.message,
+					propertyId
+				})
+				throw new BadRequestException('Failed to retrieve property units')
+			}
+
+			return data as Unit[]
 		} catch (error) {
 			this.logger.error('Units service failed to find units by property', {
 				error: error instanceof Error ? error.message : String(error),
@@ -259,167 +267,216 @@ export class UnitsService {
 
 	/**
 	 * Find one unit by ID via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
-	async findOne(token: string, unitId: string): Promise<Unit> {
-		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
-		}
-		if (!unitId) {
-			throw new BadRequestException('Unit ID is required')
-		}
-
-		this.logger.log('Finding one unit via RLS-protected query', { unitId })
-
-		// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
-		const client = this.supabase.getUserClient(token)
-
-		// RLS automatically verifies unit belongs to user's property
-		return this.queryHelpers.querySingle<Unit>(
-			client.from('unit').select('*').eq('id', unitId).single(),
-			{
-				resource: 'unit',
-				id: unitId,
-				operation: 'findOne'
+	async findOne(token: string, unitId: string): Promise<Unit | null> {
+		try {
+			if (!token || !unitId) {
+				this.logger.warn('Find one unit called with missing parameters', {
+					unitId
+				})
+				return null
 			}
-		)
+
+			this.logger.log('Finding one unit via RLS-protected query', { unitId })
+
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
+			const client = this.supabase.getUserClient(token)
+
+			// RLS automatically verifies unit belongs to user's property
+			const { data, error } = await client
+				.from('unit')
+				.select('*')
+				.eq('id', unitId)
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to fetch unit from Supabase', {
+					error: error.message,
+					unitId
+				})
+				return null
+			}
+
+			return data as Unit
+		} catch (error) {
+			this.logger.error('Units service failed to find one unit', {
+				error: error instanceof Error ? error.message : String(error),
+				unitId
+			})
+			return null
+		}
 	}
 
 	/**
 	 * Create unit via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies property ownership
 	 */
 	async create(token: string, createRequest: CreateUnitDto): Promise<Unit> {
-		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
-		}
-		if (!createRequest.propertyId || !createRequest.unitNumber) {
-			throw new BadRequestException('Property ID and unit number are required')
-		}
+		try {
+			if (!token || !createRequest.propertyId || !createRequest.unitNumber) {
+				this.logger.warn('Create unit called with missing parameters', {
+					createRequest
+				})
+				throw new BadRequestException(
+					'Authentication token, property ID, and unit number are required'
+				)
+			}
 
-		this.logger.log('Creating unit via RLS-protected query', { createRequest })
+			this.logger.log('Creating unit via RLS-protected query', {
+				createRequest
+			})
 
-		// ✅ RLS SECURITY: User-scoped client automatically verifies property ownership
-		const client = this.supabase.getUserClient(token)
+			// RLS SECURITY: User-scoped client automatically verifies property ownership
+			const client = this.supabase.getUserClient(token)
 
 		// RLS automatically verifies property ownership - no manual check needed
-		const unitData = {
-			propertyId: createRequest.propertyId,
-			unitNumber: createRequest.unitNumber,
-			bedrooms: createRequest.bedrooms || 1,
-			bathrooms: createRequest.bathrooms || 1,
-			squareFeet: createRequest.squareFeet || null,
-			rent: createRequest.rent ?? 0,
-			status: createRequest.status ?? 'VACANT'
-		}
-
-		const createdUnit = await this.queryHelpers.querySingle<Unit>(
-			client.from('unit').insert(unitData).select().single(),
-			{
-				resource: 'unit',
-				operation: 'create',
-				metadata: { propertyId: createRequest.propertyId }
+			const unitData = {
+				propertyId: createRequest.propertyId,
+				unitNumber: createRequest.unitNumber,
+				bedrooms: createRequest.bedrooms || 1,
+				bathrooms: createRequest.bathrooms || 1,
+				squareFeet: createRequest.squareFeet || null,
+				rent: createRequest.rent ?? 0,
+				status: createRequest.status ?? 'VACANT'
 			}
-		)
 
-		// Invalidate caches so downstream consumers (lease auto-fill, dashboards) get fresh data
-		this.cache.invalidateByEntity('unit', createdUnit.id)
-		this.cache.invalidateByEntity('property', createdUnit.propertyId)
+			const { data, error } = await client
+				.from('unit')
+				.insert(unitData)
+				.select()
+				.single()
 
-		return createdUnit
+			if (error) {
+				this.logger.error('Failed to create unit in Supabase', {
+					error: error.message,
+					createRequest
+				})
+				throw new BadRequestException('Failed to create unit')
+			}
+
+			const createdUnit = data as Unit
+
+			// Invalidate caches so downstream consumers (lease auto-fill, dashboards) get fresh data
+			this.cache.invalidateByEntity('unit', createdUnit.id)
+			this.cache.invalidateByEntity('property', createdUnit.propertyId)
+
+			return createdUnit
+		} catch (error) {
+			this.logger.error('Units service failed to create unit', {
+				error: error instanceof Error ? error.message : String(error),
+				createRequest
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to create unit'
+			)
+		}
 	}
 
 	/**
 	 * Update unit via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
 	 */
 	async update(
 		token: string,
 		unitId: string,
 		updateRequest: UpdateUnitDto,
 		expectedVersion?: number //Optimistic locking
-	): Promise<Unit> {
-		if (!token) {
-			throw new UnauthorizedException('Authentication token is required')
-		}
-		if (!unitId) {
-			throw new BadRequestException('Unit ID is required')
-		}
+	): Promise<Unit | null> {
+		try {
+			if (!token || !unitId) {
+				this.logger.warn('Update unit called with missing parameters', {
+					unitId
+				})
+				return null
+			}
 
-		this.logger.log('Updating unit via RLS-protected query', {
-			unitId,
-			updateRequest
-		})
+			this.logger.log('Updating unit via RLS-protected query', {
+				unitId,
+				updateRequest
+			})
 
-		// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
-		const client = this.supabase.getUserClient(token)
+			// RLS SECURITY: User-scoped client automatically verifies unit ownership
+			const client = this.supabase.getUserClient(token)
 
-		const updateData: Record<string, unknown> = {
-			...(updateRequest.bedrooms !== undefined && {
-				bedrooms: updateRequest.bedrooms
-			}),
-			...(updateRequest.bathrooms !== undefined && {
-				bathrooms: updateRequest.bathrooms
-			}),
-			...(updateRequest.squareFeet !== undefined && {
-				squareFeet: updateRequest.squareFeet
-			}),
-			...(updateRequest.rent !== undefined && { rent: updateRequest.rent }),
-			...(updateRequest.status !== undefined && {
-				status: updateRequest.status
-			}),
-			...(updateRequest.unitNumber !== undefined && {
-				unitNumber: updateRequest.unitNumber
-			}),
-			updatedAt: new Date().toISOString()
-		}
+			const updateData: Record<string, unknown> = {
+				...(updateRequest.bedrooms !== undefined && {
+					bedrooms: updateRequest.bedrooms
+				}),
+				...(updateRequest.bathrooms !== undefined && {
+					bathrooms: updateRequest.bathrooms
+				}),
+				...(updateRequest.squareFeet !== undefined && {
+					squareFeet: updateRequest.squareFeet
+				}),
+				...(updateRequest.rent !== undefined && { rent: updateRequest.rent }),
+				...(updateRequest.status !== undefined && {
+					status: updateRequest.status
+				}),
+				...(updateRequest.unitNumber !== undefined && {
+					unitNumber: updateRequest.unitNumber
+				}),
+				updatedAt: new Date().toISOString()
+			}
 
-		//Increment version for optimistic locking
-		if (expectedVersion !== undefined) {
-			updateData.version = expectedVersion + 1
-		}
+			//Increment version for optimistic locking
+			if (expectedVersion !== undefined) {
+				updateData.version = expectedVersion + 1
+			}
 
-		//Add version check for optimistic locking
-		// RLS automatically verifies unit ownership - no manual propertyId check needed
-		const query = client.from('unit').update(updateData).eq('id', unitId)
+			//Add version check for optimistic locking
+			// RLS automatically verifies unit ownership - no manual propertyId check needed
+			let query = client.from('unit').update(updateData).eq('id', unitId)
 
-		let updatedUnit: Unit
+			if (expectedVersion !== undefined) {
+				query = query.eq('version', expectedVersion)
+			}
 
-		// Use version-aware query if expectedVersion provided
-		if (expectedVersion !== undefined) {
-			updatedUnit = await this.queryHelpers.querySingleWithVersion<Unit>(
-				query.eq('version', expectedVersion).select().single(),
-				{
-					resource: 'unit',
-					id: unitId,
-					operation: 'update',
-					metadata: { expectedVersion }
+			const { data, error } = await query.select().single()
+
+			if (error || !data) {
+				//Detect optimistic locking conflict
+				if (error?.code === 'PGRST116' || !data) {
+					this.logger.warn('Optimistic locking conflict detected', {
+						unitId,
+						expectedVersion
+					})
+					throw new ConflictException(
+						'Unit was modified by another user. Please refresh and try again.'
+					)
 				}
-			)
-		} else {
-			// Otherwise use regular query
-			updatedUnit = await this.queryHelpers.querySingle<Unit>(
-				query.select().single(),
-				{
-					resource: 'unit',
-					id: unitId,
-					operation: 'update'
-				}
-			)
-		}
 
-		// Invalidate dependent caches so lease auto-fill returns fresh unit data
-		this.cache.invalidateByEntity('unit', unitId)
-		if (updatedUnit.propertyId) {
-			this.cache.invalidateByEntity('property', updatedUnit.propertyId)
-		}
+				// If we get here, there was a different error
+				this.logger.error('Failed to update unit in Supabase', {
+					error: error,
+					unitId,
+					updateRequest
+				})
+				return null
+			}
 
-		return updatedUnit
+			const updatedUnit = data as Unit
+
+			// Invalidate dependent caches so lease auto-fill returns fresh unit data
+			this.cache.invalidateByEntity('unit', unitId)
+			if (updatedUnit.propertyId) {
+				this.cache.invalidateByEntity('property', updatedUnit.propertyId)
+			}
+
+			return updatedUnit
+		} catch (error) {
+			this.logger.error('Units service failed to update unit', {
+				error: error instanceof Error ? error.message : String(error),
+				unitId,
+				updateRequest
+			})
+			return null
+		}
 	}
 
 	/**
 	 * Remove unit via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies unit ownership
 	 */
 	async remove(token: string, unitId: string): Promise<void> {
 		try {
@@ -434,7 +491,7 @@ export class UnitsService {
 
 			this.logger.log('Removing unit via RLS-protected query', { unitId })
 
-			// ✅ RLS SECURITY: User-scoped client automatically verifies unit ownership
+			// RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
 			// Fetch unit metadata before deletion so we can invalidate property cache afterwards
@@ -479,7 +536,7 @@ export class UnitsService {
 
 	/**
 	 * Get units analytics via direct Supabase query
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
 	async getAnalytics(
 		token: string,
@@ -495,7 +552,7 @@ export class UnitsService {
 				options
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 
 			let queryBuilder = client.from('unit').select('*')
@@ -526,7 +583,7 @@ export class UnitsService {
 
 	/**
 	 * Get available units for a property via Supabase Functions
-	 * ✅ RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's properties
 	 */
 	async getAvailable(token: string, propertyId: string): Promise<Unit[]> {
 		try {
@@ -543,7 +600,7 @@ export class UnitsService {
 				propertyId
 			})
 
-			// ✅ RLS SECURITY: User-scoped client automatically filters to user's properties
+			// RLS SECURITY: User-scoped client automatically filters to user's properties
 			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('unit')
@@ -573,7 +630,7 @@ export class UnitsService {
 
 	/**
 	 * Update unit status via Supabase RPC function
-	 * ✅ RLS COMPLIANT: Delegates to update() which uses getUserClient(token)
+	 * RLS COMPLIANT: Delegates to update() which uses getUserClient(token)
 	 */
 	async updateStatus(
 		token: string,
@@ -609,7 +666,7 @@ export class UnitsService {
 	/**
 	 * Get unit statistics - replaces get_unit_statistics function
 	 * Uses Supabase Functions pattern instead of database function
-	 * ✅ RLS COMPLIANT: Delegates to getStats() and getAnalytics() which use getUserClient(token)
+	 * RLS COMPLIANT: Delegates to getStats() and getAnalytics() which use getUserClient(token)
 	 */
 	async getUnitStatistics(
 		token: string,
