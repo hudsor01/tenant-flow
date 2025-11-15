@@ -52,6 +52,15 @@ function getTokenFromRequest(req: Request): string | null {
 	return authHeader.substring(7)
 }
 
+// Helper to safely extract authenticated user from request
+function requireAuthenticatedUser(req: Request): { id: string } {
+	const user = (req as AuthenticatedRequest).user
+	if (!user?.id) {
+		throw new UnauthorizedException('User information not available')
+	}
+	return user
+}
+
 // Validation constants (DRY principle)
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
 @Injectable()
@@ -132,7 +141,7 @@ export class PropertiesService {
 			throw new UnauthorizedException('Authentication required')
 		}
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		return this.queryHelpers.querySingle<Property>(
 			client.from('property').select('*').eq('id', propertyId).single(),
@@ -162,7 +171,7 @@ export class PropertiesService {
 		// ✅ NOVEMBER 2025 FIX: req.user.id already contains users.id (from JWT)
 		// RLS policy validates: ownerId IN (SELECT id FROM users WHERE supabaseId = auth.uid())
 		// No need to query users table - just use the ID from the authenticated request
-		const ownerId = (req as AuthenticatedRequest).user.id
+		const { id: ownerId } = requireAuthenticatedUser(req)
 
 		// Zod validation already handles trim().min(1) - no need for redundant checks
 
@@ -228,7 +237,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		try {
 			// Parse CSV file using csv-parse (RFC 4180 compliant streaming parser)
@@ -477,7 +486,7 @@ export class PropertiesService {
 
 		//Add version check for optimistic locking
 		const query = client.from('property').update(updateData).eq('id', propertyId)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		let updatedProperty: Property
 
@@ -526,7 +535,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 		// 🔒 Use userId from req.user.id (Supabase auth UUID) for RLS-compliant inserts
 
 		// Verify ownership through RLS (throws NotFoundException if not found)
@@ -742,7 +751,7 @@ export class PropertiesService {
 	 * SECURITY FIX #6: User-specific cache key to prevent cache poisoning
 	 */
 	async getStats(req: Request): Promise<PropertyStats> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// SECURITY FIX #6: Include userId in cache key to prevent cross-user data leakage
 		const cacheKey = `property-stats:${userId}`
@@ -809,7 +818,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// Clamp pagination values
 		const limit = Math.min(Math.max(query.limit || 10, 1), 100)
@@ -848,7 +857,7 @@ export class PropertiesService {
 		req: Request,
 		query: { propertyId?: string; timeframe: string; limit?: number }
 	) {
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// Validate using constant
 		if (
@@ -903,7 +912,7 @@ export class PropertiesService {
 		req: Request,
 		query: { propertyId?: string; period?: string }
 	): Promise<unknown[]> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		// findOne() throws NotFoundException if not found or access denied
@@ -943,7 +952,7 @@ export class PropertiesService {
 		req: Request,
 		query: { propertyId?: string; timeframe?: string }
 	): Promise<unknown[]> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		// findOne() throws NotFoundException if not found or access denied
@@ -983,7 +992,7 @@ export class PropertiesService {
 		req: Request,
 		query: { propertyId?: string; timeframe?: string }
 	): Promise<unknown[]> {
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// SECURITY FIX #3: Verify property ownership before calling RPC
 		// findOne() throws NotFoundException if not found or access denied
@@ -1030,7 +1039,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// Verify ownership through RLS (throws NotFoundException if not found)
 		await this.findOne(req, propertyId)
@@ -1071,7 +1080,7 @@ export class PropertiesService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const userId = (req as AuthenticatedRequest).user.id
+		const { id: userId } = requireAuthenticatedUser(req)
 
 		// Verify property ownership
 		const { data: property } = await client
