@@ -1,8 +1,7 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter'
 import {
 	createMockSupabaseService,
-	createMockStripeConnectService,
-	createMockAppConfigService
+	createMockStripeConnectService
 } from '../../test-utils/mocks'
 import { TenantsService } from './tenants.service'
 
@@ -16,14 +15,19 @@ function createTenantsServiceWithMocks() {
 	const mockEventEmitter = {
 		emit: jest.fn()
 	} as unknown as jest.Mocked<EventEmitter2>
-	const mockAppConfigService = createMockAppConfigService()
+	const mockQueryHelpers = {
+		querySingle: jest.fn().mockResolvedValue(null),
+		queryList: jest.fn().mockResolvedValue([]),
+		querySingleWithVersion: jest.fn().mockResolvedValue({ data: null, version: undefined }),
+		queryCount: jest.fn().mockResolvedValue(0)
+	}
 
 	// Directly instantiate the service to avoid Nest DI resolution issues
 	const tenantsService = new TenantsService(
 		mockSupabaseService as any,
 		mockEventEmitter as any,
 		mockStripeConnectService as any,
-		mockAppConfigService as any
+		mockQueryHelpers as any
 	)
 
 	return {
@@ -31,7 +35,7 @@ function createTenantsServiceWithMocks() {
 		mockSupabaseService,
 		mockStripeConnectService,
 		mockEventEmitter,
-		mockAppConfigService
+		mockQueryHelpers
 	}
 }
 
