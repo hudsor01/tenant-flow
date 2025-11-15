@@ -703,13 +703,10 @@ export class ReportsController {
 
 		this.logger.log('Creating scheduled report', { userId, ...body })
 
-		const schedule = await this.scheduledReportService.createSchedule(
-			{
-				userId,
-				...body
-			},
-			token
-		)
+		const schedule = await this.scheduledReportService.createSchedule({
+			userId,
+			...body
+		})
 
 		return {
 			success: true,
@@ -733,7 +730,7 @@ export class ReportsController {
 			throw new ForbiddenException('Authentication token missing')
 		}
 
-		const schedules = await this.scheduledReportService.listSchedules(userId, token)
+		const schedules = await this.scheduledReportService.listSchedules(userId)
 
 		return {
 			success: true,
@@ -760,7 +757,7 @@ export class ReportsController {
 			throw new ForbiddenException('Authentication token missing')
 		}
 
-		await this.scheduledReportService.deleteSchedule(scheduleId, userId, token)
+		await this.scheduledReportService.deleteSchedule(scheduleId, userId)
 
 		return {
 			success: true,

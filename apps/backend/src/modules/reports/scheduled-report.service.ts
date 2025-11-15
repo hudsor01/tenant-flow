@@ -1,6 +1,7 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import type { Json } from '@repo/shared/types/supabase-generated'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { GeneratedReportService } from './generated-report.service'
 
 export interface CreateScheduleData {
@@ -43,21 +44,17 @@ export class ScheduledReportService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
+		private readonly queryHelpers: SupabaseQueryHelpers,
 		private readonly generatedReportService: GeneratedReportService
 	) {}
-
-	private getUserClient(token: string) {
-		return this.supabaseService.getUserClient(token)
-	}
 
 	/**
 	 * Create a new scheduled report
 	 */
 	async createSchedule(
-		data: CreateScheduleData,
-		token: string
+		data: CreateScheduleData
 	): Promise<ScheduledReportRecord> {
-		const client = this.getUserClient(token)
+		const client = this.supabaseService.getAdminClient()
 
 		// Calculate next run time
 		const nextRunAt = this.calculateNextRunAt(
@@ -68,87 +65,84 @@ export class ScheduledReportService {
 			data.timezone || 'UTC'
 		)
 
-		const { data: record, error } = await client
-			.from('scheduled_report')
-			.insert({
-				userId: data.userId,
-				reportType: data.reportType,
-				reportName: data.reportName,
-				format: data.format,
-				frequency: data.frequency,
-				dayOfWeek: data.dayOfWeek || null,
-				dayOfMonth: data.dayOfMonth || null,
-				hour: data.hour || 9,
-				timezone: data.timezone || 'UTC',
-				isActive: true,
-				nextRunAt: nextRunAt.toISOString(),
-				metadata: (data.metadata || {}) as never
-			})
-			.select()
-			.single()
-
-		if (error) {
-			this.logger.error(`Failed to create schedule: ${error.message}`)
-			throw error
-		}
+		const record = await this.queryHelpers.querySingle<ScheduledReportRecord>(
+			client
+				.from('scheduled_report')
+				.insert({
+					userId: data.userId,
+					reportType: data.reportType,
+					reportName: data.reportName,
+					format: data.format,
+					frequency: data.frequency,
+					dayOfWeek: data.dayOfWeek || null,
+					dayOfMonth: data.dayOfMonth || null,
+					hour: data.hour || 9,
+					timezone: data.timezone || 'UTC',
+					isActive: true,
+					nextRunAt: nextRunAt.toISOString(),
+					metadata: (data.metadata || {}) as never
+				})
+				.select()
+				.single(),
+			{
+				resource: 'scheduled_report',
+				operation: 'createSchedule',
+				userId: data.userId
+			}
+		)
 
 		this.logger.log(`Created schedule ${record.id} for user ${data.userId}`)
-		return record as ScheduledReportRecord
+		return record
 	}
 
 	/**
 	 * List all schedules for a user
 	 */
-	async listSchedules(
-		userId: string,
-		token: string
-	): Promise<ScheduledReportRecord[]> {
-		const client = this.getUserClient(token)
+	async listSchedules(userId: string): Promise<ScheduledReportRecord[]> {
+		const client = this.supabaseService.getAdminClient()
 
-		// Defense-in-depth: Explicit userId filter even though RLS should handle this
-		// This ensures users can only see their own scheduled reports
-		const { data, error } = await client
-			.from('scheduled_report')
-			.select('*')
-			.eq('userId', userId)
-			.order('createdAt', { ascending: false })
-
-		if (error) {
-			this.logger.error(`Failed to list schedules: ${error.message}`)
-			throw error
-		}
-
-		return data as ScheduledReportRecord[]
+		return this.queryHelpers.queryList<ScheduledReportRecord>(
+			client
+				.from('scheduled_report')
+				.select('*')
+				.eq('userId', userId)
+				.order('createdAt', { ascending: false }),
+			{
+				resource: 'scheduled_report',
+				operation: 'listSchedules',
+				userId
+			}
+		)
 	}
 
 	/**
 	 * Delete a schedule (with ownership validation)
 	 */
-	async deleteSchedule(
-		scheduleId: string,
-		userId: string,
-		token: string
-	): Promise<void> {
-		const client = this.getUserClient(token)
+	async deleteSchedule(scheduleId: string, userId: string): Promise<void> {
+		const client = this.supabaseService.getAdminClient()
 
-		// Defense-in-depth: Verify ownership with explicit userId filter
-		// RLS should already enforce this, but we add an extra layer of security
-		const { data: schedule, error: fetchError } = await client
-			.from('scheduled_report')
-			.select('id')
-			.eq('id', scheduleId)
-			.eq('userId', userId)
-			.single()
-
-		if (fetchError || !schedule) {
-			throw new NotFoundException('Schedule not found or access denied')
-		}
+		// First verify ownership using querySingle (throws NotFoundException if not found)
+		await this.queryHelpers.querySingle<{ id: string }>(
+			client
+				.from('scheduled_report')
+				.select('id')
+				.eq('id', scheduleId)
+				.eq('userId', userId)
+				.single(),
+			{
+				resource: 'scheduled_report',
+				id: scheduleId,
+				operation: 'deleteSchedule',
+				userId
+			}
+		)
 
 		// Delete the schedule
 		const { error: deleteError } = await client
 			.from('scheduled_report')
 			.delete()
 			.eq('id', scheduleId)
+			.eq('userId', userId)
 
 		if (deleteError) {
 			this.logger.error(`Failed to delete schedule: ${deleteError.message}`)
@@ -169,18 +163,19 @@ export class ScheduledReportService {
 		this.logger.log('Checking for due schedules...')
 
 		// Fetch all active schedules that are due
-		const { data: schedules, error } = await client
-			.from('scheduled_report')
-			.select('*')
-			.eq('isActive', true)
-			.lte('nextRunAt', now.toISOString())
+		const schedules = await this.queryHelpers.queryList<ScheduledReportRecord>(
+			client
+				.from('scheduled_report')
+				.select('*')
+				.eq('isActive', true)
+				.lte('nextRunAt', now.toISOString()),
+			{
+				resource: 'scheduled_report',
+				operation: 'executeDueSchedules'
+			}
+		)
 
-		if (error) {
-			this.logger.error(`Failed to fetch due schedules: ${error.message}`)
-			return 0
-		}
-
-		if (!schedules || schedules.length === 0) {
+		if (schedules.length === 0) {
 			this.logger.log('No due schedules found')
 			return 0
 		}
@@ -191,7 +186,7 @@ export class ScheduledReportService {
 
 		for (const schedule of schedules) {
 			try {
-				await this.executeSchedule(schedule as ScheduledReportRecord)
+				await this.executeSchedule(schedule)
 				successCount++
 			} catch (error) {
 				this.logger.error(
