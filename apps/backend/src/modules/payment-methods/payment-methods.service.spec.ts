@@ -3,6 +3,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { PaymentMethodsService } from './payment-methods.service'
 
@@ -60,6 +61,15 @@ describe('PaymentMethodsService', () => {
 				{
 					provide: StripeClientService,
 					useValue: mockStripeClientService
+				},
+				{
+					provide: SupabaseQueryHelpers,
+					useValue: {
+						querySingle: jest.fn(),
+						queryList: jest.fn(),
+						querySingleWithVersion: jest.fn(),
+						queryCount: jest.fn()
+					}
 				}
 			]
 		}).compile()
