@@ -13,7 +13,7 @@ export interface GeneratedReportData {
 	startDate: string
 	endDate: string
 	fileBuffer?: Buffer
-	metadata?: Record<string, unknown>
+	metadata?: Json
 }
 
 export interface GeneratedReportRecord {
@@ -94,7 +94,7 @@ export class GeneratedReportService {
 						fileSize,
 						startDate: data.startDate,
 						endDate: data.endDate,
-						metadata: (data.metadata || {}) as never
+						metadata: data.metadata ?? null
 					})
 					.select()
 					.single(),
