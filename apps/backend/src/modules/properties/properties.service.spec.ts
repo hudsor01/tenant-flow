@@ -4,6 +4,7 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StorageService } from '../../database/storage.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { SupabaseQueryHelpers } from '../../shared/supabase/supabase-query-helpers'
 import { UtilityService } from '../../shared/services/utility.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__test__/silent-logger'
@@ -98,6 +99,15 @@ describe('PropertiesService', () => {
 					provide: StorageService,
 					useValue: {
 						deleteFile: jest.fn()
+					}
+				},
+				{
+					provide: SupabaseQueryHelpers,
+					useValue: {
+						querySingle: jest.fn(),
+						queryList: jest.fn(),
+						querySingleWithVersion: jest.fn(),
+						queryCount: jest.fn()
 					}
 				},
 				{
