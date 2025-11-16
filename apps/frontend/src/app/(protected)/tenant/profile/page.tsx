@@ -106,11 +106,11 @@ export default function TenantProfilePage() {
 	useEffect(() => {
 		if (emergencyContact) {
 			setEmergencyContactForm({
-				contactName: emergencyContact.contactName,
-				relationship: emergencyContact.relationship,
-				phoneNumber: emergencyContact.phoneNumber,
-				email: emergencyContact.email || ''
-			})
+			contactName: emergencyContact.contactName,
+			relationship: emergencyContact.relationship,
+			phoneNumber: emergencyContact.phoneNumber,
+			email: ''
+		})
 		}
 	}, [emergencyContact])
 
@@ -184,31 +184,20 @@ export default function TenantProfilePage() {
 			return
 		}
 
-		// Validate email format if provided
-		if (emergencyContactForm.email && emergencyContactForm.email.trim()) {
-			const emailResult = emailSchema.safeParse(emergencyContactForm.email)
-			if (!emailResult.success) {
-				toast.error('Emergency contact email is invalid')
-				return
-			}
-		}
-
 		try {
 			if (emergencyContact) {
 				// Update existing contact
 				await updateEmergencyContact.mutateAsync({
 					contactName: emergencyContactForm.contactName,
 					relationship: emergencyContactForm.relationship,
-					phoneNumber: emergencyContactForm.phoneNumber,
-					email: emergencyContactForm.email || null
+					phoneNumber: emergencyContactForm.phoneNumber
 				})
 			} else {
 				// Create new contact
 				await createEmergencyContact.mutateAsync({
 					contactName: emergencyContactForm.contactName,
 					relationship: emergencyContactForm.relationship,
-					phoneNumber: emergencyContactForm.phoneNumber,
-					email: emergencyContactForm.email || null
+					phoneNumber: emergencyContactForm.phoneNumber
 				})
 			}
 			setEmergencyContactEditing(false)
@@ -227,12 +216,12 @@ export default function TenantProfilePage() {
 
 		try {
 			await deleteEmergencyContact.mutateAsync()
-			setEmergencyContactForm({
-				contactName: '',
-				relationship: '',
-				phoneNumber: '',
-				email: ''
-			})
+		setEmergencyContactForm({
+			contactName: '',
+			relationship: '',
+			phoneNumber: '',
+			email: ''
+		})
 			setEmergencyContactEditing(false)
 			setDeleteDialogOpen(false)
 		} catch (error) {
@@ -247,7 +236,7 @@ export default function TenantProfilePage() {
 				contactName: emergencyContact.contactName,
 				relationship: emergencyContact.relationship,
 				phoneNumber: emergencyContact.phoneNumber,
-				email: emergencyContact.email || ''
+				email: ''
 			})
 		} else {
 			// Clear form
@@ -451,30 +440,6 @@ export default function TenantProfilePage() {
 								updateEmergencyContact.isPending
 							}
 							required
-						/>
-					</Field>
-
-					<Field>
-						<FieldLabel>
-							<div className="flex items-center gap-2">
-								<Mail className="size-4" />
-								<span>Email (optional)</span>
-							</div>
-						</FieldLabel>
-						<input
-							type="email"
-							className="input w-full"
-							placeholder="emergency@example.com"
-							value={emergencyContactForm.email}
-							onChange={e =>
-								handleEmergencyContactChange('email', e.target.value)
-							}
-							disabled={
-								!emergencyContactEditing ||
-								emergencyContactLoading ||
-								createEmergencyContact.isPending ||
-								updateEmergencyContact.isPending
-							}
 						/>
 					</Field>
 

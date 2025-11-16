@@ -21,7 +21,7 @@ const logger = createLogger({ component: 'SupabaseMiddleware' })
 // Per Supabase docs: Always verify JWT signatures against Supabase's public keys
 // Reference: https://supabase.com/docs/guides/auth/jwts
 const SUPABASE_JWKS = createRemoteJWKSet(
-	new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`)
+	new URL(`${SUPABASE_URL}/auth/v1/keys`)
 )
 
 export async function updateSession(request: NextRequest) {
@@ -273,8 +273,9 @@ async function verifyJwtToken(
 	try {
 		// Verify JWT signature using Supabase's public keys
 		const { payload } = await jwtVerify(accessToken, SUPABASE_JWKS, {
-			issuer: `${SUPABASE_URL}/auth/v1`
-		})
+		issuer: `${SUPABASE_URL}/auth/v1`,
+		audience: 'authenticated'
+	})
 		return payload as Record<string, unknown>
 	} catch (err) {
 		logger.error('JWT verification failed', {
