@@ -25,8 +25,8 @@ const CSV_TEMPLATE_HEADERS = [
 	'address',
 	'city',
 	'state',
-	'zipCode',
-	'propertyType',
+	'postal_code',
+	'property_type',
 	'description'
 ] as const
 const CSV_TEMPLATE_SAMPLE_ROWS = [
@@ -242,9 +242,9 @@ export function PropertyBulkImportDialog() {
 						{/* Quick Instructions */}
 						<div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
 							<p className="font-medium mb-1">Required columns:</p>
-							<p>name, address, city, state, zipCode</p>
+							<p>name, address, city, state, postal_code</p>
 							<p className="font-medium mt-2 mb-1">Optional columns:</p>
-							<p>propertyType, description</p>
+							<p>property_type, description</p>
 						</div>
 					</div>
 

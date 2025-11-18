@@ -177,8 +177,8 @@ export default function ReportLibraryPage() {
 												{report.format}
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
-												{format(new Date(report.startDate), 'MMM d, yyyy')} -{' '}
-												{format(new Date(report.endDate), 'MMM d, yyyy')}
+												{format(new Date(report.start_date), 'MMM d, yyyy')} -{' '}
+												{format(new Date(report.end_date), 'MMM d, yyyy')}
 											</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
 												{formatFileSize(report.fileSize)}
@@ -186,7 +186,7 @@ export default function ReportLibraryPage() {
 											<TableCell>{getStatusBadge(report.status)}</TableCell>
 											<TableCell className="text-sm text-muted-foreground">
 												{format(
-													new Date(report.createdAt),
+													new Date(report.created_at),
 													'MMM d, yyyy h:mm a'
 												)}
 											</TableCell>

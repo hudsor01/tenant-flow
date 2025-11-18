@@ -49,7 +49,8 @@ export class SubscriptionGuard implements CanActivate {
 		}
 
 		// Tenant-facing routes are covered by invite-only access and do not require payment
-		if (user.role === 'TENANT') {
+		const userType = (user.app_metadata?.user_type) as string | undefined
+		if (userType === 'TENANT') {
 			return true
 		}
 
@@ -67,7 +68,7 @@ export class SubscriptionGuard implements CanActivate {
 
 		if (rpcFailed) {
 			this.logger.error('Subscription RPC failed, using fallback', {
-				userId: user.id,
+				user_id: user.id,
 				error: featureAccessResult.error?.message
 			})
 		}
@@ -77,15 +78,15 @@ export class SubscriptionGuard implements CanActivate {
 			const { data: profile, error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
-				.select('subscription_status, stripeCustomerId')
+				.select('stripe_customer_id')
 				.eq('id', user.id) // user.id is now database users.id (not supabaseId)
-				.single()
+				.single<{ stripe_customer_id: string | null }>()
 
 			if (error) {
 				this.logger.error(
 					'Failed to load user profile for subscription check',
 					{
-						userId: user.id,
+						user_id: user.id,
 						error: error.message
 					}
 				)
@@ -98,18 +99,14 @@ export class SubscriptionGuard implements CanActivate {
 			}
 
 			if (profile) {
-				const validStatuses = ['active', 'trialing']
-				const status = profile.subscription_status?.toLowerCase()
-				hasAccess =
-					!!profile.stripeCustomerId &&
-					!!status &&
-					validStatuses.includes(status)
+				// User has a Stripe customer ID, which indicates an active subscription
+				hasAccess = !!profile.stripe_customer_id
 			}
 		}
 
 		if (!hasAccess) {
 			this.logger.warn('Access denied: Active subscription required', {
-				userId: user.id,
+				user_id: user.id,
 				endpoint: request.url
 			})
 			throw new ForbiddenException({

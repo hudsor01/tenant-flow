@@ -22,11 +22,11 @@ import { useMutation } from '@tanstack/react-query'
 const logger = createLogger({ component: 'InviteTenantDialog' })
 
 interface InviteTenantDialogProps {
-	tenantId: string
+	tenant_id: string
 	tenantEmail: string
 	tenantName: string
-	propertyId?: string
-	leaseId?: string
+	property_id?: string
+	lease_id?: string
 	onSuccess?: () => void
 }
 
@@ -40,40 +40,40 @@ interface InviteTenantDialogProps {
  * invite them to pay rent online, submit maintenance requests, view documents.
  */
 export function InviteTenantDialog({
-	tenantId,
+	tenant_id,
 	tenantEmail,
 	tenantName,
-	propertyId,
-	leaseId,
+	property_id,
+	lease_id,
 	onSuccess
 }: InviteTenantDialogProps) {
 	const { openModal, closeModal } = useModalStore()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	const modalId = `invite-tenant-${tenantId}`
+	const modalId = `invite-tenant-${tenant_id}`
 
 	const { mutateAsync: sendInvitation } = useMutation({
 		mutationFn: async () => {
 			// Use V2 endpoint (Supabase Auth) with optional property/lease context
 			// Only pass defined values to avoid exactOptionalPropertyTypes errors
-			const params: { propertyId?: string; leaseId?: string } = {}
-			if (propertyId) params.propertyId = propertyId
-			if (leaseId) params.leaseId = leaseId
+			const params: { property_id?: string; lease_id?: string } = {}
+			if (property_id) params.property_id = property_id
+			if (lease_id) params.lease_id = lease_id
 
 			const invitationResponse = await clientFetch<{
 				success: boolean
 				message?: string
-			}>(`/api/v1/tenants/${tenantId}/send-invitation-v2`, {
+			}>(`/api/v1/tenants/${tenant_id}/send-invitation-v2`, {
 				method: 'POST',
 				body: JSON.stringify(params)
 			})
 
 			const logContext: Record<string, unknown> = {
-				tenantId,
+				tenant_id,
 				response: invitationResponse
 			}
-			if (propertyId) logContext.propertyId = propertyId
-			if (leaseId) logContext.leaseId = leaseId
+			if (property_id) logContext.property_id = property_id
+			if (lease_id) logContext.lease_id = lease_id
 
 			logger.info('Invitation sent via Supabase Auth', logContext)
 
@@ -96,10 +96,10 @@ export function InviteTenantDialog({
 		onError: error => {
 			const errorContext: Record<string, unknown> = {
 				error: error instanceof Error ? error.message : String(error),
-				tenantId
+				tenant_id
 			}
-			if (propertyId) errorContext.propertyId = propertyId
-			if (leaseId) errorContext.leaseId = leaseId
+			if (property_id) errorContext.property_id = property_id
+			if (lease_id) errorContext.lease_id = lease_id
 
 			logger.error('Failed to invite tenant', errorContext)
 			handleMutationError(error, 'Send tenant invitation')

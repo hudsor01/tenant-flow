@@ -2,12 +2,13 @@
  * Subscriptions Service
  * Phase 4: Autopay Subscriptions
  *
- * Handles recurring rent payment subscriptions with Stripe Billing.
- * Uses destination charges to route payments to owner Stripe Connect accounts.
+ * Rewritten against the latest Supabase schema so every query maps to real tables.
+ * All access is enforced through typed helpers to avoid the old wildcard selects.
  */
 
 import {
 	BadRequestException,
+	ForbiddenException,
 	Injectable,
 	Logger,
 	NotFoundException
@@ -16,12 +17,30 @@ import type {
 	CreateSubscriptionRequest,
 	RentSubscriptionResponse,
 	SubscriptionActionResponse,
-	SubscriptionStatus,
 	UpdateSubscriptionRequest
-} from '@repo/shared/types/core'
+} from '@repo/shared/types/api-contracts'
+import type { SubscriptionStatus } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
+
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+
+interface LeaseContext {
+	lease: LeaseRow
+	tenant: TenantRow
+	tenantUser: UserRow
+	unit: UnitRow
+	property: PropertyRow
+	owner: PropertyOwnerRow
+}
 
 @Injectable()
 export class SubscriptionsService {
@@ -36,280 +55,215 @@ export class SubscriptionsService {
 	}
 
 	/**
-	 * Create a new rent subscription with destination charges
+	 * Create a new rent subscription (one per lease)
 	 */
 	async createSubscription(
-		tenantId: string,
+		userId: string,
 		request: CreateSubscriptionRequest
 	): Promise<RentSubscriptionResponse> {
-		// 1. Validate lease belongs to tenant
-		const { data: lease, error: leaseError } = await this.supabase
-			.getAdminClient()
-			.from('lease')
-			.select(
-				`
-				id,
-				tenantId,
-				propertyId,
-				unitId,
-				rentAmount,
-				startDate,
-				endDate,
-				property:propertyId(id, name, ownerId),
-				unit:unitId(id, unitNumber)
-			`
-			)
-			.eq('id', request.leaseId)
-			.eq('tenantId', tenantId)
-			.single()
+		const adminClient = this.supabase.getAdminClient()
+		const tenantContext = await this.requireTenantForUser(userId)
+		const leaseContext = await this.loadLeaseContext(request.leaseId)
 
-		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
+		if (leaseContext.tenant.id !== tenantContext.tenant.id) {
+			throw new BadRequestException('Lease does not belong to tenant')
 		}
 
-		// Get owner ID from property
-		if (!lease.property?.ownerId) {
-			throw new NotFoundException('Property owner not found for lease')
-		}
-		const ownerId = lease.property.ownerId
-
-		// Get owner's Stripe Connect account
-		const { data: connectedAccount, error: accountError } = await this.supabase
-			.getAdminClient()
-			.from('connected_account')
-			.select('*')
-			.eq('userId', ownerId)
-			.single()
-
-		if (accountError || !connectedAccount) {
-			throw new BadRequestException(
-				'Owner has not completed Stripe Connect onboarding'
-			)
+		if (leaseContext.lease.stripe_subscription_id) {
+			throw new BadRequestException('Autopay is already enabled for this lease')
 		}
 
-		if (!connectedAccount.chargesEnabled) {
-			throw new BadRequestException(
-				'Owner Stripe account is not enabled for charges'
-			)
+		const paymentMethod = await this.getPaymentMethod(request.paymentMethodId)
+		if (paymentMethod.tenant_id !== leaseContext.tenant.id) {
+			throw new BadRequestException('Payment method does not belong to tenant')
 		}
 
-		const stripeAccountId = connectedAccount.stripeAccountId
+		this.assertTenantUser(userId, leaseContext.tenantUser.id)
+		this.assertOwnerReady(leaseContext.owner)
 
-		// 2. Get payment method and ensure it belongs to tenant
-		const { data: paymentMethod, error: pmError } = await this.supabase
-			.getAdminClient()
-			.from('tenant_payment_method')
-			.select('*')
-			.eq('id', request.paymentMethodId)
-			.eq('tenantId', tenantId)
-			.single()
-
-		if (pmError || !paymentMethod) {
-			throw new NotFoundException('Payment method not found')
-		}
-
-		// 3. Get or create Stripe customer for tenant
-		let stripeCustomerId = paymentMethod.stripeCustomerId
-
-		if (!stripeCustomerId) {
-			// Get tenant info separately
-			const { data: tenant } = await this.supabase
-				.getAdminClient()
-				.from('tenant')
-				.select('*')
-				.eq('id', tenantId)
-				.single()
-
-			const customerParams: {
-				metadata: { tenantId: string; leaseId: string }
-				email?: string
-				name?: string
-			} = {
-				metadata: {
-					tenantId,
-					leaseId: request.leaseId
-				}
-			}
-
-			if (tenant?.email !== undefined && tenant.email !== null) {
-				customerParams.email = tenant.email
-			}
-			if (tenant?.name !== undefined && tenant.name !== null) {
-				customerParams.name = tenant.name
-			}
-
-			const customer = await this.stripe.customers.create(customerParams)
-			stripeCustomerId = customer.id
-		}
-
-		// 4. Calculate billing cycle anchor (next occurrence of billing day)
-		const now = new Date()
-		const currentDay = now.getUTCDate()
-		const anchorDate = new Date(
-			Date.UTC(
-				now.getUTCFullYear(),
-				now.getUTCMonth(),
-				request.billingDayOfMonth,
-				0,
-				0,
-				0
-			)
+		const stripeCustomerId = await this.ensureStripeCustomerId(
+			leaseContext.tenant,
+			leaseContext.tenantUser
 		)
 
-		// If billing day has passed this month, set anchor to next month
-		if (request.billingDayOfMonth <= currentDay) {
-			anchorDate.setUTCMonth(anchorDate.getUTCMonth() + 1)
-		}
-
-		const billingCycleAnchor = Math.floor(anchorDate.getTime() / 1000)
-
-		// 5. Create a product and price first for the subscription
-		const productName = lease.unit
-			? `Rent for Unit ${lease.unit.unitNumber} at ${lease.property?.name || 'Property'}`
-			: `Rent for ${lease.property?.name || 'Property'}`
-		const product = await this.stripe.products.create({
-			name: productName
-		})
+		const billingDay = this.validateBillingDay(request.billingDayOfMonth)
+		const amountInCents = this.normalizeStripeAmount(request.amount)
+		const currency = (request.currency ?? leaseContext.lease.rent_currency ?? 'usd').toLowerCase()
+		const billingCycleAnchor = this.computeBillingCycleAnchor(billingDay)
 
 		const price = await this.stripe.prices.create({
-			product: product.id,
-			currency: request.currency || 'usd',
-			unit_amount: Math.round(request.amount * 100), // Convert to cents
-			recurring: {
-				interval: 'month'
+			currency,
+			unit_amount: amountInCents,
+			recurring: { interval: 'month' },
+			product_data: {
+				name: `Monthly Rent - Lease ${leaseContext.lease.id.slice(0, 8)}`,
+				metadata: {
+					lease_id: leaseContext.lease.id,
+					tenant_id: leaseContext.tenant.id,
+					owner_id: leaseContext.owner.user_id
+				}
 			}
 		})
 
-		// 6. Create Stripe subscription with destination charges
 		const subscription = await this.stripe.subscriptions.create({
 			customer: stripeCustomerId,
-			items: [{ price: price.id }],
-			default_payment_method: paymentMethod.stripePaymentMethodId,
-			billing_cycle_anchor: billingCycleAnchor,
-			proration_behavior: 'none',
+			items: [
+				{
+					price: price.id
+				}
+			],
+			default_payment_method: paymentMethod.stripe_payment_method_id,
 			transfer_data: {
-				destination: stripeAccountId
+				destination: leaseContext.owner.stripe_account_id
 			},
+			...(leaseContext.owner.default_platform_fee_percent ? { application_fee_percent: leaseContext.owner.default_platform_fee_percent } : {}),
+			proration_behavior: 'none',
+			billing_cycle_anchor: billingCycleAnchor,
 			metadata: {
-				tenantId,
-				ownerId,
-				leaseId: request.leaseId,
-				paymentMethodId: request.paymentMethodId
+				lease_id: leaseContext.lease.id,
+				tenant_id: leaseContext.tenant.id,
+				owner_id: leaseContext.owner.user_id,
+				payment_method_id: paymentMethod.id
 			}
 		})
 
-		// 7. Store subscription in database with all metadata
-		const { data: dbSubscription, error: dbError } = await this.supabase
-			.getAdminClient()
-			.from('rent_subscription')
-			.insert({
-				leaseId: request.leaseId,
-				tenantId,
-				ownerId: ownerId, // <-- use ownerId to match DB types
-				stripeSubscriptionId: subscription.id,
-				stripeCustomerId,
-				amount: Math.round(request.amount * 100),
-				currency: request.currency || 'usd',
-				dueDay: request.billingDayOfMonth,
-				status: subscription.status === 'active' ? 'active' : 'paused',
-				platformFeePercent: 0,
-				pausedAt:
-					subscription.status !== 'active' ? new Date().toISOString() : null
+		const { error } = await adminClient
+			.from('leases')
+			.update({
+				stripe_subscription_id: subscription.id,
+				auto_pay_enabled: true,
+				payment_day: billingDay,
+				rent_amount: request.amount,
+				rent_currency: currency
 			})
-			.select()
-			.single()
-
-		if (dbError || !dbSubscription) {
-			// Rollback: Cancel Stripe subscription
-			await this.stripe.subscriptions.cancel(subscription.id)
-			throw new BadRequestException('Failed to create subscription record')
-		}
-
-		return this.mapToResponse(dbSubscription as Record<string, unknown>)
-	}
-
-	/**
-	 * Get subscription by ID
-	 */
-	async getSubscription(
-		subscriptionId: string,
-		userId: string
-	): Promise<RentSubscriptionResponse> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('rent_subscription')
-			.select('*')
-			.eq('id', subscriptionId)
-			.or(`tenantId.eq.${userId},ownerId.eq.${userId}`) // <-- ownerId here
-			.single()
-
-		if (error || !data) {
-			throw new NotFoundException('Subscription not found')
-		}
-
-		return this.mapToResponse(data as Record<string, unknown>)
-	}
-
-	/**
-	 * List subscriptions for a user (tenant or owner)
-	 */
-	async listSubscriptions(userId: string): Promise<RentSubscriptionResponse[]> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('rent_subscription')
-			.select('*')
-			.or(`tenantId.eq.${userId},ownerId.eq.${userId}`) // <-- ownerId here
-			.order('createdAt', { ascending: false })
+			.eq('id', leaseContext.lease.id)
 
 		if (error) {
-			this.logger.error('Failed to list subscriptions:', error)
+			this.logger.error('Failed to persist subscription metadata, cancelling Stripe subscription', {
+				leaseId: leaseContext.lease.id,
+				subscriptionId: subscription.id,
+				error: error.message
+			})
+			await this.safeCancelStripeSubscription(subscription.id)
+			throw new BadRequestException('Failed to persist subscription configuration')
+		}
+
+		leaseContext.lease.stripe_subscription_id = subscription.id
+		leaseContext.lease.auto_pay_enabled = true
+		leaseContext.lease.payment_day = billingDay
+		leaseContext.lease.rent_amount = request.amount
+		leaseContext.lease.rent_currency = currency
+
+		return this.mapLeaseContextToResponse(leaseContext, {
+			stripeSubscription: subscription,
+			paymentMethodId: paymentMethod.id
+		})
+	}
+
+	/**
+	 * Get subscription by lease id
+	 */
+	async getSubscription(
+		leaseId: string,
+		userId: string
+	): Promise<RentSubscriptionResponse> {
+		const leaseContext = await this.loadLeaseContext(leaseId)
+		this.assertLeaseAccess(leaseContext, userId)
+
+		if (!leaseContext.lease.stripe_subscription_id) {
+			throw new NotFoundException('Subscription not found for this lease')
+		}
+
+		return this.mapLeaseContextToResponse(leaseContext)
+	}
+
+	/**
+	 * List subscriptions for current user (tenant or owner context)
+	 */
+	async listSubscriptions(userId: string): Promise<RentSubscriptionResponse[]> {
+		const adminClient = this.supabase.getAdminClient()
+		const [tenantRecord, ownerRecord] = await Promise.all([
+			this.findTenantByUserId(userId),
+			this.findOwnerByUserId(userId)
+		])
+
+		if (!tenantRecord && !ownerRecord) {
 			return []
 		}
 
-		return (data || []).map(item =>
-			this.mapToResponse(item as Record<string, unknown>)
+		const leases = new Map<string, LeaseRow>()
+
+		if (tenantRecord) {
+			const tenantLeases = await this.getLeasesForTenant(
+				tenantRecord.tenant.id,
+				adminClient
+			)
+			tenantLeases.forEach(lease => leases.set(lease.id, lease))
+		}
+
+		if (ownerRecord) {
+			const ownerLeases = await this.getLeasesForOwner(ownerRecord.owner.id, adminClient)
+			ownerLeases.forEach(lease => leases.set(lease.id, lease))
+		}
+
+		if (leases.size === 0) {
+			return []
+		}
+
+		const contexts = await Promise.all(
+			Array.from(leases.values()).map(lease => this.loadLeaseContext(lease.id))
 		)
+
+		const responses: RentSubscriptionResponse[] = []
+		for (const context of contexts) {
+			if (!context.lease.stripe_subscription_id) {
+				continue
+			}
+			responses.push(await this.mapLeaseContextToResponse(context))
+		}
+
+		return responses.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 	}
 
 	/**
 	 * Pause subscription
 	 */
 	async pauseSubscription(
-		subscriptionId: string,
+		leaseId: string,
 		userId: string
 	): Promise<SubscriptionActionResponse> {
-		const subscription = await this.getSubscription(subscriptionId, userId)
+		const leaseContext = await this.loadLeaseContext(leaseId)
+		this.assertTenantUser(userId, leaseContext.tenantUser.id)
+		this.ensureActiveSubscription(leaseContext.lease)
 
-		if (subscription.status !== 'active') {
-			throw new BadRequestException('Only active subscriptions can be paused')
-		}
-
-		// Pause in Stripe
-		await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-			pause_collection: {
-				behavior: 'keep_as_draft'
+		const stripeSubscription = await this.stripe.subscriptions.update(
+			leaseContext.lease.stripe_subscription_id!,
+			{
+				pause_collection: { behavior: 'keep_as_draft' }
 			}
-		})
+		)
 
-		// Update database with pausedAt timestamp
-		const { data, error } = await this.supabase
+		const { error } = await this.supabase
 			.getAdminClient()
-			.from('rent_subscription')
-			.update({
-				status: 'paused',
-				pausedAt: new Date().toISOString()
-			})
-			.eq('id', subscriptionId)
-			.select()
-			.single()
+			.from('leases')
+			.update({ auto_pay_enabled: false })
+			.eq('id', leaseContext.lease.id)
 
-		if (error || !data) {
+		if (error) {
+			this.logger.error('Failed to update lease pause flag', {
+				leaseId,
+				error: error.message
+			})
 			throw new BadRequestException('Failed to update subscription status')
 		}
 
+		leaseContext.lease.auto_pay_enabled = false
+
 		return {
 			success: true,
-			subscription: this.mapToResponse(data as Record<string, unknown>),
+			subscription: await this.mapLeaseContextToResponse(leaseContext, {
+				stripeSubscription
+			}),
 			message: 'Subscription paused successfully'
 		}
 	}
@@ -318,39 +272,41 @@ export class SubscriptionsService {
 	 * Resume subscription
 	 */
 	async resumeSubscription(
-		subscriptionId: string,
+		leaseId: string,
 		userId: string
 	): Promise<SubscriptionActionResponse> {
-		const subscription = await this.getSubscription(subscriptionId, userId)
+		const leaseContext = await this.loadLeaseContext(leaseId)
+		this.assertTenantUser(userId, leaseContext.tenantUser.id)
+		this.ensureActiveSubscription(leaseContext.lease)
 
-		if (subscription.status !== 'paused') {
-			throw new BadRequestException('Only paused subscriptions can be resumed')
-		}
+		const stripeSubscription = await this.stripe.subscriptions.update(
+			leaseContext.lease.stripe_subscription_id!,
+			{
+				pause_collection: null
+			}
+		)
 
-		// Resume in Stripe
-		await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-			pause_collection: null
-		})
-
-		// Update database and clear pausedAt
-		const { data, error } = await this.supabase
+		const { error } = await this.supabase
 			.getAdminClient()
-			.from('rent_subscription')
-			.update({
-				status: 'active',
-				pausedAt: null
-			})
-			.eq('id', subscriptionId)
-			.select()
-			.single()
+			.from('leases')
+			.update({ auto_pay_enabled: true })
+			.eq('id', leaseContext.lease.id)
 
-		if (error || !data) {
+		if (error) {
+			this.logger.error('Failed to update lease resume flag', {
+				leaseId,
+				error: error.message
+			})
 			throw new BadRequestException('Failed to update subscription status')
 		}
 
+		leaseContext.lease.auto_pay_enabled = true
+
 		return {
 			success: true,
-			subscription: this.mapToResponse(data as Record<string, unknown>),
+			subscription: await this.mapLeaseContextToResponse(leaseContext, {
+				stripeSubscription
+			}),
 			message: 'Subscription resumed successfully'
 		}
 	}
@@ -359,159 +315,637 @@ export class SubscriptionsService {
 	 * Cancel subscription
 	 */
 	async cancelSubscription(
-		subscriptionId: string,
+		leaseId: string,
 		userId: string
 	): Promise<SubscriptionActionResponse> {
-		const subscription = await this.getSubscription(subscriptionId, userId)
+		const leaseContext = await this.loadLeaseContext(leaseId)
+		this.assertTenantUser(userId, leaseContext.tenantUser.id)
+		this.ensureActiveSubscription(leaseContext.lease)
 
-		// Cancel in Stripe (at period end to honor current billing cycle)
-		await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
-			cancel_at_period_end: true
-		})
+		const stripeSubscription = await this.stripe.subscriptions.update(
+			leaseContext.lease.stripe_subscription_id!,
+			{ cancel_at_period_end: true }
+		)
 
-		// Update database with canceledAt timestamp
-		const { data, error } = await this.supabase
+		const { error } = await this.supabase
 			.getAdminClient()
-			.from('rent_subscription')
+			.from('leases')
 			.update({
-				status: 'canceled',
-				canceledAt: new Date().toISOString()
+				auto_pay_enabled: false,
+				stripe_subscription_id: null
 			})
-			.eq('id', subscriptionId)
-			.select()
-			.single()
+			.eq('id', leaseContext.lease.id)
 
-		if (error || !data) {
+		if (error) {
+			this.logger.error('Failed to clear lease subscription id after cancel', {
+				leaseId,
+				error: error.message
+			})
 			throw new BadRequestException('Failed to update subscription status')
 		}
 
+		leaseContext.lease.auto_pay_enabled = false
+		leaseContext.lease.stripe_subscription_id = null
+
 		return {
 			success: true,
-			subscription: this.mapToResponse(data as Record<string, unknown>),
+			subscription: await this.mapLeaseContextToResponse(leaseContext, {
+				stripeSubscription
+			}),
 			message: 'Subscription will be canceled at the end of the current period'
 		}
 	}
 
 	/**
-	 * Update subscription amount or payment method
+	 * Update subscription amount / payment method / billing day
 	 */
 	async updateSubscription(
-		subscriptionId: string,
+		leaseId: string,
 		userId: string,
 		update: UpdateSubscriptionRequest
 	): Promise<RentSubscriptionResponse> {
-		const subscription = await this.getSubscription(subscriptionId, userId)
+		const leaseContext = await this.loadLeaseContext(leaseId)
+		this.assertTenantUser(userId, leaseContext.tenantUser.id)
+		this.ensureActiveSubscription(leaseContext.lease)
 
-		const stripeUpdate: Stripe.SubscriptionUpdateParams = {}
-		const dbUpdate: Record<string, unknown> = {}
+		const stripeUpdates: Stripe.SubscriptionUpdateParams = {}
+		const adminUpdates: Partial<LeaseRow> = {}
+		let nextPaymentMethodId: string | undefined
 
-		// Update amount
-		if (update.amount !== undefined) {
-			const stripeSubscription = await this.stripe.subscriptions.retrieve(
-				subscription.stripeSubscriptionId
+		if (typeof update.amount === 'number') {
+			if (update.amount <= 0) {
+				throw new BadRequestException('Amount must be greater than zero')
+			}
+			const normalizedAmount = this.normalizeStripeAmount(update.amount)
+			const existingSubscription = await this.stripe.subscriptions.retrieve(
+				leaseContext.lease.stripe_subscription_id!
 			)
-			const itemId = stripeSubscription.items.data[0]?.id
+			const currentItem = existingSubscription.items.data[0]
 
-			if (itemId && stripeSubscription.items.data[0]?.price) {
-				const existingPrice = stripeSubscription.items.data[0].price
-				const productId =
-					typeof existingPrice.product === 'string'
-						? existingPrice.product
-						: existingPrice.product?.id
+			if (!currentItem?.price) {
+				throw new BadRequestException('Subscription price configuration missing')
+			}
 
-				if (!productId) {
-					throw new BadRequestException(
-						'Could not find product for subscription'
-					)
+			const productId =
+				typeof currentItem.price.product === 'string'
+					? currentItem.price.product
+					: currentItem.price.product?.id
+
+			if (!productId) {
+				throw new BadRequestException('Subscription product missing')
+			}
+
+			const newPrice = await this.stripe.prices.create({
+				product: productId,
+				currency: currentItem.price.currency ?? 'usd',
+				unit_amount: normalizedAmount,
+				recurring: { interval: 'month' }
+			})
+
+			stripeUpdates.items = [
+				{
+					id: currentItem.id,
+					price: newPrice.id
 				}
+			]
 
-				// Create new price for updated amount
-				const newPrice = await this.stripe.prices.create({
-					product: productId,
-					currency: 'usd',
-					unit_amount: Math.round(update.amount * 100),
-					recurring: {
-						interval: 'month'
-					}
-				})
-
-				stripeUpdate.items = [
-					{
-						id: itemId,
-						price: newPrice.id
-					}
-				]
-				dbUpdate.amount = Math.round(update.amount * 100) // Store in cents
-			}
+			leaseContext.lease.rent_amount = update.amount
+			adminUpdates.rent_amount = update.amount
 		}
 
-		// Update payment method
+		if (typeof update.billingDayOfMonth === 'number') {
+			const billingDay = this.validateBillingDay(update.billingDayOfMonth)
+			stripeUpdates.billing_cycle_anchor = 'now' as Stripe.SubscriptionUpdateParams.BillingCycleAnchor
+			stripeUpdates.proration_behavior = 'none'
+			leaseContext.lease.payment_day = billingDay
+			adminUpdates.payment_day = billingDay
+		}
+
 		if (update.paymentMethodId) {
-			const { data: newPM } = await this.supabase
-				.getAdminClient()
-				.from('tenant_payment_method')
-				.select('stripePaymentMethodId')
-				.eq('id', update.paymentMethodId)
-				.eq('tenantId', subscription.tenantId)
-				.single()
-
-			if (newPM) {
-				stripeUpdate.default_payment_method = newPM.stripePaymentMethodId
-				dbUpdate.paymentMethodId = update.paymentMethodId
+			const paymentMethod = await this.getPaymentMethod(update.paymentMethodId)
+			if (paymentMethod.tenant_id !== leaseContext.tenant.id) {
+				throw new BadRequestException('Payment method does not belong to tenant')
 			}
+			stripeUpdates.default_payment_method = paymentMethod.stripe_payment_method_id
+			nextPaymentMethodId = paymentMethod.id
 		}
 
-		// Apply Stripe updates
-		if (Object.keys(stripeUpdate).length > 0) {
-			await this.stripe.subscriptions.update(
-				subscription.stripeSubscriptionId,
-				stripeUpdate
+		let latestStripeSubscription: Stripe.Subscription | null = null
+
+		if (Object.keys(stripeUpdates).length > 0) {
+			latestStripeSubscription = await this.stripe.subscriptions.update(
+				leaseContext.lease.stripe_subscription_id!,
+				stripeUpdates
 			)
 		}
 
-		// Apply database updates
-		if (Object.keys(dbUpdate).length > 0) {
-			const { data, error } = await this.supabase
+		if (Object.keys(adminUpdates).length > 0) {
+			const { error } = await this.supabase
 				.getAdminClient()
-				.from('rent_subscription')
-				.update(dbUpdate)
-				.eq('id', subscriptionId)
-				.select()
-				.single()
+				.from('leases')
+				.update(adminUpdates)
+				.eq('id', leaseContext.lease.id)
 
-			if (error || !data) {
+			if (error) {
+				this.logger.error('Failed to persist lease updates', {
+					leaseId,
+					error: error.message
+				})
 				throw new BadRequestException('Failed to update subscription')
 			}
-
-			return this.mapToResponse(data as Record<string, unknown>)
 		}
 
-		return subscription
+		if (!latestStripeSubscription && Object.keys(stripeUpdates).length === 0) {
+			// Nothing changed
+			return this.mapLeaseContextToResponse(leaseContext)
+		}
+
+		return this.mapLeaseContextToResponse(leaseContext, {
+			paymentMethodId: nextPaymentMethodId,
+			stripeSubscription: latestStripeSubscription ?? undefined
+		})
 	}
 
-	/**
-	 * Map database record to response DTO
-	 */
-	private mapToResponse(
-		data: Record<string, unknown>
-	): RentSubscriptionResponse {
-		return {
-			id: data.id as string,
-			leaseId: data.leaseId as string,
-			tenantId: data.tenantId as string,
-			ownerId: data.ownerId as string, // <-- map ownerId -> ownerId for API
-			stripeSubscriptionId: data.stripeSubscriptionId as string,
-			stripeCustomerId: data.stripeCustomerId as string,
-			paymentMethodId: '', // Not stored in database - would need to query Stripe
-			amount: parseFloat(data.amount as string) / 100, // Convert from cents
-			currency: (data.currency as string) || 'usd',
-			billingDayOfMonth: data.dueDay as number,
-			status: data.status as SubscriptionStatus,
-			platformFeePercentage: parseFloat(data.platformFeePercent as string),
-			pausedAt: (data.pausedAt as string) || null,
-			canceledAt: (data.canceledAt as string) || null,
-			createdAt: data.createdAt as string,
-			updatedAt: data.updatedAt as string
+	private assertTenantUser(requestingUserId: string, tenantUserId: string): void {
+		if (requestingUserId !== tenantUserId) {
+			throw new ForbiddenException('You do not have access to this subscription')
 		}
+	}
+
+	private assertOwnerReady(owner: PropertyOwnerRow): void {
+		if (!owner.stripe_account_id || owner.charges_enabled !== true) {
+			throw new BadRequestException('Owner has not completed Stripe Connect onboarding')
+		}
+	}
+
+	private assertLeaseAccess(context: LeaseContext, userId: string): void {
+		if (context.tenantUser.id === userId || context.owner.user_id === userId) {
+			return
+		}
+
+		throw new ForbiddenException('You are not authorized to view this subscription')
+	}
+
+	private ensureActiveSubscription(lease: LeaseRow): void {
+		if (!lease.stripe_subscription_id) {
+			throw new BadRequestException('Autopay is not enabled for this lease')
+		}
+	}
+
+	private validateBillingDay(day: number): number {
+		if (!Number.isInteger(day) || day < 1 || day > 28) {
+			throw new BadRequestException('Billing day must be between 1 and 28')
+		}
+		return day
+	}
+
+	private normalizeStripeAmount(amount: number): number {
+		const numericAmount = Number(amount)
+		if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+			throw new BadRequestException('Amount must be greater than zero')
+		}
+
+		if (numericAmount < 1000000) {
+			return Math.round(numericAmount * 100)
+		}
+
+		const rounded = Math.round(numericAmount)
+		if (!Number.isInteger(rounded)) {
+			throw new BadRequestException('Amount in cents must be an integer')
+		}
+		return rounded
+	}
+
+private computeBillingCycleAnchor(dayOfMonth: number): number {
+		const now = new Date()
+		const anchor = new Date(
+			Date.UTC(
+				now.getUTCFullYear(),
+				now.getUTCMonth(),
+				dayOfMonth,
+				0,
+				0,
+				0,
+				0
+			)
+		)
+
+		if (anchor.getTime() <= now.getTime()) {
+			anchor.setUTCMonth(anchor.getUTCMonth() + 1)
+		}
+
+		return Math.floor(anchor.getTime() / 1000)
+	}
+
+	private async requireTenantForUser(userId: string): Promise<{
+		tenant: TenantRow
+		user: UserRow
+	}> {
+		const tenantRecord = await this.findTenantByUserId(userId)
+		if (!tenantRecord) {
+			throw new BadRequestException('Tenant profile not found for user')
+		}
+		return tenantRecord
+	}
+
+	private async findTenantByUserId(userId: string): Promise<{
+		tenant: TenantRow
+		user: UserRow
+	} | null> {
+		const adminClient = this.supabase.getAdminClient()
+
+		const { data: tenant, error } = await adminClient
+			.from('tenants')
+			.select('id, stripe_customer_id, user_id')
+			.eq('user_id', userId)
+			.maybeSingle<TenantRow>()
+
+		if (error) {
+			this.logger.error('Failed to fetch tenant by user id', { userId, error: error.message })
+			throw new BadRequestException('Failed to load tenant profile')
+		}
+
+		if (!tenant) {
+			return null
+		}
+
+		const tenantUser = await this.getUserById(tenant.user_id)
+		return { tenant, user: tenantUser }
+	}
+
+	private async findOwnerByUserId(userId: string): Promise<{
+		owner: PropertyOwnerRow
+	} | null> {
+		const adminClient = this.supabase.getAdminClient()
+		const { data: owner, error } = await adminClient
+			.from('property_owners')
+			.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
+			.eq('user_id', userId)
+			.maybeSingle<PropertyOwnerRow>()
+
+		if (error) {
+			this.logger.error('Failed to fetch property owner by user id', {
+				userId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to load owner profile')
+		}
+
+		return owner ? { owner } : null
+	}
+
+	private async getLeasesForTenant(
+		tenantId: string,
+		adminClient: ReturnType<SupabaseService['getAdminClient']>
+	): Promise<LeaseRow[]> {
+		const { data, error } = await adminClient
+			.from('leases')
+			.select(
+				'id, primary_tenant_id, rent_amount, rent_currency, payment_day, auto_pay_enabled, stripe_subscription_id, unit_id, created_at, updated_at'
+			)
+			.eq('primary_tenant_id', tenantId)
+			.not('stripe_subscription_id', 'is', null)
+
+		if (error) {
+			this.logger.error('Failed to load tenant leases', {
+				tenantId,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to load subscriptions')
+		}
+
+		return (data as LeaseRow[]) ?? []
+	}
+
+	private async getLeasesForOwner(
+		ownerId: string,
+		adminClient: ReturnType<SupabaseService['getAdminClient']>
+	): Promise<LeaseRow[]> {
+		const { data: properties, error: propertiesError } = await adminClient
+			.from('properties')
+			.select('id')
+			.eq('property_owner_id', ownerId)
+
+		if (propertiesError) {
+			this.logger.error('Failed to load owner properties', {
+				ownerId,
+				error: propertiesError.message
+			})
+			throw new BadRequestException('Failed to load owner subscriptions')
+		}
+
+		const propertyIds = (properties as Array<{ id: string }>).map(p => p.id)
+		if (propertyIds.length === 0) {
+			return []
+		}
+
+		const { data: units, error: unitsError } = await adminClient
+			.from('units')
+			.select('id')
+			.in('property_id', propertyIds)
+
+		if (unitsError) {
+			this.logger.error('Failed to load units for owner properties', {
+				ownerId,
+				error: unitsError.message
+			})
+			throw new BadRequestException('Failed to load owner subscriptions')
+		}
+
+		const unitIds = (units as Array<{ id: string }>).map(u => u.id)
+		if (unitIds.length === 0) {
+			return []
+		}
+
+		const { data: leases, error: leasesError } = await adminClient
+			.from('leases')
+			.select(
+				'id, primary_tenant_id, rent_amount, rent_currency, payment_day, auto_pay_enabled, stripe_subscription_id, unit_id, created_at, updated_at'
+			)
+			.in('unit_id', unitIds)
+			.not('stripe_subscription_id', 'is', null)
+
+		if (leasesError) {
+			this.logger.error('Failed to load leases for owner units', {
+				ownerId,
+				error: leasesError.message
+			})
+			throw new BadRequestException('Failed to load owner subscriptions')
+		}
+
+		return (leases as LeaseRow[]) ?? []
+	}
+
+	private async loadLeaseContext(leaseId: string): Promise<LeaseContext> {
+		const adminClient = this.supabase.getAdminClient()
+		const { data: lease, error: leaseError } = await adminClient
+			.from('leases')
+			.select(
+				'id, primary_tenant_id, rent_amount, rent_currency, payment_day, auto_pay_enabled, stripe_subscription_id, unit_id, created_at, updated_at'
+			)
+			.eq('id', leaseId)
+			.single<LeaseRow>()
+
+		if (leaseError || !lease) {
+			throw new NotFoundException('Lease not found')
+		}
+
+		const tenant = await this.getTenantById(lease.primary_tenant_id)
+		const tenantUser = await this.getUserById(tenant.user_id)
+		const unit = await this.getUnitById(lease.unit_id)
+		const property = await this.getPropertyById(unit.property_id)
+		const owner = await this.getPropertyOwnerById(property.property_owner_id)
+
+		return {
+			lease,
+			tenant,
+			tenantUser,
+			unit,
+			property,
+			owner
+		}
+	}
+
+	private async getTenantById(tenantId: string): Promise<TenantRow> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('tenants')
+			.select('id, stripe_customer_id, user_id')
+			.eq('id', tenantId)
+			.single<TenantRow>()
+
+		if (error || !data) {
+			throw new NotFoundException('Tenant not found')
+		}
+		return data
+	}
+
+	private async getUserById(userId: string): Promise<UserRow> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('id, email, first_name, last_name')
+			.eq('id', userId)
+			.single<UserRow>()
+
+		if (error || !data) {
+			throw new NotFoundException('User profile not found')
+		}
+
+		return data
+	}
+
+	private async getUnitById(unitId: string): Promise<UnitRow> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('units')
+			.select('id, unit_number, property_id')
+			.eq('id', unitId)
+			.single<UnitRow>()
+
+		if (error || !data) {
+			throw new NotFoundException('Unit not found for lease')
+		}
+
+		return data
+	}
+
+	private async getPropertyById(propertyId: string): Promise<PropertyRow> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('properties')
+			.select('id, name, property_owner_id')
+			.eq('id', propertyId)
+			.single<PropertyRow>()
+
+		if (error || !data) {
+			throw new NotFoundException('Property not found for lease')
+		}
+
+		return data
+	}
+
+	private async getPropertyOwnerById(ownerId: string): Promise<PropertyOwnerRow> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('property_owners')
+			.select(
+				'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
+			)
+			.eq('id', ownerId)
+			.single<PropertyOwnerRow>()
+
+		if (error || !data) {
+			throw new NotFoundException('Property owner not found')
+		}
+
+		return data
+	}
+
+	private async getPaymentMethod(id: string): Promise<PaymentMethodRow> {
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('payment_methods')
+			.select('*')
+			.eq('id', id)
+			.single<PaymentMethodRow>()
+
+		if (error || !data) {
+			throw new NotFoundException('Payment method not found')
+		}
+
+		return data
+	}
+
+	private async ensureStripeCustomerId(
+		tenant: TenantRow,
+		tenantUser: UserRow
+	): Promise<string> {
+		if (tenant.stripe_customer_id) {
+			return tenant.stripe_customer_id
+		}
+
+		const customerPayload: Stripe.CustomerCreateParams = {
+			email: tenantUser.email,
+			metadata: {
+				tenant_id: tenant.id,
+				user_id: tenantUser.id
+			}
+		}
+		const displayName = [tenantUser.first_name, tenantUser.last_name].filter(Boolean).join(' ').trim()
+		if (displayName) {
+			customerPayload.name = displayName
+		}
+
+		const customer = await this.stripe.customers.create(customerPayload)
+
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('tenants')
+			.update({ stripe_customer_id: customer.id })
+			.eq('id', tenant.id)
+
+		if (error) {
+			this.logger.error('Failed to persist new Stripe customer id', {
+				tenantId: tenant.id,
+				error: error.message
+			})
+			throw new BadRequestException('Failed to persist Stripe customer reference')
+		}
+
+		return customer.id
+	}
+
+	private async mapLeaseContextToResponse(
+		context: LeaseContext,
+		options: {
+			paymentMethodId?: string | undefined
+			stripeSubscription?: Stripe.Subscription | null | undefined
+		} = {}
+	): Promise<RentSubscriptionResponse> {
+		const stripeSubscription =
+			options.stripeSubscription ??
+			(context.lease.stripe_subscription_id
+				? await this.fetchStripeSubscription(context.lease.stripe_subscription_id)
+				: null)
+
+		const paymentMethodId =
+			options.paymentMethodId ??
+			(await this.resolvePaymentMethodId(context.tenant.id))
+
+		const status: SubscriptionStatus =
+			(stripeSubscription?.status as SubscriptionStatus | undefined) ??
+			(context.lease.auto_pay_enabled ? 'active' : 'paused')
+
+		const subscriptionWithPeriod = stripeSubscription as Stripe.Subscription & {
+			current_period_end?: number
+		}
+		const nextChargeDate = subscriptionWithPeriod?.current_period_end
+			? this.toIso(subscriptionWithPeriod.current_period_end)
+			: null
+
+		return {
+			id: context.lease.id,
+			leaseId: context.lease.id,
+			tenantId: context.tenant.id,
+			ownerId: context.owner.user_id,
+			stripeSubscriptionId: context.lease.stripe_subscription_id ?? stripeSubscription?.id ?? '',
+			stripeCustomerId:
+				context.tenant.stripe_customer_id ??
+				(stripeSubscription?.customer as string | undefined) ??
+				'',
+			paymentMethodId,
+			amount: context.lease.rent_amount,
+			currency: context.lease.rent_currency ?? 'usd',
+			billingDayOfMonth: context.lease.payment_day ?? 1,
+			nextChargeDate,
+			status,
+			platformFeePercentage: context.owner.default_platform_fee_percent ?? 0,
+			pausedAt: stripeSubscription?.pause_collection ? new Date().toISOString() : null,
+			canceledAt: this.toIso(stripeSubscription?.canceled_at),
+			createdAt: context.lease.created_at ?? new Date().toISOString(),
+			updatedAt: context.lease.updated_at ?? context.lease.created_at ?? new Date().toISOString()
+		}
+	}
+
+	private async resolvePaymentMethodId(
+		tenantId: string,
+		preferred?: string
+	): Promise<string> {
+		if (preferred) return preferred
+
+		const adminClient = this.supabase.getAdminClient()
+		const { data: defaultMethod } = await adminClient
+			.from('payment_methods')
+			.select('id')
+			.eq('tenant_id', tenantId)
+			.eq('is_default', true)
+			.maybeSingle<{ id: string }>()
+
+		if (defaultMethod?.id) {
+			return defaultMethod.id
+		}
+
+		const { data: fallback } = await adminClient
+			.from('payment_methods')
+			.select('id')
+			.eq('tenant_id', tenantId)
+			.order('created_at', { ascending: true })
+			.limit(1)
+			.maybeSingle<{ id: string }>()
+
+		return fallback?.id ?? ''
+	}
+
+	private async fetchStripeSubscription(
+		subscriptionId: string
+	): Promise<Stripe.Subscription | null> {
+		try {
+			return await this.stripe.subscriptions.retrieve(subscriptionId)
+		} catch (error) {
+			this.logger.warn('Unable to fetch Stripe subscription', {
+				subscriptionId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			return null
+		}
+	}
+
+	private async safeCancelStripeSubscription(subscriptionId: string): Promise<void> {
+		try {
+			await this.stripe.subscriptions.cancel(subscriptionId)
+		} catch (error) {
+			this.logger.error('Failed to roll back Stripe subscription', {
+				subscriptionId,
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
+	}
+
+	private toIso(value?: number | null): string | null {
+		if (!value) {
+			return null
+		}
+		return new Date(value * 1000).toISOString()
 	}
 }

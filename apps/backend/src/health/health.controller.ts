@@ -12,7 +12,7 @@ import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
 
-@Throttle({ default: { ttl: 60000, limit: 300 } })
+@Throttle({ default: { ttl: 60000, limit: 300 } }) // TODO: Make configurable via environment variables
 @Controller(['health', 'api/v1/health', 'auth', 'api/v1/auth'])
 export class HealthController {
 	private readonly logger = new Logger(HealthController.name)

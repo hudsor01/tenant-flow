@@ -42,7 +42,7 @@ export function setupAuthTesting(
 
 	if (options?.includeCurrentUserProvider) {
 		builder.overrideProvider('CurrentUserProvider').useValue({
-			getUserId: jest.fn().mockResolvedValue(mockUser.id),
+			getuser_id: jest.fn().mockResolvedValue(mockUser.id),
 			getUser: jest.fn().mockResolvedValue(mockUser),
 			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
 			isAuthenticated: jest.fn().mockResolvedValue(true),
@@ -144,7 +144,7 @@ export function expectAuthSuccess<T>(
  * Helper to create mock JWT tokens for testing
  */
 export function createMockJwtToken(
-	userId: string = 'user-123',
+	user_id: string = 'user-123',
 	overrides?: { [key: string]: unknown }
 ) {
 	const header = Buffer.from(
@@ -152,8 +152,8 @@ export function createMockJwtToken(
 	).toString('base64')
 	const payload = Buffer.from(
 		JSON.stringify({
-			sub: userId,
-			role: 'authenticated',
+			sub: user_id,
+			user_type: 'authenticated',
 			email: 'test@example.com',
 			iat: Math.floor(Date.now() / 1000),
 			exp: Math.floor(Date.now() / 1000) + 3600,

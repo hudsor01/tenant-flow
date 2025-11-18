@@ -26,9 +26,10 @@ import { createHmac } from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
 import { SecurityService } from '../../security/security.service'
 import { AppConfigService } from '../../config/app-config.service'
+import { isValidEmail } from '@repo/shared/validation/common'
 import type { CreatePaymentIntentRequest, AttachPaymentMethodRequest, EmbeddedCheckoutRequest, CreateBillingPortalRequest, VerifyCheckoutSessionRequest } from './stripe-interfaces'
-import { StripeOwnerService } from './stripe-owner.service'
 import { StripeTenantService } from './stripe-tenant.service'
+import { StripeOwnerService } from './stripe-owner.service'
 import { StripeService } from './stripe.service'
 
 /**
@@ -64,13 +65,13 @@ export class StripeController {
 	 * This prevents duplicate charges on retries by producing the same key for identical inputs
 	 *
 	 * @param operation - Type of operation (e.g., 'pi', 'pi_connected', 'sub', 'cus')
-	 * @param userId - User/tenant ID making the request
+	 * @param user_id - User/tenant ID making the request
 	 * @param additionalContext - Additional identifying fields (e.g., connectedAccountId, amount)
 	 * @returns A deterministic idempotency key (max 255 chars for Stripe)
 	 */
 	private generateIdempotencyKey(
 		operation: string,
-		userId: string,
+		user_id: string,
 		additionalContext?: string
 	): string {
 		// Use dedicated idempotency key secret for HMAC to ensure keys are unique per deployment
@@ -85,7 +86,7 @@ export class StripeController {
 
 		// Combine all inputs into a stable string
 		const context = additionalContext ? `_${additionalContext}` : ''
-		const input = `${operation}_${userId}${context}`
+		const input = `${operation}_${user_id}${context}`
 
 		// Generate deterministic hash using HMAC-SHA256
 		const hash = createHmac('sha256', secret)
@@ -94,7 +95,7 @@ export class StripeController {
 			.substring(0, 32) // Shorten to keep total length reasonable
 
 		// Format: operation_hash (e.g., pi_connected_a1b2c3d4...)
-		// This ensures same operation+userId+context always produces same key
+		// This ensures same operation+user_id+context always produces same key
 		return `${operation}_${hash}`
 	}
 
@@ -144,7 +145,7 @@ export class StripeController {
 	async createPaymentIntent(@Body() body: CreatePaymentIntentRequest) {
 	this.logger.log('Payment Intent creation started', {
 		amount: body.amount,
-		tenantId: body.tenantId
+		tenant_id: body.tenant_id
 	})
 
 	// Native validation - CLAUDE.md compliant (outside try-catch)
@@ -154,16 +155,16 @@ export class StripeController {
 		})
 		throw new BadRequestException('Amount must be at least 50 cents')
 	}
-	if (!body.tenantId) {
-		this.logger.warn('Payment Intent validation failed: tenantId missing')
-		throw new BadRequestException('tenantId is required')
-	}
+	if (!body.tenant_id) {
+			this.logger.warn('Payment Intent validation failed: tenant_id missing')
+			throw new BadRequestException('tenant_id is required')
+		}
 
-	// Validate and sanitize metadata inputs to prevent injection
-	const sanitizedTenantId = this.securityService.sanitizeInput(body.tenantId)
-	const sanitizedPropertyId = body.propertyId
-		? this.securityService.sanitizeInput(body.propertyId)
-		: undefined
+		// Validate and sanitize metadata inputs to prevent injection
+		const sanitizedTenantId = this.securityService.sanitizeInput(body.tenant_id)
+		const sanitizedPropertyId = body.property_id
+			? this.securityService.sanitizeInput(body.property_id)
+			: undefined
 	const sanitizedSubscriptionType = body.subscriptionType
 		? this.securityService.sanitizeInput(body.subscriptionType)
 		: undefined
@@ -175,9 +176,9 @@ export class StripeController {
 			{
 				amount: body.amount,
 				currency,
-				metadata: {
-					tenant_id: sanitizedTenantId,
-					...(sanitizedPropertyId ? { property_id: sanitizedPropertyId } : {}),
+					metadata: {
+						tenant_id: sanitizedTenantId,
+						...(sanitizedPropertyId ? { property_id: sanitizedPropertyId } : {}),
 					...(sanitizedSubscriptionType
 						? { subscription_type: sanitizedSubscriptionType }
 						: {})
@@ -185,9 +186,9 @@ export class StripeController {
 			},
 			{
 				idempotencyKey: this.generateIdempotencyKey(
-					'pi',
-					sanitizedTenantId
-				)
+						'pi',
+						sanitizedTenantId
+					)
 			}
 		)
 
@@ -206,14 +207,14 @@ export class StripeController {
 		@Request() req: AuthenticatedRequest,
 		@Body() body: { email?: string; name?: string | null }
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 		const email = body.email ?? null
 		const name = body.name ?? null
 		const { customer, status } = await this.stripeOwnerService.ensureOwnerCustomer({
-			userId,
+			user_id,
 			email,
 			name
 		})
@@ -235,8 +236,8 @@ export class StripeController {
 		@Body() body: AttachPaymentMethodRequest,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 		if (!body.payment_method_id) {
@@ -245,15 +246,15 @@ export class StripeController {
 		try {
 			const { data: tenant, error: tenantError } = await this.supabaseService
 				.getAdminClient()
-				.from('tenant')
+				.from('tenants')
 				.select('id')
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 				.single()
 			if (tenantError || !tenant?.id) {
 				throw new NotFoundException('Tenant not found')
 			}
 			await this.stripeTenantService.attachPaymentMethod({
-				tenantId: tenant.id,
+				tenant_id: tenant.id,
 				paymentMethodId: body.payment_method_id,
 				setAsDefault: !!body.set_as_default
 			})
@@ -273,16 +274,16 @@ export class StripeController {
 	@Get('tenant-payment-methods')
 	@UseGuards(JwtAuthGuard)
 	async getTenantPaymentMethods(@Request() req: AuthenticatedRequest) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 		try {
 			const { data: tenant, error: tenantError } = await this.supabaseService
 				.getAdminClient()
-				.from('tenant')
+				.from('tenants')
 				.select('id')
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 				.single()
 			if (tenantError || !tenant?.id) {
 				return { payment_methods: [], default_payment_method: null }
@@ -292,21 +293,21 @@ export class StripeController {
 			return {
 				payment_methods: methods.map(pm => ({
 					id: pm.id,
-					tenantId: tenant.id,
+					tenant_id: tenant.id,
 					stripePaymentMethodId: pm.id,
 					type: pm.type,
 					last4: pm.card?.last4 || null,
 					brand: pm.card?.brand || null,
 					bankName: null,
 					isDefault: pm.id === (defaultPM?.id ?? null),
-					createdAt: new Date(pm.created * 1000).toISOString()
+					created_at: new Date(pm.created * 1000).toISOString()
 				})),
 				default_payment_method: defaultPM?.id ?? null
 			}
 		} catch (error) {
 			this.logger.error('Failed to retrieve payment methods', {
 				error: error instanceof Error ? error.message : String(error),
-				userId
+				user_id
 			})
 			this.handleStripeError(error as Stripe.errors.StripeError)
 		}
@@ -322,8 +323,8 @@ export class StripeController {
 		@Request() req: AuthenticatedRequest,
 		@Param('payment_method_id') paymentMethodId: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
@@ -335,9 +336,9 @@ export class StripeController {
 			// Verify tenant owns this payment method
 			const { data: tenant } = await this.supabaseService
 				.getAdminClient()
-				.from('tenant')
+				.from('tenants')
 				.select('stripe_customer_id')
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 				.single()
 
 			if (!tenant?.stripe_customer_id) {
@@ -358,7 +359,7 @@ export class StripeController {
 			await this.stripe.paymentMethods.detach(paymentMethodId)
 
 			this.logger.log(`Payment method ${paymentMethodId} detached`, {
-				userId,
+				user_id,
 				customerId: tenant.stripe_customer_id
 			})
 
@@ -369,7 +370,7 @@ export class StripeController {
 		} catch (error) {
 			this.logger.error('Failed to remove payment method', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
+				user_id,
 				paymentMethodId
 			})
 			this.handleStripeError(error as Stripe.errors.StripeError)
@@ -687,9 +688,9 @@ export class StripeController {
 		this.logger.log('Creating checkout session', {
 			productName: body.productName,
 			priceId: body.priceId,
-			tenantId: body.tenantId,
-			customerEmail: body.customerEmail,
-			isSubscription: body.isSubscription
+			tenant_id: body.tenantId,
+		customerEmail: body.customerEmail,
+		isSubscription: body.isSubscription
 		})
 
 		try {
@@ -718,7 +719,7 @@ export class StripeController {
 
 					const { customer, status } =
 						await this.stripeOwnerService.ensureOwnerCustomer({
-							userId: req.user.id,
+							user_id: req.user.id,
 							email: sanitizedCustomerEmail
 						})
 					ownerCustomerId = customer.id
@@ -727,7 +728,7 @@ export class StripeController {
 					this.logger.warn(
 						'Failed to resolve owner Stripe customer for checkout session',
 						{
-							userId: req.user.id,
+							user_id: req.user.id,
 							error:
 								ownerError instanceof Error
 									? ownerError.message
@@ -891,6 +892,11 @@ export class StripeController {
 			throw new BadRequestException('session_id is required')
 		}
 
+		// Validate session ID format (cs_test_* or cs_live_*)
+		if (!sessionId.startsWith('cs_')) {
+			throw new BadRequestException('Invalid session_id format')
+		}
+
 		try {
 			const session = await this.stripe.checkout.sessions.retrieve(sessionId, {
 				expand: ['payment_intent']
@@ -958,9 +964,9 @@ export class StripeController {
 		@Body()
 		body: {
 			email: string
-			ownerId?: string
-			propertyId?: string
-			leaseId?: string
+			owner_id?: string
+			property_id?: string
+			lease_id?: string
 		}
 	) {
 		// Native validation - CLAUDE.md compliant
@@ -968,29 +974,28 @@ export class StripeController {
 			throw new BadRequestException('email is required')
 		}
 
-		// Backward compatibility: accept both ownerId and propertyId (deprecated)
-		const ownerId = body.ownerId || body.propertyId
+		// Backward compatibility: accept both owner_id and property_id (deprecated)
+		const owner_id = body.owner_id || body.property_id
 
-		if (!ownerId) {
-			throw new BadRequestException('ownerId is required')
+		if (!owner_id) {
+			throw new BadRequestException('owner_id is required')
 		}
 
-		// Emit deprecation warning if only propertyId was provided
-		if (!body.ownerId && body.propertyId) {
+		// Emit deprecation warning if only property_id was provided
+		if (!body.owner_id && body.property_id) {
 			this.logger.warn(
-				'propertyId parameter is deprecated, use ownerId instead',
+				'property_id parameter is deprecated, use owner_id instead',
 				{
 					endpoint: 'POST /stripe/invite-tenant',
-					providedParam: 'propertyId',
-					preferredParam: 'ownerId',
+					providedParam: 'property_id',
+					preferredParam: 'owner_id',
 					email: body.email
 				}
 			)
 		}
 
 		// Validate email format
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-		if (!emailRegex.test(body.email)) {
+		if (!isValidEmail(body.email)) {
 			throw new BadRequestException('Invalid email format')
 		}
 
@@ -1008,15 +1013,15 @@ export class StripeController {
 				throw new BadRequestException('User with this email already exists')
 			}
 
-			// Create Supabase auth user with TENANT role
+			// Create Supabase auth user with TENANT user_type
 			const { data: authData, error: authError } =
 				await supabase.auth.admin.createUser({
 					email: body.email,
 					email_confirm: false, // User must confirm via invite link
 					user_metadata: {
-						invited_by: ownerId,
+						invited_by: owner_id,
 						invited_at: new Date().toISOString(),
-						...(body.leaseId && { lease_id: body.leaseId })
+						...(body.lease_id && { lease_id: body.lease_id })
 					}
 				})
 
@@ -1033,17 +1038,18 @@ export class StripeController {
 				`Tenant auth user created: ${authData.user.id} (${body.email})`
 			)
 
-			// Create User table record with TENANT role
+			// Create User table record with TENANT user_type
 			const { error: dbError } = await supabase.from('users').insert({
 				id: authData.user.id,
-				supabaseId: authData.user.id,
 				email: body.email,
-				role: 'TENANT'
+				full_name: body.email, // Use email as placeholder until tenant sets their name
+				user_type: 'TENANT',
+				status: 'active'
 			})
 
 			if (dbError) {
 				this.logger.error('Failed to create tenant User record', {
-					userId: authData.user.id,
+					user_id: authData.user.id,
 					error: dbError.message
 				})
 				throw dbError
@@ -1073,7 +1079,7 @@ export class StripeController {
 			return {
 				success: true,
 				email: body.email,
-				userId: authData.user.id,
+				user_id: authData.user.id,
 				inviteUrl: linkData.properties.action_link
 			}
 		} catch (error) {

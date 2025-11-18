@@ -15,9 +15,9 @@ import { Loader2 } from 'lucide-react'
 import { logger } from '@repo/shared/lib/frontend-logger'
 
 interface LeaseGenerationFormProps {
-	propertyId: string
-	unitId: string
-	tenantId: string
+	property_id: string
+	unit_id: string
+	tenant_id: string
 	onSuccess?: () => void
 }
 
@@ -27,16 +27,16 @@ interface LeaseGenerationFormProps {
  * REQUIRES property, unit, and tenant - cannot generate lease without all three
  */
 export function LeaseGenerationForm({
-	propertyId,
-	unitId,
-	tenantId,
+	property_id,
+	unit_id,
+	tenant_id,
 	onSuccess
 }: LeaseGenerationFormProps) {
 	// CRITICAL: All hooks must be called before any conditional returns (Rules of Hooks)
 	const { data: autoFillData, isLoading: isAutoFilling } = useLeaseAutoFill(
-		propertyId,
-		unitId,
-		tenantId
+		property_id,
+		unit_id,
+		tenant_id
 	)
 	const generateLease = useGenerateLease()
 
@@ -50,13 +50,13 @@ export function LeaseGenerationForm({
 			propertyAddress: '',
 			commencementDate: '',
 			terminationDate: '',
-			monthlyRent: 0,
+			rent_amount: 0,
 			rentDueDay: 1,
-			lateFeeAmount: 0,
+			late_fee_amount: 0,
 			lateFeeGraceDays: 3,
 			nsfFee: 50,
-			securityDeposit: 0,
-			securityDepositDueDays: 30,
+			security_deposit: 0,
+			security_depositDueDays: 30,
 			maxOccupants: 2,
 			allowedUse:
 				'Residential dwelling purposes only. No business activities.',
@@ -80,8 +80,8 @@ export function LeaseGenerationForm({
 			noticeEmail: '',
 			propertyBuiltBefore1978: false,
 			leadPaintDisclosureProvided: false,
-			propertyId,
-			tenantId
+			property_id,
+			tenant_id
 		} as LeaseGenerationFormData,
 		onSubmit: async ({ value }) => {
 			try {
@@ -123,10 +123,10 @@ export function LeaseGenerationForm({
 	}, [autoFillData, form])
 
 	// Show error if required data is missing (after all hooks)
-	if (!propertyId || !unitId || !tenantId) {
+	if (!property_id || !unit_id || !tenant_id) {
 		return (
-			<div className="flex items-center justify-center p-8">
-				<div className="text-center space-y-2">
+			<div className="flex items-center justify-center p-[var(--spacing-8)]">
+				<div className="text-center space-y-[var(--spacing-2)]">
 					<p className="text-destructive font-semibold">
 						Missing Required Information
 					</p>
@@ -140,8 +140,8 @@ export function LeaseGenerationForm({
 
 	if (isAutoFilling) {
 		return (
-			<div className="flex items-center justify-center p-8">
-				<Loader2 className="size-8 animate-spin text-muted-foreground" />
+			<div className="flex items-center justify-center p-[var(--spacing-8)]">
+				<Loader2 className="size-[var(--spacing-8)] animate-spin text-muted-foreground" />
 			</div>
 		)
 	}
@@ -153,15 +153,15 @@ export function LeaseGenerationForm({
 				e.stopPropagation()
 				form.handleSubmit()
 			}}
-			className="space-y-6"
+			className="space-y-[var(--spacing-6)]"
 		>
 			{/* Agreement Date & Parties */}
-			<div className="space-y-4">
+			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Agreement Information</h3>
 
 				<form.Field name="agreementDate">
 					{field => (
-						<div className="space-y-2">
+						<div className="space-y-[var(--spacing-2)]">
 							<FieldLabel>Agreement Date</FieldLabel>
 							<Input
 								type="date"
@@ -179,7 +179,7 @@ export function LeaseGenerationForm({
 
 				<form.Field name="ownerName">
 					{field => (
-						<div className="space-y-2">
+						<div className="space-y-[var(--spacing-2)]">
 							<FieldLabel>Property Owner Name</FieldLabel>
 							<Input
 								value={field.state.value}
@@ -197,7 +197,7 @@ export function LeaseGenerationForm({
 
 				<form.Field name="ownerAddress">
 					{field => (
-						<div className="space-y-2">
+						<div className="space-y-[var(--spacing-2)]">
 							<FieldLabel>Property Owner Address</FieldLabel>
 							<Input
 								value={field.state.value}
@@ -215,7 +215,7 @@ export function LeaseGenerationForm({
 
 				<form.Field name="tenantName">
 					{field => (
-						<div className="space-y-2">
+						<div className="space-y-[var(--spacing-2)]">
 							<FieldLabel>Tenant Name</FieldLabel>
 							<Input
 								value={field.state.value}
@@ -233,7 +233,7 @@ export function LeaseGenerationForm({
 
 				<form.Field name="propertyAddress">
 					{field => (
-						<div className="space-y-2">
+						<div className="space-y-[var(--spacing-2)]">
 							<FieldLabel>Property Address</FieldLabel>
 							<Input
 								value={field.state.value}
@@ -251,13 +251,13 @@ export function LeaseGenerationForm({
 			</div>
 
 			{/* Lease Term */}
-			<div className="space-y-4">
+			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Lease Term</h3>
 
-				<div className="grid grid-cols-2 gap-4">
+					<div className="grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="commencementDate">
 						{field => (
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<FieldLabel>Start Date</FieldLabel>
 								<Input
 									type="date"
@@ -275,7 +275,7 @@ export function LeaseGenerationForm({
 
 					<form.Field name="terminationDate">
 						{field => (
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<FieldLabel>End Date</FieldLabel>
 								<Input
 									type="date"
@@ -294,13 +294,13 @@ export function LeaseGenerationForm({
 			</div>
 
 			{/* Financial Terms */}
-			<div className="space-y-4">
+			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Financial Terms</h3>
 
-				<div className="grid grid-cols-2 gap-4">
-					<form.Field name="monthlyRent">
+					<div className="grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-2)]">
+					<form.Field name="rent_amount">
 						{field => (
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<FieldLabel>Monthly Rent</FieldLabel>
 								<Input
 									type="number"
@@ -319,9 +319,9 @@ export function LeaseGenerationForm({
 						)}
 					</form.Field>
 
-					<form.Field name="securityDeposit">
+					<form.Field name="security_deposit">
 						{field => (
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<FieldLabel>Security Deposit</FieldLabel>
 								<Input
 									type="number"
@@ -341,10 +341,10 @@ export function LeaseGenerationForm({
 					</form.Field>
 				</div>
 
-				<div className="grid grid-cols-2 gap-4">
+					<div className="grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="rentDueDay">
 						{field => (
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<FieldLabel>Rent Due Day</FieldLabel>
 								<Input
 									type="number"
@@ -362,7 +362,7 @@ export function LeaseGenerationForm({
 
 					<form.Field name="lateFeeGraceDays">
 						{field => (
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<FieldLabel>Late Fee Grace Days</FieldLabel>
 								<Input
 									type="number"
@@ -380,12 +380,12 @@ export function LeaseGenerationForm({
 			</div>
 
 			{/* Pets */}
-			<div className="space-y-4">
+			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Pets</h3>
 
 				<form.Field name="petsAllowed">
 					{field => (
-						<div className="flex items-center space-x-2">
+						<div className="flex items-center space-x-[var(--spacing-2)]">
 							<Checkbox
 								checked={field.state.value}
 								onCheckedChange={checked => field.handleChange(!!checked)}
@@ -402,10 +402,10 @@ export function LeaseGenerationForm({
 						if (!petsAllowed) return null
 
 						return (
-							<div className="grid grid-cols-2 gap-4">
+								<div className="grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-2)]">
 								<form.Field name="petDeposit">
 									{field => (
-										<div className="space-y-2">
+										<div className="space-y-[var(--spacing-2)]">
 											<FieldLabel>Pet Deposit</FieldLabel>
 											<Input
 												type="number"
@@ -423,7 +423,7 @@ export function LeaseGenerationForm({
 
 								<form.Field name="petRent">
 									{field => (
-										<div className="space-y-2">
+										<div className="space-y-[var(--spacing-2)]">
 											<FieldLabel>Pet Rent (Monthly)</FieldLabel>
 											<Input
 												type="number"
@@ -445,14 +445,14 @@ export function LeaseGenerationForm({
 			</div>
 
 			{/* Actions */}
-			<div className="flex justify-end gap-4 pt-4 border-t">
+				<div className="flex justify-end gap-[var(--spacing-4)] pt-[var(--spacing-4)] border-t border-(--color-border)">
 				<Button
 					type="submit"
 					disabled={generateLease.isPending || !form.state.isValid}
 				>
 					{generateLease.isPending ? (
 						<>
-							<Loader2 className="mr-2 size-4 animate-spin" />
+							<Loader2 className="mr-2 size-[var(--spacing-4)] animate-spin" />
 							Generating...
 						</>
 					) : (

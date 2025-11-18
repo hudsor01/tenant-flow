@@ -3,10 +3,12 @@ import { Test } from '@nestjs/testing'
 import type { CSPReportBody } from '@repo/shared/types/domain'
 import { SecurityMetricsService } from './security-metrics.service'
 import { SecurityController } from './security.controller'
+import { AppConfigService } from '../config/app-config.service'
 
 describe('SecurityController', () => {
 	let controller: SecurityController
 	let mockMetricsService: jest.Mocked<SecurityMetricsService>
+	let mockConfigService: jest.Mocked<AppConfigService>
 
 	beforeEach(async () => {
 		mockMetricsService = {
@@ -14,10 +16,16 @@ describe('SecurityController', () => {
 			recordEvent: jest.fn()
 		} as unknown as jest.Mocked<SecurityMetricsService>
 
+		mockConfigService = {
+			get: jest.fn(),
+			getOrThrow: jest.fn()
+		} as unknown as jest.Mocked<AppConfigService>
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [SecurityController],
 			providers: [
-				{ provide: SecurityMetricsService, useValue: mockMetricsService }
+				{ provide: SecurityMetricsService, useValue: mockMetricsService },
+				{ provide: AppConfigService, useValue: mockConfigService }
 			]
 		}).compile()
 

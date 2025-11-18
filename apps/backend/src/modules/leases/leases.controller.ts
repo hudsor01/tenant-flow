@@ -32,35 +32,35 @@ export class LeasesController {
 	@Get()
 	async findAll(
 		@JwtToken() token: string,
-		@Query('tenantId') tenantId?: string,
-		@Query('unitId') unitId?: string,
-		@Query('propertyId') propertyId?: string,
+		@Query('tenant_id') tenant_id?: string,
+		@Query('unit_id') unit_id?: string,
+		@Query('property_id') property_id?: string,
 		@Query('status') status?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
-		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy?: string,
+		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy?: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
 	) {
 		// Validate UUIDs if provided
 		if (
-			tenantId &&
-			!tenantId.match(
+			tenant_id &&
+			!tenant_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
 			throw new BadRequestException('Invalid tenant ID')
 		}
 		if (
-			unitId &&
-			!unitId.match(
+			unit_id &&
+			!unit_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
 			throw new BadRequestException('Invalid unit ID')
 		}
 		if (
-			propertyId &&
-			!propertyId.match(
+			property_id &&
+			!property_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
@@ -82,9 +82,9 @@ export class LeasesController {
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.findAll(token, {
-			tenantId,
-			unitId,
-			propertyId,
+			tenant_id,
+			unit_id,
+			property_id,
 			status,
 			limit,
 			offset,
@@ -102,22 +102,22 @@ export class LeasesController {
 	@Get('analytics/performance')
 	async getLeasePerformanceAnalytics(
 		@JwtToken() token: string,
-		@Query('leaseId') leaseId?: string,
-		@Query('propertyId') propertyId?: string,
+		@Query('lease_id') lease_id?: string,
+		@Query('property_id') property_id?: string,
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
 	) {
 		// Validate UUIDs if provided
 		if (
-			leaseId &&
-			!leaseId.match(
+			lease_id &&
+			!lease_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
 			throw new BadRequestException('Invalid lease ID')
 		}
 		if (
-			propertyId &&
-			!propertyId.match(
+			property_id &&
+			!property_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
@@ -133,8 +133,8 @@ export class LeasesController {
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
-			...(leaseId ? { leaseId } : {}),
-			...(propertyId ? { propertyId } : {}),
+			...(lease_id ? { lease_id } : {}),
+			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '90d'
 		})
 	}
@@ -142,13 +142,13 @@ export class LeasesController {
 	@Get('analytics/duration')
 	async getLeaseDurationAnalytics(
 		@JwtToken() token: string,
-		@Query('propertyId') propertyId?: string,
+		@Query('property_id') property_id?: string,
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
-		// Validate propertyId if provided
+		// Validate property_id if provided
 		if (
-			propertyId &&
-			!propertyId.match(
+			property_id &&
+			!property_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
@@ -164,7 +164,7 @@ export class LeasesController {
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
-			...(propertyId ? { propertyId } : {}),
+			...(property_id ? { property_id } : {}),
 			timeframe: '90d',
 			period: period ?? 'yearly'
 		})
@@ -173,13 +173,13 @@ export class LeasesController {
 	@Get('analytics/turnover')
 	async getLeaseTurnoverAnalytics(
 		@JwtToken() token: string,
-		@Query('propertyId') propertyId?: string,
+		@Query('property_id') property_id?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
-		// Validate propertyId if provided
+		// Validate property_id if provided
 		if (
-			propertyId &&
-			!propertyId.match(
+			property_id &&
+			!property_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
@@ -195,7 +195,7 @@ export class LeasesController {
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
-			...(propertyId ? { propertyId } : {}),
+			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '12m'
 		})
 	}
@@ -203,22 +203,22 @@ export class LeasesController {
 	@Get('analytics/revenue')
 	async getLeaseRevenueAnalytics(
 		@JwtToken() token: string,
-		@Query('leaseId') leaseId?: string,
-		@Query('propertyId') propertyId?: string,
+		@Query('lease_id') lease_id?: string,
+		@Query('property_id') property_id?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		// Validate UUIDs if provided
 		if (
-			leaseId &&
-			!leaseId.match(
+			lease_id &&
+			!lease_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
 			throw new BadRequestException('Invalid lease ID')
 		}
 		if (
-			propertyId &&
-			!propertyId.match(
+			property_id &&
+			!property_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
@@ -234,8 +234,8 @@ export class LeasesController {
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		return this.leasesService.getAnalytics(token, {
-			...(leaseId ? { leaseId } : {}),
-			...(propertyId ? { propertyId } : {}),
+			...(lease_id ? { lease_id } : {}),
+			...(property_id ? { property_id } : {}),
 			timeframe: '90d',
 			period: period ?? 'monthly'
 		})
@@ -279,12 +279,10 @@ export class LeasesController {
 		@JwtToken() token: string
 	) {
 		//Pass version for optimistic locking
-		const expectedVersion = (dto as { version?: number }).version
 		const lease = await this.leasesService.update(
 			token,
 			id,
-			dto,
-			expectedVersion
+			dto
 		)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
@@ -305,15 +303,15 @@ export class LeasesController {
 	@Post(':id/renew')
 	async renew(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Body('endDate') endDate: string,
+		@Body('end_date') end_date: string,
 		@JwtToken() token: string
 	) {
 		// Validate date format
-		if (!endDate || !endDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+		if (!end_date || !end_date.match(/^\d{4}-\d{2}-\d{2}$/)) {
 			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.renew(token, id, endDate)
+		return this.leasesService.renew(token, id, end_date)
 	}
 
 	@Post(':id/terminate')

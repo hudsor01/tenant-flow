@@ -13,7 +13,7 @@ import type {
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 import type { PropertyWithUnits } from '@repo/shared/types/relations'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 
 /**
  * Dashboard API endpoints - server-side versions
@@ -287,7 +287,7 @@ export async function getTenantsPageData() {
  */
 export async function getLeasesPageData() {
 	const [leasesResult, leaseStatsResult] = await Promise.allSettled([
-		serverFetch<Array<Database['public']['Tables']['lease']['Row']>>(
+		serverFetch<Array<Database['public']['Tables']['leases']['Row']>>(
 			'/api/v1/leases'
 		),
 		serverFetch<LeaseStatsResponse>('/api/v1/leases/stats')
@@ -303,7 +303,7 @@ export async function getLeasesPageData() {
 		terminatedLeases: 0,
 		totalMonthlyRent: 0,
 		averageRent: 0,
-		totalSecurityDeposits: 0,
+		totalsecurity_deposits: 0,
 		expiringLeases: 0
 	}
 
@@ -466,9 +466,9 @@ export async function getDashboardPageData() {
 					activeLeases: 0,
 					expiredLeases: 0,
 					terminatedLeases: 0,
-					totalMonthlyRent: 0,
+					totalRent: 0,
 					averageRent: 0,
-					totalSecurityDeposits: 0,
+					totalsecurity_deposits: 0,
 					expiringLeases: 0
 				}
 

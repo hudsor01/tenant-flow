@@ -6,11 +6,11 @@ describe('StripeIdentityService', () => {
 	const userRow = {
 		id: 'user_1',
 		email: 'owner@tenantflow.app',
-		identityverificationsessionid: null,
-		identityverificationstatus: null,
-		identityverificationerror: null,
-		identityverifiedat: null,
-		identityverificationdata: null
+		identity_verification_session_id: null,
+		identity_verification_status: null,
+		identity_verification_error: null,
+		identity_verified_at: null,
+		identity_verification_data: null
 	}
 
 	const stripeClientMock = {
@@ -83,8 +83,8 @@ describe('StripeIdentityService', () => {
 		expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
 			userRow.id,
 			expect.objectContaining({
-				identityverificationsessionid: 'sess_1',
-				identityverificationstatus: 'created'
+				identity_verification_session_id: 'sess_1',
+				identity_verification_status: 'created'
 			})
 		)
 	})
@@ -100,7 +100,7 @@ describe('StripeIdentityService', () => {
 	it('throws BadRequestException if identity is already verified', async () => {
 		usersServiceMock.getUserById.mockResolvedValueOnce({
 			...userRow,
-			identityverificationstatus: 'verified'
+			identity_verification_status: 'verified'
 		})
 
 		await expect(service.createVerificationSession(userRow.id)).rejects.toThrow(
@@ -136,8 +136,8 @@ describe('StripeIdentityService', () => {
 		expect(usersServiceMock.updateUser).toHaveBeenCalledWith(
 			userRow.id,
 			expect.objectContaining({
-				identityverificationstatus: 'verified',
-				identityverifiedat: expect.any(String)
+				identity_verification_status: 'verified',
+				identity_verified_at: expect.any(String)
 			})
 		)
 	})

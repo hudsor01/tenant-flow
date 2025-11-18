@@ -47,7 +47,7 @@ describe('SecurityMonitorService', () => {
 		it('should log a security event with custom details', () => {
 			const event = 'SQL Injection Attempt'
 			const details = {
-				userId: generateUUID(),
+				user_id: generateUUID(),
 				ip: '192.168.1.100',
 				userAgent: 'Mozilla/5.0...',
 				endpoint: '/api/users'
@@ -105,7 +105,7 @@ describe('SecurityMonitorService', () => {
 				user: {
 					id: generateUUID(),
 					email: 'test@example.com',
-					role: 'USER'
+					user_type: 'USER'
 				},
 				request: {
 					method: 'POST',
@@ -213,17 +213,17 @@ describe('SecurityMonitorService', () => {
 	})
 
 	describe('logSuspiciousActivity', () => {
-		it('should log suspicious activity with userId and activity description', () => {
-			const userId = generateUUID()
+		it('should log suspicious activity with user_id and activity description', () => {
+			const user_id = generateUUID()
 			const activity = 'Multiple rapid API calls detected'
 
-			service.logSuspiciousActivity(userId, activity)
+			service.logSuspiciousActivity(user_id, activity)
 
 			expect(loggerSpy).toHaveBeenCalledWith(
 				{
 					security: {
 						event: 'Suspicious Activity',
-						userId,
+						user_id,
 						activity,
 						timestamp: expect.any(String)
 					}
@@ -232,14 +232,14 @@ describe('SecurityMonitorService', () => {
 			)
 		})
 
-		it('should handle empty userId and activity', () => {
+		it('should handle empty user_id and activity', () => {
 			service.logSuspiciousActivity('', '')
 
 			expect(loggerSpy).toHaveBeenCalledWith(
 				{
 					security: {
 						event: 'Suspicious Activity',
-						userId: '',
+						user_id: '',
 						activity: '',
 						timestamp: expect.any(String)
 					}
@@ -249,16 +249,16 @@ describe('SecurityMonitorService', () => {
 		})
 
 		it('should handle detailed activity descriptions', () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 			const activity = 'User attempted to access admin endpoints without proper authorization. Blocked 15 requests in 30 seconds.'
 
-			service.logSuspiciousActivity(userId, activity)
+			service.logSuspiciousActivity(user_id, activity)
 
 			expect(loggerSpy).toHaveBeenCalledWith(
 				{
 					security: {
 						event: 'Suspicious Activity',
-						userId,
+						user_id,
 						activity,
 						timestamp: expect.any(String)
 					}
@@ -268,19 +268,19 @@ describe('SecurityMonitorService', () => {
 		})
 
 		it('should validate UUID format in tests', () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 			const activity = 'Test activity'
 
 			// Validate that we're using proper UUID format in tests
-			expect(userId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+			expect(user_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
 
-			service.logSuspiciousActivity(userId, activity)
+			service.logSuspiciousActivity(user_id, activity)
 
 			expect(loggerSpy).toHaveBeenCalledWith(
 				{
 					security: {
 						event: 'Suspicious Activity',
-						userId,
+						user_id,
 						activity,
 						timestamp: expect.any(String)
 					}
@@ -290,16 +290,16 @@ describe('SecurityMonitorService', () => {
 		})
 
 		it('should handle special characters in activity description', () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 			const activity = 'SQL injection attempt: SELECT * FROM users WHERE id=1; DROP TABLE users; --'
 
-			service.logSuspiciousActivity(userId, activity)
+			service.logSuspiciousActivity(user_id, activity)
 
 			expect(loggerSpy).toHaveBeenCalledWith(
 				{
 					security: {
 						event: 'Suspicious Activity',
-						userId,
+						user_id,
 						activity,
 						timestamp: expect.any(String)
 					}
@@ -327,11 +327,11 @@ describe('SecurityMonitorService', () => {
 		})
 
 		it('should maintain consistent timestamp format across all methods', () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			service.logSecurityEvent('Test Event 1')
 			service.logFailedLogin('test@example.com', '192.168.1.1')
-			service.logSuspiciousActivity(userId, 'Test Activity')
+			service.logSuspiciousActivity(user_id, 'Test Activity')
 
 			const calls = loggerSpy.mock.calls
 			const timestamps = calls.map(call => (call[0] as any).security.timestamp)

@@ -96,7 +96,7 @@ export default function TenantOnboardingPage() {
 							'Content-Type': 'application/json',
 							Authorization: `Bearer ${session.access_token}`
 						},
-						body: JSON.stringify({ authUserId: user.id })
+						body: JSON.stringify({ authuser_id: user.id })
 					}
 				)
 

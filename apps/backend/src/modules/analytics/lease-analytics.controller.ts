@@ -7,21 +7,21 @@ import { LeaseAnalyticsService } from './lease-analytics.service'
 export class LeaseAnalyticsController {
 	constructor(private readonly leaseAnalyticsService: LeaseAnalyticsService) {}
 
-	private getUserId(req: AuthenticatedRequest): string {
-		const userId = req.user?.id
-		if (!userId) {
+	private getuser_id(req: AuthenticatedRequest): string {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new UnauthorizedException('Authentication required')
 		}
-		return userId
+		return user_id
 	}
 
 	@Get('lease-analytics')
 	async getLeaseAnalytics(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const userId = this.getUserId(req)
+		const user_id = this.getuser_id(req)
 		const data =
-			await this.leaseAnalyticsService.getLeasesWithFinancialAnalytics(userId)
+			await this.leaseAnalyticsService.getLeasesWithFinancialAnalytics(user_id)
 
 		return {
 			success: true,
@@ -35,9 +35,9 @@ export class LeaseAnalyticsController {
 	async getLeaseSummary(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const userId = this.getUserId(req)
+		const user_id = this.getuser_id(req)
 		const data =
-			await this.leaseAnalyticsService.getLeaseFinancialSummary(userId)
+			await this.leaseAnalyticsService.getLeaseFinancialSummary(user_id)
 
 		return {
 			success: true,
@@ -51,8 +51,8 @@ export class LeaseAnalyticsController {
 	async getLeaseLifecycle(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const userId = this.getUserId(req)
-		const data = await this.leaseAnalyticsService.getLeaseLifecycleData(userId)
+		const user_id = this.getuser_id(req)
+		const data = await this.leaseAnalyticsService.getLeaseLifecycleData(user_id)
 
 		return {
 			success: true,
@@ -66,9 +66,9 @@ export class LeaseAnalyticsController {
 	async getLeaseStatusBreakdown(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const userId = this.getUserId(req)
+		const user_id = this.getuser_id(req)
 		const data =
-			await this.leaseAnalyticsService.getLeaseStatusBreakdown(userId)
+			await this.leaseAnalyticsService.getLeaseStatusBreakdown(user_id)
 
 		return {
 			success: true,
@@ -82,9 +82,9 @@ export class LeaseAnalyticsController {
 	async getLeasePageData(
 		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const userId = this.getUserId(req)
+		const user_id = this.getuser_id(req)
 		const data =
-			await this.leaseAnalyticsService.getLeaseAnalyticsPageData(userId)
+			await this.leaseAnalyticsService.getLeaseAnalyticsPageData(user_id)
 
 		return {
 			success: true,

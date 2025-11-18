@@ -91,12 +91,12 @@ export class StripeConnectController {
 	 * Helper method to fetch user data from Supabase
 	 * @private
 	 */
-	private async getUserData<T>(userId: string, fields: string): Promise<T> {
+	private async getUserData<T>(user_id: string, fields: string): Promise<T> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('users')
 			.select(fields)
-			.eq('id', userId)
+			.eq('id', user_id)
 			.single()
 
 		if (error || !data) {
@@ -116,7 +116,7 @@ export class StripeConnectController {
 		@Request() req: AuthenticatedRequest,
 		@Body() body?: { country?: string }
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 		const requestedCountry =
 			body && typeof body.country === 'string' ? body.country : undefined
 
@@ -132,8 +132,8 @@ export class StripeConnectController {
 			const { data: user, error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
-				.select('connectedAccountId, email, firstName, lastName')
-				.eq('id', userId)
+				.select('connected_account_id, email, first_name, last_name')
+				.eq('id', user_id)
 				.single()
 
 			if (error || !user) {
@@ -141,13 +141,13 @@ export class StripeConnectController {
 			}
 
 			// If already has connected account, create new account link
-			if (user.connectedAccountId) {
+			if (user.connected_account_id) {
 				const accountLink = await this.stripeConnectService.createAccountLink(
-					user.connectedAccountId
+					user.connected_account_id
 				)
 
 				return {
-					accountId: user.connectedAccountId,
+					accountId: user.connected_account_id,
 					onboardingUrl: accountLink.url,
 					existing: true
 				}
@@ -155,11 +155,11 @@ export class StripeConnectController {
 
 			// Create new connected account
 			const result = await this.stripeConnectService.createConnectedAccount({
-				userId,
+				user_id,
 				email: user.email,
 				...(requestedCountry && { country: requestedCountry }),
-				...(user.firstName && { firstName: user.firstName }),
-				...(user.lastName && { lastName: user.lastName })
+				...(user.first_name && { first_name: user.first_name }),
+				...(user.last_name && { last_name: user.last_name })
 			})
 
 			return {
@@ -169,7 +169,7 @@ export class StripeConnectController {
 		} catch (error) {
 			this.logger.error('Failed to create connected account', {
 				error,
-				userId
+				user_id
 			})
 			throw error
 		}
@@ -182,22 +182,22 @@ export class StripeConnectController {
 	@Post('refresh-link')
 	@SkipSubscriptionCheck()
 	async refreshAccountLink(@Request() req: AuthenticatedRequest) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		try {
 			const { data: user, error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
-				.select('connectedAccountId')
-				.eq('id', userId)
+				.select('connected_account_id')
+				.eq('id', user_id)
 				.single()
 
-			if (error || !user || !user.connectedAccountId) {
+			if (error || !user || !user.connected_account_id) {
 				throw new BadRequestException('No connected account found')
 			}
 
 			const accountLink = await this.stripeConnectService.createAccountLink(
-				user.connectedAccountId
+				user.connected_account_id
 			)
 
 			return {
@@ -206,7 +206,7 @@ export class StripeConnectController {
 		} catch (error) {
 			this.logger.error('Failed to refresh account link', {
 				error,
-				userId
+				user_id
 			})
 			throw error
 		}
@@ -219,7 +219,7 @@ export class StripeConnectController {
 	@Get('status')
 	@SkipSubscriptionCheck()
 	async getConnectedAccountStatus(@Request() req: AuthenticatedRequest) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		try {
 			const user = await this.getUserData<{
@@ -228,7 +228,7 @@ export class StripeConnectController {
 				detailsSubmitted: boolean | null
 				payoutsEnabled: boolean | null
 			}>(
-				userId,
+				user_id,
 				'connectedAccountId, chargesEnabled, detailsSubmitted, payoutsEnabled'
 			)
 
@@ -243,12 +243,12 @@ export class StripeConnectController {
 			let staleSyncData = false
 			try {
 				await this.stripeConnectService.updateOnboardingStatus(
-					userId,
+					user_id,
 					user.connectedAccountId
 				)
 			} catch (updateError) {
 				this.logger.error('Failed to update onboarding status from Stripe', {
-					userId,
+					user_id,
 					connectedAccountId: user.connectedAccountId,
 					error: updateError
 				})
@@ -264,7 +264,7 @@ export class StripeConnectController {
 				payoutsEnabled: boolean | null
 				onboardingCompletedAt: string | null
 			}>(
-				userId,
+				user_id,
 				'onboardingComplete, detailsSubmitted, chargesEnabled, payoutsEnabled, onboardingCompletedAt'
 			)
 
@@ -281,7 +281,7 @@ export class StripeConnectController {
 		} catch (error) {
 			this.logger.error('Failed to get connected account status', {
 				error,
-				userId
+				user_id
 			})
 			throw error
 		}
@@ -289,16 +289,16 @@ export class StripeConnectController {
 
 	@Get('account')
 	async getConnectedAccountDetails(@Request() req: AuthenticatedRequest) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
-		const account = await this.stripeConnectService.getConnectedAccount(userId)
+		const account = await this.stripeConnectService.getConnectedAccount(user_id)
 
 		if (!account) {
 			throw new NotFoundException('No connected account found')
 		}
 
 		const identityVerification =
-			await this.identityService.getIdentityStatus(userId)
+			await this.identityService.getIdentityStatus(user_id)
 
 		return {
 			success: true,
@@ -315,13 +315,13 @@ export class StripeConnectController {
 	 */
 	@Post('dashboard-link')
 	async getStripeDashboardLink(@Request() req: AuthenticatedRequest) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		try {
 			const user = await this.getUserData<{
 				connectedAccountId: string | null
 				onboardingComplete: boolean | null
-			}>(userId, 'connectedAccountId, onboardingComplete')
+			}>(user_id, 'connectedAccountId, onboardingComplete')
 
 			if (!user.connectedAccountId) {
 				throw new BadRequestException('No connected account found')
@@ -340,7 +340,7 @@ export class StripeConnectController {
 		} catch (error) {
 			this.logger.error('Failed to create dashboard link', {
 				error,
-				userId
+				user_id
 			})
 			throw error
 		}

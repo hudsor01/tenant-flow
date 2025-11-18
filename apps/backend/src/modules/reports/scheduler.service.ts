@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { ScheduledReportService } from './scheduled-report.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 /**
  * ULTRA-NATIVE: Uses @nestjs/schedule (official NestJS package)
@@ -11,16 +12,18 @@ export class SchedulerService {
 	private readonly logger = new Logger(SchedulerService.name)
 	private isEnabled = false
 
-	constructor(private readonly scheduledReportService: ScheduledReportService) {
-		// Only run scheduler in production or when explicitly enabled
-		const isProd = process.env.NODE_ENV === 'production'
-		const isEnabled = process.env.ENABLE_REPORT_SCHEDULER === 'true'
+	constructor(
+		private readonly scheduledReportService: ScheduledReportService,
+		private readonly appConfigService: AppConfigService
+	) {
+		// Only run scheduler in production
+		const isProd = this.appConfigService.isProduction()
 
-		this.isEnabled = isProd || isEnabled
+		this.isEnabled = isProd
 
 		if (!this.isEnabled) {
 			this.logger.log(
-				'Report scheduler disabled (not in production and ENABLE_REPORT_SCHEDULER not set)'
+				'Report scheduler disabled (not in production)'
 			)
 		} else {
 			this.logger.log('Report scheduler enabled - will run every 10 minutes')
@@ -34,7 +37,11 @@ export class SchedulerService {
 	@Cron('*/10 * * * *', {
 		name: 'scheduled-reports'
 	})
-	async handleScheduledReports() {
+	handleScheduledReports() {
+		this.doScheduledReports()
+	}
+
+	private async doScheduledReports(): Promise<void> {
 		if (!this.isEnabled) {
 			return
 		}

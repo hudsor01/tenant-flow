@@ -7,7 +7,7 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { UserId } from '../../../shared/decorators/user.decorator'
+import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -37,7 +37,7 @@ export class MaintenanceController {
 	@Get('analytics')
 	async getMaintenanceAnalytics(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -45,10 +45,10 @@ export class MaintenanceController {
 			throw new UnauthorizedException('Authentication token required')
 		}
 
-		this.logger.log('Getting maintenance analytics', { userId })
+		this.logger.log('Getting maintenance analytics', { user_id })
 
 		const data = await this.dashboardService.getMaintenanceAnalytics(
-			userId,
+			user_id,
 			token
 		)
 

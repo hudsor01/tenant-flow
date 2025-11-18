@@ -13,7 +13,7 @@ export interface OccupancyTrendPoint {
 }
 
 export interface VacancyAnalysisEntry {
-	propertyId: string
+	property_id: string
 	propertyName: string
 	vacancyDays: number
 	turnovers: number

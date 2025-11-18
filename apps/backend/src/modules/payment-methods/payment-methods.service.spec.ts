@@ -95,7 +95,7 @@ describe('PaymentMethodsService', () => {
 			adminClient.from.mockImplementation((table: string) => {
 				if (table === 'users') {
 					return createSelectSingleMock({
-						stripeCustomerId: 'cus_existing_123',
+						stripe_customer_id: 'cus_existing_123',
 						email: 'tenant@example.com'
 					})
 				}
@@ -113,7 +113,7 @@ describe('PaymentMethodsService', () => {
 
 		it('creates new Stripe customer when missing', async () => {
 			const selectBuilder = createSelectSingleMock({
-				stripeCustomerId: null,
+				stripe_customer_id: null,
 				email: 'tenant@example.com'
 			})
 			selectBuilder.update = jest.fn(() => ({
@@ -134,23 +134,23 @@ describe('PaymentMethodsService', () => {
 
 			expect(result).toBe('cus_new_123')
 			expect(service['stripe'].customers.create).toHaveBeenCalledWith(
-				{ email: 'tenant@example.com', metadata: { userId: 'user-1' } },
+				{ email: 'tenant@example.com', metadata: { user_id: 'user-1' } },
 				expect.objectContaining({ idempotencyKey: expect.any(String) })
 			)
 		})
 	})
 
 	describe('listPaymentMethods', () => {
-		let resolveTenantIdSpy: jest.SpyInstance
+		let resolvetenant_idSpy: jest.SpyInstance
 
 		beforeEach(() => {
-			resolveTenantIdSpy = jest
-				.spyOn(service as any, 'resolveTenantId')
+			resolvetenant_idSpy = jest
+				.spyOn(service as any, 'resolvetenant_id')
 				.mockResolvedValue('tenant-123')
 		})
 
 		afterEach(() => {
-			resolveTenantIdSpy?.mockRestore()
+			resolvetenant_idSpy?.mockRestore()
 		})
 
 		it('returns tenant payment methods', async () => {
@@ -166,7 +166,7 @@ describe('PaymentMethodsService', () => {
 			}
 
 			userClient.from.mockImplementation((table: string) => {
-				if (table === 'tenant_payment_method') {
+				if (table === 'payment_methods') {
 					return builder
 				}
 				throw new Error(`Unexpected table ${table}`)
@@ -175,7 +175,7 @@ describe('PaymentMethodsService', () => {
 			const result = await service.listPaymentMethods('token', 'user-1')
 
 			expect(result).toEqual([{ id: 'pm-1' }])
-			expect(builder.order).toHaveBeenCalledWith('createdAt', {
+			expect(builder.order).toHaveBeenCalledWith('created_at', {
 				ascending: false
 			})
 		})
@@ -193,7 +193,7 @@ describe('PaymentMethodsService', () => {
 			}
 
 			userClient.from.mockImplementation((table: string) => {
-				if (table === 'tenant_payment_method') {
+				if (table === 'payment_methods') {
 					return builder
 				}
 				throw new Error(`Unexpected table ${table}`)
@@ -224,7 +224,7 @@ describe('PaymentMethodsService', () => {
 
 		it('updates Stripe default payment method when ownership matches', async () => {
 			userClient.from.mockImplementation((table: string) => {
-				if (table === 'tenant') {
+				if (table === 'tenants') {
 					return buildTenantTable({
 						id: 'tenant-1',
 						stripe_customer_id: 'cus_existing_123'
@@ -248,7 +248,7 @@ describe('PaymentMethodsService', () => {
 
 		it('throws when payment method belongs to another customer', async () => {
 			userClient.from.mockImplementation((table: string) => {
-				if (table === 'tenant') {
+				if (table === 'tenants') {
 					return buildTenantTable({
 						id: 'tenant-1',
 						stripe_customer_id: 'cus_existing_123'
@@ -290,8 +290,8 @@ describe('PaymentMethodsService', () => {
 							single: jest.fn(() =>
 								Promise.resolve({
 									data: {
-										stripePaymentMethodId: 'pm_123',
-										isDefault: true
+										stripe_payment_method_id: 'pm_123',
+									is_default: true
 									},
 									error: null
 								})
@@ -333,10 +333,10 @@ describe('PaymentMethodsService', () => {
 			let tenantPaymentMethodCall = 0
 
 			userClient.from.mockImplementation((table: string) => {
-				if (table === 'tenant') {
+				if (table === 'tenants') {
 					return tenantBuilder
 				}
-				if (table === 'tenant_payment_method') {
+				if (table === 'payment_methods') {
 					tenantPaymentMethodCall += 1
 					switch (tenantPaymentMethodCall) {
 						case 1:
@@ -348,7 +348,7 @@ describe('PaymentMethodsService', () => {
 						case 4:
 							return promoteBuilder
 						default:
-							throw new Error('Unexpected tenant_payment_method call')
+							throw new Error('Unexpected payment_methods call')
 					}
 				}
 				throw new Error(`Unexpected table ${table}`)
@@ -392,10 +392,10 @@ describe('PaymentMethodsService', () => {
 			}
 
 			userClient.from.mockImplementation((table: string) => {
-				if (table === 'tenant') {
+				if (table === 'tenants') {
 					return tenantBuilder
 				}
-				if (table === 'tenant_payment_method') {
+				if (table === 'payment_methods') {
 					return missingBuilder
 				}
 				throw new Error(`Unexpected table ${table}`)

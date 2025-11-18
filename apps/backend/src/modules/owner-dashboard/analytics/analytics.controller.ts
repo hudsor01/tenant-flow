@@ -9,7 +9,7 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { UserId } from '../../../shared/decorators/user.decorator'
+import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -40,13 +40,13 @@ export class AnalyticsController {
 	@Get('stats')
 	async getStats(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
-		this.logger.log('Getting dashboard stats', { userId })
+		this.logger.log('Getting dashboard stats', { user_id })
 
-		const data = await this.dashboardService.getStats(userId, token)
+		const data = await this.dashboardService.getStats(user_id, token)
 
 		return {
 			success: true,
@@ -59,7 +59,7 @@ export class AnalyticsController {
 	@Get('activity')
 	async getActivity(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -67,9 +67,9 @@ export class AnalyticsController {
 			throw new UnauthorizedException('Authentication token required')
 		}
 
-		this.logger.log('Getting dashboard activity', { userId })
+		this.logger.log('Getting dashboard activity', { user_id })
 
-		const data = await this.dashboardService.getActivity(userId, token)
+		const data = await this.dashboardService.getActivity(user_id, token)
 
 		return {
 			success: true,
@@ -86,7 +86,7 @@ export class AnalyticsController {
 	@Get('page-data')
 	async getPageData(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	) {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -95,13 +95,13 @@ export class AnalyticsController {
 			throw new UnauthorizedException('Authentication token missing')
 		}
 
-		this.logger.log('Getting unified dashboard page data', { userId })
+		this.logger.log('Getting unified dashboard page data', { user_id })
 
 		try {
 			// Fetch all dashboard data in parallel
 			const [stats, activity] = await Promise.all([
-				this.dashboardService.getStats(userId, token),
-				this.dashboardService.getActivity(userId, token)
+				this.dashboardService.getStats(user_id, token),
+				this.dashboardService.getActivity(user_id, token)
 			])
 
 			return {
@@ -113,7 +113,7 @@ export class AnalyticsController {
 		} catch (error) {
 			this.logger.error('Failed to fetch dashboard page data', {
 				error: error instanceof Error ? error.message : String(error),
-				userId
+				user_id
 			})
 
 			// Re-throw HTTP exceptions as-is to preserve specific error messages

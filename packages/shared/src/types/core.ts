@@ -7,6 +7,16 @@
 
 import type { ReactNode } from 'react'
 import type { DashboardActivity } from './activity.js'
+import type {
+  ActivityEntityType as ActivityEntityTypeFromConstants,
+  LeaseStatus as LeaseStatusFromConstants,
+  MaintenanceCategory as MaintenanceCategoryFromConstants,
+  MaintenancePriority,
+  PropertyStatus as PropertyStatusFromConstants,
+  PropertyType as PropertyTypeFromConstants,
+  PaymentStatus as PaymentStatusFromConstants,
+  UnitStatus as UnitStatusFromConstants
+} from '../constants/status-types.js'
 
 // NATIVE TYPESCRIPT 5.9.2 UTILITY TYPES (replacing custom implementations)
 
@@ -125,29 +135,85 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Database, Tables, TablesInsert } from './supabase-generated.js'
+import type { Tables, TablesInsert } from './supabase.js'
 
 export type User = Tables<'users'>
-export type Property = Tables<'property'>
-export type Unit = Tables<'unit'>
-export type Tenant = Tables<'tenant'>
-export type Lease = Tables<'lease'>
-export type MaintenanceRequest = Tables<'maintenance_request'>
-export type RentPayment = Tables<'rent_payment'>
-export type ExpenseRecord = Tables<'expense'>
-export type ConnectedAccount = Tables<'connected_account'>
-export type PropertyInsert = TablesInsert<'property'>
-export type UnitInsert = TablesInsert<'unit'>
-export type MaintenanceCategory =
-	Database['public']['Enums']['MaintenanceCategory']
-export type PropertyType = Database['public']['Enums']['PropertyType']
-export type PropertyStatus = Database['public']['Enums']['PropertyStatus']
-export type UnitStatus = Database['public']['Enums']['UnitStatus']
-export type LeaseStatus = Database['public']['Enums']['LeaseStatus']
-export type RentPaymentStatus = Database['public']['Enums']['RentPaymentStatus']
-export type Priority = Database['public']['Enums']['Priority']
-export type ActivityEntityType =
-	Database['public']['Enums']['ActivityEntityType']
+export type Property = Tables<'properties'>
+export type Unit = Tables<'units'>
+export type Tenant = Tables<'tenants'>
+export type Lease = Tables<'leases'>
+export type MaintenanceRequest = Tables<'maintenance_requests'>
+export type RentPayment = Tables<'rent_payments'>
+export type ExpenseRecord = Tables<'expenses'>
+export type ConnectedAccount = Tables<'property_owners'>
+export type PropertyInsert = TablesInsert<'properties'>
+export type UnitInsert = TablesInsert<'units'>
+
+// Augmented types with optimistic locking version field for mutations
+// IMPORTANT: Only Leases have version field for optimistic locking - other entities don't support versioning
+// Property, Unit, Tenant, and MaintenanceRequest don't have version columns in the database
+export type LeaseWithVersion = Lease & { version?: number }
+export type MaintenanceRequestWithVersion = MaintenanceRequest & { version?: number }
+export type PropertyWithVersion = Property & { version?: number }
+export type UnitWithVersion = Unit & { version?: number }
+
+// Types with additional computed/relational properties
+export type LeaseWithExtras = Lease & {
+	version?: number
+	tenant_id?: string
+	property_id?: string
+	status?: string
+	terms?: string
+	unit?: {
+		id: string
+		unit_number: string | null
+		property_id: string
+	}
+	tenant?: {
+		id: string
+		user_id: string
+		name?: string
+		email?: string
+	}
+	property?: {
+		id: string
+		name: string
+		address_line1: string
+	}
+	signed_at?: string | null
+}
+
+export type MaintenanceRequestWithExtras = MaintenanceRequest & {
+	version?: number
+	property_id?: string
+	category?: string
+	title?: string
+	photos?: string[]
+	preferredDate?: string
+}
+
+export type TenantWithExtras = Tenant & {
+	name?: string
+	email?: string
+	phone?: string | null
+	first_name?: string | null
+	last_name?: string | null
+	auth_user_id?: string
+	invitation_status?: string
+	invitation_sent_at?: string | null
+	status?: string
+	move_out_date?: string | null
+}
+
+// Re-export status types from constants
+export type MaintenanceCategory = MaintenanceCategoryFromConstants
+export type PropertyType = PropertyTypeFromConstants
+export type PropertyStatus = PropertyStatusFromConstants
+export type UnitStatus = UnitStatusFromConstants
+export type LeaseStatus = LeaseStatusFromConstants
+export type PaymentStatus = PaymentStatusFromConstants
+export type Priority = MaintenancePriority
+export type ActivityEntityType = ActivityEntityTypeFromConstants
 
 // Maintenance API response with relations
 export interface MaintenanceRequestResponse {
@@ -168,7 +234,7 @@ export type {
 	Tables,
 	TablesInsert,
 	TablesUpdate
-} from './supabase-generated.js'
+} from './supabase'
 
 export type EnvConfig = Record<string, string | number | boolean>
 
@@ -177,10 +243,10 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 
 
 // Use template literals for type-safe string patterns
 export type EntityType =
-	| 'property'
-	| 'unit'
-	| 'tenant'
-	| 'lease'
+	| 'properties'
+	| 'units'
+	| 'tenants'
+	| 'leases'
 	| 'maintenance'
 export type ActionType = 'create' | 'update' | 'delete' | 'view'
 export type Permission = `${EntityType}:${ActionType}`
@@ -291,7 +357,7 @@ export interface LeaseStats extends BaseStats {
 	terminated?: number
 	totalMonthlyRent?: number
 	averageRent?: number
-	totalSecurityDeposits?: number
+	totalsecurity_deposits?: number
 	expiringLeases?: number
 }
 
@@ -346,7 +412,7 @@ export interface Notification {
 	userId: string
 	title: string
 	message: string
-	type: 'maintenance' | 'lease' | 'payment' | 'system'
+	type: 'maintenance' | 'leases' | 'payment' | 'system'
 	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 	read: boolean
 	createdAt: string
@@ -417,89 +483,90 @@ export interface LeaseStatsResponse {
 	terminatedLeases: number
 	totalMonthlyRent: number
 	averageRent: number
-	totalSecurityDeposits: number
+	totalsecurity_deposits: number
 	expiringLeases: number
 }
 
 export interface TenantWithLeaseInfo {
-	// Base tenant fields
+	// Base tenant fields from tenants table
 	id: string
-	name: string
-	email: string
-	phone: string | null
-	avatarUrl: string | null
-	emergencyContact: string | null
-	createdAt: string
-	updatedAt: string
+	user_id: string
+	created_at: string | null
+	date_of_birth: string | null
+	emergency_contact_name: string | null
+	emergency_contact_phone: string | null
+	emergency_contact_relationship: string | null
+	identity_verified: boolean | null
+	ssn_last_four: string | null
+	stripe_customer_id: string | null
+	updated_at: string | null
 
-	// Invitation fields
-	invitation_status:
-		| 'PENDING'
-		| 'SENT'
-		| 'ACCEPTED'
-		| 'EXPIRED'
-		| 'REVOKED'
-		| null
-	invitation_sent_at: string | null
-	invitation_accepted_at: string | null
-	invitation_expires_at: string | null
+	// User information (from joined users table)
+	name?: string
+	email?: string
+	phone?: string | null
+	first_name?: string | null
+	last_name?: string | null
 
 	// Current lease information
-	currentLease: {
+	currentLease?: {
 		id: string
-		startDate: string
-		endDate: string | null
-		rentAmount: number
-		securityDeposit: number
+		start_date: string
+		end_date: string | null
+		rent_amount: number
+		security_deposit: number
 		status: string
-		terms: string | null
+		primary_tenant_id: string
+		unit_id: string
 	} | null
 
 	// All leases for this tenant
 	leases?: Array<{
 		id: string
-		startDate: string
-		endDate: string | null
-		rentAmount: number
+		start_date: string
+		end_date: string | null
+		rent_amount: number
 		status: string
 		property?: {
-			address: string
+			address_line1: string
 		}
 	}>
 
 	// Unit information
-	unit: {
+	unit?: {
 		id: string
-		unitNumber: string
-		bedrooms: number
-		bathrooms: number
-		squareFootage: number | null
+		unit_number: string | null
+		bedrooms: number | null
+		bathrooms: number | null
+		square_feet: number | null
+		rent_amount: number
 	} | null
 
 	// Property information
-	property: {
+	property?: {
 		id: string
 		name: string
-		address: string
+		address_line1: string
+		address_line2?: string | null
 		city: string
 		state: string
-		zipCode: string
+		postal_code: string
 	} | null
 
 	// Derived fields for UI display
-	monthlyRent: number
-	leaseStatus: string
-	paymentStatus: string | null
-	unitDisplay: string
-	propertyDisplay: string
-	leaseStart: string | null
-	leaseEnd: string | null
+	monthlyRent?: number
+	lease_status?: string
+	paymentStatus?: string | null
+	unitDisplay?: string
+	propertyDisplay?: string
+	leaseStart?: string | null
+	leaseEnd?: string | null
 }
 
 // Property Performance Response Types
 export interface PropertyPerformance {
 	property: string
-	propertyId: string
+	property_id: string
 	units: number
 	totalUnits: number
 	occupiedUnits: number
@@ -509,8 +576,8 @@ export interface PropertyPerformance {
 	revenue: number
 	monthlyRevenue: number
 	potentialRevenue: number
-	address: string
-	propertyType: string
+	address_line1: string
+	property_type: string
 	status: 'NO_UNITS' | 'VACANT' | 'FULL' | 'PARTIAL'
 	trend: 'up' | 'down' | 'stable'
 	trendPercentage: number
@@ -691,44 +758,23 @@ export type SubscriptionStatus =
 	| 'unpaid'
 	| 'paused'
 
-export interface RentSubscriptionResponse {
-	id: string
-	leaseId: string
-	tenantId: string
-	ownerId: string
-	stripeSubscriptionId: string
-	stripeCustomerId: string
-	paymentMethodId: string
-	amount: number
-	currency: string
-	billingDayOfMonth: number
-	nextChargeDate?: string | null // ISO date string (derived server field; optional for backward compatibility)
-	status: SubscriptionStatus
-	platformFeePercentage: number
-	pausedAt: string | null
-	canceledAt: string | null
-	createdAt: string
-	updatedAt: string
-}
-
-export interface CreateSubscriptionRequest {
-	leaseId: string
-	paymentMethodId: string
-	amount: number
-	billingDayOfMonth: number
-	currency?: string
-}
-
 export interface UpdateSubscriptionRequest {
 	amount?: number
 	paymentMethodId?: string
 	billingDayOfMonth?: number
 }
 
-export interface SubscriptionActionResponse {
-	success: boolean
-	subscription?: RentSubscriptionResponse
-	message?: string
+// TENANT NOTIFICATION PREFERENCES TYPE
+export interface TenantNotificationPreferences {
+	pushNotifications?: boolean
+	emailNotifications?: boolean
+	smsNotifications?: boolean
+	leaseNotifications?: boolean
+	maintenanceNotifications?: boolean
+	paymentReminders?: boolean
+	rentalApplications?: boolean
+	propertyNotices?: boolean
+	[key: string]: boolean | undefined
 }
 
 // Re-exports from api-contracts for backward compatibility

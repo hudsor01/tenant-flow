@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 
 type NotificationType =
@@ -14,7 +14,7 @@ type NotificationType =
 type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
 
 export interface CreateNotificationParams {
-	userId: string
+	user_id: string
 	type: NotificationType
 	title: string
 	message: string
@@ -42,33 +42,14 @@ export class NotificationService {
 	async createNotification(params: CreateNotificationParams): Promise<void> {
 		try {
 			const now = new Date().toISOString()
-			const toJson = (
-				d?: Record<string, unknown> | null
-			): Exclude<
-				Database['public']['Tables']['notifications']['Insert']['metadata'],
-				undefined
-			> =>
-				d === null || d === undefined
-					? null
-					: (JSON.parse(JSON.stringify(d)) as Exclude<
-							Database['public']['Tables']['notifications']['Insert']['metadata'],
-							undefined
-						>)
-
-			const metadataValue = toJson(params.data)
 			const record: Database['public']['Tables']['notifications']['Insert'] = {
-				userId: params.userId,
-				type: params.type,
+				user_id: params.user_id,
+				notification_type: params.type,
 				title: params.title,
-				content: params.message,
-				priority: params.priority ?? 'medium',
-				actionUrl: params.actionUrl ?? null,
-				...(metadataValue === null
-					? { metadata: null }
-					: { metadata: metadataValue }),
-				isRead: false,
-				createdAt: now,
-				updatedAt: now
+				message: params.message,
+				action_url: params.actionUrl ?? null,
+				is_read: false,
+				created_at: now
 			}
 
 			const { error } = await this.supabaseService
@@ -79,14 +60,14 @@ export class NotificationService {
 			if (error) {
 				this.logger.error('Failed to create notification', {
 					error,
-					userId: params.userId,
+					user_id: params.user_id,
 					type: params.type
 				})
 				throw error
 			}
 
 			this.logger.log('Notification created', {
-				userId: params.userId,
+				user_id: params.user_id,
 				type: params.type,
 				title: params.title
 			})
@@ -108,37 +89,16 @@ export class NotificationService {
 	): Promise<void> {
 		try {
 			const now = new Date().toISOString()
-			const toJson = (
-				d?: Record<string, unknown> | null
-			): Exclude<
-				Database['public']['Tables']['notifications']['Insert']['metadata'],
-				undefined
-			> =>
-				d === null || d === undefined
-					? null
-					: (JSON.parse(JSON.stringify(d)) as Exclude<
-							Database['public']['Tables']['notifications']['Insert']['metadata'],
-							undefined
-						>)
-
 			const records: Database['public']['Tables']['notifications']['Insert'][] =
-				notifications.map(params => {
-					const metadataValue = toJson(params.data)
-					return {
-						userId: params.userId,
-						type: params.type,
-						title: params.title,
-						content: params.message,
-						priority: params.priority ?? 'medium',
-						actionUrl: params.actionUrl ?? null,
-						...(metadataValue === null
-							? { metadata: null }
-							: { metadata: metadataValue }),
-						isRead: false,
-						createdAt: now,
-						updatedAt: now
-					}
-				})
+				notifications.map(params => ({
+					user_id: params.user_id,
+					notification_type: params.type,
+					title: params.title,
+					message: params.message,
+					action_url: params.actionUrl ?? null,
+					is_read: false,
+					created_at: now
+				}))
 
 			const { error } = await this.supabaseService
 				.getAdminClient()
@@ -174,8 +134,8 @@ export class NotificationService {
 				.getAdminClient()
 				.from('notifications')
 				.update({
-					isRead: true,
-					readAt: new Date().toISOString()
+					is_read: true,
+					read_at: new Date().toISOString()
 				})
 				.eq('id', notificationId)
 
@@ -197,19 +157,19 @@ export class NotificationService {
 	/**
 	 * Get unread notification count for user
 	 */
-	async getUnreadCount(userId: string): Promise<number> {
+	async getUnreadCount(user_id: string): Promise<number> {
 		try {
 			const { count, error } = await this.supabaseService
 				.getAdminClient()
 				.from('notifications')
 				.select('*', { count: 'exact', head: true })
-				.eq('recipient_id', userId)
+				.eq('user_id', user_id)
 				.eq('is_read', false)
 
 			if (error) {
 				this.logger.error('Failed to get unread count', {
 					error,
-					userId
+					user_id
 				})
 				return 0
 			}
@@ -218,7 +178,7 @@ export class NotificationService {
 		} catch (error) {
 			this.logger.error('Error getting unread count', {
 				error: error instanceof Error ? error.message : String(error),
-				userId
+				user_id
 			})
 			return 0
 		}

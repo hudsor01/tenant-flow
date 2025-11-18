@@ -7,7 +7,7 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { UserId } from '../../../shared/decorators/user.decorator'
+import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -36,7 +36,7 @@ export class PropertiesController {
 	@Get('performance')
 	async getPropertyPerformance(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -44,10 +44,10 @@ export class PropertiesController {
 			throw new UnauthorizedException('Authentication token required')
 		}
 
-		this.logger.log('Getting property performance', { userId })
+		this.logger.log('Getting property performance', { user_id })
 
 		const data = await this.dashboardService.getPropertyPerformance(
-			userId,
+			user_id,
 			token
 		)
 

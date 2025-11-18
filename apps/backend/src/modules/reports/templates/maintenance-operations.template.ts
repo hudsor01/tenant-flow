@@ -28,8 +28,8 @@ export interface MaintenanceOperationsReportData {
 		urgencyLevel: 'high' | 'medium' | 'low'
 	}>
 	period: {
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	}
 }
 
@@ -42,19 +42,19 @@ export class MaintenanceOperationsTemplate {
 	) {}
 
 	async generateReportData(
-		userId: string,
-		startDate: string,
-		endDate: string
+		user_id: string,
+		start_date: string,
+		end_date: string
 	): Promise<MaintenanceOperationsReportData> {
 		this.logger.log('Generating maintenance operations report data', {
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		})
 
 		const [maintenanceMetrics, maintenanceAnalytics] = await Promise.all([
-			this.maintenanceService.getMaintenanceMetrics(userId),
-			this.maintenanceService.getMaintenanceAnalytics(userId)
+			this.maintenanceService.getMaintenanceMetrics(user_id),
+			this.maintenanceService.getMaintenanceAnalytics(user_id)
 		])
 
 		const operationsSummary = {
@@ -101,8 +101,8 @@ export class MaintenanceOperationsTemplate {
 			responseTrends,
 			categoryAnalysis,
 			period: {
-				startDate,
-				endDate
+				start_date,
+				end_date
 			}
 		}
 	}
@@ -110,7 +110,7 @@ export class MaintenanceOperationsTemplate {
 	formatForPDF(data: MaintenanceOperationsReportData): string {
 		return `
 MAINTENANCE OPERATIONS REPORT
-Period: ${data.period.startDate} to ${data.period.endDate}
+Period: ${data.period.start_date} to ${data.period.end_date}
 
 OPERATIONS SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

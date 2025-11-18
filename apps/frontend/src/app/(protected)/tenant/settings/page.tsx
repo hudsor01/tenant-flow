@@ -26,12 +26,12 @@ import { useEffect, useState } from 'react'
 export default function TenantSettingsPage() {
 	// Get tenant ID from user profile
 	const { data: profile } = useUserProfile()
-	const tenantId = profile?.id || ''
+	const tenant_id = profile?.id || ''
 
 	// Fetch notification preferences
 	const { data: preferences, isLoading: prefsLoading } =
-		useNotificationPreferences(tenantId)
-	const updatePreferences = useUpdateNotificationPreferences(tenantId)
+		useNotificationPreferences(tenant_id)
+	const updatePreferences = useUpdateNotificationPreferences(tenant_id)
 
 	// Local state for form
 	const [emailNotifications, setEmailNotifications] = useState(true)
@@ -50,7 +50,7 @@ export default function TenantSettingsPage() {
 	}, [preferences])
 
 	const handleSaveNotifications = async () => {
-		if (!tenantId) return
+		if (!tenant_id) return
 
 		await updatePreferences.mutateAsync({
 			emailNotifications,
@@ -137,7 +137,7 @@ export default function TenantSettingsPage() {
 					<div className="flex justify-end">
 						<Button
 							onClick={handleSaveNotifications}
-							disabled={!tenantId || updatePreferences.isPending || prefsLoading}
+							disabled={!tenant_id || updatePreferences.isPending || prefsLoading}
 						>
 							{updatePreferences.isPending ? 'Saving...' : 'Save Preferences'}
 						</Button>

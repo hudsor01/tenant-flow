@@ -172,7 +172,7 @@ export default async function PropertyPerformancePage() {
 									</TableHeader>
 									<TableBody>
 										{performance.slice(0, 6).map(property => (
-											<TableRow key={property.propertyId}>
+											<TableRow key={property.property_id}>
 												<TableCell>{property.propertyName}</TableCell>
 												<TableCell className="text-right">
 													{formatPercentage(property.occupancyRate)}
@@ -212,12 +212,12 @@ export default async function PropertyPerformancePage() {
 								</TableHeader>
 								<TableBody>
 									{units.slice(0, 8).map(unit => (
-										<TableRow key={`${unit.propertyId}-${unit.unitId}`}>
+										<TableRow key={`${unit.property_id}-${unit.unit_id}`}>
 											<TableCell>
 												<div className="flex flex-col">
-													<span className="font-medium">{unit.unitNumber}</span>
+													<span className="font-medium">{unit.unit_number}</span>
 													<span className="text-xs text-muted-foreground">
-														{unit.propertyId}
+														{unit.property_id}
 													</span>
 												</div>
 											</TableCell>

@@ -4,7 +4,6 @@ import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardContent,
-	CardDescription,
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
@@ -36,7 +35,7 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 			<CardHeader className="pb-3">
 				<div className="flex items-start justify-between gap-2">
 					<CardTitle className="text-base font-medium line-clamp-2">
-						{request.title}
+	{request.description}
 					</CardTitle>
 					<Badge
 						variant={PRIORITY_VARIANTS[request.priority] ?? 'outline'}
@@ -45,11 +44,7 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 						{request.priority}
 					</Badge>
 				</div>
-				{request.description && (
-					<CardDescription className="line-clamp-2 text-sm">
-						{request.description}
-					</CardDescription>
-				)}
+				
 			</CardHeader>
 			<CardContent className="space-y-3">
 				{/* Property & Unit */}
@@ -71,7 +66,7 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Calendar className="size-4 shrink-0" />
 					<span>
-						{new Date(request.createdAt ?? '').toLocaleDateString('en-US', {
+						{new Date(request.created_at ?? '').toLocaleDateString('en-US', {
 							month: 'short',
 							day: 'numeric'
 						})}

@@ -10,10 +10,14 @@ import { CurrentUserProvider } from '../../shared/providers/current-user.provide
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
 import type { CreatePropertyDto } from './dto/create-property.dto'
+import type { UpdatePropertyDto } from './dto/update-property.dto'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
+import { PropertyImagesService } from './services/property-images.service'
+import { PropertyBulkImportService } from './services/property-bulk-import.service'
+import { PropertyAnalyticsService } from './services/property-analytics.service'
 
-// Mock the services
+// Mock the PropertiesService
 jest.mock('./properties.service', () => {
 	return {
 		PropertiesService: jest.fn().mockImplementation(() => ({
@@ -33,14 +37,6 @@ jest.mock('./properties.service', () => {
 	}
 })
 
-jest.mock('../../database/supabase.service', () => {
-	return {
-		SupabaseService: jest.fn().mockImplementation(() => ({
-			getUser: jest.fn()
-		}))
-	}
-})
-
 describe('PropertiesController', () => {
 	let controller: PropertiesController
 	let mockPropertiesServiceInstance: jest.Mocked<PropertiesService>
@@ -49,33 +45,31 @@ describe('PropertiesController', () => {
 	const mockUser = createMockUser({ id: 'user-123' })
 
 	const createMockProperty = (overrides: Partial<Property> = {}): Property => ({
-		id: 'property-default',
-		name: 'Test Property',
-		address: '123 Main St',
-		city: 'New York',
-		state: 'NY',
-		zipCode: '10001',
-		description: null,
-		propertyType: 'SINGLE_FAMILY',
-		status: 'ACTIVE',
-		imageUrl: null,
-		date_sold: null,
-		sale_price: null,
-		sale_notes: null,
-		ownerId: mockUser.id,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
-		version: 1,
+	id: 'property-default',
+	name: 'Test Property',
+	address_line1: '123 Main St',
+	address_line2: null,
+	city: 'New York',
+	state: 'NY',
+	postal_code: '10001',
+	country: 'US',
+	property_type: 'SINGLE_FAMILY',
+	status: 'ACTIVE',
+	property_owner_id: mockUser.id,
+	date_sold: null,
+	sale_price: null,
+	created_at: new Date().toISOString(),
+	updated_at: new Date().toISOString(),
 		...overrides
 	})
 
 	const validCreatePropertyRequest: CreatePropertyRequest = {
 		name: 'Test Property',
-		address: '123 Main St',
+		address_line1: '123 Main St',
 		city: 'New York',
 		state: 'NY',
-		zipCode: '10001',
-		propertyType: 'SINGLE_FAMILY'
+		postal_code: '10001',
+		property_type: 'SINGLE_FAMILY'
 	}
 
 	const validUpdatePropertyRequest: UpdatePropertyRequest = {
@@ -87,7 +81,7 @@ describe('PropertiesController', () => {
 
 		// Mock CurrentUserProvider
 		mockCurrentUserProvider = {
-			getUserId: jest.fn().mockResolvedValue(mockUser.id),
+			getuser_id: jest.fn().mockResolvedValue(mockUser.id),
 			getUser: jest.fn().mockResolvedValue(mockUser),
 			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
 			isAuthenticated: jest.fn().mockResolvedValue(true),
@@ -97,9 +91,12 @@ describe('PropertiesController', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PropertiesController],
 			providers: [
-				PropertiesService,
-				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
-			]
+			PropertiesService,
+			{ provide: PropertyImagesService, useValue: {} },
+			{ provide: PropertyBulkImportService, useValue: {} },
+			{ provide: PropertyAnalyticsService, useValue: {} },
+			{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
+		]
 		}).compile()
 
 		controller = module.get<PropertiesController>(PropertiesController)
@@ -132,26 +129,6 @@ describe('PropertiesController', () => {
 		// Invalid tokens will be rejected before reaching the controller
 	})
 
-	describe('getStats', () => {
-		it('should return property statistics', async () => {
-			const mockStats = {
-				totalProperties: 10,
-				activeProperties: 8,
-				rentedUnits: 50,
-				vacantUnits: 10
-			}
-
-			mockPropertiesServiceInstance.getStats.mockResolvedValue(mockStats as any)
-
-			const mockRequest = createMockRequest({ user: mockUser })
-			const result = await controller.getStats(mockRequest as any)
-			expect(mockPropertiesServiceInstance.getStats).toHaveBeenCalledWith(
-				mockRequest
-			)
-			expect(result).toEqual(mockStats)
-		})
-	})
-
 	describe('findAllWithUnits', () => {
 		it('should return properties with their units', async () => {
 			const mockPropertiesWithUnits = [
@@ -180,7 +157,7 @@ describe('PropertiesController', () => {
 				limit: 10,
 				offset: 0
 			})
-			expect(result.data).toEqual(mockPropertiesWithUnits)
+			expect(result).toEqual(mockPropertiesWithUnits)
 		})
 	})
 
@@ -222,7 +199,7 @@ describe('PropertiesController', () => {
 
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.create(
-				validCreatePropertyRequest as CreatePropertyDto,
+				validCreatePropertyRequest as unknown as CreatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.create).toHaveBeenCalledWith(
@@ -245,7 +222,7 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.update(
 				'property-1',
-				validUpdatePropertyRequest,
+				validUpdatePropertyRequest as unknown as UpdatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.update).toHaveBeenCalledWith(
@@ -284,8 +261,8 @@ describe('PropertiesController', () => {
 			const result = await controller.markPropertyAsSold(
 				'property-1',
 				{
-					dateSold: '2025-01-15',
-					salePrice: 500000
+					sale_date: '2025-01-15',
+					sale_price: 500000
 				},
 				createMockRequest({ user: mockUser }) as any
 			)

@@ -10,7 +10,7 @@ import type {
 } from '@repo/shared/types/api-contracts'
 
 export const tenantPaymentKeys = {
-	owner: (tenantId: string) => ['tenantPayments', 'owner', tenantId] as const,
+	owner: (tenant_id: string) => ['tenantPayments', 'owner', tenant_id] as const,
 	self: () => ['tenantPayments', 'self'] as const
 }
 
@@ -20,21 +20,21 @@ interface PaymentQueryOptions {
 }
 
 export function useOwnerTenantPayments(
-	tenantId: string,
+	tenant_id: string,
 	options?: PaymentQueryOptions
 ) {
 	const limit = options?.limit ?? 20
 
 	return useQuery({
-		queryKey: [...tenantPaymentKeys.owner(tenantId), limit],
+		queryKey: [...tenantPaymentKeys.owner(tenant_id), limit],
 		queryFn: async (): Promise<TenantPaymentHistoryResponse> => {
 			const response = await clientFetch<TenantPaymentHistoryResponse>(
-				`/api/v1/tenants/${tenantId}/payments?limit=${limit}`
+				`/api/v1/tenants/${tenant_id}/payments?limit=${limit}`
 			)
 			return response
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
-		enabled: options?.enabled ?? Boolean(tenantId)
+		enabled: options?.enabled ?? Boolean(tenant_id)
 	})
 }
 
@@ -73,9 +73,9 @@ export function useSendTenantPaymentReminder() {
 				queryClient.invalidateQueries({
 					queryKey: variables.ownerQueryKey
 				})
-			} else if (variables?.request.tenantId) {
+			} else if (variables?.request.tenant_id) {
 				queryClient.invalidateQueries({
-					queryKey: tenantPaymentKeys.owner(variables.request.tenantId)
+					queryKey: tenantPaymentKeys.owner(variables.request.tenant_id)
 				})
 			}
 		}

@@ -1,4 +1,4 @@
-import type { Json } from './supabase-generated.js'
+import type { Json } from './supabase.js'
 
 /**
  * Enumerates Stripe Identity verification session states we care about.

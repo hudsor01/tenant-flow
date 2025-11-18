@@ -314,7 +314,7 @@ function ParticlesComponent({
 			{...props}
 			// Accessibility improvements
 			aria-hidden="true"
-			role="presentation"
+
 		>
 			<canvas
 				ref={canvasRef}

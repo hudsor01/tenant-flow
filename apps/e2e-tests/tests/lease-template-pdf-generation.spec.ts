@@ -39,15 +39,15 @@ test.describe('Lease Template PDF Generation', () => {
 		const page = await browser.newPage()
 		const controller = new AbortController()
 		const timeoutId = setTimeout(() => controller.abort(), 10000)
-		
+
 		try {
 			// Try to login with timeout using AbortController
 			await loginAsOwner(page)
-			
+
 			if (controller.signal.aborted) {
 				throw new Error('Auth timeout')
 			}
-			
+
 			authenticationAvailable = true
 			logger.info(' Authentication successful - tests will run')
 		} catch (error) {
@@ -101,16 +101,16 @@ test.describe('Lease Template PDF Generation', () => {
 
 	test('should generate and preview lease PDF from template builder', async ({ page }, testInfo) => {
 		// Navigate to lease template builder
-		await page.goto('/manage/documents/lease-template', { 
+		await page.goto('/manage/documents/lease-template', {
 			waitUntil: 'networkidle',
-			timeout: 30000 
+			timeout: 30000
 		})
 
 		// Verify page loaded
 		await expect(page.locator('h1, h2').filter({ hasText: /lease/i }).first()).toBeVisible()
 
 		// Select state (California for comprehensive requirements)
-		const stateSelect = page.locator('select[name="state"], [role="combobox"]').first()
+		const stateSelect = page.locator('select[name="state"], [user_type="combobox"]').first()
 		if (await stateSelect.isVisible()) {
 			await stateSelect.selectOption('CA')
 		}
@@ -177,8 +177,8 @@ test.describe('Lease Template PDF Generation', () => {
 
 		// Verify no console or network errors during the process
 		expect(consoleErrors.length).toBe(0)
-		const criticalErrors = networkErrors.filter(err => 
-			!err.includes('analytics') && 
+		const criticalErrors = networkErrors.filter(err =>
+			!err.includes('analytics') &&
 			!err.includes('telemetry') &&
 			!err.includes('favicon')
 		)
@@ -186,26 +186,26 @@ test.describe('Lease Template PDF Generation', () => {
 	})
 
 	test('should handle missing required fields gracefully', async ({ page }) => {
-		await page.goto('/manage/documents/lease-template', { 
+		await page.goto('/manage/documents/lease-template', {
 			waitUntil: 'networkidle',
-			timeout: 30000 
+			timeout: 30000
 		})
 
 		// Try to render PDF without filling required fields
 		const renderButton = page.getByRole('button', { name: /render.*pdf|generate.*pdf/i })
-		
+
 		if (await renderButton.isVisible()) {
 			// Should either be disabled or show validation error
 			const isDisabled = await renderButton.isDisabled()
-			
+
 			if (!isDisabled) {
 				await renderButton.click()
-				
+
 				// Wait a bit for validation message
 				await page.waitForTimeout(1000)
-				
+
 				// Should show error toast or validation message
-				const errorMessage = page.locator('[role="alert"], .error-message, [class*="error"]').first()
+				const errorMessage = page.locator('[user_type="alert"], .error-message, [class*="error"]').first()
 				// Note: Validation might be client-side, so this is optional
 				// Only assert if errorMessage is present in DOM
 				if (await errorMessage.count() > 0) {
@@ -225,13 +225,13 @@ test.describe('Lease Template PDF Generation', () => {
 			})
 		})
 
-		await page.goto('/manage/documents/lease-template', { 
+		await page.goto('/manage/documents/lease-template', {
 			waitUntil: 'networkidle',
-			timeout: 30000 
+			timeout: 30000
 		})
 
 		// Fill minimum required fields
-		const stateSelect = page.locator('select[name="state"], [role="combobox"]').first()
+		const stateSelect = page.locator('select[name="state"], [user_type="combobox"]').first()
 		if (await stateSelect.isVisible()) {
 			await stateSelect.selectOption('CA')
 		}
@@ -242,22 +242,22 @@ test.describe('Lease Template PDF Generation', () => {
 			await renderButton.click()
 
 			// Should show error toast/message
-			const errorMessage = page.locator('[role="alert"], .toast, [class*="error"]').filter({ hasText: /failed|error/i }).first()
+			const errorMessage = page.locator('[user_type="alert"], .toast, [class*="error"]').filter({ hasText: /failed|error/i }).first()
 			await expect(errorMessage).toBeVisible({ timeout: 5000 })
 		}
 	})
 
 	test('should maintain template selections when regenerating PDF', async ({ page }) => {
-		await page.goto('/manage/documents/lease-template', { 
+		await page.goto('/manage/documents/lease-template', {
 			waitUntil: 'networkidle',
-			timeout: 30000 
+			timeout: 30000
 		})
 
 		// Select specific state
-		const stateSelect = page.locator('select[name="state"], [role="combobox"]').first()
+		const stateSelect = page.locator('select[name="state"], [user_type="combobox"]').first()
 		if (await stateSelect.isVisible()) {
 			await stateSelect.selectOption('NY')
-			
+
 			// Verify New York was selected
 			const selectedValue = await stateSelect.inputValue()
 			expect(selectedValue).toBe('NY')
@@ -266,13 +266,13 @@ test.describe('Lease Template PDF Generation', () => {
 		// Toggle some clauses (if available)
 		const checkboxes = page.locator('input[type="checkbox"]')
 		const checkboxCount = await checkboxes.count()
-		
+
 		if (checkboxCount > 0) {
 			// Toggle first checkbox
 			const firstCheckbox = checkboxes.first()
 			const initialState = await firstCheckbox.isChecked()
 			await firstCheckbox.click()
-			
+
 			// Verify it toggled
 			const newState = await firstCheckbox.isChecked()
 			expect(newState).toBe(!initialState)

@@ -91,7 +91,7 @@ export function createMockRequest(
  * This matches the interface controllers expect: req.user.id
  */
 export function createAuthenticatedRequest(
-	userId: string = 'user-123',
+	user_id: string = 'user-123',
 	overrides: Partial<{
 		headers?: Record<string, string>
 		body?: unknown
@@ -107,7 +107,7 @@ export function createAuthenticatedRequest(
 		url: overrides.url || '/api/test',
 		method: 'GET',
 		// Use proper user object structure that controllers expect
-		user: { id: userId },
+		user: { id: user_id },
 		...overrides
 	}
 }

@@ -51,7 +51,7 @@ describe('Test Environment Configuration', () => {
 			delete process.env.TEST_TYPE
 			process.env.NODE_ENV = 'development'
 
-			expect(getTestEnvironment()).toBe('unit')
+			expect(getTestEnvironment()).toBe('units')
 		})
 
 		it('should return integration for NODE_ENV=test', () => {
@@ -70,7 +70,7 @@ describe('Test Environment Configuration', () => {
 
 	describe('getTestDatabaseConfig', () => {
 		it('should return mock config for unit tests', () => {
-			process.env.TEST_TYPE = 'unit'
+			process.env.TEST_TYPE = 'units'
 
 			const config = getTestDatabaseConfig()
 			expect(config.url).toBe('mock://localhost/unit_test_db')
@@ -97,12 +97,12 @@ describe('Test Environment Configuration', () => {
 
 	describe('getTestSupabaseConfig', () => {
 		it('should return mock config for unit tests', () => {
-			process.env.TEST_TYPE = 'unit'
+			process.env.TEST_TYPE = 'units'
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://mock-supabase-project.supabase.co')
 			expect(config.publishableKey).toBe('mock_anon_key_for_unit_tests')
-			expect(config.serviceRoleKey).toBe('mock_service_role_key_for_unit_tests')
+			expect(config.serviceuser_typeKey).toBe('mock_service_user_type_key_for_unit_tests')
 		})
 
 		it('should use environment variables for integration tests', () => {
@@ -115,14 +115,14 @@ describe('Test Environment Configuration', () => {
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://test.supabase.co')
 			expect(config.publishableKey).toBe('test_publishable_key')
-			expect(config.serviceRoleKey).toBe('test_secret_key')
+			expect(config.serviceuser_typeKey).toBe('test_secret_key')
 			expect(config.jwtSecret).toBe('test_jwt_secret')
 		})
 	})
 
 	describe('getTestStripeConfig', () => {
 		it('should return mock keys for unit tests', () => {
-			process.env.TEST_TYPE = 'unit'
+			process.env.TEST_TYPE = 'units'
 
 			const config = getTestStripeConfig()
 			expect(config.secretKey).toBe('test_mock_stripe_secret_key_for_unit_testing_not_real')
@@ -177,7 +177,7 @@ describe('Test Environment Configuration', () => {
 
 	describe('getTestEnvironmentConfig', () => {
 		it('should combine all test configurations', () => {
-			process.env.TEST_TYPE = 'unit'
+			process.env.TEST_TYPE = 'units'
 
 			const config = getTestEnvironmentConfig()
 			expect(config.database).toBeDefined()
@@ -192,7 +192,7 @@ describe('Test Environment Configuration', () => {
 
 	describe('TestDatabaseUtils', () => {
 		it('should handle unit test cleanup gracefully', async () => {
-			process.env.TEST_TYPE = 'unit'
+			process.env.TEST_TYPE = 'units'
 
 			// These should not throw for unit tests
 			await expect(TestDatabaseUtils.cleanDatabase()).resolves.toBeUndefined()
@@ -205,7 +205,7 @@ describe('Test Environment Configuration', () => {
 
 	describe('createTestModule', () => {
 		it('should create test module with proper configuration', async () => {
-			process.env.TEST_TYPE = 'unit'
+			process.env.TEST_TYPE = 'units'
 
 			const module = await createTestModule({
 				providers: [],

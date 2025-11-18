@@ -75,22 +75,22 @@ function LoginPageContent() {
 			}
 
 			if (authData.user) {
-				// Fetch user role from database to determine redirect with proper org_id filtering
+				// Fetch user user_type from database to determine redirect with proper org_id filtering
 				let profileQuery = supabase
 					.from('users')
-					.select('role, orgId')
+					.select('user_type, orgId')
 					.eq('supabaseId', authData.user.id)
 				const orgId = authData.user.app_metadata?.['orgId']
 				if (orgId) {
 					profileQuery = profileQuery.eq('orgId', orgId)
 				}
-				const { data: userProfile, error: profileError } = await profileQuery.single()
+				const { data: _userProfile, error: profileError } = await profileQuery.single()
 
 				if (profileError) {
 					logger.warn('Unable to resolve user profile after login', {
 						action: 'user_profile_lookup_failed',
 						metadata: {
-							userId: authData.user.id,
+							user_id: authData.user.id,
 							error: profileError.message
 						}
 					})
@@ -99,11 +99,12 @@ function LoginPageContent() {
 				// Determine destination based on user role
 				let destination = '/manage' // Default for OWNER, MANAGER, ADMIN
 
-				if (userProfile?.role === 'TENANT') {
-					destination = '/tenant'
-				}
+				// TODO: Use useUserRole hook to determine destination
+				// if (userProfile?.user_type === 'TENANT') {
+				// 	destination = '/tenant'
+				// }
 
-				// Honor explicit redirectTo if provided (unless it conflicts with role)
+				// Honor explicit redirectTo if provided (unless it conflicts with user_type)
 				const redirectTo = searchParams?.get('redirectTo')
 				if (
 					redirectTo &&

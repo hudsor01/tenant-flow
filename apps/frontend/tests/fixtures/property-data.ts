@@ -10,23 +10,28 @@ import type {
 	PropertyType
 } from '@repo/shared/types/core'
 
-export interface TestProperty extends Omit<Property, 'id' | 'createdAt' | 'updatedAt'> {
+export interface TestProperty extends PropertyInsert {
   id?: string
-  createdAt?: string
-  updatedAt?: string
+  created_at?: string
+  updated_at?: string
 }
 
 /**
- * Base property data for creating test properties
+ * Base property data for creating test properties - matches actual Supabase schema
  */
 export const basePropertyData: PropertyInsert = {
   name: 'Test Property',
-  address: '123 Test St',
+  address_line1: '123 Test St',
+  address_line2: null,
   city: 'Test City',
   state: 'TS',
-  zipCode: '12345',
-  ownerId: 'test-owner-id',
-  propertyType: 'APARTMENT' as PropertyType
+  postal_code: '12345',
+  country: 'USA',
+  property_owner_id: 'test-owner-id',
+  property_type: 'APARTMENT',
+  status: 'ACTIVE',
+  date_sold: null,
+  sale_price: null
 }
 
 /**
@@ -35,14 +40,14 @@ export const basePropertyData: PropertyInsert = {
 export function createTestProperty(overrides: Partial<TestProperty> = {}): TestProperty {
   const timestamp = Date.now()
   const id = `test-property-${timestamp}`
-  
+
   return {
     ...basePropertyData,
     id,
     name: `Test Property ${timestamp}`,
-    address: `${123 + Math.floor(Math.random() * 999)} Test Ave`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    address_line1: `${123 + Math.floor(Math.random() * 999)} Test Ave`,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides
   }
 }
@@ -51,10 +56,10 @@ export function createTestProperty(overrides: Partial<TestProperty> = {}): TestP
  * Generate multiple test properties for infinite scroll testing
  */
 export function createTestProperties(count: number): TestProperty[] {
-  return Array.from({ length: count }, (_, index) => 
+  return Array.from({ length: count }, (_, index) =>
     createTestProperty({
       name: `Test Property ${index + 1}`,
-      address: `${123 + index} Test Street`,
+      address_line1: `${123 + index} Test Street`,
     })
   )
 }
@@ -62,12 +67,14 @@ export function createTestProperties(count: number): TestProperty[] {
 /**
  * Property types for testing different scenarios
  */
-export const propertyTypes: PropertyType[] = [
+export const property_types: PropertyType[] = [
   'APARTMENT',
-  'MULTI_UNIT', 
   'SINGLE_FAMILY',
+  'MULTI_UNIT',
   'TOWNHOUSE',
-  'CONDO'
+  'CONDO',
+  'COMMERCIAL',
+  'OTHER'
 ]
 
 /**
@@ -75,8 +82,9 @@ export const propertyTypes: PropertyType[] = [
  */
 export const propertyStatuses: PropertyStatus[] = [
   'ACTIVE',
-  'UNDER_CONTRACT',
-  'SOLD'
+  'INACTIVE',
+  'SOLD',
+  'UNDER_CONTRACT'
 ]
 
 /**
@@ -84,19 +92,22 @@ export const propertyStatuses: PropertyStatus[] = [
  */
 export function createLargePropertyDataset(pageSize: number = 20, totalPages: number = 5): TestProperty[][] {
   const pages: TestProperty[][] = []
-  
+
   for (let page = 0; page < totalPages; page++) {
     const pageData = Array.from({ length: pageSize }, (_, index) => {
       const globalIndex = page * pageSize + index + 1
+      const propertyType =
+        property_types[globalIndex % property_types.length] ?? 'APARTMENT'
+
       return createTestProperty({
         name: `Property ${globalIndex.toString().padStart(3, '0')}`,
-        address: `${1000 + globalIndex} Main Street`,
-        propertyType: propertyTypes[globalIndex % propertyTypes.length]
+        address_line1: `${1000 + globalIndex} Main Street`,
+        property_type: propertyType as PropertyType
       })
     })
     pages.push(pageData)
   }
-  
+
   return pages
 }
 
@@ -104,11 +115,11 @@ export function createLargePropertyDataset(pageSize: number = 20, totalPages: nu
  * Properties with validation errors for error testing
  */
 export const invalidPropertyData: Partial<PropertyInsert>[] = [
-  { name: '', address: '123 Test St' }, // Empty name
-  { name: 'Test', address: '' }, // Empty address
-  { name: 'Test', address: '123 Test St', city: '' }, // Empty city
-  { name: 'Test', address: '123 Test St', state: '' }, // Empty state
-  { name: 'Test', address: '123 Test St', zipCode: '' }, // Empty zip
+  { name: '', address_line1: '123 Test St' }, // Empty name
+  { name: 'Test', address_line1: '' }, // Empty address
+  { name: 'Test', address_line1: '123 Test St', city: '' }, // Empty city
+  { name: 'Test', address_line1: '123 Test St', state: '' }, // Empty state
+  { name: 'Test', address_line1: '123 Test St', postal_code: '' }, // Empty zip
 ]
 
 /**
@@ -126,13 +137,13 @@ export const networkDelays = {
  */
 export const mockApiResponses = {
   success: (data: any) => ({ data, success: true }),
-  error: (message: string = 'API Error') => ({ 
+  error: (message: string = 'API Error') => ({
     error: { message, status: 500 },
-    success: false 
+    success: false
   }),
-  networkError: () => ({ 
+  networkError: () => ({
     error: { message: 'Network Error', status: 0 },
-    success: false 
+    success: false
   }),
   validationError: (field: string) => ({
     error: { message: `Validation failed for ${field}`, status: 422 },

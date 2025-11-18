@@ -25,11 +25,11 @@ const unitStatusSchema: JSONSchema = {
  */
 export const createUnitSchema: JSONSchema = {
 	type: 'object',
-	required: ['propertyId', 'unitNumber', 'bedrooms', 'bathrooms', 'rent'],
+	required: ['property_id', 'unit_number', 'bedrooms', 'bathrooms', 'rent'],
 	additionalProperties: false,
 	properties: {
-		propertyId: uuidSchema,
-		unitNumber: {
+		property_id: uuidSchema,
+		unit_number: {
 			type: 'string',
 			minLength: 1,
 			maxLength: 20
@@ -44,7 +44,7 @@ export const createUnitSchema: JSONSchema = {
 			minimum: 0,
 			maximum: 10
 		},
-		squareFeet: {
+		square_feet: {
 			type: 'integer',
 			minimum: 1,
 			maximum: 50000
@@ -65,7 +65,7 @@ export const updateUnitSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
-		unitNumber: {
+		unit_number: {
 			type: 'string',
 			minLength: 1,
 			maxLength: 20
@@ -80,7 +80,7 @@ export const updateUnitSchema: JSONSchema = {
 			minimum: 0,
 			maximum: 10
 		},
-		squareFeet: {
+		square_feet: {
 			type: 'integer',
 			minimum: 1,
 			maximum: 50000
@@ -101,7 +101,7 @@ export const unitQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
-		propertyId: uuidSchema,
+		property_id: uuidSchema,
 		status: unitStatusSchema,
 		search: {
 			type: 'string'
@@ -139,8 +139,8 @@ export const unitQuerySchema: JSONSchema = {
 		},
 		sortBy: {
 			type: 'string',
-			enum: ['createdAt', 'unitNumber', 'bedrooms', 'rent', 'status'],
-			default: 'createdAt'
+			enum: ['created_at', 'unit_number', 'bedrooms', 'rent', 'status'],
+			default: 'created_at'
 		},
 		sortOrder: {
 			type: 'string',
@@ -192,15 +192,15 @@ export const unitRouteSchemas = {
 					type: 'object',
 					properties: {
 						id: { type: 'string' },
-						propertyId: { type: 'string' },
-						unitNumber: { type: 'string' },
+						property_id: { type: 'string' },
+						unit_number: { type: 'string' },
 						bedrooms: { type: 'number' },
 						bathrooms: { type: 'number' },
-						squareFeet: { type: 'number' },
+						square_feet: { type: 'number' },
 						rent: { type: 'number' },
 						status: unitStatusSchema,
-						createdAt: { type: 'string' },
-						updatedAt: { type: 'string' }
+						created_at: { type: 'string' },
+						updated_at: { type: 'string' }
 					}
 				}
 			}

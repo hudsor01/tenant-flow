@@ -6,14 +6,14 @@ export interface LeasePortfolioReportData {
 		totalLeases: number
 		activeLeases: number
 		expiringLeases: number
-		totalMonthlyRent: number
+		totalrent_amount: number
 		averageLeaseLength: number
 	}
 	leaseProfitability: Array<{
-		leaseId: string
+		lease_id: string
 		tenant: string
 		property: string
-		monthlyRent: number
+		rent_amount: number
 		profitabilityScore: number
 		status: string
 	}>
@@ -29,8 +29,8 @@ export interface LeasePortfolioReportData {
 		percentage: number
 	}>
 	period: {
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	}
 }
 
@@ -41,37 +41,37 @@ export class LeasePortfolioTemplate {
 	constructor(private readonly leaseService: LeaseAnalyticsService) {}
 
 	async generateReportData(
-		userId: string,
-		startDate: string,
-		endDate: string
+		user_id: string,
+		start_date: string,
+		end_date: string
 	): Promise<LeasePortfolioReportData> {
 		this.logger.log('Generating lease portfolio report data', {
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		})
 
 		const [leaseSummary, leaseProfitability, leaseLifecycle, statusBreakdown] =
 			await Promise.all([
-				this.leaseService.getLeaseFinancialSummary(userId),
-				this.leaseService.getLeasesWithFinancialAnalytics(userId),
-				this.leaseService.getLeaseLifecycleData(userId),
-				this.leaseService.getLeaseStatusBreakdown(userId)
+				this.leaseService.getLeaseFinancialSummary(user_id),
+				this.leaseService.getLeasesWithFinancialAnalytics(user_id),
+				this.leaseService.getLeaseLifecycleData(user_id),
+				this.leaseService.getLeaseStatusBreakdown(user_id)
 			])
 
 		const summary = {
 			totalLeases: leaseSummary.totalLeases || 0,
 			activeLeases: leaseSummary.activeLeases || 0,
 			expiringLeases: leaseSummary.expiringSoon || 0,
-			totalMonthlyRent: leaseSummary.totalMonthlyRent || 0,
+			totalrent_amount: leaseSummary.totalrent_amount || 0,
 			averageLeaseLength: 12 // Default average, not available in LeaseFinancialSummary
 		}
 
 		const profitability = leaseProfitability.map(lease => ({
-			leaseId: lease.leaseId || 'N/A',
+			lease_id: lease.lease_id || 'N/A',
 			tenant: lease.tenantName || 'Unknown',
 			property: lease.propertyName || 'Unknown',
-			monthlyRent: lease.monthlyRent || 0,
+			rent_amount: lease.rent_amount || 0,
 			profitabilityScore: lease.profitabilityScore || 0,
 			status: 'Active' // Status not available in LeaseFinancialInsight
 		}))
@@ -95,8 +95,8 @@ export class LeasePortfolioTemplate {
 			leaseLifecycle: lifecycle,
 			statusBreakdown: breakdown,
 			period: {
-				startDate,
-				endDate
+				start_date,
+				end_date
 			}
 		}
 	}
@@ -121,7 +121,7 @@ export class LeasePortfolioTemplate {
 			{
 				sheet: 'Lease Summary',
 				metric: 'Total Monthly Rent',
-				value: data.leaseSummary.totalMonthlyRent
+				value: data.leaseSummary.totalrent_amount
 			},
 			{
 				sheet: 'Lease Summary',
@@ -132,10 +132,10 @@ export class LeasePortfolioTemplate {
 
 		const profitabilityRows = data.leaseProfitability.map(lease => ({
 			sheet: 'Lease Profitability',
-			leaseId: lease.leaseId,
+			lease_id: lease.lease_id,
 			tenant: lease.tenant,
 			property: lease.property,
-			monthlyRent: lease.monthlyRent,
+			rent_amount: lease.rent_amount,
 			profitabilityScore: lease.profitabilityScore,
 			status: lease.status
 		}))

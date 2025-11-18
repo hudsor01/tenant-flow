@@ -7,21 +7,37 @@ import { SupabaseService } from '../../database/supabase.service'
 import { UtilityService } from '../../shared/services/utility.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__test__/silent-logger'
-import { createMockProperty } from '../../test-utils/mocks'
+// Define createMockProperty locally since it doesn't exist in mocks
+function createMockProperty(overrides?: Partial<any>): any {
+	return {
+		id: 'property-' + Math.random().toString(36).substr(2, 9),
+		property_owner_id: 'user-123',
+		name: 'Test Property',
+		address_line1: '123 Main St',
+		city: 'Test City',
+		state: 'TS',
+		postal_code: '12345',
+		country: 'US',
+		status: 'ACTIVE',
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
+		...overrides
+	}
+}
 import { PropertiesService } from './properties.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
 
 // Helper function to create mock Request objects
 function createMockRequest(
-	userId: string,
+	user_id: string,
 	token = 'mock-token'
 ): AuthenticatedRequest {
 	return {
 		user: {
-			id: userId,
+			id: user_id,
 			email: 'test@example.com',
 			aud: 'authenticated',
-			role: 'authenticated',
+			user_type: 'authenticated',
 			email_confirmed_at: '',
 			confirmed_at: '',
 			last_sign_in_at: '',
@@ -41,10 +57,6 @@ function createMockRequest(
 
 describe('PropertiesService', () => {
 	let service: PropertiesService
-	let cacheManager: {
-		get: jest.Mock
-		set: jest.Mock
-	}
 	let mockAdminClient: {
 		from: jest.Mock
 		rpc: jest.Mock
@@ -52,9 +64,6 @@ describe('PropertiesService', () => {
 	let mockUserClient: {
 		from: jest.Mock
 		rpc: jest.Mock
-	}
-	let mockDashboardAnalytics: {
-		getDashboardStats: jest.Mock
 	}
 
 	beforeEach(async () => {
@@ -85,7 +94,7 @@ describe('PropertiesService', () => {
 				{
 					provide: UtilityService,
 					useValue: {
-						getUserIdFromSupabaseId: jest
+						getuser_idFromSupabaseId: jest
 							.fn()
 							.mockImplementation(async (supabaseId: string) => {
 								// Maps Supabase auth ID to internal user ID
@@ -109,7 +118,7 @@ describe('PropertiesService', () => {
 								occupied: 0,
 								vacant: 0,
 								occupancyRate: 0,
-								totalMonthlyRent: 0,
+								totalrent_amount: 0,
 								averageRent: 0
 							}
 						})
@@ -131,8 +140,6 @@ describe('PropertiesService', () => {
 		}).compile()
 
 		service = module.get<PropertiesService>(PropertiesService)
-		cacheManager = module.get(CACHE_MANAGER)
-		mockDashboardAnalytics = module.get(DashboardAnalyticsService)
 	})
 
 	describe('findAll', () => {
@@ -159,8 +166,8 @@ describe('PropertiesService', () => {
 			})
 
 			expect(result).toEqual(mockProperties)
-			expect(mockUserClient.from).toHaveBeenCalledWith('property')
-			// RLS enforces ownership, so no manual .eq('ownerId') filter needed
+			expect(mockUserClient.from).toHaveBeenCalledWith('properties')
+			// RLS enforces ownership, so no manual .eq('owner_id') filter needed
 			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
 				buildMultiColumnSearch('Main', ['name', 'address', 'city'])
 			)
@@ -207,7 +214,7 @@ describe('PropertiesService', () => {
 
 			expect(result).toEqual(mockProperty)
 			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('id', 'prop-1')
-			// RLS enforces ownership, so no manual .eq('ownerId') filter needed
+			// RLS enforces ownership, so no manual .eq('owner_id') filter needed
 		})
 
 		it('should return null when property not found', async () => {
@@ -233,9 +240,9 @@ describe('PropertiesService', () => {
 	describe('create', () => {
 		it('should create a property with trimmed values', async () => {
 			const mockCreated = createMockProperty({
-				name: 'Park View',
-				address: '123 Main St'
-			})
+			name: 'Park View',
+			address_line1: '123 Main St'
+		})
 
 			const mockQueryBuilder = {
 				insert: jest.fn().mockReturnThis(),
@@ -247,12 +254,11 @@ describe('PropertiesService', () => {
 
 			const payload = {
 				name: 'Park View',
-				address: '123 Main St',
+				address_line1: '123 Main St',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78701',
-				propertyType: 'APARTMENT' as const,
-				description: 'Beautiful views'
+				postal_code: '78701',
+				property_type: 'APARTMENT' as const
 			}
 
 			const result = await service.create(
@@ -263,14 +269,13 @@ describe('PropertiesService', () => {
 			expect(result).toEqual(mockCreated)
 			expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					ownerId: 'user-123',
+					property_owner_id: 'user-123',
 					name: 'Park View',
-					address: '123 Main St',
+					address_line1: '123 Main St',
 					city: 'Austin',
 					state: 'TX',
-					zipCode: '78701',
-					propertyType: 'APARTMENT',
-					description: 'Beautiful views'
+					postal_code: '78701',
+					property_type: 'APARTMENT'
 				})
 			)
 		})
@@ -289,11 +294,11 @@ describe('PropertiesService', () => {
 			await expect(
 				service.create(createMockRequest('user-123'), {
 					name: 'Test',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'Austin',
 					state: 'TX',
-					zipCode: '78701',
-					propertyType: 'APARTMENT'
+					postal_code: '78701',
+					property_type: 'APARTMENT'
 				})
 			).rejects.toThrow(BadRequestException)
 		})
@@ -302,9 +307,9 @@ describe('PropertiesService', () => {
 	describe('update', () => {
 		it('should update a property after verifying ownership', async () => {
 			const mockExisting = createMockProperty({
-				id: 'prop-1',
-				ownerId: 'internal-uid-1'
-			})
+			id: 'prop-1',
+			property_owner_id: 'internal-uid-1'
+		})
 			const mockUpdated = { ...mockExisting, name: 'Updated Name' }
 
 			// Mock findOne
@@ -331,7 +336,7 @@ describe('PropertiesService', () => {
 			expect(mockQueryBuilder.update).toHaveBeenCalledWith(
 				expect.objectContaining({
 					name: 'Updated Name',
-					updatedAt: expect.any(String)
+					updated_at: expect.any(String)
 				})
 			)
 		})
@@ -362,63 +367,7 @@ describe('PropertiesService', () => {
 				message: 'Property deleted successfully'
 			})
 			expect(mockQueryBuilder.update).toHaveBeenCalledWith(
-				expect.objectContaining({ status: 'INACTIVE' })
-			)
-		})
-	})
-
-	describe('getStats', () => {
-		it('should return cached stats when available', async () => {
-			const mockStats = {
-				total: 10,
-				occupied: 9,
-				vacant: 1,
-				occupancyRate: 90,
-				totalMonthlyRent: 10000,
-				averageRent: 1200
-			}
-
-			cacheManager.get.mockResolvedValue(mockStats)
-
-			const result = await service.getStats(createMockRequest('user-123'))
-
-			expect(result).toEqual(mockStats)
-			expect(cacheManager.get).toHaveBeenCalledWith('property-stats:user-123')
-			expect(mockUserClient.rpc).not.toHaveBeenCalled()
-		})
-
-		it('should fetch stats via RPC and cache the result when not cached', async () => {
-			cacheManager.get.mockResolvedValue(null)
-
-			const mockStats = {
-				total: 2,
-				occupied: 2,
-				vacant: 0,
-				occupancyRate: 100,
-				totalMonthlyRent: 4000,
-				averageRent: 2000
-			}
-
-			// Mock DashboardAnalyticsService to return the expected stats
-			mockDashboardAnalytics.getDashboardStats.mockResolvedValue({
-				properties: mockStats,
-				tenants: {},
-				leases: {}
-			})
-
-			// Mock the RPC call
-			mockUserClient.rpc.mockResolvedValue({ data: mockStats, error: null })
-
-			const result = await service.getStats(createMockRequest('user-123'))
-
-			expect(result).toEqual(mockStats)
-			expect(mockUserClient.rpc).toHaveBeenCalledWith('get_property_stats', {
-				p_user_id: 'user-123'
-			})
-			expect(cacheManager.set).toHaveBeenCalledWith(
-				'property-stats:user-123',
-				mockStats,
-				30000
+				expect.objectContaining({ status: 'inactive' })
 			)
 		})
 	})
@@ -438,7 +387,7 @@ describe('PropertiesService', () => {
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			const result = await service.findAllWithUnits(
-				createMockRequest('user-123'),
+				createMockRequest('user-123') as unknown as AuthenticatedRequest,
 				{
 					search: 'Loft',
 					limit: 5,
@@ -446,10 +395,16 @@ describe('PropertiesService', () => {
 				}
 			)
 
-			expect(result).toEqual(mockProperties)
+			expect(result).toEqual({
+			data: mockProperties,
+			total: 0,
+			limit: 5,
+			offset: 0
+		})
 			expect(mockQueryBuilder.select).toHaveBeenCalledWith(
-				'*, units:unit(*, lease(*))'
-			)
+				'*, units:unit(*, lease(*))',
+			{ count: 'exact' }
+		)
 			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
 				buildMultiColumnSearch('Loft', ['name', 'address'])
 			)

@@ -129,7 +129,7 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 
 	test('should handle billing toggle with confetti animation', async ({ page }) => {
 		// Find the billing toggle switch
-		const toggle = page.locator('button[role="switch"]')
+		const toggle = page.locator('button[user_type="switch"]')
 		await expect(toggle).toBeVisible()
 
 		// Get initial price

@@ -1,7 +1,7 @@
+import type { MaintenancePriority } from '../constants/status-types.js'
 // Notification types for TenantFlow application
-import type { Database } from './supabase-generated.js'
 
-type Priority = Database['public']['Enums']['Priority']
+type Priority = MaintenancePriority
 
 // UI-only notification type constants (not stored in database)
 export const NotificationType = {

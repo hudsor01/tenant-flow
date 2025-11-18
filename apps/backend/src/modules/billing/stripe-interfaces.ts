@@ -21,13 +21,13 @@ export interface SubscriptionWithPeriod extends Stripe.Subscription {
 export interface CreatePaymentIntentRequest {
 	amount: Stripe.PaymentIntentCreateParams['amount']
 	currency?: Stripe.PaymentIntentCreateParams['currency']
-	tenantId: string
-	propertyId?: string
+	tenant_id: string
+	property_id?: string
 	subscriptionType?: string
 }
 
 export interface CreatePaymentMethodRequest {
-	tenantId: string
+	tenant_id: string
 	customerId?: string
 	customerEmail?: string
 	customerName?: string
@@ -37,7 +37,7 @@ export interface CreatePaymentMethodRequest {
 export interface CreateConfirmationTokenRequest {
 	amount: number
 	currency?: string
-	tenantId: string
+	tenant_id: string
 	customerId?: string
 	returnUrl?: string
 }
@@ -50,7 +50,7 @@ export interface AttachPaymentMethodRequest {
 export type {
 	CreateCheckoutSessionRequest,
 	CreateConnectedPaymentRequest,
-	CreateSubscriptionRequest
+	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
 
 // Keep smaller local interfaces that are backend-specific

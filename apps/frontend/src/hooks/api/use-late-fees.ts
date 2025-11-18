@@ -14,7 +14,7 @@ import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-
  * Late fee types
  */
 interface LateFeeConfig {
-	leaseId: string
+	lease_id: string
 	gracePeriodDays: number
 	flatFeeAmount: number | null
 	percentageFee: number | null
@@ -34,7 +34,7 @@ interface ProcessLateFeesResult {
 	totalLateFees: number
 	details: Array<{
 		paymentId: string
-		lateFeeAmount: number
+		late_fee_amount: number
 		daysOverdue: number
 	}>
 }
@@ -50,18 +50,18 @@ interface ApplyLateFeeResult {
  */
 export const lateFeesKeys = {
 	all: ['late-fees'] as const,
-	config: (leaseId: string) => [...lateFeesKeys.all, 'config', leaseId] as const,
-	overdue: (leaseId: string) => [...lateFeesKeys.all, 'overdue', leaseId] as const
+	config: (lease_id: string) => [...lateFeesKeys.all, 'config', lease_id] as const,
+	overdue: (lease_id: string) => [...lateFeesKeys.all, 'overdue', lease_id] as const
 }
 
 /**
  * Get late fee configuration for a lease
  */
-export function useLateFeeConfig(leaseId: string) {
+export function useLateFeeConfig(lease_id: string) {
 	return useQuery({
-		queryKey: lateFeesKeys.config(leaseId),
-		queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${leaseId}/config`),
-		enabled: !!leaseId,
+		queryKey: lateFeesKeys.config(lease_id),
+		queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${lease_id}/config`),
+		enabled: !!lease_id,
 		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
@@ -74,16 +74,16 @@ export function useUpdateLateFeeConfig() {
 
 	return useMutation({
 		mutationFn: ({
-			leaseId,
+			lease_id,
 			gracePeriodDays,
 			flatFeeAmount
 		}: {
-			leaseId: string
+			lease_id: string
 			gracePeriodDays?: number
 			flatFeeAmount?: number
 		}) =>
 			clientFetch<{ success: boolean; message: string }>(
-				`/api/v1/late-fees/lease/${leaseId}/config`,
+				`/api/v1/late-fees/lease/${lease_id}/config`,
 				{
 					method: 'PUT',
 					body: JSON.stringify({ gracePeriodDays, flatFeeAmount })
@@ -91,10 +91,10 @@ export function useUpdateLateFeeConfig() {
 			),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
-				queryKey: lateFeesKeys.config(variables.leaseId)
+				queryKey: lateFeesKeys.config(variables.lease_id)
 			})
 			queryClient.invalidateQueries({
-				queryKey: ['lease', variables.leaseId]
+				queryKey: ['leases', variables.lease_id]
 			})
 			handleMutationSuccess('Update late fee configuration', 'Configuration updated successfully')
 		},
@@ -105,14 +105,14 @@ export function useUpdateLateFeeConfig() {
 /**
  * Get overdue payments for a lease
  */
-export function useOverduePayments(leaseId: string) {
+export function useOverduePayments(lease_id: string) {
 	return useQuery({
-		queryKey: lateFeesKeys.overdue(leaseId),
+		queryKey: lateFeesKeys.overdue(lease_id),
 		queryFn: () =>
 			clientFetch<{ payments: OverduePayment[]; gracePeriod: number }>(
-				`/api/v1/late-fees/lease/${leaseId}/overdue`
+				`/api/v1/late-fees/lease/${lease_id}/overdue`
 			),
-		enabled: !!leaseId,
+		enabled: !!lease_id,
 		staleTime: 60 * 1000 // 1 minute
 	})
 }
@@ -124,19 +124,19 @@ export function useProcessLateFees() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (leaseId: string) =>
-			clientFetch<ProcessLateFeesResult>(`/api/v1/late-fees/lease/${leaseId}/process`, {
+		mutationFn: (lease_id: string) =>
+			clientFetch<ProcessLateFeesResult>(`/api/v1/late-fees/lease/${lease_id}/process`, {
 				method: 'POST'
 			}),
-		onSuccess: (result, leaseId) => {
+		onSuccess: (result, lease_id) => {
 			queryClient.invalidateQueries({
-				queryKey: lateFeesKeys.overdue(leaseId)
+				queryKey: lateFeesKeys.overdue(lease_id)
 			})
 			queryClient.invalidateQueries({
-				queryKey: ['lease', leaseId]
+				queryKey: ['leases', lease_id]
 			})
 			queryClient.invalidateQueries({
-				queryKey: ['payments', leaseId]
+				queryKey: ['payments', lease_id]
 			})
 
 			const totalFormatted = new Intl.NumberFormat('en-US', {
@@ -162,16 +162,16 @@ export function useApplyLateFee() {
 	return useMutation({
 		mutationFn: ({
 			paymentId,
-			lateFeeAmount,
+			late_fee_amount,
 			reason
 		}: {
 			paymentId: string
-			lateFeeAmount: number
+			late_fee_amount: number
 			reason: string
 		}) =>
 			clientFetch<ApplyLateFeeResult>(`/api/v1/late-fees/payment/${paymentId}/apply`, {
 				method: 'POST',
-				body: JSON.stringify({ lateFeeAmount, reason })
+				body: JSON.stringify({ late_fee_amount, reason })
 			}),
 		onSuccess: result => {
 			queryClient.invalidateQueries({
@@ -201,10 +201,10 @@ export function useApplyLateFee() {
 export function usePrefetchLateFeeConfig() {
 	const queryClient = useQueryClient()
 
-	return (leaseId: string) => {
+	return (lease_id: string) => {
 		queryClient.prefetchQuery({
-			queryKey: lateFeesKeys.config(leaseId),
-			queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${leaseId}/config`),
+			queryKey: lateFeesKeys.config(lease_id),
+			queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${lease_id}/config`),
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
@@ -216,12 +216,12 @@ export function usePrefetchLateFeeConfig() {
 export function usePrefetchOverduePayments() {
 	const queryClient = useQueryClient()
 
-	return (leaseId: string) => {
+	return (lease_id: string) => {
 		queryClient.prefetchQuery({
-			queryKey: lateFeesKeys.overdue(leaseId),
+			queryKey: lateFeesKeys.overdue(lease_id),
 			queryFn: () =>
 			clientFetch<{ payments: OverduePayment[]; gracePeriod: number }>(
-				`/api/v1/late-fees/lease/${leaseId}/overdue`
+				`/api/v1/late-fees/lease/${lease_id}/overdue`
 			),
 			staleTime: 60 * 1000
 		})

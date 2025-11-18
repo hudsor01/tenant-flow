@@ -176,16 +176,18 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						</div>
 					</div>
 
-					{tenant.emergencyContact && (
-						<div className="pt-4 border-t">
-							<div className="text-sm text-muted-foreground mb-2">
-								Emergency Contact
-							</div>
-							<div className="font-medium whitespace-pre-wrap">
-								{tenant.emergencyContact}
-							</div>
-						</div>
-					)}
+					{tenant.emergency_contact_name && (
+				<div className="pt-4 border-t">
+					<div className="text-sm text-muted-foreground mb-2">
+						Emergency Contact
+					</div>
+					<div className="font-medium whitespace-pre-wrap">
+						{tenant.emergency_contact_name}
+						{tenant.emergency_contact_phone && <div>{tenant.emergency_contact_phone}</div>}
+						{tenant.emergency_contact_relationship && <div className="text-xs text-muted-foreground">{tenant.emergency_contact_relationship}</div>}
+					</div>
+				</div>
+			)}
 
 					{/* Created and Updated Dates */}
 					<div className="pt-4 border-t">
@@ -196,7 +198,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Created
 								</div>
 								<div className="font-medium">
-									{formatDate(tenant.createdAt, {
+									{formatDate(tenant.created_at ?? new Date().toISOString(), {
 										year: 'numeric',
 										month: 'long',
 										day: 'numeric'
@@ -209,7 +211,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Updated
 								</div>
 								<div className="font-medium">
-									{formatDate(tenant.updatedAt, {
+									{formatDate(tenant.updated_at as string, {
 										year: 'numeric',
 										month: 'long',
 										day: 'numeric'
@@ -234,15 +236,15 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 								>
 									<div className="space-y-1">
 										<div className="font-medium">
-											{lease.property?.address || 'Unknown Property'}
+											{lease.property?.address_line1 || 'Unknown Property'}
 										</div>
 										<div className="text-sm text-muted-foreground flex items-center gap-4">
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
-												{formatDate(lease.startDate)} -{' '}
-												{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}
+												{formatDate(lease.start_date)} -{' '}
+												{lease.end_date ? formatDate(lease.end_date) : 'Month-to-Month'}
 											</span>
-											<span>${lease.rentAmount}/mo</span>
+											<span>${lease.rent_amount}/mo</span>
 										</div>
 									</div>
 									<Badge
