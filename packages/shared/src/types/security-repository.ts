@@ -7,7 +7,7 @@ export interface SecurityAuditLogEntry {
   id: string
   eventType: SecurityEventType
   severity: SecurityEventSeverity
-  userId: string | null
+  user_id: string | null
   email: string | null
   ipAddress: string | null
   userAgent: string | null

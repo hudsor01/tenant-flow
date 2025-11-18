@@ -19,7 +19,7 @@ import type {
 	MaintenanceRequest,
 	MaintenanceStats
 } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildMultiColumnSearch,
@@ -30,6 +30,14 @@ import { MaintenanceUpdatedEvent } from '../notifications/events/notification.ev
 @Injectable()
 export class MaintenanceService {
 	private readonly logger = new Logger(MaintenanceService.name)
+
+	// Reverse map for converting database priority values to enum values for events
+	private readonly reversePriorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
+		low: 'LOW',
+		normal: 'MEDIUM',
+		high: 'HIGH',
+		urgent: 'URGENT'
+	}
 
 	constructor(
 		private readonly supabase: SupabaseService,
@@ -62,39 +70,34 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
-			// Build query with filters (NO manual userId filtering needed)
-			let queryBuilder = client.from('maintenance_request').select('*')
+			// Build query with filters (NO manual user_id filtering needed)
+			let queryBuilder = client.from('maintenance_requests').select('*')
 
 			// Apply filters
-			if (query.propertyId) {
-				queryBuilder = queryBuilder.eq('propertyId', query.propertyId as string)
+			if (query.property_id) {
+				queryBuilder = queryBuilder.eq('property_id', query.property_id as string)
 			}
-			if (query.unitId) {
-				queryBuilder = queryBuilder.eq('unitId', query.unitId as string)
+			if (query.unit_id) {
+				queryBuilder = queryBuilder.eq('unit_id', query.unit_id as string)
 			}
-			if (query.tenantId) {
-				queryBuilder = queryBuilder.eq('requestedBy', query.tenantId as string)
+			if (query.tenant_id) {
+				queryBuilder = queryBuilder.eq('tenant_id', query.tenant_id as string)
 			}
 			if (query.status) {
-				const allowedStatuses: Database['public']['Enums']['RequestStatus'][] =
-					['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELED', 'ON_HOLD', 'CLOSED']
-				const normalizedStatus = String(
-					query.status
-				).toUpperCase() as Database['public']['Enums']['RequestStatus']
+				const allowedStatuses = [
+					'open',
+					'in_progress',
+					'completed',
+					'cancelled'
+				]
+				const normalizedStatus = String(query.status).toLowerCase()
 				if (allowedStatuses.includes(normalizedStatus)) {
 					queryBuilder = queryBuilder.eq('status', normalizedStatus)
 				}
 			}
 			if (query.priority) {
-				const allowedPriorities: Database['public']['Enums']['Priority'][] = [
-					'LOW',
-					'MEDIUM',
-					'HIGH',
-					'URGENT'
-				]
-				const normalizedPriority = String(
-					query.priority
-				).toUpperCase() as Database['public']['Enums']['Priority']
+				const allowedPriorities = ['low', 'normal', 'high', 'urgent']
+				const normalizedPriority = String(query.priority).toLowerCase()
 				if (allowedPriorities.includes(normalizedPriority)) {
 					queryBuilder = queryBuilder.eq('priority', normalizedPriority)
 				}
@@ -102,18 +105,18 @@ export class MaintenanceService {
 			if (query.category) {
 				queryBuilder = queryBuilder.eq('category', query.category as string)
 			}
-			if (query.assignedTo) {
-				queryBuilder = queryBuilder.eq('assignedTo', query.assignedTo as string)
+			if (query.assigned_to) {
+				queryBuilder = queryBuilder.eq('assigned_to', query.assigned_to as string)
 			}
 			if (query.dateFrom) {
 				queryBuilder = queryBuilder.gte(
-					'createdAt',
+					'created_at',
 					new Date(query.dateFrom as string).toISOString()
 				)
 			}
 			if (query.dateTo) {
 				queryBuilder = queryBuilder.lte(
-					'createdAt',
+					'created_at',
 					new Date(query.dateTo as string).toISOString()
 				)
 			}
@@ -122,7 +125,7 @@ export class MaintenanceService {
 				const sanitized = sanitizeSearchInput(String(query.search))
 				if (sanitized) {
 					queryBuilder = queryBuilder.or(
-						buildMultiColumnSearch(sanitized, ['title', 'description'])
+						buildMultiColumnSearch(sanitized, ['description'])
 					)
 				}
 			}
@@ -133,7 +136,7 @@ export class MaintenanceService {
 			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
 
 			// Apply sorting
-			const sortBy = query.sortBy || 'createdAt'
+			const sortBy = query.sortBy || 'created_at'
 			const sortOrder = query.sortOrder || 'desc'
 			queryBuilder = queryBuilder.order(sortBy as string, {
 				ascending: sortOrder === 'asc'
@@ -190,8 +193,8 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
-				.from('maintenance_request')
-				.select('status, priority, estimatedCost, createdAt, completedAt')
+				.from('maintenance_requests')
+				.select('status, priority, estimated_cost, created_at, completed_at')
 
 			if (error) {
 				this.logger.error('Failed to get maintenance stats from Supabase', {
@@ -201,10 +204,10 @@ export class MaintenanceService {
 			}
 
 			type MaintenanceRow =
-				Database['public']['Tables']['maintenance_request']['Row']
+				Database['public']['Tables']['maintenance_requests']['Row']
 			type RequestPick = Pick<
 				MaintenanceRow,
-				'createdAt' | 'completedAt' | 'estimatedCost' | 'priority' | 'status'
+				'created_at' | 'completed_at' | 'estimated_cost' | 'priority' | 'status'
 			>
 			const requests = (data ?? []) as RequestPick[]
 			const now = new Date()
@@ -215,13 +218,14 @@ export class MaintenanceService {
 			)
 
 			const completedRequests = requests.filter(
-				(r): r is RequestPick & { completedAt: string } => !!r.completedAt
+				(r): r is RequestPick & { completed_at: string; created_at: string } =>
+					!!r.completed_at && !!r.created_at
 			)
 			const avgResolutionTime =
 				completedRequests.length > 0
 					? completedRequests.reduce((sum: number, r) => {
-							const created = new Date(r.createdAt).getTime()
-							const completed = new Date(r.completedAt).getTime()
+							const created = new Date(r.created_at).getTime()
+							const completed = new Date(r.completed_at).getTime()
 							return sum + (completed - created) / (1000 * 60 * 60)
 						}, 0) / completedRequests.length
 					: 0
@@ -231,24 +235,24 @@ export class MaintenanceService {
 				avgResponseTimeHours: number
 			} = {
 				total: requests.length,
-				open: requests.filter(r => r.status === 'OPEN').length,
-				inProgress: requests.filter(r => r.status === 'IN_PROGRESS').length,
-				completed: requests.filter(r => r.status === 'COMPLETED').length,
+				open: requests.filter(r => r.status === 'open').length,
+				inProgress: requests.filter(r => r.status === 'in_progress').length,
+				completed: requests.filter(r => r.status === 'completed').length,
 				completedToday: requests.filter(
 					r =>
-						r.status === 'COMPLETED' &&
-						r.completedAt &&
-						new Date(r.completedAt) >= todayStart
+						r.status === 'completed' &&
+						r.completed_at &&
+						new Date(r.completed_at) >= todayStart
 				).length,
 				avgResolutionTime,
 				byPriority: {
-					low: requests.filter(r => r.priority === 'LOW').length,
-					medium: requests.filter(r => r.priority === 'MEDIUM').length,
-					high: requests.filter(r => r.priority === 'HIGH').length,
-					emergency: requests.filter(r => r.priority === 'URGENT').length
+					low: requests.filter(r => r.priority === 'low').length,
+					medium: requests.filter(r => r.priority === 'normal').length,
+					high: requests.filter(r => r.priority === 'high').length,
+					emergency: requests.filter(r => r.priority === 'urgent').length
 				},
 				totalCost: requests.reduce(
-					(sum: number, r) => sum + (r.estimatedCost || 0),
+					(sum: number, r) => sum + (r.estimated_cost || 0),
 					0
 				),
 				avgResponseTimeHours: avgResolutionTime
@@ -285,13 +289,13 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically filters to user's maintenance requests
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client
-				.from('maintenance_request')
+			const { data, error} = await client
+				.from('maintenance_requests')
 				.select('*')
-				.in('priority', ['HIGH', 'URGENT'])
-				.neq('status', 'COMPLETED')
+				.in('priority', ['high', 'urgent'])
+				.neq('status', 'completed')
 				.order('priority', { ascending: false })
-				.order('createdAt', { ascending: true })
+				.order('created_at', { ascending: true })
 
 			if (error) {
 				this.logger.error(
@@ -337,11 +341,11 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
-				.from('maintenance_request')
+				.from('maintenance_requests')
 				.select('*')
-				.neq('status', 'COMPLETED')
-				.lt('preferredDate', new Date().toISOString())
-				.order('preferredDate', { ascending: true })
+				.neq('status', 'completed')
+				.lt('scheduled_date', new Date().toISOString())
+				.order('scheduled_date', { ascending: true })
 
 			if (error) {
 				this.logger.error(
@@ -396,7 +400,7 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
-				.from('maintenance_request')
+				.from('maintenance_requests')
 				.select('*')
 				.eq('id', maintenanceId)
 				.single()
@@ -428,17 +432,17 @@ export class MaintenanceService {
 	 */
 	async create(
 		token: string,
-		userId: string,
+		user_id: string,
 		createRequest: CreateMaintenanceRequest
 	): Promise<MaintenanceRequest> {
 		try {
-			if (!token || !userId || !createRequest.title) {
+			if (!token || !user_id || !createRequest.description) {
 				this.logger.warn(
 					'Create maintenance request called with missing parameters',
 					{ createRequest }
 				)
 				throw new BadRequestException(
-					'Authentication token, user ID, and title are required'
+					'Authentication token, user ID, and description are required'
 				)
 			}
 
@@ -446,49 +450,32 @@ export class MaintenanceService {
 				createRequest
 			})
 
-			// Validate photo URLs if provided (inline validation)
-			if (createRequest.photos?.length) {
-				const validUrl =
-					'https://bshjmbshupiibfiewpxb.supabase.co/storage/v1/object/public/maintenance-photos/'
-				if (createRequest.photos.some(url => !url.startsWith(validUrl))) {
-					throw new BadRequestException(
-						'All photo URLs must be from Supabase Storage'
-					)
-				}
-			}
-
 			// RLS SECURITY: User-scoped client automatically verifies unit access
 			const client = this.supabase.getUserClient(token)
 
-			// Map priority
-			const priorityMap: Record<
-				string,
-				Database['public']['Enums']['Priority']
-			> = {
-				LOW: 'LOW',
-				MEDIUM: 'MEDIUM',
-				HIGH: 'HIGH',
-				URGENT: 'URGENT'
+			// Map priority to lowercase
+			const priorityMap: Record<string, string> = {
+				LOW: 'low',
+				MEDIUM: 'normal',
+				HIGH: 'high',
+				URGENT: 'urgent'
 			}
 
-			const maintenanceData: Database['public']['Tables']['maintenance_request']['Insert'] =
+			const maintenanceData: Database['public']['Tables']['maintenance_requests']['Insert'] =
 				{
-					requestedBy: userId,
-					title: createRequest.title,
+					requested_by: user_id,
+					tenant_id: createRequest.tenant_id || user_id,
 					description: createRequest.description,
-					priority: priorityMap[createRequest.priority || 'MEDIUM'] || 'MEDIUM',
-					unitId: createRequest.unitId,
-					allowEntry: true,
-					photos: createRequest.photos || null,
-					preferredDate: createRequest.scheduledDate
-						? new Date(createRequest.scheduledDate).toISOString()
-						: null,
-					category: createRequest.category || null,
-					estimatedCost: createRequest.estimatedCost || null
+					priority: priorityMap[createRequest.priority || 'MEDIUM'] ||
+						'normal',
+					unit_id: createRequest.unit_id,
+					...(createRequest.category ? { category: createRequest.category } : {}),
+					...(createRequest.scheduledDate ? { scheduled_date: new Date(createRequest.scheduledDate).toISOString() } : {}),
+					...(createRequest.estimated_cost ? { estimated_cost: createRequest.estimated_cost } : {})
 				}
 
 			const { data, error } = await client
-				.from('maintenance_request')
+				.from('maintenance_requests')
 				.insert(maintenanceData)
 				.select()
 				.single()
@@ -505,11 +492,11 @@ export class MaintenanceService {
 
 			// Emit maintenance created event
 			this.eventEmitter.emit('maintenance.created', {
-				userId,
+				user_id,
 				maintenanceId: maintenance.id,
-				maintenanceTitle: maintenance.title,
+				maintenanceDescription: maintenance.description,
 				priority: maintenance.priority,
-				unitId: maintenance.unitId
+				unit_id: maintenance.unit_id
 			})
 
 			return maintenance
@@ -565,62 +552,46 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
-			// Map status and priority
-			const priorityMap: Record<
-				string,
-				Database['public']['Enums']['Priority']
-			> = {
-				LOW: 'LOW',
-				MEDIUM: 'MEDIUM',
-				HIGH: 'HIGH',
-				URGENT: 'URGENT'
+			// Map status and priority to lowercase
+			const priorityMap: Record<string, string> = {
+				LOW: 'low',
+				MEDIUM: 'normal',
+				HIGH: 'high',
+				URGENT: 'urgent'
 			}
 
-			const statusMap: Record<
-				string,
-				Database['public']['Enums']['RequestStatus']
-			> = {
-				PENDING: 'OPEN',
-				IN_PROGRESS: 'IN_PROGRESS',
-				COMPLETED: 'COMPLETED',
-				CANCELLED: 'CANCELED'
+			const statusMap: Record<string, string> = {
+				PENDING: 'open',
+				IN_PROGRESS: 'in_progress',
+				COMPLETED: 'completed',
+				CANCELLED: 'cancelled'
 			}
 
-			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
+			const updated_data: Database['public']['Tables']['maintenance_requests']['Update'] =
 				{
-					updatedAt: new Date().toISOString()
+					updated_at: new Date().toISOString()
 				}
 
-			//Increment version for optimistic locking
-			if (expectedVersion !== undefined) {
-				updateData.version = expectedVersion + 1
-			}
-
-			if (updateRequest.title !== undefined)
-				updateData.title = updateRequest.title
 			if (updateRequest.description !== undefined)
-				updateData.description = updateRequest.description
+				updated_data.description = updateRequest.description
 			if (updateRequest.priority !== undefined)
-				updateData.priority = priorityMap[updateRequest.priority] || 'MEDIUM'
+				updated_data.priority = priorityMap[updateRequest.priority] ||
+					'normal'
 			if (updateRequest.status !== undefined)
-				updateData.status = statusMap[updateRequest.status] || 'OPEN'
-			if (updateRequest.estimatedCost !== undefined)
-				updateData.estimatedCost = updateRequest.estimatedCost
+				updated_data.status = statusMap[updateRequest.status] ||
+					'open'
+			if (updateRequest.estimated_cost !== undefined)
+				updated_data.estimated_cost = updateRequest.estimated_cost
 			if (updateRequest.completedDate !== undefined)
-				updateData.completedAt = new Date(
+				updated_data.completed_at = new Date(
 					updateRequest.completedDate
 				).toISOString()
 
 			// Optimistic locking: Add version check
-			let query = client
-				.from('maintenance_request')
-				.update(updateData)
+			const query = client
+				.from('maintenance_requests')
+				.update(updated_data)
 				.eq('id', maintenanceId)
-
-			// Add version check if expectedVersion provided
-			if (expectedVersion !== undefined) {
-				query = query.eq('version', expectedVersion)
-			}
 
 			const { data, error } = await query.select().single()
 
@@ -652,19 +623,19 @@ export class MaintenanceService {
 			if (updated) {
 				// Get unit and property names inline
 				const { data: unit } = await client
-					.from('unit')
-					.select('unitNumber, propertyId')
-					.eq('id', updated.unitId)
+					.from('units')
+					.select('unit_number, property_id')
+					.eq('id', updated.unit_id)
 					.single()
 
 				let propertyName = 'Unknown Property'
-				const unitName = unit?.unitNumber || 'Unknown Unit'
+				const unitName = unit?.unit_number || 'Unknown Unit'
 
-				if (unit?.propertyId) {
+				if (unit?.property_id) {
 					const { data: property } = await client
-						.from('property')
+						.from('properties')
 						.select('name')
-						.eq('id', unit.propertyId)
+						.eq('id', unit.property_id)
 						.single()
 					propertyName = property?.name || 'Unknown Property'
 				}
@@ -672,14 +643,14 @@ export class MaintenanceService {
 				this.eventEmitter.emit(
 					'maintenance.updated',
 					new MaintenanceUpdatedEvent(
-						updated.requestedBy ?? '',
+						updated.requested_by ?? '',
 						updated.id,
-						updated.title,
+						updated.description ?? '',
 						updated.status,
-						updated.priority,
+						this.reversePriorityMap[updated.priority] || 'MEDIUM',
 						propertyName,
 						unitName,
-						updated.description
+						updated.description ?? ''
 					)
 				)
 			}
@@ -731,7 +702,7 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			const { error } = await client
-				.from('maintenance_request')
+				.from('maintenance_requests')
 				.delete()
 				.eq('id', maintenanceId)
 
@@ -765,7 +736,7 @@ export class MaintenanceService {
 	async updateStatus(
 		token: string,
 		maintenanceId: string,
-		status: Database['public']['Enums']['RequestStatus'],
+		status: string,
 		notes?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
@@ -786,19 +757,19 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
+			const updated_data: Database['public']['Tables']['maintenance_requests']['Update'] =
 				{
-					status,
-					updatedAt: new Date().toISOString()
+					status: status,
+					updated_at: new Date().toISOString()
 				}
 
-			if (notes) updateData.notes = notes
-			if (status === 'COMPLETED')
-				updateData.completedAt = new Date().toISOString()
+			// Note: "notes" column doesn't exist in the schema
+			if (status === 'completed')
+				updated_data.completed_at = new Date().toISOString()
 
 			const { data, error } = await client
-				.from('maintenance_request')
-				.update(updateData)
+				.from('maintenance_requests')
+				.update(updated_data)
 				.eq('id', maintenanceId)
 				.select()
 				.single()
@@ -844,19 +815,18 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updateData: Database['public']['Tables']['maintenance_request']['Update'] =
+			const updated_data: Database['public']['Tables']['maintenance_requests']['Update'] =
 				{
-					status: 'COMPLETED' as Database['public']['Enums']['RequestStatus'],
-					completedAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString()
+					status: 'completed',
+					completed_at: new Date().toISOString(),
+					updated_at: new Date().toISOString()
 				}
 
-			if (actualCost !== undefined) updateData.actualCost = actualCost
-			if (notes) updateData.notes = notes
+			if (actualCost !== undefined) updated_data.actual_cost = actualCost
 
 			const { data, error } = await client
-				.from('maintenance_request')
-				.update(updateData)
+				.from('maintenance_requests')
+				.update(updated_data)
 				.eq('id', maintenanceId)
 				.select()
 				.single()
@@ -872,25 +842,21 @@ export class MaintenanceService {
 			// Emit event for notifications
 			if (data) {
 				const updated = data as MaintenanceRequest
-				const propertyLabel = updated.unitId
-					? `Unit ${updated.unitId}`
+				const propertyLabel = updated.unit_id
+					? `Unit ${updated.unit_id}`
 					: 'Unknown Property'
-				const unitNumberLabel = updated.unitId ?? 'N/A'
+				const unit_numberLabel = updated.unit_id ?? 'N/A'
 
 				this.eventEmitter.emit(
 					'maintenance.updated',
 					new MaintenanceUpdatedEvent(
-						updated.requestedBy ?? '',
+						updated.requested_by ?? '',
 						updated.id,
-						updated.title ?? 'Maintenance request updated',
-						updated.status ?? 'COMPLETED',
-						(updated.priority ?? 'MEDIUM') as
-							| 'LOW'
-							| 'MEDIUM'
-							| 'HIGH'
-							| 'URGENT',
+						updated.description ?? '',
+						updated.status ?? 'completed',
+						this.reversePriorityMap[updated.priority || 'normal'] || 'MEDIUM',
 						propertyLabel,
-						unitNumberLabel,
+						unit_numberLabel,
 						updated.description ?? ''
 					)
 				)
@@ -921,7 +887,7 @@ export class MaintenanceService {
 				reason
 			})
 
-			return this.updateStatus(token, maintenanceId, 'CANCELED', reason)
+			return this.updateStatus(token, maintenanceId, 'cancelled', reason)
 		} catch (error) {
 			this.logger.error('Failed to cancel maintenance request', {
 				error: error instanceof Error ? error.message : String(error),

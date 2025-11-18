@@ -159,7 +159,7 @@ export function useRealtimeSubscription({
  * Example:
  * useRealtimeRow({
  *   table: 'tenants',
- *   id: tenantId,
+ *   id: tenant_id,
  *   onUpdate: (tenant) => {
  *     // Handle tenant update
  *   }

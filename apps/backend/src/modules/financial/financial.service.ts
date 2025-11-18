@@ -20,22 +20,22 @@ export class FinancialService {
 	 * Helper: Get unit IDs for user's properties
 	 * Used to filter leases/maintenance since they don't have org_id/owner_id
 	 */
-	private async getUserUnitIds(token: string): Promise<string[]> {
+	private async getUserunit_ids(token: string): Promise<string[]> {
 		const client = this.supabaseService.getUserClient(token)
 
 		// Get user's property IDs - RLS automatically filters to user's properties
 		const { data: properties } = await client
-			.from('property')
+			.from('properties')
 			.select('id')
 
-		const propertyIds = properties?.map(p => p.id) || []
-		if (propertyIds.length === 0) return []
+		const property_ids = properties?.map(p => p.id) || []
+		if (property_ids.length === 0) return []
 
 		// Get unit IDs for those properties - RLS enforces property ownership
 		const { data: units } = await client
-			.from('unit')
+			.from('units')
 			.select('id')
-			.in('propertyId', propertyIds)
+			.in('property_id', property_ids)
 
 		return units?.map(u => u.id) || []
 	}
@@ -54,19 +54,18 @@ export class FinancialService {
 				targetYear
 			})
 
-			const propertyIds = await this.getUserPropertyIds(token)
-			const { startDate, endDate } = this.calculateYearRange(targetYear)
-			const expenses = await this.fetchExpenses(propertyIds, startDate, endDate)
+			const property_ids = await this.getUserproperty_ids(token)
+			const { start_date, end_date } = this.calculateYearRange(targetYear)
+			const expenses = await this.fetchExpenses(property_ids, start_date, end_date)
 
 			const totalExpenses = expenses.reduce(
 				(sum, expense) => sum + (expense.amount ?? 0),
 				0
 			)
-			const expensesByCategory: Record<string, number> = {}
-			for (const expense of expenses) {
-				const category = expense.category || 'General'
-				expensesByCategory[category] =
-					(expensesByCategory[category] || 0) + (expense.amount ?? 0)
+			// NOTE: expenses table does NOT have a category column
+			// Category would need to come from maintenance_requests or be added to expenses table
+			const expensesByCategory: Record<string, number> = {
+				'Uncategorized': totalExpenses
 			}
 
 			return {
@@ -106,51 +105,51 @@ export class FinancialService {
 
 			// Get user's property IDs - RLS automatically filters
 			const { data: properties } = await client
-				.from('property')
+				.from('properties')
 				.select('id')
 
 			const propertyRows = (properties ?? []) as Array<{ id: string }>
-			const propertyIds = propertyRows.map(p => p.id)
-			if (propertyIds.length === 0) {
+			const property_ids = propertyRows.map(p => p.id)
+			if (property_ids.length === 0) {
 				return this.getEmptyOverview(targetYear)
 			}
 
 			// Get unit IDs for user's properties
 			const { data: units } = await client
-				.from('unit')
+				.from('units')
 				.select('id, status')
-				.in('propertyId', propertyIds)
+				.in('property_id', property_ids)
 
 			const unitRows = (units ?? []).map(unit => ({
 				id: unit.id,
 				status: unit.status as UnitStatus
 			}))
-			const unitIds = unitRows.map(u => u.id)
-			if (unitIds.length === 0) {
+			const unit_ids = unitRows.map(u => u.id)
+			if (unit_ids.length === 0) {
 				return this.getEmptyOverview(targetYear)
 			}
 
 			// Fetch leases and maintenance data using unit IDs
 			const [leasesData, maintenanceData] = await Promise.all([
-				client.from('lease').select('*').in('unitId', unitIds),
+				client.from('leases').select('*').in('unit_id', unit_ids),
 				client
-					.from('maintenance_request')
-					.select('estimatedCost, status')
-					.in('unitId', unitIds)
+					.from('maintenance_requests')
+					.select('estimated_cost, status')
+					.in('unit_id', unit_ids)
 			])
 
 			const leases = leasesData.data || []
-			const maintenanceRows = (maintenanceData.data ?? []) as Array<
-				Pick<MaintenanceRequest, 'estimatedCost' | 'status'>
+			const maintenanceRows = (maintenanceData.data ?? []) as unknown as Array<
+				Pick<MaintenanceRequest, 'estimated_cost' | 'status'>
 			>
 
 			// Calculate stats
 			const totalRevenue = leases.reduce(
-				(sum, lease: Lease) => sum + (lease.rentAmount || 0),
+				(sum, lease: Lease) => sum + (lease.rent_amount || 0),
 				0
 			)
 			const expenses = await this.fetchExpenses(
-				propertyIds,
+				property_ids,
 				new Date(targetYear, 0, 1),
 				new Date(targetYear + 1, 0, 1)
 			)
@@ -170,7 +169,7 @@ export class FinancialService {
 			const roi =
 				totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0
 			const totalMaintenanceCost = maintenanceRows.reduce(
-				(sum: number, m) => sum + (m.estimatedCost || 0),
+				(sum: number, m) => sum + (m.estimated_cost || 0),
 				0
 			)
 
@@ -195,16 +194,16 @@ export class FinancialService {
 				},
 				leases: {
 					total: leases.length,
-					active: leases.filter((l: Lease) => l.status === 'ACTIVE').length,
+					active: leases.filter((l: Lease) => l.lease_status === 'active').length,
 				expiring: leases.filter((l: Lease) => {
-						// Skip month-to-month leases (endDate is null)
-						if (!l.endDate) return false
-						const endDate = new Date(l.endDate)
+						// Skip month-to-month leases (end_date is null)
+						if (!l.end_date) return false
+						const end_date = new Date(l.end_date)
 						const now = new Date()
 						const thirtyDaysFromNow = new Date(
 							now.getTime() + THIRTY_DAYS_IN_MS
 						)
-						return endDate > now && endDate <= thirtyDaysFromNow
+						return end_date > now && end_date <= thirtyDaysFromNow
 					}).length
 				},
 				maintenance: {
@@ -240,15 +239,15 @@ export class FinancialService {
 			const client = this.supabaseService.getUserClient(token)
 
 			// Get user's unit IDs - RLS enforces ownership
-			const unitIds = await this.getUserUnitIds(token)
-			if (unitIds.length === 0) {
+			const unit_ids = await this.getUserunit_ids(token)
+			if (unit_ids.length === 0) {
 				return this.getEmptyLeaseSummary()
 			}
 
 			const { data: leases, error } = await client
-				.from('lease')
+				.from('leases')
 				.select('*')
-				.in('unitId', unitIds)
+				.in('unit_id', unit_ids)
 
 			if (error) {
 				throw new Error(`Failed to fetch leases: ${error.message}`)
@@ -262,7 +261,7 @@ export class FinancialService {
 
 			// Calculate lease financial metrics
 			const totalRevenue = leaseList.reduce(
-				(sum, lease: Lease) => sum + (lease.rentAmount || 0),
+				(sum, lease: Lease) => sum + (lease.rent_amount || 0),
 				0
 			)
 
@@ -271,10 +270,10 @@ export class FinancialService {
 
 			// Calculate lease duration analytics
 			const totalDuration = leaseList.reduce((sum, lease: Lease) => {
-				// Skip month-to-month leases (endDate is null)
-				if (!lease.endDate) return sum
-				const start = new Date(lease.startDate)
-				const end = new Date(lease.endDate)
+				// Skip month-to-month leases (end_date is null)
+				if (!lease.end_date) return sum
+				const start = new Date(lease.start_date)
+				const end = new Date(lease.end_date)
 				const durationMonths =
 					(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30.44)
 				return sum + durationMonths
@@ -286,15 +285,15 @@ export class FinancialService {
 			return {
 				summary: {
 					totalLeases: leaseList.length,
-					activeLeases: leaseList.filter((l: Lease) => l.status === 'ACTIVE')
+					activeLeases: leaseList.filter((l: Lease) => l.lease_status === 'ACTIVE')
 						.length,
 					expiredLeases: leaseList.filter(
-					(l: Lease) => l.endDate && new Date(l.endDate) < now
+					(l: Lease) => l.end_date && new Date(l.end_date) < now
 				).length,
 					expiringSoon: leaseList.filter((l: Lease) => {
-					if (!l.endDate) return false
-					const endDate = new Date(l.endDate)
-					return endDate > now && endDate <= thirtyDaysFromNow
+					if (!l.end_date) return false
+					const end_date = new Date(l.end_date)
+					return end_date > now && end_date <= thirtyDaysFromNow
 				}).length
 				},
 				financial: {
@@ -328,10 +327,10 @@ export class FinancialService {
 				targetYear
 			})
 
-			const propertyIds = await this.getUserPropertyIds(token)
-			const unitIds = await this.getUserUnitIds(token)
+			const property_ids = await this.getUserproperty_ids(token)
+			const unit_ids = await this.getUserunit_ids(token)
 
-			if (unitIds.length === 0) {
+			if (unit_ids.length === 0) {
 				return this.getEmptyMonthlyMetrics(targetYear)
 			}
 
@@ -340,11 +339,11 @@ export class FinancialService {
 
 			const client = this.supabaseService.getUserClient(token)
 			const { data: leases } = await client
-				.from('lease')
+				.from('leases')
 				.select('*')
-				.in('unitId', unitIds)
+				.in('unit_id', unit_ids)
 
-			const expenses = await this.fetchExpenses(propertyIds, yearStart, yearEnd)
+			const expenses = await this.fetchExpenses(property_ids, yearStart, yearEnd)
 
 			const revenueByMonth = this.calculateMonthlyRevenue(
 				leases || [],
@@ -380,6 +379,18 @@ export class FinancialService {
 		}
 	}
 
+
+	/**
+	 * Get expense breakdown by month - Direct Supabase queries
+	 * Alias for getRevenueTrends with focus on expense analysis
+	 */
+	async getExpenseBreakdown(
+		token: string,
+		year?: number
+	): Promise<FinancialMetrics[]> {
+		return this.getRevenueTrends(token, year)
+	}
+
 	/**
 	 * Get Net Operating Income - Direct Supabase queries
 	 */
@@ -397,7 +408,7 @@ export class FinancialService {
 
 			const client = this.supabaseService.getUserClient(token)
 			const { data: properties } = await client
-				.from('property')
+				.from('properties')
 				.select('id, name')
 
 			const propertyRows = (properties ?? []) as Array<{
@@ -413,23 +424,25 @@ export class FinancialService {
 				propertyRows.map(async property => {
 					// Get unit IDs for this property
 					const { data: units } = await client
-						.from('unit')
+						.from('units')
 						.select('id')
-						.eq('propertyId', property.id)
+						.eq('property_id', property.id)
 
-					const unitIds = units?.map(u => u.id) || []
+					const unit_ids = units?.map(u => u.id) || []
 
 					let revenue = 0
-					if (unitIds.length > 0) {
+					if (unit_ids.length > 0) {
 						const { data: leases } = await client
-							.from('lease')
-							.select('rentAmount')
-							.in('unitId', unitIds)
-							.eq('status', 'ACTIVE')
+							.from('leases')
+							.select('rent_amount')
+							.in('unit_id', unit_ids)
+							.eq('lease_status', 'ACTIVE')
 
 						revenue = (
-							(leases ?? []) as Array<{ rentAmount: number | null }>
-						).reduce((sum, lease) => sum + (lease.rentAmount ?? 0), 0)
+							(leases ?? []) as unknown as Array<{
+                rent_amount: number | null
+}>
+						).reduce((sum, lease) => sum + (lease.rent_amount ?? 0), 0)
 					}
 
 					const expenses = await this.fetchExpenses([property.id])
@@ -463,47 +476,54 @@ export class FinancialService {
 		}
 	}
 
-	private async getUserPropertyIds(token: string) {
+	private async getUserproperty_ids(token: string) {
 		const client = this.supabaseService.getUserClient(token)
 		const { data } = await client
-			.from('property')
+			.from('properties')
 			.select('id')
 		const rows = (data ?? []) as Array<{ id: string }>
 		return rows.map(property => property.id)
 	}
 
 	private calculateYearRange(year: number) {
-		const startDate = new Date(year, 0, 1)
-		startDate.setHours(0, 0, 0, 0)
-		const endDate = new Date(year + 1, 0, 1)
-		endDate.setHours(23, 59, 59, 999)
-		return { startDate, endDate }
+		const start_date = new Date(year, 0, 1)
+		start_date.setHours(0, 0, 0, 0)
+		const end_date = new Date(year + 1, 0, 1)
+		end_date.setHours(23, 59, 59, 999)
+		return { start_date, end_date }
 	}
 
 	private async fetchExpenses(
-		propertyIds: string[],
-		startDate?: Date,
-		endDate?: Date
+		property_ids: string[],
+		start_date?: Date,
+		end_date?: Date
 	) {
-		if (!propertyIds.length) {
+		if (!property_ids.length) {
 			return [] as ExpenseRecord[]
 		}
 
 		try {
-			// Note: This method is called from other methods that already have token/client
-			// but we use admin client here because it's a private helper and expense table
-			// doesn't have RLS - it's filtered by propertyId which we already verified ownership of
+			// NOTE: expenses table does NOT have property_id column
+			// Expenses link through: expenses → maintenance_requests → units → properties
+			// We need to join through the relationship chain to filter by property
 			let query = this.supabaseService
 				.getAdminClient()
-				.from('expense')
-				.select('*')
-				.in('propertyId', propertyIds)
+				.from('expenses')
+				.select(`
+					*,
+					maintenance_requests!inner (
+						unit_id,
+						units!inner (
+							property_id
+						)
+					)
+				`)
 
-			if (startDate) {
-				query = query.gte('date', startDate.toISOString())
+			if (start_date) {
+				query = query.gte('expense_date', start_date.toISOString())
 			}
-			if (endDate) {
-				query = query.lte('date', endDate.toISOString())
+			if (end_date) {
+				query = query.lte('expense_date', end_date.toISOString())
 			}
 
 			const { data, error } = await query
@@ -512,23 +532,48 @@ export class FinancialService {
 					'Failed to fetch expense data for financial metrics',
 					{
 						error: error.message,
-						propertyCount: propertyIds.length,
-						startDate: startDate?.toISOString(),
-						endDate: endDate?.toISOString()
+						propertyCount: property_ids.length,
+						start_date: start_date?.toISOString(),
+						end_date: end_date?.toISOString()
 					}
 				)
 				return []
 			}
 
-			return (data as ExpenseRecord[]) ?? []
+			// Filter by property_id through the join and map back to ExpenseRecord format
+			const filtered = (data ?? []).filter((row: {
+				maintenance_requests?: { units?: { property_id?: string } }
+			}) => {
+				const property_id = row.maintenance_requests?.units?.property_id
+				return property_id ? property_ids.includes(property_id) : false
+			})
+
+			return filtered.map((row: {
+				id: string
+				maintenance_request_id: string
+				vendor_name: string | null
+				amount: number
+				expense_date: string
+				created_at: string | null
+				updated_at: string | null
+				description?: string
+			}) => ({
+				id: row.id,
+				maintenance_request_id: row.maintenance_request_id,
+				vendor_name: row.vendor_name ?? 'Unknown Vendor',
+				amount: row.amount,
+				expense_date: row.expense_date,
+				created_at: row.created_at ?? new Date().toISOString(),
+				updated_at: row.updated_at ?? row.created_at ?? new Date().toISOString()
+			})) as ExpenseRecord[]
 		} catch (error) {
 			this.logger.error(
 				'Unexpected error fetching expenses for financial metrics',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					propertyCount: propertyIds.length,
-					startDate: startDate?.toISOString(),
-					endDate: endDate?.toISOString()
+					propertyCount: property_ids.length,
+					start_date: start_date?.toISOString(),
+					end_date: end_date?.toISOString()
 				}
 			)
 			return []
@@ -544,11 +589,11 @@ export class FinancialService {
 
 			let monthlyRevenue = 0
 			for (const lease of leases) {
-				const startDate = new Date(lease.startDate)
-				// Month-to-month leases (endDate is null) are always active
-				const endDate = lease.endDate ? new Date(lease.endDate) : new Date('9999-12-31')
-				if (startDate <= monthEnd && endDate >= monthStart) {
-					monthlyRevenue += lease.rentAmount || 0
+				const start_date = new Date(lease.start_date)
+				// Month-to-month leases (end_date is null) are always active
+				const end_date = lease.end_date ? new Date(lease.end_date) : new Date('9999-12-31')
+				if (start_date <= monthEnd && end_date >= monthStart) {
+					monthlyRevenue += lease.rent_amount || 0
 				}
 			}
 
@@ -560,10 +605,10 @@ export class FinancialService {
 	private groupExpensesByMonth(expenses: ExpenseRecord[]) {
 		const map = new Map<string, number>()
 		for (const expense of expenses) {
-			if (!expense.date) {
+			if (!expense.expense_date) {
 				continue
 			}
-			const expenseDate = new Date(expense.date)
+			const expenseDate = new Date(expense.expense_date)
 			const key = this.buildMonthKey(
 				expenseDate.getFullYear(),
 				expenseDate.getMonth()

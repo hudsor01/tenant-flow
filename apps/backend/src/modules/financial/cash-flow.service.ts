@@ -2,23 +2,16 @@ import { Injectable, Logger } from '@nestjs/common'
 import type { CashFlowData } from '@repo/shared/types/financial-statements'
 import {
 	calculatePeriodComparison,
-	createFinancialPeriod,
-	safeNumber
+	createFinancialPeriod
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
-
-interface MonthlyMetricsResponse {
-	operating_expenses?: number
-	maintenance_costs?: number
-	property_improvements?: number
-	mortgage_payments?: number
-	owner_distributions?: number
-	beginning_cash?: number
-}
-
-interface BillingInsightsResponse {
-	total_collected?: number
-}
+import {
+	isWithinRange,
+	loadLedgerData,
+	parseDate,
+	type DateRange,
+	type LedgerData
+} from './financial-ledger.helpers'
 
 @Injectable()
 export class CashFlowService {
@@ -28,18 +21,16 @@ export class CashFlowService {
 
 	/**
 	 * Generate cash flow statement for a given period
-	 * Orchestrates data from monthly metrics and billing insights
+	 * Uses direct Supabase queries aggregated within the service
 	 */
 	async generateCashFlowStatement(
 		token: string,
-		startDate: string,
-		endDate: string,
-		// When false, do not calculate the previous period to avoid recursive calls
+		start_date: string,
+		end_date: string,
 		includePreviousPeriod = true
 	): Promise<CashFlowData> {
 		const client = this.supabaseService.getUserClient(token)
 
-		// Get user ID from token for defense-in-depth security
 		const {
 			data: { user },
 			error: authError
@@ -50,168 +41,174 @@ export class CashFlowService {
 		}
 
 		this.logger.log(
-			`Generating cash flow statement (${startDate} to ${endDate})`
+			`Generating cash flow statement (${start_date} to ${end_date})`
 		)
 
-		// Get monthly metrics for cash flow patterns
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: monthlyMetrics, error: monthlyError } = await client.rpc(
-			'calculate_monthly_metrics',
-			{
-				p_user_id: user.id
+		try {
+			const ledger = await loadLedgerData(client)
+			const range: DateRange = {
+				start: new Date(start_date),
+				end: new Date(end_date)
 			}
-		)
+			const snapshot = this.buildCashFlowSnapshot(ledger, range)
 
-		if (monthlyError) {
-			this.logger.error(
-				`Failed to calculate monthly metrics: ${monthlyError.message}`
-			)
-			throw monthlyError
-		}
-
-		// Get billing insights for collections
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: billingInsights, error: billingError } = await client.rpc(
-			'get_billing_insights',
-			{
-				owner_id_param: user.id
+			const cashFlow: CashFlowData = {
+				period: createFinancialPeriod(start_date, end_date),
+				operatingActivities: {
+					rentalPaymentsReceived: snapshot.rentalPaymentsReceived,
+					operatingExpensesPaid: snapshot.operatingExpensesPaid,
+					maintenancePaid: snapshot.maintenancePaid,
+					netOperatingCash: snapshot.netOperatingCash
+				},
+				investingActivities: {
+					propertyAcquisitions: snapshot.propertyAcquisitions,
+					propertyImprovements: snapshot.propertyImprovements,
+					netInvestingCash: snapshot.netInvestingCash
+				},
+				financingActivities: {
+					mortgagePayments: snapshot.mortgagePayments,
+					loanProceeds: snapshot.loanProceeds,
+					ownerContributions: snapshot.ownerContributions,
+					ownerDistributions: snapshot.ownerDistributions,
+					netFinancingCash: snapshot.netFinancingCash
+				},
+				netCashFlow: snapshot.netCashFlow,
+				beginningCash: snapshot.beginningCash,
+				endingCash: snapshot.endingCash
 			}
-		)
 
-		if (billingError) {
-			this.logger.error(
-				`Failed to get billing insights: ${billingError.message}`
-			)
-			throw billingError
-		}
-
-		// Get invoice statistics for accounts receivable changes
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: _invoiceStats, error: invoiceError } = await client.rpc(
-			'get_invoice_statistics',
-			{
-				p_user_id: user.id
+			if (includePreviousPeriod) {
+				cashFlow.previousPeriod = this.calculatePreviousPeriodFromLedger(
+					ledger,
+					range,
+					snapshot.netCashFlow
+				)
 			}
+
+			return cashFlow
+		} catch (error) {
+			this.logger.error('Failed to generate cash flow statement', {
+				error: error instanceof Error ? error.message : String(error),
+				user_id: user.id,
+				start_date,
+				end_date
+			})
+			throw error instanceof Error
+				? error
+				: new Error('Failed to generate cash flow statement')
+		}
+	}
+
+	private buildCashFlowSnapshot(ledger: LedgerData, range: DateRange) {
+		const payments = ledger.rentPayments.filter(payment =>
+			isWithinRange(payment.due_date, range)
+		)
+		const expenses = ledger.expenses.filter(expense =>
+			isWithinRange(expense.expense_date ?? expense.created_at, range)
+		)
+		const maintenance = ledger.maintenanceRequests.filter(request =>
+			isWithinRange(request.completed_at ?? request.created_at, range)
 		)
 
-		if (invoiceError) {
-			this.logger.error(
-				`Failed to get invoice statistics: ${invoiceError.message}`
+		const rentalPaymentsReceived = payments
+			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
+
+		const operatingExpensesPaid = expenses.reduce(
+			(sum, expense) => sum + (expense.amount ?? 0),
+			0
+		)
+
+		const maintenancePaid = maintenance
+			.filter(request => request.status === 'COMPLETED')
+			.reduce(
+				(sum, request) =>
+					sum + (request.actual_cost ?? request.estimated_cost ?? 0),
+				0
 			)
-		}
 
-		// Extract and calculate cash flow components
-		const monthlyData = (
-			Array.isArray(monthlyMetrics) ? monthlyMetrics[0] : monthlyMetrics
-		) as MonthlyMetricsResponse
-		const billingData = (
-			Array.isArray(billingInsights) ? billingInsights[0] : billingInsights
-		) as BillingInsightsResponse
+		const improvementSpend = expenses
+			.filter(expense => !expense.maintenance_request_id)
+			.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
 
-		// Operating Activities
-		const rentalPaymentsReceived = safeNumber(billingData?.total_collected)
-		const operatingExpensesPaid = safeNumber(monthlyData?.operating_expenses)
-		const maintenancePaid = safeNumber(monthlyData?.maintenance_costs)
+		const propertyImprovements = improvementSpend * -1
+		const propertyAcquisitions = 0
+		const mortgagePayments = 0
+		const ownerDistributions = 0
+		const ownerContributions = 0
+		const loanProceeds = 0
+
 		const netOperatingCash =
 			rentalPaymentsReceived - operatingExpensesPaid - maintenancePaid
-
-		// Investing Activities (typically 0 for most periods)
-		const propertyAcquisitions = 0
-		const propertyImprovements = safeNumber(monthlyData?.property_improvements)
 		const netInvestingCash = propertyAcquisitions + propertyImprovements
-
-		// Financing Activities
-		const mortgagePayments = safeNumber(monthlyData?.mortgage_payments)
-		const loanProceeds = 0
-		const ownerContributions = 0
-		const ownerDistributions = safeNumber(monthlyData?.owner_distributions)
 		const netFinancingCash =
 			loanProceeds + ownerContributions - mortgagePayments - ownerDistributions
+		const netCashFlow =
+			netOperatingCash + netInvestingCash + netFinancingCash
 
-		const netCashFlow = netOperatingCash + netInvestingCash + netFinancingCash
-		const beginningCash = safeNumber(monthlyData?.beginning_cash)
+		const beginningCash = this.calculateBeginningCash(ledger, range.start)
 		const endingCash = beginningCash + netCashFlow
 
-		// Calculate previous period comparison (optional)
-		const previousPeriod = includePreviousPeriod
-			? await this.calculatePreviousPeriod(
-					token,
-					startDate,
-					endDate,
-					netCashFlow
-				)
-			: undefined
-
-		const cashFlow: CashFlowData = {
-			period: createFinancialPeriod(startDate, endDate),
-			operatingActivities: {
-				rentalPaymentsReceived,
-				operatingExpensesPaid,
-				maintenancePaid,
-				netOperatingCash
-			},
-			investingActivities: {
-				propertyAcquisitions,
-				propertyImprovements,
-				netInvestingCash
-			},
-			financingActivities: {
-				mortgagePayments,
-				loanProceeds,
-				ownerContributions,
-				ownerDistributions,
-				netFinancingCash
-			},
+		return {
+			rentalPaymentsReceived,
+			operatingExpensesPaid,
+			maintenancePaid,
+			propertyImprovements,
+			propertyAcquisitions,
+			mortgagePayments,
+			ownerDistributions,
+			ownerContributions,
+			loanProceeds,
+			netOperatingCash,
+			netInvestingCash,
+			netFinancingCash,
 			netCashFlow,
 			beginningCash,
 			endingCash
 		}
-
-		if (previousPeriod) {
-			cashFlow.previousPeriod = previousPeriod
-		}
-
-		return cashFlow
 	}
 
-	/**
-	 * Calculate previous period net cash flow for comparison
-	 */
-	private async calculatePreviousPeriod(
-		token: string,
-		startDate: string,
-		endDate: string,
+	private calculateBeginningCash(ledger: LedgerData, start?: Date): number {
+		if (!start) {
+			return 0
+		}
+
+		const paymentsBefore = ledger.rentPayments
+			.filter(payment => {
+				const dueDate = parseDate(payment.due_date)
+				return dueDate ? dueDate < start : false
+			})
+			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
+
+		const expensesBefore = ledger.expenses
+			.filter(expense => {
+				const timestamp = parseDate(expense.expense_date ?? expense.created_at)
+				return timestamp ? timestamp < start : false
+			})
+			.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+
+		return Math.max(paymentsBefore - expensesBefore, 0)
+	}
+
+	private calculatePreviousPeriodFromLedger(
+		ledger: LedgerData,
+		currentRange: DateRange,
 		currentNetCashFlow: number
 	) {
-		const start = new Date(startDate)
-		const end = new Date(endDate)
-		const periodLength = end.getTime() - start.getTime()
-
-		// Calculate previous period dates
-		const previousEnd = new Date(start.getTime() - 1)
-		const previousStart = new Date(previousEnd.getTime() - periodLength)
-
-		const previousStartStr = previousStart.toISOString().split('T')[0] as string
-		const previousEndStr = previousEnd.toISOString().split('T')[0] as string
-
-		try {
-			const previousData = await this.generateCashFlowStatement(
-				token,
-				previousStartStr,
-				previousEndStr,
-				// do not include previousPeriod for the previous period (avoid recursion)
-				false
-			)
-
-			return calculatePeriodComparison(
-				currentNetCashFlow,
-				previousData.netCashFlow
-			)
-		} catch (error) {
-			this.logger.warn(
-				`Could not calculate previous period data: ${error instanceof Error ? error.message : String(error)}`
-			)
-			return undefined
+		if (!currentRange.start || !currentRange.end) {
+			return calculatePeriodComparison(currentNetCashFlow, 0)
 		}
+
+		const periodLength =
+			currentRange.end.getTime() - currentRange.start.getTime()
+		const previousEnd = new Date(currentRange.start.getTime() - 1)
+		const previousStart = new Date(previousEnd.getTime() - periodLength)
+		const snapshot = this.buildCashFlowSnapshot(ledger, {
+			start: previousStart,
+			end: previousEnd
+		})
+
+		return calculatePeriodComparison(currentNetCashFlow, snapshot.netCashFlow)
 	}
 }

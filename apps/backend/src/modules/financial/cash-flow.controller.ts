@@ -18,8 +18,8 @@ export class CashFlowController {
 	@Get()
 	async getCashFlowStatement(
 		@JwtToken() token: string,
-		@Query('startDate') startDate?: string,
-		@Query('endDate') endDate?: string
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
 	) {
 		if (!token) {
 			throw new UnauthorizedException('Authentication token is required')
@@ -27,17 +27,17 @@ export class CashFlowController {
 
 		// Default to current month if no dates provided
 		const now = new Date()
-		const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), 1)
+		const defaultstart_date = new Date(now.getFullYear(), now.getMonth(), 1)
 			.toISOString()
 			.split('T')[0] as string
 		const defaultEndDate = now.toISOString().split('T')[0] as string
 
-		const finalStartDate = startDate || defaultStartDate
-		const finalEndDate = endDate || defaultEndDate
+		const finalstart_date = start_date || defaultstart_date
+		const finalEndDate = end_date || defaultEndDate
 
 		// Validate date format
 		if (
-			!/^\d{4}-\d{2}-\d{2}$/.test(finalStartDate) ||
+			!/^\d{4}-\d{2}-\d{2}$/.test(finalstart_date) ||
 			!/^\d{4}-\d{2}-\d{2}$/.test(finalEndDate)
 		) {
 			throw new BadRequestException(
@@ -47,7 +47,7 @@ export class CashFlowController {
 
 		const data = await this.cashFlowService.generateCashFlowStatement(
 			token,
-			finalStartDate,
+			finalstart_date,
 			finalEndDate
 		)
 

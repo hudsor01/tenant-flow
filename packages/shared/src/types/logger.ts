@@ -19,7 +19,7 @@ export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel]
  * Log context for structured logging
  */
 export interface LogContext {
-	userId?: string
+	user_id?: string
 	requestId?: string
 	component?: string
 	action?: string
@@ -70,6 +70,6 @@ export interface LoggerConfig {
 export interface AnalyticsEvent {
 	event: string
 	properties: Record<string, unknown>
-	userId?: string
+	user_id?: string
 	timestamp?: string
 }

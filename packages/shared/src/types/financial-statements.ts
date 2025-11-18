@@ -12,8 +12,8 @@
  * Common period information for all financial statements
  */
 export interface FinancialPeriod {
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 	label: string
 }
 
@@ -108,7 +108,7 @@ export interface BalanceSheetAssets {
 	currentAssets: {
 		cash: number
 		accountsReceivable: number
-		securityDeposits: number
+		security_deposits: number
 		total: number
 	}
 	fixedAssets: {
@@ -123,7 +123,7 @@ export interface BalanceSheetAssets {
 export interface BalanceSheetLiabilities {
 	currentLiabilities: {
 		accountsPayable: number
-		securityDepositLiability: number
+		security_depositLiability: number
 		accruedExpenses: number
 		total: number
 	}
@@ -162,7 +162,7 @@ export interface TaxExpenseCategory {
 }
 
 export interface TaxPropertyDepreciation {
-	propertyId: string
+	property_id: string
 	propertyName: string
 	propertyValue: number
 	annualDepreciation: number
@@ -205,9 +205,9 @@ export interface TaxDocumentsData {
 // ============================================
 
 export interface FinancialStatementFilters {
-	startDate?: string
-	endDate?: string
-	propertyIds?: string[]
+	start_date?: string
+	end_date?: string
+	property_ids?: string[]
 	comparisonPeriod?: 'month' | 'quarter' | 'year'
 }
 

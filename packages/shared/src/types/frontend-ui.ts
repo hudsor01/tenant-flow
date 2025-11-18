@@ -32,7 +32,7 @@ export interface MetricsCardProps {
 	status?: string
 	statusIcon?: React.ComponentType<{ className?: string; [key: string]: unknown }>
 	icon?: React.ComponentType<{ className?: string; [key: string]: unknown }>
-	colorVariant: 'success' | 'primary' | 'revenue' | 'property' | 'warning' | 'info' | 'neutral'
+	colorVariant: 'success' | 'primary' | 'revenue' | 'properties' | 'warning' | 'info' | 'neutral'
 	className?: string
 	trend?: string
 }

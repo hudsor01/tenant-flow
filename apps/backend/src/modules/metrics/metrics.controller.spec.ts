@@ -69,13 +69,16 @@ describe('MetricsController', () => {
 			}
 		})
 
-		it('should throw UnauthorizedException when PROMETHEUS_BEARER_TOKEN is not configured', async () => {
-			mockConfigService.get = jest.fn().mockReturnValue(undefined)
+		it('should deny access to metrics when PROMETHEUS_BEARER_TOKEN is not configured', async () => {
+		mockConfigService.get = jest.fn().mockReturnValue(undefined)
 
-			await expect(
-				controller.getMetrics(mockRequest as Request, mockResponse as Response)
-			).rejects.toThrow('Metrics endpoint not configured')
-		})
+		await expect(
+			controller.getMetrics(mockRequest as Request, mockResponse as Response)
+		).rejects.toThrow('Metrics endpoint disabled - bearer token not configured')
+
+		// Verify that parent controller was NOT called
+		expect(mockIndexMethod).not.toHaveBeenCalled()
+	})
 
 		it('should throw UnauthorizedException when Authorization header is missing', async () => {
 			await expect(

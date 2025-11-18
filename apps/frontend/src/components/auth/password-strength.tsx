@@ -119,7 +119,7 @@ const PasswordStrength = React.forwardRef<
 							onOpenAutoFocus={e => e.preventDefault()}
 						>
 							{/* Strength indicator bars */}
-							<div className="flex gap-1 h-2">
+				<div className="flex gap-[var(--spacing-1)] h-[var(--spacing-2)]">
 								{[...Array(5)].map((_, i) => (
 									<div
 										key={i}
@@ -134,11 +134,11 @@ const PasswordStrength = React.forwardRef<
 								))}
 							</div>
 
-							<h4 className="mt-4 mb-3 text-sm font-semibold text-foreground">
+				<h4 className="mt-[var(--spacing-4)] mb-[var(--spacing-3)] text-sm font-semibold text-foreground">
 								Your password must contain:
 							</h4>
 
-							<ul className="space-y-2 text-sm">
+							<ul className="space-y-[var(--spacing-2)] text-sm">
 								{rules.map(rule => {
 									const passed = rule.test(password)
 									return (
@@ -146,16 +146,16 @@ const PasswordStrength = React.forwardRef<
 											key={rule.id}
 											data-tokens="applied"
 											className={cn(
-												'flex items-center gap-x-2 transition-colors',
+												'flex items-center gap-x-[var(--spacing-2)] transition-colors',
 												passed
 													? 'text-accent'
 													: 'text-(--color-label-tertiary)'
 											)}
 										>
 											{passed ? (
-												<Check className="shrink-0 size-4" />
+												<Check className="shrink-0 size-[var(--spacing-4)]" />
 											) : (
-												<X className="shrink-0 size-4" />
+												<X className="shrink-0 size-[var(--spacing-4)]" />
 											)}
 											<span>{rule.label}</span>
 										</li>

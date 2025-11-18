@@ -71,29 +71,6 @@ export interface HealthCheckResponse {
 // Security monitoring types
 export type { SecurityEvent } from './security.js'
 
-export type SecurityEventType =
-	| 'sql_injection_attempt'
-	| 'xss_attempt'
-	| 'path_traversal_attempt'
-	| 'command_injection_attempt'
-	| 'rate_limit_exceeded'
-	| 'suspicious_input'
-	| 'malformed_request'
-	| 'malicious_request'
-	| 'unauthorized_access'
-	| 'brute_force_attempt'
-	| 'csrf_token_missing'
-	| 'csrf_token_invalid'
-	| 'file_upload_threat'
-	| 'injection_pattern_detected'
-	| 'sanitization_triggered'
-	| 'validation_failed'
-	| 'auth_failure'
-	| 'suspicious_activity'
-	| 'account_takeover'
-
-// SecurityMetrics moved to security.ts to eliminate duplication
-
 // Performance monitoring types
 export interface PerformanceMetrics {
 	endpoint: string
@@ -101,6 +78,6 @@ export interface PerformanceMetrics {
 	duration: number
 	timestamp: string
 	status: 'success' | 'error' | 'timeout'
-	userId?: string
+	user_id?: string
 	userAgent?: string
 }

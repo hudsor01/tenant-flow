@@ -17,8 +17,7 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	handleConflictError,
 	isConflictError,
-	withVersion,
-	incrementVersion
+	withVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreateUnitInput,
@@ -35,7 +34,7 @@ import { unitQueries, type UnitFilters } from './queries/unit-queries'
 export const unitKeys = {
 	all: unitQueries.all(),
 	list: (params?: {
-		propertyId?: string
+		property_id?: string
 		status?: string
 		search?: string
 		limit?: number
@@ -43,7 +42,7 @@ export const unitKeys = {
 	}) => {
 		// Convert params to UnitFilters format, only including defined values
 		const filters: UnitFilters | undefined = params ? Object.assign({},
-			params.propertyId ? { propertyId: params.propertyId } : {},
+			params.property_id ? { property_id: params.property_id } : {},
 			params.status ? { status: params.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' } : {},
 			params.search ? { search: params.search } : {},
 			params.limit !== undefined ? { limit: params.limit } : {},
@@ -52,7 +51,7 @@ export const unitKeys = {
 		return unitQueries.list(filters).queryKey
 	},
 	detail: (id: string) => unitQueries.detail(id).queryKey,
-	byProperty: (propertyId: string) => unitQueries.byProperty(propertyId).queryKey,
+	byProperty: (property_id: string) => unitQueries.byProperty(property_id).queryKey,
 	stats: () => unitQueries.stats().queryKey
 }
 
@@ -67,14 +66,14 @@ export function useUnit(id: string) {
  * Hook to fetch units by property ID
  * Optimized for property detail pages showing all units
  */
-export function useUnitsByProperty(propertyId: string) {
+export function useUnitsByProperty(property_id: string) {
 	const queryClient = useQueryClient()
 
 	return useQuery({
-		queryKey: unitKeys.byProperty(propertyId),
+		queryKey: unitKeys.byProperty(property_id),
 		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
 			const response = await clientFetch<Unit[]>(
-				`/api/v1/units/by-property/${propertyId}`
+				`/api/v1/units/by-property/${property_id}`
 			)
 
 			// Prefetch individual unit details for faster navigation
@@ -88,7 +87,7 @@ export function useUnitsByProperty(propertyId: string) {
 				total: response?.length || 0
 			}
 		},
-		enabled: !!propertyId,
+		enabled: !!property_id,
 		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000, // 10 minutes
 		retry: 2
@@ -100,18 +99,18 @@ export function useUnitsByProperty(propertyId: string) {
  * Supports property filter, status filter, and search
  */
 export function useUnitList(params?: {
-	propertyId?: string
+	property_id?: string
 	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 	search?: string
 	limit?: number
 	offset?: number
 }) {
-	const { propertyId, status, search, limit = 50, offset = 0 } = params || {}
+	const { property_id, status, search, limit = 50, offset = 0 } = params || {}
 	const queryClient = useQueryClient()
 
 	return useQuery({
 		queryKey: unitKeys.list({
-			...(propertyId && { propertyId }),
+			...(property_id && { property_id }),
 			...(status && { status }),
 			...(search && { search }),
 			...(limit !== 50 && { limit }),
@@ -119,7 +118,7 @@ export function useUnitList(params?: {
 		}),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams()
-			if (propertyId) searchParams.append('propertyId', propertyId)
+			if (property_id) searchParams.append('property_id', property_id)
 			if (status) searchParams.append('status', status)
 			if (search) searchParams.append('search', search)
 			searchParams.append('limit', limit.toString())
@@ -201,19 +200,19 @@ export function useCreateUnit() {
 			// Create optimistic unit entry
 			const tempId = `temp-${Date.now()}`
 			const optimisticUnit: Unit = {
-				id: tempId,
-				propertyId: newUnit.propertyId,
-				unitNumber: newUnit.unitNumber,
-				bedrooms: newUnit.bedrooms || 0,
-				bathrooms: newUnit.bathrooms || 0,
-				squareFeet: newUnit.squareFeet || null,
-				rent: newUnit.rent,
-				status: newUnit.status || 'VACANT',
-				lastInspectionDate: newUnit.lastInspectionDate || null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				version: 1 //Optimistic locking
-			}
+			id: tempId,
+			property_id: newUnit.property_id,
+			unit_number: newUnit.unit_number ?? null,
+			bedrooms: newUnit.bedrooms ?? null,
+			bathrooms: newUnit.bathrooms ?? null,
+			square_feet: newUnit.square_feet ?? null,
+			rent_amount: newUnit.rent_amount ?? 0,
+			rent_currency: 'USD',
+			rent_period: 'month',
+			status: newUnit.status || 'AVAILABLE',
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
+		}
 
 			// Optimistically update all relevant caches
 			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
@@ -259,7 +258,7 @@ export function useCreateUnit() {
 			// Cache individual unit details
 			queryClient.setQueryData(unitKeys.detail(data.id), data)
 
-			logger.info('Unit created successfully', { unitId: data.id })
+			logger.info('Unit created successfully', { unit_id: data.id })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency with server
@@ -309,10 +308,13 @@ export function useUpdateUnit() {
 				queryKey: unitKeys.all
 			})
 
-			// Optimistically update detail cache (use incrementVersion helper)
-			queryClient.setQueryData<Unit>(unitKeys.detail(id), old =>
-				old ? incrementVersion(old, data) : undefined
-			)
+			// Optimistically update detail cache
+			if (previousDetail) {
+				queryClient.setQueryData<Unit>(unitKeys.detail(id), {
+					...previousDetail,
+					...data
+				})
+			}
 
 			// Optimistically update list caches
 			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
@@ -322,7 +324,7 @@ export function useUpdateUnit() {
 					return {
 						...old,
 						data: old.data.map(unit =>
-							unit.id === id ? incrementVersion(unit, data) : unit
+							unit.id === id ? { ...unit, ...data } : unit
 						)
 					}
 				}
@@ -344,7 +346,7 @@ export function useUpdateUnit() {
 
 			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
-				handleConflictError('unit', id, queryClient, [
+				handleConflictError('units', id, queryClient, [
 					unitKeys.detail(id),
 					unitKeys.all
 				])
@@ -367,7 +369,7 @@ export function useUpdateUnit() {
 				}
 			)
 
-			logger.info('Unit updated successfully', { unitId: id })
+			logger.info('Unit updated successfully', { unit_id: id })
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
@@ -440,7 +442,7 @@ export function useDeleteUnit(options?: {
 			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
 		},
 		onSuccess: id => {
-			logger.info('Unit deleted successfully', { unitId: id })
+			logger.info('Unit deleted successfully', { unit_id: id })
 			options?.onSuccess?.()
 		},
 		onSettled: () => {

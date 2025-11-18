@@ -16,8 +16,6 @@ export const ContactFormType = {
 	DEMO_REQUEST: 'demo'
 } as const
 
-export type ContactFormTypeValue =
-	(typeof ContactFormType)[keyof typeof ContactFormType]
 
 export interface ContactFormRequest {
 	name: string
@@ -36,9 +34,7 @@ export interface ContactFormResponse {
 	contactId?: string
 }
 
-// NOTIFICATION DOMAIN
 
-// UI-only const for notification types
 export const NotificationType = {
 	PAYMENT: 'payment',
 	BILLING: 'billing',
@@ -48,9 +44,7 @@ export const NotificationType = {
 export type NotificationTypeValue =
 	(typeof NotificationType)[keyof typeof NotificationType]
 
-// WEB VITALS DOMAIN
 
-// UI-only constants for web vitals (browser metrics, not stored in DB)
 export const WebVitalMetricName = {
 	CLS: 'CLS',
 	FCP: 'FCP',
@@ -104,7 +98,7 @@ export const StripeWebhookEventType = {
 export type StripeWebhookEventTypeValue =
 	(typeof StripeWebhookEventType)[keyof typeof StripeWebhookEventType]
 
-// STORAGE DOMAIN
+
 
 export interface StorageUploadResult {
 	url: string
@@ -117,10 +111,10 @@ export interface StorageUploadResult {
 
 export type { FileUploadOptions } from './file-upload.js'
 
-export type StorageEntityType = 'property' | 'tenant' | 'maintenance' | 'user'
+export type StorageEntityType = 'properties' | 'tenants' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
 
-// STRIPE ANALYTICS DOMAIN
+
 
 export interface RevenueAnalytics {
 	period: string
@@ -154,7 +148,6 @@ export interface CustomerLifetimeValue {
 	lifetime_days?: number
 }
 
-// WEBSOCKET DOMAIN
 
 export interface WebSocketMessage<
 	T = Record<string, string | number | boolean | null>
@@ -162,7 +155,7 @@ export interface WebSocketMessage<
 	type: string
 	data: T
 	timestamp?: string
-	userId?: string
+	user_id?: string
 }
 
 export interface MaintenanceUpdateMessage
@@ -171,7 +164,7 @@ export interface MaintenanceUpdateMessage
 		type: string
 		status?: string
 		priority?: string
-		unitId?: string
+		unit_id?: string
 		assignedTo?: string
 		metadata?: Record<string, string | number | boolean | null>
 	}> {
@@ -180,18 +173,18 @@ export interface MaintenanceUpdateMessage
 
 export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage
 
-// SESSION DOMAIN
+
 
 export interface UserSession {
 	id: string
-	userId: string
+	user_id: string
 	user?: Record<string, unknown> | null
 	token: string
 	isAuthenticated: boolean
 	expiresAt: string
 	lastActivity: Date | null
 	sessionExpiry: Date | null
-	createdAt: string
+	created_at: string
 	metadata?: Record<string, unknown>
 }
 
@@ -218,7 +211,7 @@ export interface UserStats {
 	verifiedUsers: number
 }
 
-// THEME DOMAIN
+
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -254,7 +247,7 @@ export interface ColorRationale {
 	reasoning: string
 }
 
-// WEBHOOK DOMAIN
+
 
 export type StripeWebhookEventTypes =
 	| 'customer.subscription.created'
@@ -263,11 +256,10 @@ export type StripeWebhookEventTypes =
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
 
-// NOTE: Import Stripe webhook types from '@repo/shared/types/stripe' instead
+
 
 export type { WebhookNotification } from './stripe.js'
 
-// SECURITY DOMAIN
 
 export interface CSPViolationReport {
 	'document-uri': string
@@ -289,10 +281,3 @@ export interface CSPReportBody {
 }
 
 export type { SecurityEvent } from './security.js'
-
-// SecurityMetrics moved to security.ts to eliminate duplication
-
-// AI DOMAIN - TEMPORARILY REMOVED
-
-// Note: AI-dependent types temporarily removed due to missing 'ai' package dependency
-// These types can be re-added when AI package is properly configured in the project

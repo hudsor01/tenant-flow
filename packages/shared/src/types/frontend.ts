@@ -4,6 +4,7 @@
  */
 
 import type { Database } from './core.js'
+import type { LeaseStatus } from '../constants/status-types.js'
 
 
 // CHART COMPONENT TYPES
@@ -12,7 +13,7 @@ export type ColorVariant =
 	| 'success'
 	| 'primary'
 	| 'revenue'
-	| 'property'
+	| 'properties'
 	| 'warning'
 	| 'info'
 	| 'neutral'
@@ -42,7 +43,7 @@ export interface MetricConfig {
 		| 'success'
 		| 'primary'
 		| 'revenue'
-		| 'property'
+		| 'properties'
 		| 'warning'
 		| 'info'
 		| 'neutral'
@@ -219,7 +220,7 @@ export interface ResponsiveValuesConfig {
 	'2xl'?: string | number
 }
 
-export type UnitRow = Database['public']['Tables']['unit']['Row'] & {
+export type UnitRow = Database['public']['Tables']['units']['Row'] & {
 	property?: {
 		name: string
 		address: string
@@ -230,10 +231,10 @@ export type UnitRow = Database['public']['Tables']['unit']['Row'] & {
 		phone?: string
 	} | null
 	lease?: {
-		startDate: string
-		endDate: string
-		rentAmount: number
-		status: Database['public']['Enums']['LeaseStatus']
+		start_date: string
+		end_date: string
+		rent_amount: number
+		status: LeaseStatus
 	} | null
 	// Optional enhancement fields for UI display
 	marketValue?: number
@@ -241,7 +242,7 @@ export type UnitRow = Database['public']['Tables']['unit']['Row'] & {
 }
 
 export type MaintenanceRequestRow =
-	Database['public']['Tables']['maintenance_request']['Row'] & {
+	Database['public']['Tables']['maintenance_requests']['Row'] & {
 		property: { name: string } | null
 		unit: { name: string } | null
 		assignedTo: { name: string } | null

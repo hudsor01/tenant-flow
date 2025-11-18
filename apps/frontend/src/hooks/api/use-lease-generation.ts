@@ -14,22 +14,22 @@ import { env } from '#config/env'
  */
 export const leaseGenerationKeys = {
 	all: ['lease-generation'] as const,
-	autoFill: (propertyId: string, unitId: string, tenantId: string) =>
-		[...leaseGenerationKeys.all, 'auto-fill', propertyId, unitId, tenantId] as const
+	autoFill: (property_id: string, unit_id: string, tenant_id: string) =>
+		[...leaseGenerationKeys.all, 'auto-fill', property_id, unit_id, tenant_id] as const
 }
 
 /**
  * Hook to fetch auto-filled lease form data
- * propertyId, unitId, and tenantId are all REQUIRED
+ * property_id, unit_id, and tenant_id are all REQUIRED
  */
-export function useLeaseAutoFill(propertyId: string, unitId: string, tenantId: string) {
+export function useLeaseAutoFill(property_id: string, unit_id: string, tenant_id: string) {
 	return useQuery({
-		queryKey: leaseGenerationKeys.autoFill(propertyId, unitId, tenantId),
+		queryKey: leaseGenerationKeys.autoFill(property_id, unit_id, tenant_id),
 		queryFn: () =>
 			clientFetch<Partial<LeaseGenerationFormData>>(
-				`/api/v1/leases/auto-fill/${propertyId}/${unitId}/${tenantId}`
+				`/api/v1/leases/auto-fill/${property_id}/${unit_id}/${tenant_id}`
 			),
-		enabled: !!propertyId && !!unitId && !!tenantId,
+		enabled: !!property_id && !!unit_id && !!tenant_id,
 		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
@@ -67,7 +67,7 @@ export function useGenerateLease() {
 			const blob = await response.blob()
 
 			// Generate safe filename (handle empty propertyAddress)
-			const sanitizedAddress = (data.propertyAddress || 'property')
+			const sanitizedAddress = (data.propertyAddress || 'properties')
 				.replace(/[^a-zA-Z0-9]/g, '-')
 				.replace(/-+/g, '-')
 				.slice(0, 50) // Limit length

@@ -179,7 +179,6 @@ export function BlurFade({
 			)}
 			// Accessibility improvements
 			aria-hidden={!shouldAnimate}
-			role={shouldAnimate ? undefined : 'presentation'}
 		>
 			{children}
 		</animated.div>

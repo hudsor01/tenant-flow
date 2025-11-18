@@ -28,41 +28,16 @@ import type { Lease, Property, Tenant, User } from '@repo/shared/types/core'
  */
 export const DEFAULT_TENANT: Tenant = {
 	id: 'tenant-1',
-	userId: 'user-1',
-	name: 'John Doe',
-	firstName: 'John',
-	lastName: 'Doe',
-	email: 'john.doe@example.com',
-	phone: '(555) 123-4567',
-	emergencyContact: 'Jane Doe - (555) 987-6543',
-	avatarUrl: null,
-	status: 'ACTIVE',
-	move_out_date: null,
-	move_out_reason: null,
-	archived_at: null,
-	auth_user_id: null,
-	invitation_status: 'PENDING',
-	invitation_token: null,
-	invitation_sent_at: null,
-	invitation_accepted_at: null,
-	invitation_expires_at: null,
-	stripe_customer_id: null,
-	stripeCustomerId: null,
-	autopay_configured_at: null,
-	autopay_day: null,
-	autopay_enabled: null,
-	autopay_frequency: null,
-	payment_method_added_at: null,
-	notification_preferences: {
-		rentReminders: true,
-		maintenanceUpdates: true,
-		propertyNotices: true,
-		emailNotifications: true,
-		smsNotifications: false
-	},
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 //Optimistic locking
+	user_id: 'user-1',
+	date_of_birth: null,
+	emergency_contact_name: null,
+	emergency_contact_phone: null,
+	emergency_contact_relationship: null,
+	identity_verified: null,
+	ssn_last_four: null,
+	stripe_customer_id: 'cus_test_tenant',
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z'
 }
 
 /**
@@ -71,42 +46,31 @@ export const DEFAULT_TENANT: Tenant = {
  * @example
  * const admin: User = {
  *   ...DEFAULT_USER,
- *   role: 'ADMIN',
+ *   user_type: 'ADMIN',
  *   email: 'admin@example.com'
  * }
  */
 export const DEFAULT_USER: User = {
 	id: 'user-1',
-	supabaseId: 'supabase-user-1',
 	email: 'user@example.com',
-	firstName: 'Test',
-	lastName: 'User',
-	name: 'Test User',
+	full_name: 'Test User',
+	first_name: 'Test',
+	last_name: 'User',
 	phone: '(555) 123-4567',
-	role: 'OWNER',
-	stripeCustomerId: 'cus_test123',
-	stripeAccountId: null,
-	subscriptionTier: 'GROWTH',
-	subscription_status: 'active',
-	chargesEnabled: null,
-	connectedAccountId: null,
-	detailsSubmitted: null,
-	onboardingComplete: null,
-	onboardingCompletedAt: null,
-	payoutsEnabled: null,
-	avatarUrl: null,
-	bio: null,
-	orgId: null,
-	profileComplete: true,
-	lastLoginAt: null,
-	identityverificationsessionid: null,
-	identityverificationstatus: null,
-	identityverifiedat: null,
-	identityverificationdata: null,
-	identityverificationerror: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 //Optimistic locking
+	user_type: 'OWNER',
+	stripe_customer_id: 'cus_test123',
+	status: 'active',
+	avatar_url: null,
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z',
+	identity_verified_at: null,
+	identity_verification_status: null,
+	identity_verification_session_id: null,
+	identity_verification_data: null,
+	identity_verification_error: null,
+	connected_account_id: null,
+	onboarding_completed_at: null,
+	onboarding_status: 'not_started'
 }
 
 /**
@@ -115,28 +79,26 @@ export const DEFAULT_USER: User = {
  * @example
  * const apartment: Property = {
  *   ...DEFAULT_PROPERTY,
- *   propertyType: 'APARTMENT',
+ *   property_type: 'APARTMENT',
  *   units: 50
  * }
  */
 export const DEFAULT_PROPERTY: Property = {
 	id: 'property-1',
-	ownerId: 'user-1',
+	property_owner_id: 'user-1',
 	name: 'Test Property',
-	address: '123 Main St',
+	address_line1: '123 Main St',
+	address_line2: null,
 	city: 'San Francisco',
 	state: 'CA',
-	zipCode: '94102',
-	propertyType: 'APARTMENT',
+	postal_code: '94102',
+	country: 'USA',
+	property_type: 'APARTMENT',
 	status: 'ACTIVE',
-	description: null,
-	imageUrl: null,
 	date_sold: null,
 	sale_price: null,
-	sale_notes: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 //Optimistic locking
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z'
 }
 
 /**
@@ -146,32 +108,27 @@ export const DEFAULT_PROPERTY: Property = {
  * const expiredLease: Lease = {
  *   ...DEFAULT_LEASE,
  *   status: 'EXPIRED',
- *   endDate: '2023-12-31'
+ *   end_date: '2023-12-31'
  * }
  */
 export const DEFAULT_LEASE: Lease = {
 	id: 'lease-1',
-	propertyId: 'property-1',
-	unitId: 'unit-1',
-	tenantId: 'tenant-1',
-	startDate: '2024-01-01',
-	endDate: '2024-12-31',
-	rentAmount: 1500,
-	monthlyRent: 1500,
-	securityDeposit: 1500,
-	status: 'ACTIVE',
-	terms: null,
-	gracePeriodDays: null,
-	lateFeeAmount: null,
-	lateFeePercentage: null,
+	unit_id: 'unit-1',
+	primary_tenant_id: 'tenant-1',
+	start_date: '2024-01-01',
+	end_date: '2024-12-31',
+	rent_amount: 1500,
+	rent_currency: 'USD',
+	security_deposit: 1500,
+	lease_status: 'ACTIVE',
+	payment_day: 1,
 	stripe_subscription_id: null,
-	stripeSubscriptionId: null,
-	lease_document_url: null,
-	signature: null,
-	signed_at: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1 //Optimistic locking
+	auto_pay_enabled: null,
+	grace_period_days: null,
+	late_fee_amount: null,
+	late_fee_days: null,
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z'
 }
 
 /**
@@ -186,15 +143,15 @@ export const DEFAULT_LEASE: Lease = {
  */
 export const DEFAULT_UNIT = {
 	id: 'unit-1',
-	propertyId: 'property-1',
+	property_id: 'property-1',
 	name: 'Apt 101',
 	bedrooms: 2,
 	bathrooms: 1,
-	squareFeet: 850,
+	square_feet: 850,
 	status: 'AVAILABLE' as const,
-	monthlyRent: 1500,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z'
+	rent_amount: 1500,
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z'
 }
 
 /**
@@ -209,26 +166,28 @@ export const DEFAULT_UNIT = {
  */
 export const DEFAULT_MAINTENANCE_REQUEST = {
 	id: 'maintenance-1',
-	title: 'Leaky faucet in kitchen',
 	description: 'Kitchen faucet has been dripping for the past week',
 	status: 'OPEN' as const,
 	priority: 'MEDIUM' as const,
-	category: 'PLUMBING',
-	unitId: 'unit-1',
-	propertyId: 'property-1',
-	requestedBy: 'tenant-1',
-	assignedTo: null,
-	contactPhone: '(555) 123-4567',
-	allowEntry: true,
-	estimatedCost: 150,
-	actualCost: null,
-	photos: [],
-	notes: null,
-	preferredDate: null,
-	completedAt: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1,
-	property: DEFAULT_PROPERTY,
-	unit: DEFAULT_UNIT
+	category: 'PLUMBING' as const,
+	unit_id: 'unit-1',
+	tenant_id: 'tenant-1',
+	requested_by: 'user-1',
+	assigned_to: null,
+	estimated_cost: 150,
+	actual_cost: null,
+	scheduled_date: null,
+	completed_at: null,
+	inspector_id: null,
+	inspection_date: null,
+	inspection_findings: null,
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z',
+	property: {
+		name: 'Test Property'
+	},
+	unit: {
+		name: 'Apt 101'
+	},
+	assignedTo: null
 }

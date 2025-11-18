@@ -12,7 +12,7 @@
 import { InternalServerErrorException, Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
 import { SilentLogger } from '../__test__/silent-logger'

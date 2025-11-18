@@ -156,15 +156,15 @@ const TaxDocumentsPage = ({
 				return
 			}
 
-			const startDate = `${taxYear}-01-01`
-			const endDate = `${taxYear}-12-31`
+			const start_date = `${taxYear}-01-01`
+			const end_date = `${taxYear}-12-31`
 
 			await clientFetch('/api/v1/reports/generate-tax-preparation', {
 				method: 'POST',
 				body: JSON.stringify({
-					userId: session.user.id,
-					startDate,
-					endDate
+					user_id: session.user.id,
+					start_date,
+					end_date
 				})
 			})
 
@@ -250,9 +250,9 @@ const TaxDocumentsPage = ({
 
 				const query = searchQuery.toLowerCase().trim()
 				const propertyName = (property.propertyName || '').toLowerCase()
-				const propertyId = (property.propertyId || '').toLowerCase()
+				const property_id = (property.property_id || '').toLowerCase()
 
-				return propertyName.includes(query) || propertyId.includes(query)
+				return propertyName.includes(query) || property_id.includes(query)
 			}
 		)
 
@@ -269,7 +269,7 @@ const TaxDocumentsPage = ({
 				{filteredProperties.map(
 					(property: TaxPropertyDepreciation, index: number) => (
 						<Card
-							key={property.propertyId || `property-${index}`}
+							key={property.property_id || `property-${index}`}
 							className="border border-gray-200"
 						>
 							<CardContent className="p-4">
@@ -279,7 +279,7 @@ const TaxDocumentsPage = ({
 											{property.propertyName}
 										</h4>
 										<span className="text-sm text-gray-500">
-											ID: {property.propertyId}
+											ID: {property.property_id}
 										</span>
 									</div>
 

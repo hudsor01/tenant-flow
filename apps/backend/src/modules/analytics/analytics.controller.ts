@@ -8,6 +8,7 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { AnalyticsService } from './analytics.service'
+import { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
 
 // Local type definition - web vitals removed from frontend but keeping backend endpoint
 interface WebVitalData {
@@ -19,7 +20,7 @@ interface WebVitalData {
 	page: string
 	timestamp?: string
 	sessionId?: string
-	userId?: string
+	user_id?: string
 }
 
 @Controller('analytics')
@@ -27,6 +28,14 @@ export class AnalyticsController {
 	private readonly logger = new Logger(AnalyticsController.name)
 
 	constructor(private readonly analyticsService: AnalyticsService) {}
+
+	@Post()
+	@SetMetadata('isPublic', true)
+	@HttpCode(HttpStatus.ACCEPTED)
+	async ingestMobileEvent(@Body() payload: MobileAnalyticsEventDto) {
+		this.analyticsService.recordMobileEvent(payload)
+		return { success: true }
+	}
 
 	@Post('web-vitals')
 	@SetMetadata('isPublic', true)
@@ -49,8 +58,8 @@ export class AnalyticsController {
 		) {
 			throw new Error('Invalid web vitals data')
 		}
-		const { userId, sessionId } = payload
-		const distinctId = userId ?? sessionId ?? payload.id
+		const { user_id, sessionId } = payload
+		const distinctId = user_id ?? sessionId ?? payload.id
 
 		this.logger.verbose('Received web vital metric', {
 			name: payload.name,

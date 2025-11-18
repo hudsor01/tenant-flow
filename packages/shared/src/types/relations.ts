@@ -4,19 +4,21 @@
  */
 
 import type { TenantWithLeaseInfo } from './core.js'
-import type { Database } from './supabase-generated.js'
-import type { User } from './supabase.js'
+import type { PropertyType } from '../constants/status-types.js'
+import type { Database } from './supabase.js'
+import type { User } from '@supabase/supabase-js'
 
 // Define types properly from Database schema
-type Property = Database['public']['Tables']['property']['Row']
-type Unit = Database['public']['Tables']['unit']['Row']
-type Tenant = Database['public']['Tables']['tenant']['Row']
-type Lease = Database['public']['Tables']['lease']['Row']
+type Property = Database['public']['Tables']['properties']['Row']
+type Unit = Database['public']['Tables']['units']['Row']
+type Tenant = Database['public']['Tables']['tenants']['Row']
+type Lease = Database['public']['Tables']['leases']['Row']
 type MaintenanceRequest =
-	Database['public']['Tables']['maintenance_request']['Row']
+	Database['public']['Tables']['maintenance_requests']['Row']
 type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
 
-import type { Document } from './files.js'
+// Document type from database
+type Document = Database['public']['Tables']['documents']['Row']
 import type { NotificationData } from './notifications.js'
 
 // Property relations
@@ -28,7 +30,7 @@ export interface PropertyWithDetails extends Property {
 	monthlyRevenue: number
 }
 
-export interface UnitWithDetails extends Unit {
+export interface UnitWithDetails extends Omit<Unit, 'rent_amount'> {
 	property: Property
 	leases: Lease[]
 	currentLease?: Lease
@@ -37,7 +39,7 @@ export interface UnitWithDetails extends Unit {
 
 	// Computed fields
 	isOccupied?: boolean
-	monthlyRent?: number
+	rent_amount?: number
 	leaseEndDate?: string
 	tenantName?: string
 }
@@ -89,7 +91,7 @@ export interface MaintenanceRequestWithDetails extends MaintenanceRequest {
 	}
 	tenant?: Tenant
 	// Flattened fields for compatibility with MaintenanceRequestApiResponse
-	unitNumber: string
+	unit_number: string
 }
 
 // Notification relations
@@ -172,8 +174,8 @@ export interface LeaseWithRelations extends Lease {
 		openedAt: string | null
 		errorMessage: string | null
 		retryCount: number
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}>
 }
 
@@ -194,9 +196,9 @@ export interface MaintenanceRequestWithRelations extends MaintenanceRequest {
 		size: number | null
 		url: string
 		uploadedById: string | null
-		propertyId: string | null
+		property_id: string | null
 		maintenanceRequestId: string | null
-		createdAt: string
+		created_at: string
 	}>
 }
 
@@ -261,7 +263,7 @@ export interface PropertySummary {
 	imageUrl: string | null
 	totalUnits?: number
 	occupiedUnits?: number
-	monthlyRent?: number
+	rent_amount?: number
 	monthlyRevenue?: number
 }
 
@@ -273,15 +275,15 @@ export interface PropertyFormData {
 	address: string
 	city: string
 	state: string
-	zipCode: string
-	propertyType: Database['public']['Enums']['PropertyType']
+	postal_code: string
+	property_type: PropertyType
 	description?: string
 	imageUrl?: string
 
 	// Form-specific computed fields
 	totalUnits?: number
-	monthlyRent?: number
-	squareFeet?: number
+	rent_amount?: number
+	square_feet?: number
 	bedrooms?: number
 	bathrooms?: number
 	yearBuilt?: number
@@ -319,7 +321,7 @@ export interface PropertySearchResult extends PropertyWithUnits {
  * PropertyFilters - Common property filtering options
  */
 export interface PropertyFilters {
-	propertyType?: Database['public']['Enums']['PropertyType']
+	property_type?: PropertyType
 	status?: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
 	minUnits?: number
 	maxUnits?: number

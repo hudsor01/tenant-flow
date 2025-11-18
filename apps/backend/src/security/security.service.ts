@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
 import { z } from 'zod'
+import { SecureEmailSchema, EmailMetadataSchema } from '@repo/shared/validation/emails.schemas'
 
 export interface SanitizationOptions {
 	/**
@@ -343,6 +344,73 @@ export class SecurityService {
 		password: string,
 		hashedPassword: string
 	): Promise<boolean> {
-		return bcrypt.compare(password, hashedPassword)
+			return bcrypt.compare(password, hashedPassword)
+	}
+
+	/**
+	 * Sanitize email address to prevent header injection
+	 * Removes CRLF characters and validates email format
+	 */
+	sanitizeEmailForHeader(email: string): string {
+		if (!email) {
+			throw new BadRequestException('Email is required')
+		}
+
+		// Remove CRLF characters that could cause header injection
+	const sanitized = email.replace(/[\r\n]/g, '').trim()
+
+		// Validate email format using Zod schema
+		const result = SecureEmailSchema.safeParse(sanitized)
+	if (!result.success) {
+			throw new BadRequestException(
+				`Invalid email format: ${result.error.issues.map((e: { message: string }) => e.message).join(', ')}`
+			)
+		}
+
+		return result.data
+	}
+
+	/**
+	 * Sanitize email metadata to prevent header injection
+	 * Validates and sanitizes all email-related fields
+	 */
+	sanitizeEmailMetadata(metadata: unknown): z.infer<typeof EmailMetadataSchema> {
+		const result = EmailMetadataSchema.safeParse(metadata)
+		if (!result.success) {
+			throw new BadRequestException(
+				`Invalid email metadata: ${result.error.issues.map((e: { message: string }) => e.message).join(', ')}`
+			)
+		}
+
+		return result.data
+	}
+
+	/**
+	 * Validate email headers to prevent injection attacks
+	 * Checks for CRLF injection patterns in email headers
+	 */
+	validateEmailHeaders(headers: {
+		from?: string
+		to: string
+		subject?: string
+		replyTo?: string
+	}): void {
+		const CRLF_REGEX = /[\r\n]/g
+
+		if (headers.from && CRLF_REGEX.test(headers.from)) {
+			throw new BadRequestException('From header contains invalid characters')
+		}
+
+		if (headers.to && CRLF_REGEX.test(headers.to)) {
+			throw new BadRequestException('To header contains invalid characters')
+		}
+
+		if (headers.subject && CRLF_REGEX.test(headers.subject)) {
+			throw new BadRequestException('Subject header contains invalid characters')
+		}
+
+		if (headers.replyTo && CRLF_REGEX.test(headers.replyTo)) {
+			throw new BadRequestException('Reply-To header contains invalid characters')
+		}
 	}
 }

@@ -10,6 +10,7 @@ import type {
 	LeaseTermType,
 	USState
 } from '@repo/shared/types/lease-generator.types'
+import { PROPERTY_TYPES } from '@repo/shared/constants/status-types'
 import { LeasesService } from './leases.service'
 
 /**
@@ -28,20 +29,20 @@ export class LeaseTransformationService {
 	 */
 	async buildLeaseFormData(
 		token: string,
-		leaseId: string
+		lease_id: string
 	): Promise<LeaseFormData> {
 		try {
 			// Try to fetch lease with all relations first
 			const leaseWithRelations = await this.fetchLeaseWithRelations(
 				token,
-				leaseId
+				lease_id
 			)
 			return this.transformLeaseWithRelationsToFormData(leaseWithRelations)
 		} catch (error) {
 			this.logger.warn(
 				'Failed to fetch lease with relations, falling back to basic lease data',
 				{
-					leaseId,
+					lease_id,
 					error: error instanceof Error ? error.message : String(error)
 				}
 			)
@@ -50,20 +51,20 @@ export class LeaseTransformationService {
 			try {
 				const client = this.leasesService.getUserClient(token)
 				const { data: basicLease, error: basicError } = await client
-					.from('lease')
+					.from('leases')
 					.select('*')
-					.eq('id', leaseId)
+					.eq('id', lease_id)
 					.single()
 
 				if (basicError || !basicLease) {
 					// Check if it's a not found error (PGRST116 is PostgREST not found code)
 					if (basicError?.code === 'PGRST116' || !basicLease) {
-						this.logger.warn('Lease not found', { leaseId })
-						throw new NotFoundException(`Lease not found: ${leaseId}`)
+						this.logger.warn('Lease not found', { lease_id })
+						throw new NotFoundException(`Lease not found: ${lease_id}`)
 					}
 
 					this.logger.error('Failed to fetch basic lease data', {
-						leaseId,
+						lease_id,
 						error: basicError
 							? (basicError as { message?: string }).message
 							: 'Unknown error'
@@ -81,7 +82,7 @@ export class LeaseTransformationService {
 				this.logger.error(
 					'Failed to fetch basic lease data for PDF generation',
 					{
-						leaseId,
+						lease_id,
 						error:
 							fallbackError instanceof Error
 								? fallbackError.message
@@ -100,12 +101,12 @@ export class LeaseTransformationService {
 	 * Fetch lease with all related data (property, unit, tenant, owner)
 	 * Used for transforming database Lease to LeaseFormData structure
 	 */
-	private async fetchLeaseWithRelations(token: string, leaseId: string) {
+	private async fetchLeaseWithRelations(token: string, lease_id: string) {
 		const client = this.leasesService.getUserClient(token)
 
 		// Fetch lease with related data in a single query
 		const { data, error } = await client
-			.from('lease')
+			.from('leases')
 			.select(
 				`
 				*,
@@ -121,25 +122,25 @@ export class LeaseTransformationService {
 						)
 					)
 				),
-				tenant:tenant_id (
+				tenant:primary_tenant_id (
 					*
 				)
 			`
 			)
-			.eq('id', leaseId)
+			.eq('id', lease_id)
 			.single()
 
 		if (error || !data) {
 			// Check if it's a not found error (PGRST116 is PostgREST not found code)
 			if (error?.code === 'PGRST116' || !data) {
 				this.logger.warn('Lease not found in fetchLeaseWithRelations', {
-					leaseId
+					lease_id
 				})
-				throw new NotFoundException(`Lease not found: ${leaseId}`)
+				throw new NotFoundException(`Lease not found: ${lease_id}`)
 			}
 
 			this.logger.error('Failed to fetch lease with relations', {
-				leaseId,
+				lease_id,
 				error: error ? (error as { message?: string }).message : 'Unknown error'
 			})
 			throw new BadRequestException('Failed to fetch lease data')
@@ -156,26 +157,27 @@ export class LeaseTransformationService {
 	): LeaseFormData {
 		const lease = leaseWithRelations as {
 			id: string
-			startDate: string
-			endDate: string
-			rentAmount: number
-			securityDeposit: number
+			start_date: string
+			end_date: string
+			rent_amount: number
+			security_deposit: number
 			status: string
 			terms: string | null
 			unit: {
 				id: string
-				unitNumber: string
+				unit_number: string
 				bedrooms: number
 				bathrooms: number
-				squareFeet: number | null
+				square_feet: number | null
 				property: {
 					id: string
 					name: string
-					address: string
+					address_line1: string
+					address_line2: string | null
 					city: string
 					state: string
-					zipCode: string
-					propertyType: string
+					postal_code: string
+					property_type: string
 					owner: {
 						id: string
 						email: string
@@ -192,46 +194,46 @@ export class LeaseTransformationService {
 			}
 		}
 
-		// Map property type from database enum to LeaseFormData type
-		const propertyTypeMap: Record<string, LeaseFormData['property']['type']> =
-			{
-				SINGLE_FAMILY: 'single_family_home',
-				APARTMENT: 'apartment',
-				CONDO: 'condo',
-				TOWNHOUSE: 'townhouse',
-				MULTI_UNIT: 'duplex',
-				COMMERCIAL: 'commercial',
-				OTHER: 'apartment' // Default fallback
-			}
+		// Map possible property type strings to canonical PropertyType values
+		const propertyTypeMap: Record<string, LeaseFormData['property']['type']> = {
+			SINGLE_FAMILY: PROPERTY_TYPES.SINGLE_FAMILY,
+			single_family: PROPERTY_TYPES.SINGLE_FAMILY,
+			single_family_home: PROPERTY_TYPES.SINGLE_FAMILY,
+			APARTMENT: PROPERTY_TYPES.APARTMENT,
+			apartment: PROPERTY_TYPES.APARTMENT,
+			CONDO: PROPERTY_TYPES.CONDO,
+			condo: PROPERTY_TYPES.CONDO,
+			TOWNHOUSE: PROPERTY_TYPES.TOWNHOUSE,
+			townhouse: PROPERTY_TYPES.TOWNHOUSE,
+			DUPLEX: PROPERTY_TYPES.MULTI_UNIT,
+			duplex: PROPERTY_TYPES.MULTI_UNIT,
+			MULTI_UNIT: PROPERTY_TYPES.MULTI_UNIT,
+			multi_unit: PROPERTY_TYPES.MULTI_UNIT,
+			COMMERCIAL: PROPERTY_TYPES.COMMERCIAL,
+			commercial: PROPERTY_TYPES.COMMERCIAL,
+			OTHER: PROPERTY_TYPES.OTHER,
+			other: PROPERTY_TYPES.OTHER
+		}
 
 		const property = lease.unit.property
 		const owner = property.owner
 		const tenant = lease.tenant
 		const unit = lease.unit
 
-		// Parse address (assuming format: "street, city, state zipCode")
-		const addressParts = property.address.split(',').map((s) => s.trim())
-		const street = addressParts[0] || property.address
-
 		// Build property address object with proper optional handling
 		const propertyAddress: LeaseFormData['property']['address'] = {
-			street,
-			city: property.city,
-			state: property.state as USState,
-			zipCode: property.zipCode
-		}
-
-		// Add unit if present
-		if (unit.unitNumber) {
-			propertyAddress.unit = unit.unitNumber
-		}
+		street: property.address_line1,
+		city: property.city,
+		state: property.state as USState,
+		postal_code: property.postal_code,
+		...(unit.unit_number ? { unit: unit.unit_number } : {})
+	}
 
 		// Build property object with proper optional handling
 		const propertyData: LeaseFormData['property'] = {
 			address: propertyAddress,
 			type:
-				propertyTypeMap[property.propertyType] ||
-				('apartment' as LeaseFormData['property']['type']),
+				propertyTypeMap[property.property_type] ?? PROPERTY_TYPES.APARTMENT,
 			bedrooms: unit.bedrooms || 1,
 			bathrooms: unit.bathrooms || 1,
 			parking: {
@@ -240,9 +242,9 @@ export class LeaseTransformationService {
 			amenities: []
 		}
 
-		// Add optional squareFeet if present
-		if (unit.squareFeet) {
-			propertyData.squareFeet = unit.squareFeet
+		// Add optional square_feet if present
+		if (unit.square_feet) {
+			propertyData.square_feet = unit.square_feet
 		}
 
 		// Build owner object with proper optional handling
@@ -250,10 +252,10 @@ export class LeaseTransformationService {
 			name: owner.name || owner.email,
 			isEntity: false,
 			address: {
-				street: property.address,
+				street: property.address_line1,
 				city: property.city,
 				state: property.state as USState,
-				zipCode: property.zipCode
+				postal_code: property.postal_code
 			},
 			phone: owner.phone || '',
 			email: owner.email
@@ -262,22 +264,22 @@ export class LeaseTransformationService {
 		// Build lease terms with proper optional handling
 		const leaseTermsData: LeaseFormData['leaseTerms'] = {
 			type: 'fixed_term' as LeaseTermType,
-			startDate: lease.startDate,
-			rentAmount: lease.rentAmount,
+			start_date: lease.start_date,
+			rent_amount: lease.rent_amount,
 			currency: 'USD',
 			dueDate: 1,
 			lateFee: {
 				enabled: false
 			},
-			securityDeposit: {
-				amount: lease.securityDeposit || 0,
+			security_deposit: {
+				amount: lease.security_deposit || 0,
 				monthsRent: 1
 			}
 		}
 
-		// Add optional endDate if present
-		if (lease.endDate) {
-			leaseTermsData.endDate = lease.endDate
+		// Add optional end_date if present
+		if (lease.end_date) {
+			leaseTermsData.end_date = lease.end_date
 		}
 
 		const leaseFormData: LeaseFormData = {
@@ -334,10 +336,10 @@ export class LeaseTransformationService {
 	): LeaseFormData {
 		const leaseData = lease as {
 			id: string
-			startDate: string
-			endDate: string
-			rentAmount: number
-			securityDeposit: number
+			start_date: string
+			end_date: string
+			rent_amount: number
+			security_deposit: number
 			status: string
 			terms: string | null
 		}
@@ -356,19 +358,19 @@ export class LeaseTransformationService {
 			address: {
 				street: structuredTerms?.property?.address?.street ?? 'Unknown Street',
 				...(structuredTerms?.property?.address?.unit
-					? { unit: structuredTerms.property.address.unit }
+					? { unit: structuredTerms?.property?.address?.unit }
 					: {}),
 				city: structuredTerms?.property?.address?.city ?? 'Unknown City',
 				state:
 					(structuredTerms?.property?.address?.state as USState) ??
 					fallbackPropertyState,
-				zipCode: structuredTerms?.property?.address?.zipCode ?? '00000'
+				postal_code: structuredTerms?.property?.address?.postal_code ?? '00000'
 			},
-			type: structuredTerms?.property?.type ?? 'apartment',
+			type: (structuredTerms?.property?.type ?? 'APARTMENT') as LeaseFormData['property']['type'],
 			bedrooms: structuredTerms?.property?.bedrooms ?? 1,
 			bathrooms: structuredTerms?.property?.bathrooms ?? 1,
-			...(structuredTerms?.property?.squareFeet
-				? { squareFeet: structuredTerms.property.squareFeet }
+			...(structuredTerms?.property?.square_feet
+				? { square_feet: structuredTerms.property.square_feet }
 				: {}),
 			parking: {
 				included: structuredTerms?.property?.parking?.included ?? false,
@@ -394,8 +396,8 @@ export class LeaseTransformationService {
 					structuredTerms?.owner?.address?.street ?? property.address.street,
 				city: structuredTerms?.owner?.address?.city ?? property.address.city,
 				state: ownerState,
-				zipCode:
-					structuredTerms?.owner?.address?.zipCode ?? property.address.zipCode
+				postal_code:
+					structuredTerms?.owner?.address?.postal_code ?? property.address.postal_code
 			},
 			phone: structuredTerms?.owner?.phone ?? '',
 			email: structuredTerms?.owner?.email ?? '',
@@ -421,15 +423,15 @@ export class LeaseTransformationService {
 		const leaseTerms: LeaseFormData['leaseTerms'] = {
 			type:
 				(structuredTerms?.leaseTerms?.type as LeaseTermType) ?? 'fixed_term',
-			startDate: leaseData.startDate,
-			...(leaseData.endDate ? { endDate: leaseData.endDate } : {}),
-			rentAmount: leaseData.rentAmount,
+			start_date: leaseData.start_date,
+			...(leaseData.end_date ? { end_date: leaseData.end_date } : {}),
+			rent_amount: leaseData.rent_amount,
 			currency: 'USD',
 			dueDate: structuredTerms?.leaseTerms?.dueDate ?? 1,
 			lateFee: structuredTerms?.leaseTerms?.lateFee ?? { enabled: false },
-			securityDeposit: {
-				amount: leaseData.securityDeposit || 0,
-				monthsRent: structuredTerms?.leaseTerms?.securityDeposit?.monthsRent ?? 1
+			security_deposit: {
+				amount: leaseData.security_deposit || 0,
+				monthsRent: structuredTerms?.leaseTerms?.security_deposit?.monthsRent ?? 1
 			}
 		}
 

@@ -4,19 +4,19 @@ import * as path from 'path'
 import { SupabaseService } from '../../database/supabase.service'
 
 export interface GeneratedReportData {
-	userId: string
+	user_id: string
 	reportType: string
 	reportName: string
 	format: 'pdf' | 'excel'
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 	fileBuffer?: Buffer
 	metadata?: Record<string, unknown>
 }
 
 export interface GeneratedReportRecord {
 	id: string
-	userId: string
+	user_id: string
 	reportType: string
 	reportName: string
 	format: string
@@ -24,12 +24,12 @@ export interface GeneratedReportRecord {
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 	metadata: Record<string, unknown>
 	errorMessage: string | null
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 }
 
 @Injectable()
@@ -49,8 +49,8 @@ export class GeneratedReportService {
 		}
 	}
 
-	private async getUserDirectory(userId: string): Promise<string> {
-		const userDir = path.join(this.reportsDir, userId)
+	private async getUserDirectory(user_id: string): Promise<string> {
+		const userDir = path.join(this.reportsDir, user_id)
 		await fs.mkdir(userDir, { recursive: true })
 		return userDir
 	}
@@ -69,25 +69,25 @@ export class GeneratedReportService {
 			let fileSize: number | null = null
 
 			if (data.fileBuffer) {
-				const userDir = await this.getUserDirectory(data.userId)
+				const userDir = await this.getUserDirectory(data.user_id)
 				filePath = path.join(userDir, filename)
 				await fs.writeFile(filePath, data.fileBuffer)
 				fileSize = data.fileBuffer.length
 			}
 
 			// Insert record into database
-			const { data: record, error } = await client
-				.from('generated_report')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const { data: record, error } = await (client.from('generated_report' as any) as any)
 				.insert({
-					userId: data.userId,
+					user_id: data.user_id,
 					reportType: data.reportType,
 					reportName: data.reportName,
 					format: data.format,
 					status: 'completed',
 					filePath,
 					fileSize,
-					startDate: data.startDate,
-					endDate: data.endDate,
+					start_date: data.start_date,
+					end_date: data.end_date,
 					metadata: (data.metadata || {}) as never
 				})
 				.select()
@@ -106,7 +106,7 @@ export class GeneratedReportService {
 	}
 
 	async findAll(
-		userId: string,
+		user_id: string,
 		options?: { limit?: number; offset?: number }
 	): Promise<{ reports: GeneratedReportRecord[]; total: number }> {
 		const client = this.supabase.getAdminClient()
@@ -115,17 +115,21 @@ export class GeneratedReportService {
 
 		try {
 			// Get total count
-			const { count } = await client
-				.from('generated_report')
+			const { count } = await (
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				client.from('generated_report' as any) as any
+			)
 				.select('*', { count: 'exact', head: true })
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 
 			// Get paginated records
-			const { data: reports, error } = await client
-				.from('generated_report')
+			const { data: reports, error } = await (
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				client.from('generated_report' as any) as any
+			)
 				.select('*')
-				.eq('userId', userId)
-				.order('createdAt', { ascending: false })
+				.eq('user_id', user_id)
+				.order('created_at', { ascending: false })
 				.range(offset, offset + limit - 1)
 
 			if (error) {
@@ -134,7 +138,7 @@ export class GeneratedReportService {
 			}
 
 			return {
-				reports: (reports || []) as GeneratedReportRecord[],
+				reports: (reports || []) as unknown as GeneratedReportRecord[],
 				total: count || 0
 			}
 		} catch (error) {
@@ -144,32 +148,33 @@ export class GeneratedReportService {
 	}
 
 	async findOne(
-		userId: string,
+		user_id: string,
 		reportId: string
 	): Promise<GeneratedReportRecord> {
 		const client = this.supabase.getAdminClient()
 
 		try {
 			const { data: report, error } = await client
-				.from('generated_report')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('generated_report' as any)
 				.select('*')
 				.eq('id', reportId)
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 				.single()
 
 			if (error || !report) {
 				throw new NotFoundException(`Report not found: ${reportId}`)
 			}
 
-			return report as GeneratedReportRecord
+			return report as unknown as GeneratedReportRecord
 		} catch (error) {
 			this.logger.error(`Failed to fetch report ${reportId}: ${error}`)
 			throw error
 		}
 	}
 
-	async getFileBuffer(userId: string, reportId: string): Promise<Buffer> {
-		const report = await this.findOne(userId, reportId)
+	async getFileBuffer(user_id: string, reportId: string): Promise<Buffer> {
+		const report = await this.findOne(user_id, reportId)
 
 		if (!report.filePath) {
 			throw new NotFoundException(`File not found for report: ${reportId}`)
@@ -184,12 +189,12 @@ export class GeneratedReportService {
 		}
 	}
 
-	async delete(userId: string, reportId: string): Promise<void> {
+	async delete(user_id: string, reportId: string): Promise<void> {
 		const client = this.supabase.getAdminClient()
 
 		try {
 			// Get report first to delete file
-			const report = await this.findOne(userId, reportId)
+			const report = await this.findOne(user_id, reportId)
 
 			// Delete file if exists
 			if (report.filePath) {
@@ -202,10 +207,11 @@ export class GeneratedReportService {
 
 			// Delete database record
 			const { error } = await client
-				.from('generated_report')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('generated_report' as any)
 				.delete()
 				.eq('id', reportId)
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 
 			if (error) {
 				this.logger.error(

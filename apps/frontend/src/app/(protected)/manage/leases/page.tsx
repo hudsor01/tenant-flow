@@ -75,7 +75,7 @@ export default function LeasesPage() {
 			clearOnDefault: true
 		}
 	)
-	const [selectedLeaseId, setSelectedLeaseId] = useState<string | null>(null)
+	const [selectedlease_id, setSelectedlease_id] = useState<string | null>(null)
 	const [_selectedLease, setSelectedLease] = useState<Lease | null>(null)
 	const [newEndDate, setNewEndDate] = useState('')
 	const [terminationReason, setTerminationReason] = useState('')
@@ -117,18 +117,18 @@ export default function LeasesPage() {
 	const terminateLeaseMutation = useTerminateLease()
 
 	const _handleRenewSubmit = async () => {
-		if (!selectedLeaseId || !newEndDate) {
+		if (!selectedlease_id || !newEndDate) {
 			toast.error('Please enter a new end date')
 			return
 		}
 
 		try {
 			await renewLeaseMutation.mutateAsync({
-				id: selectedLeaseId,
+				id: selectedlease_id,
 				newEndDate
 			})
 			toast.success('Lease renewed successfully')
-			setSelectedLeaseId(null)
+			setSelectedlease_id(null)
 			setNewEndDate('')
 		} catch (error) {
 			handleMutationError(error, 'Renew lease')
@@ -136,12 +136,12 @@ export default function LeasesPage() {
 	}
 
 	const _handleTerminateSubmit = async () => {
-		if (!selectedLeaseId) return
+		if (!selectedlease_id) return
 
 		try {
 			const payload: { id: string; terminationDate: string; reason?: string } =
 				{
-					id: selectedLeaseId,
+					id: selectedlease_id,
 					terminationDate: new Date().toISOString().split('T')[0]!
 				}
 			if (terminationReason) {
@@ -149,30 +149,30 @@ export default function LeasesPage() {
 			}
 			await terminateLeaseMutation.mutateAsync(payload)
 			toast.success('Lease terminated successfully')
-			setSelectedLeaseId(null)
+			setSelectedlease_id(null)
 			setTerminationReason('')
 		} catch (error) {
 			handleMutationError(error, 'Terminate lease')
 		}
 	}
 
-	const handleRenew = (leaseId: string) => {
-		openModal(`renew-lease-${leaseId}`)
+	const handleRenew = (lease_id: string) => {
+		openModal(`renew-lease-${lease_id}`)
 	}
 
-	const handleTerminate = (leaseId: string) => {
-		openModal(`terminate-lease-${leaseId}`)
+	const handleTerminate = (lease_id: string) => {
+		openModal(`terminate-lease-${lease_id}`)
 	}
 
-	const handleDelete = (leaseId: string) => {
+	const handleDelete = (lease_id: string) => {
 		if (confirm('Are you sure you want to delete this lease?')) {
-			deleteLeaseMutation.mutate(leaseId)
+			deleteLeaseMutation.mutate(lease_id)
 		}
 	}
 
-	const getStatusBadge = (status: Lease['status']) => {
+	const getStatusBadge = (status: string) => {
 		const variants: Record<
-			Lease['status'],
+			string,
 			'default' | 'secondary' | 'destructive' | 'outline'
 		> = {
 			ACTIVE: 'default',
@@ -296,29 +296,29 @@ export default function LeasesPage() {
 								<TableRow key={lease.id}>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											{lease.tenantId
-												? `${lease.tenantId.substring(0, 8)}...`
+											{lease?.primary_tenant_id ?? ''
+												? `${lease?.primary_tenant_id ?? ''.substring(0, 8)}...`
 												: 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											{lease.unitId
-												? `${lease.unitId.substring(0, 8)}...`
+											{lease.unit_id
+												? `${lease.unit_id.substring(0, 8)}...`
 												: 'N/A'}
 										</span>
 									</TableCell>
-									<TableCell>{formatDate(lease.startDate)}</TableCell>
+									<TableCell>{formatDate(lease.start_date)}</TableCell>
 									<TableCell>
-										{lease.endDate
-											? formatDate(lease.endDate)
+										{lease.end_date
+											? formatDate(lease.end_date)
 											: 'Month-to-Month'}
 									</TableCell>
-									<TableCell>${lease.rentAmount.toLocaleString()}</TableCell>
+									<TableCell>${lease.rent_amount.toLocaleString()}</TableCell>
 									<TableCell>
-										${lease.securityDeposit.toLocaleString()}
+										${lease.security_deposit.toLocaleString()}
 									</TableCell>
-									<TableCell>{getStatusBadge(lease.status)}</TableCell>
+									<TableCell>{getStatusBadge(lease.lease_status)}</TableCell>
 									<TableCell>
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
@@ -338,7 +338,7 @@ export default function LeasesPage() {
 													<Edit className="mr-2 size-4" />
 													Edit Lease
 												</DropdownMenuItem>
-												{lease.status === 'ACTIVE' && (
+												{lease.lease_status === 'ACTIVE' && (
 													<>
 														<DropdownMenuItem
 															onClick={() => handleRenew(lease.id)}
@@ -445,10 +445,10 @@ export default function LeasesPage() {
 			{/* Lease Dialogs */}
 			{leases.map(lease => (
 				<>
-					<RenewLeaseDialog key={`renew-${lease.id}`} leaseId={lease.id} />
+					<RenewLeaseDialog key={`renew-${lease.id}`} lease_id={lease.id} />
 					<TerminateLeaseDialog
 						key={`terminate-${lease.id}`}
-						leaseId={lease.id}
+						lease_id={lease.id}
 					/>
 				</>
 			))}

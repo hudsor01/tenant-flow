@@ -71,7 +71,7 @@ export function LoginForm({
 		<div className={cn('w-full', className)}>
 			{/* Progress restoration indicator */}
 			{progressLoading && (
-				<div className="mb-4 p-2 bg-muted/30 rounded text-center">
+				<div className="mb-[var(--spacing-4)] p-[var(--spacing-2)] bg-muted/30 rounded text-center">
 					<p className="text-xs text-muted-foreground">
 						Restoring your progress...
 					</p>
@@ -79,7 +79,7 @@ export function LoginForm({
 			)}
 
 			{progressData && !progressLoading && (
-				<div className="mb-4 p-2 bg-primary/5 border border-primary/10 rounded text-center">
+				<div className="mb-[var(--spacing-4)] p-[var(--spacing-2)] bg-primary/5 border border-primary/10 rounded text-center">
 					<p className="text-xs text-primary/80">
 						Welcome back! Your email has been restored.
 					</p>
@@ -91,13 +91,12 @@ export function LoginForm({
 					e.preventDefault()
 					form.handleSubmit()
 				}}
-				className="space-y-5"
+				className="space-y-[var(--spacing-5)]"
 			>
 				{authError && (
-					<div
-						role="alert"
+				<div
 						data-testid="auth-error"
-						className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-sm text-destructive"
+						className="p-[var(--spacing-3)] rounded-md border border-destructive/30 bg-destructive/10 text-sm text-destructive"
 					>
 						<span className="font-medium">Sign in failed:</span> {authError}
 					</div>
@@ -185,12 +184,12 @@ export function LoginForm({
 				</form.Field>
 
 				{/* Actions Section */}
-				<div className="space-y-4 pt-3">
+				<div className="space-y-[var(--spacing-4)] pt-[var(--spacing-3)]">
 					{/* Submit Button */}
 					<Button
 						type="submit"
 						data-testid="login-button"
-						className="w-full h-11 text-sm font-medium"
+						className="w-full h-[var(--spacing-11)] text-sm font-medium"
 						disabled={isLoading || form.state.isSubmitting}
 					>
 						{isLoading || form.state.isSubmitting ? 'Signing in...' : 'Sign In'}
@@ -202,7 +201,7 @@ export function LoginForm({
 							<span className="w-full border-t border-border/60" />
 						</div>
 						<div className="relative flex justify-center text-xs">
-							<span className="bg-background px-3 text-muted-foreground">
+							<span className="bg-background px-[var(--spacing-3)] text-muted-foreground">
 								or continue with
 							</span>
 						</div>

@@ -17,14 +17,14 @@ describe('LateFeesController', () => {
 
 	const generateUUID = () => randomUUID()
 
-	const createMockRequest = (userId?: string): AuthenticatedRequest => {
-		if (userId === undefined) {
+	const createMockRequest = (user_id?: string): AuthenticatedRequest => {
+		if (user_id === undefined) {
 			const req = {} as Partial<AuthenticatedRequest>
 			return req as AuthenticatedRequest
 		}
 
 		return {
-			user: { id: userId }
+			user: { id: user_id }
 		} as unknown as AuthenticatedRequest
 	}
 
@@ -40,15 +40,15 @@ describe('LateFeesController', () => {
 		return (targetMock: jest.Mock) => targetMock
 	}
 
-	const mockLeaseOwnershipSuccess = (leaseId?: string) => {
-		const unitId = generateUUID()
-		const propertyId = leaseId ?? generateUUID()
+	const mockLeaseOwnershipSuccess = (lease_id?: string) => {
+		const unit_id = generateUUID()
+		const property_id = lease_id ?? generateUUID()
 
 		const inner = (targetMock?: jest.Mock) => {
 			enqueueSingleResponses(
-				{ data: { unitId }, error: null },
-				{ data: { propertyId }, error: null },
-				{ data: { id: propertyId }, error: null }
+				{ data: { unit_id }, error: null },
+				{ data: { property_id }, error: null },
+				{ data: { id: property_id }, error: null }
 			)
 
 			// If a mock is provided, return it so callers can chain mockResolvedValue
@@ -122,10 +122,10 @@ describe('LateFeesController', () => {
 
 	describe('getConfig', () => {
 		it('should return late fee configuration for a lease', async () => {
-			const leaseId = generateUUID()
-			const userId = generateUUID()
+			const lease_id = generateUUID()
+			const user_id = generateUUID()
 			const mockConfig = {
-				leaseId,
+				lease_id,
 				gracePeriodDays: 5,
 				flatFeeAmount: 50
 			}
@@ -135,13 +135,13 @@ describe('LateFeesController', () => {
 			).mockResolvedValue(mockConfig)
 
 			const result = await controller.getConfig(
-				createMockRequest(userId),
-				leaseId
+				createMockRequest(user_id),
+				lease_id
 			)
 
 			expect(result.success).toBe(true)
 			expect(result.data).toEqual(mockConfig)
-			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(leaseId, 'mock-jwt-token')
+			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(lease_id, 'mock-jwt-token')
 		})
 
 		it('should throw BadRequestException when service not available', async () => {
@@ -161,16 +161,16 @@ describe('LateFeesController', () => {
 
 	describe('updateConfig', () => {
 		it('should update late fee configuration', async () => {
-			const leaseId = generateUUID()
-			const userId = generateUUID()
+			const lease_id = generateUUID()
+			const user_id = generateUUID()
 
 			mockLeaseOwnershipSuccess()(
 				mockLateFeesService.updateLateFeeConfig as jest.Mock
 			).mockResolvedValue(undefined)
 
 			const result = await controller.updateConfig(
-				createMockRequest(userId),
-				leaseId,
+				createMockRequest(user_id),
+				lease_id,
 				7,
 				75
 			)
@@ -178,10 +178,10 @@ describe('LateFeesController', () => {
 			expect(result.success).toBe(true)
 			expect(result.message).toContain('updated successfully')
 			expect(mockLateFeesService.updateLateFeeConfig).toHaveBeenCalledWith(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
 				{
-					leaseId,
+					lease_id,
 					gracePeriodDays: 7,
 					flatFeeAmount: 75
 				}
@@ -189,14 +189,14 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid grace period (negative)', async () => {
-			const userId = generateUUID()
-			const leaseId = generateUUID()
-			mockLeaseOwnershipSuccess(leaseId)
+			const user_id = generateUUID()
+			const lease_id = generateUUID()
+			mockLeaseOwnershipSuccess(lease_id)
 
 			await expect(
 				controller.updateConfig(
-					createMockRequest(userId),
-					leaseId,
+					createMockRequest(user_id),
+					lease_id,
 					-1,
 					undefined
 				)
@@ -204,14 +204,14 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid grace period (too large)', async () => {
-			const userId = generateUUID()
-			const leaseId = generateUUID()
-			mockLeaseOwnershipSuccess(leaseId)
+			const user_id = generateUUID()
+			const lease_id = generateUUID()
+			mockLeaseOwnershipSuccess(lease_id)
 
 			await expect(
 				controller.updateConfig(
-					createMockRequest(userId),
-					leaseId,
+					createMockRequest(user_id),
+					lease_id,
 					31,
 					undefined
 				)
@@ -219,14 +219,14 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid flat fee (negative)', async () => {
-			const userId = generateUUID()
-			const leaseId = generateUUID()
-			mockLeaseOwnershipSuccess(leaseId)
+			const user_id = generateUUID()
+			const lease_id = generateUUID()
+			mockLeaseOwnershipSuccess(lease_id)
 
 			await expect(
 				controller.updateConfig(
-					createMockRequest(userId),
-					leaseId,
+					createMockRequest(user_id),
+					lease_id,
 					undefined,
 					-10
 				)
@@ -234,14 +234,14 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid flat fee (too large)', async () => {
-			const userId = generateUUID()
-			const leaseId = generateUUID()
-			mockLeaseOwnershipSuccess(leaseId)
+			const user_id = generateUUID()
+			const lease_id = generateUUID()
+			mockLeaseOwnershipSuccess(lease_id)
 
 			await expect(
 				controller.updateConfig(
-					createMockRequest(userId),
-					leaseId,
+					createMockRequest(user_id),
+					lease_id,
 					undefined,
 					501
 				)
@@ -251,12 +251,12 @@ describe('LateFeesController', () => {
 
 	describe('calculateLateFee', () => {
 		it('should calculate late fee for given parameters', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 			const mockCalculation = {
-				rentAmount: 1500,
+				rent_amount: 1500,
 				daysLate: 10,
 				gracePeriod: 5,
-				lateFeeAmount: 50,
+				late_fee_amount: 50,
 				shouldApplyFee: true,
 				reason: '5 days past due'
 			}
@@ -266,7 +266,7 @@ describe('LateFeesController', () => {
 			)
 
 			const result = await controller.calculateLateFee(
-				createMockRequest(userId),
+				createMockRequest(user_id),
 				1500,
 				10,
 				undefined
@@ -281,29 +281,29 @@ describe('LateFeesController', () => {
 			)
 		})
 
-		it('should calculate late fee with lease config when leaseId provided', async () => {
-			const userId = generateUUID()
-			const leaseId = generateUUID()
+		it('should calculate late fee with lease config when lease_id provided', async () => {
+			const user_id = generateUUID()
+			const lease_id = generateUUID()
 			const mockConfig = {
 				gracePeriodDays: 7,
 				flatFeeAmount: 75
 			}
 
-			mockLeaseOwnershipSuccess(leaseId)(
+			mockLeaseOwnershipSuccess(lease_id)(
 				mockLateFeesService.getLateFeeConfig as jest.Mock
 			).mockResolvedValue(mockConfig)
 			;(mockLateFeesService.calculateLateFee as jest.Mock).mockReturnValue({
-				lateFeeAmount: 75
+				late_fee_amount: 75
 			})
 
 			await controller.calculateLateFee(
-				createMockRequest(userId),
+				createMockRequest(user_id),
 				1500,
 				10,
-				leaseId
+				lease_id
 			)
 
-			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(leaseId, 'mock-jwt-token')
+			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(lease_id, 'mock-jwt-token')
 			expect(mockLateFeesService.calculateLateFee).toHaveBeenCalledWith(
 				1500,
 				10,
@@ -312,19 +312,19 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid rent amount (zero)', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
-				controller.calculateLateFee(createMockRequest(userId), 0, 10, undefined)
+				controller.calculateLateFee(createMockRequest(user_id), 0, 10, undefined)
 			).rejects.toThrow('Rent amount must be positive')
 		})
 
 		it('should reject invalid rent amount (negative)', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
 				controller.calculateLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					-100,
 					10,
 					undefined
@@ -333,11 +333,11 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid days late (negative)', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
 				controller.calculateLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					1500,
 					-1,
 					undefined
@@ -348,8 +348,8 @@ describe('LateFeesController', () => {
 
 	describe('getOverduePayments', () => {
 		it('should return overdue payments for a lease', async () => {
-			const leaseId = generateUUID()
-			const userId = generateUUID()
+			const lease_id = generateUUID()
+			const user_id = generateUUID()
 			const mockConfig = { gracePeriodDays: 5 }
 			const mockPayments = [
 				{
@@ -364,13 +364,13 @@ describe('LateFeesController', () => {
 			;(mockLateFeesService.getLateFeeConfig as jest.Mock).mockResolvedValue(
 				mockConfig
 			)
-			mockLeaseOwnershipSuccess(leaseId)(
+			mockLeaseOwnershipSuccess(lease_id)(
 				mockLateFeesService.getOverduePayments as jest.Mock
 			).mockResolvedValue(mockPayments)
 
 			const result = await controller.getOverduePayments(
-				createMockRequest(userId),
-				leaseId
+				createMockRequest(user_id),
+				lease_id
 			)
 
 			expect(result.success).toBe(true)
@@ -381,24 +381,24 @@ describe('LateFeesController', () => {
 
 	describe('processLateFees', () => {
 		it('should process late fees for all overdue payments', async () => {
-			const leaseId = generateUUID()
-			const userId = generateUUID()
+			const lease_id = generateUUID()
+			const user_id = generateUUID()
 			const mockResult = {
 				processed: 2,
 				totalLateFees: 100,
 				details: [
-					{ paymentId: generateUUID(), lateFeeAmount: 50, daysOverdue: 10 },
-					{ paymentId: generateUUID(), lateFeeAmount: 50, daysOverdue: 12 }
+					{ paymentId: generateUUID(), late_fee_amount: 50, daysOverdue: 10 },
+					{ paymentId: generateUUID(), late_fee_amount: 50, daysOverdue: 12 }
 				]
 			}
 
-			mockLeaseOwnershipSuccess(leaseId)(
+			mockLeaseOwnershipSuccess(lease_id)(
 				mockLateFeesService.processLateFees as jest.Mock
 			).mockResolvedValue(mockResult)
 
 			const result = await controller.processLateFees(
-				createMockRequest(userId),
-				leaseId
+				createMockRequest(user_id),
+				lease_id
 			)
 
 			expect(result.success).toBe(true)
@@ -411,15 +411,15 @@ describe('LateFeesController', () => {
 	describe('applyLateFee', () => {
 		it('should apply late fee to specific payment', async () => {
 			const paymentId = generateUUID()
-			const leaseId = generateUUID()
-			const userId = generateUUID()
+			const lease_id = generateUUID()
+			const user_id = generateUUID()
 			const mockPayment = {
 				id: paymentId,
-				leaseId,
+				lease_id,
 				stripePaymentIntentId: 'pi_123'
 			}
 			const mockUser = {
-				stripeCustomerId: 'cus_123'
+				stripe_customer_id: 'cus_123'
 			}
 			const mockInvoiceItem = {
 				id: 'ii_123',
@@ -434,7 +434,7 @@ describe('LateFeesController', () => {
 			).mockResolvedValue(mockInvoiceItem)
 
 			const result = await controller.applyLateFee(
-				createMockRequest(userId),
+				createMockRequest(user_id),
 				paymentId,
 				50,
 				'Payment overdue'
@@ -445,7 +445,7 @@ describe('LateFeesController', () => {
 			expect(result.data.amount).toBe(50)
 			expect(mockLateFeesService.applyLateFeeToInvoice).toHaveBeenCalledWith(
 				'cus_123',
-				leaseId,
+				lease_id,
 				paymentId,
 				50,
 				'Payment overdue',
@@ -454,11 +454,11 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid late fee amount (zero)', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
 				controller.applyLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					generateUUID(),
 					0,
 					'test'
@@ -467,11 +467,11 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject invalid late fee amount (negative)', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
 				controller.applyLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					generateUUID(),
 					-10,
 					'test'
@@ -480,11 +480,11 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject empty reason', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
 				controller.applyLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					generateUUID(),
 					50,
 					''
@@ -493,11 +493,11 @@ describe('LateFeesController', () => {
 		})
 
 		it('should reject whitespace-only reason', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			await expect(
 				controller.applyLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					generateUUID(),
 					50,
 					'   '
@@ -506,7 +506,7 @@ describe('LateFeesController', () => {
 		})
 
 		it('should throw BadRequestException when payment not found', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 
 			enqueueSingleResponses({
 				data: null,
@@ -515,7 +515,7 @@ describe('LateFeesController', () => {
 
 			await expect(
 				controller.applyLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					generateUUID(),
 					50,
 					'test'
@@ -524,10 +524,10 @@ describe('LateFeesController', () => {
 		})
 
 		it('should throw BadRequestException when user Stripe customer not found', async () => {
-			const userId = generateUUID()
+			const user_id = generateUUID()
 			const mockPayment = {
 				id: generateUUID(),
-				leaseId: generateUUID()
+				lease_id: generateUUID()
 			}
 
 			enqueueSingleResponses(
@@ -537,7 +537,7 @@ describe('LateFeesController', () => {
 
 			await expect(
 				controller.applyLateFee(
-					createMockRequest(userId),
+					createMockRequest(user_id),
 					generateUUID(),
 					50,
 					'test'

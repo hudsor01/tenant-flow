@@ -26,15 +26,16 @@ export class MetricsController extends PrometheusController {
 	@Throttle({ default: { ttl: 60000, limit: 60 } })
 	@Get()
 	async getMetrics(@Req() req: Request, @Res() res: Response) {
-		// Validate bearer token
-		const authHeader = req.headers.authorization
-		const expectedToken = this.configService.get('PROMETHEUS_BEARER_TOKEN')
+		// Get the expected token from configuration
+		const expectedToken = this.configService.get<string>('PROMETHEUS_BEARER_TOKEN')
 
-		// Fail fast if token not configured
+		// In production, always require authentication - disable endpoint if token not configured
 		if (!expectedToken) {
-			this.logger.error('PROMETHEUS_BEARER_TOKEN not configured')
-			throw new UnauthorizedException('Metrics endpoint not configured')
+			this.logger.error('Prometheus metrics endpoint accessed but PROMETHEUS_BEARER_TOKEN not configured - endpoint disabled for security')
+			throw new UnauthorizedException('Metrics endpoint disabled - bearer token not configured')
 		}
+
+		const authHeader = req.headers.authorization
 
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
 			this.logger.warn('Metrics access attempt without Bearer token', {

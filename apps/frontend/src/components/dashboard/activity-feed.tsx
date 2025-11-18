@@ -4,7 +4,8 @@ import { ActivityFeedSkeleton } from '#components/dashboard/activity-feed-skelet
 import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { useDashboardActivity } from '#hooks/api/use-dashboard'
+import { useOwnerDashboardActivity } from '#hooks/api/use-owner-dashboard'
+import { useCategoryLoading } from '#hooks/use-loading'
 import { cn } from '#lib/utils'
 import {
 	getActivityBadgeClass,
@@ -21,6 +22,7 @@ import {
 	User,
 	Wrench
 } from 'lucide-react'
+import React from 'react'
 
 // Type assertion to handle Supabase entityType as enum
 type ActivityWithEnum = Omit<Activity, 'entityType'> & {
@@ -65,11 +67,11 @@ const getIconForType = (type: string) => {
 			return DollarSign
 		case 'maintenance':
 			return Wrench
-		case 'lease':
+		case 'leases':
 			return CheckCircle
-		case 'property':
+		case 'properties':
 			return Home
-		case 'tenant':
+		case 'tenants':
 			return User
 		default:
 			return Clock
@@ -77,12 +79,22 @@ const getIconForType = (type: string) => {
 }
 
 export function ActivityFeed() {
-	const { data, isLoading, error } = useDashboardActivity()
+	const { data, isLoading, error } = useOwnerDashboardActivity()
+	const { startLoading, stopLoading, isLoading: isGlobalLoading } = useCategoryLoading('dashboard')
+
+	// Sync React Query loading state with global loading store
+	React.useEffect(() => {
+		if (isLoading) {
+			startLoading('Loading recent activities...')
+		} else {
+			stopLoading()
+		}
+	}, [isLoading, startLoading, stopLoading])
 
 	// Extract activities array from the response and cast to proper enum type
 	const activities: ActivityWithEnum[] = (data?.activities || []) as ActivityWithEnum[]
 
-	if (isLoading) {
+	if (isGlobalLoading) {
 		return <ActivityFeedSkeleton items={4} />
 	}
 
@@ -142,7 +154,7 @@ export function ActivityFeed() {
 							</p>
 							<div className="dashboard-activity-meta">
 								<Clock className="size-3" aria-hidden="true" />
-								{formatDate(activity.createdAt)}
+								{formatDate(activity.created_at)}
 							</div>
 						</div>
 					</div>

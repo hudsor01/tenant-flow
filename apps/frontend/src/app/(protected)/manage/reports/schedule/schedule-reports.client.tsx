@@ -107,15 +107,15 @@ export function ScheduleReportsClient({ initialSchedules }: ScheduleReportsClien
 	const [dayOfWeek, setDayOfWeek] = useState<number>(1)
 	const [dayOfMonth, setDayOfMonth] = useState<number>(1)
 	const [hour, setHour] = useState<number>(9)
-	const [startDate, setStartDate] = useState('')
-	const [endDate, setEndDate] = useState('')
+	const [start_date, setstart_date] = useState('')
+	const [end_date, setEndDate] = useState('')
 
 	useEffect(() => {
 		// Set default date range (last 30 days)
 		const end = new Date()
 		const start = new Date()
 		start.setDate(start.getDate() - 30)
-		setStartDate(start.toISOString().split('T')[0] || '')
+		setstart_date(start.toISOString().split('T')[0] || '')
 		setEndDate(end.toISOString().split('T')[0] || '')
 
 		// Find the table container for portal rendering
@@ -143,11 +143,11 @@ export function ScheduleReportsClient({ initialSchedules }: ScheduleReportsClien
 				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
 			}
 
-			if (startDate) {
-				scheduleParams.startDate = startDate
+			if (start_date) {
+				scheduleParams.start_date = start_date
 			}
-			if (endDate) {
-				scheduleParams.endDate = endDate
+			if (end_date) {
+				scheduleParams.end_date = end_date
 			}
 			if (frequency === 'weekly' && dayOfWeek !== undefined) {
 				scheduleParams.dayOfWeek = dayOfWeek
@@ -180,7 +180,7 @@ export function ScheduleReportsClient({ initialSchedules }: ScheduleReportsClien
 
 		try {
 			setIsDeleting(true)
-			
+
 			// Optimistically remove the schedule
 			startTransition(() => {
 				updateSchedules({ type: 'delete', id: deleteScheduleId })
@@ -381,22 +381,22 @@ export function ScheduleReportsClient({ initialSchedules }: ScheduleReportsClien
 							</h3>
 							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="space-y-2">
-									<Label htmlFor="startDate">Start Date</Label>
+									<Label htmlFor="start_date">Start Date</Label>
 									<Input
-										id="startDate"
+										id="start_date"
 										type="date"
-										value={startDate}
-										onChange={e => setStartDate(e.target.value)}
+										value={start_date}
+										onChange={e => setstart_date(e.target.value)}
 										required
 									/>
 								</div>
 
 								<div className="space-y-2">
-									<Label htmlFor="endDate">End Date</Label>
+									<Label htmlFor="end_date">End Date</Label>
 									<Input
-										id="endDate"
+										id="end_date"
 										type="date"
-										value={endDate}
+										value={end_date}
 										onChange={e => setEndDate(e.target.value)}
 										required
 									/>

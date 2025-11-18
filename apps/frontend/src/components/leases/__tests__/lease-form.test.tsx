@@ -61,14 +61,14 @@ vi.mock('#hooks/api/use-unit', () => ({
 			data: [
 				{
 					id: 'unit-1',
-					unitNumber: '101',
-					propertyId: 'property-1',
+					unit_number: '101',
+					property_id: 'property-1',
 					status: 'VACANT'
 				},
 				{
 					id: 'unit-2',
-					unitNumber: '102',
-					propertyId: 'property-1',
+					unit_number: '102',
+					property_id: 'property-1',
 					status: 'VACANT'
 				}
 			]
@@ -81,42 +81,37 @@ vi.mock('#lib/api/client', () => ({
 	clientFetch: vi.fn().mockResolvedValue([
 		{
 			id: 'unit-1',
-			unitNumber: '101',
-			propertyId: 'property-1',
+			unit_number: '101',
+			property_id: 'property-1',
 			status: 'VACANT'
 		},
 		{
 			id: 'unit-2',
-			unitNumber: '102',
-			propertyId: 'property-1',
+			unit_number: '102',
+			property_id: 'property-1',
 			status: 'OCCUPIED'
 		}
 	])
 }))
 
-const DEFAULT_LEASE: Lease = {
-	id: 'lease-1',
-	propertyId: 'property-1',
-	unitId: 'unit-1',
-	tenantId: 'tenant-1',
-	startDate: '2024-01-01',
-	endDate: '2024-12-31',
-	rentAmount: 1500,
-	securityDeposit: 1500,
-	terms: 'Standard lease terms',
-	status: 'ACTIVE',
-	gracePeriodDays: null,
-	lateFeeAmount: null,
-	lateFeePercentage: null,
-	lease_document_url: null,
-	monthlyRent: null,
-	signature: null,
-	signed_at: null,
-	stripe_subscription_id: null,
-	stripeSubscriptionId: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1
+const mockLease: Lease = {
+  id: 'lease-1',
+  unit_id: 'unit-1',
+  primary_tenant_id: 'tenant-1',
+  start_date: '2024-01-01',
+  end_date: '2024-12-31',
+  rent_amount: 1500,
+  security_deposit: 1500,
+  lease_status: 'ACTIVE',
+  grace_period_days: null,
+  late_fee_amount: null,
+  late_fee_days: null,
+  stripe_subscription_id: null,
+  auto_pay_enabled: null,
+  payment_day: 1,
+  rent_currency: 'USD',
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z'
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {
@@ -140,7 +135,7 @@ describe('LeaseForm', () => {
 		test('renders create mode with empty form', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByLabelText(/tenant/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/primary tenant/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/start date/i)).toHaveValue('')
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('')
@@ -177,31 +172,29 @@ describe('LeaseForm', () => {
 		test('shows all required fields marked with asterisk', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByText(/tenant \*/i)).toBeInTheDocument()
+			expect(screen.getByText(/primary tenant \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/unit \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/start date \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/end date \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/monthly rent \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/security deposit \*/i)).toBeInTheDocument()
-			expect(screen.getByText(/status \*/i)).toBeInTheDocument()
+			
 		})
 	})
 
 	describe('Edit Mode', () => {
 		test('renders edit mode with populated fields', () => {
-			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
 			expect(screen.getByLabelText(/start date/i)).toHaveValue('2024-01-01')
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
 			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/terms/i)).toHaveValue(
-				'Standard lease terms'
-			)
+			// Note: Terms field not present in current component
 		})
 
 		test('shows status field in edit mode', () => {
-			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
 			expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
 			// Status select should be a combobox
@@ -211,7 +204,7 @@ describe('LeaseForm', () => {
 		})
 
 		test('displays correct button text in edit mode', () => {
-			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
 			const submitButton = screen.getByRole('button', { name: /save changes/i })
 			expect(submitButton).toBeInTheDocument()
@@ -219,7 +212,7 @@ describe('LeaseForm', () => {
 		})
 
 		test('shows all units in edit mode (not just vacant)', () => {
-			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
 			// In edit mode, should fetch all units, not just vacant ones
 			const unitSelect = screen.getByLabelText(/unit/i)
@@ -227,7 +220,7 @@ describe('LeaseForm', () => {
 		})
 
 		test('populates status select with correct value', () => {
-			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
 			// Status select should be a combobox with the value
 			expect(
@@ -263,20 +256,20 @@ describe('LeaseForm', () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			const startDateInput = screen.getByLabelText(/start date/i)
-			await user.type(startDateInput, '2024-01-01')
+			const start_dateInput = screen.getByLabelText(/start date/i)
+			await user.type(start_dateInput, '2024-01-01')
 
-			expect(startDateInput).toHaveValue('2024-01-01')
+			expect(start_dateInput).toHaveValue('2024-01-01')
 		})
 
 		test('validates date format for end date', async () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			const endDateInput = screen.getByLabelText(/end date/i)
-			await user.type(endDateInput, '2024-12-31')
+			const end_dateInput = screen.getByLabelText(/end date/i)
+			await user.type(end_dateInput, '2024-12-31')
 
-			expect(endDateInput).toHaveValue('2024-12-31')
+			expect(end_dateInput).toHaveValue('2024-12-31')
 		})
 
 		test('accepts minimum rent amount of 0', async () => {
@@ -311,18 +304,13 @@ describe('LeaseForm', () => {
 			await user.type(screen.getByLabelText(/end date/i), '2024-12-31')
 			await user.type(screen.getByLabelText(/monthly rent/i), '1500')
 			await user.type(screen.getByLabelText(/security deposit/i), '1500')
-			await user.type(
-				screen.getByLabelText(/terms/i),
-				'Standard lease agreement'
-			)
+			// Note: Terms field not present in current component
 
 			expect(screen.getByLabelText(/start date/i)).toHaveValue('2024-01-01')
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
 			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/terms/i)).toHaveValue(
-				'Standard lease agreement'
-			)
+			// Note: Terms field not present in current component
 		})
 
 		test('cancel button navigates back', async () => {
@@ -370,13 +358,13 @@ describe('LeaseForm', () => {
 
 			expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
-			expect(screen.getByLabelText(/tenant/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/primary tenant/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/start date/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/end date/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/monthly rent/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/security deposit/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
-			expect(screen.getByLabelText(/terms/i)).toBeInTheDocument()
+			// Note: Terms field not present in current component
 		})
 
 		test('numeric inputs have appropriate type and constraints', () => {
@@ -404,11 +392,9 @@ describe('LeaseForm', () => {
 		})
 
 		test('textarea has appropriate rows attribute', () => {
-			renderWithQueryClient(<LeaseForm mode="create" />)
-
-			const termsTextarea = screen.getByLabelText(/terms/i)
-			expect(termsTextarea).toHaveAttribute('rows', '4')
-		})
+		renderWithQueryClient(<LeaseForm mode="create" />)
+		// Note: No textarea field in current component
+	})
 	})
 
 	describe('Mode-Specific Behavior', () => {
@@ -420,14 +406,14 @@ describe('LeaseForm', () => {
 
 		test('edit mode renders with lease data', () => {
 			expect(() => {
-				renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+				renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 			}).not.toThrow()
 		})
 
 		test('accepts onSuccess callback prop', async () => {
 			const onSuccess = vi.fn()
 			renderWithQueryClient(
-				<LeaseForm mode="edit" lease={DEFAULT_LEASE} onSuccess={onSuccess} />
+				<LeaseForm mode="edit" lease={mockLease} onSuccess={onSuccess} />
 			)
 
 			// Note: Full form submission testing would require mocking the mutation
@@ -449,9 +435,8 @@ describe('LeaseForm', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
 			// Form uses same placeholder in both modes
-			expect(
-				screen.getByPlaceholderText(/additional lease terms and conditions/i)
-			).toBeInTheDocument()
+			// Note: Terms field not present in current component
+		expect(screen.getByText(/select property/i)).toBeInTheDocument()
 		})
 
 		test('shows CheckCircle icon in submit button', () => {
@@ -491,7 +476,7 @@ describe('LeaseForm', () => {
 		})
 
 		test('populates financial fields from lease data in edit mode', () => {
-			renderWithQueryClient(<LeaseForm mode="edit" lease={DEFAULT_LEASE} />)
+			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
 			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
 			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)

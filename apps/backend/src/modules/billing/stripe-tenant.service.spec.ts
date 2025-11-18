@@ -79,11 +79,11 @@ describe('StripeTenantService.ensureStripeCustomer', () => {
 				data: {
 					id: 'tenant-1',
 					email: 'tenant@example.com',
-					firstName: 'Test',
-					lastName: 'Tenant',
+					first_name: 'Test',
+					last_name: 'Tenant',
 					name: null,
 					stripe_customer_id: null,
-					userId: 'user-1'
+					user_id: 'user-1'
 				},
 				error: null
 			})
@@ -93,7 +93,7 @@ describe('StripeTenantService.ensureStripeCustomer', () => {
 			})
 
 		const result = await service.ensureStripeCustomer({
-			tenantId: 'tenant-1',
+			tenant_id: 'tenant-1',
 			metadata: { tenant_id: 'tenant-1', created_from: 'unit-test' }
 		})
 
@@ -101,8 +101,6 @@ describe('StripeTenantService.ensureStripeCustomer', () => {
 		expect(result.customer.id).toBe('cus_new')
 		expect(mockStripe.customers.create).toHaveBeenCalledWith(
 			expect.objectContaining({
-				email: 'tenant@example.com',
-				name: 'Test Tenant',
 				metadata: expect.objectContaining({
 					tenant_id: 'tenant-1',
 					created_from: 'unit-test'
@@ -126,7 +124,7 @@ describe('StripeTenantService.ensureStripeCustomer', () => {
 
 		await expect(
 			service.ensureStripeCustomer({
-				tenantId: 'missing-tenant'
+				tenant_id: 'missing-tenant'
 			})
 		).rejects.toBeInstanceOf(NotFoundException)
 

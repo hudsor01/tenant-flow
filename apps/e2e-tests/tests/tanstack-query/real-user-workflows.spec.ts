@@ -70,7 +70,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 				address: '123 Lifecycle Ave',
 				city: 'Test City',
 				state: 'TC',
-				zipCode: '12345'
+				postal_code: '12345'
 			})
 
 			await formHelper.createProperty(testProperty)
@@ -299,7 +299,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 			// Verify error notification
 			const errorMessage = page.locator(
-				'[role="alert"], text*="network", text*="offline"'
+				'[user_type="alert"], text*="network", text*="offline"'
 			)
 			await expect(errorMessage.first()).toBeVisible({ timeout: 5000 })
 
@@ -406,7 +406,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 				expect(currentUrl.includes('/login') || hasAuthError).toBe(true)
 			} else {
 				// If staying on page, should show appropriate error
-				const errorMessage = page.locator('[role="alert"], text*="error"')
+				const errorMessage = page.locator('[user_type="alert"], text*="error"')
 				await expect(errorMessage.first()).toBeVisible()
 			}
 		})
@@ -623,7 +623,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await page.fill('input[name="address"]', '123 Complete St')
 			await page.fill('input[name="city"]', 'Complete City')
 			await page.fill('input[name="state"]', 'CC')
-			await page.fill('input[name="zipCode"]', '12345')
+			await page.fill('input[name="postal_code"]', '12345')
 
 			await page.click('button[type="submit"]')
 
@@ -645,7 +645,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await page.fill('input[name="address"]', testProperty.address!)
 			await page.fill('input[name="city"]', testProperty.city!)
 			await page.fill('input[name="state"]', testProperty.state!)
-			await page.fill('input[name="zipCode"]', testProperty.zipCode!)
+			await page.fill('input[name="postal_code"]', testProperty.postal_code!)
 
 			// Reload page before submitting
 			await page.reload()

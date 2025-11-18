@@ -1,6 +1,6 @@
 /**
  * Property Statistics Service
- * 
+ *
  * Calculates property-related dashboard metrics
  * Extracted from dashboard.service.ts for CLAUDE.md compliance (<30 lines/method)
  */
@@ -23,13 +23,13 @@ export class PropertyStatsService {
 	/**
 	 * Calculate property statistics for a user
 	 */
-	async calculate(internalUserId: string): Promise<PropertyStats> {
+	async calculate(internaluser_id: string): Promise<PropertyStats> {
 		const client = this.supabase.getAdminClient()
 
 		const { data, error } = await client
-			.from('property')
+			.from('properties')
 			.select('id, status')
-			.eq('ownerId', internalUserId)
+			.eq('property_owner_id', internaluser_id)
 
 		if (error) {
 			this.logger.error('Failed to fetch properties', { error: error.message })
@@ -52,13 +52,13 @@ export class PropertyStatsService {
 	/**
 	 * Get property IDs for a user
 	 */
-	async getPropertyIds(internalUserId: string): Promise<string[]> {
+	async getproperty_ids(internaluser_id: string): Promise<string[]> {
 		const client = this.supabase.getAdminClient()
 
 		const { data, error } = await client
-			.from('property')
+			.from('properties')
 			.select('id')
-			.eq('ownerId', internalUserId)
+			.eq('property_owner_id', internaluser_id)
 
 		if (error) {
 			this.logger.error('Failed to fetch property IDs', { error: error.message })

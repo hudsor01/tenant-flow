@@ -45,13 +45,13 @@ export class UnitsController {
 	@Get()
 	async findAll(
 		@JwtToken() token: string,
-		@Query('propertyId', new DefaultValuePipe(null))
-		propertyId: string | null,
+		@Query('property_id', new DefaultValuePipe(null))
+		property_id: string | null,
 		@Query('status', new DefaultValuePipe(null)) status: string | null,
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy: string,
+		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string
 	) {
 		// Validate enum values using native JavaScript (accept both cases)
@@ -66,7 +66,7 @@ export class UnitsController {
 			status = upperStatus
 		}
 		if (
-			!['createdAt', 'unitNumber', 'bedrooms', 'rent', 'status'].includes(
+			!['created_at', 'unit_number', 'bedrooms', 'rent', 'status'].includes(
 				sortBy
 			)
 		) {
@@ -78,7 +78,7 @@ export class UnitsController {
 
 		// RLS: Pass JWT token to service layer
 		return this.unitsService.findAll(token, {
-			propertyId,
+			property_id,
 			status,
 			search,
 			limit,
@@ -101,12 +101,12 @@ export class UnitsController {
 	 * Get units by property
 	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
-	@Get('by-property/:propertyId')
+	@Get('by-property/:property_id')
 	async findByProperty(
 		@JwtToken() token: string,
-		@Param('propertyId', ParseUUIDPipe) propertyId: string
+		@Param('property_id', ParseUUIDPipe) property_id: string
 	) {
-		return this.unitsService.findByProperty(token, propertyId)
+		return this.unitsService.findByProperty(token, property_id)
 	}
 
 	/**

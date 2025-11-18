@@ -185,20 +185,20 @@ const navigation: {
 
 export function AppSidebar() {
 	return (
-		<div className="flex h-full flex-col gap-4 p-4">
+		<div className="flex h-full flex-col gap-[var(--spacing-4)] p-[var(--spacing-4)]">
 			{/* Card 1: Brand */}
-			<div className="rounded-xl border border-gray-200 bg-white p-4">
-				<Link href="/" className="flex items-center gap-2">
-					<Home className="size-5" />
+			<div className="rounded-xl border border-gray-200 bg-white p-[var(--spacing-4)]">
+				<Link href="/" className="flex items-center gap-[var(--spacing-2)]">
+					<Home className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
 					<span className="text-base font-semibold">TenantFlow</span>
 				</Link>
 			</div>
 
 			{/* Card 2: Search */}
-			<div className="rounded-xl border border-gray-200 bg-white p-4">
-				<div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+			<div className="rounded-xl border border-gray-200 bg-white p-[var(--spacing-4)]">
+				<div className="flex items-center gap-[var(--spacing-2)] rounded-lg border border-gray-200 bg-gray-50 px-[var(--spacing-3)] py-[var(--spacing-2)]">
 					<span className="text-sm text-gray-400">Search</span>
-					<kbd className="ml-auto rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-500">
+					<kbd className="ml-auto rounded border border-gray-300 px-[var(--spacing-2)] py-[var(--spacing-0_5)] text-xs text-gray-500">
 						⌘K
 					</kbd>
 				</div>
@@ -206,14 +206,14 @@ export function AppSidebar() {
 
 			{/* Card 3: Navigation */}
 			<div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white">
-				<div className="flex h-full flex-col overflow-y-auto p-4">
+				<div className="flex h-full flex-col overflow-y-auto p-[var(--spacing-4)]">
 					<NavMain items={navigation.navMain} />
 					<NavDocuments items={navigation.documents} />
 				</div>
 			</div>
 
 			{/* Card 4: Settings */}
-			<div className="rounded-xl border border-gray-200 bg-white p-2">
+			<div className="rounded-xl border border-gray-200 bg-white p-[var(--spacing-2)]">
 				<NavSecondary items={navigation.navSecondary} />
 			</div>
 		</div>

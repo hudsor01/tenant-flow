@@ -48,7 +48,7 @@ import { useModalStore } from '#stores/modal-store'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
-	const [emergencyContactEditing, setEmergencyContactEditing] = useState(false)
+	const [emergency_contactEditing, setEmergencyContactEditing] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const { openModal } = useModalStore()
 	const { user, isLoading: authLoading } = useCurrentUser()
@@ -56,28 +56,28 @@ export default function TenantProfilePage() {
 	const updateProfile = useSupabaseUpdateProfile()
 
 	// Notification preferences (get tenant ID from profile)
-	const tenantId = profile?.id || ''
+	const tenant_id = profile?.id || ''
 	const { data: notificationPrefs, isLoading: prefsLoading } =
-		useNotificationPreferences(tenantId)
-	const updatePreferences = useUpdateNotificationPreferences(tenantId)
+		useNotificationPreferences(tenant_id)
+	const updatePreferences = useUpdateNotificationPreferences(tenant_id)
 
 	// Emergency contact
-	const { data: emergencyContact, isLoading: emergencyContactLoading } =
-		useEmergencyContact(tenantId)
-	const createEmergencyContact = useCreateEmergencyContact(tenantId)
-	const updateEmergencyContact = useUpdateEmergencyContact(tenantId)
-	const deleteEmergencyContact = useDeleteEmergencyContact(tenantId)
+	const { data: emergency_contact, isLoading: emergency_contactLoading } =
+		useEmergencyContact(tenant_id)
+	const createEmergencyContact = useCreateEmergencyContact(tenant_id)
+	const updateEmergencyContact = useUpdateEmergencyContact(tenant_id)
+	const deleteEmergencyContact = useDeleteEmergencyContact(tenant_id)
 
 	// Form state
 	const [formData, setFormData] = useState({
-		firstName: '',
-		lastName: '',
+		first_name: '',
+		last_name: '',
 		email: '',
 		phone: ''
 	})
 
 	// Emergency contact form state
-	const [emergencyContactForm, setEmergencyContactForm] = useState({
+	const [emergency_contactForm, setEmergencyContactForm] = useState({
 		contactName: '',
 		relationship: '',
 		phoneNumber: '',
@@ -89,11 +89,11 @@ export default function TenantProfilePage() {
 		if (user || profile) {
 			queueMicrotask(() => {
 				setFormData({
-					firstName: (user?.user_metadata?.firstName ||
-						profile?.firstName ||
+					first_name: (user?.user_metadata?.first_name ||
+						profile?.first_name ||
 						'') as string,
-					lastName: (user?.user_metadata?.lastName ||
-						profile?.lastName ||
+					last_name: (user?.user_metadata?.last_name ||
+						profile?.last_name ||
 						'') as string,
 					email: (user?.email || '') as string,
 					phone: (user?.user_metadata?.phone || '') as string
@@ -104,15 +104,15 @@ export default function TenantProfilePage() {
 
 	// Sync emergency contact form with data
 	useEffect(() => {
-		if (emergencyContact) {
+		if (emergency_contact) {
 			setEmergencyContactForm({
-				contactName: emergencyContact.contactName,
-				relationship: emergencyContact.relationship,
-				phoneNumber: emergencyContact.phoneNumber,
-				email: emergencyContact.email || ''
+				contactName: emergency_contact.contactName,
+				relationship: emergency_contact.relationship,
+				phoneNumber: emergency_contact.phoneNumber,
+				email: emergency_contact.email || ''
 			})
 		}
-	}, [emergencyContact])
+	}, [emergency_contact])
 
 	const handleSave = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -140,8 +140,8 @@ export default function TenantProfilePage() {
 
 		try {
 			await updateProfile.mutateAsync({
-				firstName: formData.firstName,
-				lastName: formData.lastName,
+				first_name: formData.first_name,
+				last_name: formData.last_name,
 				phone: formData.phone
 			})
 			setIsEditing(false)
@@ -165,7 +165,7 @@ export default function TenantProfilePage() {
 	}
 
 	const handleEmergencyContactChange = (
-		field: keyof typeof emergencyContactForm,
+		field: keyof typeof emergency_contactForm,
 		value: string
 	) => {
 		setEmergencyContactForm(prev => ({ ...prev, [field]: value }))
@@ -176,17 +176,17 @@ export default function TenantProfilePage() {
 
 		// Validate required fields
 		if (
-			!emergencyContactForm.contactName ||
-			!emergencyContactForm.relationship ||
-			!emergencyContactForm.phoneNumber
+			!emergency_contactForm.contactName ||
+			!emergency_contactForm.relationship ||
+			!emergency_contactForm.phoneNumber
 		) {
 			toast.error('Please fill in all required fields')
 			return
 		}
 
 		// Validate email format if provided
-		if (emergencyContactForm.email && emergencyContactForm.email.trim()) {
-			const emailResult = emailSchema.safeParse(emergencyContactForm.email)
+		if (emergency_contactForm.email && emergency_contactForm.email.trim()) {
+			const emailResult = emailSchema.safeParse(emergency_contactForm.email)
 			if (!emailResult.success) {
 				toast.error('Emergency contact email is invalid')
 				return
@@ -194,21 +194,21 @@ export default function TenantProfilePage() {
 		}
 
 		try {
-			if (emergencyContact) {
+			if (emergency_contact) {
 				// Update existing contact
 				await updateEmergencyContact.mutateAsync({
-					contactName: emergencyContactForm.contactName,
-					relationship: emergencyContactForm.relationship,
-					phoneNumber: emergencyContactForm.phoneNumber,
-					email: emergencyContactForm.email || null
+					contactName: emergency_contactForm.contactName,
+					relationship: emergency_contactForm.relationship,
+					phoneNumber: emergency_contactForm.phoneNumber,
+					email: emergency_contactForm.email || null
 				})
 			} else {
 				// Create new contact
 				await createEmergencyContact.mutateAsync({
-					contactName: emergencyContactForm.contactName,
-					relationship: emergencyContactForm.relationship,
-					phoneNumber: emergencyContactForm.phoneNumber,
-					email: emergencyContactForm.email || null
+					contactName: emergency_contactForm.contactName,
+					relationship: emergency_contactForm.relationship,
+					phoneNumber: emergency_contactForm.phoneNumber,
+					email: emergency_contactForm.email || null
 				})
 			}
 			setEmergencyContactEditing(false)
@@ -218,12 +218,12 @@ export default function TenantProfilePage() {
 	}
 
 	const handleDeleteEmergencyContact = async () => {
-		if (!emergencyContact) return
+		if (!emergency_contact) return
 		setDeleteDialogOpen(true)
 	}
 
 	const confirmDeleteEmergencyContact = async () => {
-		if (!emergencyContact) return
+		if (!emergency_contact) return
 
 		try {
 			await deleteEmergencyContact.mutateAsync()
@@ -241,13 +241,13 @@ export default function TenantProfilePage() {
 	}
 
 	const handleCancelEmergencyContactEdit = () => {
-		if (emergencyContact) {
+		if (emergency_contact) {
 			// Reset to existing data
 			setEmergencyContactForm({
-				contactName: emergencyContact.contactName,
-				relationship: emergencyContact.relationship,
-				phoneNumber: emergencyContact.phoneNumber,
-				email: emergencyContact.email || ''
+				contactName: emergency_contact.contactName,
+				relationship: emergency_contact.relationship,
+				phoneNumber: emergency_contact.phoneNumber,
+				email: emergency_contact.email || ''
 			})
 		} else {
 			// Clear form
@@ -282,8 +282,8 @@ export default function TenantProfilePage() {
 							<input
 								type="text"
 								className="input w-full"
-								value={formData.firstName}
-								onChange={e => handleChange('firstName', e.target.value)}
+								value={formData.first_name}
+								onChange={e => handleChange('first_name', e.target.value)}
 								disabled={!isEditing || isLoading}
 								required
 							/>
@@ -294,8 +294,8 @@ export default function TenantProfilePage() {
 							<input
 								type="text"
 								className="input w-full"
-								value={formData.lastName}
-								onChange={e => handleChange('lastName', e.target.value)}
+								value={formData.last_name}
+								onChange={e => handleChange('last_name', e.target.value)}
 								disabled={!isEditing || isLoading}
 								required
 							/>
@@ -360,11 +360,11 @@ export default function TenantProfilePage() {
 										// Reset form
 										if (user || profile) {
 											setFormData({
-												firstName: (user?.user_metadata?.firstName ||
-													profile?.firstName ||
+												first_name: (user?.user_metadata?.first_name ||
+													profile?.first_name ||
 													'') as string,
-												lastName: (user?.user_metadata?.lastName ||
-													profile?.lastName ||
+												last_name: (user?.user_metadata?.last_name ||
+													profile?.last_name ||
 													'') as string,
 												email: (user?.email || '') as string,
 												phone: (user?.user_metadata?.phone || '') as string
@@ -394,13 +394,13 @@ export default function TenantProfilePage() {
 								type="text"
 								className="input w-full"
 								placeholder="Full name"
-								value={emergencyContactForm.contactName}
+								value={emergency_contactForm.contactName}
 								onChange={e =>
 									handleEmergencyContactChange('contactName', e.target.value)
 								}
 								disabled={
-									!emergencyContactEditing ||
-									emergencyContactLoading ||
+									!emergency_contactEditing ||
+									emergency_contactLoading ||
 									createEmergencyContact.isPending ||
 									updateEmergencyContact.isPending
 								}
@@ -414,13 +414,13 @@ export default function TenantProfilePage() {
 								type="text"
 								className="input w-full"
 								placeholder="e.g., Spouse, Parent"
-								value={emergencyContactForm.relationship}
+								value={emergency_contactForm.relationship}
 								onChange={e =>
 									handleEmergencyContactChange('relationship', e.target.value)
 								}
 								disabled={
-									!emergencyContactEditing ||
-									emergencyContactLoading ||
+									!emergency_contactEditing ||
+									emergency_contactLoading ||
 									createEmergencyContact.isPending ||
 									updateEmergencyContact.isPending
 								}
@@ -440,13 +440,13 @@ export default function TenantProfilePage() {
 							type="tel"
 							className="input w-full"
 							placeholder="(555) 123-4567"
-							value={emergencyContactForm.phoneNumber}
+							value={emergency_contactForm.phoneNumber}
 							onChange={e =>
 								handleEmergencyContactChange('phoneNumber', e.target.value)
 							}
 							disabled={
-								!emergencyContactEditing ||
-								emergencyContactLoading ||
+								!emergency_contactEditing ||
+								emergency_contactLoading ||
 								createEmergencyContact.isPending ||
 								updateEmergencyContact.isPending
 							}
@@ -465,45 +465,45 @@ export default function TenantProfilePage() {
 							type="email"
 							className="input w-full"
 							placeholder="emergency@example.com"
-							value={emergencyContactForm.email}
+							value={emergency_contactForm.email}
 							onChange={e =>
 								handleEmergencyContactChange('email', e.target.value)
 							}
 							disabled={
-								!emergencyContactEditing ||
-								emergencyContactLoading ||
+								!emergency_contactEditing ||
+								emergency_contactLoading ||
 								createEmergencyContact.isPending ||
 								updateEmergencyContact.isPending
 							}
 						/>
 					</Field>
 
-					{!emergencyContact && !emergencyContactEditing && (
+					{!emergency_contact && !emergency_contactEditing && (
 						<p className="text-sm text-center text-muted-foreground py-4">
 							No emergency contact on file
 						</p>
 					)}
 
 					<div className="flex gap-4">
-						{!emergencyContactEditing ? (
+						{!emergency_contactEditing ? (
 							<>
 								<Button
 									type="button"
 									variant="outline"
 									onClick={() => setEmergencyContactEditing(true)}
-									disabled={emergencyContactLoading}
+									disabled={emergency_contactLoading}
 								>
-									{emergencyContact
+									{emergency_contact
 										? 'Edit Emergency Contact'
 										: 'Add Emergency Contact'}
 								</Button>
-								{emergencyContact && (
+								{emergency_contact && (
 									<Button
 										type="button"
 										variant="outline"
 										onClick={handleDeleteEmergencyContact}
 										disabled={
-											emergencyContactLoading ||
+											emergency_contactLoading ||
 											deleteEmergencyContact.isPending
 										}
 									>
@@ -516,7 +516,7 @@ export default function TenantProfilePage() {
 								<Button
 									type="submit"
 									disabled={
-										emergencyContactLoading ||
+										emergency_contactLoading ||
 										createEmergencyContact.isPending ||
 										updateEmergencyContact.isPending
 									}
@@ -531,7 +531,7 @@ export default function TenantProfilePage() {
 									variant="outline"
 									onClick={handleCancelEmergencyContactEdit}
 									disabled={
-										emergencyContactLoading ||
+										emergency_contactLoading ||
 										createEmergencyContact.isPending ||
 										updateEmergencyContact.isPending
 									}

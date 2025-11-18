@@ -47,7 +47,12 @@ export class StripeWebhookController {
 	 * IMPORTANT: Requires raw body for signature verification
 	 * Configure in main.ts with rawBody: true
 	 */
-	@Throttle({ default: { ttl: 60000, limit: 30 } })
+	@Throttle({
+		default: {
+			ttl: 60000, // TODO: Use CONFIG_DEFAULTS.WEBHOOK_THROTTLE_TTL from config.constants.ts
+			limit: 30 // TODO: Use CONFIG_DEFAULTS.WEBHOOK_THROTTLE_LIMIT from config.constants.ts
+		}
+	})
 	@Post()
 	async handleWebhook(
 		@Req() req: RawBodyRequest<Request>,
@@ -92,7 +97,7 @@ export class StripeWebhookController {
 
 		// Check for duplicate events (idempotency)
 		const { data: existing } = await client
-			.from('processed_stripe_events')
+			.from('stripe_processed_events')
 			.select('id')
 			.eq('stripe_event_id', event.id)
 			.single()
@@ -128,19 +133,23 @@ export class StripeWebhookController {
 			this.prometheus?.recordWebhookProcessing(event.type, duration, 'success')
 
 			// Store in processed_stripe_events table
-			await client.from('processed_stripe_events').insert({
+			await client.from('stripe_processed_events').insert({
 				stripe_event_id: event.id,
-				event_type: event.type,
 				processed_at: new Date().toISOString()
 			})
 
 			// Store metrics in webhook_metrics table
-			await client.from('webhook_metrics').insert({
-				stripe_event_id: event.id,
+			const currentDate = new Date().toISOString().split('T')[0] as string
+			await client.from('webhook_metrics').upsert({
+				date: currentDate,
 				event_type: event.type,
-				processing_duration_ms: duration,
-				success: true,
+				total_received: 1,
+				total_processed: 1,
+				total_failed: 0,
+				average_latency_ms: duration,
 				created_at: new Date().toISOString()
+			}, {
+				onConflict: 'date,event_type'
 			})
 
 			return { received: true }
@@ -153,25 +162,25 @@ export class StripeWebhookController {
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
 
-			// Store in webhook_failures table
-			await client.from('webhook_failures').insert({
-				stripe_event_id: event.id,
-				event_type: event.type,
-				raw_event_data: JSON.parse(JSON.stringify(event)),
-				error_message: error instanceof Error ? error.message : String(error),
-				error_stack: error instanceof Error ? (error.stack || null) : null,
-				failure_reason: 'processing_error',
-				retry_count: 0,
-				created_at: new Date().toISOString()
+			// Store failure details in webhook_attempts table
+			await client.from('webhook_attempts').insert({
+				webhook_event_id: event.id,
+				status: 'failed',
+				failure_reason: 'processing_error'
 			})
 
 			// Store metrics
-			await client.from('webhook_metrics').insert({
-				stripe_event_id: event.id,
+			const currentDate = new Date().toISOString().split('T')[0] as string
+			await client.from('webhook_metrics').upsert({
+				date: currentDate,
 				event_type: event.type,
-				processing_duration_ms: duration,
-				success: false,
+				total_received: 1,
+				total_processed: 0,
+				total_failed: 1,
+				average_latency_ms: duration,
 				created_at: new Date().toISOString()
+			}, {
+				onConflict: 'date,event_type'
 			})
 
 			this.logger.error('Webhook processing failed', {

@@ -6,7 +6,7 @@ import { useUserProfile } from './use-user-profile'
 /**
  * Hook to get user's role
  */
-export function useUserRole(): {
+export function useUser(): {
 	role: UserRole | null
 	isOwner: boolean
 	isManager: boolean
@@ -18,7 +18,7 @@ export function useUserRole(): {
 } {
 	const { data: profile, isLoading } = useUserProfile()
 
-	const role = profile?.role || null
+	const role = (profile?.user_type as UserRole) || null
 	const isOwner = role === 'OWNER'
 	const isManager = role === 'MANAGER'
 	const isTenant = role === 'TENANT'
@@ -43,12 +43,14 @@ export function useUserRole(): {
 }
 
 /**
- * Hook to check if user has specific role(s)
+ * Hook to check if user has specific user_type(s)
  */
 export function useHasRole(requiredRoles: UserRole | UserRole[]): boolean {
-	const { role } = useUserRole()
+	const { role } = useUser()
 	if (!role) return false
 
 	const roles = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
 	return roles.includes(role)
 }
+
+export const useUserRole = useUser

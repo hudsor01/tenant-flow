@@ -44,30 +44,30 @@ describe('UnitsController', () => {
 
 	const createMockUnit = (overrides: Partial<Unit> = {}): Unit => ({
 		id: 'unit-default',
-		propertyId: 'property-123',
-		unitNumber: '101',
+		property_id: 'property-123',
+		unit_number: '101',
 		bedrooms: 2,
 		bathrooms: 1,
-		squareFeet: null,
-		rent: 150000,
+		square_feet: null,
+		rent_amount: 150000,
+		rent_currency: 'USD',
+		rent_period: 'MONTHLY',
 		status: 'VACANT',
-		lastInspectionDate: null,
-		version: 1,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
 		...overrides
 	})
 
 	const validCreateUnitRequest: CreateUnitRequest = {
-		propertyId: 'property-123',
-		unitNumber: '101',
+		property_id: 'property-123',
+		unit_number: '101',
 		rent: 150000,
 		bedrooms: 2,
 		bathrooms: 1
 	}
 
 	const validUpdateUnitRequest: UpdateUnitRequest = {
-		unitNumber: '102'
+		unit_number: '102'
 	}
 
 	beforeEach(async () => {
@@ -75,7 +75,7 @@ describe('UnitsController', () => {
 
 		// Mock CurrentUserProvider
 		mockCurrentUserProvider = {
-			getUserId: jest.fn().mockResolvedValue(mockUser.id),
+			getuser_id: jest.fn().mockResolvedValue(mockUser.id),
 			getUser: jest.fn().mockResolvedValue(mockUser),
 			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
 			isAuthenticated: jest.fn().mockResolvedValue(true),
@@ -107,12 +107,12 @@ describe('UnitsController', () => {
 
 			const result = await controller.findAll(
 				createMockRequest({ user: mockUser }) as any,
-				null, // propertyId
+				null, // property_id
 				null, // status
 				null, // search
 				10, // limit
 				0, // offset
-				'createdAt', // sortBy
+				'created_at', // sortBy
 				'desc' // sortOrder
 			)
 
@@ -129,7 +129,7 @@ describe('UnitsController', () => {
 					null,
 					10,
 					0,
-					'createdAt',
+					'created_at',
 					'desc'
 				)
 			).rejects.toThrow(BadRequestException)
@@ -155,7 +155,7 @@ describe('UnitsController', () => {
 
 	describe('findByProperty', () => {
 		it('should return units for a specific property', async () => {
-			const mockUnits = [createMockUnit({ id: 'unit-1', propertyId: 'property-123' })]
+			const mockUnits = [createMockUnit({ id: 'unit-1', property_id: 'property-123' })]
 
 			mockUnitsServiceInstance.findByProperty.mockResolvedValue(mockUnits)
 
@@ -223,7 +223,7 @@ describe('UnitsController', () => {
 		it('should update a unit', async () => {
 			const mockUnit = createMockUnit({
 				id: 'unit-1',
-				unitNumber: '102'
+				unit_number: '102'
 			})
 
 			mockUnitsServiceInstance.update.mockResolvedValue(mockUnit)

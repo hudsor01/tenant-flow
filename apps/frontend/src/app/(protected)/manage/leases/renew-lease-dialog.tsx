@@ -43,8 +43,8 @@ export function RenewLeaseDialog({
 	const renewLease = useRenewLease()
 
 	// Default to 12 months from current end date
-	const defaultNewEndDate = lease.endDate
-		? format(addYears(parseISO(lease.endDate), 1), 'yyyy-MM-dd')
+	const defaultNewEndDate = lease.end_date
+		? format(addYears(parseISO(lease.end_date), 1), 'yyyy-MM-dd')
 		: format(addYears(new Date(), 1), 'yyyy-MM-dd')
 
 	const [newEndDate, setNewEndDate] = useState<string>(defaultNewEndDate)
@@ -52,7 +52,7 @@ export function RenewLeaseDialog({
 	const [showRentIncrease, setShowRentIncrease] = useState(false)
 
 	// Calculate rent increase percentage
-	const currentRent = lease.rentAmount || 0
+	const currentRent = lease.rent_amount || 0
 	const newRent = newRentAmount ? Number(newRentAmount) : currentRent
 	const rentIncreaseAmount = newRent - currentRent
 	const rentIncreasePercent =
@@ -69,8 +69,8 @@ export function RenewLeaseDialog({
 
 		// Validate date is after current end date
 		if (
-			lease.endDate &&
-			!isAfter(parseISO(newEndDate), parseISO(lease.endDate))
+			lease.end_date &&
+			!isAfter(parseISO(newEndDate), parseISO(lease.end_date))
 		) {
 			toast.error('New end date must be after current end date')
 			return
@@ -104,8 +104,8 @@ export function RenewLeaseDialog({
 
 	// Quick date presets
 	const handleQuickDate = (months: number) => {
-		if (!lease.endDate) return
-		const newDate = addMonths(parseISO(lease.endDate), months)
+		if (!lease.end_date) return
+		const newDate = addMonths(parseISO(lease.end_date), months)
 		setNewEndDate(format(newDate, 'yyyy-MM-dd'))
 	}
 
@@ -143,11 +143,11 @@ export function RenewLeaseDialog({
 											{formatCurrency(currentRent)}/mo
 										</span>
 									</div>
-									{lease.endDate && (
+									{lease.end_date && (
 										<div className="flex justify-between">
 											<span>Ends:</span>
 											<span className="font-medium text-label-primary">
-												{format(parseISO(lease.endDate), 'MMM d, yyyy')}
+												{format(parseISO(lease.end_date), 'MMM d, yyyy')}
 											</span>
 										</div>
 									)}
@@ -170,9 +170,9 @@ export function RenewLeaseDialog({
 										value={newEndDate}
 										onChange={e => setNewEndDate(e.target.value)}
 										min={
-											lease.endDate
+											lease.end_date
 												? format(
-														addMonths(parseISO(lease.endDate), 1),
+														addMonths(parseISO(lease.end_date), 1),
 														'yyyy-MM-dd'
 													)
 												: undefined
@@ -182,7 +182,7 @@ export function RenewLeaseDialog({
 								</div>
 
 								{/* Quick date buttons */}
-								{lease.endDate && (
+								{lease.end_date && (
 									<div className="flex gap-2">
 										<Button
 											type="button"

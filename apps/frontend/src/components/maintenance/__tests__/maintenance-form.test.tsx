@@ -38,7 +38,7 @@ vi.mock('#lib/api/client', () => ({
 					address: '123 Main St',
 					city: 'San Francisco',
 					state: 'CA',
-					zipCode: '94105'
+					postal_code: '94105'
 				},
 				{
 					id: 'property-2',
@@ -46,7 +46,7 @@ vi.mock('#lib/api/client', () => ({
 					address: '456 Beach Ave',
 					city: 'San Diego',
 					state: 'CA',
-					zipCode: '92101'
+					postal_code: '92101'
 				}
 			])
 		}
@@ -54,20 +54,20 @@ vi.mock('#lib/api/client', () => ({
 			return Promise.resolve([
 				{
 					id: 'unit-1',
-					unitNumber: '101',
-					propertyId: 'property-1',
+					unit_number: '101',
+					property_id: 'property-1',
 					status: 'OCCUPIED'
 				},
 				{
 					id: 'unit-2',
-					unitNumber: '102',
-					propertyId: 'property-1',
+					unit_number: '102',
+					property_id: 'property-1',
 					status: 'VACANT'
 				},
 				{
 					id: 'unit-3',
-					unitNumber: '201',
-					propertyId: 'property-2',
+					unit_number: '201',
+					property_id: 'property-2',
 					status: 'OCCUPIED'
 				}
 			])
@@ -76,27 +76,24 @@ vi.mock('#lib/api/client', () => ({
 	})
 }))
 
-const DEFAULT_REQUEST: MaintenanceRequest = {
+const mockMaintenanceRequest: MaintenanceRequest = {
 	id: 'request-1',
-	unitId: 'unit-1',
-	requestedBy: 'tenant-1',
-	title: 'Kitchen faucet leak',
+	unit_id: 'unit-1',
+	requested_by: 'tenant-1',
 	description: 'The kitchen faucet is dripping continuously',
 	priority: 'MEDIUM',
-	category: 'PLUMBING',
 	status: 'OPEN',
-	estimatedCost: 150,
-	actualCost: null,
-	allowEntry: true,
-	assignedTo: null,
-	completedAt: null,
-	contactPhone: null,
-	notes: null,
-	photos: null,
-	preferredDate: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1
+	estimated_cost: 150,
+	actual_cost: null,
+	assigned_to: null,
+	completed_at: null,
+	inspection_date: null,
+	inspection_findings: null,
+	inspector_id: null,
+	scheduled_date: null,
+	tenant_id: 'tenant-1',
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z'
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {
@@ -126,8 +123,7 @@ describe('MaintenanceForm', () => {
 				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
 			})
 
-			expect(screen.getByLabelText(/title/i)).toHaveValue('')
-			expect(screen.getByLabelText(/description/i)).toHaveValue('')
+		expect(screen.getByLabelText(/description/i)).toHaveValue('')
 			expect(
 				screen.getByRole('button', { name: /create request/i })
 			).toBeInTheDocument()
@@ -142,7 +138,7 @@ describe('MaintenanceForm', () => {
 				expect(screen.getByText(/property \*/i)).toBeInTheDocument()
 			})
 
-			expect(screen.getByText(/title \*/i)).toBeInTheDocument()
+			expect(screen.getByText(/description \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/description \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/priority \*/i)).toBeInTheDocument()
 		})
@@ -225,19 +221,16 @@ describe('MaintenanceForm', () => {
 		test('renders edit mode with populated fields', async () => {
 			await act(async () => {
 				renderWithQueryClient(
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				)
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/title/i)).toHaveValue(
-					'Kitchen faucet leak'
+				expect(screen.getByLabelText(/description/i)).toHaveValue(
+					'The kitchen faucet is dripping continuously'
 				)
 			})
 
-			expect(screen.getByLabelText(/description/i)).toHaveValue(
-				'The kitchen faucet is dripping continuously'
-			)
 			expect(
 				screen.getByRole('button', { name: /save changes/i })
 			).toBeInTheDocument()
@@ -246,7 +239,7 @@ describe('MaintenanceForm', () => {
 		test('displays correct button text in edit mode', async () => {
 			await act(async () => {
 				renderWithQueryClient(
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				)
 			})
 
@@ -262,7 +255,7 @@ describe('MaintenanceForm', () => {
 		test('populates priority select with correct value', async () => {
 			await act(async () => {
 				renderWithQueryClient(
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				)
 			})
 
@@ -281,7 +274,7 @@ describe('MaintenanceForm', () => {
 		test('populates category select with correct value', async () => {
 			await act(async () => {
 				renderWithQueryClient(
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				)
 			})
 
@@ -300,7 +293,7 @@ describe('MaintenanceForm', () => {
 		test('populates estimated cost field', async () => {
 			await act(async () => {
 				renderWithQueryClient(
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				)
 			})
 
@@ -358,25 +351,6 @@ describe('MaintenanceForm', () => {
 	})
 
 	describe('Form Validation', () => {
-		test('validates title is required', async () => {
-			const user = userEvent.setup()
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
-			})
-
-			const titleInput = screen.getByLabelText(/title/i)
-			await user.type(titleInput, 'A')
-			await user.clear(titleInput)
-			await user.tab()
-
-			// Validation error should appear
-			// Note: Exact error message depends on Zod schema
-		})
-
 		test('validates description is required', async () => {
 			const user = userEvent.setup()
 			await act(async () => {
@@ -437,10 +411,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
+				expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
 			})
 
-			await user.type(screen.getByLabelText(/title/i), 'Broken window')
 			await user.type(
 				screen.getByLabelText(/description/i),
 				'Window in bedroom is cracked'
@@ -448,7 +421,6 @@ describe('MaintenanceForm', () => {
 			await user.type(screen.getByLabelText(/estimated cost/i), '250')
 			await user.type(screen.getByLabelText(/preferred date/i), '2024-12-15')
 
-			expect(screen.getByLabelText(/title/i)).toHaveValue('Broken window')
 			expect(screen.getByLabelText(/description/i)).toHaveValue(
 				'Window in bedroom is cracked'
 			)
@@ -520,7 +492,6 @@ describe('MaintenanceForm', () => {
 			await waitFor(() => {
 				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
 				expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
-				expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
 				expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
 				expect(screen.getByLabelText(/priority/i)).toBeInTheDocument()
 				expect(screen.getByLabelText(/category/i)).toBeInTheDocument()
@@ -566,18 +537,6 @@ describe('MaintenanceForm', () => {
 			})
 		})
 
-		test('title input has placeholder text', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(
-					screen.getByPlaceholderText(/kitchen faucet leak/i)
-				).toBeInTheDocument()
-			})
-		})
-
 		test('description textarea has placeholder text', async () => {
 			await act(async () => {
 				renderWithQueryClient(<MaintenanceForm mode="create" />)
@@ -604,7 +563,7 @@ describe('MaintenanceForm', () => {
 			expect(() => {
 				act(() => {
 					renderWithQueryClient(
-						<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+						<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 					)
 				})
 			}).not.toThrow()
@@ -644,7 +603,7 @@ describe('MaintenanceForm', () => {
 						})
 					}
 				>
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				</QueryClientProvider>
 			)
 
@@ -679,7 +638,7 @@ describe('MaintenanceForm', () => {
 						})
 					}
 				>
-					<MaintenanceForm mode="edit" request={DEFAULT_REQUEST} />
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
 				</QueryClientProvider>
 			)
 

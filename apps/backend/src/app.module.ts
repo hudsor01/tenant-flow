@@ -15,6 +15,7 @@ import { randomUUID } from 'node:crypto'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { validate } from './config/config.schema'
+import { AppConfigService } from './config/app-config.service'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
@@ -97,14 +98,18 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 			controller: MetricsController
 		}),
 
-		// Rate limiting - simple configuration
-		ThrottlerModule.forRoot({
-			throttlers: [
-				{
-					ttl: 60, // 1 minute
-					limit: 100 // 100 requests per minute
-				}
-			]
+		// Rate limiting - configurable via environment
+		ThrottlerModule.forRootAsync({
+			imports: [SharedModule],
+			useFactory: (config: AppConfigService) => ({
+				throttlers: [
+					{
+						ttl: config.getRateLimitTtl() ? parseInt(config.getRateLimitTtl()!) : 60,
+						limit: config.getRateLimitLimit() ? parseInt(config.getRateLimitLimit()!) : 100
+					}
+				]
+			}),
+			inject: [AppConfigService]
 		}),
 
 		// CRITICAL: Global modules must come first for zero-downtime architecture

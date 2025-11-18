@@ -22,8 +22,8 @@ describe('TaxDocumentsController', () => {
 
 	const mockTaxDocuments: TaxDocumentsData = {
 		period: {
-			startDate: '2024-01-01',
-			endDate: '2024-12-31',
+			start_date: '2024-01-01',
+			end_date: '2024-12-31',
 			label: '2024 Tax Year'
 		},
 		taxYear: 2024,
@@ -109,7 +109,7 @@ describe('TaxDocumentsController', () => {
 		],
 		propertyDepreciation: [
 			{
-				propertyId: 'prop-1',
+				property_id: 'prop-1',
 				propertyName: 'Property 1',
 				propertyValue: 500000,
 				annualDepreciation: 18182,
@@ -247,7 +247,7 @@ describe('TaxDocumentsController', () => {
 			expect(propertyDepreciation.length).toBeGreaterThan(0)
 
 			const firstProperty = propertyDepreciation[0]
-			expect(firstProperty).toHaveProperty('propertyId')
+			expect(firstProperty).toHaveProperty('property_id')
 			expect(firstProperty).toHaveProperty('propertyName')
 			expect(firstProperty).toHaveProperty('propertyValue')
 			expect(firstProperty).toHaveProperty('annualDepreciation')

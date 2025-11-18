@@ -143,7 +143,7 @@ describe('OccupancyTrendsService', () => {
 			],
 			vacancyAnalysis: [
 				{
-					propertyId: 'prop-1',
+					property_id: 'prop-1',
 					propertyName: 'Willow Creek',
 					vacancyDays: 8,
 					turnovers: 1,

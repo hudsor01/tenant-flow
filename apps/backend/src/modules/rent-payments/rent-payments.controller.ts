@@ -35,15 +35,15 @@ export class RentPaymentsController {
 		body: CreatePaymentDto,
 		@Request() req: AuthenticatedRequest
 	) {
-		const requestingUserId = req.user.id
+		const requestinguser_id = req.user.id
 
 		this.logger.log(
-			`Creating one-time payment for tenant ${body.tenantId}, lease ${body.leaseId}`
+			`Creating one-time payment for tenant ${body.tenant_id}, lease ${body.lease_id}`
 		)
 
 		const result = await this.rentPaymentsService.createOneTimePayment(
 			body,
-			requestingUserId
+			requestinguser_id
 		)
 
 		return {
@@ -72,20 +72,19 @@ export class RentPaymentsController {
 		return {
 			payments: payments.map(payment => ({
 				id: payment.id,
-				subscriptionId: payment.subscriptionId,
-				tenantId: payment.tenantId,
+				subscriptionId: payment.lease_id,
+				tenant_id: payment.tenant_id,
 				amount: payment.amount,
 				status: payment.status,
-				stripePaymentIntentId: payment.stripePaymentIntentId,
-				createdAt: payment.createdAt,
-				dueDate: payment.dueDate ?? null,
-				// Additional computed fields for frontend
+				stripePaymentIntentId: payment.stripe_payment_intent_id,
+				created_at: payment.created_at,
+				dueDate: payment.due_date ?? null,
 				formattedAmount: `$${(payment.amount / 100).toFixed(2)}`,
-				formattedDate: payment.createdAt
-					? new Date(payment.createdAt).toLocaleDateString()
+				formattedDate: payment.created_at
+					? new Date(payment.created_at).toLocaleDateString()
 					: null,
-				isSuccessful: payment.status === 'succeeded',
-				failureReason: payment.failureReason
+				isSuccessful: payment.status === 'PAID',
+				failureReason: null
 			}))
 		}
 	}
@@ -115,20 +114,19 @@ export class RentPaymentsController {
 		return {
 			payments: payments.map(payment => ({
 				id: payment.id,
-				subscriptionId: payment.subscriptionId,
-				tenantId: payment.tenantId,
+				subscriptionId: payment.lease_id,
+				tenant_id: payment.tenant_id,
 				amount: payment.amount,
 				status: payment.status,
-				stripePaymentIntentId: payment.stripePaymentIntentId,
-				createdAt: payment.createdAt,
-				dueDate: payment.dueDate ?? null,
-				// Additional computed fields for frontend
+				stripePaymentIntentId: payment.stripe_payment_intent_id,
+				created_at: payment.created_at,
+				dueDate: payment.due_date ?? null,
 				formattedAmount: `$${(payment.amount / 100).toFixed(2)}`,
-				formattedDate: payment.createdAt
-					? new Date(payment.createdAt).toLocaleDateString()
+				formattedDate: payment.created_at
+					? new Date(payment.created_at).toLocaleDateString()
 					: null,
-				isSuccessful: payment.status === 'succeeded',
-				failureReason: payment.failureReason
+				isSuccessful: payment.status === 'PAID',
+				failureReason: null
 			}))
 		}
 	}
@@ -150,12 +148,12 @@ export class RentPaymentsController {
 		return {
 			failedAttempts: failedAttempts.map(attempt => ({
 				id: attempt.id,
-				subscriptionId: attempt.subscriptionId,
-				tenantId: attempt.tenantId,
+				subscriptionId: attempt.lease_id,
+				tenant_id: attempt.tenant_id,
 				amount: attempt.amount,
-				failureReason: attempt.failureReason,
-				stripePaymentIntentId: attempt.stripePaymentIntentId,
-				createdAt: attempt.createdAt
+				failureReason: null,
+				stripePaymentIntentId: attempt.stripe_payment_intent_id,
+				created_at: attempt.created_at
 			}))
 		}
 	}
@@ -185,12 +183,12 @@ export class RentPaymentsController {
 		return {
 			failedAttempts: failedAttempts.map(attempt => ({
 				id: attempt.id,
-				subscriptionId: attempt.subscriptionId,
-				tenantId: attempt.tenantId,
+				subscriptionId: attempt.lease_id,
+				tenant_id: attempt.tenant_id,
 				amount: attempt.amount,
-				failureReason: attempt.failureReason,
-				stripePaymentIntentId: attempt.stripePaymentIntentId,
-				createdAt: attempt.createdAt
+				failureReason: null,
+				stripePaymentIntentId: attempt.stripe_payment_intent_id,
+				created_at: attempt.created_at
 			}))
 		}
 	}
@@ -203,23 +201,23 @@ export class RentPaymentsController {
 	async setupAutopay(
 		@Body()
 		body: {
-			tenantId: string
-			leaseId: string
+			tenant_id: string
+			lease_id: string
 			paymentMethodId?: string
 		},
 		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
-			`Setting up autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
+			`Setting up autopay for tenant ${body.tenant_id}, lease ${body.lease_id}`
 		)
 
 		const params: {
-			tenantId: string
-			leaseId: string
+			tenant_id: string
+			lease_id: string
 			paymentMethodId?: string
 		} = {
-			tenantId: body.tenantId,
-			leaseId: body.leaseId
+			tenant_id: body.tenant_id,
+			lease_id: body.lease_id
 		}
 		if (body.paymentMethodId !== undefined) {
 			params.paymentMethodId = body.paymentMethodId
@@ -245,19 +243,19 @@ export class RentPaymentsController {
 	async cancelAutopay(
 		@Body()
 		body: {
-			tenantId: string
-			leaseId: string
+			tenant_id: string
+			lease_id: string
 		},
 		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
-			`Canceling autopay for tenant ${body.tenantId}, lease ${body.leaseId}`
+			`Canceling autopay for tenant ${body.tenant_id}, lease ${body.lease_id}`
 		)
 
 		await this.rentPaymentsService.cancelTenantAutopay(
 			{
-				tenantId: body.tenantId,
-				leaseId: body.leaseId
+				tenant_id: body.tenant_id,
+				lease_id: body.lease_id
 			},
 			req.user.id
 		)
@@ -270,23 +268,23 @@ export class RentPaymentsController {
 
 	/**
 	 * Get autopay status for a tenant
-	 * GET /api/v1/rent-payments/autopay/status/:tenantId/:leaseId
+	 * GET /api/v1/rent-payments/autopay/status/:tenant_id/:lease_id
 	 */
-	@Get('autopay/status/:tenantId/:leaseId')
+	@Get('autopay/status/:tenant_id/:lease_id')
 	@UseGuards(PropertyOwnershipGuard)
 	async getAutopayStatus(
-		@Param('tenantId', ParseUUIDPipe) tenantId: string,
-		@Param('leaseId', ParseUUIDPipe) leaseId: string,
+		@Param('tenant_id', ParseUUIDPipe) tenant_id: string,
+		@Param('lease_id', ParseUUIDPipe) lease_id: string,
 		@Request() req: AuthenticatedRequest
 	) {
 		this.logger.log(
-			`Getting autopay status for tenant ${tenantId}, lease ${leaseId}`
+			`Getting autopay status for tenant ${tenant_id}, lease ${lease_id}`
 		)
 
 		const status = await this.rentPaymentsService.getAutopayStatus(
 			{
-				tenantId,
-				leaseId
+				tenant_id,
+				lease_id
 			},
 			req.user.id
 		)
@@ -303,25 +301,25 @@ export class RentPaymentsController {
 	 * Get current payment status for a tenant
 	 * Task 2.4: Payment Status Tracking
 
-	 * GET /api/v1/rent-payments/status/:tenantId
+	 * GET /api/v1/rent-payments/status/:tenant_id
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
-	@Get('status/:tenantId')
+	@Get('status/:tenant_id')
 	@UseGuards(PropertyOwnershipGuard)
 	async getCurrentPaymentStatus(
-		@Param('tenantId', ParseUUIDPipe) tenantId: string,
+		@Param('tenant_id', ParseUUIDPipe) tenant_id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-		this.logger.log(`Getting current payment status for tenant ${tenantId}`)
+		const user_id = req.user.id
+		this.logger.log(`Getting current payment status for tenant ${tenant_id}`)
 
 		// Authorization now enforced at service layer (defense-in-depth)
 		const paymentStatus =
-			await this.rentPaymentsService.getCurrentPaymentStatus(tenantId, userId)
+			await this.rentPaymentsService.getCurrentPaymentStatus(tenant_id, user_id)
 
 		return {
 			status: paymentStatus.status,
-			rentAmount: paymentStatus.rentAmount,
+			rent_amount: paymentStatus.rentAmount,
 			nextDueDate: paymentStatus.nextDueDate,
 			lastPaymentDate: paymentStatus.lastPaymentDate,
 			outstandingBalance: paymentStatus.outstandingBalance,

@@ -2,7 +2,7 @@
 
 // Base event interface
 export interface BaseSubscriptionEvent {
-	userId: string
+	user_id: string
 	subscriptionId: string
 	timestamp: Date
 }

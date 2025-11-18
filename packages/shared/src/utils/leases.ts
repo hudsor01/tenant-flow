@@ -1,11 +1,8 @@
+import type { LeaseStatus } from '../constants/status-types.js'
 /**
  * Lease utilities
  * Helper functions for lease status display and management
  */
-
-import type { Database } from '../types/supabase-generated.js'
-
-type LeaseStatus = Database['public']['Enums']['LeaseStatus']
 
 export const getLeaseStatusLabel = (status: LeaseStatus): string => {
 	const labels: Record<LeaseStatus, string> = {

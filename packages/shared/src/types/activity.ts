@@ -8,10 +8,10 @@ export type ActivityPriority = 'low' | 'medium' | 'high'
 export type ActivityType =
 	| 'payment'
 	| 'maintenance'
-	| 'lease'
-	| 'tenant'
-	| 'property'
-	| 'unit'
+	| 'leases'
+	| 'tenants'
+	| 'properties'
+	| 'units'
 	| 'billing'
 	| 'auth'
 
@@ -22,7 +22,7 @@ export type ActivityStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
  */
 export interface ActivityMetadata {
 	propertyName?: string
-	unitNumber?: string | number
+	unit_number?: string | number
 	amount?: string | number
 	status?: ActivityStatus
 	tenantName?: string
@@ -37,14 +37,14 @@ export interface ActivityMetadata {
  */
 export interface ActivityItem {
 	id: string
-	userId: string
+	user_id: string
 	userName?: string
 	action: string
 	entityType: string
 	entityId: string
 	entityName: string
 	metadata?: Record<string, string | number | boolean | null>
-	createdAt: string
+	created_at: string
 	priority?: ActivityPriority
 	type?: ActivityType
 	description?: string
@@ -67,7 +67,7 @@ export type Activity = ActivityItem & {
  */
 export interface DashboardActivity {
 	id: string
-	activity_type: 'lease' | 'payment' | 'maintenance' | 'unit'
+	activity_type: 'leases' | 'payment' | 'maintenance' | 'units'
 	entity_id: string
 	property_id: string | null
 	tenant_id: string | null

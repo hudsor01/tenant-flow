@@ -147,6 +147,14 @@ export class AppConfigService {
 		return this.configService.get('ENABLE_RATE_LIMITING', { infer: true })
 	}
 
+	getWebhookThrottleTtl(): number {
+		return this.configService.get('WEBHOOK_THROTTLE_TTL', { infer: true })
+	}
+
+	getWebhookThrottleLimit(): number {
+		return this.configService.get('WEBHOOK_THROTTLE_LIMIT', { infer: true })
+	}
+
 	// ==================== Stripe ====================
 
 	getStripeSecretKey(): string {

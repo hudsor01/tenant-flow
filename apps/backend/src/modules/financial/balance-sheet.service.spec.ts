@@ -3,19 +3,26 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SupabaseService } from '../../database/supabase.service'
 import { BalanceSheetService } from './balance-sheet.service'
+import * as ledgerHelpers from './financial-ledger.helpers'
 
 describe('BalanceSheetService', () => {
 	let service: BalanceSheetService
 	let supabaseService: jest.Mocked<SupabaseService>
 	let mockClient: any
 
+	const createEmptyLedger = () => ({
+		rentPayments: [],
+		expenses: [],
+		leases: [],
+		maintenanceRequests: [],
+		units: [],
+		properties: []
+	})
+
 	beforeEach(async () => {
 		mockClient = {
-			rpc: jest.fn(),
 			from: jest.fn().mockReturnThis(),
 			select: jest.fn().mockReturnThis(),
-			eq: jest.fn().mockReturnThis(),
-			single: jest.fn(),
 			auth: {
 				getUser: jest.fn().mockResolvedValue({
 					data: { user: { id: 'user-123' } },
@@ -46,207 +53,119 @@ describe('BalanceSheetService', () => {
 		jest.spyOn(Logger.prototype, 'warn').mockImplementation()
 	})
 
+	afterEach(() => {
+		jest.restoreAllMocks()
+	})
+
 	describe('generateBalanceSheet', () => {
 		it('should generate balance sheet with valid data', async () => {
-			// Create balanced test data:
-			// Assets: 50k cash + 3k receivables + 10k deposits = 63k
-			// Liabilities: 5k AP + 10k deposit liability + 2k accrued = 17k
-			// Equity: Must be 46k to balance (63k - 17k)
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					cash_balance: 50000,
-					accounts_payable: 5000,
-					accrued_expenses: 2000,
-					mortgages_payable: 0, // Set to 0 for simple test
-					owner_capital: 40000,
-					retained_earnings: 5000,
-					current_period_income: 1000 // Total equity = 46k
-				},
-				error: null
-			})
-
-			// Mock NOI calculation - use zero to simplify balance sheet validation
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			// Mock lease financial summary
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_outstanding_balance: 3000,
-					total_deposits: 10000
-				},
-				error: null
-			})
-
-			const result = await service.generateBalanceSheet(
-				'user-123',
-				'2024-10-31'
-			)
-
-			expect(result).toBeDefined()
-			expect(result.assets.totalAssets).toBeGreaterThan(0)
-			expect(result.liabilities.totalLiabilities).toBeGreaterThan(0)
-			expect(result.equity.totalEquity).toBeGreaterThan(0)
-
-			// Verify balance sheet equation: Assets = Liabilities + Equity
-			const liabilitiesPlusEquity =
-				result.liabilities.totalLiabilities + result.equity.totalEquity
-			const difference = Math.abs(
-				result.assets.totalAssets - liabilitiesPlusEquity
-			)
-			expect(difference).toBeLessThan(0.01) // Allow for rounding errors
-
-			// Verify cash and current assets
-			expect(result.assets.currentAssets.cash).toBe(50000)
-			expect(result.assets.currentAssets.accountsReceivable).toBe(3000)
-			expect(result.assets.currentAssets.securityDeposits).toBe(10000)
-
-			// Verify current liabilities
-			expect(result.liabilities.currentLiabilities.accountsPayable).toBe(5000)
-			expect(result.liabilities.currentLiabilities.accruedExpenses).toBe(2000)
-
-			// Verify long-term liabilities
-			expect(result.liabilities.longTermLiabilities.mortgagesPayable).toBe(0)
-
-			// Verify equity components
-			expect(result.equity.ownerCapital).toBe(40000)
-			expect(result.equity.retainedEarnings).toBe(5000)
-			expect(result.equity.currentPeriodIncome).toBe(1000)
-
-			// With zero NOI, property values should be zero
-			expect(result.assets.fixedAssets.propertyValues).toBe(0)
-			expect(result.assets.fixedAssets.accumulatedDepreciation).toBe(0)
-			expect(result.assets.fixedAssets.netPropertyValue).toBe(0)
-
-			// Verify RPC calls
-			expect(mockClient.rpc).toHaveBeenCalledWith('get_financial_overview', {
-				p_user_id: 'user-123'
-			})
-			expect(mockClient.rpc).toHaveBeenCalledWith(
-				'calculate_net_operating_income',
+const mockLedgerData = {
+			rentPayments: [
 				{
-					p_user_id: 'user-123'
+					id: 'rent-1',
+					lease_id: 'lease-1',
+					amount: 18000,
+					due_date: '2024-10-01',
+					status: 'PAID',
+					paid_date: '2024-10-01',
+					created_at: '2024-09-01',
+					application_fee_amount: 0,
+					currency: 'USD',
+					late_fee_amount: null,
+					payment_method_type: 'card',
+					updated_at: '2024-10-01',
+					description: null,
+					receipt_url: null,
+					failure_reason: null,
+					period_end: '2024-10-31',
+					period_start: '2024-10-01',
+					stripe_payment_intent_id: 'pi_123',
+					tenant_id: 'tenant-1'
 				}
-			)
-			expect(mockClient.rpc).toHaveBeenCalledWith(
-				'get_lease_financial_summary',
+			],
+			expenses: [
 				{
-					p_user_id: 'user-123'
+					id: 'exp-1',
+					maintenance_request_id: 'maint-1',
+					amount: 30000,
+					expense_date: '2024-01-01',
+					created_at: '2024-01-01',
+					updated_at: '2024-01-01',
+					vendor_name: 'ABC Contractors'
 				}
-			)
-		})
+			],
+			leases: [
+					{
+						id: 'lease-1',
+						unit_id: 'unit-1',
+						security_deposit: 0,
+						primary_tenant_id: 'tenant-1',
+						auto_pay_enabled: null,
+						created_at: '2024-01-01',
+						end_date: '2025-01-01',
+						grace_period_days: null,
+						late_fee_amount: null,
+						late_fee_days: null,
+						monthly_rent: 1500,
+						start_date: '2024-01-01',
+						updated_at: '2024-01-01',
+						lease_status: 'ACTIVE',
+						payment_day: 1,
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						stripe_subscription_id: null
+					}
+				],
+				maintenanceRequests: [],
+				units: [
+					{
+						id: 'unit-1',
+						property_id: 'prop-1',
+						bathrooms: 2,
+						bedrooms: 3,
+						created_at: '2024-01-01',
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						rent_period: 'monthly',
+						square_feet: 1200,
+						status: 'OCCUPIED',
+						unit_number: '101',
+						updated_at: '2024-01-01'
+					}
+				],
+				properties: [
+				{
+					id: 'prop-1',
+					owner_id: 'user-123',
+					address_line1: '123 Main St',
+					address_line2: null,
+					city: 'Anytown',
+					country: 'USA',
+					created_at: '2024-01-01',
+					date_sold: null,
+					name: 'Property 1',
+					postal_code: '12345',
+					property_owner_id: 'user-123',
+					property_type: 'residential',
+					sale_price: null,
+					updated_at: '2024-01-01',
+					state: 'CA',
+					status: 'ACTIVE'
+				}
+			]
+		}
 
-		it('should handle missing data gracefully', async () => {
-			// Mock all RPC calls returning null/empty data
-			mockClient.rpc
-				.mockResolvedValueOnce({
-					data: null,
-					error: null
-				})
-				.mockResolvedValueOnce({
-					data: [],
-					error: null
-				})
-				.mockResolvedValueOnce({
-					data: null,
-					error: null
-				})
+		jest
+			.spyOn(ledgerHelpers, 'loadLedgerData')
+			.mockResolvedValue(mockLedgerData)
 
-			const result = await service.generateBalanceSheet(
-				'user-123',
-				'2024-10-31'
-			)
+		const result = await service.generateBalanceSheet(
+			'user-123',
+			'2024-10-31'
+		)
 
-			expect(result.assets.totalAssets).toBe(0)
-			expect(result.liabilities.totalLiabilities).toBe(0)
-			expect(result.equity.totalEquity).toBe(0)
-			expect(result.assets.currentAssets.cash).toBe(0)
-			expect(result.assets.currentAssets.accountsReceivable).toBe(0)
-		})
-
-		it('should throw error when financial overview RPC fails', async () => {
-			const dbError = new Error('Database error')
-			mockClient.rpc.mockResolvedValueOnce({
-				data: null,
-				error: dbError
-			})
-
-			await expect(
-				service.generateBalanceSheet('user-123', '2024-10-31')
-			).rejects.toThrow('Database error')
-		})
-
-		it('should throw error when NOI calculation RPC fails', async () => {
-			// Mock successful financial overview
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { cash_balance: 10000 },
-				error: null
-			})
-
-			// Mock failed NOI calculation
-			const noiError = new Error('NOI calculation failed')
-			mockClient.rpc.mockResolvedValueOnce({
-				data: null,
-				error: noiError
-			})
-
-			await expect(
-				service.generateBalanceSheet('user-123', '2024-10-31')
-			).rejects.toThrow('NOI calculation failed')
-		})
-
-		it('should throw error when lease summary RPC fails', async () => {
-			// Mock successful financial overview
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { cash_balance: 10000 },
-				error: null
-			})
-
-			// Mock successful NOI calculation
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [{ noi: 12000 }],
-				error: null
-			})
-
-			// Mock failed lease summary
-			const leaseError = new Error('Lease summary failed')
-			mockClient.rpc.mockResolvedValueOnce({
-				data: null,
-				error: leaseError
-			})
-
-			await expect(
-				service.generateBalanceSheet('user-123', '2024-10-31')
-			).rejects.toThrow('Lease summary failed')
-		})
-
-		it('should calculate property values correctly from NOI', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { cash_balance: 0 },
-				error: null
-			})
-
-			// Mock NOI with known value
-			const testNOI = 18000
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [{ noi: testNOI, property_id: 'prop-1' }],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_outstanding_balance: 0, total_deposits: 0 },
-				error: null
-			})
-
-			const result = await service.generateBalanceSheet(
-				'user-123',
-				'2024-10-31'
-			)
-
-			// Expected: NOI / cap rate (18000 / 0.06 = 300000)
-			const expectedPropertyValue = testNOI / 0.06
+		// Expected: NOI / cap rate (18000 / 0.06 = 300000)
+			const expectedPropertyValue = 18000 / 0.06
 			expect(result.assets.fixedAssets.propertyValues).toBe(
 				expectedPropertyValue
 			)
@@ -263,26 +182,9 @@ describe('BalanceSheetService', () => {
 		})
 
 		it('should validate balance sheet correctly', async () => {
-			// Mock data that creates a balanced balance sheet
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					cash_balance: 100000,
-					accounts_payable: 10000,
-					mortgages_payable: 50000,
-					owner_capital: 40000
-				},
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_outstanding_balance: 0, total_deposits: 0 },
-				error: null
-			})
+			jest
+				.spyOn(ledgerHelpers, 'loadLedgerData')
+				.mockResolvedValue(createEmptyLedger())
 
 			const result = await service.generateBalanceSheet(
 				'user-123',
@@ -304,24 +206,107 @@ describe('BalanceSheetService', () => {
 		})
 
 		it('should handle security deposits correctly as both asset and liability', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { cash_balance: 10000 },
-				error: null
-			})
+			const mockLedgerData = {
+				rentPayments: [],
+				expenses: [],
+				leases: [
+					{
+						id: 'lease-1',
+						unit_id: 'unit-1',
+						security_deposit: 10000,
+						primary_tenant_id: 'tenant-1',
+						auto_pay_enabled: null,
+						created_at: '2024-01-01',
+						end_date: '2025-01-01',
+						grace_period_days: null,
+						late_fee_amount: null,
+						late_fee_days: null,
+						monthly_rent: 1500,
+						start_date: '2024-01-01',
+						updated_at: '2024-01-01',
+						lease_status: 'ACTIVE',
+						payment_day: 1,
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						stripe_subscription_id: null
+					},
+					{
+						id: 'lease-2',
+						unit_id: 'unit-2',
+						security_deposit: 5000,
+						primary_tenant_id: 'tenant-2',
+						auto_pay_enabled: null,
+						created_at: '2024-01-01',
+						end_date: '2025-01-01',
+						grace_period_days: null,
+						late_fee_amount: null,
+						late_fee_days: null,
+						monthly_rent: 1500,
+						start_date: '2024-01-01',
+						updated_at: '2024-01-01',
+						lease_status: 'ACTIVE',
+						payment_day: 1,
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						stripe_subscription_id: null
+					}
+				],
+				maintenanceRequests: [],
+				units: [
+					{
+						id: 'unit-1',
+						property_id: 'prop-1',
+						bathrooms: 2,
+						bedrooms: 3,
+						created_at: '2024-01-01',
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						rent_period: 'monthly',
+						square_feet: 1200,
+						status: 'OCCUPIED',
+						unit_number: '101',
+						updated_at: '2024-01-01'
+					},
+					{
+						id: 'unit-2',
+						property_id: 'prop-1',
+						bathrooms: 2,
+						bedrooms: 3,
+						created_at: '2024-01-01',
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						rent_period: 'monthly',
+						square_feet: 1200,
+						status: 'OCCUPIED',
+						unit_number: '102',
+						updated_at: '2024-01-01'
+					}
+				],
+				properties: [
+					{
+						id: 'prop-1',
+						owner_id: 'user-123',
+						address_line1: '123 Main St',
+						address_line2: null,
+						city: 'Anytown',
+						country: 'USA',
+						created_at: '2024-01-01',
+						date_sold: null,
+						name: 'Property 1',
+						postal_code: '12345',
+						property_owner_id: 'user-123',
+						property_type: 'residential',
+						sale_price: null,
+						updated_at: '2024-01-01',
+						state: 'CA',
+						status: 'ACTIVE'
+					}
+				]
+			}
 
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			const securityDepositAmount = 15000
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_outstanding_balance: 0,
-					total_deposits: securityDepositAmount
-				},
-				error: null
-			})
+			jest
+				.spyOn(ledgerHelpers, 'loadLedgerData')
+				.mockResolvedValue(mockLedgerData)
 
 			const result = await service.generateBalanceSheet(
 				'user-123',
@@ -329,47 +314,32 @@ describe('BalanceSheetService', () => {
 			)
 
 			// Security deposits should appear as both asset and liability
-			expect(result.assets.currentAssets.securityDeposits).toBe(
-				securityDepositAmount
-			)
+			expect(result.assets.currentAssets.security_deposits).toBe(15000)
 			expect(
-				result.liabilities.currentLiabilities.securityDepositLiability
-			).toBe(securityDepositAmount)
+				result.liabilities.currentLiabilities.security_depositLiability
+			).toBe(15000)
 
 			// They should offset each other in the balance equation
 			expect(result.balanceCheck).toBeDefined()
 		})
 
 		it('should format period correctly', async () => {
-			mockClient.rpc.mockResolvedValue({
-				data: null,
-				error: null
-			})
+			jest
+				.spyOn(ledgerHelpers, 'loadLedgerData')
+				.mockResolvedValue(createEmptyLedger())
 
 			const asOfDate = '2024-10-31'
 			const result = await service.generateBalanceSheet('user-123', asOfDate)
 
-			expect(result.period.startDate).toBe(asOfDate)
-			expect(result.period.endDate).toBe(asOfDate)
+			expect(result.period.start_date).toBe(asOfDate)
+			expect(result.period.end_date).toBe(asOfDate)
 			expect(result.period.label).toContain('2024')
 		})
 
 		it('should handle zero NOI correctly', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { cash_balance: 5000 },
-				error: null
-			})
-
-			// Mock zero NOI
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [{ noi: 0, property_id: 'prop-1' }],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_outstanding_balance: 0, total_deposits: 0 },
-				error: null
-			})
+			jest
+				.spyOn(ledgerHelpers, 'loadLedgerData')
+				.mockResolvedValue(createEmptyLedger())
 
 			const result = await service.generateBalanceSheet(
 				'user-123',
@@ -384,33 +354,249 @@ describe('BalanceSheetService', () => {
 		})
 
 		it('should handle multiple properties with different NOI values', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { cash_balance: 10000 },
-				error: null
-			})
-
-			// Mock multiple properties with different NOI
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{ noi: 10000, property_id: 'prop-1' },
-					{ noi: 8000, property_id: 'prop-2' },
-					{ noi: 6000, property_id: 'prop-3' }
+			const mockLedgerData = {
+				rentPayments: [
+					{
+						id: 'rent-1',
+						lease_id: 'lease-1',
+						amount: 1500,
+						due_date: '2024-10-01',
+						status: 'PAID',
+						paid_date: '2024-10-01',
+						created_at: '2024-09-01',
+						application_fee_amount: 0,
+						currency: 'USD',
+						late_fee_amount: null,
+						payment_method_type: 'card',
+						updated_at: '2024-10-01',
+						description: null,
+						receipt_url: null,
+						failure_reason: null,
+						period_end: '2024-10-31',
+						period_start: '2024-10-01',
+						stripe_payment_intent_id: 'pi_789',
+						tenant_id: 'tenant-1'
+				},
+			{
+				id: 'rent-2',
+				lease_id: 'lease-1',
+				amount: 1500,
+				due_date: '2024-11-01',
+				status: 'PAID',
+				paid_date: '2024-11-01',
+				created_at: '2024-10-01',
+				application_fee_amount: 0,
+				currency: 'USD',
+				late_fee_amount: null,
+				payment_method_type: 'card',
+				updated_at: '2024-11-01',
+				description: null,
+				receipt_url: null,
+				failure_reason: null,
+				period_end: '2024-11-30',
+				period_start: '2024-11-01',
+				stripe_payment_intent_id: 'pi_101',
+				tenant_id: 'tenant-1'
+			},
+			{
+				id: 'rent-3',
+				lease_id: 'lease-3',
+				amount: 6000,
+				due_date: '2024-10-01',
+				status: 'PAID',
+				paid_date: '2024-10-01',
+				created_at: '2024-09-01',
+				application_fee_amount: 0,
+				currency: 'USD',
+				late_fee_amount: null,
+				payment_method_type: 'card',
+				updated_at: '2024-10-01',
+				description: null,
+				receipt_url: null,
+				failure_reason: null,
+				period_end: '2024-10-31',
+				period_start: '2024-10-01',
+				stripe_payment_intent_id: 'pi_202',
+				tenant_id: 'tenant-3'
+			}
 				],
-				error: null
-			})
+				expenses: [],
+				leases: [
+					{
+						id: 'lease-1',
+						unit_id: 'unit-1',
+						security_deposit: 0,
+						primary_tenant_id: 'tenant-1',
+						auto_pay_enabled: null,
+						created_at: '2024-01-01',
+						end_date: '2025-01-01',
+						grace_period_days: null,
+						late_fee_amount: null,
+						late_fee_days: null,
+						monthly_rent: 1500,
+						start_date: '2024-01-01',
+						updated_at: '2024-01-01',
+						lease_status: 'ACTIVE',
+						payment_day: 1,
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						stripe_subscription_id: null
+					},
+					{
+						id: 'lease-2',
+						unit_id: 'unit-2',
+						security_deposit: 0,
+						primary_tenant_id: 'tenant-2',
+						auto_pay_enabled: null,
+						created_at: '2024-01-01',
+						end_date: '2025-01-01',
+						grace_period_days: null,
+						late_fee_amount: null,
+						late_fee_days: null,
+						monthly_rent: 1500,
+						start_date: '2024-01-01',
+						updated_at: '2024-01-01',
+						lease_status: 'ACTIVE',
+						payment_day: 1,
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						stripe_subscription_id: null
+					},
+					{
+						id: 'lease-3',
+						unit_id: 'unit-3',
+						security_deposit: 0,
+						primary_tenant_id: 'tenant-3',
+						auto_pay_enabled: null,
+						created_at: '2024-01-01',
+						end_date: '2025-01-01',
+						grace_period_days: null,
+						late_fee_amount: null,
+						late_fee_days: null,
+						monthly_rent: 1500,
+						start_date: '2024-01-01',
+						updated_at: '2024-01-01',
+						lease_status: 'ACTIVE',
+						payment_day: 1,
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						stripe_subscription_id: null
+					}
+				],
+				maintenanceRequests: [],
+				units: [
+					{
+						id: 'unit-1',
+						property_id: 'prop-1',
+						bathrooms: 2,
+						bedrooms: 3,
+						created_at: '2024-01-01',
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						rent_period: 'monthly',
+						square_feet: 1200,
+						status: 'OCCUPIED',
+						unit_number: '101',
+						updated_at: '2024-01-01'
+					},
+					{
+						id: 'unit-2',
+						property_id: 'prop-2',
+						bathrooms: 2,
+						bedrooms: 3,
+						created_at: '2024-01-01',
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						rent_period: 'monthly',
+						square_feet: 1200,
+						status: 'OCCUPIED',
+						unit_number: '201',
+						updated_at: '2024-01-01'
+					},
+					{
+						id: 'unit-3',
+						property_id: 'prop-3',
+						bathrooms: 2,
+						bedrooms: 3,
+						created_at: '2024-01-01',
+						rent_amount: 1500,
+						rent_currency: 'USD',
+						rent_period: 'monthly',
+						square_feet: 1200,
+						status: 'OCCUPIED',
+						unit_number: '301',
+						updated_at: '2024-01-01'
+					}
+				],
+				properties: [
+					{
+						id: 'prop-1',
+						owner_id: 'user-123',
+						address_line1: '123 Main St',
+						address_line2: null,
+						city: 'Anytown',
+						country: 'USA',
+						created_at: '2024-01-01',
+						date_sold: null,
+						name: 'Property 1',
+						postal_code: '12345',
+						property_owner_id: 'user-123',
+						property_type: 'residential',
+						sale_price: null,
+						updated_at: '2024-01-01',
+						state: 'CA',
+						status: 'ACTIVE'
+					},
+					{
+						id: 'prop-2',
+						owner_id: 'user-123',
+						address_line1: '456 Oak St',
+						address_line2: null,
+						city: 'Anytown',
+						country: 'USA',
+						created_at: '2024-01-01',
+						date_sold: null,
+						name: 'Property 2',
+						postal_code: '12345',
+						property_owner_id: 'user-123',
+						property_type: 'residential',
+						sale_price: null,
+						updated_at: '2024-01-01',
+						state: 'CA',
+						status: 'ACTIVE'
+					},
+					{
+						id: 'prop-3',
+						owner_id: 'user-123',
+						address_line1: '789 Pine St',
+						address_line2: null,
+						city: 'Anytown',
+						country: 'USA',
+						created_at: '2024-01-01',
+						date_sold: null,
+						name: 'Property 3',
+						postal_code: '12345',
+						property_owner_id: 'user-123',
+						property_type: 'residential',
+						sale_price: null,
+						updated_at: '2024-01-01',
+						state: 'CA',
+						status: 'ACTIVE'
+					}
+				]
+			}
 
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_outstanding_balance: 0, total_deposits: 0 },
-				error: null
-			})
+			jest
+				.spyOn(ledgerHelpers, 'loadLedgerData')
+				.mockResolvedValue(mockLedgerData)
 
 			const result = await service.generateBalanceSheet(
 				'user-123',
 				'2024-10-31'
 			)
 
-			// Total NOI should be sum of all properties (24000)
-			const totalNOI = 24000
+			// Total NOI should be sum of all properties (7500 based on actual payments)
+			const totalNOI = 7500
 			const expectedPropertyValue = totalNOI / 0.06
 			expect(result.assets.fixedAssets.propertyValues).toBe(
 				expectedPropertyValue

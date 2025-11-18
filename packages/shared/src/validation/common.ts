@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 /** Email validation schema */
-export const emailSchema = z.string().email('Please enter a valid email address')
+export const emailSchema = z.string().email({ message: 'Please enter a valid email address' })
 
 /** Required non-empty string schema */
 export const requiredString = z.string().min(1, 'This field is required')
@@ -25,7 +25,7 @@ export const requiredDescription = z.string().trim().min(1, 'Description is requ
 export const uuidSchema = z.string().uuid('Invalid UUID format')
 
 /** URL validation schema with custom validator */
-export const urlSchema = z.string().url('Invalid URL format').refine(
+export const urlSchema = z.string().url({ message: 'Invalid URL format' }).refine(
 	(url) => isValidUrl(url),
 	{ message: 'URL must use http/https protocol' }
 )
@@ -42,10 +42,6 @@ export const phoneSchema = z
 	.regex(/^[\d+()-\s]+$/, 'Phone number can only contain digits, +, (), -, and spaces')
 	.min(10, 'Phone number must be at least 10 characters')
 	.max(VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH, `Phone number cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH} characters`)
-
-// ============================================================================
-// VALIDATION FUNCTIONS
-// ============================================================================
 
 /**
  * Validate email format
@@ -82,9 +78,9 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Validate Stripe session ID format
+ * Validate UUID format
  */
-export function isValidStripeSessionId(sessionId: string): boolean {
-	const sessionIdRegex = /^cs_[a-zA-Z0-9_-]{24,}$/
-	return sessionIdRegex.test(sessionId)
+export function isValidUUID(uuid: string): boolean {
+	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+	return uuidRegex.test(uuid)
 }

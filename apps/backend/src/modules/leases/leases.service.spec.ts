@@ -12,25 +12,25 @@ describe('LeasesService', () => {
   const mockSupabaseService = {
     getUserClient: jest.fn((_token: string) => ({
       from: jest.fn((table: string) => {
-        if (table === 'unit') {
+        if (table === 'units') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => Promise.resolve({ data: { id: 'unit-id', propertyId: 'property-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'unit-id', property_id: 'property-id' }, error: null })),
               })),
             })),
           };
         }
-        if (table === 'property') {
+        if (table === 'properties') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => Promise.resolve({ data: { id: 'property-id', ownerId: 'user-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'property-id', owner_id: 'user-id' }, error: null })),
               })),
             })),
           };
         }
-        if (table === 'tenant') {
+	        if (table === 'tenants') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
@@ -39,7 +39,7 @@ describe('LeasesService', () => {
             })),
           };
         }
-        if (table === 'lease') {
+        if (table === 'leases') {
           return {
             insert: jest.fn(() => ({
               select: jest.fn(() => ({
@@ -53,25 +53,25 @@ describe('LeasesService', () => {
     })),
     getAdminClient: jest.fn(() => ({
       from: jest.fn((table: string) => {
-        if (table === 'unit') {
+        if (table === 'units') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => Promise.resolve({ data: { id: 'unit-id', propertyId: 'property-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'unit-id', property_id: 'property-id' }, error: null })),
               })),
             })),
           };
         }
-        if (table === 'property') {
+        if (table === 'properties') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
-                single: jest.fn(() => Promise.resolve({ data: { id: 'property-id', ownerId: 'user-id' }, error: null })),
+                single: jest.fn(() => Promise.resolve({ data: { id: 'property-id', owner_id: 'user-id' }, error: null })),
               })),
             })),
           };
         }
-        if (table === 'tenant') {
+	        if (table === 'tenants') {
           return {
             select: jest.fn(() => ({
               eq: jest.fn(() => ({
@@ -80,7 +80,7 @@ describe('LeasesService', () => {
             })),
           };
         }
-        if (table === 'lease') {
+        if (table === 'leases') {
           return {
             insert: jest.fn(() => ({
               select: jest.fn(() => ({
@@ -137,12 +137,12 @@ describe('LeasesService', () => {
   describe('create', () => {
     it('should create a lease with existing tenant', async () => {
       const createLeaseDto = {
-        unitId: 'unit-id',
-        tenantId: 'tenant-id',
-        startDate: '2025-01-01',
-        endDate: '2026-01-01',
-        rentAmount: 1000,
-        securityDeposit: 500,
+        unit_id: 'unit-id',
+        primary_tenant_id: 'tenant-id',
+        start_date: '2025-01-01',
+        end_date: '2026-01-01',
+        rent_amount: 1000,
+        security_deposit: 500,
         status: 'DRAFT' as const
       };
 

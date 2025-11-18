@@ -22,7 +22,7 @@ export class LeaseValidationService {
 		if (!leaseData?.tenants?.length) {
 			throw new BadRequestException('At least one tenant is required')
 		}
-		if (!leaseData?.leaseTerms?.rentAmount) {
+		if (!leaseData?.leaseTerms?.rent_amount) {
 			throw new BadRequestException('Rent amount is required')
 		}
 	}
@@ -31,25 +31,25 @@ export class LeaseValidationService {
 	 * Validate and parse lease dates
 	 */
 	validateDates(leaseData: LeaseFormData): {
-		startDate: Date
-		endDate: Date
+		start_date: Date
+		end_date: Date
 	} {
-		const startDate = new Date(leaseData.leaseTerms.startDate)
+		const start_date = new Date(leaseData.leaseTerms.start_date)
 
-		// endDate is required by schema, but leases can be month-to-month
+		// end_date is required by schema, but leases can be month-to-month
 		// For month-to-month leases, use a far-future date (100 years from start)
-		const endDate = leaseData.leaseTerms.endDate
-			? new Date(leaseData.leaseTerms.endDate)
-			: new Date(startDate.getTime() + 100 * 365 * 24 * 60 * 60 * 1000)
+		const end_date = leaseData.leaseTerms.end_date
+			? new Date(leaseData.leaseTerms.end_date)
+			: new Date(start_date.getTime() + 100 * 365 * 24 * 60 * 60 * 1000)
 
-		if (isNaN(startDate.getTime())) {
+		if (isNaN(start_date.getTime())) {
 			throw new BadRequestException('Invalid start date')
 		}
-		if (isNaN(endDate.getTime())) {
+		if (isNaN(end_date.getTime())) {
 			throw new BadRequestException('Invalid end date')
 		}
 
-		return { startDate, endDate }
+		return { start_date, end_date }
 	}
 
 	/**
@@ -65,7 +65,7 @@ export class LeaseValidationService {
 		}>
 		stateRequirements: {
 			stateName: string
-			securityDepositMax: string
+			security_depositMax: string
 			lateFeeGracePeriod: string
 			requiredDisclosures: string[]
 		}
@@ -80,7 +80,7 @@ export class LeaseValidationService {
 		// Basic validation
 		if (!leaseData?.property?.address?.state) {
 			errors.push({
-				field: 'property.address.state',
+				field: 'property.address_line1.state',
 				message: 'Property state is required',
 				code: 'REQUIRED_FIELD'
 			})
@@ -89,13 +89,13 @@ export class LeaseValidationService {
 		// State-specific validation (simplified)
 		if (leaseData?.property?.address?.state === 'CA') {
 			// California security deposit limit: 2x monthly rent
-			const rentAmount = leaseData?.leaseTerms?.rentAmount || 0
+			const rent_amount = leaseData?.leaseTerms?.rent_amount || 0
 			const depositAmount =
-				leaseData?.leaseTerms?.securityDeposit?.amount || 0
+				leaseData?.leaseTerms?.security_deposit?.amount || 0
 
-			if (depositAmount > rentAmount * 2) {
+			if (depositAmount > rent_amount * 2) {
 				errors.push({
-					field: 'leaseTerms.securityDeposit.amount',
+					field: 'leaseTerms.security_deposit.amount',
 					message:
 						'Security deposit cannot exceed 2x monthly rent in California',
 					code: 'CA_DEPOSIT_LIMIT'
@@ -131,7 +131,7 @@ export class LeaseValidationService {
 	 */
 	getStateRequirements(state: string): {
 		stateName: string
-		securityDepositMax: string
+		security_depositMax: string
 		lateFeeGracePeriod: string
 		requiredDisclosures: string[]
 	} {
@@ -139,26 +139,26 @@ export class LeaseValidationService {
 			string,
 			{
 				stateName: string
-				securityDepositMax: string
+				security_depositMax: string
 				lateFeeGracePeriod: string
 				requiredDisclosures: string[]
 			}
 		> = {
 			CA: {
 				stateName: 'California',
-				securityDepositMax: '2x monthly rent',
+				security_depositMax: '2x monthly rent',
 				lateFeeGracePeriod: '3 days minimum',
 				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug History']
 			},
 			TX: {
 				stateName: 'Texas',
-				securityDepositMax: '2x monthly rent',
+				security_depositMax: '2x monthly rent',
 				lateFeeGracePeriod: '1 day minimum',
 				requiredDisclosures: ['Lead Paint (pre-1978)']
 			},
 			NY: {
 				stateName: 'New York',
-				securityDepositMax: '1x monthly rent',
+				security_depositMax: '1x monthly rent',
 				lateFeeGracePeriod: '5 days minimum',
 				requiredDisclosures: [
 					'Lead Paint (pre-1978)',
@@ -174,7 +174,7 @@ export class LeaseValidationService {
 
 		return {
 			stateName: state,
-			securityDepositMax: 'Varies by state',
+			security_depositMax: 'Varies by state',
 			lateFeeGracePeriod: 'Check state law',
 			requiredDisclosures: ['Lead Paint (pre-1978)']
 		}

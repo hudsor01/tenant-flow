@@ -13,8 +13,8 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 export const rentPaymentKeys = {
 	all: ['rent-payments'] as const,
 	list: () => [...rentPaymentKeys.all, 'list'] as const,
-	status: (tenantId: string) =>
-		[...rentPaymentKeys.all, 'status', tenantId] as const
+	status: (tenant_id: string) =>
+		[...rentPaymentKeys.all, 'status', tenant_id] as const
 }
 
 /**
@@ -26,8 +26,8 @@ export function useCreateRentPayment() {
 
 	return useMutation({
 		mutationFn: async (params: {
-			tenantId: string
-			leaseId: string
+			tenant_id: string
+			lease_id: string
 			amount: number
 			paymentMethodId: string
 		}) => {
@@ -69,27 +69,23 @@ export function useCreateRentPayment() {
 			// Create optimistic payment entry (partial - will be replaced by server response)
 			const tempId = `temp-${Date.now()}`
 			const optimisticPayment = {
-				id: tempId,
-				amount: newPayment.amount,
-				status: 'processing',
-				tenantId: newPayment.tenantId,
-				leaseId: newPayment.leaseId,
-				ownerId: '',
-				ownerReceives: 0,
-				platformFee: 0,
-				stripeFee: 0,
-				paymentType: 'stripe',
-				lateFeeAmount: null,
-				lateFeeApplied: null,
-				lateFeeAppliedAt: null,
-				stripePaymentIntentId: null,
-				stripeInvoiceId: null,
-				subscriptionId: null,
-				dueDate: null,
-				paidAt: null,
-				failureReason: null,
-				createdAt: new Date().toISOString()
-			} as import('@repo/shared/types/core').RentPayment
+		id: tempId,
+		amount: newPayment.amount,
+		status: 'PENDING',
+		tenant_id: newPayment.tenant_id,
+		lease_id: newPayment.lease_id,
+		stripe_payment_intent_id: '',
+		application_fee_amount: 0,
+		late_fee_amount: null,
+		payment_method_type: 'stripe',
+		period_start: new Date().toISOString().split('T')[0],
+		period_end: new Date().toISOString().split('T')[0],
+		due_date: new Date().toISOString().split('T')[0],
+		paid_date: null,
+		currency: 'USD',
+		created_at: new Date().toISOString(),
+		updated_at: null
+	} as unknown as import('@repo/shared/types/core').RentPayment
 
 			// Optimistically update cache
 			queryClient.setQueryData<
@@ -115,10 +111,10 @@ export function useCreateRentPayment() {
 					old
 						? old.map(p =>
 								p.id === context?.tempId
-									? (res.payment as import('@repo/shared/types/core').RentPayment)
+									? (res.payment as unknown as import('@repo/shared/types/core').RentPayment)
 									: p
 							)
-						: [res.payment as import('@repo/shared/types/core').RentPayment]
+						: [res.payment as unknown as import('@repo/shared/types/core').RentPayment]
 				)
 			}
 		},
@@ -135,7 +131,7 @@ export function useCreateRentPayment() {
  */
 export interface PaymentStatus {
 	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
-	rentAmount: number
+	rent_amount: number
 	nextDueDate: string | null
 	lastPaymentDate: string | null
 	outstandingBalance: number
@@ -147,12 +143,12 @@ export interface PaymentStatus {
  * Returns real-time payment status from backend
  * Task 2.4: Payment Status Tracking
  */
-export function usePaymentStatus(tenantId: string) {
+export function usePaymentStatus(tenant_id: string) {
 	return useQuery({
-		queryKey: rentPaymentKeys.status(tenantId),
+		queryKey: rentPaymentKeys.status(tenant_id),
 		queryFn: () =>
-			clientFetch<PaymentStatus>(`/api/v1/rent-payments/status/${tenantId}`),
-		enabled: !!tenantId,
+			clientFetch<PaymentStatus>(`/api/v1/rent-payments/status/${tenant_id}`),
+		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.STATS, // Payment status can change
 		retry: 2
 	})

@@ -1,12 +1,12 @@
 import { z } from 'zod'
 
 export const updateProfileSchema = z.object({
-	firstName: z
+	first_name: z
 		.string()
 		.trim()
 		.min(1, 'First name is required')
 		.max(50, 'First name must be 50 characters or less'),
-	lastName: z
+	last_name: z
 		.string()
 		.trim()
 		.min(1, 'Last name is required')

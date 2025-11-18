@@ -54,9 +54,9 @@ export function calculatePeriodComparison(
 /**
  * Formats a date range into a human-readable label
  */
-export function formatPeriodLabel(startDate: string, endDate: string): string {
-	const start = new Date(startDate)
-	const end = new Date(endDate)
+export function formatPeriodLabel(start_date: string, end_date: string): string {
+	const start = new Date(start_date)
+	const end = new Date(end_date)
 
 	const startMonth = start.toLocaleDateString('en-US', { month: 'short' })
 	const endMonth = end.toLocaleDateString('en-US', { month: 'short' })
@@ -77,13 +77,13 @@ export function formatPeriodLabel(startDate: string, endDate: string): string {
  * Creates a financial period object
  */
 export function createFinancialPeriod(
-	startDate: string,
-	endDate: string
+	start_date: string,
+	end_date: string
 ): FinancialPeriod {
 	return {
-		startDate,
-		endDate,
-		label: formatPeriodLabel(startDate, endDate)
+		start_date,
+		end_date,
+		label: formatPeriodLabel(start_date, end_date)
 	}
 }
 
@@ -195,7 +195,7 @@ export function mapToBalanceSheet(raw: unknown): Partial<BalanceSheetData> {
 		currentAssets: {
 			cash: safeNumber(data.cash),
 			accountsReceivable: safeNumber(data.accounts_receivable),
-			securityDeposits: safeNumber(data.security_deposits),
+			security_deposits: safeNumber(data.security_deposits),
 			total: safeNumber(data.current_assets_total)
 		},
 		fixedAssets: {
@@ -210,7 +210,7 @@ export function mapToBalanceSheet(raw: unknown): Partial<BalanceSheetData> {
 	const liabilities = {
 		currentLiabilities: {
 			accountsPayable: safeNumber(data.accounts_payable),
-			securityDepositLiability: safeNumber(data.security_deposit_liability),
+			security_depositLiability: safeNumber(data.security_deposit_liability),
 			accruedExpenses: safeNumber(data.accrued_expenses),
 			total: safeNumber(data.current_liabilities_total)
 		},

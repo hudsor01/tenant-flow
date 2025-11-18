@@ -71,6 +71,8 @@ const environmentSchema = z.object({
 	// Rate Limiting
 	RATE_LIMIT_TTL: z.string().optional(),
 	RATE_LIMIT_LIMIT: z.string().optional(),
+	WEBHOOK_THROTTLE_TTL: z.coerce.number().default(Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_TTL)),
+	WEBHOOK_THROTTLE_LIMIT: z.coerce.number().default(Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_LIMIT)),
 
 	// Stripe
 	STRIPE_SECRET_KEY: z.string(),

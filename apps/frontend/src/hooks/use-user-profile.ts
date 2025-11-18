@@ -9,33 +9,31 @@ import { useCurrentUser } from './use-current-user'
  */
 export const userProfileKeys = {
 	all: ['userProfile'] as const,
-	profile: (userId: string) => [...userProfileKeys.all, userId] as const
+	profile: (user_id: string) => [...userProfileKeys.all, user_id] as const
 }
 
 /**
- * Hook to fetch user's full profile from database (includes role)
+ * Hook to fetch user's full profile from database (includes user_type)
  */
 export function useUserProfile() {
 	const supabase = getSupabaseClientInstance()
-	const { userId, isAuthenticated } = useCurrentUser()
+	const { user_id, isAuthenticated } = useCurrentUser()
 
 	return useQuery({
-		queryKey: userProfileKeys.profile(userId!),
+		queryKey: userProfileKeys.profile(user_id!),
 		queryFn: async () => {
-			if (!userId) throw new Error('No user ID')
+			if (!user_id) throw new Error('No user ID')
 
-			const { data: authData } = await supabase.auth.getUser()
 			const { data, error } = await supabase
 				.from('users')
-				.select('id, email, firstName, lastName, role, profileComplete, orgId')
-				.eq('supabaseId', userId)
-				.eq('orgId', authData.user?.app_metadata?.org_id)
+				.select('id, email, first_name, last_name, user_type')
+			.eq('id', user_id)
 				.single()
 
 			if (error) throw error
 			return data
 		},
-		enabled: isAuthenticated && !!userId,
+		enabled: isAuthenticated && !!user_id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 1
 	})

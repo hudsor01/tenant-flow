@@ -14,7 +14,7 @@ export type DocumentType =
 	| 'PERMIT'
 	| 'OTHER'
 
-export const DOCUMENT_TYPE = {
+export const Document_Type = {
 	LEASE: 'LEASE',
 	INSURANCE: 'INSURANCE',
 	INSPECTION: 'INSPECTION',
@@ -24,23 +24,3 @@ export const DOCUMENT_TYPE = {
 	PERMIT: 'PERMIT',
 	OTHER: 'OTHER'
 } as const
-
-export const DOCUMENT_TYPE_OPTIONS = Object.values(DOCUMENT_TYPE)
-
-// Document type display helpers
-export const getDocumentTypeLabel = (type: DocumentType): string => {
-	const labels: Record<DocumentType, string> = {
-		LEASE: 'Lease Agreement',
-		INSURANCE: 'Insurance Document',
-		INSPECTION: 'Inspection Report',
-		RECEIPT: 'Receipt/Invoice',
-		PHOTO: 'Photo',
-		CONTRACT: 'Contract',
-		PERMIT: 'Permit',
-		OTHER: 'Other'
-	}
-	return labels[type] || type
-}
-
-// Document entity type - Re-export from database types
-export type { Document } from './supabase'

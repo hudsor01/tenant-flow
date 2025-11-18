@@ -8,13 +8,13 @@ import { PropertyDetails } from '../property-details.client'
 
 export default function PropertyDetailPage() {
 	const params = useParams()
-	const propertyId = params.id as string
+	const property_id = params.id as string
 
 	const {
 		data: property,
 		isLoading,
 		isError
-	} = useProperty(propertyId)
+	} = useProperty(property_id)
 
 	if (isLoading) {
 		return <div className="animate-pulse">Loading property...</div>

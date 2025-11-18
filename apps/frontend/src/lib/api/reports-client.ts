@@ -12,7 +12,7 @@ export type ReportFormat = 'pdf' | 'excel'
 
 export interface Report {
 	id: string
-	userId: string
+	user_id: string
 	reportType: string
 	reportName: string
 	format: string
@@ -20,12 +20,12 @@ export interface Report {
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 	metadata: Record<string, unknown>
 	errorMessage: string | null
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 }
 
 export interface ListReportsResponse {
@@ -40,14 +40,14 @@ export interface ListReportsResponse {
 }
 
 export interface GenerateReportParams {
-	userId: string
-	startDate: string
-	endDate: string
+	user_id: string
+	start_date: string
+	end_date: string
 	format?: ReportFormat
 }
 
 export interface CreateScheduleParams {
-	userId?: string
+	user_id?: string
 	reportType: ReportType
 	reportName?: string
 	frequency: 'daily' | 'weekly' | 'monthly'
@@ -56,13 +56,13 @@ export interface CreateScheduleParams {
 	hour?: number
 	timezone?: string
 	format?: ReportFormat
-	startDate?: string
-	endDate?: string
+	start_date?: string
+	end_date?: string
 }
 
 export type ScheduledReport = {
 	id: string
-	userId: string
+	user_id: string
 	reportType: ReportType
 	reportName?: string
 	frequency: 'daily' | 'weekly' | 'monthly'
@@ -73,15 +73,15 @@ export type ScheduledReport = {
 	format: ReportFormat
 	nextRunAt?: string | null
 	lastRunAt?: string | null
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 }
 
 export const reportsClient = {
 	/**
 	 * Generate a report and download the file
 	 * @param reportType - Type of report to generate
-	 * @param params - Report parameters (userId, date range, format)
+	 * @param params - Report parameters (user_id, date range, format)
 	 * @returns Promise that resolves when download starts
 	 */
 	async generateReport(
@@ -97,9 +97,9 @@ export const reportsClient = {
 			method: 'POST',
 			headers: await getAuthHeaders(),
 			body: JSON.stringify({
-				userId: params.userId,
-				startDate: params.startDate,
-				endDate: params.endDate,
+				user_id: params.user_id,
+				start_date: params.start_date,
+				end_date: params.end_date,
 				format
 			})
 		})

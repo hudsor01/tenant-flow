@@ -86,7 +86,7 @@ export const leaseQueries = {
 	 * Single lease by ID
 	 *
 	 * @example
-	 * const { data } = useQuery(leaseQueries.detail(leaseId))
+	 * const { data } = useQuery(leaseQueries.detail(lease_id))
 	 */
 	detail: (id: string) =>
 		queryOptions({

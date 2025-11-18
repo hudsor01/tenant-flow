@@ -19,27 +19,22 @@ describe('LeasesController', () => {
 
 	const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 		id: generateUUID(),
-		tenantId: generateUUID(),
-		unitId: generateUUID(),
-		propertyId: generateUUID(),
-		startDate: '2024-01-01',
-		endDate: '2024-12-31',
-		monthlyRent: 1500.0,
-		rentAmount: 1500.0,
-		securityDeposit: 3000.0,
-		status: 'ACTIVE',
-		terms: 'Standard lease terms',
-		gracePeriodDays: null,
-		lateFeeAmount: null,
-		lateFeePercentage: null,
-		lease_document_url: null,
-		signature: null,
-		signed_at: null,
+		primary_tenant_id: generateUUID(),
+		unit_id: generateUUID(),
+		start_date: '2024-01-01',
+		end_date: '2024-12-31',
+		rent_amount: 1500.0,
+		security_deposit: 3000.0,
+		lease_status: 'ACTIVE',
+		payment_day: 1,
+		rent_currency: 'USD',
+		auto_pay_enabled: false,
+		grace_period_days: null,
+		late_fee_amount: null,
+		late_fee_days: null,
 		stripe_subscription_id: null,
-		stripeSubscriptionId: null,
-		version: 1,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
 		...overrides
 	})
 
@@ -75,7 +70,7 @@ describe('LeasesController', () => {
 				{
 					provide: CurrentUserProvider,
 					useValue: {
-						getUserId: jest.fn().mockResolvedValue('user-123'),
+						getuser_id: jest.fn().mockResolvedValue('user-123'),
 						getUser: jest
 							.fn()
 							.mockResolvedValue({ id: 'user-123', email: 'test@example.com' }),
@@ -120,28 +115,28 @@ describe('LeasesController', () => {
 				undefined,
 				10,
 				0,
-				'createdAt',
+				'created_at',
 				'desc'
 			)
 
 			// Note: Authentication is handled by @JwtToken() decorator and guards
 			expect(mockLeasesService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
-				tenantId: undefined,
-				unitId: undefined,
-				propertyId: undefined,
+				tenant_id: undefined,
+				unit_id: undefined,
+				property_id: undefined,
 				status: undefined,
 				limit: 10,
 				offset: 0,
-				sortBy: 'createdAt',
+				sortBy: 'created_at',
 				sortOrder: 'desc'
 			})
 			expect(result.data).toEqual(mockLeases)
 		})
 
 		it('should return filtered leases with custom parameters', async () => {
-			const tenantId = generateUUID()
-			const unitId = generateUUID()
-			const propertyId = generateUUID()
+			const tenant_id = generateUUID()
+			const unit_id = generateUUID()
+			const property_id = generateUUID()
 			const mockLeases = [createMockLease()]
 			mockLeasesService.findAll.mockResolvedValue({
 				data: mockLeases,
@@ -152,24 +147,24 @@ describe('LeasesController', () => {
 
 			const result = await controller.findAll(
 				'mock-jwt-token', // JWT token
-				tenantId,
-				unitId,
-				propertyId,
+				tenant_id,
+				unit_id,
+				property_id,
 				'ACTIVE',
 				20,
 				10,
-				'startDate',
+				'start_date',
 				'asc'
 			)
 
 			expect(mockLeasesService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
-				tenantId,
-				unitId,
-				propertyId,
+				tenant_id,
+				unit_id,
+				property_id,
 				status: 'ACTIVE',
 				limit: 20,
 				offset: 10,
-				sortBy: 'startDate',
+				sortBy: 'start_date',
 				sortOrder: 'asc'
 			})
 			expect(result.data).toEqual(mockLeases)
@@ -191,7 +186,7 @@ describe('LeasesController', () => {
 				terminatedLeases: 2,
 				totalMonthlyRent: 55000,
 				averageRent: 2750,
-				totalSecurityDeposits: 12000,
+				totalsecurity_deposits: 12000,
 				expiringLeases: 5
 			}
 			mockLeasesService.getStats.mockResolvedValue(mockStats)
@@ -220,25 +215,25 @@ describe('LeasesController', () => {
 
 	describe('findOne', () => {
 		it('should return lease by ID', async () => {
-			const leaseId = generateUUID()
-			const mockLease = createMockLease({ id: leaseId })
+			const lease_id = generateUUID()
+			const mockLease = createMockLease({ id: lease_id })
 			mockLeasesService.findOne.mockResolvedValue(mockLease)
 
-			const result = await controller.findOne(leaseId, 'mock-jwt-token')
+			const result = await controller.findOne(lease_id, 'mock-jwt-token')
 
 			expect(mockLeasesService.findOne).toHaveBeenCalledWith(
 				'mock-jwt-token',
-				leaseId
+				lease_id
 			)
 			expect(result).toEqual(mockLease)
 		})
 
 		it('should throw NotFoundException when lease not found', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			mockLeasesService.findOne.mockResolvedValue(null)
 
 			await expect(
-				controller.findOne(leaseId, 'mock-jwt-token')
+				controller.findOne(lease_id, 'mock-jwt-token')
 			).rejects.toThrow(NotFoundException)
 		})
 	})
@@ -246,13 +241,17 @@ describe('LeasesController', () => {
 	describe('create', () => {
 		it('should create new lease', async () => {
 			const createRequest = {
-				tenantId: generateUUID(),
-				unitId: generateUUID(),
-				startDate: '2024-01-01',
-				endDate: '2024-12-31',
-				rentAmount: 1500.0,
-				securityDeposit: 3000.0,
-				status: 'DRAFT' as const
+				primary_tenant_id: generateUUID(),
+				unit_id: generateUUID(),
+				tenant_ids: [generateUUID()],
+				start_date: '2024-01-01',
+				end_date: '2024-12-31',
+				rent_amount: 1500.0,
+				security_deposit: 3000.0,
+				rent_currency: 'USD',
+				payment_day: 1,
+				lease_status: 'draft' as const,
+				auto_pay_enabled: false
 			}
 			const mockLease = createMockLease()
 			mockLeasesService.create.mockResolvedValue(mockLease)
@@ -269,26 +268,25 @@ describe('LeasesController', () => {
 
 	describe('update', () => {
 		it('should update existing lease', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const updateRequest = {
-				rentAmount: 1600.0,
-				securityDeposit: 3200.0,
+				rent_amount: 1600.0,
+				security_deposit: 3200.0,
 				status: 'ACTIVE' as const
 			}
 			const mockLease = createMockLease({ ...updateRequest })
 			mockLeasesService.update.mockResolvedValue(mockLease)
 
 			const result = await controller.update(
-				leaseId,
+				lease_id,
 				updateRequest,
 				'mock-jwt-token'
 			)
 
 			expect(mockLeasesService.update).toHaveBeenCalledWith(
 				'mock-jwt-token',
-				leaseId,
-				updateRequest,
-				undefined
+				lease_id,
+				updateRequest
 			)
 			expect(result).toEqual(mockLease)
 		})
@@ -296,31 +294,31 @@ describe('LeasesController', () => {
 
 	describe('remove', () => {
 		it('should delete lease', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			mockLeasesService.remove.mockResolvedValue(undefined)
 
-			await controller.remove(leaseId, 'mock-jwt-token')
+			await controller.remove(lease_id, 'mock-jwt-token')
 
 			expect(mockLeasesService.remove).toHaveBeenCalledWith(
 				'mock-jwt-token',
-				leaseId
+				lease_id
 			)
 		})
 	})
 
 	describe('renew', () => {
 		it('should renew lease with valid end date', async () => {
-			const leaseId = generateUUID()
-			const endDate = '2025-12-31'
-			const mockLease = createMockLease({ endDate: endDate })
+			const lease_id = generateUUID()
+			const end_date = '2025-12-31'
+			const mockLease = createMockLease({ end_date: end_date })
 			mockLeasesService.renew.mockResolvedValue(mockLease)
 
-			const result = await controller.renew(leaseId, endDate, 'mock-jwt-token')
+			const result = await controller.renew(lease_id, end_date, 'mock-jwt-token')
 
 			expect(mockLeasesService.renew).toHaveBeenCalledWith(
 				'mock-jwt-token',
-				leaseId,
-				endDate
+				lease_id,
+				end_date
 			)
 			expect(result).toEqual(mockLease)
 		})
@@ -328,20 +326,20 @@ describe('LeasesController', () => {
 
 	describe('terminate', () => {
 		it('should terminate lease with reason', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const reason = 'Tenant violation'
-			const mockLease = createMockLease({ status: 'TERMINATED' })
+			const mockLease = createMockLease({ lease_status: 'TERMINATED' })
 			mockLeasesService.terminate.mockResolvedValue(mockLease)
 
 			const result = await controller.terminate(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
 				reason
 			)
 
 			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
 				'mock-jwt-token',
-				leaseId,
+				lease_id,
 				expect.any(String),
 				reason
 			)

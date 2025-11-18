@@ -2,15 +2,15 @@
 
 /**
  * Owner Dashboard Hooks
- * 
+ *
  * Modern hooks using /owner/* endpoints (replaces legacy /manage/* endpoints)
- * 
+ *
  * Architecture:
- * - Role-based access control (OwnerAuthGuard)
+ * - user_type-based access control (OwnerAuthGuard)
  * - Enhanced monitoring and logging
  * - Modular route structure
  * - Optimized caching strategies
- * 
+ *
  * Endpoints:
  * - /owner/analytics/* - Dashboard stats, activity, unified page data
  * - /owner/reports/* - Time series, metric trends
@@ -46,7 +46,7 @@ import type {
  */
 export const ownerDashboardKeys = {
 	all: ['owner-dashboard'] as const,
-	
+
 	// Analytics endpoints (/owner/analytics/*)
 	analytics: {
 		all: () => [...ownerDashboardKeys.all, 'analytics'] as const,
@@ -54,35 +54,35 @@ export const ownerDashboardKeys = {
 		activity: () => [...ownerDashboardKeys.analytics.all(), 'activity'] as const,
 		pageData: () => [...ownerDashboardKeys.analytics.all(), 'page-data'] as const
 	},
-	
+
 	// Reports endpoints (/owner/reports/*)
 	reports: {
 		all: () => [...ownerDashboardKeys.all, 'reports'] as const,
-		timeSeries: (metric: string, days: number) => 
+		timeSeries: (metric: string, days: number) =>
 			[...ownerDashboardKeys.reports.all(), 'time-series', metric, days] as const,
 		metricTrend: (metric: string, period: string) =>
 			[...ownerDashboardKeys.reports.all(), 'metric-trend', metric, period] as const
 	},
-	
+
 	// Properties endpoints (/owner/properties/*)
 	properties: {
 		all: () => [...ownerDashboardKeys.all, 'properties'] as const,
 		performance: () => [...ownerDashboardKeys.properties.all(), 'performance'] as const
 	},
-	
+
 	// Financial endpoints (/owner/financial/*)
 	financial: {
 		all: () => [...ownerDashboardKeys.all, 'financial'] as const,
 		billingInsights: () => [...ownerDashboardKeys.financial.all(), 'billing-insights'] as const,
 		revenueTrends: (year: number) => [...ownerDashboardKeys.financial.all(), 'revenue-trends', year] as const
 	},
-	
+
 	// Maintenance endpoints (/owner/maintenance/*)
 	maintenance: {
 		all: () => [...ownerDashboardKeys.all, 'maintenance'] as const,
 		analytics: () => [...ownerDashboardKeys.maintenance.all(), 'analytics'] as const
 	},
-	
+
 	// Tenants endpoints (/owner/tenants/*)
 	tenants: {
 		all: () => [...ownerDashboardKeys.all, 'tenants'] as const,
@@ -223,7 +223,7 @@ export function useOwnerPropertyPerformance() {
 /**
  * Get billing insights and revenue analytics
  */
-export function useOwnerBillingInsights() {
+export function useBillingInsights() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.financial.billingInsights(),
 		queryFn: () => clientFetch<{
@@ -265,7 +265,7 @@ export function useOwnerRevenueTrends(year: number = new Date().getFullYear()) {
 /**
  * Get maintenance analytics
  */
-export function useOwnerMaintenanceAnalytics() {
+export function useMaintenanceAnalytics() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.maintenance.analytics(),
 		queryFn: () => clientFetch<{
@@ -291,7 +291,7 @@ export function useOwnerMaintenanceAnalytics() {
 /**
  * Get occupancy trends and tenant statistics
  */
-export function useOwnerOccupancyTrends() {
+export function useOccupancyTrends() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.tenants.occupancyTrends(),
 		queryFn: () => clientFetch<{

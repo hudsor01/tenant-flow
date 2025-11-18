@@ -141,7 +141,7 @@ export function mapNetOperatingIncome(
 	return data.map(item => {
 		const record = isObject(item) ? item : {}
 		return {
-			propertyId: toString(record.property_id ?? record.propertyId, 'unknown'),
+			property_id: toString(record.property_id ?? record.property_id, 'unknown'),
 			propertyName: toString(
 				record.property_name ?? record.propertyName,
 				'Unknown Property'
@@ -305,8 +305,8 @@ export function mapLeaseSummary(data: unknown): LeaseFinancialSummary {
 		totalLeases: toNumber(record.total_leases ?? record.totalLeases),
 		activeLeases: toNumber(record.active_leases ?? record.activeLeases),
 		expiringSoon: toNumber(record.expiring_soon ?? record.expiringSoon),
-		totalMonthlyRent: toNumber(
-			record.total_monthly_rent ?? record.totalMonthlyRent
+		totalrent_amount: toNumber(
+			record.total_monthly_rent ?? record.totalrent_amount
 		),
 		averageLeaseValue: toNumber(
 			record.average_lease_value ?? record.averageLeaseValue
@@ -322,7 +322,7 @@ export function mapLeaseAnalytics(data: unknown): LeaseFinancialInsight[] {
 	return data.map(item => {
 		const record = isObject(item) ? item : {}
 		return {
-			leaseId: toString(record.lease_id ?? record.leaseId, 'unknown'),
+			lease_id: toString(record.lease_id ?? record.lease_id, 'unknown'),
 			propertyName: toString(
 				record.property_name ?? record.propertyName,
 				'Unknown Property'
@@ -331,7 +331,7 @@ export function mapLeaseAnalytics(data: unknown): LeaseFinancialInsight[] {
 				record.tenant_name ?? record.tenantName,
 				'Unknown Tenant'
 			),
-			monthlyRent: toNumber(record.monthly_rent ?? record.rent),
+			rent_amount: toNumber(record.monthly_rent ?? record.rent),
 			outstandingBalance: toNumber(
 				record.outstanding_balance ?? record.balance ?? 0
 			),

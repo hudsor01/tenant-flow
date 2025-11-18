@@ -52,7 +52,7 @@ export class CurrentUserProvider {
 	 * Get authenticated user ID (most common use case)
 	 * @throws UnauthorizedException if user is not authenticated
 	 */
-	async getUserId(): Promise<string> {
+	async getuser_id(): Promise<string> {
 		const user = await this.getUser()
 		return user.id
 	}

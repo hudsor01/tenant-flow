@@ -51,7 +51,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 					metadata: { event, hasSession: !!session }
 				}
 				if (session?.user?.id) {
-					logContext.userId = session.user.id
+					logContext.user_id = session.user.id
 				}
 				logger.info('State change event', logContext)
 
@@ -70,7 +70,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				if (process.env.NODE_ENV === 'development') {
 					logger.info('Auth state changed', {
 						action: 'auth_state_change',
-						metadata: { event, userId: session?.user?.id }
+						metadata: { event, user_id: session?.user?.id }
 					})
 				}
 			}

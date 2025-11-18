@@ -1,12 +1,14 @@
 'use client'
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { DefaultOptions, DehydratedState } from '@tanstack/react-query'
+import type { DehydratedState, DefaultOptions } from '@tanstack/react-query'
 import {
 	HydrationBoundary,
 	keepPreviousData,
 	QueryClient,
-	QueryClientProvider
+	QueryClientProvider,
+	focusManager,
+	onlineManager
 } from '@tanstack/react-query'
 import type { Persister } from '@tanstack/react-query-persist-client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
@@ -52,9 +54,28 @@ export function QueryProvider({
 						// Cache time - unused data kept in cache for 10 minutes
 						gcTime: 10 * 60 * 1000,
 
-						// Refetch behavior for better UX
-						refetchOnWindowFocus: false,
-						refetchOnReconnect: true,
+						// Advanced retry logic with jittered exponential backoff
+						retry: (failureCount, error) => {
+							// Don't retry on 4xx errors (client errors)
+							if (error && typeof error === 'object' && 'status' in error) {
+								const status = (error as { status: number }).status
+								if (status >= 400 && status < 500) {
+									return false
+								}
+							}
+							// Retry up to 3 times for other errors
+							return failureCount < 3
+						},
+						retryDelay: (attemptIndex) => {
+							// Jittered exponential backoff: base delay with random jitter
+							const baseDelay = Math.min(1000 * 2 ** attemptIndex, 30000)
+							const jitter = Math.random() * 0.3 * baseDelay // ±30% jitter
+							return baseDelay + jitter
+						},
+
+						// Smart refetch behavior
+						refetchOnWindowFocus: 'always',
+						refetchOnReconnect: 'always',
 						refetchOnMount: true,
 
 						// Network mode for offline support
@@ -71,11 +92,108 @@ export function QueryProvider({
 						networkMode: 'online',
 
 						// Global mutation cache
-						gcTime: 5 * 60 * 1000
+						gcTime: 5 * 60 * 1000,
+
+						// Global mutation events
+						onSuccess: (data, variables, context) => {
+							logger.debug('Mutation succeeded', {
+								action: 'mutation_success',
+								metadata: {
+									variables: typeof variables === 'object' ? Object.keys(variables || {}) : String(variables),
+									hasRollbackData: !!context
+								}
+							})
+						},
+						onError: (error, variables, context) => {
+							logger.warn('Mutation failed', {
+								action: 'mutation_error',
+								metadata: {
+									error: error instanceof Error ? error.message : String(error),
+									variables: typeof variables === 'object' ? Object.keys(variables || {}) : String(variables),
+									hasRollbackData: !!context
+								}
+							})
+						}
 					}
 				}
 			})
 	)
+
+	// Configure global query events for monitoring
+	useEffect(() => {
+		const unsubscribeQueryCache = queryClient.getQueryCache().subscribe(event => {
+			if (event.type === 'added') {
+				logger.debug('Query added', {
+					action: 'query_added',
+					metadata: { queryKey: event.query.queryKey }
+				})
+			} else if (event.type === 'removed') {
+				logger.debug('Query removed', {
+					action: 'query_removed',
+					metadata: { queryKey: event.query.queryKey }
+				})
+			}
+		})
+
+		const unsubscribeMutationCache = queryClient.getMutationCache().subscribe(event => {
+			if (event.type === 'added') {
+				logger.debug('Mutation added', {
+					action: 'mutation_added',
+					metadata: { mutationId: event.mutation.mutationId }
+				})
+			} else if (event.type === 'removed') {
+				logger.debug('Mutation removed', {
+					action: 'mutation_removed',
+					metadata: { mutationId: event.mutation.mutationId }
+				})
+			}
+		})
+
+		return () => {
+			unsubscribeQueryCache()
+			unsubscribeMutationCache()
+		}
+	}, [queryClient])
+
+	// Configure focus and online managers for advanced UX
+	useEffect(() => {
+		// Focus manager: refetch queries when window regains focus
+		focusManager.setEventListener(handleFocus => {
+			if (typeof window !== 'undefined') {
+				const handleFocusIn = () => handleFocus(true)
+				const handleFocusOut = () => handleFocus(false)
+
+				window.addEventListener('focus', handleFocusIn)
+				window.addEventListener('blur', handleFocusOut)
+
+				return () => {
+					window.removeEventListener('focus', handleFocusIn)
+					window.removeEventListener('blur', handleFocusOut)
+				}
+			}
+			return () => {} // No-op cleanup for SSR
+		})
+
+		// Online manager: pause/resume queries based on network status
+		onlineManager.setEventListener(setOnline => {
+			if (typeof window !== 'undefined') {
+				const handleOnline = () => setOnline(true)
+				const handleOffline = () => setOnline(false)
+
+				window.addEventListener('online', handleOnline)
+				window.addEventListener('offline', handleOffline)
+
+				// Set initial online status
+				setOnline(navigator.onLine)
+
+				return () => {
+					window.removeEventListener('online', handleOnline)
+					window.removeEventListener('offline', handleOffline)
+				}
+			}
+			return () => {} // No-op cleanup for SSR
+		})
+	}, [])
 
 	useEffect(() => {
 		if (typeof window === 'undefined') {

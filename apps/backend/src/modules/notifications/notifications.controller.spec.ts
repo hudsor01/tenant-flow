@@ -86,7 +86,7 @@ describe('NotificationsController', () => {
 					type: 'maintenance',
 					priority: 'MEDIUM',
 					isRead: false,
-					createdAt: new Date()
+					created_at: new Date()
 				}
 			]
 
@@ -99,7 +99,7 @@ describe('NotificationsController', () => {
 			const result = await controller.getNotifications(mockRequest)
 
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
-			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('userId', mockUser.id)
+			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('user_id', mockUser.id)
 			expect(result).toEqual({ notifications: mockNotifications })
 		})
 
@@ -142,7 +142,7 @@ describe('NotificationsController', () => {
 
 	describe('createNotification', () => {
 		const validNotificationData = {
-			userId: 'user-123',
+			user_id: 'user-123',
 			title: 'Test Notification',
 			content: 'Test content',
 			type: 'maintenance' as const,
@@ -155,7 +155,7 @@ describe('NotificationsController', () => {
 				id: 'notif-123',
 				...validNotificationData,
 				isRead: false,
-				createdAt: new Date()
+				created_at: new Date()
 			}
 
 			mockSupabaseClient.single.mockResolvedValue({
@@ -167,15 +167,19 @@ describe('NotificationsController', () => {
 
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
-				...validNotificationData,
-				isRead: false
+				user_id: validNotificationData.user_id,
+				title: validNotificationData.title,
+				message: validNotificationData.content,
+				notification_type: validNotificationData.type,
+				action_url: validNotificationData.actionUrl,
+				is_read: false
 			})
 			expect(result).toEqual({ notification: mockCreatedNotification })
 		})
 
 		it('should create notification without optional actionUrl', async () => {
 			const dataWithoutUrl = {
-				userId: 'user-123',
+				user_id: 'user-123',
 				title: 'Test Notification',
 				content: 'Test content',
 				type: 'system' as const,
@@ -190,9 +194,12 @@ describe('NotificationsController', () => {
 			const result = await controller.createNotification(dataWithoutUrl)
 
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
-				...dataWithoutUrl,
-				actionUrl: null,
-				isRead: false
+				user_id: dataWithoutUrl.user_id,
+				title: dataWithoutUrl.title,
+				message: dataWithoutUrl.content,
+				notification_type: dataWithoutUrl.type,
+				action_url: null,
+				is_read: false
 			})
 			expect(result.notification).toBeDefined()
 		})
@@ -239,9 +246,9 @@ describe('NotificationsController', () => {
 
 			// no getUser call expected; controller uses req.user
 			expect(mockChain.from).toHaveBeenCalledWith('notifications')
-			expect(mockChain.update).toHaveBeenCalledWith({ isRead: true })
+			expect(mockChain.update).toHaveBeenCalledWith({ is_read: true })
 			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
-			expect(mockChain.eq).toHaveBeenCalledWith('userId', mockUser.id)
+			expect(mockChain.eq).toHaveBeenCalledWith('user_id', mockUser.id)
 			expect(result).toEqual({ success: true })
 		})
 
@@ -316,7 +323,7 @@ describe('NotificationsController', () => {
 			expect(mockChain.from).toHaveBeenCalledWith('notifications')
 			expect(mockChain.delete).toHaveBeenCalled()
 			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
-			expect(mockChain.eq).toHaveBeenCalledWith('userId', mockUser.id)
+			expect(mockChain.eq).toHaveBeenCalledWith('user_id', mockUser.id)
 			expect(result).toEqual({ success: true })
 		})
 
@@ -358,18 +365,18 @@ describe('NotificationsController', () => {
 
 	describe('createMaintenanceNotification', () => {
 		const maintenanceData = {
-			userId: 'user-123',
+			user_id: 'user-123',
 			maintenanceId: 'maint-456',
 			propertyName: 'Sunset Apartments',
-			unitNumber: '2A'
+			unit_number: '2A'
 		}
 
 		it('should create maintenance notification with predefined content', async () => {
 			const expectedNotification = {
 				id: 'notif-789',
-				userId: maintenanceData.userId,
+				user_id: maintenanceData.user_id,
 				title: 'Maintenance Request Update',
-				content: `Your maintenance request for ${maintenanceData.propertyName} Unit ${maintenanceData.unitNumber} has been updated.`,
+				content: `Your maintenance request for ${maintenanceData.propertyName} Unit ${maintenanceData.unit_number} has been updated.`,
 				type: 'maintenance',
 				priority: 'MEDIUM',
 				actionUrl: `/maintenance/${maintenanceData.maintenanceId}`,
@@ -385,13 +392,14 @@ describe('NotificationsController', () => {
 				await controller.createMaintenanceNotification(maintenanceData)
 
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
-				userId: maintenanceData.userId,
+				user_id: maintenanceData.user_id,
 				title: 'Maintenance Request Update',
-				content: `Your maintenance request for ${maintenanceData.propertyName} Unit ${maintenanceData.unitNumber} has been updated.`,
-				type: 'maintenance',
-				priority: 'MEDIUM',
-				actionUrl: `/maintenance/${maintenanceData.maintenanceId}`,
-				isRead: false
+				message: `Your maintenance request for ${maintenanceData.propertyName} Unit ${maintenanceData.unit_number} has been updated.`,
+				notification_type: 'maintenance',
+				entity_id: maintenanceData.maintenanceId,
+				entity_type: 'maintenance',
+				action_url: `/maintenance/${maintenanceData.maintenanceId}`,
+				is_read: false
 			})
 			expect(result).toEqual({ notification: expectedNotification })
 		})

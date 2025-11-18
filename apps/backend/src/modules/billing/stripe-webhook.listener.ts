@@ -1,3 +1,4 @@
+import type { LeaseStatus } from '@repo/shared/constants/status-types'
 /**
  * Stripe Webhook Event Listeners
  *
@@ -10,7 +11,7 @@ import type Stripe from 'stripe'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { PaymentFailedEvent } from '../notifications/events/notification.events'
 import { StripeIdentityService } from './stripe-identity.service'
 
@@ -59,9 +60,9 @@ export class StripeWebhookListener {
 
 			// Find tenant by Stripe Customer ID
 			const { data: tenant } = await client
-				.from('tenant')
+				.from('tenants')
 				.select('id')
-				.eq('stripeCustomerId', customerId)
+				.eq('stripe_customer_id', customerId)
 				.single()
 
 			if (!tenant) {
@@ -71,18 +72,27 @@ export class StripeWebhookListener {
 				return
 			}
 
-			// Update invitation status
-			await client
-				.from('tenant')
-				.update({
-					invitation_status:
-						'ACCEPTED' as Database['public']['Enums']['invitation_status'],
-					updated_at: new Date().toISOString()
-				})
+			// Update invitation status in tenant_invitations table
+			const { data: tenantWithUser } = await client
+				.from('tenants')
+				.select('id, user_id, users!inner(email)')
 				.eq('id', tenant.id)
+				.single()
+
+			if (tenantWithUser) {
+				await client
+					.from('tenant_invitations')
+					.update({
+						status: 'accepted',
+						accepted_by_user_id: tenantWithUser.user_id,
+						accepted_at: new Date().toISOString()
+					})
+					.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
+					.eq('status', 'pending')
+			}
 
 			this.logger.log('Tenant invitation accepted', {
-				tenantId: tenant.id
+				tenant_id: tenant.id
 			})
 		} catch (error) {
 			// Record failure details
@@ -125,9 +135,9 @@ export class StripeWebhookListener {
 
 			// Find lease by Stripe Subscription ID
 			const { data: lease } = await client
-				.from('lease')
+				.from('leases')
 				.select('id')
-				.eq('stripeSubscriptionId', subscription.id)
+				.eq('stripe_subscription_id', subscription.id)
 				.single()
 
 			if (!lease) {
@@ -138,25 +148,25 @@ export class StripeWebhookListener {
 			}
 
 			// Map Stripe subscription status to lease status
-			let leaseStatus: Database['public']['Enums']['LeaseStatus'] = 'DRAFT' // FIX: PENDING doesn't exist in LeaseStatus
+			let lease_status: LeaseStatus = 'DRAFT' // FIX: PENDING doesn't exist in LeaseStatus
 
 			if (subscription.status === 'active') {
-				leaseStatus = 'ACTIVE'
+				lease_status = 'ACTIVE'
 			} else if (subscription.status === 'canceled') {
-				leaseStatus = 'TERMINATED'
+				lease_status = 'TERMINATED'
 			}
 
 			await client
-				.from('lease')
+				.from('leases')
 				.update({
-					status: leaseStatus,
+					lease_status: lease_status,
 					updated_at: new Date().toISOString()
 				})
 				.eq('id', lease.id)
 
 			this.logger.log('Lease status updated', {
-				leaseId: lease.id,
-				status: leaseStatus
+				lease_id: lease.id,
+				status: lease_status
 			})
 		} catch (error) {
 			// Record failure details
@@ -206,25 +216,25 @@ export class StripeWebhookListener {
 			}
 
 			type LeaseWithRelations =
-				Database['public']['Tables']['lease']['Row'] & {
-					property: { ownerId: string | null; name: string | null } | null
-					unit: { unitNumber: string | null } | null
-					tenant: { id: string; userId: string | null; name: string | null } | null
+				Database['public']['Tables']['leases']['Row'] & {
+					property: { owner_id: string | null; name: string | null } | null
+					unit: { unit_number: string | null; property_id: string | null } | null
+					tenant: { id: string; user_id: string | null; name: string | null } | null
 				}
 
 			const { data: lease, error: leaseError } = await this.supabase
 				.getAdminClient()
-				.from('lease')
+				.from('leases')
 				.select(
 					`
 					id,
-					tenantId,
-					property:propertyId(ownerId, name),
-					unit:unitId(unitNumber),
-					tenant:tenantId(id, userId, name)
+					primary_tenant_id,
+					property:properties!unit_id(owner_id, name),
+					unit:units!inner(unit_number, property_id),
+					tenant:tenants!primary_tenant_id(id, user_id, name)
 				`
 				)
-				.eq('stripeSubscriptionId', subscriptionId)
+				.eq('stripe_subscription_id', subscriptionId)
 				.single<LeaseWithRelations>()
 
 			if (leaseError || !lease) {
@@ -236,8 +246,8 @@ export class StripeWebhookListener {
 			}
 
 			const propertyName = lease.property?.name || 'Subscription'
-			const propertyLabel = lease.unit?.unitNumber
-				? `${propertyName} - Unit ${lease.unit.unitNumber}`
+			const propertyLabel = lease.unit?.unit_number
+				? `${propertyName} - Unit ${lease.unit.unit_number}`
 				: propertyName
 			const errorMessage =
 				this.getInvoicePaymentError(invoice) || invoice.description || null
@@ -248,18 +258,18 @@ export class StripeWebhookListener {
 				errorMessage ||
 				`Your rent payment for ${propertyLabel} failed. Please update your payment method to avoid late fees.`
 
-			const ownerId = lease.property?.ownerId
+			const owner_id = lease.property?.owner_id
 
-			if (!ownerId) {
+			if (!owner_id) {
 				this.logger.warn('Lease missing owner for failed payment notification', {
-					leaseId: lease.id,
+					lease_id: lease.id,
 					subscriptionId
 				})
 			} else {
 				await this.eventEmitter.emitAsync(
 					'payment.failed',
 					new PaymentFailedEvent(
-						ownerId,
+						owner_id,
 						subscriptionId,
 						invoice.amount_due,
 						invoice.currency || 'usd',
@@ -269,27 +279,27 @@ export class StripeWebhookListener {
 				)
 
 				this.logger.log('Queued payment failed notification for owner', {
-					ownerId,
+					owner_id,
 					subscriptionId
 				})
 			}
 
-			const tenantUserId = lease.tenant?.userId
+			const tenantUserId = lease.tenant?.user_id
 
 			if (!tenantUserId) {
 				this.logger.warn(
 					'Tenant missing user account for failed payment notification',
 					{
-						leaseId: lease.id,
-						tenantId: lease.tenantId,
+						lease_id: lease.id,
+						tenant_id: lease.primary_tenant_id,
 						subscriptionId
 					}
 				)
 			} else {
-				await this.eventEmitter.emitAsync(
-					'payment.failed',
-					new PaymentFailedEvent(
-						tenantUserId,
+			await this.eventEmitter.emitAsync(
+				'payment.failed',
+				new PaymentFailedEvent(
+					tenantUserId,
 						subscriptionId,
 						invoice.amount_due,
 						invoice.currency || 'usd',
@@ -299,8 +309,8 @@ export class StripeWebhookListener {
 				)
 
 				this.logger.log('Queued payment failed notification for tenant', {
-					tenantUserId,
-					tenantId: lease.tenant?.id,
+					tenantuser_id: tenantUserId,
+					tenant_id: lease.tenant?.id,
 					subscriptionId
 				})
 			}
@@ -365,13 +375,13 @@ export class StripeWebhookListener {
 	 */
 	@OnEvent('tenant.invitation.failed')
 	async handleInvitationFailed(event: {
-		ownerId: string
+		owner_id: string
 		error: Error | unknown
 		eventType?: string
 	}) {
 		try {
 			this.logger.error('Tenant invitation failed - cleanup initiated', {
-				ownerId: event.ownerId,
+				owner_id: event.owner_id,
 				error:
 					event.error instanceof Error
 						? event.error.message

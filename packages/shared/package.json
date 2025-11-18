@@ -50,9 +50,8 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\" --no-error-on-unmatched-pattern --no-warn-ignored",
+		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\"",
 		"lint:fix": "pnpm lint --fix",
-		"update-types": "node scripts/update-supabase-types.js",
 		"clean": "rimraf dist .turbo && find src -name '*.js' -delete && find src -name '*.js.map' -delete"
 	},
 	"dependencies": {

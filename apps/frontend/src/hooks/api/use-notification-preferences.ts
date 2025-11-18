@@ -22,21 +22,21 @@ export interface NotificationPreferences {
  */
 export const notificationPreferencesKeys = {
 	all: ['notification-preferences'] as const,
-	tenant: (tenantId: string) =>
-		[...notificationPreferencesKeys.all, tenantId] as const
+	tenant: (tenant_id: string) =>
+		[...notificationPreferencesKeys.all, tenant_id] as const
 }
 
 /**
  * Hook to fetch notification preferences for a tenant
  */
-export function useNotificationPreferences(tenantId: string) {
+export function useNotificationPreferences(tenant_id: string) {
 	return useQuery({
-		queryKey: notificationPreferencesKeys.tenant(tenantId),
+		queryKey: notificationPreferencesKeys.tenant(tenant_id),
 		queryFn: () =>
 			clientFetch<NotificationPreferences>(
-				`/api/v1/tenants/${tenantId}/notification-preferences`
+				`/api/v1/tenants/${tenant_id}/notification-preferences`
 			),
-		enabled: !!tenantId,
+		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
@@ -45,13 +45,13 @@ export function useNotificationPreferences(tenantId: string) {
 /**
  * Hook to update notification preferences
  */
-export function useUpdateNotificationPreferences(tenantId: string) {
+export function useUpdateNotificationPreferences(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationFn: (preferences: Partial<NotificationPreferences>) =>
 			clientFetch<NotificationPreferences>(
-				`/api/v1/tenants/${tenantId}/notification-preferences`,
+				`/api/v1/tenants/${tenant_id}/notification-preferences`,
 				{
 					method: 'PUT',
 					body: JSON.stringify(preferences)
@@ -60,19 +60,19 @@ export function useUpdateNotificationPreferences(tenantId: string) {
 		onMutate: async (newPreferences: Partial<NotificationPreferences>) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({
-				queryKey: notificationPreferencesKeys.tenant(tenantId)
+				queryKey: notificationPreferencesKeys.tenant(tenant_id)
 			})
 
 			// Snapshot previous state
 			const previousPreferences =
 				queryClient.getQueryData<NotificationPreferences>(
-					notificationPreferencesKeys.tenant(tenantId)
+					notificationPreferencesKeys.tenant(tenant_id)
 				)
 
 			// Optimistically update
 			if (previousPreferences) {
 				queryClient.setQueryData<NotificationPreferences>(
-					notificationPreferencesKeys.tenant(tenantId),
+					notificationPreferencesKeys.tenant(tenant_id),
 					{
 						...previousPreferences,
 						...newPreferences
@@ -86,7 +86,7 @@ export function useUpdateNotificationPreferences(tenantId: string) {
 			// Rollback on error
 			if (context?.previousPreferences) {
 				queryClient.setQueryData(
-					notificationPreferencesKeys.tenant(tenantId),
+					notificationPreferencesKeys.tenant(tenant_id),
 					context.previousPreferences
 				)
 			}
@@ -94,7 +94,7 @@ export function useUpdateNotificationPreferences(tenantId: string) {
 			logger.error('Failed to update notification preferences', {
 				action: 'update_notification_preferences',
 				metadata: {
-					tenantId,
+					tenant_id,
 					error: err instanceof Error ? err.message : String(err)
 				}
 			})
@@ -104,7 +104,7 @@ export function useUpdateNotificationPreferences(tenantId: string) {
 		onSuccess: (data) => {
 			// Update cache with server response
 			queryClient.setQueryData(
-				notificationPreferencesKeys.tenant(tenantId),
+				notificationPreferencesKeys.tenant(tenant_id),
 				data
 			)
 
@@ -115,7 +115,7 @@ export function useUpdateNotificationPreferences(tenantId: string) {
 
 			logger.info('Notification preferences updated', {
 				action: 'update_notification_preferences',
-				metadata: { tenantId }
+				metadata: { tenant_id }
 			})
 		}
 	})

@@ -15,13 +15,13 @@ test.describe('Tenant Invitation Flow', () => {
 	// Test data
 	const testTenant = {
 		email: `test-tenant-${Date.now()}@example.com`,
-		firstName: 'Test',
-		lastName: 'Tenant',
+		first_name: 'Test',
+		last_name: 'Tenant',
 		phone: '5555551234'
 	}
 
 	let invitationToken: string
-	let tenantId: string
+	let tenant_id: string
 
 	test.beforeEach(async ({ page }) => {
 		// Login as property owner
@@ -46,13 +46,13 @@ test.describe('Tenant Invitation Flow', () => {
 
 		// Fill in tenant information
 		await page.fill('input[name="email"]', testTenant.email)
-		await page.fill('input[name="firstName"]', testTenant.firstName)
-		await page.fill('input[name="lastName"]', testTenant.lastName)
+		await page.fill('input[name="first_name"]', testTenant.first_name)
+		await page.fill('input[name="last_name"]', testTenant.last_name)
 		await page.fill('input[name="phone"]', testTenant.phone)
 
 		// Select a lease (assuming at least one exists)
-		await page.click('[role="combobox"]')
-		await page.click('[role="option"]:first-child')
+		await page.click('[user_type="combobox"]')
+		await page.click('[user_type="option"]:first-child')
 
 		// Submit form
 		await page.click('button:has-text("Send Invitation")')
@@ -109,7 +109,7 @@ test.describe('Tenant Invitation Flow', () => {
 		const tenants = await response.json()
 		const tenant = tenants.find((t: any) => t.email === testTenant.email)
 		invitationToken = tenant.invitation_token
-		tenantId = tenant.id
+		tenant_id = tenant.id
 
 		// Visit invitation link in new context (not logged in)
 		const newPage = await context.newPage()
@@ -150,7 +150,7 @@ test.describe('Tenant Invitation Flow', () => {
 		await newPage.waitForURL(`${BASE_URL}/tenant/**`)
 
 		// Verify invitation status updated in database
-		const response = await page.request.get(`${API_URL}/api/v1/tenants/${tenantId}`)
+		const response = await page.request.get(`${API_URL}/api/v1/tenants/${tenant_id}`)
 		const tenant = await response.json()
 		expect(tenant.invitation_status).toBe('ACCEPTED')
 	})

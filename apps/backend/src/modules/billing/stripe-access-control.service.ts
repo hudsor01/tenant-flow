@@ -6,7 +6,7 @@ import {
 	MAX_STRIPE_PAYMENT_ATTEMPTS,
 	DEFAULT_RPC_RETRY_ATTEMPTS
 } from './stripe.constants'
-import { userIdByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
+import { user_idByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
 import type { Database } from '@repo/shared/types/supabase'
 
 /**
@@ -47,7 +47,7 @@ export class StripeAccessControlService {
 				DEFAULT_RPC_RETRY_ATTEMPTS
 			)
 
-			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			const validatedResult = user_idByStripeCustomerSchema.safeParse(rpcResult)
 			if (!validatedResult.success) {
 				this.logger.error('RPC response validation failed', {
 					errors: validatedResult.error.issues,
@@ -57,9 +57,9 @@ export class StripeAccessControlService {
 				return
 			}
 
-			const { data: userId, error: userError } = validatedResult.data
+			const { data: user_id, error: userError } = validatedResult.data
 
-			if (userError || !userId) {
+			if (userError || !user_id) {
 				this.logger.warn('Could not find user for subscription', {
 					subscriptionId: subscription.id,
 					customerId,
@@ -70,7 +70,7 @@ export class StripeAccessControlService {
 
 			// Log access grant
 			this.logger.log('Granting subscription access', {
-				userId,
+				user_id,
 				subscriptionId: subscription.id,
 				status: subscription.status,
 				planId: subscription.items.data[0]?.price?.id
@@ -110,7 +110,7 @@ export class StripeAccessControlService {
 			DEFAULT_RPC_RETRY_ATTEMPTS
 		)
 
-		const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+		const validatedResult = user_idByStripeCustomerSchema.safeParse(rpcResult)
 		if (!validatedResult.success) {
 			this.logger.error('RPC response validation failed', {
 				errors: validatedResult.error.issues,
@@ -119,9 +119,9 @@ export class StripeAccessControlService {
 			return
 		}
 
-		const { data: userId, error: userError } = validatedResult.data
+		const { data: user_id, error: userError } = validatedResult.data
 
-		if (userError || !userId) {
+		if (userError || !user_id) {
 				this.logger.warn('Could not find user for subscription cancellation', {
 					subscriptionId: subscription.id,
 					customerId,
@@ -132,7 +132,7 @@ export class StripeAccessControlService {
 
 			// Log access revocation
 			this.logger.log('Revoking subscription access', {
-				userId,
+				user_id,
 				subscriptionId: subscription.id,
 				status: subscription.status,
 				canceledAt: subscription.canceled_at
@@ -147,12 +147,12 @@ export class StripeAccessControlService {
 				.getAdminClient()
 				.from('users')
 				.select('email')
-				.eq('id', userId)
+				.eq('id', user_id)
 				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
 			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for cancellation notice', {
-					userId,
+					user_id,
 				error: emailError instanceof Error ? emailError.message : String(emailError)
 				})
 			} else {
@@ -201,7 +201,7 @@ export class StripeAccessControlService {
 				DEFAULT_RPC_RETRY_ATTEMPTS
 			)
 
-			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			const validatedResult = user_idByStripeCustomerSchema.safeParse(rpcResult)
 			if (!validatedResult.success) {
 				this.logger.error('RPC response validation failed', {
 					errors: validatedResult.error.issues,
@@ -211,9 +211,9 @@ export class StripeAccessControlService {
 				return
 			}
 
-			const { data: userId, error: userError } = validatedResult.data
+			const { data: user_id, error: userError } = validatedResult.data
 
-			if (userError || !userId) {
+			if (userError || !user_id) {
 				this.logger.warn('Could not find user for trial ending', {
 					subscriptionId: subscription.id,
 					customerId
@@ -230,7 +230,7 @@ export class StripeAccessControlService {
 				: 0
 
 			this.logger.log('Trial ending soon', {
-				userId,
+				user_id,
 				subscriptionId: subscription.id,
 				daysRemaining,
 				trialEnd
@@ -242,7 +242,7 @@ export class StripeAccessControlService {
 				const result = await this.supabaseService.rpcWithRetries(
 					'send_trial_ending_email',
 					{
-						p_user_id: userId,
+						p_user_id: user_id,
 						p_subscription_id: subscription.id,
 						p_days_remaining: daysRemaining,
 						p_trial_end: trialEnd.toISOString()
@@ -251,7 +251,7 @@ export class StripeAccessControlService {
 				)
 				if (result.error) {
 					this.logger.warn('Failed to send trial ending email after retries', {
-						userId,
+						user_id,
 						subscriptionId: subscription.id,
 						error:
 							result.error instanceof Error
@@ -260,14 +260,14 @@ export class StripeAccessControlService {
 					})
 				} else {
 					this.logger.log('Trial ending email sent successfully', {
-						userId,
+						user_id,
 						subscriptionId: subscription.id,
 						daysRemaining
 					})
 				}
 			} catch (emailError) {
 				this.logger.error('Exception sending trial ending email', {
-					userId,
+					user_id,
 					subscriptionId: subscription.id,
 					error: emailError instanceof Error ? emailError.message : String(emailError)
 				})
@@ -308,7 +308,7 @@ export class StripeAccessControlService {
 				DEFAULT_RPC_RETRY_ATTEMPTS
 			)
 
-			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			const validatedResult = user_idByStripeCustomerSchema.safeParse(rpcResult)
 			if (!validatedResult.success) {
 				this.logger.error('RPC response validation failed', {
 					errors: validatedResult.error.issues,
@@ -318,9 +318,9 @@ export class StripeAccessControlService {
 				return
 			}
 
-			const { data: userId, error: userError } = validatedResult.data
+			const { data: user_id, error: userError } = validatedResult.data
 
-			if (userError || !userId) {
+			if (userError || !user_id) {
 				this.logger.warn('Could not find user for failed payment', {
 					invoiceId: invoice.id,
 					customerId
@@ -329,7 +329,7 @@ export class StripeAccessControlService {
 			}
 
 			this.logger.warn('Payment failed', {
-				userId,
+				user_id,
 				invoiceId: invoice.id,
 				subscriptionId:
 					typeof invoice.subscription === 'string'
@@ -345,14 +345,14 @@ export class StripeAccessControlService {
 				.getAdminClient()
 				.from('users')
 				.select('email')
-				.eq('id', userId)
+				.eq('id', user_id)
 				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
 			if (emailError || !userData?.email) {
 				this.logger.warn(
 					'Could not fetch user email for payment failed notice',
 					{
-						userId,
+						user_id,
 						error:
 							emailError instanceof Error
 								? emailError.message
@@ -406,7 +406,7 @@ export class StripeAccessControlService {
 				DEFAULT_RPC_RETRY_ATTEMPTS
 			)
 
-			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			const validatedResult = user_idByStripeCustomerSchema.safeParse(rpcResult)
 			if (!validatedResult.success) {
 				this.logger.error('RPC response validation failed', {
 					errors: validatedResult.error.issues,
@@ -416,14 +416,14 @@ export class StripeAccessControlService {
 				return
 			}
 
-			const { data: userId, error: userError } = validatedResult.data
+			const { data: user_id, error: userError } = validatedResult.data
 
-			if (userError || !userId) {
+			if (userError || !user_id) {
 				return
 			}
 
 			this.logger.log('Payment succeeded', {
-				userId,
+				user_id,
 				invoiceId: invoice.id,
 				subscriptionId:
 					typeof invoice.subscription === 'string'
@@ -438,12 +438,12 @@ export class StripeAccessControlService {
 				.getAdminClient()
 				.from('users')
 				.select('email')
-				.eq('id', userId)
+				.eq('id', user_id)
 				.single<Pick<Database['public']['Tables']['users']['Row'], 'email'>>()
 
 			if (emailError || !userData?.email) {
 				this.logger.warn('Could not fetch user email for payment receipt', {
-					userId,
+					user_id,
 				error: emailError instanceof Error ? emailError.message : String(emailError)
 				})
 				return
@@ -469,18 +469,18 @@ export class StripeAccessControlService {
 	 * Check if user has access to a specific feature
 	 * Used by: API guards, frontend feature flags
 	 */
-	async checkFeatureAccess(userId: string, feature: string): Promise<boolean> {
+	async checkFeatureAccess(user_id: string, feature: string): Promise<boolean> {
 		try {
 			const { data: hasAccess, error } = await this.supabaseService
 				.getAdminClient()
 				.rpc('check_user_feature_access', {
-					p_user_id: userId,
+					p_user_id: user_id,
 					p_feature: feature
 				})
 
 			if (error) {
 				this.logger.error('Failed to check feature access', {
-					userId,
+					user_id,
 					feature,
 					error: error.message
 				})
@@ -490,7 +490,7 @@ export class StripeAccessControlService {
 			return hasAccess ?? false
 		} catch (error) {
 			this.logger.error('Exception checking feature access', {
-				userId,
+				user_id,
 				feature,
 				error: error instanceof Error ? error.message : String(error)
 			})
@@ -502,7 +502,7 @@ export class StripeAccessControlService {
 	 * Get user's current plan limits
 	 * Used by: Quota enforcement, UI display
 	 */
-	async getUserPlanLimits(userId: string): Promise<{
+	async getUserPlanLimits(user_id: string): Promise<{
 		propertyLimit: number
 		unitLimit: number
 		userLimit: number
@@ -515,13 +515,13 @@ export class StripeAccessControlService {
 			const { data, error } = await this.supabaseService
 				.getAdminClient()
 				.rpc('get_user_plan_limits', {
-					p_user_id: userId
+					p_user_id: user_id
 				})
 				.single()
 
 			if (error || !data) {
 				this.logger.warn('Could not get plan limits', {
-					userId,
+					user_id,
 					error: error?.message
 				})
 				return null
@@ -538,7 +538,7 @@ export class StripeAccessControlService {
 			}
 		} catch (error) {
 			this.logger.error('Exception getting plan limits', {
-				userId,
+				user_id,
 				error: error instanceof Error ? error.message : String(error)
 			})
 			return null

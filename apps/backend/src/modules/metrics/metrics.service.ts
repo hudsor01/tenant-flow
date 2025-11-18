@@ -11,19 +11,19 @@ import type { Counter, Gauge } from 'prom-client'
  * Auth failure reasons normalized to: INVALID_CREDENTIALS, TOKEN_EXPIRED,
  * TOKEN_INVALID, TOKEN_MISSING, ACCOUNT_LOCKED, ACCOUNT_DISABLED, UNKNOWN
  *
- * Table names normalized to: property, unit, lease, tenant, maintenance_request,
- * rent_payment, user_profile, subscription, other
+ * Table names normalized to: property, unit, lease, tenants, maintenance_request,
+ * rent_payments, users, subscriptions, other
  */
 
 const CORE_TABLE_NAMES = [
-	'property',
-	'unit',
-	'lease',
-	'tenant',
-	'maintenance_request',
-	'rent_payment',
-	'user_profile',
-	'subscription',
+	'properties',
+	'units',
+	'leases',
+	'tenants',
+	'maintenance_requests',
+	'rent_payments',
+	'users',
+	'subscriptions',
 	'other'
 ] as const
 

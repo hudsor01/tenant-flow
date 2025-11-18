@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 
 import { logger } from '@repo/shared/lib/frontend-logger'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { createServerClient } from '@supabase/ssr'
 import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
@@ -140,7 +140,7 @@ async function getJwtClaims(
 ): Promise<Record<string, unknown> | null> {
 	try {
 		// The auth hook (custom_access_token_hook) automatically enriches the JWT
-		// with user_role, subscription_status, and stripe_customer_id claims.
+		// with user_user_type, subscription_status, and stripe_customer_id claims.
 		// We get the session after code exchange to read the enriched access token.
 		const {
 			data: { session },
@@ -296,33 +296,33 @@ export async function GET(request: NextRequest) {
 
 		const user = data.session.user
 
-		// Extract role, subscription_status, and stripe_customer_id from JWT claims
+		// Extract user_type, subscription_status, and stripe_customer_id from JWT claims
 		// instead of making a redundant database query
 		const claims = await getJwtClaims(supabase)
-		const role = getStringClaim(claims, 'user_role')
+		const user_type = getStringClaim(claims, 'user_user_type')
 		const subscriptionStatus = getStringClaim(claims, 'subscription_status')
-		const stripeCustomerId = getStringClaim(claims, 'stripe_customer_id')
+		const stripe_customer_id = getStringClaim(claims, 'stripe_customer_id')
 
-		if (!role) {
-			logger.error('OAuth callback could not extract user role from JWT claims - terminating', {
-				action: 'oauth_role_missing',
-				metadata: { userId: user.id, hasClaims: Boolean(claims) }
+		if (!user_type) {
+			logger.error('OAuth callback could not extract user user_type from JWT claims - terminating', {
+				action: 'oauth_user_type_missing',
+				metadata: { user_id: user.id, hasClaims: Boolean(claims) }
 			})
-			return redirectTo(origin, '/login?error=role_missing')
+			return redirectTo(origin, '/login?error=user_type_missing')
 		}
 
-		const requiresPayment = role !== 'TENANT'
+		const requiresPayment = user_type !== 'TENANT'
 		const hasValidSubscription = subscriptionStatus
 			? VALID_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
 			: false
-		const hasStripeCustomer = Boolean(stripeCustomerId)
+		const hasStripeCustomer = Boolean(stripe_customer_id)
 
 		if (requiresPayment && (!hasValidSubscription || !hasStripeCustomer)) {
 			logger.info('OAuth user requires payment - redirecting to pricing', {
 				action: 'oauth_payment_required',
 				metadata: {
-					userId: user.id,
-					role: role,
+					user_id: user.id,
+					user_type: user_type,
 					subscriptionStatus: subscriptionStatus,
 					hasValidSubscription,
 					hasStripeCustomer
@@ -332,7 +332,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		const destination =
-			role === 'TENANT'
+			user_type === 'TENANT'
 				? nextParam === '/manage'
 					? '/tenant'
 					: nextParam
@@ -341,8 +341,8 @@ export async function GET(request: NextRequest) {
 		logger.info('OAuth callback successful', {
 			action: 'oauth_callback_success',
 			metadata: {
-				userId: user.id,
-				role: role,
+				user_id: user.id,
+				user_type: user_type,
 				next: destination
 			}
 		})

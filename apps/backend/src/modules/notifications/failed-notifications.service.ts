@@ -6,8 +6,7 @@
  */
 
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
-import type { Json } from '@repo/shared/types/supabase-generated'
-import { SupabaseService } from '../../database/supabase.service'
+import type { Json } from '@repo/shared/types/supabase'
 
 export interface FailedNotification {
 	id: string
@@ -27,12 +26,14 @@ export class FailedNotificationsService implements OnModuleDestroy {
 	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s
 	private pendingTimers: Set<NodeJS.Timeout> = new Set()
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor() {}
 
 	/**
 	 * Insert failed notification record with proper typing
+	 * NOTE: 'failed_notifications' table does not exist in the current schema
+	 * TODO: Either create the table or use existing tables (webhook_attempts, notification_logs)
 	 */
-	private async insertFailedNotification(data: {
+	private async insertFailedNotification(_data: {
 		event_type: string
 		event_data: Json
 		error_message: string
@@ -40,11 +41,14 @@ export class FailedNotificationsService implements OnModuleDestroy {
 		attempt_count: number
 		last_attempt_at: string
 	}) {
-		const client = this.supabase.getAdminClient()
-		return await client
-			.schema('public')
-			.from('failed_notifications')
-			.insert(data)
+		// Commented out - table does not exist
+		// const client = this.supabase.getAdminClient()
+		// return await client
+		// 	.schema('public')
+		// 	.from('failed_notifications')
+		// 	.insert(data)
+		this.logger.warn('failed_notifications table does not exist - skipping insert')
+		return { data: null, error: null }
 	}
 
 	/**
@@ -77,8 +81,7 @@ export class FailedNotificationsService implements OnModuleDestroy {
 				this.logger.error('Failed to persist notification failure', {
 					eventType,
 					eventData: eventDataForLogging,
-					errorMessage: error.message,
-					insertError: insertError.message
+					errorMessage: error.message
 				})
 				return
 			}
@@ -150,32 +153,38 @@ export class FailedNotificationsService implements OnModuleDestroy {
 
 	/**
 	 * Query failed notifications for manual retry
+	 * NOTE: 'failed_notifications' table does not exist in the current schema
+	 * TODO: Either create the table or use existing tables (webhook_attempts, notification_logs)
 	 */
-	async getFailedNotifications(limit = 50): Promise<FailedNotification[]> {
-		try {
-			const client = this.supabase.getAdminClient()
+	async getFailedNotifications(_limit = 50): Promise<FailedNotification[]> {
+		// Commented out - table does not exist
+		this.logger.warn('failed_notifications table does not exist - returning empty array')
+		return []
 
-			const { data, error } = await client
-				.schema('public')
-				.from('failed_notifications')
-				.select('*')
-				.order('created_at', { ascending: false })
-				.limit(limit)
-
-			if (error) {
-				this.logger.error('Failed to query failed notifications', {
-					error: error.message
-				})
-				return []
-			}
-
-			return data ?? []
-		} catch (error) {
-			this.logger.error('Failed to get failed notifications', {
-				error: error instanceof Error ? error.message : String(error)
-			})
-			return []
-		}
+		// try {
+		// 	const client = this.supabase.getAdminClient()
+		//
+		// 	const { data, error } = await client
+		// 		.schema('public')
+		// 		.from('failed_notifications')
+		// 		.select('*')
+		// 		.order('created_at', { ascending: false })
+		// 		.limit(limit)
+		//
+		// 	if (error) {
+		// 		this.logger.error('Failed to query failed notifications', {
+		// 			error: error.message
+		// 		})
+		// 		return []
+		// 	}
+		//
+		// 	return data ?? []
+		// } catch (error) {
+		// 	this.logger.error('Failed to get failed notifications', {
+		// 		error: error instanceof Error ? error.message : String(error)
+		// 	})
+		// 	return []
+		// }
 	}
 
 	private serializeEventData(eventData: unknown): Json {

@@ -63,29 +63,28 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 
 	const form = useForm({
 		defaultValues: {
-			propertyId: unit?.propertyId ?? '',
-			unitNumber: unit?.unitNumber ?? '',
+			property_id: unit?.property_id ?? '',
+			unit_number: unit?.unit_number ?? '',
 			bedrooms: unit?.bedrooms?.toString() ?? '1',
 			bathrooms: unit?.bathrooms?.toString() ?? '1',
-			squareFeet: unit?.squareFeet?.toString() ?? '',
-			rent: unit?.rent?.toString() ?? '',
-			status: (unit?.status ?? 'VACANT') as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED',
-			lastInspectionDate: unit?.lastInspectionDate ?? ''
+			square_feet: unit?.square_feet?.toString() ?? '',
+			rent_amount: unit?.rent_amount?.toString() ?? '',
+			status: (unit?.status ?? 'VACANT') as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 		},
 		onSubmit: async ({ value }) => {
 			try {
 				// Validate required fields first
-				if (!value.propertyId?.trim()) {
+				if (!value.property_id?.trim()) {
 					toast.error('Property is required')
 					return
 				}
 
-				if (!value.unitNumber?.trim()) {
+				if (!value.unit_number?.trim()) {
 					toast.error('Unit number is required')
 					return
 				}
 
-				if (!value.rent?.trim()) {
+				if (!value.rent_amount?.trim()) {
 					toast.error('Rent is required')
 					return
 				}
@@ -93,8 +92,8 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				// Validate required numeric fields
 				const bedrooms = Number.parseInt(value.bedrooms)
 				const bathrooms = Number.parseFloat(value.bathrooms)
-				const rent = Number.parseFloat(value.rent)
-				const squareFeet = value.squareFeet ? Number.parseInt(value.squareFeet) : null
+				const rent_amount = Number.parseFloat(value.rent_amount)
+				const square_feet = value.square_feet ? Number.parseInt(value.square_feet) : null
 
 				if (!Number.isFinite(bedrooms) || bedrooms < 0) {
 					toast.error('Bedrooms must be a valid positive number')
@@ -106,25 +105,24 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					return
 				}
 
-				if (!Number.isFinite(rent) || rent <= 0) {
+				if (!Number.isFinite(rent_amount) || rent_amount <= 0) {
 					toast.error('Rent must be a valid positive number greater than zero')
 					return
 				}
 
-				if (value.squareFeet && (!Number.isFinite(squareFeet) || squareFeet! < 0)) {
+				if (value.square_feet && (!Number.isFinite(square_feet) || square_feet! < 0)) {
 					toast.error('Square feet must be a valid positive number')
 					return
 				}
 
 				const unitData = {
-					propertyId: value.propertyId,
-					unitNumber: value.unitNumber,
+					property_id: value.property_id,
+					unit_number: value.unit_number,
 					bedrooms,
 					bathrooms,
-					squareFeet,
-					rent,
-					status: value.status,
-					lastInspectionDate: value.lastInspectionDate || null
+					square_feet,
+					rent_amount,
+					status: value.status
 				}
 
 				if (mode === 'create') {
@@ -138,8 +136,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					}
 					await updateUnitMutation.mutateAsync({
 						id: unit.id,
-						data: unitData,
-						version: unit.version
+						data: unitData
 					})
 					toast.success('Unit updated successfully')
 				}
@@ -148,7 +145,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			} catch (error) {
 				// Handle optimistic locking conflicts
 				if (mode === 'edit' && unit && isConflictError(error)) {
-					handleConflictError('unit', unit.id, queryClient, [
+					handleConflictError('units', unit.id, queryClient, [
 						unitKeys.detail(unit.id),
 						unitKeys.all
 					])
@@ -173,10 +170,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			className="space-y-6"
 		>
 			<div className="grid gap-4 md:grid-cols-2">
-				<form.Field name="propertyId">
+				<form.Field name="property_id">
 					{field => (
 						<Field>
-							<FieldLabel htmlFor="propertyId">Property *</FieldLabel>
+							<FieldLabel htmlFor="property_id">Property *</FieldLabel>
 							<Select
 								value={field.state.value}
 								onValueChange={field.handleChange}
@@ -199,12 +196,12 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					)}
 				</form.Field>
 
-				<form.Field name="unitNumber">
+				<form.Field name="unit_number">
 					{field => (
 						<Field>
-							<FieldLabel htmlFor="unitNumber">Unit Number *</FieldLabel>
+							<FieldLabel htmlFor="unit_number">Unit Number *</FieldLabel>
 							<Input
-								id="unitNumber"
+								id="unit_number"
 								placeholder="e.g., 101, A1"
 								value={field.state.value}
 								onChange={e => field.handleChange(e.target.value)}
@@ -249,12 +246,12 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					)}
 				</form.Field>
 
-				<form.Field name="squareFeet">
+				<form.Field name="square_feet">
 					{field => (
 						<Field>
-							<FieldLabel htmlFor="squareFeet">Square Feet</FieldLabel>
+							<FieldLabel htmlFor="square_feet">Square Feet</FieldLabel>
 							<Input
-								id="squareFeet"
+								id="square_feet"
 								type="number"
 								min="0"
 								placeholder="Optional"
@@ -267,7 +264,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			</div>
 
 			<div className="grid gap-4 md:grid-cols-2">
-				<form.Field name="rent">
+				<form.Field name="rent_amount">
 					{field => (
 						<Field>
 							<FieldLabel htmlFor="rent">Monthly Rent *</FieldLabel>

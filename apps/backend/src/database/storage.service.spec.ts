@@ -202,8 +202,8 @@ describe('StorageService', () => {
       expect(uniqueFilename).toMatch(/^document-\d+-[a-f0-9]{8}\.pdf$/)
 
       const entityId = generateUUID()
-      const storagePath = service.getStoragePath('tenant', entityId, 'file.pdf')
-      expect(storagePath).toMatch(new RegExp(`tenant/${entityId}/file-\\d+-[a-f0-9]{8}\\.pdf`))
+      const storagePath = service.getStoragePath('tenants', entityId, 'file.pdf')
+      expect(storagePath).toMatch(new RegExp(`tenants/${entityId}/file-\\d+-[a-f0-9]{8}\\.pdf`))
     })
 
     it('should validate path security without calling storage', () => {

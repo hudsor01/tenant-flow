@@ -6,14 +6,14 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import Stripe from 'stripe'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 
 interface EnsureOwnerCustomerParams {
-	userId: string
+	user_id: string
 	email?: string | null
 	name?: string | null
 	additionalMetadata?: Record<string, string>
@@ -69,27 +69,27 @@ export class StripeOwnerService {
 	async ensureOwnerCustomer(
 		params: EnsureOwnerCustomerParams
 	): Promise<EnsureOwnerCustomerResult> {
-		const owner = await this.getOwner(params.userId)
+		const owner = await this.getOwner(params.user_id)
 
-		if (owner.role !== 'OWNER') {
+		if (owner.user_type !== 'OWNER') {
 			this.logger.warn('Rejected Stripe customer ensure for non-owner user', {
-				userId: params.userId,
-				role: owner.role
+				user_id: params.user_id,
+				user_type: owner.user_type
 			})
 			throw new ForbiddenException(
 				'Only property owners can manage Stripe billing profiles'
 			)
 		}
 
-		if (owner.stripeCustomerId) {
+		if (owner.stripe_customer_id) {
 			try {
 				const existingCustomer = await this.stripe.customers.retrieve(
-					owner.stripeCustomerId
+					owner.stripe_customer_id
 				)
 
 				if (!('deleted' in existingCustomer)) {
 					this.logger.log('Owner Stripe customer resolved', {
-						userId: params.userId,
+						user_id: params.user_id,
 						customerId: existingCustomer.id,
 						status: 'existing'
 					})
@@ -97,37 +97,37 @@ export class StripeOwnerService {
 				}
 
 				this.logger.warn('Existing owner customer was deleted; recreating', {
-					userId: params.userId,
-					customerId: owner.stripeCustomerId
+					user_id: params.user_id,
+					customerId: owner.stripe_customer_id
 				})
 			} catch (error) {
 				this.logger.error('Failed to retrieve owner Stripe customer', {
-					userId: params.userId,
-					customerId: owner.stripeCustomerId,
+					user_id: params.user_id,
+					customerId: owner.stripe_customer_id,
 					error: error instanceof Error ? error.message : String(error)
 				})
 			}
 		}
 
 		const resolvedEmail = params.email ?? owner.email ?? undefined
-		const resolvedName = params.name ?? owner.name ?? this.buildOwnerName(owner)
+		const resolvedName = params.name ?? owner.full_name ?? this.buildOwnerName(owner)
 
 		// Validate that an email is present before creating Stripe customer
 		if (!resolvedEmail) {
 			throw new BadRequestException(
-				`Cannot create Stripe customer without email address for user ${params.userId}`
+				`Cannot create Stripe customer without email address for user ${params.user_id}`
 			)
 		}
 
 		const metadata: Record<string, string> = {
 			customer_type: 'property_owner',
-			user_id: params.userId,
-			role: 'OWNER',
+			user_id: params.user_id,
+			user_type: 'OWNER',
 			platform: 'tenantflow',
 			...(params.additionalMetadata ?? {})
 		}
 
-		const idempotencyKey = `owner_customer_${params.userId}`
+		const idempotencyKey = `owner_customer_${params.user_id}`
 
 		const customer = await this.stripe.customers.create(
 			{
@@ -139,19 +139,19 @@ export class StripeOwnerService {
 		)
 
 		// Use consistent timestamp for both DB and cache
-		const updatedAt = new Date().toISOString()
+		const updated_at = new Date().toISOString()
 		const { error: updateError } = await this.supabaseService
 			.getAdminClient()
 			.from('users')
 			.update({
-				stripeCustomerId: customer.id,
-				updatedAt
+				stripe_customer_id: customer.id,
+				updated_at
 			})
-			.eq('id', params.userId)
+			.eq('id', params.user_id)
 
 		if (updateError) {
 			this.logger.error('Failed to persist owner Stripe customer ID', {
-				userId: params.userId,
+				user_id: params.user_id,
 				customerId: customer.id,
 				error: updateError.message
 			})
@@ -161,12 +161,12 @@ export class StripeOwnerService {
 				await this.stripe.customers.del(customer.id)
 				this.logger.log('Successfully deleted orphaned Stripe customer', {
 					customerId: customer.id,
-					userId: params.userId
+					user_id: params.user_id
 				})
 			} catch (deletionError) {
 				this.logger.error('Failed to delete orphaned Stripe customer', {
 					customerId: customer.id,
-					userId: params.userId,
+					user_id: params.user_id,
 					error:
 						deletionError instanceof Error
 							? deletionError.message
@@ -181,8 +181,8 @@ export class StripeOwnerService {
 			)
 		} else {
 			// Update cache with same timestamp as DB to maintain consistency
-			this.ownerCache.set(params.userId, {
-				user: { ...owner, stripeCustomerId: customer.id, updatedAt },
+			this.ownerCache.set(params.user_id, {
+				user: { ...owner, stripe_customer_id: customer.id, updated_at },
 				cachedAt: Date.now()
 			})
 			// Prune expired cache entries only when cache size exceeds threshold (performance optimization)
@@ -192,7 +192,7 @@ export class StripeOwnerService {
 		}
 
 		this.logger.log('Owner Stripe customer resolved', {
-			userId: params.userId,
+			user_id: params.user_id,
 			customerId: customer.id,
 			status: 'created'
 		})
@@ -200,8 +200,8 @@ export class StripeOwnerService {
 		return { customer, status: 'created' }
 	}
 
-	private async getOwner(userId: string): Promise<UserRow> {
-		const cached = this.ownerCache.get(userId)
+	private async getOwner(user_id: string): Promise<UserRow> {
+		const cached = this.ownerCache.get(user_id)
 		if (cached && Date.now() - cached.cachedAt < this.CACHE_TTL_MS) {
 			return cached.user
 		}
@@ -210,28 +210,28 @@ export class StripeOwnerService {
 			.getAdminClient()
 			.from('users')
 			.select(
-				'id, email, firstName, lastName, name, role, stripeCustomerId, updatedAt'
+				'id, email, first_name, last_name, full_name, user_type, stripe_customer_id, updated_at'
 			)
-			.eq('id', userId)
+			.eq('id', user_id)
 			.single()
 
 		if (error || !data) {
 			this.logger.error('Owner record not found', {
-				userId,
+				user_id,
 				error: error?.message
 			})
 			throw new NotFoundException('Owner not found')
 		}
 
 		const user = data as UserRow
-		this.ownerCache.set(userId, { user, cachedAt: Date.now() })
+		this.ownerCache.set(user_id, { user, cachedAt: Date.now() })
 		return user
 	}
 
 	private buildOwnerName(owner: UserRow): string | undefined {
 		const parts = [
-			owner.firstName?.trim() || '',
-			owner.lastName?.trim() || ''
+			owner.first_name?.trim() || '',
+			owner.last_name?.trim() || ''
 		].filter(Boolean)
 
 		const composite = parts.join(' ').trim()
@@ -240,7 +240,7 @@ export class StripeOwnerService {
 			return composite
 		}
 
-		const fallback = owner.name?.trim() || null
+		const fallback = owner.full_name?.trim() || null
 		return fallback && fallback.length > 0 ? fallback : undefined
 	}
 }

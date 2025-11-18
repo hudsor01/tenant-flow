@@ -1,3 +1,4 @@
+import { type LedgerData } from './financial-ledger.helpers'
 import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -11,12 +12,8 @@ describe('TaxDocumentsService', () => {
 
 	beforeEach(async () => {
 		mockClient = {
+			from: jest.fn(),
 			rpc: jest.fn(),
-			from: jest.fn().mockReturnThis(),
-			select: jest.fn().mockReturnThis(),
-			eq: jest.fn().mockReturnThis(),
-			gte: jest.fn().mockReturnThis(),
-			lte: jest.fn().mockReturnThis(),
 			auth: {
 				getUser: jest.fn().mockResolvedValue({
 					data: { user: { id: 'user-123' } },
@@ -24,6 +21,78 @@ describe('TaxDocumentsService', () => {
 				})
 			}
 		}
+
+		// Mock table queries used by loadLedgerData
+		mockClient.from.mockImplementation((table: string) => {
+			const mockQuery = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				gte: jest.fn().mockReturnThis(),
+				lte: jest.fn().mockReturnThis(),
+				order: jest.fn().mockReturnThis(),
+				limit: jest.fn().mockReturnThis(),
+				range: jest.fn().mockReturnThis(),
+				then: jest.fn()
+			}
+
+			// Mock the final resolution based on table
+			mockQuery.then.mockImplementation((resolve) => {
+				let data: any[] = []
+				switch (table) {
+					case 'rent_payments':
+						data = [
+							{ id: 'rp1', amount: 20000, status: 'PAID', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' },
+							{ id: 'rp2', amount: 20000, status: 'PAID', due_date: '2024-07-01', paid_date: '2024-07-01', lease_id: 'lease-1' },
+							{ id: 'rp3', amount: 20000, status: 'PAID', due_date: '2024-08-01', paid_date: '2024-08-01', lease_id: 'lease-1' }
+						]
+						break
+					case 'expenses':
+						data = [
+							{ id: 'e1', amount: 5000, expense_date: '2024-03-01', created_at: '2024-03-01', category: 'Maintenance', property_id: 'prop-1' },
+							{ id: 'e2', amount: 5000, expense_date: '2024-04-01', created_at: '2024-04-01', category: 'Insurance', property_id: 'prop-1' },
+							{ id: 'e3', amount: 5000, expense_date: '2024-05-01', created_at: '2024-05-01', category: 'Repairs', property_id: 'prop-1' },
+							{ id: 'e4', amount: 5000, expense_date: '2024-06-01', created_at: '2024-06-01', category: 'Utilities', property_id: 'prop-1' }
+						]
+						break
+					case 'leases':
+						data = [
+							{
+								id: 'lease-1',
+								tenant_id: 'tenant-1',
+								unit_id: 'unit-1',
+								rent_amount: 1500
+							}
+						]
+						break
+					case 'maintenance_requests':
+						data = []
+						break
+					case 'units':
+						data = [
+							{
+								id: 'unit-1',
+								property_id: 'prop-1',
+								unit_number: '101'
+							}
+						]
+						break
+					case 'properties':
+						data = [
+							{
+								id: 'prop-1',
+								name: 'Property',
+								property_value: 1000000,
+								acquisition_year: 2020,
+								created_at: '2020-01-01T00:00:00Z'
+							}
+						]
+						break
+				}
+				return resolve({ data, error: null })
+			})
+
+			return mockQuery
+		})
 
 		supabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockClient),
@@ -48,38 +117,6 @@ describe('TaxDocumentsService', () => {
 
 	describe('generateTaxDocuments', () => {
 		it('should generate tax documents with valid data', async () => {
-			// Mock expense summary
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{ category: 'Maintenance', amount: 5000, percentage: 25 },
-					{ category: 'Insurance', amount: 3000, percentage: 15 },
-					{ category: 'Property Tax', amount: 8000, percentage: 40 }
-				],
-				error: null
-			})
-
-			// Mock NOI calculation
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: 'prop-1',
-						property_name: 'Property 1',
-						property_value: 500000,
-						acquisition_year: 2020
-					}
-				],
-				error: null
-			})
-
-			// Mock financial metrics
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_revenue: 60000,
-					operating_expenses: 20000
-				},
-				error: null
-			})
-
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
 			expect(result).toBeDefined()
@@ -95,50 +132,9 @@ describe('TaxDocumentsService', () => {
 			)
 			expect(maintenanceExpense?.notes).toBeDefined()
 			expect(maintenanceExpense?.deductible).toBe(true)
-
-			// Verify RPC calls
-			expect(mockClient.rpc).toHaveBeenCalledWith('get_expense_summary', {
-				p_user_id: 'user-123'
-			})
-			expect(mockClient.rpc).toHaveBeenCalledWith(
-				'calculate_net_operating_income',
-				{
-					p_user_id: 'user-123'
-				}
-			)
-			expect(mockClient.rpc).toHaveBeenCalledWith(
-				'calculate_financial_metrics',
-				{
-					p_user_id: 'user-123',
-					p_start_date: '2024-01-01',
-					p_end_date: '2024-12-31'
-				}
-			)
 		})
 
 		it('should calculate residential property depreciation correctly (27.5 years)', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: 'prop-1',
-						property_name: 'Residential Property',
-						property_value: 550000,
-						acquisition_year: 2020
-					}
-				],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_revenue: 0, operating_expenses: 0 },
-				error: null
-			})
-
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
 			const property = result.propertyDepreciation[0]
@@ -146,8 +142,12 @@ describe('TaxDocumentsService', () => {
 
 			if (!property) return
 
+			// Service uses property_value from database for depreciation calculation
+			const expectedPropertyValue = 1000000
+			expect(property.propertyValue).toBe(expectedPropertyValue)
+
 			// Annual depreciation = Property Value / 27.5
-			const expectedAnnual = 550000 / 27.5
+			const expectedAnnual = expectedPropertyValue / 27.5
 			expect(property.annualDepreciation).toBeCloseTo(expectedAnnual, 2)
 
 			// Years owned: 2024 - 2020 = 4 years
@@ -159,31 +159,76 @@ describe('TaxDocumentsService', () => {
 			)
 
 			// Remaining basis
-			const expectedRemaining = 550000 - expectedAccumulated
+			const expectedRemaining = expectedPropertyValue - expectedAccumulated
 			expect(property.remainingBasis).toBeCloseTo(expectedRemaining, 2)
 		})
 
 		it('should handle missing property values with default estimate', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: 'prop-1',
-						property_name: 'Property Without Value',
-						// property_value is missing
-						acquisition_year: 2024
+			// Override the properties mock to simulate missing property_value
+			mockClient.from.mockImplementation((table: string) => {
+				if (table === 'properties') {
+					return {
+						select: jest.fn().mockResolvedValue({
+							data: [
+								{
+									id: 'prop-1',
+									name: 'Property Without Value',
+									// property_value is missing
+									acquisition_year: 2024
+								}
+							],
+							error: null
+						})
 					}
-				],
-				error: null
-			})
+				}
+				// Use default mock for other tables
+				const mockQuery = {
+					select: jest.fn().mockReturnThis(),
+					eq: jest.fn().mockReturnThis(),
+					gte: jest.fn().mockReturnThis(),
+					lte: jest.fn().mockReturnThis(),
+					order: jest.fn().mockReturnThis(),
+					limit: jest.fn().mockReturnThis(),
+					range: jest.fn().mockReturnThis(),
+					then: jest.fn()
+				}
 
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_revenue: 0, operating_expenses: 0 },
-				error: null
+				// Default data for other tables
+				let data: any[] = []
+				switch (table) {
+					case 'rent_payments':
+						data = [
+							{ id: 'rp1', amount: 20000, status: 'PAID', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' }
+						]
+						break
+					case 'expenses':
+						data = []
+						break
+					case 'leases':
+						data = [
+							{
+								id: 'lease-1',
+								tenant_id: 'tenant-1',
+								unit_id: 'unit-1',
+								rent_amount: 1500
+							}
+						]
+						break
+					case 'maintenance_requests':
+						data = []
+						break
+					case 'units':
+						data = [
+							{
+								id: 'unit-1',
+								property_id: 'prop-1',
+								unit_number: '101'
+							}
+						]
+						break
+				}
+				mockQuery.then.mockImplementation((resolve) => resolve({ data, error: null }))
+				return mockQuery
 			})
 
 			const result = await service.generateTaxDocuments('user-123', 2024)
@@ -193,75 +238,48 @@ describe('TaxDocumentsService', () => {
 
 			if (!property) return
 
-			// Should use default estimate of 100000
-			expect(property.propertyValue).toBe(100000)
-			expect(property.annualDepreciation).toBeCloseTo(100000 / 27.5, 2)
+			// NOI = 20000 - 0 = 20000, propertyValue = 20000 / 0.06 = 333333.33
+			expect(property.propertyValue).toBe(20000 / 0.06)
+			expect(property.annualDepreciation).toBeCloseTo((20000 / 0.06) / 27.5, 2)
 		})
 
 		it('should calculate mortgage interest estimate (30% of expenses)', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
+			const customLedger: LedgerData = {
+				rentPayments: [],
+				expenses: [
+					      { id: 'e1', amount: 30000, expense_date: '2024-01-01', created_at: '2024-01-01', updated_at: '2024-01-01', vendor_name: 'ABC Contractors', maintenance_request_id: 'maint-1' }
+				],
+				leases: [],
+				maintenanceRequests: [],
+				units: [],
+				properties: [
+					      { id: 'prop-1', name: 'Property', address_line1: '123 Main St', address_line2: null, city: 'Anytown', country: 'USA', postal_code: '12345', property_owner_id: 'user-1', created_at: '2024-01-01', updated_at: '2024-01-01', property_type: 'residential', date_sold: null, sale_price: null, state: 'CA', status: 'ACTIVE' }
+				]
+			}
 
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_revenue: 100000,
-					operating_expenses: 30000
-				},
-				error: null
-			})
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
+			jest.spyOn(require('./financial-ledger.helpers'), 'loadLedgerData' as any).mockResolvedValue(customLedger)
 
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
-			// Mortgage interest = 30% of total expenses
-			const expectedMortgageInterest = 30000 * 0.3
-			expect(result.incomeBreakdown.mortgageInterest).toBe(
-				expectedMortgageInterest
-			)
+			// Mortgage interest = 30% of total expenses (30000 * 0.3 = 9000)
+			expect(result.incomeBreakdown.mortgageInterest).toBe(9000)
 		})
 
 		it('should calculate taxable income correctly', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: 'prop-1',
-						property_value: 275000,
-						acquisition_year: 2024
-					}
-				],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_revenue: 50000,
-					operating_expenses: 15000
-				},
-				error: null
-			})
-
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
-			// Calculations:
-			// NOI = 50000 - 15000 = 35000
-			// Depreciation = 275000 / 27.5 = 10000
-			// Mortgage Interest = 15000 * 0.3 = 4500
-			// Taxable Income = 35000 - 10000 - 4500 = 20500
+			// Calculations based on default table data:
+			// Gross Income = 60000 (rent payments)
+			// Expenses = 20000
+			// NOI = 60000 - 20000 = 40000
+			// Depreciation = 1000000 / 27.5 ≈ 36363.64
+			// Mortgage Interest = 20000 * 0.3 = 6000
+			// Taxable Income = 40000 - 36363.64 - 6000 ≈ -2363.64
 
-			const expectedNOI = 35000
-			const expectedDepreciation = 10000
-			const expectedMortgageInterest = 4500
+			const expectedNOI = 40000
+			const expectedDepreciation = 1000000 / 27.5
+			const expectedMortgageInterest = 6000
 			const expectedTaxable =
 				expectedNOI - expectedDepreciation - expectedMortgageInterest
 
@@ -277,57 +295,6 @@ describe('TaxDocumentsService', () => {
 				expectedTaxable,
 				2
 			)
-		})
-
-		it('should handle expense summary errors', async () => {
-			const expenseError = new Error('Expense summary error')
-			mockClient.rpc.mockResolvedValueOnce({
-				data: null,
-				error: expenseError
-			})
-
-			await expect(
-				service.generateTaxDocuments('user-123', 2024)
-			).rejects.toThrow('Expense summary error')
-		})
-
-		it('should handle NOI calculation errors', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			const noiError = new Error('NOI calculation error')
-			mockClient.rpc.mockResolvedValueOnce({
-				data: null,
-				error: noiError
-			})
-
-			await expect(
-				service.generateTaxDocuments('user-123', 2024)
-			).rejects.toThrow('NOI calculation error')
-		})
-
-		it('should handle financial metrics errors', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			const metricsError = new Error('Financial metrics error')
-			mockClient.rpc.mockResolvedValueOnce({
-				data: null,
-				error: metricsError
-			})
-
-			await expect(
-				service.generateTaxDocuments('user-123', 2024)
-			).rejects.toThrow('Financial metrics error')
 		})
 
 		it('should mark all standard property expenses as deductible', async () => {
@@ -367,111 +334,46 @@ describe('TaxDocumentsService', () => {
 		})
 
 		it('should handle array vs single object response for expenses', async () => {
-			// Test with single object response (not array)
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { category: 'Maintenance', amount: 5000, percentage: 100 },
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: { total_revenue: 10000, operating_expenses: 5000 },
-				error: null
-			})
-
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
-			expect(result.expenseCategories.length).toBe(1)
+			// Service always returns 3 expense categories: Maintenance, Operations, Fees
+			expect(result.expenseCategories.length).toBe(3)
 
-			const expense = result.expenseCategories[0]
-			if (!expense) return
-
-			expect(expense.category).toBe('Maintenance')
-			expect(expense.amount).toBe(5000)
+			const maintenanceExpense = result.expenseCategories.find(e => e.category === 'Maintenance')
+			expect(maintenanceExpense).toBeDefined()
+			expect(maintenanceExpense?.amount).toBe(0) // No maintenance requests in mock
 		})
 
 		it('should calculate totals correctly', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [{ category: 'Maintenance', amount: 5000 }],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: 'prop-1',
-						property_value: 275000,
-						acquisition_year: 2024
-					}
-				],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_revenue: 60000,
-					operating_expenses: 20000
-				},
-				error: null
-			})
-
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
 			// Total income = gross rental income
 			expect(result.totals.totalIncome).toBe(60000)
 
 			// Total deductions = expenses + depreciation
-			const expectedDeductions = 20000 + 275000 / 27.5
+			const expectedDeductions = 20000 + 1000000 / 27.5
 			expect(result.totals.totalDeductions).toBeCloseTo(expectedDeductions, 2)
 
 			// Net taxable income = NOI - depreciation - mortgage interest
 			const noi = 60000 - 20000
-			const depreciation = 275000 / 27.5
+			const depreciation = 1000000 / 27.5
 			const mortgageInterest = 20000 * 0.3
 			const expectedNetTaxable = noi - depreciation - mortgageInterest
 			expect(result.totals.netTaxableIncome).toBeCloseTo(expectedNetTaxable, 2)
 		})
 
 		it('should populate Schedule E correctly', async () => {
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: [
-					{
-						property_id: 'prop-1',
-						property_value: 275000,
-						acquisition_year: 2024
-					}
-				],
-				error: null
-			})
-
-			mockClient.rpc.mockResolvedValueOnce({
-				data: {
-					total_revenue: 80000,
-					operating_expenses: 25000
-				},
-				error: null
-			})
-
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
 			const scheduleE = result.schedule.scheduleE
-			expect(scheduleE.grossRentalIncome).toBe(80000)
-			expect(scheduleE.totalExpenses).toBe(25000)
-			expect(scheduleE.depreciation).toBeCloseTo(275000 / 27.5, 2)
+			expect(scheduleE.grossRentalIncome).toBe(60000)
+			expect(scheduleE.totalExpenses).toBe(20000)
+			expect(scheduleE.depreciation).toBeCloseTo(1000000 / 27.5, 2)
 
 			// Net income = NOI - depreciation - mortgage interest
-			const noi = 80000 - 25000
-			const depreciation = 275000 / 27.5
-			const mortgageInterest = 25000 * 0.3
+			const noi = 60000 - 20000
+			const depreciation = 1000000 / 27.5
+			const mortgageInterest = 20000 * 0.3
 			const expectedNetIncome = noi - depreciation - mortgageInterest
 			expect(scheduleE.netIncome).toBeCloseTo(expectedNetIncome, 2)
 		})

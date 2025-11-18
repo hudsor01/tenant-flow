@@ -15,15 +15,16 @@ import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
 import type { SecurityHeadersConfig } from '@repo/shared/types/security'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { Request, Response } from 'express'
+import { AppConfigService } from '../../config/app-config.service'
 
 const SECURITY_CONFIG: SecurityHeadersConfig = {
 	csp: {
 		enabled: true,
-		reportOnly: process.env.NODE_ENV === 'development',
+		reportOnly: false,
 		reportUri: '/api/v1/security/csp-report'
 	},
 	hsts: {
-		enabled: process.env.NODE_ENV === 'production',
+		enabled: true,
 		maxAge: 31536000, // 1 year
 		includeSubDomains: true,
 		preload: true
@@ -36,7 +37,7 @@ const SECURITY_CONFIG: SecurityHeadersConfig = {
 		camera: [],
 		microphone: [],
 		geolocation: [],
-		payment: ['self'], // Allow payment APIs for Stripe
+		payment: ['self'],
 		usb: [],
 		bluetooth: [],
 		accelerometer: [],
@@ -48,6 +49,8 @@ const SECURITY_CONFIG: SecurityHeadersConfig = {
 @Injectable()
 export class SecurityHeadersMiddleware implements NestMiddleware {
 	private readonly logger = new Logger(SecurityHeadersMiddleware.name)
+
+	constructor(private readonly config: AppConfigService) {}
 
 	use(req: Request, res: Response, next: () => void): void {
 		try {
@@ -70,26 +73,26 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 	private setSecurityHeaders(req: Request, res: Response): void {
 		const isSecure =
 			req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https'
-		const environment =
-			process.env.NODE_ENV === 'development' ? 'development' : 'production'
+		const isDevelopment = this.config.isDevelopment()
+		const isProduction = this.config.isProduction()
+		const environment = isDevelopment ? 'development' : 'production'
+		const reportOnly = isDevelopment
 
-		// Build headers object for batch setting
 		const headers: Record<string, string> = {}
 
-		// Content Security Policy
 		if (SECURITY_CONFIG.csp.enabled) {
-			const cspHeader = SECURITY_CONFIG.csp.reportOnly
+			const cspHeader = reportOnly
 				? 'Content-Security-Policy-Report-Only'
 				: 'Content-Security-Policy'
 			const cspValue = this.buildCSPValue(
 				environment,
-				SECURITY_CONFIG.csp.reportUri
+				SECURITY_CONFIG.csp.reportUri,
+				isProduction
 			)
 			headers[cspHeader] = cspValue
 		}
 
-		// HTTP Strict Transport Security (HSTS) - only over HTTPS
-		if (SECURITY_CONFIG.hsts.enabled && isSecure) {
+		if (isProduction && isSecure) {
 			let hstsValue = `max-age=${SECURITY_CONFIG.hsts.maxAge}`
 
 			if (SECURITY_CONFIG.hsts.includeSubDomains) {
@@ -103,65 +106,26 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 			headers['Strict-Transport-Security'] = hstsValue
 		}
 
-		// X-Frame-Options - Prevent clickjacking
 		headers['X-Frame-Options'] = SECURITY_CONFIG.frameOptions
-
-		// X-Content-Type-Options - Prevent MIME sniffing
 		if (SECURITY_CONFIG.contentTypeOptions) {
 			headers['X-Content-Type-Options'] = 'nosniff'
 		}
-
-		// X-XSS-Protection - Legacy XSS protection
 		if (SECURITY_CONFIG.xssProtection) {
-			headers['X-XSS-Protection'] = '1; mode=block'
+			headers['X-XSS-Protection'] = '0'
 		}
-
-		// Referrer-Policy - Control referrer information
 		headers['Referrer-Policy'] = SECURITY_CONFIG.referrerPolicy
-
-		// Permissions-Policy - Control browser features
-		const permissionsPolicy = this.buildPermissionsPolicyValue(
+		headers['Permissions-Policy'] = this.buildPermissionsPolicyValue(
 			SECURITY_CONFIG.permissionsPolicy
 		)
-		headers['Permissions-Policy'] = permissionsPolicy
 
-		// X-DNS-Prefetch-Control - Control DNS prefetching
-		headers['X-DNS-Prefetch-Control'] = 'off'
-
-		// X-Download-Options - Prevent automatic file execution
-		headers['X-Download-Options'] = 'noopen'
-
-		// X-Permitted-Cross-Domain-Policies - Control cross-domain policies
-		headers['X-Permitted-Cross-Domain-Policies'] = 'none'
-
-		// Cross-Origin-Embedder-Policy - Enable cross-origin isolation
-		headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
-
-		// Cross-Origin-Opener-Policy - Prevent cross-origin window access
-		headers['Cross-Origin-Opener-Policy'] = 'same-origin'
-
-		// Cross-Origin-Resource-Policy - Control resource sharing
-		headers['Cross-Origin-Resource-Policy'] = 'same-origin'
-
-		// Add security headers for API responses
-		if (req.url.startsWith('/api/')) {
-			headers['Cache-Control'] =
-				'no-store, no-cache, must-revalidate, proxy-revalidate'
-			headers['Pragma'] = 'no-cache'
-			headers['Expires'] = '0'
-		}
-
-		// Set all headers using Express response methods
 		Object.entries(headers).forEach(([key, value]) => {
 			res.setHeader(key, value)
 		})
 
-		// Server header removal (don't expose server technology)
 		res.removeHeader('Server')
 		res.removeHeader('X-Powered-By')
 
-		// Log security headers application in development
-		if (environment === 'development') {
+		if (isDevelopment) {
 			this.logger.debug('Applied security headers', {
 				operation: 'security_headers_applied',
 				endpoint: req.url,
@@ -169,14 +133,13 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 				ip: req.ip,
 				userAgent: req.headers['user-agent'],
 				isSecure,
-				hstsEnabled: SECURITY_CONFIG.hsts.enabled && isSecure,
+				hstsEnabled: isProduction && isSecure,
 				cspEnabled: SECURITY_CONFIG.csp.enabled,
 				headerCount: Object.keys(headers).length
 			})
 		}
 
-		// Log HSTS application in production for monitoring
-		if (environment === 'production' && SECURITY_CONFIG.hsts.enabled && isSecure) {
+		if (isProduction && SECURITY_CONFIG.hsts.maxAge && isSecure) {
 			this.logger.debug('HSTS header applied', {
 				operation: 'security_headers_hsts_applied',
 				endpoint: req.url,
@@ -189,17 +152,16 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 
 	private buildCSPValue(
 		environment: 'development' | 'production',
-		reportUri?: string
+		reportUri?: string,
+		includeReportTo?: boolean
 	): string {
 		let cspValue = getCSPString(environment)
 
-		// Add report-uri if specified
 		if (reportUri) {
 			cspValue += `; report-uri ${reportUri}`
 		}
 
-		// Add report-to for modern browsers (if implementing reporting API)
-		if (process.env.NODE_ENV === 'production') {
+		if (includeReportTo) {
 			cspValue += '; report-to csp-endpoint'
 		}
 
@@ -225,13 +187,10 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 		return policies.join(', ')
 	}
 
-	// Method to update CSP for specific endpoints (e.g., webhook endpoints that need different policies)
 	public static customCSP(res: Response, customDirectives: string): void {
 		res.setHeader('Content-Security-Policy', customDirectives)
-		// Note: Would log here but this is a static method - consider refactoring if logging needed
 	}
 
-	// Method to set CORS headers for preflight requests
 	public static setCORSHeaders(res: Response): void {
 		res.setHeader(
 			'Access-Control-Allow-Methods',
@@ -241,6 +200,6 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
 			'Access-Control-Allow-Headers',
 			'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-CSRF-Token'
 		)
-		res.setHeader('Access-Control-Max-Age', '86400') // 24 hours
+		res.setHeader('Access-Control-Max-Age', '86400')
 	}
 }

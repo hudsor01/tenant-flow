@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import type { MaintenanceNotificationData } from '@repo/shared/types/notifications'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import {
 	requiredDescription,
 	requiredString,
@@ -10,6 +10,7 @@ import {
 } from '@repo/shared/validation/common'
 import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppConfigService } from '../../config/app-config.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import {
 	LeaseExpiringEvent,
@@ -19,13 +20,13 @@ import {
 	TenantCreatedEvent
 } from './events/notification.events'
 
-type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
+type NotificationType = 'maintenance' | 'leases' | 'payment' | 'system'
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
 interface TenantInvitedEventPayload {
-	tenantId: string
-	leaseId: string
-	ownerId: string
+	tenant_id: string
+	lease_id: string
+	owner_id: string
 	checkoutUrl: string
 }
 
@@ -35,7 +36,8 @@ export class NotificationsService {
 
 	constructor(
 		private readonly supabaseService: SupabaseService,
-		private readonly failedNotifications: FailedNotificationsService
+		private readonly failedNotifications: FailedNotificationsService,
+		private readonly config: AppConfigService
 	) {}
 
 	/**
@@ -54,19 +56,19 @@ export class NotificationsService {
 			maintenanceId: uuidSchema.optional(),
 			data: z.object({
 				propertyName: requiredString,
-				unitNumber: requiredString,
+				unit_number: requiredString,
 				description: z.string().max(200, 'Description too long'),
 				requestTitle: requiredString
 			})
 		}),
 
 		notificationInput: z.object({
-			ownerId: uuidSchema,
+			owner_id: uuidSchema,
 			title: requiredTitle,
 			description: requiredDescription,
 			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
 			propertyName: requiredString,
-			unitNumber: requiredString,
+			unit_number: requiredString,
 			maintenanceId: uuidSchema.optional(),
 			actionUrl: z.string().url('Invalid URL format').optional()
 		})
@@ -121,24 +123,24 @@ export class NotificationsService {
 	 * Create and send maintenance notification
 	 */
 	async createMaintenanceNotification(
-		ownerId: string,
+		owner_id: string,
 		title: string,
 		description: string,
 		priority: Priority,
 		propertyName: string,
-		unitNumber: string,
+		unit_number: string,
 		maintenanceId?: string,
 		actionUrl?: string
 	): Promise<MaintenanceNotificationData> {
 		// Validate input data using Zod directly (no wrapper abstractions)
 		const validationResult =
 			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse({
-				ownerId,
+				owner_id,
 				title,
 				description,
 				priority,
 				propertyName,
-				unitNumber,
+				unit_number,
 				maintenanceId,
 				actionUrl
 			})
@@ -158,18 +160,18 @@ export class NotificationsService {
 		const priorityLabel = this.getPriorityLabel(priority)
 
 		const notification = {
-			recipientId: ownerId,
+			recipientId: owner_id,
 			title: `${priorityLabel} Maintenance Request`,
-			message: `New maintenance request for ${propertyName} - Unit ${unitNumber}: ${title}`,
+			message: `New maintenance request for ${propertyName} - Unit ${unit_number}: ${title}`,
 			type: this.getNotificationType(priority, true),
 			priority: priority,
 			actionUrl: actionUrl ?? '/maintenance',
 			maintenanceId: maintenanceId || '',
-			unitId: '', // Will be populated when we have the actual unit ID
+			unit_id: '', // Will be populated when we have the actual unit ID
 			category: 'GENERAL', // Default category
 			data: {
 				propertyName,
-				unitNumber,
+				unit_number,
 				description: description.substring(0, 200), // Truncate for notification
 				requestTitle: title
 			}
@@ -198,18 +200,14 @@ export class NotificationsService {
 			.getAdminClient()
 			.from('notifications')
 			.insert({
-				userId: notification.recipientId,
+				user_id: notification.recipientId,
 				title: notification.title,
-				content: notification.message,
-				type: notification.type,
-				priority: notification.priority.toLowerCase(),
-				metadata: {
-					actionUrl: notification.actionUrl,
-					maintenanceId: notification.maintenanceId,
-					...notification.data
-				},
-				maintenanceRequestId: notification.maintenanceId,
-				isRead: false
+				message: notification.message,
+				notification_type: notification.type,
+				entity_id: notification.maintenanceId,
+				entity_type: 'maintenance',
+				action_url: notification.actionUrl,
+				is_read: false
 			})
 			.select()
 			.single()
@@ -304,14 +302,14 @@ export class NotificationsService {
 		} catch (error) {
 			this.logger.error(
 				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack:
-							process.env.NODE_ENV !== 'production' && error instanceof Error
-								? error.stack
-								: undefined
-					},
+							error: {
+								name: error instanceof Error ? error.constructor.name : 'Unknown',
+								message: error instanceof Error ? error.message : String(error),
+								stack:
+									!this.config.isProduction() && error instanceof Error
+										? error.stack
+										: undefined
+							},
 					notification: {
 						recipientId: notification.recipientId,
 						type: notification.type
@@ -327,15 +325,15 @@ export class NotificationsService {
 	 * Get unread notifications for a user
 	 */
 	async getUnreadNotifications(
-		userId: string
+		user_id: string
 	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('notifications')
 			.select('*')
-			.eq('userId', userId)
+			.eq('user_id', user_id)
 			.eq('isRead', false)
-			.order('createdAt', { ascending: false })
+			.order('created_at', { ascending: false })
 
 		if (error) {
 			throw error
@@ -349,14 +347,14 @@ export class NotificationsService {
 	 */
 	async markAsRead(
 		notificationId: string,
-		userId: string
+		user_id: string
 	): Promise<Database['public']['Tables']['notifications']['Row']> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('notifications')
-			.update({ isRead: true, readAt: new Date().toISOString() })
+			.update({ is_read: true, read_at: new Date().toISOString() })
 			.eq('id', notificationId)
-			.eq('userId', userId)
+			.eq('user_id', user_id)
 			.select()
 			.single()
 
@@ -372,19 +370,31 @@ export class NotificationsService {
 	 */
 	async cancelNotification(
 		notificationId: string,
-		userId: string
+		user_id: string
 	): Promise<Database['public']['Tables']['notifications']['Row']> {
+		// First get the current notification
+		const { data: currentData, error: fetchError } = await this.supabaseService
+			.getAdminClient()
+			.from('notifications')
+			.select()
+			.eq('id', notificationId)
+			.eq('user_id', user_id)
+			.single()
+
+		if (fetchError) {
+			throw fetchError
+		}
+
+		// Then update it
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.from('notifications')
 			.update({
-				metadata: {
-					cancelled: true,
-					cancelledAt: new Date().toISOString()
-				}
+				message: '[CANCELLED] ' + (currentData?.message || ''),
+				title: '[CANCELLED] ' + (currentData?.title || '')
 			})
 			.eq('id', notificationId)
-			.eq('userId', userId)
+			.eq('user_id', user_id)
 			.select()
 			.single()
 
@@ -396,11 +406,11 @@ export class NotificationsService {
 			{
 				notification: {
 					id: notificationId,
-					userId,
+					user_id,
 					action: 'cancelled'
 				}
 			},
-			`Notification ${notificationId} cancelled for user ${userId}`
+			`Notification ${notificationId} cancelled for user ${user_id}`
 		)
 		return data
 	}
@@ -416,8 +426,8 @@ export class NotificationsService {
 			.getAdminClient()
 			.from('notifications')
 			.delete()
-			.lt('createdAt', cutoffDate.toISOString())
-			.eq('isRead', true)
+			.lt('created_at', cutoffDate.toISOString())
+			.eq('is_read', true)
 
 		if (error) {
 			throw error
@@ -428,10 +438,10 @@ export class NotificationsService {
 	 * Get unread notification count - replaces get_unread_notification_count function
 	 * Uses direct table query instead of database function
 	 */
-	async getUnreadCount(userId: string): Promise<number> {
+	async getUnreadCount(user_id: string): Promise<number> {
 		try {
 			this.logger.log('Getting unread notification count via direct query', {
-				userId
+				user_id
 			})
 
 			// Type assertion needed due to Supabase generated types limitation
@@ -440,13 +450,13 @@ export class NotificationsService {
 				.getAdminClient()
 				.from('notifications')
 				.select('*', { count: 'exact', head: true })
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 				.eq('isRead', false)) as { count: number | null; error: unknown }
 
 			if (error) {
 				this.logger.error('Failed to get unread notification count', {
 					error,
-					userId
+					user_id
 				})
 				return 0
 			}
@@ -455,7 +465,7 @@ export class NotificationsService {
 		} catch (error) {
 			this.logger.error('Error getting unread notification count', {
 				error: error instanceof Error ? error.message : String(error),
-				userId
+				user_id
 			})
 			return 0
 		}
@@ -465,27 +475,27 @@ export class NotificationsService {
 	 * Mark all notifications as read - replaces mark_all_notifications_read function
 	 * Uses direct table update instead of database function
 	 */
-	async markAllAsRead(userId: string): Promise<number> {
+	async markAllAsRead(user_id: string): Promise<number> {
 		try {
 			this.logger.log('Marking all notifications as read via direct query', {
-				userId
+				user_id
 			})
 
 			const { data, error } = await this.supabaseService
 				.getAdminClient()
 				.from('notifications')
 				.update({
-					isRead: true,
-					readAt: new Date().toISOString()
+					is_read: true,
+					read_at: new Date().toISOString()
 				})
-				.eq('userId', userId)
-				.eq('isRead', false)
+				.eq('user_id', user_id)
+				.eq('is_read', false)
 				.select('*')
 
 			if (error) {
 				this.logger.error('Failed to mark all notifications as read', {
 					error,
-					userId
+					user_id
 				})
 				return 0
 			}
@@ -494,7 +504,7 @@ export class NotificationsService {
 		} catch (error) {
 			this.logger.error('Error marking all notifications as read', {
 				error: error instanceof Error ? error.message : String(error),
-				userId
+				user_id
 			})
 			return 0
 		}
@@ -510,7 +520,7 @@ export class NotificationsService {
 	@OnEvent('maintenance.updated')
 	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {
 		this.logger.log(
-			`Processing maintenance updated event for user ${event.userId}`,
+			`Processing maintenance updated event for user ${event.user_id}`,
 			{
 				maintenanceId: event.maintenanceId,
 				priority: event.priority,
@@ -522,17 +532,17 @@ export class NotificationsService {
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createMaintenanceNotification(
-					event.userId,
+					event.user_id,
 					event.title,
 					event.description,
 					event.priority,
 					event.propertyName,
-					event.unitNumber,
+					event.unit_number,
 					event.maintenanceId
 				)
 
 				this.logger.log(
-					`Maintenance notification created for user ${event.userId}`
+					`Maintenance notification created for user ${event.user_id}`
 				)
 			},
 			'maintenance.updated',
@@ -546,7 +556,7 @@ export class NotificationsService {
 	@OnEvent('payment.received')
 	async handlePaymentReceived(event: PaymentReceivedEvent) {
 		this.logger.log(
-			`Processing payment received event for user ${event.userId}`,
+			`Processing payment received event for user ${event.user_id}`,
 			{
 				subscriptionId: event.subscriptionId,
 				amount: event.amount,
@@ -558,16 +568,13 @@ export class NotificationsService {
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createPaymentNotification(
-					event.userId,
+					event.user_id,
 					'Payment Received',
-					event.description,
-					'MEDIUM',
-					'Subscription', // Generic property name for payments
-					event.subscriptionId,
-					event.subscriptionId
+				event.description,
+				event.subscriptionId
 				)
 
-				this.logger.log(`Payment notification created for user ${event.userId}`)
+				this.logger.log(`Payment notification created for user ${event.user_id}`)
 			},
 			'payment.received',
 			event
@@ -580,7 +587,7 @@ export class NotificationsService {
 	@OnEvent('payment.failed')
 	async handlePaymentFailed(event: PaymentFailedEvent) {
 		this.logger.log(
-			`Processing payment failed event for user ${event.userId}`,
+			`Processing payment failed event for user ${event.user_id}`,
 			{
 				amount: event.amount,
 				reason: event.reason,
@@ -592,18 +599,15 @@ export class NotificationsService {
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createPaymentNotification(
-					event.userId,
+					event.user_id,
 					'Payment Failed',
-					event.reason,
-					'HIGH',
-					'Subscription', // Generic property name for payments
-					event.subscriptionId,
-					undefined,
-					'/billing/payment-methods'
+				event.reason,
+				event.subscriptionId,
+				'/billing/payment-methods'
 				)
 
 				this.logger.log(
-					`Payment failed notification created for user ${event.userId}`
+					`Payment failed notification created for user ${event.user_id}`
 				)
 			},
 			'payment.failed',
@@ -617,11 +621,11 @@ export class NotificationsService {
 	@OnEvent('tenant.created')
 	async handleTenantCreated(event: TenantCreatedEvent) {
 		this.logger.log(
-			`Processing tenant created event for user ${event.userId}`,
+			`Processing tenant created event for user ${event.user_id}`,
 			{
 				tenantName: event.tenantName,
 				tenantEmail: event.tenantEmail,
-				tenantId: event.tenantId
+				tenant_id: event.tenant_id
 			}
 		)
 
@@ -629,15 +633,14 @@ export class NotificationsService {
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createSystemNotification(
-					event.userId,
+					event.user_id,
 					'New Tenant Added',
-					event.description,
-					'LOW',
-					'/tenants'
+				event.description,
+				'/tenants'
 				)
 
 				this.logger.log(
-					`Tenant created notification sent for user ${event.userId}`
+					`Tenant created notification sent for user ${event.user_id}`
 				)
 			},
 			'tenant.created',
@@ -651,10 +654,10 @@ export class NotificationsService {
 	@OnEvent('tenant.invited')
 	async handleTenantInvited(event: TenantInvitedEventPayload) {
 		this.logger.log(
-			`Processing tenant invited event for owner ${event.ownerId}`,
+			`Processing tenant invited event for owner ${event.owner_id}`,
 			{
-				tenantId: event.tenantId,
-				leaseId: event.leaseId
+				tenant_id: event.tenant_id,
+				lease_id: event.lease_id
 			}
 		)
 
@@ -664,22 +667,20 @@ export class NotificationsService {
 
 				const [tenantResult, leaseResult] = await Promise.all([
 					client
-						.from('tenant')
-						.select('id, firstName, lastName, email')
-						.eq('id', event.tenantId)
+						.from('tenants')
+						.select('id, user_id, user:user_id(first_name, last_name, email)')
+						.eq('id', event.tenant_id)
 						.single(),
 					client
-						.from('lease')
+						.from('leases')
 						.select(
 							`
 							id,
-							propertyId,
-							unitId,
-							property:propertyId(name),
-							unit:unitId(unitNumber)
+							unit_id,
+							unit:unit_id(unit_number, property_id, property:property_id(name))
 						`
 						)
-						.eq('id', event.leaseId)
+						.eq('id', event.lease_id)
 						.single()
 				])
 
@@ -694,44 +695,41 @@ export class NotificationsService {
 				const tenant = tenantResult.data
 				const lease = leaseResult.data
 
-				const tenantNameParts = [tenant?.firstName, tenant?.lastName].filter(
+				const tenantNameParts = [tenant?.user?.first_name, tenant?.user?.last_name].filter(
 					(part): part is string => Boolean(part && part.trim())
 				)
 				const tenantName =
 					tenantNameParts.length > 0
 						? tenantNameParts.join(' ')
-						: (tenant?.email ?? 'New tenant')
+						: (tenant?.user?.email ?? 'New tenant')
 
-				const propertyName = lease?.property?.name ?? 'their property'
-				const unitNumber = lease?.unit?.unitNumber ?? null
+				const propertyName = lease?.unit?.property?.name ?? 'their property'
+				const unit_number = lease?.unit?.unit_number ?? null
 				const leaseLabel = `${propertyName}${
-					unitNumber ? ` - Unit ${unitNumber}` : ''
+					unit_number ? ` - Unit ${unit_number}` : ''
 				}`
 
 				const metadata: Record<string, string | null> = {
 					checkoutUrl: event.checkoutUrl,
-					tenantId: event.tenantId,
-					leaseId: event.leaseId,
+					tenant_id: event.tenant_id,
+					lease_id: event.lease_id,
 					propertyName,
 					tenantName
 				}
 
-				if (unitNumber) {
-					metadata.unitNumber = unitNumber
+				if (unit_number) {
+					metadata.unit_number = unit_number
 				}
 
 				const { error } = await client.from('notifications').insert({
-					userId: event.ownerId,
-					tenantId: tenant?.id ?? event.tenantId,
-					leaseId: lease?.id ?? event.leaseId,
-					propertyId: lease?.propertyId ?? null,
+					user_id: event.owner_id,
+					entity_id: event.tenant_id,
+					entity_type: 'tenant_invitation',
 					title: 'Tenant Invitation Sent',
-					content: `Invitation sent to ${tenantName} for ${leaseLabel}. Payment setup link ready.`,
-					type: 'system',
-					priority: 'low',
-					actionUrl: '/tenants',
-					metadata,
-					isRead: false
+					message: `Invitation sent to ${tenantName} for ${leaseLabel}. Payment setup link ready.`,
+					notification_type: 'system',
+					action_url: '/tenants',
+					is_read: false
 				})
 
 				if (error) {
@@ -739,10 +737,10 @@ export class NotificationsService {
 				}
 
 				this.logger.log(
-					`Tenant invitation notification stored for owner ${event.ownerId}`,
+					`Tenant invitation notification stored for owner ${event.owner_id}`,
 					{
-						tenantId: event.tenantId,
-						leaseId: event.leaseId
+						tenant_id: event.tenant_id,
+						lease_id: event.lease_id
 					}
 				)
 			},
@@ -757,28 +755,28 @@ export class NotificationsService {
 	@OnEvent('lease.expiring')
 	async handleLeaseExpiring(event: LeaseExpiringEvent) {
 		this.logger.log(
-			`Processing lease expiring event for user ${event.userId}`,
+			`Processing lease expiring event for user ${event.user_id}`,
 			{
 				tenantName: event.tenantName,
 				daysUntilExpiry: event.daysUntilExpiry
 			}
 		)
 
-		const priority = event.daysUntilExpiry <= 7 ? 'HIGH' : 'MEDIUM'
+				// Note: Priority could be determined by daysUntilExpiry if system notifications support priority
+		// const priority = event.daysUntilExpiry <= 7 ? 'HIGH' : 'MEDIUM'
 
 		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createSystemNotification(
-					event.userId,
+					event.user_id,
 					'Lease Expiring Soon',
-					`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unitNumber} expires in ${event.daysUntilExpiry} days`,
-					priority,
-					'/leases'
+				`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unit_number} expires in ${event.daysUntilExpiry} days`,
+				'/leases'
 				)
 
 				this.logger.log(
-					`Lease expiring notification sent for user ${event.userId}`
+					`Lease expiring notification sent for user ${event.user_id}`
 				)
 			},
 			'lease.expiring',
@@ -794,12 +792,9 @@ export class NotificationsService {
 	 * Create payment notification
 	 */
 	private async createPaymentNotification(
-		userId: string,
+		user_id: string,
 		title: string,
 		message: string,
-		priority: Priority,
-		propertyName: string,
-		unitNumber: string,
 		paymentId?: string,
 		actionUrl?: string
 	): Promise<void> {
@@ -807,18 +802,14 @@ export class NotificationsService {
 			.getAdminClient()
 			.from('notifications')
 			.insert({
-				userId,
+				user_id,
 				title,
-				content: message,
-				type: 'payment',
-				priority: priority.toLowerCase(),
-				metadata: {
-					actionUrl: actionUrl || '/billing',
-					paymentId,
-					propertyName,
-					unitNumber
-				},
-				isRead: false
+				message: message,
+				notification_type: 'payment',
+				...(paymentId ? { entity_id: paymentId } : {}),
+				entity_type: 'payment',
+				action_url: actionUrl || '/billing',
+				is_read: false
 			})
 
 		if (error) {
@@ -830,25 +821,21 @@ export class NotificationsService {
 	 * Create system notification
 	 */
 	private async createSystemNotification(
-		userId: string,
+		user_id: string,
 		title: string,
 		message: string,
-		priority: Priority,
 		actionUrl?: string
 	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('notifications')
 			.insert({
-				userId,
+				user_id,
 				title,
-				content: message,
-				type: 'system',
-				priority: priority.toLowerCase(),
-				metadata: {
-					actionUrl: actionUrl || '/manage'
-				},
-				isRead: false
+				message: message,
+				notification_type: 'system',
+				action_url: actionUrl || '/manage',
+				is_read: false
 			})
 
 		if (error) {

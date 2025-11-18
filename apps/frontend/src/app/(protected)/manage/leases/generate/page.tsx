@@ -19,9 +19,9 @@ export default async function GenerateLeasePage({
 
 			<div className="rounded-xl border bg-card p-6">
 				<LeaseGenerationForm
-					propertyId={typeof params?.propertyId === 'string' ? params.propertyId : ''}
-					unitId={typeof params?.unitId === 'string' ? params.unitId : ''}
-					tenantId={typeof params?.tenantId === 'string' ? params.tenantId : ''}
+					property_id={typeof params?.property_id === 'string' ? params.property_id : ''}
+					unit_id={typeof params?.unit_id === 'string' ? params.unit_id : ''}
+					tenant_id={typeof params?.tenant_id === 'string' ? params.tenant_id : ''}
 				/>
 			</div>
 		</div>

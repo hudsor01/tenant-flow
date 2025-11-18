@@ -33,7 +33,12 @@ export const CONFIG_DEFAULTS = {
 	ALLOW_LOCALHOST_CORS: false,
 	DOCKER_CONTAINER: false,
 	SUPABASE_PROJECT_REF: 'bshjmbshupiibfiewpxb',
-	API_BASE_URL: 'https://api.tenantflow.app'
+	API_BASE_URL: 'https://api.tenantflow.app',
+	// Rate limiting defaults (in milliseconds and requests)
+	RATE_LIMIT_TTL: '60000', // 60 seconds
+	RATE_LIMIT_LIMIT: '100', // 100 requests per window
+	WEBHOOK_THROTTLE_TTL: '60000', // 60 seconds for webhooks
+	WEBHOOK_THROTTLE_LIMIT: '30' // 30 webhook requests per window
 } as const
 
 export type NodeEnvironment = (typeof NODE_ENVIRONMENTS)[number]

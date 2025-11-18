@@ -3,7 +3,7 @@
 <<<<<<< Updated upstream
 
 ||||||| Stash base
- * 
+ *
 =======
  *
 >>>>>>> Stashed changes
@@ -13,7 +13,7 @@
 <<<<<<< Updated upstream
 
 ||||||| Stash base
- * 
+ *
 =======
  *
 >>>>>>> Stashed changes
@@ -37,7 +37,7 @@ import { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import { TenantsService } from '../tenants/tenants.service'
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { AppConfigService } from '../../config/app-config.service'
 
@@ -50,12 +50,12 @@ interface SupabaseAuthWebhookPayload {
 		email_confirmed_at?: string
 		confirmed_at?: string
 		raw_user_meta_data?: {
-			tenantId?: string
-			leaseId?: string
-			propertyId?: string
-			unitId?: string
-			firstName?: string
-			lastName?: string
+			tenant_id?: string
+			lease_id?: string
+			property_id?: string
+			unit_id?: string
+			first_name?: string
+			last_name?: string
 			[key: string]: unknown
 		}
 	}
@@ -91,7 +91,7 @@ export class AuthWebhookController {
 <<<<<<< Updated upstream
 
 ||||||| Stash base
-	 * 
+	 *
 =======
 	 *
 >>>>>>> Stashed changes
@@ -156,7 +156,7 @@ export class AuthWebhookController {
 <<<<<<< Updated upstream
 
 ||||||| Stash base
-	 * 
+	 *
 =======
 	 *
 >>>>>>> Stashed changes
@@ -224,7 +224,7 @@ export class AuthWebhookController {
 			// Log webhook receipt
 			this.logger.log('Received Supabase Auth webhook', {
 				type: confirmedPayload.type,
-				userId: confirmedPayload.record?.id,
+				user_id: confirmedPayload.record?.id,
 				email: confirmedPayload.record?.email,
 				hasConfirmedAt: !!confirmedPayload.record?.confirmed_at
 			})
@@ -238,12 +238,12 @@ export class AuthWebhookController {
 			const confirmedAt = confirmedPayload.record.confirmed_at || confirmedPayload.record.email_confirmed_at
 			if (!confirmedAt) {
 				this.logger.warn('User not yet confirmed, skipping activation', {
-					userId: confirmedPayload.record.id,
+					user_id: confirmedPayload.record.id,
 					email: confirmedPayload.record.email
 				})
 
 				// Log to webhook table
-				await this.logWebhookEvent(confirmedPayload, false, 'User not yet confirmed')
+				await this.logWebhookEvent(confirmedPayload, false)
 
 				return {
 					success: false,
@@ -253,16 +253,16 @@ export class AuthWebhookController {
 			}
 
 			// Extract tenant metadata
-			const tenantId = confirmedPayload.record.raw_user_meta_data?.tenantId
+			const tenant_id = confirmedPayload.record.raw_user_meta_data?.tenant_id
 
-			if (!tenantId) {
-				this.logger.warn('No tenantId in user metadata, not a tenant invitation', {
-					userId: confirmedPayload.record.id,
+			if (!tenant_id) {
+				this.logger.warn('No tenant_id in user metadata, not a tenant invitation', {
+					user_id: confirmedPayload.record.id,
 					email: confirmedPayload.record.email
 				})
 
 				// Log to webhook table
-				await this.logWebhookEvent(confirmedPayload, false, 'No tenantId in metadata')
+				await this.logWebhookEvent(confirmedPayload, false)
 
 				return {
 					success: false,
@@ -273,8 +273,8 @@ export class AuthWebhookController {
 
 			// Activate tenant
 			this.logger.log('Activating tenant from auth webhook', {
-				tenantId,
-				authUserId: confirmedPayload.record.id,
+				tenant_id,
+				authuser_id: confirmedPayload.record.id,
 				email: confirmedPayload.record.email
 			})
 
@@ -287,16 +287,16 @@ export class AuthWebhookController {
 
 			const duration = Date.now() - startTime
 			this.logger.log('Tenant activated successfully via webhook', {
-				tenantId,
-				authUserId: confirmedPayload.record.id,
+				tenant_id,
+				authuser_id: confirmedPayload.record.id,
 				duration: `${duration}ms`
 			})
 
 			return {
 				success: true,
 				message: 'Tenant activated successfully',
-				tenantId,
-				authUserId: confirmedPayload.record.id,
+				tenant_id,
+				authuser_id: confirmedPayload.record.id,
 				duration
 			}
 
@@ -306,21 +306,21 @@ export class AuthWebhookController {
 
 			this.logger.error('Failed to process auth webhook', {
 				error: errorMessage,
-				userId: payload?.record?.id,
+				user_id: payload?.record?.id,
 				email: payload?.record?.email,
 				duration: `${duration}ms`
 			})
 
 			// Log error to webhook table if payload is available
 			if (payload) {
-				await this.logWebhookEvent(payload, false, errorMessage)
+				await this.logWebhookEvent(payload, false)
 			}
 
 			// Don't throw - return 200 so Supabase doesn't retry
 			return {
 				success: false,
 				error: errorMessage,
-				userId: payload?.record?.id
+				user_id: payload?.record?.id
 			}
 		}
 	}
@@ -330,17 +330,15 @@ export class AuthWebhookController {
 	 */
 	private async logWebhookEvent(
 		payload: SupabaseAuthWebhookPayload,
-		processed: boolean,
-		error?: string
+		processed: boolean
 	): Promise<void> {
 		try {
-			await this.supabase.from('auth_webhook_log').insert({
+			await this.supabase
+			.from('webhook_events')
+			.insert({
 				event_type: payload.type,
-				user_id: payload.record?.id || null,
-				payload: JSON.parse(JSON.stringify(payload)),
-				processed,
-				processed_at: processed ? new Date().toISOString() : null,
-				error: error || null
+				raw_payload: JSON.parse(JSON.stringify(payload)),
+				processed_at: processed ? new Date().toISOString() : null
 			})
 		} catch (logError) {
 			// Log failure but don't throw - webhook processing is more important

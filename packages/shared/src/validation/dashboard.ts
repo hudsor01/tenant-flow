@@ -8,7 +8,7 @@ export const billingInsightsSchema = z.object({
 
 export const activitySchema = z.object({
 	id: z.string(),
-	activity_type: z.enum(['lease', 'payment', 'maintenance', 'unit']),
+	activity_type: z.enum(['leases', 'payment', 'maintenance', 'units']),
 	entity_id: z.string(),
 	property_id: z.string().nullable(),
 	tenant_id: z.string().nullable(),

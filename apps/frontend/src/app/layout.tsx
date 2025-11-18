@@ -14,7 +14,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
 import { cookies } from 'next/headers'
-import { Toaster } from '#components/ui/sonner'
+import { Toaster } from '#components/ui/toast'
 import './globals.css'
 
 const splineSans = Spline_Sans({
