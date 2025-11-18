@@ -9,7 +9,7 @@ import {
 	UnauthorizedException,
 	InternalServerErrorException
 } from '@nestjs/common'
-import { UserId } from '../../shared/decorators/user.decorator'
+import { user_id } from '../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
@@ -19,7 +19,7 @@ import { SupabaseService } from '../../database/supabase.service'
 
 /**
  * DEPRECATED: This controller uses legacy /manage routes.
- * 
+ *
  * Migration: Use /owner routes from OwnerDashboardModule instead.
  * - /manage/stats → /owner/analytics/stats
  * - /manage/activity → /owner/analytics/activity
@@ -30,7 +30,7 @@ import { SupabaseService } from '../../database/supabase.service'
  * - /manage/revenue-trends → /owner/financial/revenue-trends
  * - /manage/time-series → /owner/reports/time-series
  * - /manage/metric-trend → /owner/reports/metric-trend
- * 
+ *
  * Sunset Date: 2025-09-01
  * See: apps/backend/src/modules/owner-dashboard/README.md
  */
@@ -48,19 +48,19 @@ export class DashboardController {
 	// User-specific data cannot use global cache without exposing data across users
 	async getStats(
 		@Request() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger?.log(
 			{
 				action: 'getStats',
-				userId
+				user_id
 			},
 			'Getting dashboard stats for authenticated user'
 		)
 
-		const data = await this.dashboardService.getStats(userId, token)
+		const data = await this.dashboardService.getStats(user_id, token)
 		return {
 			success: true,
 			data,
@@ -76,7 +76,7 @@ export class DashboardController {
 	@Get('page-data')
 	async getPageData(
 		@Request() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	) {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -88,8 +88,8 @@ export class DashboardController {
 		try {
 			// Fetch all dashboard data in parallel
 			const [stats, activity] = await Promise.all([
-				this.dashboardService.getStats(userId, token),
-				this.dashboardService.getActivity(userId, token)
+				this.dashboardService.getStats(user_id, token),
+				this.dashboardService.getActivity(user_id, token)
 			])
 
 			return {
@@ -101,7 +101,7 @@ export class DashboardController {
 		} catch (error) {
 			this.logger.error('Failed to fetch dashboard page data', {
 				error: error instanceof Error ? error.message : String(error),
-				userId
+				user_id
 			})
 			// Re-throw HTTP exceptions as-is to preserve specific error messages
 			if (error instanceof HttpException) {
@@ -114,7 +114,7 @@ export class DashboardController {
 	@Get('activity')
 	async getActivity(
 		@Request() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 		if (!token) {
@@ -125,12 +125,12 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getActivity',
-					userId: userId
+					user_id: user_id
 				}
 			},
 			'Getting dashboard activity via DashboardService'
 		)
-		const data = await this.dashboardService.getActivity(userId, token!)
+		const data = await this.dashboardService.getActivity(user_id, token!)
 		// Service handles validation, return data directly
 		return {
 			success: true,
@@ -143,25 +143,25 @@ export class DashboardController {
 	@Get('billing/insights')
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
-		@Query('startDate') startDate?: string,
-		@Query('endDate') endDate?: string
+		@user_id() user_id: string,
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 		this.logger?.log(
 			{
 				dashboard: {
 					action: 'getBillingInsights',
-					userId: userId,
-					dateRange: { startDate, endDate }
+					user_id: user_id,
+					dateRange: { start_date, end_date }
 				}
 			},
 			'Getting billing insights via DashboardService'
 		)
-		const parsedStartDate = startDate ? new Date(startDate) : undefined
-		const parsedEndDate = endDate ? new Date(endDate) : undefined
+		const parsedstart_date = start_date ? new Date(start_date) : undefined
+		const parsedEndDate = end_date ? new Date(end_date) : undefined
 		if (
-			(parsedStartDate && isNaN(parsedStartDate.getTime())) ||
+			(parsedstart_date && isNaN(parsedstart_date.getTime())) ||
 			(parsedEndDate && isNaN(parsedEndDate.getTime()))
 		) {
 			return {
@@ -172,9 +172,9 @@ export class DashboardController {
 			}
 		}
 		const data = await this.dashboardService.getBillingInsights(
-			userId,
+			user_id,
 			token,
-			parsedStartDate,
+			parsedstart_date,
 			parsedEndDate
 		)
 		// Service handles validation, return data directly
@@ -190,7 +190,7 @@ export class DashboardController {
 	@Get('billing/insights/available')
 	async checkBillingInsightsAvailability(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -202,14 +202,14 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'checkBillingInsightsAvailability',
-					userId
+					user_id
 				}
 			},
 			'Checking billing insights availability'
 		)
 
 		const available = await this.dashboardService.isBillingInsightsAvailable(
-			userId,
+			user_id,
 			token
 		)
 
@@ -226,7 +226,7 @@ export class DashboardController {
 	@Get('billing/health')
 	async getBillingHealth(
 		@Request() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -245,7 +245,7 @@ export class DashboardController {
 		)
 
 		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(
-			userId,
+			user_id,
 			token!
 		)
 
@@ -274,7 +274,7 @@ export class DashboardController {
 	@Get('property-performance')
 	async getPropertyPerformance(
 		@Request() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
@@ -282,14 +282,14 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getPropertyPerformance',
-					userId: userId
+					user_id: user_id
 				}
 			},
 			'Getting property performance via DashboardService'
 		)
 
 		const data = await this.dashboardService.getPropertyPerformance(
-			userId,
+			user_id,
 			token
 		)
 
@@ -325,7 +325,7 @@ export class DashboardController {
 	@Get('occupancy-trends')
 	async getOccupancyTrends(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
@@ -335,7 +335,7 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getOccupancyTrends',
-					userId: userId,
+					user_id: user_id,
 					months: monthsNum
 				}
 			},
@@ -343,7 +343,7 @@ export class DashboardController {
 		)
 
 		const data = await this.dashboardService.getOccupancyTrends(
-			userId,
+			user_id,
 			token,
 			monthsNum
 		)
@@ -359,7 +359,7 @@ export class DashboardController {
 	@Get('revenue-trends')
 	async getRevenueTrends(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
@@ -369,7 +369,7 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getRevenueTrends',
-					userId: userId,
+					user_id: user_id,
 					months: monthsNum
 				}
 			},
@@ -377,7 +377,7 @@ export class DashboardController {
 		)
 
 		const data = await this.dashboardService.getRevenueTrends(
-			userId,
+			user_id,
 			token,
 			monthsNum
 		)
@@ -396,7 +396,7 @@ export class DashboardController {
 	@Get('time-series')
 	async getTimeSeries(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('metric') metric: string,
 		@Query('days') days?: string
 	): Promise<ControllerApiResponse> {
@@ -416,7 +416,7 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getTimeSeries',
-					userId: userId,
+					user_id: user_id,
 					metric,
 					days: parsedDays
 				}
@@ -425,7 +425,7 @@ export class DashboardController {
 		)
 
 		const data = await this.dashboardService.getTimeSeries(
-			userId,
+			user_id,
 			metric,
 			parsedDays,
 			token
@@ -445,7 +445,7 @@ export class DashboardController {
 	@Get('metric-trend')
 	async getMetricTrend(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('metric') metric: string,
 		@Query('period') period?: string
 	): Promise<ControllerApiResponse> {
@@ -465,7 +465,7 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getMetricTrend',
-					userId: userId,
+					user_id: user_id,
 					metric,
 					period: validPeriod
 				}
@@ -474,7 +474,7 @@ export class DashboardController {
 		)
 
 		const data = await this.dashboardService.getMetricTrend(
-			userId,
+			user_id,
 			metric,
 			validPeriod,
 			token
@@ -491,7 +491,7 @@ export class DashboardController {
 	@Get('maintenance-analytics')
 	async getMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
@@ -499,14 +499,14 @@ export class DashboardController {
 			{
 				dashboard: {
 					action: 'getMaintenanceAnalytics',
-					userId: userId
+					user_id: user_id
 				}
 			},
 			'Getting maintenance analytics via optimized RPC'
 		)
 
 		const data = await this.dashboardService.getMaintenanceAnalytics(
-			userId,
+			user_id,
 			token
 		)
 

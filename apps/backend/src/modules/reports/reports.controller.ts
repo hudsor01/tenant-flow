@@ -122,15 +122,15 @@ export class ReportsController {
 		@Query('limit') limit?: string,
 		@Query('offset') offset?: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
 		const parsedLimit = limit ? parseInt(limit, 10) : 20
 		const parsedOffset = offset ? parseInt(offset, 10) : 0
 
-		const result = await this.generatedReportService.findAll(userId, {
+		const result = await this.generatedReportService.findAll(user_id, {
 			limit: parsedLimit,
 			offset: parsedOffset
 		})
@@ -156,12 +156,12 @@ export class ReportsController {
 		@Req() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) reportId: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
-		const report = await this.generatedReportService.findOne(userId, reportId)
+		const report = await this.generatedReportService.findOne(user_id, reportId)
 
 		return {
 			success: true,
@@ -179,14 +179,14 @@ export class ReportsController {
 		@Param('id', ParseUUIDPipe) reportId: string,
 		@Res() res: Response
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
-		const report = await this.generatedReportService.findOne(userId, reportId)
+		const report = await this.generatedReportService.findOne(user_id, reportId)
 		const buffer = await this.generatedReportService.getFileBuffer(
-			userId,
+			user_id,
 			reportId
 		)
 
@@ -212,12 +212,12 @@ export class ReportsController {
 		@Req() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) reportId: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
-		await this.generatedReportService.delete(userId, reportId)
+		await this.generatedReportService.delete(user_id, reportId)
 
 		return {
 			success: true,
@@ -294,21 +294,21 @@ export class ReportsController {
 	async generateExecutiveMonthly(
 		@Body()
 		body: {
-			userId: string
-			startDate: string
-			endDate: string
+			user_id: string
+			start_date: string
+			end_date: string
 			format?: 'pdf' | 'excel'
 		},
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { userId, startDate, endDate, format = 'pdf' } = body
+		const { user_id, start_date, end_date, format = 'pdf' } = body
 
-		this.logger.log('Generating executive monthly report', { userId, format })
+		this.logger.log('Generating executive monthly report', { user_id, format })
 
 		const reportData = await this.executiveMonthlyTemplate.generateReportData(
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		)
 
 		if (format === 'excel') {
@@ -320,12 +320,12 @@ export class ReportsController {
 
 			// Save report metadata
 			await this.generatedReportService.create({
-				userId,
+				user_id,
 				reportType: 'executive-monthly',
 				reportName: 'Executive Monthly Report',
 				format: 'excel',
-				startDate,
-				endDate,
+				start_date,
+				end_date,
 				fileBuffer: buffer
 			})
 
@@ -347,12 +347,12 @@ export class ReportsController {
 
 			// Save report metadata
 			await this.generatedReportService.create({
-				userId,
+				user_id,
 				reportType: 'executive-monthly',
 				reportName: 'Executive Monthly Report',
 				format: 'pdf',
-				startDate,
-				endDate,
+				start_date,
+				end_date,
 				fileBuffer: buffer
 			})
 
@@ -369,21 +369,21 @@ export class ReportsController {
 	async generateFinancialPerformance(
 		@Body()
 		body: {
-			userId: string
-			startDate: string
-			endDate: string
+			user_id: string
+			start_date: string
+			end_date: string
 		},
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { userId, startDate, endDate } = body
+		const { user_id, start_date, end_date } = body
 
-		this.logger.log('Generating financial performance report', { userId })
+		this.logger.log('Generating financial performance report', { user_id })
 
 		const reportData =
 			await this.financialPerformanceTemplate.generateReportData(
-				userId,
-				startDate,
-				endDate
+				user_id,
+				start_date,
+				end_date
 			)
 
 		const excelData =
@@ -395,12 +395,12 @@ export class ReportsController {
 
 		// Save report metadata
 		await this.generatedReportService.create({
-			userId,
+			user_id,
 			reportType: 'financial-performance',
 			reportName: 'Financial Performance Report',
 			format: 'excel',
-			startDate,
-			endDate,
+			start_date,
+			end_date,
 			fileBuffer: buffer
 		})
 
@@ -419,21 +419,21 @@ export class ReportsController {
 	async generatePropertyPortfolio(
 		@Body()
 		body: {
-			userId: string
-			startDate: string
-			endDate: string
+			user_id: string
+			start_date: string
+			end_date: string
 			format?: 'pdf' | 'excel'
 		},
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { userId, startDate, endDate, format = 'pdf' } = body
+		const { user_id, start_date, end_date, format = 'pdf' } = body
 
-		this.logger.log('Generating property portfolio report', { userId, format })
+		this.logger.log('Generating property portfolio report', { user_id, format })
 
 		const reportData = await this.propertyPortfolioTemplate.generateReportData(
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		)
 
 		if (format === 'excel') {
@@ -446,12 +446,12 @@ export class ReportsController {
 
 			// Save report metadata
 			await this.generatedReportService.create({
-				userId,
+				user_id,
 				reportType: 'property-portfolio',
 				reportName: 'Property Portfolio Report',
 				format: 'excel',
-				startDate,
-				endDate,
+				start_date,
+				end_date,
 				fileBuffer: buffer
 			})
 
@@ -473,12 +473,12 @@ export class ReportsController {
 
 			// Save report metadata
 			await this.generatedReportService.create({
-				userId,
+				user_id,
 				reportType: 'property-portfolio',
 				reportName: 'Property Portfolio Report',
 				format: 'pdf',
-				startDate,
-				endDate,
+				start_date,
+				end_date,
 				fileBuffer: buffer
 			})
 
@@ -495,20 +495,20 @@ export class ReportsController {
 	async generateLeasePortfolio(
 		@Body()
 		body: {
-			userId: string
-			startDate: string
-			endDate: string
+			user_id: string
+			start_date: string
+			end_date: string
 		},
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { userId, startDate, endDate } = body
+		const { user_id, start_date, end_date } = body
 
-		this.logger.log('Generating lease portfolio report', { userId })
+		this.logger.log('Generating lease portfolio report', { user_id })
 
 		const reportData = await this.leasePortfolioTemplate.generateReportData(
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		)
 
 		const excelData = this.leasePortfolioTemplate.formatForExcel(reportData)
@@ -519,12 +519,12 @@ export class ReportsController {
 
 		// Save report metadata
 		await this.generatedReportService.create({
-			userId,
+			user_id,
 			reportType: 'lease-portfolio',
 			reportName: 'Lease Portfolio Report',
 			format: 'excel',
-			startDate,
-			endDate,
+			start_date,
+			end_date,
 			fileBuffer: buffer
 		})
 
@@ -543,25 +543,25 @@ export class ReportsController {
 	async generateMaintenanceOperations(
 		@Body()
 		body: {
-			userId: string
-			startDate: string
-			endDate: string
+			user_id: string
+			start_date: string
+			end_date: string
 			format?: 'pdf' | 'excel'
 		},
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { userId, startDate, endDate, format = 'pdf' } = body
+		const { user_id, start_date, end_date, format = 'pdf' } = body
 
 		this.logger.log('Generating maintenance operations report', {
-			userId,
+			user_id,
 			format
 		})
 
 		const reportData =
 			await this.maintenanceOperationsTemplate.generateReportData(
-				userId,
-				startDate,
-				endDate
+				user_id,
+				start_date,
+				end_date
 			)
 
 		if (format === 'excel') {
@@ -574,12 +574,12 @@ export class ReportsController {
 
 			// Save report metadata
 			await this.generatedReportService.create({
-				userId,
+				user_id,
 				reportType: 'maintenance-operations',
 				reportName: 'Maintenance Operations Report',
 				format: 'excel',
-				startDate,
-				endDate,
+				start_date,
+				end_date,
 				fileBuffer: buffer
 			})
 
@@ -602,12 +602,12 @@ export class ReportsController {
 
 			// Save report metadata
 			await this.generatedReportService.create({
-				userId,
+				user_id,
 				reportType: 'maintenance-operations',
 				reportName: 'Maintenance Operations Report',
 				format: 'pdf',
-				startDate,
-				endDate,
+				start_date,
+				end_date,
 				fileBuffer: buffer
 			})
 
@@ -624,20 +624,20 @@ export class ReportsController {
 	async generateTaxPreparation(
 		@Body()
 		body: {
-			userId: string
-			startDate: string
-			endDate: string
+			user_id: string
+			start_date: string
+			end_date: string
 		},
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { userId, startDate, endDate } = body
+		const { user_id, start_date, end_date } = body
 
-		this.logger.log('Generating tax preparation report', { userId })
+		this.logger.log('Generating tax preparation report', { user_id })
 
 		const reportData = await this.taxPreparationTemplate.generateReportData(
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		)
 
 		const excelData = this.taxPreparationTemplate.formatForExcel(reportData)
@@ -648,12 +648,12 @@ export class ReportsController {
 
 		// Save report metadata
 		await this.generatedReportService.create({
-			userId,
+			user_id,
 			reportType: 'tax-preparation',
 			reportName: 'Tax Preparation Report',
 			format: 'excel',
-			startDate,
-			endDate,
+			start_date,
+			end_date,
 			fileBuffer: buffer
 		})
 
@@ -687,12 +687,12 @@ export class ReportsController {
 			dayOfMonth?: number
 			hour?: number
 			timezone?: string
-			startDate: string
-			endDate: string
+			start_date: string
+			end_date: string
 		}
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
@@ -701,11 +701,11 @@ export class ReportsController {
 			throw new ForbiddenException('Authentication token missing')
 		}
 
-		this.logger.log('Creating scheduled report', { userId, ...body })
+		this.logger.log('Creating scheduled report', { user_id, ...body })
 
 		const schedule = await this.scheduledReportService.createSchedule(
 			{
-				userId,
+				user_id,
 				...body
 			},
 			token
@@ -723,8 +723,8 @@ export class ReportsController {
 	@Get('schedules')
 	@UseGuards(JwtAuthGuard)
 	async listSchedules(@Req() req: AuthenticatedRequest) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
@@ -733,7 +733,7 @@ export class ReportsController {
 			throw new ForbiddenException('Authentication token missing')
 		}
 
-		const schedules = await this.scheduledReportService.listSchedules(userId, token)
+		const schedules = await this.scheduledReportService.listSchedules(user_id, token)
 
 		return {
 			success: true,
@@ -750,8 +750,8 @@ export class ReportsController {
 		@Req() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) scheduleId: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
@@ -760,7 +760,7 @@ export class ReportsController {
 			throw new ForbiddenException('Authentication token missing')
 		}
 
-		await this.scheduledReportService.deleteSchedule(scheduleId, userId, token)
+		await this.scheduledReportService.deleteSchedule(scheduleId, user_id, token)
 
 		return {
 			success: true,
@@ -780,14 +780,14 @@ export class ReportsController {
 		@Req() req: AuthenticatedRequest,
 		@Query('months') months?: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
 		const parsedMonths = months ? parseInt(months, 10) : 12
 		const data = await this.reportsService.getMonthlyRevenue(
-			userId,
+			user_id,
 			parsedMonths
 		)
 
@@ -805,18 +805,18 @@ export class ReportsController {
 	@UseGuards(JwtAuthGuard)
 	async getPaymentAnalytics(
 		@Req() req: AuthenticatedRequest,
-		@Query('startDate') startDate?: string,
-		@Query('endDate') endDate?: string
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
 	) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
 		const data = await this.reportsService.getPaymentAnalytics(
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		)
 
 		return {
@@ -832,12 +832,12 @@ export class ReportsController {
 	@Get('analytics/occupancy')
 	@UseGuards(JwtAuthGuard)
 	async getOccupancyMetrics(@Req() req: AuthenticatedRequest) {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new NotFoundException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getOccupancyMetrics(userId)
+		const data = await this.reportsService.getOccupancyMetrics(user_id)
 
 		return {
 			success: true,

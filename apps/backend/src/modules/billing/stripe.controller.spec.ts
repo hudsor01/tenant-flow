@@ -122,7 +122,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: validUuid
+				tenant_id: validUuid
 			})
 
 			expect(result).toEqual({
@@ -136,7 +136,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			try {
 				await controller.createPaymentIntent({
 					amount: 10, // Below minimum
-					tenantId: validUuid
+					tenant_id: validUuid
 				})
 			} catch (error) {
 				const err = error as Error
@@ -145,16 +145,16 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			}
 		})
 
-		it('should throw BadRequestException for missing tenantId', async () => {
+		it('should throw BadRequestException for missing tenant_id', async () => {
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: ''
+					tenant_id: ''
 				})
 			} catch (error) {
 				const err = error as Error
 				expect(err.constructor.name).toBe('BadRequestException')
-				expect(err.message).toContain('tenantId is required')
+				expect(err.message).toContain('tenant_id is required')
 			}
 		})
 
@@ -173,7 +173,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			// Should succeed after sanitization
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: maliciousInput
+				tenant_id: maliciousInput
 			})
 
 			expect(result).toBeDefined()
@@ -201,7 +201,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			})
 
 			expect(mockStripeOwnerService.ensureOwnerCustomer).toHaveBeenCalledWith({
-				userId: 'owner-123',
+				user_id: 'owner-123',
 				email: 'owner@example.com',
 				name: null
 			})
@@ -521,7 +521,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: onlyDangerousChars
+					tenant_id: onlyDangerousChars
 				})
 				fail('Should have thrown BadRequestException')
 			} catch (error) {
@@ -545,7 +545,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			// Should succeed after sanitization
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: maliciousInput
+				tenant_id: maliciousInput
 			})
 
 			expect(result).toBeDefined()
@@ -579,7 +579,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			// Should succeed after sanitization
 			const result = await controller.createPaymentIntent({
 				amount: 100,
-				tenantId: maliciousInput
+				tenant_id: maliciousInput
 			})
 
 			expect(result).toBeDefined()
@@ -604,7 +604,7 @@ let mockStripeTenantService: jest.Mocked<StripeTenantService>
 			try {
 				await controller.createPaymentIntent({
 					amount: 100,
-					tenantId: inputWithControlChars
+					tenant_id: inputWithControlChars
 				})
 				fail('Should have thrown an error')
 			} catch (error) {

@@ -13,7 +13,7 @@ import { SupabaseModule } from '../../database/supabase.module'
  * Tenant Portal Module
  *
  * Parent module that organizes tenant-specific routes using RouterModule.
- * All routes are prefixed with /tenant and enforce TENANT role via TenantAuthGuard.
+ * All routes are prefixed with /tenant and enforce TENANT user_type via TenantAuthGuard.
  *
  * Route Structure:
  * - /tenant/payments     - Payment history and methods
@@ -23,11 +23,11 @@ import { SupabaseModule } from '../../database/supabase.module'
  * - /tenant/settings     - Profile and preferences
  *
  * Security:
- * - TenantAuthGuard validates TENANT role from database
+ * - TenantAuthGuard validates TENANT user_type from database
  * - TenantContextInterceptor adds logging and context
  * - RLS policies enforce data access at database level
  *
- * @see TenantAuthGuard for role validation
+ * @see TenantAuthGuard for user_type validation
  * @see TenantContextInterceptor for request logging
  * @see README.md for detailed documentation
  */
@@ -41,7 +41,7 @@ import { SupabaseModule } from '../../database/supabase.module'
 		TenantSettingsModule,
 		RouterModule.register([
 			{
-				path: 'tenant',
+				path: 'tenants',
 				children: [
 					{ path: 'payments', module: TenantPaymentsModule },
 					{ path: 'autopay', module: TenantAutopayModule },

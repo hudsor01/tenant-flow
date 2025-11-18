@@ -34,23 +34,23 @@ const IncomeStatementPage = () => {
 		const yearNum = parseInt(year)
 		if (period === 'yearly') {
 			return {
-				startDate: `${yearNum}-01-01`,
-				endDate: `${yearNum}-12-31`
+				start_date: `${yearNum}-01-01`,
+				end_date: `${yearNum}-12-31`
 			}
 		} else if (period === 'quarterly') {
 			const currentQuarter = Math.floor(new Date().getMonth() / 3) + 1
 			const quarterStart = (currentQuarter - 1) * 3 + 1
 			const quarterEnd = quarterStart + 2
 			return {
-				startDate: `${yearNum}-${quarterStart.toString().padStart(2, '0')}-01`,
-				endDate: `${yearNum}-${quarterEnd.toString().padStart(2, '0')}-31`
+				start_date: `${yearNum}-${quarterStart.toString().padStart(2, '0')}-01`,
+				end_date: `${yearNum}-${quarterEnd.toString().padStart(2, '0')}-31`
 			}
 		} else {
 			const currentMonth = new Date().getMonth() + 1
 			const lastDay = new Date(yearNum, currentMonth, 0).getDate()
 			return {
-				startDate: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-01`,
-				endDate: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
+				start_date: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-01`,
+				end_date: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
 			}
 		}
 	}, [period, year])

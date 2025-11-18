@@ -45,9 +45,9 @@ export const maintenanceAnalytics = {
 	 * Get maintenance metrics with all calculations done server-side
 	 * Replaces frontend calculations from maintenance-analytics.tsx lines 224-238, 266
 	 */
-	async getMetrics(propertyId?: string, timeframe = '30d', status?: string) {
+	async getMetrics(property_id?: string, timeframe = '30d', status?: string) {
 		const params = new URLSearchParams()
-		if (propertyId) params.set('propertyId', propertyId)
+		if (property_id) params.set('property_id', property_id)
 		params.set('timeframe', timeframe)
 		if (status) params.set('status', status)
 
@@ -57,9 +57,9 @@ export const maintenanceAnalytics = {
 	/**
 	 * Get maintenance cost summary with aggregations
 	 */
-	async getCostSummary(propertyId?: string, timeframe = '30d') {
+	async getCostSummary(property_id?: string, timeframe = '30d') {
 		const params = new URLSearchParams()
-		if (propertyId) params.set('propertyId', propertyId)
+		if (property_id) params.set('property_id', property_id)
 		params.set('timeframe', timeframe)
 
 		return serverFetch(`/maintenance/analytics/cost-summary?${params}`)
@@ -68,9 +68,9 @@ export const maintenanceAnalytics = {
 	/**
 	 * Get maintenance performance analytics
 	 */
-	async getPerformance(propertyId?: string, period = 'monthly') {
+	async getPerformance(property_id?: string, period = 'monthly') {
 		const params = new URLSearchParams()
-		if (propertyId) params.set('propertyId', propertyId)
+		if (property_id) params.set('property_id', property_id)
 		params.set('period', period)
 
 		return serverFetch(`/maintenance/analytics/performance?${params}`)
@@ -83,10 +83,10 @@ export const visitorAnalytics = {
 	 * Get property interest analytics with all calculations done server-side
 	 * Replaces frontend calculations from visitor-analytics-chart.tsx lines 103-145
 	 */
-	async getPropertyInterest(timeRange = '30d', propertyId?: string) {
+	async getPropertyInterest(timeRange = '30d', property_id?: string) {
 		const params = new URLSearchParams()
 		params.set('timeRange', timeRange)
-		if (propertyId) params.set('propertyId', propertyId)
+		if (property_id) params.set('property_id', property_id)
 
 		return serverFetch(`/analytics/visitor/property-interest?${params}`)
 	},
@@ -94,10 +94,10 @@ export const visitorAnalytics = {
 	/**
 	 * Get inquiry conversion metrics
 	 */
-	async getInquiryMetrics(timeRange = '30d', propertyId?: string) {
+	async getInquiryMetrics(timeRange = '30d', property_id?: string) {
 		const params = new URLSearchParams()
 		params.set('timeRange', timeRange)
-		if (propertyId) params.set('propertyId', propertyId)
+		if (property_id) params.set('property_id', property_id)
 
 		return serverFetch(`/analytics/visitor/inquiry-metrics?${params}`)
 	},
@@ -105,10 +105,10 @@ export const visitorAnalytics = {
 	/**
 	 * Get viewing conversion metrics
 	 */
-	async getViewingMetrics(timeRange = '30d', propertyId?: string) {
+	async getViewingMetrics(timeRange = '30d', property_id?: string) {
 		const params = new URLSearchParams()
 		params.set('timeRange', timeRange)
-		if (propertyId) params.set('propertyId', propertyId)
+		if (property_id) params.set('property_id', property_id)
 
 		return serverFetch(`/analytics/visitor/viewing-metrics?${params}`)
 	},

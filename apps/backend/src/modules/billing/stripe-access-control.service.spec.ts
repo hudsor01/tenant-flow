@@ -272,7 +272,7 @@ describe('StripeAccessControlService', () => {
 			expect(mockLogger.warn).toHaveBeenCalledWith(
 				'Payment failed',
 				expect.objectContaining({
-					userId: '550e8400-e29b-41d4-a716-446655440000',
+					user_id: '550e8400-e29b-41d4-a716-446655440000',
 					invoiceId: 'in_test123',
 					subscriptionId: 'sub_test123'
 				})

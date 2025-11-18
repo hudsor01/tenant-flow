@@ -6,6 +6,14 @@ import {
 	validateBalanceSheet
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
+import {
+	calculatePropertyFinancials,
+	loadLedgerData,
+	parseDate,
+	type ExpenseRow,
+	type LedgerData,
+	type RentPaymentRow
+} from './financial-ledger.helpers'
 
 interface FinancialOverviewResponse {
 	cash_balance?: number
@@ -55,145 +63,65 @@ export class BalanceSheetService {
 
 		this.logger.log(`Generating balance sheet as of ${asOfDate}`)
 
-		// Get financial overview for balance sheet data
-		// RLS-protected RPC function automatically filters by authenticated user
-		const { data: financialOverview, error: overviewError } = await client.rpc(
-			'get_financial_overview',
-			{ p_user_id: user.id }
-		)
+		try {
+			const ledger = await loadLedgerData(client)
+			const asOf = new Date(asOfDate)
+			const { overview, lease } = this.buildLedgerSnapshot(ledger, asOf)
+			const noiBreakdown = this.buildNoiBreakdown(ledger, asOf)
 
-		if (overviewError) {
-			this.logger.error(
-				`Failed to get financial overview: ${overviewError.message}`
+			const totalNOI = noiBreakdown.reduce(
+				(sum, prop) => sum + safeNumber(prop.noi),
+				0
 			)
-			throw overviewError
-		}
+			const assumedCapRate = 0.06 // 6% cap rate for property valuation
+			const estimatedPropertyValue =
+				totalNOI > 0 ? totalNOI / assumedCapRate : 0
 
-		// Get net operating income for property values
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: noiData, error: noiError } = await client.rpc(
-			'calculate_net_operating_income',
-			{
-				p_user_id: user.id
-			}
-		)
+			// ASSETS
+			// Current Assets
+			const cash = safeNumber(overview?.cash_balance)
+			const accountsReceivable = safeNumber(
+				lease?.total_outstanding_balance
+			)
+			const security_deposits = safeNumber(lease?.total_deposits)
+			const currentAssetsTotal = cash + accountsReceivable + security_deposits
 
-		if (noiError) {
-			this.logger.error(`Failed to calculate NOI: ${noiError.message}`)
-			throw noiError
-		}
+			// Fixed Assets
+			const propertyValues = estimatedPropertyValue
+			const accumulatedDepreciation = estimatedPropertyValue * 0.15 // Assume 15% depreciation
+			const netPropertyValue = propertyValues - accumulatedDepreciation
+			const fixedAssetsTotal = netPropertyValue
 
-		// Get lease financial summary for receivables
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: leaseSummary, error: leaseError } = await client.rpc(
-			'get_lease_financial_summary',
-			{
-				p_user_id: user.id
-			}
-		)
+			const totalAssets = currentAssetsTotal + fixedAssetsTotal
 
-		if (leaseError) {
-			this.logger.error(`Failed to get lease summary: ${leaseError.message}`)
-			throw leaseError
-		}
+			// LIABILITIES
+			// Current Liabilities
+			const accountsPayable = safeNumber(overview?.accounts_payable)
+			const security_depositLiability = security_deposits // Equal to security deposits held
+			const accruedExpenses = safeNumber(overview?.accrued_expenses)
+			const currentLiabilitiesTotal =
+				accountsPayable + security_depositLiability + accruedExpenses
 
-		const overviewData = (
-			Array.isArray(financialOverview)
-				? financialOverview[0]
-				: financialOverview
-		) as FinancialOverviewResponse
-		const leaseData = (
-			Array.isArray(leaseSummary) ? leaseSummary[0] : leaseSummary
-		) as LeaseSummaryResponse
+			// Long-term Liabilities
+			const mortgagesPayable = safeNumber(overview?.mortgages_payable)
+			const longTermLiabilitiesTotal = mortgagesPayable
 
-		// Calculate property values from NOI (using cap rate assumption)
-		const totalNOI = Array.isArray(noiData)
-			? (noiData as NOIResponse[]).reduce(
-					(sum, prop) => sum + safeNumber(prop.noi),
-					0
-				)
-			: 0
-		const assumedCapRate = 0.06 // 6% cap rate for property valuation
-		const estimatedPropertyValue = totalNOI > 0 ? totalNOI / assumedCapRate : 0
+			const totalLiabilities = currentLiabilitiesTotal + longTermLiabilitiesTotal
 
-		// ASSETS
-		// Current Assets
-		const cash = safeNumber(overviewData?.cash_balance)
-		const accountsReceivable = safeNumber(leaseData?.total_outstanding_balance)
-		const securityDeposits = safeNumber(leaseData?.total_deposits)
-		const currentAssetsTotal = cash + accountsReceivable + securityDeposits
+			// EQUITY
+			const ownerCapital = safeNumber(overview?.owner_capital)
+			const retainedEarnings = safeNumber(overview?.retained_earnings)
+			const currentPeriodIncome = safeNumber(overview?.current_period_income)
+			const totalEquity = ownerCapital + retainedEarnings + currentPeriodIncome
 
-		// Fixed Assets
-		const propertyValues = estimatedPropertyValue
-		const accumulatedDepreciation = estimatedPropertyValue * 0.15 // Assume 15% depreciation
-		const netPropertyValue = propertyValues - accumulatedDepreciation
-		const fixedAssetsTotal = netPropertyValue
-
-		const totalAssets = currentAssetsTotal + fixedAssetsTotal
-
-		// LIABILITIES
-		// Current Liabilities
-		const accountsPayable = safeNumber(overviewData?.accounts_payable)
-		const securityDepositLiability = securityDeposits // Equal to security deposits held
-		const accruedExpenses = safeNumber(overviewData?.accrued_expenses)
-		const currentLiabilitiesTotal =
-			accountsPayable + securityDepositLiability + accruedExpenses
-
-		// Long-term Liabilities
-		const mortgagesPayable = safeNumber(overviewData?.mortgages_payable)
-		const longTermLiabilitiesTotal = mortgagesPayable
-
-		const totalLiabilities = currentLiabilitiesTotal + longTermLiabilitiesTotal
-
-		// EQUITY
-		const ownerCapital = safeNumber(overviewData?.owner_capital)
-		const retainedEarnings = safeNumber(overviewData?.retained_earnings)
-		const currentPeriodIncome = safeNumber(overviewData?.current_period_income)
-		const totalEquity = ownerCapital + retainedEarnings + currentPeriodIncome
-
-		// Construct balance sheet
-		const balanceSheet: BalanceSheetData = {
-			period: createFinancialPeriod(asOfDate, asOfDate),
-			assets: {
-				currentAssets: {
-					cash,
-					accountsReceivable,
-					securityDeposits,
-					total: currentAssetsTotal
-				},
-				fixedAssets: {
-					propertyValues,
-					accumulatedDepreciation,
-					netPropertyValue,
-					total: fixedAssetsTotal
-				},
-				totalAssets
-			},
-			liabilities: {
-				currentLiabilities: {
-					accountsPayable,
-					securityDepositLiability,
-					accruedExpenses,
-					total: currentLiabilitiesTotal
-				},
-				longTermLiabilities: {
-					mortgagesPayable,
-					total: longTermLiabilitiesTotal
-				},
-				totalLiabilities
-			},
-			equity: {
-				ownerCapital,
-				retainedEarnings,
-				currentPeriodIncome,
-				totalEquity
-			},
-			balanceCheck: validateBalanceSheet({
+			// Construct balance sheet
+			const balanceSheet: BalanceSheetData = {
+				period: createFinancialPeriod(asOfDate, asOfDate),
 				assets: {
 					currentAssets: {
 						cash,
 						accountsReceivable,
-						securityDeposits,
+						security_deposits,
 						total: currentAssetsTotal
 					},
 					fixedAssets: {
@@ -207,7 +135,7 @@ export class BalanceSheetService {
 				liabilities: {
 					currentLiabilities: {
 						accountsPayable,
-						securityDepositLiability,
+						security_depositLiability,
 						accruedExpenses,
 						total: currentLiabilitiesTotal
 					},
@@ -223,18 +151,143 @@ export class BalanceSheetService {
 					currentPeriodIncome,
 					totalEquity
 				},
-				period: createFinancialPeriod(asOfDate, asOfDate),
-				balanceCheck: true
+				balanceCheck: false
+			}
+
+			balanceSheet.balanceCheck = validateBalanceSheet(balanceSheet)
+
+			return balanceSheet
+		} catch (error) {
+			this.logger.error('Failed to generate balance sheet snapshot', {
+				error: error instanceof Error ? error.message : String(error),
+				user_id: user.id,
+				asOfDate
 			})
+			throw error instanceof Error
+				? error
+				: new Error('Unable to generate balance sheet')
 		}
+	}
 
-		// Log if balance sheet doesn't balance
-		if (!balanceSheet.balanceCheck) {
-			this.logger.warn(
-				`Balance sheet does not balance: Assets=${totalAssets}, Liabilities+Equity=${totalLiabilities + totalEquity}`
+	private buildLedgerSnapshot(ledger: LedgerData, asOf: Date) {
+		const relevantPayments = ledger.rentPayments.filter(payment =>
+			this.isOnOrBefore(payment.due_date, asOf)
+		)
+		const expenses = ledger.expenses.filter(expense =>
+			this.isOnOrBefore(expense.expense_date ?? expense.created_at, asOf)
+		)
+		const deposits = this.sumSecurityDeposits(ledger.leases)
+		const paidRent = relevantPayments
+			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
+		const outstandingRent = relevantPayments
+			.filter(payment => payment.status !== 'PAID')
+			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
+		const totalExpenses = expenses.reduce(
+			(sum, expense) => sum + (expense.amount ?? 0),
+			0
+		)
+		const openMaintenance = ledger.maintenanceRequests
+			.filter(request => request.status !== 'COMPLETED')
+			.reduce((sum, request) => sum + (request.estimated_cost ?? 0), 0)
+		const cash_balance = Math.max(paidRent - totalExpenses, 0)
+		const current_period_income = this.calculateCurrentPeriodIncomeFromLedger(
+			relevantPayments,
+			expenses,
+			asOf
+		)
+
+		return {
+			overview: {
+				cash_balance,
+				accounts_payable: outstandingRent,
+				accrued_expenses: openMaintenance,
+				mortgages_payable: 0,
+				owner_capital: deposits,
+				retained_earnings: cash_balance - deposits,
+				current_period_income
+			} satisfies FinancialOverviewResponse,
+			lease: {
+				total_outstanding_balance: outstandingRent,
+				total_deposits: deposits
+			} satisfies LeaseSummaryResponse
+		}
+	}
+
+	private buildNoiBreakdown(ledger: LedgerData, asOf: Date): NOIResponse[] {
+		const rangeStart = this.subtractMonths(asOf, 12)
+		const propertyFinancials = calculatePropertyFinancials(ledger, {
+			start: rangeStart,
+			end: asOf
+		})
+		return Array.from(propertyFinancials.revenue.entries()).map(
+			([property_id, revenue]) => ({
+				property_id,
+				noi: revenue - (propertyFinancials.expenses.get(property_id) ?? 0)
+			})
+		)
+	}
+
+	private sumSecurityDeposits(leases: LedgerData['leases']): number {
+		return leases.reduce(
+			(sum, lease) => sum + (lease.security_deposit ?? 0),
+			0
+		)
+	}
+
+	private calculateCurrentPeriodIncomeFromLedger(
+		payments: RentPaymentRow[],
+		expenses: ExpenseRow[],
+		asOf: Date
+	): number {
+		const { start, end } = this.getMonthBounds(asOf)
+		const revenue = payments
+			.filter(payment => this.isWithin(payment.due_date, start, end))
+			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
+		const periodExpenses = expenses
+			.filter(expense =>
+				this.isWithin(expense.expense_date ?? expense.created_at, start, end)
 			)
-		}
+			.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
 
-		return balanceSheet
+		return revenue - periodExpenses
+	}
+
+	private getMonthBounds(date: Date) {
+		const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
+		const end = new Date(
+			Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999)
+		)
+		return { start, end }
+	}
+
+	private isOnOrBefore(
+		value: string | null | undefined,
+		target: Date
+	): boolean {
+		const parsed = parseDate(value)
+		if (!parsed) {
+		 return false
+		}
+		return parsed.getTime() <= target.getTime()
+	}
+
+	private isWithin(
+		value: string | null | undefined,
+		start: Date,
+		end: Date
+	): boolean {
+		const parsed = parseDate(value)
+		if (!parsed) {
+			return false
+		}
+		return parsed.getTime() >= start.getTime() && parsed.getTime() <= end.getTime()
+	}
+
+	private subtractMonths(reference: Date, months: number) {
+		const clone = new Date(reference.getTime())
+		clone.setUTCMonth(clone.getUTCMonth() - months)
+		return clone
 	}
 }

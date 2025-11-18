@@ -24,7 +24,7 @@ export const SubscriptionCanceledEmail = ({
 	cancelAtPeriodEnd,
 	currentPeriodEnd
 }: SubscriptionCanceledEmailProps) => {
-	const endDateFormatted = currentPeriodEnd
+	const end_dateFormatted = currentPeriodEnd
 		? currentPeriodEnd.toLocaleDateString()
 		: 'immediately'
 
@@ -58,7 +58,7 @@ export const SubscriptionCanceledEmail = ({
 								<br />
 								{cancelAtPeriodEnd ? (
 									<>
-										Access Until: <strong>{endDateFormatted}</strong>
+										Access Until: <strong>{end_dateFormatted}</strong>
 										<br />
 										<small style={smallText}>
 											You will continue to have full access until this date.
@@ -79,7 +79,7 @@ export const SubscriptionCanceledEmail = ({
 						{cancelAtPeriodEnd && (
 							<Text style={text}>
 								You can continue using all TenantFlow features until{' '}
-								{endDateFormatted}. After this date, your account will be
+								{end_dateFormatted}. After this date, your account will be
 								downgraded to the free plan.
 							</Text>
 						)}

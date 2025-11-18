@@ -37,6 +37,7 @@ import {
 import { unitColumns, type UnitRow } from './columns'
 import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
 import { usePropertyList } from '#hooks/api/use-properties'
+import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import type { UnitInsert, UnitStatus } from '@repo/shared/types/core'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -81,7 +82,7 @@ export default function UnitsPage() {
 	// Use modern hook with pagination
 	const params: {
 		status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-		propertyId?: string
+		property_id?: string
 		limit: number
 		offset: number
 	} = {
@@ -89,7 +90,7 @@ export default function UnitsPage() {
 		offset: (page - 1) * ITEMS_PER_PAGE
 	}
 	if (status) params.status = status as UnitStatus
-	if (property) params.propertyId = property
+	if (property) params.property_id = property
 
 	const { data: unitsData, isLoading } = useUnitList(params)
 
@@ -423,14 +424,14 @@ function NewUnitButton() {
 		try {
 			const fd = new FormData(form)
 			await create.mutateAsync({
-				unitNumber: String(fd.get('unitNumber') || ''),
+				unit_number: String(fd.get('unit_number') || ''),
 				bedrooms: Number(fd.get('bedrooms') || 0),
 				bathrooms: Number(fd.get('bathrooms') || 0),
-				rent: Number(fd.get('rent') || 0),
-				propertyId: String(fd.get('propertyId') || ''),
+				rent_amount: Number(fd.get('rent') || 0),
+				property_id: String(fd.get('property_id') || ''),
 				status: 'VACANT'
 			} as UnitInsert)
-			qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Unit created successfully')
 			closeButtonRef.current?.click()
 		} catch (error) {
@@ -463,17 +464,17 @@ function NewUnitButton() {
 				>
 					<div className="grid grid-cols-2 gap-2">
 						<div className="grid gap-2">
-							<Label htmlFor="unitNumber">Unit Number</Label>
+							<Label htmlFor="unit_number">Unit Number</Label>
 							<Input
-								name="unitNumber"
-								id="unitNumber"
+								name="unit_number"
+								id="unit_number"
 								required
 								placeholder="101"
 							/>
 						</div>
 						<div className="grid gap-2">
-							<Label htmlFor="propertyId">Property</Label>
-							<Select name="propertyId" required>
+							<Label htmlFor="property_id">Property</Label>
+							<Select name="property_id" required>
 								<SelectTrigger>
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>

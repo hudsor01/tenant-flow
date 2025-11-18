@@ -32,7 +32,7 @@ import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
 
 const ITEMS_PER_PAGE = 25
 
-type LeaseStatus = NonNullable<CreateLeaseInput['status']>
+type LeaseStatus = NonNullable<CreateLeaseInput['lease_status']>
 
 // Inline create dialog using base component
 function LeaseCreateDialog() {
@@ -44,50 +44,46 @@ function LeaseCreateDialog() {
 
 	const form = useForm({
 		defaultValues: {
-			tenantId: '',
-			unitId: '',
-			startDate: '',
-			endDate: '',
-			rentAmount: '',
-			securityDeposit: '',
-			monthlyRent: '',
+			primary_tenant_id: '',
+			unit_id: '',
+			start_date: '',
+			end_date: '',
+			rent_amount: '',
+			security_deposit: '',
 			gracePeriodDays: '5',
-			lateFeeAmount: '',
+			late_fee_amount: '',
 			lateFeePercentage: '',
-			terms: '',
 			status: 'ACTIVE' as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
 			try {
 				// Validate numeric conversions
-				const rentAmount = Number.parseFloat(value.rentAmount)
-				const securityDeposit = Number.parseFloat(value.securityDeposit)
-				if (Number.isNaN(rentAmount) || Number.isNaN(securityDeposit)) {
+				const rent_amount = Number.parseFloat(value.rent_amount)
+				const security_deposit = Number.parseFloat(value.security_deposit)
+				if (Number.isNaN(rent_amount) || Number.isNaN(security_deposit)) {
 					toast.error('Invalid rent or security deposit amount')
 					return
 				}
-				if (value.monthlyRent && Number.isNaN(Number.parseFloat(value.monthlyRent))) {
+				if (value.rent_amount && Number.isNaN(Number.parseFloat(value.rent_amount))) {
 					toast.error('Invalid monthly rent amount')
 					return
 				}
-				if (value.lateFeeAmount && Number.isNaN(Number.parseFloat(value.lateFeeAmount))) {
+				if (value.late_fee_amount && Number.isNaN(Number.parseFloat(value.late_fee_amount))) {
 					toast.error('Invalid late fee amount')
 					return
 				}
 
 				const leaseData: CreateLeaseInput = {
-					tenantId: value.tenantId,
-					unitId: value.unitId,
-					startDate: value.startDate,
-					endDate: value.endDate,
-					rentAmount: Math.round(Number.parseFloat(value.rentAmount) * 100), // Convert dollars to cents
-					securityDeposit: Math.round(Number.parseFloat(value.securityDeposit) * 100), // Convert dollars to cents
-					monthlyRent: value.monthlyRent ? Math.round(Number.parseFloat(value.monthlyRent) * 100) : null, // Convert dollars to cents
-					gracePeriodDays: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
-					lateFeeAmount: value.lateFeeAmount ? Math.round(Number.parseFloat(value.lateFeeAmount) * 100) : null, // Convert dollars to cents
-					lateFeePercentage: value.lateFeePercentage ? parseFloat(value.lateFeePercentage) : null,
-					terms: value.terms || null,
-					status: value.status
+					primary_tenant_id: value.primary_tenant_id,
+					unit_id: value.unit_id,
+					start_date: value.start_date,
+					end_date: value.end_date,
+					rent_amount: Math.round(Number.parseFloat(value.rent_amount) * 100), // Convert dollars to cents
+					security_deposit: value.security_deposit ? Math.round(Number.parseFloat(value.security_deposit) * 100) : 0, // Convert dollars to cents
+					grace_period_days: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
+					late_fee_amount: value.late_fee_amount ? Math.round(Number.parseFloat(value.late_fee_amount) * 100) : null, // Convert dollars to cents
+				late_fee_days: value.lateFeePercentage ? parseInt(value.lateFeePercentage, 10) : null,
+				lease_status: value.status
 				}
 				await createLeaseMutation.mutateAsync(leaseData)
 				toast.success('Lease created successfully')

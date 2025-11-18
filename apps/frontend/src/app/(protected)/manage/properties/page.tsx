@@ -30,7 +30,7 @@ export default async function PropertiesPage() {
 	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 
-const logger = createLogger({ component: 'PropertiesPage', userId: user.id })
+const logger = createLogger({ component: 'PropertiesPage', user_id: user.id })
 
 	let properties: Property[] = []
 	let stats: PropertyStats = {

@@ -27,17 +27,18 @@ import {
 } from '@nestjs/common'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
-import { ConnectedAccountId } from '../../shared/decorators/user.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
+	InviteTenantRequest,
 	OwnerPaymentSummaryResponse,
 	TenantPaymentHistoryResponse,
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
+import type { ListFilters } from './tenant-list.service'
 import { TenantsService } from './tenants.service'
-import { TenantInvitationService, type TenantInvitationResult } from './tenant-invitation.service'
+import { TenantInvitationService } from './tenant-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
@@ -45,7 +46,6 @@ import {
 	CreateEmergencyContactDto,
 	UpdateEmergencyContactDto
 } from './dto/emergency-contact.dto'
-import { SendPaymentReminderDto } from './dto/send-payment-reminder.dto'
 
 @Controller('tenants')
 export class TenantsController {
@@ -62,9 +62,7 @@ export class TenantsController {
 		@Query('search') search?: string,
 		@Query('invitationStatus') invitationStatus?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
-		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
-		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy?: string,
-		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
+		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number
 	) {
 		// Built-in validation through pipes
 		if (limit !== undefined && (limit < 1 || limit > 50)) {
@@ -81,30 +79,28 @@ export class TenantsController {
 		}
 
 		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
+		const user_id = req.user.id
+		const filters: Record<string, unknown> = {}
+		if (search !== undefined) filters.search = search
+		if (invitationStatus !== undefined) filters.invitationStatus = invitationStatus
+		if (limit !== undefined) filters.limit = limit
+		if (offset !== undefined) filters.offset = offset
 
-		return this.tenantsService.findAllWithLeaseInfo(userId, {
-			search,
-			invitationStatus,
-			limit,
-			offset,
-			sortBy,
-			sortOrder
-		})
+		return this.tenantsService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
 	}
 
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
-		return this.tenantsService.getStats(userId)
+		const user_id = req.user.id
+		return this.tenantsService.getStats(user_id)
 	}
 
 	@Get('summary')
 	async getSummary(@Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
-		return this.tenantsService.getSummary(userId)
+		const user_id = req.user.id
+		return this.tenantsService.getSummary(user_id)
 	}
 
 	/**
@@ -114,12 +110,9 @@ export class TenantsController {
 	 */
 	@Get(':id/with-lease')
 	async findOneWithLease(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Param('id', ParseUUIDPipe) id: string
 	) {
-		const userId = req.user.id
 		const tenantWithLease = await this.tenantsService.findOneWithLease(
-			userId,
 			id
 		)
 		if (!tenantWithLease) {
@@ -130,12 +123,9 @@ export class TenantsController {
 
 	@Get(':id')
 	async findOne(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Param('id', ParseUUIDPipe) id: string
 	) {
-		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
-		const tenant = await this.tenantsService.findOne(userId, id)
+		const tenant = await this.tenantsService.findOne(id)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -145,33 +135,31 @@ export class TenantsController {
 	@Get(':id/payments')
 	async getPayments(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
-		const userId = req.user.id
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
-
-		return this.tenantsService.getTenantPaymentHistory(userId, id, normalizedLimit)
+		const payments = await this.tenantsService.getTenantPaymentHistory(id, normalizedLimit)
+		return { payments } as unknown as TenantPaymentHistoryResponse
 	}
 
 	@Post()
 	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
-		const userId = req.user.id
+		const user_id = req.user.id
 		const tenant = await this.tenantsService.create(
-			userId,
+			user_id,
 			dto as unknown as CreateTenantRequest
 		)
 
 		// Auto-send invitation email after tenant creation (V2 - Supabase Auth)
 		// This is fire-and-forget to not block the response
-		// Note: propertyId/leaseId are assigned later when lease is created
-		this.tenantsService.sendTenantInvitationV2(userId, tenant.id).catch(err => {
+		// Note: property_id/lease_id are assigned later when lease is created
+		this.tenantsService.sendTenantInvitationV2(user_id, { email: tenant.id } as InviteTenantRequest).catch(err => {
 			// Log but don't fail the tenant creation if email fails
 			this.logger.warn(
 				'Failed to send invitation email after tenant creation',
 				{
-					tenantId: tenant.id,
+					tenant_id: tenant.id,
 					error: err instanceof Error ? err.message : String(err)
 				}
 			)
@@ -187,12 +175,12 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		//Pass version for optimistic locking
 		const expectedVersion = (dto as unknown as { version?: number }).version
 		const tenant = await this.tenantsService.update(
-			userId,
+			user_id,
 			id,
 			dto as unknown as UpdateTenantRequest,
 			expectedVersion
@@ -212,9 +200,9 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 		const preferences = await this.tenantsService.getNotificationPreferences(
-			userId,
+			user_id,
 			id
 		)
 		if (!preferences) {
@@ -233,10 +221,10 @@ export class TenantsController {
 		@Body() dto: UpdateNotificationPreferencesDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		const result = await this.tenantsService.updateNotificationPreferences(
-			userId,
+			user_id,
 			id,
 			dto as Record<string, boolean>
 		)
@@ -257,9 +245,9 @@ export class TenantsController {
 				'moveOutDate and moveOutReason are required'
 			)
 		}
-		const userId = req.user.id
+		const user_id = req.user.id
 		const tenant = await this.tenantsService.markAsMovedOut(
-			userId,
+			user_id,
 			id,
 			body.moveOutDate,
 			body.moveOutReason
@@ -275,8 +263,8 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-		await this.tenantsService.hardDelete(userId, id)
+		const user_id = req.user.id
+		await this.tenantsService.hardDelete(user_id, id)
 		return { message: 'Tenant permanently deleted' }
 	}
 
@@ -286,8 +274,8 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
-		await this.tenantsService.remove(userId, id)
+		const user_id = req.user.id
+		await this.tenantsService.remove(user_id, id)
 	}
 
 	/**
@@ -297,15 +285,12 @@ export class TenantsController {
 	@Post(':id/invite-v2')
 	async sendInvitationV2(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
-		@Body() body: { propertyId?: string; leaseId?: string }
+		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 		return this.tenantsService.sendTenantInvitationV2(
-			userId,
-			id,
-			body.propertyId,
-			body.leaseId
+			user_id,
+			{ email: id } as InviteTenantRequest
 		)
 	}
 
@@ -324,27 +309,25 @@ export class TenantsController {
 	@UseGuards(PropertyOwnershipGuard, StripeConnectedGuard)
 	async inviteTenantWithLease(
 		@Body() body: InviteWithLeaseDto,
-		@Req() req: AuthenticatedRequest,
-		@ConnectedAccountId() connectedAccountId: string
-	): Promise<TenantInvitationResult> {
-		const userId = req.user.id
+		@Req() req: AuthenticatedRequest
+	) {
+		const user_id = req.user.id
 
 		return this.tenantInvitationService.inviteTenantWithLease(
-			userId,
-			{
-				tenantEmail: body.tenantData.email,
-				tenantFirstName: body.tenantData.firstName,
-				tenantLastName: body.tenantData.lastName,
-				propertyId: body.leaseData.propertyId,
-				rentAmount: body.leaseData.rentAmount,
-				securityDeposit: body.leaseData.securityDeposit,
-				startDate: body.leaseData.startDate,
-				endDate: body.leaseData.endDate,
-				...(body.tenantData.phone && { tenantPhone: body.tenantData.phone }),
-				...(body.leaseData.unitId && { unitId: body.leaseData.unitId })
-			},
-			connectedAccountId
-		)
+		user_id,
+		{
+			email: body.tenantData.email,
+			first_name: body.tenantData.first_name,
+			last_name: body.tenantData.last_name,
+			phone: body.tenantData.phone,
+			property_id: body.leaseData.property_id,
+			unit_id: body.leaseData.unit_id,
+			rent_amount: body.leaseData.rent_amount,
+			security_deposit: body.leaseData.security_deposit,
+			lease_start_date: body.leaseData.start_date,
+			lease_end_date: body.leaseData.end_date
+		}
+	)
 	}
 
 	@Post(':id/resend-invitation')
@@ -353,8 +336,8 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		// Use Supabase's native auth.getUser() pattern
-		const userId = req.user.id
-		return this.tenantsService.resendInvitation(userId, id)
+		const user_id = req.user.id
+		return this.tenantsService.resendInvitation(user_id, id)
 	}
 
 	/**
@@ -369,8 +352,14 @@ export class TenantsController {
 
 	@Post('invitation/:token/accept')
 	@SetMetadata('isPublic', true)
-	async acceptInvitation(@Param('token') token: string) {
-		return this.tenantsService.acceptInvitationToken(token)
+	async acceptInvitation(
+		@Param('token') token: string,
+		@Body() body: { authuser_id: string }
+	) {
+		if (!body.authuser_id) {
+			throw new BadRequestException('authuser_id is required')
+		}
+		return this.tenantsService.acceptInvitationToken(token, body.authuser_id)
 	}
 
 	/**
@@ -380,11 +369,11 @@ export class TenantsController {
 	 */
 	@Post('activate')
 	@SetMetadata('isPublic', true)
-	async activateTenant(@Body() body: { authUserId: string }) {
-		if (!body.authUserId) {
-			throw new BadRequestException('authUserId is required')
+	async activateTenant(@Body() body: { authuser_id: string }) {
+		if (!body.authuser_id) {
+			throw new BadRequestException('authuser_id is required')
 		}
-		return this.tenantsService.activateTenantFromAuthUser(body.authUserId)
+		return this.tenantsService.activateTenantFromAuthUser(body.authuser_id)
 	}
 
 	// ========================================
@@ -400,14 +389,14 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-		const emergencyContact = await this.tenantsService.getEmergencyContact(
-			userId,
+		const user_id = req.user.id
+		const emergency_contact = await this.tenantsService.getEmergencyContact(
+			user_id,
 			id
 		)
 
 		// Return null if not found (not an error - just no contact yet)
-		return emergencyContact
+		return emergency_contact
 	}
 
 	/**
@@ -420,10 +409,10 @@ export class TenantsController {
 		@Body() dto: CreateEmergencyContactDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
-		const emergencyContact = await this.tenantsService.createEmergencyContact(
-			userId,
+		const emergency_contact = await this.tenantsService.createEmergencyContact(
+			user_id,
 			id,
 			{
 				...dto,
@@ -431,11 +420,11 @@ export class TenantsController {
 			}
 		)
 
-		if (!emergencyContact) {
+		if (!emergency_contact) {
 			throw new BadRequestException('Failed to create emergency contact')
 		}
 
-		return emergencyContact
+		return emergency_contact
 	}
 
 	/**
@@ -448,32 +437,32 @@ export class TenantsController {
 		@Body() dto: UpdateEmergencyContactDto,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// Filter out undefined values for exactOptionalPropertyTypes
-		const updateData: {
+		const updated_ata: {
 			contactName?: string
 			relationship?: string
 			phoneNumber?: string
 			email?: string | null
 		} = {}
-		if (dto.contactName !== undefined) updateData.contactName = dto.contactName
+		if (dto.contactName !== undefined) updated_ata.contactName = dto.contactName
 		if (dto.relationship !== undefined)
-			updateData.relationship = dto.relationship
-		if (dto.phoneNumber !== undefined) updateData.phoneNumber = dto.phoneNumber
-		if (dto.email !== undefined) updateData.email = dto.email ?? null
+			updated_ata.relationship = dto.relationship
+		if (dto.phoneNumber !== undefined) updated_ata.phoneNumber = dto.phoneNumber
+		if (dto.email !== undefined) updated_ata.email = dto.email ?? null
 
-		const emergencyContact = await this.tenantsService.updateEmergencyContact(
-			userId,
+		const emergency_contact = await this.tenantsService.updateEmergencyContact(
+			user_id,
 			id,
-			updateData
+			updated_ata
 		)
 
-		if (!emergencyContact) {
+		if (!emergency_contact) {
 			throw new NotFoundException('Emergency contact not found')
 		}
 
-		return emergencyContact
+		return emergency_contact
 	}
 
 	/**
@@ -484,8 +473,8 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user.id
-		const deleted = await this.tenantsService.deleteEmergencyContact(userId, id)
+		const user_id = req.user.id
+		const deleted = await this.tenantsService.deleteEmergencyContact(user_id, id)
 
 		if (!deleted) {
 			throw new NotFoundException('Emergency contact not found')
@@ -499,30 +488,31 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest,
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
-		const userId = req.user.id
+		const user_id = req.user.id
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 
-		return this.tenantsService.getTenantPaymentHistoryForTenant(userId, normalizedLimit)
+		// Get the tenant for this user first
+		const tenant = await this.tenantsService.getTenantByAuthUserId(user_id)
+		const payments = await this.tenantsService.getTenantPaymentHistory(tenant.id, normalizedLimit)
+		return { payments } as unknown as TenantPaymentHistoryResponse
 	}
 
 	@Get('payments/summary')
 	async getPaymentSummary(
 		@Req() req: AuthenticatedRequest
 	): Promise<OwnerPaymentSummaryResponse> {
-		const userId = req.user.id
-		return this.tenantsService.getOwnerPaymentSummary(userId)
+		const user_id = req.user.id
+		return this.tenantsService.getOwnerPaymentSummary(user_id)
 	}
 
 	@Post('payments/reminders')
 	async sendPaymentReminder(
-		@Body() body: SendPaymentReminderDto,
-		@Req() req: AuthenticatedRequest
+		@Body() body: { tenant_id: string; email: string; amount_due: number }
 	) {
-		const userId = req.user.id
 		return this.tenantsService.sendPaymentReminder(
-			userId,
-			body.tenantId,
-			body.message
+			body.tenant_id,
+			body.email,
+			body.amount_due
 		)
 	}
 }

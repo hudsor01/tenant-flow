@@ -11,7 +11,7 @@ interface CreateCheckoutSessionRequest {
 	planName: string
 	description?: string
 	customerEmail?: string
-	tenantId?: string
+	tenant_id?: string
 }
 
 interface CreateCheckoutSessionResponse {
@@ -55,7 +55,7 @@ export async function createCheckoutSession(
 			body: JSON.stringify({
 				priceId: request.priceId,
 				productName: request.planName,
-				tenantId: request.tenantId || user?.id || 'pending_signup',
+				tenant_id: request.tenant_id || user?.id || 'pending_signup',
 				domain: window.location.origin,
 				description: request.description,
 				isSubscription: true,
@@ -200,13 +200,12 @@ export async function createCustomerPortalSession(
 
 		// Get user's Stripe customer ID with proper org_id filtering
 		const { data: userData, error: dbError } = await supabase
-			.from('users')
-			.select('stripeCustomerId, orgId')
-			.eq('id', user.id)
-			.eq('orgId', user.app_metadata?.['org_id'])
+		.from('users')
+		.select('stripe_customer_id')
+		.eq('id', user.id)
 			.single()
 
-	if (dbError || !userData?.stripeCustomerId) {
+	if (dbError || !userData?.stripe_customer_id) {
 		throw new Error(ERROR_MESSAGES.NO_STRIPE_CUSTOMER)
 	}
 
@@ -219,7 +218,7 @@ export async function createCustomerPortalSession(
 				Authorization: `Bearer ${session.access_token}`
 			},
 			body: JSON.stringify({
-				customerId: userData.stripeCustomerId,
+				customerId: userData.stripe_customer_id,
 				returnUrl
 			})
 		}

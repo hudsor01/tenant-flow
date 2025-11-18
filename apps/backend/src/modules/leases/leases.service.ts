@@ -1,3 +1,4 @@
+// LeaseStatus type removed - using string literals from database enum
 /**
  * Leases Service - Ultra-Native NestJS Implementation
  * Direct Supabase access, no repository abstractions
@@ -13,7 +14,7 @@ import {
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildMultiColumnSearch,
@@ -60,34 +61,34 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			// Build base query for counting (NO manual userId/unitId filtering needed)
+			// Build base query for counting (NO manual user_id/unit_id filtering needed)
 			let countQuery = client
-				.from('lease')
+				.from('leases')
 				.select('*', { count: 'exact', head: true })
 
 			// Apply filters to count query
-			if (query.propertyId) {
-				countQuery = countQuery.eq('propertyId', String(query.propertyId))
+			if (query.property_id) {
+				countQuery = countQuery.eq('property_id', String(query.property_id))
 			}
-			if (query.tenantId) {
-				countQuery = countQuery.eq('tenantId', String(query.tenantId))
+			if (query.tenant_id) {
+				countQuery = countQuery.eq('primary_tenant_id', String(query.tenant_id))
 			}
 			if (query.status) {
 				countQuery = countQuery.eq(
 					'status',
-					query.status as Database['public']['Enums']['LeaseStatus']
+					query.status as string
 				)
 			}
-			if (query.startDate) {
+			if (query.start_date) {
 				countQuery = countQuery.gte(
-					'startDate',
-					new Date(query.startDate as string).toISOString()
+					'start_date',
+					new Date(query.start_date as string).toISOString()
 				)
 			}
-			if (query.endDate) {
+			if (query.end_date) {
 				countQuery = countQuery.lte(
-					'endDate',
-					new Date(query.endDate as string).toISOString()
+					'end_date',
+					new Date(query.end_date as string).toISOString()
 				)
 			}
 			// SECURITY FIX #2: Use safe search to prevent SQL injection
@@ -95,7 +96,7 @@ export class LeasesService {
 				const sanitized = sanitizeSearchInput(String(query.search))
 				if (sanitized) {
 					countQuery = countQuery.or(
-						buildMultiColumnSearch(sanitized, ['tenantId', 'unitId'])
+						buildMultiColumnSearch(sanitized, ['primary_tenant_id', 'unit_id'])
 					)
 				}
 			}
@@ -110,32 +111,32 @@ export class LeasesService {
 				throw new BadRequestException('Failed to count leases')
 			}
 
-			// Build data query with filters (NO manual userId/unitId filtering needed)
-			let queryBuilder = client.from('lease').select('*')
+			// Build data query with filters (NO manual user_id/unit_id filtering needed)
+			let queryBuilder = client.from('leases').select('*')
 
 			// Apply filters
-			if (query.propertyId) {
-				queryBuilder = queryBuilder.eq('propertyId', String(query.propertyId))
+			if (query.property_id) {
+				queryBuilder = queryBuilder.eq('property_id', String(query.property_id))
 			}
-			if (query.tenantId) {
-				queryBuilder = queryBuilder.eq('tenantId', String(query.tenantId))
+			if (query.tenant_id) {
+				queryBuilder = queryBuilder.eq('primary_tenant_id', String(query.tenant_id))
 			}
 			if (query.status) {
 				queryBuilder = queryBuilder.eq(
 					'status',
-					query.status as Database['public']['Enums']['LeaseStatus']
+					query.status as string
 				)
 			}
-			if (query.startDate) {
+			if (query.start_date) {
 				queryBuilder = queryBuilder.gte(
-					'startDate',
-					new Date(query.startDate as string).toISOString()
+					'start_date',
+					new Date(query.start_date as string).toISOString()
 				)
 			}
-			if (query.endDate) {
+			if (query.end_date) {
 				queryBuilder = queryBuilder.lte(
-					'endDate',
-					new Date(query.endDate as string).toISOString()
+					'end_date',
+					new Date(query.end_date as string).toISOString()
 				)
 			}
 			// SECURITY FIX #2: Use safe search to prevent SQL injection
@@ -143,7 +144,7 @@ export class LeasesService {
 				const sanitized = sanitizeSearchInput(String(query.search))
 				if (sanitized) {
 					queryBuilder = queryBuilder.or(
-						buildMultiColumnSearch(sanitized, ['tenantId', 'unitId'])
+						buildMultiColumnSearch(sanitized, ['primary_tenant_id', 'unit_id'])
 					)
 				}
 			}
@@ -154,7 +155,7 @@ export class LeasesService {
 			queryBuilder = queryBuilder.range(offset, offset + limit - 1)
 
 			// Apply sorting
-			const sortBy = query.sortBy || 'createdAt'
+			const sortBy = query.sortBy || 'created_at'
 			const sortOrder = query.sortOrder || 'desc'
 			queryBuilder = queryBuilder.order(sortBy as string, {
 				ascending: sortOrder === 'asc'
@@ -203,7 +204,7 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			const { data, error } = await client.from('lease').select('*')
+			const { data, error } = await client.from('leases').select('*')
 
 			if (error) {
 				this.logger.error('Failed to get lease stats from Supabase', {
@@ -218,38 +219,38 @@ export class LeasesService {
 				now.getTime() + 30 * 24 * 60 * 60 * 1000
 			)
 
-			type LeaseRow = Database['public']['Tables']['lease']['Row']
+			type LeaseRow = Database['public']['Tables']['leases']['Row']
 
 			const stats = {
-				totalLeases: leases.length,
-				activeLeases: leases.filter((l: LeaseRow) => l.status === 'ACTIVE')
-					.length,
-				expiredLeases: leases.filter((l: LeaseRow) => l.status === 'EXPIRED')
-					.length,
-				terminatedLeases: leases.filter(
-					(l: LeaseRow) => l.status === 'TERMINATED'
-				).length,
-				totalMonthlyRent: leases
-					.filter((l: LeaseRow) => l.status === 'ACTIVE')
-					.reduce((sum: number, l: LeaseRow) => sum + (l.rentAmount || 0), 0),
-				averageRent:
-					leases.length > 0
-						? leases.reduce(
-								(sum: number, l: LeaseRow) => sum + (l.rentAmount || 0),
-								0
-							) / leases.length
-						: 0,
-				totalSecurityDeposits: leases.reduce(
-					(sum: number, l: LeaseRow) => sum + (l.securityDeposit || 0),
-					0
-				),
-				expiringLeases: leases.filter((l: LeaseRow) => {
-					// Skip month-to-month leases (endDate is null)
-					if (!l.endDate) return false
-					const endDate = new Date(l.endDate)
-					return endDate > now && endDate <= thirtyDaysFromNow
-				}).length
-			}
+			totalLeases: leases.length,
+			activeLeases: leases.filter((l: LeaseRow) => l.lease_status === 'active')
+				.length,
+			expiredLeases: leases.filter((l: LeaseRow) => l.lease_status === 'ended')
+				.length,
+			terminatedLeases: leases.filter(
+				(l: LeaseRow) => l.lease_status === 'terminated'
+			).length,
+			totalMonthlyRent: leases
+				.filter((l: LeaseRow) => l.lease_status === 'active')
+				.reduce((sum: number, l: LeaseRow) => sum + (l.rent_amount || 0), 0),
+			averageRent:
+				leases.length > 0
+					? leases.reduce(
+							(sum: number, l: LeaseRow) => sum + (l.rent_amount || 0),
+							0
+					  ) / leases.length
+					: 0,
+			totalsecurity_deposits: leases.reduce(
+				(sum: number, l: LeaseRow) => sum + (l.security_deposit || 0),
+				0
+			),
+			expiringLeases: leases.filter((l: LeaseRow) => {
+				// Skip month-to-month leases (end_date is null)
+				if (!l.end_date) return false
+				const end_date = new Date(l.end_date)
+				return end_date > now && end_date <= thirtyDaysFromNow
+			}).length
+		}
 
 			return stats
 		} catch (error) {
@@ -286,9 +287,9 @@ export class LeasesService {
 			const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
 
 			const { data, error } = await client
-				.from('lease')
+				.from('leases')
 				.select('*')
-				.eq('status', 'ACTIVE')
+				.eq('lease_status', 'active')
 				.gte('end_date', now.toISOString())
 				.lte('end_date', futureDate.toISOString())
 				.order('end_date', { ascending: true })
@@ -317,32 +318,32 @@ export class LeasesService {
 	 * Find one lease by ID
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async findOne(token: string, leaseId: string): Promise<Lease | null> {
+	async findOne(token: string, lease_id: string): Promise<Lease | null> {
 		try {
-			if (!token || !leaseId) {
+			if (!token || !lease_id) {
 				this.logger.warn('Find one lease called with missing parameters', {
-					leaseId
+					lease_id
 				})
 				return null
 			}
 
 			this.logger.log('Finding one lease via RLS-protected query', {
-				leaseId
+				lease_id
 			})
 
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
-				.from('lease')
+				.from('leases')
 				.select('*')
-				.eq('id', leaseId)
+				.eq('id', lease_id)
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to fetch lease from Supabase', {
 					error: error.message,
-					leaseId
+					lease_id
 				})
 				return null
 			}
@@ -351,7 +352,7 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to find one lease', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				lease_id
 			})
 			return null
 		}
@@ -363,13 +364,13 @@ export class LeasesService {
 	 */
 	async create(token: string, dto: CreateLeaseDto): Promise<Lease> {
 		try {
-			if (!token || !dto.unitId || !dto.tenantId) {
+			if (!token || !dto.unit_id || !dto.primary_tenant_id) {
 				this.logger.warn('Create lease called with missing parameters', {
 					dto
 				})
 				throw new BadRequestException(
-					'Authentication token, unit ID, and tenant ID are required'
-				)
+				'Authentication token, unit ID, and primary tenant ID are required'
+			)
 			}
 
 			this.logger.log('Creating lease via RLS-protected query', {
@@ -381,9 +382,9 @@ export class LeasesService {
 
 			// Verify unit exists and belongs to user (RLS will enforce ownership)
 			const { data: unit } = await client
-				.from('unit')
-				.select('id, propertyId')
-				.eq('id', dto.unitId)
+				.from('units')
+				.select('id, property_id')
+				.eq('id', dto.unit_id)
 				.single()
 
 			if (!unit) {
@@ -392,9 +393,9 @@ export class LeasesService {
 
 			// Verify tenant exists and belongs to user (RLS will enforce ownership)
 			const { data: tenant } = await client
-				.from('tenant')
+				.from('tenants')
 				.select('id')
-				.eq('id', dto.tenantId)
+				.eq('id', dto.primary_tenant_id)
 				.single()
 
 			if (!tenant) {
@@ -402,23 +403,21 @@ export class LeasesService {
 			}
 
 			// Insert lease directly from DTO (matches database schema)
-			const { data, error } = await client
-				.from('lease')
-				.insert({
-					tenantId: dto.tenantId,
-					unitId: dto.unitId,
-					startDate: dto.startDate,
-					endDate: dto.endDate || null,
-					rentAmount: dto.rentAmount,
-					securityDeposit: dto.securityDeposit || 0,
-					status: (dto.status ||
-						'DRAFT') as Database['public']['Enums']['LeaseStatus'],
-					terms: dto.terms || null,
-					propertyId: dto.propertyId || null,
-					monthlyRent: dto.monthlyRent || null
-				})
-				.select()
-				.single()
+		const { data, error } = await client
+			.from('leases')
+			.insert({
+				primary_tenant_id: dto.primary_tenant_id,
+				unit_id: dto.unit_id,
+				start_date: dto.start_date,
+				end_date: dto.end_date || '',
+				rent_amount: dto.rent_amount,
+				security_deposit: dto.security_deposit || 0,
+				lease_status: dto.lease_status || 'pending',
+				payment_day: 1,
+				rent_currency: 'USD'
+			})
+			.select()
+			.single()
 
 			if (error) {
 				this.logger.error('Failed to create lease in Supabase', {
@@ -448,25 +447,24 @@ export class LeasesService {
 	 */
 	async update(
 		token: string,
-		leaseId: string,
-		updateRequest: UpdateLeaseDto,
-		expectedVersion?: number //Optimistic locking
+		lease_id: string,
+		updateRequest: UpdateLeaseDto
 	): Promise<Lease | null> {
 		try {
-			if (!token || !leaseId) {
+			if (!token || !lease_id) {
 				this.logger.warn('Update lease called with missing parameters', {
-					leaseId
+					lease_id
 				})
 				return null
 			}
 
 			this.logger.log('Updating lease via RLS-protected query', {
-				leaseId,
+				lease_id,
 				updateRequest
 			})
 
 			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
+			const existingLease = await this.findOne(token, lease_id)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
@@ -474,60 +472,52 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updateData: Database['public']['Tables']['lease']['Update'] = {
-				updatedAt: new Date().toISOString()
+			const updated_ata: Database['public']['Tables']['leases']['Update'] = {
+				updated_at: new Date().toISOString()
 			}
 
-			//Increment version for optimistic locking
-			if (expectedVersion !== undefined) {
-				updateData.version = expectedVersion + 1
-			}
+			// Note: Version-based optimistic locking removed - not in database schema
 
-			if (updateRequest.startDate !== undefined)
-				updateData.startDate = updateRequest.startDate
-			if (updateRequest.endDate !== undefined)
-				updateData.endDate = updateRequest.endDate
+			if (updateRequest.start_date !== undefined)
+				updated_ata.start_date = updateRequest.start_date
+			if (updateRequest.end_date !== undefined)
+				updated_ata.end_date = updateRequest.end_date
 			if (
-				updateRequest.rentAmount !== undefined &&
-				updateRequest.rentAmount !== null
+				updateRequest.rent_amount !== undefined &&
+				updateRequest.rent_amount !== null
 			)
-				updateData.rentAmount = updateRequest.rentAmount
+				updated_ata.rent_amount = updateRequest.rent_amount
 			if (
-				updateRequest.securityDeposit !== undefined &&
-				updateRequest.securityDeposit !== null
+				updateRequest.security_deposit !== undefined &&
+				updateRequest.security_deposit !== null
 			)
-				updateData.securityDeposit = updateRequest.securityDeposit
-			if (updateRequest.status !== undefined)
-				updateData.status =
-					updateRequest.status as Database['public']['Enums']['LeaseStatus']
+				updated_ata.security_deposit = updateRequest.security_deposit
+			if (updateRequest.lease_status !== undefined)
+			updated_ata.lease_status = updateRequest.lease_status
 
 			//Add version check for optimistic locking
-			let query = client.from('lease').update(updateData).eq('id', leaseId)
+			const query = client.from('leases').update(updated_ata).eq('id', lease_id)
 
-			// Add version check if expectedVersion provided
-			if (expectedVersion !== undefined) {
-				query = query.eq('version', expectedVersion)
-			}
+			// Note: Version-based optimistic locking removed - not in database schema
+			// If needed in future, add version column to database first
 
 			const { data, error } = await query.select().single()
 
 			if (error || !data) {
-				//Detect optimistic locking conflict
+				// Check for not found error (PGRST116 = 0 rows affected)
 				if (error?.code === 'PGRST116') {
-					// PGRST116 = 0 rows affected (version mismatch)
-					this.logger.warn('Optimistic locking conflict detected', {
-						leaseId,
-						expectedVersion
+					this.logger.warn('Lease not found or no changes made', {
+						lease_id
 					})
 					throw new ConflictException(
-						'Lease was modified by another user. Please refresh and try again.'
+						'Lease not found or already modified'
 					)
 				}
 
 				// Other database errors
 				this.logger.error('Failed to update lease in Supabase', {
 					error: error ? String(error) : 'Unknown error',
-					leaseId,
+					lease_id,
 					updateRequest
 				})
 				throw new BadRequestException('Failed to update lease')
@@ -542,7 +532,7 @@ export class LeasesService {
 
 			this.logger.error('Leases service failed to update lease', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId,
+				lease_id,
 				updateRequest
 			})
 			throw new BadRequestException(
@@ -555,11 +545,11 @@ export class LeasesService {
 	 * Remove lease (hard delete - no soft delete column in schema)
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async remove(token: string, leaseId: string): Promise<void> {
+	async remove(token: string, lease_id: string): Promise<void> {
 		try {
-			if (!token || !leaseId) {
+			if (!token || !lease_id) {
 				this.logger.warn('Remove lease called with missing parameters', {
-					leaseId
+					lease_id
 				})
 				throw new BadRequestException(
 					'Authentication token and lease ID are required'
@@ -567,11 +557,11 @@ export class LeasesService {
 			}
 
 			this.logger.log('Removing lease via RLS-protected query', {
-				leaseId
+				lease_id
 			})
 
 			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
+			const existingLease = await this.findOne(token, lease_id)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
@@ -579,19 +569,19 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const { error } = await client.from('lease').delete().eq('id', leaseId)
+			const { error } = await client.from('leases').delete().eq('id', lease_id)
 
 			if (error) {
 				this.logger.error('Failed to delete lease in Supabase', {
 					error: error.message,
-					leaseId
+					lease_id
 				})
 				throw new BadRequestException('Failed to delete lease')
 			}
 		} catch (error) {
 			this.logger.error('Leases service failed to remove lease', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				lease_id
 			})
 			throw new BadRequestException(
 				error instanceof Error ? error.message : 'Failed to remove lease'
@@ -605,32 +595,32 @@ export class LeasesService {
 	 */
 	async renew(
 		token: string,
-		leaseId: string,
+		lease_id: string,
 		newEndDate: string,
 		newRentAmount?: number
 	): Promise<Lease | null> {
 		try {
 			this.logger.log('Renewing lease via RLS-protected query', {
-				leaseId,
+				lease_id,
 				newEndDate,
 				newRentAmount
 			})
 
 			// Verify ownership and lease exists (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
+			const existingLease = await this.findOne(token, lease_id)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
 			// Month-to-month leases cannot be renewed (no fixed end date)
-			if (!existingLease.endDate) {
+			if (!existingLease.end_date) {
 				throw new BadRequestException(
 					'Cannot renew a month-to-month lease. Convert to fixed-term first.'
 				)
 			}
 
 			// Validate new end date is after current
-			const currentEndDate = new Date(existingLease.endDate)
+			const currentEndDate = new Date(existingLease.end_date)
 			const renewalEndDate = new Date(newEndDate)
 			if (renewalEndDate <= currentEndDate) {
 				throw new BadRequestException(
@@ -646,23 +636,23 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updateData: Database['public']['Tables']['lease']['Update'] = {
-				endDate: newEndDate,
-				updatedAt: new Date().toISOString()
+			const updated_ata: Database['public']['Tables']['leases']['Update'] = {
+				end_date: newEndDate,
+				updated_at: new Date().toISOString()
 			}
-			if (newRentAmount) updateData.rentAmount = newRentAmount
+			if (newRentAmount) updated_ata.rent_amount = newRentAmount
 
 			const { data, error } = await client
-				.from('lease')
-				.update(updateData)
-				.eq('id', leaseId)
+				.from('leases')
+				.update(updated_ata)
+				.eq('id', lease_id)
 				.select()
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to renew lease in Supabase', {
 					error: error.message,
-					leaseId
+					lease_id
 				})
 				throw new BadRequestException('Failed to renew lease')
 			}
@@ -671,7 +661,7 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Failed to renew lease', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId,
+				lease_id,
 				newEndDate,
 				newRentAmount
 			})
@@ -690,19 +680,19 @@ export class LeasesService {
 	 */
 	async terminate(
 		token: string,
-		leaseId: string,
+		lease_id: string,
 		terminationDate: string,
 		reason?: string
 	): Promise<Lease | null> {
 		try {
 			this.logger.log('Terminating lease via RLS-protected query', {
-				leaseId,
+				lease_id,
 				terminationDate,
 				reason
 			})
 
 			// Verify ownership and lease exists (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, leaseId)
+			const existingLease = await this.findOne(token, lease_id)
 			if (!existingLease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
@@ -716,8 +706,8 @@ export class LeasesService {
 
 			// Check if lease is already terminated
 			if (
-				existingLease.status === 'TERMINATED' ||
-				existingLease.status === 'EXPIRED'
+				existingLease.lease_status === 'terminated' ||
+				existingLease.lease_status === 'ended'
 			) {
 				throw new BadRequestException('Lease is already terminated or expired')
 			}
@@ -726,21 +716,20 @@ export class LeasesService {
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
-				.from('lease')
-				.update({
-					status: 'TERMINATED' as Database['public']['Enums']['LeaseStatus'],
-					endDate: terminationDate,
-					terms: reason || null,
-					updatedAt: new Date().toISOString()
-				})
-				.eq('id', leaseId)
+			.from('leases')
+			.update({
+				lease_status: 'terminated',
+				end_date: terminationDate,
+				updated_at: new Date().toISOString()
+			})
+				.eq('id', lease_id)
 				.select()
 				.single()
 
 			if (error) {
 				this.logger.error('Failed to terminate lease in Supabase', {
 					error: error.message,
-					leaseId
+					lease_id
 				})
 				throw new BadRequestException('Failed to terminate lease')
 			}
@@ -749,7 +738,7 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Failed to terminate lease', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId,
+				lease_id,
 				terminationDate,
 				reason
 			})
@@ -771,8 +760,8 @@ export class LeasesService {
 	async getAnalytics(
 		token: string,
 		options: {
-			leaseId?: string
-			propertyId?: string
+			lease_id?: string
+			property_id?: string
 			timeframe: string
 			period?: string
 		}
@@ -790,14 +779,14 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			let queryBuilder = client.from('lease').select('*')
+			let queryBuilder = client.from('leases').select('*')
 
-			if (options.leaseId) {
-				queryBuilder = queryBuilder.eq('id', options.leaseId)
+			if (options.lease_id) {
+				queryBuilder = queryBuilder.eq('id', options.lease_id)
 			}
 
-			if (options.propertyId) {
-				queryBuilder = queryBuilder.eq('propertyId', options.propertyId)
+			if (options.property_id) {
+				queryBuilder = queryBuilder.eq('property_id', options.property_id)
 			}
 
 			const { data, error } = await queryBuilder
@@ -826,11 +815,11 @@ export class LeasesService {
 	 * Get lease payment history
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async getPaymentHistory(token: string, leaseId: string): Promise<unknown[]> {
+	async getPaymentHistory(token: string, lease_id: string): Promise<unknown[]> {
 		try {
-			if (!token || !leaseId) {
+			if (!token || !lease_id) {
 				this.logger.warn('Payment history requested with missing parameters', {
-					leaseId
+					lease_id
 				})
 				throw new BadRequestException(
 					'Authentication token and lease ID are required'
@@ -838,28 +827,28 @@ export class LeasesService {
 			}
 
 			// Verify ownership (RLS will enforce ownership)
-			const lease = await this.findOne(token, leaseId)
+			const lease = await this.findOne(token, lease_id)
 			if (!lease) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
 			this.logger.log('Getting lease payment history via RLS-protected query', {
-				leaseId
+				lease_id
 			})
 
 			// RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
 			const { data, error } = await client
-				.from('rent_payment')
+				.from('rent_payments')
 				.select('*')
-				.eq('lease_id', leaseId)
+				.eq('lease_id', lease_id)
 				.order('payment_date', { ascending: false })
 
 			if (error) {
 				this.logger.error('Failed to fetch payment history from Supabase', {
 					error: error.message,
-					leaseId
+					lease_id
 				})
 				return []
 			}
@@ -868,7 +857,7 @@ export class LeasesService {
 		} catch (error) {
 			this.logger.error('Leases service failed to get payment history', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				lease_id
 			})
 			throw new BadRequestException(
 				error instanceof Error ? error.message : 'Failed to get payment history'

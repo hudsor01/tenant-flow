@@ -6,8 +6,8 @@ import { ButtonGroup } from '#components/ui/button-group'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import type { Property } from '@repo/shared/types/core'
 import { Building, Calendar, DollarSign, Edit, MapPin } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
+import { PropertyImageGallery } from '#components/properties/property-image-gallery'
 
 interface PropertyDetailsProps {
 	property: Property
@@ -22,8 +22,8 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
 					<div className="flex items-center gap-2 mt-2 text-muted-foreground">
 						<MapPin className="size-4" />
-						{property.address}, {property.city}, {property.state}{' '}
-						{property.zipCode}
+						{property.address_line1}, {property.city}, {property.state}{' '}
+						{property.postal_code}
 					</div>
 				</div>
 				<ButtonGroup>
@@ -45,7 +45,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold capitalize">
-							{property.propertyType?.toLowerCase().replace('_', ' ')}
+							{property.property_type?.toLowerCase().replace('_', ' ')}
 						</div>
 					</CardContent>
 				</Card>
@@ -71,13 +71,23 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-sm">
-							{property.createdAt
-								? new Date(property.createdAt).toLocaleDateString()
+							{property.created_at
+								? new Date(property.created_at).toLocaleDateString()
 								: 'Unknown'}
 						</div>
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Property Images Gallery */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Property Images</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<PropertyImageGallery propertyId={property.id} editable={false} />
+				</CardContent>
+			</Card>
 
 			{/* Property Details */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -87,38 +97,9 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 						<CardTitle>Basic Information</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{property.description && (
-							<div>
-								<h4 className="font-medium mb-2">Description</h4>
-								<p className="text-sm text-muted-foreground">
-									{property.description}
-								</p>
-							</div>
-						)}
+						{/* Property details to be added */}
 					</CardContent>
 				</Card>
-
-				{/* Property Image */}
-				{property.imageUrl && (
-					<Card>
-						<CardHeader>
-							<CardTitle>Property Image</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="aspect-video rounded-lg bg-muted overflow-hidden">
-								<Image
-									src={property.imageUrl!}
-									alt={property.name}
-									fill
-									className="object-cover"
-									priority
-									placeholder="blur"
-									blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNzAwIiBoZWlnaHQ9IjQ3NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
-								/>
-							</div>
-						</CardContent>
-					</Card>
-				)}
 			</div>
 		</div>
 	)

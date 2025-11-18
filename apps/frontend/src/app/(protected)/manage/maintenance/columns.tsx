@@ -37,9 +37,9 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 			return (
 				<Link href={`/manage/maintenance/${request.id}`} className="hover:underline">
 					<div className="flex flex-col gap-1">
-						<span className="font-medium">{request.title}</span>
+						<span className="font-medium">{request.description}</span>
 						<span className="text-sm text-muted-foreground">
-							Created {new Date(request.createdAt ?? '').toLocaleDateString()}
+							Created {new Date(request.created_at ?? '').toLocaleDateString()}
 						</span>
 					</div>
 				</Link>
@@ -47,7 +47,7 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 		}
 	},
 	{
-		accessorKey: 'property',
+		accessorKey: 'properties',
 		header: 'Location',
 		cell: ({ row }) => {
 			const request = row.original
@@ -92,7 +92,7 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 							<AlertDialogHeader>
 								<AlertDialogTitle>Delete Request</AlertDialogTitle>
 								<AlertDialogDescription>
-									Permanently delete "{request.title}"? This action cannot be undone.
+									Permanently delete "{request.description}"? This action cannot be undone.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>

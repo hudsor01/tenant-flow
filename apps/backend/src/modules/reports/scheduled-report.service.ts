@@ -1,10 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import type { Json } from '@repo/shared/types/supabase-generated'
+import type { Json } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { GeneratedReportService } from './generated-report.service'
 
 export interface CreateScheduleData {
-	userId: string
+	user_id: string
 	reportType: string
 	reportName: string
 	format: 'pdf' | 'excel'
@@ -13,28 +13,28 @@ export interface CreateScheduleData {
 	dayOfMonth?: number
 	hour?: number
 	timezone?: string
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 	metadata?: Record<string, unknown>
 }
 
 export interface ScheduledReportRecord {
 	id: string
-	userId: string
-	reportType: string
-	reportName: string
+	user_id: string
+	report_type: string
+	report_name: string
 	format: string
 	frequency: string
-	dayOfWeek: number | null
-	dayOfMonth: number | null
+	day_of_week: number | null
+	day_of_month: number | null
 	hour: number
 	timezone: string
-	isActive: boolean
-	lastRunAt: string | null
-	nextRunAt: string | null
+	is_active: boolean
+	last_run_at: string | null
+	next_run_at: string | null
 	metadata: Json | null
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 }
 
 @Injectable()
@@ -69,19 +69,20 @@ export class ScheduledReportService {
 		)
 
 		const { data: record, error } = await client
-			.from('scheduled_report')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('scheduled_report' as any)
 			.insert({
-				userId: data.userId,
-				reportType: data.reportType,
-				reportName: data.reportName,
+				user_id: data.user_id,
+				report_type: data.reportType,
+				report_name: data.reportName,
 				format: data.format,
 				frequency: data.frequency,
-				dayOfWeek: data.dayOfWeek || null,
-				dayOfMonth: data.dayOfMonth || null,
+				day_of_week: data.dayOfWeek || null,
+				day_of_month: data.dayOfMonth || null,
 				hour: data.hour || 9,
 				timezone: data.timezone || 'UTC',
-				isActive: true,
-				nextRunAt: nextRunAt.toISOString(),
+				is_active: true,
+				next_run_at: nextRunAt.toISOString(),
 				metadata: (data.metadata || {}) as never
 			})
 			.select()
@@ -92,33 +93,34 @@ export class ScheduledReportService {
 			throw error
 		}
 
-		this.logger.log(`Created schedule ${record.id} for user ${data.userId}`)
-		return record as ScheduledReportRecord
+		this.logger.log(`Created schedule ${(record as unknown as ScheduledReportRecord).id} for user ${data.user_id}`)
+		return record as unknown as ScheduledReportRecord
 	}
 
 	/**
 	 * List all schedules for a user
 	 */
 	async listSchedules(
-		userId: string,
+		user_id: string,
 		token: string
 	): Promise<ScheduledReportRecord[]> {
 		const client = this.getUserClient(token)
 
-		// Defense-in-depth: Explicit userId filter even though RLS should handle this
+		// Defense-in-depth: Explicit user_id filter even though RLS should handle this
 		// This ensures users can only see their own scheduled reports
 		const { data, error } = await client
-			.from('scheduled_report')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('scheduled_report' as any)
 			.select('*')
-			.eq('userId', userId)
-			.order('createdAt', { ascending: false })
+			.eq('user_id', user_id)
+			.order('created_at', { ascending: false })
 
 		if (error) {
 			this.logger.error(`Failed to list schedules: ${error.message}`)
 			throw error
 		}
 
-		return data as ScheduledReportRecord[]
+		return data as unknown as ScheduledReportRecord[]
 	}
 
 	/**
@@ -126,18 +128,19 @@ export class ScheduledReportService {
 	 */
 	async deleteSchedule(
 		scheduleId: string,
-		userId: string,
+		user_id: string,
 		token: string
 	): Promise<void> {
 		const client = this.getUserClient(token)
 
-		// Defense-in-depth: Verify ownership with explicit userId filter
+		// Defense-in-depth: Verify ownership with explicit user_id filter
 		// RLS should already enforce this, but we add an extra layer of security
 		const { data: schedule, error: fetchError } = await client
-			.from('scheduled_report')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('scheduled_report' as any)
 			.select('id')
 			.eq('id', scheduleId)
-			.eq('userId', userId)
+			.eq('user_id', user_id)
 			.single()
 
 		if (fetchError || !schedule) {
@@ -146,7 +149,8 @@ export class ScheduledReportService {
 
 		// Delete the schedule
 		const { error: deleteError } = await client
-			.from('scheduled_report')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('scheduled_report' as any)
 			.delete()
 			.eq('id', scheduleId)
 
@@ -170,10 +174,11 @@ export class ScheduledReportService {
 
 		// Fetch all active schedules that are due
 		const { data: schedules, error } = await client
-			.from('scheduled_report')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('scheduled_report' as any)
 			.select('*')
-			.eq('isActive', true)
-			.lte('nextRunAt', now.toISOString())
+			.eq('is_active', true)
+			.lte('next_run_at', now.toISOString())
 
 		if (error) {
 			this.logger.error(`Failed to fetch due schedules: ${error.message}`)
@@ -191,11 +196,13 @@ export class ScheduledReportService {
 
 		for (const schedule of schedules) {
 			try {
-				await this.executeSchedule(schedule as ScheduledReportRecord)
+				const typedSchedule = schedule as unknown as ScheduledReportRecord
+				await this.executeSchedule(typedSchedule)
 				successCount++
 			} catch (error) {
+				const typedSchedule = schedule as unknown as ScheduledReportRecord
 				this.logger.error(
-					`Failed to execute schedule ${schedule.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
+					`Failed to execute schedule ${typedSchedule.id}: ${error instanceof Error ? error.message : 'Unknown error'}`
 				)
 			}
 		}
@@ -216,16 +223,16 @@ export class ScheduledReportService {
 
 		try {
 			// Calculate date range based on frequency
-			const { startDate, endDate } = this.calculateDateRange(schedule.frequency)
+			const { start_date, end_date } = this.calculateDateRange(schedule.frequency)
 
 			// Generate the report using GeneratedReportService
 			const reportData = {
-				userId: schedule.userId,
-				reportType: schedule.reportType,
-				reportName: schedule.reportName,
-				format: schedule.format as 'pdf' | 'excel',
-				startDate,
-				endDate,
+			user_id: schedule.user_id,
+			reportType: schedule.report_type,
+			reportName: schedule.report_name,
+			format: schedule.format as 'pdf' | 'excel',
+			start_date,
+			end_date,
 				metadata: {
 					...(schedule.metadata && typeof schedule.metadata === 'object' && !Array.isArray(schedule.metadata) ? schedule.metadata : {}),
 					scheduledReportId: schedule.id,
@@ -240,20 +247,21 @@ export class ScheduledReportService {
 
 			// Update schedule with last run and next run times
 			const nextRunAt = this.calculateNextRunAt(
-				schedule.frequency,
-				schedule.dayOfWeek,
-				schedule.dayOfMonth,
-				schedule.hour,
-				schedule.timezone
-			)
+			schedule.frequency,
+			schedule.day_of_week,
+			schedule.day_of_month,
+			schedule.hour,
+			schedule.timezone
+		)
 
 			const client = this.supabaseService.getAdminClient()
 			const { error } = await client
-				.from('scheduled_report')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.from('scheduled_report' as any)
 				.update({
-					lastRunAt: new Date().toISOString(),
-					nextRunAt: nextRunAt.toISOString()
-				})
+				last_run_at: new Date().toISOString(),
+				next_run_at: nextRunAt.toISOString()
+			})
 				.eq('id', schedule.id)
 
 			if (error) {
@@ -343,37 +351,37 @@ export class ScheduledReportService {
 	 * Used when executing scheduled reports
 	 */
 	private calculateDateRange(frequency: string): {
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	} {
 		const now = new Date()
-		const endDate = new Date(now)
-		const startDate = new Date(now)
+		const end_date = new Date(now)
+		const start_date = new Date(now)
 
 		switch (frequency) {
 			case 'daily':
 				// Previous day
-				startDate.setDate(startDate.getDate() - 1)
+				start_date.setDate(start_date.getDate() - 1)
 				break
 
 			case 'weekly':
 				// Previous 7 days
-				startDate.setDate(startDate.getDate() - 7)
+				start_date.setDate(start_date.getDate() - 7)
 				break
 
 			case 'monthly':
 				// Previous 30 days
-				startDate.setDate(startDate.getDate() - 30)
+				start_date.setDate(start_date.getDate() - 30)
 				break
 
 			default:
 				// Default to previous 7 days
-				startDate.setDate(startDate.getDate() - 7)
+				start_date.setDate(start_date.getDate() - 7)
 		}
 
 		return {
-			startDate: startDate.toISOString().split('T')[0] as string,
-			endDate: endDate.toISOString().split('T')[0] as string
+			start_date: start_date.toISOString().split('T')[0] as string,
+			end_date: end_date.toISOString().split('T')[0] as string
 		}
 	}
 }

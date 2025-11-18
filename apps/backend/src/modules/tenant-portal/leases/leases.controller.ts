@@ -18,7 +18,7 @@ import { TenantContextInterceptor } from '../interceptors/tenant-context.interce
  * Tenant Leases Controller
  *
  * Provides lease information and lease-related documents for tenants.
- * Enforces TENANT role via TenantAuthGuard.
+ * Enforces TENANT user_type via TenantAuthGuard.
  *
  * Routes: /tenant/leases/*
  */
@@ -33,7 +33,7 @@ export class TenantLeasesController {
 	/**
 	 * Get active lease with unit/property metadata
 	 *
-	* @returns Active lease details
+	 * @returns Active lease details
 	 */
 	@Get()
 	async getLease(@JwtToken() token: string, @User() user: authUser) {
@@ -57,31 +57,28 @@ export class TenantLeasesController {
 			type: 'LEASE' | 'RECEIPT'
 			name: string
 			url: string | null
-			createdAt: string | null
+			created_at: string | null
 		}> = []
 
-		if (lease?.metadata?.documentUrl) {
+		if (lease?.id) {
 			documents.push({
 				id: lease.id,
 				type: 'LEASE',
 				name: 'Signed Lease Agreement',
-				url: lease.metadata.documentUrl,
-				createdAt: lease.startDate
+				url: null,
+				created_at: lease.start_date
 			})
 		}
 
 		for (const payment of payments) {
-			if (!payment.receiptUrl) continue
-			const dateSource = payment.createdAt ?? payment.dueDate ?? payment.paidAt
-			const dateDisplay = dateSource
-				? new Date(dateSource).toLocaleDateString()
-				: 'Unknown date'
+			if (!payment.paid_date) continue
+			const dateDisplay = new Date(payment.paid_date).toLocaleDateString()
 			documents.push({
 				id: payment.id,
 				type: 'RECEIPT',
 				name: `Rent receipt - ${dateDisplay}`,
-				url: payment.receiptUrl,
-				createdAt: payment.paidAt ?? payment.createdAt
+				url: null,
+				created_at: payment.paid_date
 			})
 		}
 
@@ -91,9 +88,9 @@ export class TenantLeasesController {
 	private async resolveTenant(token: string, user: authUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('tenant')
-			.select('id, auth_user_id')
-			.eq('auth_user_id', user.id)
+			.from('tenants')
+			.select('id, user_id')
+			.eq('user_id', user.id)
 			.single()
 
 		if (error || !data) {
@@ -103,46 +100,46 @@ export class TenantLeasesController {
 		return data
 	}
 
-	private async fetchActiveLease(token: string, tenantId: string) {
+	private async fetchActiveLease(token: string, tenant_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('lease')
+			.from('leases')
 			.select(
 				`
 				id,
-				startDate,
-				endDate,
-				rentAmount,
-				securityDeposit,
-				status,
+				start_date,
+				end_date,
+				rent_amount,
+				security_deposit,
+				lease_status,
 				stripe_subscription_id,
-				lease_document_url,
-				createdAt,
-				unit:unitId(
+				created_at,
+				unit:unit_id(
 					id,
-					unitNumber,
+					unit_number,
 					bedrooms,
 					bathrooms,
-					property:propertyId(
+					property:property_id(
 						id,
 						name,
-						address,
+						address_line1,
+						address_line2,
 						city,
 						state,
-						zipCode
+						postal_code
 					)
 				)
-			`
+				`
 			)
-			.eq('tenantId', tenantId)
-			.eq('status', 'ACTIVE')
-			.order('startDate', { ascending: false })
+			.eq('primary_tenant_id', tenant_id)
+			.eq('lease_status', 'active')
+			.order('start_date', { ascending: false })
 			.limit(1)
 			.maybeSingle()
 
 		if (error) {
 			this.logger.error('Failed to load tenant lease', {
-				tenantId,
+				tenant_id,
 				error: error.message
 			})
 			throw new InternalServerErrorException('Failed to load lease information')
@@ -156,25 +153,25 @@ export class TenantLeasesController {
 		return {
 			...data,
 			metadata: {
-				documentUrl: data.lease_document_url ?? null
+				documentUrl: null
 			}
 		}
 	}
 
-	private async fetchPayments(token: string, tenantId: string) {
+	private async fetchPayments(token: string, tenant_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('rent_payment')
+			.from('rent_payments')
 			.select(
-				'id, amount, status, paidAt, dueDate, createdAt, receiptUrl'
+				'id, amount, status, paid_date, due_date, created_at'
 			)
-			.eq('tenantId', tenantId)
-			.order('createdAt', { ascending: false })
+			.eq('tenant_id', tenant_id)
+			.order('created_at', { ascending: false })
 			.limit(50)
 
 		if (error) {
 			this.logger.error('Failed to load rent payments', {
-				tenantId,
+				tenant_id,
 				error: error.message
 			})
 			throw new InternalServerErrorException('Failed to load payment history')

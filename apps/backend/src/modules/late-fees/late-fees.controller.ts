@@ -33,35 +33,35 @@ export class LateFeesController {
 	 * Helper method to verify lease ownership via unit ownership
 	 */
 	private async verifyLeaseOwnership(
-		leaseId: string,
-		userId: string
+		lease_id: string,
+		user_id: string
 	): Promise<boolean> {
 		const client = this.supabaseService!.getAdminClient()
 
-		// Get lease with unitId
+		// Get lease with unit_id
 		const { data: lease } = await client
-			.from('lease')
-			.select('unitId')
-			.eq('id', leaseId)
+			.from('leases')
+			.select('unit_id')
+			.eq('id', lease_id)
 			.single()
 
-		if (!lease?.unitId) return false
+		if (!lease?.unit_id) return false
 
-		// Get unit with propertyId
+		// Get unit with property_id
 		const { data: unit } = await client
-			.from('unit')
-			.select('propertyId')
-			.eq('id', lease.unitId)
+			.from('units')
+			.select('property_id')
+			.eq('id', lease.unit_id)
 			.single()
 
-		if (!unit?.propertyId) return false
+		if (!unit?.property_id) return false
 
 		// Verify property ownership
 		const { data: property } = await client
-			.from('property')
+			.from('properties')
 			.select('id')
-			.eq('id', unit.propertyId)
-			.eq('ownerId', userId)
+			.eq('id', unit.property_id)
+			.eq('owner_id', user_id)
 			.single()
 
 		return !!property
@@ -74,14 +74,14 @@ export class LateFeesController {
 	 */
 	async getConfig(
 		@Req() req: AuthenticatedRequest,
-		@Param('leaseId', ParseUUIDPipe) leaseId: string
+		@Param('lease_id', ParseUUIDPipe) lease_id: string
 	) {
 		// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
@@ -89,15 +89,15 @@ export class LateFeesController {
 			throw new BadRequestException('JWT token not found')
 		}
 
-		this.logger.log('Getting late fee config', { leaseId, userId })
+		this.logger.log('Getting late fee config', { lease_id, user_id })
 
 		// SECURITY FIX #1: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
 
-		const config = await this.lateFeesService.getLateFeeConfig(leaseId, token)
+		const config = await this.lateFeesService.getLateFeeConfig(lease_id, token)
 
 		return {
 			success: true,
@@ -110,7 +110,7 @@ export class LateFeesController {
 	 */
 	async updateConfig(
 		@Req() req: AuthenticatedRequest,
-		@Param('leaseId', ParseUUIDPipe) leaseId: string,
+		@Param('lease_id', ParseUUIDPipe) lease_id: string,
 		@Body('gracePeriodDays') gracePeriodDays?: number,
 		@Body('flatFeeAmount') flatFeeAmount?: number
 	) {
@@ -119,7 +119,7 @@ export class LateFeesController {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
@@ -128,7 +128,7 @@ export class LateFeesController {
 		}
 
 		// SECURITY FIX #1: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
@@ -153,14 +153,14 @@ export class LateFeesController {
 		}
 
 		this.logger.log('Updating late fee config', {
-			leaseId,
-			userId,
+			lease_id,
+			user_id,
 			gracePeriodDays,
 			flatFeeAmount
 		})
 
 		// Build payload excluding undefined properties so optional fields are omitted
-		const updatePayload: Record<string, unknown> = { leaseId }
+		const updatePayload: Record<string, unknown> = { lease_id }
 		if (gracePeriodDays !== undefined) {
 			updatePayload.gracePeriodDays = gracePeriodDays
 		}
@@ -169,7 +169,7 @@ export class LateFeesController {
 		}
 
 		await this.lateFeesService.updateLateFeeConfig(
-			leaseId,
+			lease_id,
 			token,
 			updatePayload
 		)
@@ -186,19 +186,19 @@ export class LateFeesController {
 	@Post('calculate')
 	async calculateLateFee(
 		@Req() req: AuthenticatedRequest,
-		@Body('rentAmount') rentAmount: number,
+		@Body('rent_amount') rent_amount: number,
 		@Body('daysLate') daysLate: number,
-		@Body('leaseId') leaseId?: string
+		@Body('lease_id') lease_id?: string
 	) {
 // SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// Validate inputs
-		if (!rentAmount || rentAmount <= 0) {
+		if (!rent_amount || rent_amount <= 0) {
 			throw new BadRequestException('Rent amount must be positive')
 		}
 
@@ -207,32 +207,32 @@ export class LateFeesController {
 		}
 
 		this.logger.log('Calculating late fee', {
-			userId,
-			rentAmount,
+			user_id,
+			rent_amount,
 			daysLate,
-			leaseId
+			lease_id
 		})
 
-		// SECURITY FIX #3: Verify lease ownership if leaseId provided
-		if (leaseId) {
-			const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		// SECURITY FIX #3: Verify lease ownership if lease_id provided
+		if (lease_id) {
+			const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
 			if (!hasAccess) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 		}
 
-		// Get config if leaseId provided
+		// Get config if lease_id provided
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
 		if (!token) {
 			throw new BadRequestException('JWT token not found')
 		}
-		const config = leaseId
-			? await this.lateFeesService.getLateFeeConfig(leaseId, token)
+		const config = lease_id
+			? await this.lateFeesService.getLateFeeConfig(lease_id, token)
 			: undefined
 
 		const calculation = this.lateFeesService.calculateLateFee(
-			rentAmount,
+			rent_amount,
 			daysLate,
 			config
 		)
@@ -248,14 +248,14 @@ export class LateFeesController {
 	 */
 	async getOverduePayments(
 		@Req() req: AuthenticatedRequest,
-		@Param('leaseId', ParseUUIDPipe) leaseId: string
+		@Param('lease_id', ParseUUIDPipe) lease_id: string
 	) {
 		// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
@@ -264,16 +264,16 @@ export class LateFeesController {
 		}
 
 		// SECURITY FIX #3: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
 
-		this.logger.log('Getting overdue payments', { leaseId, userId })
+		this.logger.log('Getting overdue payments', { lease_id, user_id })
 
-		const config = await this.lateFeesService.getLateFeeConfig(leaseId, token)
+		const config = await this.lateFeesService.getLateFeeConfig(lease_id, token)
 		const payments = await this.lateFeesService.getOverduePayments(
-			leaseId,
+			lease_id,
 			token,
 			config.gracePeriodDays
 		)
@@ -292,14 +292,14 @@ export class LateFeesController {
 	 */
 	async processLateFees(
 		@Req() req: AuthenticatedRequest,
-		@Param('leaseId', ParseUUIDPipe) leaseId: string
+		@Param('lease_id', ParseUUIDPipe) lease_id: string
 	) {
 		// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
@@ -308,14 +308,14 @@ export class LateFeesController {
 		}
 
 		// SECURITY FIX #3: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(leaseId, userId)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
 
-		this.logger.log('Processing late fees', { leaseId, userId })
+		this.logger.log('Processing late fees', { lease_id, user_id })
 
-		const result = await this.lateFeesService.processLateFees(leaseId, token, userId)
+		const result = await this.lateFeesService.processLateFees(lease_id, token, user_id)
 
 		return {
 			success: true,
@@ -330,7 +330,7 @@ export class LateFeesController {
 	async applyLateFee(
 		@Req() req: AuthenticatedRequest,
 		@Param('paymentId', ParseUUIDPipe) paymentId: string,
-		@Body('lateFeeAmount') lateFeeAmount: number,
+		@Body('late_fee_amount') late_fee_amount: number,
 		@Body('reason') reason: string
 	) {
 		// SECURITY FIX #1: Explicit auth check (defense in depth)
@@ -338,7 +338,7 @@ export class LateFeesController {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		// SECURITY FIX #2: Extract JWT token from request for RLS
 		const token = this.supabaseService!.getTokenFromRequest(req)
@@ -347,7 +347,7 @@ export class LateFeesController {
 		}
 
 		// Validate inputs
-		if (!lateFeeAmount || lateFeeAmount <= 0) {
+		if (!late_fee_amount || late_fee_amount <= 0) {
 			throw new BadRequestException('Late fee amount must be positive')
 		}
 
@@ -357,8 +357,8 @@ export class LateFeesController {
 
 		this.logger.log('Applying late fee to payment', {
 			paymentId,
-			userId,
-			lateFeeAmount,
+			user_id,
+			late_fee_amount,
 			reason
 		})
 
@@ -366,8 +366,8 @@ export class LateFeesController {
 		const client = this.supabaseService!.getUserClient(token)
 		const { data: payment, error } =
 			await client
-				.from('rent_payment')
-				.select('id, leaseId, stripePaymentIntentId')
+				.from('rent_payments')
+				.select('id, lease_id, stripe_payment_intent_id')
 				.eq('id', paymentId)
 				.single()
 
@@ -379,19 +379,19 @@ export class LateFeesController {
 		const { data: userData, error: userError } =
 			await client
 				.from('users')
-				.select('stripeCustomerId')
-				.eq('id', userId)
+				.select('stripe_customer_id')
+				.eq('id', user_id)
 				.single()
 
-		if (userError || !userData?.stripeCustomerId) {
+		if (userError || !userData?.stripe_customer_id) {
 			throw new BadRequestException('User Stripe customer not found')
 		}
 
 		const invoiceItem = await this.lateFeesService.applyLateFeeToInvoice(
-			userData.stripeCustomerId,
-			payment.leaseId,
+			userData.stripe_customer_id,
+			payment.lease_id,
 			paymentId,
-			lateFeeAmount,
+			late_fee_amount,
 			reason,
 			token
 		)

@@ -112,7 +112,8 @@ async function bootstrap() {
 	const startupTime = ((Date.now() - startTime) / 1000).toFixed(2)
 	bootstrapLogger.log(`EXPRESS SERVER: Listening on http://0.0.0.0:${port}`)
 	bootstrapLogger.log(`STARTUP: Completed in ${startupTime}s`)
-	bootstrapLogger.log(`ENVIRONMENT: ${process.env.NODE_ENV}`)
+	const nodeEnv = appConfigService.getNodeEnv()
+	bootstrapLogger.log(`ENVIRONMENT: ${nodeEnv}`)
 	bootstrapLogger.log(
 		'TYPE SAFETY: Zero type casts required with Express adapter'
 	)

@@ -8,22 +8,22 @@
  */
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
 export interface LateFeeConfig {
-	leaseId: string
+	lease_id: string
 	gracePeriodDays: number // Default: 5 days
 	flatFeeAmount: number // Default: $50
 }
 
 export interface LateFeeCalculation {
-	rentAmount: number
+	rent_amount: number
 	daysLate: number
 	gracePeriod: number
-	lateFeeAmount: number
+	late_fee_amount: number
 	shouldApplyFee: boolean
 	reason: string
 }
@@ -45,7 +45,7 @@ export class LateFeesService {
 	 * Formula: Flat fee (user-configurable, default $50)
 	 */
 	calculateLateFee(
-		rentAmount: number,
+		rent_amount: number,
 		daysLate: number,
 		config?: Partial<LateFeeConfig>
 	): LateFeeCalculation {
@@ -55,20 +55,20 @@ export class LateFeesService {
 		// No late fee if within grace period
 		if (daysLate <= gracePeriod) {
 			return {
-				rentAmount,
+				rent_amount,
 				daysLate,
 				gracePeriod,
-				lateFeeAmount: 0,
+				late_fee_amount: 0,
 				shouldApplyFee: false,
 				reason: `Within ${gracePeriod}-day grace period`
 			}
 		}
 
 		return {
-			rentAmount,
+			rent_amount,
 			daysLate,
 			gracePeriod,
-			lateFeeAmount: flatFee,
+			late_fee_amount: flatFee,
 			shouldApplyFee: true,
 			reason: `${daysLate - gracePeriod} days past due (after ${gracePeriod}-day grace period)`
 		}
@@ -78,7 +78,7 @@ export class LateFeesService {
 	 * Get late fee configuration for a lease
 	 */
 	async getLateFeeConfig(
-		leaseId: string,
+		lease_id: string,
 		token: string
 	): Promise<LateFeeConfig> {
 		try {
@@ -88,44 +88,43 @@ export class LateFeesService {
 			}
 
 			this.logger.log('Getting late fee config via RLS-protected query', {
-				leaseId
+				lease_id
 			})
 
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
 			const { data: lease, error } = await client
-				.from('lease')
+				.from('leases')
 				.select(
 					`
 					id,
-					gracePeriodDays,
-					lateFeeAmount,
-					lateFeePercentage,
-					tenant!lease_tenantId_fkey(
-						users!tenant_userId_fkey(id, email, firstName, lastName)
+					grace_period_days,
+					late_fee_amount,
+					tenant!lease_tenant_id_fkey(
+						users!tenant_user_id_fkey(id, email, first_name, last_name)
 					)
 				`
 				)
-				.eq('id', leaseId)
+				.eq('id', lease_id)
 				.single()
 
 			if (error) throw error
 
 			return {
-				leaseId: lease.id,
-				gracePeriodDays: lease.gracePeriodDays ?? 5,
-				flatFeeAmount: lease.lateFeeAmount ?? 50
+				lease_id: lease.id,
+				gracePeriodDays: lease.grace_period_days ?? 5,
+				flatFeeAmount: lease.late_fee_amount ?? 50
 			}
 		} catch (error) {
 			this.logger.error('Failed to get late fee config', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				lease_id
 			})
 
 			// Return defaults if database fetch fails
 			return {
-				leaseId,
+				lease_id,
 				gracePeriodDays: 5,
 				flatFeeAmount: 50
 			}
@@ -138,9 +137,9 @@ export class LateFeesService {
 	 */
 	async applyLateFeeToInvoice(
 		customerId: string,
-		leaseId: string,
+		lease_id: string,
 		rentPaymentId: string,
-		lateFeeAmount: number,
+		late_fee_amount: number,
 		reason: string,
 		token: string
 	): Promise<Stripe.InvoiceItem> {
@@ -152,21 +151,21 @@ export class LateFeesService {
 
 			this.logger.log('Applying late fee to Stripe invoice', {
 				customerId,
-				leaseId,
+				lease_id,
 				rentPaymentId,
-				lateFeeAmount,
+				late_fee_amount,
 				reason
 			})
 
 			// Create invoice item (will be added to next invoice)
 			const invoiceItem = await this.stripe.invoiceItems.create({
 				customer: customerId,
-				amount: Math.round(lateFeeAmount * 100), // Convert to cents
+				amount: Math.round(late_fee_amount * 100), // Convert to cents
 				currency: 'usd',
 				description: `Late Fee: ${reason}`,
 				metadata: {
 					type: 'late_fee',
-					leaseId,
+					lease_id,
 					rentPaymentId,
 					reason
 				}
@@ -177,11 +176,10 @@ export class LateFeesService {
 
 			// Update RentPayment to mark late fee applied
 			await client
-				.from('rent_payment')
+				.from('rent_payments')
 				.update({
-					lateFeeApplied: true,
-					lateFeeAmount: Math.round(lateFeeAmount * 100), // Store in cents
-					lateFeeAppliedAt: new Date().toISOString()
+					late_fee_amount: Math.round(late_fee_amount * 100), // Store in cents
+					updated_at: new Date().toISOString()
 				})
 				.eq('id', rentPaymentId)
 
@@ -195,9 +193,9 @@ export class LateFeesService {
 			this.logger.error('Failed to apply late fee to invoice', {
 				error: error instanceof Error ? error.message : String(error),
 				customerId,
-				leaseId,
+				lease_id,
 				rentPaymentId,
-				lateFeeAmount
+				late_fee_amount
 			})
 			throw new BadRequestException('Failed to apply late fee')
 		}
@@ -207,7 +205,7 @@ export class LateFeesService {
 	 * Get overdue rent payments for a lease
 	 */
 	async getOverduePayments(
-		leaseId: string,
+		lease_id: string,
 		token: string,
 		gracePeriodDays: number = 5
 	): Promise<
@@ -226,7 +224,7 @@ export class LateFeesService {
 			}
 
 			this.logger.log('Getting overdue payments via RLS-protected query', {
-				leaseId,
+				lease_id,
 				gracePeriodDays
 			})
 
@@ -234,19 +232,19 @@ export class LateFeesService {
 			const client = this.supabase.getUserClient(token)
 
 			const { data: payments, error } = await client
-				.from('rent_payment')
-				.select('id, amount, dueDate, lateFeeApplied, status')
-				.eq('leaseId', leaseId)
+				.from('rent_payments')
+				.select('id, amount, due_date, late_fee_amount, status')
+				.eq('lease_id', lease_id)
 				.in('status', ['PENDING', 'FAILED'])
-				.order('dueDate', { ascending: true })
+				.order('due_date', { ascending: true })
 
 			if (error) throw error
 
 			const now = new Date()
 			const overduePayments = (payments || [])
-				.filter(payment => payment.dueDate !== null) // Filter out payments without due dates
+				.filter(payment => payment.due_date !== null) // Filter out payments without due dates
 				.map(payment => {
-					const dueDate = new Date(payment.dueDate!)
+					const dueDate = new Date(payment.due_date!)
 					const daysOverdue = Math.floor(
 						(now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
 					)
@@ -254,9 +252,9 @@ export class LateFeesService {
 					return {
 						id: payment.id,
 						amount: payment.amount / 100, // Convert from cents to dollars
-						dueDate: payment.dueDate!,
+						dueDate: payment.due_date!,
 						daysOverdue,
-						lateFeeApplied: payment.lateFeeApplied ?? false
+						lateFeeApplied: payment.late_fee_amount !== null && payment.late_fee_amount > 0
 					}
 				})
 				.filter(p => p.daysOverdue > gracePeriodDays && !p.lateFeeApplied)
@@ -265,7 +263,7 @@ export class LateFeesService {
 		} catch (error) {
 			this.logger.error('Failed to get overdue payments', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				lease_id
 			})
 			throw new BadRequestException('Failed to get overdue payments')
 		}
@@ -275,15 +273,15 @@ export class LateFeesService {
 	 * Process late fees for all overdue payments on a lease
 	 */
 	async processLateFees(
-		leaseId: string,
+		lease_id: string,
 		token: string,
-		ownerId: string // Make required instead of optional
+		owner_id: string // Make required instead of optional
 	): Promise<{
 		processed: number
 		totalLateFees: number
 		details: Array<{
 			paymentId: string
-			lateFeeAmount: number
+			late_fee_amount: number
 			daysOverdue: number
 		}>
 	}> {
@@ -293,28 +291,28 @@ export class LateFeesService {
 				throw new BadRequestException('Authentication token is required')
 			}
 
-			if (!ownerId) {
-				this.logger.warn('Process late fees requested without ownerId')
+			if (!owner_id) {
+				this.logger.warn('Process late fees requested without owner_id')
 				throw new BadRequestException('Owner ID is required')
 			}
 
 			this.logger.log('Processing late fees for lease via RLS', {
-				leaseId,
-				ownerId
+				lease_id,
+				owner_id
 			})
 
 			// Get late fee config
-			const config = await this.getLateFeeConfig(leaseId, token)
+			const config = await this.getLateFeeConfig(lease_id, token)
 
 			// Get overdue payments
 			const overduePayments = await this.getOverduePayments(
-				leaseId,
+				lease_id,
 				token,
 				config.gracePeriodDays
 			)
 
 			if (overduePayments.length === 0) {
-				this.logger.log('No overdue payments found', { leaseId })
+				this.logger.log('No overdue payments found', { lease_id })
 				return {
 					processed: 0,
 					totalLateFees: 0,
@@ -328,18 +326,18 @@ export class LateFeesService {
 			// Get Stripe customer ID from authenticated user
 			const { data: userData, error: userError } = await client
 				.from('users')
-				.select('stripeCustomerId')
-				.eq('id', ownerId) // Use the validated ownerId
+				.select('stripe_customer_id')
+				.eq('id', owner_id) // Use the validated owner_id
 				.single()
 
-			if (userError || !userData?.stripeCustomerId) {
+			if (userError || !userData?.stripe_customer_id) {
 				throw new BadRequestException('Owner Stripe customer not found')
 			}
 
 			// Process each overdue payment
 			const results: Array<{
 				paymentId: string
-				lateFeeAmount: number
+				late_fee_amount: number
 				daysOverdue: number
 			}> = []
 
@@ -352,26 +350,26 @@ export class LateFeesService {
 
 				if (calculation.shouldApplyFee) {
 					await this.applyLateFeeToInvoice(
-						userData.stripeCustomerId,
-						leaseId,
+						userData.stripe_customer_id,
+						lease_id,
 						payment.id,
-						calculation.lateFeeAmount,
+						calculation.late_fee_amount,
 						calculation.reason,
 						token
 					)
 
 					results.push({
 						paymentId: payment.id,
-						lateFeeAmount: calculation.lateFeeAmount,
+						late_fee_amount: calculation.late_fee_amount,
 						daysOverdue: payment.daysOverdue
 					})
 				}
 			}
 
-			const totalLateFees = results.reduce((sum, r) => sum + r.lateFeeAmount, 0)
+			const totalLateFees = results.reduce((sum, r) => sum + r.late_fee_amount, 0)
 
 			this.logger.log('Late fees processed successfully', {
-				leaseId,
+				lease_id,
 				processed: results.length,
 				totalLateFees
 			})
@@ -384,8 +382,8 @@ export class LateFeesService {
 		} catch (error) {
 			this.logger.error('Failed to process late fees', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId,
-				ownerId
+				lease_id,
+				owner_id
 			})
 			throw new BadRequestException('Failed to process late fees')
 		}
@@ -395,7 +393,7 @@ export class LateFeesService {
 	 * Update late fee configuration for a lease
 	 */
 	async updateLateFeeConfig(
-		leaseId: string,
+		lease_id: string,
 		token: string,
 		config: Partial<LateFeeConfig>
 	): Promise<void> {
@@ -406,18 +404,18 @@ export class LateFeesService {
 			}
 
 			this.logger.log('Updating late fee config via RLS-protected query', {
-				leaseId,
+				lease_id,
 				config
 			})
 
-			const updateData: Database['public']['Tables']['lease']['Update'] = {
-				updatedAt: new Date().toISOString()
+			const updated_ata: Database['public']['Tables']['leases']['Update'] = {
+				updated_at: new Date().toISOString()
 			}
 			if (config.gracePeriodDays !== undefined) {
-				updateData.gracePeriodDays = config.gracePeriodDays ?? null
+				updated_ata.grace_period_days = config.gracePeriodDays ?? null
 			}
 			if (config.flatFeeAmount !== undefined) {
-				updateData.lateFeeAmount = config.flatFeeAmount ?? null
+				updated_ata.late_fee_amount = config.flatFeeAmount ?? null
 			}
 
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
@@ -426,14 +424,14 @@ export class LateFeesService {
 			let updateResponse
 			try {
 				updateResponse = await client
-					.from('lease')
-					.update(updateData)
-					.eq('id', leaseId)
+					.from('leases')
+					.update(updated_ata)
+					.eq('id', lease_id)
 					.select()
 			} catch (dbError) {
 				this.logger.error('Lease update threw unexpected error', {
-					leaseId,
-					updateData,
+					lease_id,
+					updated_ata,
 					error:
 						dbError instanceof Error ? dbError.message : String(dbError)
 				})
@@ -446,8 +444,8 @@ export class LateFeesService {
 				this.logger.error('Failed to update lease for late fee config', {
 					error: error.message,
 					errorCode: error.code,
-					leaseId,
-					updateData
+					lease_id,
+					updated_ata
 				})
 				throw new BadRequestException(
 					`Failed to update late fee configuration: ${error.message}`
@@ -456,16 +454,16 @@ export class LateFeesService {
 
 			if (!data || data.length === 0) {
 				this.logger.warn('No lease found to update for late fee config', {
-					leaseId
+					lease_id
 				})
 				throw new BadRequestException('Lease not found or unauthorized')
 			}
 
-			this.logger.log('Late fee config updated successfully', { leaseId })
+			this.logger.log('Late fee config updated successfully', { lease_id })
 		} catch (error) {
 			this.logger.error('Failed to update late fee config', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				lease_id
 			})
 			// Re-throw HTTP exceptions as-is to preserve specific error messages
 			if (error instanceof BadRequestException) {

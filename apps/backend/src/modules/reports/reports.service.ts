@@ -44,7 +44,7 @@ export interface OccupancyMetrics {
 	vacantUnits: number
 	occupancyRate: number
 	byProperty: Array<{
-		propertyId: string
+		property_id: string
 		propertyName: string
 		totalUnits: number
 		occupiedUnits: number
@@ -62,7 +62,7 @@ export class ReportsService {
 	 * Get monthly revenue data for charts
 	 */
 	async getMonthlyRevenue(
-		userId: string,
+		user_id: string,
 		months: number = 12
 	): Promise<RevenueData[]> {
 		if (!this.supabase) {
@@ -74,34 +74,34 @@ export class ReportsService {
 			// Get user's properties
 			const { data: properties } = await this.supabase
 				.getAdminClient()
-				.from('property')
+				.from('properties')
 				.select('id')
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 
 			if (!properties || properties.length === 0) {
 				return []
 			}
 
-			const propertyIds = properties.map(p => p.id)
+			const property_ids = properties.map(p => p.id)
 
 			// Get payments for the last N months
-			const startDate = new Date()
-			startDate.setMonth(startDate.getMonth() - months)
+			const start_date = new Date()
+			start_date.setMonth(start_date.getMonth() - months)
 
 			const { data: payments } = await this.supabase
 				.getAdminClient()
-				.from('rent_payment')
+				.from('rent_payments')
 				.select(
 					`
 					id,
 					amount,
 					status,
-					createdAt,
-					lease!rent_payment_leaseId_fkey!inner(propertyId)
+					created_at,
+					lease!rent_payments_lease_id_fkey!inner(property_id)
 				`
 				)
-				.in('lease.propertyId', propertyIds)
-				.gte('createdAt', startDate.toISOString())
+				.in('lease.property_id', property_ids)
+				.gte('created_at', start_date.toISOString())
 				.eq('status', 'succeeded')
 
 			// Group by month
@@ -118,7 +118,7 @@ export class ReportsService {
 					revenue: 0,
 					expenses: 0,
 					profit: 0,
-					propertyCount: propertyIds.length,
+					propertyCount: property_ids.length,
 					unitCount: 0,
 					occupiedUnits: 0
 				})
@@ -127,7 +127,7 @@ export class ReportsService {
 			// Aggregate payments by month
 			if (payments) {
 				payments.forEach(payment => {
-					const monthKey = payment.createdAt?.substring(0, 7)
+					const monthKey = payment.created_at?.substring(0, 7)
 					if (!monthKey) return
 
 					const existing = monthlyData.get(monthKey)
@@ -142,15 +142,15 @@ export class ReportsService {
 			// For now, use current occupancy for all months
 			const { data: units } = await this.supabase
 				.getAdminClient()
-				.from('unit')
-				.select('id, propertyId')
-				.in('propertyId', propertyIds)
+				.from('units')
+				.select('id, property_id')
+				.in('property_id', property_ids)
 
 			const { data: activeLeases } = await this.supabase
 				.getAdminClient()
-				.from('lease')
-				.select('id, unitId')
-				.in('propertyId', propertyIds)
+				.from('leases')
+				.select('id, unit_id')
+				.in('property_id', property_ids)
 				.eq('status', 'ACTIVE')
 
 			const totalUnits = units?.length || 0
@@ -175,9 +175,9 @@ export class ReportsService {
 	 * Get payment analytics for dashboard
 	 */
 	async getPaymentAnalytics(
-		userId: string,
-		startDate?: string,
-		endDate?: string
+		user_id: string,
+		start_date?: string,
+		end_date?: string
 	): Promise<PaymentAnalytics> {
 		if (!this.supabase) {
 			this.logger.warn('Supabase service not available')
@@ -188,38 +188,50 @@ export class ReportsService {
 			// Get user's properties
 			const { data: properties } = await this.supabase
 				.getAdminClient()
-				.from('property')
+				.from('properties')
 				.select('id')
-				.eq('userId', userId)
+				.eq('user_id', user_id)
 
 			if (!properties || properties.length === 0) {
 				return this.getEmptyPaymentAnalytics()
 			}
 
-			const propertyIds = properties.map(p => p.id)
+			const property_ids = properties.map(p => p.id)
 
 			// Build query
 			let query = this.supabase
 				.getAdminClient()
-				.from('rent_payment')
+				.from('rent_payments')
 				.select(
 					`
 					id,
 					amount,
 					status,
-					createdAt,
-					paymentType,
-					lease!rent_payment_leaseId_fkey!inner(propertyId)
-				`
+					created_at,
+					payment_method_type,
+					lease!rent_payments_lease_id_fkey!inner(
+						id,
+						unit_id
+					)
+					`
 				)
-				.in('lease.propertyId', propertyIds)
 
-			if (startDate) {
-				query = query.gte('createdAt', startDate)
+			// Get unit IDs for the properties
+			const { data: units } = await this.supabase
+				.getAdminClient()
+				.from('units')
+				.select('id')
+				.in('property_id', property_ids)
+
+			const unitIds = (units || []).map(u => u.id)
+			query = query.in('lease.unit_id', unitIds)
+
+			if (start_date) {
+				query = query.gte('created_at', start_date)
 			}
 
-			if (endDate) {
-				query = query.lte('createdAt', endDate)
+			if (end_date) {
+				query = query.lte('created_at', end_date)
 			}
 
 			const { data: payments } = await query
@@ -245,9 +257,9 @@ export class ReportsService {
 							100
 						: 0,
 				paymentsByMethod: {
-					card: payments.filter(p => p.paymentType === 'card').length,
-					ach: payments.filter(p => p.paymentType === 'ach').length
-				},
+				card: payments.filter(p => p.payment_method_type === 'card').length,
+				ach: payments.filter(p => p.payment_method_type === 'ach').length
+			},
 				paymentsByStatus: {
 					completed: payments.filter(p => p.status === 'succeeded').length,
 					pending: payments.filter(p => p.status === 'pending').length,
@@ -265,7 +277,7 @@ export class ReportsService {
 	/**
 	 * Get occupancy metrics across all properties
 	 */
-	async getOccupancyMetrics(userId: string): Promise<OccupancyMetrics> {
+	async getOccupancyMetrics(user_id: string): Promise<OccupancyMetrics> {
 		if (!this.supabase) {
 			this.logger.warn('Supabase service not available')
 			return this.getEmptyOccupancyMetrics()
@@ -275,18 +287,18 @@ export class ReportsService {
 			// Get user's properties with units
 			const { data: properties } = await this.supabase
 				.getAdminClient()
-				.from('property')
+				.from('properties')
 				.select(
 					`
 					id,
 					name,
-					unit(
+					units(
 						id,
-						lease!lease_unitId_fkey(id, status)
+						leases(id, lease_status)
 					)
-				`
+					`
 				)
-				.eq('userId', userId)
+				.eq('property_owner_id', user_id)
 
 			if (!properties) {
 				return this.getEmptyOccupancyMetrics()
@@ -299,23 +311,23 @@ export class ReportsService {
 			type PropertyWithUnitsAndLeases = {
 				id: string
 				name: string
-				unit: Array<{
+				units: Array<{
 					id: string
-					lease: Array<{ id: string; status: string }> | null
+					leases: Array<{ id: string; lease_status: string }> | null
 				}>
 			}
 
 			properties.forEach((property: PropertyWithUnitsAndLeases) => {
-				const units = property.unit || []
+				const units = property.units || []
 				const occupied = units.filter(unit =>
-					unit.lease?.some(lease => lease.status === 'ACTIVE')
+					unit.leases?.some(lease => lease.lease_status === 'active')
 				).length
 
 				totalUnits += units.length
 				occupiedUnits += occupied
 
 				byProperty.push({
-					propertyId: property.id,
+					property_id: property.id,
 					propertyName: property.name,
 					totalUnits: units.length,
 					occupiedUnits: occupied,

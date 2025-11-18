@@ -56,7 +56,7 @@ describe('StripeController - Subscription Management', () => {
 	let mockStripe: jest.Mocked<Stripe>
 	let mockAppConfigService: jest.Mocked<AppConfigService>
 
-	const validUserId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+	const validuser_id = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
 	const mockCustomerId = 'cus_test123'
 	const mockSubscriptionId = 'sub_test123'
 	const mockPriceIdStarter = 'price_starter123'
@@ -125,7 +125,7 @@ describe('StripeController - Subscription Management', () => {
 				id: mockCustomerId,
 				email: 'test@example.com',
 				metadata: {
-					user_id: validUserId,
+					user_id: validuser_id,
 					environment: 'test'
 				}
 			} as unknown as Stripe.Customer
@@ -138,13 +138,13 @@ describe('StripeController - Subscription Management', () => {
 			const customer = await mockStripe.customers.create({
 				email: 'test@example.com',
 				metadata: {
-					user_id: validUserId,
+					user_id: validuser_id,
 					environment: 'test'
 				}
 			})
 
 			expect(customer.id).toBe(mockCustomerId)
-			expect(customer.metadata.user_id).toBe(validUserId)
+			expect(customer.metadata.user_id).toBe(validuser_id)
 		})
 
 		it('should handle customer creation failure', async () => {
@@ -161,7 +161,7 @@ describe('StripeController - Subscription Management', () => {
 			await expect(
 				mockStripe.customers.create({
 					email: 'invalid-email',
-					metadata: { user_id: validUserId }
+					metadata: { user_id: validuser_id }
 				})
 			).rejects.toEqual(stripeError)
 		})
@@ -183,14 +183,14 @@ describe('StripeController - Subscription Management', () => {
 
 			const mockRequest = {
 				user: {
-					id: validUserId,
+					id: validuser_id,
 					email: 'test@example.com'
 				}
 			} as any
 
 			const result = await controller.createCheckoutSession(mockRequest, {
 				productName: 'Starter Plan',
-				tenantId: validUserId,
+				tenantId: validuser_id,
 				domain: 'https://app.example.com',
 				priceId: mockPriceIdStarter,
 				isSubscription: true
@@ -257,7 +257,7 @@ describe('StripeController - Subscription Management', () => {
 
 			const mockRequest = {
 				user: {
-					id: validUserId,
+					id: validuser_id,
 					email: 'test@example.com'
 				}
 			} as any
@@ -265,7 +265,7 @@ describe('StripeController - Subscription Management', () => {
 			await expect(
 				controller.createCheckoutSession(mockRequest, {
 					productName: 'Invalid Plan',
-					tenantId: validUserId,
+					tenantId: validuser_id,
 					domain: 'https://app.example.com',
 					priceId: 'invalid_price_id',
 					isSubscription: true

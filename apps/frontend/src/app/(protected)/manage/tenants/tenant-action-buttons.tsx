@@ -21,6 +21,7 @@ import {
 import { Field, FieldLabel } from '#components/ui/field'
 import { useModalStore } from '#stores/modal-store'
 import { tenantKeys } from '#hooks/api/use-tenant'
+import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
@@ -52,13 +53,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	const { openModal, closeModal } = useModalStore()
 	const queryClient = useQueryClient()
 
-	// Form state for edit dialog
+	// Form state for edit dialog - only tenant-specific fields
 	const [formData, setFormData] = useState({
-		firstName: tenant.name?.split(' ')[0] || '',
-		lastName: tenant.name?.split(' ').slice(1).join(' ') || '',
-		email: tenant.email || '',
-		phone: tenant.phone || '',
-		emergencyContact: tenant.emergencyContact || ''
+		emergency_contact_name: tenant.emergency_contact_name || ''
 	})
 
 	const modalId = `edit-tenant-${tenant.id}`
@@ -76,7 +73,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 				}
 			)
 			queryClient.invalidateQueries({ queryKey: ['tenant-stats'] })
-			queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			queryClient.invalidateQueries({ queryKey: ['properties'] })
 			queryClient.invalidateQueries({ queryKey: ['leases'] })
 			toast.success('Tenant deleted successfully')
@@ -108,35 +105,10 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 		mutationFn: async (data: TenantUpdate) => {
 			const payload: UpdateTenantInput = {}
 
-			const assignNullable = (
-				key: keyof Pick<
-					UpdateTenantInput,
-					| 'avatarUrl'
-					| 'phone'
-					| 'emergencyContact'
-					| 'firstName'
-					| 'lastName'
-					| 'name'
-					| 'userId'
-				>,
-				value: string | null | undefined
-			) => {
-				if (value !== undefined) {
-					payload[key] = value === null ? null : value
-				}
-			}
-
-			if (data.email !== undefined) {
-				payload.email = data.email
-			}
-
-			assignNullable('avatarUrl', data.avatarUrl)
-			assignNullable('phone', data.phone)
-			assignNullable('emergencyContact', data.emergencyContact)
-			assignNullable('firstName', data.firstName)
-			assignNullable('lastName', data.lastName)
-			assignNullable('name', data.name)
-			assignNullable('userId', data.userId)
+			// Only include tenant-specific fields - user fields are updated separately
+		if (data.emergency_contact_name !== undefined) {
+			payload.emergency_contact_name = data.emergency_contact_name
+		}
 
 			return await clientFetch<TenantWithLeaseInfo>(
 				`/api/v1/tenants/${tenant.id}`,
@@ -256,24 +228,24 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 						<Mail className="size-4 text-muted-foreground" />
 						<span className="font-medium">Email:</span>
 						<span>{tenant.email || 'N/A'}</span>
+				</div>
+				<div className="flex items-center gap-2 text-sm">
+					<Phone className="size-4 text-muted-foreground" />
+					<span className="font-medium">Phone:</span>
+					<span>{tenant.phone || 'N/A'}</span>
 					</div>
-					<div className="flex items-center gap-2 text-sm">
-						<Phone className="size-4 text-muted-foreground" />
-						<span className="font-medium">Phone:</span>
-						<span>{tenant.phone || 'N/A'}</span>
-					</div>
-					{tenant.emergencyContact && (
+					{tenant.emergency_contact_name && (
 						<div className="flex items-center gap-2 text-sm">
 							<Phone className="size-4 text-muted-foreground" />
 							<span className="font-medium">Emergency Contact:</span>
-							<span>{tenant.emergencyContact}</span>
+							<span>{tenant.emergency_contact_name}</span>
 						</div>
 					)}
 					{tenant.unit && (
 						<div className="flex items-center gap-2 text-sm">
 							<MapPin className="size-4 text-muted-foreground" />
 							<span className="font-medium">Unit:</span>
-							<span>{tenant.unit.unitNumber}</span>
+							<span>{tenant.unit.unit_number}</span>
 						</div>
 					)}
 					{tenant.currentLease && (
@@ -282,14 +254,14 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 								<Calendar className="size-4 text-muted-foreground" />
 								<span className="font-medium">Lease:</span>
 								<span>
-									{tenant.currentLease.startDate} -{' '}
-									{tenant.currentLease.endDate}
+									{tenant.currentLease.start_date} -{' '}
+									{tenant.currentLease.end_date}
 								</span>
 							</div>
 							<div className="flex items-center gap-2 text-sm">
 								<DollarSign className="size-4 text-muted-foreground" />
 								<span className="font-medium">Rent:</span>
-								<span>${tenant.currentLease.rentAmount}</span>
+								<span>${tenant.currentLease.rent_amount}</span>
 							</div>
 							<div>
 								<Badge
@@ -322,64 +294,17 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 					<CrudDialogBody>
 						<form onSubmit={handleFormSubmit} className="space-y-4">
 							<Field>
-								<FieldLabel>First Name</FieldLabel>
-								<input
-									value={formData.firstName}
-									onChange={e => handleInputChange('firstName', e.target.value)}
-									type="text"
-									required
-									placeholder="Enter first name"
-									className="input"
-								/>
-							</Field>
-
-							<Field>
-								<FieldLabel>Last Name</FieldLabel>
-								<input
-									value={formData.lastName}
-									onChange={e => handleInputChange('lastName', e.target.value)}
-									type="text"
-									required
-									placeholder="Enter last name"
-									className="input"
-								/>
-							</Field>
-
-							<Field>
-								<FieldLabel>Email</FieldLabel>
-								<input
-									value={formData.email}
-									onChange={e => handleInputChange('email', e.target.value)}
-									type="email"
-									required
-									placeholder="Enter email"
-									className="input"
-								/>
-							</Field>
-
-							<Field>
-								<FieldLabel>Phone</FieldLabel>
-								<input
-									value={formData.phone}
-									onChange={e => handleInputChange('phone', e.target.value)}
-									type="text"
-									placeholder="Enter phone number"
-									className="input"
-								/>
-							</Field>
-
-							<Field>
-								<FieldLabel>Emergency Contact</FieldLabel>
-								<input
-									value={formData.emergencyContact}
-									onChange={e =>
-										handleInputChange('emergencyContact', e.target.value)
-									}
-									type="text"
-									placeholder="Enter emergency contact"
-									className="input"
-								/>
-							</Field>
+					<FieldLabel>Emergency Contact Name</FieldLabel>
+					<input
+						value={formData.emergency_contact_name}
+						onChange={e =>
+							handleInputChange('emergency_contact_name', e.target.value)
+						}
+						type="text"
+						placeholder="Enter emergency contact name"
+						className="input"
+					/>
+				</Field>
 						</form>
 					</CrudDialogBody>
 

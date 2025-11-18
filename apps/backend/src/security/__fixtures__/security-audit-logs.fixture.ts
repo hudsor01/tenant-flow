@@ -1,47 +1,27 @@
 import {
-	SecurityEventSeverity,
 	SecurityEventType
 } from '@repo/shared/types/security'
-import type { SecurityAuditLogEntry } from '@repo/shared/types/security-repository'
 
-export const securityAuditLogFixture: SecurityAuditLogEntry[] = [
+export const securityAuditLogFixture = [
 	{
 		id: 'log-1',
-		eventType: SecurityEventType.AUTH_FAILURE,
-		severity: SecurityEventSeverity.MEDIUM,
-		userId: 'user-1',
-		email: 'user1@example.com',
-		ipAddress: '192.0.2.1',
-		userAgent: 'Mozilla/5.0',
-		resource: 'auth',
-		action: 'login',
+		event_type: SecurityEventType.AUTH_FAILURE,
+		user_id: 'user-1',
 		details: { reason: 'Invalid password' },
-		timestamp: new Date().toISOString()
+		created_at: new Date().toISOString()
 	},
 	{
 		id: 'log-2',
-		eventType: SecurityEventType.RATE_LIMIT_EXCEEDED,
-		severity: SecurityEventSeverity.HIGH,
-		userId: 'user-2',
-		email: 'user2@example.com',
-		ipAddress: '192.0.2.1',
-		userAgent: 'Mozilla/5.0',
-		resource: 'api',
-		action: 'graphql-query',
+		event_type: SecurityEventType.RATE_LIMIT_EXCEEDED,
+		user_id: 'user-2',
 		details: { threshold: '5 requests / minute' },
-		timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString()
+		created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString()
 	},
 	{
 		id: 'log-3',
-		eventType: SecurityEventType.XSS_ATTEMPT,
-		severity: SecurityEventSeverity.CRITICAL,
-		userId: null,
-		email: null,
-		ipAddress: '198.51.100.5',
-		userAgent: 'OWASP ZAP',
-		resource: 'web-form',
-		action: 'input-validation',
+		event_type: SecurityEventType.XSS_ATTEMPT,
+		user_id: null,
 		details: { payload: '<script>alert(1)</script>' },
-		timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString()
+		created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString()
 	}
 ]

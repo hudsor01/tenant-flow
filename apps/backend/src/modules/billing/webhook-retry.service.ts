@@ -3,6 +3,9 @@ import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
+import type { Database } from '@repo/shared/types/supabase'
+
+type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
 
 @Injectable()
 export class WebhookRetryService {
@@ -24,57 +27,66 @@ export class WebhookRetryService {
 
 		const client = this.supabase.getAdminClient()
 
-		// Query webhook_failures table
-		const { data: failures, error } = await client
-			.from('webhook_failures')
-			.select('*')
-			.is('resolved_at', null)
+		// Query webhook_attempts table for failed attempts
+		const { data: attempts, error } = await client
+			.from('webhook_attempts')
+			.select('*, webhook_event:webhook_events!inner(*)')
+			.eq('status', 'failed')
 			.lt('retry_count', 3) // Max 3 retries
 			.order('created_at', { ascending: true })
 			.limit(10)
 
 		if (error) {
-			this.logger.error('Failed to query webhook_failures', error)
+			this.logger.error('Failed to query webhook_attempts', error)
 			return
 		}
 
-		if (!failures || failures.length === 0) {
+		if (!attempts || attempts.length === 0) {
 			this.logger.log('No failed webhooks to retry')
 			return
 		}
 
-		this.logger.log(`Retrying ${failures.length} failed webhooks`)
+		this.logger.log(`Retrying ${attempts.length} failed webhooks`)
 
-		for (const failure of failures) {
+		for (const attempt of attempts) {
 			try {
+				const webhookEvent = Array.isArray(attempt.webhook_event)
+					? attempt.webhook_event[0]
+					: attempt.webhook_event as WebhookEventRow
+
+				if (!webhookEvent) {
+					this.logger.warn(`No webhook event found for attempt ${attempt.id}`)
+					continue
+				}
+
 				// Check if retry should be delayed (exponential backoff)
-				const retryCount = failure.retry_count || 0
+				const retryCount = attempt.retry_count || 0
 				const retryDelay = this.calculateRetryDelay(retryCount)
-				const createdAt = failure.created_at || new Date().toISOString()
-				const nextRetryTime = new Date(createdAt).getTime() + retryDelay
+				const lastAttempted = attempt.last_attempted_at || attempt.created_at || new Date().toISOString()
+				const nextRetryTime = new Date(lastAttempted).getTime() + retryDelay
 				const now = Date.now()
 
 				if (now < nextRetryTime) {
 					this.logger.log(
-						`Skipping webhook ${failure.stripe_event_id} - retry scheduled for ${new Date(nextRetryTime).toISOString()}`
+						`Skipping webhook ${webhookEvent.external_id} - retry scheduled for ${new Date(nextRetryTime).toISOString()}`
 					)
 					continue
 				}
 
 				// Re-emit event
 				this.logger.log(
-					`Retrying webhook ${failure.stripe_event_id} (attempt ${retryCount + 1})`
+					`Retrying webhook ${webhookEvent.external_id} (attempt ${retryCount + 1})`
 				)
 
-				// Parse raw_event_data safely
-				const rawEventData =
-					typeof failure.raw_event_data === 'object' && failure.raw_event_data !== null
-						? (failure.raw_event_data as Record<string, unknown>)
+				// Parse raw_payload safely
+				const rawPayload =
+					typeof webhookEvent.raw_payload === 'object' && webhookEvent.raw_payload !== null
+						? (webhookEvent.raw_payload as Record<string, unknown>)
 						: {}
 
 				const eventData =
-					'data' in rawEventData && typeof rawEventData.data === 'object'
-						? (rawEventData.data as Record<string, unknown>)
+					'data' in rawPayload && typeof rawPayload.data === 'object'
+						? (rawPayload.data as Record<string, unknown>)
 						: {}
 
 				const objectData =
@@ -82,45 +94,54 @@ export class WebhookRetryService {
 						? (eventData.object as Record<string, unknown>)
 						: {}
 
-				await this.eventEmitter.emitAsync(`stripe.${failure.event_type}`, {
+				await this.eventEmitter.emitAsync(`stripe.${webhookEvent.event_type}`, {
 					...objectData,
-					eventId: failure.stripe_event_id,
-					eventType: failure.event_type
+					eventId: webhookEvent.external_id,
+					eventType: webhookEvent.event_type
 				})
 
-				// Mark as resolved
+				// Mark attempt as successful
 				await client
-					.from('webhook_failures')
-					.update({ resolved_at: new Date().toISOString() })
-					.eq('id', failure.id)
+					.from('webhook_attempts')
+					.update({
+						status: 'success',
+						last_attempted_at: new Date().toISOString()
+					})
+					.eq('id', attempt.id)
 
 				// Record retry success
-				this.prometheus?.recordWebhookRetry(failure.event_type, retryCount + 1)
+				this.prometheus?.recordWebhookRetry(webhookEvent.event_type, retryCount + 1)
 
-				this.logger.log(`Successfully retried webhook ${failure.stripe_event_id}`)
+				this.logger.log(`Successfully retried webhook ${webhookEvent.external_id}`)
 			} catch (error) {
-				const retryCount = failure.retry_count || 0
+				const retryCount = attempt.retry_count || 0
 
 				// Increment retry count
 				await client
-					.from('webhook_failures')
+					.from('webhook_attempts')
 					.update({
 						retry_count: retryCount + 1,
-						last_retry_at: new Date().toISOString(),
-						last_error_message:
+						last_attempted_at: new Date().toISOString(),
+						failure_reason:
 							error instanceof Error ? error.message : String(error)
 					})
-					.eq('id', failure.id)
+					.eq('id', attempt.id)
+
+				const webhookEvent = Array.isArray(attempt.webhook_event)
+					? attempt.webhook_event[0]
+					: attempt.webhook_event as WebhookEventRow
 
 				this.logger.error(
-					`Failed to retry webhook ${failure.stripe_event_id}: ${error instanceof Error ? error.message : String(error)}`
+					`Failed to retry webhook ${webhookEvent?.external_id || 'unknown'}: ${error instanceof Error ? error.message : String(error)}`
 				)
 
 				// Record retry failure
-				this.prometheus?.recordWebhookFailure(
-					failure.event_type,
-					error instanceof Error ? error.constructor.name : 'UnknownError'
-				)
+				if (webhookEvent) {
+					this.prometheus?.recordWebhookFailure(
+						webhookEvent.event_type,
+						error instanceof Error ? error.constructor.name : 'UnknownError'
+					)
+				}
 			}
 		}
 

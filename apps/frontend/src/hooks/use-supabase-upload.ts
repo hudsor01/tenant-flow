@@ -50,8 +50,6 @@ type UseSupabaseUploadOptions = {
 	upsert?: boolean
 }
 
-type UseSupabaseUploadReturn = ReturnType<typeof useSupabaseUpload>
-
 const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	const {
 		bucketName,
@@ -67,6 +65,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	const [loading, setLoading] = useState<boolean>(false)
 	const [errors, setErrors] = useState<{ name: string; message: string }[]>([])
 	const [successes, setSuccesses] = useState<string[]>([])
+	const inputRef = useRef<HTMLInputElement>(null)
 
 	const isSuccess = useMemo(() => {
 		if (errors.length === 0 && successes.length === 0) {
@@ -210,6 +209,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	}, [files, setFiles, maxFiles])
 
 	return {
+		...dropzoneProps,
 		files,
 		setFiles,
 		successes,
@@ -221,9 +221,11 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		maxFileSize: maxFileSize,
 		maxFiles: maxFiles,
 		allowedMimeTypes,
-		...dropzoneProps
+		inputRef
 	}
 }
+
+type UseSupabaseUploadReturn = ReturnType<typeof useSupabaseUpload>
 
 export {
 	useSupabaseUpload,

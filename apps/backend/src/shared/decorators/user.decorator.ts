@@ -1,7 +1,7 @@
 import type { ExecutionContext } from '@nestjs/common'
 import { createParamDecorator, UnauthorizedException } from '@nestjs/common'
 
-export const UserId = createParamDecorator(
+export const user_id = createParamDecorator(
 	(_data: unknown, ctx: ExecutionContext) => {
 		const request = ctx.switchToHttp().getRequest()
 		if (!request.user) {

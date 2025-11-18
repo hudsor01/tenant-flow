@@ -9,7 +9,7 @@ import { type NextRequest } from 'next/server'
  * Middleware works correctly in production. See CLAUDE.md Deployment section for details.
  */
 export async function proxy(request: NextRequest) {
-	// Update session with production-ready auth, payment gating, and role-based redirects
+	// Update session with production-ready auth, payment gating, and user_type-based redirects
 	return await updateSession(request)
 }
 

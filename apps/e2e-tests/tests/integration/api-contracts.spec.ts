@@ -79,13 +79,13 @@ test.describe('Properties Endpoints Contract', () => {
 					address: 'string',
 					city: 'string',
 					state: 'string',
-					zipCode: 'string',
-					propertyType: 'string',
+					postal_code: 'string',
+					property_type: 'string',
 					status: 'string'
 				})
 
 				// Validate enum values
-				expect(['RESIDENTIAL', 'COMMERCIAL', 'MULTI_FAMILY', 'INDUSTRIAL']).toContain(property.propertyType)
+				expect(['RESIDENTIAL', 'COMMERCIAL', 'MULTI_FAMILY', 'INDUSTRIAL']).toContain(property.property_type)
 				expect(['ACTIVE', 'INACTIVE', 'MAINTENANCE']).toContain(property.status)
 			}
 		}
@@ -97,8 +97,8 @@ test.describe('Properties Endpoints Contract', () => {
 			address: '123 Test St',
 			city: 'Test City',
 			state: 'CA',
-			zipCode: '12345',
-			propertyType: 'RESIDENTIAL',
+			postal_code: '12345',
+			property_type: 'RESIDENTIAL',
 			totalUnits: 1,
 			yearBuilt: 2020
 		}
@@ -124,8 +124,8 @@ test.describe('Properties Endpoints Contract', () => {
 				address: 'string',
 				city: 'string',
 				state: 'string',
-				zipCode: 'string',
-				propertyType: 'string'
+				postal_code: 'string',
+				property_type: 'string'
 			})
 		}
 	})
@@ -153,8 +153,8 @@ test.describe('Tenants Endpoints Contract', () => {
 
 				validateSchema(tenant, {
 					id: 'string',
-					firstName: 'string',
-					lastName: 'string',
+					first_name: 'string',
+					last_name: 'string',
 					email: 'string',
 					phone: 'string',
 					status: 'string'
@@ -172,7 +172,7 @@ test.describe('Tenants Endpoints Contract', () => {
 	test('POST /api/v1/tenants should validate required fields', async ({ request }) => {
 		const invalidTenant = {
 			// Missing required fields
-			firstName: 'Test'
+			first_name: 'Test'
 		}
 
 		const response = await request.post(`${API_URL}/api/v1/tenants`, {
@@ -219,25 +219,25 @@ test.describe('Leases Endpoints Contract', () => {
 
 				validateSchema(lease, {
 					id: 'string',
-					tenantId: 'string',
-					unitId: 'string',
-					startDate: 'string',
-					endDate: 'string',
-					monthlyRent: 'number',
-					securityDeposit: 'number',
+					tenant_id: 'string',
+					unit_id: 'string',
+					start_date: 'string',
+					end_date: 'string',
+					rent_amount: 'number',
+					security_deposit: 'number',
 					status: 'string'
 				})
 
 				// Validate lease status enum
-				expect(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED']).toContain(lease.status)
+				expect(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED']).toContain(lease.lease_status)
 
 				// Validate date format (ISO 8601)
-				expect(lease.startDate).toMatch(/^\d{4}-\d{2}-\d{2}/)
-				expect(lease.endDate).toMatch(/^\d{4}-\d{2}-\d{2}/)
+				expect(lease.start_date).toMatch(/^\d{4}-\d{2}-\d{2}/)
+				expect(lease.end_date).toMatch(/^\d{4}-\d{2}-\d{2}/)
 
 				// Validate numeric values are positive
-				expect(lease.monthlyRent).toBeGreaterThanOrEqual(0)
-				expect(lease.securityDeposit).toBeGreaterThanOrEqual(0)
+				expect(lease.rent_amount).toBeGreaterThanOrEqual(0)
+				expect(lease.security_deposit).toBeGreaterThanOrEqual(0)
 			}
 		}
 	})
@@ -254,10 +254,10 @@ test.describe('Leases Endpoints Contract', () => {
 			const leases = await listResponse.json()
 
 			if (leases.length > 0) {
-				const leaseId = leases[0].id
+				const lease_id = leases[0].id
 
 				// Get specific lease
-				const response = await request.get(`${API_URL}/api/v1/leases/${leaseId}`, {
+				const response = await request.get(`${API_URL}/api/v1/leases/${lease_id}`, {
 					headers: {
 						Authorization: `Bearer ${process.env.TEST_AUTH_TOKEN}`
 					}
@@ -271,11 +271,11 @@ test.describe('Leases Endpoints Contract', () => {
 					// Single lease should have same structure as list item
 					validateSchema(body, {
 						id: 'string',
-						tenantId: 'string',
-						unitId: 'string',
-						startDate: 'string',
-						endDate: 'string',
-						monthlyRent: 'number',
+						tenant_id: 'string',
+						unit_id: 'string',
+						start_date: 'string',
+						end_date: 'string',
+						rent_amount: 'number',
 						status: 'string'
 					})
 				}
@@ -306,11 +306,11 @@ test.describe('Units Endpoints Contract', () => {
 
 				validateSchema(unit, {
 					id: 'string',
-					propertyId: 'string',
-					unitNumber: 'string',
+					property_id: 'string',
+					unit_number: 'string',
 					bedrooms: 'number',
 					bathrooms: 'number',
-					squareFeet: 'number',
+					square_feet: 'number',
 					status: 'string'
 				})
 
@@ -320,7 +320,7 @@ test.describe('Units Endpoints Contract', () => {
 				// Validate numeric values are reasonable
 				expect(unit.bedrooms).toBeGreaterThanOrEqual(0)
 				expect(unit.bathrooms).toBeGreaterThanOrEqual(0)
-				expect(unit.squareFeet).toBeGreaterThan(0)
+				expect(unit.square_feet).toBeGreaterThan(0)
 			}
 		}
 	})
@@ -348,8 +348,8 @@ test.describe('Maintenance Endpoints Contract', () => {
 
 				validateSchema(maintenance, {
 					id: 'string',
-					propertyId: 'string',
-					unitId: 'string',
+					property_id: 'string',
+					unit_id: 'string',
 					title: 'string',
 					description: 'string',
 					priority: 'string',

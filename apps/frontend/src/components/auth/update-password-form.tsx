@@ -79,12 +79,12 @@ export function UpdatePasswordForm({
 					'shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out'
 				)}
 			>
-				<CardHeader className="text-center space-y-4 animate-slide-in-top">
-					<div className="mx-auto bg-primary/10 p-3 rounded-full w-fit">
-						<Lock className="size-6 text-primary" />
+				<CardHeader className="text-center space-y-[var(--spacing-4)] animate-slide-in-top">
+					<div className="mx-auto bg-[color-mix(in oklch,var(--primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
+						<Lock className="size-[var(--spacing-6)] text-primary" />
 					</div>
-					<div className="space-y-2">
-						<CardTitle className="font-bold tracking-tight text-3xl">
+				<div className="space-y-[var(--spacing-2)]">
+					<CardTitle className="text-section-title">
 							Reset Your Password
 						</CardTitle>
 						<CardDescription className="leading-relaxed">
@@ -92,9 +92,9 @@ export function UpdatePasswordForm({
 						</CardDescription>
 					</div>
 				</CardHeader>
-				<CardContent className="space-y-6 animate-slide-in-bottom">
-					<form onSubmit={handleUpdatePassword} className="space-y-6">
-						<div className="space-y-4">
+				<CardContent className="space-y-[var(--spacing-6)] animate-slide-in-bottom">
+					<form onSubmit={handleUpdatePassword} className="space-y-[var(--spacing-6)]">
+						<div className="space-y-[var(--spacing-4)]">
 							{/* New Password Field with PasswordStrength */}
 							<Field>
 								<FieldLabel htmlFor="password">New password</FieldLabel>
@@ -150,14 +150,14 @@ export function UpdatePasswordForm({
 									</InputGroupAddon>
 								</InputGroup>
 								{confirmPassword.length > 0 && password.length > 0 && password !== confirmPassword && (
-									<p className="text-xs text-destructive flex items-center gap-1">
-										<AlertTriangle className="size-3" />
+						<p className="text-caption text-destructive flex items-center gap-[var(--spacing-1)]">
+										<AlertTriangle className="size-[var(--spacing-3)]" />
 										Passwords do not match
 									</p>
 								)}
 								{confirmPassword.length > 0 && password.length > 0 && password === confirmPassword && (
-									<p className="text-xs text-primary flex items-center gap-1">
-										<CheckCircle2 className="size-3" />
+						<p className="text-caption text-primary flex items-center gap-[var(--spacing-1)]">
+										<CheckCircle2 className="size-[var(--spacing-3)]" />
 										Passwords match
 									</p>
 								)}
@@ -166,7 +166,7 @@ export function UpdatePasswordForm({
 
 						{updatePasswordMutation.isError && (
 							<Alert variant="destructive">
-								<AlertTriangle className="size-4" />
+								<AlertTriangle className="size-[var(--spacing-4)]" />
 								<AlertDescription>
 									{updatePasswordMutation.error instanceof Error
 										? updatePasswordMutation.error.message
@@ -192,20 +192,20 @@ export function UpdatePasswordForm({
 						>
 							{updatePasswordMutation.isPending ? (
 								<>
-									<div className="animate-spin rounded-full size-4 border-b-2 border-white mr-2" />
+									<div className="animate-spin rounded-full size-[var(--spacing-4)] border-b-2 border-white mr-[var(--spacing-2)]" />
 									Saving...
 								</>
 							) : (
 								<>
-									<Shield className="size-4 mr-2" />
+									<Shield className="size-[var(--spacing-4)] mr-[var(--spacing-2)]" />
 									Save new password
 								</>
 							)}
 						</Button>
 					</form>
 
-					<div className="text-center pt-4 border-t">
-						<p className="text-xs text-muted-foreground">
+				<div className="text-center pt-[var(--spacing-4)] border-t border-(--color-border)">
+					<p className="text-caption text-muted-foreground">
 							Your password will be encrypted and stored securely
 						</p>
 					</div>

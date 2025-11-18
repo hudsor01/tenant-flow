@@ -9,7 +9,7 @@ import type {
 	CustomerLifetimeValue,
 	RevenueAnalytics
 } from '@repo/shared/types/domain'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	stripeCustomerSchema,
@@ -18,14 +18,15 @@ import {
 	stripeProductSchema,
 	stripePaymentIntentSchema,
 	createValidatedArray,
-	validateDatabaseResponse
+	validateDatabaseResponse,
+	type StripePaymentIntentDBValidated
 } from '@repo/shared/validation/database-rpc.schemas'
 
 // Type aliases for Supabase database types
 type StripePaymentIntentDB =
 	Database['public']['Tables']['stripe_payment_intents']['Row']
 type StripeSubscriptionDB =
-	Database['public']['Tables']['stripe_subscriptions']['Row']
+	Database['public']['Tables']['subscriptions']['Row']
 type StripeCustomerDB = Database['public']['Tables']['stripe_customers']['Row']
 type StripePriceDB = Database['public']['Tables']['stripe_prices']['Row']
 type StripeProductDB = Database['public']['Tables']['stripe_products']['Row']
@@ -63,9 +64,9 @@ export class StripeDataService {
 
 			const client = this.supabaseService.getAdminClient()
 			const { data, error } = await client
-				.from('stripe_subscriptions')
+				.from('subscriptions')
 				.select('*')
-				.eq('customer_id', customerId)
+				.eq('stripe_customer_id', customerId)
 
 			if (error) {
 				this.logger.error(
@@ -230,18 +231,18 @@ export class StripeDataService {
 	 * Ultra-native: Direct table queries instead of RPC
 	 */
 	async getRevenueAnalytics(
-		startDate: Date,
-		endDate: Date
+		start_date: Date,
+		end_date: Date
 	): Promise<RevenueAnalytics[]> {
 		try {
-			this.logger.log('Calculating revenue analytics', { startDate, endDate })
+			this.logger.log('Calculating revenue analytics', { start_date, end_date })
 
 			const client = this.supabaseService.getAdminClient()
 			const { data: paymentIntents, error } = await client
 				.from('stripe_payment_intents')
 				.select('*')
-				.gte('createdAt', startDate.toISOString())
-				.lte('createdAt', endDate.toISOString())
+				.gte('created_at', start_date.toISOString())
+				.lte('created_at', end_date.toISOString())
 				.limit(1000)
 
 			if (error) {
@@ -266,13 +267,13 @@ export class StripeDataService {
 
 	// Ultra-native: Helper method for simple calculations
 	private calculateRevenueAnalytics(
-		paymentIntents: StripePaymentIntentDB[]
+		paymentIntents: StripePaymentIntentDBValidated[]
 	): RevenueAnalytics[] {
 		// Simple grouping and calculation - no complex SQL
 		const grouped: Record<string, StripePaymentIntentDB[]> = {}
 		paymentIntents.forEach(intent => {
-			if (intent.createdAt) {
-				const period = intent.createdAt.slice(0, 7) // YYYY-MM
+			if (intent.created_at) {
+				const period = intent.created_at.slice(0, 7) // YYYY-MM
 				if (!grouped[period]) grouped[period] = []
 				grouped[period].push(intent)
 			}
@@ -284,27 +285,17 @@ export class StripeDataService {
 				(sum, intent) => sum + (intent.amount || 0),
 				0
 			),
-			subscription_revenue: periodIntents
-				.filter(intent => intent.description?.includes('subscription'))
-				.reduce((sum, intent) => sum + (intent.amount || 0), 0),
-			one_time_revenue: periodIntents
-				.filter(intent => !intent.description?.includes('subscription'))
-				.reduce((sum, intent) => sum + (intent.amount || 0), 0),
+			subscription_revenue: 0, // TODO: Implement subscription revenue calculation
+			one_time_revenue: periodIntents.reduce(
+				(sum, intent) => sum + (intent.amount || 0),
+				0
+			),
 			customer_count: new Set(periodIntents.map(intent => intent.customer_id))
 				.size,
-			new_customers: periodIntents
-				.filter(intent => intent.description?.includes('subscription'))
-				.reduce((count: number) => count + 1, 0),
-			churned_customers: periodIntents
-				.filter(intent => !intent.description?.includes('subscription'))
-				.reduce((count: number) => count + 1, 0),
-			mrr:
-				periodIntents
-					.filter(intent => intent.description?.includes('subscription'))
-					.reduce((sum, intent) => sum + (intent.amount || 0), 0) / 12, // Simplified MRR
-			arr: periodIntents
-				.filter(intent => intent.description?.includes('subscription'))
-				.reduce((sum, intent) => sum + (intent.amount || 0), 0) // Simplified ARR
+			new_customers: 0, // TODO: Implement new customer calculation
+			churned_customers: 0, // TODO: Implement churned customer calculation
+			mrr: 0, // TODO: Implement MRR calculation
+			arr: 0 // TODO: Implement ARR calculation
 		}))
 	}
 
@@ -318,7 +309,7 @@ export class StripeDataService {
 
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
+				.from('subscriptions')
 				.select('*')
 				.limit(1000)
 
@@ -347,8 +338,8 @@ export class StripeDataService {
 		// Simple grouping by month and churn calculation
 		const grouped: Record<string, StripeSubscriptionDB[]> = {}
 		subscriptions.forEach(sub => {
-			if (sub.createdAt) {
-				const month = sub.createdAt.slice(0, 7) // YYYY-MM
+			if (sub.created_at) {
+				const month = sub.created_at.slice(0, 7) // YYYY-MM
 				if (!grouped[month]) grouped[month] = []
 				grouped[month].push(sub)
 			}
@@ -387,7 +378,7 @@ export class StripeDataService {
 			// Fetch customers and subscriptions with complete pagination
 			const [customersResult, subscriptionsResult] = await Promise.all([
 				client.from('stripe_customers').select('*').limit(1000),
-				client.from('stripe_subscriptions').select('*').limit(1000)
+				client.from('subscriptions').select('*').limit(1000)
 			])
 
 			if (customersResult.error || subscriptionsResult.error) {
@@ -419,19 +410,19 @@ export class StripeDataService {
 	): CustomerLifetimeValue[] {
 		return customers.map(customer => {
 			const customerSubs = subscriptions.filter(
-				sub => sub.customer_id === customer.id
+				sub => sub.stripe_customer_id === customer.id
 			)
 			const total_revenue = customerSubs.length * STANDARD_SUBSCRIPTION_VALUE // Simplified revenue calculation
 			const subscription_count = customerSubs.length
 			const first_subscription =
 				customerSubs.length > 0
 					? (() => {
-							const withDates = customerSubs.filter(sub => sub.createdAt)
+							const withDates = customerSubs.filter(sub => sub.created_at)
 							return withDates.length > 0
 								? new Date(
 										Math.min(
 											...withDates.map(sub =>
-												new Date(sub.createdAt!).getTime()
+												new Date(sub.created_at!).getTime()
 											)
 										)
 									)
@@ -487,7 +478,7 @@ export class StripeDataService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
+				.from('subscriptions')
 				.select('*')
 				.limit(months * 100) // Adjust limit based on months
 
@@ -515,7 +506,7 @@ export class StripeDataService {
 		try {
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
+				.from('subscriptions')
 				.select('*')
 				.limit(1000)
 
@@ -561,9 +552,9 @@ export class StripeDataService {
 
 			const client = this.supabaseService.getAdminClient()
 			const { data: subscriptions, error } = await client
-				.from('stripe_subscriptions')
+				.from('subscriptions')
 				.select('*')
-				.eq('customer_id', customerId)
+				.eq('stripe_customer_id', customerId)
 
 			if (error) {
 				throw new InternalServerErrorException(

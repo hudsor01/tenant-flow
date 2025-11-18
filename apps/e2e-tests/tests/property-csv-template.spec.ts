@@ -58,12 +58,12 @@ test.describe('Property CSV Template Download', () => {
 		await bulkImportButton.click()
 
 		// Wait for dialog to appear
-		const dialog = page.locator('role=dialog')
+		const dialog = page.locator('user_type=dialog')
 		await expect(dialog).toBeVisible({ timeout: 5000 })
 		logStep(' Bulk Import dialog opened')
 
 		// Verify dialog title
-		const dialogTitle = page.locator('role=dialog >> text=Bulk Import Properties')
+		const dialogTitle = page.locator('user_type=dialog >> text=Bulk Import Properties')
 		await expect(dialogTitle).toBeVisible()
 		logStep(' Dialog title confirmed')
 
@@ -75,7 +75,7 @@ test.describe('Property CSV Template Download', () => {
 
 		// Find and click the download button inside the dialog
 		const downloadButton = page
-			.locator('role=dialog')
+			.locator('user_type=dialog')
 			.locator('button:has-text("Download")')
 		await expect(downloadButton).toBeVisible({ timeout: 5000 })
 		await downloadButton.click()
@@ -119,8 +119,8 @@ test.describe('Property CSV Template Download', () => {
 			'address',
 			'city',
 			'state',
-			'zipCode',
-			'propertyType',
+			'postal_code',
+			'property_type',
 			'description'
 		]
 

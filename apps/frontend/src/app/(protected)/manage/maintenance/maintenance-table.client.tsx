@@ -101,14 +101,14 @@ export function MaintenanceTableClient({
 										Delete maintenance request
 									</AlertDialogTitle>
 									<AlertDialogDescription>
-										Permanently remove <strong>{request.title}</strong>?
+										Permanently remove <strong>{request.description}</strong>?
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
 									<AlertDialogAction
 										disabled={isPending && deletingId === request.id}
-										onClick={() => handleDelete(request.id, request.title)}
+										onClick={() => handleDelete(request.id, request.description)}
 										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									>
 										{isPending && deletingId === request.id

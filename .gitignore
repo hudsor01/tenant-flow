@@ -336,8 +336,6 @@ documentation/
 
 # MONITORING & MISC
 monitoring/
-clinerules-bank/
-memory-bank/
 pids
 *.pid
 *.seed
@@ -365,6 +363,8 @@ coverage/
 # Additional TenantFlow environment patterns
 .env.vault
 .doppler.yaml
+*.env
+*.env.*
 
 # Test artifacts
 test-results/
@@ -380,14 +380,6 @@ stripe-webhooks.log
 **/stripe-events.log
 **/webhook-*.log
 
-# Development databases
-*.db
-database.dev
-db.dev
-local.db
-*.sqlite
-*.sqlite3
-
 # CRITICAL: Production user data and uploads
 **/uploads/
 **/tenant-files/
@@ -398,3 +390,4 @@ local.db
 # Generated types that may contain sensitive info
 **/generated-types.secret.ts
 **/api-types.secret.ts
+!TODO.md

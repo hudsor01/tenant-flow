@@ -155,8 +155,6 @@ export async function signOut(): Promise<{ error: AuthError | null }> {
 	return { error }
 }
 
-// Use RLS policies directly - no wrapper classes
-// Example: supabaseClient.from('Property').select('*').eq('organizationId', orgId)
 
 export type {
 	Database,
@@ -164,4 +162,4 @@ export type {
 	Tables,
 	TablesInsert,
 	TablesUpdate
-} from '../types/supabase-generated.js'
+} from '../types/supabase.js'

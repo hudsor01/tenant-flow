@@ -30,43 +30,43 @@ export class PropertyOwnershipGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
-		const userId = request.user?.id
+		const user_id = request.user?.id
 
-		if (!userId) {
+		if (!user_id) {
 			this.logger.warn('PropertyOwnershipGuard: No user ID in request')
 			throw new ForbiddenException('Authentication required')
 		}
 
 		// Extract resource IDs from request (controllers commonly expose them as `id` or nested objects)
 		const normalized = {
-			tenantId:
-				request.params?.tenantId ??
+			tenant_id:
+				request.params?.tenant_id ??
 				request.params?.id ??
-				request.body?.tenantId ??
+				request.body?.tenant_id ??
 				request.body?.id ??
-				request.query?.tenantId,
-			leaseId:
-				request.params?.leaseId ??
+				request.query?.tenant_id,
+			lease_id:
+				request.params?.lease_id ??
 				request.params?.id ??
-				request.body?.leaseId ??
+				request.body?.lease_id ??
 				request.body?.id ??
-				request.query?.leaseId ??
-				request.body?.leaseData?.leaseId,
-			propertyId:
-				request.params?.propertyId ??
-				request.body?.propertyId ??
-				request.query?.propertyId ??
-				request.body?.leaseData?.propertyId
+				request.query?.lease_id ??
+				request.body?.leaseData?.lease_id,
+			property_id:
+				request.params?.property_id ??
+				request.body?.property_id ??
+				request.query?.property_id ??
+				request.body?.leaseData?.property_id
 		}
-		const { tenantId, leaseId, propertyId } = normalized
+		const { tenant_id, lease_id, property_id } = normalized
 
 		// If accessing a specific tenant
-		if (tenantId) {
-			const ownsResource = await this.verifyTenantOwnership(userId, tenantId)
+		if (tenant_id) {
+			const ownsResource = await this.verifyTenantOwnership(user_id, tenant_id)
 			if (!ownsResource) {
 				this.logger.warn('PropertyOwnershipGuard: Tenant access denied', {
-					userId,
-					tenantId
+					user_id,
+					tenant_id
 				})
 				throw new ForbiddenException(
 					'You do not have access to this tenant resource'
@@ -75,12 +75,12 @@ export class PropertyOwnershipGuard implements CanActivate {
 		}
 
 		// If accessing a specific lease
-		if (leaseId) {
-			const ownsResource = await this.verifyLeaseOwnership(userId, leaseId)
+		if (lease_id) {
+			const ownsResource = await this.verifyLeaseOwnership(user_id, lease_id)
 			if (!ownsResource) {
 				this.logger.warn('PropertyOwnershipGuard: Lease access denied', {
-					userId,
-					leaseId
+					user_id,
+					lease_id
 				})
 				throw new ForbiddenException(
 					'You do not have access to this lease resource'
@@ -89,15 +89,15 @@ export class PropertyOwnershipGuard implements CanActivate {
 		}
 
 		// If accessing a specific property (direct)
-		if (propertyId) {
+		if (property_id) {
 			const ownsResource = await this.verifyPropertyOwnership(
-				userId,
-				propertyId
+				user_id,
+				property_id
 			)
 			if (!ownsResource) {
 				this.logger.warn('PropertyOwnershipGuard: Property access denied', {
-					userId,
-					propertyId
+					user_id,
+					property_id
 				})
 				throw new ForbiddenException(
 					'You do not have access to this property resource'
@@ -110,19 +110,19 @@ export class PropertyOwnershipGuard implements CanActivate {
 
 	/**
 	 * Verify user owns the tenant (through lease → property ownership chain)
-	 * Tenant belongs to Lease, Lease belongs to Property, Property has ownerId
+	 * Tenant belongs to Lease, Lease belongs to Property, Property has owner_id
 	 */
 	private async verifyTenantOwnership(
-		userId: string,
-		tenantId: string
+		user_id: string,
+		tenant_id: string
 	): Promise<boolean> {
 		const client = this.supabase.getAdminClient()
 
-		// Follow the ownership chain: tenant → lease → property → ownerId
+		// Follow the ownership chain: tenant → lease → property → owner_id
 		const { data, error } = await client
-			.from('lease')
-			.select('property:propertyId(ownerId)')
-			.eq('tenantId', tenantId)
+			.from('leases')
+			.select('property:property_id(property_owner_id)')
+			.eq('tenant_id', tenant_id)
 			.single()
 
 		if (error) {
@@ -130,23 +130,23 @@ export class PropertyOwnershipGuard implements CanActivate {
 		}
 
 		// Supabase join returns nested object structure
-		const result = data as unknown as { property: { ownerId: string } | null }
-		return result?.property?.ownerId === userId
+		const result = data as unknown as { property: { property_owner_id: string } | null }
+		return result?.property?.property_owner_id === user_id
 	}
 
 	/**
 	 * Verify user owns the lease (through property ownership)
 	 */
 	private async verifyLeaseOwnership(
-		userId: string,
-		leaseId: string
+		user_id: string,
+		lease_id: string
 	): Promise<boolean> {
 		const client = this.supabase.getAdminClient()
 
 		const { data, error } = await client
-			.from('lease')
-			.select('property:propertyId(ownerId)')
-			.eq('id', leaseId)
+			.from('leases')
+			.select('property:property_id(owner_id)')
+			.eq('id', lease_id)
 			.single()
 
 		if (error) {
@@ -154,25 +154,25 @@ export class PropertyOwnershipGuard implements CanActivate {
 		}
 
 		// Supabase join returns nested object structure
-		const result = data as unknown as { property: { ownerId: string } | null }
-		return result?.property?.ownerId === userId
+		const result = data as unknown as { property: { owner_id: string } | null }
+		return result?.property?.owner_id === user_id
 	}
 
 	/**
 	 * Verify user owns the property
 	 */
 	private async verifyPropertyOwnership(
-		userId: string,
-		propertyId: string
+		user_id: string,
+		property_id: string
 	): Promise<boolean> {
 		const client = this.supabase.getAdminClient()
 
 		const { data } = await client
-			.from('property')
-			.select('ownerId')
-			.eq('id', propertyId)
+			.from('properties')
+			.select('property_owner_id')
+			.eq('id', property_id)
 			.single()
 
-		return data?.ownerId === userId
+		return data?.property_owner_id === user_id
 	}
 }

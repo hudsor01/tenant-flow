@@ -2,15 +2,15 @@
 
 /**
  * Tenant Portal Hooks
- * 
+ *
  * Modern hooks using /tenant-portal/* endpoints for tenant-facing operations
- * 
+ *
  * Architecture:
- * - Role-based access control (TenantAuthGuard)
- * - Three-layer security (JWT + Role + RLS)
+ * - user_type-based access control (TenantAuthGuard)
+ * - Three-layer security (JWT + user_type + RLS)
  * - Request context with tenant metadata
  * - Modular route structure
- * 
+ *
  * Endpoints:
  * - /tenant-portal/payments/* - Payment history and methods
  * - /tenant-portal/autopay/* - Subscription status and configuration
@@ -34,9 +34,9 @@ interface TenantPayment {
 	status: string
 	paidAt: string | null
 	dueDate: string
-	createdAt: string
-	leaseId: string
-	tenantId: string
+	created_at: string
+	lease_id: string
+	tenant_id: string
 	stripePaymentIntentId: string | null
 	ownerReceives: number
 	receiptUrl: string | null
@@ -45,9 +45,9 @@ interface TenantPayment {
 interface TenantAutopayStatus {
 	autopayEnabled: boolean
 	subscriptionId: string | null
-	leaseId?: string
-	tenantId?: string
-	rentAmount?: number
+	lease_id?: string
+	tenant_id?: string
+	rent_amount?: number
 	nextPaymentDate?: string | null
 	message?: string
 }
@@ -59,11 +59,11 @@ interface TenantMaintenanceRequest {
 	priority: Priority
 	status: string
 	category: MaintenanceCategory | null
-	createdAt: string
-	updatedAt: string | null
-	completedAt: string | null
+	created_at: string
+	updated_at: string | null
+	completed_at: string | null
 	requestedBy: string
-	unitId: string
+	unit_id: string
 }
 
 interface TenantMaintenanceStats {
@@ -75,17 +75,17 @@ interface TenantMaintenanceStats {
 
 interface TenantLease {
 	id: string
-	startDate: string
-	endDate: string
-	rentAmount: number
-	securityDeposit: number | null
+	start_date: string
+	end_date: string
+	rent_amount: number
+	security_deposit: number | null
 	status: string
 	stripe_subscription_id: string | null
 	lease_document_url: string | null
-	createdAt: string
+	created_at: string
 	unit: {
 		id: string
-		unitNumber: string
+		unit_number: string
 		bedrooms: number
 		bathrooms: number
 		property: {
@@ -94,7 +94,7 @@ interface TenantLease {
 			address: string
 			city: string
 			state: string
-			zipCode: string
+			postal_code: string
 		}
 	} | null
 	metadata: {
@@ -107,13 +107,13 @@ interface TenantDocument {
 	type: 'LEASE' | 'RECEIPT'
 	name: string
 	url: string | null
-	createdAt: string | null
+	created_at: string | null
 }
 
 interface TenantProfile {
 	id: string
-	firstName: string
-	lastName: string
+	first_name: string
+	last_name: string
 	email: string
 	phone: string | null
 	status: string
@@ -146,32 +146,32 @@ interface CreateMaintenanceRequestInput {
  */
 export const tenantPortalKeys = {
 	all: ['tenant-portal'] as const,
-	
+
 	// Payments endpoints (/tenant-portal/payments/*)
 	payments: {
 		all: () => [...tenantPortalKeys.all, 'payments'] as const,
 		list: () => [...tenantPortalKeys.payments.all(), 'list'] as const
 	},
-	
+
 	// Autopay endpoints (/tenant-portal/autopay/*)
 	autopay: {
 		all: () => [...tenantPortalKeys.all, 'autopay'] as const,
 		status: () => [...tenantPortalKeys.autopay.all(), 'status'] as const
 	},
-	
+
 	// Maintenance endpoints (/tenant-portal/maintenance/*)
 	maintenance: {
 		all: () => [...tenantPortalKeys.all, 'maintenance'] as const,
 		list: () => [...tenantPortalKeys.maintenance.all(), 'list'] as const
 	},
-	
+
 	// Leases endpoints (/tenant-portal/leases/*)
 	leases: {
 		all: () => [...tenantPortalKeys.all, 'leases'] as const,
 		active: () => [...tenantPortalKeys.leases.all(), 'active'] as const,
 		documents: () => [...tenantPortalKeys.leases.all(), 'documents'] as const
 	},
-	
+
 	// Settings endpoints (/tenant-portal/settings/*)
 	settings: {
 		all: () => [...tenantPortalKeys.all, 'settings'] as const,

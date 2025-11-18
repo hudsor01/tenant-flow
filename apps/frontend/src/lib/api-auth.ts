@@ -16,7 +16,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type { User } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	SUPABASE_URL,

@@ -208,7 +208,7 @@ export class PropertyTableHelper {
 	/**
 	 * Get property by name from table
 	 */
-	async getPropertyByName(name: string) {
+	getPropertyByName(name: string) {
 		return this.page.locator(`table tbody tr:has-text("${name}")`)
 	}
 
@@ -216,14 +216,20 @@ export class PropertyTableHelper {
 	 * Wait for property to appear in table
 	 */
 	async waitForPropertyInTable(name: string, timeout: number = 10000) {
-		await expect(this.getPropertyByName(name)).toBeVisible({ timeout })
+		await this.getPropertyByName(name).waitFor({
+			state: 'visible',
+			timeout
+		})
 	}
 
 	/**
 	 * Wait for property to disappear from table
 	 */
 	async waitForPropertyToDisappear(name: string, timeout: number = 10000) {
-		await expect(this.getPropertyByName(name)).toBeHidden({ timeout })
+		await this.getPropertyByName(name).waitFor({
+			state: 'hidden',
+			timeout
+		})
 	}
 
 	/**
@@ -316,8 +322,8 @@ export class PropertyFormHelper {
 		if (property.name) {
 			await this.page.fill('input[name="name"]', property.name)
 		}
-		if (property.address) {
-			await this.page.fill('input[name="address"]', property.address)
+		if (property.address_line1) {
+			await this.page.fill('input[name="address"]', property.address_line1)
 		}
 		if (property.city) {
 			await this.page.fill('input[name="city"]', property.city)
@@ -325,12 +331,12 @@ export class PropertyFormHelper {
 		if (property.state) {
 			await this.page.fill('input[name="state"]', property.state)
 		}
-		if (property.zipCode) {
-			await this.page.fill('input[name="zipCode"]', property.zipCode)
+		if (property.postal_code) {
+			await this.page.fill('input[name="postal_code"]', property.postal_code)
 		}
-		if (property.propertyType) {
-			await this.page.click('button[role="combobox"]')
-			await this.page.click(`[data-value="${property.propertyType}"]`)
+		if (property.property_type) {
+			await this.page.click('button[user_type="combobox"]')
+			await this.page.click(`[data-value="${property.property_type}"]`)
 		}
 
 		// Submit form
@@ -342,7 +348,7 @@ export class PropertyFormHelper {
 	 */
 	async waitForFormSubmission() {
 		// Wait for dialog to close
-		await expect(this.page.locator('[role="dialog"]')).toBeHidden()
+		await expect(this.page.locator('[user_type="dialog"]')).toBeHidden()
 	}
 }
 
@@ -393,7 +399,18 @@ export class PerformanceHelper {
 			getRequestCount: () => responses.length,
 			getFailedRequests: () => responses.filter(r => r.status() >= 400),
 			getAverageResponseTime: () => {
-				const times = responses.map(r => r.timing()?.responseEnd || 0)
+				if (responses.length === 0) {
+					return 0
+				}
+				const times = responses.map(response => {
+					const candidate = response as Response & {
+						timing?: () => { responseEnd?: number }
+					}
+					if (typeof candidate.timing === 'function') {
+						return candidate.timing()?.responseEnd ?? 0
+					}
+					return 0
+				})
 				return times.reduce((sum, time) => sum + time, 0) / times.length
 			}
 		}

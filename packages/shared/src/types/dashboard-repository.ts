@@ -2,10 +2,6 @@ import type { DashboardStats, PropertyPerformance, SystemUptime } from './core.j
 import type { Activity } from './activity.js'
 
 
-export interface BillingInsightsOptions {
-  startDate?: Date
-  endDate?: Date
-}
 
 export interface MetricTrend {
   current: number
@@ -32,13 +28,12 @@ export interface DashboardTimeSeriesOptions {
 }
 
 export interface DashboardRepositoryContract {
-  getStats(userId: string): Promise<DashboardStats>
-  getActivity(userId: string, options?: { limit?: number; offset?: number }): Promise<{ activities: Activity[] }>
-  getPropertyPerformance(userId: string): Promise<PropertyPerformance[]>
+  getStats(user_id: string): Promise<DashboardStats>
+  getActivity(user_id: string, options?: { limit?: number; offset?: number }): Promise<{ activities: Activity[] }>
+  getPropertyPerformance(user_id: string): Promise<PropertyPerformance[]>
   getUptime(): Promise<SystemUptime>
-  getBillingInsights(userId: string, options?: BillingInsightsOptions): Promise<Record<string, unknown>>
   isBillingInsightsAvailable(): Promise<boolean>
-  getMetricTrend(userId: string, metric: string, period?: 'day' | 'week' | 'month' | 'year'): Promise<MetricTrend>
-  getTimeSeries(userId: string, options: DashboardTimeSeriesOptions): Promise<TimeSeriesDataPoint[]>
-  getTrendData(userId: string): Promise<DashboardTrendData>
+  getMetricTrend(user_id: string, metric: string, period?: 'day' | 'week' | 'month' | 'year'): Promise<MetricTrend>
+  getTimeSeries(user_id: string, options: DashboardTimeSeriesOptions): Promise<TimeSeriesDataPoint[]>
+  getTrendData(user_id: string): Promise<DashboardTrendData>
 }
