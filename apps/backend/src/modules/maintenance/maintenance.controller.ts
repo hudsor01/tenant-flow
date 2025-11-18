@@ -2,7 +2,7 @@
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
 
  * ONLY built-in NestJS pipes, native exceptions, direct RPC calls.
- * FORBIDDEN: Custom decorators (except @JwtToken/@UserId), validation layers, middleware
+ * FORBIDDEN: Custom decorators (except @JwtToken/@user_id), validation layers, middleware
  */
 
 import {
@@ -22,7 +22,7 @@ import {
 } from '@nestjs/common'
 import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/api-contracts'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import { UserId } from '../../shared/decorators/user.decorator'
+import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
@@ -38,28 +38,28 @@ export class MaintenanceController {
 	@Get()
 	async findAll(
 		@JwtToken() token: string,
-		@Query('unitId') unitId?: string,
-		@Query('propertyId') propertyId?: string,
+		@Query('unit_id') unit_id?: string,
+		@Query('property_id') property_id?: string,
 		@Query('priority') priority?: string,
 		@Query('category') category?: string,
 		@Query('status') status?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
-		@Query('sortBy', new DefaultValuePipe('createdAt')) sortBy?: string,
+		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy?: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
 	) {
 		// Validate UUIDs if provided
 		if (
-			unitId &&
-			!unitId.match(
+			unit_id &&
+			!unit_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
 			throw new BadRequestException('Invalid unit ID')
 		}
 		if (
-			propertyId &&
-			!propertyId.match(
+			property_id &&
+			!property_id.match(
 				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 			)
 		) {
@@ -100,8 +100,8 @@ export class MaintenanceController {
 
 		// RLS: Pass JWT token to service layer
 		return this.maintenanceService.findAll(token, {
-			unitId,
-			propertyId,
+			unit_id,
+			property_id,
 			priority,
 			category,
 			status,
@@ -157,15 +157,15 @@ export class MaintenanceController {
 
 	/**
 	 * Create maintenance request
-	 * RLS COMPLIANT: Uses @JwtToken() and @UserId() decorators
+	 * RLS COMPLIANT: Uses @JwtToken() and @user_id() decorators
 	 */
 	@Post()
 	async create(
 		@Body() dto: CreateMaintenanceDto,
 		@JwtToken() token: string,
-		@UserId() userId: string
+		@user_id() user_id: string
 	) {
-		return this.maintenanceService.create(token, userId, dto as unknown as CreateMaintenanceRequest)
+		return this.maintenanceService.create(token, user_id, dto as unknown as CreateMaintenanceRequest)
 	}
 
 	/**

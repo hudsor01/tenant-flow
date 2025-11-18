@@ -22,7 +22,7 @@ import type { Tenant, TenantWithLeaseInfo, TenantStats } from '@repo/shared/type
  */
 export interface TenantFilters {
 	status?: 'ACTIVE' | 'INACTIVE' | 'PENDING'
-	propertyId?: string
+	property_id?: string
 	search?: string
 	limit?: number
 	offset?: number
@@ -60,7 +60,7 @@ export const tenantQueries = {
 			queryFn: async () => {
 				const searchParams = new URLSearchParams()
 				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.propertyId) searchParams.append('propertyId', filters.propertyId)
+				if (filters?.property_id) searchParams.append('property_id', filters.property_id)
 				if (filters?.search) searchParams.append('search', filters.search)
 				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
@@ -82,7 +82,7 @@ export const tenantQueries = {
 	 * Single tenant by ID
 	 *
 	 * @example
-	 * const { data } = useQuery(tenantQueries.detail(tenantId))
+	 * const { data } = useQuery(tenantQueries.detail(tenant_id))
 	 */
 	detail: (id: string) =>
 		queryOptions({
@@ -96,7 +96,7 @@ export const tenantQueries = {
 	 * Tenant with lease information
 	 *
 	 * @example
-	 * const { data } = useQuery(tenantQueries.withLease(tenantId))
+	 * const { data } = useQuery(tenantQueries.withLease(tenant_id))
 	 */
 	withLease: (id: string) =>
 		queryOptions({

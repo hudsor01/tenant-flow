@@ -1,12 +1,8 @@
+import type { PropertyType, UnitStatus } from '../constants/status-types.js'
 /**
  * Property utilities
  * Helper functions for property and unit display
  */
-
-import type { Database } from '../types/supabase-generated.js'
-
-type PropertyType = Database['public']['Enums']['PropertyType']
-type UnitStatus = Database['public']['Enums']['UnitStatus']
 
 export const getPropertyTypeLabel = (type: PropertyType): string => {
 	const labels: Record<PropertyType, string> = {

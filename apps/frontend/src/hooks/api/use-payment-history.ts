@@ -16,8 +16,8 @@ export const paymentHistoryKeys = {
 	list: () => [...paymentHistoryKeys.all, 'list'] as const,
 	bySubscription: (subscriptionId: string) =>
 		[...paymentHistoryKeys.all, 'subscription', subscriptionId] as const,
-	byTenant: (tenantId: string) =>
-		[...paymentHistoryKeys.all, 'tenant', tenantId] as const
+	byTenant: (tenant_id: string) =>
+		[...paymentHistoryKeys.all, 'tenants', tenant_id] as const
 }
 
 /**
@@ -26,15 +26,15 @@ export const paymentHistoryKeys = {
 export interface PaymentHistoryItem {
 	id: string
 	subscriptionId: string
-	tenantId: string
+	tenant_id: string
 	amount: number
 	currency: string
 	status: 'succeeded' | 'failed' | 'pending' | 'canceled'
 	stripePaymentIntentId?: string
 	description?: string
 	metadata?: Record<string, unknown>
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 
 	// Additional fields for display
 	formattedAmount: string
@@ -49,13 +49,13 @@ export interface PaymentHistoryItem {
 export interface FailedPaymentAttempt {
 	id: string
 	subscriptionId: string
-	tenantId: string
+	tenant_id: string
 	amount: number
 	attemptNumber: number
 	failureReason: string
 	stripePaymentIntentId?: string
 	nextRetryDate?: string
-	createdAt: string
+	created_at: string
 }
 
 /**

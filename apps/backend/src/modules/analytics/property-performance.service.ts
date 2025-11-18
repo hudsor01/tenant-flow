@@ -22,14 +22,14 @@ export class PropertyPerformanceService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	private buildUserPayload(
-		userId: string,
+		user_id: string,
 		extra?: Record<string, unknown>
 	): Record<string, unknown> {
 		return {
-			user_id: userId,
-			user_id_param: userId,
-			p_user_id: userId,
-			uid: userId,
+			user_id: user_id,
+			user_id_param: user_id,
+			p_user_id: user_id,
+			uid: user_id,
 			...extra
 		}
 	}
@@ -63,10 +63,10 @@ export class PropertyPerformanceService {
 	}
 
 async getPropertyPerformance(
-		userId: string
+		user_id: string
 	): Promise<PropertyPerformanceEntry[]> {
 		const [rawProperties, rawTrends] = await Promise.all([
-			this.callRpc('get_property_performance', this.buildUserPayload(userId)),
+			this.callRpc('get_property_performance', this.buildUserPayload(user_id)),
 			this.callRpc<
 				Array<{
 					property_id: string
@@ -75,7 +75,7 @@ async getPropertyPerformance(
 					trend: 'up' | 'down' | 'stable'
 					trend_percentage: number
 				}>
-			>('get_property_performance_trends', this.buildUserPayload(userId))
+			>('get_property_performance_trends', this.buildUserPayload(user_id))
 		])
 
 		const properties = mapPropertyPerformance(rawProperties)
@@ -87,7 +87,7 @@ async getPropertyPerformance(
 
 		// Merge trend data with property performance
 		return properties.map(property => {
-			const trendData = trendsMap.get(property.propertyId)
+			const trendData = trendsMap.get(property.property_id)
 
 			if (trendData) {
 				return {
@@ -106,41 +106,41 @@ async getPropertyPerformance(
 		})
 	}
 
-	async getPropertyUnits(userId: string): Promise<PropertyUnitDetail[]> {
+	async getPropertyUnits(user_id: string): Promise<PropertyUnitDetail[]> {
 		const raw = await this.callRpc(
 			'get_property_units',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapPropertyUnits(raw)
 	}
 
-	async getUnitStatistics(userId: string): Promise<UnitStatisticEntry[]> {
+	async getUnitStatistics(user_id: string): Promise<UnitStatisticEntry[]> {
 		const raw = await this.callRpc(
 			'get_unit_statistics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapUnitStatistics(raw)
 	}
 
-	async getVisitorAnalytics(userId: string): Promise<VisitorAnalyticsResponse> {
+	async getVisitorAnalytics(user_id: string): Promise<VisitorAnalyticsResponse> {
 		const raw = await this.callRpc(
 			'calculate_visitor_analytics_full',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapVisitorAnalytics(raw)
 	}
 
 	async getPropertyPerformancePageData(
-		userId: string
+		user_id: string
 	): Promise<PropertyPerformancePageResponse> {
 		const [performanceRaw, unitsRaw, unitStatsRaw, visitorRaw] =
 			await Promise.all([
-				this.callRpc('get_property_performance', this.buildUserPayload(userId)),
-				this.callRpc('get_property_units', this.buildUserPayload(userId)),
-				this.callRpc('get_unit_statistics', this.buildUserPayload(userId)),
+				this.callRpc('get_property_performance', this.buildUserPayload(user_id)),
+				this.callRpc('get_property_units', this.buildUserPayload(user_id)),
+				this.callRpc('get_unit_statistics', this.buildUserPayload(user_id)),
 				this.callRpc(
 					'calculate_visitor_analytics_full',
-					this.buildUserPayload(userId)
+					this.buildUserPayload(user_id)
 				)
 			])
 

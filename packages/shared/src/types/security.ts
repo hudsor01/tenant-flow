@@ -2,10 +2,10 @@
  * Security-related types shared between frontend and backend
  */
 
-// User roles are consolidated in auth.ts - import from there
+// User user_types are consolidated in auth.ts - import from there
 // This ensures single source of truth and prevents duplication
-export { USER_ROLE } from '../constants/auth.js'
-export type { Permission, UserRole } from '../types/auth.js'
+export { USER_user_type } from '../constants/auth.js'
+export type { Permission, User } from '../types/auth.js'
 
 /**
  * Comprehensive security event types for monitoring
@@ -69,7 +69,7 @@ export enum SecurityEventSeverity {
 export interface SecurityEvent {
 	type: SecurityEventType
 	severity: SecurityEventSeverity
-	userId?: string
+	user_id?: string
 	details?: string
 	metadata?: SecurityEventMetadata
 	ipAddress?: string
@@ -84,7 +84,7 @@ export interface SecurityAuditLog {
 	id?: string
 	eventType: SecurityEventType
 	severity: SecurityEventSeverity
-	userId?: string
+	user_id?: string
 	details: string
 	metadata?: SecurityEventMetadata
 	ipAddress?: string
@@ -300,7 +300,7 @@ export type DataClassificationType =
 export interface SecureAppMetadata {
 	provider?: string
 	providers?: string[]
-	role?: string
+	user_type?: string
 	organizationId?: string
 	permissions?: string[]
 }

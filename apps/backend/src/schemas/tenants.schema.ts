@@ -44,7 +44,7 @@ export const createTenantSchema: JSONSchema = {
 		},
 		email: emailSchema,
 		phone: phoneSchema,
-		emergencyContact: {
+		emergency_contact: {
 			type: 'string',
 			maxLength: 500
 		}
@@ -65,7 +65,7 @@ export const updateTenantSchema: JSONSchema = {
 		},
 		email: emailSchema,
 		phone: phoneSchema,
-		emergencyContact: {
+		emergency_contact: {
 			type: 'string',
 			maxLength: 500
 		}
@@ -96,8 +96,8 @@ export const tenantQuerySchema: JSONSchema = {
 		},
 		sortBy: {
 			type: 'string',
-			enum: ['name', 'email', 'createdAt'],
-			default: 'createdAt'
+			enum: ['name', 'email', 'created_at'],
+			default: 'created_at'
 		},
 		sortOrder: {
 			type: 'string',
@@ -149,14 +149,14 @@ export const tenantRouteSchemas = {
 					type: 'object',
 					properties: {
 						id: { type: 'string' },
-						ownerId: { type: 'string' },
+						owner_id: { type: 'string' },
 						name: { type: 'string' },
 						email: { type: 'string' },
 						phone: { type: 'string' },
-						emergencyContact: { type: 'string' },
+						emergency_contact: { type: 'string' },
 						invitationStatus: invitationStatusSchema,
-						createdAt: { type: 'string' },
-						updatedAt: { type: 'string' }
+						created_at: { type: 'string' },
+						updated_at: { type: 'string' }
 					}
 				}
 			}

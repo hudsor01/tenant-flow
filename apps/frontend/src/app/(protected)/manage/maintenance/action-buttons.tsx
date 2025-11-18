@@ -15,13 +15,10 @@ import {
 } from '#components/ui/dialog'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import {
-	AlertTriangle,
 	Calendar,
-	Clock,
 	DollarSign,
 	Eye,
 	MapPin,
-	User,
 	Wrench
 } from 'lucide-react'
 import { useState } from 'react'
@@ -30,7 +27,6 @@ interface MaintenanceActionButtonsProps {
 	maintenance: MaintenanceRequest & {
 		property: { name: string } | null
 		unit?: { name: string } | null
-		assignedTo?: { name: string } | null
 	}
 	deleteAction: (id: string) => Promise<{ success: boolean }>
 }
@@ -99,7 +95,7 @@ export function MaintenanceActionButtons({
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<Wrench className="size-5" />
-							{maintenance.title}
+							{maintenance.description}
 						</DialogTitle>
 						<DialogDescription>
 							View detailed maintenance request information including status,
@@ -148,7 +144,7 @@ export function MaintenanceActionButtons({
 								</div>
 							)}
 
-							{maintenance.unitId && (
+							{maintenance.unit_id && (
 								<div className="flex items-center gap-2">
 									<div className="size-4 rounded bg-muted flex items-center justify-center">
 										<span className="text-xs font-bold">#</span>
@@ -156,102 +152,39 @@ export function MaintenanceActionButtons({
 									<div>
 										<p className="text-sm font-medium">Unit</p>
 										<p className="text-sm text-muted-foreground">
-											Unit {maintenance.unitId}
+											Unit {maintenance.unit_id}
 										</p>
 									</div>
 								</div>
 							)}
 						</div>
 
-						{/* Category and Cost */}
-						<div className="grid grid-cols-2 gap-4">
+						{/* Estimated Cost */}
+						{maintenance.estimated_cost && (
 							<div className="flex items-center gap-2">
-								<Wrench className="size-4 text-muted-foreground" />
+								<DollarSign className="size-4 text-muted-foreground" />
 								<div>
-									<p className="text-sm font-medium">Category</p>
+									<p className="text-sm font-medium">Estimated Cost</p>
 									<p className="text-sm text-muted-foreground">
-										{maintenance.category || 'General'}
-									</p>
-								</div>
-							</div>
-
-							{maintenance.estimatedCost && (
-								<div className="flex items-center gap-2">
-									<DollarSign className="size-4 text-muted-foreground" />
-									<div>
-										<p className="text-sm font-medium">Estimated Cost</p>
-										<p className="text-sm text-muted-foreground">
-											${maintenance.estimatedCost.toLocaleString()}
-										</p>
-									</div>
-								</div>
-							)}
-						</div>
-
-						{/* Assignment and Dates */}
-						<div className="grid grid-cols-2 gap-4">
-							{maintenance.assignedTo && (
-								<div className="flex items-center gap-2">
-									<User className="size-4 text-muted-foreground" />
-									<div>
-										<p className="text-sm font-medium">Assigned To</p>
-										<p className="text-sm text-muted-foreground">
-											{maintenance.assignedTo}
-										</p>
-									</div>
-								</div>
-							)}
-
-							<div className="flex items-center gap-2">
-								<Calendar className="size-4 text-muted-foreground" />
-								<div>
-									<p className="text-sm font-medium">Created</p>
-									<p className="text-sm text-muted-foreground">
-										{maintenance.createdAt
-											? new Date(maintenance.createdAt).toLocaleDateString()
-											: 'No date'}
-									</p>
-								</div>
-							</div>
-						</div>
-
-						{/* Preferred Date */}
-						{maintenance.preferredDate && (
-							<div className="flex items-center gap-2">
-								<Clock className="size-4 text-muted-foreground" />
-								<div>
-									<p className="text-sm font-medium">Preferred Date</p>
-									<p className="text-sm text-muted-foreground">
-										{new Date(maintenance.preferredDate).toLocaleDateString()}
+										${maintenance.estimated_cost.toLocaleString()}
 									</p>
 								</div>
 							</div>
 						)}
+						</div>
 
-						{/* Allow Entry */}
-						{maintenance.allowEntry !== undefined && (
-							<div className="flex items-center gap-2">
-								<AlertTriangle className="size-4 text-muted-foreground" />
-								<div>
-									<p className="text-sm font-medium">Entry Permission</p>
-									<p className="text-sm text-muted-foreground">
-										{maintenance.allowEntry
-											? 'Entry Allowed'
-											: 'No Entry Without Tenant Present'}
-									</p>
-								</div>
-							</div>
-						)}
-
-						{/* Notes */}
-						{maintenance.notes && (
-							<div className="space-y-2">
-								<h4 className="font-medium">Notes</h4>
-								<p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
-									{maintenance.notes}
+						{/* Dates */}
+						<div className="flex items-center gap-2">
+							<Calendar className="size-4 text-muted-foreground" />
+							<div>
+								<p className="text-sm font-medium">Created</p>
+								<p className="text-sm text-muted-foreground">
+									{maintenance.created_at
+										? new Date(maintenance.created_at).toLocaleDateString()
+										: 'No date'}
 								</p>
 							</div>
-						)}
+						</div>
 
 						{/* Action Buttons */}
 						<div className="flex justify-end pt-4 border-t">
@@ -262,7 +195,6 @@ export function MaintenanceActionButtons({
 								<EditMaintenanceButton maintenance={maintenance} />
 								<StatusUpdateButton maintenance={maintenance} />
 							</ButtonGroup>
-						</div>
 					</div>
 				</DialogContent>
 			</Dialog>

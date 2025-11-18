@@ -24,14 +24,14 @@ export class LeaseAnalyticsService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	private buildUserPayload(
-		userId: string,
+		user_id: string,
 		extra?: Record<string, unknown>
 	): Record<string, unknown> {
 		return {
-			user_id: userId,
-			user_id_param: userId,
-			p_user_id: userId,
-			uid: userId,
+			user_id: user_id,
+			user_id_param: user_id,
+			p_user_id: user_id,
+			uid: user_id,
 			...extra
 		}
 	}
@@ -66,60 +66,60 @@ export class LeaseAnalyticsService {
 	}
 
 	async getLeaseFinancialSummary(
-		userId: string
+		user_id: string
 	): Promise<LeaseFinancialSummary> {
 		const raw = await this.callRpc(
 			'get_lease_financial_summary',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapLeaseSummary(raw)
 	}
 
 	async getLeasesWithFinancialAnalytics(
-		userId: string
+		user_id: string
 	): Promise<LeaseFinancialInsight[]> {
 		const raw = await this.callRpc(
 			'get_leases_with_financial_analytics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapLeaseProfitability(raw)
 	}
 
-	async getLeaseLifecycleData(userId: string): Promise<LeaseLifecyclePoint[]> {
+	async getLeaseLifecycleData(user_id: string): Promise<LeaseLifecyclePoint[]> {
 		const raw = await this.callRpc(
 			'get_lease_lifecycle_data',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapLeaseLifecycle(raw)
 	}
 
 	async getLeaseStatusBreakdown(
-		userId: string
+		user_id: string
 	): Promise<LeaseStatusBreakdown[]> {
 		const raw = await this.callRpc(
 			'get_lease_status_breakdown',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapLeaseStatusBreakdown(raw)
 	}
 
 	async getLeaseAnalyticsPageData(
-		userId: string
+		user_id: string
 	): Promise<LeaseAnalyticsPageResponse> {
 		const [summaryRaw, profitabilityRaw, lifecycleRaw, statusRaw] =
 			await Promise.all([
 				this.callRpc(
 					'get_lease_financial_summary',
-					this.buildUserPayload(userId)
+					this.buildUserPayload(user_id)
 				),
 				this.callRpc(
 					'get_leases_with_financial_analytics',
-					this.buildUserPayload(userId)
+					this.buildUserPayload(user_id)
 				),
-				this.callRpc('get_lease_lifecycle_data', this.buildUserPayload(userId)),
+				this.callRpc('get_lease_lifecycle_data', this.buildUserPayload(user_id)),
 				this.callRpc(
 					'get_lease_status_breakdown',
-					this.buildUserPayload(userId)
+					this.buildUserPayload(user_id)
 				)
 			])
 

@@ -2,6 +2,7 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#components/ui/sheet'
 import { useSignOut } from '#hooks/api/use-auth'
+import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
 import { useAuth } from '#providers/auth-provider'
 import { useSpring, useTransition } from '@react-spring/core'
@@ -53,7 +54,6 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		},
 		ref
 	) => {
-		const [isOpen, setIsOpen] = useState(false)
 		const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 		const [isScrolled, setIsScrolled] = useState(false)
 		const [logoHover, setLogoHover] = useState(false)
@@ -69,6 +69,9 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 		)
 		const [isMounted, setIsMounted] = useState(false)
 		const [scrollProgress, setScrollProgress] = useState(0)
+
+		// Use navigation store for mobile menu state
+		const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useNavigation()
 
 		// Get current pathname for active link indicator
 		const pathname = usePathname()
@@ -125,10 +128,6 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			window.addEventListener('scroll', handleScroll)
 			return () => window.removeEventListener('scroll', handleScroll)
 		}, [])
-
-		const toggleMobileMenu = () => {
-			setIsOpen(!isOpen)
-		}
 
 		const handleDropdownToggle = (itemName: string) => {
 			setOpenDropdown(openDropdown === itemName ? null : itemName)
@@ -188,7 +187,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			// Use improved sign out with React Query mutation benefits
 			signOutMutation.mutate(undefined, {
 				onSettled: () => {
-					setIsOpen(false)
+					closeMobileMenu()
 				}
 			})
 		}
@@ -413,18 +412,18 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							onMouseUp={() => setMobileButtonTap(false)}
 							onClick={toggleMobileMenu}
 							aria-label={
-								isOpen ? 'Close navigation menu' : 'Open navigation menu'
+								isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
 							}
 							data-testid="mobile-nav-toggle"
 							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200"
 						>
-							{isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+							{isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 						</animated.button>
 					</div>
 				</div>
 
 				{/* Mobile Menu - Premium Sheet Pattern */}
-			<Sheet open={isOpen} onOpenChange={setIsOpen}>
+			<Sheet open={isMobileMenuOpen} onOpenChange={(open) => open ? toggleMobileMenu() : closeMobileMenu()}>
 				<SheetContent side="right" className="w-[300px] sm:w-[350px]">
 					<SheetHeader>
 						<SheetTitle className="text-left">Menu</SheetTitle>
@@ -440,7 +439,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 										>
 											<Link
 												href={item.href}
-												onClick={() => !item.hasDropdown && setIsOpen(false)}
+												onClick={() => !item.hasDropdown && closeMobileMenu()}
 												className={cn(
 													'relative flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200',
 													isActiveLink(item.href) &&
@@ -481,7 +480,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 																>
 																	<Link
 																		href={dropdownItem.href}
-																		onClick={() => setIsOpen(false)}
+																		onClick={() => closeMobileMenu()}
 																		className="block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 																	>
 																		{dropdownItem.name}
@@ -528,7 +527,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 										>
 											<Link
 												href="/login"
-												onClick={() => setIsOpen(false)}
+												onClick={() => closeMobileMenu()}
 												className="block px-4 py-3 text-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 											>
 												Sign In
@@ -545,7 +544,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 										>
 											<Link
 												href={ctaHref}
-												onClick={() => setIsOpen(false)}
+												onClick={() => closeMobileMenu()}
 												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
 											>
 												{ctaText}

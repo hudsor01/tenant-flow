@@ -6,11 +6,11 @@
 
 import type { PLAN_TYPE } from '../constants/billing.js'
 import type { MaintenanceQuery, PropertyQuery } from './queries.js'
-import type { Database } from './supabase-generated.js'
+import type { Database } from './supabase.js'
 
 // Define types properly from Database schema
-type Lease = Database['public']['Tables']['lease']['Row']
-type Property = Database['public']['Tables']['property']['Row']
+type Lease = Database['public']['Tables']['leases']['Row']
+type Property = Database['public']['Tables']['properties']['Row']
 
 // Subscription API Inputs
 
@@ -85,9 +85,9 @@ export interface TrialParams {
 
 // Define property input types from Database schema
 export type CreatePropertyInput =
-	Database['public']['Tables']['property']['Insert']
+	Database['public']['Tables']['properties']['Insert']
 export type UpdatePropertyInput =
-	Database['public']['Tables']['property']['Update']
+	Database['public']['Tables']['properties']['Update']
 
 /**
  * Query parameters for filtering properties (extends from queries.ts)
@@ -101,31 +101,31 @@ export type PropertyQueryInput = PropertyQuery
  * Input for creating a new unit
  * Uses Supabase generated types for type safety
  */
-export type CreateUnitInput = Database['public']['Tables']['unit']['Insert']
+export type CreateUnitInput = Database['public']['Tables']['units']['Insert']
 
 /**
  * Input for updating an existing unit
  * Uses Supabase generated types for type safety
  */
-export type UpdateUnitInput = Database['public']['Tables']['unit']['Update']
+export type UpdateUnitInput = Database['public']['Tables']['units']['Update']
 
 // Tenant API Inputs
 
 /**
  * Input for creating a new tenant
- * Excludes server-managed fields: userId (from auth), id, createdAt, updatedAt
- * Backend extracts userId from authenticated JWT token
+ * Excludes server-managed fields: user_id (from auth), id, created_at, updated_at
+ * Backend extracts user_id from authenticated JWT token
  */
 export type CreateTenantInput = Omit<
-	Database['public']['Tables']['tenant']['Insert'],
-	'userId' | 'id' | 'createdAt' | 'updatedAt'
+	Database['public']['Tables']['tenants']['Insert'],
+	'user_id' | 'id' | 'created_at' | 'updated_at'
 >
 
 /**
  * Input for updating an existing tenant
  * Uses Supabase generated types for type safety
  */
-export type UpdateTenantInput = Database['public']['Tables']['tenant']['Update']
+export type UpdateTenantInput = Database['public']['Tables']['tenants']['Update']
 
 // Lease API Inputs
 
@@ -133,13 +133,13 @@ export type UpdateTenantInput = Database['public']['Tables']['tenant']['Update']
  * Input for creating a new lease
  * Uses Supabase generated types for type safety
  */
-export type CreateLeaseInput = Database['public']['Tables']['lease']['Insert']
+export type CreateLeaseInput = Database['public']['Tables']['leases']['Insert']
 
 /**
  * Input for updating an existing lease
  * Uses Supabase generated types for type safety
  */
-export type UpdateLeaseInput = Database['public']['Tables']['lease']['Update']
+export type UpdateLeaseInput = Database['public']['Tables']['leases']['Update']
 
 // Maintenance API Inputs
 
@@ -148,14 +148,14 @@ export type UpdateLeaseInput = Database['public']['Tables']['lease']['Update']
  * Uses Supabase generated types for type safety
  */
 export type CreateMaintenanceInput =
-	Database['public']['Tables']['maintenance_request']['Insert']
+	Database['public']['Tables']['maintenance_requests']['Insert']
 
 /**
  * Input for updating a maintenance request
  * Uses Supabase generated types for type safety
  */
 export type UpdateMaintenanceInput =
-	Database['public']['Tables']['maintenance_request']['Update']
+	Database['public']['Tables']['maintenance_requests']['Update']
 
 /**
  * Query parameters for maintenance request search (extends from queries.ts)
@@ -174,9 +174,9 @@ export type MaintenanceQueryInput = MaintenanceQuery
 export interface UseLeaseFormProps {
 	lease?: Lease
 	mode?: 'create' | 'edit'
-	propertyId?: string
-	unitId?: string
-	tenantId?: string
+	property_id?: string
+	unit_id?: string
+	tenant_id?: string
 	onSuccess: () => void
 	onClose: () => void
 }
@@ -231,8 +231,8 @@ export interface FileUploadRequest {
 export interface RegisterInput {
 	email: string
 	password: string
-	firstName: string
-	lastName: string
+	first_name: string
+	last_name: string
 }
 
 /**
@@ -304,7 +304,7 @@ export interface EnsureUserExistsInput {
 		}
 	}
 	options?: {
-		role?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
+		user_type?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
 		name?: string
 		maxRetries?: number
 		retryDelayMs?: number

@@ -76,16 +76,13 @@ export class StripeSyncController {
 	/**
 	 * Mark webhook event as processed (idempotency tracking)
 	 */
-	private async markEventProcessed(
-		eventId: string,
-		eventType: string
-	): Promise<void> {
+	private async markEventProcessed(eventId: string): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('stripe_processed_events')
 			.insert({
-				event_id: eventId,
-				event_type: eventType
+				stripe_event_id: eventId,
+				processed_at: new Date().toISOString()
 			})
 
 		if (error && error.code !== '23505') {
@@ -116,7 +113,6 @@ export class StripeSyncController {
 				)
 
 			this.logger.log('Processing webhook business logic', {
-				eventType: event.type,
 				eventId: event.id
 			})
 
@@ -193,7 +189,7 @@ export class StripeSyncController {
 			}
 
 			// Mark event as processed AFTER successful handling
-			await this.markEventProcessed(event.id, event.type)
+			await this.markEventProcessed(event.id)
 		} catch (error) {
 			this.logger.error('Error processing webhook business logic', {
 				error: error instanceof Error ? error.message : 'Unknown error'
@@ -232,7 +228,7 @@ export class StripeSyncController {
 
 	/**
 	 * CRITICAL FIX: Handle checkout.session.completed webhook
-	 * Records one-time payments in rent_payment table
+	 * Records one-time payments in rent_payments table
 	 *
 	 * Without this handler, payments succeed but are NEVER recorded in DB!
 	 */
@@ -256,12 +252,12 @@ export class StripeSyncController {
 			return
 		}
 
-		// Extract metadata (should contain leaseId, tenantId from frontend)
-		const leaseId = session.metadata?.leaseId
-		const tenantId = session.metadata?.tenantId
+		// Extract metadata (should contain lease_id, tenant_id from frontend)
+		const lease_id = session.metadata?.lease_id
+		const tenant_id = session.metadata?.tenant_id
 		const paymentType = session.metadata?.paymentType || 'rent'
 
-		if (!leaseId || !tenantId) {
+		if (!lease_id || !tenant_id) {
 			this.logger.error('Missing required metadata in checkout session', {
 				sessionId: session.id,
 				metadata: session.metadata
@@ -270,49 +266,46 @@ export class StripeSyncController {
 		}
 
 		// Type assertion to ensure TypeScript knows these are defined after the guard
-		const safeLeaseId = leaseId!
-		const safeTenantId = tenantId!
+		const safelease_id = lease_id!
+		const safetenant_id = tenant_id!
 
-		// Get lease with property to retrieve ownerId
+		// Get lease with property to retrieve owner_id
 		const { data: lease, error: leaseError } = await this.supabaseService
 			.getAdminClient()
-			.from('lease')
-			.select('propertyId, property:propertyId(ownerId)')
-			.eq('id', leaseId)
+			.from('leases')
+			.select('*, property_id!inner(owner_id)')
+			.eq('id', safelease_id)
 			.single()
 
-		if (leaseError || !lease || !lease.property) {
+		if (leaseError || !lease) {
 			this.logger.error('Failed to fetch lease/property for checkout payment', {
 				error: leaseError?.message,
-				leaseId,
+				lease_id: safelease_id,
 				sessionId: session.id
 			})
 			return
 		}
 
-		const ownerId = (lease.property as { ownerId: string }).ownerId
-
 		// Calculate amount (no platform fees - owner receives full amount minus Stripe fees)
 		const amountInCents = session.amount_total || 0
 		const amountInDollars = amountInCents / 100
-		let receiptUrl: string | null = null
 
 		if (session.payment_intent) {
 			try {
-				const stripe = this.stripeClientService.getClient()
-				const paymentIntent = await stripe.paymentIntents.retrieve(
-					session.payment_intent as string,
-					{ expand: ['latest_charge'] }
-				)
+			// Receipt URL can be fetched for logging but not currently stored
+			const stripe = this.stripeClientService.getClient()
+			const paymentIntent = await stripe.paymentIntents.retrieve(
+				session.payment_intent as string,
+				{ expand: ['latest_charge'] }
+			)
 
-				if (
-					paymentIntent.latest_charge &&
-					typeof paymentIntent.latest_charge === 'object'
-				) {
-					receiptUrl =
-						(paymentIntent.latest_charge as Stripe.Charge).receipt_url ?? null
-				}
-			} catch (error) {
+			if (
+				paymentIntent.latest_charge &&
+				typeof paymentIntent.latest_charge === 'object'
+			) {
+				// Receipt URL available at (paymentIntent.latest_charge as Stripe.Charge).receipt_url
+			}
+		} catch (error) {
 				this.logger.warn('Failed to fetch receipt URL for checkout payment', {
 					sessionId: session.id,
 					paymentIntentId: session.payment_intent,
@@ -324,23 +317,29 @@ export class StripeSyncController {
 		// Record payment in database
 		// NOTE: We rely on unique constraint on stripePaymentIntentId to prevent duplicates
 		// If duplicate, we handle the error gracefully below
+		const now = new Date()
+		const today = now.toISOString().split('T')[0]
+
+		const paymentRecord = {
+				lease_id: safelease_id,
+				tenant_id: safetenant_id,
+				amount: Math.round(amountInDollars * 100), // Convert to cents
+				currency: 'usd',
+				status: 'succeeded' as const,
+				due_date: today,
+				paid_date: now.toISOString(),
+				period_start: today,
+				period_end: today,
+				payment_method_type: paymentType,
+			stripe_payment_intent_id: session.payment_intent as string,
+			application_fee_amount: 0
+		}
+
 		const { error } = await this.supabaseService
 			.getAdminClient()
-			.from('rent_payment')
-			.insert({
-				leaseId: safeLeaseId,
-				tenantId: safeTenantId,
-				ownerId,
-				amount: amountInDollars,
-				paidAt: new Date().toISOString(),
-				paymentType,
-				status: 'completed',
-				stripePaymentIntentId: session.payment_intent as string,
-				receiptUrl,
-				platformFee: 0,
-				stripeFee: 0,
-				ownerReceives: amountInDollars
-			})
+			.from('rent_payments')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.insert(paymentRecord as any)
 
 		if (error) {
 			// Check if it's a conflict (duplicate) or actual error
@@ -352,8 +351,8 @@ export class StripeSyncController {
 					'Checkout payment already exists (webhook retry), skipping duplicate',
 					{
 						sessionId: session.id,
-						leaseId,
-						tenantId,
+						lease_id,
+						tenant_id,
 						stripePaymentIntentId: session.payment_intent,
 						amount: amountInDollars
 					}
@@ -362,16 +361,16 @@ export class StripeSyncController {
 				this.logger.error('Failed to record checkout payment', {
 					error: error.message,
 					sessionId: session.id,
-					leaseId,
-					tenantId,
+					lease_id,
+					tenant_id,
 					stripePaymentIntentId: session.payment_intent
 				})
 			}
 		} else {
 			this.logger.log('Checkout payment recorded successfully', {
 				sessionId: session.id,
-				leaseId,
-				tenantId,
+				lease_id,
+				tenant_id,
 				amount: amountInDollars,
 				stripePaymentIntentId: session.payment_intent
 			})
@@ -430,7 +429,7 @@ export class StripeSyncController {
 		} else if (data) {
 			this.logger.log('Linked Stripe customer to user', {
 				customerId: customer.id,
-				userId: data
+				user_id: data
 			})
 		}
 	}

@@ -23,7 +23,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 	let webhookMonitoringService: DeepMocked<WebhookMonitoringService>
 	let appConfigService: DeepMocked<AppConfigService>
 
-	const validUserId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+	const validuser_id = 'f47ac10b-58cc-4372-a567-0e02b2c3d479'
 	const mockCustomerId = 'cus_test123'
 	const mockSubscriptionId = 'sub_test123'
 	const mockEventId = 'evt_test123'
@@ -412,7 +412,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 			const mockCustomer: Stripe.Customer = {
 				id: mockCustomerId,
 				email: 'test@example.com',
-				metadata: { user_id: validUserId }
+				metadata: { user_id: validuser_id }
 			} as unknown as Stripe.Customer
 
 			const mockEvent: Stripe.Event = {
@@ -456,7 +456,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 			const mockCustomer: Stripe.Customer = {
 				id: mockCustomerId,
 				email: 'updated@example.com',
-				metadata: { user_id: validUserId }
+				metadata: { user_id: validuser_id }
 			} as unknown as Stripe.Customer
 
 			const mockEvent: Stripe.Event = {
@@ -500,7 +500,7 @@ describe('StripeSyncController - Webhook Processing', () => {
 			const mockCustomer: Stripe.Customer = {
 				id: mockCustomerId,
 				email: 'deleted@example.com',
-				metadata: { user_id: validUserId }
+				metadata: { user_id: validuser_id }
 			} as unknown as Stripe.Customer
 
 			const mockEvent: Stripe.Event = {

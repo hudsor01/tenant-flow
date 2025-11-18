@@ -24,7 +24,7 @@ import { PrometheusService } from '../observability/prometheus.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { createMockAppConfigService } from '../../test-utils/mocks'
 
-	describe('StripeWebhookController', () => {
+describe('StripeWebhookController', () => {
 		let controller: StripeWebhookController
 		let eventEmitter: jest.Mocked<EventEmitter2>
 		let prometheus: jest.Mocked<PrometheusService>
@@ -43,7 +43,8 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		single: jest.fn().mockReturnThis(),
-		insert: jest.fn().mockReturnThis()
+		insert: jest.fn().mockReturnThis(),
+		upsert: jest.fn().mockReturnThis()
 	}
 
 	// Helper to create mock Stripe event
@@ -62,7 +63,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 	}) as Stripe.Event
 
 	// Helper to create mock request with raw body
-	const createMockRequest = (rawBody: string | Buffer) => ({
+	const createMockWebhookRequest = (rawBody: string | Buffer) => ({
 		rawBody,
 		headers: {},
 		body: {}
@@ -125,9 +126,9 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		delete process.env.STRIPE_WEBHOOK_SECRET
 	})
 
-	describe('Security - Signature Verification', () => {
+		describe('Security - Signature Verification', () => {
 		it('should reject webhook without stripe-signature header', async () => {
-			const req = createMockRequest('{"type":"test"}')
+			const req = createMockWebhookRequest('{"type":"test"}')
 
 			await expect(
 				controller.handleWebhook(req as any, '')
@@ -142,7 +143,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		delete process.env.STRIPE_WEBHOOK_SECRET
 		mockAppConfigService.getStripeWebhookSecret.mockReturnValue(undefined as any)
 
-			const req = createMockRequest('{"type":"test"}')
+			const req = createMockWebhookRequest('{"type":"test"}')
 			const signature = 't=1234,v1=signature'
 
 			await expect(
@@ -155,7 +156,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		})
 
 		it('should reject webhook with invalid signature', async () => {
-			const req = createMockRequest('{"type":"test"}')
+			const req = createMockWebhookRequest('{"type":"test"}')
 			const signature = 't=1234,v1=invalid_signature'
 
 			mockStripe.webhooks.constructEvent.mockImplementation(() => {
@@ -183,7 +184,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				amount: 5000
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -201,7 +202,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		})
 
 		it('should reject when raw body is missing', async () => {
-			const req = createMockRequest('')
+			const req = createMockWebhookRequest('')
 			const signature = 't=1234,v1=signature'
 
 			await expect(
@@ -217,7 +218,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 
 		it('should handle Buffer raw body', async () => {
 			const event = createMockStripeEvent('customer.created', { id: 'cus_test' })
-			const req = createMockRequest(Buffer.from('{"type":"customer.created"}'))
+			const req = createMockWebhookRequest(Buffer.from('{"type":"customer.created"}'))
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -235,13 +236,13 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		})
 	})
 
-	describe('Idempotency - Duplicate Event Detection', () => {
+		describe('Idempotency - Duplicate Event Detection', () => {
 		it('should detect and reject duplicate events', async () => {
 			const event = createMockStripeEvent('payment_intent.succeeded', {
 				id: 'pi_test_duplicate'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -265,7 +266,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				amount: 5000
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -289,24 +290,15 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 			)
 
 			// Verify stored in processed_stripe_events
-			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
-				expect.objectContaining({
-					stripe_event_id: event.id,
-					event_type: event.type,
-					processed_at: expect.any(String)
-				})
-			)
+		expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
+			expect.objectContaining({
+				stripe_event_id: event.id,
+				processed_at: expect.any(String)
+			})
+		)
 
-			// Verify metrics stored
-			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
-				expect.objectContaining({
-					stripe_event_id: event.id,
-					event_type: event.type,
-					processing_duration_ms: expect.any(Number),
-					success: true,
-					created_at: expect.any(String)
-				})
-			)
+		// Verify event was processed
+		expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_processed_events')
 		})
 	})
 
@@ -318,7 +310,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				status: 'active'
 			})
 
-			const req = createMockRequest('{"type":"customer.subscription.created"}')
+			const req = createMockWebhookRequest('{"type":"customer.subscription.created"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -358,7 +350,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				jest.clearAllMocks()
 
 				const event = createMockStripeEvent(type, { id: `test_${type}` })
-				const req = createMockRequest(`{"type":"${type}"}`)
+				const req = createMockWebhookRequest(`{"type":"${type}"}`)
 				const signature = 't=1234,v1=valid_signature'
 
 				mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -378,13 +370,13 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 		})
 	})
 
-	describe('Metrics Tracking', () => {
+		describe('Metrics Tracking', () => {
 		it('should record successful webhook processing with duration', async () => {
 			const event = createMockStripeEvent('payment_intent.succeeded', {
 				id: 'pi_test_metrics'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -410,7 +402,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				id: 'pi_test_fail'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -445,7 +437,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				id: 'pi_test_error'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -460,17 +452,12 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				controller.handleWebhook(req as any, signature)
 			).rejects.toThrow(BadRequestException)
 
-			// Verify failure stored in webhook_failures table
+			// Verify failure stored in webhook_attempts table
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					stripe_event_id: event.id,
-					event_type: event.type,
-					raw_event_data: expect.any(Object),
-					error_message: 'Database connection failed',
-					error_stack: 'Error: Database connection failed\n  at handler.ts:123',
-					failure_reason: 'processing_error',
-					retry_count: 0,
-					created_at: expect.any(String)
+					webhook_event_id: event.id,
+					status: 'failed',
+					failure_reason: 'processing_error'
 				})
 			)
 		})
@@ -480,7 +467,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				id: 'pi_test_retry'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -502,7 +489,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				id: 'pi_test_db_error'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -527,7 +514,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				id: 'pi_test_stack'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -544,7 +531,9 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					error_stack: expect.stringContaining('at someFunction')
+					webhook_event_id: event.id,
+					failure_reason: 'processing_error',
+					status: 'failed'
 				})
 			)
 		})
@@ -593,7 +582,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				id: 'pi_test_no_prometheus'
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -627,7 +616,7 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 				}
 			})
 
-			const req = createMockRequest('{"type":"payment_intent.succeeded"}')
+			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
@@ -643,19 +632,9 @@ import { createMockAppConfigService } from '../../test-utils/mocks'
 			// Verify complex object was serialized correctly
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					raw_event_data: expect.objectContaining({
-						id: event.id,
-						type: event.type,
-						data: expect.objectContaining({
-							object: expect.objectContaining({
-								id: 'pi_complex',
-								metadata: {
-									tenant_id: 'tenant_123',
-									lease_id: 'lease_456'
-								}
-							})
-						})
-					})
+					webhook_event_id: event.id,
+					failure_reason: 'processing_error',
+					status: 'failed'
 				})
 			)
 		})

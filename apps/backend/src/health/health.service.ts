@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import type { HealthCheckResponse } from '@repo/shared/types/health'
 import { SupabaseService } from '../database/supabase.service'
+import { AppConfigService } from '../config/app-config.service'
 
 @Injectable()
 export class HealthService {
@@ -8,7 +9,8 @@ export class HealthService {
 
 	constructor(
 		@Inject('SUPABASE_SERVICE_FOR_HEALTH')
-		private readonly supabaseClient: SupabaseService
+		private readonly supabaseClient: SupabaseService,
+		private readonly config: AppConfigService
 	) {}
 
 	/**
@@ -40,18 +42,19 @@ export class HealthService {
 			}
 
 			// Return health status with database connectivity info
+			const nodeEnv = this.config.getNodeEnv()
 			const response: HealthCheckResponse = {
 				status: isHealthy ? 'ok' : 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
+				environment: nodeEnv,
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
 				version: '1.0.0',
 				service: 'backend-api',
 				config_loaded: {
-					node_env: !!process.env.NODE_ENV,
-					cors_origins: !!process.env.CORS_ORIGINS,
-					supabase_url: !!process.env.SUPABASE_URL
+					node_env: !!nodeEnv,
+					cors_origins: !!this.config.get('CORS_ORIGINS'),
+					supabase_url: !!this.config.get('SUPABASE_URL')
 				},
 				database: {
 					status: dbHealth.status,
@@ -71,18 +74,19 @@ export class HealthService {
 			this.logger.error('Health check failed with error', errorMessage)
 
 			// Return unhealthy status with error details
+			const nodeEnv = this.config.getNodeEnv()
 			return {
 				status: 'unhealthy',
 				timestamp: new Date().toISOString(),
-				environment: process.env.NODE_ENV || 'production',
+				environment: nodeEnv,
 				uptime: process.uptime(),
 				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
 				version: '1.0.0',
 				service: 'backend-api',
 				config_loaded: {
-					node_env: !!process.env.NODE_ENV,
-					cors_origins: !!process.env.CORS_ORIGINS,
-					supabase_url: !!process.env.SUPABASE_URL
+					node_env: !!nodeEnv,
+					cors_origins: !!this.config.get('CORS_ORIGINS'),
+					supabase_url: !!this.config.get('SUPABASE_URL')
 				},
 				database: {
 					status: 'unhealthy',
@@ -96,14 +100,14 @@ export class HealthService {
 	/**
 	 * Simple ping response for lightweight health checks
 	 */
-	getPingResponse() {
-		return {
-			status: 'ok',
-			timestamp: new Date().toISOString(),
-			uptime: Math.round(process.uptime()),
-			memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-			env: process.env.NODE_ENV,
-			port: process.env.PORT ? Number(process.env.PORT) : 4600
+		getPingResponse() {
+			return {
+				status: 'ok',
+				timestamp: new Date().toISOString(),
+				uptime: Math.round(process.uptime()),
+				memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+				env: this.config.getNodeEnv(),
+				port: this.config.getPort()
+			}
 		}
 	}
-}

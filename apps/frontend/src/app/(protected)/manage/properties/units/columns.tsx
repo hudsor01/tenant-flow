@@ -267,14 +267,14 @@ function UnitActions({ unit }: UnitActionsProps) {
 		setIsDeleting(true)
 		try {
 			await deleteUnit.mutateAsync(unit.id)
-			toast.success(`Unit ${unit.unitNumber} has been deleted successfully`)
+			toast.success(`Unit ${unit.unit_number} has been deleted successfully`)
 			setDeleteOpen(false)
 		} catch (error) {
 			logger.error('Unit deletion operation failed', {
 				action: 'unit_delete_failed',
 				metadata: {
-					unitId: unit.id,
-					unitNumber: unit.unitNumber,
+					unit_id: unit.id,
+					unit_number: unit.unit_number,
 					error: error instanceof Error ? error.message : String(error)
 				}
 			})
@@ -303,7 +303,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							)}
 						>
 							<span className="sr-only">
-								Open actions menu for unit {unit.unitNumber}
+								Open actions menu for unit {unit.unit_number}
 							</span>
 							<MoreHorizontalIcon className="size-4" />
 							{config.icon && (
@@ -316,7 +316,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
 							style={TYPOGRAPHY_SCALE['body-xs']}
 						>
-							Unit {unit.unitNumber} Actions
+							Unit {unit.unit_number} Actions
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
@@ -360,7 +360,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 			<Dialog open={viewOpen} onOpenChange={setViewOpen}>
 				<DialogContent className="sm:max-w-2xl">
 					<DialogHeader>
-						<DialogTitle>Unit {unit.unitNumber} Details</DialogTitle>
+						<DialogTitle>Unit {unit.unit_number} Details</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-4">
 						<div className="grid grid-cols-2 gap-4">
@@ -372,15 +372,15 @@ function UnitActions({ unit }: UnitActionsProps) {
 								<ShowerHead className="size-4 text-muted-foreground" />
 								<span>{unit.bathrooms} Bathrooms</span>
 							</div>
-							{unit.squareFeet && (
+							{unit.square_feet && (
 								<div className="flex items-center gap-2">
 									<Ruler className="size-4 text-muted-foreground" />
-									<span>{unit.squareFeet} sq ft</span>
+									<span>{unit.square_feet} sq ft</span>
 								</div>
 							)}
 							<div className="flex items-center gap-2">
 								<DollarSign className="size-4 text-muted-foreground" />
-								<span>${unit.rent}/month</span>
+								<span>${unit.rent_amount}/month</span>
 							</div>
 						</div>
 						<div>
@@ -397,31 +397,31 @@ function UnitActions({ unit }: UnitActionsProps) {
 			<Dialog open={editOpen} onOpenChange={setEditOpen}>
 				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
-						<DialogTitle>Unit {unit.unitNumber}</DialogTitle>
+						<DialogTitle>Unit {unit.unit_number}</DialogTitle>
 						<DialogDescription>View unit details</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-4">
 						<div>
 							<Label>Unit Number</Label>
-							<Input value={unit.unitNumber} disabled />
+							<Input value={unit.unit_number || ''} disabled />
 						</div>
 						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<Label>Bedrooms</Label>
-								<Input type="number" value={unit.bedrooms} disabled />
+								<Input type="number" value={unit.bedrooms ?? ''} disabled />
 							</div>
 							<div>
 								<Label>Bathrooms</Label>
-								<Input type="number" value={unit.bathrooms} disabled />
+								<Input type="number" value={unit.bathrooms ?? ''} disabled />
 							</div>
 						</div>
 						<div>
 							<Label>Square Feet</Label>
-							<Input type="number" value={unit.squareFeet || ''} disabled />
+							<Input type="number" value={unit.square_feet || ''} disabled />
 						</div>
 						<div>
 							<Label>Rent Amount</Label>
-							<Input type="number" value={unit.rent} disabled />
+							<Input type="number" value={unit.rent_amount} disabled />
 						</div>
 						<div>
 							<Label>Status</Label>
@@ -456,7 +456,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							className="text-center"
 							style={TYPOGRAPHY_SCALE['heading-sm']}
 						>
-							Delete Unit {unit.unitNumber}?
+							Delete Unit {unit.unit_number}?
 						</AlertDialogTitle>
 						<AlertDialogDescription
 							className="text-center text-muted-foreground"
@@ -525,7 +525,7 @@ export { UnitStatsDisplay }
 // Enhanced column definitions with professional design and comprehensive data display
 export const unitColumns: ColumnDef<UnitRow>[] = [
 	{
-		accessorKey: 'unitNumber',
+		accessorKey: 'unit_number',
 		header: ({ column }) => (
 			<SortableHeader column={column} align="left">
 				<Home className="size-4" />
@@ -540,7 +540,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 						className="font-bold text-foreground"
 						style={TYPOGRAPHY_SCALE['body-md']}
 					>
-						Unit {row.getValue('unitNumber')}
+						Unit {row.getValue('unit_number')}
 					</div>
 					{unit.property && (
 						<div
@@ -569,7 +569,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		cell: ({ row }) => {
 			const bedrooms = row.getValue('bedrooms') as number
 			const bathrooms = row.getValue('bathrooms') as number
-			const squareFeet = row.getValue('squareFeet') as number | null
+			const square_feet = row.getValue('square_feet') as number | null
 
 			return (
 				<div className="text-center space-y-1">
@@ -587,14 +587,14 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 							</span>
 						</div>
 					</div>
-					{squareFeet && (
+					{square_feet && (
 						<div className="flex items-center justify-center gap-1">
 							<Maximize2 className="size-3 text-muted-foreground" />
 							<span
 								className="text-muted-foreground text-xs"
 								style={TYPOGRAPHY_SCALE['body-xs']}
 							>
-								{squareFeet.toLocaleString()} ft²
+								{square_feet.toLocaleString()} ft²
 							</span>
 						</div>
 					)}
@@ -602,8 +602,8 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 			)
 		},
 		sortingFn: (rowA, rowB) => {
-			const layoutA = rowA.original.bedrooms * 10 + rowA.original.bathrooms
-			const layoutB = rowB.original.bedrooms * 10 + rowB.original.bathrooms
+			const layoutA = (rowA.original.bedrooms ?? 0) * 10 + (rowA.original.bathrooms ?? 0)
+			const layoutB = (rowB.original.bedrooms ?? 0) * 10 + (rowB.original.bathrooms ?? 0)
 			return layoutA - layoutB
 		},
 		size: 120

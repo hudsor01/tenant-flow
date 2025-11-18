@@ -43,7 +43,7 @@ export function mapLeaseSummary(data: unknown): LeaseFinancialSummary {
 			totalLeases: 0,
 			activeLeases: 0,
 			expiringSoon: 0,
-			totalMonthlyRent: 0,
+			totalrent_amount: 0,
 			averageLeaseValue: 0
 		}
 	}
@@ -52,8 +52,8 @@ export function mapLeaseSummary(data: unknown): LeaseFinancialSummary {
 		totalLeases: toNumber(data.total_leases ?? data.totalLeases),
 		activeLeases: toNumber(data.active_leases ?? data.activeLeases),
 		expiringSoon: toNumber(data.expiring_soon ?? data.expiringSoon),
-		totalMonthlyRent: toNumber(
-			data.total_monthly_rent ?? data.totalMonthlyRent
+		totalrent_amount: toNumber(
+			data.total_monthly_rent ?? data.totalrent_amount
 		),
 		averageLeaseValue: toNumber(
 			data.average_lease_value ?? data.averageLeaseValue
@@ -69,8 +69,8 @@ export function mapLeaseProfitability(data: unknown): LeaseFinancialInsight[] {
 	return data.map(item => {
 		const record = isObject(item) ? item : {}
 		return {
-			leaseId: toString(
-				record.lease_id ?? record.leaseId ?? toString(record.id ?? 'lease')
+			lease_id: toString(
+				record.lease_id ?? record.lease_id ?? toString(record.id ?? 'leases')
 			),
 			propertyName: toString(
 				record.property_name ?? record.propertyName ?? 'Unknown Property'
@@ -78,7 +78,7 @@ export function mapLeaseProfitability(data: unknown): LeaseFinancialInsight[] {
 			tenantName: toString(
 				record.tenant_name ?? record.tenantName ?? 'Unknown Tenant'
 			),
-			monthlyRent: toNumber(
+			rent_amount: toNumber(
 				record.monthly_rent ?? record.rent ?? record.amount
 			),
 			outstandingBalance: toNumber(

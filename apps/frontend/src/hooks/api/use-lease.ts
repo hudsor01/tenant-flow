@@ -15,7 +15,7 @@ import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
 } from '@repo/shared/types/api-inputs'
-import type { Lease, MaintenanceRequest } from '@repo/shared/types/core'
+import type { Lease, MaintenanceRequest, LeaseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
@@ -183,7 +183,7 @@ export function useCreateLease() {
 				method: 'POST',
 				body: JSON.stringify(leaseData)
 			}),
-		onMutate: async (newLease: CreateLeaseInput) => {
+		onMutate: async (newLease) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: leaseKeys.all })
 
@@ -199,27 +199,22 @@ export function useCreateLease() {
 			const tempId = `temp-${Date.now()}`
 			const optimisticLease: Lease = {
 				id: tempId,
-				tenantId: newLease.tenantId !== undefined ? newLease.tenantId : null,
-				unitId: newLease.unitId !== undefined ? newLease.unitId : null,
-				propertyId: newLease.propertyId !== undefined ? newLease.propertyId : null,
-				startDate: newLease.startDate,
-				endDate: newLease.endDate ?? null,
-				rentAmount: newLease.rentAmount,
-				securityDeposit: newLease.securityDeposit ?? null,
-				monthlyRent: newLease.monthlyRent ?? null,
-				status: newLease.status || 'ACTIVE',
-				terms: newLease.terms || null,
-				gracePeriodDays: newLease.gracePeriodDays || null,
-				lateFeeAmount: newLease.lateFeeAmount || null,
-				lateFeePercentage: newLease.lateFeePercentage || null,
+				primary_tenant_id: newLease.primary_tenant_id ?? null,
+				unit_id: newLease.unit_id ?? null,
+				start_date: newLease.start_date,
+				end_date: newLease.end_date,
+				rent_amount: newLease.rent_amount,
+				security_deposit: newLease.security_deposit ?? null,
+				lease_status: 'ACTIVE',
+				auto_pay_enabled: null,
+				grace_period_days: null,
+				late_fee_amount: null,
+				late_fee_days: null,
 				stripe_subscription_id: null,
-				lease_document_url: null,
-				signature: null,
-				signed_at: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				version: 1,
-				stripeSubscriptionId: null
+				payment_day: newLease.payment_day ?? 1,
+				rent_currency: newLease.rent_currency ?? 'USD',
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			}
 
 			// Optimistically update all caches
@@ -267,7 +262,7 @@ export function useCreateLease() {
 			// Cache individual lease details
 			queryClient.setQueryData(leaseKeys.detail(data.id), data)
 
-			logger.info('Lease created successfully', { leaseId: data.id })
+			logger.info('Lease created successfully', { lease_id: data.id })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
@@ -320,12 +315,12 @@ export function useUpdateLease() {
 			})
 
 			// Optimistically update detail cache (use incrementVersion helper)
-			queryClient.setQueryData<Lease>(leaseKeys.detail(id), old =>
+			queryClient.setQueryData<LeaseWithVersion>(leaseKeys.detail(id), old =>
 				old ? incrementVersion(old, data) : undefined
 			)
 
 			// Optimistically update list caches
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
+			queryClient.setQueriesData<{ data: LeaseWithVersion[]; total: number }>(
 				{ queryKey: leaseKeys.all },
 				old => {
 					if (!old) return old
@@ -353,7 +348,7 @@ export function useUpdateLease() {
 
 			// Handle 409 Conflict using helper
 			if (isConflictError(err)) {
-				handleConflictError('lease', id, queryClient, [
+				handleConflictError('leases', id, queryClient, [
 					leaseKeys.detail(id),
 					leaseKeys.all
 				])
@@ -376,7 +371,7 @@ export function useUpdateLease() {
 				}
 			)
 
-			logger.info('Lease updated successfully', { leaseId: id })
+			logger.info('Lease updated successfully', { lease_id: id })
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
@@ -447,14 +442,14 @@ export function useDeleteLease(options?: {
 			}
 
 			logger.error('Failed to delete lease', {
-				leaseId: id,
+				lease_id: id,
 				error: err instanceof Error ? err.message : String(err)
 			})
 
 			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
 		},
 		onSuccess: id => {
-			logger.info('Lease deleted successfully', { leaseId: id })
+			logger.info('Lease deleted successfully', { lease_id: id })
 			options?.onSuccess?.()
 		},
 		onSettled: () => {
@@ -475,7 +470,7 @@ export function useRenewLease() {
 		mutationFn: ({ id, newEndDate }: { id: string; newEndDate: string }) =>
 			clientFetch<Lease>(`/api/v1/leases/${id}/renew`, {
 				method: 'POST',
-				body: JSON.stringify({ endDate: newEndDate })
+				body: JSON.stringify({ end_date: newEndDate })
 			}),
 		onSuccess: (data, { id }) => {
 			// Update caches with renewed lease
@@ -492,7 +487,7 @@ export function useRenewLease() {
 				}
 			)
 
-			logger.info('Lease renewed successfully', { leaseId: id })
+			logger.info('Lease renewed successfully', { lease_id: id })
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
@@ -541,7 +536,7 @@ export function useTerminateLease() {
 				}
 			)
 
-			logger.info('Lease terminated successfully', { leaseId: id })
+			logger.info('Lease terminated successfully', { lease_id: id })
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: leaseKeys.all })

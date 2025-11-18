@@ -19,11 +19,14 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { createBrowserClient } from '@supabase/ssr'
 import { clientFetch } from '#lib/api/client'
 import type { Property } from '@repo/shared/types/core'
 import type { CreatePropertyInput } from '@repo/shared/types/api-contracts'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import {
+	createSupabaseTestClient,
+	ensureEnvVars
+} from 'tests/utils/env'
 
 const logger = createLogger({ component: 'RlsBoundaryTest' })
 const shouldRunIntegrationTests =
@@ -50,18 +53,11 @@ async function authenticateTestUser(
 	email: string,
 	password: string
 ): Promise<TestUser> {
-	// Validate required environment variables
-	if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-		throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
-	}
-	if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-		throw new Error('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required')
-	}
-
-	const supabase = createBrowserClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-	)
+	ensureEnvVars([
+		'NEXT_PUBLIC_SUPABASE_URL',
+		'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+	])
+	const supabase = createSupabaseTestClient()
 
 	const { data, error } = await supabase.auth.signInWithPassword({
 		email,
@@ -198,8 +194,8 @@ describe.skip('RLS Boundary Tests', () => {
 	let tenantB: TestUser
 
 	// Test data IDs for cleanup
-	let ownerAPropertyId: string
-	let ownerBPropertyId: string
+	let ownerAproperty_id: string
+	let ownerBproperty_id: string
 	let ownerAPaymentMethodId: string
 	let ownerBPaymentMethodId: string
 
@@ -234,11 +230,11 @@ describe.skip('RLS Boundary Tests', () => {
 				method: 'POST',
 				body: JSON.stringify({
 					name: 'RLS Test Property A',
-					propertyType: 'APARTMENT'
+					property_type: 'APARTMENT'
 				} as CreatePropertyInput)
 			}
 		)
-		ownerAPropertyId = propertyA.id
+		ownerAproperty_id = propertyA.id
 
 		const propertyB = await fetchAsUser<Property>(
 			ownerB,
@@ -247,18 +243,18 @@ describe.skip('RLS Boundary Tests', () => {
 				method: 'POST',
 				body: JSON.stringify({
 					name: 'RLS Test Property B',
-					propertyType: 'APARTMENT'
+					property_type: 'APARTMENT'
 				} as CreatePropertyInput)
 			}
 		)
-		ownerBPropertyId = propertyB.id
+		ownerBproperty_id = propertyB.id
 	})
 
 	afterAll(async () => {
 		// Cleanup: Delete test data
-		if (ownerAPropertyId) {
+		if (ownerAproperty_id) {
 			try {
-				await fetchAsUser(ownerA, `/api/v1/properties/${ownerAPropertyId}`, {
+				await fetchAsUser(ownerA, `/api/v1/properties/${ownerAproperty_id}`, {
 					method: 'DELETE'
 				})
 			} catch (error) {
@@ -268,9 +264,9 @@ describe.skip('RLS Boundary Tests', () => {
 			}
 		}
 
-		if (ownerBPropertyId) {
+		if (ownerBproperty_id) {
 			try {
-				await fetchAsUser(ownerB, `/api/v1/properties/${ownerBPropertyId}`, {
+				await fetchAsUser(ownerB, `/api/v1/properties/${ownerBproperty_id}`, {
 					method: 'DELETE'
 				})
 			} catch (error) {
@@ -288,17 +284,17 @@ describe.skip('RLS Boundary Tests', () => {
 	describeIfReady('Property Isolation', () => {
 		it("owner A cannot read owner B's properties", async () => {
 			// owner A tries to fetch owner B's property by ID
-			await expectNotFound(ownerA, `/api/v1/properties/${ownerBPropertyId}`)
+			await expectNotFound(ownerA, `/api/v1/properties/${ownerBproperty_id}`)
 		})
 
 		it("owner B cannot read owner A's properties", async () => {
 			// owner B tries to fetch owner A's property by ID
-			await expectNotFound(ownerB, `/api/v1/properties/${ownerAPropertyId}`)
+			await expectNotFound(ownerB, `/api/v1/properties/${ownerAproperty_id}`)
 		})
 
 		it("owner A cannot update owner B's properties", async () => {
 			// owner A tries to update owner B's property
-			await expectForbidden(ownerA, `/api/v1/properties/${ownerBPropertyId}`, {
+			await expectForbidden(ownerA, `/api/v1/properties/${ownerBproperty_id}`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: 'Unauthorized Update'
@@ -308,7 +304,7 @@ describe.skip('RLS Boundary Tests', () => {
 
 		it("owner A cannot delete owner B's properties", async () => {
 			// owner A tries to delete owner B's property
-			await expectForbidden(ownerA, `/api/v1/properties/${ownerBPropertyId}`, {
+			await expectForbidden(ownerA, `/api/v1/properties/${ownerBproperty_id}`, {
 				method: 'DELETE'
 			})
 		})
@@ -320,32 +316,32 @@ describe.skip('RLS Boundary Tests', () => {
 			)
 
 			// Verify ownerA only sees their own property
-			expect(response.properties.some(p => p.id === ownerAPropertyId)).toBe(
+			expect(response.properties.some(p => p.id === ownerAproperty_id)).toBe(
 				true
 			)
-			expect(response.properties.some(p => p.id === ownerBPropertyId)).toBe(
+			expect(response.properties.some(p => p.id === ownerBproperty_id)).toBe(
 				false
 			)
 		})
 	})
 
 	// ========================================
-	// Role-Based Access Tests (Tenant vs owner)
+	// user_type-Based Access Tests (Tenant vs owner)
 	// ========================================
 
-	describeIfReady('Role-Based Access', () => {
+	describeIfReady('user_type-Based Access', () => {
 		it('tenant cannot create properties', async () => {
 			await expectForbidden(tenantA, '/api/v1/properties', {
 				method: 'POST',
 				body: JSON.stringify({
 					name: 'Unauthorized Property',
-					propertyType: 'APARTMENT'
+					property_type: 'APARTMENT'
 				})
 			})
 		})
 
 		it('tenant cannot update properties', async () => {
-			await expectForbidden(tenantA, `/api/v1/properties/${ownerAPropertyId}`, {
+			await expectForbidden(tenantA, `/api/v1/properties/${ownerAproperty_id}`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: 'Unauthorized Update'
@@ -354,7 +350,7 @@ describe.skip('RLS Boundary Tests', () => {
 		})
 
 		it('tenant cannot delete properties', async () => {
-			await expectForbidden(tenantA, `/api/v1/properties/${ownerAPropertyId}`, {
+			await expectForbidden(tenantA, `/api/v1/properties/${ownerAproperty_id}`, {
 				method: 'DELETE'
 			})
 		})
@@ -402,8 +398,8 @@ describe.skip('RLS Boundary Tests', () => {
 				await expectForbidden(ownerA, '/api/v1/rent-payments', {
 					method: 'POST',
 					body: JSON.stringify({
-						tenantId: 'some-tenant-id',
-						leaseId: 'some-lease-id',
+						tenant_id: 'some-tenant-id',
+						lease_id: 'some-lease-id',
 						amount: 100000,
 						paymentMethodId: methodId // owner B's payment method
 					})
@@ -447,7 +443,7 @@ describe.skip('RLS Boundary Tests', () => {
 			await expectForbidden(tenantA, `/api/v1/tenants/${tenantBId}`, {
 				method: 'PUT',
 				body: JSON.stringify({
-					firstName: 'Unauthorized Update'
+					first_name: 'Unauthorized Update'
 				})
 			})
 		})
@@ -486,10 +482,10 @@ describe.skip('RLS Boundary Tests', () => {
 			)
 
 			if (ownerBLeases.leases.length > 0) {
-				const leaseId = ownerBLeases.leases[0].id
+				const lease_id = ownerBLeases.leases[0].id
 
 				// owner A tries to read owner B's lease
-				await expectNotFound(ownerA, `/api/v1/leases/${leaseId}`)
+				await expectNotFound(ownerA, `/api/v1/leases/${lease_id}`)
 			}
 		})
 
@@ -501,10 +497,10 @@ describe.skip('RLS Boundary Tests', () => {
 			)
 
 			if (tenantBLease.lease) {
-				const leaseId = tenantBLease.lease.id
+				const lease_id = tenantBLease.lease.id
 
 				// Tenant A tries to read Tenant B's lease
-				await expectNotFound(tenantA, `/api/v1/leases/${leaseId}`)
+				await expectNotFound(tenantA, `/api/v1/leases/${lease_id}`)
 			}
 		})
 	})

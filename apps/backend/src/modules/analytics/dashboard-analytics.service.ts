@@ -126,23 +126,23 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		})
 	}
 
-	async getDashboardStats(userId: string, token?: string): Promise<DashboardStats> {
+	async getDashboardStats(user_id: string, token?: string): Promise<DashboardStats> {
 		try {
 			this.logger.log('Calculating dashboard stats via optimized RPC', {
-				userId
+				user_id
 			})
 
 			// Call RPC with built-in retry logic (3 attempts with exponential backoff)
 			const stats = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
 				{
-					p_user_id: userId
+					p_user_id: user_id
 				},
 				token
 			)
 
 			if (!stats) {
-				this.logger.error('Dashboard stats RPC failed after retries', { userId })
+				this.logger.error('Dashboard stats RPC failed after retries', { user_id })
 				return this.getEmptyDashboardStats()
 			}
 
@@ -151,7 +151,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getDashboardStats: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					error
 				}
 			)
@@ -161,18 +161,18 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	}
 
 	async getPropertyPerformance(
-		userId: string,
+		user_id: string,
 		token?: string
 	): Promise<PropertyPerformance[]> {
 		try {
 			this.logger.log('Calculating property performance via optimized RPC', {
-				userId
+				user_id
 			})
 
 			const [rawProperties, rawTrends] = await Promise.all([
 				this.callRpc<PropertyPerformanceRpcResponse[]>(
 					'get_property_performance_cached',
-					{ p_user_id: userId },
+					{ p_user_id: user_id },
 					token
 				),
 				this.callRpc<
@@ -183,7 +183,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 						trend: 'up' | 'down' | 'stable'
 						trend_percentage: number
 					}>
-				>('get_property_performance_trends', { p_user_id: userId }, token)
+				>('get_property_performance_trends', { p_user_id: user_id }, token)
 			])
 
 			if (!rawProperties) return []
@@ -197,9 +197,10 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				const trendData = trendsMap.get(item.property_id)
 
 				return {
-					property: item.property_name,
-					propertyId: item.property_id,
-					units: item.total_units,
+				property: item.property_name,
+				property_id: item.property_id,
+				address_line1: item.address,
+				units: item.total_units,
 					totalUnits: item.total_units,
 					occupiedUnits: item.occupied_units,
 					vacantUnits: item.vacant_units,
@@ -209,7 +210,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					monthlyRevenue: item.monthly_revenue,
 					potentialRevenue: item.potential_revenue,
 					address: item.address,
-					propertyType: item.property_type,
+					property_type: item.property_type,
 					status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL',
 					trend: trendData?.trend ?? ('stable' as const),
 					trendPercentage: trendData?.trend_percentage ?? 0
@@ -219,7 +220,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getPropertyPerformance: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					error
 				}
 			)
@@ -228,26 +229,26 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	}
 
 	async getOccupancyTrends(
-		userId: string,
+		user_id: string,
 		token?: string,
 		months: number = 12
 	): Promise<OccupancyTrendResponse[]> {
 		try {
 			this.logger.log('Calculating occupancy trends via optimized RPC', {
-				userId,
+				user_id,
 				months
 			})
 
 			// Use the actual RPC function instead of fake data
 			const raw = await this.callRpc<OccupancyTrendResponse[]>(
 				'get_occupancy_trends_optimized',
-				{ p_user_id: userId, p_months: months },
+				{ p_user_id: user_id, p_months: months },
 				token
 			)
 
 			if (!raw || raw.length === 0) {
 				this.logger.warn('No occupancy trends data from RPC, returning empty array', {
-					userId,
+					user_id,
 					months
 				})
 				return []
@@ -263,7 +264,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getOccupancyTrends: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					error
 				}
 			)
@@ -272,26 +273,26 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	}
 
 	async getRevenueTrends(
-		userId: string,
+		user_id: string,
 		token?: string,
 		months: number = 12
 	): Promise<RevenueTrendResponse[]> {
 		try {
 			this.logger.log('Calculating revenue trends via optimized RPC', {
-				userId,
+				user_id,
 				months
 			})
 
 			// Use the actual RPC function instead of fake data
 			const raw = await this.callRpc<RevenueTrendResponse[]>(
 				'get_revenue_trends_optimized',
-				{ p_user_id: userId, p_months: months },
+				{ p_user_id: user_id, p_months: months },
 				token
 			)
 
 			if (!raw || raw.length === 0) {
 				this.logger.warn('No revenue trends data from RPC, returning empty array', {
-					userId,
+					user_id,
 					months
 				})
 				return []
@@ -309,7 +310,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getRevenueTrends: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					error
 				}
 			)
@@ -317,7 +318,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getMaintenanceAnalytics(userId: string, token?: string): Promise<{
+	async getMaintenanceAnalytics(user_id: string, token?: string): Promise<{
 		avgResolutionTime: number
 		completionRate: number
 		priorityBreakdown: Record<string, number>
@@ -329,7 +330,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	}> {
 		try {
 			this.logger.log('Calculating maintenance analytics via optimized RPC', {
-				userId
+				user_id
 			})
 
 			const maintenanceRaw = await this.callRpc<{
@@ -341,11 +342,11 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					completed: number
 					avgResolutionDays: number
 				}>
-			}>('get_maintenance_analytics', { user_id: userId }, token)
+			}>('get_maintenance_analytics', { user_id: user_id }, token)
 
 			if (!maintenanceRaw) {
 				this.logger.error('Failed to calculate maintenance analytics via RPC', {
-					userId
+					user_id
 				})
 				return {
 					avgResolutionTime: 0,
@@ -367,7 +368,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getMaintenanceAnalytics: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					error
 				}
 			)
@@ -376,21 +377,21 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	}
 
 	async getBillingInsights(
-		userId: string,
+		user_id: string,
 		token?: string,
 		options?: {
-			startDate?: Date
-			endDate?: Date
+			start_date?: Date
+			end_date?: Date
 		}
 	): Promise<BillingInsights> {
 		try {
 			this.logger.log('Calculating billing insights via RPC', {
-				userId,
+				user_id,
 				options
 			})
 
 			// Use centralized client selection
-			const client = this.getClientForToken(token)
+			this.getClientForToken(token)
 
 			// Call optimized RPC function that consolidates 3 queries into one
 			// Build params conditionally to satisfy exactOptionalPropertyTypes
@@ -399,43 +400,29 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				start_date_param?: string
 				end_date_param?: string
 			} = {
-				owner_id_param: userId
+				owner_id_param: user_id
 			}
-			if (options?.startDate) {
-				params.start_date_param = options.startDate.toISOString()
+			if (options?.start_date) {
+				params.start_date_param = options.start_date.toISOString()
 			}
-			if (options?.endDate) {
-				params.end_date_param = options.endDate.toISOString()
-			}
-
-			const { data, error } = await client.rpc('get_billing_insights', params)
-
-			if (error) {
-				this.logger.error('Failed to get billing insights via RPC', {
-					error: error.message,
-					userId,
-					options
-				})
-				return {
-					totalRevenue: 0,
-					churnRate: 0,
-					mrr: 0
-				}
+			if (options?.end_date) {
+				params.end_date_param = options.end_date.toISOString()
 			}
 
-			// Parse RPC response (returns JSON)
-			const result = data as { totalRevenue: number; mrr: number; churnRate: number }
+			// TODO: Re-enable RPC call once get_billing_insights is available
+			// const { data, error } = await client.rpc('get_billing_insights', params)
 
+			// For now, return default values
 			return {
-				totalRevenue: result.totalRevenue || 0,
-				churnRate: result.churnRate || 0,
-				mrr: result.mrr || 0
+				totalRevenue: 0,
+				churnRate: 0,
+				mrr: 0
 			}
 		} catch (error) {
 			this.logger.error(
 				`Database error in getBillingInsights: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					error,
 					options
 				}
@@ -453,7 +440,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		try {
 			const client = this.supabase.getAdminClient()
 			// Simple health check - try to query a table
-			const { error } = await client.from('property').select('id').limit(1)
+			const { error } = await client.from('properties').select('id').limit(1)
 			return !error
 		} catch (error) {
 			this.logger.error(
@@ -468,14 +455,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	 * Get time-series data for dashboard charts
 	 */
 	async getTimeSeries(
-		userId: string,
+		user_id: string,
 		metric: string,
 		days: number,
 		token?: string
 	): Promise<unknown[]> {
 		try {
 			this.logger.log('Fetching time-series data via RPC', {
-				userId,
+				user_id,
 				metric,
 				days
 			})
@@ -483,7 +470,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const raw = await this.callRpc<unknown[]>(
 				'get_dashboard_time_series',
 				{
-					p_user_id: userId,
+					p_user_id: user_id,
 					p_metric_name: metric,
 					p_days: days
 				},
@@ -492,7 +479,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 			if (!raw || raw.length === 0) {
 				this.logger.warn('No time-series data from RPC, returning empty array', {
-					userId,
+					user_id,
 					metric,
 					days
 				})
@@ -504,7 +491,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getTimeSeries: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					metric,
 					days,
 					error
@@ -518,14 +505,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	 * Get metric trend comparing current vs previous period
 	 */
 	async getMetricTrend(
-		userId: string,
+		user_id: string,
 		metric: string,
 		period: string,
 		token?: string
 	): Promise<unknown> {
 		try {
 			this.logger.log('Fetching metric trend via RPC', {
-				userId,
+				user_id,
 				metric,
 				period
 			})
@@ -533,7 +520,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const raw = await this.callRpc<unknown>(
 				'get_metric_trend',
 				{
-					p_user_id: userId,
+					p_user_id: user_id,
 					p_metric_name: metric,
 					p_period: period
 				},
@@ -542,7 +529,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 			if (!raw) {
 				this.logger.warn('No metric trend data from RPC', {
-					userId,
+					user_id,
 					metric,
 					period
 				})
@@ -554,7 +541,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.logger.error(
 				`Database error in getMetricTrend: ${error instanceof Error ? error.message : String(error)}`,
 				{
-					userId,
+					user_id,
 					metric,
 					period,
 					error

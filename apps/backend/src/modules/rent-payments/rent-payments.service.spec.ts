@@ -62,49 +62,55 @@ describe('RentPaymentsService', () => {
 	})
 
 	describe('createOneTimePayment', () => {
-		const tenant = {
-			id: 'tenant123',
-			userId: 'user123',
-			email: 'tenant@example.com',
-			firstName: 'Test',
-			lastName: 'Tenant'
-		}
-
 		const tenantUser = {
 			id: 'user123',
-			stripeCustomerId: 'cus_existing',
-			firstName: 'Test',
-			lastName: 'Tenant',
+			stripe_customer_id: 'cus_existing',
+			first_name: 'Test',
+			last_name: 'Tenant',
 			email: 'tenant@example.com'
+		}
+
+		const tenant = {
+			id: 'tenant123',
+			user_id: 'user123',
+			email: 'tenant@example.com',
+			first_name: 'Test',
+			last_name: 'Tenant',
+			users: tenantUser
 		}
 
 		const lease = {
 			id: 'lease123',
-			tenantId: 'tenant123',
-			rentAmount: 1500,
-			unitId: 'unit123'
+			tenant_id: 'tenant123',
+		primary_tenant_id: 'tenant123',
+		rent_amount: 1500,
+			unit_id: 'unit123'
 		}
 
-		const unit = { propertyId: 'property123' }
-		const property = { ownerId: 'owner123' }
-		const owner = {
+		const unit = { property_id: 'property123' }
+		const property = { owner_id: 'owner123' }
+		const propertyOwner = {
+			user_id: 'owner123'
+		}
+
+		const ownerUser = {
 			id: 'owner123',
-			stripeAccountId: 'acct_456',
+			connected_account_id: 'acct_456',
 			subscriptionTier: 'STARTER'
 		}
 
 		const tenantPaymentMethod = {
 			stripePaymentMethodId: 'pm_123',
-			stripeCustomerId: 'cus_existing',
+			stripe_customer_id: 'cus_existing',
 			type: 'card',
-			tenantId: 'tenant123' // Must match tenant.id for ownership check
+			tenant_id: 'tenant123' // Must match tenant.id for ownership check
 		}
 
 		const rentPaymentRecord = {
 			id: 'payment123',
-			tenantId: 'user123',
-			ownerId: 'owner123',
-			leaseId: 'lease123',
+			tenant_id: 'user123',
+			owner_id: 'owner123',
+			lease_id: 'lease123',
 			amount: 150000,
 			platformFee: 4500,
 			stripeFee: 4380,
@@ -112,7 +118,7 @@ describe('RentPaymentsService', () => {
 			status: 'succeeded',
 			paymentType: 'card',
 			stripePaymentIntentId: 'pi_123',
-			createdAt: '2024-01-01T00:00:00Z',
+			created_at: '2024-01-01T00:00:00Z',
 			paidAt: '2024-01-01T00:00:00Z'
 		}
 
@@ -140,10 +146,18 @@ describe('RentPaymentsService', () => {
 			mockStripeTenantService.getStripeCustomerForTenant.mockResolvedValue(
 				mockStripeCustomer
 			)
+
+			// Mock private methods
+			jest.spyOn(service as any, 'getTenantContext').mockResolvedValue({
+				tenant: {
+					...tenant,
+					user_id: 'user123'
+				}
+			})
 		})
 
 		it('creates destination charge and persists rent payment', async () => {
-			const userCallResults = [tenantUser, owner]
+			const userCallResults = [ownerUser] // Only ownerUser since getTenantContext is mocked
 			let tenantPaymentMethodCall = 0
 
 			const tenantPaymentMethodBuilders = [
@@ -184,19 +198,21 @@ describe('RentPaymentsService', () => {
 
 			adminClient.from.mockImplementation((table: string) => {
 				switch (table) {
-					case 'tenant':
+					case 'tenants':
 						return createSingleQueryMock(tenant)
 					case 'users':
 						return createSingleQueryMock(userCallResults.shift())
-					case 'lease':
+					case 'leases':
 						return createSingleQueryMock(lease)
-					case 'unit':
+					case 'units':
 						return createSingleQueryMock(unit)
-					case 'property':
+					case 'properties':
 						return createSingleQueryMock(property)
-					case 'tenant_payment_method':
+			case 'property_owners':
+					return createSingleQueryMock(propertyOwner)
+				case 'payment_methods':
 						return tenantPaymentMethodBuilders[tenantPaymentMethodCall++]
-					case 'rent_payment':
+				case 'rent_payments':
 						return rentPaymentInsertBuilder
 					default:
 						throw new Error(`Unexpected table ${table}`)
@@ -205,8 +221,8 @@ describe('RentPaymentsService', () => {
 
 			const result = await service.createOneTimePayment(
 				{
-					tenantId: 'tenant123',
-					leaseId: 'lease123',
+					tenant_id: 'tenant123',
+					lease_id: 'lease123',
 					amount: 1500,
 					paymentMethodId: 'pm_record'
 				},

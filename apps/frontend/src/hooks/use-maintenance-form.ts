@@ -17,9 +17,9 @@ export interface MaintenanceFormData {
 	description: string
 	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 	category: MaintenanceCategory | undefined
-	propertyId: string
-	unitId: string
-	estimatedCost?: string
+	property_id: string
+	unit_id: string
+	estimated_cost?: string
 	preferredDate?: string
 }
 
@@ -58,9 +58,9 @@ export function useMaintenanceForm({
 			description: '',
 			priority: 'LOW',
 			category: undefined,
-			propertyId: '',
-			unitId: '',
-			estimatedCost: '',
+			property_id: '',
+			unit_id: '',
+			estimated_cost: '',
 			preferredDate: '',
 			...defaultValues
 		},
@@ -75,20 +75,19 @@ export function useMaintenanceForm({
 					}
 
 					const payload: CreateMaintenanceRequest = {
-						title: value.title,
 						description: value.description,
 						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-						unitId: value.unitId
+						unit_id: value.unit_id
 					}
 
 					// Add optional fields only if they have values
 					if (value.category) {
 						payload.category = value.category
 					}
-					if (value.estimatedCost) {
-						const parsed = parseFloat(value.estimatedCost)
+					if (value.estimated_cost) {
+						const parsed = parseFloat(value.estimated_cost)
 						if (Number.isFinite(parsed)) {
-							payload.estimatedCost = parsed
+							payload.estimated_cost = parsed
 						}
 					}
 					if (value.preferredDate) {
@@ -113,7 +112,6 @@ export function useMaintenanceForm({
 					}
 
 					const payload: UpdateMaintenanceRequest = {
-						title: value.title,
 						description: value.description,
 						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 					}
@@ -122,10 +120,10 @@ export function useMaintenanceForm({
 					if (value.category) {
 						payload.category = value.category
 					}
-					if (value.estimatedCost) {
-						const parsed = parseFloat(value.estimatedCost)
+					if (value.estimated_cost) {
+						const parsed = parseFloat(value.estimated_cost)
 						if (Number.isFinite(parsed)) {
-							payload.estimatedCost = parsed
+							payload.estimated_cost = parsed
 						}
 					}
 					if (value.preferredDate) {

@@ -34,48 +34,27 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 
 	const modalId = `edit-tenant-${tenant.id}`
 
-	// Form state for edit dialog
+	// Form state for edit dialog - only tenant-specific fields
 	const [formData, setFormData] = useState({
-		firstName: tenant.name?.split(' ')[0] || '',
-		lastName: tenant.name?.split(' ').slice(1).join(' ') || '',
-		email: tenant.email || '',
-		phone: tenant.phone || '',
-		emergencyContact: tenant.emergencyContact || ''
+		emergency_contact_name: tenant.emergency_contact_name || '',
+		emergency_contact_phone: tenant.emergency_contact_phone || '',
+		emergency_contact_relationship: tenant.emergency_contact_relationship || ''
 	})
 
 	const updateMutation = useMutation({
 		mutationFn: async (data: TenantUpdate) => {
 			const payload: UpdateTenantInput = {}
 
-			const assignNullable = (
-				key: keyof Pick<
-					UpdateTenantInput,
-					| 'avatarUrl'
-					| 'phone'
-					| 'emergencyContact'
-					| 'firstName'
-					| 'lastName'
-					| 'name'
-					| 'userId'
-				>,
-				value: string | null | undefined
-			) => {
-				if (value !== undefined) {
-					payload[key] = value === null ? null : value
-				}
+			// Only include tenant-specific fields - user fields are updated separately
+			if (data.emergency_contact_name !== undefined) {
+				payload.emergency_contact_name = data.emergency_contact_name
 			}
-
-			if (data.email !== undefined) {
-				payload.email = data.email
+			if (data.emergency_contact_phone !== undefined) {
+				payload.emergency_contact_phone = data.emergency_contact_phone
 			}
-
-			assignNullable('avatarUrl', data.avatarUrl)
-			assignNullable('phone', data.phone)
-			assignNullable('emergencyContact', data.emergencyContact)
-			assignNullable('firstName', data.firstName)
-			assignNullable('lastName', data.lastName)
-			assignNullable('name', data.name)
-			assignNullable('userId', data.userId)
+			if (data.emergency_contact_relationship !== undefined) {
+				payload.emergency_contact_relationship = data.emergency_contact_relationship
+			}
 
 			return await clientFetch<TenantWithLeaseInfo>(
 				`/api/v1/tenants/${tenant.id}`,
@@ -133,69 +112,21 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 				<CrudDialogHeader>
 					<CrudDialogTitle>Edit Tenant</CrudDialogTitle>
 					<CrudDialogDescription>
-						Update tenant information including contact details and emergency
-						contacts.
+						Update tenant information including emergency contact details.
 					</CrudDialogDescription>
 				</CrudDialogHeader>
 
 				<CrudDialogBody>
 					<form onSubmit={handleFormSubmit} className="space-y-4">
 						<Field>
-							<FieldLabel>First Name</FieldLabel>
+							<FieldLabel>Emergency Contact Name</FieldLabel>
 							<input
-								value={formData.firstName}
-								onChange={e => handleInputChange('firstName', e.target.value)}
-								type="text"
-								required
-								placeholder="Enter first name"
-								className="input"
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Last Name</FieldLabel>
-							<input
-								value={formData.lastName}
-								onChange={e => handleInputChange('lastName', e.target.value)}
-								type="text"
-								required
-								placeholder="Enter last name"
-								className="input"
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Email</FieldLabel>
-							<input
-								value={formData.email}
-								onChange={e => handleInputChange('email', e.target.value)}
-								type="email"
-								required
-								placeholder="Enter email"
-								className="input"
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Phone</FieldLabel>
-							<input
-								value={formData.phone}
-								onChange={e => handleInputChange('phone', e.target.value)}
-								type="text"
-								placeholder="Enter phone number"
-								className="input"
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Emergency Contact</FieldLabel>
-							<input
-								value={formData.emergencyContact}
+								value={formData.emergency_contact_name}
 								onChange={e =>
-									handleInputChange('emergencyContact', e.target.value)
+									handleInputChange('emergency_contact_name', e.target.value)
 								}
 								type="text"
-								placeholder="Enter emergency contact"
+								placeholder="Enter emergency contact name"
 								className="input"
 							/>
 						</Field>

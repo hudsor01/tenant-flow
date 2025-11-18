@@ -1,12 +1,10 @@
+import type { MaintenancePriority, RequestStatus } from '../constants/status-types.js'
 /**
  * Maintenance utilities
  * Helper functions for maintenance priority and status display
  */
 
-import type { Database } from '../types/supabase-generated.js'
-
-type Priority = Database['public']['Enums']['Priority']
-type RequestStatus = Database['public']['Enums']['RequestStatus']
+type Priority = MaintenancePriority
 
 export const getPriorityLabel = (priority: Priority): string => {
 	const labels: Record<Priority, string> = {

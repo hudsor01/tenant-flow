@@ -27,7 +27,7 @@ const supabase = getSupabaseClientInstance()
  * 1. owner creates tenant via `/billing/invite-tenant` endpoint
  * 2. Tenant receives email with invitation link
  * 3. Tenant clicks link → lands here with token & type=invite in URL
- * 4. Tenant sets password → account activated with TENANT role
+ * 4. Tenant sets password → account activated with TENANT user_type
  * 5. Redirected to `/tenant`
  *
  * Official Supabase pattern: verifyOtp with type 'invite'

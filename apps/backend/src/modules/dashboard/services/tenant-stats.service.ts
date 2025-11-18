@@ -1,8 +1,10 @@
 /**
  * Tenant Statistics Service
- * 
+ *
  * Calculates tenant-related dashboard metrics
  * Extracted from dashboard.service.ts for CLAUDE.md compliance (<30 lines/method)
+ *
+ * NOTE: Tenant status is derived from lease_status, not a direct column on tenants table
  */
 
 import { Injectable, Logger } from '@nestjs/common'
@@ -24,17 +26,23 @@ export class TenantStatsService {
 
 	/**
 	 * Calculate tenant statistics for a user
+	 * Tenant status is derived from their active leases (lease_status column)
 	 */
 	async calculate(
-		internalUserId: string,
+		internaluser_id: string,
 		startOfCurrentMonth: Date
 	): Promise<TenantStats> {
 		const client = this.supabase.getAdminClient()
 
+		// Get all tenants and their lease status via join
 		const { data, error } = await client
-			.from('tenant')
-			.select('status, createdAt')
-			.eq('userId', internalUserId)
+			.from('tenants')
+			.select(`
+				id,
+				created_at,
+				leases!primary_tenant_id(lease_status)
+			`)
+			.eq('user_id', internaluser_id)
 
 		if (error) {
 			this.logger.error('Failed to fetch tenants', { error: error.message })
@@ -42,19 +50,24 @@ export class TenantStatsService {
 		}
 
 		const tenants = data ?? []
-		const statusToUpper = (s: string | null) => (s ?? '').toUpperCase()
+
+		// Helper to determine tenant status from their leases
+		const getTenantStatus = (leases: { lease_status?: string }[]): string => {
+			if (!leases || leases.length === 0) return 'INACTIVE'
+			const activeStatuses = ['ACTIVE', 'PENDING']
+			const hasActiveLease = leases.some(l =>
+				activeStatuses.includes(l.lease_status?.toUpperCase() ?? '')
+			)
+			return hasActiveLease ? 'ACTIVE' : 'INACTIVE'
+		}
 
 		return {
 			total: tenants.length,
-			active: tenants.filter(t => statusToUpper(t.status) === 'ACTIVE').length,
-			pending: tenants.filter(t => statusToUpper(t.status) === 'PENDING').length,
-			inactive: tenants.filter(t =>
-				['INACTIVE', 'EVICTED', 'MOVED_OUT', 'ARCHIVED'].includes(
-					statusToUpper(t.status)
-				)
-			).length,
+			active: tenants.filter(t => getTenantStatus(t.leases as { lease_status?: string }[]) === 'ACTIVE').length,
+			pending: 0, // Cannot determine pending status without lease data
+			inactive: tenants.filter(t => getTenantStatus(t.leases as { lease_status?: string }[]) === 'INACTIVE').length,
 			newThisMonth: tenants.filter(
-				t => t.createdAt && new Date(t.createdAt) >= startOfCurrentMonth
+				t => t.created_at && new Date(t.created_at) >= startOfCurrentMonth
 			).length
 		}
 	}

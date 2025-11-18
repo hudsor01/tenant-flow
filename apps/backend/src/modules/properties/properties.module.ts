@@ -4,6 +4,9 @@ import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
+import { PropertyImagesService } from './services/property-images.service'
+import { PropertyBulkImportService } from './services/property-bulk-import.service'
+import { PropertyAnalyticsService } from './services/property-analytics.service'
 
 /**
  * Properties module - Refactored to use repository pattern
@@ -12,7 +15,14 @@ import { PropertiesService } from './properties.service'
 @Module({
 	imports: [SupabaseModule, SharedModule],
 	controllers: [PropertiesController],
-	providers: [PropertiesService, StorageService, Logger],
+	providers: [
+		PropertiesService,
+		PropertyImagesService,
+		PropertyBulkImportService,
+		PropertyAnalyticsService,
+		StorageService,
+		Logger
+	],
 	exports: [PropertiesService]
 })
 export class PropertiesModule {}

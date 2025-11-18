@@ -59,7 +59,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		}: {
 			plan: PricingPlan
 			billingCycle: 'monthly' | 'yearly'
-			overrides?: { customerEmail?: string; tenantId?: string }
+			overrides?: { customerEmail?: string; tenant_id?: string }
 		}) => {
 			if (plan.id === 'max') {
 				window.location.href = '/contact'
@@ -72,7 +72,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 				)
 			}
 
-			if (!overrides?.tenantId) {
+			if (!overrides?.tenant_id) {
 				const authenticated = await isUserAuthenticated()
 				if (!authenticated) {
 					window.location.href = '/login'
@@ -96,7 +96,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 				...(overrides?.customerEmail && {
 					customerEmail: overrides.customerEmail
 				}),
-				...(overrides?.tenantId && { tenantId: overrides.tenantId })
+				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id })
 			})
 
 			if (!result.url) {
@@ -205,7 +205,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 
 	const startCheckout = async (
 		plan: PricingPlan,
-		overrides?: { customerEmail?: string; tenantId?: string }
+		overrides?: { customerEmail?: string; tenant_id?: string }
 	) => {
 		await subscriptionMutation.mutateAsync({
 			plan,
@@ -239,20 +239,18 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 			logger.error('Failed to start checkout', {
 				metadata: { error: message }
 			})
-			// onError handler already shows a toast for checkout failures; avoid duplicates
 		}
 	}
 
 	if (isLoading) {
-		// Show fallback pricing plans immediately while Stripe data loads
 		const plansToShow = fallbackPricingPlans
 		return (
 			<>
-				<div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 sm:px-6 lg:px-0">
+					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-[var(--spacing-4)] sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
 					<p className="text-center text-sm text-muted-foreground">
 						Loading live pricing...
 					</p>
-					<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
+						<div className="mt-10 grid w-full gap-[var(--spacing-6)] sm:grid-cols-2 xl:grid-cols-3">
 						{plansToShow.map(plan => (
 							<Card
 								className={cn(
@@ -261,15 +259,15 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 								)}
 								key={plan.id}
 							>
-								<CardHeader className="space-y-4 pb-6 text-left">
+									<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
 									<CardTitle className="text-2xl font-semibold tracking-tight">
 										{plan.name}
 									</CardTitle>
-									<CardDescription className="space-y-2 text-left text-base text-muted-foreground">
+									<CardDescription className="space-y-[var(--spacing-2)] text-left text-base text-muted-foreground">
 										<p>{plan.description}</p>
 										{typeof plan.price[frequency] === 'number' ? (
 											<div className="space-y-1 text-left">
-												<div className="flex items-baseline gap-2 text-left">
+												<div className="flex items-baseline gap-[var(--spacing-2)] text-left">
 													<NumberFlow
 														className="text-4xl font-bold text-foreground"
 														format={{
@@ -297,9 +295,9 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="flex-1 space-y-6">
-									<ul className="space-y-3">
+									<ul className="space-y-[var(--spacing-3)]">
 										{plan.features.map((feature, index) => (
-											<li key={index} className="flex items-start gap-3">
+												<li key={index} className="flex items-start gap-[var(--spacing-3)]">
 												<BadgeCheck className="mt-0.5 size-4 shrink-0 text-primary" />
 												<span className="text-sm text-muted-foreground">
 													{feature}
@@ -327,14 +325,14 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 sm:px-6 lg:px-0">
+				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-[var(--spacing-4)] sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
 				{usingFallback && (
 					<p className="text-center text-sm text-muted-foreground">
 						Live pricing is warming up. Showing the default TenantFlow plans
 						with active Stripe checkout links.
 					</p>
 				)}
-				<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
+					<div className="mt-10 grid w-full gap-[var(--spacing-6)] sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card
 							className={cn(
@@ -343,15 +341,15 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 							)}
 							key={plan.id}
 						>
-							<CardHeader className="space-y-4 pb-6 text-left">
+						<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
 								<CardTitle className="text-2xl font-semibold tracking-tight">
 									{plan.name}
 								</CardTitle>
-								<CardDescription className="space-y-2 text-left text-base text-muted-foreground">
+								<CardDescription className="space-y-[var(--spacing-2)] text-left text-base text-muted-foreground">
 									<p>{plan.description}</p>
 									{typeof plan.price[frequency] === 'number' ? (
 										<div className="space-y-1 text-left">
-											<div className="flex items-baseline gap-2 text-left">
+											<div className="flex items-baseline gap-[var(--spacing-2)] text-left">
 												<NumberFlow
 													className="text-4xl font-bold text-foreground"
 													format={{
@@ -378,10 +376,10 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 									)}
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="flex flex-1 flex-col gap-3 pb-6 text-left">
+						<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
 								{plan.features.map((feature, index) => (
 									<div
-										className="flex gap-2 text-left text-sm leading-6 text-muted-foreground"
+										className="flex gap-[var(--spacing-2)] text-left text-sm leading-6 text-muted-foreground"
 										key={index}
 									>
 										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-success" />
@@ -416,12 +414,12 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 			<OwnerSubscribeDialog
 				{...(pendingPlan?.name && { planName: pendingPlan.name })}
 				{...(pendingPlan?.cta && { planCta: pendingPlan.cta })}
-				onComplete={async ({ email, tenantId, requiresEmailConfirmation }) => {
+				onComplete={async ({ email, tenant_id, requiresEmailConfirmation }) => {
 					if (!pendingPlan) return
 					try {
 						await startCheckout(pendingPlan, {
 							customerEmail: email,
-							...(tenantId && { tenantId })
+							...(tenant_id && { tenant_id })
 						})
 						closeModal('owner-subscribe')
 						setPendingPlan(null)

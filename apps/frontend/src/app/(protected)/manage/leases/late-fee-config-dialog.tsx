@@ -17,7 +17,7 @@ import { toast } from 'sonner'
 interface LateFeeConfigDialogProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
-	leaseId: string
+	lease_id: string
 	onSuccess?: () => void
 }
 
@@ -27,10 +27,10 @@ import { formatCurrency } from '@repo/shared/utils/currency'
 export function LateFeeConfigDialog({
 	open,
 	onOpenChange,
-	leaseId,
+	lease_id,
 	onSuccess
 }: LateFeeConfigDialogProps) {
-	const { data: config, isLoading } = useLateFeeConfig(leaseId)
+	const { data: config, isLoading } = useLateFeeConfig(lease_id)
 	const updateConfig = useUpdateLateFeeConfig()
 
 	const [gracePeriodDays, setGracePeriodDays] = useState<number>(5)
@@ -65,7 +65,7 @@ export function LateFeeConfigDialog({
 
 		updateConfig.mutate(
 			{
-				leaseId,
+				lease_id,
 				gracePeriodDays,
 				flatFeeAmount
 			},

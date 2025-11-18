@@ -62,11 +62,11 @@ export function ForgotPasswordModal() {
 									</DialogDescription>
 								</DialogHeader>
 
-								<form onSubmit={handleSubmit} className="space-y-4">
-									<div className="space-y-2">
+								<form onSubmit={handleSubmit} className="space-y-[var(--spacing-4)]">
+									<div className="space-y-[var(--spacing-2)]">
 										<Label htmlFor="email">Email address</Label>
 										<div className="relative">
-											<Mail className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
+											<Mail className="absolute left-[var(--spacing-3)] top-[50%] translate-y-[-50%] size-[var(--spacing-4)] text-muted-foreground" />
 											<Input
 												id="email"
 												name="email"
@@ -75,7 +75,7 @@ export function ForgotPasswordModal() {
 												autoComplete="email"
 												value={email}
 												onChange={e => setEmail(e.target.value)}
-												className="pl-9"
+												className="pl-[var(--spacing-9)]"
 												required
 												disabled={resetPasswordMutation.isPending}
 												autoFocus
@@ -84,15 +84,15 @@ export function ForgotPasswordModal() {
 									</div>
 
 									<Alert className="border-info bg-info/10">
-										<Info className="size-4 text-info" />
-										<AlertDescription className="text-sm text-info-foreground">
+										<Info className="size-[var(--spacing-4)] text-info" />
+										<AlertDescription className="text-caption text-info-foreground">
 											For security reasons, we&apos;ll always show a success
 											message. If an account exists with this email, you&apos;ll
 											receive password reset instructions.
 										</AlertDescription>
 									</Alert>
 
-									<div className="flex gap-2">
+									<div className="flex gap-[var(--spacing-2)]">
 										<Button
 											type="button"
 											variant="outline"
@@ -109,7 +109,7 @@ export function ForgotPasswordModal() {
 										>
 											{resetPasswordMutation.isPending ? (
 												<>
-													<Spinner className="size-4 mr-2 animate-spin" />
+													<Spinner className="size-[var(--spacing-4)] mr-[var(--spacing-2)] animate-spin" />
 													Sending...
 												</>
 											) : (
@@ -122,21 +122,21 @@ export function ForgotPasswordModal() {
 						) : (
 							<>
 								<DialogHeader>
-									<div className="mx-auto mb-4 size-12 rounded-full bg-success/10 flex items-center justify-center">
-										<CheckCircle2 className="size-6 text-success" />
+									<div className="mx-auto mb-4 size-[var(--spacing-12)] rounded-full bg-success/10 flex items-center justify-center">
+										<CheckCircle2 className="size-[var(--spacing-6)] text-success" />
 									</div>
 									<DialogTitle className="text-center">
 										Check Your Email
 									</DialogTitle>
 									<DialogDescription className="text-center">
 										We&apos;ve sent password reset instructions to:
-										<span className="block font-medium mt-2">{email}</span>
+										<span className="block font-medium mt-[var(--spacing-2)]">{email}</span>
 									</DialogDescription>
 								</DialogHeader>
 
-								<div className="space-y-4">
+								<div className="space-y-[var(--spacing-4)]">
 									<Alert>
-										<Mail className="size-4" />
+										<Mail className="size-[var(--spacing-4)]" />
 										<AlertDescription>
 											<strong>If an account exists with this email</strong>,
 											you&apos;ll receive a password reset link within the next
@@ -144,7 +144,7 @@ export function ForgotPasswordModal() {
 										</AlertDescription>
 									</Alert>
 
-									<div className="text-sm text-muted-foreground space-y-2">
+									<div className="text-caption text-muted-foreground space-y-[var(--spacing-2)]">
 										<p>
 											• Check your spam/junk folder if you don&apos;t see the
 											email
@@ -153,7 +153,7 @@ export function ForgotPasswordModal() {
 										<p>• You can request a new link if needed</p>
 									</div>
 
-									<div className="flex gap-2">
+									<div className="flex gap-[var(--spacing-2)]">
 										<Button
 											variant="outline"
 											onClick={() => {

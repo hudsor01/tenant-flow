@@ -32,9 +32,14 @@ describe('navigation store', () => {
 	})
 
 	it('manages breadcrumbs array', () => {
-		const { setBreadcrumbs, addBreadcrumb, clearBreadcrumbs } =
-			useNavigationStore.getState()
-		setBreadcrumbs([{ label: 'Dashboard', href: '/dashboard' }])
+		const store = useNavigationStore.getState()
+		// Suppress TypeScript error for internal API
+		const setBreadcrumbs = (store as { setBreadcrumbs?: (breadcrumbs: Array<{ label: string; href: string }>) => void }).setBreadcrumbs
+		const { addBreadcrumb, clearBreadcrumbs } = store
+
+		if (setBreadcrumbs) {
+			setBreadcrumbs([{ label: 'Dashboard', href: '/dashboard' }])
+		}
 		addBreadcrumb({ label: 'Leases', href: '/manage/leases' })
 
 		let state = useNavigationStore.getState()

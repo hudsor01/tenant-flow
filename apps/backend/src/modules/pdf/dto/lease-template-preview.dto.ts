@@ -117,22 +117,22 @@ const leaseTemplateContextSchema = z.object({
 	tenantNames: z.string().min(1, 'Tenant name(s) are required'),
 	propertyAddress: z.string().min(1, 'Property address is required'),
 	propertyState: usStateEnum,
-	rentAmountCents: positiveMoneyAmount,
-	rentAmountFormatted: z.string().min(1, 'Formatted rent amount is required'),
+	rent_amountCents: positiveMoneyAmount,
+	rent_amountFormatted: z.string().min(1, 'Formatted rent amount is required'),
 	rentDueDay: rentDueDay,
 	rentDueDayOrdinal: z.string().min(1, 'Rent due day ordinal is required'),
-	securityDepositCents: positiveMoneyAmount,
-	securityDepositFormatted: z
+	security_depositCents: positiveMoneyAmount,
+	security_depositFormatted: z
 		.string()
 		.min(1, 'Formatted security deposit is required'),
-	leaseStartDateISO: isoDateTimeString,
+	leasestart_dateISO: isoDateTimeString,
 	leaseEndDateISO: isoDateTimeString.optional(),
-	leaseStartDateFormatted: z
+	leasestart_dateFormatted: z
 		.string()
 		.min(1, 'Formatted start date is required'),
 	leaseEndDateFormatted: z.string().optional(),
-	lateFeeAmountCents: positiveMoneyAmount.optional(),
-	lateFeeAmountFormatted: z.string().optional(),
+	late_fee_amountCents: positiveMoneyAmount.optional(),
+	late_fee_amountFormatted: z.string().optional(),
 	gracePeriodDays: z.number().int().min(0).max(30).optional(),
 	formattedDateGenerated: z.string().min(1, 'Generated date is required')
 })

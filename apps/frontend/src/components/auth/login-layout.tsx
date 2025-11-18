@@ -3,7 +3,7 @@
 import { LoginForm } from '#components/auth/login-form'
 import { cn } from '#lib/design-system'
 import type { LoginLayoutProps } from '@repo/shared/types/auth'
-import { Lock, Smartphone, Zap } from 'lucide-react'
+import { Lock, Smartphone, Zap, Home } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
@@ -54,20 +54,7 @@ const ImageSection = ({ imageUrl, content }: ImageSectionProps) => (
 						<div className="size-16 mx-auto mb-8 relative group">
 							<div className="absolute inset-0 bg-primary/55 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
 							<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 group-hover:border-white/30 group-hover:scale-105 transition-all duration-300 shadow-lg">
-								<svg
-									viewBox="0 0 24 24"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-									className="size-8 text-primary-foreground group-hover:scale-110 transition-all duration-300"
-								>
-									<path
-										d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-										stroke="currentColor"
-										strokeWidth="1.5"
-										strokeLinecap="round"
-										strokeLinejoin="round"
-									/>
-								</svg>
+								<Home className="size-8 text-primary-foreground group-hover:scale-110 transition-all duration-300" />
 							</div>
 						</div>
 
@@ -126,24 +113,11 @@ const FormSection = ({
 		<div className="w-full max-w-sm space-y-8">
 			{/* Simple Logo/Brand with better spacing */}
 			<div className="text-center space-y-4">
-				<div className="size-14 mx-auto">
-					<div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
-						<svg
-							viewBox="0 0 24 24"
-							fill="none"
-							xmlns="http://www.w3.org/2000/svg"
-							className="size-7 text-primary-foreground"
-						>
-							<path
-								d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							/>
-						</svg>
-					</div>
-				</div>
+                		<div className="size-14 mx-auto">
+                			<div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
+                				<Home className="size-7 text-primary-foreground" />
+                			</div>
+                		</div>
 
 				<div className="space-y-2">
 					<h1 className="text-2xl font-bold text-foreground tracking-tight">

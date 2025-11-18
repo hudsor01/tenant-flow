@@ -144,7 +144,7 @@ export default function TenantMaintenancePage() {
 									<Wrench className="size-5 text-primary" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
-											<p className="font-medium">{request.title}</p>
+											<p className="font-medium">{request.description.length > 50 ? `${request.description.substring(0, 50)}...` : request.description}</p>
 											<span
 												className={`text-xs font-semibold ${getPriorityColor(request.priority)}`}
 											>
@@ -158,7 +158,7 @@ export default function TenantMaintenancePage() {
 										</p>
 										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
 											<Calendar className="size-3" />
-											<span>Submitted {formatDate(request.createdAt)}</span>
+											<span>Submitted {formatDate(request.created_at || new Date().toISOString())}</span>
 										</div>
 									</div>
 								</div>
@@ -205,16 +205,16 @@ export default function TenantMaintenancePage() {
 									<Wrench className="size-5 text-muted-foreground" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
-											<p className="font-medium">{request.title}</p>
+											<p className="font-medium">{request.description.length > 50 ? `${request.description.substring(0, 50)}...` : request.description}</p>
 										</div>
 										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
 											<Calendar className="size-3" />
-											<span>Submitted {formatDate(request.createdAt)}</span>
-											{request.completedAt && (
+											<span>Submitted {formatDate(request.created_at || new Date().toISOString())}</span>
+											{request.completed_at && (
 												<>
 													<span>•</span>
 													<span>
-														Completed {formatDate(request.completedAt)}
+														Completed {formatDate(request.completed_at)}
 													</span>
 												</>
 											)}

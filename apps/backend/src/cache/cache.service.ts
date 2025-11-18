@@ -122,14 +122,14 @@ export class ZeroCacheService implements OnModuleDestroy {
 	/**
 	 * Invalidate by user ID - critical for multi-tenant isolation
 	 */
-	invalidateByUser(userId: string): number {
-		return this.invalidate(`user:${userId}`, 'user_data_changed')
+	invalidateByUser(user_id: string): number {
+		return this.invalidate(`user:${user_id}`, 'user_data_changed')
 	}
 
 	/**
 	 * Invalidate by entity type - for business logic changes
 	 */
-	invalidateByEntity(entityType: 'property' | 'unit' | 'tenant' | 'lease' | 'maintenance', entityId?: string): number {
+	invalidateByEntity(entityType: 'properties' | 'units' | 'tenants' | 'leases' | 'maintenance', entityId?: string): number {
 		const pattern = entityId ? `${entityType}:${entityId}` : entityType
 		return this.invalidate(pattern, `${entityType}_changed`)
 	}
@@ -176,9 +176,9 @@ export class ZeroCacheService implements OnModuleDestroy {
 	/**
 	 * Get cache key for user-specific data
 	 */
-	static getUserKey(userId: string, operation: string, params?: Record<string, unknown>): string {
+	static getUserKey(user_id: string, operation: string, params?: Record<string, unknown>): string {
 		const paramsStr = params ? `:${JSON.stringify(params)}` : ''
-		return `user:${userId}:${operation}${paramsStr}`
+		return `user:${user_id}:${operation}${paramsStr}`
 	}
 
 	/**

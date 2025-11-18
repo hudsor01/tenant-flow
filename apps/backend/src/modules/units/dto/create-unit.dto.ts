@@ -6,13 +6,13 @@ import { z } from 'zod'
  * Per CLAUDE.md: Use nestjs-zod + createZodDto() for validation
  */
 const CreateUnitSchema = z.object({
-	propertyId: z.string().uuid('Invalid property ID'),
-	unitNumber: z.string().min(1, 'Unit number is required'),
+	property_id: z.string().uuid('Invalid property ID'),
+	unit_number: z.string().min(1, 'Unit number is required'),
 	bedrooms: z.number().int().nonnegative().optional(),
 	bathrooms: z.number().nonnegative().optional(),
-	squareFeet: z.number().int().positive().optional(),
+	square_feet: z.number().int().positive().optional(),
 	// IMPORTANT: rent must be in cents (multiply dollars by 100)
-	// This matches the lease rentAmount field convention
+	// This matches the lease rent_amount field convention
 	rent: z
 		.number()
 		.int('Rent must be an integer (cents)')

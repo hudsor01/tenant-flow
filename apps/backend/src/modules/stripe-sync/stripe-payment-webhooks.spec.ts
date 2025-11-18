@@ -18,7 +18,7 @@
  * - Tests: THIS FILE - One-time payment processing and recording
  *
  * This file tests FLOW 2 (Rent Payments) to ensure:
- * - Tenant payments are properly recorded in rent_payment table
+ * - Tenant payments are properly recorded in rent_payments table
  * - checkout.session.completed triggers database writes
  * - Payment validation prevents recording unpaid sessions
  * - Idempotency prevents duplicate payment records
@@ -66,10 +66,10 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 	const mockSubscriptionId = 'sub_test123'
 	const mockEventId = 'evt_test123'
 	const mockSignature = 'test_signature'
-	const mockLeaseId = 'lease_test123'
-	const mockTenantId = 'tenant_test123'
+	const mocklease_id = 'lease_test123'
+	const mocktenant_id = 'tenant_test123'
 	const mockOwnerId = 'owner_test123'
-	const mockPropertyId = 'property_test123'
+	const mockproperty_id = 'property_test123'
 	const mockPaymentIntentId = 'pi_test123'
 	const mockCheckoutSessionId = 'cs_test123'
 
@@ -140,8 +140,8 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				amount_total: 150000, // $1,500.00 monthly rent
 				currency: 'usd',
 				metadata: {
-					leaseId: mockLeaseId,
-					tenantId: mockTenantId,
+					lease_id: mocklease_id,
+					tenant_id: mocktenant_id,
 					paymentType: 'rent'
 				}
 			} as unknown as Stripe.Checkout.Session
@@ -174,9 +174,9 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				eq: jest.fn().mockReturnThis(),
 				single: jest.fn().mockResolvedValue({
 					data: {
-						propertyId: mockPropertyId,
+						property_id: mockproperty_id,
 						property: {
-							ownerId: mockOwnerId
+							owner_id: mockOwnerId
 						}
 					},
 					error: null
@@ -192,9 +192,9 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 			mockAdminClient.from.mockImplementation((table: string) => {
 				if (table === 'stripe_processed_events') {
 					return mockEventQueryBuilder as any
-				} else if (table === 'lease') {
+				} else if (table === 'leases') {
 					return mockLeaseQueryBuilder as any
-				} else if (table === 'rent_payment') {
+				} else if (table === 'rent_payments') {
 					return mockPaymentQueryBuilder as any
 				}
 				return createMock() as any
@@ -211,19 +211,19 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 
 			// Assert: Payment should be recorded in database
 			expect(mockPaymentQueryBuilder.insert).toHaveBeenCalledWith({
-				leaseId: mockLeaseId,
-				tenantId: mockTenantId,
-				ownerId: mockOwnerId,
-				amount: 1500.0, // Converted from cents to dollars
-				paidAt: expect.any(String),
-				paymentType: 'rent',
-				status: 'completed',
-				stripePaymentIntentId: mockPaymentIntentId,
-				platformFee: 0,
-				stripeFee: 0,
-				ownerReceives: 1500.0,
-				receiptUrl: null
-			})
+			lease_id: mocklease_id,
+			tenant_id: mocktenant_id,
+			amount: 150000, // Amount in cents from Stripe
+			due_date: expect.any(String),
+			paid_date: expect.any(String),
+			payment_method_type: 'rent',
+			status: 'succeeded',
+			stripe_payment_intent_id: mockPaymentIntentId,
+			application_fee_amount: 0,
+			currency: 'usd',
+			period_start: expect.any(String),
+			period_end: expect.any(String)
+		})
 
 			// Verify event was marked as processed
 			expect(mockEventQueryBuilder.insert).toHaveBeenCalled()
@@ -241,8 +241,8 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				amount_total: 150000,
 				currency: 'usd',
 				metadata: {
-					leaseId: mockLeaseId,
-					tenantId: mockTenantId,
+					lease_id: mocklease_id,
+					tenant_id: mocktenant_id,
 					paymentType: 'rent'
 				}
 			} as unknown as Stripe.Checkout.Session
@@ -281,9 +281,9 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 			// Assert: No payment should be recorded (payment_status !== 'paid')
 			// Only stripe_processed_events should be accessed
 			const fromCalls = (mockAdminClient.from as jest.Mock).mock.calls
-			const leaseTableCalls = fromCalls.filter(call => call[0] === 'lease')
+			const leaseTableCalls = fromCalls.filter(call => call[0] === 'leases')
 			const paymentTableCalls = fromCalls.filter(
-				call => call[0] === 'rent_payment'
+				call => call[0] === 'rent_payments'
 			)
 
 			expect(leaseTableCalls.length).toBe(0)
@@ -291,7 +291,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 		})
 
 		it('should handle missing metadata gracefully (validation)', async () => {
-			// Arrange: Checkout session missing required metadata (leaseId, tenantId)
+			// Arrange: Checkout session missing required metadata (lease_id, tenant_id)
 			// This could occur if frontend doesn't include required fields
 			const mockCheckoutSession: Stripe.Checkout.Session = {
 				id: mockCheckoutSessionId,
@@ -301,7 +301,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				payment_intent: mockPaymentIntentId,
 				amount_total: 150000,
 				currency: 'usd',
-				metadata: {} // Missing leaseId and tenantId
+				metadata: {} // Missing lease_id and tenant_id
 			} as unknown as Stripe.Checkout.Session
 
 			const mockEvent: Stripe.Event = {
@@ -343,7 +343,7 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 
 			// Should not attempt database insert
 			const fromCalls = (mockAdminClient.from as jest.Mock).mock.calls
-			const paymentCalls = fromCalls.filter(call => call[0] === 'rent_payment')
+			const paymentCalls = fromCalls.filter(call => call[0] === 'rent_payments')
 			expect(paymentCalls.length).toBe(0)
 		})
 
@@ -360,8 +360,8 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				amount_total: 150000,
 				currency: 'usd',
 				metadata: {
-					leaseId: mockLeaseId,
-					tenantId: mockTenantId,
+					lease_id: mocklease_id,
+					tenant_id: mocktenant_id,
 					paymentType: 'rent'
 				}
 			} as unknown as Stripe.Checkout.Session
@@ -391,8 +391,8 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 				eq: jest.fn().mockReturnThis(),
 				single: jest.fn().mockResolvedValue({
 					data: {
-						propertyId: mockPropertyId,
-						property: { ownerId: mockOwnerId }
+						property_id: mockproperty_id,
+						property: { owner_id: mockOwnerId }
 					},
 					error: null
 				})
@@ -412,9 +412,9 @@ describe('StripeSyncController - Critical Payment Webhooks (Revenue)', () => {
 			mockAdminClient.from.mockImplementation((table: string) => {
 				if (table === 'stripe_processed_events') {
 					return mockEventQueryBuilder as any
-				} else if (table === 'lease') {
+				} else if (table === 'leases') {
 					return mockLeaseQueryBuilder as any
-				} else if (table === 'rent_payment') {
+				} else if (table === 'rent_payments') {
 					return mockPaymentQueryBuilder as any
 				}
 				return createMock() as any

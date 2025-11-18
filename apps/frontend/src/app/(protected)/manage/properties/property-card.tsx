@@ -22,8 +22,9 @@ import {
 	PencilIcon,
 	Trash2
 } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
+
+import { usePropertyImages } from '#hooks/api/use-properties'
 
 interface PropertyCardProps {
 	property: Property
@@ -31,6 +32,9 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onDelete }: PropertyCardProps) {
+	const { data: images } = usePropertyImages(property.id)
+	const primaryImage = images?.[0]
+
 	// Map database status enum to UI variants
 	const statusVariant =
 		property.status === 'ACTIVE'
@@ -50,14 +54,14 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
 	return (
 		<Card className="overflow-hidden group hover:shadow-lg transition-shadow" data-testid="property-card">
-			{/* Property Image */}
+			{/* Property Image - displays primary image or placeholder */}
 			<div className="relative aspect-video w-full overflow-hidden bg-muted">
-				{property.imageUrl ? (
-					<Image
-						src={property.imageUrl}
+				{primaryImage ? (
+					<img
+						src={primaryImage.image_url}
 						alt={property.name}
-						fill
-						className="object-cover group-hover:scale-105 transition-transform duration-300"
+						className="object-cover w-full h-full"
+						loading="lazy"
 					/>
 				) : (
 					<div className="flex items-center justify-center h-full">
@@ -79,7 +83,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 						<CardTitle className="text-lg truncate">{property.name}</CardTitle>
 						<CardDescription className="flex items-center gap-1.5 text-sm">
 							<MapPin className="size-3.5 shrink-0" />
-							<span className="truncate">{property.address}</span>
+							<span className="truncate">{property.address_line1}</span>
 						</CardDescription>
 					</div>
 
@@ -122,7 +126,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 					<div>
 						<p className="text-muted-foreground">Type:</p>
 						<p className="font-medium capitalize">
-							{property.propertyType?.replace(/_/g, ' ').toLowerCase() || 'N/A'}
+							{property.property_type?.replace(/_/g, ' ').toLowerCase() || 'N/A'}
 						</p>
 					</div>
 					<div className="text-right">

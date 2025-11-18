@@ -69,8 +69,8 @@ export default function SettingsPage() {
 
 		const formData = new FormData(e.currentTarget)
 		const profileData = {
-			firstName: formData.get('firstName') as string,
-			lastName: formData.get('lastName') as string,
+			first_name: formData.get('first_name') as string,
+			last_name: formData.get('last_name') as string,
 			email: formData.get('email') as string,
 			phone: (formData.get('phone') as string) || undefined,
 			company: (formData.get('company') as string) || undefined,
@@ -174,21 +174,21 @@ export default function SettingsPage() {
 								className="grid grid-cols-1 gap-6 md:grid-cols-2"
 							>
 								<div className="space-y-2">
-									<Label htmlFor="firstName">First Name</Label>
+									<Label htmlFor="first_name">First Name</Label>
 									<Input
-										id="firstName"
-										name="firstName"
+										id="first_name"
+										name="first_name"
 										autoComplete="given-name"
-										defaultValue={profile?.firstName || ''}
+										defaultValue={profile?.first_name || ''}
 									/>
 								</div>
 								<div className="space-y-2">
-									<Label htmlFor="lastName">Last Name</Label>
+									<Label htmlFor="last_name">Last Name</Label>
 									<Input
-										id="lastName"
-										name="lastName"
+										id="last_name"
+										name="last_name"
 										autoComplete="family-name"
-										defaultValue={profile?.lastName || ''}
+										defaultValue={profile?.last_name || ''}
 									/>
 								</div>
 								<div className="space-y-2">

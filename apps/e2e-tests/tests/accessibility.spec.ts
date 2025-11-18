@@ -109,7 +109,7 @@ test.describe('Forms Accessibility', () => {
 
 		// Open create property dialog
 		await page.click('text=Add Property')
-		await page.waitForSelector('[role="dialog"]')
+		await page.waitForSelector('[user_type="dialog"]')
 
 		await checkA11y(page, 'Property creation form')
 	})
@@ -120,7 +120,7 @@ test.describe('Forms Accessibility', () => {
 
 		// Open create tenant dialog
 		await page.click('text=Add Tenant')
-		await page.waitForSelector('[role="dialog"]')
+		await page.waitForSelector('[user_type="dialog"]')
 
 		await checkA11y(page, 'Tenant creation form')
 	})
@@ -152,10 +152,10 @@ test.describe('Interactive Elements Accessibility', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Open actions dropdown
-		const actionsButton = page.locator('[role="button"][aria-haspopup="menu"]').first()
+		const actionsButton = page.locator('[user_type="button"][aria-haspopup="menu"]').first()
 		if (await actionsButton.count() > 0) {
 			await actionsButton.click()
-			await page.waitForSelector('[role="menu"]')
+			await page.waitForSelector('[user_type="menu"]')
 			await checkA11y(page, 'Actions dropdown menu')
 		}
 	})

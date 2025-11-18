@@ -5,7 +5,7 @@ import {
 	Logger
 } from '@nestjs/common'
 import type { authUser } from '@repo/shared/types/auth'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import { SUPABASE_ADMIN_CLIENT, RPC_MAX_RETRIES, RPC_BACKOFF_MS, RPC_TIMEOUT_MS } from './supabase.constants'
@@ -305,7 +305,7 @@ export class SupabaseService {
 
 			const duration = Date.now() - startTime
 			this.logger.log('User authenticated successfully', {
-				userId: user.id,
+				user_id: user.id,
 				endpoint: req.path,
 				duration: `${duration}ms`
 			})

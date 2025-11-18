@@ -63,8 +63,8 @@ export function mapPropertyPerformance(
 		)
 
 		return {
-			propertyId: toString(
-				record.property_id ?? record.propertyId,
+			property_id: toString(
+				record.property_id ?? record.property_id,
 				propertyName
 			),
 			propertyName,
@@ -80,7 +80,7 @@ export function mapPropertyPerformance(
 			vacantUnits: toNumber(record.vacant_units ?? record.vacantUnits),
 			address: toString(record.address ?? record.formatted_address ?? ''),
 			status: toString(record.status ?? record.state ?? ''),
-			propertyType: toString(record.property_type ?? record.type ?? ''),
+			property_type: toString(record.property_type ?? record.type ?? ''),
 			trend,
 			trendPercentage
 		}
@@ -145,11 +145,11 @@ export function mapPropertyUnits(data: unknown): PropertyUnitDetail[] {
 	return data.map(item => {
 		const record = isObject(item) ? item : {}
 		return {
-			propertyId: toString(record.property_id ?? record.propertyId ?? ''),
-			unitId: toString(
-				record.unit_id ?? record.unitId ?? toString(record.id ?? '')
+			property_id: toString(record.property_id ?? record.property_id ?? ''),
+			unit_id: toString(
+				record.unit_id ?? record.unit_id ?? toString(record.id ?? '')
 			),
-			unitNumber: toString(record.unit_number ?? record.unitNumber ?? 'Unit'),
+			unit_number: toString(record.unit_number ?? record.unit_number ?? 'Unit'),
 			status: toString(
 				record.status ?? record.state ?? 'unknown'
 			).toUpperCase(),
@@ -159,10 +159,10 @@ export function mapPropertyUnits(data: unknown): PropertyUnitDetail[] {
 				record.rent_amount === null
 					? null
 					: toNumber(record.rent_amount ?? record.rent),
-			squareFeet:
+			square_feet:
 				record.square_feet === null
 					? null
-					: toNumber(record.square_feet ?? record.squareFeet)
+					: toNumber(record.square_feet ?? record.square_feet)
 		}
 	})
 }

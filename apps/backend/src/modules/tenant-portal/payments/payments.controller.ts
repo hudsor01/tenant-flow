@@ -17,7 +17,7 @@ import { TenantContextInterceptor } from '../interceptors/tenant-context.interce
  * Tenant Payments Controller
  *
  * Handles payment history, upcoming payments, and payment method management
- * for tenants. Enforces TENANT role via TenantAuthGuard.
+ * for tenants. Enforces TENANT user_type via TenantAuthGuard.
  *
  * Routes: /tenant/payments/*
  */
@@ -35,7 +35,11 @@ export class TenantPaymentsController {
 	 * @returns Payment list with metadata
 	 */
 	@Get()
-	async getPayments(@JwtToken() token: string, @User() user: authUser) {
+	async getPayments(
+		@JwtToken() token: string,
+		@User() user: authUser
+	): // eslint-disable-next-line @typescript-eslint/no-explicit-any
+	Promise<{ payments: any[]; methodsEndpoint: string }> {
 		const tenant = await this.resolveTenant(token, user)
 		const payments = await this.fetchPayments(token, tenant.id)
 
@@ -48,9 +52,9 @@ export class TenantPaymentsController {
 	private async resolveTenant(token: string, user: authUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('tenant')
-			.select('id, auth_user_id, stripe_customer_id')
-			.eq('auth_user_id', user.id)
+			.from('tenants')
+			.select('id, user_id, stripe_customer_id')
+			.eq('user_id', user.id)
 			.single()
 
 		if (error || !data) {
@@ -60,20 +64,20 @@ export class TenantPaymentsController {
 		return data
 	}
 
-	private async fetchPayments(token: string, tenantId: string) {
+	private async fetchPayments(token: string, tenant_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('rent_payment')
+			.from('rent_payments')
 			.select(
-				'id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId, stripePaymentIntentId, ownerReceives, receiptUrl'
+				'id, amount, status, paidAt, dueDate, created_at, lease_id, tenant_id, stripePaymentIntentId, ownerReceives, receiptUrl'
 			)
-			.eq('tenantId', tenantId)
-			.order('createdAt', { ascending: false })
+			.eq('tenant_id', tenant_id)
+			.order('created_at', { ascending: false })
 			.limit(50)
 
 		if (error) {
 			this.logger.error('Failed to load rent payments', {
-				tenantId,
+				tenant_id,
 				error: error.message
 			})
 			throw new Error('Failed to load payment history')

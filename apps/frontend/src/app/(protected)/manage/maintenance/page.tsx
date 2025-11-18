@@ -18,7 +18,7 @@ export default async function MaintenancePage() {
 	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 
-const logger = createLogger({ component: 'MaintenancePage', userId: user.id })
+const logger = createLogger({ component: 'MaintenancePage', user_id: user.id })
 
 	// Server Component: Fetch data on server during RSC render
 	let requests: MaintenanceRequestResponse['data'] = []

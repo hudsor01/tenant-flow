@@ -17,7 +17,7 @@ import { TenantContextInterceptor } from '../interceptors/tenant-context.interce
  * Tenant Autopay Controller
  *
  * Manages automatic payment subscriptions and recurring rent payments
- * for tenants. Enforces TENANT role via TenantAuthGuard.
+ * for tenants. Enforces TENANT user_type via TenantAuthGuard.
  *
  * Routes: /tenant/autopay/*
  */
@@ -49,9 +49,9 @@ export class TenantAutopayController {
 		return {
 			autopayEnabled: !!lease.stripe_subscription_id,
 			subscriptionId: lease.stripe_subscription_id,
-			leaseId: lease.id,
-			tenantId: tenant.id,
-			rentAmount: lease.rentAmount,
+			lease_id: lease.id,
+			tenant_id: tenant.id,
+			rent_amount: lease.rent_amount,
 			nextPaymentDate: lease.stripe_subscription_id
 				? await this.getNextPaymentDate(token, lease.id)
 				: null
@@ -61,9 +61,9 @@ export class TenantAutopayController {
 	private async resolveTenant(token: string, user: authUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('tenant')
-			.select('id, auth_user_id, stripe_customer_id')
-			.eq('auth_user_id', user.id)
+			.from('tenants')
+			.select('id, user_id, stripe_customer_id')
+			.eq('user_id', user.id)
 			.single()
 
 		if (error || !data) {
@@ -73,20 +73,20 @@ export class TenantAutopayController {
 		return data
 	}
 
-	private async fetchActiveLease(token: string, tenantId: string) {
+	private async fetchActiveLease(token: string, tenant_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('lease')
-			.select('id, rentAmount, stripe_subscription_id')
-			.eq('tenantId', tenantId)
+			.from('leases')
+			.select('id, rent_amount, stripe_subscription_id')
+			.eq('tenant_id', tenant_id)
 			.eq('status', 'ACTIVE')
-			.order('startDate', { ascending: false })
+			.order('start_date', { ascending: false })
 			.limit(1)
 			.maybeSingle()
 
 		if (error) {
 			this.logger.error('Failed to load active lease', {
-				tenantId,
+				tenant_id,
 				error: error.message
 			})
 			return null
@@ -95,14 +95,14 @@ export class TenantAutopayController {
 		return data
 	}
 
-	private async getNextPaymentDate(token: string, leaseId: string) {
+	private async getNextPaymentDate(token: string, lease_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('rent_payment')
-			.select('dueDate')
-			.eq('leaseId', leaseId)
+			.from('rent_payments')
+			.select('due_date')
+			.eq('lease_id', lease_id)
 			.in('status', ['DUE', 'PENDING'])
-			.order('dueDate', { ascending: true })
+			.order('due_date', { ascending: true })
 			.limit(1)
 			.maybeSingle()
 
@@ -110,6 +110,6 @@ export class TenantAutopayController {
 			return null
 		}
 
-		return data.dueDate
+		return data.due_date
 	}
 }

@@ -2,32 +2,18 @@
 
 import { TrendCard } from '#components/dashboard/trend-card'
 import { MiniTrendChart } from '#components/dashboard/mini-trend-chart'
-import { useDashboardTrendData, useDashboardTimeSeries } from '#hooks/api/use-dashboard-trends'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
-import { useEffect, useState } from 'react'
+import { useOwnerMetricTrend, useOwnerTimeSeries } from '#hooks/api/use-owner-dashboard'
 
 export function TrendsSection() {
-  const [userId, setUserId] = useState<string | undefined>()
-
-  useEffect(() => {
-    const supabase = getSupabaseClientInstance()
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id)
-    })
-  }, [])
-
   // Fetch all trend data
-  const { data: trends, isLoading } = useDashboardTrendData(userId)
+  const { data: occupancyRate, isLoading: isOccupancyRateLoading } = useOwnerMetricTrend('occupancy_rate', 'month')
+  const { data: activeTenants, isLoading: isActiveTenantsLoading } = useOwnerMetricTrend('active_tenants', 'month')
+  const { data: monthlyRevenue, isLoading: isMonthlyRevenueLoading } = useOwnerMetricTrend('monthly_revenue', 'month')
+  const { data: openMaintenance, isLoading: isOpenMaintenanceLoading } = useOwnerMetricTrend('open_maintenance', 'month')
 
   // Fetch time series for charts
-  const { data: occupancyTimeSeries, isLoading: isOccupancyLoading } = useDashboardTimeSeries(
-    userId,
-    { metric: 'occupancy_rate', days: 30 }
-  )
-  const { data: revenueTimeSeries, isLoading: isRevenueLoading } = useDashboardTimeSeries(
-    userId,
-    { metric: 'monthly_revenue', days: 30 }
-  )
+  const { data: occupancyTimeSeries, isLoading: isOccupancyLoading } = useOwnerTimeSeries({ metric: 'occupancy_rate', days: 30 })
+  const { data: revenueTimeSeries, isLoading: isRevenueLoading } = useOwnerTimeSeries({ metric: 'monthly_revenue', days: 30 })
 
   return (
     <section className="dashboard-section">
@@ -41,20 +27,20 @@ export function TrendsSection() {
       <div className="dashboard-trend-grid">
         <TrendCard
           title="Occupancy Rate"
-          metric={trends?.occupancyRate}
-          isLoading={isLoading}
+          metric={occupancyRate}
+          isLoading={isOccupancyRateLoading}
           valueFormatter={(v) => `${v.toFixed(1)}%`}
         />
         <TrendCard
           title="Active Tenants"
-          metric={trends?.activeTenants}
-          isLoading={isLoading}
+          metric={activeTenants}
+          isLoading={isActiveTenantsLoading}
           valueFormatter={(v) => v.toString()}
         />
         <TrendCard
           title="Monthly Revenue"
-          metric={trends?.monthlyRevenue}
-          isLoading={isLoading}
+          metric={monthlyRevenue}
+          isLoading={isMonthlyRevenueLoading}
           valueFormatter={(v) =>
             `$${(v / 100).toLocaleString('en-US', {
               minimumFractionDigits: 2,
@@ -64,8 +50,8 @@ export function TrendsSection() {
         />
         <TrendCard
           title="Open Maintenance"
-          metric={trends?.openMaintenance}
-          isLoading={isLoading}
+          metric={openMaintenance}
+          isLoading={isOpenMaintenanceLoading}
           valueFormatter={(v) => v.toString()}
         />
       </div>

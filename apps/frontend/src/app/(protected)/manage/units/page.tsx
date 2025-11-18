@@ -72,25 +72,25 @@ export default function UnitsPage() {
 	const total = unitsResponse?.total || 0
 
 	// Delete state and mutation
-	const [deleteUnitId, setDeleteUnitId] = useState<string | null>(null)
+	const [deleteunit_id, setDeleteunit_id] = useState<string | null>(null)
 	const deleteUnitMutation = useDeleteUnit({
 		onSuccess: () => {
 			toast.success('Unit deleted successfully')
-			setDeleteUnitId(null)
+			setDeleteunit_id(null)
 		},
 		onError: () => {
 			toast.error('Failed to delete unit')
-			setDeleteUnitId(null)
+			setDeleteunit_id(null)
 		}
 	})
 
-	const handleDeleteClick = (unitId: string) => {
-		setDeleteUnitId(unitId)
+	const handleDeleteClick = (unit_id: string) => {
+		setDeleteunit_id(unit_id)
 	}
 
 	const handleDeleteConfirm = () => {
-		if (deleteUnitId) {
-			deleteUnitMutation.mutate(deleteUnitId)
+		if (deleteunit_id) {
+			deleteUnitMutation.mutate(deleteunit_id)
 		}
 	}
 
@@ -203,19 +203,19 @@ export default function UnitsPage() {
 							{units.map(unit => (
 								<TableRow key={unit.id}>
 									<TableCell className="font-medium">
-										{unit.unitNumber}
+										{unit.unit_number}
 									</TableCell>
 									<TableCell>
 										<span className="text-sm text-muted-foreground">
-											Property ID: {unit.propertyId.substring(0, 8)}...
+											Property ID: {unit.property_id.substring(0, 8)}...
 										</span>
 									</TableCell>
 									<TableCell>{unit.bedrooms}</TableCell>
 									<TableCell>{unit.bathrooms}</TableCell>
 									<TableCell>
-										{unit.squareFeet ? `${unit.squareFeet} sq ft` : '-'}
+										{unit.square_feet ? `${unit.square_feet} sq ft` : '-'}
 									</TableCell>
-									<TableCell>${unit.rent.toLocaleString()}/mo</TableCell>
+									<TableCell>${unit.rent_amount?.toLocaleString()}/mo</TableCell>
 									<TableCell>{getStatusBadge(unit.status)}</TableCell>
 									<TableCell>
 										<DropdownMenu>
@@ -249,7 +249,7 @@ export default function UnitsPage() {
 				</div>
 			)}
 
-			<AlertDialog open={!!deleteUnitId} onOpenChange={() => setDeleteUnitId(null)}>
+			<AlertDialog open={!!deleteunit_id} onOpenChange={() => setDeleteunit_id(null)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete unit</AlertDialogTitle>

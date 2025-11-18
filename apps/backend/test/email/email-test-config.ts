@@ -36,7 +36,7 @@ export interface StoredEmail {
 	text?: string
 	timestamp: number
 	messageId: string
-	extra?: Record&lt;string, unknown&gt;
+	extra?: Record<string, unknown>
 }
 
 /**
@@ -280,7 +280,7 @@ export class EmailTestUtils {
 	 * Generate test email data
 	 */
 	static generateTestEmailData(template: string, overrides?: any) {
-		const baseData: Record&lt;string, any&gt; = {
+		const baseData: Record<string, any> = {
 			welcome: {
 				email: 'test@example.com',
 				name: 'Test User',
@@ -307,7 +307,7 @@ export class EmailTestUtils {
 					Date.now() + 30 * 24 * 60 * 60 * 1000
 				).toISOString(),
 				renewalLink: 'https://test.tenantflow.app/renew/test789',
-				leaseId: 'lease_test_123'
+				lease_id: 'lease_test_123'
 			}
 		}
 
@@ -465,7 +465,7 @@ export class EmailPerformanceTest {
 	/**
 	 * Measure email send performance
 	 */
-	static async measureSendTime(sendFn: () => Promise&lt;any&gt;): Promise&lt;number&gt; {
+	static async measureSendTime(sendFn: () => Promise<any>): Promise<number> {
 		const start = process.hrtime.bigint()
 		await sendFn()
 		const end = process.hrtime.bigint()
@@ -478,7 +478,7 @@ export class EmailPerformanceTest {
 	/**
 	 * Measure total email operation time (render + send)
 	 */
-	static async measureTotalTime(totalFn: () => Promise&lt;any&gt;): Promise&lt;number&gt; {
+	static async measureTotalTime(totalFn: () => Promise<any>): Promise<number> {
 		const start = process.hrtime.bigint()
 		await totalFn()
 		const end = process.hrtime.bigint()
