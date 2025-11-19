@@ -8,9 +8,9 @@ import { useRouter } from 'next/navigation'
 export default function GenerateLeaseModal() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const propertyId = searchParams.get('propertyId') || ''
-	const unitId = searchParams.get('unitId') || ''
-	const tenantId = searchParams.get('tenantId') || ''
+	const property_id = searchParams.get('property_id') || ''
+	const unit_id = searchParams.get('unit_id') || ''
+	const tenant_id = searchParams.get('tenant_id') || ''
 
 	// UUID validation regex (RFC 4122 compliant)
 	const isValidUUID = (str: string): boolean =>
@@ -18,9 +18,9 @@ export default function GenerateLeaseModal() {
 
 	// Immediate validation - show error before rendering form
 	const hasInvalidParams =
-		(propertyId && !isValidUUID(propertyId)) ||
-		(unitId && !isValidUUID(unitId)) ||
-		(tenantId && !isValidUUID(tenantId))
+		(property_id && !isValidUUID(property_id)) ||
+		(unit_id && !isValidUUID(unit_id)) ||
+		(tenant_id && !isValidUUID(tenant_id))
 
 	if (hasInvalidParams) {
 		return (
@@ -58,9 +58,9 @@ export default function GenerateLeaseModal() {
 				</div>
 
 				<LeaseGenerationForm
-					propertyId={propertyId}
-					unitId={unitId}
-					tenantId={tenantId}
+					property_id={property_id}
+					unit_id={unit_id}
+					tenant_id={tenant_id}
 					onSuccess={() => router.back()}
 				/>
 			</div>

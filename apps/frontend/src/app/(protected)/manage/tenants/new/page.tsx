@@ -6,11 +6,11 @@ import { CreateTenantForm } from '../../../tenant/create-tenant-form.client'
 
 export default async function NewTenantPage() {
 	const { user, accessToken } = await requireSession()
-	const logger = createLogger({ component: 'NewTenantPage', userId: user.id })
+	const logger = createLogger({ component: 'NewTenantPage', user_id: user.id })
 
 	// DEBUG: Log token info
 	logger.info('NewTenantPage auth info', {
-		userId: user.id,
+		user_id: user.id,
 		hasToken: !!accessToken,
 		tokenLength: accessToken?.length,
 		tokenPrefix: accessToken?.substring(0, 20)
@@ -51,7 +51,7 @@ export default async function NewTenantPage() {
 			statusCode,
 			responseData,
 			errorObject: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-			
+
 			hasToken: !!accessToken,
 			tokenLength: accessToken?.length,
 			tokenPreview: accessToken?.substring(0, 30) + '...'

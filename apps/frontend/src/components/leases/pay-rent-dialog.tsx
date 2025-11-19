@@ -20,13 +20,13 @@ import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { useModalStore } from '#stores/modal-store'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCurrency } from '@repo/shared/utils/currency'
-import type { Lease } from '@repo/shared/types/core'
+import type { LeaseWithExtras } from '@repo/shared/types/core'
 import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface PayRentDialogProps {
-	lease: Lease
+	lease: LeaseWithExtras
 }
 
 export function PayRentDialog({ lease }: PayRentDialogProps) {
@@ -46,18 +46,18 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 		}
 
 		try {
-			// Extract tenantId before async call for TypeScript control flow analysis
-			const tenantId = lease.tenantId
+			// Extract tenant_id before async call for TypeScript control flow analysis
+			const tenant_id = lease.tenant_id
 
-			if (!tenantId) {
+			if (!tenant_id) {
 				toast.error('Lease has no tenant assigned')
 				return
 			}
 
 			const result = await createPayment.mutateAsync({
-				tenantId: tenantId,
-				leaseId: lease.id,
-				amount: lease.rentAmount,
+				tenant_id: tenant_id,
+				lease_id: lease.id,
+				amount: lease.rent_amount,
 				paymentMethodId: selectedPaymentMethodId
 			})
 
@@ -99,8 +99,8 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 				<Dialog open={true} onOpenChange={handleCancel}>
 					<DialogContent className="sm:max-w-md">
 						<DialogHeader>
-							<DialogTitle className="flex items-center gap-2">
-								<CreditCard className="size-5" />
+								<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
+									<CreditCard className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
 								Pay Rent
 							</DialogTitle>
 							<DialogDescription>
@@ -108,19 +108,19 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 							</DialogDescription>
 						</DialogHeader>
 
-						<div className="space-y-4">
+						<div className="space-y-[var(--spacing-4)]">
 							{/* Rent Amount Display */}
-							<div className="p-4 bg-muted rounded-lg">
-								<p className="text-sm text-muted-foreground mb-1">
+							<div className="p-[var(--spacing-4)] bg-muted rounded-lg">
+								<p className="text-sm text-muted-foreground mb-[var(--spacing-1)]">
 									Rent Amount
 								</p>
 								<p className="text-2xl font-semibold">
-									{formatCurrency(lease.rentAmount)}
+									{formatCurrency(lease.rent_amount)}
 								</p>
 							</div>
 
 							{/* Payment Method Selection */}
-							<div className="space-y-2">
+							<div className="space-y-[var(--spacing-2)]">
 								<Label htmlFor="paymentMethod">Payment Method</Label>
 								<Select
 									value={selectedPaymentMethodId}
@@ -148,7 +148,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 							</div>
 
 							{/* Action Buttons */}
-							<div className="flex justify-end gap-2 pt-4 border-t">
+							<div className="flex justify-end gap-[var(--spacing-2)] pt-[var(--spacing-4)] border-t">
 								<Button type="button" variant="outline" onClick={handleCancel}>
 									Cancel
 								</Button>

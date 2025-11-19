@@ -8,12 +8,12 @@ describe('LeaseAnalyticsController', () => {
 	let controller: LeaseAnalyticsController
 	let service: Record<string, jest.Mock>
 
-	const createRequest = (userId?: string): Partial<AuthenticatedRequest> => ({
+	const createRequest = (user_id?: string): Partial<AuthenticatedRequest> => ({
 		path: '/analytics/leases',
 		method: 'GET',
 		headers: {},
 		cookies: {},
-		user: userId ? ({ id: userId } as any) : undefined
+		user: user_id ? ({ id: user_id } as any) : undefined
 	})
 
 	beforeEach(async () => {
@@ -48,7 +48,7 @@ describe('LeaseAnalyticsController', () => {
 
 	it('returns lease analytics from the service', async () => {
 		const request = createRequest('user-77')
-		const payload = [{ leaseId: 'lease-1' }]
+		const payload = [{ lease_id: 'lease-1' }]
 		service.getLeasesWithFinancialAnalytics!.mockResolvedValue(payload)
 
 		const response = await controller.getLeaseAnalytics(

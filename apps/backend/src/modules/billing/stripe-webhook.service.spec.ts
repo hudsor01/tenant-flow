@@ -80,7 +80,7 @@ describe('StripeWebhookService', () => {
 
 			expect(result).toBe(true)
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith(
-				'processed_stripe_events'
+				'stripe_processed_events'
 			)
 			expect(mockSupabaseClient.select).toHaveBeenCalledWith('id')
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
@@ -373,7 +373,7 @@ describe('StripeWebhookService', () => {
 		// Service reuses same client for both queries
 		// Query 1: client.from().select().lt() - count
 		// Query 2: client.from().delete().lt() - delete
-		
+
 		// Setup mocks for both chains on the same client
 		mockSupabaseClient.select
 			.mockReturnValueOnce(mockSupabaseClient) // Chain to lt()
@@ -421,7 +421,7 @@ describe('StripeWebhookService', () => {
 	it('should return comprehensive event statistics', async () => {
 		// Service reuses same client for all 4 queries, calling from() each time
 		// Pattern: client.from().select() OR client.from().select().gte()
-		
+
 		// Setup: Mock the terminal methods (select for queries 1&4, gte for queries 2&3)
 		mockSupabaseClient.select
 			.mockResolvedValueOnce({ count: 1000, error: null }) // Query 1: total
@@ -429,10 +429,10 @@ describe('StripeWebhookService', () => {
 			.mockReturnValueOnce(mockSupabaseClient) // Query 3: last hour (chains to gte)
 			.mockResolvedValueOnce({ // Query 4: breakdown
 				data: [
-					{ event_type: 'payment_intent.succeeded' },
-					{ event_type: 'payment_intent.succeeded' },
-					{ event_type: 'customer.created' },
-					{ event_type: 'payment_intent.succeeded' }
+					{ event_type: 'payment_intent.succeeded', total_received: 1 },
+					{ event_type: 'payment_intent.succeeded', total_received: 1 },
+					{ event_type: 'customer.created', total_received: 1 },
+					{ event_type: 'payment_intent.succeeded', total_received: 1 }
 				],
 				error: null
 			})

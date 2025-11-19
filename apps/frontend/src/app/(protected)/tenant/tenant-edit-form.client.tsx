@@ -8,14 +8,13 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '#components/ui/input-group'
-import { Textarea } from '#components/ui/textarea'
 import { useTenant, useUpdateTenant } from '#hooks/api/use-tenant'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	tenantUpdateSchema
 } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
-import { Mail, Phone, Save, User } from 'lucide-react'
+import { Phone, Save, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -25,24 +24,24 @@ export interface TenantEditFormProps {
 }
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
-	// ...existing code...
 	const { data: tenant, isLoading, isError } = useTenant(id)
 	const router = useRouter()
-
-	// Use custom hook instead of inline mutation
 	const updateMutation = useUpdateTenant()
 
 	const form = useForm({
 		defaultValues: {
-			email: tenant?.email || '',
-			phone: tenant?.phone || '',
-			emergencyContact: tenant?.emergencyContact || '',
-			firstName: tenant?.name?.split(' ')[0] || '',
-			lastName: tenant?.name?.split(' ').slice(1).join(' ') || ''
+			emergency_contact_name: tenant?.emergency_contact_name || '',
+			emergency_contact_phone: tenant?.emergency_contact_phone || '',
+			emergency_contact_relationship: tenant?.emergency_contact_relationship || ''
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				await updateMutation.mutateAsync({ id, data: value })
+				const updateData = {
+					emergency_contact_name: value.emergency_contact_name,
+					emergency_contact_phone: value.emergency_contact_phone,
+					emergency_contact_relationship: value.emergency_contact_relationship
+				}
+				await updateMutation.mutateAsync({ id, data: updateData })
 				toast.success('Tenant updated successfully')
 				router.push(`/manage/tenants/${id}`)
 			} catch (error) {
@@ -84,81 +83,31 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 	return (
 		<CardLayout
 			title="Edit Tenant Information"
-			description="Update tenant contact details and emergency contact information"
+			description="Update emergency contact information"
 			isLoading={isLoading}
 			error={isError ? 'Failed to load tenant data' : null}
 			footer={footer}
 		>
 			<form onSubmit={handleSubmit} className="space-y-6">
-				<div className="grid grid-cols-2 gap-4">
-					<form.Field name="firstName">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="firstName">First Name</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<User className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="firstName"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-										placeholder="John"
-									/>
-								</InputGroup>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="lastName">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="lastName">Last Name</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<User className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="lastName"
-										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-										placeholder="Smith"
-									/>
-								</InputGroup>
-								{field.state.meta.errors?.length && (
-									<FieldError>{String(field.state.meta.errors[0])}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-				</div>
-
-				<form.Field name="email">
+				{/* Emergency Contact Name */}
+				<form.Field name="emergency_contact_name">
 					{field => (
 						<Field>
-							<FieldLabel htmlFor="email">Email Address</FieldLabel>
+							<FieldLabel htmlFor="emergency_contact_name">
+								Emergency Contact Name
+							</FieldLabel>
 							<InputGroup>
 								<InputGroupAddon align="inline-start">
-									<Mail className="size-4" />
+									<User className="size-4" />
 								</InputGroupAddon>
 								<InputGroupInput
-									id="email"
-									type="email"
+									id="emergency_contact_name"
 									value={field.state.value}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
-									placeholder="john.smith@example.com"
+									placeholder="John Doe"
 								/>
 							</InputGroup>
 							{field.state.meta.errors?.length && (
@@ -168,16 +117,19 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 					)}
 				</form.Field>
 
-				<form.Field name="phone">
+				{/* Emergency Contact Phone */}
+				<form.Field name="emergency_contact_phone">
 					{field => (
 						<Field>
-							<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+							<FieldLabel htmlFor="emergency_contact_phone">
+								Emergency Contact Phone
+							</FieldLabel>
 							<InputGroup>
 								<InputGroupAddon align="inline-start">
 									<Phone className="size-4" />
 								</InputGroupAddon>
 								<InputGroupInput
-									id="phone"
+									id="emergency_contact_phone"
 									type="tel"
 									value={field.state.value}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -194,25 +146,24 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 					)}
 				</form.Field>
 
-				<form.Field name="emergencyContact">
+				{/* Emergency Contact Relationship */}
+				<form.Field name="emergency_contact_relationship">
 					{field => (
 						<Field>
-							<FieldLabel htmlFor="emergencyContact">
-								Emergency Contact
+							<FieldLabel htmlFor="emergency_contact_relationship">
+								Relationship
 							</FieldLabel>
-							<Textarea
-								id="emergencyContact"
-								value={field.state.value}
-								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-									field.handleChange(e.target.value)
-								}
-								onBlur={field.handleBlur}
-								placeholder="Emergency contact name, relationship, and phone number..."
-								rows={4}
-							/>
-							<p className="text-sm text-muted-foreground">
-								Include name, relationship, and contact information
-							</p>
+							<InputGroup>
+								<InputGroupInput
+									id="emergency_contact_relationship"
+									value={field.state.value}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									onBlur={field.handleBlur}
+									placeholder="e.g., Mother, Spouse, Friend"
+								/>
+							</InputGroup>
 							{field.state.meta.errors?.length && (
 								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 							)}

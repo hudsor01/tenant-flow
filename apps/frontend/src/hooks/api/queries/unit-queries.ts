@@ -14,7 +14,7 @@ import type { Unit, UnitStats } from '@repo/shared/types/core'
  * Unit query filters
  */
 export interface UnitFilters {
-	propertyId?: string
+	property_id?: string
 	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 	search?: string
 	limit?: number
@@ -46,7 +46,7 @@ export const unitQueries = {
 			queryKey: [...unitQueries.lists(), filters ?? {}],
 			queryFn: async () => {
 				const searchParams = new URLSearchParams()
-				if (filters?.propertyId) searchParams.append('propertyId', filters.propertyId)
+				if (filters?.property_id) searchParams.append('property_id', filters.property_id)
 				if (filters?.status) searchParams.append('status', filters.status)
 				if (filters?.search) searchParams.append('search', filters.search)
 				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
@@ -67,7 +67,7 @@ export const unitQueries = {
 	 * Single unit by ID
 	 *
 	 * @example
-	 * const { data } = useQuery(unitQueries.detail(unitId))
+	 * const { data } = useQuery(unitQueries.detail(unit_id))
 	 */
 	detail: (id: string) =>
 		queryOptions({
@@ -82,14 +82,14 @@ export const unitQueries = {
 	 * Optimized for property detail pages showing all units
 	 *
 	 * @example
-	 * const { data } = useQuery(unitQueries.byProperty(propertyId))
+	 * const { data } = useQuery(unitQueries.byProperty(property_id))
 	 */
-	byProperty: (propertyId: string) =>
+	byProperty: (property_id: string) =>
 		queryOptions({
-			queryKey: [...unitQueries.all(), 'by-property', propertyId],
-			queryFn: () => clientFetch<Unit[]>(`/api/v1/units/by-property/${propertyId}`),
+			queryKey: [...unitQueries.all(), 'by-property', property_id],
+			queryFn: () => clientFetch<Unit[]>(`/api/v1/units/by-property/${property_id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!propertyId,
+			enabled: !!property_id,
 		}),
 
 	/**

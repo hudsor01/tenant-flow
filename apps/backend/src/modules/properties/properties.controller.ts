@@ -38,10 +38,12 @@ import type {
 } from '@repo/shared/types/api-contracts'
 import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
+import { PropertyImagesService } from './services/property-images.service'
+import { PropertyBulkImportService } from './services/property-bulk-import.service'
+import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
-import { PropertyImageUploadDto } from './dto/upload-image.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 
 /**
@@ -51,7 +53,12 @@ import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 export class PropertiesController {
 	private readonly logger = new Logger(PropertiesController.name)
 
-	constructor(private readonly propertiesService: PropertiesService) {}
+	constructor(
+		private readonly propertiesService: PropertiesService,
+		private readonly propertyImagesService: PropertyImagesService,
+		private readonly propertyBulkImportService: PropertyBulkImportService,
+		private readonly propertyAnalyticsService: PropertyAnalyticsService
+	) {}
 
 	/**
 	 * Get all properties for authenticated user
@@ -82,11 +89,6 @@ export class PropertiesController {
 	 * Direct RPC call for aggregated data
 	 * MUST BE BEFORE /:id route to avoid route conflict
 	 */
-	@Get('stats')
-	async getStats(@Request() req: AuthenticatedRequest) {
-		return this.propertiesService.getStats(req)
-	}
-
 	/**
 	 * Get all properties with their units
 	 * Returns properties with units for frontend stat calculations
@@ -101,19 +103,11 @@ export class PropertiesController {
 	) {
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
-		const properties = await this.propertiesService.findAllWithUnits(req, {
+		return this.propertiesService.findAllWithUnits(req, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
 		})
-
-		// Return paginated response for consistency with other endpoints
-		return {
-			data: properties,
-			total: properties.length, // This should ideally come from the service with proper pagination
-			limit: safeLimit,
-			offset: safeOffset
-		}
 	}
 
 	/**
@@ -172,7 +166,7 @@ export class PropertiesController {
 			fileName: file?.originalname,
 			fileSize: file?.size,
 			mimetype: file?.mimetype,
-			userId: req.user?.id
+			user_id: req.user?.id
 		})
 
 		if (!file) {
@@ -198,7 +192,7 @@ export class PropertiesController {
 			this.logger.warn('Invalid file type for bulk import', {
 				mimetype: file.mimetype,
 				originalname: file.originalname,
-				userId: req.user?.id
+				user_id: req.user?.id
 			})
 			throw new BadRequestException({
 				code: BUSINESS_ERROR_CODES.INVALID_FILE_TYPE,
@@ -206,7 +200,7 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.bulkImport(req, file.buffer)
+		return this.propertyBulkImportService.bulkImport(req, file.buffer)
 	}
 
 	/**
@@ -256,8 +250,8 @@ export class PropertiesController {
 	@Get('analytics/performance')
 	async getPropertyPerformanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
+		@Query('property_id', new ParseUUIDPipe({ optional: true }))
+		property_id?: string,
 		@Query('timeframe', new DefaultValuePipe('30d')) timeframe?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
 	) {
@@ -269,17 +263,13 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.getPropertyPerformanceAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
+		return this.propertyAnalyticsService.getPropertyPerformanceAnalytics(req, {
+			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '30d',
 			...(limit !== undefined ? { limit } : {})
 		})
 	}
 
-	/**
-	 * Mark property as sold (7-year retention compliance)
-	 * Updates status to SOLD with required date_sold and sale_price
-	 */
 	/**
 	 * Upload property image
 	 * Stores image in property-images bucket and records in property_images table
@@ -310,9 +300,8 @@ export class PropertiesController {
 		})
 	)
 	async uploadImage(
-		@Param('id', ParseUUIDPipe) propertyId: string,
+		@Param('id', ParseUUIDPipe) property_id: string,
 		@UploadedFile() file: Express.Multer.File,
-		@Body() dto: PropertyImageUploadDto,
 		@Request() req: AuthenticatedRequest
 	) {
 		if (!file) {
@@ -322,12 +311,10 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.uploadPropertyImage(
+		return this.propertyImagesService.uploadPropertyImage(
 			req,
-			propertyId,
-			file,
-			dto.isPrimary,
-			dto.caption
+			property_id,
+			file
 		)
 	}
 
@@ -336,10 +323,10 @@ export class PropertiesController {
 	 */
 	@Get(':id/images')
 	async getImages(
-		@Param('id', ParseUUIDPipe) propertyId: string,
+		@Param('id', ParseUUIDPipe) property_id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		return this.propertiesService.getPropertyImages(req, propertyId)
+		return this.propertyImagesService.getPropertyImages(req, property_id)
 	}
 
 	/**
@@ -350,7 +337,7 @@ export class PropertiesController {
 		@Param('imageId', ParseUUIDPipe) imageId: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		await this.propertiesService.deletePropertyImage(req, imageId)
+		await this.propertyImagesService.deletePropertyImage(req, imageId)
 		return { message: 'Image deleted successfully' }
 	}
 
@@ -361,8 +348,8 @@ export class PropertiesController {
 	@Get('analytics/occupancy')
 	async getPropertyOccupancyAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
+		@Query('property_id', new ParseUUIDPipe({ optional: true }))
+		property_id?: string,
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		// Validate period
@@ -376,8 +363,8 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.getPropertyOccupancyAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
+		return this.propertyAnalyticsService.getPropertyOccupancyAnalytics(req, {
+			...(property_id ? { property_id } : {}),
 			period: period ?? 'monthly'
 		})
 	}
@@ -389,8 +376,8 @@ export class PropertiesController {
 	@Get('analytics/financial')
 	async getPropertyFinancialAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
+		@Query('property_id', new ParseUUIDPipe({ optional: true }))
+		property_id?: string,
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
 		// Validate timeframe
@@ -401,8 +388,8 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.getPropertyFinancialAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
+		return this.propertyAnalyticsService.getPropertyFinancialAnalytics(req, {
+			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '12m'
 		})
 	}
@@ -414,8 +401,8 @@ export class PropertiesController {
 	@Get('analytics/maintenance')
 	async getPropertyMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@Query('propertyId', new ParseUUIDPipe({ optional: true }))
-		propertyId?: string,
+		@Query('property_id', new ParseUUIDPipe({ optional: true }))
+		property_id?: string,
 		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
 	) {
 		// Validate timeframe
@@ -426,15 +413,15 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.getPropertyMaintenanceAnalytics(req, {
-			...(propertyId ? { propertyId } : {}),
+		return this.propertyAnalyticsService.getPropertyMaintenanceAnalytics(req, {
+			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '6m'
 		})
 	}
 
 	@Put(':id/mark-sold')
 	async markPropertyAsSold(
-		@Param('id', ParseUUIDPipe) propertyId: string,
+		@Param('id', ParseUUIDPipe) property_id: string,
 		@Body() dto: MarkPropertyAsSoldDto,
 		@Request() req: AuthenticatedRequest
 	) {
@@ -447,10 +434,9 @@ export class PropertiesController {
 
 		return this.propertiesService.markAsSold(
 			req,
-			propertyId,
-			new Date(dto.dateSold),
-			dto.salePrice,
-			dto.saleNotes
+			property_id,
+			new Date(dto.sale_date),
+			dto.sale_price
 		)
 	}
 }

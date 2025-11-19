@@ -6,16 +6,16 @@
  */
 
 /**
- * USER ROLE ENUMERATION - Consolidated from multiple duplicate role definitions
+ * USER user_type ENUMERATION - Consolidated from multiple duplicate user_type definitions
  */
-export const USER_ROLES = {
+export const USER_user_typeS = {
 	OWNER: 'OWNER',
 	MANAGER: 'MANAGER',
 	TENANT: 'TENANT',
 	ADMIN: 'ADMIN'
 } as const
 
-export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES]
+export type User = (typeof USER_user_typeS)[keyof typeof USER_user_typeS]
 
 /**
  * PROPERTY STATUS ENUMERATION
@@ -325,13 +325,13 @@ export type PlanType = (typeof PLAN_TYPES)[keyof typeof PLAN_TYPES]
  * SUBSCRIPTION STATUS ENUMERATION (Alternative naming)
  */
 export const SUB_STATUS = {
-	ACTIVE: 'ACTIVE',
-	TRIALING: 'TRIALING',
-	PAST_DUE: 'PAST_DUE',
-	CANCELED: 'CANCELED',
-	UNPAID: 'UNPAID',
-	INCOMPLETE: 'INCOMPLETE',
-	INCOMPLETE_EXPIRED: 'INCOMPLETE_EXPIRED'
+	ACTIVE: 'active',
+	TRIALING: 'trialing',
+	PAST_DUE: 'past_due',
+	CANCELED: 'canceled',
+	UNPAID: 'unpaid',
+	INCOMPLETE: 'incomplete',
+	INCOMPLETE_EXPIRED: 'incomplete_expired'
 } as const
 
 export type SubStatus = (typeof SUB_STATUS)[keyof typeof SUB_STATUS]
@@ -381,10 +381,10 @@ export type PermissionType =
  * ENTITY TYPES ENUMERATION
  */
 export const ENTITY_TYPES = {
-	PROPERTY: 'property',
-	UNIT: 'unit',
-	TENANT: 'tenant',
-	LEASE: 'lease',
+	PROPERTY: 'properties',
+	UNIT: 'units',
+	TENANT: 'tenants',
+	LEASE: 'leases',
 	MAINTENANCE: 'maintenance'
 } as const
 
@@ -481,10 +481,10 @@ export type CacheInvalidationReason =
  * CACHEABLE ENTITY TYPES ENUMERATION
  */
 export const CACHEABLE_ENTITY_TYPES = {
-	PROPERTY: 'property',
-	UNIT: 'unit',
-	TENANT: 'tenant',
-	LEASE: 'lease',
+	PROPERTY: 'properties',
+	UNIT: 'units',
+	TENANT: 'tenants',
+	LEASE: 'leases',
 	MAINTENANCE: 'maintenance'
 } as const
 
@@ -542,5 +542,5 @@ export type Result<T = void, E = string> =
 /**
  * ASYNC RESULT TYPE - For asynchronous operations
  */
-export type { AsyncResult } from '../types/api'
-export type { ApiResponse } from '../types/api-contracts'
+export type { AsyncResult } from '../types/api.js'
+export type { ApiResponse } from '../types/api-contracts.js'

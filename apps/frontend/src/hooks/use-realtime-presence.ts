@@ -11,7 +11,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
 
 interface PresenceState {
-	userId: string
+	user_id: string
 	username?: string
 	online_at: string
 	[key: string]: unknown
@@ -24,7 +24,7 @@ interface PresenceState {
  * Example:
  * const { presences, track } = useRealtimePresence('room:123')
  * useEffect(() => {
- *   track({ userId: user.id, username: user.name })
+ *   track({ user_id: user.id, username: user.name })
  * }, [user])
  */
 export function useRealtimePresence(channelName: string) {
@@ -115,7 +115,7 @@ export function useRealtimePresence(channelName: string) {
  * const { typingUsers, setTyping } = useTypingIndicator('room:123')
  * <Input onChange={() => setTyping(true)} onBlur={() => setTyping(false)} />
  */
-export function useTypingIndicator(channelName: string, userId: string) {
+export function useTypingIndicator(channelName: string, user_id: string) {
 	const [typingUsers, setTypingUsers] = useState<string[]>([])
 	const channelRef = useRef<RealtimeChannel | null>(null)
 	const supabase = getSupabaseClientInstance()
@@ -127,16 +127,16 @@ export function useTypingIndicator(channelName: string, userId: string) {
 
 		typingChannel
 			.on('broadcast', { event: 'typing' }, ({ payload }) => {
-				const { userId: typingUserId, isTyping } = payload as {
-					userId: string
+				const { user_id: typinguser_id, isTyping } = payload as {
+					user_id: string
 					isTyping: boolean
 				}
 
 				setTypingUsers(prev => {
-					if (isTyping && !prev.includes(typingUserId)) {
-						return [...prev, typingUserId]
+					if (isTyping && !prev.includes(typinguser_id)) {
+						return [...prev, typinguser_id]
 					} else if (!isTyping) {
-						return prev.filter(id => id !== typingUserId)
+						return prev.filter(id => id !== typinguser_id)
 					}
 					return prev
 				})
@@ -155,12 +155,12 @@ export function useTypingIndicator(channelName: string, userId: string) {
 		channelRef.current.send({
 			type: 'broadcast',
 			event: 'typing',
-			payload: { userId, isTyping }
+			payload: { user_id, isTyping }
 		})
 	}
 
 	return {
-		typingUsers: typingUsers.filter(id => id !== userId), // Exclude self
+		typingUsers: typingUsers.filter(id => id !== user_id), // Exclude self
 		setTyping
 	}
 }

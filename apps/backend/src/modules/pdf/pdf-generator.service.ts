@@ -157,9 +157,9 @@ export class PDFGeneratorService implements OnModuleDestroy {
 		propertyAddress: string
 		tenantName: string
 		ownerName: string
-		startDate: string
-		endDate: string
-		rentAmount: number
+		start_date: string
+		end_date: string
+		rent_amount: number
 		currency: string
 		terms?: string[]
 	}): Promise<Buffer> {
@@ -214,12 +214,12 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
-							`Start Date: ${new Date(leaseData.startDate).toLocaleDateString()}`
+							`Start Date: ${new Date(leaseData.start_date).toLocaleDateString()}`
 						),
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
-							`End Date: ${new Date(leaseData.endDate).toLocaleDateString()}`
+							`End Date: ${new Date(leaseData.end_date).toLocaleDateString()}`
 						)
 					),
 					// Rent
@@ -230,7 +230,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						React.createElement(
 							Text,
 							{ style: styles.leaseText },
-							`The monthly rent amount is ${leaseData.currency.toUpperCase()} ${leaseData.rentAmount.toFixed(2)}, due on the 1st day of each month.`
+							`The monthly rent amount is ${leaseData.currency.toUpperCase()} ${leaseData.rent_amount.toFixed(2)}, due on the 1st day of each month.`
 						)
 					),
 					// Terms

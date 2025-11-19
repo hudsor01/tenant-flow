@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod'
-import type { Json } from '../types/supabase-generated.js'
+import type { Json } from '../types/supabase'
 
 // Error classification constants
 export const ERROR_TYPES = {

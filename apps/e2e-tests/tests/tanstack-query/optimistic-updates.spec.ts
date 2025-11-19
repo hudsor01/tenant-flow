@@ -1,7 +1,7 @@
 /**
  * TanStack Query Optimistic Updates Tests
  * Tests real browser behavior for optimistic updates in property CRUD operations
- * 
+ *
  * Critical business logic testing:
  * - Create property → immediate UI update → server confirmation
  * - Update property → immediate change → server sync
@@ -13,12 +13,12 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
 import { createTestProperty, basePropertyData } from '../fixtures/property-data'
-import { 
-  TanStackQueryHelper, 
-  NetworkSimulator, 
-  PropertyTableHelper, 
+import {
+  TanStackQueryHelper,
+  NetworkSimulator,
+  PropertyTableHelper,
   PropertyFormHelper,
-  DashboardStatsHelper 
+  DashboardStatsHelper
 } from '../utils/tanstack-helpers'
 
 test.describe('TanStack Query Optimistic Updates', () => {
@@ -31,7 +31,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
   test.beforeEach(async ({ browser }) => {
     page = await browser.newPage()
-    
+
     // Initialize helpers
     queryHelper = new TanStackQueryHelper(page)
     networkSim = new NetworkSimulator(page)
@@ -68,7 +68,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Verify property appears immediately in table (optimistic update)
       await tableHelper.waitForPropertyInTable(testProperty.name!)
-      
+
       // Verify table count increased immediately
       const optimisticCount = await tableHelper.getPropertyCount()
       expect(optimisticCount).toBe(initialCount + 1)
@@ -78,7 +78,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Wait for server confirmation
       await formHelper.waitForFormSubmission()
-      
+
       // Verify property is still there after server confirmation
       await expect(tableHelper.getPropertyByName(testProperty.name!)).toBeVisible()
     })
@@ -100,11 +100,11 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Wait for API failure and rollback
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
-      
+
       // Verify counts returned to original values
       const finalCount = await tableHelper.getPropertyCount()
       expect(finalCount).toBe(initialCount)
-      
+
       await statsHelper.waitForStatsUpdate(initialStats)
 
       // Verify error handling (toast, dialog, etc.)
@@ -118,7 +118,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
         createTestProperty({ name: 'Rapid Property 2' }),
         createTestProperty({ name: 'Rapid Property 3' })
       ]
-      
+
       const initialCount = await tableHelper.getPropertyCount()
 
       // Create multiple properties rapidly
@@ -155,7 +155,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Update the property
       const updatedName = 'Updated Property Name'
-      
+
       // Click edit button for the property
       const propertyRow = tableHelper.getPropertyByName(originalProperty.name!)
       await propertyRow.locator('button:has-text("Edit")').click()
@@ -185,7 +185,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       await networkSim.simulateNetworkFailure('/api/properties/', 500)
 
       const updatedName = 'Failed Update Name'
-      
+
       // Attempt update
       const propertyRow = tableHelper.getPropertyByName(originalProperty.name!)
       await propertyRow.locator('button:has-text("Edit")').click()
@@ -214,7 +214,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       // Delete property
       const propertyRow = tableHelper.getPropertyByName(testProperty.name!)
       await propertyRow.locator('button:has-text("Delete")').click()
-      
+
       // Confirm deletion if modal appears
       const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete")')
       if (await confirmButton.count() > 0) {
@@ -223,7 +223,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Verify immediate removal (optimistic update)
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
-      
+
       // Verify count decreased immediately
       const optimisticCount = await tableHelper.getPropertyCount()
       expect(optimisticCount).toBe(initialCount - 1)
@@ -253,7 +253,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       // Attempt delete
       const propertyRow = tableHelper.getPropertyByName(testProperty.name!)
       await propertyRow.locator('button:has-text("Delete")').click()
-      
+
       const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete")')
       if (await confirmButton.count() > 0) {
         await confirmButton.click()
@@ -264,11 +264,11 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Wait for API failure and property restoration
       await tableHelper.waitForPropertyInTable(testProperty.name!)
-      
+
       // Verify counts restored
       const restoredCount = await tableHelper.getPropertyCount()
       expect(restoredCount).toBe(initialCount)
-      
+
       await statsHelper.waitForStatsUpdate(initialStats)
     })
   })
@@ -353,12 +353,12 @@ test.describe('TanStack Query Optimistic Updates', () => {
       await networkSim.simulateNetworkFailure('/api/properties', 500)
 
       const testProperty = createTestProperty({ name: 'Error State Property' })
-      
+
       // Attempt creation
       await formHelper.createProperty(testProperty)
 
       // Verify error handling UI appears
-      const errorElement = page.locator('[role="alert"], .error-message, text*="error"')
+      const errorElement = page.locator('[user_type="alert"], .error-message, text*="error"')
       await expect(errorElement).toBeVisible({ timeout: 10000 })
 
       // Verify user can retry
@@ -376,7 +376,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
     test('should handle validation errors correctly', async () => {
       // Attempt to create property with invalid data
       await page.click('button:has-text("New Property")')
-      
+
       // Submit with empty required fields
       await page.click('button[type="submit"]')
 
@@ -386,10 +386,10 @@ test.describe('TanStack Query Optimistic Updates', () => {
 
       // Verify no optimistic update occurs for invalid data
       const propertyCount = await tableHelper.getPropertyCount()
-      
+
       // Fill valid data and submit
       await formHelper.createProperty(basePropertyData)
-      
+
       // Verify optimistic update works with valid data
       const newCount = await tableHelper.getPropertyCount()
       expect(newCount).toBe(propertyCount + 1)

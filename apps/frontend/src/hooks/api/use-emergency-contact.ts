@@ -18,17 +18,17 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 
 export interface EmergencyContact {
 	id: string
-	tenantId: string
+	tenant_id: string
 	contactName: string
 	relationship: string
 	phoneNumber: string
 	email: string | null
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 }
 
 export interface CreateEmergencyContactInput {
-	tenantId: string
+	tenant_id: string
 	contactName: string
 	relationship: string
 	phoneNumber: string
@@ -46,10 +46,10 @@ export interface UpdateEmergencyContactInput {
 // Query Keys
 // ========================================
 
-export const emergencyContactKeys = {
+export const emergency_contactKeys = {
 	all: ['emergency-contacts'] as const,
-	tenant: (tenantId: string) =>
-		[...emergencyContactKeys.all, tenantId] as const
+	tenant: (tenant_id: string) =>
+		[...emergency_contactKeys.all, tenant_id] as const
 }
 
 // ========================================
@@ -60,14 +60,14 @@ export const emergencyContactKeys = {
  * Fetch emergency contact for a tenant
  * Returns null if no emergency contact exists
  */
-export function useEmergencyContact(tenantId: string) {
+export function useEmergencyContact(tenant_id: string) {
 	return useQuery({
-		queryKey: emergencyContactKeys.tenant(tenantId),
+		queryKey: emergency_contactKeys.tenant(tenant_id),
 		queryFn: () =>
 			clientFetch<EmergencyContact | null>(
-				`/api/v1/tenants/${tenantId}/emergency-contact`
+				`/api/v1/tenants/${tenant_id}/emergency-contact`
 			),
-		enabled: !!tenantId,
+		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2
 	})
@@ -80,38 +80,38 @@ export function useEmergencyContact(tenantId: string) {
 /**
  * Create emergency contact for a tenant
  */
-export function useCreateEmergencyContact(tenantId: string) {
+export function useCreateEmergencyContact(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (input: Omit<CreateEmergencyContactInput, 'tenantId'>) =>
+		mutationFn: (input: Omit<CreateEmergencyContactInput, 'tenant_id'>) =>
 			clientFetch<EmergencyContact>(
-				`/api/v1/tenants/${tenantId}/emergency-contact`,
+				`/api/v1/tenants/${tenant_id}/emergency-contact`,
 				{
 					method: 'POST',
-					body: JSON.stringify({ ...input, tenantId })
+					body: JSON.stringify({ ...input, tenant_id })
 				}
 			),
 
 		onMutate: async newContact => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({
-				queryKey: emergencyContactKeys.tenant(tenantId)
+				queryKey: emergency_contactKeys.tenant(tenant_id)
 			})
 
 			// Snapshot previous value
 			const previousContact = queryClient.getQueryData<EmergencyContact | null>(
-				emergencyContactKeys.tenant(tenantId)
+				emergency_contactKeys.tenant(tenant_id)
 			)
 
 			// Optimistically update with temporary ID
-			queryClient.setQueryData(emergencyContactKeys.tenant(tenantId), {
+			queryClient.setQueryData(emergency_contactKeys.tenant(tenant_id), {
 				id: 'temp-id',
-				tenantId,
+				tenant_id,
 				...newContact,
 				email: newContact.email || null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
 
 			return { previousContact }
@@ -121,7 +121,7 @@ export function useCreateEmergencyContact(tenantId: string) {
 			// Rollback on error
 			if (context?.previousContact !== undefined) {
 				queryClient.setQueryData(
-					emergencyContactKeys.tenant(tenantId),
+					emergency_contactKeys.tenant(tenant_id),
 					context.previousContact
 				)
 			}
@@ -140,7 +140,7 @@ export function useCreateEmergencyContact(tenantId: string) {
 		onSettled: () => {
 			// Refetch to get real server data
 			queryClient.invalidateQueries({
-				queryKey: emergencyContactKeys.tenant(tenantId)
+				queryKey: emergency_contactKeys.tenant(tenant_id)
 			})
 		}
 	})
@@ -149,13 +149,13 @@ export function useCreateEmergencyContact(tenantId: string) {
 /**
  * Update emergency contact for a tenant
  */
-export function useUpdateEmergencyContact(tenantId: string) {
+export function useUpdateEmergencyContact(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationFn: (input: UpdateEmergencyContactInput) =>
 			clientFetch<EmergencyContact>(
-				`/api/v1/tenants/${tenantId}/emergency-contact`,
+				`/api/v1/tenants/${tenant_id}/emergency-contact`,
 				{
 					method: 'PUT',
 					body: JSON.stringify(input)
@@ -165,20 +165,20 @@ export function useUpdateEmergencyContact(tenantId: string) {
 		onMutate: async newData => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({
-				queryKey: emergencyContactKeys.tenant(tenantId)
+				queryKey: emergency_contactKeys.tenant(tenant_id)
 			})
 
 			// Snapshot previous value
 			const previousContact = queryClient.getQueryData<EmergencyContact | null>(
-				emergencyContactKeys.tenant(tenantId)
+				emergency_contactKeys.tenant(tenant_id)
 			)
 
 			// Optimistically update (merge with existing data)
 			if (previousContact) {
-				queryClient.setQueryData(emergencyContactKeys.tenant(tenantId), {
+				queryClient.setQueryData(emergency_contactKeys.tenant(tenant_id), {
 					...previousContact,
 					...newData,
-					updatedAt: new Date().toISOString()
+					updated_at: new Date().toISOString()
 				})
 			}
 
@@ -189,7 +189,7 @@ export function useUpdateEmergencyContact(tenantId: string) {
 			// Rollback on error
 			if (context?.previousContact !== undefined) {
 				queryClient.setQueryData(
-					emergencyContactKeys.tenant(tenantId),
+					emergency_contactKeys.tenant(tenant_id),
 					context.previousContact
 				)
 			}
@@ -208,7 +208,7 @@ export function useUpdateEmergencyContact(tenantId: string) {
 		onSettled: () => {
 			// Refetch to get real server data
 			queryClient.invalidateQueries({
-				queryKey: emergencyContactKeys.tenant(tenantId)
+				queryKey: emergency_contactKeys.tenant(tenant_id)
 			})
 		}
 	})
@@ -217,13 +217,13 @@ export function useUpdateEmergencyContact(tenantId: string) {
 /**
  * Delete emergency contact for a tenant
  */
-export function useDeleteEmergencyContact(tenantId: string) {
+export function useDeleteEmergencyContact(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationFn: () =>
 			clientFetch<{ success: boolean; message: string }>(
-				`/api/v1/tenants/${tenantId}/emergency-contact`,
+				`/api/v1/tenants/${tenant_id}/emergency-contact`,
 				{
 					method: 'DELETE'
 				}
@@ -232,16 +232,16 @@ export function useDeleteEmergencyContact(tenantId: string) {
 		onMutate: async () => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({
-				queryKey: emergencyContactKeys.tenant(tenantId)
+				queryKey: emergency_contactKeys.tenant(tenant_id)
 			})
 
 			// Snapshot previous value
 			const previousContact = queryClient.getQueryData<EmergencyContact | null>(
-				emergencyContactKeys.tenant(tenantId)
+				emergency_contactKeys.tenant(tenant_id)
 			)
 
 			// Optimistically set to null
-			queryClient.setQueryData(emergencyContactKeys.tenant(tenantId), null)
+			queryClient.setQueryData(emergency_contactKeys.tenant(tenant_id), null)
 
 			return { previousContact }
 		},
@@ -250,7 +250,7 @@ export function useDeleteEmergencyContact(tenantId: string) {
 			// Rollback on error
 			if (context?.previousContact !== undefined) {
 				queryClient.setQueryData(
-					emergencyContactKeys.tenant(tenantId),
+					emergency_contactKeys.tenant(tenant_id),
 					context.previousContact
 				)
 			}
@@ -269,7 +269,7 @@ export function useDeleteEmergencyContact(tenantId: string) {
 		onSettled: () => {
 			// Refetch to confirm deletion
 			queryClient.invalidateQueries({
-				queryKey: emergencyContactKeys.tenant(tenantId)
+				queryKey: emergency_contactKeys.tenant(tenant_id)
 			})
 		}
 	})

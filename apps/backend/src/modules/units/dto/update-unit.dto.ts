@@ -7,10 +7,10 @@ import { z } from 'zod'
  * All fields optional for PATCH semantics
  */
 const UpdateUnitSchema = z.object({
-	unitNumber: z.string().min(1).optional(),
+	unit_number: z.string().min(1).optional(),
 	bedrooms: z.number().int().nonnegative().optional(),
 	bathrooms: z.number().nonnegative().optional(),
-	squareFeet: z.number().int().positive().optional(),
+	square_feet: z.number().int().positive().optional(),
 	rent: z.number().nonnegative().optional(),
 	status: z
 		.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'])

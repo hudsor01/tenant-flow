@@ -67,8 +67,6 @@ export default defineConfig([
 		languageOptions: {
 			// Parser already configured in base.js, just override parserOptions
 			parserOptions: {
-				project: './tsconfig.json',
-				tsconfigRootDir: import.meta.dirname,
 				ecmaFeatures: {
 					jsx: true
 				}

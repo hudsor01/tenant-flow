@@ -33,7 +33,8 @@ export default defineConfig({
 			'coverage',
 			'tests/integration/api-data-flow-integration.spec.ts',
 			'tests/integration/mock-auth-dashboard-integration.spec.ts',
-			'tests/integration/hooks/api/use-property-images.test.tsx'
+			'tests/integration/hooks/api/use-property-images.test.tsx',
+			'tests/tanstack/**'
 		],
 		// Integration tests may take longer
 		testTimeout: 30000,

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import type { TestInfo } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { loginAsOwner } from '../auth-helpers'
 
 const logger = createLogger({ component: 'TexasLeaseGenerationTest' })
 
@@ -9,7 +10,7 @@ const logger = createLogger({ component: 'TexasLeaseGenerationTest' })
 
  * Tests the complete user journey:
  * 1. Navigate to lease generation page (requires property + unit + tenant selection)
- * 2. Auto-fill form data from backend (GET /api/v1/leases/auto-fill/:propertyId/:unitId/:tenantId)
+ * 2. Auto-fill form data from backend (GET /api/v1/leases/auto-fill/:property_id/:unit_id/:tenant_id)
  * 3. User reviews/modifies form fields
  * 4. Click "Generate & Download Lease" button
  * 5. Backend generates PDF via POST /api/v1/leases/generate (form-fill PDF with AcroForm fields)
@@ -34,16 +35,7 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
 
  * These tests require a local test account to be set up in your database:
  * Email: process.env.E2E_OWNER_EMAIL (default: test-owner@example.com)
-<<<<<<< Updated upstream
  * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
-
-||||||| Stash base
- * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
- *
-=======
- * Password: process.env.E2E_OWNER_PASSWORD (must be set via environment variable)
- *
->>>>>>> Stashed changes
  * To set up:
  * 1. Sign up at http://localhost:3000/signup with the test credentials
  * 2. Verify the email in your local Supabase dashboard
@@ -114,7 +106,7 @@ test.describe('Texas Lease Generation', () => {
 		})
 	})
 
-	test.afterEach(async (_, testInfo) => {
+	test.afterEach(async (testInfo) => {
 		await attachText(testInfo, 'console-errors', consoleErrors)
 		await attachText(testInfo, 'network-errors', networkErrors)
 	})
@@ -147,7 +139,7 @@ test.describe('Texas Lease Generation', () => {
 			.getByLabel(/property/i)
 			.or(
 				page.locator(
-					'select[name*="property"], [role="combobox"][aria-label*="property"]'
+					'select[name*="property"], [user_type="combobox"][aria-label*="property"]'
 				)
 			)
 			.first()
@@ -155,7 +147,7 @@ test.describe('Texas Lease Generation', () => {
 
 		// Get the first available property
 		await propertySelect.click()
-		const firstPropertyOption = page.locator('[role="option"]').first()
+		const firstPropertyOption = page.locator('[user_type="option"]').first()
 		await firstPropertyOption.click()
 
 		// Select unit (required)
@@ -163,14 +155,14 @@ test.describe('Texas Lease Generation', () => {
 			.getByLabel(/unit/i)
 			.or(
 				page.locator(
-					'select[name*="unit"], [role="combobox"][aria-label*="unit"]'
+					'select[name*="unit"], [user_type="combobox"][aria-label*="unit"]'
 				)
 			)
 			.first()
 		await expect(unitSelect).toBeVisible({ timeout: 5000 })
 
 		await unitSelect.click()
-		const firstUnitOption = page.locator('[role="option"]').first()
+		const firstUnitOption = page.locator('[user_type="option"]').first()
 		await firstUnitOption.click()
 
 		// Select tenant (required)
@@ -178,7 +170,7 @@ test.describe('Texas Lease Generation', () => {
 			.getByLabel(/tenant/i)
 			.or(
 				page.locator(
-					'select[name*="tenant"], [role="combobox"][aria-label*="tenant"]'
+					'select[name*="tenant"], [user_type="combobox"][aria-label*="tenant"]'
 				)
 			)
 			.first()
@@ -193,7 +185,7 @@ test.describe('Texas Lease Generation', () => {
 		)
 
 		await tenantSelect.click()
-		const firstTenantOption = page.locator('[role="option"]').first()
+		const firstTenantOption = page.locator('[user_type="option"]').first()
 		await firstTenantOption.click()
 
 		// Wait for auto-fill to complete
@@ -204,7 +196,7 @@ test.describe('Texas Lease Generation', () => {
 		expect(autoFillData).toHaveProperty('propertyAddress')
 		expect(autoFillData).toHaveProperty('tenantName')
 		expect(autoFillData).toHaveProperty('ownerName')
-		expect(autoFillData).toHaveProperty('monthlyRent')
+		expect(autoFillData).toHaveProperty('rent_amount')
 
 		await testInfo.attach('auto-fill-data', {
 			contentType: 'application/json',
@@ -222,12 +214,12 @@ test.describe('Texas Lease Generation', () => {
 			expect(ownerNameValue).not.toBe('')
 		}
 
-		const monthlyRentInput = page
+		const rent_amountInput = page
 			.getByLabel(/monthly.*rent/i)
-			.or(page.locator('input[name="monthlyRent"]'))
+			.or(page.locator('input[name="rent_amount"]'))
 			.first()
-		if (await monthlyRentInput.isVisible()) {
-			const rentValue = await monthlyRentInput.inputValue()
+		if (await rent_amountInput.isVisible()) {
+			const rentValue = await rent_amountInput.inputValue()
 			expect(rentValue).toBeTruthy()
 			const rentNumber = Number.parseFloat(rentValue)
 			expect(rentNumber).not.toBeNaN()
@@ -320,7 +312,7 @@ test.describe('Texas Lease Generation', () => {
 					.waitFor({ state: 'visible', timeout: 5000 })
 					.catch(() => {}),
 				page
-					.locator('[class*="error"], [role="alert"]')
+					.locator('[class*="error"], [user_type="alert"]')
 					.first()
 					.waitFor({ state: 'visible', timeout: 5000 })
 					.catch(() => {})
@@ -333,7 +325,7 @@ test.describe('Texas Lease Generation', () => {
 			} else {
 				// Or should show error message about missing required data
 				const errorMessage = page
-					.locator('[class*="error"], [role="alert"]')
+					.locator('[class*="error"], [user_type="alert"]')
 					.filter({
 						hasText: /property.*unit.*tenant|required|missing/i
 					})
@@ -388,7 +380,7 @@ test.describe('Texas Lease Generation', () => {
 
 				// Should show error toast/message
 				const errorMessage = page
-					.locator('[role="alert"], .toast, [class*="error"]')
+					.locator('[user_type="alert"], .toast, [class*="error"]')
 					.filter({
 						hasText: /failed|error/i
 					})
@@ -444,7 +436,7 @@ test.describe('Texas Lease Generation', () => {
 
 				// Should show validation errors
 				const validationError = page
-					.locator('[class*="error"], [role="alert"]')
+					.locator('[class*="error"], [user_type="alert"]')
 					.first()
 				await expect(validationError).toBeVisible({ timeout: 5000 })
 			}
@@ -468,31 +460,31 @@ test.describe('Texas Lease Generation', () => {
 				.catch(() => {})
 
 			// Modify a form field (monthly rent)
-			const monthlyRentInput = page
+			const rent_amountInput = page
 				.getByLabel(/monthly.*rent/i)
-				.or(page.locator('input[name="monthlyRent"]'))
+				.or(page.locator('input[name="rent_amount"]'))
 				.first()
 
-			if (await monthlyRentInput.isVisible()) {
-				await monthlyRentInput.clear()
-				await monthlyRentInput.fill('2500')
+			if (await rent_amountInput.isVisible()) {
+				await rent_amountInput.clear()
+				await rent_amountInput.fill('2500')
 
 				// Verify value persisted
-				const rentValue = await monthlyRentInput.inputValue()
+				const rentValue = await rent_amountInput.inputValue()
 				expect(rentValue).toBe('2500')
 			}
 
 			// Modify security deposit
-			const securityDepositInput = page
+			const security_depositInput = page
 				.getByLabel(/security.*deposit/i)
-				.or(page.locator('input[name="securityDeposit"]'))
+				.or(page.locator('input[name="security_deposit"]'))
 				.first()
 
-			if (await securityDepositInput.isVisible()) {
-				await securityDepositInput.clear()
-				await securityDepositInput.fill('3000')
+			if (await security_depositInput.isVisible()) {
+				await security_depositInput.clear()
+				await security_depositInput.fill('3000')
 
-				const depositValue = await securityDepositInput.inputValue()
+				const depositValue = await security_depositInput.inputValue()
 				expect(depositValue).toBe('3000')
 			}
 		}

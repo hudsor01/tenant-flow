@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import { CashFlowService } from './cash-flow.service'
+import { CashFlowService, CashFlowData } from './cash-flow.service'
 
 @Controller('financials/cash-flow')
 @UseGuards(JwtAuthGuard)
@@ -18,9 +18,9 @@ export class CashFlowController {
 	@Get()
 	async getCashFlowStatement(
 		@JwtToken() token: string,
-		@Query('startDate') startDate?: string,
-		@Query('endDate') endDate?: string
-	) {
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
+	): Promise<{ success: boolean; data: CashFlowData }> {
 		if (!token) {
 			throw new UnauthorizedException('Authentication token is required')
 		}
@@ -32,8 +32,8 @@ export class CashFlowController {
 			.split('T')[0] as string
 		const defaultEndDate = now.toISOString().split('T')[0] as string
 
-		const finalStartDate = startDate || defaultStartDate
-		const finalEndDate = endDate || defaultEndDate
+		const finalStartDate = start_date || defaultStartDate
+		const finalEndDate = end_date || defaultEndDate
 
 		// Validate date format
 		if (

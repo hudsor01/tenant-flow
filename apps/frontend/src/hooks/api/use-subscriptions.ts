@@ -8,10 +8,10 @@
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
-	CreateSubscriptionRequest,
+	CreateRentSubscriptionRequest,
 	RentSubscriptionResponse,
 	UpdateSubscriptionRequest
-} from '@repo/shared/types/core'
+} from '@repo/shared/types/api-contracts'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -58,7 +58,7 @@ export function useCreateSubscription() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateSubscriptionRequest) =>
+		mutationFn: (data: CreateRentSubscriptionRequest) =>
 			clientFetch<RentSubscriptionResponse>('/api/v1/subscriptions', {
 				method: 'POST',
 				body: JSON.stringify(data)
@@ -224,11 +224,11 @@ export function useActiveSubscriptions(): RentSubscriptionResponse[] {
 /**
  * Check if user has an active subscription for a lease
  */
-export function useHasActiveSubscription(leaseId?: string): boolean {
+export function useHasActiveSubscription(lease_id?: string): boolean {
 	const { data: subscriptions } = useSubscriptions()
-	if (!leaseId || !subscriptions) return false
+	if (!lease_id || !subscriptions) return false
 
-	return subscriptions.some(s => s.leaseId === leaseId && s.status === 'active')
+	return subscriptions.some(s => s.leaseId === lease_id && s.status === 'active')
 }
 
 /**

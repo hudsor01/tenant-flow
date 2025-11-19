@@ -33,16 +33,16 @@ describe('LeaseGenerationController (Integration)', () => {
 		ownerPhone: '512-555-1234',
 		tenantName: 'Jane Doe',
 		propertyAddress: '456 Oak Ave, Austin, TX 78702',
-		propertyId: '123e4567-e89b-12d3-a456-426614174000',
+		property_id: '123e4567-e89b-12d3-a456-426614174000',
 		commencementDate: '2024-02-01',
 		terminationDate: '2025-01-31',
-		monthlyRent: 1500,
+		rent_amount: 1500,
 		rentDueDay: 1,
-		lateFeeAmount: 50,
+		late_fee_amount: 50,
 		lateFeeGraceDays: 3,
 		nsfFee: 50,
-		securityDeposit: 1500,
-		securityDepositDueDays: 30,
+		security_deposit: 1500,
+		security_depositDueDays: 30,
 		holdOverRentMultiplier: 1.2,
 		maxOccupants: 2,
 		allowedUse: 'Residential dwelling purposes only',
@@ -60,7 +60,7 @@ describe('LeaseGenerationController (Integration)', () => {
 		noticeEmail: 'john.smith@example.com',
 		propertyBuiltBefore1978: false,
 		leadPaintDisclosureProvided: false,
-		tenantId: '223e4567-e89b-12d3-a456-426614174000'
+		tenant_id: '223e4567-e89b-12d3-a456-426614174000'
 	}
 
 	const mockPDFBuffer = Buffer.from('mock-pdf-content')
@@ -153,7 +153,7 @@ describe('LeaseGenerationController (Integration)', () => {
 		it('should reject invalid lease data with Zod validation', async () => {
 			const invalidData = {
 				...mockLeaseData,
-				monthlyRent: -100, // Invalid: negative rent
+				rent_amount: -100, // Invalid: negative rent
 				rentDueDay: 35 // Invalid: day > 31
 			}
 
@@ -235,10 +235,10 @@ describe('LeaseGenerationController (Integration)', () => {
 		})
 	})
 
-	describe('GET /api/v1/leases/auto-fill/:propertyId/:unitId/:tenantId', () => {
-		const mockPropertyId = '123e4567-e89b-12d3-a456-426614174000'
-		const mockUnitId = '223e4567-e89b-12d3-a456-426614174000'
-		const mockTenantId = '323e4567-e89b-12d3-a456-426614174000'
+	describe('GET /api/v1/leases/auto-fill/:property_id/:unit_id/:tenant_id', () => {
+		const mockproperty_id = '123e4567-e89b-12d3-a456-426614174000'
+		const mockunit_id = '223e4567-e89b-12d3-a456-426614174000'
+		const mocktenant_id = '323e4567-e89b-12d3-a456-426614174000'
 
 		beforeEach(() => {
 			// Reset mock implementation to avoid state pollution
@@ -247,31 +247,31 @@ describe('LeaseGenerationController (Integration)', () => {
 
 		it('should auto-fill lease data from property, unit, and tenant', async () => {
 			const mockProperty = {
-				id: mockPropertyId,
+				id: mockproperty_id,
 				address: '456 Oak Ave',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78702',
-				ownerId: 'owner-123'
+				postal_code: '78702',
+				owner_id: 'owner-123'
 			}
 
 			const mockUnit = {
-				id: mockUnitId,
+				id: mockunit_id,
 				rent: 1500,
-				unitNumber: '101',
-				propertyId: mockPropertyId
+				unit_number: '101',
+				property_id: mockproperty_id
 			}
 
 			const mockTenant = {
-				id: mockTenantId,
-				firstName: 'Jane',
-				lastName: 'Doe',
+				id: mocktenant_id,
+				first_name: 'Jane',
+				last_name: 'Doe',
 				email: 'jane.doe@example.com'
 			}
 
 			const mockOwner = {
-				firstName: 'John',
-				lastName: 'Smith',
+				first_name: 'John',
+				last_name: 'Smith',
 				email: 'john.smith@example.com'
 			}
 
@@ -290,18 +290,18 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			const response = await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockPropertyId}/${mockUnitId}/${mockTenantId}`)
+				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
 				.expect(HttpStatus.OK)
 
 			// Verify auto-filled data structure
 			expect(response.body).toMatchObject({
 				propertyAddress: '456 Oak Ave, Austin, TX 78702',
-				propertyId: mockPropertyId,
+				property_id: mockproperty_id,
 				ownerName: 'John Smith',
 				tenantName: 'Jane Doe',
-				tenantId: mockTenantId,
-				monthlyRent: 1500,
-				securityDeposit: 1500,
+				tenant_id: mocktenant_id,
+				rent_amount: 1500,
+				security_deposit: 1500,
 				governingState: 'TX'
 			})
 		})
@@ -319,18 +319,18 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockPropertyId}/${mockUnitId}/${mockTenantId}`)
+				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
 				.expect(HttpStatus.NOT_FOUND)
 		})
 
 		it('should return 404 when unit not found', async () => {
 			const mockProperty = {
-				id: mockPropertyId,
+				id: mockproperty_id,
 				address: '456 Oak Ave',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78702',
-				ownerId: 'owner-123'
+				postal_code: '78702',
+				owner_id: 'owner-123'
 			}
 
 			const mockChain = {
@@ -348,7 +348,7 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockPropertyId}/${mockUnitId}/${mockTenantId}`)
+				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
 				.expect(HttpStatus.NOT_FOUND)
 		})
 
@@ -360,25 +360,25 @@ describe('LeaseGenerationController (Integration)', () => {
 
 		it('should return 400 when unit does not belong to property', async () => {
 			const mockProperty = {
-				id: mockPropertyId,
+				id: mockproperty_id,
 				address: '456 Oak Ave',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78702',
-				ownerId: 'owner-123'
+				postal_code: '78702',
+				owner_id: 'owner-123'
 			}
 
 			const mockUnit = {
-				id: mockUnitId,
+				id: mockunit_id,
 				rent: 1500,
-				unitNumber: '101',
-				propertyId: 'different-property-id' // Mismatch!
+				unit_number: '101',
+				property_id: 'different-property-id' // Mismatch!
 			}
 
 			const mockTenant = {
-				id: mockTenantId,
-				firstName: 'Jane',
-				lastName: 'Doe',
+				id: mocktenant_id,
+				first_name: 'Jane',
+				last_name: 'Doe',
 				email: 'jane.doe@example.com'
 			}
 
@@ -395,7 +395,7 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockPropertyId}/${mockUnitId}/${mockTenantId}`)
+				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
 				.expect(HttpStatus.BAD_REQUEST)
 		})
 	})

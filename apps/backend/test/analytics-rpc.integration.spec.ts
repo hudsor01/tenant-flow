@@ -20,7 +20,7 @@ if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
 	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
 }
 
-const testUserId = process.env.SUPABASE_RPC_TEST_USER_ID
+const testuser_id = process.env.SUPABASE_RPC_TEST_USER_ID
 
 const mockRpc = jest.fn()
 const mockFrom = jest.fn()
@@ -67,7 +67,7 @@ describe('Supabase Analytics RPC Endpoints', () => {
 				{
 					id: 'property-1',
 					name: 'Mock Property',
-					ownerId: testUserId
+					owner_id: testuser_id
 				}
 			],
 			error: null
@@ -103,20 +103,20 @@ describe('Supabase Analytics RPC Endpoints', () => {
 	})
 
 	it('should have seeded analytics data for test user', async () => {
-		if (!testUserId) {
+		if (!testuser_id) {
 			throw new Error('Supabase client or test user ID not configured')
 		}
 		// Example: check at least one property exists for the seeded test user
 		const { data, error } = await supabase
 			.from('Property')
 			.select('*')
-			.eq('ownerId', testUserId)
+			.eq('owner_id', testuser_id)
 			.limit(1)
 		expect(error).toBeNull()
 		expect(data && data.length).toBeGreaterThan(0)
 		expect(mockFrom).toHaveBeenCalledWith('Property')
 		const queryChain = mockFrom.mock.results[0]?.value
 		expect(queryChain.select).toHaveBeenCalledWith('*')
-		expect(queryChain.eq).toHaveBeenCalledWith('ownerId', testUserId)
+		expect(queryChain.eq).toHaveBeenCalledWith('owner_id', testuser_id)
 	})
 })

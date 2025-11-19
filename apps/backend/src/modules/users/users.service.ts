@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 
 type UserInsert = Database['public']['Tables']['users']['Insert']
@@ -46,14 +46,14 @@ export class UsersService {
 	}
 
 	async updateUser(
-		userId: string,
+		user_id: string,
 		userData: UserUpdate
 	): Promise<Database['public']['Tables']['users']['Row']> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('users')
 			.update(userData)
-			.eq('id', userId)
+			.eq('id', user_id)
 			.select()
 			.single()
 
@@ -67,13 +67,13 @@ export class UsersService {
 	}
 
 	async getUserById(
-		userId: string
+		user_id: string
 	): Promise<Database['public']['Tables']['users']['Row'] | null> {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('users')
 			.select('*')
-			.eq('id', userId)
+			.eq('id', user_id)
 			.single()
 
 		if (error) {

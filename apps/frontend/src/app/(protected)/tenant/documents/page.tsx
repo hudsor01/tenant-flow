@@ -46,14 +46,14 @@ export default function TenantDocumentsPage() {
 				<div className="flex-1">
 					<p className="font-medium">{doc.name}</p>
 					<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-						{doc.createdAt && (
+						{doc.created_at && (
 							<div className="flex items-center gap-1">
 								<Calendar className="size-3" />
 								<span>
 									Uploaded on{' '}
 									{(() => {
 										try {
-											const date = new Date(doc.createdAt)
+											const date = new Date(doc.created_at)
 											return isNaN(date.getTime())
 												? 'Unknown date'
 												: date.toLocaleDateString()

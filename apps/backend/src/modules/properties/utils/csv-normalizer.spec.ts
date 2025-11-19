@@ -17,7 +17,7 @@ describe('CSV normalizer utilities', () => {
 
 			expect(normalizePropertyCsvRow(row)).toEqual({
 				name: 'Sample Property',
-				zipCode: '75201',
+				postal_code: '75201',
 				city: 'Dallas',
 				state: 'TX'
 			})
@@ -39,8 +39,8 @@ describe('CSV normalizer utilities', () => {
 				address: '123 Main St',
 				city: 'Seattle',
 				state: 'WA',
-				zipCode: '98104',
-				propertyType: 'single family',
+				postal_code: '98104',
+				property_type: 'single family',
 				description: 'Great view'
 			})
 		})

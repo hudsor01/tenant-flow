@@ -26,7 +26,7 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 	const [deletingId, setDeletingId] = useState<string | null>(null)
 	const [optimisticTenants, removeOptimistic] = useOptimistic(
 		initialTenants,
-		(state, tenantId: string) => state.filter(t => t.id !== tenantId)
+		(state, tenant_id: string) => state.filter(t => t.id !== tenant_id)
 	)
 
 	const resendInvitationMutation = useResendInvitation()
@@ -38,9 +38,9 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 	// Listen for resend invitation events from columns
 	useEffect(() => {
 		const handleResendInvitation = (event: Event) => {
-			const customEvent = event as CustomEvent<{ tenantId: string }>
-			const { tenantId } = customEvent.detail
-			mutationRef.current.mutate(tenantId)
+			const customEvent = event as CustomEvent<{ tenant_id: string }>
+			const { tenant_id } = customEvent.detail
+			mutationRef.current.mutate(tenant_id)
 		}
 
 		window.addEventListener('resend-invitation', handleResendInvitation)
@@ -49,15 +49,15 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		}
 	}, []) // Empty deps - listener only registered once
 
-	const handleDelete = (tenantId: string, tenantName: string) => {
-		setDeletingId(tenantId)
+	const handleDelete = (tenant_id: string, tenantName: string) => {
+		setDeletingId(tenant_id)
 		startTransition(async () => {
-			removeOptimistic(tenantId)
+			removeOptimistic(tenant_id)
 			try {
-				await clientFetch(`/api/v1/tenants/${tenantId}`, { method: 'DELETE' })
+				await clientFetch(`/api/v1/tenants/${tenant_id}`, { method: 'DELETE' })
 				toast.success(`Tenant "${tenantName}" deleted`)
 			} catch (error) {
-				logger.error('Delete failed', { action: 'handleDelete', metadata: { tenantId, error } })
+				logger.error('Delete failed', { action: 'handleDelete', metadata: { tenant_id, error } })
 				toast.error('Failed to delete tenant')
 				// Optimistic update will auto-rollback on error
 			} finally {
@@ -99,7 +99,7 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
 									<AlertDialogAction
 										disabled={isPending && deletingId === tenant.id}
-										onClick={() => handleDelete(tenant.id, tenant.name)}
+										onClick={() => handleDelete(tenant.id, tenant.name ?? '')}
 										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									>
 										{isPending && deletingId === tenant.id ? 'Deleting...' : 'Delete'}

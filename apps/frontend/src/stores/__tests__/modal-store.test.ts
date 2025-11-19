@@ -27,13 +27,13 @@ describe('modal store', () => {
 		const store = useModalStore.getState()
 		store.openModal(
 			'test-modal',
-			{ context: 'lease' },
+			{ context: 'leases' },
 			{ type: 'alert', closeOnOutsideClick: false }
 		)
 
 		const state = useModalStore.getState()
 		expect(state.isModalOpen('test-modal')).toBe(true)
-		expect(state.getModalData('test-modal')).toMatchObject({ context: 'lease' })
+		expect(state.getModalData('test-modal')).toMatchObject({ context: 'leases' })
 		expect(state.modals['test-modal']?.type).toBe('alert')
 		expect(state.modals['test-modal']?.closeOnOutsideClick).toBe(false)
 		expect(state.modalStack).toEqual(['test-modal'])

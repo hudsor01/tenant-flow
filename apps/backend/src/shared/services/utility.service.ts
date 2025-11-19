@@ -1,3 +1,4 @@
+import type { SubStatus } from '@repo/shared/constants/status-types'
 /**
  * Utility Service - Direct Supabase Implementation
 
@@ -8,8 +9,8 @@ import { Inject, Injectable, Logger, NotFoundException, InternalServerErrorExcep
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type { SearchResult } from '@repo/shared/types/search'
-import type { Database } from '@repo/shared/types/supabase-generated'
-import { USER_ROLE } from '@repo/shared/constants/auth'
+import type { Database } from '@repo/shared/types/supabase'
+import { USER_user_type } from '@repo/shared/constants/auth'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildILikePattern,
@@ -17,11 +18,11 @@ import {
 	sanitizeSearchInput
 } from '../utils/sql-safe.utils'
 
-const VALID_USER_ROLES = Object.values(USER_ROLE) as Database['public']['Enums']['UserRole'][]
-const SAFE_DEFAULT_SIGNUP_ROLE: Database['public']['Enums']['UserRole'] = 'TENANT'
+const VALID_USER_TYPES = Object.values(USER_user_type) as string[]
+const SAFE_DEFAULT_SIGNUP_USER_TYPE: string = 'TENANT'
 
-function isValidUserRoleValue(role: unknown): role is Database['public']['Enums']['UserRole'] {
-	return typeof role === 'string' && VALID_USER_ROLES.includes(role as Database['public']['Enums']['UserRole'])
+function isValidUserType(userType: unknown): userType is string {
+	return typeof userType === 'string' && VALID_USER_TYPES.includes(userType)
 }
 
 export interface PasswordValidationResult {
@@ -51,13 +52,13 @@ export class UtilityService {
 	 * Uses direct Supabase queries
 	 */
 	async searchByName(
-		userId: string,
+		user_id: string,
 		searchTerm: string,
 		limit = 20
 	): Promise<SearchResult[]> {
 		try {
 			this.logger.log('Performing global search via Supabase', {
-				userId,
+				user_id,
 				searchTerm,
 				limit
 			})
@@ -80,40 +81,40 @@ export class UtilityService {
 
 			// Search across all entity types in parallel
 			const [propertiesResult, tenantsResult, unitsResult, leasesResult] =
-				await Promise.all([
+					await Promise.all([
 					client
-						.from('property')
-						.select('id, name, address, city, state, propertyType')
-						.eq('userId', userId)
+						.from('properties')
+						.select('id, name, address_line1, city, state, property_type')
+					.eq('user_id', user_id)
 						.or(
 							// SAFE: Uses sanitized pattern
-							buildMultiColumnSearch(sanitized, ['name', 'address', 'city'])
+							buildMultiColumnSearch(sanitized, ['name', 'address_line1', 'city'])
 						)
 						.limit(searchLimit),
 					client
-						.from('tenant')
-						.select('id, email, firstName, lastName, phone')
-						.eq('userId', userId)
+						.from('tenants')
+						.select('id, user_id, users!inner(email, first_name, last_name)')
+						.eq('user_id', user_id)
 						.or(
 							// SAFE: Uses sanitized pattern
-							buildMultiColumnSearch(sanitized, ['email', 'firstName', 'lastName'])
+							buildMultiColumnSearch(sanitized, ['users.email', 'users.first_name', 'users.last_name'])
 						)
 						.limit(searchLimit),
 					client
-						.from('unit')
+						.from('units')
 						.select(
-							'id, unitNumber, bedrooms, bathrooms, rent, status, propertyId'
+							'id, unit_number, bedrooms, bathrooms, rent_amount, status, property_id'
 						)
-						.eq('userId', userId)
+						.eq('user_id', user_id)
 						// SAFE: Uses sanitized pattern
-						.ilike('unitNumber', pattern)
+						.ilike('unit_number', pattern)
 						.limit(searchLimit),
 					client
-						.from('lease')
+						.from('leases')
 						.select(
-							'id, rentAmount, startDate, endDate, status, tenantId, unitId'
+							'id, rent_amount, start_date, end_date, lease_status, primary_tenant_id, unit_id'
 						)
-						.eq('userId', userId)
+						.eq('user_id', user_id)
 						.limit(searchLimit)
 				])
 
@@ -129,12 +130,12 @@ export class UtilityService {
 			properties.forEach(property => {
 				results.push({
 					id: property.id,
-					type: 'property',
+					type: 'properties',
 					name: property.name,
-					description: `${property.address}, ${property.city}, ${property.state}`,
+					description: `${property.address_line1}, ${property.city}, ${property.state}`,
 					metadata: {
-						propertyType: property.propertyType,
-						address: property.address,
+						property_type: property.property_type,
+						address_line1: property.address_line1,
 						city: property.city,
 						state: property.state
 					}
@@ -144,19 +145,19 @@ export class UtilityService {
 			// Add tenant results
 			tenants.forEach(tenant => {
 				const fullName =
-					tenant.firstName && tenant.lastName
-						? `${tenant.firstName} ${tenant.lastName}`
-						: tenant.email
+					tenant.users.first_name && tenant.users.last_name
+						? `${tenant.users.first_name} ${tenant.users.last_name}`
+						: tenant.users.email
 				results.push({
 					id: tenant.id,
-					type: 'tenant',
+					type: 'tenants',
 					name: fullName,
-					description: `Email: ${tenant.email}`,
+					description: `Email: ${tenant.users.email}`,
 					metadata: {
-						email: tenant.email,
-						firstName: tenant.firstName,
-						lastName: tenant.lastName,
-						phone: tenant.phone
+						email: tenant.users.email,
+						first_name: tenant.users.first_name,
+						last_name: tenant.users.last_name,
+						phone: null // Phone is no longer stored on tenant
 					}
 				})
 			})
@@ -165,16 +166,16 @@ export class UtilityService {
 			units.forEach(unit => {
 				results.push({
 					id: unit.id,
-					type: 'unit',
-					name: `Unit ${unit.unitNumber}`,
-					description: `${unit.bedrooms}BR/${unit.bathrooms}BA - $${unit.rent}/month`,
+					type: 'units',
+					name: `Unit ${unit.unit_number}`,
+					description: `${unit.bedrooms}BR/${unit.bathrooms}BA - $${unit.rent_amount}/month`,
 					metadata: {
-						unitNumber: unit.unitNumber,
+						unit_number: unit.unit_number,
 						bedrooms: unit.bedrooms,
 						bathrooms: unit.bathrooms,
-						rent: unit.rent,
+						rent: unit.rent_amount,
 						status: unit.status,
-						propertyId: unit.propertyId
+						property_id: unit.property_id
 					}
 				})
 			})
@@ -183,16 +184,16 @@ export class UtilityService {
 			leases.forEach(lease => {
 				results.push({
 					id: lease.id,
-					type: 'lease',
+					type: 'leases',
 					name: `Lease ${lease.id.substring(0, 8)}`,
-					description: `$${lease.rentAmount}/month - ${lease.status}`,
+					description: `$${lease.rent_amount}/month - ${lease.lease_status}`,
 					metadata: {
-						rentAmount: lease.rentAmount,
-						startDate: lease.startDate,
-						endDate: lease.endDate,
-						status: lease.status,
-						tenantId: lease.tenantId,
-						unitId: lease.unitId
+						rent_amount: lease.rent_amount,
+						start_date: lease.start_date,
+						end_date: lease.end_date,
+						status: lease.lease_status,
+						tenant_id: lease.primary_tenant_id,
+						unit_id: lease.unit_id
 					}
 				})
 			})
@@ -217,7 +218,7 @@ export class UtilityService {
 		} catch (error) {
 			this.logger.error('Failed to perform global search', {
 				error: error instanceof Error ? error.message : String(error),
-				userId,
+				user_id,
 				searchTerm,
 				limit
 			})
@@ -262,35 +263,35 @@ export class UtilityService {
 		return data.id
 	}
 
-	async getUserRoleByUserId(userId: string): Promise<Database['public']['Enums']['UserRole'] | null> {
-		const cacheKey = `user:role:${userId}`
-		const cachedRole = await this.cacheManager.get<Database['public']['Enums']['UserRole']>(cacheKey)
-		if (cachedRole) {
-			return cachedRole
+	async getUserTypeByUserId(userId: string): Promise<string | null> {
+		const cacheKey = `user:user_type:${userId}`
+		const cachedUserType = await this.cacheManager.get<string>(cacheKey)
+		if (cachedUserType) {
+			return cachedUserType
 		}
 
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('users')
-			.select('role')
+			.select('user_type')
 			.eq('id', userId)
 			.single()
 
 		if (error) {
-			this.logger.error('Failed to fetch user role', {
+			this.logger.error('Failed to fetch user user_type', {
 				error: error.message || error,
 				userId
 			})
 			return null
 		}
 
-		if (!data?.role) {
-			this.logger.warn('User role missing from database record', { userId })
+		if (!data?.user_type) {
+			this.logger.warn('User user_type missing from database record', { userId })
 			return null
 		}
 
-		await this.cacheManager.set(cacheKey, data.role, 1800)
-		return data.role
+		await this.cacheManager.set(cacheKey, data.user_type, 1800)
+		return data.user_type
 	}
 
 	/**
@@ -314,13 +315,13 @@ export class UtilityService {
 			[key: string]: unknown
 		}
 		app_metadata?: {
-			role?: string
+			user_type?: string
 			[key: string]: unknown
 		}
 	}, retryCount = 0): Promise<string> {
 		// Try to get existing user first using atomic upsert
 		try {
-			return await this.getUserIdFromSupabaseId(authUser.id)
+				return await this.getUserIdFromSupabaseId(authUser.id)
 		} catch (error) {
 			// User doesn't exist - proceed with atomic upsert to prevent race conditions
 			if (error instanceof NotFoundException) {
@@ -333,20 +334,20 @@ export class UtilityService {
 				const fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.name
 				const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
 
-				// Determine user role with safe defaults (never silently escalate to OWNER)
-				const requestedRole = authUser.app_metadata?.role
-				let resolvedRole: Database['public']['Enums']['UserRole'] = SAFE_DEFAULT_SIGNUP_ROLE
+				// Determine user user_type with safe defaults (never silently escalate to OWNER)
+				const requestedUserType = authUser.app_metadata?.user_type
+				let resolvedUserType: string = SAFE_DEFAULT_SIGNUP_USER_TYPE
 
-				if (isValidUserRoleValue(requestedRole)) {
-					resolvedRole = requestedRole
-				} else if (requestedRole) {
-					this.logger.warn('Invalid role supplied in Supabase app_metadata during signup, defaulting to tenant access', {
+				if (isValidUserType(requestedUserType)) {
+					resolvedUserType = requestedUserType
+				} else if (requestedUserType) {
+					this.logger.warn('Invalid user_type supplied in Supabase app_metadata during signup, defaulting to tenant access', {
 						supabaseId: authUser.id,
 						email: authUser.email,
-						requestedRole
+						requestedUserType
 					})
 				} else {
-					this.logger.debug('No role supplied in Supabase app_metadata during signup, defaulting to tenant access', {
+					this.logger.debug('No user_type supplied in Supabase app_metadata during signup, defaulting to tenant access', {
 						supabaseId: authUser.id,
 						email: authUser.email
 					})
@@ -359,11 +360,11 @@ export class UtilityService {
 					.upsert({
 						supabaseId: authUser.id,
 						email: authUser.email,
-						name: fullName || null,
-						avatarUrl: avatarUrl || null,
-						role: resolvedRole,
+						full_name: fullName || null,
+						avatar_url: avatarUrl || null,
+						user_type: resolvedUserType,
 						profileComplete: false,
-						subscription_status: 'trialing' as Database['public']['Enums']['SubStatus'] // New users start with trial
+						subscription_status: 'trialing' as SubStatus // New users start with trial
 					} as Database['public']['Tables']['users']['Insert'], {
 						onConflict: 'supabaseId', // Use supabaseId as conflict key
 					})
@@ -410,10 +411,10 @@ export class UtilityService {
 				}
 
 				this.logger.log('User record created/updated successfully', {
-					userId: data.id,
+					user_id: data.id,
 					supabaseId: authUser.id,
 					email: authUser.email,
-					role: resolvedRole
+					user_type: resolvedUserType
 				})
 
 				// Cache the new user ID

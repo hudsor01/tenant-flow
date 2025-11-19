@@ -31,14 +31,14 @@ export class NotificationsController {
 		@Query('limit') limit = '10',
 		@Query('offset') offset = '0'
 	) {
-		const userId = req.user?.id
-		if (!userId) throw new UnauthorizedException()
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException()
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
 			.select('*')
-			.eq('userId', userId)
-			.order('createdAt', { ascending: false })
+			.eq('user_id', user_id)
+			.order('created_at', { ascending: false })
 			.range(
 				parseInt(offset, 10),
 				parseInt(offset, 10) + parseInt(limit, 10) - 1
@@ -52,10 +52,10 @@ export class NotificationsController {
 	async createNotification(
 		@Body()
 		body: {
-			userId: string
+			user_id: string
 			title: string
 			content: string
-			type: 'maintenance' | 'lease' | 'payment' | 'system'
+			type: 'maintenance' | 'leases' | 'payment' | 'system'
 			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 			actionUrl?: string
 		}
@@ -64,13 +64,12 @@ export class NotificationsController {
 			.getAdminClient()
 			.from('notifications')
 			.insert({
-				userId: body.userId,
+				user_id: body.user_id,
 				title: body.title,
-				content: body.content,
-				type: body.type,
-				priority: body.priority,
-				actionUrl: body.actionUrl ?? null,
-				isRead: false
+				message: body.content,
+				notification_type: body.type,
+				action_url: body.actionUrl ?? null,
+				is_read: false
 			})
 			.select()
 			.single()
@@ -84,14 +83,14 @@ export class NotificationsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user?.id
-		if (!userId) throw new UnauthorizedException()
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException()
 		const { error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
-			.update({ isRead: true })
+			.update({ is_read: true })
 			.eq('id', id)
-			.eq('userId', userId)
+			.eq('user_id', user_id)
 
 		if (error) throw new BadRequestException(error.message)
 		return { success: true }
@@ -102,14 +101,14 @@ export class NotificationsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const userId = req.user?.id
-		if (!userId) throw new UnauthorizedException()
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException()
 		const { error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
 			.delete()
 			.eq('id', id)
-			.eq('userId', userId)
+			.eq('user_id', user_id)
 
 		if (error) throw new BadRequestException(error.message)
 		return { success: true }
@@ -119,23 +118,24 @@ export class NotificationsController {
 	async createMaintenanceNotification(
 		@Body()
 		body: {
-			userId: string
+			user_id: string
 			maintenanceId: string
 			propertyName: string
-			unitNumber: string
+			unit_number: string
 		}
 	) {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('notifications')
 			.insert({
-				userId: body.userId,
+				user_id: body.user_id,
 				title: 'Maintenance Request Update',
-				content: `Your maintenance request for ${body.propertyName} Unit ${body.unitNumber} has been updated.`,
-				type: 'maintenance',
-				priority: 'MEDIUM',
-				actionUrl: `/maintenance/${body.maintenanceId}`,
-				isRead: false
+				message: `Your maintenance request for ${body.propertyName} Unit ${body.unit_number} has been updated.`,
+				notification_type: 'maintenance',
+				entity_id: body.maintenanceId,
+				entity_type: 'maintenance',
+				action_url: `/maintenance/${body.maintenanceId}`,
+				is_read: false
 			})
 			.select()
 			.single()

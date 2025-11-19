@@ -132,7 +132,7 @@ beforeAll(async () => {
 
 		// SECURITY: Do not log PII (email) or token details
 		logger.info('Integration tests authenticated', {
-			userId: data.user?.id
+			user_id: data.user?.id
 		})
 	} catch (error) {
 		const errorMessage =

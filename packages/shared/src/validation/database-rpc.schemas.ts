@@ -21,9 +21,9 @@ export const createRpcResultSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 	})
 
 // Schema for get_user_id_by_stripe_customer RPC response
-export const userIdByStripeCustomerSchema = createRpcResultSchema(z.string().uuid())
-export type UserIdByStripeCustomerResult = z.infer<
-	typeof userIdByStripeCustomerSchema
+export const user_idByStripeCustomerSchema = createRpcResultSchema(z.string().uuid())
+export type user_idByStripeCustomerResult = z.infer<
+	typeof user_idByStripeCustomerSchema
 >
 
 // Schema for activate_tenant_from_auth_user RPC response
@@ -43,7 +43,7 @@ export const propertyStatsSchema = z.object({
 	occupied: z.number().int().nonnegative(),
 	vacant: z.number().int().nonnegative(),
 	occupancyRate: z.number().min(0).max(100),
-	totalMonthlyRent: z.number().nonnegative(),
+	totalrent_amount: z.number().nonnegative(),
 	averageRent: z.number().nonnegative()
 })
 
@@ -55,17 +55,14 @@ export type PropertyStatsRpc = z.infer<typeof propertyStatsSchema>
 // Stripe Customers table schema
 export const stripeCustomerSchema = z.object({
 	id: z.string(),
-	email: z.string().email().nullable(),
+	email: z.string().nullable(),
 	name: z.string().nullable(),
 	phone: z.string().nullable(),
-	balance: z.number().nullable(),
-	currency: z.string().nullable(),
-	delinquent: z.boolean().nullable(),
+	stripe_id: z.string(),
 	description: z.string().nullable(),
-	livemode: z.boolean().nullable(),
 	metadata: z.any().nullable(), // Json type from Supabase
-	createdAt: z.string().nullable(),
-	updatedAt: z.string().nullable()
+	created_at: z.string().nullable(),
+	updated_at: z.string().nullable()
 })
 
 export type StripeCustomerDBValidated = z.infer<typeof stripeCustomerSchema>
@@ -73,17 +70,16 @@ export type StripeCustomerDBValidated = z.infer<typeof stripeCustomerSchema>
 // Stripe Subscriptions table schema
 export const stripeSubscriptionSchema = z.object({
 	id: z.string(),
-	customer_id: z.string().nullable(),
 	status: z.string(),
+	stripe_customer_id: z.string().nullable(),
+	stripe_price_id: z.string().nullable(),
+	stripe_subscription_id: z.string().nullable(),
+	user_id: z.string(),
 	current_period_start: z.string().nullable(),
 	current_period_end: z.string().nullable(),
-	cancel_at_period_end: z.boolean().nullable(),
-	canceled_at: z.string().nullable(),
-	trial_start: z.string().nullable(),
 	trial_end: z.string().nullable(),
-	metadata: z.any().nullable(),
-	createdAt: z.string().nullable(),
-	updatedAt: z.string().nullable()
+	created_at: z.string().nullable(),
+	updated_at: z.string().nullable()
 })
 
 export type StripeSubscriptionDBValidated = z.infer<typeof stripeSubscriptionSchema>
@@ -91,16 +87,14 @@ export type StripeSubscriptionDBValidated = z.infer<typeof stripeSubscriptionSch
 // Stripe Prices table schema
 export const stripePriceSchema = z.object({
 	id: z.string(),
-	product_id: z.string().nullable(),
-	active: z.boolean().nullable(),
+	product_id: z.string(),
+	amount: z.number().nullable(),
 	currency: z.string().nullable(),
-	unit_amount: z.number().nullable(),
 	recurring_interval: z.string().nullable(),
 	recurring_interval_count: z.number().nullable(),
-	type: z.string().nullable(),
-	metadata: z.any().nullable(),
-	createdAt: z.string().nullable(),
-	updatedAt: z.string().nullable()
+	stripe_id: z.string(),
+	created_at: z.string().nullable(),
+	updated_at: z.string().nullable()
 })
 
 export type StripePriceDBValidated = z.infer<typeof stripePriceSchema>
@@ -109,13 +103,11 @@ export type StripePriceDBValidated = z.infer<typeof stripePriceSchema>
 export const stripeProductSchema = z.object({
 	id: z.string(),
 	name: z.string(),
-	active: z.boolean().nullable(),
 	description: z.string().nullable(),
-	images: z.array(z.string()).nullable(),
-	unit_label: z.string().nullable(),
-	metadata: z.any().nullable(),
-	createdAt: z.string().nullable(),
-	updatedAt: z.string().nullable()
+	metadata: z.any().nullable(), // Json type from Supabase
+	stripe_id: z.string(),
+	created_at: z.string().nullable(),
+	updated_at: z.string().nullable()
 })
 
 export type StripeProductDBValidated = z.infer<typeof stripeProductSchema>
@@ -123,15 +115,14 @@ export type StripeProductDBValidated = z.infer<typeof stripeProductSchema>
 // Stripe Payment Intents table schema
 export const stripePaymentIntentSchema = z.object({
 	id: z.string(),
-	amount: z.number(),
+	stripe_id: z.string(),
+	amount: z.number().nullable(),
 	currency: z.string().nullable(),
 	customer_id: z.string().nullable(),
-	status: z.string(),
-	description: z.string().nullable(),
-	receipt_email: z.string().nullable(),
-	metadata: z.any().nullable(),
-	createdAt: z.string().nullable(),
-	updatedAt: z.string().nullable()
+	status: z.string().nullable(),
+	payment_method_types: z.array(z.string()).nullable(),
+	created_at: z.string().nullable(),
+	updated_at: z.string().nullable()
 })
 
 export type StripePaymentIntentDBValidated = z.infer<typeof stripePaymentIntentSchema>

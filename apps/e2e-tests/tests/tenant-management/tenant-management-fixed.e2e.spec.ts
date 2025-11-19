@@ -8,11 +8,11 @@ import { expect, test } from '@playwright/test'
 
 // Test data generators
 const generateTenantData = () => ({
-	firstName: faker.person.firstName(),
-	lastName: faker.person.lastName(),
+	first_name: faker.person.firstName(),
+	last_name: faker.person.lastName(),
 	email: faker.internet.email().toLowerCase(),
 	phone: faker.phone.number({ style: 'international' }),
-	emergencyContact: `${faker.person.fullName()} - ${faker.phone.number()}`
+	emergency_contact: `${faker.person.fullName()} - ${faker.phone.number()}`
 })
 
 test.describe('Tenant Management E2E Workflows', () => {
@@ -46,16 +46,16 @@ test.describe('Tenant Management E2E Workflows', () => {
 				await page.waitForLoadState('networkidle')
 
 				// Fill out form using correct selectors from the actual component
-				await page.fill('input#firstName', tenantData.firstName)
-				await page.fill('input#lastName', tenantData.lastName)
+				await page.fill('input#first_name', tenantData.first_name)
+				await page.fill('input#last_name', tenantData.last_name)
 				await page.fill('input#email', tenantData.email)
 
 				// Optional fields
 				if (await page.locator('input#phone').count()) {
 					await page.fill('input#phone', tenantData.phone)
 				}
-				if (await page.locator('textarea#emergencyContact').count()) {
-					await page.fill('textarea#emergencyContact', tenantData.emergencyContact)
+				if (await page.locator('textarea#emergency_contact').count()) {
+					await page.fill('textarea#emergency_contact', tenantData.emergency_contact)
 				}
 
 				// Submit form
@@ -80,7 +80,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 				// We should already be on the details page after creation
 				// Verify all details are displayed
 				await expect(
-					page.getByText(`${tenantData.firstName} ${tenantData.lastName}`)
+					page.getByText(`${tenantData.first_name} ${tenantData.last_name}`)
 				).toBeVisible({ timeout: 5000 })
 				await expect(page.getByText(tenantData.email)).toBeVisible({ timeout: 5000 })
 			}

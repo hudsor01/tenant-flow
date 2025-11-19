@@ -17,7 +17,7 @@ import type {
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { Mail } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -33,7 +33,7 @@ export default async function TenantsPage() {
 	// Server-side auth - NO client flash, instant 307 redirect
 	const { user } = await requireSession()
 
-	const logger = createLogger({ component: 'TenantsPage', userId: user.id })
+	const logger = createLogger({ component: 'TenantsPage', user_id: user.id })
 
 	// Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []
@@ -48,7 +48,7 @@ export default async function TenantsPage() {
 	let summary: TenantSummary | null = null as TenantSummary | null
 
 	// Fetch leases for invitation dialog
-	let availableLeases: Array<Database['public']['Tables']['lease']['Row']> = []
+	let availableLeases: Array<Database['public']['Tables']['leases']['Row']> = []
 	let paymentSummary: OwnerPaymentSummaryResponse | null = null
 
 	try {
@@ -68,7 +68,7 @@ export default async function TenantsPage() {
 		summary = null
 
 		availableLeases =
-			leasesData?.leases?.filter((lease: import('@repo/shared/types/core').Lease) => !lease.tenantId) ?? []
+			leasesData?.leases?.filter((lease: import('@repo/shared/types/core').Lease) => !lease.primary_tenant_id) ?? []
 		paymentSummary = paymentsData ?? null
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree

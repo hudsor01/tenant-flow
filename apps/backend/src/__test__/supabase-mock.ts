@@ -8,6 +8,7 @@ export interface MockSupabaseClient {
 	select: jest.Mock
 	insert: jest.Mock
 	update: jest.Mock
+	upsert: jest.Mock
 	delete: jest.Mock
 	eq: jest.Mock
 	neq: jest.Mock
@@ -49,6 +50,7 @@ export function createMockSupabaseClient(defaultReturn = { data: null, error: nu
 		select: jest.fn().mockReturnThis(),
 		insert: jest.fn().mockReturnThis(),
 		update: jest.fn().mockReturnThis(),
+		upsert: jest.fn().mockReturnThis(),
 		delete: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		neq: jest.fn().mockReturnThis(),
@@ -112,7 +114,7 @@ export function configureDashboardRPCMocks(mockSupabaseService: MockSupabaseServ
 							occupied: 8,
 							vacant: 2,
 							occupancyRate: 80,
-							totalMonthlyRent: 15000,
+							totalrent_amount: 15000,
 							averageRent: 1500
 						},
 						tenants: {
@@ -197,7 +199,7 @@ export function configureDashboardRPCMocks(mockSupabaseService: MockSupabaseServ
  */
 export function mockRPCError(mockSupabaseService: MockSupabaseService, functionName: string, error: unknown) {
 	const mockAdminClient = mockSupabaseService.getAdminClient()
-	
+
 	mockAdminClient.rpc.mockImplementation((name: string) => {
 		if (name === functionName) {
 			return Promise.resolve({ data: null, error })

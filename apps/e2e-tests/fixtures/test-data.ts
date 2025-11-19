@@ -15,22 +15,22 @@ import type { LeaseInput, PropertyInput, TenantInput } from '@repo/shared'
  * Creates realistic tenant data with unique identifiers
  */
 export const createTenant = (overrides?: Partial<TenantInput>): TenantInput => {
-	const firstName = faker.person.firstName()
-	const lastName = faker.person.lastName()
+	const first_name = faker.person.firstName()
+	const last_name = faker.person.lastName()
 
 	return {
-		firstName,
-		lastName,
+		first_name,
+		last_name,
 		email: faker.internet
 			.email({
-				firstName: firstName.toLowerCase(),
-				lastName: lastName.toLowerCase()
+				first_name: first_name.toLowerCase(),
+				last_name: last_name.toLowerCase()
 			})
 			.toLowerCase(),
 		phone: faker.phone.number(),
-		emergencyContact: `${faker.person.fullName()} - ${faker.phone.number()}`,
+		emergency_contact: `${faker.person.fullName()} - ${faker.phone.number()}`,
 		avatarUrl: null,
-		userId: null,
+		user_id: null,
 		...overrides
 	}
 }
@@ -47,8 +47,8 @@ export const createProperty = (
 		address: faker.location.streetAddress(),
 		city: faker.location.city(),
 		state: faker.location.state({ abbreviated: true }),
-		zipCode: faker.location.zipCode('#####'),
-		propertyType: faker.helpers.arrayElement([
+		postal_code: faker.location.postal_code('#####'),
+		property_type: faker.helpers.arrayElement([
 			'apartment',
 			'house',
 			'condo',
@@ -66,18 +66,18 @@ export const createProperty = (
  * Creates realistic lease agreements
  */
 export const createLease = (overrides?: Partial<LeaseInput>): LeaseInput => {
-	const startDate = faker.date.soon({ days: 30 })
-	const endDate = new Date(startDate)
-	endDate.setFullYear(endDate.getFullYear() + 1) // 1 year lease
+	const start_date = faker.date.soon({ days: 30 })
+	const end_date = new Date(start_date)
+	end_date.setFullYear(end_date.getFullYear() + 1) // 1 year lease
 
 	return {
-		tenantId: '', // Must be provided
-		propertyId: '', // Must be provided
-		unitId: '', // Must be provided
-		startDate: startDate.toISOString(),
-		endDate: endDate.toISOString(),
-		monthlyRent: faker.number.int({ min: 800, max: 3000 }),
-		securityDeposit: faker.number.int({ min: 800, max: 3000 }),
+		tenant_id: '', // Must be provided
+		property_id: '', // Must be provided
+		unit_id: '', // Must be provided
+		start_date: start_date.toISOString(),
+		end_date: end_date.toISOString(),
+		rent_amount: faker.number.int({ min: 800, max: 3000 }),
+		security_deposit: faker.number.int({ min: 800, max: 3000 }),
 		status: 'active',
 		...overrides
 	}
@@ -112,7 +112,7 @@ export const presets = {
 	newTenant: (): TenantInput =>
 		createTenant({
 			email: generateTestEmail('new-tenant'),
-			emergencyContact: 'Emergency Contact - (555) 911-0000'
+			emergency_contact: 'Emergency Contact - (555) 911-0000'
 		}),
 
 	/**
@@ -138,7 +138,7 @@ export const presets = {
 		createProperty({
 			name: 'Parkview Apartments',
 			units: 8,
-			propertyType: 'apartment'
+			property_type: 'apartment'
 		}),
 
 	/**
@@ -148,7 +148,7 @@ export const presets = {
 		createProperty({
 			name: 'Downtown Tower',
 			units: 120,
-			propertyType: 'apartment'
+			property_type: 'apartment'
 		}),
 
 	/**
@@ -158,23 +158,23 @@ export const presets = {
 		createProperty({
 			name: faker.location.streetAddress(),
 			units: 1,
-			propertyType: 'house'
+			property_type: 'house'
 		}),
 
 	/**
 	 * Standard 1-year lease
 	 */
 	standardLease: (
-		tenantId: string,
-		propertyId: string,
-		unitId: string
+		tenant_id: string,
+		property_id: string,
+		unit_id: string
 	): LeaseInput =>
 		createLease({
-			tenantId,
-			propertyId,
-			unitId,
-			monthlyRent: 1500,
-			securityDeposit: 1500,
+			tenant_id,
+			property_id,
+			unit_id,
+			rent_amount: 1500,
+			security_deposit: 1500,
 			status: 'active'
 		}),
 
@@ -182,22 +182,22 @@ export const presets = {
 	 * Month-to-month lease
 	 */
 	monthToMonth: (
-		tenantId: string,
-		propertyId: string,
-		unitId: string
+		tenant_id: string,
+		property_id: string,
+		unit_id: string
 	): LeaseInput => {
-		const startDate = new Date()
-		const endDate = new Date(startDate)
-		endDate.setMonth(endDate.getMonth() + 1)
+		const start_date = new Date()
+		const end_date = new Date(start_date)
+		end_date.setMonth(end_date.getMonth() + 1)
 
 		return createLease({
-			tenantId,
-			propertyId,
-			unitId,
-			startDate: startDate.toISOString(),
-			endDate: endDate.toISOString(),
-			monthlyRent: 1200,
-			securityDeposit: 600,
+			tenant_id,
+			property_id,
+			unit_id,
+			start_date: start_date.toISOString(),
+			end_date: end_date.toISOString(),
+			rent_amount: 1200,
+			security_deposit: 600,
 			status: 'active'
 		})
 	}
@@ -239,12 +239,12 @@ export const scenarios = {
 		tenant: presets.activeTenant(),
 		property: presets.smallProperty(),
 		currentLease: {
-			monthlyRent: 1500,
-			securityDeposit: 1500
+			rent_amount: 1500,
+			security_deposit: 1500
 		},
 		renewalTerms: {
-			monthlyRent: 1550, // 3.3% increase
-			securityDeposit: 1500
+			rent_amount: 1550, // 3.3% increase
+			security_deposit: 1500
 		}
 	}),
 

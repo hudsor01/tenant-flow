@@ -23,6 +23,18 @@ vi.mock('#hooks/api/use-properties', () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'property-1' }),
 		isPending: false
 	}),
+	usePropertyImages: () => ({
+		data: [],
+		isLoading: false
+	}),
+	useDeletePropertyImage: () => ({
+		mutateAsync: vi.fn().mockResolvedValue({}),
+		isPending: false
+	}),
+	useUploadPropertyImage: () => ({
+		mutateAsync: vi.fn().mockResolvedValue({}),
+		isPending: false
+	}),
 	propertiesKeys: {
 		detail: (id: string) => ['properties', id]
 	}
@@ -47,24 +59,33 @@ vi.mock('#hooks/use-supabase-upload', () => ({
 	})
 }))
 
+vi.mock('#hooks/use-lightbox-state', () => ({
+	useLightboxState: (initialIndex: number) => ({
+		isOpen: false,
+		currentIndex: initialIndex,
+		open: vi.fn(),
+		close: vi.fn(),
+		goToImage: vi.fn(),
+		setIndex: vi.fn()
+	})
+}))
+
 const DEFAULT_PROPERTY: Property = {
 	id: 'property-1',
-	ownerId: 'owner-1',
+	property_owner_id: 'owner-1',
 	name: 'Sunset Apartments',
-	address: '123 Main St',
+	address_line1: '123 Main St',
+	address_line2: null,
 	city: 'San Francisco',
 	state: 'CA',
-	zipCode: '94105',
-	propertyType: 'MULTI_UNIT',
-	description: 'Beautiful apartment complex',
+	postal_code: '94105',
+	country: 'US',
+	property_type: 'multi_family',
 	status: 'ACTIVE',
-	imageUrl: null,
 	date_sold: null,
-	sale_notes: null,
 	sale_price: null,
-	createdAt: '2024-01-01T00:00:00Z',
-	updatedAt: '2024-01-01T00:00:00Z',
-	version: 1
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z'
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {
@@ -89,7 +110,7 @@ describe('PropertyForm', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
 			expect(screen.getByLabelText(/property name/i)).toHaveValue('')
-			expect(screen.getByLabelText(/address/i)).toHaveValue('')
+			expect(screen.getByLabelText(/^Address \*$/i)).toHaveValue('')
 			expect(screen.getByRole('button', { name: /create property/i })).toBeInTheDocument()
 		})
 
@@ -107,7 +128,7 @@ describe('PropertyForm', () => {
 		test('shows image upload section in create mode', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
-			expect(screen.getByText(/property image \(optional\)/i)).toBeInTheDocument()
+			expect(screen.getByText(/save property first to upload images/i)).toBeInTheDocument()
 		})
 
 		test('displays correct button text in create mode', () => {
@@ -126,7 +147,7 @@ describe('PropertyForm', () => {
 			)
 
 			expect(screen.getByLabelText(/property name/i)).toHaveValue('Sunset Apartments')
-			expect(screen.getByLabelText(/address/i)).toHaveValue('123 Main St')
+			expect(screen.getByLabelText(/^Address \*$/i)).toHaveValue('123 Main St')
 			expect(screen.getByLabelText(/city/i)).toHaveValue('San Francisco')
 			expect(screen.getByLabelText(/state/i)).toHaveValue('CA')
 			expect(screen.getByLabelText(/zip code/i)).toHaveValue('94105')
@@ -209,13 +230,13 @@ describe('PropertyForm', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
 			await user.type(screen.getByLabelText(/property name/i), 'Test Property')
-			await user.type(screen.getByLabelText(/address/i), '456 Oak Ave')
+			await user.type(screen.getByLabelText(/^Address \*$/i), '456 Oak Ave')
 			await user.type(screen.getByLabelText(/city/i), 'Oakland')
 			await user.type(screen.getByLabelText(/state/i), 'CA')
 			await user.type(screen.getByLabelText(/zip code/i), '94601')
 
 			expect(screen.getByLabelText(/property name/i)).toHaveValue('Test Property')
-			expect(screen.getByLabelText(/address/i)).toHaveValue('456 Oak Ave')
+			expect(screen.getByLabelText(/^Address \*$/i)).toHaveValue('456 Oak Ave')
 			expect(screen.getByLabelText(/city/i)).toHaveValue('Oakland')
 			expect(screen.getByLabelText(/state/i)).toHaveValue('CA')
 			expect(screen.getByLabelText(/zip code/i)).toHaveValue('94601')
@@ -249,12 +270,14 @@ describe('PropertyForm', () => {
 
 		// Text inputs can be queried by label
 		expect(screen.getByLabelText(/property name/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/address/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/^Address \*$/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/city/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/state/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/zip code/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
-		
+		// Country is a select field and may not have a standard label query
+	// Verify country label exists via text query instead
+	expect(screen.getByText(/country \*/i)).toBeInTheDocument()
+
 		// Verify property type label exists (accessibility)
 		expect(screen.getByText(/property type \*/i)).toBeInTheDocument()
 	})
@@ -263,7 +286,7 @@ describe('PropertyForm', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
 			expect(screen.getByLabelText(/property name/i)).toHaveAttribute('autocomplete', 'organization')
-			expect(screen.getByLabelText(/address/i)).toHaveAttribute('autocomplete', 'street-address')
+			expect(screen.getByLabelText(/^Address \*$/i)).toHaveAttribute('autocomplete', 'street-address')
 			expect(screen.getByLabelText(/city/i)).toHaveAttribute('autocomplete', 'address-level2')
 			expect(screen.getByLabelText(/state/i)).toHaveAttribute('autocomplete', 'address-level1')
 			expect(screen.getByLabelText(/zip code/i)).toHaveAttribute('autocomplete', 'postal-code')

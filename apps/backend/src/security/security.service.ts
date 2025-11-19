@@ -1,6 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
 import { z } from 'zod'
+import { SecureEmailSchema, EmailMetadataSchema } from '@repo/shared/validation/emails.schemas'
+import { SupabaseService } from '../database/supabase.service'
+import type { Json } from '@repo/shared/src/types/supabase.js'
 
 export interface SanitizationOptions {
 	/**
@@ -75,6 +78,10 @@ const SanitizationOptionsSchema = z
 
 @Injectable()
 export class SecurityService {
+	private readonly logger = new Logger(SecurityService.name)
+
+	constructor(private readonly supabase: SupabaseService) {}
+
 	/**
 	 * Basic input sanitization - removes dangerous characters while preserving valid business data
 	 * Specifically removes angle brackets for XSS prevention but keeps other special characters
@@ -343,6 +350,125 @@ export class SecurityService {
 		password: string,
 		hashedPassword: string
 	): Promise<boolean> {
-		return bcrypt.compare(password, hashedPassword)
+			return bcrypt.compare(password, hashedPassword)
+	}
+
+	/**
+	 * Sanitize email address to prevent header injection
+	 * Removes CRLF characters and validates email format
+	 */
+	sanitizeEmailForHeader(email: string): string {
+		if (!email) {
+			throw new BadRequestException('Email is required')
+		}
+
+		// Remove CRLF characters that could cause header injection
+	const sanitized = email.replace(/[\r\n]/g, '').trim()
+
+		// Validate email format using Zod schema
+		const result = SecureEmailSchema.safeParse(sanitized)
+	if (!result.success) {
+			throw new BadRequestException(
+				`Invalid email format: ${result.error.issues.map((e: { message: string }) => e.message).join(', ')}`
+			)
+		}
+
+		return result.data
+	}
+
+	/**
+	 * Sanitize email metadata to prevent header injection
+	 * Validates and sanitizes all email-related fields
+	 */
+	sanitizeEmailMetadata(metadata: unknown): z.infer<typeof EmailMetadataSchema> {
+		const result = EmailMetadataSchema.safeParse(metadata)
+		if (!result.success) {
+			throw new BadRequestException(
+				`Invalid email metadata: ${result.error.issues.map((e: { message: string }) => e.message).join(', ')}`
+			)
+		}
+
+		return result.data
+	}
+
+	/**
+	 * Validate email headers to prevent injection attacks
+	 * Checks for CRLF injection patterns in email headers
+	 */
+	validateEmailHeaders(headers: {
+		from?: string
+		to: string
+		subject?: string
+		replyTo?: string
+	}): void {
+		const CRLF_REGEX = /[\r\n]/g
+
+		if (headers.from && CRLF_REGEX.test(headers.from)) {
+			throw new BadRequestException('From header contains invalid characters')
+		}
+
+		if (headers.to && CRLF_REGEX.test(headers.to)) {
+			throw new BadRequestException('To header contains invalid characters')
+		}
+
+		if (headers.subject && CRLF_REGEX.test(headers.subject)) {
+			throw new BadRequestException('Subject header contains invalid characters')
+		}
+
+		if (headers.replyTo && CRLF_REGEX.test(headers.replyTo)) {
+			throw new BadRequestException('Reply-To header contains invalid characters')
+		}
+	}
+
+	/**
+	 * Log audit events for compliance and security tracking
+	 * Stores events in Supabase audit_log_entries table for later analysis
+	 */
+	/**
+	 * Log audit events for compliance and security tracking
+	 * Stores events in Supabase security_audit_log table for later analysis
+	 */
+	/**
+	 * Log audit events for compliance and security tracking
+	 * Stores events in Supabase security_audit_log table for later analysis
+	 */
+	async logAuditEvent(event: {
+		user_id: string
+		action: string
+		entity_type?: string
+		entity_id?: string
+		details?: Json
+	}): Promise<void> {
+		try {
+			const insertData: {
+				user_id: string
+				event_type: string
+				entity_type?: string
+				entity_id?: string
+				details?: Json
+				created_at: string
+			} = {
+				user_id: event.user_id!,
+				event_type: event.action,
+				created_at: new Date().toISOString()
+			}
+
+			if (event.entity_type) insertData.entity_type = event.entity_type
+			if (event.entity_id) insertData.entity_id = event.entity_id
+			if (event.details) insertData.details = event.details
+
+			const { error } = await this.supabase
+				.getAdminClient()
+				.from('security_audit_log')
+				.insert(insertData)
+
+			if (error) {
+				this.logger.error('Failed to log audit event:', error)
+				// Don't throw - audit logging should not block operations
+			}
+		} catch (error) {
+			this.logger.error('Error logging audit event:', error)
+			// Don't throw - audit logging should not block operations
+		}
 	}
 }

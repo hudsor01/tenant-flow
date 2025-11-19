@@ -11,7 +11,7 @@ import { useModalStore } from '#stores/modal-store'
 interface DeleteMaintenanceButtonProps {
 	maintenance: {
 		id: string
-		title: string
+		description: string
 	}
 	deleteAction: (id: string) => Promise<{ success: boolean }>
 }
@@ -51,7 +51,7 @@ export function DeleteMaintenanceButton({
 			<ConfirmDialog
 				modalId={modalId}
 				title="Delete Maintenance Request"
-				description={`Are you sure you want to delete "${maintenance.title}"? This action cannot be undone.`}
+				description={`Are you sure you want to delete "${maintenance.description}"? This action cannot be undone.`}
 				confirmText="Delete Request"
 				confirmVariant="destructive"
 				onConfirm={handleDelete}

@@ -128,12 +128,12 @@ export function LeaseTemplateBuilder() {
 		ownerAddress: '456 Business Ave, Suite 400, San Francisco, CA 94108',
 		tenantNames: 'John Doe; Jane Doe',
 		propertyAddress: '123 Main Street, San Francisco, CA 94105',
-		rentAmount: '3500',
-		securityDeposit: '3500',
+		rent_amount: '3500',
+		security_deposit: '3500',
 		rentDueDay: '1',
-		leaseStartDate: '2024-01-01',
+		leasestart_date: '2024-01-01',
 		leaseEndDate: '2024-12-31',
-		lateFeeAmount: '100',
+		late_fee_amount: '100',
 		gracePeriodDays: '5'
 	})
 
@@ -144,12 +144,12 @@ export function LeaseTemplateBuilder() {
 			tenantNames: builderInputs.tenantNames,
 			propertyAddress: builderInputs.propertyAddress,
 			propertyState: state,
-			rentAmountCents: dollarsToCents(builderInputs.rentAmount),
-			securityDepositCents: dollarsToCents(builderInputs.securityDeposit),
+			rent_amountCents: dollarsToCents(builderInputs.rent_amount),
+			security_depositCents: dollarsToCents(builderInputs.security_deposit),
 			rentDueDay: Number(builderInputs.rentDueDay) || 1,
-			leaseStartDateISO: builderInputs.leaseStartDate,
+			leasestart_dateISO: builderInputs.leasestart_date,
 			leaseEndDateISO: builderInputs.leaseEndDate,
-			lateFeeAmountCents: dollarsToCents(builderInputs.lateFeeAmount),
+			late_fee_amountCents: dollarsToCents(builderInputs.late_fee_amount),
 			gracePeriodDays: Number(builderInputs.gracePeriodDays) || 0
 		})
 	}, [builderInputs, state])
@@ -342,12 +342,12 @@ function ConfigurationPanel(props: {
 		ownerAddress: string
 		tenantNames: string
 		propertyAddress: string
-		rentAmount: string
-		securityDeposit: string
+		rent_amount: string
+		security_deposit: string
 		rentDueDay: string
-		leaseStartDate: string
+		leasestart_date: string
 		leaseEndDate: string
-		lateFeeAmount: string
+		late_fee_amount: string
 		gracePeriodDays: string
 	}
 	onChange: React.Dispatch<
@@ -356,12 +356,12 @@ function ConfigurationPanel(props: {
 			ownerAddress: string
 			tenantNames: string
 			propertyAddress: string
-			rentAmount: string
-			securityDeposit: string
+			rent_amount: string
+			security_deposit: string
 			rentDueDay: string
-			leaseStartDate: string
+			leasestart_date: string
 			leaseEndDate: string
-			lateFeeAmount: string
+			late_fee_amount: string
 			gracePeriodDays: string
 		}>
 	>
@@ -420,18 +420,18 @@ function ConfigurationPanel(props: {
 				<div className="grid grid-cols-2 gap-3">
 					<LabeledInput
 						label="Rent (USD)"
-						value={builderInputs.rentAmount}
+						value={builderInputs.rent_amount}
 						onChange={event =>
-							onChange(prev => ({ ...prev, rentAmount: event.target.value }))
+							onChange(prev => ({ ...prev, rent_amount: event.target.value }))
 						}
 					/>
 					<LabeledInput
 						label="Deposit (USD)"
-						value={builderInputs.securityDeposit}
+						value={builderInputs.security_deposit}
 						onChange={event =>
 							onChange(prev => ({
 								...prev,
-								securityDeposit: event.target.value
+								security_deposit: event.target.value
 							}))
 						}
 					/>
@@ -461,11 +461,11 @@ function ConfigurationPanel(props: {
 					<LabeledInput
 						label="Lease start"
 						type="date"
-						value={builderInputs.leaseStartDate}
+						value={builderInputs.leasestart_date}
 						onChange={event =>
 							onChange(prev => ({
 								...prev,
-								leaseStartDate: event.target.value
+								leasestart_date: event.target.value
 							}))
 						}
 					/>
@@ -480,9 +480,9 @@ function ConfigurationPanel(props: {
 				</div>
 				<LabeledInput
 					label="Late fee (USD)"
-					value={builderInputs.lateFeeAmount}
+					value={builderInputs.late_fee_amount}
 					onChange={event =>
-						onChange(prev => ({ ...prev, lateFeeAmount: event.target.value }))
+						onChange(prev => ({ ...prev, late_fee_amount: event.target.value }))
 					}
 				/>
 

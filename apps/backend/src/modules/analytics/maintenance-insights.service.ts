@@ -19,14 +19,14 @@ export class MaintenanceInsightsService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	private buildUserPayload(
-		userId: string,
+		user_id: string,
 		extra?: Record<string, unknown>
 	): Record<string, unknown> {
 		return {
-			user_id: userId,
-			user_id_param: userId,
-			p_user_id: userId,
-			uid: userId,
+			user_id: user_id,
+			user_id_param: user_id,
+			p_user_id: user_id,
+			uid: user_id,
 			...extra
 		}
 	}
@@ -63,25 +63,25 @@ export class MaintenanceInsightsService {
 	}
 
 	async getMaintenanceMetrics(
-		userId: string
+		user_id: string
 	): Promise<MaintenanceMetricSummary> {
 		const raw = await this.callRpc(
 			'calculate_maintenance_metrics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapMaintenanceMetrics(raw)
 	}
 
 	async getMaintenanceAnalytics(
-		userId: string
+		user_id: string
 	): Promise<MaintenanceAnalyticsPageResponse> {
 		const metricsRaw = await this.callRpc(
 			'calculate_maintenance_metrics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		const analyticsRaw = await this.callRpc(
 			'get_maintenance_analytics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 
 		const costBreakdown = mapMaintenanceCostBreakdown(
@@ -109,14 +109,14 @@ export class MaintenanceInsightsService {
 	}
 
 	async getMaintenanceInsightsPageData(
-		userId: string
+		user_id: string
 	): Promise<MaintenanceAnalyticsPageResponse> {
 		const [metricsRaw, analyticsRaw] = await Promise.all([
 			this.callRpc(
 				'calculate_maintenance_metrics',
-				this.buildUserPayload(userId)
+				this.buildUserPayload(user_id)
 			),
-			this.callRpc('get_maintenance_analytics', this.buildUserPayload(userId))
+			this.callRpc('get_maintenance_analytics', this.buildUserPayload(user_id))
 		])
 
 		return buildMaintenanceAnalyticsPageResponse({

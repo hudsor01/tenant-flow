@@ -39,8 +39,8 @@ export interface TaxPreparationReportData {
 	}
 	period: {
 		taxYear: number
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	}
 }
 
@@ -51,20 +51,20 @@ export class TaxPreparationTemplate {
 	constructor(private readonly financialService: FinancialAnalyticsService) {}
 
 	async generateReportData(
-		userId: string,
-		startDate: string,
-		endDate: string
+		user_id: string,
+		start_date: string,
+		end_date: string
 	): Promise<TaxPreparationReportData> {
 		this.logger.log('Generating tax preparation report data', {
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		})
 
 		const [expenseSummary, noiData, financialMetrics] = await Promise.all([
-			this.financialService.getExpenseSummary(userId),
-			this.financialService.getNetOperatingIncome(userId),
-			this.financialService.getFinancialMetrics(userId)
+			this.financialService.getExpenseSummary(user_id),
+			this.financialService.getNetOperatingIncome(user_id),
+			this.financialService.getFinancialMetrics(user_id)
 		])
 
 		const totalRentalIncome = financialMetrics.totalRevenue || 0
@@ -119,7 +119,7 @@ export class TaxPreparationTemplate {
 			estimatedTaxLiability: netRentalIncome * 0.22
 		}
 
-		const taxYear = new Date(endDate).getFullYear()
+		const taxYear = new Date(end_date).getFullYear()
 
 		return {
 			incomeSummary,
@@ -130,8 +130,8 @@ export class TaxPreparationTemplate {
 			taxYearSummary,
 			period: {
 				taxYear,
-				startDate,
-				endDate
+				start_date,
+				end_date
 			}
 		}
 	}

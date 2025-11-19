@@ -1,47 +1,17 @@
 import Link from 'next/link'
+import { Home } from 'lucide-react'
 
 export default function Footer() {
 	return (
-		<footer className="bg-background" style={{
-			paddingTop: 'var(--spacing-4)',
-			paddingBottom: 'var(--spacing-4)'
-		}}>
-			<div className="max-w-7xl mx-auto" style={{
-				paddingLeft: 'var(--spacing-4)',
-				paddingRight: 'var(--spacing-4)'
-			}}>
-				<div
-					className="flex justify-center items-center gap-8 text-muted-foreground"
-					style={{ fontSize: 'var(--text-sm)' }}
-				>
+		<footer className="bg-background py-[var(--spacing-4)]">
+			<div className="max-w-7xl mx-auto px-[var(--spacing-4)]">
+			<div
+				className="flex justify-center items-center gap-[var(--spacing-8)] text-muted-foreground"
+				style={{ fontSize: 'var(--text-sm)' }}
+			>
 					<div className="flex items-center space-x-2">
-						<div
-							className="rounded bg-primary flex items-center justify-center"
-							style={{
-								width: 'var(--size-4)',
-								height: 'var(--size-4)',
-								minWidth: 'var(--size-4)',
-								minHeight: 'var(--size-4)'
-							}}
-						>
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								xmlns="http://www.w3.org/2000/svg"
-								className="text-primary-foreground"
-								style={{
-									width: 'var(--size-2-5)',
-									height: 'var(--size-2-5)'
-								}}
-							>
-								<path
-									d="M3 21L21 21M5 21V7L12 3L19 7V21M9 12H15M9 16H15"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
+						<div className="rounded bg-primary flex items-center justify-center w-[var(--spacing-4)] h-[var(--spacing-4)] min-w-[var(--spacing-4)] min-h-[var(--spacing-4)]">
+							<Home className="w-[var(--spacing-2_5)] h-[var(--spacing-2_5)] text-primary-foreground" />
 						</div>
 						<span className="font-medium text-foreground">TenantFlow</span>
 					</div>
