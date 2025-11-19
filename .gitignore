@@ -369,8 +369,9 @@ coverage/
 # Additional TenantFlow environment patterns
 .env.vault
 .doppler.yaml
-*.env
-*.env.*
+# Additional TenantFlow environment patterns
+.env.vault
+.doppler.yaml
 
 # Test artifacts
 test-results/
