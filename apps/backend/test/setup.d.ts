@@ -1,0 +1,3526 @@
+import type { Database } from '@repo/shared/types/supabase';
+export declare const testSupabase: import("@supabase/supabase-js").SupabaseClient<Database, "public", "public", {
+    Tables: {
+        activity: {
+            Row: {
+                activity_type: string;
+                created_at: string | null;
+                description: string | null;
+                entity_id: string | null;
+                entity_type: string | null;
+                id: string;
+                title: string;
+                user_id: string | null;
+            };
+            Insert: {
+                activity_type: string;
+                created_at?: string | null;
+                description?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                title: string;
+                user_id?: string | null;
+            };
+            Update: {
+                activity_type?: string;
+                created_at?: string | null;
+                description?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                title?: string;
+                user_id?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "activity_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        documents: {
+            Row: {
+                created_at: string | null;
+                document_type: string;
+                entity_id: string;
+                entity_type: string;
+                file_path: string;
+                file_size: number | null;
+                id: string;
+                storage_url: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                document_type: string;
+                entity_id: string;
+                entity_type: string;
+                file_path: string;
+                file_size?: number | null;
+                id?: string;
+                storage_url: string;
+            };
+            Update: {
+                created_at?: string | null;
+                document_type?: string;
+                entity_id?: string;
+                entity_type?: string;
+                file_path?: string;
+                file_size?: number | null;
+                id?: string;
+                storage_url?: string;
+            };
+            Relationships: [];
+        };
+        expenses: {
+            Row: {
+                amount: number;
+                created_at: string | null;
+                expense_date: string;
+                id: string;
+                maintenance_request_id: string;
+                updated_at: string | null;
+                vendor_name: string | null;
+            };
+            Insert: {
+                amount: number;
+                created_at?: string | null;
+                expense_date: string;
+                id?: string;
+                maintenance_request_id: string;
+                updated_at?: string | null;
+                vendor_name?: string | null;
+            };
+            Update: {
+                amount?: number;
+                created_at?: string | null;
+                expense_date?: string;
+                id?: string;
+                maintenance_request_id?: string;
+                updated_at?: string | null;
+                vendor_name?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "expenses_maintenance_request_id_fkey";
+                columns: ["maintenance_request_id"];
+                isOneToOne: false;
+                referencedRelation: "maintenance_requests";
+                referencedColumns: ["id"];
+            }];
+        };
+        faq_categories: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                display_order: number | null;
+                id: string;
+                name: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                display_order?: number | null;
+                id?: string;
+                name: string;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                display_order?: number | null;
+                id?: string;
+                name?: string;
+            };
+            Relationships: [];
+        };
+        faq_questions: {
+            Row: {
+                answer: string;
+                category_id: string;
+                created_at: string | null;
+                display_order: number | null;
+                id: string;
+                question: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                answer: string;
+                category_id: string;
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                question: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                answer?: string;
+                category_id?: string;
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                question?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "faq_questions_category_id_fkey";
+                columns: ["category_id"];
+                isOneToOne: false;
+                referencedRelation: "faq_categories";
+                referencedColumns: ["id"];
+            }];
+        };
+        lease_tenants: {
+            Row: {
+                created_at: string | null;
+                id: string;
+                is_primary: boolean | null;
+                lease_id: string;
+                responsibility_percentage: number;
+                tenant_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                id?: string;
+                is_primary?: boolean | null;
+                lease_id: string;
+                responsibility_percentage?: number;
+                tenant_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                id?: string;
+                is_primary?: boolean | null;
+                lease_id?: string;
+                responsibility_percentage?: number;
+                tenant_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "lease_tenants_lease_id_fkey";
+                columns: ["lease_id"];
+                isOneToOne: false;
+                referencedRelation: "leases";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "lease_tenants_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }];
+        };
+        leases: {
+            Row: {
+                auto_pay_enabled: boolean | null;
+                created_at: string | null;
+                end_date: string;
+                grace_period_days: number | null;
+                id: string;
+                late_fee_amount: number | null;
+                late_fee_days: number | null;
+                lease_status: string;
+                payment_day: number;
+                primary_tenant_id: string;
+                rent_amount: number;
+                rent_currency: string;
+                security_deposit: number;
+                start_date: string;
+                stripe_subscription_id: string | null;
+                unit_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                auto_pay_enabled?: boolean | null;
+                created_at?: string | null;
+                end_date: string;
+                grace_period_days?: number | null;
+                id?: string;
+                late_fee_amount?: number | null;
+                late_fee_days?: number | null;
+                lease_status?: string;
+                payment_day?: number;
+                primary_tenant_id: string;
+                rent_amount: number;
+                rent_currency?: string;
+                security_deposit: number;
+                start_date: string;
+                stripe_subscription_id?: string | null;
+                unit_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                auto_pay_enabled?: boolean | null;
+                created_at?: string | null;
+                end_date?: string;
+                grace_period_days?: number | null;
+                id?: string;
+                late_fee_amount?: number | null;
+                late_fee_days?: number | null;
+                lease_status?: string;
+                payment_day?: number;
+                primary_tenant_id?: string;
+                rent_amount?: number;
+                rent_currency?: string;
+                security_deposit?: number;
+                start_date?: string;
+                stripe_subscription_id?: string | null;
+                unit_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "leases_primary_tenant_id_fkey";
+                columns: ["primary_tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "leases_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        maintenance_requests: {
+            Row: {
+                actual_cost: number | null;
+                assigned_to: string | null;
+                completed_at: string | null;
+                created_at: string | null;
+                description: string;
+                estimated_cost: number | null;
+                id: string;
+                inspection_date: string | null;
+                inspection_findings: string | null;
+                inspector_id: string | null;
+                priority: string;
+                requested_by: string | null;
+                scheduled_date: string | null;
+                status: string;
+                tenant_id: string;
+                unit_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                actual_cost?: number | null;
+                assigned_to?: string | null;
+                completed_at?: string | null;
+                created_at?: string | null;
+                description: string;
+                estimated_cost?: number | null;
+                id?: string;
+                inspection_date?: string | null;
+                inspection_findings?: string | null;
+                inspector_id?: string | null;
+                priority?: string;
+                requested_by?: string | null;
+                scheduled_date?: string | null;
+                status?: string;
+                tenant_id: string;
+                unit_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                actual_cost?: number | null;
+                assigned_to?: string | null;
+                completed_at?: string | null;
+                created_at?: string | null;
+                description?: string;
+                estimated_cost?: number | null;
+                id?: string;
+                inspection_date?: string | null;
+                inspection_findings?: string | null;
+                inspector_id?: string | null;
+                priority?: string;
+                requested_by?: string | null;
+                scheduled_date?: string | null;
+                status?: string;
+                tenant_id?: string;
+                unit_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "maintenance_requests_assigned_to_fkey";
+                columns: ["assigned_to"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "maintenance_requests_requested_by_fkey";
+                columns: ["requested_by"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "maintenance_requests_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "maintenance_requests_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        notification_logs: {
+            Row: {
+                attempt_count: number | null;
+                created_at: string | null;
+                delivery_channel: string | null;
+                id: string;
+                last_error: string | null;
+                notification_id: string;
+                sent_at: string | null;
+                status: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                attempt_count?: number | null;
+                created_at?: string | null;
+                delivery_channel?: string | null;
+                id?: string;
+                last_error?: string | null;
+                notification_id: string;
+                sent_at?: string | null;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                attempt_count?: number | null;
+                created_at?: string | null;
+                delivery_channel?: string | null;
+                id?: string;
+                last_error?: string | null;
+                notification_id?: string;
+                sent_at?: string | null;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "notification_logs_notification_id_fkey";
+                columns: ["notification_id"];
+                isOneToOne: false;
+                referencedRelation: "notifications";
+                referencedColumns: ["id"];
+            }];
+        };
+        notifications: {
+            Row: {
+                action_url: string | null;
+                created_at: string | null;
+                entity_id: string | null;
+                entity_type: string | null;
+                id: string;
+                is_read: boolean | null;
+                message: string | null;
+                notification_type: string;
+                read_at: string | null;
+                title: string;
+                user_id: string;
+            };
+            Insert: {
+                action_url?: string | null;
+                created_at?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                is_read?: boolean | null;
+                message?: string | null;
+                notification_type: string;
+                read_at?: string | null;
+                title: string;
+                user_id: string;
+            };
+            Update: {
+                action_url?: string | null;
+                created_at?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                is_read?: boolean | null;
+                message?: string | null;
+                notification_type?: string;
+                read_at?: string | null;
+                title?: string;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "notifications_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        payment_methods: {
+            Row: {
+                bank_name: string | null;
+                brand: string | null;
+                created_at: string | null;
+                exp_month: number | null;
+                exp_year: number | null;
+                id: string;
+                is_default: boolean | null;
+                last_four: string | null;
+                stripe_payment_method_id: string;
+                tenant_id: string;
+                type: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                bank_name?: string | null;
+                brand?: string | null;
+                created_at?: string | null;
+                exp_month?: number | null;
+                exp_year?: number | null;
+                id?: string;
+                is_default?: boolean | null;
+                last_four?: string | null;
+                stripe_payment_method_id: string;
+                tenant_id: string;
+                type: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                bank_name?: string | null;
+                brand?: string | null;
+                created_at?: string | null;
+                exp_month?: number | null;
+                exp_year?: number | null;
+                id?: string;
+                is_default?: boolean | null;
+                last_four?: string | null;
+                stripe_payment_method_id?: string;
+                tenant_id?: string;
+                type?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "payment_methods_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }];
+        };
+        payment_schedules: {
+            Row: {
+                created_at: string | null;
+                frequency: string;
+                id: string;
+                is_active: boolean | null;
+                lease_id: string;
+                next_payment_date: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                frequency?: string;
+                id?: string;
+                is_active?: boolean | null;
+                lease_id: string;
+                next_payment_date: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                frequency?: string;
+                id?: string;
+                is_active?: boolean | null;
+                lease_id?: string;
+                next_payment_date?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "payment_schedules_lease_id_fkey";
+                columns: ["lease_id"];
+                isOneToOne: false;
+                referencedRelation: "leases";
+                referencedColumns: ["id"];
+            }];
+        };
+        payment_transactions: {
+            Row: {
+                amount: number;
+                attempted_at: string | null;
+                created_at: string | null;
+                failure_reason: string | null;
+                id: string;
+                last_attempted_at: string | null;
+                payment_method_id: string | null;
+                rent_payment_id: string;
+                retry_count: number | null;
+                status: string;
+                stripe_payment_intent_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount: number;
+                attempted_at?: string | null;
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                payment_method_id?: string | null;
+                rent_payment_id: string;
+                retry_count?: number | null;
+                status: string;
+                stripe_payment_intent_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number;
+                attempted_at?: string | null;
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                payment_method_id?: string | null;
+                rent_payment_id?: string;
+                retry_count?: number | null;
+                status?: string;
+                stripe_payment_intent_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "payment_transactions_payment_method_id_fkey";
+                columns: ["payment_method_id"];
+                isOneToOne: false;
+                referencedRelation: "payment_methods";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "payment_transactions_rent_payment_id_fkey";
+                columns: ["rent_payment_id"];
+                isOneToOne: false;
+                referencedRelation: "rent_payments";
+                referencedColumns: ["id"];
+            }];
+        };
+        properties: {
+            Row: {
+                address_line1: string;
+                address_line2: string | null;
+                city: string;
+                country: string;
+                created_at: string | null;
+                date_sold: string | null;
+                id: string;
+                name: string;
+                postal_code: string;
+                property_owner_id: string;
+                property_type: string;
+                sale_price: number | null;
+                state: string;
+                status: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                address_line1: string;
+                address_line2?: string | null;
+                city: string;
+                country?: string;
+                created_at?: string | null;
+                date_sold?: string | null;
+                id?: string;
+                name: string;
+                postal_code: string;
+                property_owner_id: string;
+                property_type: string;
+                sale_price?: number | null;
+                state: string;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                address_line1?: string;
+                address_line2?: string | null;
+                city?: string;
+                country?: string;
+                created_at?: string | null;
+                date_sold?: string | null;
+                id?: string;
+                name?: string;
+                postal_code?: string;
+                property_owner_id?: string;
+                property_type?: string;
+                sale_price?: number | null;
+                state?: string;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "properties_property_owner_id_fkey";
+                columns: ["property_owner_id"];
+                isOneToOne: false;
+                referencedRelation: "property_owners";
+                referencedColumns: ["id"];
+            }];
+        };
+        property_images: {
+            Row: {
+                created_at: string | null;
+                display_order: number | null;
+                id: string;
+                image_url: string;
+                property_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                image_url: string;
+                property_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                image_url?: string;
+                property_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "property_images_property_id_fkey";
+                columns: ["property_id"];
+                isOneToOne: false;
+                referencedRelation: "properties";
+                referencedColumns: ["id"];
+            }];
+        };
+        property_owners: {
+            Row: {
+                business_name: string | null;
+                business_type: string;
+                charges_enabled: boolean | null;
+                completion_percentage: number | null;
+                created_at: string | null;
+                current_step: string | null;
+                default_platform_fee_percent: number | null;
+                id: string;
+                onboarding_completed_at: string | null;
+                onboarding_started_at: string | null;
+                onboarding_status: string | null;
+                payouts_enabled: boolean | null;
+                requirements_due: string[] | null;
+                stripe_account_id: string;
+                tax_id: string | null;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                business_name?: string | null;
+                business_type: string;
+                charges_enabled?: boolean | null;
+                completion_percentage?: number | null;
+                created_at?: string | null;
+                current_step?: string | null;
+                default_platform_fee_percent?: number | null;
+                id?: string;
+                onboarding_completed_at?: string | null;
+                onboarding_started_at?: string | null;
+                onboarding_status?: string | null;
+                payouts_enabled?: boolean | null;
+                requirements_due?: string[] | null;
+                stripe_account_id: string;
+                tax_id?: string | null;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                business_name?: string | null;
+                business_type?: string;
+                charges_enabled?: boolean | null;
+                completion_percentage?: number | null;
+                created_at?: string | null;
+                current_step?: string | null;
+                default_platform_fee_percent?: number | null;
+                id?: string;
+                onboarding_completed_at?: string | null;
+                onboarding_started_at?: string | null;
+                onboarding_status?: string | null;
+                payouts_enabled?: boolean | null;
+                requirements_due?: string[] | null;
+                stripe_account_id?: string;
+                tax_id?: string | null;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "property_owners_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        rent_due: {
+            Row: {
+                amount: number;
+                created_at: string | null;
+                due_date: string;
+                id: string;
+                lease_id: string | null;
+                status: string | null;
+                unit_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount: number;
+                created_at?: string | null;
+                due_date: string;
+                id?: string;
+                lease_id?: string | null;
+                status?: string | null;
+                unit_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number;
+                created_at?: string | null;
+                due_date?: string;
+                id?: string;
+                lease_id?: string | null;
+                status?: string | null;
+                unit_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "rent_due_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        rent_payments: {
+            Row: {
+                amount: number;
+                application_fee_amount: number;
+                created_at: string | null;
+                currency: string;
+                due_date: string;
+                id: string;
+                late_fee_amount: number | null;
+                lease_id: string;
+                paid_date: string | null;
+                payment_method_type: string;
+                period_end: string;
+                period_start: string;
+                status: string;
+                stripe_payment_intent_id: string;
+                tenant_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount: number;
+                application_fee_amount: number;
+                created_at?: string | null;
+                currency?: string;
+                due_date: string;
+                id?: string;
+                late_fee_amount?: number | null;
+                lease_id: string;
+                paid_date?: string | null;
+                payment_method_type: string;
+                period_end: string;
+                period_start: string;
+                status: string;
+                stripe_payment_intent_id: string;
+                tenant_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number;
+                application_fee_amount?: number;
+                created_at?: string | null;
+                currency?: string;
+                due_date?: string;
+                id?: string;
+                late_fee_amount?: number | null;
+                lease_id?: string;
+                paid_date?: string | null;
+                payment_method_type?: string;
+                period_end?: string;
+                period_start?: string;
+                status?: string;
+                stripe_payment_intent_id?: string;
+                tenant_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "rent_payments_lease_id_fkey";
+                columns: ["lease_id"];
+                isOneToOne: false;
+                referencedRelation: "leases";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "rent_payments_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }];
+        };
+        report_runs: {
+            Row: {
+                completed_at: string | null;
+                created_at: string | null;
+                error_message: string | null;
+                execution_status: string;
+                execution_time_ms: number | null;
+                file_path: string | null;
+                file_size: number | null;
+                id: string;
+                report_id: string;
+                started_at: string | null;
+            };
+            Insert: {
+                completed_at?: string | null;
+                created_at?: string | null;
+                error_message?: string | null;
+                execution_status: string;
+                execution_time_ms?: number | null;
+                file_path?: string | null;
+                file_size?: number | null;
+                id?: string;
+                report_id: string;
+                started_at?: string | null;
+            };
+            Update: {
+                completed_at?: string | null;
+                created_at?: string | null;
+                error_message?: string | null;
+                execution_status?: string;
+                execution_time_ms?: number | null;
+                file_path?: string | null;
+                file_size?: number | null;
+                id?: string;
+                report_id?: string;
+                started_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "report_runs_report_id_fkey";
+                columns: ["report_id"];
+                isOneToOne: false;
+                referencedRelation: "reports";
+                referencedColumns: ["id"];
+            }];
+        };
+        reports: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                id: string;
+                is_active: boolean | null;
+                next_run_at: string | null;
+                owner_id: string;
+                report_type: string;
+                schedule_cron: string | null;
+                title: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                id?: string;
+                is_active?: boolean | null;
+                next_run_at?: string | null;
+                owner_id: string;
+                report_type: string;
+                schedule_cron?: string | null;
+                title: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                id?: string;
+                is_active?: boolean | null;
+                next_run_at?: string | null;
+                owner_id?: string;
+                report_type?: string;
+                schedule_cron?: string | null;
+                title?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "reports_owner_id_fkey";
+                columns: ["owner_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        security_audit_log: {
+            Row: {
+                created_at: string | null;
+                details: import("@repo/shared/types/supabase").Json | null;
+                entity_id: string | null;
+                entity_type: string | null;
+                event_type: string;
+                id: string;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                details?: import("@repo/shared/types/supabase").Json | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                event_type: string;
+                id?: string;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                details?: import("@repo/shared/types/supabase").Json | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                event_type?: string;
+                id?: string;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "security_audit_log_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        stripe_customers: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                email: string | null;
+                id: string;
+                metadata: import("@repo/shared/types/supabase").Json | null;
+                name: string | null;
+                phone: string | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                email?: string | null;
+                id: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name?: string | null;
+                phone?: string | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                email?: string | null;
+                id?: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name?: string | null;
+                phone?: string | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_payment_intents: {
+            Row: {
+                amount: number | null;
+                created_at: string | null;
+                currency: string | null;
+                customer_id: string | null;
+                id: string;
+                payment_method_types: string[] | null;
+                status: string | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                customer_id?: string | null;
+                id: string;
+                payment_method_types?: string[] | null;
+                status?: string | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                customer_id?: string | null;
+                id?: string;
+                payment_method_types?: string[] | null;
+                status?: string | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_prices: {
+            Row: {
+                amount: number | null;
+                created_at: string | null;
+                currency: string | null;
+                id: string;
+                product_id: string;
+                recurring_interval: string | null;
+                recurring_interval_count: number | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                id: string;
+                product_id: string;
+                recurring_interval?: string | null;
+                recurring_interval_count?: number | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                id?: string;
+                product_id?: string;
+                recurring_interval?: string | null;
+                recurring_interval_count?: number | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_processed_events: {
+            Row: {
+                id: string;
+                processed_at: string | null;
+                stripe_event_id: string;
+            };
+            Insert: {
+                id?: string;
+                processed_at?: string | null;
+                stripe_event_id: string;
+            };
+            Update: {
+                id?: string;
+                processed_at?: string | null;
+                stripe_event_id?: string;
+            };
+            Relationships: [];
+        };
+        stripe_products: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                id: string;
+                metadata: import("@repo/shared/types/supabase").Json | null;
+                name: string;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                id: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name: string;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                id?: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name?: string;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_subscriptions: {
+            Row: {
+                created_at: string | null;
+                current_period_end: string | null;
+                current_period_start: string | null;
+                customer_id: string;
+                id: string;
+                price_id: string | null;
+                status: string | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                customer_id: string;
+                id: string;
+                price_id?: string | null;
+                status?: string | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                customer_id?: string;
+                id?: string;
+                price_id?: string | null;
+                status?: string | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        subscriptions: {
+            Row: {
+                created_at: string | null;
+                current_period_end: string | null;
+                current_period_start: string | null;
+                id: string;
+                status: string;
+                stripe_customer_id: string | null;
+                stripe_price_id: string | null;
+                stripe_subscription_id: string | null;
+                trial_end: string | null;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                id?: string;
+                status: string;
+                stripe_customer_id?: string | null;
+                stripe_price_id?: string | null;
+                stripe_subscription_id?: string | null;
+                trial_end?: string | null;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                id?: string;
+                status?: string;
+                stripe_customer_id?: string | null;
+                stripe_price_id?: string | null;
+                stripe_subscription_id?: string | null;
+                trial_end?: string | null;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "subscriptions_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        tenant_invitations: {
+            Row: {
+                accepted_at: string | null;
+                accepted_by_user_id: string | null;
+                created_at: string | null;
+                email: string;
+                expires_at: string;
+                id: string;
+                invitation_code: string;
+                invitation_url: string;
+                property_owner_id: string;
+                status: string;
+                unit_id: string;
+            };
+            Insert: {
+                accepted_at?: string | null;
+                accepted_by_user_id?: string | null;
+                created_at?: string | null;
+                email: string;
+                expires_at: string;
+                id?: string;
+                invitation_code: string;
+                invitation_url: string;
+                property_owner_id: string;
+                status?: string;
+                unit_id: string;
+            };
+            Update: {
+                accepted_at?: string | null;
+                accepted_by_user_id?: string | null;
+                created_at?: string | null;
+                email?: string;
+                expires_at?: string;
+                id?: string;
+                invitation_code?: string;
+                invitation_url?: string;
+                property_owner_id?: string;
+                status?: string;
+                unit_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "tenant_invitations_accepted_by_user_id_fkey";
+                columns: ["accepted_by_user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "tenant_invitations_property_owner_id_fkey";
+                columns: ["property_owner_id"];
+                isOneToOne: false;
+                referencedRelation: "property_owners";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "tenant_invitations_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        tenants: {
+            Row: {
+                created_at: string | null;
+                date_of_birth: string | null;
+                emergency_contact_name: string | null;
+                emergency_contact_phone: string | null;
+                emergency_contact_relationship: string | null;
+                id: string;
+                identity_verified: boolean | null;
+                ssn_last_four: string | null;
+                stripe_customer_id: string;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                date_of_birth?: string | null;
+                emergency_contact_name?: string | null;
+                emergency_contact_phone?: string | null;
+                emergency_contact_relationship?: string | null;
+                id?: string;
+                identity_verified?: boolean | null;
+                ssn_last_four?: string | null;
+                stripe_customer_id: string;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                date_of_birth?: string | null;
+                emergency_contact_name?: string | null;
+                emergency_contact_phone?: string | null;
+                emergency_contact_relationship?: string | null;
+                id?: string;
+                identity_verified?: boolean | null;
+                ssn_last_four?: string | null;
+                stripe_customer_id?: string;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "tenants_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        units: {
+            Row: {
+                bathrooms: number | null;
+                bedrooms: number | null;
+                created_at: string | null;
+                id: string;
+                property_id: string;
+                rent_amount: number;
+                rent_currency: string;
+                rent_period: string;
+                square_feet: number | null;
+                status: string;
+                unit_number: string | null;
+                updated_at: string | null;
+            };
+            Insert: {
+                bathrooms?: number | null;
+                bedrooms?: number | null;
+                created_at?: string | null;
+                id?: string;
+                property_id: string;
+                rent_amount: number;
+                rent_currency?: string;
+                rent_period?: string;
+                square_feet?: number | null;
+                status?: string;
+                unit_number?: string | null;
+                updated_at?: string | null;
+            };
+            Update: {
+                bathrooms?: number | null;
+                bedrooms?: number | null;
+                created_at?: string | null;
+                id?: string;
+                property_id?: string;
+                rent_amount?: number;
+                rent_currency?: string;
+                rent_period?: string;
+                square_feet?: number | null;
+                status?: string;
+                unit_number?: string | null;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "units_property_id_fkey";
+                columns: ["property_id"];
+                isOneToOne: false;
+                referencedRelation: "properties";
+                referencedColumns: ["id"];
+            }];
+        };
+        user_access_log: {
+            Row: {
+                accessed_at: string | null;
+                endpoint: string | null;
+                id: string;
+                ip_address: string | null;
+                method: string | null;
+                status_code: number | null;
+                user_agent: string | null;
+                user_id: string;
+            };
+            Insert: {
+                accessed_at?: string | null;
+                endpoint?: string | null;
+                id?: string;
+                ip_address?: string | null;
+                method?: string | null;
+                status_code?: number | null;
+                user_agent?: string | null;
+                user_id: string;
+            };
+            Update: {
+                accessed_at?: string | null;
+                endpoint?: string | null;
+                id?: string;
+                ip_address?: string | null;
+                method?: string | null;
+                status_code?: number | null;
+                user_agent?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "user_access_log_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        user_feature_access: {
+            Row: {
+                access_level: string | null;
+                created_at: string | null;
+                feature_name: string;
+                granted_at: string | null;
+                id: string;
+                user_id: string;
+            };
+            Insert: {
+                access_level?: string | null;
+                created_at?: string | null;
+                feature_name: string;
+                granted_at?: string | null;
+                id?: string;
+                user_id: string;
+            };
+            Update: {
+                access_level?: string | null;
+                created_at?: string | null;
+                feature_name?: string;
+                granted_at?: string | null;
+                id?: string;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "user_feature_access_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        user_preferences: {
+            Row: {
+                created_at: string | null;
+                id: string;
+                language: string | null;
+                notifications_enabled: boolean | null;
+                theme: string | null;
+                timezone: string | null;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                id?: string;
+                language?: string | null;
+                notifications_enabled?: boolean | null;
+                theme?: string | null;
+                timezone?: string | null;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                id?: string;
+                language?: string | null;
+                notifications_enabled?: boolean | null;
+                theme?: string | null;
+                timezone?: string | null;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "user_preferences_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        users: {
+            Row: {
+                avatar_url: string | null;
+                connected_account_id: string | null;
+                created_at: string | null;
+                email: string;
+                first_name: string | null;
+                full_name: string;
+                id: string;
+                identity_verification_data: import("@repo/shared/types/supabase").Json | null;
+                identity_verification_error: string | null;
+                identity_verification_session_id: string | null;
+                identity_verification_status: string | null;
+                identity_verified_at: string | null;
+                last_name: string | null;
+                onboarding_completed_at: string | null;
+                onboarding_status: string | null;
+                phone: string | null;
+                status: string;
+                stripe_customer_id: string | null;
+                updated_at: string | null;
+                user_type: string;
+            };
+            Insert: {
+                avatar_url?: string | null;
+                connected_account_id?: string | null;
+                created_at?: string | null;
+                email: string;
+                first_name?: string | null;
+                full_name: string;
+                id?: string;
+                identity_verification_data?: import("@repo/shared/types/supabase").Json | null;
+                identity_verification_error?: string | null;
+                identity_verification_session_id?: string | null;
+                identity_verification_status?: string | null;
+                identity_verified_at?: string | null;
+                last_name?: string | null;
+                onboarding_completed_at?: string | null;
+                onboarding_status?: string | null;
+                phone?: string | null;
+                status?: string;
+                stripe_customer_id?: string | null;
+                updated_at?: string | null;
+                user_type: string;
+            };
+            Update: {
+                avatar_url?: string | null;
+                connected_account_id?: string | null;
+                created_at?: string | null;
+                email?: string;
+                first_name?: string | null;
+                full_name?: string;
+                id?: string;
+                identity_verification_data?: import("@repo/shared/types/supabase").Json | null;
+                identity_verification_error?: string | null;
+                identity_verification_session_id?: string | null;
+                identity_verification_status?: string | null;
+                identity_verified_at?: string | null;
+                last_name?: string | null;
+                onboarding_completed_at?: string | null;
+                onboarding_status?: string | null;
+                phone?: string | null;
+                status?: string;
+                stripe_customer_id?: string | null;
+                updated_at?: string | null;
+                user_type?: string;
+            };
+            Relationships: [];
+        };
+        webhook_attempts: {
+            Row: {
+                created_at: string | null;
+                failure_reason: string | null;
+                id: string;
+                last_attempted_at: string | null;
+                retry_count: number | null;
+                status: string;
+                updated_at: string | null;
+                webhook_event_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                retry_count?: number | null;
+                status: string;
+                updated_at?: string | null;
+                webhook_event_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                retry_count?: number | null;
+                status?: string;
+                updated_at?: string | null;
+                webhook_event_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "webhook_attempts_webhook_event_id_fkey";
+                columns: ["webhook_event_id"];
+                isOneToOne: false;
+                referencedRelation: "webhook_events";
+                referencedColumns: ["id"];
+            }];
+        };
+        webhook_events: {
+            Row: {
+                created_at: string | null;
+                event_type: string;
+                external_id: string | null;
+                id: string;
+                processed_at: string | null;
+                raw_payload: import("@repo/shared/types/supabase").Json;
+                webhook_source: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                event_type: string;
+                external_id?: string | null;
+                id?: string;
+                processed_at?: string | null;
+                raw_payload: import("@repo/shared/types/supabase").Json;
+                webhook_source?: string;
+            };
+            Update: {
+                created_at?: string | null;
+                event_type?: string;
+                external_id?: string | null;
+                id?: string;
+                processed_at?: string | null;
+                raw_payload?: import("@repo/shared/types/supabase").Json;
+                webhook_source?: string;
+            };
+            Relationships: [];
+        };
+        webhook_metrics: {
+            Row: {
+                average_latency_ms: number | null;
+                created_at: string | null;
+                date: string;
+                event_type: string;
+                id: string;
+                total_failed: number | null;
+                total_processed: number | null;
+                total_received: number | null;
+            };
+            Insert: {
+                average_latency_ms?: number | null;
+                created_at?: string | null;
+                date: string;
+                event_type: string;
+                id?: string;
+                total_failed?: number | null;
+                total_processed?: number | null;
+                total_received?: number | null;
+            };
+            Update: {
+                average_latency_ms?: number | null;
+                created_at?: string | null;
+                date?: string;
+                event_type?: string;
+                id?: string;
+                total_failed?: number | null;
+                total_processed?: number | null;
+                total_received?: number | null;
+            };
+            Relationships: [];
+        };
+    };
+    Views: { [_ in never]: never; };
+    Functions: {
+        check_user_feature_access: {
+            Args: {
+                p_feature: string;
+                p_user_id: string;
+            };
+            Returns: boolean;
+        };
+        custom_access_token_hook: {
+            Args: {
+                event: import("@repo/shared/types/supabase").Json;
+            };
+            Returns: import("@repo/shared/types/supabase").Json;
+        };
+        get_user_dashboard_activities: {
+            Args: {
+                p_limit?: number;
+                p_offset?: number;
+                p_user_id: string;
+            };
+            Returns: {
+                activity_type: string;
+                created_at: string;
+                description: string;
+                entity_id: string;
+                entity_type: string;
+                id: string;
+                title: string;
+                user_id: string;
+            }[];
+        };
+        get_user_plan_limits: {
+            Args: {
+                p_user_id: string;
+            };
+            Returns: {
+                has_api_access: boolean;
+                has_white_label: boolean;
+                property_limit: number;
+                storage_gb: number;
+                support_level: string;
+                unit_limit: number;
+                user_limit: number;
+            }[];
+        };
+        health_check: {
+            Args: never;
+            Returns: {
+                ok: boolean;
+            }[];
+        };
+        record_processed_stripe_event_lock: {
+            Args: {
+                p_stripe_event_id: string;
+            };
+            Returns: {
+                success: boolean;
+            }[];
+        };
+    };
+    Enums: { [_ in never]: never; };
+    CompositeTypes: { [_ in never]: never; };
+}, {
+    PostgrestVersion: "13.0.5";
+}>;
+export declare const testSupabaseAdmin: import("@supabase/supabase-js").SupabaseClient<Database, "public", "public", {
+    Tables: {
+        activity: {
+            Row: {
+                activity_type: string;
+                created_at: string | null;
+                description: string | null;
+                entity_id: string | null;
+                entity_type: string | null;
+                id: string;
+                title: string;
+                user_id: string | null;
+            };
+            Insert: {
+                activity_type: string;
+                created_at?: string | null;
+                description?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                title: string;
+                user_id?: string | null;
+            };
+            Update: {
+                activity_type?: string;
+                created_at?: string | null;
+                description?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                title?: string;
+                user_id?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "activity_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        documents: {
+            Row: {
+                created_at: string | null;
+                document_type: string;
+                entity_id: string;
+                entity_type: string;
+                file_path: string;
+                file_size: number | null;
+                id: string;
+                storage_url: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                document_type: string;
+                entity_id: string;
+                entity_type: string;
+                file_path: string;
+                file_size?: number | null;
+                id?: string;
+                storage_url: string;
+            };
+            Update: {
+                created_at?: string | null;
+                document_type?: string;
+                entity_id?: string;
+                entity_type?: string;
+                file_path?: string;
+                file_size?: number | null;
+                id?: string;
+                storage_url?: string;
+            };
+            Relationships: [];
+        };
+        expenses: {
+            Row: {
+                amount: number;
+                created_at: string | null;
+                expense_date: string;
+                id: string;
+                maintenance_request_id: string;
+                updated_at: string | null;
+                vendor_name: string | null;
+            };
+            Insert: {
+                amount: number;
+                created_at?: string | null;
+                expense_date: string;
+                id?: string;
+                maintenance_request_id: string;
+                updated_at?: string | null;
+                vendor_name?: string | null;
+            };
+            Update: {
+                amount?: number;
+                created_at?: string | null;
+                expense_date?: string;
+                id?: string;
+                maintenance_request_id?: string;
+                updated_at?: string | null;
+                vendor_name?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "expenses_maintenance_request_id_fkey";
+                columns: ["maintenance_request_id"];
+                isOneToOne: false;
+                referencedRelation: "maintenance_requests";
+                referencedColumns: ["id"];
+            }];
+        };
+        faq_categories: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                display_order: number | null;
+                id: string;
+                name: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                display_order?: number | null;
+                id?: string;
+                name: string;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                display_order?: number | null;
+                id?: string;
+                name?: string;
+            };
+            Relationships: [];
+        };
+        faq_questions: {
+            Row: {
+                answer: string;
+                category_id: string;
+                created_at: string | null;
+                display_order: number | null;
+                id: string;
+                question: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                answer: string;
+                category_id: string;
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                question: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                answer?: string;
+                category_id?: string;
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                question?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "faq_questions_category_id_fkey";
+                columns: ["category_id"];
+                isOneToOne: false;
+                referencedRelation: "faq_categories";
+                referencedColumns: ["id"];
+            }];
+        };
+        lease_tenants: {
+            Row: {
+                created_at: string | null;
+                id: string;
+                is_primary: boolean | null;
+                lease_id: string;
+                responsibility_percentage: number;
+                tenant_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                id?: string;
+                is_primary?: boolean | null;
+                lease_id: string;
+                responsibility_percentage?: number;
+                tenant_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                id?: string;
+                is_primary?: boolean | null;
+                lease_id?: string;
+                responsibility_percentage?: number;
+                tenant_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "lease_tenants_lease_id_fkey";
+                columns: ["lease_id"];
+                isOneToOne: false;
+                referencedRelation: "leases";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "lease_tenants_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }];
+        };
+        leases: {
+            Row: {
+                auto_pay_enabled: boolean | null;
+                created_at: string | null;
+                end_date: string;
+                grace_period_days: number | null;
+                id: string;
+                late_fee_amount: number | null;
+                late_fee_days: number | null;
+                lease_status: string;
+                payment_day: number;
+                primary_tenant_id: string;
+                rent_amount: number;
+                rent_currency: string;
+                security_deposit: number;
+                start_date: string;
+                stripe_subscription_id: string | null;
+                unit_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                auto_pay_enabled?: boolean | null;
+                created_at?: string | null;
+                end_date: string;
+                grace_period_days?: number | null;
+                id?: string;
+                late_fee_amount?: number | null;
+                late_fee_days?: number | null;
+                lease_status?: string;
+                payment_day?: number;
+                primary_tenant_id: string;
+                rent_amount: number;
+                rent_currency?: string;
+                security_deposit: number;
+                start_date: string;
+                stripe_subscription_id?: string | null;
+                unit_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                auto_pay_enabled?: boolean | null;
+                created_at?: string | null;
+                end_date?: string;
+                grace_period_days?: number | null;
+                id?: string;
+                late_fee_amount?: number | null;
+                late_fee_days?: number | null;
+                lease_status?: string;
+                payment_day?: number;
+                primary_tenant_id?: string;
+                rent_amount?: number;
+                rent_currency?: string;
+                security_deposit?: number;
+                start_date?: string;
+                stripe_subscription_id?: string | null;
+                unit_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "leases_primary_tenant_id_fkey";
+                columns: ["primary_tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "leases_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        maintenance_requests: {
+            Row: {
+                actual_cost: number | null;
+                assigned_to: string | null;
+                completed_at: string | null;
+                created_at: string | null;
+                description: string;
+                estimated_cost: number | null;
+                id: string;
+                inspection_date: string | null;
+                inspection_findings: string | null;
+                inspector_id: string | null;
+                priority: string;
+                requested_by: string | null;
+                scheduled_date: string | null;
+                status: string;
+                tenant_id: string;
+                unit_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                actual_cost?: number | null;
+                assigned_to?: string | null;
+                completed_at?: string | null;
+                created_at?: string | null;
+                description: string;
+                estimated_cost?: number | null;
+                id?: string;
+                inspection_date?: string | null;
+                inspection_findings?: string | null;
+                inspector_id?: string | null;
+                priority?: string;
+                requested_by?: string | null;
+                scheduled_date?: string | null;
+                status?: string;
+                tenant_id: string;
+                unit_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                actual_cost?: number | null;
+                assigned_to?: string | null;
+                completed_at?: string | null;
+                created_at?: string | null;
+                description?: string;
+                estimated_cost?: number | null;
+                id?: string;
+                inspection_date?: string | null;
+                inspection_findings?: string | null;
+                inspector_id?: string | null;
+                priority?: string;
+                requested_by?: string | null;
+                scheduled_date?: string | null;
+                status?: string;
+                tenant_id?: string;
+                unit_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "maintenance_requests_assigned_to_fkey";
+                columns: ["assigned_to"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "maintenance_requests_requested_by_fkey";
+                columns: ["requested_by"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "maintenance_requests_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "maintenance_requests_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        notification_logs: {
+            Row: {
+                attempt_count: number | null;
+                created_at: string | null;
+                delivery_channel: string | null;
+                id: string;
+                last_error: string | null;
+                notification_id: string;
+                sent_at: string | null;
+                status: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                attempt_count?: number | null;
+                created_at?: string | null;
+                delivery_channel?: string | null;
+                id?: string;
+                last_error?: string | null;
+                notification_id: string;
+                sent_at?: string | null;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                attempt_count?: number | null;
+                created_at?: string | null;
+                delivery_channel?: string | null;
+                id?: string;
+                last_error?: string | null;
+                notification_id?: string;
+                sent_at?: string | null;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "notification_logs_notification_id_fkey";
+                columns: ["notification_id"];
+                isOneToOne: false;
+                referencedRelation: "notifications";
+                referencedColumns: ["id"];
+            }];
+        };
+        notifications: {
+            Row: {
+                action_url: string | null;
+                created_at: string | null;
+                entity_id: string | null;
+                entity_type: string | null;
+                id: string;
+                is_read: boolean | null;
+                message: string | null;
+                notification_type: string;
+                read_at: string | null;
+                title: string;
+                user_id: string;
+            };
+            Insert: {
+                action_url?: string | null;
+                created_at?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                is_read?: boolean | null;
+                message?: string | null;
+                notification_type: string;
+                read_at?: string | null;
+                title: string;
+                user_id: string;
+            };
+            Update: {
+                action_url?: string | null;
+                created_at?: string | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                id?: string;
+                is_read?: boolean | null;
+                message?: string | null;
+                notification_type?: string;
+                read_at?: string | null;
+                title?: string;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "notifications_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        payment_methods: {
+            Row: {
+                bank_name: string | null;
+                brand: string | null;
+                created_at: string | null;
+                exp_month: number | null;
+                exp_year: number | null;
+                id: string;
+                is_default: boolean | null;
+                last_four: string | null;
+                stripe_payment_method_id: string;
+                tenant_id: string;
+                type: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                bank_name?: string | null;
+                brand?: string | null;
+                created_at?: string | null;
+                exp_month?: number | null;
+                exp_year?: number | null;
+                id?: string;
+                is_default?: boolean | null;
+                last_four?: string | null;
+                stripe_payment_method_id: string;
+                tenant_id: string;
+                type: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                bank_name?: string | null;
+                brand?: string | null;
+                created_at?: string | null;
+                exp_month?: number | null;
+                exp_year?: number | null;
+                id?: string;
+                is_default?: boolean | null;
+                last_four?: string | null;
+                stripe_payment_method_id?: string;
+                tenant_id?: string;
+                type?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "payment_methods_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }];
+        };
+        payment_schedules: {
+            Row: {
+                created_at: string | null;
+                frequency: string;
+                id: string;
+                is_active: boolean | null;
+                lease_id: string;
+                next_payment_date: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                frequency?: string;
+                id?: string;
+                is_active?: boolean | null;
+                lease_id: string;
+                next_payment_date: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                frequency?: string;
+                id?: string;
+                is_active?: boolean | null;
+                lease_id?: string;
+                next_payment_date?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "payment_schedules_lease_id_fkey";
+                columns: ["lease_id"];
+                isOneToOne: false;
+                referencedRelation: "leases";
+                referencedColumns: ["id"];
+            }];
+        };
+        payment_transactions: {
+            Row: {
+                amount: number;
+                attempted_at: string | null;
+                created_at: string | null;
+                failure_reason: string | null;
+                id: string;
+                last_attempted_at: string | null;
+                payment_method_id: string | null;
+                rent_payment_id: string;
+                retry_count: number | null;
+                status: string;
+                stripe_payment_intent_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount: number;
+                attempted_at?: string | null;
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                payment_method_id?: string | null;
+                rent_payment_id: string;
+                retry_count?: number | null;
+                status: string;
+                stripe_payment_intent_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number;
+                attempted_at?: string | null;
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                payment_method_id?: string | null;
+                rent_payment_id?: string;
+                retry_count?: number | null;
+                status?: string;
+                stripe_payment_intent_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "payment_transactions_payment_method_id_fkey";
+                columns: ["payment_method_id"];
+                isOneToOne: false;
+                referencedRelation: "payment_methods";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "payment_transactions_rent_payment_id_fkey";
+                columns: ["rent_payment_id"];
+                isOneToOne: false;
+                referencedRelation: "rent_payments";
+                referencedColumns: ["id"];
+            }];
+        };
+        properties: {
+            Row: {
+                address_line1: string;
+                address_line2: string | null;
+                city: string;
+                country: string;
+                created_at: string | null;
+                date_sold: string | null;
+                id: string;
+                name: string;
+                postal_code: string;
+                property_owner_id: string;
+                property_type: string;
+                sale_price: number | null;
+                state: string;
+                status: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                address_line1: string;
+                address_line2?: string | null;
+                city: string;
+                country?: string;
+                created_at?: string | null;
+                date_sold?: string | null;
+                id?: string;
+                name: string;
+                postal_code: string;
+                property_owner_id: string;
+                property_type: string;
+                sale_price?: number | null;
+                state: string;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                address_line1?: string;
+                address_line2?: string | null;
+                city?: string;
+                country?: string;
+                created_at?: string | null;
+                date_sold?: string | null;
+                id?: string;
+                name?: string;
+                postal_code?: string;
+                property_owner_id?: string;
+                property_type?: string;
+                sale_price?: number | null;
+                state?: string;
+                status?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "properties_property_owner_id_fkey";
+                columns: ["property_owner_id"];
+                isOneToOne: false;
+                referencedRelation: "property_owners";
+                referencedColumns: ["id"];
+            }];
+        };
+        property_images: {
+            Row: {
+                created_at: string | null;
+                display_order: number | null;
+                id: string;
+                image_url: string;
+                property_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                image_url: string;
+                property_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                display_order?: number | null;
+                id?: string;
+                image_url?: string;
+                property_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "property_images_property_id_fkey";
+                columns: ["property_id"];
+                isOneToOne: false;
+                referencedRelation: "properties";
+                referencedColumns: ["id"];
+            }];
+        };
+        property_owners: {
+            Row: {
+                business_name: string | null;
+                business_type: string;
+                charges_enabled: boolean | null;
+                completion_percentage: number | null;
+                created_at: string | null;
+                current_step: string | null;
+                default_platform_fee_percent: number | null;
+                id: string;
+                onboarding_completed_at: string | null;
+                onboarding_started_at: string | null;
+                onboarding_status: string | null;
+                payouts_enabled: boolean | null;
+                requirements_due: string[] | null;
+                stripe_account_id: string;
+                tax_id: string | null;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                business_name?: string | null;
+                business_type: string;
+                charges_enabled?: boolean | null;
+                completion_percentage?: number | null;
+                created_at?: string | null;
+                current_step?: string | null;
+                default_platform_fee_percent?: number | null;
+                id?: string;
+                onboarding_completed_at?: string | null;
+                onboarding_started_at?: string | null;
+                onboarding_status?: string | null;
+                payouts_enabled?: boolean | null;
+                requirements_due?: string[] | null;
+                stripe_account_id: string;
+                tax_id?: string | null;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                business_name?: string | null;
+                business_type?: string;
+                charges_enabled?: boolean | null;
+                completion_percentage?: number | null;
+                created_at?: string | null;
+                current_step?: string | null;
+                default_platform_fee_percent?: number | null;
+                id?: string;
+                onboarding_completed_at?: string | null;
+                onboarding_started_at?: string | null;
+                onboarding_status?: string | null;
+                payouts_enabled?: boolean | null;
+                requirements_due?: string[] | null;
+                stripe_account_id?: string;
+                tax_id?: string | null;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "property_owners_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        rent_due: {
+            Row: {
+                amount: number;
+                created_at: string | null;
+                due_date: string;
+                id: string;
+                lease_id: string | null;
+                status: string | null;
+                unit_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount: number;
+                created_at?: string | null;
+                due_date: string;
+                id?: string;
+                lease_id?: string | null;
+                status?: string | null;
+                unit_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number;
+                created_at?: string | null;
+                due_date?: string;
+                id?: string;
+                lease_id?: string | null;
+                status?: string | null;
+                unit_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "rent_due_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        rent_payments: {
+            Row: {
+                amount: number;
+                application_fee_amount: number;
+                created_at: string | null;
+                currency: string;
+                due_date: string;
+                id: string;
+                late_fee_amount: number | null;
+                lease_id: string;
+                paid_date: string | null;
+                payment_method_type: string;
+                period_end: string;
+                period_start: string;
+                status: string;
+                stripe_payment_intent_id: string;
+                tenant_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount: number;
+                application_fee_amount: number;
+                created_at?: string | null;
+                currency?: string;
+                due_date: string;
+                id?: string;
+                late_fee_amount?: number | null;
+                lease_id: string;
+                paid_date?: string | null;
+                payment_method_type: string;
+                period_end: string;
+                period_start: string;
+                status: string;
+                stripe_payment_intent_id: string;
+                tenant_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number;
+                application_fee_amount?: number;
+                created_at?: string | null;
+                currency?: string;
+                due_date?: string;
+                id?: string;
+                late_fee_amount?: number | null;
+                lease_id?: string;
+                paid_date?: string | null;
+                payment_method_type?: string;
+                period_end?: string;
+                period_start?: string;
+                status?: string;
+                stripe_payment_intent_id?: string;
+                tenant_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "rent_payments_lease_id_fkey";
+                columns: ["lease_id"];
+                isOneToOne: false;
+                referencedRelation: "leases";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "rent_payments_tenant_id_fkey";
+                columns: ["tenant_id"];
+                isOneToOne: false;
+                referencedRelation: "tenants";
+                referencedColumns: ["id"];
+            }];
+        };
+        report_runs: {
+            Row: {
+                completed_at: string | null;
+                created_at: string | null;
+                error_message: string | null;
+                execution_status: string;
+                execution_time_ms: number | null;
+                file_path: string | null;
+                file_size: number | null;
+                id: string;
+                report_id: string;
+                started_at: string | null;
+            };
+            Insert: {
+                completed_at?: string | null;
+                created_at?: string | null;
+                error_message?: string | null;
+                execution_status: string;
+                execution_time_ms?: number | null;
+                file_path?: string | null;
+                file_size?: number | null;
+                id?: string;
+                report_id: string;
+                started_at?: string | null;
+            };
+            Update: {
+                completed_at?: string | null;
+                created_at?: string | null;
+                error_message?: string | null;
+                execution_status?: string;
+                execution_time_ms?: number | null;
+                file_path?: string | null;
+                file_size?: number | null;
+                id?: string;
+                report_id?: string;
+                started_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "report_runs_report_id_fkey";
+                columns: ["report_id"];
+                isOneToOne: false;
+                referencedRelation: "reports";
+                referencedColumns: ["id"];
+            }];
+        };
+        reports: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                id: string;
+                is_active: boolean | null;
+                next_run_at: string | null;
+                owner_id: string;
+                report_type: string;
+                schedule_cron: string | null;
+                title: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                id?: string;
+                is_active?: boolean | null;
+                next_run_at?: string | null;
+                owner_id: string;
+                report_type: string;
+                schedule_cron?: string | null;
+                title: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                id?: string;
+                is_active?: boolean | null;
+                next_run_at?: string | null;
+                owner_id?: string;
+                report_type?: string;
+                schedule_cron?: string | null;
+                title?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "reports_owner_id_fkey";
+                columns: ["owner_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        security_audit_log: {
+            Row: {
+                created_at: string | null;
+                details: import("@repo/shared/types/supabase").Json | null;
+                entity_id: string | null;
+                entity_type: string | null;
+                event_type: string;
+                id: string;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                details?: import("@repo/shared/types/supabase").Json | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                event_type: string;
+                id?: string;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                details?: import("@repo/shared/types/supabase").Json | null;
+                entity_id?: string | null;
+                entity_type?: string | null;
+                event_type?: string;
+                id?: string;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "security_audit_log_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        stripe_customers: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                email: string | null;
+                id: string;
+                metadata: import("@repo/shared/types/supabase").Json | null;
+                name: string | null;
+                phone: string | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                email?: string | null;
+                id: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name?: string | null;
+                phone?: string | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                email?: string | null;
+                id?: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name?: string | null;
+                phone?: string | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_payment_intents: {
+            Row: {
+                amount: number | null;
+                created_at: string | null;
+                currency: string | null;
+                customer_id: string | null;
+                id: string;
+                payment_method_types: string[] | null;
+                status: string | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                customer_id?: string | null;
+                id: string;
+                payment_method_types?: string[] | null;
+                status?: string | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                customer_id?: string | null;
+                id?: string;
+                payment_method_types?: string[] | null;
+                status?: string | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_prices: {
+            Row: {
+                amount: number | null;
+                created_at: string | null;
+                currency: string | null;
+                id: string;
+                product_id: string;
+                recurring_interval: string | null;
+                recurring_interval_count: number | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                id: string;
+                product_id: string;
+                recurring_interval?: string | null;
+                recurring_interval_count?: number | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                amount?: number | null;
+                created_at?: string | null;
+                currency?: string | null;
+                id?: string;
+                product_id?: string;
+                recurring_interval?: string | null;
+                recurring_interval_count?: number | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_processed_events: {
+            Row: {
+                id: string;
+                processed_at: string | null;
+                stripe_event_id: string;
+            };
+            Insert: {
+                id?: string;
+                processed_at?: string | null;
+                stripe_event_id: string;
+            };
+            Update: {
+                id?: string;
+                processed_at?: string | null;
+                stripe_event_id?: string;
+            };
+            Relationships: [];
+        };
+        stripe_products: {
+            Row: {
+                created_at: string | null;
+                description: string | null;
+                id: string;
+                metadata: import("@repo/shared/types/supabase").Json | null;
+                name: string;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                description?: string | null;
+                id: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name: string;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                description?: string | null;
+                id?: string;
+                metadata?: import("@repo/shared/types/supabase").Json | null;
+                name?: string;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        stripe_subscriptions: {
+            Row: {
+                created_at: string | null;
+                current_period_end: string | null;
+                current_period_start: string | null;
+                customer_id: string;
+                id: string;
+                price_id: string | null;
+                status: string | null;
+                stripe_id: string;
+                updated_at: string | null;
+            };
+            Insert: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                customer_id: string;
+                id: string;
+                price_id?: string | null;
+                status?: string | null;
+                stripe_id: string;
+                updated_at?: string | null;
+            };
+            Update: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                customer_id?: string;
+                id?: string;
+                price_id?: string | null;
+                status?: string | null;
+                stripe_id?: string;
+                updated_at?: string | null;
+            };
+            Relationships: [];
+        };
+        subscriptions: {
+            Row: {
+                created_at: string | null;
+                current_period_end: string | null;
+                current_period_start: string | null;
+                id: string;
+                status: string;
+                stripe_customer_id: string | null;
+                stripe_price_id: string | null;
+                stripe_subscription_id: string | null;
+                trial_end: string | null;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                id?: string;
+                status: string;
+                stripe_customer_id?: string | null;
+                stripe_price_id?: string | null;
+                stripe_subscription_id?: string | null;
+                trial_end?: string | null;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                current_period_end?: string | null;
+                current_period_start?: string | null;
+                id?: string;
+                status?: string;
+                stripe_customer_id?: string | null;
+                stripe_price_id?: string | null;
+                stripe_subscription_id?: string | null;
+                trial_end?: string | null;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "subscriptions_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        tenant_invitations: {
+            Row: {
+                accepted_at: string | null;
+                accepted_by_user_id: string | null;
+                created_at: string | null;
+                email: string;
+                expires_at: string;
+                id: string;
+                invitation_code: string;
+                invitation_url: string;
+                property_owner_id: string;
+                status: string;
+                unit_id: string;
+            };
+            Insert: {
+                accepted_at?: string | null;
+                accepted_by_user_id?: string | null;
+                created_at?: string | null;
+                email: string;
+                expires_at: string;
+                id?: string;
+                invitation_code: string;
+                invitation_url: string;
+                property_owner_id: string;
+                status?: string;
+                unit_id: string;
+            };
+            Update: {
+                accepted_at?: string | null;
+                accepted_by_user_id?: string | null;
+                created_at?: string | null;
+                email?: string;
+                expires_at?: string;
+                id?: string;
+                invitation_code?: string;
+                invitation_url?: string;
+                property_owner_id?: string;
+                status?: string;
+                unit_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "tenant_invitations_accepted_by_user_id_fkey";
+                columns: ["accepted_by_user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "tenant_invitations_property_owner_id_fkey";
+                columns: ["property_owner_id"];
+                isOneToOne: false;
+                referencedRelation: "property_owners";
+                referencedColumns: ["id"];
+            }, {
+                foreignKeyName: "tenant_invitations_unit_id_fkey";
+                columns: ["unit_id"];
+                isOneToOne: false;
+                referencedRelation: "units";
+                referencedColumns: ["id"];
+            }];
+        };
+        tenants: {
+            Row: {
+                created_at: string | null;
+                date_of_birth: string | null;
+                emergency_contact_name: string | null;
+                emergency_contact_phone: string | null;
+                emergency_contact_relationship: string | null;
+                id: string;
+                identity_verified: boolean | null;
+                ssn_last_four: string | null;
+                stripe_customer_id: string;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                date_of_birth?: string | null;
+                emergency_contact_name?: string | null;
+                emergency_contact_phone?: string | null;
+                emergency_contact_relationship?: string | null;
+                id?: string;
+                identity_verified?: boolean | null;
+                ssn_last_four?: string | null;
+                stripe_customer_id: string;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                date_of_birth?: string | null;
+                emergency_contact_name?: string | null;
+                emergency_contact_phone?: string | null;
+                emergency_contact_relationship?: string | null;
+                id?: string;
+                identity_verified?: boolean | null;
+                ssn_last_four?: string | null;
+                stripe_customer_id?: string;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "tenants_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        units: {
+            Row: {
+                bathrooms: number | null;
+                bedrooms: number | null;
+                created_at: string | null;
+                id: string;
+                property_id: string;
+                rent_amount: number;
+                rent_currency: string;
+                rent_period: string;
+                square_feet: number | null;
+                status: string;
+                unit_number: string | null;
+                updated_at: string | null;
+            };
+            Insert: {
+                bathrooms?: number | null;
+                bedrooms?: number | null;
+                created_at?: string | null;
+                id?: string;
+                property_id: string;
+                rent_amount: number;
+                rent_currency?: string;
+                rent_period?: string;
+                square_feet?: number | null;
+                status?: string;
+                unit_number?: string | null;
+                updated_at?: string | null;
+            };
+            Update: {
+                bathrooms?: number | null;
+                bedrooms?: number | null;
+                created_at?: string | null;
+                id?: string;
+                property_id?: string;
+                rent_amount?: number;
+                rent_currency?: string;
+                rent_period?: string;
+                square_feet?: number | null;
+                status?: string;
+                unit_number?: string | null;
+                updated_at?: string | null;
+            };
+            Relationships: [{
+                foreignKeyName: "units_property_id_fkey";
+                columns: ["property_id"];
+                isOneToOne: false;
+                referencedRelation: "properties";
+                referencedColumns: ["id"];
+            }];
+        };
+        user_access_log: {
+            Row: {
+                accessed_at: string | null;
+                endpoint: string | null;
+                id: string;
+                ip_address: string | null;
+                method: string | null;
+                status_code: number | null;
+                user_agent: string | null;
+                user_id: string;
+            };
+            Insert: {
+                accessed_at?: string | null;
+                endpoint?: string | null;
+                id?: string;
+                ip_address?: string | null;
+                method?: string | null;
+                status_code?: number | null;
+                user_agent?: string | null;
+                user_id: string;
+            };
+            Update: {
+                accessed_at?: string | null;
+                endpoint?: string | null;
+                id?: string;
+                ip_address?: string | null;
+                method?: string | null;
+                status_code?: number | null;
+                user_agent?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "user_access_log_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        user_feature_access: {
+            Row: {
+                access_level: string | null;
+                created_at: string | null;
+                feature_name: string;
+                granted_at: string | null;
+                id: string;
+                user_id: string;
+            };
+            Insert: {
+                access_level?: string | null;
+                created_at?: string | null;
+                feature_name: string;
+                granted_at?: string | null;
+                id?: string;
+                user_id: string;
+            };
+            Update: {
+                access_level?: string | null;
+                created_at?: string | null;
+                feature_name?: string;
+                granted_at?: string | null;
+                id?: string;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "user_feature_access_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: false;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        user_preferences: {
+            Row: {
+                created_at: string | null;
+                id: string;
+                language: string | null;
+                notifications_enabled: boolean | null;
+                theme: string | null;
+                timezone: string | null;
+                updated_at: string | null;
+                user_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                id?: string;
+                language?: string | null;
+                notifications_enabled?: boolean | null;
+                theme?: string | null;
+                timezone?: string | null;
+                updated_at?: string | null;
+                user_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                id?: string;
+                language?: string | null;
+                notifications_enabled?: boolean | null;
+                theme?: string | null;
+                timezone?: string | null;
+                updated_at?: string | null;
+                user_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "user_preferences_user_id_fkey";
+                columns: ["user_id"];
+                isOneToOne: true;
+                referencedRelation: "users";
+                referencedColumns: ["id"];
+            }];
+        };
+        users: {
+            Row: {
+                avatar_url: string | null;
+                connected_account_id: string | null;
+                created_at: string | null;
+                email: string;
+                first_name: string | null;
+                full_name: string;
+                id: string;
+                identity_verification_data: import("@repo/shared/types/supabase").Json | null;
+                identity_verification_error: string | null;
+                identity_verification_session_id: string | null;
+                identity_verification_status: string | null;
+                identity_verified_at: string | null;
+                last_name: string | null;
+                onboarding_completed_at: string | null;
+                onboarding_status: string | null;
+                phone: string | null;
+                status: string;
+                stripe_customer_id: string | null;
+                updated_at: string | null;
+                user_type: string;
+            };
+            Insert: {
+                avatar_url?: string | null;
+                connected_account_id?: string | null;
+                created_at?: string | null;
+                email: string;
+                first_name?: string | null;
+                full_name: string;
+                id?: string;
+                identity_verification_data?: import("@repo/shared/types/supabase").Json | null;
+                identity_verification_error?: string | null;
+                identity_verification_session_id?: string | null;
+                identity_verification_status?: string | null;
+                identity_verified_at?: string | null;
+                last_name?: string | null;
+                onboarding_completed_at?: string | null;
+                onboarding_status?: string | null;
+                phone?: string | null;
+                status?: string;
+                stripe_customer_id?: string | null;
+                updated_at?: string | null;
+                user_type: string;
+            };
+            Update: {
+                avatar_url?: string | null;
+                connected_account_id?: string | null;
+                created_at?: string | null;
+                email?: string;
+                first_name?: string | null;
+                full_name?: string;
+                id?: string;
+                identity_verification_data?: import("@repo/shared/types/supabase").Json | null;
+                identity_verification_error?: string | null;
+                identity_verification_session_id?: string | null;
+                identity_verification_status?: string | null;
+                identity_verified_at?: string | null;
+                last_name?: string | null;
+                onboarding_completed_at?: string | null;
+                onboarding_status?: string | null;
+                phone?: string | null;
+                status?: string;
+                stripe_customer_id?: string | null;
+                updated_at?: string | null;
+                user_type?: string;
+            };
+            Relationships: [];
+        };
+        webhook_attempts: {
+            Row: {
+                created_at: string | null;
+                failure_reason: string | null;
+                id: string;
+                last_attempted_at: string | null;
+                retry_count: number | null;
+                status: string;
+                updated_at: string | null;
+                webhook_event_id: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                retry_count?: number | null;
+                status: string;
+                updated_at?: string | null;
+                webhook_event_id: string;
+            };
+            Update: {
+                created_at?: string | null;
+                failure_reason?: string | null;
+                id?: string;
+                last_attempted_at?: string | null;
+                retry_count?: number | null;
+                status?: string;
+                updated_at?: string | null;
+                webhook_event_id?: string;
+            };
+            Relationships: [{
+                foreignKeyName: "webhook_attempts_webhook_event_id_fkey";
+                columns: ["webhook_event_id"];
+                isOneToOne: false;
+                referencedRelation: "webhook_events";
+                referencedColumns: ["id"];
+            }];
+        };
+        webhook_events: {
+            Row: {
+                created_at: string | null;
+                event_type: string;
+                external_id: string | null;
+                id: string;
+                processed_at: string | null;
+                raw_payload: import("@repo/shared/types/supabase").Json;
+                webhook_source: string;
+            };
+            Insert: {
+                created_at?: string | null;
+                event_type: string;
+                external_id?: string | null;
+                id?: string;
+                processed_at?: string | null;
+                raw_payload: import("@repo/shared/types/supabase").Json;
+                webhook_source?: string;
+            };
+            Update: {
+                created_at?: string | null;
+                event_type?: string;
+                external_id?: string | null;
+                id?: string;
+                processed_at?: string | null;
+                raw_payload?: import("@repo/shared/types/supabase").Json;
+                webhook_source?: string;
+            };
+            Relationships: [];
+        };
+        webhook_metrics: {
+            Row: {
+                average_latency_ms: number | null;
+                created_at: string | null;
+                date: string;
+                event_type: string;
+                id: string;
+                total_failed: number | null;
+                total_processed: number | null;
+                total_received: number | null;
+            };
+            Insert: {
+                average_latency_ms?: number | null;
+                created_at?: string | null;
+                date: string;
+                event_type: string;
+                id?: string;
+                total_failed?: number | null;
+                total_processed?: number | null;
+                total_received?: number | null;
+            };
+            Update: {
+                average_latency_ms?: number | null;
+                created_at?: string | null;
+                date?: string;
+                event_type?: string;
+                id?: string;
+                total_failed?: number | null;
+                total_processed?: number | null;
+                total_received?: number | null;
+            };
+            Relationships: [];
+        };
+    };
+    Views: { [_ in never]: never; };
+    Functions: {
+        check_user_feature_access: {
+            Args: {
+                p_feature: string;
+                p_user_id: string;
+            };
+            Returns: boolean;
+        };
+        custom_access_token_hook: {
+            Args: {
+                event: import("@repo/shared/types/supabase").Json;
+            };
+            Returns: import("@repo/shared/types/supabase").Json;
+        };
+        get_user_dashboard_activities: {
+            Args: {
+                p_limit?: number;
+                p_offset?: number;
+                p_user_id: string;
+            };
+            Returns: {
+                activity_type: string;
+                created_at: string;
+                description: string;
+                entity_id: string;
+                entity_type: string;
+                id: string;
+                title: string;
+                user_id: string;
+            }[];
+        };
+        get_user_plan_limits: {
+            Args: {
+                p_user_id: string;
+            };
+            Returns: {
+                has_api_access: boolean;
+                has_white_label: boolean;
+                property_limit: number;
+                storage_gb: number;
+                support_level: string;
+                unit_limit: number;
+                user_limit: number;
+            }[];
+        };
+        health_check: {
+            Args: never;
+            Returns: {
+                ok: boolean;
+            }[];
+        };
+        record_processed_stripe_event_lock: {
+            Args: {
+                p_stripe_event_id: string;
+            };
+            Returns: {
+                success: boolean;
+            }[];
+        };
+    };
+    Enums: { [_ in never]: never; };
+    CompositeTypes: { [_ in never]: never; };
+}, {
+    PostgrestVersion: "13.0.5";
+}>;
+export declare const generateId: () => string;
+export declare const generateUUID: () => `${string}-${string}-${string}-${string}-${string}`;
+export declare const createMockLogger: () => {
+    log: jest.Mock<any, any, any>;
+    error: jest.Mock<any, any, any>;
+    warn: jest.Mock<any, any, any>;
+    debug: jest.Mock<any, any, any>;
+    verbose: jest.Mock<any, any, any>;
+};
+export declare const createMockStripe: () => {
+    paymentIntents: {
+        create: jest.Mock<any, any, any>;
+        retrieve: jest.Mock<any, any, any>;
+    };
+    customers: {
+        create: jest.Mock<any, any, any>;
+        retrieve: jest.Mock<any, any, any>;
+    };
+    webhooks: {
+        constructEvent: jest.Mock<any, any, any>;
+    };
+    setupIntents: {
+        create: jest.Mock<any, any, any>;
+    };
+    subscriptions: {
+        create: jest.Mock<any, any, any>;
+        list: jest.Mock<any, any, any>;
+    };
+    checkout: {
+        sessions: {
+            create: jest.Mock<any, any, any>;
+            retrieve: jest.Mock<any, any, any>;
+        };
+    };
+    billingPortal: {
+        sessions: {
+            create: jest.Mock<any, any, any>;
+        };
+    };
+    paymentMethods: {
+        list: jest.Mock<any, any, any>;
+    };
+    products: {
+        list: jest.Mock<any, any, any>;
+    };
+    prices: {
+        create: jest.Mock<any, any, any>;
+        list: jest.Mock<any, any, any>;
+    };
+};
+//# sourceMappingURL=setup.d.ts.map

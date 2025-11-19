@@ -44,11 +44,7 @@ export function TenantEditViewButtons({
 
 	const form = useForm({
 		defaultValues: {
-			email: tenant.email || '',
-			phone: tenant.phone || '',
-			emergencyContact: tenant.emergencyContact || '',
-			firstName: tenant.name?.split(' ')[0] || '',
-			lastName: tenant.name?.split(' ').slice(1).join(' ') || ''
+			emergency_contact_name: tenant.emergency_contact_name || ''
 		},
 		onSubmit: async ({ value }) => {
 			updateTenant.mutate({ id: tenant.id, data: value })
@@ -103,117 +99,9 @@ export function TenantEditViewButtons({
 						}}
 						className="space-y-4"
 					>
-						<div className="grid grid-cols-2 gap-4">
-							<form.Field name="firstName">
-								{(field: FormFieldApi<string>) => {
-									const f = field
-									return (
-										<Field>
-											<FieldLabel>First Name</FieldLabel>
-											<input
-												value={String(f.state.value ?? '')}
-												onChange={(e: ChangeEvent<HTMLInputElement>) =>
-													f.handleChange(e.target.value)
-												}
-												onBlur={f.handleBlur}
-												type="text"
-												placeholder="John"
-												className="input"
-											/>
-											{Array.isArray(f.state.meta.errors) &&
-												f.state.meta.errors.length > 0 && (
-													<FieldError>
-														{String(f.state.meta.errors[0])}
-													</FieldError>
-												)}
-										</Field>
-									)
-								}}
-							</form.Field>
 
-							<form.Field name="lastName">
-								{(field: FormFieldApi<string>) => {
-									const f = field
-									return (
-										<Field>
-											<FieldLabel>Last Name</FieldLabel>
-											<input
-												value={String(f.state.value ?? '')}
-												onChange={(e: ChangeEvent<HTMLInputElement>) =>
-													f.handleChange(e.target.value)
-												}
-												onBlur={f.handleBlur}
-												type="text"
-												placeholder="Smith"
-												className="input"
-											/>
-											{Array.isArray(f.state.meta.errors) &&
-												f.state.meta.errors.length > 0 && (
-													<FieldError>
-														{String(f.state.meta.errors[0])}
-													</FieldError>
-												)}
-										</Field>
-									)
-								}}
-							</form.Field>
-						</div>
 
-						<form.Field name="email">
-							{(field: FormFieldApi<string>) => {
-								const f = field
-								return (
-									<Field>
-										<FieldLabel>Email Address</FieldLabel>
-										<input
-											value={String(f.state.value ?? '')}
-											onChange={(e: ChangeEvent<HTMLInputElement>) =>
-												f.handleChange(e.target.value)
-											}
-											onBlur={f.handleBlur}
-											type="email"
-											placeholder="john.smith@example.com"
-											className="input"
-										/>
-										{Array.isArray(f.state.meta.errors) &&
-											f.state.meta.errors.length > 0 && (
-												<FieldError>
-													{String(f.state.meta.errors[0])}
-												</FieldError>
-											)}
-									</Field>
-								)
-							}}
-						</form.Field>
-
-						<form.Field name="phone">
-							{(field: FormFieldApi<string>) => {
-								const f = field
-								return (
-									<Field>
-										<FieldLabel>Phone Number</FieldLabel>
-										<input
-											value={String(f.state.value ?? '')}
-											onChange={(e: ChangeEvent<HTMLInputElement>) =>
-												f.handleChange(e.target.value)
-											}
-											onBlur={f.handleBlur}
-											type="text"
-											placeholder="(555) 123-4567"
-											className="input"
-										/>
-										{Array.isArray(f.state.meta.errors) &&
-											f.state.meta.errors.length > 0 && (
-												<FieldError>
-													{String(f.state.meta.errors[0])}
-												</FieldError>
-											)}
-									</Field>
-								)
-							}}
-						</form.Field>
-
-						<form.Field name="emergencyContact">
+						<form.Field name="emergency_contact_name">
 							{(field: FormFieldApi<string>) => {
 								const f = field
 								return (
@@ -263,7 +151,7 @@ export function TenantEditViewButtons({
 					<DialogHeader>
 						<DialogTitle className="flex items-center gap-2">
 							<User className="size-5" />
-							{tenant.name}
+							{tenant.first_name} {tenant.last_name}
 						</DialogTitle>
 					</DialogHeader>
 
@@ -290,13 +178,13 @@ export function TenantEditViewButtons({
 								</div>
 							)}
 
-							{tenant.emergencyContact && (
+							{tenant.emergency_contact_name && (
 								<div className="flex items-start gap-2">
 									<Phone className="size-4 text-muted-foreground mt-1" />
 									<div>
 										<p className="font-medium">Emergency Contact</p>
 										<p className="text-sm text-muted-foreground">
-											{tenant.emergencyContact}
+											{tenant.emergency_contact_name}
 										</p>
 									</div>
 								</div>
@@ -323,7 +211,7 @@ export function TenantEditViewButtons({
 									</div>
 									<span className="text-sm text-muted-foreground">
 										$
-										{tenant.currentLease?.rentAmount?.toLocaleString?.() ?? '0'}
+										{tenant.currentLease?.rent_amount?.toLocaleString?.() ?? '0'}
 									</span>
 								</div>
 							)}
@@ -334,8 +222,8 @@ export function TenantEditViewButtons({
 									<span className="text-sm font-medium">Tenant Since</span>
 								</div>
 								<span className="text-sm text-muted-foreground">
-									{tenant.createdAt
-										? new Date(tenant.createdAt).toLocaleDateString()
+									{tenant.created_at
+										? new Date(tenant.created_at).toLocaleDateString()
 										: 'Unknown'}
 								</span>
 							</div>

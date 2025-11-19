@@ -13,7 +13,7 @@ interface TenantContextValue {
 	/** Current tenant from URL parameter */
 	tenant: TenantWithLeaseInfo
 	/** Tenant ID from URL */
-	tenantId: string
+	tenant_id: string
 	/** Refresh current tenant data */
 	refresh: () => Promise<void>
 	/** Check if tenant is loading */
@@ -26,7 +26,7 @@ const TenantContext = createContext<TenantContextValue | null>(null)
 
 interface TenantProviderProps {
 	children: ReactNode
-	tenantId: string
+	tenant_id: string
 }
 
 /**
@@ -35,38 +35,38 @@ interface TenantProviderProps {
  *
  * Usage:
  * ```tsx
- * <TenantProvider tenantId={params.id}>
+ * <TenantProvider tenant_id={params.id}>
  *   <TenantDetails />
  * </TenantProvider>
  * ```
  */
-export function TenantProvider({ children, tenantId }: TenantProviderProps) {
+export function TenantProvider({ children, tenant_id }: TenantProviderProps) {
 	const queryClient = useQueryClient()
 
 	// Use Suspense query - automatically suspends during loading
-	const { data: tenant } = useTenantWithLeaseSuspense(tenantId)
+	const { data: tenant } = useTenantWithLeaseSuspense(tenant_id)
 
 	const refresh = useCallback(async () => {
 		await queryClient.refetchQueries({
-			queryKey: tenantKeys.withLease(tenantId)
+			queryKey: tenantKeys.withLease(tenant_id)
 		})
-	}, [queryClient, tenantId])
+	}, [queryClient, tenant_id])
 
 	const invalidate = useCallback(async () => {
 		await queryClient.invalidateQueries({
-			queryKey: tenantKeys.withLease(tenantId)
+			queryKey: tenantKeys.withLease(tenant_id)
 		})
-	}, [queryClient, tenantId])
+	}, [queryClient, tenant_id])
 
 	const value = useMemo<TenantContextValue>(
 		() => ({
 			tenant,
-			tenantId,
+			tenant_id,
 			refresh,
 			isLoading: false, // Suspense handles loading
 			invalidate
 		}),
-		[tenant, tenantId, refresh, invalidate]
+		[tenant, tenant_id, refresh, invalidate]
 	)
 
 	return (
@@ -112,13 +112,13 @@ export function useTenantActions() {
  */
 export function OptionalTenantProvider({
 	children,
-	tenantId
+	tenant_id
 }: {
 	children: ReactNode
-	tenantId?: string
+	tenant_id?: string
 }) {
-	if (!tenantId) {
+	if (!tenant_id) {
 		return <>{children}</>
 	}
-	return <TenantProvider tenantId={tenantId}>{children}</TenantProvider>
+	return <TenantProvider tenant_id={tenant_id}>{children}</TenantProvider>
 }

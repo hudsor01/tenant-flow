@@ -5,7 +5,7 @@ import { SupabaseService } from '../../database/supabase.service'
 /**
  * Stripe Webhook Service - Database-backed idempotency and event tracking
  *
- * Uses the processed_stripe_events table for persistent idempotency
+ * Uses the stripe_processed_events table for persistent idempotency
  * following Stripe's official best practices for webhook processing
  */
 @Injectable()
@@ -34,7 +34,7 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			const { data, error } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.select('id')
 				.eq('stripe_event_id', eventId)
 				.single()
@@ -125,7 +125,6 @@ export class StripeWebhookService {
 	): Promise<boolean> {
 		try {
 			const client = this.supabaseService.getAdminClient()
-			const processedAt = new Date().toISOString()
 
 			// SECURITY FIX #5: Use RPC-backed lock to avoid race windows
 			const { data, error } = await client.rpc(
@@ -133,8 +132,8 @@ export class StripeWebhookService {
 				{
 					p_stripe_event_id: eventId,
 					p_event_type: eventType,
-					p_processed_at: processedAt,
-					p_status: 'processing' as const
+					p_status: 'processing',
+					p_processed_at: new Date().toISOString()
 				}
 			)
 
@@ -172,7 +171,7 @@ export class StripeWebhookService {
 
 			this.logger.debug(
 				`Successfully acquired lock for event ${eventId}`,
-				{ eventId, eventType, processedAt }
+				{ eventId, eventType }
 			)
 			return true
 		} catch (error) {
@@ -194,10 +193,10 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			const { error } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.update({
 					processed_at: new Date().toISOString(),
-					status: 'processed' as const
+					status: 'processed'
 				})
 				.eq('stripe_event_id', eventId)
 
@@ -232,7 +231,7 @@ export class StripeWebhookService {
 
 			// First, count how many will be deleted
 			const { count } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.select('*', { count: 'exact', head: true })
 				.lt('processed_at', cutoffDate.toISOString())
 
@@ -243,7 +242,7 @@ export class StripeWebhookService {
 
 			// Delete old events
 			const { error } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.delete()
 				.lt('processed_at', cutoffDate.toISOString())
 
@@ -303,31 +302,31 @@ export class StripeWebhookService {
 
 			// Get total count
 			const { count: totalEvents } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.select('*', { count: 'exact', head: true })
 
 			// Get today's count
 			const { count: todayEvents } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.select('*', { count: 'exact', head: true })
 				.gte('processed_at', todayStart.toISOString())
 
 			// Get last hour count
 			const { count: lastHourEvents } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.select('*', { count: 'exact', head: true })
 				.gte('processed_at', hourAgo.toISOString())
 
-			// Get event type breakdown
-			const { data: events } = await client
-				.from('processed_stripe_events')
-				.select('event_type')
+			// Get event type breakdown from webhook_metrics table
+			const { data: metrics } = await client
+				.from('webhook_metrics')
+				.select('event_type, total_received')
 
 			const eventTypeBreakdown: Record<string, number> = {}
-			if (events) {
-				events.forEach(event => {
-					const type = event.event_type
-					eventTypeBreakdown[type] = (eventTypeBreakdown[type] || 0) + 1
+			if (metrics) {
+				metrics.forEach(metric => {
+					const type = metric.event_type
+					eventTypeBreakdown[type] = (eventTypeBreakdown[type] || 0) + (metric.total_received || 0)
 				})
 			}
 
@@ -354,7 +353,7 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			const { data, error } = await client
-				.from('processed_stripe_events')
+				.from('stripe_processed_events')
 				.select('stripe_event_id')
 				.in('stripe_event_id', eventIds)
 

@@ -50,7 +50,7 @@ export const EmergencyContactSchema = z.object({
 
 // Schema for creating emergency contact
 export const CreateEmergencyContactSchema = EmergencyContactSchema.extend({
-	tenantId: z.string().uuid('Invalid tenant ID').describe('ID of the tenant')
+	tenant_id: z.string().uuid('Invalid tenant ID').describe('ID of the tenant')
 })
 
 // Schema for updating emergency contact (all fields optional)
@@ -60,8 +60,8 @@ export const UpdateEmergencyContactSchema = EmergencyContactSchema.partial()
 export const EmergencyContactResponseSchema =
 	CreateEmergencyContactSchema.extend({
 		id: z.string().uuid().describe('Emergency contact ID'),
-		createdAt: z.string().datetime().describe('Creation timestamp'),
-		updatedAt: z.string().datetime().describe('Last update timestamp')
+		created_at: z.string().datetime().describe('Creation timestamp'),
+		updated_at: z.string().datetime().describe('Last update timestamp')
 	})
 
 // Export types

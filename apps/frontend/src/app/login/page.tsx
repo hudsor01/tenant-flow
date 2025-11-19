@@ -13,15 +13,18 @@ import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { LoginLayout } from '#components/auth/login-layout'
 import { useModalStore } from '#stores/modal-store'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useUserRole } from '#hooks/use-user-role'
 
 const logger = createLogger({ component: 'LoginPage' })
 
 function LoginPageContent() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+	const [justLoggedIn, setJustLoggedIn] = useState(false)
 	const { openModal } = useModalStore()
 	const router = useRouter()
 	const searchParams = useSearchParams()
+	const { isTenant, isLoading: roleLoading } = useUserRole()
 
 	useEffect(() => {
 		// Check if searchParams is available before using it
@@ -33,6 +36,33 @@ function LoginPageContent() {
 			router.replace('/login')
 		}
 	}, [searchParams, router])
+
+	useEffect(() => {
+		if (justLoggedIn && !roleLoading) {
+			let destination = isTenant ? '/tenant' : '/manage'
+
+			// Honor explicit redirectTo if provided (unless it conflicts with user_type)
+			const redirectTo = searchParams?.get('redirectTo')
+			if (
+				redirectTo &&
+				redirectTo.startsWith('/') &&
+				!redirectTo.startsWith('//')
+			) {
+				destination = redirectTo
+			}
+
+			logger.info('Login successful, redirecting to dashboard', {
+				action: 'email_login_success',
+				metadata: {
+					destination
+				}
+			})
+
+			router.push(destination)
+			router.refresh()
+			setJustLoggedIn(false)
+		}
+	}, [justLoggedIn, roleLoading, isTenant, router, searchParams])
 
 	const handleSubmit = async (data: LoginFormData | SignupFormData) => {
 		setIsLoading(true)
@@ -75,55 +105,14 @@ function LoginPageContent() {
 			}
 
 			if (authData.user) {
-				// Fetch user role from database to determine redirect with proper org_id filtering
-				let profileQuery = supabase
-					.from('users')
-					.select('role, orgId')
-					.eq('supabaseId', authData.user.id)
-				const orgId = authData.user.app_metadata?.['orgId']
-				if (orgId) {
-					profileQuery = profileQuery.eq('orgId', orgId)
-				}
-				const { data: userProfile, error: profileError } = await profileQuery.single()
-
-				if (profileError) {
-					logger.warn('Unable to resolve user profile after login', {
-						action: 'user_profile_lookup_failed',
-						metadata: {
-							userId: authData.user.id,
-							error: profileError.message
-						}
-					})
-				}
-
-				// Determine destination based on user role
-				let destination = '/manage' // Default for OWNER, MANAGER, ADMIN
-
-				if (userProfile?.role === 'TENANT') {
-					destination = '/tenant'
-				}
-
-				// Honor explicit redirectTo if provided (unless it conflicts with role)
-				const redirectTo = searchParams?.get('redirectTo')
-				if (
-					redirectTo &&
-					redirectTo.startsWith('/') &&
-					!redirectTo.startsWith('//')
-				) {
-					destination = redirectTo
-				}
-
-				logger.info('Login successful, redirecting to dashboard', {
+				logger.info('Login successful', {
 					action: 'email_login_success',
 					metadata: {
-						email: credentials.email,
-						destination
+						email: credentials.email
 					}
 				})
 
-				// Redirect to destination
-				router.push(destination)
-				router.refresh()
+				setJustLoggedIn(true)
 			}
 		} catch (error) {
 			logger.error('Unexpected error during login', {

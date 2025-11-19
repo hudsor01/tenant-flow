@@ -5,24 +5,32 @@
  * using TypeScript 5.9.2 performance patterns with const assertions and type inference.
  */
 
-import type { Database, Json } from './supabase-generated.js'
+import type { Database, Json } from './supabase.js'
+import type {
+	PropertyType,
+	PropertyStatus,
+	UnitStatus,
+	LeaseStatus,
+	MaintenanceCategory,
+	MaintenancePriority,
+	RequestStatus,
+	SubscriptionStatus
+} from '../constants/status-types.js'
 
-// PAGINATION CONSTANTS
+
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_LIMIT = 10;
 export const MAX_LIMIT = 100;
 
-// TIMEOUT CONSTANTS (in milliseconds)
 export const DEFAULT_TIMEOUT = 30000; // 30 seconds
 export const API_TIMEOUT = 60000; // 60 seconds
 
-// RETRY CONSTANTS
 export const DEFAULT_RETRY_ATTEMPTS = 3;
 export const DEFAULT_RETRY_DELAY = 1000; // 1 second
 export const MAX_RETRY_DELAY = 10000; // 10 seconds
 
-// DATABASE TYPE ALIASES
 export type AuthUser = Database['public']['Tables']['users']['Row']
+
 
 // USER AUTHENTICATION CONTRACTS
 export interface LoginRequest {
@@ -61,7 +69,7 @@ export interface AuthResponse {
 		id: string
 		email: string
 		name: string
-		role: string
+		user_type: string
 	}
 	token: string
 }
@@ -72,45 +80,41 @@ export interface AuthError {
 	field?: string
 }
 
-// PROPERTY API CONTRACTS
 export interface CreatePropertyRequest {
 	name: string
-	address: string
+	address_line1: string
+	address_line2?: string | null
 	city: string
 	state: string
-	zipCode: string
-	propertyType: Database['public']['Enums']['PropertyType']
+	postal_code: string
+	country?: string
+	property_type: PropertyType
 	description?: string
-	imageUrl?: string
-	unitCount?: number
-	amenities?: string[]
 }
 
 export interface UpdatePropertyRequest {
 	name?: string
-	address?: string
+	address_line1?: string
+	address_line2?: string | null
 	city?: string
 	state?: string
-	zipCode?: string
-	propertyType?: Database['public']['Enums']['PropertyType']
-	description?: string
-	imageUrl?: string
-	status?: Database['public']['Enums']['PropertyStatus']
-	unitCount?: number
-	amenities?: string[]
+	postal_code?: string
+	country?: string
+	property_type?: PropertyType
+	status?: PropertyStatus
 }
 
 export interface PropertyQueryRequest {
 	search?: string
-	propertyType?: Database['public']['Enums']['PropertyType']
+	property_type?: PropertyType
 	city?: string
 	state?: string
 	minRent?: number
 	maxRent?: number
 	bedrooms?: number
 	bathrooms?: number
-	status?: Database['public']['Enums']['PropertyStatus']
-	sortBy?: 'name' | 'address' | 'unitCount' | 'createdAt' | 'rent'
+	status?: PropertyStatus
+	sortBy?: 'name' | 'address' | 'unitCount' | 'created_at' | 'rent'
 	sortOrder?: 'asc' | 'desc'
 	page?: number
 	limit?: number
@@ -123,10 +127,10 @@ export interface PropertyListResponse {
 		address: string
 		city: string
 		state: string
-		zipCode: string
-		propertyType: string
+		postal_code: string
+		property_type: string
 		status: string
-		createdAt: string
+		created_at: string
 	}>
 	total: number
 	page: number
@@ -140,18 +144,18 @@ export interface PropertyDetailResponse {
 		address: string
 		city: string
 		state: string
-		zipCode: string
-		propertyType: string
+		postal_code: string
+		property_type: string
 		description: string | null
 		imageUrl: string | null
 		status: string
-		ownerId: string
-		createdAt: string
-		updatedAt: string
+		owner_id: string
+		created_at: string
+		updated_at: string
 	}
 	units?: Array<{
 		id: string
-		unitNumber: string
+		unit_number: string
 		bedrooms: number
 		bathrooms: number
 		rent: number
@@ -164,8 +168,8 @@ export interface PropertyDetailResponse {
 	}>
 }
 
-export type CreatePropertyInput = Database['public']['Tables']['property']['Insert']
-export type UpdatePropertyInput = Database['public']['Tables']['property']['Update']
+export type CreatePropertyInput = Database['public']['Tables']['properties']['Insert']
+export type UpdatePropertyInput = Database['public']['Tables']['properties']['Update']
 
 export interface TenantPaymentRecord {
 	id: string
@@ -175,7 +179,7 @@ export interface TenantPaymentRecord {
 	description: string | null
 	receiptEmail: string | null
 	metadata: Json | null
-	createdAt: string | null
+	created_at: string | null
 }
 
 export interface TenantPaymentHistoryResponse {
@@ -190,51 +194,51 @@ export interface OwnerPaymentSummaryResponse {
 }
 
 export interface SendPaymentReminderRequest {
-	tenantId: string
+	tenant_id: string
 	message?: string
 }
 
 export interface SendPaymentReminderResponse {
 	success: true
-	tenantId: string
+	tenant_id: string
 	notificationId: string
 	message: string
 }
 
-// UNIT API CONTRACTS
+
 export interface CreateUnitRequest {
-	propertyId: string
-	unitNumber: string
+	property_id: string
+	unit_number: string
 	bedrooms?: number
 	bathrooms?: number
-	squareFeet?: number
+	square_feet?: number
 	rent?: number
-	status?: Database['public']['Enums']['UnitStatus']
+	status?: UnitStatus
 }
 
 export interface UpdateUnitRequest {
-	unitNumber?: string
+	unit_number?: string
 	bedrooms?: number
 	bathrooms?: number
-	squareFeet?: number
+	square_feet?: number
 	rent?: number
-	status?: Database['public']['Enums']['UnitStatus']
+	status?: UnitStatus
 }
 
 export interface UnitQueryRequest {
-	propertyId?: string
-	status?: Database['public']['Enums']['UnitStatus']
+	property_id?: string
+	status?: UnitStatus
 	minRent?: number
 	maxRent?: number
 	bedrooms?: number
 	bathrooms?: number
 	sortBy?:
-		| 'unitNumber'
+		| 'unit_number'
 		| 'rent'
-		| 'squareFeet'
+		| 'square_feet'
 		| 'bedrooms'
 		| 'bathrooms'
-		| 'createdAt'
+		| 'created_at'
 	sortOrder?: 'asc' | 'desc'
 	page?: number
 	limit?: number
@@ -243,15 +247,15 @@ export interface UnitQueryRequest {
 export interface UnitListResponse {
 	units: Array<{
 		id: string
-		unitNumber: string
-		propertyId: string
+		unit_number: string
+		property_id: string
 		bedrooms: number
 		bathrooms: number
-		squareFeet: number | null
+		square_feet: number | null
 		rent: number
 		status: string
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}>
 	total: number
 	page: number
@@ -261,22 +265,22 @@ export interface UnitListResponse {
 export interface UnitDetailResponse {
 	unit: {
 		id: string
-		unitNumber: string
-		propertyId: string
+		unit_number: string
+		property_id: string
 		bedrooms: number
 		bathrooms: number
-		squareFeet: number | null
+		square_feet: number | null
 		rent: number
 		status: string
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}
 	property?: {
 		name: string
 		address: string
 		city: string
 		state: string
-		zipCode: string
+		postal_code: string
 	}
 	currentTenant?: {
 		id: string
@@ -285,35 +289,32 @@ export interface UnitDetailResponse {
 	}
 	currentLease?: {
 		id: string
-		startDate: string
-		endDate: string | null
-		rentAmount: number
+		start_date: string
+		end_date: string | null
+		rent_amount: number
 		status: string
 	}
 }
 
-// TENANT API CONTRACTS
+
 export interface CreateTenantRequest {
-	firstName?: string
-	lastName?: string
-	email: string
-	phone?: string
-	emergencyContact?: string
-	name?: string
-	avatarUrl?: string
+	stripe_customer_id: string
+	date_of_birth?: string
+	ssn_last_four?: string
+	emergency_contact_name?: string
+	emergency_contact_phone?: string
+	emergency_contact_relationship?: string
 }
 
 export interface UpdateTenantRequest {
-	firstName?: string
-	lastName?: string
-	email?: string
-	phone?: string
-	emergencyContact?: string
-	name?: string
-	avatarUrl?: string
+	stripe_customer_id?: string
+	date_of_birth?: string
+	ssn_last_four?: string
+	emergency_contact_name?: string
+	emergency_contact_phone?: string
+	emergency_contact_relationship?: string
 }
 
-// Type aliases for backward compatibility with frontend hooks
 export type TenantInput = CreateTenantRequest
 export type TenantUpdate = UpdateTenantRequest
 
@@ -321,8 +322,8 @@ export interface TenantQueryRequest {
 	search?: string
 	email?: string
 	phone?: string
-	propertyId?: string
-	sortBy?: 'firstName' | 'lastName' | 'email' | 'createdAt'
+	property_id?: string
+	sortBy?: 'first_name' | 'last_name' | 'email' | 'created_at'
 	sortOrder?: 'asc' | 'desc'
 	page?: number
 	limit?: number
@@ -334,10 +335,10 @@ export interface TenantListResponse {
 		name: string
 		email: string
 		phone: string | null
-		emergencyContact: string | null
+		emergency_contact: string | null
 		avatarUrl: string | null
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}>
 	total: number
 	page: number
@@ -350,28 +351,28 @@ export interface TenantDetailResponse {
 		name: string
 		email: string
 		phone: string | null
-		emergencyContact: string | null
+		emergency_contact: string | null
 		avatarUrl: string | null
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}
 	leases?: Array<{
 		id: string
-		startDate: string
-		endDate: string | null
-		rentAmount: number
+		start_date: string
+		end_date: string | null
+		rent_amount: number
 		status: string
 	}>
 	currentLease?: {
 		id: string
-		startDate: string
-		endDate: string | null
-		rentAmount: number
+		start_date: string
+		end_date: string | null
+		rent_amount: number
 		status: string
 	}
 	unit?: {
 		id: string
-		unitNumber: string
+		unit_number: string
 		bedrooms: number
 		bathrooms: number
 		squareFootage: number | null
@@ -382,44 +383,44 @@ export interface TenantDetailResponse {
 		address: string
 		city: string
 		state: string
-		zipCode: string
+		postal_code: string
 	}
 }
 
-// LEASE API CONTRACTS
+
 export interface CreateLeaseRequest {
 	tenant: {
 		email: string
-		firstName: string
-		lastName: string
+		first_name: string
+		last_name: string
 		phone?: string
 	}
-	unitId: string
-	startDate: string
-	endDate: string
-	monthlyRent: number
-	securityDeposit: number
+	unit_id: string
+	start_date: string
+	end_date: string
+	rent_amount: number
+	security_deposit: number
 	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
 	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 	terms?: string
 }
 
 export interface UpdateLeaseRequest {
-	startDate?: string
-	endDate?: string
-	monthlyRent?: number
-	securityDeposit?: number
+	start_date?: string
+	end_date?: string
+	rent_amount?: number
+	security_deposit?: number
 	paymentFrequency?: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'YEARLY'
 	status?: 'DRAFT' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 	terms?: string
 }
 
 export interface LeaseQueryRequest {
-	tenantId?: string
-	unitId?: string
-	propertyId?: string
-	status?: Database['public']['Enums']['LeaseStatus']
-	sortBy?: 'startDate' | 'endDate' | 'monthlyRent' | 'createdAt'
+	tenant_id?: string
+	unit_id?: string
+	property_id?: string
+	status?: LeaseStatus
+	sortBy?: 'start_date' | 'end_date' | 'rent_amount' | 'created_at'
 	sortOrder?: 'asc' | 'desc'
 	page?: number
 	limit?: number
@@ -428,16 +429,16 @@ export interface LeaseQueryRequest {
 export interface LeaseListResponse {
 	leases: Array<{
 		id: string
-		tenantId: string
-		unitId: string
-		startDate: string
-		endDate: string | null
-		monthlyRent: number
-		securityDeposit: number
+		tenant_id: string
+		unit_id: string
+		start_date: string
+		end_date: string | null
+		rent_amount: number
+		security_deposit: number
 		status: string
 		terms: string | null
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}>
 	total: number
 	page: number
@@ -447,17 +448,17 @@ export interface LeaseListResponse {
 export interface LeaseDetailResponse {
 	lease: {
 		id: string
-		tenantId: string
-		unitId: string
-		propertyId: string | null
-		startDate: string
-		endDate: string | null
-		monthlyRent: number
-		securityDeposit: number
+		tenant_id: string
+		unit_id: string
+		property_id: string | null
+		start_date: string
+		end_date: string | null
+		rent_amount: number
+		security_deposit: number
 		status: string
 		terms: string | null
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}
 	tenant?: {
 		id: string
@@ -467,7 +468,7 @@ export interface LeaseDetailResponse {
 	}
 	unit?: {
 		id: string
-		unitNumber: string
+		unit_number: string
 		bedrooms: number
 		bathrooms: number
 		rent: number
@@ -478,34 +479,33 @@ export interface LeaseDetailResponse {
 		address: string
 		city: string
 		state: string
-		zipCode: string
+		postal_code: string
 	}
 }
 
-// MAINTENANCE API CONTRACTS
+
 export interface CreateMaintenanceRequest {
-	unitId: string
-	title: string
+	unit_id: string
+	tenant_id?: string
 	description: string
-	priority?: Database['public']['Enums']['Priority']
-	category?: Database['public']['Enums']['MaintenanceCategory']
+	priority?: MaintenancePriority
+	category?: MaintenanceCategory
 	allowEntry?: boolean
 	contactPhone?: string
-	estimatedCost?: number
+	estimated_cost?: number
 	photos?: string[]
 	notes?: string
 	scheduledDate?: string
 }
 
 export interface UpdateMaintenanceRequest {
-	title?: string
 	description?: string
-	priority?: Database['public']['Enums']['Priority']
-	category?: Database['public']['Enums']['MaintenanceCategory']
-	status?: Database['public']['Enums']['RequestStatus']
+	priority?: MaintenancePriority
+	category?: MaintenanceCategory
+	status?: RequestStatus
 	scheduledDate?: string
 	completedDate?: string
-	estimatedCost?: number
+	estimated_cost?: number
 	actualCost?: number
 	notes?: string
 	allowEntry?: boolean
@@ -513,12 +513,12 @@ export interface UpdateMaintenanceRequest {
 }
 
 export interface MaintenanceQueryRequest {
-	unitId?: string
-	propertyId?: string
-	status?: Database['public']['Enums']['RequestStatus']
-	priority?: Database['public']['Enums']['Priority']
-	category?: Database['public']['Enums']['MaintenanceCategory']
-	sortBy?: 'createdAt' | 'scheduledDate' | 'priority' | 'status'
+	unit_id?: string
+	property_id?: string
+	status?: RequestStatus
+	priority?: MaintenancePriority
+	category?: MaintenanceCategory
+	sortBy?: 'created_at' | 'scheduledDate' | 'priority' | 'status'
 	sortOrder?: 'asc' | 'desc'
 	page?: number
 	limit?: number
@@ -527,20 +527,19 @@ export interface MaintenanceQueryRequest {
 export interface MaintenanceListResponse {
 	requests: Array<{
 		id: string
-		title: string
 		description: string
 		priority: string
 		status: string
 		category: string | null
-		unitId: string
-		estimatedCost: number | null
+		unit_id: string
+		estimated_cost: number | null
 		actualCost: number | null
 		allowEntry: boolean
 		contactPhone: string | null
 		notes: string | null
 		photos: string[] | null
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}>
 	total: number
 	page: number
@@ -550,25 +549,24 @@ export interface MaintenanceListResponse {
 export interface MaintenanceDetailResponse {
 	request: {
 		id: string
-		title: string
 		description: string
 		priority: string
 		status: string
 		category: string | null
-		unitId: string
-		estimatedCost: number | null
+		unit_id: string
+		estimated_cost: number | null
 		actualCost: number | null
 		allowEntry: boolean
 		contactPhone: string | null
 		notes: string | null
 		photos: string[] | null
-		createdAt: string
-		updatedAt: string
+		created_at: string
+		updated_at: string
 	}
 	unit?: {
 		id: string
-		unitNumber: string
-		propertyId: string
+		unit_number: string
+		property_id: string
 		rent: number
 	}
 	property?: {
@@ -582,16 +580,16 @@ export interface MaintenanceDetailResponse {
 	}
 }
 
-// SUBSCRIPTION & BILLING CONTRACTS
-export interface CreateSubscriptionRequest {
-	planId: string
-	billingPeriod: 'monthly' | 'annual'
-	userId?: string
-	userEmail?: string
-	userName?: string
-	createAccount?: boolean
-	paymentMethodCollection?: 'always' | 'if_required'
+
+export interface CreateRentSubscriptionRequest {
+	leaseId: string
+	paymentMethodId: string
+	amount: number
+	currency?: string
+	billingDayOfMonth: number
 }
+
+export type CreateSubscriptionRequest = CreateRentSubscriptionRequest
 
 export interface CreateSubscriptionWithSignupRequest {
 	planId: string
@@ -616,9 +614,35 @@ export interface CancelSubscriptionRequest {
 }
 
 export interface UpdateSubscriptionRequest {
-	subscriptionId: string
-	planId?: string
-	billingPeriod?: string
+	amount?: number
+	billingDayOfMonth?: number
+	paymentMethodId?: string
+}
+
+export interface RentSubscriptionResponse {
+	id: string
+	leaseId: string
+	tenantId: string
+	ownerId: string
+	stripeSubscriptionId: string
+	stripeCustomerId: string
+	paymentMethodId: string
+	amount: number
+	currency: string
+	billingDayOfMonth: number
+	nextChargeDate: string | null
+	status: SubscriptionStatus
+	platformFeePercentage: number
+	pausedAt: string | null
+	canceledAt: string | null
+	createdAt: string
+	updatedAt: string
+}
+
+export interface SubscriptionActionResponse {
+	success: true
+	subscription: RentSubscriptionResponse
+	message: string
 }
 
 export interface CreateSubscriptionWithSignupResponse {
@@ -652,7 +676,7 @@ export interface BusinessErrorResponse extends ErrorResponse {
 	reason: string
 }
 
-// SUCCESS RESPONSE CONTRACTS
+
 export interface SuccessResponse<T = void> {
 	success: true
 	data?: T
@@ -666,7 +690,7 @@ export interface ApiResponse<T = unknown> {
 	message?: string
 }
 
-// FILE UPLOAD CONTRACTS
+
 export interface FileUploadRequest {
 	file: string // base64 encoded
 	filename: string
@@ -682,7 +706,7 @@ export interface FileUploadResponse {
 	mimeType: string
 }
 
-// NOTIFICATION CONTRACTS
+
 export interface CreateNotificationRequest {
 	type: string
 	title: string
@@ -706,7 +730,7 @@ export interface NotificationListResponse {
 		type: string
 		priority: string
 		read: boolean
-		createdAt: string
+		created_at: string
 	}>
 	total: number
 	page: number
@@ -730,9 +754,18 @@ export interface InviteTenantRequest {
 	name: string
 	email: string
 	phone?: string
-	emergencyContact?: string
-	propertyId: string
-	unitId: string
+	emergency_contact?: string
+	property_id: string
+	unit_id: string
+}
+
+export interface InviteTenantDto {
+	name: string
+	email: string
+	phone?: string
+	emergency_contact?: string
+	property_id: string
+	unit_id: string
 }
 
 export interface InviteTenantResponse {
@@ -746,14 +779,6 @@ export interface InviteTenantResponse {
 }
 
 // CONTACT FORM CONTRACTS
-export interface ContactFormRequest {
-	name: string
-	email: string
-	subject: string
-	message: string
-	phone?: string
-	type?: 'sales' | 'support' | 'general'
-}
 
 export interface ContactFormResponse {
 	success: boolean
@@ -805,9 +830,9 @@ export interface LeaseAnalyticsResponse {
 		activeLeases: number
 		expiredLeases: number
 		terminatedLeases: number
-		totalMonthlyRent: number
+		totalrent_amount: number
 		averageRent: number
-		totalSecurityDeposits: number
+		totalsecurity_deposits: number
 		expiringLeases: number
 	}
 }
@@ -915,7 +940,7 @@ export interface BusinessRuleError {
 export interface PermissionError {
 	resource: string
 	action: string
-	userId: string
+	user_id: string
 	requiredPermission: string
 	message: string
 	timestamp: string
@@ -974,7 +999,7 @@ export interface FileUploadError {
 // AUTHENTICATION ERROR CONTRACTS
 export interface AuthenticationError {
 	token?: string
-	userId?: string
+	user_id?: string
 	reason: string
 	message: string
 	timestamp: string
@@ -982,10 +1007,10 @@ export interface AuthenticationError {
 
 // AUTHORIZATION ERROR CONTRACTS
 export interface AuthorizationError {
-	userId: string
+	user_id: string
 	resource: string
 	operation: string
-	requiredRole: string
+	requireduser_type: string
 	message: string
 	timestamp: string
 }

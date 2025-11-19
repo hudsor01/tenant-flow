@@ -107,6 +107,15 @@ export class CompressionService {
 			return buffer
 		}
 
+		// Validate PDF header before attempting to load
+		const pdfHeader = buffer.toString('utf-8', 0, 4)
+		if (!pdfHeader.startsWith('%PDF')) {
+			this.logger.debug(
+				`Invalid PDF header detected. Expected '%PDF', got '${pdfHeader}' - skipping compression`
+			)
+			return buffer
+		}
+
 		if (buffer.length < threshold) {
 			this.logger.debug(
 				`PDF size ${buffer.length}B below threshold ${threshold}B - skipping compression`

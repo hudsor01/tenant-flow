@@ -340,17 +340,17 @@ export function StripeConnectStatus() {
 					<div className="flex items-center justify-between rounded-lg border p-4">
 						<div className="space-y-1">
 							<div className="flex items-center gap-2">
-								{getStatusIcon(account.accountStatus || 'incomplete')}
+								{getStatusIcon(account.identityVerification?.status || 'incomplete')}
 								<span
 									className={`font-medium capitalize ${getStatusColor(
-										account.accountStatus || 'incomplete'
+										account.identityVerification?.status || 'incomplete'
 									)}`}
 								>
-									{account.accountStatus || 'incomplete'}
+									{account.identityVerification?.status || 'incomplete'}
 								</span>
 							</div>
 							<p className="text-sm text-muted-foreground">
-								Stripe Account ID: {account.stripeAccountId || 'N/A'}
+								Stripe Account ID: {account.stripe_account_id || 'N/A'}
 							</p>
 						</div>
 					</div>
@@ -359,7 +359,7 @@ export function StripeConnectStatus() {
 						<div className="space-y-1">
 							<p className="text-sm font-medium">Charges</p>
 							<p className="text-sm text-muted-foreground">
-								{account.chargesEnabled ? (
+								{account.charges_enabled ? (
 									<span className="text-green-600">Enabled</span>
 								) : (
 									<span className="text-gray-600">Disabled</span>
@@ -369,7 +369,7 @@ export function StripeConnectStatus() {
 						<div className="space-y-1">
 							<p className="text-sm font-medium">Payouts</p>
 							<p className="text-sm text-muted-foreground">
-								{account.payoutsEnabled ? (
+								{account.payouts_enabled ? (
 									<span className="text-green-600">Enabled</span>
 								) : (
 									<span className="text-gray-600">Disabled</span>
@@ -378,7 +378,7 @@ export function StripeConnectStatus() {
 						</div>
 					</div>
 
-					{account.accountStatus !== 'active' && (
+					{account.identityVerification?.status !== 'active' && (
 						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
 							<p className="text-sm text-amber-900 dark:text-amber-100 mb-3">
 								Complete your Stripe onboarding to start collecting payments.

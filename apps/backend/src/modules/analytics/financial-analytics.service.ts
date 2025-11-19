@@ -28,14 +28,14 @@ export class FinancialAnalyticsService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	private buildUserPayload(
-		userId: string,
+		user_id: string,
 		extra?: Record<string, unknown>
 	): Record<string, unknown> {
 		return {
-			user_id: userId,
-			user_id_param: userId,
-			p_user_id: userId,
-			uid: userId,
+			user_id: user_id,
+			user_id_param: user_id,
+			p_user_id: user_id,
+			uid: user_id,
 			...extra
 		}
 	}
@@ -67,94 +67,94 @@ export class FinancialAnalyticsService {
 		}
 	}
 
-	async getFinancialMetrics(userId: string): Promise<FinancialMetricSummary> {
+	async getFinancialMetrics(user_id: string): Promise<FinancialMetricSummary> {
 		const raw = await this.callRpc(
 			'calculate_financial_metrics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapFinancialMetricSummary(raw)
 	}
 
-	async getFinancialBreakdown(userId: string) {
+	async getFinancialBreakdown(user_id: string) {
 		const raw = await this.callRpc(
 			'calculate_financial_metrics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapRevenueExpenseBreakdown(raw)
 	}
 
 	async getNetOperatingIncome(
-		userId: string
+		user_id: string
 	): Promise<NetOperatingIncomeByProperty[]> {
 		const raw = await this.callRpc(
 			'calculate_net_operating_income',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapNetOperatingIncome(raw)
 	}
 
 	async getFinancialOverview(
-		userId: string
+		user_id: string
 	): Promise<FinancialOverviewSnapshot> {
 		const raw = await this.callRpc(
 			'get_financial_overview',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapFinancialOverview(raw)
 	}
 
-	async getBillingInsights(userId: string) {
+	async getBillingInsights(user_id: string) {
 		const raw = await this.callRpc(
 			'get_billing_insights',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapBillingInsights(raw)
 	}
 
-	async getExpenseSummary(userId: string) {
+	async getExpenseSummary(user_id: string) {
 		const raw = await this.callRpc(
 			'get_expense_summary',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapExpenseSummary(raw)
 	}
 
-	async getInvoiceStatistics(userId: string) {
+	async getInvoiceStatistics(user_id: string) {
 		const raw = await this.callRpc(
 			'get_invoice_statistics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapInvoiceSummary(raw)
 	}
 
-	async getMonthlyMetrics(userId: string) {
+	async getMonthlyMetrics(user_id: string) {
 		const raw = await this.callRpc(
 			'calculate_monthly_metrics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapMonthlyMetrics(raw)
 	}
 
 	async getLeaseFinancialSummary(
-		userId: string
+		user_id: string
 	): Promise<LeaseFinancialSummary> {
 		const raw = await this.callRpc(
 			'get_lease_financial_summary',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapLeaseSummary(raw)
 	}
 
-	async getLeasesWithFinancialAnalytics(userId: string) {
+	async getLeasesWithFinancialAnalytics(user_id: string) {
 		const raw = await this.callRpc(
 			'get_leases_with_financial_analytics',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapLeaseAnalytics(raw)
 	}
 
 	async getFinancialAnalyticsPageData(
-		userId: string
+		user_id: string
 	): Promise<FinancialAnalyticsPageResponse> {
 		const [
 			metricsRaw,
@@ -169,24 +169,24 @@ export class FinancialAnalyticsService {
 		] = await Promise.all([
 			this.callRpc(
 				'calculate_financial_metrics',
-				this.buildUserPayload(userId)
+				this.buildUserPayload(user_id)
 			),
 			this.callRpc(
 				'calculate_net_operating_income',
-				this.buildUserPayload(userId)
+				this.buildUserPayload(user_id)
 			),
-			this.callRpc('get_financial_overview', this.buildUserPayload(userId)),
-			this.callRpc('get_billing_insights', this.buildUserPayload(userId)),
-			this.callRpc('get_expense_summary', this.buildUserPayload(userId)),
-			this.callRpc('get_invoice_statistics', this.buildUserPayload(userId)),
-			this.callRpc('calculate_monthly_metrics', this.buildUserPayload(userId)),
+			this.callRpc('get_financial_overview', this.buildUserPayload(user_id)),
+			this.callRpc('get_billing_insights', this.buildUserPayload(user_id)),
+			this.callRpc('get_expense_summary', this.buildUserPayload(user_id)),
+			this.callRpc('get_invoice_statistics', this.buildUserPayload(user_id)),
+			this.callRpc('calculate_monthly_metrics', this.buildUserPayload(user_id)),
 			this.callRpc(
 				'get_lease_financial_summary',
-				this.buildUserPayload(userId)
+				this.buildUserPayload(user_id)
 			),
 			this.callRpc(
 				'get_leases_with_financial_analytics',
-				this.buildUserPayload(userId)
+				this.buildUserPayload(user_id)
 			)
 		])
 

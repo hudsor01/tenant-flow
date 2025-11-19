@@ -21,7 +21,7 @@ export class SecurityMonitorService {
 		this.logSecurityEvent('Failed Login', { email, ip })
 	}
 
-	logSuspiciousActivity(userId: string, activity: string) {
-		this.logSecurityEvent('Suspicious Activity', { userId, activity })
+	logSuspiciousActivity(user_id: string, activity: string) {
+		this.logSecurityEvent('Suspicious Activity', { user_id, activity })
 	}
 }

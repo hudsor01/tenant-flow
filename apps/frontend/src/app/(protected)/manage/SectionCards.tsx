@@ -1,12 +1,12 @@
 'use client'
 
 import { Skeleton } from '#components/ui/skeleton'
-import { useDashboardPageDataUnified } from '#hooks/api/use-dashboard'
+import { useOwnerDashboardPageData } from '#hooks/api/use-owner-dashboard'
 import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 
 export function SectionCards() {
-	const { data, isLoading, error } = useDashboardPageDataUnified()
+	const { data, isLoading, error } = useOwnerDashboardPageData()
 	const stats = data?.stats
 	const isError = !!error
 

@@ -10,32 +10,32 @@ const InviteWithLeaseSchema = z
 	.object({
 		tenantData: z.object({
 			email: z.string().email('Invalid email format'),
-			firstName: z.string().min(1, 'First name is required'),
-			lastName: z.string().min(1, 'Last name is required'),
+			first_name: z.string().min(1, 'First name is required'),
+			last_name: z.string().min(1, 'Last name is required'),
 			phone: z.string().optional()
 		}),
 		leaseData: z.object({
-			propertyId: z.string().uuid('Invalid property ID'),
-			unitId: z.string().uuid('Invalid unit ID').optional(),
-			// IMPORTANT: rentAmount and securityDeposit must be in cents (multiply dollars by 100)
-			rentAmount: z
+			property_id: z.string().uuid('Invalid property ID'),
+			unit_id: z.string().uuid('Invalid unit ID'),
+			// IMPORTANT: rent_amount and security_deposit must be in cents (multiply dollars by 100)
+			rent_amount: z
 				.number()
 				.int('Rent amount must be an integer (cents)')
 				.positive('Rent amount must be positive'),
-			securityDeposit: z
+			security_deposit: z
 				.number()
 				.int('Security deposit must be an integer (cents)')
 				.nonnegative('Security deposit cannot be negative'),
-			startDate: z.preprocess(validateDateString, z.string().min(1, 'Start date is required')),
-			endDate: z.preprocess(validateDateString, z.string().min(1, 'End date is required'))
+			start_date: z.preprocess(validateDateString, z.string().min(1, 'Start date is required')),
+			end_date: z.preprocess(validateDateString, z.string().min(1, 'End date is required'))
 		})
 	})
 	.refine(
 		(data) => {
-			// Cross-field validation: endDate must be after startDate
+			// Cross-field validation: end_date must be after start_date
 			// Parse as UTC midnight for consistent comparison (same as validateDateString)
-			const start = new Date(`${data.leaseData.startDate}T00:00:00.000Z`)
-			const end = new Date(`${data.leaseData.endDate}T00:00:00.000Z`)
+			const start = new Date(`${data.leaseData.start_date}T00:00:00.000Z`)
+			const end = new Date(`${data.leaseData.end_date}T00:00:00.000Z`)
 
 			// If either date is invalid, let individual field validation handle it
 			if (isNaN(start.getTime()) || isNaN(end.getTime())) {
@@ -46,7 +46,7 @@ const InviteWithLeaseSchema = z
 		},
 		{
 			message: 'Lease end date must be after start date',
-			path: ['leaseData', 'endDate']
+			path: ['leaseData', 'end_date']
 		}
 	)
 

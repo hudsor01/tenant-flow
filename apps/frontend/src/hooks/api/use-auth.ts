@@ -32,7 +32,7 @@ const supabase = getSupabaseClientInstance()
 interface User {
 	id: string
 	email: string
-	stripeCustomerId: string | null
+	stripe_customer_id: string | null
 }
 
 /**
@@ -162,7 +162,7 @@ export function useCurrentUser() {
 
 	return {
 		user: userData || sessionData?.user || null,
-		userId: userData?.id || sessionData?.user?.id || null,
+		user_id: userData?.id || sessionData?.user?.id || null,
 		session: sessionData,
 		isAuthenticated: !!(userData || sessionData?.user)
 	}
@@ -174,11 +174,11 @@ export function useCurrentUser() {
  * Returns user with:
  * - id: Auth user ID
  * - email: Auth user email
- * - stripeCustomerId: Stripe customer ID (null if none)
+ * - stripe_customer_id: Stripe customer ID (null if none)
  *
  * @example
  * const { data: user } = useUser()
- * if (user?.stripeCustomerId) {
+ * if (user?.stripe_customer_id) {
  *   // Show Customer Portal
  * }
  */
@@ -309,8 +309,8 @@ export function useSupabaseSignup() {
 				password,
 				options: {
 					data: {
-						firstName,
-						lastName,
+						first_name: firstName,
+						last_name: lastName,
 						company: company || null
 					}
 				}
@@ -386,8 +386,8 @@ export function useSupabaseUpdateProfile() {
 
 	return useMutation({
 		mutationFn: async (updates: {
-			firstName?: string
-			lastName?: string
+			first_name?: string
+			last_name?: string
 			phone?: string
 			company?: string
 		}) => {

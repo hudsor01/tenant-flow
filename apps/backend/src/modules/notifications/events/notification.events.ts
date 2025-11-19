@@ -5,20 +5,20 @@
 
 export class MaintenanceUpdatedEvent {
 	constructor(
-		public readonly userId: string,
+		public readonly user_id: string,
 		public readonly maintenanceId: string,
 		public readonly title: string,
 		public readonly status: string,
 		public readonly priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
 		public readonly propertyName: string,
-		public readonly unitNumber: string,
+		public readonly unit_number: string,
 		public readonly description: string
 	) {}
 }
 
 export class PaymentReceivedEvent {
 	constructor(
-		public readonly userId: string,
+		public readonly user_id: string,
 		public readonly subscriptionId: string,
 		public readonly amount: number,
 		public readonly currency: string,
@@ -29,7 +29,7 @@ export class PaymentReceivedEvent {
 
 export class PaymentFailedEvent {
 	constructor(
-		public readonly userId: string,
+		public readonly user_id: string,
 		public readonly subscriptionId: string,
 		public readonly amount: number,
 		public readonly currency: string,
@@ -40,8 +40,8 @@ export class PaymentFailedEvent {
 
 export class TenantCreatedEvent {
 	constructor(
-		public readonly userId: string,
-		public readonly tenantId: string,
+		public readonly user_id: string,
+		public readonly tenant_id: string,
 		public readonly tenantName: string,
 		public readonly tenantEmail: string,
 		public readonly description: string
@@ -50,10 +50,10 @@ export class TenantCreatedEvent {
 
 export class LeaseExpiringEvent {
 	constructor(
-		public readonly userId: string,
+		public readonly user_id: string,
 		public readonly tenantName: string,
 		public readonly propertyName: string,
-		public readonly unitNumber: string,
+		public readonly unit_number: string,
 		public readonly expirationDate: string,
 		public readonly daysUntilExpiry: number
 	) {}

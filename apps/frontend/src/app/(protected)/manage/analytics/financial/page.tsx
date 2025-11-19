@@ -118,12 +118,12 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			</TableHeader>
 			<TableBody>
 				{leases.slice(0, 6).map(lease => (
-					<TableRow key={lease.leaseId}>
-						<TableCell className="font-medium">{lease.leaseId}</TableCell>
+					<TableRow key={lease.lease_id}>
+						<TableCell className="font-medium">{lease.lease_id}</TableCell>
 						<TableCell>{lease.tenantName}</TableCell>
 						<TableCell>{lease.propertyName}</TableCell>
 						<TableCell className="text-right">
-							{formatCurrency(lease.monthlyRent)}
+							{formatCurrency(lease.rent_amount)}
 						</TableCell>
 						<TableCell className="text-right">
 							{formatCurrency(lease.outstandingBalance)}

@@ -32,7 +32,7 @@ export interface FileUploadOptions {
 	scanForMalware?: boolean
 	validateContent?: boolean
 	quarantineOnSuspicion?: boolean
-	userId?: string
+	user_id?: string
 	context?: FileUploadContext
 	// Supabase Storage specific options
 	contentType?: string

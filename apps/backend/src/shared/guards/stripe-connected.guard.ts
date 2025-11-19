@@ -21,6 +21,7 @@ import {
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
+import type { Database } from '@repo/shared/types/supabase'
 
 @Injectable()
 export class StripeConnectedGuard implements CanActivate {
@@ -30,9 +31,9 @@ export class StripeConnectedGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
-		const userId = request.user?.id
+		const user_id = request.user?.id
 
-		if (!userId) {
+		if (!user_id) {
 			throw new BadRequestException('Authentication required')
 		}
 
@@ -41,23 +42,23 @@ export class StripeConnectedGuard implements CanActivate {
 		// Get user's Stripe Connect status
 		const { data: user, error } = await client
 			.from('users')
-			.select('connectedAccountId, onboardingComplete')
-			.eq('id', userId)
-			.single()
+			.select('connected_account_id, onboarding_completed_at')
+			.eq('id', user_id)
+			.single<Pick<Database['public']['Tables']['users']['Row'], 'connected_account_id' | 'onboarding_completed_at'>>()
 
 		if (error || !user) {
 			this.logger.error('StripeConnectedGuard: Failed to fetch user', {
-				userId,
+				user_id,
 				error
 			})
 			throw new BadRequestException('User not found')
 		}
 
 		// Verify Stripe Connected Account exists
-		if (!user.connectedAccountId) {
+		if (!user.connected_account_id) {
 			this.logger.warn(
 				'StripeConnectedGuard: Missing connected account',
-				{ userId }
+				{ user_id }
 			)
 			throw new BadRequestException(
 				'Please complete Stripe onboarding before inviting tenants. Go to Settings → Billing to set up payments.'
@@ -65,10 +66,10 @@ export class StripeConnectedGuard implements CanActivate {
 		}
 
 		// Verify onboarding is complete
-		if (!user.onboardingComplete) {
+		if (!user.onboarding_completed_at) {
 			this.logger.warn(
 				'StripeConnectedGuard: Onboarding incomplete',
-				{ userId }
+				{ user_id }
 			)
 			throw new BadRequestException(
 				'Your Stripe account setup is incomplete. Please complete onboarding in Settings → Billing before inviting tenants.'
@@ -77,7 +78,7 @@ export class StripeConnectedGuard implements CanActivate {
 
 		// Attach connected account ID to request for ConnectedAccountId decorator
 		// NestJS pattern: Guards validate, decorators extract
-		request.connectedAccountId = user.connectedAccountId
+		request.connectedAccountId = user.connected_account_id
 
 		return true
 	}

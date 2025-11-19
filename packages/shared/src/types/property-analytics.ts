@@ -1,5 +1,5 @@
 export interface PropertyPerformanceEntry {
-	propertyId: string
+	property_id: string
 	propertyName: string
 	occupancyRate: number
 	monthlyRevenue: number
@@ -9,7 +9,7 @@ export interface PropertyPerformanceEntry {
 	vacantUnits: number
 	address?: string
 	status?: string
-	propertyType?: string
+	property_type?: string
 	trend: 'up' | 'down' | 'stable'
 	trendPercentage: number
 }
@@ -25,14 +25,14 @@ export interface PropertyPerformanceSummary {
 }
 
 export interface PropertyUnitDetail {
-	propertyId: string
-	unitId: string
-	unitNumber: string
+	property_id: string
+	unit_id: string
+	unit_number: string
 	status: string
 	bedrooms?: number | null
 	bathrooms?: number | null
 	rent?: number | null
-	squareFeet?: number | null
+	square_feet?: number | null
 }
 
 export interface UnitStatisticEntry {

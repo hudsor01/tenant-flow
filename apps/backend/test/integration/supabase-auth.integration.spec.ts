@@ -88,14 +88,14 @@ describe('Supabase auth integration', () => {
 
 	afterAll(async () => {
 		// Cleanup verification is handled in the test itself
-		// See line 210: expect(mockedDeleteTestUser).toHaveBeenCalledWith(userId)
+		// See line 210: expect(mockedDeleteTestUser).toHaveBeenCalledWith(user_id)
 	})
 
 	it('creates a user, signs in, calls protected route, then cleans up', async () => {
 		const unique = Date.now()
 		const email = `test+${unique}@example.com`
 		const password = 'TestPass123!'
-		const userId = `user-${unique}`
+		const user_id = `user-${unique}`
 
 		const admin = createAdminClient()
 		const anon = createClient(
@@ -104,7 +104,7 @@ describe('Supabase auth integration', () => {
 		)
 
 		adminClient.auth.admin.createUser.mockResolvedValue({
-			data: { user: { id: userId } },
+			data: { user: { id: user_id } },
 			error: null
 		})
 
@@ -165,22 +165,22 @@ describe('Supabase auth integration', () => {
 		expect(res.body).toEqual({ stats: [] })
 
 		const propertyPayload = {
-			ownerId: userId,
+			owner_id: user_id,
 			name: `Integration Property ${unique}`,
 			address: '123 Integration St',
 			city: 'Testville',
 			state: 'TS',
-			zipCode: '00000',
-			propertyType: 'APARTMENT'
+			postal_code: '00000',
+			property_type: 'APARTMENT'
 		}
 
-		await adminClient.from('property').insert(propertyPayload).select().single()
+		await adminClient.from('properties').insert(propertyPayload).select().single()
 
 		expect(propertyChain.insert).toHaveBeenCalledWith(propertyPayload)
 		expect(propertyChain.select).toHaveBeenCalled()
 
 		const bucket = process.env.SUPABASE_TEST_BUCKET || 'test-bucket'
-		const filePath = `integration/${userId}/${unique}.txt`
+		const filePath = `integration/${user_id}/${unique}.txt`
 		await anon.storage
 			.from(bucket)
 			.upload(filePath, Buffer.from('hello world'), { upsert: true })
@@ -209,6 +209,6 @@ describe('Supabase auth integration', () => {
 			await deleteTestUser(testUser.id)
 		}
 
-		expect(mockedDeleteTestUser).toHaveBeenCalledWith(userId)
+		expect(mockedDeleteTestUser).toHaveBeenCalledWith(user_id)
 	})
 })

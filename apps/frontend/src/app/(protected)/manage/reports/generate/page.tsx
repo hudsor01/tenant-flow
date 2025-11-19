@@ -112,29 +112,29 @@ export default function GenerateReportsPage() {
 	// Calculate date range based on selected period
 	const getDateRange = () => {
 		const today = new Date()
-		let startDate: Date
-		const endDate: Date = today
+		let start_date: Date
+		const end_date: Date = today
 
 		switch (selectedPeriod) {
 			case 'last-month':
-				startDate = subMonths(today, 1)
+				start_date = subMonths(today, 1)
 				break
 			case 'last-3-months':
-				startDate = subMonths(today, 3)
+				start_date = subMonths(today, 3)
 				break
 			case 'last-6-months':
-				startDate = subMonths(today, 6)
+				start_date = subMonths(today, 6)
 				break
 			case 'last-year':
-				startDate = subMonths(today, 12)
+				start_date = subMonths(today, 12)
 				break
 			default:
-				startDate = subMonths(today, 1)
+				start_date = subMonths(today, 1)
 		}
 
 		return {
-			startDate: format(startDate, 'yyyy-MM-dd'),
-			endDate: format(endDate, 'yyyy-MM-dd')
+			start_date: format(start_date, 'yyyy-MM-dd'),
+			end_date: format(end_date, 'yyyy-MM-dd')
 		}
 	}
 
@@ -146,18 +146,18 @@ export default function GenerateReportsPage() {
 		setGeneratingReports(prev => ({ ...prev, [reportKey]: true }))
 
 		try {
-			const { startDate, endDate } = getDateRange()
-			const userId = user?.id
+			const { start_date, end_date } = getDateRange()
+			const user_id = user?.id
 
-			if (!userId) {
+			if (!user_id) {
 				toast.error('User not authenticated')
 				return
 			}
 
 			await reportsClient.generateReport(reportId, {
-				userId,
-				startDate,
-				endDate,
+				user_id,
+				start_date,
+				end_date,
 				format
 			})
 

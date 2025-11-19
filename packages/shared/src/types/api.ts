@@ -1,24 +1,13 @@
-// File: packages/shared/api.ts
-// Purpose: Shared API DTOs and response types for frontend and backend.
 
-import type { Database } from './supabase-generated.js'
-import type { User } from './supabase.js'
-type Lease = Database['public']['Tables']['lease']['Row']
-type Property = Database['public']['Tables']['property']['Row']
-type Unit = Database['public']['Tables']['unit']['Row']
-type Tenant = Database['public']['Tables']['tenant']['Row']
-// MaintenanceRequest type available if needed: Database['public']['Tables']['maintenance_request']['Row']
+import type { Database } from './supabase.js'
 import type { ControllerApiResponse as _ControllerApiResponse } from './errors.js'
 
 export type { _ControllerApiResponse as ControllerApiResponse }
-// Response types moved to core.ts - using ApiResponse pattern instead
 
-// Note: Core types (User, Lease, Property, etc.) are exported from their own files
-// Note: Error types are exported from errors.ts
-// Note: Response types are exported from responses.ts
-// This file contains only API-specific types to avoid re-export conflicts
-
-// Note: ApiResponse types moved to responses.ts to avoid conflicts
+type Lease = Database['public']['Tables']['leases']['Row']
+type Property = Database['public']['Tables']['properties']['Row']
+type Unit = Database['public']['Tables']['units']['Row']
+type Tenant = Database['public']['Tables']['tenants']['Row']
 
 export interface ApiError {
 	message: string
@@ -55,9 +44,6 @@ export interface RegisterData extends AuthCredentials {
 
 export type { RefreshTokenRequest } from './auth.js'
 
-// User API types
-export type UserProfileResponse = User
-
 export interface UpdateUserProfileDto {
 	name?: string | null
 	phone?: string | null
@@ -75,10 +61,6 @@ export interface UpdateUserProfileInput {
 	company?: string | null
 }
 
-// Note: Property, Tenant, Unit, and Lease input types are defined in api-inputs.ts
-// Import them from there instead
-
-// Import from api-inputs.ts for consistent type usage
 import type {
 	CreateLeaseInput,
 	CreatePropertyInput,
@@ -126,9 +108,9 @@ export interface LeaseStatistics {
 	active: number
 }
 
-export interface ExpiringLease extends Omit<Lease, 'endDate'> {
-	rentAmount: number
-	endDate: string
+export interface ExpiringLease extends Omit<Lease, 'end_date'> {
+	rent_amount: number
+	end_date: string
 	unit: Unit & {
 		property: Property
 	}
@@ -138,7 +120,7 @@ export interface ExpiringLease extends Omit<Lease, 'endDate'> {
 
 // Maintenance API types
 export interface CreateMaintenanceDto {
-	unitId: string
+	unit_id: string
 	title: string
 	description: string
 	priority?: string
@@ -151,9 +133,9 @@ export interface UpdateMaintenanceDto {
 	priority?: string
 	status?: string
 	assignedTo?: string
-	estimatedCost?: number
+	estimated_cost?: number
 	actualCost?: number
-	completedAt?: string
+	completed_at?: string
 }
 
 // Notification API types
@@ -181,21 +163,18 @@ export type {
 	UnitQuery
 } from './queries.js'
 
-// Note: *WithDetails types are defined in relations.ts to avoid circular imports
-
-// DashboardStats moved to core.ts to follow single source of truth architecture
 
 export type { ActivityItem } from './activity.js'
 
 export interface DashboardActivity {
 	activities: {
 		id: string
-		type: 'property' | 'tenant' | 'lease' | 'maintenance'
+		type: 'properties' | 'tenants' | 'leases' | 'maintenance'
 		action: 'created' | 'updated' | 'deleted'
 		title: string
 		description: string
 		timestamp: string
-		userId: string
+		user_id: string
 	}[]
 }
 
@@ -204,17 +183,17 @@ export interface InviteTenantDto {
 	name: string
 	email: string
 	phone?: string
-	emergencyContact?: string
-	propertyId: string
-	unitId: string
+	emergency_contact?: string
+	property_id: string
+	unit_id: string
 }
 
 export interface InviteTenantData {
 	name: string
 	email: string
 	phone?: string
-	propertyId: string
-	unitId?: string // Optional unit selection
+	property_id: string
+	unit_id?: string // Optional unit selection
 }
 
 export interface InvitationResponse {
@@ -326,11 +305,6 @@ export interface UseLoadingStateOptions {
 	timeout?: number
 }
 
-// ============================================================================
-// RPC API RESPONSE TYPES - Match actual flattened database query responses
-// ============================================================================
-
-// MaintenanceRequest with flattened joined data (from get_user_maintenance RPC)
 export interface MaintenanceRequestApiResponse {
 	// MaintenanceRequest fields
 	id: string
@@ -339,34 +313,34 @@ export interface MaintenanceRequestApiResponse {
 	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 	status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELED' | 'ON_HOLD'
 	category: string | null
-	unitId: string
+	unit_id: string
 	actualCost: number | null
 	allowEntry: boolean
 	assignedTo: string | null
-	completedAt: string | null
+	completed_at: string | null
 	contactPhone: string | null
-	createdAt: string
-	estimatedCost: number | null
+	created_at: string
+	estimated_cost: number | null
 	notes: string | null
 	photos: string[] | null
 	preferredDate: string | null
 	requestedBy: string | null
-	updatedAt: string
+	updated_at: string
 
 	// Flattened Unit fields (joined from Unit table)
-	unitNumber: string
+	unit_number: string
 	unitBedrooms?: number
 	unitBathrooms?: number
 	unitRent?: number
 	unitStatus?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
 
 	// Flattened Property fields (joined from Property table via Unit)
-	propertyId?: string
+	property_id?: string
 	propertyName?: string
 	propertyAddress?: string
 	propertyCity?: string
 	propertyState?: string
-	propertyType?:
+	property_type?:
 		| 'SINGLE_FAMILY'
 		| 'MULTI_UNIT'
 		| 'APARTMENT'

@@ -13,6 +13,7 @@ import {
 	Get,
 	Patch,
 	Param,
+	ParseUUIDPipe,
 	HttpStatus,
 	HttpCode,
 	SetMetadata
@@ -111,7 +112,9 @@ export class WebhookHealthController {
 	 */
 	@Patch('failures/:id/resolve')
 	@HttpCode(HttpStatus.OK)
-	async resolveFailure(@Param('id') id: string) {
+	async resolveFailure(
+		@Param('id', ParseUUIDPipe) id: string
+	): Promise<{ success: boolean; message: string }> {
 		await this.webhookMonitoringService.resolveFailure(id)
 
 		return {

@@ -12,7 +12,6 @@ import type { PaginationLinkProps } from '@repo/shared/types/frontend'
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
 	return (
 		<nav
-			role="navigation"
 			aria-label="pagination"
 			data-slot="pagination"
 			data-tokens="applied"

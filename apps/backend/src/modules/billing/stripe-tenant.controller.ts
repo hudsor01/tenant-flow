@@ -39,19 +39,19 @@ export class StripeTenantController {
 	async createCustomer(
 		@Request() _req: AuthenticatedRequest,
 		@Body()
-		body: { tenantId: string; email: string; name?: string; phone?: string }
+		body: { tenant_id: string; email: string; name?: string; phone?: string }
 	) {
-		if (!body.tenantId || !body.email) {
-			throw new BadRequestException('tenantId and email are required')
+		if (!body.tenant_id || !body.email) {
+			throw new BadRequestException('tenant_id and email are required')
 		}
 
 		const params: {
-			tenantId: string
+			tenant_id: string
 			email: string
 			name?: string
 			phone?: string
 		} = {
-			tenantId: body.tenantId,
+			tenant_id: body.tenant_id,
 			email: body.email
 		}
 		if (body.name) params.name = body.name
@@ -74,18 +74,18 @@ export class StripeTenantController {
 	async attachPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
 		@Body()
-		body: { tenantId: string; paymentMethodId: string; setAsDefault?: boolean }
+		body: { tenant_id: string; paymentMethodId: string; setAsDefault?: boolean }
 	) {
-		if (!body.tenantId || !body.paymentMethodId) {
-			throw new BadRequestException('tenantId and paymentMethodId are required')
+		if (!body.tenant_id || !body.paymentMethodId) {
+			throw new BadRequestException('tenant_id and paymentMethodId are required')
 		}
 
 		const params: {
-			tenantId: string
+			tenant_id: string
 			paymentMethodId: string
 			setAsDefault?: boolean
 		} = {
-			tenantId: body.tenantId,
+			tenant_id: body.tenant_id,
 			paymentMethodId: body.paymentMethodId
 		}
 		if (body.setAsDefault !== undefined) params.setAsDefault = body.setAsDefault
@@ -101,15 +101,15 @@ export class StripeTenantController {
 
 	/**
 	 * List payment methods for Tenant
-	 * GET /api/v1/stripe/tenant/payment-methods/:tenantId
+	 * GET /api/v1/stripe/tenant/payment-methods/:tenant_id
 	 */
-	@Get('payment-methods/:tenantId')
+	@Get('payment-methods/:tenant_id')
 	async listPaymentMethods(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId', ParseUUIDPipe) tenantId: string
+		@Param('tenant_id', ParseUUIDPipe) tenant_id: string
 	) {
 		const paymentMethods =
-			await this.stripeTenantService.listPaymentMethods(tenantId)
+			await this.stripeTenantService.listPaymentMethods(tenant_id)
 
 		return {
 			paymentMethods
@@ -118,15 +118,15 @@ export class StripeTenantController {
 
 	/**
 	 * Get default payment method for Tenant
-	 * GET /api/v1/stripe/tenant/default-payment-method/:tenantId
+	 * GET /api/v1/stripe/tenant/default-payment-method/:tenant_id
 	 */
-	@Get('default-payment-method/:tenantId')
+	@Get('default-payment-method/:tenant_id')
 	async getDefaultPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Param('tenantId', ParseUUIDPipe) tenantId: string
+		@Param('tenant_id', ParseUUIDPipe) tenant_id: string
 	) {
 		const paymentMethod =
-			await this.stripeTenantService.getDefaultPaymentMethod(tenantId)
+			await this.stripeTenantService.getDefaultPaymentMethod(tenant_id)
 
 		return {
 			paymentMethod
@@ -140,14 +140,14 @@ export class StripeTenantController {
 	@Post('set-default-payment-method')
 	async setDefaultPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Body() body: { tenantId: string; paymentMethodId: string }
+		@Body() body: { tenant_id: string; paymentMethodId: string }
 	) {
-		if (!body.tenantId || !body.paymentMethodId) {
-			throw new BadRequestException('tenantId and paymentMethodId are required')
+		if (!body.tenant_id || !body.paymentMethodId) {
+			throw new BadRequestException('tenant_id and paymentMethodId are required')
 		}
 
 		await this.stripeTenantService.setDefaultPaymentMethod(
-			body.tenantId,
+			body.tenant_id,
 			body.paymentMethodId
 		)
 
@@ -163,14 +163,14 @@ export class StripeTenantController {
 	@Delete('detach-payment-method')
 	async detachPaymentMethod(
 		@Request() _req: AuthenticatedRequest,
-		@Body() body: { tenantId: string; paymentMethodId: string }
+		@Body() body: { tenant_id: string; paymentMethodId: string }
 	) {
-		if (!body.tenantId || !body.paymentMethodId) {
-			throw new BadRequestException('tenantId and paymentMethodId are required')
+		if (!body.tenant_id || !body.paymentMethodId) {
+			throw new BadRequestException('tenant_id and paymentMethodId are required')
 		}
 
 		await this.stripeTenantService.detachPaymentMethod(
-			body.tenantId,
+			body.tenant_id,
 			body.paymentMethodId
 		)
 
@@ -187,15 +187,15 @@ export class StripeTenantController {
 	@Post('portal-session')
 	async createPortalSession(
 		@Request() _req: AuthenticatedRequest,
-		@Body() body: { tenantId: string; returnUrl?: string }
+		@Body() body: { tenant_id: string; returnUrl?: string }
 	) {
-		if (!body.tenantId) {
-			throw new BadRequestException('tenantId is required')
+		if (!body.tenant_id) {
+			throw new BadRequestException('tenant_id is required')
 		}
 
 		// Get or create Stripe Customer for tenant
 		const customer = await this.stripeTenantService.getStripeCustomerForTenant(
-			body.tenantId
+			body.tenant_id
 		)
 
 		if (!customer) {

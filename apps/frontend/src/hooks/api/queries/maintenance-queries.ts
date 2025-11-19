@@ -21,8 +21,8 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
  * Maintenance query filters
  */
 export interface MaintenanceFilters {
-	unitId?: string
-	propertyId?: string
+	unit_id?: string
+	property_id?: string
 	priority?: string
 	category?: string
 	status?: string
@@ -57,8 +57,8 @@ export const maintenanceQueries = {
 			queryKey: [...maintenanceQueries.lists(), filters ?? {}],
 			queryFn: async () => {
 				const params = new URLSearchParams()
-				if (filters?.unitId) params.append('unitId', filters.unitId)
-				if (filters?.propertyId) params.append('propertyId', filters.propertyId)
+				if (filters?.unit_id) params.append('unit_id', filters.unit_id)
+				if (filters?.property_id) params.append('property_id', filters.property_id)
 				if (filters?.priority) params.append('priority', filters.priority)
 				if (filters?.category) params.append('category', filters.category)
 				if (filters?.status) params.append('status', filters.status)

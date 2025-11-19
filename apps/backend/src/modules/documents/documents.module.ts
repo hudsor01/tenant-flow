@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common'
+import { SupabaseModule } from '../../database/supabase.module'
 import { CompressionService } from './compression.service'
-import { StorageService } from '../../database/storage.service'
-import { SupabaseService } from '../../database/supabase.service'
 
 @Module({
-	providers: [CompressionService, StorageService, SupabaseService],
+	imports: [SupabaseModule],
+	providers: [CompressionService],
 	exports: [CompressionService]
 })
 export class DocumentsModule {}

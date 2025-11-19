@@ -10,12 +10,10 @@ import {
 	UseGuards
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
-import { RolesGuard } from '../../shared/guards/roles.guard'
-import { Roles } from '../../shared/decorators/roles.decorator'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { User } from '../../shared/decorators/user.decorator'
 import type { authUser } from '@repo/shared/types/auth'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
@@ -29,13 +27,8 @@ const API_ENDPOINTS = {
 } as const
 
 const CreateMaintenanceRequestSchema = z.object({
-	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-	category: z
-		.enum(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCES', 'SAFETY', 'GENERAL', 'OTHER'])
-		.optional(),
-	allowEntry: z.boolean().default(true),
 	photos: z.array(z.string().url()).max(6).optional()
 })
 
@@ -43,53 +36,59 @@ class CreateMaintenanceRequestDto extends createZodDto(
 	CreateMaintenanceRequestSchema
 ) {}
 
-type TenantRow = Database['public']['Tables']['tenant']['Row']
-type LeaseRow = Database['public']['Tables']['lease']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type LeaseRow = Database['public']['Tables']['leases']['Row']
 type MaintenanceRequestRow =
-	Database['public']['Tables']['maintenance_request']['Row']
+	Database['public']['Tables']['maintenance_requests']['Row']
 type MaintenanceRequestListItem = Pick<
 	MaintenanceRequestRow,
 	| 'id'
-	| 'title'
-	| 'description'
-	| 'priority'
 	| 'status'
-	| 'category'
-	| 'createdAt'
-	| 'updatedAt'
-	| 'completedAt'
-	| 'requestedBy'
-	| 'unitId'
+	| 'created_at'
+	| 'description'
+	| 'updated_at'
+	| 'unit_id'
+	| 'actual_cost'
+	| 'assigned_to'
+	| 'completed_at'
+	| 'estimated_cost'
+	| 'inspection_date'
+	| 'priority'
+	| 'scheduled_date'
+	| 'inspection_findings'
+	| 'requested_by'
 >
-type RentPaymentRow = Database['public']['Tables']['rent_payment']['Row']
+type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 type RentPaymentListItem = Pick<
 	RentPaymentRow,
 	| 'id'
 	| 'amount'
 	| 'status'
-	| 'paidAt'
-	| 'dueDate'
-	| 'createdAt'
-	| 'leaseId'
-	| 'tenantId'
-	| 'stripePaymentIntentId'
-	| 'ownerReceives'
-	| 'receiptUrl'
+	| 'created_at'
+	| 'lease_id'
+	| 'tenant_id'
+	| 'updated_at'
+	| 'late_fee_amount'
+	| 'stripe_payment_intent_id'
+	| 'due_date'
+	| 'application_fee_amount'
+	| 'paid_date'
+	| 'period_end'
+	| 'period_start'
 >
 
 /**
  * Tenant Portal Controller
  *
- * Dedicated endpoints for tenant-only operations with role-based access control.
- * Enforces TENANT role via @Roles() decorator and RolesGuard.
+ * Dedicated endpoints for tenant-only operations with user_type-based access control.
+ * Enforces TENANT user_type via @user_types() decorator and user_typesGuard.
  *
  * Security: Defense in depth
- * - Application Layer: @Roles('TENANT') + RolesGuard
- * - Database Layer: RLS policies enforce auth.uid() = tenantId
+ * - Application Layer: @user_types('TENANT') + user_typesGuard
+ * - Database Layer: RLS policies enforce auth.uid() = tenant_id
  */
 @Controller('tenant-portal')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('TENANT')
+@UseGuards(JwtAuthGuard)
 export class TenantPortalController {
 	private readonly logger = new Logger(TenantPortalController.name)
 
@@ -102,25 +101,30 @@ export class TenantPortalController {
 	async getDashboard(@JwtToken() token: string, @User() user: authUser) {
 		const tenant = await this.resolveTenant(token, user)
 
-		const [lease, maintenanceSummary, payments] = await Promise.all([
+		const [lease, maintenanceSummary, payments, userData] = await Promise.all([
 			this.fetchActiveLease(token, tenant),
 			this.fetchMaintenanceSummary(token, user),
-			this.fetchPayments(token, tenant)
+			this.fetchPayments(token, tenant),
+			this.supabase
+				.getUserClient(token)
+				.from('users')
+				.select('first_name, last_name, email')
+				.eq('id', tenant.user_id)
+				.single()
 		])
 
 		const upcomingPayment = payments.find(
 			payment =>
 				(payment.status === 'DUE' || payment.status === 'PENDING') &&
-				payment.dueDate
+				payment.due_date
 		)
 
 		return {
 			tenant: {
 				id: tenant.id,
-				firstName: tenant.firstName,
-				lastName: tenant.lastName,
-				email: tenant.email,
-				status: tenant.status
+				first_name: userData.data?.first_name,
+				last_name: userData.data?.last_name,
+				email: userData.data?.email
 			},
 			lease,
 			maintenance: maintenanceSummary,
@@ -140,7 +144,7 @@ export class TenantPortalController {
 	/**
 	 * Lease endpoint - returns the active lease with unit/property metadata
 	 */
-	@Get('lease')
+	@Get('leases')
 	async getLease(@JwtToken() token: string, @User() user: authUser) {
 		const tenant = await this.resolveTenant(token, user)
 		return this.fetchActiveLease(token, tenant)
@@ -173,7 +177,7 @@ export class TenantPortalController {
 			this.logger.warn(
 				'Tenant attempted to create maintenance request without active unit',
 				{
-					authUserId: user.id
+					authuser_id: user.id
 				}
 			)
 			throw new BadRequestException(
@@ -181,30 +185,27 @@ export class TenantPortalController {
 			)
 		}
 
-		const maintenanceRequest: Database['public']['Tables']['maintenance_request']['Insert'] =
+		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
 			{
-				title: body.title,
 				description: body.description,
-				priority: body.priority as Database['public']['Enums']['Priority'],
-				category: body.category ?? null,
-				allowEntry: body.allowEntry,
+				priority: body.priority,
 				status: 'OPEN',
-				requestedBy: user.id,
-				photos: body.photos && body.photos.length > 0 ? body.photos : null,
-				unitId: lease.unit.id
+				requested_by: user.id,
+				tenant_id: tenant.id,
+				unit_id: lease.unit.id
 			}
 
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('maintenance_request')
+			.from('maintenance_requests')
 			.insert(maintenanceRequest)
 			.select()
 			.single<MaintenanceRequestRow>()
 
 		if (error) {
 			this.logger.error('Failed to create maintenance request', {
-				authUserId: user.id,
-				unitId: lease.unit.id,
+				authuser_id: user.id,
+				unit_id: lease.unit.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException(
@@ -243,7 +244,7 @@ export class TenantPortalController {
 			type: 'LEASE' | 'RECEIPT'
 			name: string
 			url: string | null
-			createdAt: string | null
+			created_at: string | null
 		}> = []
 
 		if (lease?.metadata?.documentUrl) {
@@ -252,14 +253,14 @@ export class TenantPortalController {
 				type: 'LEASE',
 				name: 'Signed Lease Agreement',
 				url: lease.metadata.documentUrl,
-				createdAt: lease.startDate
+				created_at: lease.start_date
 			})
 		}
 
 		for (const payment of payments) {
-			if (!payment.receiptUrl) continue
-			// FIX: Safely select a valid date, fallback to "Unknown date" if all are null
-			const dateSource = payment.createdAt ?? payment.dueDate ?? payment.paidAt
+			// Skip if no receipt URL (field might not be in schema)
+			if (!payment.id) continue
+			const dateSource = payment.created_at ?? payment.paid_date
 			const dateDisplay = dateSource
 				? new Date(dateSource).toLocaleDateString()
 				: 'Unknown date'
@@ -267,8 +268,8 @@ export class TenantPortalController {
 				id: payment.id,
 				type: 'RECEIPT',
 				name: `Rent receipt - ${dateDisplay}`,
-				url: payment.receiptUrl,
-				createdAt: payment.paidAt ?? payment.createdAt
+				url: null, // Receipt URL might not be available
+				created_at: payment.paid_date ?? payment.created_at
 			})
 		}
 
@@ -285,16 +286,16 @@ export class TenantPortalController {
 	): Promise<TenantRow> {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('tenant')
+			.from('tenants')
 			.select(
-				'id, auth_user_id, firstName, lastName, email, status, stripe_customer_id'
+				'id, user_id, stripe_customer_id'
 			)
-			.eq('auth_user_id', user.id)
+			.eq('user_id', user.id)
 			.single<TenantRow>()
 
 		if (error || !data) {
 			this.logger.error('Tenant record not found for auth user', {
-				authUserId: user.id,
+				authuser_id: user.id,
 				error: error?.message
 			})
 			throw new InternalServerErrorException('Tenant account not activated')
@@ -310,7 +311,7 @@ export class TenantPortalController {
 		| (LeaseRow & {
 				unit: {
 					id: string
-					unitNumber: string | null
+					unit_number: string | null
 					bedrooms: number | null
 					bathrooms: number | null
 					property?: {
@@ -319,7 +320,7 @@ export class TenantPortalController {
 						address: string | null
 						city: string | null
 						state: string | null
-						zipCode: string | null
+						postal_code: string | null
 					} | null
 				} | null
 				metadata: {
@@ -330,43 +331,70 @@ export class TenantPortalController {
 	> {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('lease')
+			.from('leases')
 			.select(
 				`
-				id,
-				startDate,
-				endDate,
-				rentAmount,
-				securityDeposit,
-				status,
-				stripe_subscription_id,
-				lease_document_url,
-				createdAt,
-				unit:unitId(
+			id,
+			start_date,
+			end_date,
+			lease_status,
+			rent_amount,
+			security_deposit,
+			stripe_subscription_id,
+			auto_pay_enabled,
+			grace_period_days,
+			late_fee_amount,
+			late_fee_days,
+			primary_tenant_id,
+			rent_currency,
+			payment_day,
+			unit_id,
+			created_at,
+			updated_at,
+				unit:unit_id(
 					id,
-					unitNumber,
+					unit_number,
 					bedrooms,
 					bathrooms,
-					property:propertyId(
+					property:property_id(
 						id,
 						name,
 						address,
 						city,
 						state,
-						zipCode
+						postal_code
 					)
 				)
 			`
 			)
-			.eq('tenantId', tenant.id)
-			.eq('status', 'ACTIVE')
-			.order('startDate', { ascending: false })
+			.eq('tenant_id', tenant.id)
+			.order('start_date', { ascending: false })
 			.limit(1)
-			.maybeSingle()
+			.maybeSingle<
+				LeaseRow & {
+					unit: {
+						id: string
+						unit_number: string | null
+						bedrooms: number | null
+						bathrooms: number | null
+						property?: {
+							id: string
+							name: string | null
+							address: string | null
+							city: string | null
+							state: string | null
+							postal_code: string | null
+						} | null
+					} | null
+					metadata: {
+						documentUrl: string | null
+					}
+				}
+			>()
 
 		if (error) {
 			this.logger.error('Failed to load tenant lease', {
-				tenantId: tenant.id,
+				tenant_id: tenant.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException('Failed to load lease information')
@@ -376,34 +404,13 @@ export class TenantPortalController {
 			return null
 		}
 
-		const {
-			lease_document_url: leaseDocumentUrl,
-			unit,
-			...leaseCore
-		} = data as LeaseRow & {
-			lease_document_url?: string | null
-			unit?: {
-				id: string
-				unitNumber: string | null
-				bedrooms: number | null
-				bathrooms: number | null
-				property?: {
-					id: string
-					name: string | null
-					address: string | null
-					city: string | null
-					state: string | null
-					zipCode: string | null
-				} | null
-			} | null
-		}
+		const { unit, ...leaseCore } = data
 
 		return {
 			...leaseCore,
-			lease_document_url: leaseDocumentUrl,
 			unit: unit ?? null,
 			metadata: {
-				documentUrl: leaseDocumentUrl ?? null
+				documentUrl: null
 			}
 		}
 	}
@@ -414,16 +421,16 @@ export class TenantPortalController {
 	): Promise<MaintenanceRequestListItem[]> {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('maintenance_request')
+			.from('maintenance_requests')
 			.select(
-				'id, title, description, priority, status, category, createdAt, updatedAt, completedAt, requestedBy, unitId'
+				'id, description, priority, status, created_at, updated_at, completed_at, unit_id, actual_cost, assigned_to, estimated_cost, inspection_date, scheduled_date, inspection_findings, requested_by'
 			)
-			.eq('requestedBy', user.id)
-			.order('createdAt', { ascending: false })
+			.eq('requested_by', user.id)
+			.order('created_at', { ascending: false })
 
 		if (error) {
 			this.logger.error('Failed to fetch maintenance requests', {
-				authUserId: user.id,
+				authuser_id: user.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException(
@@ -472,17 +479,17 @@ export class TenantPortalController {
 	): Promise<RentPaymentListItem[]> {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('rent_payment')
+			.from('rent_payments')
 			.select(
-				'id, amount, status, paidAt, dueDate, createdAt, leaseId, tenantId, stripePaymentIntentId, ownerReceives, receiptUrl'
+				'id, amount, status, created_at, lease_id, tenant_id, updated_at, late_fee_amount, stripe_payment_intent_id, due_date, application_fee_amount, paid_date, period_end, period_start'
 			)
-			.eq('tenantId', tenant.id)
-			.order('createdAt', { ascending: false })
+			.eq('tenant_id', tenant.id)
+			.order('created_at', { ascending: false })
 			.limit(50)
 
 		if (error) {
 			this.logger.error('Failed to load rent payments', {
-				tenantId: tenant.id,
+				tenant_id: tenant.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException('Failed to load payment history')

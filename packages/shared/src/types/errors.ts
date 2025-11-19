@@ -172,9 +172,9 @@ export type AsyncResult<T> =
 // Error context for debugging
 export interface ErrorContext {
 	operation?: string
-	entityType?: 'property' | 'tenant' | 'lease' | 'maintenance' | 'user'
+	entityType?: 'properties' | 'tenants' | 'leases' | 'maintenance' | 'user'
 	entityId?: string
-	userId?: string
+	user_id?: string
 	metadata?: Record<string, unknown>
 }
 

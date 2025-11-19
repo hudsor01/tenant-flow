@@ -32,19 +32,19 @@ export class OwnerContextInterceptor implements NestInterceptor {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 		const { method, url, user } = request
 
-		const ownerId = user?.id
+		const owner_id = user?.id
 		const timestamp = new Date().toISOString()
 
 		// Enrich request with owner context
 		request.ownerContext = {
-			ownerId: ownerId || 'unknown',
+			owner_id: owner_id || 'unknown',
 			timestamp,
 			route: url,
 			method
 		}
 
 		this.logger.log('Owner dashboard request', {
-			ownerId,
+			owner_id,
 			method,
 			route: url,
 			timestamp
@@ -57,7 +57,7 @@ export class OwnerContextInterceptor implements NestInterceptor {
 				next: () => {
 					const duration = Date.now() - startTime
 					this.logger.log('Owner dashboard response', {
-						ownerId,
+						owner_id,
 						method,
 						route: url,
 						duration: `${duration}ms`,
@@ -67,7 +67,7 @@ export class OwnerContextInterceptor implements NestInterceptor {
 				error: (error) => {
 					const duration = Date.now() - startTime
 					this.logger.error('Owner dashboard error', {
-						ownerId,
+						owner_id,
 						method,
 						route: url,
 						duration: `${duration}ms`,

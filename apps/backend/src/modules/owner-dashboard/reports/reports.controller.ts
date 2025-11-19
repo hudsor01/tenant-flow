@@ -9,7 +9,7 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { UserId } from '../../../shared/decorators/user.decorator'
+import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -38,7 +38,7 @@ export class ReportsController {
 	@Get('time-series')
 	async getTimeSeries(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('metric') metric: string,
 		@Query('days') days?: string
 	): Promise<ControllerApiResponse> {
@@ -55,13 +55,13 @@ export class ReportsController {
 		const parsedDays = days ? parseInt(days, 10) : 30
 
 		this.logger.log('Getting time-series data', {
-			userId,
+			user_id,
 			metric,
 			days: parsedDays
 		})
 
 		const data = await this.dashboardService.getTimeSeries(
-			userId,
+			user_id,
 			metric,
 			parsedDays,
 			token
@@ -78,7 +78,7 @@ export class ReportsController {
 	@Get('metric-trend')
 	async getMetricTrend(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('metric') metric: string,
 		@Query('period') period?: string
 	): Promise<ControllerApiResponse> {
@@ -95,13 +95,13 @@ export class ReportsController {
 		const validPeriod = period || 'month'
 
 		this.logger.log('Getting metric trend', {
-			userId,
+			user_id,
 			metric,
 			period: validPeriod
 		})
 
 		const data = await this.dashboardService.getMetricTrend(
-			userId,
+			user_id,
 			metric,
 			validPeriod,
 			token

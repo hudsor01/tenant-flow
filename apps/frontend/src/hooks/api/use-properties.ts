@@ -20,9 +20,9 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
 import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
-import type { Property } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase'
-import { compressImage } from '#lib/image-compression'
+import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase' // Still used in usePropertyImages
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	handleMutationError,
@@ -115,6 +115,18 @@ export function usePropertyList(params?: {
 		retry: 2,
 		structuralSharing: true
 	})
+}
+
+/**
+ * @deprecated Maintained for backwards compatibility with older integration tests.
+ * Prefer usePropertyList for new code so pagination params are explicit.
+ */
+export function useProperties(params?: {
+	search?: string | null
+	limit?: number
+	offset?: number
+}) {
+	return usePropertyList(params)
 }
 
 /**
@@ -220,21 +232,19 @@ export function useCreateProperty() {
 			const optimisticProperty: Property = {
 				id: tempId,
 				name: newProperty.name,
-				address: newProperty.address,
+				address_line1: newProperty.address_line1,
+				address_line2: newProperty.address_line2 || null,
 				city: newProperty.city,
 				state: newProperty.state,
-				zipCode: newProperty.zipCode,
-				ownerId: '', // Will be set by backend
-				propertyType: newProperty.propertyType || 'SINGLE_FAMILY',
-				status: 'ACTIVE', // Backend default status for new properties
-				description: newProperty.description || null,
-				imageUrl: newProperty.imageUrl || null,
+				postal_code: newProperty.postal_code,
+				country: newProperty.country || 'US',
+				property_owner_id: '', // Will be set by backend
+				property_type: newProperty.property_type || 'SINGLE_FAMILY',
+				status: 'ACTIVE',
 				date_sold: null,
 				sale_price: null,
-				sale_notes: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				version: 1 //Optimistic locking
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			}
 
 			// Optimistically update all caches
@@ -336,24 +346,24 @@ export function useUpdateProperty() {
 				queryKey: propertiesKeys.all
 			})
 
-			// Optimistically update detail cache (use incrementVersion helper)
-			queryClient.setQueryData<Property>(propertiesKeys.detail(id), old =>
-				old ? incrementVersion(old, data) : undefined
-			)
+			// Optimistically update detail cache
+		queryClient.setQueryData<PropertyWithVersion>(propertiesKeys.detail(id), old =>
+			old ? incrementVersion(old, data) : undefined
+		)
 
 			// Optimistically update list caches
-			queryClient.setQueriesData<{ data: Property[]; total: number }>(
-				{ queryKey: propertiesKeys.all },
-				old => {
-					if (!old || !Array.isArray(old.data)) return old
-					return {
-						...old,
-						data: old.data.map(property =>
-							property.id === id ? incrementVersion(property, data) : property
-						)
-					}
+			queryClient.setQueriesData<{ data: PropertyWithVersion[]; total: number }>(
+			{ queryKey: propertiesKeys.all },
+			old => {
+				if (!old || !Array.isArray(old.data)) return old
+				return {
+					...old,
+					data: old.data.map(property =>
+						property.id === id ? incrementVersion(property, data) : property
+					)
 				}
-			)
+			}
+		)
 
 			return { previousDetail, previousLists }
 		},
@@ -373,7 +383,7 @@ export function useUpdateProperty() {
 
 			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
-				handleConflictError('property', id, queryClient, [
+				handleConflictError('properties', id, queryClient, [
 					propertiesKeys.detail(id),
 					propertiesKeys.all
 				])
@@ -476,7 +486,7 @@ export function useMarkPropertySold() {
 			}
 
 			logger.error('Failed to mark property as sold', {
-				propertyId: id,
+				property_id: id,
 				error: err instanceof Error ? err.message : String(err)
 			})
 		},
@@ -581,14 +591,14 @@ export function usePrefetchProperty() {
 /**
  * Hook to fetch property images
  */
-export function usePropertyImages(propertyId: string) {
+export function usePropertyImages(property_id: string) {
 	return useQuery({
-		queryKey: [...propertiesKeys.detail(propertyId), 'images'] as const,
+		queryKey: [...propertiesKeys.detail(property_id), 'images'] as const,
 		queryFn: () =>
 			clientFetch<Tables<'property_images'>[]>(
-				`/api/v1/properties/${propertyId}/images`
+				`/api/v1/properties/${property_id}/images`
 			),
-		enabled: !!propertyId,
+		enabled: !!property_id,
 		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000
 	})
@@ -602,42 +612,37 @@ export function useUploadPropertyImage() {
 
 	return useMutation({
 		mutationFn: async ({
-			propertyId,
+			property_id,
 			file,
 			isPrimary = false,
 			caption
 		}: {
-			propertyId: string
+			property_id: string
 			file: File
 			isPrimary?: boolean
 			caption?: string
 		}) => {
-			// Compress image before upload (reduces storage usage by ~70-90%)
-			const compressed = await compressImage(file)
-
 			const formData = new FormData()
-			formData.append('file', compressed.file)
+			formData.append('file', file)
 			formData.append('isPrimary', String(isPrimary))
 			if (caption) formData.append('caption', caption)
 
-			const result = await clientFetch(
-				`/api/v1/properties/${propertyId}/images`,
+			return await clientFetch(
+				`/api/v1/properties/${property_id}/images`,
 				{
 					method: 'POST',
 					body: formData
 				}
 			)
-
-			return { result, compressionRatio: compressed.compressionRatio }
 		},
-		onSuccess: ({ compressionRatio }, { propertyId }) => {
+		onSuccess: (data, { property_id }) => {
 			handleMutationSuccess(
 				'Upload image',
-				`Image uploaded (${Math.round((1 - compressionRatio) * 100)}% size reduction)`
+				'Image uploaded successfully'
 			)
 			// Invalidate property images
 			queryClient.invalidateQueries({
-				queryKey: [...propertiesKeys.detail(propertyId), 'images']
+				queryKey: [...propertiesKeys.detail(property_id), 'images']
 			})
 			// Invalidate property list (primary image may have changed)
 			queryClient.invalidateQueries({
@@ -657,19 +662,19 @@ export function useDeletePropertyImage() {
 	return useMutation({
 		mutationFn: ({
 			imageId,
-			propertyId: _propertyId
+			property_id: _property_id
 		}: {
 			imageId: string
-			propertyId: string
+			property_id: string
 		}) =>
 			clientFetch<{ message: string }>(`/api/v1/properties/images/${imageId}`, {
 				method: 'DELETE'
 			}),
-		onSuccess: (_, { propertyId }) => {
+		onSuccess: (_, { property_id }) => {
 			handleMutationSuccess('Delete image')
 			// Invalidate property images
 			queryClient.invalidateQueries({
-				queryKey: [...propertiesKeys.detail(propertyId), 'images']
+				queryKey: [...propertiesKeys.detail(property_id), 'images']
 			})
 			// Invalidate property list (primary image may have been deleted)
 			queryClient.invalidateQueries({

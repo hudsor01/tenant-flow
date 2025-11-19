@@ -25,12 +25,16 @@ import type {
   SecurityMetrics
 } from '@repo/shared/types/security'
 import { SecurityMetricsService } from './security-metrics.service'
+import { AppConfigService } from '../config/app-config.service'
 
 @Controller('security')
 export class SecurityController {
   private readonly logger = new Logger(SecurityController.name)
 
-  constructor(private readonly metricsService: SecurityMetricsService) {}
+  constructor(
+    private readonly metricsService: SecurityMetricsService,
+    private readonly config: AppConfigService
+  ) {}
 
   /**
    * CSP Violation Reporting Endpoint
@@ -175,7 +179,7 @@ export class SecurityController {
         }
       },
       securityLevel: 'maximum',
-      environment: process.env.NODE_ENV,
+      environment: this.config.getNodeEnv(),
       timestamp: new Date().toISOString()
     }
   }

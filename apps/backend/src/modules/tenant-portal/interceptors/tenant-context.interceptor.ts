@@ -13,8 +13,8 @@ import type { AuthenticatedRequest } from '../../../shared/types/express-request
  * Tenant Context attached to Request by TenantAuthGuard
  */
 export interface TenantContext {
-	tenantId: string
-	authUserId: string
+	tenant_id: string
+	authuser_id: string
 	status: string
 }
 
@@ -60,8 +60,8 @@ export class TenantContextInterceptor implements NestInterceptor {
 			message: 'Tenant request',
 			method,
 			url,
-			tenantId: tenantContext?.tenantId,
-			authUserId: tenantContext?.authUserId
+			tenant_id: tenantContext?.tenant_id,
+			authuser_id: tenantContext?.authuser_id
 		})
 
 		return next.handle().pipe(
@@ -73,7 +73,7 @@ export class TenantContextInterceptor implements NestInterceptor {
 						method,
 						url,
 						duration,
-						tenantId: tenantContext?.tenantId
+						tenant_id: tenantContext?.tenant_id
 					})
 				},
 				error: error => {
@@ -83,7 +83,7 @@ export class TenantContextInterceptor implements NestInterceptor {
 						method,
 						url,
 						duration,
-						tenantId: tenantContext?.tenantId,
+						tenant_id: tenantContext?.tenant_id,
 						error: error.message
 					})
 				}

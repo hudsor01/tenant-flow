@@ -14,13 +14,10 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { Textarea } from '#components/ui/textarea'
-import {
-	Dropzone,
-	DropzoneContent,
-	DropzoneEmptyState
-} from '#components/ui/dropzone'
+
 import { useModalStore } from '#stores/modal-store'
+import { PropertyImageGallery } from './property-image-gallery'
+import { PropertyImageUpload } from './property-image-upload'
 
 import {
 	useCreateProperty,
@@ -28,19 +25,15 @@ import {
 	propertiesKeys
 } from '#hooks/api/use-properties'
 import { useSupabaseUser } from '#hooks/api/use-auth'
-import { useSupabaseUpload } from '#hooks/use-supabase-upload'
+
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import {
-	transformPropertyFormData,
-	transformPropertyUpdateData
-} from '@repo/shared/validation/properties'
 import type { Property, PropertyType } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
-import { SUPABASE_URL } from '@repo/shared/config/supabase'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { cn } from '#lib/utils'
 
 interface PropertyFormProps {
 	mode: 'create' | 'edit'
@@ -48,6 +41,7 @@ interface PropertyFormProps {
 	onSuccess?: () => void
 	modalId?: string // For modal store integration
 	showSuccessState?: boolean
+	className?: string
 }
 
 /**
@@ -65,7 +59,8 @@ export function PropertyForm({
 	property,
 	onSuccess,
 	modalId,
-	showSuccessState = mode === 'create'
+	showSuccessState = mode === 'create',
+	className
 }: PropertyFormProps) {
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const { data: user } = useSupabaseUser()
@@ -82,11 +77,11 @@ export function PropertyForm({
 	// Validation schema
 	const validationSchema = z.object({
 		name: z.string().min(3, 'Property name must be at least 3 characters'),
-		propertyType: z.string(),
-		address: z.string().min(5, 'Address is required'),
+		property_type: z.string(),
+		address_line1: z.string().min(5, 'Address is required'),
 		city: z.string().min(2, 'City is required'),
 		state: z.string().length(2, 'State must be 2 characters'),
-		zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code')
+		postal_code: z.string().min(5, 'ZIP code is required')
 	})
 
 	// Sync server-fetched property into TanStack Query cache (edit mode only)
@@ -102,13 +97,13 @@ export function PropertyForm({
 	const form = useForm({
 		defaultValues: {
 			name: property?.name ?? '',
-			description: property?.description ?? '',
-			propertyType: (property?.propertyType ?? 'SINGLE_FAMILY') as PropertyType,
-			address: property?.address ?? '',
+			property_type: (property?.property_type ?? 'single_family') as PropertyType,
+			address_line1: property?.address_line1 ?? '',
+			address_line2: property?.address_line2 ?? '',
 			city: property?.city ?? '',
 			state: property?.state ?? '',
-			zipCode: property?.zipCode ?? '',
-			imageUrl: property?.imageUrl ?? ''
+			postal_code: property?.postal_code ?? '',
+			country: property?.country ?? 'US'
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -118,10 +113,20 @@ export function PropertyForm({
 						logger.error('User not authenticated', { action: 'formSubmission' })
 						return
 					}
-					const transformedData = transformPropertyFormData(value)
+					const createData = {
+						name: value.name,
+						address_line1: value.address_line1,
+						city: value.city,
+						state: value.state,
+						postal_code: value.postal_code,
+						country: value.country,
+						property_type: value.property_type,
+						property_owner_id: user.id,
+						...(value.address_line2 ? { address_line2: value.address_line2 } : {})
+					}
 					logger.info('Creating property', {
 						action: 'formSubmission',
-						data: transformedData
+						data: createData
 					})
 
 					// Track mutation for auto-close if in modal
@@ -129,7 +134,7 @@ export function PropertyForm({
 						trackMutation(modalId, 'create-property', queryClient)
 					}
 
-					await createPropertyMutation.mutateAsync(transformedData)
+					await createPropertyMutation.mutateAsync(createData)
 					toast.success('Property created successfully')
 
 					if (showSuccessState) {
@@ -147,11 +152,20 @@ export function PropertyForm({
 						toast.error('Property ID is missing')
 						return
 					}
-					const transformedData = transformPropertyUpdateData(value)
+					const updateData = {
+						name: value.name,
+						address_line1: value.address_line1,
+						city: value.city,
+						state: value.state,
+						postal_code: value.postal_code,
+						country: value.country,
+						property_type: value.property_type,
+						...(value.address_line2 ? { address_line2: value.address_line2 } : {})
+					}
 					logger.info('Updating property', {
 						action: 'formSubmission',
-						propertyId: property.id,
-						data: transformedData
+						property_id: property.id,
+						data: updateData
 					})
 
 					// Track mutation for auto-close if in modal
@@ -161,8 +175,7 @@ export function PropertyForm({
 
 					await updatePropertyMutation.mutateAsync({
 						id: property.id,
-						data: transformedData,
-						version: property.version
+						data: updateData
 					})
 					toast.success('Property updated successfully')
 
@@ -193,31 +206,6 @@ export function PropertyForm({
 		}
 	})
 
-	// Initialize image upload hook (both create and edit modes)
-	const upload = useSupabaseUpload({
-		bucketName: 'property-images',
-		path: 'temp',
-		allowedMimeTypes: [
-			'image/png',
-			'image/jpeg',
-			'image/jpg',
-			'image/webp',
-			'image/heic'
-		],
-		maxFileSize: 10 * 1024 * 1024, // 10MB
-		maxFiles: 1
-	})
-
-	// Watch for successful uploads and update imageUrl field (both modes)
-	useEffect(() => {
-		if (upload.isSuccess && upload.successes.length > 0) {
-			const uploadedFileName = upload.successes[0]
-			const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/property-images/temp/${uploadedFileName}`
-			form.setFieldValue('imageUrl', imageUrl)
-			toast.success('Property image uploaded successfully')
-		}
-	}, [form, upload.isSuccess, upload.successes])
-
 	// Success state (create mode only)
 	if (showSuccessState && isSubmitted) {
 		return (
@@ -235,7 +223,7 @@ export function PropertyForm({
 	}
 
 	return (
-		<div className="max-w-2xl mx-auto space-y-6">
+		<div className={cn('mx-auto max-w-2xl space-y-6', className)}>
 			<form
 				onSubmit={e => {
 					e.preventDefault()
@@ -267,13 +255,13 @@ export function PropertyForm({
 						)}
 					</form.Field>
 
-					<form.Field name="propertyType">
+					<form.Field name="property_type">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="propertyType">Property Type *</FieldLabel>
+								<FieldLabel htmlFor="property_type">Property Type *</FieldLabel>
 								<input
 									type="hidden"
-									name="propertyType"
+									name="property_type"
 									value={field.state.value}
 									readOnly
 								/>
@@ -287,26 +275,26 @@ export function PropertyForm({
 										<SelectValue placeholder="Select property type" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
-										<SelectItem value="MULTI_UNIT">Multi Unit</SelectItem>
-										<SelectItem value="APARTMENT">Apartment</SelectItem>
-										<SelectItem value="COMMERCIAL">Commercial</SelectItem>
-										<SelectItem value="CONDO">Condo</SelectItem>
-										<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-										<SelectItem value="OTHER">Other</SelectItem>
+										<SelectItem value="single_family">Single Family</SelectItem>
+										<SelectItem value="multi_family">Multi Family</SelectItem>
+										<SelectItem value="apartment">Apartment</SelectItem>
+										<SelectItem value="commercial">Commercial</SelectItem>
+										<SelectItem value="condo">Condo</SelectItem>
+										<SelectItem value="townhouse">Townhouse</SelectItem>
+										<SelectItem value="other">Other</SelectItem>
 									</SelectContent>
 								</Select>
 							</Field>
 						)}
 					</form.Field>
 
-					<form.Field name="address">
+					<form.Field name="address_line1">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="address">Address *</FieldLabel>
+								<FieldLabel htmlFor="address_line1">Address *</FieldLabel>
 								<Input
-									id="address"
-									name="address"
+									id="address_line1"
+									name="address_line1"
 									autoComplete="street-address"
 									placeholder="123 Main St"
 									value={field.state.value}
@@ -322,7 +310,25 @@ export function PropertyForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-3 gap-4">
+					<form.Field name="address_line2">
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="address_line2">Address Line 2 (Optional)</FieldLabel>
+								<Input
+									id="address_line2"
+									name="address_line2"
+									placeholder="Apt, Suite, Unit, etc."
+									value={field.state.value}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									onBlur={field.handleBlur}
+								/>
+							</Field>
+						)}
+					</form.Field>
+
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<form.Field name="city">
 							{field => (
 								<Field>
@@ -372,14 +378,15 @@ export function PropertyForm({
 							)}
 						</form.Field>
 
-						<form.Field name="zipCode">
+						<form.Field name="postal_code">
 							{field => (
 								<Field>
-									<FieldLabel htmlFor="zipCode">ZIP Code *</FieldLabel>
+									<FieldLabel htmlFor="postal_code">ZIP Code *</FieldLabel>
 									<Input
-										id="zipCode"
-										name="zipCode"
+										id="postal_code"
+										name="postal_code"
 										autoComplete="postal-code"
+										inputMode="numeric"
 										placeholder="12345"
 										value={field.state.value}
 										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -397,75 +404,54 @@ export function PropertyForm({
 						</form.Field>
 					</div>
 
-					<form.Field name="description">
+					<form.Field name="country">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="description">Description</FieldLabel>
-								<Textarea
-									id="description"
-									placeholder="Brief description of the property..."
-									rows={3}
+								<FieldLabel htmlFor="country">Country *</FieldLabel>
+								<Select
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-								/>
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="imageUrl">
-						{field => (
-							<Field>
-								<FieldLabel>Property Image (Optional)</FieldLabel>
-								<div className="space-y-3">
-									{/* Show existing image in edit mode */}
-									{mode === 'edit' && field.state.value && (
-										<div className="relative aspect-video w-full max-w-md rounded-lg overflow-hidden border bg-muted">
-											<img
-												src={field.state.value}
-												alt="Property"
-												className="object-cover w-full h-full"
-											/>
-											<Button
-												type="button"
-												variant="destructive"
-												size="sm"
-												className="absolute top-2 right-2"
-												onClick={() => {
-													form.setFieldValue('imageUrl', '')
-													toast.success('Image removed')
-												}}
-											>
-												Remove Image
-											</Button>
-										</div>
-									)}
-
-									{/* Upload new image */}
-									<div>
-										{mode === 'edit' && field.state.value ? (
-											<p className="text-sm text-muted-foreground mb-2">
-												Upload a new image to replace the current one
-											</p>
-										) : null}
-										<Dropzone {...upload}>
-											<DropzoneEmptyState />
-											<DropzoneContent />
-										</Dropzone>
-									</div>
-
-									{mutation.isSuccess && field.state.value && (
-										<p className="text-sm text-muted-foreground">
-											Image uploaded successfully
-										</p>
-									)}
-								</div>
+									onValueChange={(value: string) => field.handleChange(value)}
+								>
+									<SelectTrigger>
+										<SelectValue placeholder="Select country" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="US">United States</SelectItem>
+										<SelectItem value="CA">Canada</SelectItem>
+									</SelectContent>
+								</Select>
 							</Field>
 						)}
 					</form.Field>
 				</div>
+
+				{/* Property Images - only in edit mode, after property is created */}
+				{mode === 'edit' && property?.id && (
+					<div className="space-y-4 border rounded-lg p-6">
+						<h3 className="text-lg font-semibold">Property Images</h3>
+						<p className="text-sm text-muted-foreground">
+							Manage your property photos. First uploaded image appears on property card.
+						</p>
+
+						{/* Gallery - view existing images */}
+						<PropertyImageGallery propertyId={property.id} editable={true} />
+
+						{/* Upload form - add new images */}
+						<div className="border-t pt-4 mt-4">
+							<h4 className="text-sm font-medium mb-4">Add New Images</h4>
+							<PropertyImageUpload propertyId={property.id} />
+						</div>
+					</div>
+				)}
+
+				{/* Create mode message */}
+				{mode === 'create' && (
+					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+						<p className="text-sm text-blue-800">
+							Save property first to upload images. Images help attract tenants and showcase your property.
+						</p>
+					</div>
+				)}
 
 				{/* Submit Button */}
 				<div className="flex justify-end gap-4 pt-6 border-t">

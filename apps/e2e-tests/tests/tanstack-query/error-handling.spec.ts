@@ -1,7 +1,7 @@
 /**
  * TanStack Query Error Handling Tests
  * Tests real browser behavior for network errors, retries, and error recovery
- * 
+ *
  * Critical error scenarios testing:
  * - Network failures during CRUD operations
  * - API timeouts and recovery
@@ -14,11 +14,11 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
 import { createTestProperty, networkDelays } from '../fixtures/property-data'
-import { 
-  TanStackQueryHelper, 
-  NetworkSimulator, 
-  PropertyTableHelper, 
-  PropertyFormHelper 
+import {
+  TanStackQueryHelper,
+  NetworkSimulator,
+  PropertyTableHelper,
+  PropertyFormHelper
 } from '../utils/tanstack-helpers'
 
 test.describe('TanStack Query Error Handling', () => {
@@ -30,7 +30,7 @@ test.describe('TanStack Query Error Handling', () => {
 
   test.beforeEach(async ({ browser }) => {
     page = await browser.newPage()
-    
+
     // Initialize helpers
     queryHelper = new TanStackQueryHelper(page)
     networkSim = new NetworkSimulator(page)
@@ -71,23 +71,23 @@ test.describe('TanStack Query Error Handling', () => {
 
       // Verify rollback occurred
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
-      
+
       const finalCount = await tableHelper.getPropertyCount()
       expect(finalCount).toBe(initialCount)
 
       // Verify error notification
       const errorNotification = page.locator(
-        '[role="alert"], .error-toast, text*="network", text*="offline", text*="connection"'
+        '[user_type="alert"], .error-toast, text*="network", text*="offline", text*="connection"'
       )
       await expect(errorNotification.first()).toBeVisible({ timeout: 10000 })
 
       // Test recovery when network returns
       await page.setOfflineMode(false)
-      
+
       // Retry the operation
       await formHelper.createProperty(testProperty)
       await tableHelper.waitForPropertyInTable(testProperty.name!)
-      
+
       // Verify success after network recovery
       const recoveryCount = await tableHelper.getPropertyCount()
       expect(recoveryCount).toBe(initialCount + 1)
@@ -95,16 +95,16 @@ test.describe('TanStack Query Error Handling', () => {
 
     test('should handle API server errors (500, 502, 503)', async () => {
       const serverErrors = [500, 502, 503, 504]
-      
+
       for (const errorCode of serverErrors) {
         const testProperty = createTestProperty({ name: `Server Error ${errorCode} Property` })
-        
+
         // Simulate server error
         await page.route('**/api/properties**', async (route) => {
           await route.fulfill({
             status: errorCode,
             contentType: 'application/json',
-            body: JSON.stringify({ 
+            body: JSON.stringify({
               error: `Server Error ${errorCode}`,
               message: `Internal Server Error: ${errorCode}`
             })
@@ -130,7 +130,7 @@ test.describe('TanStack Query Error Handling', () => {
         await page.reload()
         await page.waitForLoadState('networkidle')
         await expect(page.locator('table tbody tr').first()).toBeVisible()
-        
+
         const finalCount = await tableHelper.getPropertyCount()
         expect(finalCount).toBe(initialCount)
       }
@@ -170,7 +170,7 @@ test.describe('TanStack Query Error Handling', () => {
 
       // Verify validation error display
       const validationError = page.locator(
-        'text*="validation", text*="required", text*="property name", [role="alert"]'
+        'text*="validation", text*="required", text*="property name", [user_type="alert"]'
       )
       await expect(validationError.first()).toBeVisible({ timeout: 5000 })
 
@@ -181,7 +181,7 @@ test.describe('TanStack Query Error Handling', () => {
 
     test('should handle timeout errors appropriately', async () => {
       const testProperty = createTestProperty({ name: 'Timeout Test Property' })
-      
+
       // Simulate very slow response (timeout)
       await page.route('**/api/properties**', async (route) => {
         if (route.request().method() === 'POST') {
@@ -212,7 +212,7 @@ test.describe('TanStack Query Error Handling', () => {
 
       // Verify rollback after timeout
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
-      
+
       const finalCount = await tableHelper.getPropertyCount()
       expect(finalCount).toBe(initialCount)
     })
@@ -227,7 +227,7 @@ test.describe('TanStack Query Error Handling', () => {
       await page.route('**/api/properties**', async (route) => {
         if (route.request().method() === 'POST') {
           attemptCount++
-          
+
           // Expose retry count to page for testing
           await page.evaluate((count) => {
             window.testRetryCount = count
@@ -265,7 +265,7 @@ test.describe('TanStack Query Error Handling', () => {
       await page.route('**/api/properties**', async (route) => {
         if (route.request().method() === 'POST') {
           attemptCount++
-          
+
           await page.evaluate((count) => {
             window.testRetryCount = count
           }, attemptCount)
@@ -290,13 +290,13 @@ test.describe('TanStack Query Error Handling', () => {
 
       // Verify final failure state
       await tableHelper.waitForPropertyToDisappear(testProperty.name!)
-      
+
       const finalCount = await tableHelper.getPropertyCount()
       expect(finalCount).toBe(initialCount)
 
       // Verify error message after all retries failed
       const finalErrorMessage = page.locator(
-        'text*="failed", text*="error", text*="unable", [role="alert"]'
+        'text*="failed", text*="error", text*="unable", [user_type="alert"]'
       )
       await expect(finalErrorMessage.first()).toBeVisible({ timeout: 5000 })
     })
@@ -309,13 +309,13 @@ test.describe('TanStack Query Error Handling', () => {
       await page.route('**/api/properties**', async (route) => {
         if (route.request().method() === 'POST') {
           const currentTime = Date.now()
-          
+
           if (firstRequestTime === 0) {
             firstRequestTime = currentTime
           }
-          
+
           retryTimes.push(currentTime - firstRequestTime)
-          
+
           // Always fail to observe retry timing
           await route.abort('failed')
         } else {
@@ -331,11 +331,11 @@ test.describe('TanStack Query Error Handling', () => {
 
       // Verify exponential backoff pattern (roughly 1s, 2s, 4s intervals)
       expect(retryTimes.length).toBeGreaterThanOrEqual(3)
-      
+
       if (retryTimes.length >= 3) {
         const interval1 = retryTimes[1] - retryTimes[0]
         const interval2 = retryTimes[2] - retryTimes[1]
-        
+
         // Second interval should be longer than first (backoff)
         expect(interval2).toBeGreaterThan(interval1)
       }
@@ -351,7 +351,7 @@ test.describe('TanStack Query Error Handling', () => {
       await page.route('**/api/properties**', async (route) => {
         if (route.request().method() === 'POST') {
           requestCount++
-          
+
           // Fail 3 out of 5 requests
           if (requestCount % 5 === 4 || requestCount % 5 === 0) {
             await route.continue() // Success
@@ -371,8 +371,8 @@ test.describe('TanStack Query Error Handling', () => {
 
       // Should either succeed eventually or show appropriate error after max retries
       const propertyExists = await page.locator(`text="${testProperty.name}"`).count() > 0
-      const errorExists = await page.locator('[role="alert"], .error-message').count() > 0
-      
+      const errorExists = await page.locator('[user_type="alert"], .error-message').count() > 0
+
       expect(propertyExists || errorExists).toBe(true)
     })
 
@@ -411,31 +411,31 @@ test.describe('TanStack Query Error Handling', () => {
   test.describe('User Error Recovery Experience', () => {
     test('should provide clear error messages to users', async () => {
       const errorScenarios = [
-        { 
-          status: 400, 
+        {
+          status: 400,
           message: 'Bad Request',
           expectedText: 'invalid request'
         },
-        { 
-          status: 401, 
+        {
+          status: 401,
           message: 'Unauthorized',
           expectedText: 'not authorized'
         },
-        { 
-          status: 403, 
+        {
+          status: 403,
           message: 'Forbidden',
           expectedText: 'permission'
         },
-        { 
-          status: 404, 
+        {
+          status: 404,
           message: 'Not Found',
           expectedText: 'not found'
         }
       ]
 
       for (const scenario of errorScenarios) {
-        const testProperty = createTestProperty({ 
-          name: `Error ${scenario.status} Property` 
+        const testProperty = createTestProperty({
+          name: `Error ${scenario.status} Property`
         })
 
         // Simulate specific error
@@ -462,7 +462,7 @@ test.describe('TanStack Query Error Handling', () => {
 
         // Verify user-friendly error message
         const errorDisplay = page.locator(
-          `text*="${scenario.expectedText}", text*="${scenario.status}", [role="alert"]`
+          `text*="${scenario.expectedText}", text*="${scenario.status}", [user_type="alert"]`
         )
         await expect(errorDisplay.first()).toBeVisible({ timeout: 5000 })
 
@@ -476,7 +476,7 @@ test.describe('TanStack Query Error Handling', () => {
 
     test('should offer retry options to users', async () => {
       const testProperty = createTestProperty({ name: 'User Retry Property' })
-      
+
       // Simulate failure then success on retry
       let shouldFail = true
       await page.route('**/api/properties**', async (route) => {
@@ -514,7 +514,7 @@ test.describe('TanStack Query Error Handling', () => {
 
         // Verify success
         await tableHelper.waitForPropertyInTable(testProperty.name!)
-        
+
         const finalCount = await tableHelper.getPropertyCount()
         expect(finalCount).toBe(initialCount + 1)
       } else {
@@ -546,15 +546,15 @@ test.describe('TanStack Query Error Handling', () => {
       const errorBoundary = page.locator(
         '[data-testid="error-boundary"], .error-boundary, text*="something went wrong"'
       )
-      
+
       // Either error boundary appears OR normal error handling works
-      const normalError = page.locator('[role="alert"], .error-message')
-      
+      const normalError = page.locator('[user_type="alert"], .error-message')
+
       const hasErrorHandling = await errorBoundary.count() > 0 || await normalError.count() > 0
       expect(hasErrorHandling).toBe(true)
 
       // Verify page is still responsive
-      const navigation = page.locator('nav, [role="navigation"]')
+      const navigation = page.locator('nav, [user_type="navigation"]')
       await expect(navigation).toBeVisible()
     })
   })
@@ -587,7 +587,7 @@ test.describe('TanStack Query Error Handling', () => {
 
       await page.route('**/api/properties**', async (route) => {
         requestCount++
-        
+
         // First few requests fail, then succeed
         if (requestCount <= 3) {
           await route.fulfill({
@@ -610,7 +610,7 @@ test.describe('TanStack Query Error Handling', () => {
       // Should eventually succeed with fresh data
       const finalCount = await tableHelper.getPropertyCount()
       expect(finalCount).toBeGreaterThanOrEqual(0)
-      
+
       expect(requestCount).toBeGreaterThan(3) // Verified retries occurred
     })
   })

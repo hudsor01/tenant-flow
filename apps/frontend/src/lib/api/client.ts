@@ -294,10 +294,10 @@ export async function clientFetch<T>(
 	const contentType = response.headers.get('content-type')
 	const contentLength = response.headers.get('content-length')
 	const isNoContentStatus = response.status === 204 || response.status === 205
-	const hasExplicitZeroLength =
+	const hasExplicitZeuser_typength =
 		typeof contentLength === 'string' && Number(contentLength) === 0
 	const shouldSkipParsing =
-		isNoContentStatus || hasExplicitZeroLength || !contentType
+		isNoContentStatus || hasExplicitZeuser_typength || !contentType
 
 	if (shouldSkipParsing) {
 		return undefined as T

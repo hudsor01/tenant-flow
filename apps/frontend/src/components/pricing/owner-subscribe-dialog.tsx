@@ -26,7 +26,7 @@ import { useModalStore } from '#stores/modal-store'
 interface OwnerSubscribeDialogProps {
 	onComplete: (payload: {
 		email: string
-		tenantId?: string
+		tenant_id?: string
 		requiresEmailConfirmation?: boolean
 	}) => Promise<void> | void
 	planName?: string
@@ -47,8 +47,8 @@ export function OwnerSubscribeDialog({
 
 	const form = useForm({
 		defaultValues: {
-			firstName: '',
-			lastName: '',
+			first_name: '',
+			last_name: '',
 			company: '',
 			email: '',
 			password: '',
@@ -57,15 +57,15 @@ export function OwnerSubscribeDialog({
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
-				const { firstName, lastName, company, email, password } = value
+				const { first_name, last_name, company, email, password } = value
 
 				const { data, error } = await supabase.auth.signUp({
 					email,
 					password,
 					options: {
 						data: {
-							firstName,
-							lastName,
+							first_name,
+							last_name,
 							company,
 							planIntent: planName
 						},
@@ -78,7 +78,7 @@ export function OwnerSubscribeDialog({
 				}
 
 				let requiresEmailConfirmation = !data.session
-				let supabaseUserId = data.user?.id
+				let supabaseuser_id = data.user?.id
 
 				// Attempt sign-in immediately if session not returned (some Supabase configs)
 				if (!data.session) {
@@ -90,7 +90,7 @@ export function OwnerSubscribeDialog({
 
 					if (!signInError) {
 						requiresEmailConfirmation = false
-						supabaseUserId = signInData.user?.id ?? supabaseUserId
+						supabaseuser_id = signInData.user?.id ?? supabaseuser_id
 					} else {
 						// Detect if this is an email confirmation error using multiple indicators
 						const isConfirmationError =
@@ -110,7 +110,7 @@ export function OwnerSubscribeDialog({
 
 				await onComplete({
 					email,
-					...(supabaseUserId && { tenantId: supabaseUserId }),
+					...(supabaseuser_id && { tenant_id: supabaseuser_id }),
 					requiresEmailConfirmation
 				})
 
@@ -188,16 +188,16 @@ export function OwnerSubscribeDialog({
 							className="space-y-4"
 						>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<form.Field name="firstName">
+								<form.Field name="first_name">
 									{field => (
 										<Field>
-											<FieldLabel htmlFor="firstName">First name</FieldLabel>
+											<FieldLabel htmlFor="first_name">First name</FieldLabel>
 											<InputGroup>
 												<InputGroupAddon align="inline-start">
 													<User />
 												</InputGroupAddon>
 												<InputGroupInput
-													id="firstName"
+													id="first_name"
 													placeholder="Jamie"
 													value={field.state.value}
 													onChange={event =>
@@ -213,16 +213,16 @@ export function OwnerSubscribeDialog({
 										</Field>
 									)}
 								</form.Field>
-								<form.Field name="lastName">
+								<form.Field name="last_name">
 									{field => (
 										<Field>
-											<FieldLabel htmlFor="lastName">Last name</FieldLabel>
+											<FieldLabel htmlFor="last_name">Last name</FieldLabel>
 											<InputGroup>
 												<InputGroupAddon align="inline-start">
 													<User />
 												</InputGroupAddon>
 												<InputGroupInput
-													id="lastName"
+													id="last_name"
 													placeholder="Rivera"
 													value={field.state.value}
 													onChange={event =>

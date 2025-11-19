@@ -93,7 +93,7 @@ describe('LeaseValidationService', () => {
 				owner: { name: 'John Doe' },
 				tenants: [{ name: 'Jane Smith' }],
 				leaseTerms: {
-					rentAmount: 2000
+					rent_amount: 2000
 				}
 			} as Partial<LeaseFormData>
 
@@ -105,24 +105,24 @@ describe('LeaseValidationService', () => {
 		it('should parse valid start and end dates', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				leaseTerms: {
-					startDate: '2025-06-01',
-					endDate: '2026-05-31'
+					start_date: '2025-06-01',
+					end_date: '2026-05-31'
 				}
 			} as Partial<LeaseFormData>
 
 			const result = service.validateDates(leaseData as LeaseFormData)
 
-			expect(result.startDate).toBeInstanceOf(Date)
-			expect(result.endDate).toBeInstanceOf(Date)
-			expect(result.startDate.toISOString()).toContain('2025-06')
-			expect(result.endDate.toISOString()).toContain('2026-05')
+			expect(result.start_date).toBeInstanceOf(Date)
+			expect(result.end_date).toBeInstanceOf(Date)
+			expect(result.start_date.toISOString()).toContain('2025-06')
+			expect(result.end_date.toISOString()).toContain('2026-05')
 		})
 
 		it('should throw BadRequestException for invalid start date', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				leaseTerms: {
-					startDate: 'invalid-date',
-					endDate: '2024-12-31'
+					start_date: 'invalid-date',
+					end_date: '2024-12-31'
 				}
 			} as Partial<LeaseFormData>
 
@@ -135,8 +135,8 @@ describe('LeaseValidationService', () => {
 		it('should throw BadRequestException for invalid end date', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				leaseTerms: {
-					startDate: '2024-01-01',
-					endDate: 'invalid-date'
+					start_date: '2024-01-01',
+					end_date: 'invalid-date'
 				}
 			} as Partial<LeaseFormData>
 
@@ -149,18 +149,18 @@ describe('LeaseValidationService', () => {
 		it('should handle month-to-month leases (no end date) by setting far-future date', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				leaseTerms: {
-					startDate: '2024-01-01'
-					// No endDate for month-to-month lease
+					start_date: '2024-01-01'
+					// No end_date for month-to-month lease
 				}
 			} as Partial<LeaseFormData>
 
 			const result = service.validateDates(leaseData as LeaseFormData)
 
-			expect(result.startDate).toBeInstanceOf(Date)
-			expect(result.endDate).toBeInstanceOf(Date)
+			expect(result.start_date).toBeInstanceOf(Date)
+			expect(result.end_date).toBeInstanceOf(Date)
 			// End date should be ~100 years in the future
 			const yearsDifference =
-				(result.endDate.getTime() - result.startDate.getTime()) /
+				(result.end_date.getTime() - result.start_date.getTime()) /
 				(365 * 24 * 60 * 60 * 1000)
 			expect(yearsDifference).toBeGreaterThan(99)
 			expect(yearsDifference).toBeLessThan(101)
@@ -174,8 +174,8 @@ describe('LeaseValidationService', () => {
 					address: { state: 'CA' }
 				},
 				leaseTerms: {
-					rentAmount: 2000,
-					securityDeposit: {
+					rent_amount: 2000,
+					security_deposit: {
 						amount: 3000
 					}
 				}
@@ -199,7 +199,7 @@ describe('LeaseValidationService', () => {
 			expect(result.valid).toBe(false)
 			expect(result.errors).toHaveLength(1)
 			expect(result.errors[0]).toEqual({
-				field: 'property.address.state',
+				field: 'property.address_line1.state',
 				message: 'Property state is required',
 				code: 'REQUIRED_FIELD'
 			})
@@ -212,8 +212,8 @@ describe('LeaseValidationService', () => {
 						address: { state: 'CA' }
 					},
 					leaseTerms: {
-						rentAmount: 2000,
-						securityDeposit: {
+						rent_amount: 2000,
+						security_deposit: {
 							amount: 5000 // Exceeds 2x rent (4000)
 						}
 					}
@@ -224,7 +224,7 @@ describe('LeaseValidationService', () => {
 				expect(result.valid).toBe(false)
 				expect(result.errors).toHaveLength(1)
 				expect(result.errors[0]).toEqual({
-					field: 'leaseTerms.securityDeposit.amount',
+					field: 'leaseTerms.security_deposit.amount',
 					message: 'Security deposit cannot exceed 2x monthly rent in California',
 					code: 'CA_DEPOSIT_LIMIT'
 				})
@@ -236,8 +236,8 @@ describe('LeaseValidationService', () => {
 						address: { state: 'CA' }
 					},
 					leaseTerms: {
-						rentAmount: 2000,
-						securityDeposit: {
+						rent_amount: 2000,
+						security_deposit: {
 							amount: 4000 // Exactly 2x rent
 						}
 					}
@@ -255,7 +255,7 @@ describe('LeaseValidationService', () => {
 						address: { state: 'CA' }
 					},
 					leaseTerms: {
-						rentAmount: 2000,
+						rent_amount: 2000,
 						lateFee: {
 							enabled: true,
 							gracePeriod: 1 // Less than recommended 3 days
@@ -281,7 +281,7 @@ describe('LeaseValidationService', () => {
 						address: { state: 'CA' }
 					},
 					leaseTerms: {
-						rentAmount: 2000,
+						rent_amount: 2000,
 						lateFee: {
 							enabled: true,
 							gracePeriod: 3
@@ -301,7 +301,7 @@ describe('LeaseValidationService', () => {
 						address: { state: 'CA' }
 					},
 					leaseTerms: {
-						rentAmount: 2000,
+						rent_amount: 2000,
 						lateFee: {
 							enabled: false,
 							gracePeriod: 0
@@ -322,7 +322,7 @@ describe('LeaseValidationService', () => {
 					address: { state: 'CA' }
 				},
 				leaseTerms: {
-					rentAmount: 2000
+					rent_amount: 2000
 				}
 			} as Partial<LeaseFormData>
 
@@ -339,7 +339,7 @@ describe('LeaseValidationService', () => {
 
 			expect(result).toEqual({
 				stateName: 'California',
-				securityDepositMax: '2x monthly rent',
+				security_depositMax: '2x monthly rent',
 				lateFeeGracePeriod: '3 days minimum',
 				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug History']
 			})
@@ -350,7 +350,7 @@ describe('LeaseValidationService', () => {
 
 			expect(result).toEqual({
 				stateName: 'Texas',
-				securityDepositMax: '2x monthly rent',
+				security_depositMax: '2x monthly rent',
 				lateFeeGracePeriod: '1 day minimum',
 				requiredDisclosures: ['Lead Paint (pre-1978)']
 			})
@@ -361,7 +361,7 @@ describe('LeaseValidationService', () => {
 
 			expect(result).toEqual({
 				stateName: 'New York',
-				securityDepositMax: '1x monthly rent',
+				security_depositMax: '1x monthly rent',
 				lateFeeGracePeriod: '5 days minimum',
 				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug Annual Statement']
 			})
@@ -372,7 +372,7 @@ describe('LeaseValidationService', () => {
 
 			expect(result).toEqual({
 				stateName: 'WA',
-				securityDepositMax: 'Varies by state',
+				security_depositMax: 'Varies by state',
 				lateFeeGracePeriod: 'Check state law',
 				requiredDisclosures: ['Lead Paint (pre-1978)']
 			})

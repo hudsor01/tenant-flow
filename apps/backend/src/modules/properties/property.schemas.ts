@@ -31,7 +31,7 @@ const propertyBaseSchema = z.object({
 		.max(50, 'State must be less than 50 characters')
 		.trim(),
 
-	zipCode: z
+	postal_code: z
 		.string()
 		.regex(
 			/^\d{5}(-\d{4})?$/,
@@ -45,7 +45,7 @@ const propertyBaseSchema = z.object({
 		.optional()
 		.transform(val => val?.trim() ?? undefined),
 
-	propertyType: z
+	property_type: z
 		.enum([
 			'SINGLE_FAMILY',
 			'MULTI_FAMILY',
@@ -73,7 +73,7 @@ export const createPropertySchema = propertyBaseSchema.extend({
 		.max(1000, 'Units cannot exceed 1000')
 		.optional(),
 
-	stripeCustomerId: z
+	stripe_customer_id: z
 		.string()
 		.optional()
 		.refine(
@@ -95,7 +95,7 @@ export const updatePropertySchema = propertyBaseSchema.partial().extend({
 // Query property schema
 export const queryPropertySchema = z
 	.object({
-		propertyType: z
+		property_type: z
 			.enum([
 				'SINGLE_FAMILY',
 				'MULTI_FAMILY',
@@ -135,13 +135,13 @@ export const queryPropertySchema = z
 	}))
 
 // Owner ID validation schema
-export const ownerIdSchema = z
+export const owner_idSchema = z
 	.string()
 	.uuid('Owner ID must be a valid UUID')
 	.min(1, 'Owner ID is required')
 
 // Property ID validation schema
-export const propertyIdSchema = z
+export const property_idSchema = z
 	.string()
 	.uuid('Property ID must be a valid UUID')
 	.min(1, 'Property ID is required')
@@ -165,11 +165,11 @@ export const validateQueryProperty = (data: unknown): QueryPropertyDto => {
 }
 
 export const validateOwnerId = (id: unknown): string => {
-	return ownerIdSchema.parse(id)
+	return owner_idSchema.parse(id)
 }
 
-export const validatePropertyId = (id: unknown): string => {
-	return propertyIdSchema.parse(id)
+export const validateproperty_id = (id: unknown): string => {
+	return property_idSchema.parse(id)
 }
 
 // Safe parsing functions that return errors instead of throwing

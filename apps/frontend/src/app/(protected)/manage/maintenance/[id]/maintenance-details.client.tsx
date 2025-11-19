@@ -7,7 +7,7 @@ import { useMaintenanceRequest } from '#hooks/api/use-maintenance'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useAllUnits } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { Calendar, MapPin, Phone, Wrench } from 'lucide-react'
+import { Calendar, MapPin, Wrench } from 'lucide-react'
 import Link from 'next/link'
 
 interface MaintenanceDetailsProps {
@@ -25,9 +25,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const { data: unitsResponse } = useAllUnits()
 	const units = unitsResponse?.data || []
 
-	const unit = units.find(u => u.id === request?.unitId)
+	const unit = units.find(u => u.id === request?.unit_id)
 	const property = properties.find(
-		(p) => p.id === unit?.propertyId
+		(p) => p.id === unit?.property_id
 	)
 
 	if (isLoading) {
@@ -61,7 +61,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 					<div className="space-y-2">
 						<CardTitle className="flex items-center gap-2 text-2xl font-semibold">
 							<Wrench className="size-5 text-primary" />
-							{request.title}
+							{request.description ?? 'Maintenance Request'}
 						</CardTitle>
 						<div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
 							<Badge variant="outline">{request.status}</Badge>
@@ -95,7 +95,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 							</p>
 							{unit ? (
 								<p className="text-sm text-muted-foreground">
-									Unit {unit.unitNumber}
+									Unit {unit.unit_number}
 								</p>
 							) : null}
 						</div>
@@ -103,12 +103,10 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						<div className="rounded-xl border bg-muted/20 p-4">
 							<div className="flex items-center gap-2 text-sm text-muted-foreground">
 								<Calendar className="size-4" />
-								Preferred date
+								Scheduled date
 							</div>
 							<p className="mt-1 text-sm font-medium">
-								{request.preferredDate
-									? new Date(request.preferredDate).toLocaleDateString()
-									: 'No preferred date'}
+								{request.scheduled_date ? new Date(request.scheduled_date).toLocaleDateString() : 'No scheduled date'}
 							</p>
 						</div>
 					</section>
@@ -122,20 +120,13 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3 text-sm">
-					{request.requestedBy ? (
-						<p>
-							<span className="text-muted-foreground">Requested by:</span>{' '}
-							{request.requestedBy}
-						</p>
-					) : null}
-					{request.contactPhone ? (
-						<p className="flex items-center gap-2">
-							<Phone className="size-4 text-muted-foreground" />
-							{request.contactPhone}
-						</p>
-					) : (
-						<p className="text-muted-foreground">No contact phone provided.</p>
-					)}
+
+					{request.requested_by ? (
+				<p>
+					<span className="text-muted-foreground">Requested by:</span>{' '}
+					{request.requested_by}
+				</p>
+			) : null}
 				</CardContent>
 			</Card>
 		</div>

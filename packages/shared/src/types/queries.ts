@@ -1,11 +1,9 @@
+import type { RequestStatus } from '../constants/status-types.js'
 /**
  * Query types for API filtering and pagination
  * These are domain types shared between frontend and backend
  */
 
-import type { Database } from './supabase-generated.js'
-
-type RequestStatus = Database['public']['Enums']['RequestStatus']
 
 /**
  * Base query interface with common pagination params
@@ -25,10 +23,10 @@ export interface BaseQuery
  * Property query parameters
  */
 export interface PropertyQuery extends BaseQuery {
-	propertyType?: string
-	type?: string // Alias for propertyType for frontend compatibility
+	property_type?: string
+	type?: string // Alias for property_type for frontend compatibility
 	status?: string
-	ownerId?: string
+	owner_id?: string
 	city?: string
 	state?: string
 	zipCode?: string
@@ -42,8 +40,8 @@ export interface LeaseQuery extends BaseQuery {
 	unitId?: string
 	propertyId?: string
 	status?: string
-	startDate?: string
-	endDate?: string
+	start_date?: string
+	end_date?: string
 	includeExpired?: boolean
 	expiring?: string // Number of days for expiring leases filter
 }
@@ -84,8 +82,8 @@ export interface UnitQuery extends BaseQuery {
 export interface TenantQuery extends BaseQuery {
 	propertyId?: string
 	unitId?: string
-	leaseStatus?: string
-	status?: string // Alias for leaseStatus for frontend compatibility
+	lease_status?: string
+	status?: string // Alias for lease_status for frontend compatibility
 	moveInDateFrom?: string
 	moveInDateTo?: string
 	email?: string
@@ -120,9 +118,9 @@ export interface ActivityQueryParams extends BaseQuery {
  */
 export interface AnalyticsQueryParams extends BaseQuery {
 	propertyId?: string
-	ownerId?: string
-	startDate?: string
-	endDate?: string
+	owner_id?: string
+	start_date?: string
+	end_date?: string
 	metricTypes?: string[]
 	includeAlerts?: boolean
 	includeTrends?: boolean

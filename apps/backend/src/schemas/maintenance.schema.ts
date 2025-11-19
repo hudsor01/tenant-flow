@@ -39,10 +39,10 @@ const categorySchema: JSONSchema = {
  */
 export const createMaintenanceSchema: JSONSchema = {
 	type: 'object',
-	required: ['unitId', 'title', 'description'],
+	required: ['unit_id', 'title', 'description'],
 	additionalProperties: false,
 	properties: {
-		unitId: uuidSchema,
+		unit_id: uuidSchema,
 		title: {
 			type: 'string',
 			minLength: 1,
@@ -56,7 +56,7 @@ export const createMaintenanceSchema: JSONSchema = {
 		priority: prioritySchema,
 		category: categorySchema,
 		scheduledDate: dateTimeSchema,
-		estimatedCost: {
+		estimated_cost: {
 			type: 'number',
 			minimum: 0,
 			maximum: 999999
@@ -86,7 +86,7 @@ export const updateMaintenanceSchema: JSONSchema = {
 		status: statusSchema,
 		scheduledDate: dateTimeSchema,
 		completedDate: dateTimeSchema,
-		estimatedCost: {
+		estimated_cost: {
 			type: 'number',
 			minimum: 0,
 			maximum: 999999
@@ -110,8 +110,8 @@ export const maintenanceQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
-		unitId: uuidSchema,
-		propertyId: uuidSchema,
+		unit_id: uuidSchema,
+		property_id: uuidSchema,
 		priority: prioritySchema,
 		category: categorySchema,
 		status: statusSchema,
@@ -128,8 +128,8 @@ export const maintenanceQuerySchema: JSONSchema = {
 		},
 		sortBy: {
 			type: 'string',
-			enum: ['priority', 'status', 'scheduledDate', 'createdAt'],
-			default: 'createdAt'
+			enum: ['priority', 'status', 'scheduledDate', 'created_at'],
+			default: 'created_at'
 		},
 		sortOrder: {
 			type: 'string',

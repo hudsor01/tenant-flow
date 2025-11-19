@@ -76,14 +76,14 @@ export interface ErrorLogContext {
 	status: number
 	errorName: string
 	message: string
-	userId?: string
+	user_id?: string
 	requestId?: string
 	timestamp: string
 }
 
 export interface SecurityContext {
-	userId?: string
-	role?: string
+	user_id?: string
+	user_type?: string
 	organizationId?: string
 	permissions?: string[]
 }

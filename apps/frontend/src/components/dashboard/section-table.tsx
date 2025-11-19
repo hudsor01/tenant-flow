@@ -72,10 +72,10 @@ export function SectionTable() {
 						Overview of your most recently added properties
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="p-3 sm:p-6">
-					<div className="flex items-center justify-center py-8">
+				<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
+					<div className="flex items-center justify-center py-[var(--spacing-8)]">
 						<Spinner className="size-6 animate-spin" />
-						<span className="ml-2 text-muted-foreground text-sm">
+						<span className="ml-[var(--spacing-2)] text-muted-foreground text-sm">
 							Loading properties...
 						</span>
 					</div>
@@ -96,8 +96,8 @@ export function SectionTable() {
 						Overview of your most recently added properties
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="p-3 sm:p-6">
-					<div className="text-center py-8">
+				<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
+					<div className="text-center py-[var(--spacing-8)]">
 						<p className="text-sm text-muted-foreground">
 							Failed to load properties
 						</p>
@@ -119,8 +119,8 @@ export function SectionTable() {
 						Overview of your most recently added properties
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="p-3 sm:p-6">
-					<div className="text-center py-8">
+				<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
+					<div className="text-center py-[var(--spacing-8)]">
 						<p className="text-sm text-muted-foreground">
 							No properties yet. Add your first property to get started.
 						</p>
@@ -141,15 +141,15 @@ export function SectionTable() {
 					Overview of your most recently added properties
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="p-3 sm:p-6">
+			<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
 				<div className="overflow-x-auto">
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead className="min-w-35">Property</TableHead>
+					<TableHead className="min-w-[var(--spacing-35)]">Property</TableHead>
 								<TableHead className="hidden sm:table-cell">Type</TableHead>
 								<TableHead className="hidden md:table-cell">Location</TableHead>
-								<TableHead className="text-center min-w-20">Status</TableHead>
+					<TableHead className="text-center min-w-[var(--spacing-20)]">Status</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -157,25 +157,25 @@ export function SectionTable() {
 								<TableRow key={property.id}>
 									<TableCell className="font-medium">
 										<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-											<div className="flex items-center gap-2">
-												<Building2 className="size-4 text-muted-foreground" />
+					<div className="flex items-center gap-[var(--spacing-2)]">
+						<Building2 className="size-[var(--spacing-4)] text-muted-foreground" />
 												<span className="font-medium">{property.name}</span>
 											</div>
-											<div className="flex items-center gap-3 text-xs text-muted-foreground sm:hidden">
-												<span>{formatPropertyType(property.propertyType)}</span>
-												<span className="flex items-center gap-1">
-													<MapPin className="size-3" />
+					<div className="flex items-center gap-[var(--spacing-3)] text-xs text-muted-foreground sm:hidden">
+												<span>{formatPropertyType(property.property_type as PropertyType)}</span>
+								<span className="flex items-center gap-[var(--spacing-1)]">
+									<MapPin className="size-[var(--spacing-3)]" />
 													{property.city}, {property.state}
 												</span>
 											</div>
 										</div>
 									</TableCell>
 									<TableCell className="hidden sm:table-cell">
-										{formatPropertyType(property.propertyType)}
+										{formatPropertyType(property.property_type as PropertyType)}
 									</TableCell>
 									<TableCell className="hidden md:table-cell">
-										<div className="flex items-center gap-1">
-											<MapPin className="size-3 text-muted-foreground" />
+					<div className="flex items-center gap-[var(--spacing-1)]">
+						<MapPin className="size-[var(--spacing-3)] text-muted-foreground" />
 											{property.city}, {property.state}
 										</div>
 									</TableCell>
@@ -195,7 +195,7 @@ export function SectionTable() {
 															: 'bg-(--color-system-gray-10) text-(--color-label-tertiary) hover:bg-(--color-system-gray-15)'
 											)}
 										>
-											{formatPropertyStatus(property.status)}
+											{formatPropertyStatus(property.status as PropertyStatus)}
 										</Badge>
 									</TableCell>
 								</TableRow>

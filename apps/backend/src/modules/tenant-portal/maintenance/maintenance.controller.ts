@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { authUser } from '@repo/shared/types/auth'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
@@ -38,13 +38,13 @@ class CreateMaintenanceRequestDto extends createZodDto(
 ) {}
 
 type MaintenanceRequestRow =
-	Database['public']['Tables']['maintenance_request']['Row']
+	Database['public']['Tables']['maintenance_requests']['Row']
 
 /**
  * Tenant Maintenance Controller
  *
  * Handles maintenance request submission and history for tenants.
- * Enforces TENANT role via TenantAuthGuard.
+ * Enforces TENANT user_type via TenantAuthGuard.
  *
  * Routes: /tenant/maintenance/*
  */
@@ -85,40 +85,37 @@ export class TenantMaintenanceController {
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 
-		if (!lease?.unitId) {
+		if (!lease?.unit_id) {
 			this.logger.warn(
 				'Tenant attempted to create maintenance request without active unit',
-				{ authUserId: user.id }
+				{ authuser_id: user.id }
 			)
 			throw new BadRequestException(
 				'No active lease unit found. Cannot create maintenance request.'
 			)
 		}
 
-		const maintenanceRequest: Database['public']['Tables']['maintenance_request']['Insert'] =
+		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
 			{
-				title: body.title,
 				description: body.description,
-				priority: body.priority as Database['public']['Enums']['Priority'],
-				category: body.category ?? null,
-				allowEntry: body.allowEntry,
+				priority: body.priority,
 				status: 'OPEN',
-				requestedBy: user.id,
-				photos: body.photos && body.photos.length > 0 ? body.photos : null,
-				unitId: lease.unitId
+				requested_by: user.id,
+				tenant_id: tenant.id,
+				unit_id: lease.unit_id
 			}
 
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('maintenance_request')
+			.from('maintenance_requests')
 			.insert(maintenanceRequest)
 			.select()
 			.single<MaintenanceRequestRow>()
 
 		if (error) {
 			this.logger.error('Failed to create maintenance request', {
-				authUserId: user.id,
-				unitId: lease.unitId,
+				authuser_id: user.id,
+				unit_id: lease.unit_id,
 				error: error.message
 			})
 			throw new InternalServerErrorException(
@@ -132,9 +129,9 @@ export class TenantMaintenanceController {
 	private async resolveTenant(token: string, user: authUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('tenant')
-			.select('id, auth_user_id')
-			.eq('auth_user_id', user.id)
+			.from('tenants')
+			.select('id, user_id')
+			.eq('user_id', user.id)
 			.single()
 
 		if (error || !data) {
@@ -144,20 +141,20 @@ export class TenantMaintenanceController {
 		return data
 	}
 
-	private async fetchActiveLease(token: string, tenantId: string) {
+	private async fetchActiveLease(token: string, tenant_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('lease')
-			.select('id, unitId')
-			.eq('tenantId', tenantId)
+			.from('leases')
+			.select('id, unit_id')
+			.eq('tenant_id', tenant_id)
 			.eq('status', 'ACTIVE')
-			.order('startDate', { ascending: false })
+			.order('start_date', { ascending: false })
 			.limit(1)
 			.maybeSingle()
 
 		if (error) {
 			this.logger.error('Failed to load active lease', {
-				tenantId,
+				tenant_id,
 				error: error.message
 			})
 			return null
@@ -166,19 +163,19 @@ export class TenantMaintenanceController {
 		return data
 	}
 
-	private async fetchMaintenanceRequests(token: string, authUserId: string) {
+	private async fetchMaintenanceRequests(token: string, authuser_id: string) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
-			.from('maintenance_request')
+			.from('maintenance_requests')
 			.select(
-				'id, title, description, priority, status, category, createdAt, updatedAt, completedAt, requestedBy, unitId'
+				'id, description, priority, status, created_at, updated_at, completed_at, requested_by, unit_id'
 			)
-			.eq('requestedBy', authUserId)
-			.order('createdAt', { ascending: false })
+			.eq('requested_by', authuser_id)
+			.order('created_at', { ascending: false })
 
 		if (error) {
 			this.logger.error('Failed to fetch maintenance requests', {
-				authUserId,
+				authuser_id,
 				error: error.message
 			})
 			throw new InternalServerErrorException(

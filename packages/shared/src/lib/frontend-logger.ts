@@ -10,10 +10,10 @@
 export interface LogContext {
 	component?: string
 	action?: string
-	userId?: string
+	user_id?: string
 	sessionId?: string
 	requestId?: string
-	leaseId?: string
+	lease_id?: string
 	metadata?: Record<string, unknown>
 	[key: string]: unknown
 }

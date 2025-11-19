@@ -80,7 +80,7 @@ describe('LateFeesService', () => {
 		it('should return zero late fee within grace period', () => {
 			const result = service.calculateLateFee(1500, 3, { gracePeriodDays: 5 })
 
-			expect(result.lateFeeAmount).toBe(0)
+			expect(result.late_fee_amount).toBe(0)
 			expect(result.shouldApplyFee).toBe(false)
 			expect(result.reason).toContain('Within 5-day grace period')
 		})
@@ -88,7 +88,7 @@ describe('LateFeesService', () => {
 		it('should return flat fee when past grace period', () => {
 			const result = service.calculateLateFee(800, 10)
 
-			expect(result.lateFeeAmount).toBe(50) // Default $50 flat fee
+			expect(result.late_fee_amount).toBe(50) // Default $50 flat fee
 			expect(result.shouldApplyFee).toBe(true)
 			expect(result.daysLate).toBe(10)
 		})
@@ -96,7 +96,7 @@ describe('LateFeesService', () => {
 		it('should use custom grace period configuration', () => {
 			const result = service.calculateLateFee(1500, 8, { gracePeriodDays: 10 })
 
-			expect(result.lateFeeAmount).toBe(0)
+			expect(result.late_fee_amount).toBe(0)
 			expect(result.shouldApplyFee).toBe(false)
 			expect(result.reason).toContain('Within 10-day grace period')
 		})
@@ -104,7 +104,7 @@ describe('LateFeesService', () => {
 		it('should use custom flat fee amount', () => {
 			const result = service.calculateLateFee(2000, 10, { flatFeeAmount: 75 })
 
-			expect(result.lateFeeAmount).toBe(75)
+			expect(result.late_fee_amount).toBe(75)
 			expect(result.shouldApplyFee).toBe(true)
 		})
 
@@ -118,12 +118,20 @@ describe('LateFeesService', () => {
 
 	describe('getLateFeeConfig', () => {
 		it('should return lease late fee configuration from database', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const mockLease = {
-				id: leaseId,
-				gracePeriodDays: 7,
-				lateFeeAmount: 75,
-				lateFeePercentage: 0.06
+				id: lease_id,
+				grace_period_days: 7,
+				late_fee_amount: 75,
+				lateFeePercentage: 0.06,
+				tenant: {
+					users: {
+						id: 'user123',
+						email: 'tenant@example.com',
+						first_name: 'John',
+						last_name: 'Doe'
+					}
+				}
 			}
 
 			mockAdminClient.single.mockResolvedValue({
@@ -131,40 +139,40 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
+			const result = await service.getLateFeeConfig(lease_id, 'mock-jwt-token')
 
 			expect(result).toEqual({
-				leaseId,
+				lease_id,
 				gracePeriodDays: 7,
 				flatFeeAmount: 75
 			})
-			expect(mockAdminClient.from).toHaveBeenCalledWith('lease')
-			expect(mockAdminClient.eq).toHaveBeenCalledWith('id', leaseId)
+			expect(mockAdminClient.from).toHaveBeenCalledWith('leases')
+			expect(mockAdminClient.eq).toHaveBeenCalledWith('id', lease_id)
 		})
 
 		it('should return default configuration when lease not found', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 
 			mockAdminClient.single.mockResolvedValue({
 				data: null,
 				error: { message: 'Not found' }
 			})
 
-			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
+			const result = await service.getLateFeeConfig(lease_id, 'mock-jwt-token')
 
 			expect(result).toEqual({
-				leaseId,
+				lease_id,
 				gracePeriodDays: 5,
 				flatFeeAmount: 50
 			})
 		})
 
 		it('should use defaults for null database values', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const mockLease = {
-				id: leaseId,
+				id: lease_id,
 				gracePeriodDays: null,
-				lateFeeAmount: null,
+				late_fee_amount: null,
 				lateFeePercentage: null
 			}
 
@@ -173,7 +181,7 @@ describe('LateFeesService', () => {
 				error: null
 			})
 
-			const result = await service.getLateFeeConfig(leaseId, 'mock-jwt-token')
+			const result = await service.getLateFeeConfig(lease_id, 'mock-jwt-token')
 
 			expect(result.gracePeriodDays).toBe(5)
 			expect(result.flatFeeAmount).toBe(50)
@@ -183,9 +191,9 @@ describe('LateFeesService', () => {
 	describe('applyLateFeeToInvoice', () => {
 		it('should create Stripe invoice item and update payment', async () => {
 			const customerId = 'cus_123'
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const rentPaymentId = generateUUID()
-			const lateFeeAmount = 50
+			const late_fee_amount = 50
 			const reason = 'Payment 7 days overdue'
 
 			const mockInvoiceItem = {
@@ -203,9 +211,9 @@ describe('LateFeesService', () => {
 
 			const result = await service.applyLateFeeToInvoice(
 				customerId,
-				leaseId,
+				lease_id,
 				rentPaymentId,
-				lateFeeAmount,
+				late_fee_amount,
 				reason,
 				'mock-jwt-token'
 			)
@@ -218,7 +226,7 @@ describe('LateFeesService', () => {
 				description: `Late Fee: ${reason}`,
 				metadata: {
 					type: 'late_fee',
-					leaseId,
+					lease_id,
 					rentPaymentId,
 					reason
 				}
@@ -226,9 +234,8 @@ describe('LateFeesService', () => {
 
 			// Verify payment updated in database
 			expect(mockAdminClient.update).toHaveBeenCalledWith({
-				lateFeeApplied: true,
-				lateFeeAmount: 5000,
-				lateFeeAppliedAt: expect.any(String)
+				late_fee_amount: 5000,
+				updated_at: expect.any(String)
 			})
 
 			expect(result).toEqual(mockInvoiceItem)
@@ -254,7 +261,7 @@ describe('LateFeesService', () => {
 
 	describe('getOverduePayments', () => {
 		it('should return payments overdue past grace period', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const now = new Date()
 			const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
 
@@ -262,9 +269,9 @@ describe('LateFeesService', () => {
 				{
 					id: generateUUID(),
 					amount: 150000, // $1500 in cents
-					dueDate: tenDaysAgo.toISOString(),
-					lateFeeApplied: false,
-					status: 'pending'
+					due_date: tenDaysAgo.toISOString(),
+					late_fee_amount: null,
+					status: 'PENDING'
 				}
 			]
 
@@ -278,7 +285,7 @@ describe('LateFeesService', () => {
 			})
 
 			const result = await service.getOverduePayments(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
 				5
 			)
@@ -290,7 +297,7 @@ describe('LateFeesService', () => {
 		})
 
 		it('should filter out payments within grace period', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const now = new Date()
 			const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
 
@@ -310,7 +317,7 @@ describe('LateFeesService', () => {
 			})
 
 			const result = await service.getOverduePayments(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
 				5
 			)
@@ -319,7 +326,7 @@ describe('LateFeesService', () => {
 		})
 
 		it('should filter out payments with late fee already applied', async () => {
-			const leaseId = generateUUID()
+			const lease_id = generateUUID()
 			const now = new Date()
 			const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000)
 
@@ -339,7 +346,7 @@ describe('LateFeesService', () => {
 			})
 
 			const result = await service.getOverduePayments(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
 				5
 			)
@@ -361,14 +368,14 @@ describe('LateFeesService', () => {
 
 	describe('processLateFees', () => {
 		it('should process late fees for all overdue payments', async () => {
-			const leaseId = generateUUID()
-			const ownerId = generateUUID()
+			const lease_id = generateUUID()
+			const owner_id = generateUUID()
 			const paymentId1 = generateUUID()
 			const paymentId2 = generateUUID()
 
 			// Mock late fee config
 			const mockConfig = {
-				leaseId,
+				lease_id,
 				gracePeriodDays: 5,
 				flatFeeAmount: 50
 			}
@@ -399,7 +406,7 @@ describe('LateFeesService', () => {
 
 			// Mock owner Stripe customer
 			mockAdminClient.single.mockResolvedValue({
-				data: { stripeCustomerId: 'cus_123' },
+				data: { stripe_customer_id: 'cus_123' },
 				error: null
 			})
 
@@ -411,9 +418,9 @@ describe('LateFeesService', () => {
 				} as any)
 
 			const result = await service.processLateFees(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
-				ownerId
+				owner_id
 			)
 
 			expect(result.processed).toBe(2)
@@ -423,11 +430,11 @@ describe('LateFeesService', () => {
 		})
 
 		it('should return zero processed when no overdue payments', async () => {
-			const leaseId = generateUUID()
-			const ownerId = generateUUID()
+			const lease_id = generateUUID()
+			const owner_id = generateUUID()
 
 			jest.spyOn(service, 'getLateFeeConfig').mockResolvedValue({
-				leaseId,
+				lease_id,
 				gracePeriodDays: 5,
 				flatFeeAmount: 50
 			})
@@ -435,9 +442,9 @@ describe('LateFeesService', () => {
 			jest.spyOn(service, 'getOverduePayments').mockResolvedValue([])
 
 			const result = await service.processLateFees(
-				leaseId,
+				lease_id,
 				'mock-jwt-token',
-				ownerId
+				owner_id
 			)
 
 			expect(result.processed).toBe(0)
@@ -446,11 +453,11 @@ describe('LateFeesService', () => {
 		})
 
 		it('should throw BadRequestException when owner not found', async () => {
-			const leaseId = generateUUID()
-			const ownerId = generateUUID()
+			const lease_id = generateUUID()
+			const owner_id = generateUUID()
 
 			jest.spyOn(service, 'getLateFeeConfig').mockResolvedValue({
-				leaseId,
+				lease_id,
 				gracePeriodDays: 5,
 				flatFeeAmount: 50
 			})
@@ -471,15 +478,15 @@ describe('LateFeesService', () => {
 			})
 
 			await expect(
-				service.processLateFees(leaseId, 'mock-jwt-token', ownerId)
+				service.processLateFees(lease_id, 'mock-jwt-token', owner_id)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('updateLateFeeConfig', () => {
 		it('should update lease late fee configuration', async () => {
-			const leaseId = generateUUID()
-			const userId = generateUUID()
+			const lease_id = generateUUID()
+			const user_id = generateUUID()
 			const config = {
 				gracePeriodDays: 7,
 				flatFeeAmount: 75
@@ -488,19 +495,19 @@ describe('LateFeesService', () => {
 			// Mock the full chain for update
 			mockAdminClient.select.mockImplementationOnce(() =>
 				Promise.resolve({
-					data: [{ id: leaseId }],
+					data: [{ id: lease_id }],
 					error: null
 				})
 			)
 
-			await service.updateLateFeeConfig(leaseId, userId, config)
+			await service.updateLateFeeConfig(lease_id, user_id, config)
 
 			expect(mockAdminClient.update).toHaveBeenCalledWith({
-				gracePeriodDays: 7,
-				lateFeeAmount: 75,
-				updatedAt: expect.any(String)
+				grace_period_days: 7,
+				late_fee_amount: 75,
+				updated_at: expect.any(String)
 			})
-			expect(mockAdminClient.eq).toHaveBeenCalledWith('id', leaseId)
+			expect(mockAdminClient.eq).toHaveBeenCalledWith('id', lease_id)
 		})
 
 		it('should throw BadRequestException on database error', async () => {

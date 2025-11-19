@@ -16,21 +16,21 @@ import type { ReactNode } from 'react'
  *
  * Usage:
  * ```tsx
- * <TenantProvider tenantId={params.id}>
+ * <TenantProvider tenant_id={params.id}>
  *   <TenantDetails />
  * </TenantProvider>
  * ```
  */
 export function TenantProvider({
 	children,
-	tenantId
+	tenant_id
 }: {
 	children: ReactNode
-	tenantId: string
+	tenant_id: string
 }) {
 	return (
 		<TenantSuspenseWrapper fallbackType="detail">
-			<TenantContext tenantId={tenantId}>{children}</TenantContext>
+			<TenantContext tenant_id={tenant_id}>{children}</TenantContext>
 		</TenantSuspenseWrapper>
 	)
 }
@@ -41,16 +41,16 @@ export function TenantProvider({
  */
 export function OptionalTenantProviderWithSuspense({
 	children,
-	tenantId
+	tenant_id
 }: {
 	children: ReactNode
-	tenantId?: string
+	tenant_id?: string
 }) {
-	if (!tenantId) {
+	if (!tenant_id) {
 		return <>{children}</>
 	}
 
-	return <TenantProvider tenantId={tenantId}>{children}</TenantProvider>
+	return <TenantProvider tenant_id={tenant_id}>{children}</TenantProvider>
 }
 
 /**
@@ -71,14 +71,14 @@ export function TenantListProvider({ children }: { children: ReactNode }) {
  */
 export function TenantFormProvider({
 	children,
-	tenantId
+	tenant_id
 }: {
 	children: ReactNode
-	tenantId?: string
+	tenant_id?: string
 }) {
 	return (
 		<TenantSuspenseWrapper fallbackType="form">
-			<OptionalTenantProvider {...(tenantId ? { tenantId } : {})}>
+			<OptionalTenantProvider {...(tenant_id ? { tenant_id } : {})}>
 				{children}
 			</OptionalTenantProvider>
 		</TenantSuspenseWrapper>

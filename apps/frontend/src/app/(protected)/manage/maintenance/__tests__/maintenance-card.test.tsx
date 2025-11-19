@@ -14,15 +14,12 @@ describe('MaintenanceCard', () => {
 	const defaultRequest = DEFAULT_MAINTENANCE_REQUEST
 
 	describe('Display and Rendering', () => {
-		test('renders maintenance request title and description', () => {
+		test('renders maintenance request description', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
 			// Assert
-			expect(screen.getByText('Leaky faucet in kitchen')).toBeInTheDocument()
-			expect(
-				screen.getByText('Kitchen faucet has been dripping for the past week')
-			).toBeInTheDocument()
+			expect(screen.getByText(defaultRequest.description)).toBeInTheDocument()
 		})
 
 		test('displays property and unit information', () => {
@@ -40,7 +37,7 @@ describe('MaintenanceCard', () => {
 
 			// Assert
 			const formattedDate = new Date(
-				defaultRequest.createdAt
+				defaultRequest.created_at
 			).toLocaleDateString('en-US', {
 				month: 'short',
 				day: 'numeric'

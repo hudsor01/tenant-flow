@@ -13,14 +13,15 @@ interface WebVitalData {
 	page: string
 	timestamp?: string
 	sessionId?: string
-	userId?: string
+	user_id?: string
 }
 
 // Mock the AnalyticsService
 jest.mock('./analytics.service', () => {
 	return {
 		AnalyticsService: jest.fn().mockImplementation(() => ({
-			recordWebVitalMetric: jest.fn().mockResolvedValue(undefined)
+			recordWebVitalMetric: jest.fn().mockResolvedValue(undefined),
+			recordMobileEvent: jest.fn()
 		}))
 	}
 })
@@ -55,7 +56,7 @@ describe('AnalyticsController', () => {
 			rating: 'good',
 			delta: 100,
 			id: 'test-id-123',
-			userId: 'user-123',
+			user_id: 'user-123',
 			sessionId: 'session-456',
 			page: '/dashboard',
 			timestamp: new Date().toISOString()
@@ -68,28 +69,28 @@ describe('AnalyticsController', () => {
 				mockAnalyticsServiceInstance.recordWebVitalMetric
 			).toHaveBeenCalledWith(
 				validWebVitalData,
-				'user-123' // Should use userId as distinctId
+				'user-123' // Should use user_id as distinctId
 			)
 			expect(result).toEqual({ success: true })
 		})
 
-		it('should use sessionId as distinctId when userId is not provided', async () => {
-			const dataWithoutUserId: WebVitalData = { ...validWebVitalData }
-			delete dataWithoutUserId.userId
+		it('should use sessionId as distinctId when user_id is not provided', async () => {
+			const dataWithoutuser_id: WebVitalData = { ...validWebVitalData }
+			delete dataWithoutuser_id.user_id
 
-			await controller.reportWebVitals(dataWithoutUserId)
+			await controller.reportWebVitals(dataWithoutuser_id)
 
 			expect(
 				mockAnalyticsServiceInstance.recordWebVitalMetric
 			).toHaveBeenCalledWith(
-				dataWithoutUserId,
+				dataWithoutuser_id,
 				'session-456' // Should use sessionId as distinctId
 			)
 		})
 
-		it('should use id as distinctId when neither userId nor sessionId are provided', async () => {
+		it('should use id as distinctId when neither user_id nor sessionId are provided', async () => {
 			const dataWithoutIds: WebVitalData = { ...validWebVitalData }
-			delete dataWithoutIds.userId
+			delete dataWithoutIds.user_id
 			delete dataWithoutIds.sessionId
 
 			await controller.reportWebVitals(dataWithoutIds)
@@ -236,6 +237,29 @@ describe('AnalyticsController', () => {
 				mockAnalyticsServiceInstance.recordWebVitalMetric
 			).toHaveBeenCalledWith(validWebVitalData, 'user-123')
 			expect(result).toEqual({ success: true })
+		})
+	})
+
+	describe('ingestMobileEvent', () => {
+		const baseEvent = {
+			eventName: 'mobile_nav_opened',
+			properties: {
+				action: 'open',
+				user_id: 'user-456'
+			},
+			timestamp: Date.now(),
+			userAgent: 'Mozilla/5.0',
+			screenResolution: '390x844',
+			networkType: '4g',
+			isOnline: true
+		}
+
+		it('should forward events to the analytics service', async () => {
+			await controller.ingestMobileEvent(baseEvent as any)
+
+			expect(
+				mockAnalyticsServiceInstance.recordMobileEvent
+			).toHaveBeenCalledWith(baseEvent)
 		})
 	})
 })

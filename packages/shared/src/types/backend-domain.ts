@@ -5,7 +5,7 @@
  * Merged from: backend.ts, router.ts, database.ts, and other backend files
  */
 
-import type { Database } from './supabase-generated.js'
+import type { Database } from './supabase.js'
 import type { Request, Response } from 'express'
 import type { HttpMethod } from './core.js'
 import type { ServiceHealth } from './health.js'
@@ -57,7 +57,7 @@ export type AuthenticatedContext = Context & { user: Database['public']['Tables'
 
 export interface RequestContext {
 	requestId: string
-	userId?: string
+	user_id?: string
 	organizationId?: string
 	startTime: Date
 	metadata: Record<string, unknown>
@@ -173,7 +173,7 @@ export interface EndpointAudit {
 	path: string
 	httpMethod: string
 	isPublic: boolean
-	requiredRoles: string[]
+	requireduser_types: string[]
 	adminOnly: boolean
 	hasRateLimit: boolean
 	securityRisk: 'low' | 'medium' | 'high' | 'critical'
@@ -207,10 +207,10 @@ export type CacheInvalidationReason =
 	| 'tag_invalidation'
 
 export type CacheableEntityType =
-	| 'property'
-	| 'unit'
-	| 'tenant'
-	| 'lease'
+	| 'properties'
+	| 'units'
+	| 'tenants'
+	| 'leases'
 	| 'maintenance'
 
 export interface EndpointInfo {
@@ -229,7 +229,7 @@ export interface EndpointAudit {
 	path: string
 	httpMethod: string
 	isPublic: boolean
-	requiredRoles: string[]
+	requireduser_types: string[]
 	adminOnly: boolean
 	hasRateLimit: boolean
 	securityRisk: 'low' | 'medium' | 'high' | 'critical'
@@ -259,27 +259,6 @@ export interface ServiceMetrics {
 // SECURITY MONITORING TYPES
 export type { SecurityEvent } from './security.js'
 
-export type SecurityEventType =
-	| 'unauthorized_access'
-	| 'rate_limit_exceeded'
-	| 'suspicious_pattern'
-	| 'sql_injection_attempt'
-	| 'xss_attempt'
-	| 'csrf_violation'
-	| 'authentication_failure'
-	| 'authorization_failure'
-	| 'data_breach_attempt'
-	| 'brute_force_attempt'
-	| 'session_hijack_attempt'
-	| 'api_abuse'
-	| 'malformed_request'
-	| 'file_upload_violation'
-	| 'cors_violation'
-	| 'malicious_request'
-	| 'suspicious_activity'
-	| 'account_takeover'
-	| 'auth_failure'
-
 // SECURITY EXCEPTION FILTER TYPES
 
 export type { ErrorResponse } from './errors.js'
@@ -287,7 +266,7 @@ export type { ErrorResponse } from './errors.js'
 export interface SecurityErrorContext {
 	ip: string
 	userAgent?: string
-	userId?: string
+	user_id?: string
 	endpoint: string
 	method: string
 	timestamp: string
@@ -401,7 +380,7 @@ export interface RegisteredRouteSchema {
 	controller: string
 	handler: string
 	isPublic: boolean
-	requiredRoles?: string[]
+	requireduser_types?: string[]
 	schema?: JSONSchema
 }
 
@@ -428,7 +407,7 @@ export interface RequiredEnvVars {
 	DATABASE_URL: string
 	DIRECT_URL: string
 	SUPABASE_URL: string
-	SERVICE_ROLE_KEY: string
+	SERVICE_user_type_KEY: string
 	SUPABASE_PUBLISHABLE_KEY: string
 	NEXTAUTH_SECRET: string
 	NEXTAUTH_URL: string

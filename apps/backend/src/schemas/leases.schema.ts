@@ -8,7 +8,7 @@
 import type { JSONSchema } from '../shared/types/express-type-provider'
 import { dateSchema, moneySchema, uuidSchema } from './shared.schema'
 
-const leaseStatusSchema: JSONSchema = {
+const lease_statusSchema: JSONSchema = {
 	type: 'string',
 	enum: ['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED'],
 	default: 'DRAFT'
@@ -26,23 +26,23 @@ const paymentFrequencySchema: JSONSchema = {
 export const createLeaseSchema: JSONSchema = {
 	type: 'object',
 	required: [
-		'tenantId',
-		'unitId',
-		'startDate',
-		'endDate',
-		'rentAmount',
-		'securityDeposit'
+		'tenant_id',
+		'unit_id',
+		'start_date',
+		'end_date',
+		'rent_amount',
+		'security_deposit'
 	],
 	additionalProperties: false,
 	properties: {
-		tenantId: uuidSchema,
-		unitId: uuidSchema,
-		startDate: dateSchema,
-		endDate: dateSchema,
-		rentAmount: moneySchema,
-		securityDeposit: moneySchema,
+		tenant_id: uuidSchema,
+		unit_id: uuidSchema,
+		start_date: dateSchema,
+		end_date: dateSchema,
+		rent_amount: moneySchema,
+		security_deposit: moneySchema,
 		paymentFrequency: paymentFrequencySchema,
-		status: leaseStatusSchema
+		status: lease_statusSchema
 	}
 }
 
@@ -53,12 +53,12 @@ export const updateLeaseSchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
-		startDate: dateSchema,
-		endDate: dateSchema,
-		monthlyRent: moneySchema,
-		securityDeposit: moneySchema,
+		start_date: dateSchema,
+		end_date: dateSchema,
+		rent_amount: moneySchema,
+		security_deposit: moneySchema,
 		paymentFrequency: paymentFrequencySchema,
-		status: leaseStatusSchema
+		status: lease_statusSchema
 	}
 }
 
@@ -69,10 +69,10 @@ export const leaseQuerySchema: JSONSchema = {
 	type: 'object',
 	additionalProperties: false,
 	properties: {
-		tenantId: uuidSchema,
-		unitId: uuidSchema,
-		propertyId: uuidSchema,
-		status: leaseStatusSchema,
+		tenant_id: uuidSchema,
+		unit_id: uuidSchema,
+		property_id: uuidSchema,
+		status: lease_statusSchema,
 		limit: {
 			type: 'integer',
 			minimum: 1,
@@ -86,8 +86,8 @@ export const leaseQuerySchema: JSONSchema = {
 		},
 		sortBy: {
 			type: 'string',
-			enum: ['startDate', 'endDate', 'monthlyRent', 'createdAt'],
-			default: 'createdAt'
+			enum: ['start_date', 'end_date', 'rent_amount', 'created_at'],
+			default: 'created_at'
 		},
 		sortOrder: {
 			type: 'string',
