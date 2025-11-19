@@ -53,6 +53,7 @@ describe('UnitsController', () => {
 		rent_currency: 'USD',
 		rent_period: 'MONTHLY',
 		status: 'VACANT',
+		property_owner_id: 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 		...overrides

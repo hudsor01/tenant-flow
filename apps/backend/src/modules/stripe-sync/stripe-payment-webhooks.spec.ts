@@ -26,7 +26,6 @@
  *
  * For FLOW 1 (SaaS Subscription) tests, see:
  * - stripe-sync-webhooks.spec.ts (subscription lifecycle)
- * - stripe-subscriptions.spec.ts (subscription management)
  *
  * Both revenue streams are equally critical but serve different purposes:
  * - FLOW 1: Your company's recurring revenue

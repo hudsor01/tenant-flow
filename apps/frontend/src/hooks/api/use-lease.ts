@@ -200,8 +200,9 @@ export function useCreateLease() {
 			const optimisticLease: Lease = {
 				id: tempId,
 				primary_tenant_id: newLease.primary_tenant_id ?? null,
-				unit_id: newLease.unit_id ?? null,
-				start_date: newLease.start_date,
+			unit_id: newLease.unit_id ?? null,
+			property_owner_id: newLease.property_owner_id ?? null,
+			start_date: newLease.start_date,
 				end_date: newLease.end_date,
 				rent_amount: newLease.rent_amount,
 				security_deposit: newLease.security_deposit ?? null,
@@ -316,7 +317,7 @@ export function useUpdateLease() {
 
 			// Optimistically update detail cache (use incrementVersion helper)
 			queryClient.setQueryData<LeaseWithVersion>(leaseKeys.detail(id), old =>
-				old ? incrementVersion(old, data) : undefined
+				old ? (incrementVersion(old, data)) : undefined
 			)
 
 			// Optimistically update list caches
@@ -327,7 +328,7 @@ export function useUpdateLease() {
 					return {
 						...old,
 						data: old.data.map(lease =>
-							lease.id === id ? incrementVersion(lease, data) : lease
+							lease.id === id ? (incrementVersion(lease, data)) : lease
 						)
 					}
 				}

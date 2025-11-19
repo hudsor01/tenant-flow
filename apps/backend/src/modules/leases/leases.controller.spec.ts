@@ -33,6 +33,7 @@ describe('LeasesController', () => {
 		late_fee_amount: null,
 		late_fee_days: null,
 		stripe_subscription_id: null,
+		property_owner_id: 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 		...overrides

@@ -17,13 +17,14 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	handleConflictError,
 	isConflictError,
-	withVersion
+	withVersion,
+	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type {
 	CreateUnitInput,
 	UpdateUnitInput
 } from '@repo/shared/types/api-inputs'
-import type { Unit } from '@repo/shared/types/core'
+import type { Unit, UnitWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { unitQueries, type UnitFilters } from './queries/unit-queries'
 
@@ -202,6 +203,7 @@ export function useCreateUnit() {
 			const optimisticUnit: Unit = {
 			id: tempId,
 			property_id: newUnit.property_id,
+			property_owner_id: null,
 			unit_number: newUnit.unit_number ?? null,
 			bedrooms: newUnit.bedrooms ?? null,
 			bathrooms: newUnit.bathrooms ?? null,
@@ -309,26 +311,13 @@ export function useUpdateUnit() {
 			})
 
 			// Optimistically update detail cache
-			if (previousDetail) {
-				queryClient.setQueryData<Unit>(unitKeys.detail(id), {
-					...previousDetail,
-					...data
-				})
-			}
-
-			// Optimistically update list caches
-			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
-				{ queryKey: unitKeys.all },
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						data: old.data.map(unit =>
-							unit.id === id ? { ...unit, ...data } : unit
-						)
-					}
-				}
+		if (previousDetail) {
+			queryClient.setQueryData<UnitWithVersion>(
+				unitKeys.detail(id),
+				(old: UnitWithVersion | undefined) =>
+					old ? incrementVersion(old, data) : undefined
 			)
+		}
 
 			// Return context for rollback
 			return { previousDetail, previousLists }

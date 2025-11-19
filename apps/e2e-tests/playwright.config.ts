@@ -3,7 +3,6 @@ import { baseConfig, smokeProjects } from './playwright.config.base.ts'
 
 export default defineConfig({
 	...baseConfig,
-
-	// Projects use session reuse for fast login (no auth-helpers needed)
+	// Projects - MSW mocking handles authentication
 	projects: smokeProjects
 })

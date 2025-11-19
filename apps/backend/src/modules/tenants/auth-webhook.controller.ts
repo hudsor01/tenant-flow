@@ -1,22 +1,10 @@
 /**
  * SUPABASE AUTH WEBHOOK CONTROLLER (Phase 3.1)
-<<<<<<< Updated upstream
-
-||||||| Stash base
  *
-=======
- *
->>>>>>> Stashed changes
  * Handles Supabase Auth webhooks for user confirmation events
  * When tenant clicks invitation link and confirms email, this endpoint is called
  * to automatically activate the tenant record.
-<<<<<<< Updated upstream
-
-||||||| Stash base
  *
-=======
- *
->>>>>>> Stashed changes
  * ULTRA-NATIVE ARCHITECTURE:
  * - Uses built-in NestJS decorators and pipes
  * - No custom abstractions
@@ -36,10 +24,11 @@ import {
 import { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import { TenantsService } from '../tenants/tenants.service'
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { AppConfigService } from '../../config/app-config.service'
+import { SupabaseService } from '../../database/supabase.service'
+import { CONFIG_DEFAULTS } from '../../config/config.constants'
+import { createThrottleDefaults } from '../../config/throttle.config'
 
 interface SupabaseAuthWebhookPayload {
 	type: 'user.created' | 'user.updated' | 'user.deleted'
@@ -63,38 +52,26 @@ interface SupabaseAuthWebhookPayload {
 	old_record: null | Record<string, unknown>
 }
 
+const SUPABASE_AUTH_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'SUPABASE_AUTH_THROTTLE_TTL',
+	envLimitKey: 'SUPABASE_AUTH_THROTTLE_LIMIT',
+	defaultTtl: Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_TTL),
+	defaultLimit: Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_LIMIT)
+})
+
 @Controller('webhooks/auth')
 export class AuthWebhookController {
 	private readonly logger = new Logger(AuthWebhookController.name)
-	private readonly supabase
 
 	constructor(
 		private readonly tenantsService: TenantsService,
-		private readonly appConfigService: AppConfigService
-	) {
-		// Initialize Supabase client for webhook log writes
-		this.supabase = createClient<Database>(
-			this.appConfigService.getSupabaseUrl(),
-			this.appConfigService.getSupabaseSecretKey(),
-			{
-				auth: {
-					autoRefreshToken: false,
-					persistSession: false
-				}
-			}
-		)
-	}
+		private readonly appConfigService: AppConfigService,
+		private readonly supabaseService: SupabaseService
+	) {}
 
 	/**
 	 * Verify Standard Webhooks signature using native Node.js crypto
 	 * Implements https://www.standardwebhooks.com/ specification
-<<<<<<< Updated upstream
-
-||||||| Stash base
-	 *
-=======
-	 *
->>>>>>> Stashed changes
 	 * @param rawBody - Raw request body as string
 	 * @param signature - webhook-signature header (format: v1,base64signature)
 	 * @param timestamp - webhook-timestamp header (UNIX timestamp)
@@ -153,17 +130,10 @@ export class AuthWebhookController {
 	 * Supabase Auth Webhook Handler
 	 * Called when user confirms email (clicks invitation link)
 	 * Automatically activates tenant record
-<<<<<<< Updated upstream
-
-||||||| Stash base
-	 *
-=======
-	 *
->>>>>>> Stashed changes
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
 	 * SECURITY: Verifies webhook signature using Standard Webhooks spec
 	 */
-	@Throttle({ default: { ttl: 60000, limit: 30 } })
+	@Throttle({ default: SUPABASE_AUTH_THROTTLE })
 	@Post('user-confirmed')
 	@SetMetadata('isPublic', true)
 	async handleUserConfirmed(
@@ -333,9 +303,10 @@ export class AuthWebhookController {
 		processed: boolean
 	): Promise<void> {
 		try {
-			await this.supabase
-			.from('webhook_events')
-			.insert({
+			await this.supabaseService
+				.getAdminClient()
+				.from('webhook_events')
+				.insert({
 				event_type: payload.type,
 				raw_payload: JSON.parse(JSON.stringify(payload)),
 				processed_at: processed ? new Date().toISOString() : null

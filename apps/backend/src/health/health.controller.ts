@@ -7,12 +7,21 @@ import { Controller, Get, Logger, SetMetadata } from '@nestjs/common'
 import { SkipThrottle, Throttle } from '@nestjs/throttler'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
+import { CONFIG_DEFAULTS } from '../config/config.constants'
+import { createThrottleDefaults } from '../config/throttle.config'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
 
-@Throttle({ default: { ttl: 60000, limit: 300 } }) // TODO: Make configurable via environment variables
+const HEALTH_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'HEALTH_THROTTLE_TTL',
+	envLimitKey: 'HEALTH_THROTTLE_LIMIT',
+	defaultTtl: Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_TTL),
+	defaultLimit: Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_LIMIT)
+})
+
+@Throttle({ default: HEALTH_THROTTLE })
 @Controller(['health', 'api/v1/health', 'auth', 'api/v1/auth'])
 export class HealthController {
 	private readonly logger = new Logger(HealthController.name)
