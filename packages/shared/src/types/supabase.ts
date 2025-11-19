@@ -3596,7 +3596,7 @@ export type Database = {
         }
         Relationships: []
       }
-      subscriptions: {
+      stripe_sync_subscriptions: {
         Row: {
           application_fee_percent: number | null
           billing_cycle_anchor: number | null
