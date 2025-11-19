@@ -10,9 +10,9 @@ import {
 	calculatePropertyFinancials,
 	loadLedgerData,
 	parseDate,
-	type ExpenseRow,
 	type LedgerData,
-	type RentPaymentRow
+	type RentPaymentPartial,
+	type ExpensePartial
 } from './financial-ledger.helpers'
 
 interface FinancialOverviewResponse {
