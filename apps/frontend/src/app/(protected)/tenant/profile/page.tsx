@@ -184,15 +184,6 @@ export default function TenantProfilePage() {
 			return
 		}
 
-		// Validate email format if provided
-		if (emergency_contactForm.email && emergency_contactForm.email.trim()) {
-			const emailResult = emailSchema.safeParse(emergency_contactForm.email)
-			if (!emailResult.success) {
-				toast.error('Emergency contact email is invalid')
-				return
-			}
-		}
-
 		try {
 			if (emergency_contact) {
 				// Update existing contact
@@ -227,12 +218,12 @@ export default function TenantProfilePage() {
 
 		try {
 			await deleteEmergencyContact.mutateAsync()
-			setEmergencyContactForm({
-				contactName: '',
-				relationship: '',
-				phoneNumber: '',
-				email: ''
-			})
+		setEmergencyContactForm({
+			contactName: '',
+			relationship: '',
+			phoneNumber: '',
+			email: ''
+		})
 			setEmergencyContactEditing(false)
 			setDeleteDialogOpen(false)
 		} catch (error) {
