@@ -27,17 +27,17 @@ export class CashFlowController {
 
 		// Default to current month if no dates provided
 		const now = new Date()
-		const defaultstart_date = new Date(now.getFullYear(), now.getMonth(), 1)
+		const defaultStartDate = new Date(now.getFullYear(), now.getMonth(), 1)
 			.toISOString()
 			.split('T')[0] as string
 		const defaultEndDate = now.toISOString().split('T')[0] as string
 
-		const finalstart_date = start_date || defaultstart_date
+		const finalStartDate = start_date || defaultStartDate
 		const finalEndDate = end_date || defaultEndDate
 
 		// Validate date format
 		if (
-			!/^\d{4}-\d{2}-\d{2}$/.test(finalstart_date) ||
+			!/^\d{4}-\d{2}-\d{2}$/.test(finalStartDate) ||
 			!/^\d{4}-\d{2}-\d{2}$/.test(finalEndDate)
 		) {
 			throw new BadRequestException(
@@ -47,7 +47,7 @@ export class CashFlowController {
 
 		const data = await this.cashFlowService.generateCashFlowStatement(
 			token,
-			finalstart_date,
+			finalStartDate,
 			finalEndDate
 		)
 

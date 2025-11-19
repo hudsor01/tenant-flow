@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import {
 	calculatePercentChange,
@@ -42,11 +42,22 @@ export class IncomeStatementService {
 
 		this.logger.log(`Generating income statement (${start_date} to ${end_date})`)
 
+		// Validate date parameters before creating Date objects
+		const startDate = new Date(start_date)
+		const endDate = new Date(end_date)
+
+		if (isNaN(startDate.getTime())) {
+			throw new BadRequestException(`Invalid start date: ${start_date}`)
+		}
+		if (isNaN(endDate.getTime())) {
+			throw new BadRequestException(`Invalid end date: ${end_date}`)
+		}
+
 		try {
 			const ledger = await loadLedgerData(client)
 			const range: DateRange = {
-				start: new Date(start_date),
-				end: new Date(end_date)
+				start: startDate,
+				end: endDate
 			}
 			const summary = this.summarizeIncome(ledger, range)
 

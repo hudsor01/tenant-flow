@@ -9,7 +9,7 @@ import {
 	UnauthorizedException,
 	InternalServerErrorException
 } from '@nestjs/common'
-import { user_id } from '../../shared/decorators/user.decorator'
+import { user_id as UserId } from '../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { DashboardService } from './dashboard.service'
@@ -48,7 +48,7 @@ export class DashboardController {
 	// User-specific data cannot use global cache without exposing data across users
 	async getStats(
 		@Request() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
@@ -76,7 +76,7 @@ export class DashboardController {
 	@Get('page-data')
 	async getPageData(
 		@Request() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	) {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -114,7 +114,7 @@ export class DashboardController {
 	@Get('activity')
 	async getActivity(
 		@Request() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 		if (!token) {
@@ -143,7 +143,7 @@ export class DashboardController {
 	@Get('billing/insights')
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
+		@UserId() user_id: string,
 		@Query('start_date') start_date?: string,
 		@Query('end_date') end_date?: string
 	): Promise<ControllerApiResponse> {
@@ -190,7 +190,7 @@ export class DashboardController {
 	@Get('billing/insights/available')
 	async checkBillingInsightsAvailability(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -226,7 +226,7 @@ export class DashboardController {
 	@Get('billing/health')
 	async getBillingHealth(
 		@Request() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -274,7 +274,7 @@ export class DashboardController {
 	@Get('property-performance')
 	async getPropertyPerformance(
 		@Request() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
@@ -325,7 +325,7 @@ export class DashboardController {
 	@Get('occupancy-trends')
 	async getOccupancyTrends(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
+		@UserId() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
@@ -359,7 +359,7 @@ export class DashboardController {
 	@Get('revenue-trends')
 	async getRevenueTrends(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
+		@UserId() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
@@ -396,7 +396,7 @@ export class DashboardController {
 	@Get('time-series')
 	async getTimeSeries(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
+		@UserId() user_id: string,
 		@Query('metric') metric: string,
 		@Query('days') days?: string
 	): Promise<ControllerApiResponse> {
@@ -445,7 +445,7 @@ export class DashboardController {
 	@Get('metric-trend')
 	async getMetricTrend(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
+		@UserId() user_id: string,
 		@Query('metric') metric: string,
 		@Query('period') period?: string
 	): Promise<ControllerApiResponse> {
@@ -491,7 +491,7 @@ export class DashboardController {
 	@Get('maintenance-analytics')
 	async getMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@UserId() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 

@@ -236,8 +236,8 @@ export class BalanceSheetService {
 	}
 
 	private calculateCurrentPeriodIncomeFromLedger(
-		payments: RentPaymentRow[],
-		expenses: ExpenseRow[],
+		payments: RentPaymentPartial[],
+		expenses: ExpensePartial[],
 		asOf: Date
 	): number {
 		const { start, end } = this.getMonthBounds(asOf)
