@@ -140,7 +140,7 @@ export class BillingService {
     const client = this.supabase.getAdminClient()
     // Stripe schema tables are synced at runtime but not in generated types
     const result = await (client
-      .from('stripe.subscriptions' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .from('stripe.stripe_sync_subscriptions' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('*')
       .eq('id', stripeSubscriptionId)
       .single()
@@ -163,7 +163,7 @@ export class BillingService {
     const client = this.supabase.getAdminClient()
     // Stripe schema tables are synced at runtime but not in generated types
     const result = await (client
-      .from('stripe.subscriptions' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .from('stripe.stripe_sync_subscriptions' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('*')
       .eq('customer', stripeCustomerId)
 
