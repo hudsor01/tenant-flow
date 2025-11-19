@@ -110,7 +110,6 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		// Rate limiting - configurable via environment
 		ThrottlerModule.forRootAsync({
 			imports: [SharedModule],
-			useFactory: (config: AppConfigService) => ({
 			useFactory: (config: AppConfigService) => {
 				const ttlMs = config.getRateLimitTtl()
 				const limit = config.getRateLimitLimit()
