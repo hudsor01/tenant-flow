@@ -17,7 +17,7 @@ export type ExpensePartial = Pick<ExpenseRow, 'expense_date' | 'created_at' | 'a
 export type LeasePartial = Pick<LeaseRow, 'id' | 'unit_id' | 'security_deposit'>
 export type MaintenanceRequestPartial = Pick<MaintenanceRequestRow, 'id' | 'unit_id' | 'status' | 'completed_at' | 'created_at' | 'actual_cost' | 'estimated_cost'>
 export type UnitPartial = Pick<UnitRow, 'id' | 'property_id'>
-export type PropertyPartial = Pick<PropertyRow, 'id' | 'name'>
+export type PropertyPartial = Pick<PropertyRow, 'id' | 'name' | 'created_at'>
 
 export interface LedgerData {
 	rentPayments: RentPaymentPartial[]
@@ -56,7 +56,7 @@ export async function loadLedgerData(
 		client.from('leases').select('id, unit_id, security_deposit'),
 		client.from('maintenance_requests').select('id, unit_id, status, completed_at, created_at, actual_cost, estimated_cost'),
 		client.from('units').select('id, property_id'),
-		client.from('properties').select('id, name')
+		client.from('properties').select('id, name, created_at')
 	])
 
 	const errors = [
@@ -137,7 +137,7 @@ export function calculatePropertyFinancials(
 			map.set(request.id, request)
 		}
 		return map
-	}, new Map<string, MaintenanceRequestRow>())
+	}, new Map<string, MaintenanceRequestPartial>())
 
 	const revenue = new Map<string, number>()
 	for (const payment of ledger.rentPayments) {

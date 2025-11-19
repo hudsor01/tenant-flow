@@ -27,11 +27,11 @@ export function useUserProfile() {
 			const { data, error } = await supabase
 				.from('users')
 				.select('id, email, first_name, last_name, user_type')
-			.eq('id', user_id)
+				.eq('id', user_id)
 				.single()
 
 			if (error) throw error
-			return data
+			return data || {}
 		},
 		enabled: isAuthenticated && !!user_id,
 		staleTime: 5 * 60 * 1000, // 5 minutes
