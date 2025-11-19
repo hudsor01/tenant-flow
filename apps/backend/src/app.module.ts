@@ -111,13 +111,18 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		ThrottlerModule.forRootAsync({
 			imports: [SharedModule],
 			useFactory: (config: AppConfigService) => ({
-				throttlers: [
-					{
-						ttl: config.getRateLimitTtl() ? parseInt(config.getRateLimitTtl()!) : 60,
-						limit: config.getRateLimitLimit() ? parseInt(config.getRateLimitLimit()!) : 100
-					}
-				]
-			}),
+			useFactory: (config: AppConfigService) => {
+				const ttlMs = config.getRateLimitTtl()
+				const limit = config.getRateLimitLimit()
+				return {
+					throttlers: [
+						{
+							ttl: ttlMs ? Math.ceil(parseInt(ttlMs, 10) / 1000) : 60,
+							limit: limit ? parseInt(limit, 10) : 100
+						}
+					]
+				}
+			},
 			inject: [AppConfigService]
 		}),
 
