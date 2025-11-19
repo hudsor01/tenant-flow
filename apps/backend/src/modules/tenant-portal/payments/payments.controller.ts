@@ -38,8 +38,8 @@ export class TenantPaymentsController {
 	async getPayments(
 		@JwtToken() token: string,
 		@User() user: authUser
-	): // eslint-disable-next-line @typescript-eslint/no-explicit-any
-	Promise<{ payments: any[]; methodsEndpoint: string }> {
+	):
+	Promise<{ payments: Array<Record<string, unknown>>; methodsEndpoint: string }> {
 		const tenant = await this.resolveTenant(token, user)
 		const payments = await this.fetchPayments(token, tenant.id)
 
@@ -69,7 +69,7 @@ export class TenantPaymentsController {
 			.getUserClient(token)
 			.from('rent_payments')
 			.select(
-				'id, amount, status, paidAt, dueDate, created_at, lease_id, tenant_id, stripePaymentIntentId, ownerReceives, receiptUrl'
+				'id, amount, status, created_at, lease_id, tenant_id, stripe_payment_intent_id, due_date, application_fee_amount, paid_date, period_end, period_start'
 			)
 			.eq('tenant_id', tenant_id)
 			.order('created_at', { ascending: false })

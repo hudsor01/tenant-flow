@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common'
-import { makeCounterProvider, makeGaugeProvider } from '@willsoto/nestjs-prometheus'
+import {
+	makeCounterProvider,
+	makeGaugeProvider,
+	makeHistogramProvider
+} from '@willsoto/nestjs-prometheus'
 import { MetricsService } from './metrics.service'
 import { ConfigModule } from '@nestjs/config'
 
@@ -63,6 +67,18 @@ import { ConfigModule } from '@nestjs/config'
 			name: 'tenantflow_auth_failures_total',
 			help: 'Total number of failed authentications',
 			labelNames: ['method', 'reason']
+		}),
+		// HTTP metrics
+		makeCounterProvider({
+			name: 'tenantflow_http_requests_total',
+			help: 'Total number of HTTP requests handled',
+			labelNames: ['method', 'route', 'status']
+		}),
+		makeHistogramProvider({
+			name: 'tenantflow_http_request_duration_seconds',
+			help: 'HTTP request duration in seconds',
+			labelNames: ['method', 'route'],
+			buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10]
 		}),
 
 		MetricsService

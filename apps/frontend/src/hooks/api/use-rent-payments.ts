@@ -70,6 +70,7 @@ export function useCreateRentPayment() {
 			const tempId = `temp-${Date.now()}`
 			const optimisticPayment = {
 		id: tempId,
+		version: 1,
 		amount: newPayment.amount,
 		status: 'PENDING',
 		tenant_id: newPayment.tenant_id,

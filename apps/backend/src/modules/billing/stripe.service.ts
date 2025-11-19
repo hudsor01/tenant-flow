@@ -328,4 +328,151 @@ export class StripeService {
 			throw error
 		}
 	}
+
+	/**
+	 * Create a Payment Intent for one-time payments
+	 * Follows official Stripe Payment Intent patterns
+	 * Uses idempotency key to prevent duplicate charges on retries
+	 */
+	async createPaymentIntent(
+		params: Stripe.PaymentIntentCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.PaymentIntent> {
+		try {
+			const requestOptions = idempotencyKey
+				? { idempotencyKey }
+				: undefined
+
+			const paymentIntent = await this.stripe.paymentIntents.create(
+				params,
+				requestOptions
+			)
+
+			this.logger.log('Payment intent created', { id: paymentIntent.id })
+			return paymentIntent
+		} catch (error) {
+			this.logger.error('Failed to create payment intent', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Create a Customer for recurring payments
+	 * Follows official Stripe customer creation patterns
+	 */
+	async createCustomer(
+		params: Stripe.CustomerCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Customer> {
+		try {
+			const requestOptions = idempotencyKey
+				? { idempotencyKey }
+				: undefined
+
+			const customer = await this.stripe.customers.create(
+				params,
+				requestOptions
+			)
+
+			this.logger.log('Customer created', { id: customer.id })
+			return customer
+		} catch (error) {
+			this.logger.error('Failed to create customer', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Create a Subscription for recurring payments
+	 * Implements official Stripe subscription patterns with proper error handling
+	 */
+	async createSubscription(
+		params: Stripe.SubscriptionCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Subscription> {
+		try {
+			const requestOptions = idempotencyKey
+				? { idempotencyKey }
+				: undefined
+
+			const subscription = await this.stripe.subscriptions.create(
+				params,
+				requestOptions
+			)
+
+			this.logger.log('Subscription created', { id: subscription.id })
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to create subscription', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Update a Subscription
+	 * Handles plan changes with proper proration and billing cycle management
+	 */
+	async updateSubscription(
+		subscriptionId: string,
+		params: Stripe.SubscriptionUpdateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Subscription> {
+		try {
+			const requestOptions = idempotencyKey
+				? { idempotencyKey }
+				: undefined
+
+			const subscription = await this.stripe.subscriptions.update(
+				subscriptionId,
+				params,
+				requestOptions
+			)
+
+			this.logger.log('Subscription updated', { id: subscription.id })
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to update subscription', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Create a Checkout Session for payment collection
+	 * Implements official Stripe Checkout patterns
+	 */
+	async createCheckoutSession(
+		params: Stripe.Checkout.SessionCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Checkout.Session> {
+		try {
+			const requestOptions = idempotencyKey
+				? { idempotencyKey }
+				: undefined
+
+			const session = await this.stripe.checkout.sessions.create(
+				params,
+				requestOptions
+			)
+
+			this.logger.log('Checkout session created', { id: session.id })
+			return session
+		} catch (error) {
+			this.logger.error('Failed to create checkout session', { error })
+			throw error
+		}
+	}
+
+	/**
+	 * Get a specific charge
+	 * Used for retrieving charge details and failure messages
+	 */
+	async getCharge(chargeId: string): Promise<Stripe.Charge | null> {
+		try {
+			const charge = await this.stripe.charges.retrieve(chargeId)
+			return charge
+		} catch (error) {
+			this.logger.error('Failed to get charge', { error, chargeId })
+			return null
+		}
+	}
 }

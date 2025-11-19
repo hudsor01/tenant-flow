@@ -152,11 +152,6 @@ export type UnitInsert = TablesInsert<'units'>
 // Augmented types with optimistic locking version field for mutations
 // IMPORTANT: Only Leases have version field for optimistic locking - other entities don't support versioning
 // Property, Unit, Tenant, and MaintenanceRequest don't have version columns in the database
-export type LeaseWithVersion = Lease & { version?: number }
-export type MaintenanceRequestWithVersion = MaintenanceRequest & { version?: number }
-export type PropertyWithVersion = Property & { version?: number }
-export type UnitWithVersion = Unit & { version?: number }
-
 // Types with additional computed/relational properties
 export type LeaseWithExtras = Lease & {
 	version?: number
@@ -779,3 +774,11 @@ export interface TenantNotificationPreferences {
 
 // Re-exports from api-contracts for backward compatibility
 export type { TenantInput, TenantUpdate } from './api-contracts.js'
+
+// WithVersion types for optimistic locking - defined after their base types
+export type LeaseWithVersion = Lease & { version?: number }
+export type MaintenanceRequestWithVersion = MaintenanceRequest & { version?: number }
+export type PropertyWithVersion = Property & { version?: number }
+export type UnitWithVersion = Unit & { version?: number }
+export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & { version?: number }
+export type PaymentMethodResponseWithVersion = PaymentMethodResponse & { version?: number }

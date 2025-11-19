@@ -352,6 +352,12 @@ pids
 .eslintcache
 .eslint/
 
+# TypeScript build artifacts
+**/*.d.ts
+**/*.d.ts.map
+**/*.js
+**/*.js.map
+
 # Build outputs
 dist/
 coverage/
@@ -390,4 +396,3 @@ stripe-webhooks.log
 # Generated types that may contain sensitive info
 **/generated-types.secret.ts
 **/api-types.secret.ts
-!TODO.md

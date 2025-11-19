@@ -3,6 +3,21 @@ import { HttpStatus } from '@nestjs/common'
 import { DatabaseExceptionFilter } from './database-exception.filter'
 import type { ArgumentsHost } from '@nestjs/common'
 
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
+
 describe('DatabaseExceptionFilter', () => {
 	let filter: DatabaseExceptionFilter
 	let mockResponse: {

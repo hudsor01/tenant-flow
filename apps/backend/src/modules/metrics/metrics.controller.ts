@@ -1,9 +1,26 @@
-import { Controller, Get, Req, Res, UnauthorizedException, SetMetadata, Logger } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Req,
+	Res,
+	UnauthorizedException,
+	SetMetadata,
+	Logger
+} from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { PrometheusController } from '@willsoto/nestjs-prometheus'
-import { ConfigService } from '@nestjs/config'
 import { timingSafeEqual } from 'crypto'
 import type { Request, Response } from 'express'
+import { CONFIG_DEFAULTS } from '../../config/config.constants'
+import { createThrottleDefaults } from '../../config/throttle.config'
+import { AppConfigService } from '../../config/app-config.service'
+
+const METRICS_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'METRICS_THROTTLE_TTL',
+	envLimitKey: 'METRICS_THROTTLE_LIMIT',
+	defaultTtl: Number(CONFIG_DEFAULTS.METRICS_THROTTLE_TTL),
+	defaultLimit: Number(CONFIG_DEFAULTS.METRICS_THROTTLE_LIMIT)
+})
 
 /**
  * Metrics Controller - Exposes Prometheus metrics with bearer token authentication
@@ -14,27 +31,42 @@ import type { Request, Response } from 'express'
  *
  * Pattern: https://github.com/willsoto/nestjs-prometheus#custom-controller
  */
-@Controller('metrics') // Define explicit route path for metrics endpoint
+@Controller() // Define explicit route paths inside decorators
 export class MetricsController extends PrometheusController {
 	private readonly logger = new Logger(MetricsController.name)
 
-	constructor(private readonly configService: ConfigService) {
+	constructor(private readonly appConfigService: AppConfigService) {
 		super()
 	}
 
 	@SetMetadata('isPublic', true)
-	@Throttle({ default: { ttl: 60000, limit: 60 } })
-	@Get()
+	@Throttle({ default: METRICS_THROTTLE })
+	@Get(['metrics', 'metric'])
 	async getMetrics(@Req() req: Request, @Res() res: Response) {
-		// Get the expected token from configuration
-		const expectedToken = this.configService.get<string>('PROMETHEUS_BEARER_TOKEN')
+		const requireAuth = this.appConfigService.isPrometheusAuthRequired()
+		const expectedToken = this.appConfigService.getPrometheusBearerToken()
 
-		// In production, always require authentication - disable endpoint if token not configured
-		if (!expectedToken) {
-			this.logger.error('Prometheus metrics endpoint accessed but PROMETHEUS_BEARER_TOKEN not configured - endpoint disabled for security')
-			throw new UnauthorizedException('Metrics endpoint disabled - bearer token not configured')
+		if (requireAuth) {
+			if (!expectedToken) {
+				this.logger.error(
+					'PROMETHEUS_REQUIRE_AUTH=true but PROMETHEUS_BEARER_TOKEN is missing'
+				)
+				throw new UnauthorizedException(
+					'Metrics endpoint requires PROMETHEUS_BEARER_TOKEN or disable auth via PROMETHEUS_REQUIRE_AUTH=false'
+				)
+			}
+
+			this.validateBearerToken(req, expectedToken)
+		} else {
+			this.logger.debug(
+				'Serving /metrics without bearer auth (PROMETHEUS_REQUIRE_AUTH=false)'
+			)
 		}
 
+		return super.index(res)
+	}
+
+	private validateBearerToken(req: Request, expectedToken: string): void {
 		const authHeader = req.headers.authorization
 
 		if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -45,9 +77,7 @@ export class MetricsController extends PrometheusController {
 			throw new UnauthorizedException('Bearer token required')
 		}
 
-		const token = authHeader.substring(7) // Remove 'Bearer ' prefix
-
-		// Use timing-safe comparison to prevent timing attacks
+		const token = authHeader.substring(7)
 		const tokenBuffer = Buffer.from(token)
 		const expectedBuffer = Buffer.from(expectedToken)
 
@@ -62,8 +92,5 @@ export class MetricsController extends PrometheusController {
 			})
 			throw new UnauthorizedException('Invalid bearer token')
 		}
-
-		// Delegate to parent PrometheusController with only response object
-		return super.index(res)
 	}
 }

@@ -143,6 +143,36 @@ export class AppConfigService {
 		return this.configService.get('RATE_LIMIT_LIMIT', { infer: true })
 	}
 
+	getHealthThrottleTtl(): number {
+		return (
+			this.configService.get('HEALTH_THROTTLE_TTL', { infer: true }) ??
+			Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_TTL)
+		)
+	}
+
+	getHealthThrottleLimit(): number {
+		return (
+			this.configService.get('HEALTH_THROTTLE_LIMIT', { infer: true }) ??
+			Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_LIMIT)
+		)
+	}
+
+	getContactThrottleTtl(): number {
+		return this.configService.get('CONTACT_THROTTLE_TTL', { infer: true })
+	}
+
+	getContactThrottleLimit(): number {
+		return this.configService.get('CONTACT_THROTTLE_LIMIT', { infer: true })
+	}
+
+	getMetricsThrottleTtl(): number {
+		return this.configService.get('METRICS_THROTTLE_TTL', { infer: true })
+	}
+
+	getMetricsThrottleLimit(): number {
+		return this.configService.get('METRICS_THROTTLE_LIMIT', { infer: true })
+	}
+
 	isRateLimitingEnabled(): boolean {
 		return this.configService.get('ENABLE_RATE_LIMITING', { infer: true })
 	}
@@ -153,6 +183,22 @@ export class AppConfigService {
 
 	getWebhookThrottleLimit(): number {
 		return this.configService.get('WEBHOOK_THROTTLE_LIMIT', { infer: true })
+	}
+
+	getStripeSyncThrottleTtl(): number {
+		return this.configService.get('STRIPE_SYNC_THROTTLE_TTL', { infer: true })
+	}
+
+	getStripeSyncThrottleLimit(): number {
+		return this.configService.get('STRIPE_SYNC_THROTTLE_LIMIT', { infer: true })
+	}
+
+	getSupabaseAuthThrottleTtl(): number {
+		return this.configService.get('SUPABASE_AUTH_THROTTLE_TTL', { infer: true })
+	}
+
+	getSupabaseAuthThrottleLimit(): number {
+		return this.configService.get('SUPABASE_AUTH_THROTTLE_LIMIT', { infer: true })
 	}
 
 	// ==================== Stripe ====================
@@ -264,6 +310,14 @@ export class AppConfigService {
 
 	isMetricsEnabled(): boolean {
 		return this.configService.get('ENABLE_METRICS', { infer: true })
+	}
+
+	getPrometheusBearerToken(): string | undefined {
+		return this.configService.get('PROMETHEUS_BEARER_TOKEN', { infer: true })
+	}
+
+	isPrometheusAuthRequired(): boolean {
+		return this.configService.get('PROMETHEUS_REQUIRE_AUTH', { infer: true })
 	}
 
 	// ==================== File Storage ====================

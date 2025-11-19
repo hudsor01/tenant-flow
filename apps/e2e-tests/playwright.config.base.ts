@@ -135,8 +135,11 @@ export const baseConfig: PlaywrightTestConfig = {
 		locale: 'en-US',
 		timezone: 'America/New_York',
 
-		// Viewport size (standard desktop)
-		viewport: { width: 1280, height: 720 }
+			// Viewport size (standard desktop)
+		viewport: { width: 1280, height: 720 },
+
+		// Don't use pre-saved auth state - tests handle auth dynamically
+		// storageState: 'apps/e2e-tests/.auth/owner.json'
 	},
 
 	// Parallel execution (2025 standard)
@@ -162,9 +165,8 @@ export const baseConfig: PlaywrightTestConfig = {
 	forbidOnly: !!process.env.CI,
 
 	// Output directory for test results
-	outputDir: 'test-results/'
+	outputDir: 'test-results/',
 
-	// Global setup/teardown
-	// globalSetup: require.resolve('./global-setup'),
-	// globalTeardown: require.resolve('./global-teardown'),
+	// Global setup/teardown - disabled, tests handle auth directly
+	// globalSetup: './apps/e2e-tests/playwright.auth.ts'
 }

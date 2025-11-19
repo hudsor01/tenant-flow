@@ -124,16 +124,35 @@ function parseColor(color: string): { r: number; g: number; b: number } {
 	throw new Error(`Unsupported color format: ${color}`)
 }
 
+
+const CSS_VARIABLE_NAME_REGEX = /^var\((--[^),\s]+)/i
+const cssVariableColorCache = new Map<string, { r: number; g: number; b: number }>()
+const DEFAULT_VARIABLE_COLOR = { r: 128, g: 128, b: 128 }
+
 /**
  * Get approximate RGB values for CSS custom properties
- * In a real implementation, this would resolve the actual computed values
  */
 function getCSSVariableColor(variable: string): {
 	r: number
 	g: number
 	b: number
 } {
-	// Mapping of our design tokens to approximate RGB values for validation
+	const match = variable.match(CSS_VARIABLE_NAME_REGEX)
+	const varName = match?.[1]
+
+	if (varName) {
+		const cached = cssVariableColorCache.get(varName)
+		if (cached) {
+			return cached
+		}
+
+		const resolved = resolveCssVariableToRgb(varName)
+		if (resolved) {
+			cssVariableColorCache.set(varName, resolved)
+			return resolved
+		}
+	}
+
 	const tokenMap: Record<string, { r: number; g: number; b: number }> = {
 		'var(--color-system-red)': { r: 219, g: 68, b: 55 },
 		'var(--color-system-green)': { r: 52, g: 199, b: 89 },
@@ -147,7 +166,106 @@ function getCSSVariableColor(variable: string): {
 		'var(--color-fill-secondary)': { r: 242, g: 242, b: 247 }
 	}
 
-	return tokenMap[variable] || { r: 128, g: 128, b: 128 } // Default gray
+	return tokenMap[variable] || DEFAULT_VARIABLE_COLOR
+}
+
+function resolveCssVariableToRgb(
+	varName: string
+): { r: number; g: number; b: number } | null {
+	const doc = typeof document !== 'undefined' ? document : null
+	const win = typeof window !== 'undefined' ? window : null
+
+	if (!doc || !win || typeof win.getComputedStyle !== 'function') {
+		return null
+	}
+
+	const parent = doc.body ?? doc.documentElement
+	if (!parent) {
+		return null
+	}
+
+	const probe = doc.createElement('span')
+	probe.style.position = 'absolute'
+	probe.style.left = '-9999px'
+	probe.style.top = '-9999px'
+	probe.style.width = '0'
+	probe.style.height = '0'
+	probe.style.overflow = 'hidden'
+	probe.style.pointerEvents = 'none'
+	probe.style.opacity = '0'
+	probe.style.color = `var(${varName})`
+	probe.textContent = '.'
+
+	parent.appendChild(probe)
+	const computedColor = win.getComputedStyle(probe).color
+	parent.removeChild(probe)
+
+	return computedColor ? parseRgbColorString(computedColor) : null
+}
+
+function parseRgbColorString(value: string): {
+	r: number
+	g: number
+	b: number
+} | null {
+	const rgbMatch = value.trim().match(/rgba?\(([^)]+)\)/i)
+	if (!rgbMatch) {
+		return null
+	}
+
+	const channels = rgbMatch[1]!
+		.replace(/\//g, ' ')
+		.split(/[,\s]+/)
+		.filter(Boolean)
+
+	if (channels.length < 3) {
+		return null
+	}
+
+	const parseChannel = (channel: string, scalePercent = false) => {
+		if (!channel) {
+			return NaN
+		}
+		if (channel.endsWith('%')) {
+			const numeric = Number(channel.slice(0, -1))
+			return scalePercent ? numeric / 100 : (numeric / 100) * 255
+		}
+		return Number(channel)
+	}
+
+	const [rStr, gStr, bStr, ...rest] = channels as [string, string, string, ...string[]]
+	const aStr = rest[0]
+	const r = parseChannel(rStr)
+	const g = parseChannel(gStr)
+	const b = parseChannel(bStr)
+
+	if ([r, g, b].some(channel => Number.isNaN(channel))) {
+		return null
+	}
+
+	let alpha = 1
+	if (aStr !== undefined) {
+		const parsedAlpha = parseChannel(aStr, true)
+		if (!Number.isNaN(parsedAlpha)) {
+			alpha = Math.min(Math.max(parsedAlpha, 0), 1)
+		}
+	}
+
+	if (alpha < 1) {
+		const blendWithWhite = (channel: number) =>
+			Math.round(channel * alpha + 255 * (1 - alpha))
+		return {
+			r: blendWithWhite(r),
+			g: blendWithWhite(g),
+			b: blendWithWhite(b)
+		}
+	}
+
+	return {
+		r: Math.round(r),
+		g: Math.round(g),
+		b: Math.round(b)
+	}
 }
 
 /**

@@ -142,9 +142,12 @@ export class TenantListService {
 			}
 
 			// Merge tenants with their lease info
-			return tenants.map(t => ({ ...t, lease: null })) as unknown as TenantWithLeaseInfo[]
-		} catch (error) {
-			this.logger.error('Error finding tenants with lease', {
+		return tenants.map(t => ({
+			...t,
+			lease: tenantLeaseMap.get(t.id) ?? null
+		})) as unknown as TenantWithLeaseInfo[]
+	} catch (error) {
+		this.logger.error('Error finding tenants with lease', {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})

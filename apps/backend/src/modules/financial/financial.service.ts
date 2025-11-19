@@ -581,24 +581,35 @@ export class FinancialService {
 	}
 
 	private calculateMonthlyRevenue(leases: Lease[], targetYear: number) {
+		// Initialize all months with 0 revenue
 		const map = new Map<string, number>()
 		for (let month = 0; month < 12; month++) {
-			const monthStart = new Date(targetYear, month, 1)
-			const monthEnd = new Date(targetYear, month + 1, 0)
-			const key = this.buildMonthKey(targetYear, month)
-
-			let monthlyRevenue = 0
-			for (const lease of leases) {
-				const start_date = new Date(lease.start_date)
-				// Month-to-month leases (end_date is null) are always active
-				const end_date = lease.end_date ? new Date(lease.end_date) : new Date('9999-12-31')
-				if (start_date <= monthEnd && end_date >= monthStart) {
-					monthlyRevenue += lease.rent_amount || 0
-				}
-			}
-
-			map.set(key, monthlyRevenue)
+			map.set(this.buildMonthKey(targetYear, month), 0)
 		}
+
+		// Single pass through leases to calculate revenue for each overlapping month
+		for (const lease of leases) {
+			const start_date = new Date(lease.start_date)
+			// Month-to-month leases (end_date is null) are always active
+			const end_date = lease.end_date
+				? new Date(lease.end_date)
+				: new Date('9999-12-31')
+			const rent = lease.rent_amount || 0
+
+			// Determine which months this lease spans
+			const startMonth = start_date.getFullYear() === targetYear ? start_date.getMonth() : 0
+			const endMonth =
+				end_date.getFullYear() === targetYear
+					? end_date.getMonth()
+					: 11
+
+			// Add rent to each month in the lease period
+			for (let month = startMonth; month <= endMonth; month++) {
+				const key = this.buildMonthKey(targetYear, month)
+				map.set(key, (map.get(key) ?? 0) + rent)
+			}
+		}
+
 		return map
 	}
 
