@@ -203,7 +203,7 @@ export class PrometheusService implements OnModuleInit {
 	/**
 	 * Update database connection metrics
 	 */
-	updated_atabaseMetrics(active: number, idle: number): void {
+	updated_databaseMetrics(active: number, idle: number): void {
 		this.dbConnectionsActive.set(active)
 		this.dbConnectionsIdle.set(idle)
 	}
