@@ -247,13 +247,13 @@ describe('TaxDocumentsService', () => {
 			const customLedger: LedgerData = {
 				rentPayments: [],
 				expenses: [
-					      { id: 'e1', amount: 30000, expense_date: '2024-01-01', created_at: '2024-01-01', updated_at: '2024-01-01', vendor_name: 'ABC Contractors', maintenance_request_id: 'maint-1' }
+					{ amount: 30000, expense_date: '2024-01-01', created_at: '2024-01-01', maintenance_request_id: 'maint-1' }
 				],
 				leases: [],
 				maintenanceRequests: [],
 				units: [],
 				properties: [
-					      { id: 'prop-1', name: 'Property', address_line1: '123 Main St', address_line2: null, city: 'Anytown', country: 'USA', postal_code: '12345', property_owner_id: 'user-1', created_at: '2024-01-01', updated_at: '2024-01-01', property_type: 'residential', date_sold: null, sale_price: null, state: 'CA', status: 'ACTIVE' }
+					{ id: 'prop-1', name: 'Property', created_at: '2024-01-01' }
 				]
 			}
 
