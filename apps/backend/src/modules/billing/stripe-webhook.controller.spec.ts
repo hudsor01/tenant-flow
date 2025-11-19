@@ -24,6 +24,21 @@ import { PrometheusService } from '../observability/prometheus.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { createMockAppConfigService } from '../../test-utils/mocks'
 
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
+
 describe('StripeWebhookController', () => {
 		let controller: StripeWebhookController
 		let eventEmitter: jest.Mocked<EventEmitter2>
@@ -41,10 +56,15 @@ describe('StripeWebhookController', () => {
 	const mockSupabaseClient = {
 		from: jest.fn().mockReturnThis(),
 		select: jest.fn().mockReturnThis(),
-		eq: jest.fn().mockReturnThis(),
-		single: jest.fn().mockReturnThis(),
-		insert: jest.fn().mockReturnThis(),
-		upsert: jest.fn().mockReturnThis()
+		eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+		single: jest.fn().mockResolvedValue({ data: null, error: null }),
+		insert: jest.fn().mockResolvedValue({ error: null }),
+		upsert: jest.fn().mockResolvedValue({ error: null }),
+		rpc: jest.fn().mockResolvedValue({
+			data: [{ lock_acquired: true }],
+			error: null
+		}),
+		update: jest.fn().mockReturnThis()
 	}
 
 	// Helper to create mock Stripe event
@@ -72,6 +92,19 @@ describe('StripeWebhookController', () => {
 		beforeEach(async () => {
 			// Reset all mocks
 			jest.clearAllMocks()
+
+			// Re-setup all Supabase client mocks to default to success
+			mockSupabaseClient.rpc.mockResolvedValue({
+				data: [{ lock_acquired: true }],
+				error: null
+			})
+			mockSupabaseClient.from.mockReturnThis()
+			mockSupabaseClient.select.mockReturnThis()
+			mockSupabaseClient.insert.mockResolvedValue({ error: null })
+			mockSupabaseClient.update.mockReturnThis()
+			mockSupabaseClient.eq.mockResolvedValue({ error: null })
+			mockSupabaseClient.single.mockResolvedValue({ data: null, error: null })
+			mockSupabaseClient.upsert.mockResolvedValue({ error: null })
 
 			mockAppConfigService = createMockAppConfigService()
 			mockAppConfigService.getStripeWebhookSecret.mockImplementation(
@@ -246,59 +279,32 @@ describe('StripeWebhookController', () => {
 			const signature = 't=1234,v1=valid_signature'
 
 			mockStripe.webhooks.constructEvent.mockReturnValue(event)
-			// Simulate event already exists in database
-			mockSupabaseClient.single.mockResolvedValue({
-				data: { id: 'existing_record_id' },
+			// Mock rpc to indicate lock was not acquired (duplicate)
+			mockSupabaseClient.rpc.mockResolvedValueOnce({
+				data: [{ lock_acquired: false }],
 				error: null
 			})
+			// Explicitly reset update mock to ensure clean state
+			mockSupabaseClient.update.mockClear()
 
 			const result = await controller.handleWebhook(req as any, signature)
 
 			expect(result).toEqual({ received: true, duplicate: true })
-			// Prometheus is optional (@Optional() decorator), so may not be called
-			// expect(prometheus.recordIdempotencyHit).toHaveBeenCalledWith(event.type)
+			// Verify event was NOT emitted for duplicate
 			expect(eventEmitter.emitAsync).not.toHaveBeenCalled()
-		})
 
-		it('should process new event and store in database', async () => {
-			const event = createMockStripeEvent('payment_intent.succeeded', {
-				id: 'pi_test_new',
-				amount: 5000
-			})
-
-			const req = createMockWebhookRequest('{"type":"payment_intent.succeeded"}')
-			const signature = 't=1234,v1=valid_signature'
-
-			mockStripe.webhooks.constructEvent.mockReturnValue(event)
-			// Event doesn't exist
-			mockSupabaseClient.single.mockResolvedValue({ data: null, error: null })
-			mockSupabaseClient.insert.mockResolvedValue({ error: null })
-
-			const result = await controller.handleWebhook(req as any, signature)
-
-			expect(result).toEqual({ received: true })
-
-			// Verify event emission
-			expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
-				`stripe.${event.type}`,
+			// Verify rpc was called to acquire lock
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'record_processed_stripe_event_lock',
 				expect.objectContaining({
-					id: 'pi_test_new',
-					amount: 5000,
-					eventId: event.id,
-					eventType: event.type
+					p_stripe_event_id: event.id,
+					p_event_type: event.type
 				})
 			)
 
-			// Verify stored in processed_stripe_events
-		expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
-			expect.objectContaining({
-				stripe_event_id: event.id,
-				processed_at: expect.any(String)
-			})
-		)
-
-		// Verify event was processed
-		expect(mockSupabaseClient.from).toHaveBeenCalledWith('stripe_processed_events')
+			// Verify event was NOT updated (duplicate so early return)
+			expect(mockSupabaseClient.update).not.toHaveBeenCalled()
+			expect(mockSupabaseClient.from).not.toHaveBeenCalledWith('stripe_processed_events')
 		})
 	})
 

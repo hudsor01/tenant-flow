@@ -78,7 +78,8 @@ export default defineConfig({
       'coverage',
       'tests/**', // Exclude integration tests from unit test runs
       'e2e/**',
-      'playwright/**'
+      'playwright/**',
+      'tests/tanstack/tanstack-test-results/**' // Exclude test result HTML files
     ],
     testTimeout: 10000,
     hookTimeout: 10000

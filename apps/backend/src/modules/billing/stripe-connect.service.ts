@@ -224,6 +224,117 @@ export class StripeConnectService {
 	}
 
 	/**
+	 * Create a Stripe customer on a connected account
+	 * Used for tenant billing when they're added to a lease on a property with a connected account
+	 */
+	async createCustomerOnConnectedAccount(
+		connectedAccountId: string,
+		params: {
+			email: string
+			name?: string
+			phone?: string
+			metadata?: Record<string, string>
+		}
+	): Promise<Stripe.Customer> {
+		try {
+			const customer = await this.stripe.customers.create(
+				{
+					email: params.email,
+					...(params.name && { name: params.name }),
+					...(params.phone && { phone: params.phone }),
+					metadata: {
+						platform: 'tenantflow',
+						...params.metadata
+					}
+				},
+				{
+					stripeAccount: connectedAccountId
+				}
+			)
+
+			this.logger.log('Created Stripe customer on connected account', {
+				customer_id: customer.id,
+				stripe_account_id: connectedAccountId,
+				email: customer.email
+			})
+
+			return customer
+		} catch (error) {
+			this.logger.error('Failed to create Stripe customer on connected account', {
+				error: error instanceof Error ? error.message : String(error),
+				stripe_account_id: connectedAccountId,
+				email: params.email
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Create a Stripe subscription on a connected account
+	 * Used for setting up recurring rent payments for tenants
+	 */
+	async createSubscriptionOnConnectedAccount(
+		connectedAccountId: string,
+		params: {
+			customerId: string
+			rentAmount: number // in cents
+			currency?: string
+			metadata?: Record<string, string>
+		}
+	): Promise<Stripe.Subscription> {
+		try {
+			// First, create a price object for the monthly rent
+			const price = await this.stripe.prices.create(
+				{
+					currency: params.currency || 'usd',
+					unit_amount: params.rentAmount,
+					recurring: { interval: 'month' },
+					product_data: {
+						name: 'Monthly Rent Payment'
+					}
+				},
+				{
+					stripeAccount: connectedAccountId
+				}
+			)
+
+			// Create subscription with the price
+			const subscription = await this.stripe.subscriptions.create(
+				{
+					customer: params.customerId,
+					items: [{ price: price.id }],
+					payment_behavior: 'default_incomplete',
+					expand: ['latest_invoice.payment_intent'],
+					metadata: {
+						platform: 'tenantflow',
+						...params.metadata
+					}
+				},
+				{
+					stripeAccount: connectedAccountId
+				}
+			)
+
+			this.logger.log('Created Stripe subscription on connected account', {
+				subscription_id: subscription.id,
+				customer_id: params.customerId,
+				stripe_account_id: connectedAccountId,
+				rent_amount: params.rentAmount
+			})
+
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to create Stripe subscription on connected account', {
+				error: error instanceof Error ? error.message : String(error),
+				stripe_account_id: connectedAccountId,
+				customer_id: params.customerId,
+				rent_amount: params.rentAmount
+			})
+			throw error
+		}
+	}
+
+	/**
 	 * Create a Stripe Connected Account for a owner
 	 * Uses Express account type with Stripe-managed onboarding
 	 */
@@ -289,13 +400,13 @@ export class StripeConnectService {
 					country: accountCountry,
 					email: params.email,
 					capabilities: {
-					card_payments: { requested: true },
-					transfers: { requested: true }
-				},
-				tos_acceptance: {
-					service_agreement: 'full'
-				},
-				business_type: 'individual',
+						card_payments: { requested: true },
+						transfers: { requested: true }
+					},
+					tos_acceptance: {
+						service_agreement: 'full'
+					},
+					business_type: 'individual',
 					settings: {
 						payouts: {
 							schedule: {

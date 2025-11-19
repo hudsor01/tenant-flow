@@ -8,7 +8,8 @@ import { test, expect } from '@playwright/test'
 test.describe('Tenant Invitation Flow', () => {
 	// Test credentials from environment
 	const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
-	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || (() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
+	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
+	const TENANT_PASSWORD = process.env.E2E_TENANT_PASSWORD || 'TenantPassword123!'
 	const BASE_URL = process.env.BASE_URL || 'https://tenantflow.app'
 	const API_URL = process.env.API_URL || 'https://api.tenantflow.app'
 
@@ -140,8 +141,8 @@ test.describe('Tenant Invitation Flow', () => {
 		await newPage.goto(`${BASE_URL}/signup?invitation=${invitationToken}&email=${testTenant.email}`)
 
 		// Fill in password
-		await newPage.fill('input[name="password"]', process.env.E2E_TENANT_PASSWORD || (() => { throw new Error('E2E_TENANT_PASSWORD environment variable is required') })())
-		await newPage.fill('input[name="confirmPassword"]', process.env.E2E_TENANT_PASSWORD || (() => { throw new Error('E2E_TENANT_PASSWORD environment variable is required') })())
+		await newPage.fill('input[name="password"]', TENANT_PASSWORD)
+		await newPage.fill('input[name="confirmPassword"]', TENANT_PASSWORD)
 
 		// Submit signup
 		await newPage.click('button[type="submit"]')

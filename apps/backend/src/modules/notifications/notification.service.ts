@@ -1,15 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
+import type { DatabaseNotificationEventType } from '@repo/shared/types/notifications'
 import { SupabaseService } from '../../database/supabase.service'
 
-type NotificationType =
-	| 'subscription_created'
-	| 'subscription_updated'
-	| 'subscription_cancelled'
-	| 'payment_succeeded'
-	| 'payment_failed'
-	| 'trial_ending'
-	| 'subscription_renewed'
+type NotificationType = DatabaseNotificationEventType
 
 type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
 
@@ -210,6 +204,43 @@ export class NotificationService {
 			this.logger.error('Error cleaning up old notifications', {
 				error: error instanceof Error ? error.message : String(error)
 			})
+		}
+	}
+
+
+	/**
+	 * Check if a notification already exists (idempotency)
+	 * Prevents duplicate lease expiry notifications
+	 */
+	async existsLeaseNotification(
+		user_id: string,
+		notification_type: NotificationType
+	): Promise<boolean> {
+		try {
+			const { count, error } = await this.supabaseService
+				.getAdminClient()
+				.from('notifications')
+				.select('id', { count: 'exact', head: true })
+				.eq('user_id', user_id)
+				.eq('notification_type', notification_type)
+
+			if (error) {
+				this.logger.warn('Failed to check for existing notification', {
+					error: error.message,
+					user_id,
+					notification_type
+				})
+				return false
+			}
+
+			return (count ?? 0) > 0
+		} catch (error) {
+			this.logger.error('Error checking for existing notification', {
+				error: error instanceof Error ? error.message : String(error),
+				user_id,
+				notification_type
+			})
+			return false
 		}
 	}
 }

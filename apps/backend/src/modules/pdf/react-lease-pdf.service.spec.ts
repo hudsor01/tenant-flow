@@ -3,6 +3,21 @@ import type { TestingModule } from '@nestjs/testing'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
+
 describe('ReactLeasePDFService', () => {
 	let service: ReactLeasePDFService
 

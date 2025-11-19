@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import { StripeSync } from '@supabase/stripe-sync-engine'
 import { AppConfigService } from '../../config/app-config.service'
 
@@ -14,13 +14,31 @@ import { AppConfigService } from '../../config/app-config.service'
  * 3. Migrations run separately via CLI, not at runtime
  */
 @Injectable()
-export class StripeSyncService {
+export class StripeSyncService implements OnModuleDestroy {
 	private readonly logger = new Logger(StripeSyncService.name)
 	private stripeSync: StripeSync | null = null
 
 	constructor(private readonly config: AppConfigService) {
-		// Stripe Sync Engine is initialized lazily on first use
+		// Stripe Sync Engine is started lazily on first use
 		// to avoid blocking app startup
+	}
+
+	/**
+	 * Cleanup method for graceful shutdown
+	 * Closes database connection pool
+	 */
+	onModuleDestroy(): void {
+		if (this.stripeSync) {
+			try {
+				// Close the Stripe Sync Engine connection pool
+			;(this.stripeSync as unknown as { close?: () => void }).close?.()
+			this.logger.log('Stripe Sync Engine connection pool closed')
+			} catch (error) {
+				this.logger.error('Error closing Stripe Sync Engine', {
+					error: error instanceof Error ? error.message : String(error)
+				})
+			}
+		}
 	}
 
 	private ensureInitialized(): StripeSync {
@@ -40,7 +58,6 @@ export class StripeSyncService {
 			)
 		}
 
-		// NOTE: Migrations must be run separately via scripts/stripe-sync-migrate.ts
 		// The stripe schema must exist before initializing StripeSync
 		this.stripeSync = new StripeSync({
 			poolConfig: {

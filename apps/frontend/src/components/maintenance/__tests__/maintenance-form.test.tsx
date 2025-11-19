@@ -80,6 +80,7 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	id: 'request-1',
 	unit_id: 'unit-1',
 	requested_by: 'tenant-1',
+	property_owner_id: 'user-1',
 	description: 'The kitchen faucet is dripping continuously',
 	priority: 'MEDIUM',
 	status: 'OPEN',

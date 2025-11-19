@@ -104,3 +104,16 @@ Clear convention: ALWAYS use snake_case in .select(), .insert(), .update() calls
 
 **Doppler**: All env vars via `doppler run --`
 **Env Validation**: `eslint-config-turbo` validates `process.env.*` in `turbo.json`
+
+## Development Servers
+**Frontend**: http://localhost:3000 (Next.js 16 dev server)
+**Backend**: http://localhost:4600 (NestJS dev server)
+
+Start both servers with:
+```bash
+# Terminal 1: Backend
+doppler run -- pnpm --filter @repo/backend dev
+
+# Terminal 2: Frontend
+pnpm --filter @repo/frontend dev
+```

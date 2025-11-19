@@ -23,7 +23,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
+		"lint": "eslint \"src/**/*.ts\"",
 		"lint:fix": "pnpm lint --fix",
 		"clean": "rimraf dist .turbo"
 	},
@@ -42,7 +42,7 @@
 		"@types/node": "catalog:",
 		"eslint": "catalog:",
 		"jest": "catalog:",
-		"rimraf": "6.0.1",
+		"rimraf": "6.1.0",
 		"typescript": "catalog:"
 	}
 }

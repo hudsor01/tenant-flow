@@ -38,7 +38,18 @@ export const CONFIG_DEFAULTS = {
 	RATE_LIMIT_TTL: '60000', // 60 seconds
 	RATE_LIMIT_LIMIT: '100', // 100 requests per window
 	WEBHOOK_THROTTLE_TTL: '60000', // 60 seconds for webhooks
-	WEBHOOK_THROTTLE_LIMIT: '30' // 30 webhook requests per window
+	WEBHOOK_THROTTLE_LIMIT: '30', // 30 webhook requests per window
+	HEALTH_THROTTLE_TTL: '60000', // 60 seconds for health endpoints
+	HEALTH_THROTTLE_LIMIT: '300', // higher ceiling for shared probes
+	STRIPE_SYNC_THROTTLE_TTL: '60000',
+	STRIPE_SYNC_THROTTLE_LIMIT: '30',
+	SUPABASE_AUTH_THROTTLE_TTL: '60000',
+	SUPABASE_AUTH_THROTTLE_LIMIT: '30',
+	METRICS_THROTTLE_TTL: '60000',
+	METRICS_THROTTLE_LIMIT: '60',
+	CONTACT_THROTTLE_TTL: '60000',
+	CONTACT_THROTTLE_LIMIT: '5',
+	PROMETHEUS_REQUIRE_AUTH: true
 } as const
 
 export type NodeEnvironment = (typeof NODE_ENVIRONMENTS)[number]

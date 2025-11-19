@@ -1,5 +1,4 @@
 import { Logger, Module } from '@nestjs/common'
-import { StorageService } from '../../database/storage.service'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
 import { PropertiesController } from './properties.controller'
@@ -20,7 +19,6 @@ import { PropertyAnalyticsService } from './services/property-analytics.service'
 		PropertyImagesService,
 		PropertyBulkImportService,
 		PropertyAnalyticsService,
-		StorageService,
 		Logger
 	],
 	exports: [PropertiesService]

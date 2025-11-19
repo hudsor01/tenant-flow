@@ -94,7 +94,7 @@ test.describe('Lease Template PDF Generation', () => {
 		})
 	})
 
-	test.afterEach(async (_fixtures, testInfo) => {
+	test.afterEach(async (testInfo) => {
 		await attachText(testInfo, 'console-errors', consoleErrors)
 		await attachText(testInfo, 'network-errors', networkErrors)
 	})

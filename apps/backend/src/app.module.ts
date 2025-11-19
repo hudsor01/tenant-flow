@@ -16,10 +16,12 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { validate } from './config/config.schema'
 import { AppConfigService } from './config/app-config.service'
+import { CacheConfigurationModule } from './cache/cache.module'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
+import { HttpMetricsInterceptor } from './interceptors/http-metrics.interceptor'
 import { AnalyticsModule } from './modules/analytics/analytics.module'
 import { StripeModule } from './modules/billing/stripe.module'
 import { ContactModule } from './modules/contact/contact.module'
@@ -53,7 +55,7 @@ import { MetricsController } from './modules/metrics/metrics.controller'
  * Core App Module - KISS principle
  * Essential business modules with simplified configuration
  */
-@Module({
+	@Module({
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
@@ -81,6 +83,13 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 			isGlobal: true,
 			ttl: 30 * 1000, // 30 seconds default TTL
 			max: 1000 // Maximum number of items in cache
+		}),
+
+		// Zero cache service for performance optimization
+		CacheConfigurationModule.forRoot({
+			isGlobal: true,
+			ttl: 30 * 1000,
+			max: 1000
 		}),
 
 		// Event system for decoupled architecture
@@ -156,6 +165,10 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		{
 			provide: APP_GUARD,
 			useClass: SubscriptionGuard
+		},
+		{
+			provide: APP_INTERCEPTOR,
+			useClass: HttpMetricsInterceptor
 		},
 		{
 			provide: APP_INTERCEPTOR,

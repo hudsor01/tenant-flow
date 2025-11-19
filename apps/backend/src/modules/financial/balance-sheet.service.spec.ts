@@ -113,7 +113,8 @@ const mockLedgerData = {
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
-						stripe_subscription_id: null
+						stripe_subscription_id: null,
+						property_owner_id: 'owner-1'
 					}
 				],
 				maintenanceRequests: [],
@@ -130,7 +131,8 @@ const mockLedgerData = {
 						square_feet: 1200,
 						status: 'OCCUPIED',
 						unit_number: '101',
-						updated_at: '2024-01-01'
+						updated_at: '2024-01-01',
+						property_owner_id: 'owner-1'
 					}
 				],
 				properties: [
@@ -228,7 +230,8 @@ const mockLedgerData = {
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
-						stripe_subscription_id: null
+						stripe_subscription_id: null,
+						property_owner_id: 'owner-1'
 					},
 					{
 						id: 'lease-2',
@@ -248,7 +251,8 @@ const mockLedgerData = {
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
-						stripe_subscription_id: null
+						stripe_subscription_id: null,
+						property_owner_id: 'owner-2'
 					}
 				],
 				maintenanceRequests: [],
@@ -265,7 +269,8 @@ const mockLedgerData = {
 						square_feet: 1200,
 						status: 'OCCUPIED',
 						unit_number: '101',
-						updated_at: '2024-01-01'
+						updated_at: '2024-01-01',
+						property_owner_id: 'owner-1'
 					},
 					{
 						id: 'unit-2',
@@ -279,7 +284,8 @@ const mockLedgerData = {
 						square_feet: 1200,
 						status: 'OCCUPIED',
 						unit_number: '102',
-						updated_at: '2024-01-01'
+						updated_at: '2024-01-01',
+						property_owner_id: 'owner-1'
 					}
 				],
 				properties: [
@@ -440,7 +446,8 @@ const mockLedgerData = {
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
-						stripe_subscription_id: null
+						stripe_subscription_id: null,
+						property_owner_id: 'owner-1'
 					},
 					{
 						id: 'lease-2',
@@ -460,7 +467,8 @@ const mockLedgerData = {
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
-						stripe_subscription_id: null
+						stripe_subscription_id: null,
+						property_owner_id: 'owner-2'
 					},
 					{
 						id: 'lease-3',
@@ -480,7 +488,8 @@ const mockLedgerData = {
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
-						stripe_subscription_id: null
+						stripe_subscription_id: null,
+						property_owner_id: 'owner-3'
 					}
 				],
 				maintenanceRequests: [],
@@ -497,7 +506,8 @@ const mockLedgerData = {
 						square_feet: 1200,
 						status: 'OCCUPIED',
 						unit_number: '101',
-						updated_at: '2024-01-01'
+						updated_at: '2024-01-01',
+						property_owner_id: 'owner-1'
 					},
 					{
 						id: 'unit-2',
@@ -511,7 +521,8 @@ const mockLedgerData = {
 						square_feet: 1200,
 						status: 'OCCUPIED',
 						unit_number: '201',
-						updated_at: '2024-01-01'
+						updated_at: '2024-01-01',
+						property_owner_id: 'owner-2'
 					},
 					{
 						id: 'unit-3',
@@ -525,7 +536,8 @@ const mockLedgerData = {
 						square_feet: 1200,
 						status: 'OCCUPIED',
 						unit_number: '301',
-						updated_at: '2024-01-01'
+						updated_at: '2024-01-01',
+						property_owner_id: 'owner-3'
 					}
 				],
 				properties: [

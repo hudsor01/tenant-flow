@@ -98,6 +98,7 @@ const mockLease: Lease = {
   id: 'lease-1',
   unit_id: 'unit-1',
   primary_tenant_id: 'tenant-1',
+  property_owner_id: 'user-1',
   start_date: '2024-01-01',
   end_date: '2024-12-31',
   rent_amount: 1500,

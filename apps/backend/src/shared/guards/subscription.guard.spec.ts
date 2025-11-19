@@ -4,6 +4,21 @@ import { createMockUser } from '../../test-utils/mocks'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SubscriptionGuard, SKIP_SUBSCRIPTION_CHECK_KEY } from './subscription.guard'
 
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
+
 describe('SubscriptionGuard', () => {
 	const reflector = {
 		getAllAndOverride: jest.fn()

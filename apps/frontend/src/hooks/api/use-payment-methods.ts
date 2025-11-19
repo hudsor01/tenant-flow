@@ -3,9 +3,10 @@
  * Phase 3: Frontend Integration for Tenant Payment System
  */
 import { clientFetch } from '#lib/api/client'
-import type { PaymentMethodResponse } from '@repo/shared/types/core'
+import type { PaymentMethodResponse, PaymentMethodResponseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
 
 /**
  * Query keys for payment methods endpoints
@@ -65,16 +66,17 @@ export function useSetDefaultPaymentMethod() {
 				paymentMethodKeys.list()
 			)
 			// Optimistically mark selected method as default and unset others
-			queryClient.setQueryData<PaymentMethodResponse[]>(
-				paymentMethodKeys.list(),
-				(old: PaymentMethodResponse[] | undefined) =>
-					old
-						? old.map((m: PaymentMethodResponse) => ({
-								...m,
+		queryClient.setQueryData<PaymentMethodResponseWithVersion[]>(
+			paymentMethodKeys.list(),
+			(old: PaymentMethodResponseWithVersion[] | undefined) =>
+				old
+					? old.map((m: PaymentMethodResponseWithVersion) =>
+							incrementVersion(m, {
 								isDefault: m.id === paymentMethodId
-							}))
-						: old
-			)
+							})
+						)
+					: old
+		)
 			return previous ? { previous } : {}
 		},
 		onError: (

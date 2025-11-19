@@ -6,6 +6,7 @@ import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 import { LeaseTransformationService } from './lease-transformation.service'
 import { LeaseValidationService } from './lease-validation.service'
+import { LeaseExpiryCheckerService } from './lease-expiry-checker.service'
 import { TenantsModule } from '../tenants/tenants.module'
 
 /**
@@ -23,7 +24,8 @@ import { TenantsModule } from '../tenants/tenants.module'
 	providers: [
 		LeasesService,
 		LeaseTransformationService,
-		LeaseValidationService
+		LeaseValidationService,
+		LeaseExpiryCheckerService
 	],
 	exports: [
 		LeasesService,

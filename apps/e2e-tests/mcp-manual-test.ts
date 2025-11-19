@@ -31,7 +31,7 @@ async function main() {
 
 		logger.info(' Step 2: Fill login credentials')
 		const email = process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
-		const password = process.env.E2E_OWNER_PASSWORD || (() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
+		const password = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
 
 		await page.locator('#email').fill(email)
 		await page.locator('#password').fill(password)

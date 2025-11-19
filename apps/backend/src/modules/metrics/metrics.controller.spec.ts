@@ -1,9 +1,24 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { MetricsController } from './metrics.controller'
 import type { Request, Response } from 'express'
+import { AppConfigService } from '../../config/app-config.service'
+
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
 
 // Mock PrometheusController with proper index method
 const mockIndexMethod = jest.fn().mockResolvedValue(undefined)
@@ -20,27 +35,25 @@ jest.mock('@willsoto/nestjs-prometheus', () => {
 
 describe('MetricsController', () => {
 	let controller: MetricsController
-	let mockConfigService: jest.Mocked<ConfigService>
+	let mockAppConfigService: jest.Mocked<AppConfigService>
 	const VALID_TOKEN = 'test-prometheus-bearer-token-12345'
 
 	beforeEach(async () => {
 		// Clear all mocks before each test
 		jest.clearAllMocks()
 
-		// Create mock ConfigService
-		mockConfigService = {
-			get: jest.fn((key: string) => {
-				if (key === 'PROMETHEUS_BEARER_TOKEN') return VALID_TOKEN
-				return undefined
-			})
-		} as unknown as jest.Mocked<ConfigService>
+		// Create mock AppConfigService
+		mockAppConfigService = {
+			isPrometheusAuthRequired: jest.fn().mockReturnValue(true),
+			getPrometheusBearerToken: jest.fn().mockReturnValue(VALID_TOKEN)
+		} as unknown as jest.Mocked<AppConfigService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [MetricsController],
 			providers: [
 				{
-					provide: ConfigService,
-					useValue: mockConfigService
+					provide: AppConfigService,
+					useValue: mockAppConfigService
 				}
 			]
 		}).compile()
@@ -70,11 +83,11 @@ describe('MetricsController', () => {
 		})
 
 		it('should deny access to metrics when PROMETHEUS_BEARER_TOKEN is not configured', async () => {
-		mockConfigService.get = jest.fn().mockReturnValue(undefined)
+		mockAppConfigService.getPrometheusBearerToken = jest.fn().mockReturnValue(undefined)
 
 		await expect(
 			controller.getMetrics(mockRequest as Request, mockResponse as Response)
-		).rejects.toThrow('Metrics endpoint disabled - bearer token not configured')
+		).rejects.toThrow('Metrics endpoint requires PROMETHEUS_BEARER_TOKEN or disable auth via PROMETHEUS_REQUIRE_AUTH=false')
 
 		// Verify that parent controller was NOT called
 		expect(mockIndexMethod).not.toHaveBeenCalled()

@@ -19,6 +19,7 @@ import type { CreateTenantRequest } from '@repo/shared/types/api-contracts'
 import type { Lease } from '@repo/shared/types/core'
 import type { TablesInsert } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { StripeConnectService } from '../billing/stripe-connect.service'
 import { TenantCrudService } from './tenant-crud.service'
 
 interface InviteWithLeaseRequest extends Omit<CreateTenantRequest, 'stripe_customer_id'> {
@@ -41,7 +42,8 @@ export class TenantInvitationService {
 		private readonly logger: Logger,
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly tenantCrudService: TenantCrudService
+		private readonly tenantCrudService: TenantCrudService,
+		private readonly stripeConnectService: StripeConnectService
 	) {}
 
 	/**
@@ -263,12 +265,23 @@ export class TenantInvitationService {
 	 * SAGA STEP 4: Create Stripe customer on connected account
 	 */
 	private async _createStripeCustomer(
-		_customerData: { name?: string; email: string; phone?: string },
-		_stripe_account_id: string
+		customerData: { name?: string; email: string; phone?: string },
+		stripe_account_id: string
 	): Promise<{ id: string; [key: string]: unknown }> {
 		try {
-			// TODO: Implement customer creation in StripeConnectService
-			return { id: `cus_${Date.now()}` }
+			const customer = await this.stripeConnectService.createCustomerOnConnectedAccount(
+				stripe_account_id,
+				{
+					email: customerData.email,
+					...(customerData.name && { name: customerData.name }),
+					...(customerData.phone && { phone: customerData.phone }),
+					metadata: {
+						user_type: 'tenant',
+						created_via: 'tenant_invitation_saga'
+					}
+				}
+			)
+			return customer as unknown as { id: string; [key: string]: unknown }
 		} catch (oldError) {
 			this.logger.error('SAGA Step 4 failed: Create Stripe customer', {
 				error: oldError instanceof Error ? oldError.message : String(oldError)
@@ -281,13 +294,23 @@ export class TenantInvitationService {
 	 * SAGA STEP 5: Create Stripe subscription for rent payments
 	 */
 	private async _createStripeSubscription(
-		_customer_id: string,
-		_rent_amount: number,
-		_stripe_account_id: string
+		customer_id: string,
+		rent_amount: number,
+		stripe_account_id: string
 	): Promise<{ id: string; [key: string]: unknown }> {
 		try {
-			// TODO: Implement subscription creation in StripeConnectService
-			return { id: `sub_${Date.now()}` }
+			const subscription = await this.stripeConnectService.createSubscriptionOnConnectedAccount(
+				stripe_account_id,
+				{
+					customerId: customer_id,
+					rentAmount: rent_amount,
+					metadata: {
+						payment_type: 'rent',
+						created_via: 'tenant_invitation_saga'
+					}
+				}
+			)
+			return subscription as unknown as { id: string; [key: string]: unknown }
 		} catch (oldError) {
 			this.logger.error('SAGA Step 5 failed: Create Stripe subscription', {
 				error: oldError instanceof Error ? oldError.message : String(oldError)

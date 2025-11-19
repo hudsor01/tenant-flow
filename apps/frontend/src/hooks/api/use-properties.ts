@@ -15,11 +15,12 @@ import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	handleConflictError,
 	isConflictError,
-	withVersion
+	withVersion,
+	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
 import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
-import type { Property } from '@repo/shared/types/core'
+import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase' // Still used in usePropertyImages
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -346,23 +347,23 @@ export function useUpdateProperty() {
 			})
 
 			// Optimistically update detail cache
-			queryClient.setQueryData<Property>(propertiesKeys.detail(id), old =>
-				old ? { ...old, ...data } : undefined
-			)
+		queryClient.setQueryData<PropertyWithVersion>(propertiesKeys.detail(id), old =>
+			old ? incrementVersion(old, data) : undefined
+		)
 
 			// Optimistically update list caches
-			queryClient.setQueriesData<{ data: Property[]; total: number }>(
-				{ queryKey: propertiesKeys.all },
-				old => {
-					if (!old || !Array.isArray(old.data)) return old
-					return {
-						...old,
-						data: old.data.map(property =>
-							property.id === id ? { ...property, ...data } : property
-						)
-					}
+			queryClient.setQueriesData<{ data: PropertyWithVersion[]; total: number }>(
+			{ queryKey: propertiesKeys.all },
+			old => {
+				if (!old || !Array.isArray(old.data)) return old
+				return {
+					...old,
+					data: old.data.map(property =>
+						property.id === id ? incrementVersion(property, data) : property
+					)
 				}
-			)
+			}
+		)
 
 			return { previousDetail, previousLists }
 		},

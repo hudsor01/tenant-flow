@@ -183,8 +183,8 @@ export class IncomeStatementService {
 
 		return {
 			netIncome: previousNetIncome,
-			changePercent: calculatePercentChange(currentNetIncome, previousNetIncome),
-			changeAmount: currentNetIncome - previousNetIncome
+			change: currentNetIncome - previousNetIncome,
+			changePercent: calculatePercentChange(currentNetIncome, previousNetIncome)
 		}
 	}
 }

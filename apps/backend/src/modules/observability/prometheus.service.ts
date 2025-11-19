@@ -10,6 +10,7 @@ import {
 	MODULE_OPTIONS_TOKEN,
 	type PrometheusModuleOptions
 } from './prometheus.module-definition'
+import { normalizeHttpRoute } from './utils/http-route-normalizer'
 
 /**
  * Normalize error types to prevent unbounded cardinality in Prometheus metrics
@@ -24,46 +25,6 @@ function normalizeErrorType(errorType: string): string {
 	if (upper.includes('STRIPE') || upper.includes('PAYMENT')) return 'STRIPE_ERROR'
 	if (upper.includes('PDF') || upper.includes('TEMPLATE')) return 'PDF_ERROR'
 	return 'UNKNOWN'
-}
-
-/**
- * Normalize HTTP routes to prevent unbounded cardinality
- * Converts dynamic segments like /properties/uuid-123 to /properties/:id
- */
-function normalizeHttpRoute(route: string): string {
-	// Strip query parameters
-	const path = route.split('?')[0] || route
-
-	// Replace UUIDs with :id
-	const uuidPattern =
-		/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
-	let normalized = path.replace(uuidPattern, ':id')
-
-	// Replace numeric IDs with :id
-	normalized = normalized.replace(/\/\d+($|\/)/g, '/:id$1')
-
-	// Replace other potential dynamic segments (e.g., email addresses, usernames)
-	// Keep the first path segment, normalize the rest if they look dynamic
-	const segments = normalized.split('/')
-	const result = segments.map((segment, index) => {
-		// Keep static segments and the :id placeholder we already added
-		if (segment === '' || segment === ':id' || segment.startsWith('api')) {
-			return segment
-		}
-		// If segment contains special chars or looks like data, replace with :param
-		if (
-			index > 2 &&
-			(segment.includes('@') ||
-				segment.includes('.') ||
-				segment.includes('_') ||
-				/^[a-z0-9-]+$/i.test(segment) === false)
-		) {
-			return ':param'
-		}
-		return segment
-	})
-
-	return result.join('/')
 }
 
 @Injectable()

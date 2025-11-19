@@ -103,6 +103,9 @@ export interface NotificationPreferences {
 	}
 }
 
+export type NotificationPreferencesWithVersion = NotificationPreferences & { version?: number }
+
+
 // Notification priority constants
 export const NOTIFICATION_PRIORITY = {
 	LOW: 'LOW',
@@ -130,6 +133,21 @@ export interface PushNotification {
 	tag?: string
 	data?: Record<string, string | number | boolean | null>
 }
+
+// Database event notification types (stored in database)
+export type DatabaseNotificationEventType =
+	// Lease notifications
+	| 'lease_expiring_90_days'
+	| 'lease_expiring_60_days'
+	| 'lease_expiring_30_days'
+	// Billing/Subscription notifications
+	| 'subscription_created'
+	| 'subscription_updated'
+	| 'subscription_cancelled'
+	| 'payment_succeeded'
+	| 'payment_failed'
+	| 'trial_ending'
+	| 'subscription_renewed'
 
 // BACKEND NOTIFICATION CONTROLLER TYPES - CONSOLIDATED from backend
 

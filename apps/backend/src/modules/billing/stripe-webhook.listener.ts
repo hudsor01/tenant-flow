@@ -6,7 +6,7 @@ import type { LeaseStatus } from '@repo/shared/constants/status-types'
  * Replaces manual Saga compensation with event-driven cleanup
  */
 
-import { Injectable, Logger, Optional } from '@nestjs/common'
+import { Injectable, Logger, OnModuleDestroy, Optional } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
@@ -16,7 +16,7 @@ import { PaymentFailedEvent } from '../notifications/events/notification.events'
 import { StripeIdentityService } from './stripe-identity.service'
 
 @Injectable()
-export class StripeWebhookListener {
+export class StripeWebhookListener implements OnModuleDestroy {
 	private readonly logger = new Logger(StripeWebhookListener.name)
 
 	constructor(
@@ -25,6 +25,16 @@ export class StripeWebhookListener {
 		private readonly eventEmitter: EventEmitter2,
 		private readonly identityService: StripeIdentityService
 	) {}
+
+	/**
+	 * Cleanup on module destroy
+	 * Note: EventEmitter2 doesn't provide a built-in way to unsubscribe all listeners
+	 * This is a limitation of the library. Event listeners are cleared when the service instance is garbage collected.
+	 */
+	onModuleDestroy(): void {
+		this.logger.debug('StripeWebhookListener shutting down')
+		// EventEmitter2 listeners will be cleared when service instance is destroyed
+	}
 
 	/**
 	 * Handle payment method attached to subscription
@@ -309,10 +319,10 @@ export class StripeWebhookListener {
 				)
 
 				this.logger.log('Queued payment failed notification for tenant', {
-					tenantuser_id: tenantUserId,
-					tenant_id: lease.tenant?.id,
-					subscriptionId
-				})
+				tenant_user_id: tenantUserId,
+				tenant_id: lease.tenant?.id,
+				subscription_id: subscriptionId
+			})
 			}
 		} catch (error) {
 			// Record failure details

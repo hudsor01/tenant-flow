@@ -71,8 +71,38 @@ const environmentSchema = z.object({
 	// Rate Limiting
 	RATE_LIMIT_TTL: z.string().optional(),
 	RATE_LIMIT_LIMIT: z.string().optional(),
+	HEALTH_THROTTLE_TTL: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_TTL)),
+	HEALTH_THROTTLE_LIMIT: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_LIMIT)),
+	CONTACT_THROTTLE_TTL: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.CONTACT_THROTTLE_TTL)),
+	CONTACT_THROTTLE_LIMIT: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.CONTACT_THROTTLE_LIMIT)),
+	METRICS_THROTTLE_TTL: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.METRICS_THROTTLE_TTL)),
+	METRICS_THROTTLE_LIMIT: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.METRICS_THROTTLE_LIMIT)),
 	WEBHOOK_THROTTLE_TTL: z.coerce.number().default(Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_TTL)),
 	WEBHOOK_THROTTLE_LIMIT: z.coerce.number().default(Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_LIMIT)),
+	STRIPE_SYNC_THROTTLE_TTL: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.STRIPE_SYNC_THROTTLE_TTL)),
+	STRIPE_SYNC_THROTTLE_LIMIT: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.STRIPE_SYNC_THROTTLE_LIMIT)),
+	SUPABASE_AUTH_THROTTLE_TTL: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_TTL)),
+	SUPABASE_AUTH_THROTTLE_LIMIT: z
+		.coerce.number()
+		.default(Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_LIMIT)),
 
 	// Stripe
 	STRIPE_SECRET_KEY: z.string(),
@@ -118,6 +148,12 @@ const environmentSchema = z.object({
 		.string()
 		.min(16, 'PROMETHEUS_BEARER_TOKEN must be at least 16 characters')
 		.optional(),
+	PROMETHEUS_REQUIRE_AUTH: z
+		.preprocess(
+			val => (typeof val === 'string' ? val === 'true' : val),
+			z.boolean()
+		)
+		.default(CONFIG_DEFAULTS.PROMETHEUS_REQUIRE_AUTH),
 
 	// File Storage
 	STORAGE_PROVIDER: z

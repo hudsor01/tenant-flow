@@ -4,11 +4,9 @@ import {
 	BarChart3,
 	Building2,
 	Calculator,
-	Calendar,
 	CircleDollarSign,
 	ClipboardList,
 	FileText,
-	FolderOpen,
 	Home,
 	LayoutDashboard,
 	LineChart,
@@ -121,16 +119,6 @@ const navigation: {
 					title: 'Generate Reports',
 					url: '/manage/reports/generate',
 					icon: PieChart
-				},
-				{
-					title: 'Report Library',
-					url: '/manage/reports/library',
-					icon: FolderOpen
-				},
-				{
-					title: 'Schedule Reports',
-					url: '/manage/reports/schedule',
-					icon: Calendar
 				}
 			]
 		},

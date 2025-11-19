@@ -4,8 +4,8 @@
 	"extends": "./base.json",
 	"compilerOptions": {
 		"lib": ["ES2022"],
-		"module": "ESNext",
-		"moduleResolution": "bundler",
+		"module": "CommonJS",
+		"moduleResolution": "node",
 		"target": "ES2022",
 		"jsx": "react-jsx",
 		"emitDecoratorMetadata": true,

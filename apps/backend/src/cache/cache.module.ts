@@ -7,10 +7,7 @@ import {
 } from './cache.module-definition'
 
 @Global()
-@Module({
-	providers: [ZeroCacheService],
-	exports: [ZeroCacheService]
-})
+@Module({})
 export class CacheConfigurationModule extends ConfigurableModuleClass {
 	static override forRoot(options: CacheModuleOptions) {
 		return {
