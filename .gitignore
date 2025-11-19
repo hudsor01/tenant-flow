@@ -353,10 +353,10 @@ pids
 .eslint/
 
 # TypeScript build artifacts
-**/*.d.ts
-**/*.d.ts.map
-**/*.js
-**/*.js.map
+**/dist/**/*.d.ts
+**/dist/**/*.d.ts.map
+**/dist/**/*.js
+**/dist/**/*.js.map
 
 # Build outputs
 dist/
