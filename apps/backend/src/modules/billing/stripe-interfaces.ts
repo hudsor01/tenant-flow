@@ -53,6 +53,8 @@ export type {
 	UpdateSubscriptionRequest
 } from '@repo/shared/types/core'
 
+export type { CreateSubscriptionRequest } from '@repo/shared/types/api-contracts'
+
 // Keep smaller local interfaces that are backend-specific
 export interface EmbeddedCheckoutRequest {
 	priceId?: string // Required for payment/subscription, not needed for setup

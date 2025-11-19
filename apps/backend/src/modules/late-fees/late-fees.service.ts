@@ -101,8 +101,8 @@ export class LateFeesService {
 					id,
 					grace_period_days,
 					late_fee_amount,
-					tenant!lease_tenant_id_fkey(
-						users!tenant_user_id_fkey(id, email, first_name, last_name)
+					tenants!leases_primary_tenant_id_fkey(
+						users!tenants_user_id_fkey(id, email, first_name, last_name)
 					)
 				`
 				)
