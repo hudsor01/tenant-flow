@@ -408,14 +408,14 @@ export class LateFeesService {
 				config
 			})
 
-			const updated_ata: Database['public']['Tables']['leases']['Update'] = {
+			const updated_data: Database['public']['Tables']['leases']['Update'] = {
 				updated_at: new Date().toISOString()
 			}
 			if (config.gracePeriodDays !== undefined) {
-				updated_ata.grace_period_days = config.gracePeriodDays ?? null
+				updated_data.grace_period_days = config.gracePeriodDays ?? null
 			}
 			if (config.flatFeeAmount !== undefined) {
-				updated_ata.late_fee_amount = config.flatFeeAmount ?? null
+				updated_data.late_fee_amount = config.flatFeeAmount ?? null
 			}
 
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
@@ -425,13 +425,13 @@ export class LateFeesService {
 			try {
 				updateResponse = await client
 					.from('leases')
-					.update(updated_ata)
+					.update(updated_data)
 					.eq('id', lease_id)
 					.select()
 			} catch (dbError) {
 				this.logger.error('Lease update threw unexpected error', {
 					lease_id,
-					updated_ata,
+					updated_data,
 					error:
 						dbError instanceof Error ? dbError.message : String(dbError)
 				})
@@ -445,7 +445,7 @@ export class LateFeesService {
 					error: error.message,
 					errorCode: error.code,
 					lease_id,
-					updated_ata
+					updated_data
 				})
 				throw new BadRequestException(
 					`Failed to update late fee configuration: ${error.message}`

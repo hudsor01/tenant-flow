@@ -472,31 +472,31 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updated_ata: Database['public']['Tables']['leases']['Update'] = {
+			const updated_data: Database['public']['Tables']['leases']['Update'] = {
 				updated_at: new Date().toISOString()
 			}
 
 			// Note: Version-based optimistic locking removed - not in database schema
 
 			if (updateRequest.start_date !== undefined)
-				updated_ata.start_date = updateRequest.start_date
+				updated_data.start_date = updateRequest.start_date
 			if (updateRequest.end_date !== undefined)
-				updated_ata.end_date = updateRequest.end_date
+				updated_data.end_date = updateRequest.end_date
 			if (
 				updateRequest.rent_amount !== undefined &&
 				updateRequest.rent_amount !== null
 			)
-				updated_ata.rent_amount = updateRequest.rent_amount
+				updated_data.rent_amount = updateRequest.rent_amount
 			if (
 				updateRequest.security_deposit !== undefined &&
 				updateRequest.security_deposit !== null
 			)
-				updated_ata.security_deposit = updateRequest.security_deposit
+				updated_data.security_deposit = updateRequest.security_deposit
 			if (updateRequest.lease_status !== undefined)
-			updated_ata.lease_status = updateRequest.lease_status
+			updated_data.lease_status = updateRequest.lease_status
 
 			//Add version check for optimistic locking
-			const query = client.from('leases').update(updated_ata).eq('id', lease_id)
+			const query = client.from('leases').update(updated_data).eq('id', lease_id)
 
 			// Note: Version-based optimistic locking removed - not in database schema
 			// If needed in future, add version column to database first
@@ -636,15 +636,15 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically validates ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updated_ata: Database['public']['Tables']['leases']['Update'] = {
+			const updated_data: Database['public']['Tables']['leases']['Update'] = {
 				end_date: newEndDate,
 				updated_at: new Date().toISOString()
 			}
-			if (newRentAmount) updated_ata.rent_amount = newRentAmount
+			if (newRentAmount) updated_data.rent_amount = newRentAmount
 
 			const { data, error } = await client
 				.from('leases')
-				.update(updated_ata)
+				.update(updated_data)
 				.eq('id', lease_id)
 				.select()
 				.single()

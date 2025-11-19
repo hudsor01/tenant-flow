@@ -399,7 +399,7 @@ export class UnitsService {
 			// RLS SECURITY: User-scoped client automatically verifies unit ownership
 			const client = this.supabase.getUserClient(token)
 
-			const updated_ata: Record<string, unknown> = {
+			const updated_data: Record<string, unknown> = {
 				...(updateRequest.bedrooms !== undefined && {
 					bedrooms: updateRequest.bedrooms
 				}),
@@ -421,12 +421,12 @@ export class UnitsService {
 
 			//Increment version for optimistic locking
 			if (expectedVersion !== undefined) {
-				updated_ata.version = expectedVersion + 1
+				updated_data.version = expectedVersion + 1
 			}
 
 			//Add version check for optimistic locking
 			// RLS automatically verifies unit ownership - no manual property_id check needed
-			let query = client.from('units').update(updated_ata).eq('id', unit_id)
+			let query = client.from('units').update(updated_data).eq('id', unit_id)
 
 			if (expectedVersion !== undefined) {
 				query = query.eq('version', expectedVersion)
