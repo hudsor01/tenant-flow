@@ -206,22 +206,22 @@ export class PropertiesService {
 			throw new BadRequestException('Invalid property type')
 		}
 
-		const updated_ata: Database['public']['Tables']['properties']['Update'] = {
+		const updated_data: Database['public']['Tables']['properties']['Update'] = {
 			updated_at: new Date().toISOString()
 		}
 
-		if (request.name !== undefined) updated_ata.name = request.name.trim()
+		if (request.name !== undefined) updated_data.name = request.name.trim()
 		if (request.address_line1 !== undefined)
-			updated_ata.address_line1 = request.address_line1.trim()
-		if (request.city !== undefined) updated_ata.city = request.city.trim()
-		if (request.state !== undefined) updated_ata.state = request.state.trim()
+			updated_data.address_line1 = request.address_line1.trim()
+		if (request.city !== undefined) updated_data.city = request.city.trim()
+		if (request.state !== undefined) updated_data.state = request.state.trim()
 		if (request.postal_code !== undefined)
-			updated_ata.postal_code = request.postal_code.trim()
+			updated_data.postal_code = request.postal_code.trim()
 		if (request.property_type !== undefined) {
-			updated_ata.property_type = request.property_type as PropertyType
+			updated_data.property_type = request.property_type as PropertyType
 		}
 
-		let query = client.from('properties').update(updated_ata).eq('id', property_id)
+		let query = client.from('properties').update(updated_data).eq('id', property_id)
 
 		if (expectedVersion !== undefined) {
 			query = query.eq('version', expectedVersion)

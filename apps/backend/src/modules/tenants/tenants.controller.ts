@@ -440,22 +440,22 @@ export class TenantsController {
 		const user_id = req.user.id
 
 		// Filter out undefined values for exactOptionalPropertyTypes
-		const updated_ata: {
+		const updated_data: {
 			contactName?: string
 			relationship?: string
 			phoneNumber?: string
 			email?: string | null
 		} = {}
-		if (dto.contactName !== undefined) updated_ata.contactName = dto.contactName
+		if (dto.contactName !== undefined) updated_data.contactName = dto.contactName
 		if (dto.relationship !== undefined)
-			updated_ata.relationship = dto.relationship
-		if (dto.phoneNumber !== undefined) updated_ata.phoneNumber = dto.phoneNumber
-		if (dto.email !== undefined) updated_ata.email = dto.email ?? null
+			updated_data.relationship = dto.relationship
+		if (dto.phoneNumber !== undefined) updated_data.phoneNumber = dto.phoneNumber
+		if (dto.email !== undefined) updated_data.email = dto.email ?? null
 
 		const emergency_contact = await this.tenantsService.updateEmergencyContact(
 			user_id,
 			id,
-			updated_ata
+			updated_data
 		)
 
 		if (!emergency_contact) {

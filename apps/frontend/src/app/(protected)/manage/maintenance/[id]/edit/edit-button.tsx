@@ -48,13 +48,13 @@ export function EditMaintenanceButton({
 			status: maintenance.status
 		},
 		onSubmit: async ({ value }) => {
-			const updated_ata: Record<string, unknown> = {}
+			const updated_data: Record<string, unknown> = {}
 
-			if (value.description) updated_ata.description = value.description
-			if (value.status) updated_ata.status = value.status
+			if (value.description) updated_data.description = value.description
+			if (value.status) updated_data.status = value.status
 
 			updateMaintenanceRequest.mutate(
-				{ id: maintenance.id, data: updated_ata },
+				{ id: maintenance.id, data: updated_data },
 				{
 					onSuccess: () => {
 						// Close modal will be handled by CrudDialog
