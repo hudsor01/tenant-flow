@@ -127,7 +127,7 @@ export interface StripeProductWithPricing {
  * Parameters for creating a Stripe Customer for a Tenant
  */
 export interface CreateTenantCustomerParams {
-	tenantId: string
+	tenant_id: string
 	email?: string
 	name?: string
 	phone?: string
@@ -138,7 +138,7 @@ export interface CreateTenantCustomerParams {
  * Parameters for attaching a payment method to a Tenant's Stripe Customer
  */
 export interface AttachPaymentMethodParams {
-	tenantId: string
+	tenant_id: string
 	paymentMethodId: string
 	setAsDefault?: boolean
 }
@@ -147,8 +147,8 @@ export interface AttachPaymentMethodParams {
  * Parameters for setting up autopay (recurring rent subscription) for a Tenant
  */
 export interface SetupTenantAutopayParams {
-	tenantId: string
-	leaseId: string
+	tenant_id: string
+	lease_id: string
 	paymentMethodId?: string
 }
 
@@ -156,16 +156,16 @@ export interface SetupTenantAutopayParams {
  * Parameters for canceling autopay for a Tenant
  */
 export interface CancelTenantAutopayParams {
-	tenantId: string
-	leaseId: string
+	tenant_id: string
+	lease_id: string
 }
 
 /**
  * Parameters for getting autopay status for a Tenant
  */
 export interface GetAutopayStatusParams {
-	tenantId: string
-	leaseId: string
+	tenant_id: string
+	lease_id: string
 }
 
 /**

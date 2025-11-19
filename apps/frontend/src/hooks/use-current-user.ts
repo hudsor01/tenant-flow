@@ -11,7 +11,7 @@ export function useCurrentUser() {
 
 	return {
 		user,
-		userId: user?.id || null,
+		user_id: user?.id || null,
 		isAuthenticated,
 		isLoading,
 		session

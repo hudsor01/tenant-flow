@@ -25,7 +25,7 @@ import {
 	useCompleteMaintenance
 } from '#hooks/api/use-maintenance'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { maintenanceRequestUpdateFormSchema } from '@repo/shared/validation/maintenance'
+import { maintenanceRequestUpdateSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { Settings } from 'lucide-react'
 import { useModalStore } from '#stores/modal-store'
@@ -35,7 +35,6 @@ import { toast } from 'sonner'
 interface StatusUpdateButtonProps {
 	maintenance: {
 		id: string
-		title: string
 		status: string
 	}
 }
@@ -54,7 +53,7 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 			status: maintenance.status,
 			actualCost: '',
 			notes: '',
-			completedAt: ''
+			completed_at: ''
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -83,7 +82,7 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 		},
 		validators: {
 			onChange: ({ value }) => {
-				const result = maintenanceRequestUpdateFormSchema.safeParse(value)
+				const result = maintenanceRequestUpdateSchema.safeParse(value)
 				if (!result.success) {
 					return z.treeifyError(result.error)
 				}

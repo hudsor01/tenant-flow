@@ -7,7 +7,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 	let service: PropertyPerformanceService
 	let supabaseService: SupabaseService
 
-	const mockUserId = 'test-user-123'
+	const mockuser_id = 'test-user-123'
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
@@ -38,7 +38,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 			// Mock property performance data
 			const mockProperties = [
 				{
-					propertyId: 'prop-1',
+					property_id: 'prop-1',
 					propertyName: 'Sunset Apartments',
 					occupancyRate: 85.5,
 					monthlyRevenue: 5000,
@@ -48,7 +48,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 					vacantUnits: 2
 				},
 				{
-					propertyId: 'prop-2',
+					property_id: 'prop-2',
 					propertyName: 'Ocean View',
 					occupancyRate: 92.3,
 					monthlyRevenue: 8000,
@@ -87,13 +87,13 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null }) // get_property_performance
 				.mockResolvedValueOnce({ data: mockTrends[0]?.data, error: null }) // get_property_performance_trends
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result).toHaveLength(2)
 
 			// Verify first property has upward trend
 			expect(result[0]).toMatchObject({
-				propertyId: 'prop-1',
+				property_id: 'prop-1',
 				propertyName: 'Sunset Apartments',
 				trend: 'up',
 				trendPercentage: 11.1
@@ -101,7 +101,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 
 			// Verify second property has downward trend
 			expect(result[1]).toMatchObject({
-				propertyId: 'prop-2',
+				property_id: 'prop-2',
 				propertyName: 'Ocean View',
 				trend: 'down',
 				trendPercentage: 1.2
@@ -111,7 +111,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 		it('should use stable trend as fallback when no trend data available', async () => {
 			const mockProperties = [
 				{
-					propertyId: 'prop-new',
+					property_id: 'prop-new',
 					propertyName: 'New Property',
 					occupancyRate: 0,
 					monthlyRevenue: 0,
@@ -130,11 +130,11 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result).toHaveLength(1)
 			expect(result[0]).toMatchObject({
-				propertyId: 'prop-new',
+				property_id: 'prop-new',
 				trend: 'stable',
 				trendPercentage: 0
 			})
@@ -143,7 +143,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 		it('should handle null trend data gracefully', async () => {
 			const mockProperties = [
 				{
-					propertyId: 'prop-1',
+					property_id: 'prop-1',
 					propertyName: 'Test Property',
 					occupancyRate: 75,
 					monthlyRevenue: 3000,
@@ -159,11 +159,11 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: null, error: null }) // Null trend data
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result).toHaveLength(1)
 			expect(result[0]).toMatchObject({
-				propertyId: 'prop-1',
+				property_id: 'prop-1',
 				trend: 'stable',
 				trendPercentage: 0
 			})
@@ -172,7 +172,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 		it('should handle partial trend data (some properties have trends, others do not)', async () => {
 			const mockProperties = [
 				{
-					propertyId: 'prop-1',
+					property_id: 'prop-1',
 					propertyName: 'Property with History',
 					occupancyRate: 85,
 					monthlyRevenue: 5000,
@@ -182,7 +182,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 					vacantUnits: 2
 				},
 				{
-					propertyId: 'prop-2',
+					property_id: 'prop-2',
 					propertyName: 'New Property',
 					occupancyRate: 0,
 					monthlyRevenue: 0,
@@ -209,20 +209,20 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result).toHaveLength(2)
 
 			// First property has real trend data
 			expect(result[0]).toMatchObject({
-				propertyId: 'prop-1',
+				property_id: 'prop-1',
 				trend: 'up',
 				trendPercentage: 4.2
 			})
 
 			// Second property falls back to stable
 			expect(result[1]).toMatchObject({
-				propertyId: 'prop-2',
+				property_id: 'prop-2',
 				trend: 'stable',
 				trendPercentage: 0
 			})
@@ -231,7 +231,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 		it('should handle stable trend (< 1% change)', async () => {
 			const mockProperties = [
 				{
-					propertyId: 'prop-1',
+					property_id: 'prop-1',
 					propertyName: 'Stable Property',
 					occupancyRate: 90,
 					monthlyRevenue: 10000,
@@ -257,11 +257,11 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result).toHaveLength(1)
 			expect(result[0]).toMatchObject({
-				propertyId: 'prop-1',
+				property_id: 'prop-1',
 				trend: 'stable',
 				trendPercentage: 0
 			})
@@ -273,13 +273,13 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: null, error: { message: 'Database error' } })
 				.mockResolvedValueOnce({ data: [], error: null })
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result).toEqual([])
 		})
 
 		it('should call both RPC functions in parallel', async () => {
-			const mockProperties = [{ propertyId: 'prop-1' }]
+			const mockProperties = [{ property_id: 'prop-1' }]
 			const mockTrends: [] = []
 
 			const rpcSpy = jest
@@ -287,24 +287,24 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
-			await service.getPropertyPerformance(mockUserId)
+			await service.getPropertyPerformance(mockuser_id)
 
 			// Verify both RPC calls were made
 			expect(rpcSpy).toHaveBeenCalledTimes(2)
 			expect(rpcSpy).toHaveBeenNthCalledWith(1, 'get_property_performance', {
-				user_id: mockUserId,
-				user_id_param: mockUserId,
-				p_user_id: mockUserId,
-				uid: mockUserId
+				user_id: mockuser_id,
+				user_id_param: mockuser_id,
+				p_user_id: mockuser_id,
+				uid: mockuser_id
 			})
 			expect(rpcSpy).toHaveBeenNthCalledWith(
 				2,
 				'get_property_performance_trends',
 				{
-					user_id: mockUserId,
-					user_id_param: mockUserId,
-					p_user_id: mockUserId,
-					uid: mockUserId
+					user_id: mockuser_id,
+					user_id_param: mockuser_id,
+					p_user_id: mockuser_id,
+					uid: mockuser_id
 				}
 			)
 		})
@@ -314,7 +314,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 		it('should handle properties with zero previous revenue', async () => {
 			const mockProperties = [
 				{
-					propertyId: 'prop-1',
+					property_id: 'prop-1',
 					propertyName: 'First Month Revenue',
 					occupancyRate: 50,
 					monthlyRevenue: 2000,
@@ -340,7 +340,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			expect(result[0]?.trend).toBe('stable')
 			expect(result[0]?.trendPercentage).toBe(0)
@@ -378,11 +378,11 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 				.mockResolvedValueOnce({ data: mockTrends, error: null })
 
-			const result = await service.getPropertyPerformance(mockUserId)
+			const result = await service.getPropertyPerformance(mockuser_id)
 
 			// Verify all fields are preserved
 			expect(result[0]).toEqual({
-				propertyId: 'prop-1',
+				property_id: 'prop-1',
 				propertyName: 'Full Property',
 				occupancyRate: 85.5,
 				monthlyRevenue: 5000,
@@ -392,7 +392,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				vacantUnits: 2,
 				address: '123 Main St',
 				status: 'ACTIVE',
-				propertyType: 'APARTMENT',
+				property_type: 'APARTMENT',
 				trend: 'up',
 				trendPercentage: 11.1
 			})

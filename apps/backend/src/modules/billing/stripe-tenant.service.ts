@@ -4,12 +4,21 @@ import type {
 	AttachPaymentMethodParams,
 	CreateTenantCustomerParams
 } from '@repo/shared/types/stripe'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import type { PostgrestError } from '@supabase/supabase-js'
 
-type TenantRow = Database['public']['Tables']['tenant']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+
+// Type for tenant with joined user data
+type TenantWithUser = TenantRow & {
+	users: {
+		email: string
+		first_name: string | null
+		last_name: string | null
+	} | null
+}
 
 /**
  * Stripe Tenant Service
@@ -52,17 +61,17 @@ export class StripeTenantService {
 			// Check if Tenant already has a Stripe Customer
 			const { data: existingTenant, error: tenantError } = await this.supabase
 				.getAdminClient()
-				.from('tenant' as never)
+				.from('tenants' as never)
 				.select('stripe_customer_id' as never)
-				.eq('id' as never, params.tenantId as never)
+				.eq('id' as never, params.tenant_id as never)
 				.single()
 
 			if (tenantError) {
 				this.logger.error('Failed to fetch tenant', {
-					tenantId: params.tenantId,
+					tenant_id: params.tenant_id,
 					error: tenantError
 				})
-				throw new NotFoundException(`Tenant not found: ${params.tenantId}`)
+				throw new NotFoundException(`Tenant not found: ${params.tenant_id}`)
 			}
 
 			const tenant = existingTenant as { stripe_customer_id: string | null }
@@ -70,7 +79,7 @@ export class StripeTenantService {
 			// If Customer already exists, return it
 			if (tenant.stripe_customer_id) {
 				this.logger.log(
-					`Tenant ${params.tenantId} already has Stripe Customer: ${tenant.stripe_customer_id}`
+					`Tenant ${params.tenant_id} already has Stripe Customer: ${tenant.stripe_customer_id}`
 				)
 				const customer = await this.stripe.customers.retrieve(
 					tenant.stripe_customer_id
@@ -85,12 +94,12 @@ export class StripeTenantService {
 			}
 
 			// Create new Stripe Customer
-			this.logger.log(`Creating Stripe Customer for Tenant: ${params.tenantId}`)
+			this.logger.log(`Creating Stripe Customer for Tenant: ${params.tenant_id}`)
 			const customerParams: Stripe.CustomerCreateParams = {
 				metadata: {
-					tenantId: params.tenantId,
+					tenant_id: params.tenant_id,
 					platform: 'tenantflow',
-					role: 'tenant',
+					user_type: 'tenants',
 					...params.metadata
 				}
 			}
@@ -112,13 +121,13 @@ export class StripeTenantService {
 			// Update tenant table with Stripe Customer ID
 			const { error: updateError } = await this.supabase
 				.getAdminClient()
-				.from('tenant' as never)
+				.from('tenants' as never)
 				.update({ stripe_customer_id: customer.id } as never)
-				.eq('id' as never, params.tenantId as never)
+				.eq('id' as never, params.tenant_id as never)
 
 			if (updateError) {
 				this.logger.error('Failed to update tenant with stripe_customer_id', {
-					tenantId: params.tenantId,
+					tenant_id: params.tenant_id,
 					customerId: customer.id,
 					error: updateError
 				})
@@ -133,7 +142,7 @@ export class StripeTenantService {
 			}
 
 			this.logger.log(
-				`Created Stripe Customer ${customer.id} for Tenant ${params.tenantId}`
+				`Created Stripe Customer ${customer.id} for Tenant ${params.tenant_id}`
 			)
 			return customer
 		} catch (error) {
@@ -151,18 +160,18 @@ export class StripeTenantService {
 	 * Returns null if Tenant doesn't have a Customer yet
 	 */
 	async getStripeCustomerForTenant(
-		tenantId: string
+		tenant_id: string
 	): Promise<Stripe.Customer | null> {
 		try {
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('tenant' as never)
+				.from('tenants' as never)
 				.select('stripe_customer_id' as never)
-				.eq('id' as never, tenantId as never)
+				.eq('id' as never, tenant_id as never)
 				.single()
 
 			if (error) {
-				this.logger.error('Failed to fetch tenant', { tenantId, error })
+				this.logger.error('Failed to fetch tenant', { tenant_id, error })
 				return null
 			}
 
@@ -187,7 +196,7 @@ export class StripeTenantService {
 			return customer
 		} catch (error) {
 			this.logger.error('Failed to get Stripe Customer for Tenant', {
-				tenantId,
+				tenant_id,
 				error
 			})
 			return null
@@ -195,20 +204,20 @@ export class StripeTenantService {
 	}
 
 	async ensureStripeCustomer(params: {
-		tenantId: string
+		tenant_id: string
 		email?: string | null
 		name?: string | null
-		userId?: string
+		user_id?: string
 		metadata?: Record<string, string>
 		invitedByOwnerId?: string
 	}): Promise<{ customer: Stripe.Customer; status: 'existing' | 'created' }> {
 		const existingCustomer = await this.getStripeCustomerForTenant(
-			params.tenantId
+			params.tenant_id
 		)
 
 		if (existingCustomer) {
 			this.logger.log('Tenant Stripe customer resolved', {
-				tenantId: params.tenantId,
+				tenant_id: params.tenant_id,
 				customerId: existingCustomer.id,
 				status: 'existing'
 			})
@@ -218,11 +227,11 @@ export class StripeTenantService {
 
 		const { data, error } = await this.supabase
 			.getAdminClient()
-			.from('tenant' as never)
+			.from('tenants' as never)
 			.select(
-				'id, email, name, firstName, lastName, stripe_customer_id, userId' as never
+				'id, stripe_customer_id, user_id, users!inner(email, first_name, last_name)' as never
 			)
-			.eq('id' as never, params.tenantId as never)
+			.eq('id' as never, params.tenant_id as never)
 			.single()
 
 		if (error || !data) {
@@ -235,25 +244,25 @@ export class StripeTenantService {
 
 			if (isNotFound) {
 				this.logger.warn('Tenant not found while ensuring Stripe customer', {
-					tenantId: params.tenantId,
+					tenant_id: params.tenant_id,
 					error: errMsg ?? undefined
 				})
 			} else {
-				this.logger.error(message, { tenantId: params.tenantId, error })
+				this.logger.error(message, { tenant_id: params.tenant_id, error })
 			}
 
-			throw new NotFoundException(`Tenant not found: ${params.tenantId}`)
+			throw new NotFoundException(`Tenant not found: ${params.tenant_id}`)
 		}
 
-		const tenant = data as TenantRow
+		const tenant = data as TenantWithUser
 
-		const resolvedEmail = params.email ?? tenant.email ?? undefined
+		const resolvedEmail = params.email ?? tenant.users?.email ?? undefined
 		const resolvedName =
-			params.name ?? tenant.name ?? this.buildTenantName(tenant)
+			params.name ?? this.buildTenantName(tenant)
 
 		const metadata: Record<string, string> = {
 			...(params.metadata ?? {}),
-			...(params.userId ? { user_id: params.userId } : {}),
+			...(params.user_id ? { user_id: params.user_id } : {}),
 			...(params.invitedByOwnerId
 				? { invited_by: params.invitedByOwnerId }
 				: {}),
@@ -261,7 +270,7 @@ export class StripeTenantService {
 		}
 
 		const customerParams: CreateTenantCustomerParams = {
-			tenantId: params.tenantId,
+			tenant_id: params.tenant_id,
 			metadata
 		}
 
@@ -276,7 +285,7 @@ export class StripeTenantService {
 		const customer = await this.createStripeCustomerForTenant(customerParams)
 
 		this.logger.log('Tenant Stripe customer resolved', {
-			tenantId: params.tenantId,
+			tenant_id: params.tenant_id,
 			customerId: customer.id,
 			status: 'created'
 		})
@@ -284,10 +293,10 @@ export class StripeTenantService {
 		return { customer, status: 'created' }
 	}
 
-	private buildTenantName(tenant: TenantRow): string | undefined {
+	private buildTenantName(tenant: TenantWithUser): string | undefined {
 		const parts = [
-			tenant.firstName?.trim() || '',
-			tenant.lastName?.trim() || ''
+			tenant.users?.first_name?.trim() || '',
+			tenant.users?.last_name?.trim() || ''
 		].filter(Boolean)
 
 		const composite = parts.join(' ').trim()
@@ -296,8 +305,8 @@ export class StripeTenantService {
 			return composite
 		}
 
-		const fallback = tenant.name?.trim() || null
-		return fallback && fallback.length > 0 ? fallback : undefined
+		// No name available
+		return undefined
 	}
 
 	/**
@@ -311,11 +320,11 @@ export class StripeTenantService {
 		params: AttachPaymentMethodParams
 	): Promise<Stripe.PaymentMethod> {
 		try {
-			const customer = await this.getStripeCustomerForTenant(params.tenantId)
+			const customer = await this.getStripeCustomerForTenant(params.tenant_id)
 
 			if (!customer) {
 				throw new NotFoundException(
-					`Stripe Customer not found for Tenant: ${params.tenantId}`
+					`Stripe Customer not found for Tenant: ${params.tenant_id}`
 				)
 			}
 
@@ -353,9 +362,9 @@ export class StripeTenantService {
 	/**
 	 * List payment methods for Tenant's Stripe Customer
 	 */
-	async listPaymentMethods(tenantId: string): Promise<Stripe.PaymentMethod[]> {
+	async listPaymentMethods(tenant_id: string): Promise<Stripe.PaymentMethod[]> {
 		try {
-			const customer = await this.getStripeCustomerForTenant(tenantId)
+			const customer = await this.getStripeCustomerForTenant(tenant_id)
 
 			if (!customer) {
 				return []
@@ -368,7 +377,7 @@ export class StripeTenantService {
 
 			return paymentMethods.data
 		} catch (error) {
-			this.logger.error('Failed to list payment methods', { tenantId, error })
+			this.logger.error('Failed to list payment methods', { tenant_id, error })
 			return []
 		}
 	}
@@ -377,10 +386,10 @@ export class StripeTenantService {
 	 * Get default payment method for Tenant
 	 */
 	async getDefaultPaymentMethod(
-		tenantId: string
+		tenant_id: string
 	): Promise<Stripe.PaymentMethod | null> {
 		try {
-			const customer = await this.getStripeCustomerForTenant(tenantId)
+			const customer = await this.getStripeCustomerForTenant(tenant_id)
 
 			if (!customer) {
 				return null
@@ -401,7 +410,7 @@ export class StripeTenantService {
 			return paymentMethod
 		} catch (error) {
 			this.logger.error('Failed to get default payment method', {
-				tenantId,
+				tenant_id,
 				error
 			})
 			return null
@@ -412,15 +421,15 @@ export class StripeTenantService {
 	 * Set default payment method for Tenant
 	 */
 	async setDefaultPaymentMethod(
-		tenantId: string,
+		tenant_id: string,
 		paymentMethodId: string
 	): Promise<void> {
 		try {
-			const customer = await this.getStripeCustomerForTenant(tenantId)
+			const customer = await this.getStripeCustomerForTenant(tenant_id)
 
 			if (!customer) {
 				throw new NotFoundException(
-					`Stripe Customer not found for Tenant: ${tenantId}`
+					`Stripe Customer not found for Tenant: ${tenant_id}`
 				)
 			}
 
@@ -435,7 +444,7 @@ export class StripeTenantService {
 			)
 		} catch (error) {
 			this.logger.error('Failed to set default payment method', {
-				tenantId,
+				tenant_id,
 				paymentMethodId,
 				error
 			})
@@ -447,18 +456,18 @@ export class StripeTenantService {
 	 * Detach payment method from Tenant's Customer
 	 */
 	async detachPaymentMethod(
-		tenantId: string,
+		tenant_id: string,
 		paymentMethodId: string
 	): Promise<void> {
 		try {
 			await this.stripe.paymentMethods.detach(paymentMethodId)
 
 			this.logger.log(
-				`Detached payment method ${paymentMethodId} for Tenant ${tenantId}`
+				`Detached payment method ${paymentMethodId} for Tenant ${tenant_id}`
 			)
 		} catch (error) {
 			this.logger.error('Failed to detach payment method', {
-				tenantId,
+				tenant_id,
 				paymentMethodId,
 				error
 			})

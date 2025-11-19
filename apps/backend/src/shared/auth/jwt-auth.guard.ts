@@ -84,7 +84,7 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 		}
 
 		this.logger.debug('Authentication successful', {
-			userId: (user as { id?: string }).id,
+			user_id: (user as { id?: string }).id,
 			path: (request as { url?: string }).url,
 			method: (request as { method?: string }).method
 		})

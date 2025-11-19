@@ -1,12 +1,12 @@
 import type { Logger } from '@nestjs/common'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 
 interface CachedClient {
 	client: SupabaseClient<Database>
 	lastUsed: number
-	createdAt: number
+	created_at: number
 }
 
 export interface SupabaseClientPoolMetrics {
@@ -89,7 +89,7 @@ export class SupabaseUserClientPool {
 		this.clients.set(tokenKey, {
 			client,
 			lastUsed: now,
-			createdAt: now
+			created_at: now
 		})
 
 		this.metrics.totalClients = this.clients.size

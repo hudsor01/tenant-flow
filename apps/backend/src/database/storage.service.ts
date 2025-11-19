@@ -5,7 +5,7 @@ import type {
 	StorageFileType,
 	StorageUploadResult
 } from '@repo/shared/types/domain'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'

@@ -1,4 +1,4 @@
-export type SearchResultType = 'property' | 'tenant' | 'unit' | 'lease'
+export type SearchResultType = 'properties' | 'tenants' | 'units' | 'leases'
 
 export interface SearchResult {
   id: string

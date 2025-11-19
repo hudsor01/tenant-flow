@@ -55,7 +55,7 @@ describe('LeaseAnalyticsService', () => {
 			totalLeases: 25,
 			activeLeases: 18,
 			expiringSoon: 4,
-			totalMonthlyRent: 42500,
+			totalrent_amount: 42500,
 			averageLeaseValue: 1800
 		})
 	})
@@ -74,7 +74,7 @@ describe('LeaseAnalyticsService', () => {
 			totalLeases: 0,
 			activeLeases: 0,
 			expiringSoon: 0,
-			totalMonthlyRent: 0,
+			totalrent_amount: 0,
 			averageLeaseValue: 0
 		})
 		expect(profitability).toEqual([])
@@ -127,15 +127,15 @@ describe('LeaseAnalyticsService', () => {
 				totalLeases: 10,
 				activeLeases: 8,
 				expiringSoon: 1,
-				totalMonthlyRent: 24000,
+				totalrent_amount: 24000,
 				averageLeaseValue: 1600
 			},
 			profitability: [
 				{
-					leaseId: 'lease-001',
+					lease_id: 'lease-001',
 					propertyName: 'Elm Apartments',
 					tenantName: 'Jane Doe',
-					monthlyRent: 1800,
+					rent_amount: 1800,
 					outstandingBalance: 250,
 					profitabilityScore: 78
 				}

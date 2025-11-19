@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { Button } from '#components/ui/button'
 import { PropertyForm } from '#components/properties/property-form.client'
+import { MobilePropertyForm } from '#components/properties/property-form.mobile'
 import { serverFetch } from '#lib/api/server'
 import { requireSession } from '#lib/server-auth'
 
@@ -33,7 +34,14 @@ export default async function EditPropertyPage({
 					<p className="text-muted-foreground">Update property information</p>
 				</div>
 			</div>
-			<PropertyForm mode="edit" property={property} showSuccessState={false} />
+			<div className="hidden md:block">
+				<PropertyForm mode="edit" property={property} showSuccessState={false} />
+			</div>
+			<MobilePropertyForm
+				mode="edit"
+				property={property}
+				showSuccessState={false}
+			/>
 		</div>
 	)
 }

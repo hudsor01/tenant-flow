@@ -38,7 +38,7 @@ export interface OccupancyMetrics {
 	vacantUnits: number
 	occupancyRate: number
 	byProperty: Array<{
-		propertyId: string
+		property_id: string
 		propertyName: string
 		totalUnits: number
 		occupiedUnits: number
@@ -61,12 +61,12 @@ export async function getMonthlyRevenue(
  * Get payment analytics for dashboard
  */
 export async function getPaymentAnalytics(
-	startDate?: string,
-	endDate?: string
+	start_date?: string,
+	end_date?: string
 ): Promise<PaymentAnalytics> {
 	const params = new URLSearchParams()
-	if (startDate) params.append('startDate', startDate)
-	if (endDate) params.append('endDate', endDate)
+	if (start_date) params.append('start_date', start_date)
+	if (end_date) params.append('end_date', end_date)
 
 	const queryString = params.toString() ? `?${params.toString()}` : ''
 	return clientFetch<PaymentAnalytics>(

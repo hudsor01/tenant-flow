@@ -58,7 +58,7 @@ export function LeasesTable() {
 		}
 	})
 
-	const tenantMap = new Map(tenants.map(tenant => [tenant.id, tenant.name]))
+	const tenantMap = new Map(tenants.map(tenant => [tenant.id, `${tenant.first_name} ${tenant.last_name}`]))
 	const unitMap = new Map(units.map(unit => [unit.id, unit]))
 
 	if (isLoading) {
@@ -110,10 +110,10 @@ export function LeasesTable() {
 					</TableHeader>
 					<TableBody>
 					{leases.map((lease: Lease) => {
-						const tenantName = lease.tenantId
-							? tenantMap.get(lease.tenantId) ?? 'Unassigned'
+						const tenantName = lease?.primary_tenant_id ?? ''
+							? tenantMap.get(lease?.primary_tenant_id ?? '') ?? 'Unassigned'
 							: 'Unassigned'
-							const unit = unitMap.get(lease.unitId || '')
+							const unit = unitMap.get(lease.unit_id || '')
 							return (
 								<TableRow key={lease.id}>
 									<TableCell>
@@ -121,7 +121,7 @@ export function LeasesTable() {
 											<span className="font-medium">
 												#{lease.id.slice(0, 8)}
 											</span>
-											<Badge variant="outline">{lease.status}</Badge>
+											<Badge variant="outline">{lease.lease_status}</Badge>
 										</div>
 									</TableCell>
 									<TableCell>{tenantName}</TableCell>
@@ -129,7 +129,7 @@ export function LeasesTable() {
 										{unit ? (
 											<>
 												<div className="font-medium">
-													Unit {unit.unitNumber}
+													Unit {unit.unit_number}
 												</div>
 												<div className="text-sm text-muted-foreground">
 													{unit.bedrooms} bd · {unit.bathrooms} ba
@@ -140,19 +140,19 @@ export function LeasesTable() {
 										)}
 									</TableCell>
 									<TableCell className="hidden lg:table-cell text-sm">
-										{lease.startDate
-											? new Date(lease.startDate).toLocaleDateString()
+										{lease.start_date
+											? new Date(lease.start_date).toLocaleDateString()
 											: 'Start TBD'}{' '}
 										&mdash;{' '}
-										{lease.endDate
-											? new Date(lease.endDate).toLocaleDateString()
+										{lease.end_date
+											? new Date(lease.end_date).toLocaleDateString()
 											: 'End TBD'}
 									</TableCell>
 									<TableCell className="hidden lg:table-cell text-sm">
 										{new Intl.NumberFormat('en-US', {
 											style: 'currency',
 											currency: 'USD'
-										}).format(lease.rentAmount ?? 0)}
+										}).format(lease.rent_amount ?? 0)}
 									</TableCell>
 									<TableCell className="flex items-center justify-end gap-1 text-right">
 										<Button asChild size="sm" variant="ghost">

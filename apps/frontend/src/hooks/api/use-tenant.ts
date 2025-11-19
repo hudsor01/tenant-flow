@@ -18,12 +18,15 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	Tenant,
 	TenantInput,
 	TenantUpdate,
-	TenantWithLeaseInfo
+	TenantWithLeaseInfo,
+	TenantWithExtras,
+	TenantWithLeaseInfoWithVersion
 } from '@repo/shared/types/core'
 import {
 	keepPreviousData,
@@ -221,59 +224,44 @@ export function useUpdateTenant() {
 			)
 
 			// Optimistically update detail cache
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						...data,
-						name:
-							data.firstName && data.lastName
-								? `${data.firstName} ${data.lastName}`.trim()
-								: old.name,
-						updatedAt: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.detail(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+				return incrementVersion(old, {
+					...data,
+					updated_at: new Date().toISOString()
+				})
+			}
+		)
 
 			// Optimistically update with-lease cache
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.withLease(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						...data,
-						name:
-							data.firstName && data.lastName
-								? `${data.firstName} ${data.lastName}`.trim()
-								: old.name,
-						updatedAt: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.withLease(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+				return incrementVersion(old, {
+					...data,
+					updated_at: new Date().toISOString()
+				})
+			}
+		)
 
 			// Optimistically update list cache
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantQueries.lists(),
-				old => {
-					if (!old) return old
-					return old.map(tenant =>
-						tenant.id === id
-							? ({
-									...tenant,
-									...data,
-									name:
-										data.firstName && data.lastName
-											? `${data.firstName} ${data.lastName}`.trim()
-											: tenant.name,
-									updatedAt: new Date().toISOString()
-								} as TenantWithLeaseInfo)
-							: tenant
-					)
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion[]>(
+			tenantQueries.lists(),
+			(old: TenantWithLeaseInfoWithVersion[] | undefined) => {
+				if (!old) return old
+				return old.map(tenant =>
+					tenant.id === id
+						? incrementVersion(tenant, {
+								...data,
+								updated_at: new Date().toISOString()
+							})
+						: tenant
+				)
+			}
+		)
 
 			return { previousDetail, previousWithLease, previousList, id }
 		},
@@ -496,33 +484,33 @@ export function useMarkTenantAsMovedOut() {
 			)
 
 			// Optimistic update - mark as MOVED_OUT in detail caches
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						status: 'MOVED_OUT',
-						move_out_date: data.moveOutDate,
-						move_out_reason: data.moveOutReason,
-						updatedAt: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.detail(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+return (incrementVersion(old, {
+				status: 'MOVED_OUT',
+				move_out_date: data.moveOutDate,
+				move_out_reason: data.moveOutReason,
+				updated_at: new Date().toISOString()
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any) as any)
+			}
+		)
 
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.withLease(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						status: 'MOVED_OUT',
-						move_out_date: data.moveOutDate,
-						move_out_reason: data.moveOutReason,
-						updatedAt: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.withLease(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+return (incrementVersion(old, {
+				status: 'MOVED_OUT',
+				move_out_date: data.moveOutDate,
+				move_out_reason: data.moveOutReason,
+				updated_at: new Date().toISOString()
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any) as any)
+			}
+		)
 
 			// Optimistic update - remove from list (soft delete)
 			queryClient.setQueryData<TenantWithLeaseInfo[]>(
@@ -559,9 +547,9 @@ export function useMarkTenantAsMovedOut() {
 		},
 		onSuccess: data => {
 			handleMutationSuccess(
-				'Mark tenant as moved out',
-				`${data.name} has been marked as moved out`
-			)
+			'Mark tenant as moved out',
+			`${data?.name ?? 'Tenant'} has been marked as moved out`
+		)
 		},
 		onSettled: (_data, _error, variables) => {
 			// Refetch to ensure consistency
@@ -629,28 +617,25 @@ export function useInviteTenant() {
 	return useMutation({
 		mutationFn: async (data: {
 			email: string
-			firstName: string
-			lastName: string
+			first_name: string
+			last_name: string
 			phone: string | null
-			leaseId: string
-		}): Promise<Tenant> => {
-			const response = await clientFetch<Tenant>('/api/v1/tenants', {
+			lease_id: string
+		}): Promise<TenantWithExtras> => {
+			const response = await clientFetch<TenantWithExtras>('/api/v1/tenants', {
 				method: 'POST',
 				body: JSON.stringify({
-					email: data.email,
-					firstName: data.firstName,
-					lastName: data.lastName,
-					phone: data.phone,
-					name: `${data.firstName} ${data.lastName}`,
-					status: 'PENDING' // Will be updated when invitation is accepted
+					email: data?.email ?? '',
+					name: `${data.first_name} ${data.last_name}`.trim(),
+					phone: data.phone ?? null
 				})
 			})
 
 			// Associate tenant with lease
-			if (data.leaseId) {
-				await clientFetch(`/api/v1/leases/${data.leaseId}`, {
+			if (data.lease_id) {
+				await clientFetch(`/api/v1/leases/${data.lease_id}`, {
 					method: 'PATCH',
-					body: JSON.stringify({ tenantId: response.id })
+					body: JSON.stringify({ tenant_id: response.id })
 				})
 			}
 
@@ -658,7 +643,7 @@ export function useInviteTenant() {
 		},
 		onSuccess: data => {
 			toast.success('Invitation sent', {
-				description: `${data.name} will receive an email to accept the invitation`
+				description: `${data?.name ?? 'Tenant'} will receive an email to accept the invitation`
 			})
 
 			// Invalidate tenant list to show new pending tenant
@@ -666,7 +651,7 @@ export function useInviteTenant() {
 
 			logger.info('Tenant invitation sent', {
 				action: 'invite_tenant',
-				metadata: { tenantId: data.id, email: data.email }
+				metadata: { tenant_id: data?.id, email: data?.email ?? '' }
 			})
 		},
 		onError: error => {
@@ -682,25 +667,25 @@ export function useResendInvitation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (tenantId: string) =>
+		mutationFn: (tenant_id: string) =>
 			clientFetch<{ message: string }>(
-				`/api/v1/tenants/${tenantId}/resend-invitation`,
+				`/api/v1/tenants/${tenant_id}/resend-invitation`,
 				{
 					method: 'POST'
 				}
 			),
-		onSuccess: (_, tenantId) => {
+		onSuccess: (_, tenant_id) => {
 			toast.success('Invitation resent', {
 				description: 'A new invitation email has been sent'
 			})
 
 			// Refresh tenant data to show updated invitation_sent_at
-			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(tenantId).queryKey })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(tenant_id).queryKey })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			logger.info('Tenant invitation resent', {
 				action: 'resend_invitation',
-				metadata: { tenantId }
+				metadata: { tenant_id }
 			})
 		},
 		onError: error => {
@@ -712,17 +697,17 @@ export function useResendInvitation() {
 /**
  * Hook to fetch notification preferences for a tenant
  */
-export function useNotificationPreferences(tenantId: string) {
+export function useNotificationPreferences(tenant_id: string) {
 	return useQuery({
-		queryKey: [...tenantKeys.detail(tenantId), 'notification-preferences'] as const,
+		queryKey: [...tenantKeys.detail(tenant_id), 'notification-preferences'] as const,
 		queryFn: () =>
 			clientFetch<{
 				emailNotifications: boolean
 				smsNotifications: boolean
 				maintenanceUpdates: boolean
 				paymentReminders: boolean
-			}>(`/api/v1/tenants/${tenantId}/notification-preferences`),
-		enabled: !!tenantId,
+			}>(`/api/v1/tenants/${tenant_id}/notification-preferences`),
+		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.DETAIL,
 		gcTime: 10 * 60 * 1000 // 10 minutes
 	})
@@ -736,10 +721,10 @@ export function useUpdateNotificationPreferences() {
 
 	return useMutation({
 		mutationFn: ({
-			tenantId,
+			tenant_id,
 			preferences
 		}: {
-			tenantId: string
+			tenant_id: string
 			preferences: {
 				emailNotifications: boolean
 				smsNotifications: boolean
@@ -747,7 +732,7 @@ export function useUpdateNotificationPreferences() {
 				paymentReminders: boolean
 			}
 		}) =>
-			clientFetch(`/api/v1/tenants/${tenantId}/notification-preferences`, {
+			clientFetch(`/api/v1/tenants/${tenant_id}/notification-preferences`, {
 				method: 'PUT',
 				body: JSON.stringify(preferences)
 			}),
@@ -756,12 +741,12 @@ export function useUpdateNotificationPreferences() {
 
 			// Invalidate notification preferences query
 			queryClient.invalidateQueries({
-				queryKey: [...tenantKeys.detail(variables.tenantId), 'notification-preferences']
+				queryKey: [...tenantKeys.detail(variables.tenant_id), 'notification-preferences']
 			})
 
 			logger.info('Notification preferences updated', {
 				action: 'update_notification_preferences',
-				metadata: { tenantId: variables.tenantId }
+				metadata: { tenant_id: variables.tenant_id }
 			})
 		},
 		onError: error => {

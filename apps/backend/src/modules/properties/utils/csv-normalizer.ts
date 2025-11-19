@@ -5,8 +5,8 @@ export type PropertyCsvField =
 	| 'address'
 	| 'city'
 	| 'state'
-	| 'zipCode'
-	| 'propertyType'
+	| 'postal_code'
+	| 'property_type'
 	| 'description'
 
 export type NormalizedPropertyCsvRow = Partial<Record<PropertyCsvField, string>>
@@ -18,7 +18,7 @@ const CSV_FIELD_ALIASES: Record<string, PropertyCsvField> = {
 	property: 'name',
 	address: 'address',
 	address1: 'address',
-	addressline1: 'address',
+	address_line1: 'address',
 	street: 'address',
 	streetaddress: 'address',
 	line1: 'address',
@@ -28,15 +28,16 @@ const CSV_FIELD_ALIASES: Record<string, PropertyCsvField> = {
 	state: 'state',
 	province: 'state',
 	region: 'state',
-	zipcode: 'zipCode',
-	zip: 'zipCode',
-	postcode: 'zipCode',
-	postalcode: 'zipCode',
-	postal: 'zipCode',
-	propertytype: 'propertyType',
-	type: 'propertyType',
-	propertycategory: 'propertyType',
-	propertyclass: 'propertyType',
+	postal_code: 'postal_code',
+	zip: 'postal_code',
+	zipcode: 'postal_code',
+	postcode: 'postal_code',
+	postalcode: 'postal_code',
+	postal: 'postal_code',
+	propertytype: 'property_type',
+	type: 'property_type',
+	propertycategory: 'property_type',
+	propertyclass: 'property_type',
 	description: 'description',
 	details: 'description',
 	notes: 'description'

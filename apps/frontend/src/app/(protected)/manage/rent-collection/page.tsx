@@ -562,10 +562,10 @@ function RentCollectionContent() {
 										{paymentHistory.slice(0, 10).map(payment => (
 											<TableRow key={payment.id}>
 												<TableCell>
-													{format(new Date(payment.createdAt), 'MMM d, yyyy')}
+													{format(new Date(payment.created_at), 'MMM d, yyyy')}
 												</TableCell>
 												<TableCell>{payment.subscriptionId}</TableCell>
-												<TableCell>{payment.tenantId}</TableCell>
+												<TableCell>{payment.tenant_id}</TableCell>
 												<TableCell>
 													${(payment.amount / 100).toFixed(2)}
 												</TableCell>
@@ -612,10 +612,10 @@ function RentCollectionContent() {
 										{failedAttempts.slice(0, 10).map(attempt => (
 											<TableRow key={attempt.id}>
 												<TableCell>
-													{format(new Date(attempt.createdAt), 'MMM d, yyyy')}
+													{format(new Date(attempt.created_at), 'MMM d, yyyy')}
 												</TableCell>
 												<TableCell>{attempt.subscriptionId}</TableCell>
-												<TableCell>{attempt.tenantId}</TableCell>
+												<TableCell>{attempt.tenant_id}</TableCell>
 												<TableCell>
 													${(attempt.amount / 100).toFixed(2)}
 												</TableCell>

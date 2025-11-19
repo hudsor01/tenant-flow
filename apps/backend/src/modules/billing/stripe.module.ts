@@ -19,7 +19,11 @@ import { WebhookRetryService } from './webhook-retry.service'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { StripeIdentityController } from './stripe-identity.controller'
 import { StripeIdentityService } from './stripe-identity.service'
+import { StripeErrorCodesService } from './stripe-error-codes.service'
+import { Stripe3DSecureService } from './stripe-3d-secure.service'
 import { UsersModule } from '../users/users.module'
+import { BillingService } from './billing.service'
+import { StripeSharedService } from './stripe-shared.service'
 
 /**
  * Production-Grade Stripe Module
@@ -42,6 +46,8 @@ import { UsersModule } from '../users/users.module'
 	],
 	providers: [
 		StripeService,
+		StripeSharedService,
+		BillingService,
 		StripeSyncService,
 		StripeDataService,
 		StripeWebhookService,
@@ -51,6 +57,8 @@ import { UsersModule } from '../users/users.module'
 		StripeOwnerService,
 		StripeConnectService,
 		StripeIdentityService,
+		StripeErrorCodesService,
+		Stripe3DSecureService,
 		StripeWebhookListener,
 		WebhookRetryService
 	],
@@ -62,6 +70,8 @@ import { UsersModule } from '../users/users.module'
 	],
 	exports: [
 		StripeService,
+		StripeSharedService,
+		BillingService,
 		StripeSyncService,
 		StripeDataService,
 		StripeWebhookService,
@@ -70,7 +80,9 @@ import { UsersModule } from '../users/users.module'
 		StripeTenantService,
 		StripeOwnerService,
 		StripeConnectService,
-		StripeIdentityService
+		StripeIdentityService,
+		StripeErrorCodesService,
+		Stripe3DSecureService
 	]
 })
 export class StripeModule {}

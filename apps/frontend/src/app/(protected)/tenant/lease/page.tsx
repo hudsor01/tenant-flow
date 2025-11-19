@@ -54,7 +54,7 @@ export default function TenantLeasePage() {
 						View your current lease details and agreement
 					</p>
 				</div>
-				{lease?.status === 'ACTIVE' && (
+				{lease?.lease_status === 'active' && (
 					<Badge
 						variant="outline"
 						className="bg-success/10 text-success border-success/20"
@@ -73,7 +73,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-7 w-64" />
 								) : (
-									`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unitNumber ?? 'N/A'}`
+									`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unit_number ?? 'N/A'}`
 								)}
 							</p>
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
@@ -101,7 +101,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{formatDate(lease.startDate)}</p>
+									<p className="font-semibold">{formatDate(lease.start_date)}</p>
 								)}
 							</div>
 						</div>
@@ -112,7 +112,7 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{lease.endDate ? formatDate(lease.endDate) : 'Month-to-Month'}</p>
+									<p className="font-semibold">{lease.end_date ? formatDate(lease.end_date) : 'Month-to-Month'}</p>
 								)}
 							</div>
 						</div>
@@ -132,7 +132,7 @@ export default function TenantLeasePage() {
 									<Skeleton className="h-7 w-24" />
 								) : (
 									<p className="font-semibold text-xl">
-										{formatCurrency(lease.rentAmount)}
+										{formatCurrency(lease.rent_amount)}
 									</p>
 								)}
 							</div>
@@ -147,7 +147,7 @@ export default function TenantLeasePage() {
 									<Skeleton className="h-5 w-24" />
 								) : (
 									<p className="font-semibold">
-										{formatCurrency(lease.securityDeposit)}
+										{formatCurrency(lease.security_deposit)}
 									</p>
 								)}
 							</div>

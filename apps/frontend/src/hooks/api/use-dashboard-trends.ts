@@ -7,15 +7,15 @@
  * For new development, use hooks from use-owner-dashboard.ts which use /owner/reports endpoints.
  *
  * Migration Guide:
- * - useMetricTrend(userId, metric, period) → useOwnerMetricTrend(metric, period)
- * - useDashboardTimeSeries(userId, options) → useOwnerTimeSeries(options)
- * - useDashboardTrendData(userId) → Use multiple useOwnerMetricTrend() calls
+ * - useMetricTrend(user_id, metric, period) → useOwnerMetricTrend(metric, period)
+ * - useDashboardTimeSeries(user_id, options) → useOwnerTimeSeries(options)
+ * - useDashboardTrendData(user_id) → Use multiple useOwnerMetricTrend() calls
  *
  * Example:
  * ```typescript
  * // OLD
- * const { data } = useMetricTrend(userId, 'occupancy_rate', 'month')
- * 
+ * const { data } = useMetricTrend(user_id, 'occupancy_rate', 'month')
+ *
  * // NEW
  * const { data } = useOwnerMetricTrend('occupancy_rate', 'month')
  * ```
@@ -33,32 +33,32 @@ import { clientFetch } from '#lib/api/client'
 
 export const dashboardTrendKeys = {
   all: ['dashboard-trends'] as const,
-  metricTrend: (userId: string, metric: string, period: string) =>
-    [...dashboardTrendKeys.all, 'metric-trend', userId, metric, period] as const,
-  timeSeries: (userId: string, metric: string, days: number) =>
-    [...dashboardTrendKeys.all, 'time-series', userId, metric, days] as const,
-  trendData: (userId: string) => [...dashboardTrendKeys.all, 'trend-data', userId] as const,
+  metricTrend: (user_id: string, metric: string, period: string) =>
+    [...dashboardTrendKeys.all, 'metric-trend', user_id, metric, period] as const,
+  timeSeries: (user_id: string, metric: string, days: number) =>
+    [...dashboardTrendKeys.all, 'time-series', user_id, metric, days] as const,
+  trendData: (user_id: string) => [...dashboardTrendKeys.all, 'trend-data', user_id] as const,
 }
 
 /**
  * Get trend data for a specific metric
  */
 export function useMetricTrend(
-  userId: string | undefined,
+  user_id: string | undefined,
   metric: string,
   period: 'day' | 'week' | 'month' | 'year' = 'month'
 ) {
   return useQuery({
-    queryKey: dashboardTrendKeys.metricTrend(userId ?? '', metric, period),
+    queryKey: dashboardTrendKeys.metricTrend(user_id ?? '', metric, period),
     queryFn: async (): Promise<MetricTrend> => {
-      if (!userId) throw new Error('User ID required')
+      if (!user_id) throw new Error('User ID required')
 
       const response = await clientFetch<{ data: MetricTrend }>(
         `/api/v1/manage/metric-trend?metric=${metric}&period=${period}`
       )
       return response.data as MetricTrend
     },
-    enabled: !!userId,
+    enabled: !!user_id,
     ...QUERY_CACHE_TIMES.DETAIL,
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
@@ -68,22 +68,22 @@ export function useMetricTrend(
  * Get time series data for charts
  */
 export function useDashboardTimeSeries(
-  userId: string | undefined,
+  user_id: string | undefined,
   options: DashboardTimeSeriesOptions
 ) {
   const { metric, days = 30 } = options
 
   return useQuery({
-    queryKey: dashboardTrendKeys.timeSeries(userId ?? '', metric, days),
+    queryKey: dashboardTrendKeys.timeSeries(user_id ?? '', metric, days),
     queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
-      if (!userId) throw new Error('User ID required')
+      if (!user_id) throw new Error('User ID required')
 
       const response = await clientFetch<{ data: TimeSeriesDataPoint[] }>(
         `/api/v1/manage/time-series?metric=${metric}&days=${days}`
       )
       return response.data || []
     },
-    enabled: !!userId,
+    enabled: !!user_id,
     ...QUERY_CACHE_TIMES.DETAIL,
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
@@ -92,11 +92,11 @@ export function useDashboardTimeSeries(
 /**
  * Get all trend data at once (occupancy, tenants, revenue, maintenance)
  */
-export function useDashboardTrendData(userId: string | undefined) {
+export function useDashboardTrendData(user_id: string | undefined) {
   return useQuery({
-    queryKey: dashboardTrendKeys.trendData(userId ?? ''),
+    queryKey: dashboardTrendKeys.trendData(user_id ?? ''),
     queryFn: async (): Promise<DashboardTrendData> => {
-      if (!userId) throw new Error('User ID required')
+      if (!user_id) throw new Error('User ID required')
 
       // Fetch all trends in parallel via backend API
       const [occupancyRate, activeTenants, monthlyRevenue, openMaintenance] = await Promise.all([
@@ -118,7 +118,7 @@ export function useDashboardTrendData(userId: string | undefined) {
         openMaintenance: openMaintenance.data as MetricTrend,
       }
     },
-    enabled: !!userId,
+    enabled: !!user_id,
     ...QUERY_CACHE_TIMES.DETAIL,
     gcTime: 10 * 60 * 1000, // 10 minutes
   })

@@ -1,7 +1,7 @@
 /**
  * TanStack Query Cache Behavior Tests
  * Tests real browser behavior for cache invalidation, persistence, and stale-while-revalidate
- * 
+ *
  * Critical cache functionality testing:
  * - Cache invalidation after mutations
  * - Stale-while-revalidate behavior
@@ -14,11 +14,11 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
 import { createTestProperty, createTestProperties } from '../fixtures/property-data'
-import { 
-  TanStackQueryHelper, 
-  NetworkSimulator, 
-  PropertyTableHelper, 
-  PropertyFormHelper 
+import {
+  TanStackQueryHelper,
+  NetworkSimulator,
+  PropertyTableHelper,
+  PropertyFormHelper
 } from '../utils/tanstack-helpers'
 
 test.describe('TanStack Query Cache Behavior', () => {
@@ -30,7 +30,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 
   test.beforeEach(async ({ browser }) => {
     page = await browser.newPage()
-    
+
     // Initialize helpers
     queryHelper = new TanStackQueryHelper(page)
     networkSim = new NetworkSimulator(page)
@@ -48,18 +48,18 @@ test.describe('TanStack Query Cache Behavior', () => {
     // Expose cache state for testing
     await page.addInitScript(() => {
       window.cacheOperations = []
-      
+
       // Monitor cache operations if query client is available
       const monitorCache = () => {
         if (window.__QUERY_CLIENT__) {
           const originalSetQueryData = window.__QUERY_CLIENT__.setQueryData
           const originalInvalidateQueries = window.__QUERY_CLIENT__.invalidateQueries
-          
+
           window.__QUERY_CLIENT__.setQueryData = function(...args) {
             window.cacheOperations.push({ type: 'setQueryData', args, timestamp: Date.now() })
             return originalSetQueryData.apply(this, args)
           }
-          
+
           window.__QUERY_CLIENT__.invalidateQueries = function(...args) {
             window.cacheOperations.push({ type: 'invalidateQueries', args, timestamp: Date.now() })
             return originalInvalidateQueries.apply(this, args)
@@ -68,7 +68,7 @@ test.describe('TanStack Query Cache Behavior', () => {
           setTimeout(monitorCache, 100)
         }
       }
-      
+
       monitorCache()
     })
   })
@@ -163,25 +163,25 @@ test.describe('TanStack Query Cache Behavior', () => {
       await page.waitForLoadState('networkidle')
       await expect(page.locator('table tbody tr').first()).toBeVisible()
       const initialData = await queryHelper.getQueryData(['properties', 'ALL'])
-      
+
       const testProperty = createTestProperty({ name: 'Invalidation Test Property' })
 
       // Create property (should trigger invalidation)
-      const createPromise = page.waitForResponse(response => 
-        response.url().includes('/api/v1/properties') && 
+      const createPromise = page.waitForResponse(response =>
+        response.url().includes('/api/v1/properties') &&
         response.request().method() === 'POST' &&
         response.status() === 201
       )
       await formHelper.createProperty(testProperty)
       await createPromise
-      
+
       // Wait for cache to update
       await expect(page.locator('table tbody tr', { hasText: testProperty.name })).toBeVisible()
 
       // Verify cache was invalidated and refetched
       const newData = await queryHelper.getQueryData(['properties', 'ALL'])
       expect(newData).not.toEqual(initialData)
-      
+
       // Verify new property is in cache
       const hasNewProperty = newData.some((prop: any) => prop.name === testProperty.name)
       expect(hasNewProperty).toBe(true)
@@ -189,13 +189,13 @@ test.describe('TanStack Query Cache Behavior', () => {
 
     test('should invalidate related caches (dashboard stats)', async () => {
       await page.waitForTimeout(2000)
-      
+
       // Navigate to dashboard to populate stats cache
       await page.goto('/dashboard')
       await page.waitForTimeout(2000)
-      
+
       const initialStats = await queryHelper.getQueryData(['dashboard', 'stats'])
-      
+
       // Go back to properties and create one
       await page.goto('/dashboard/properties')
       await page.waitForTimeout(2000)
@@ -206,7 +206,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 
       // Check dashboard stats cache was invalidated
       const statsAfterMutation = await queryHelper.getQueryData(['dashboard', 'stats'])
-      
+
       // Stats should be either invalidated (undefined) or updated
       expect(statsAfterMutation !== initialStats).toBe(true)
     })
@@ -218,7 +218,7 @@ test.describe('TanStack Query Cache Behavior', () => {
       await page.goto('/dashboard/units')
       await page.waitForTimeout(2000)
       const unitsCache = await queryHelper.getQueryData(['units'])
-      
+
       await page.goto('/dashboard/properties')
       await page.waitForTimeout(2000)
 
@@ -238,7 +238,7 @@ test.describe('TanStack Query Cache Behavior', () => {
       // Populate different property-related caches
       await queryHelper.getQueryData(['properties', 'ALL'])
       await queryHelper.getQueryData(['properties', 'ACTIVE'])
-      
+
       // Mock selective invalidation
       await page.evaluate(() => {
         if (window.__QUERY_CLIENT__) {
@@ -311,7 +311,7 @@ test.describe('TanStack Query Cache Behavior', () => {
           const query = queryCache.find({ queryKey: ['properties', 'ALL'] })
           if (query) {
             // Force query to be stale
-            query.state.dataUpdatedAt = Date.now() - (6 * 60 * 1000) // 6 minutes ago
+            query.state.dataupdated_at = Date.now() - (6 * 60 * 1000) // 6 minutes ago
           }
         }
       })
@@ -344,7 +344,7 @@ test.describe('TanStack Query Cache Behavior', () => {
         window.dispatchEvent(new Event('blur'))
       })
       await page.waitForTimeout(500)
-      
+
       await page.evaluate(() => {
         window.dispatchEvent(new Event('focus'))
       })
@@ -468,13 +468,13 @@ test.describe('TanStack Query Cache Behavior', () => {
       for (let i = 0; i < 50; i++) {
         const key = ['properties', 'test', i.toString()]
         cacheKeys.push(key)
-        
+
         await page.evaluate((key, index) => {
           if (window.__QUERY_CLIENT__) {
-            window.__QUERY_CLIENT__.setQueryData(key, { 
-              test: 'data', 
-              index, 
-              data: new Array(1000).fill(index) 
+            window.__QUERY_CLIENT__.setQueryData(key, {
+              test: 'data',
+              index,
+              data: new Array(1000).fill(index)
             })
           }
         }, key, i)
@@ -595,7 +595,7 @@ test.describe('TanStack Query Cache Behavior', () => {
           window.__QUERY_CLIENT__.getQueryData = function() {
             throw new Error('Cache access error')
           }
-          
+
           // Restore after a delay
           setTimeout(() => {
             window.__QUERY_CLIENT__.getQueryData = originalGetQueryData

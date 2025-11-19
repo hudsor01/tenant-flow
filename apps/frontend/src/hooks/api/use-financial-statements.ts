@@ -27,9 +27,9 @@ type ApiResponse<T> = {
  */
 export const financialStatementsKeys = {
 	all: ['financial-statements'] as const,
-	incomeStatement: (params: { startDate: string; endDate: string }) =>
+	incomeStatement: (params: { start_date: string; end_date: string }) =>
 		[...financialStatementsKeys.all, 'income-statement', params] as const,
-	cashFlow: (params: { startDate: string; endDate: string }) =>
+	cashFlow: (params: { start_date: string; end_date: string }) =>
 		[...financialStatementsKeys.all, 'cash-flow', params] as const,
 	balanceSheet: (asOfDate: string) =>
 		[...financialStatementsKeys.all, 'balance-sheet', asOfDate] as const
@@ -40,15 +40,15 @@ export const financialStatementsKeys = {
  * Returns revenue, expenses, and net income with period comparisons
  */
 export function useIncomeStatement(params: {
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 }) {
 	return useQuery<ApiResponse<IncomeStatementData>>({
 		queryKey: financialStatementsKeys.incomeStatement(params),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams({
-				startDate: params.startDate,
-				endDate: params.endDate
+				start_date: params.start_date,
+				end_date: params.end_date
 			})
 			return clientFetch<ApiResponse<IncomeStatementData>>(
 				`/api/v1/financials/income-statement?${searchParams.toString()}`
@@ -64,13 +64,13 @@ export function useIncomeStatement(params: {
  * Hook to fetch cash flow statement data
  * Returns operating, investing, and financing activities
  */
-export function useCashFlow(params: { startDate: string; endDate: string }) {
+export function useCashFlow(params: { start_date: string; end_date: string }) {
 	return useQuery<ApiResponse<CashFlowData>>({
 		queryKey: financialStatementsKeys.cashFlow(params),
 		queryFn: async () => {
 			const searchParams = new URLSearchParams({
-				startDate: params.startDate,
-				endDate: params.endDate
+				start_date: params.start_date,
+				end_date: params.end_date
 			})
 			return clientFetch<ApiResponse<CashFlowData>>(
 				`/api/v1/financials/cash-flow?${searchParams.toString()}`

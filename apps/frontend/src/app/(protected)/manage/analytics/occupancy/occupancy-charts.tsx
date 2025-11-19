@@ -84,7 +84,7 @@ export function VacancySummaryList({ entries }: VacancyListProps) {
 		<div className="space-y-3">
 			{entries.slice(0, 8).map(entry => (
 				<div
-					key={entry.propertyId}
+					key={entry.property_id}
 					className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
 				>
 					<div className="flex flex-col">

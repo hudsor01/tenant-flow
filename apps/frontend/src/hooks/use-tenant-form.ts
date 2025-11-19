@@ -12,17 +12,16 @@ import { API_BASE_URL } from '#lib/api-config'
 
 /**
  * Hook for tenant creation forms with shared validation and state management
+ * Only includes tenant-specific fields - user fields (name, email, phone) are managed separately
  */
 export function useTenantForm(initialValues?: Partial<TenantInput>) {
 	return useForm({
 		defaultValues: {
-			firstName: '',
-			lastName: '',
-			email: '',
-			phone: '',
-			emergencyContact: '',
+			emergency_contact_name: '',
+			emergency_contact_phone: '',
+			emergency_contact_relationship: '',
 			avatarUrl: null,
-			userId: null,
+			user_id: null,
 			...initialValues
 		} as TenantInput,
 		onSubmit: async ({ value }) => {
@@ -43,15 +42,14 @@ export function useTenantForm(initialValues?: Partial<TenantInput>) {
 
 /**
  * Hook for tenant update forms with shared validation and state management
+ * Only includes tenant-specific fields - user fields are managed separately
  */
 export function useTenantUpdateForm(initialValues?: Partial<TenantUpdate>) {
 	return useForm({
 		defaultValues: {
-			firstName: null,
-			lastName: null,
-			email: null,
-			phone: null,
-			emergencyContact: null,
+			emergency_contact_name: null,
+			emergency_contact_phone: null,
+			emergency_contact_relationship: null,
 			avatarUrl: null,
 			...initialValues
 		} as TenantUpdate,
@@ -90,18 +88,14 @@ export function useMultiStepTenantForm(): {
 	const nextStep = () => {
 		// Manual field-level validation before proceeding
 		const values = form.state.values
-		
-		// Basic validation for required fields in current step
+
+		// Basic validation for required tenant fields in current step
 		if (currentStep === 0) {
-			if (!values.firstName || !values.lastName) {
+			if (!values.emergency_contact_name) {
 				return // Don't proceed if required fields are missing
 			}
-		} else if (currentStep === 1) {
-			if (!values.email) {
-				return // Don't proceed if email is missing
-			}
 		}
-		
+
 		setCurrentStep(prev => prev + 1)
 	}
 
@@ -119,51 +113,7 @@ export function useMultiStepTenantForm(): {
 		nextStep,
 		prevStep,
 		updateFormData,
-		progress: (currentStep + 1) / 3 // Assuming 3 steps total
-	}
-}
-
-/**
- * Custom validation hook for tenant forms
- */
-export function useTenantValidation() {
-	const validateEmail = useCallback(
-		(email: string): Record<string, string> | undefined => {
-			if (!email) return { email: 'Email is required' }
-			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-				return { email: 'Please enter a valid email address' }
-			}
-			return undefined
-		},
-		[]
-	)
-
-	const validatePhone = useCallback(
-		(phone: string): Record<string, string> | undefined => {
-			if (phone && !/^\+?[\d\s\-()]{10,}$/.test(phone)) {
-				return { phone: 'Please enter a valid phone number' }
-			}
-			return undefined
-		},
-		[]
-	)
-
-	const validateName = useCallback(
-		(name: string): Record<string, string> | undefined => {
-			if (!name) return { firstName: 'First name is required' }
-			if (name.length < 2)
-				return { firstName: 'Name must be at least 2 characters' }
-			if (name.length > 50)
-				return { firstName: 'Name must be less than 50 characters' }
-			return undefined
-		},
-		[]
-	)
-
-	return {
-		validateEmail,
-		validatePhone,
-		validateName
+		progress: (currentStep + 1) / 2 // Assuming 2 steps total
 	}
 }
 
@@ -197,12 +147,10 @@ export function useTenantFormState() {
  */
 export function useTenantFormComplete(initialValues?: Partial<TenantInput>) {
 	const form = useTenantForm(initialValues)
-	const validation = useTenantValidation()
 	const formState = useTenantFormState()
 
 	return {
 		form,
-		validation,
 		formState,
 		reset: () => {
 			form.reset()
@@ -275,17 +223,14 @@ export function useTenantFormWatchers() {
 
 /**
  * Hook for conditional field logic based on form state
- * Example: Show emergency contact only if phone is provided
+ * Example: Show emergency contact fields conditionally
  */
 export function useConditionalTenantFields(formData: Partial<TenantInput>) {
-	const shouldShowEmergencyContact = !!formData.phone
-	const shouldShowAvatar = !!formData.email && !!formData.firstName
+	const shouldShowEmergencyContact = true // Always show for tenants
 
 	return {
 		shouldShowEmergencyContact,
-		shouldShowAvatar,
-		isBasicInfoComplete:
-			!!formData.firstName && !!formData.lastName && !!formData.email
+		isBasicInfoComplete: !!formData.emergency_contact_name
 	}
 }
 
@@ -296,7 +241,7 @@ export function useConditionalTenantFields(formData: Partial<TenantInput>) {
 export function useTenantFieldTransformers() {
 	const formatPhoneNumber = useCallback((phone: string): string => {
 		// Remove all non-digits
-		const digits = phone.replace(/\D/g, '')
+		const digits = phone.replace(/\\D/g, '')
 
 		// Format as (XXX) XXX-XXXX
 		if (digits.length <= 3) return digits
@@ -304,20 +249,7 @@ export function useTenantFieldTransformers() {
 		return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
 	}, [])
 
-	const capitalizeNames = useCallback((name: string): string => {
-		return name
-			.split(' ')
-			.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-			.join(' ')
-	}, [])
-
-	const normalizeEmail = useCallback((email: string): string => {
-		return email.toLowerCase().trim()
-	}, [])
-
 	return {
-		formatPhoneNumber,
-		capitalizeNames,
-		normalizeEmail
+		formatPhoneNumber
 	}
 }

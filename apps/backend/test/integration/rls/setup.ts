@@ -11,7 +11,7 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 
 /**
  * Test user credentials
@@ -20,29 +20,29 @@ import type { Database } from '@repo/shared/types/supabase-generated'
 export interface TestCredentials {
 	email: string
 	password: string
-	role: 'OWNER' | 'TENANT'
+	user_type: 'OWNER' | 'TENANT'
 }
 
 export const TEST_USERS = {
 	OWNER_A: {
 		email: process.env.E2E_OWNER_EMAIL!,
 		password: process.env.E2E_OWNER_PASSWORD!,
-		role: 'OWNER' as const
+		user_type: 'OWNER' as const
 	},
 	OWNER_B: {
 		email: process.env.E2E_OWNER_B_EMAIL!,
 		password: process.env.E2E_OWNER_B_PASSWORD!,
-		role: 'OWNER' as const
+		user_type: 'OWNER' as const
 	},
 	TENANT_A: {
 		email: process.env.E2E_TENANT_A_EMAIL!,
 		password: process.env.E2E_TENANT_A_PASSWORD!,
-		role: 'TENANT' as const
+		user_type: 'TENANT' as const
 	},
 	TENANT_B: {
 		email: process.env.E2E_TENANT_B_EMAIL!,
 		password: process.env.E2E_TENANT_B_PASSWORD!,
-		role: 'TENANT' as const
+		user_type: 'TENANT' as const
 	}
 } as const
 
@@ -93,9 +93,9 @@ Object.entries(TEST_USERS).forEach(([key, user]) => {
  */
 export interface AuthenticatedTestClient {
 	client: SupabaseClient<Database>
-	userId: string
+	user_id: string
 	email: string
-	role: 'OWNER' | 'TENANT'
+	user_type: 'OWNER' | 'TENANT'
 	accessToken: string
 }
 
@@ -146,8 +146,8 @@ export async function authenticateAs(
 	}
 
 	// Ensure user exists in users table (for foreign key constraints)
-	const serviceClient = getServiceRoleClient()
-	const authUserId = authData.data.user.id
+	const serviceClient = getServiceuser_typeClient()
+	const authuser_id = authData.data.user.id
 
 	if (serviceClient) {
 		// Check if a user already exists with this auth ID as their primary key
@@ -161,11 +161,9 @@ export async function authenticateAs(
 			// Create new user with auth ID as both id and supabaseId
 			const { error: userError } = await serviceClient.from('users').insert({
 				id: authData.data.user.id,
-				supabaseId: authData.data.user.id,
 				email: authData.data.user.email!,
-				firstName: credentials.role === 'OWNER' ? 'Owner' : 'Tenant',
-				lastName: 'Test',
-				role: credentials.role === 'OWNER' ? 'OWNER' : 'TENANT'
+				full_name: credentials.user_type === 'OWNER' ? 'Owner Test' : 'Tenant Test',
+				user_type: credentials.user_type === 'OWNER' ? 'OWNER' : 'TENANT'
 			})
 
 			if (userError && !userError.message.includes('duplicate key')) {
@@ -178,27 +176,27 @@ export async function authenticateAs(
 
 	return {
 		client,
-		userId: authUserId, // Use auth ID for both RLS and foreign keys
+		user_id: authuser_id, // Use auth ID for both RLS and foreign keys
 		email: authData.data.user.email!,
-		role: credentials.role,
+		user_type: credentials.user_type,
 		accessToken: authData.data.session.access_token
 	}
 } /**
- * Get service role client for cleanup operations
+ * Get service user_type client for cleanup operations
  * Throws an error if environment variables are not available
  */
-export function getServiceRoleClient(): SupabaseClient<Database> {
+export function getServiceuser_typeClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-	const serviceRoleKey = process.env.SUPABASE_SECRET_KEY
+	const serviceuser_typeKey = process.env.SUPABASE_SECRET_KEY
 
-	if (!supabaseUrl || !serviceRoleKey) {
+	if (!supabaseUrl || !serviceuser_typeKey) {
 		throw new Error(
-			'Missing service role credentials (SUPABASE_URL and SUPABASE_SECRET_KEY). Cannot run tests.'
+			'Missing service user_type credentials (SUPABASE_URL and SUPABASE_SECRET_KEY). Cannot run tests.'
 		)
 	}
 
-	return createClient<Database>(supabaseUrl, serviceRoleKey, {
+	return createClient<Database>(supabaseUrl, serviceuser_typeKey, {
 		auth: {
 			autoRefreshToken: false,
 			persistSession: false
@@ -225,31 +223,31 @@ export async function cleanupTestData(
 	// Delete in reverse foreign key order
 	if (resourceIds.payments) {
 		for (const id of resourceIds.payments) {
-			await serviceClient.from('rent_payment').delete().eq('id', id)
+			await serviceClient.from('rent_payments').delete().eq('id', id)
 		}
 	}
 
 	if (resourceIds.leases) {
 		for (const id of resourceIds.leases) {
-			await serviceClient.from('lease').delete().eq('id', id)
+			await serviceClient.from('leases').delete().eq('id', id)
 		}
 	}
 
 	if (resourceIds.tenants) {
 		for (const id of resourceIds.tenants) {
-			await serviceClient.from('tenant').delete().eq('id', id)
+			await serviceClient.from('tenants').delete().eq('id', id)
 		}
 	}
 
 	if (resourceIds.units) {
 		for (const id of resourceIds.units) {
-			await serviceClient.from('unit').delete().eq('id', id)
+			await serviceClient.from('units').delete().eq('id', id)
 		}
 	}
 
 	if (resourceIds.properties) {
 		for (const id of resourceIds.properties) {
-			await serviceClient.from('property').delete().eq('id', id)
+			await serviceClient.from('properties').delete().eq('id', id)
 		}
 	}
 }
@@ -304,39 +302,39 @@ export function expectPermissionError(error: any, context: string): void {
  * Uses a fixed ID so it can be reused across tests
  */
 export async function ensureTestLease(
-	ownerId: string,
-	tenantId: string
+	owner_id: string,
+	tenant_id: string
 ): Promise<string> {
-	const serviceClient = getServiceRoleClient()
+	const serviceClient = getServiceuser_typeClient()
 	if (!serviceClient) {
-		throw new Error('Service role client not available')
+		throw new Error('Service user_type client not available')
 	}
 
-	const testLeaseId = 'test-lease-for-payments'
-	const testPropertyId = 'test-property-for-payments'
-	const testUnitId = 'test-unit-for-payments'
+	const testlease_id = 'test-lease-for-payments'
+	const testproperty_id = 'test-property-for-payments'
+	const testunit_id = 'test-unit-for-payments'
 
 	// Check if lease already exists
 	const { data: existing } = await serviceClient
-		.from('lease')
+		.from('leases')
 		.select('id')
-		.eq('id', testLeaseId)
+		.eq('id', testlease_id)
 		.maybeSingle()
 
 	if (existing) {
-		return testLeaseId
+		return testlease_id
 	}
 
 	// Create minimal test property first
-	const { error: propertyError } = await serviceClient.from('property').upsert({
-		id: testPropertyId,
-		ownerId,
+	const { error: propertyError } = await serviceClient.from('properties').upsert({
+		id: testproperty_id,
+		property_owner_id: owner_id,
 		name: 'Test Property',
-		address: '123 Test St',
+		address_line1: '123 Test St',
 		city: 'Test City',
 		state: 'CA',
-		zipCode: '12345',
-		propertyType: 'SINGLE_FAMILY',
+		postal_code: '12345',
+		property_type: 'SINGLE_FAMILY',
 		status: 'ACTIVE'
 	})
 
@@ -345,14 +343,14 @@ export async function ensureTestLease(
 	}
 
 	// Create minimal test unit
-	const { error: unitError } = await serviceClient.from('unit').upsert({
-		id: testUnitId,
-		propertyId: testPropertyId,
-		unitNumber: '1',
-		rent: 150000, // $1,500
+	const { error: unitError } = await serviceClient.from('units').upsert({
+		id: testunit_id,
+		property_id: testproperty_id,
+		unit_number: '1',
+		rent_amount: 150000, // $1,500
 		bedrooms: 1,
 		bathrooms: 1,
-		squareFeet: 500,
+		square_feet: 500,
 		status: 'OCCUPIED'
 	})
 
@@ -361,21 +359,18 @@ export async function ensureTestLease(
 	}
 
 	// Create minimal test lease
-	const startDate = new Date()
-	const endDate = new Date()
-	endDate.setFullYear(endDate.getFullYear() + 1)
+	const start_date = new Date()
+	const end_date = new Date()
+	end_date.setFullYear(end_date.getFullYear() + 1)
 
-	// Create tenant record (lease.tenantId references tenant table, not users)
+	// Create tenant record (lease.tenant_id references tenant table, not users)
 	const testTenantRecordId = 'test-tenant-record-for-payments'
 	const { error: tenantRecordError } = await serviceClient
-		.from('tenant')
+		.from('tenants')
 		.upsert({
 			id: testTenantRecordId,
-			userId: tenantId, // Link to users table
-			email: 'test-tenant@test.tenantflow.local',
-			firstName: 'Test',
-			lastName: 'Tenant',
-			status: 'ACTIVE'
+			user_id: tenant_id, // Link to users table
+			stripe_customer_id: ''
 		})
 
 	if (
@@ -387,20 +382,20 @@ export async function ensureTestLease(
 		)
 	}
 
-	const { error } = await serviceClient.from('lease').insert({
-		id: testLeaseId,
-		tenantId: testTenantRecordId, // Use tenant record ID, not user ID
-		unitId: testUnitId,
-		rentAmount: 150000, // $1,500
-		securityDeposit: 150000,
-		startDate: startDate.toISOString().split('T')[0]!,
-		endDate: endDate.toISOString().split('T')[0]!,
-		status: 'ACTIVE'
+	const { error } = await serviceClient.from('leases').insert({
+		id: testlease_id,
+		primary_tenant_id: testTenantRecordId, // Use tenant record ID
+		unit_id: testunit_id,
+		rent_amount: 150000, // $1,500
+		security_deposit: 150000,
+		start_date: start_date.toISOString().split('T')[0]!,
+		end_date: end_date.toISOString().split('T')[0]!,
+		lease_status: 'ACTIVE'
 	})
 
 	if (error) {
 		throw new Error(`Failed to create test lease: ${error.message}`)
 	}
 
-	return testLeaseId
+	return testlease_id
 }

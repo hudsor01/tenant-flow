@@ -5,21 +5,21 @@ import {
     Logger,
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { RequestWithUser, UserRole, authUser } from '@repo/shared/types/auth'
+import type { RequestWithUser, authUser } from '@repo/shared/types/auth'
 
 /**
- * Guard that handles both role-based and admin access control
+ * Guard that handles both user_type-based and admin access control
  * Includes tenant isolation for admin operations
  */
 @Injectable()
-export class RolesGuard implements CanActivate {
-	private readonly logger = new Logger(RolesGuard.name)
+export class user_typesGuard implements CanActivate {
+	private readonly logger = new Logger(user_typesGuard.name)
 
 	constructor(private reflector: Reflector) {}
 
 	canActivate(context: ExecutionContext): boolean {
-		const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
-			'roles',
+		const requireduser_types = this.reflector.getAllAndOverride<string[]>(
+			'user_types',
 			[context.getHandler(), context.getClass()]
 		)
 
@@ -46,21 +46,31 @@ export class RolesGuard implements CanActivate {
 			return this.validateAdminAccess(request, user)
 		}
 
-		// Handle role-based access
-		if (requiredRoles && requiredRoles.length > 0) {
-			return requiredRoles.some(role => {
-				if (user.role !== role) {
+		// Handle user_type-based access
+		const requiredRoles = Array.isArray(requireduser_types) ? requireduser_types : []
+		if (requiredRoles.length > 0) {
+			const userType = this.getUserType(user)
+			if (!userType) {
+				this.logger.warn('Access denied: Missing user_type metadata', {
+					user_id: user.id,
+					route: request.route?.path ?? 'unknown route'
+				})
+				return false
+			}
+
+			return requiredRoles.some(requiredRole => {
+				if (userType !== requiredRole) {
 					return false
 				}
 
 				if (
-					this.requiresDatabaseVerifiedRole(role) &&
+					this.requiresDatabaseVerifieduser_type(requiredRole) &&
 					!this.hasVerifiedOwnerPrivileges(user)
 				) {
-					this.logger.warn('Access denied: elevated role not verified via database lookup', {
-						userId: user.id,
-						requestedRole: role,
-						roleVerificationStatus: this.getRoleVerificationStatus(user),
+					this.logger.warn('Access denied: elevated user_type not verified via database lookup', {
+						user_id: user.id,
+						requesteduser_type: requiredRole,
+						user_typeVerificationStatus: this.getuser_typeVerificationStatus(user),
 						route: request.route?.path ?? 'unknown route'
 					})
 					return false
@@ -70,7 +80,7 @@ export class RolesGuard implements CanActivate {
 			})
 		}
 
-		// No specific role requirements
+		// No specific user_type requirements
 		return true
 	}
 
@@ -78,19 +88,20 @@ export class RolesGuard implements CanActivate {
 		request: RequestWithUser,
 		user: authUser
 	): boolean {
-		if (user.role !== 'ADMIN') {
+		const userType = (user.app_metadata?.user_type) as string | undefined
+		if (userType !== 'ADMIN') {
 			this.logger.warn('Admin access denied: User is not admin', {
-				userId: user.id,
-				userRole: user.role,
+				user_id: user.id,
+				userType: (user.app_metadata?.user_type),
 				route: request.route?.path ?? 'unknown route'
 			})
 			return false
 		}
 
 		if (!this.hasVerifiedOwnerPrivileges(user)) {
-			this.logger.warn('Admin access denied: Role not verified via database lookup', {
-				userId: user.id,
-				roleVerificationStatus: this.getRoleVerificationStatus(user),
+			this.logger.warn('Admin access denied: user_type not verified via database lookup', {
+				user_id: user.id,
+				user_typeVerificationStatus: this.getuser_typeVerificationStatus(user),
 				route: request.route?.path ?? 'unknown route'
 			})
 			return false
@@ -101,7 +112,7 @@ export class RolesGuard implements CanActivate {
 			this.logger.error(
 				'Admin access denied: Tenant isolation violation',
 				{
-					userId: user.id,
+					user_id: user.id,
 					userOrganizationId: (user as authUser & { organizationId?: string }).organizationId ?? null,
 					route: request.route?.path ?? 'unknown route',
 					ip: request.ip
@@ -152,35 +163,42 @@ export class RolesGuard implements CanActivate {
 		}
 
 		const userObj = user as Record<string, unknown>
+		const userType = (userObj.app_metadata as Record<string, unknown>)?.user_type
 
 		return (
 			typeof userObj.id === 'string' &&
 			typeof userObj.email === 'string' &&
-			typeof userObj.role === 'string' &&
-			['OWNER', 'MANAGER', 'TENANT', 'ADMIN'].includes(userObj.role)
+			typeof userType === 'string' &&
+			['OWNER', 'MANAGER', 'TENANT', 'ADMIN'].includes(userType as string)
 		)
 	}
 
-	private requiresDatabaseVerifiedRole(role: UserRole): boolean {
-		return role === 'OWNER' || role === 'ADMIN'
+	private requiresDatabaseVerifieduser_type(requiredRole: string): boolean {
+		return requiredRole === 'OWNER' || requiredRole === 'ADMIN'
 	}
 
 	private hasVerifiedOwnerPrivileges(user: authUser): boolean {
-		const metadata = this.getRoleVerificationMetadata(user)
-		return metadata.roleVerificationStatus === 'database' || metadata.roleVerified === true
+		const metadata = this.getuser_typeVerificationMetadata(user)
+		return metadata.user_typeVerificationStatus === 'database' || metadata.user_typeVerified === true
 	}
 
-	private getRoleVerificationStatus(user: authUser): string | undefined {
-		return this.getRoleVerificationMetadata(user).roleVerificationStatus
+	private getuser_typeVerificationStatus(user: authUser): string | undefined {
+		return this.getuser_typeVerificationMetadata(user).user_typeVerificationStatus
 	}
 
-	private getRoleVerificationMetadata(
+	private getuser_typeVerificationMetadata(
 		user: authUser
-	): { roleVerificationStatus?: string; roleVerified?: boolean } {
-		const appMetadata = user.app_metadata as {
-			roleVerificationStatus?: string
-			roleVerified?: boolean
+	): { user_typeVerificationStatus?: string; user_typeVerified?: boolean } {
+		const appMetadata = (user.app_metadata as Record<string, unknown>) ?? {}
+		return {
+			user_typeVerificationStatus: (appMetadata.user_typeVerificationStatus as string) ?? undefined,
+			user_typeVerified: (appMetadata.user_typeVerified as boolean) ?? undefined
 		}
-		return appMetadata ?? {}
+	}
+
+	private getUserType(user: authUser): string | undefined {
+		const appMetadata = user.app_metadata as { user_type?: string } | undefined
+		const maybeType = appMetadata?.user_type
+		return typeof maybeType === 'string' ? maybeType : undefined
 	}
 }

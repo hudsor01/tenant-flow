@@ -24,7 +24,7 @@ export interface TestEnvironmentConfig {
 	supabase: {
 		url: string
 		publishableKey: string
-		serviceRoleKey: string
+		serviceuser_typeKey: string
 		jwtSecret: string
 	}
 	stripe: {
@@ -41,14 +41,14 @@ export interface TestEnvironmentConfig {
  * Test Environment Detection
  * Determines which test environment to use based on NODE_ENV and availability
  */
-export function getTestEnvironment(): 'unit' | 'integration' | 'e2e' {
+export function getTestEnvironment(): 'units' | 'integration' | 'e2e' {
 	const env = process.env.NODE_ENV
 	const testType = process.env.TEST_TYPE
 
-	if (testType) return testType as 'unit' | 'integration' | 'e2e'
+	if (testType) return testType as 'units' | 'integration' | 'e2e'
 	if (env === 'test') return 'integration'
 
-	return 'unit'
+	return 'units'
 }
 
 /**
@@ -59,7 +59,7 @@ export function getTestDatabaseConfig(): TestEnvironmentConfig['database'] {
 	const testEnv = getTestEnvironment()
 
 	switch (testEnv) {
-		case 'unit':
+		case 'units':
 			// Unit tests use mocked database
 			return {
 				url: 'mock://localhost/unit_test_db',
@@ -117,12 +117,12 @@ export function getTestDatabaseConfig(): TestEnvironmentConfig['database'] {
 export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 	const testEnv = getTestEnvironment()
 
-	if (testEnv === 'unit') {
+	if (testEnv === 'units') {
 		// Unit tests use mocked Supabase
 		return {
 			url: 'https://mock-supabase-project.supabase.co',
 			publishableKey: 'mock_anon_key_for_unit_tests',
-			serviceRoleKey: 'mock_service_role_key_for_unit_tests',
+			serviceuser_typeKey: 'mock_service_user_type_key_for_unit_tests',
 			jwtSecret: 'mock_jwt_secret_for_unit_tests'
 		}
 	}
@@ -134,7 +134,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ??
 		process.env.SUPABASE_PUBLISHABLE_KEY ??
 		null
-	const serviceRoleKey =
+	const serviceuser_typeKey =
 		process.env.TEST_SUPABASE_SECRET_KEY ??
 		process.env.SUPABASE_SECRET_KEY ??
 		null
@@ -145,14 +145,14 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 
 	// If running in CI and vars are missing, fall back to safe mocks to keep tests deterministic
 	if (process.env.GITHUB_ACTIONS) {
-		if (!url || !publishableKey || !serviceRoleKey || !jwtSecret) {
+		if (!url || !publishableKey || !serviceuser_typeKey || !jwtSecret) {
 			moduleLogger.warn(
 				'Missing Supabase test env vars in CI; falling back to mocked Supabase values for tests.'
 			)
 			return {
 				url: url ?? 'https://mock-supabase-project.supabase.co',
 				publishableKey: publishableKey ?? 'mock_anon_key_for_ci',
-				serviceRoleKey: serviceRoleKey ?? 'mock_service_role_key_for_ci',
+				serviceuser_typeKey: serviceuser_typeKey ?? 'mock_service_user_type_key_for_ci',
 				jwtSecret: jwtSecret ?? 'mock_jwt_secret_for_ci'
 			}
 		}
@@ -169,7 +169,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 			'TEST_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
 		)
 	}
-	if (!serviceRoleKey) {
+	if (!serviceuser_typeKey) {
 		throw new Error(
 			'TEST_SUPABASE_SECRET_KEY or SUPABASE_SECRET_KEY environment variable is required for integration/e2e tests'
 		)
@@ -183,7 +183,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 	return {
 		url,
 		publishableKey,
-		serviceRoleKey,
+		serviceuser_typeKey,
 		jwtSecret
 	}
 }
@@ -196,7 +196,7 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
 	const testEnv = getTestEnvironment()
 
 	// For unit tests, always use mock keys
-	if (testEnv === 'unit') {
+	if (testEnv === 'units') {
 		return {
 			secretKey: 'test_mock_stripe_secret_key_for_unit_testing_not_real',
 			webhookSecret: 'test_mock_webhook_secret_for_unit_testing_not_real',
@@ -265,7 +265,7 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
 export function getTestEmailConfig(): TestEnvironmentConfig['email'] {
 	const testEnv = getTestEnvironment()
 
-	if (testEnv === 'unit') {
+	if (testEnv === 'units') {
 		// Unit tests use mocked email service
 		return {
 			resendApiKey: 'mock_resend_api_key_for_unit_tests'
@@ -313,7 +313,7 @@ export async function createTestModule(moduleMetadata: {
 	process.env.DATABASE_URL = testConfig.database.url
 	process.env.SUPABASE_URL = testConfig.supabase.url
 	process.env.SUPABASE_PUBLISHABLE_KEY = testConfig.supabase.publishableKey
-	process.env.SUPABASE_SECRET_KEY = testConfig.supabase.serviceRoleKey
+	process.env.SUPABASE_SECRET_KEY = testConfig.supabase.serviceuser_typeKey
 	process.env.SUPABASE_JWT_SECRET = testConfig.supabase.jwtSecret
 	process.env.STRIPE_SECRET_KEY = testConfig.stripe.secretKey
 	process.env.STRIPE_WEBHOOK_SECRET = testConfig.stripe.webhookSecret
@@ -348,7 +348,7 @@ export class TestDatabaseUtils {
 	static async cleanDatabase(): Promise<void> {
 		const testEnv = getTestEnvironment()
 
-		if (testEnv === 'unit') {
+		if (testEnv === 'units') {
 			// Unit tests don't need database cleanup (mocked)
 			return
 		}
@@ -367,7 +367,7 @@ export class TestDatabaseUtils {
 	static async seedTestData(): Promise<void> {
 		const testEnv = getTestEnvironment()
 
-		if (testEnv === 'unit') {
+		if (testEnv === 'units') {
 			// Unit tests don't need database seeding (mocked)
 			return
 		}
@@ -384,7 +384,7 @@ export class TestDatabaseUtils {
 	static async setupTestDatabase(): Promise<void> {
 		const testEnv = getTestEnvironment()
 
-		if (testEnv === 'unit') {
+		if (testEnv === 'units') {
 			// Unit tests don't need database setup (mocked)
 			return
 		}

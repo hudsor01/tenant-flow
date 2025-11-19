@@ -7,40 +7,40 @@ import { useRouter } from 'next/navigation'
 import { Skeleton } from '#components/ui/skeleton'
 
 /**
- * Tenant Role Guard Component
+ * Tenant user_type Guard Component
  *
  * Protects tenant routes by validating:
  * 1. User is authenticated
- * 2. User has TENANT role
+ * 2. User has TENANT user_type
  *
  * Redirects unauthorized users to login page.
  * Shows loading skeleton while checking authentication.
  */
 export function TenantGuard({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isLoading: authLoading } = useCurrentUser()
-	const { canAccessTenantFeatures, isLoading: roleLoading } = useUserRole()
+	const { role, isLoading: roleLoading } = useUserRole()
 	const router = useRouter()
 
 	useEffect(() => {
 		if (!authLoading && !roleLoading) {
-			if (!isAuthenticated || !canAccessTenantFeatures) {
+		if (!isAuthenticated || role !== 'TENANT') {
 				router.push('/login')
 			}
 		}
-	}, [isAuthenticated, canAccessTenantFeatures, authLoading, roleLoading, router])
+		}, [isAuthenticated, role, authLoading, roleLoading, router])
 
 	if (authLoading || roleLoading) {
 		return (
-			<div className="min-h-screen p-8">
-				<div className="space-y-4">
-					<Skeleton className="h-8 w-64" />
-					<Skeleton className="h-64 w-full" />
+			<div className="min-h-screen p-[var(--spacing-8)]">
+				<div className="space-y-[var(--spacing-4)]">
+					<Skeleton className="h-[var(--spacing-8)] w-[var(--spacing-64)]" />
+					<Skeleton className="h-[var(--spacing-64)] w-[var(--width-full)]" />
 				</div>
 			</div>
 		)
 	}
 
-	if (!isAuthenticated || !canAccessTenantFeatures) {
+	if (!isAuthenticated || role !== 'TENANT') {
 		return null
 	}
 

@@ -4,6 +4,7 @@
  */
 
 import { chromium } from '@playwright/test'
+import type { QueryClient } from '@tanstack/react-query'
 
 interface FiberNode {
 	memoizedProps?: {
@@ -110,7 +111,7 @@ async function globalSetup() {
 								)
 
 								if (reactKey && reactKey in rootElement) {
-							const element = rootElement as Record<string, unknown>
+							const element = rootElement as unknown as Record<string, unknown>
 							const fiberNode = element[reactKey]
 							if (fiberNode) {
 								return findQueryClient(fiberNode as FiberNode)
@@ -121,21 +122,17 @@ async function globalSetup() {
 						}
 
 						// Method 3: Global window attachment (if app exposes it)
-						interface WindowWithQueryClient extends Window {
-							queryClient?: unknown
-							__QUERY_CLIENT__?: unknown
-						}
-						const windowWithQueryClient = window as WindowWithQueryClient
+				const windowWithQueryClient = window as any
 						if (windowWithQueryClient.queryClient) {
-							windowWithQueryClient.__QUERY_CLIENT__ =
-								windowWithQueryClient.queryClient
+				windowWithQueryClient.__QUERY_CLIENT__ =
+					windowWithQueryClient.queryClient as unknown
 							return
 						}
 
 						// Try React root method
 						const queryClient = findReactRoot()
-						if (queryClient) {
-							windowWithQueryClient.__QUERY_CLIENT__ = queryClient
+				if (queryClient) {
+					windowWithQueryClient.__QUERY_CLIENT__ = queryClient as unknown
 							return
 						}
 
@@ -148,11 +145,8 @@ async function globalSetup() {
 			}
 
 			// Also try after React has had time to initialize
-			setTimeout(() => {
-				interface WindowWithQueryClient extends Window {
-					__QUERY_CLIENT__?: unknown
-				}
-				const windowWithQueryClient = window as WindowWithQueryClient
+		setTimeout(() => {
+			const windowWithQueryClient = window as any
 				if (!windowWithQueryClient.__QUERY_CLIENT__) {
 					// Log warning for test diagnostics
 					const diagnosticConsole =

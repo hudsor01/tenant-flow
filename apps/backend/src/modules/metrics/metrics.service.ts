@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectMetric } from '@willsoto/nestjs-prometheus'
-import type { Counter, Gauge } from 'prom-client'
+import type { Counter, Gauge, Histogram } from 'prom-client'
+import { normalizeHttpRoute } from '../observability/utils/http-route-normalizer'
 
 /**
  * Bounded label values to prevent high cardinality in Prometheus
@@ -11,19 +12,19 @@ import type { Counter, Gauge } from 'prom-client'
  * Auth failure reasons normalized to: INVALID_CREDENTIALS, TOKEN_EXPIRED,
  * TOKEN_INVALID, TOKEN_MISSING, ACCOUNT_LOCKED, ACCOUNT_DISABLED, UNKNOWN
  *
- * Table names normalized to: property, unit, lease, tenant, maintenance_request,
- * rent_payment, user_profile, subscription, other
+ * Table names normalized to: property, unit, lease, tenants, maintenance_request,
+ * rent_payments, users, subscriptions, other
  */
 
 const CORE_TABLE_NAMES = [
-	'property',
-	'unit',
-	'lease',
-	'tenant',
-	'maintenance_request',
-	'rent_payment',
-	'user_profile',
-	'subscription',
+	'properties',
+	'units',
+	'leases',
+	'tenants',
+	'maintenance_requests',
+	'rent_payments',
+	'users',
+	'subscriptions',
 	'other'
 ] as const
 
@@ -100,7 +101,11 @@ export class MetricsService {
 		@InjectMetric('tenantflow_auth_success_total')
 		private authSuccessCounter: Counter<string>,
 		@InjectMetric('tenantflow_auth_failures_total')
-		private authFailuresCounter: Counter<string>
+		private authFailuresCounter: Counter<string>,
+		@InjectMetric('tenantflow_http_requests_total')
+		private httpRequestsCounter: Counter<string>,
+		@InjectMetric('tenantflow_http_request_duration_seconds')
+		private httpRequestDurationHistogram: Histogram<string>
 	) {}
 
 	// Stripe webhook metric methods
@@ -158,5 +163,25 @@ export class MetricsService {
 
 	recordAuthFailure(method: string, reason: string): void {
 		this.authFailuresCounter.inc({ method, reason: normalizeAuthFailureReason(reason) })
+	}
+
+	// HTTP metrics
+	recordHttpRequest(
+		method: string,
+		route: string,
+		statusCode: number,
+		durationMs: number
+	): void {
+		const normalizedRoute = normalizeHttpRoute(route)
+		const normalizedMethod = method?.toUpperCase?.() ?? 'UNKNOWN'
+		this.httpRequestsCounter.inc({
+			method: normalizedMethod,
+			route: normalizedRoute,
+			status: Number.isFinite(statusCode) ? statusCode.toString() : '0'
+		})
+		this.httpRequestDurationHistogram.observe(
+			{ method: normalizedMethod, route: normalizedRoute },
+			Math.max(durationMs, 0) / 1000
+		)
 	}
 }

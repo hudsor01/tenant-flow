@@ -29,7 +29,7 @@ import { toast } from 'sonner'
 import { LateFeeConfigDialog } from './late-fee-config-dialog'
 
 interface LateFeesSectionProps {
-	leaseId: string
+	lease_id: string
 	onConfigChange?: () => void
 }
 
@@ -63,7 +63,7 @@ function OverduePaymentCard({
 	gracePeriod: number
 	onApplyLateFee: (
 		paymentId: string,
-		lateFeeAmount: number,
+		late_fee_amount: number,
 		reason: string
 	) => void
 }) {
@@ -128,11 +128,11 @@ function OverduePaymentCard({
  * Main late fees section component
  */
 export function LateFeesSection({
-	leaseId,
+	lease_id,
 	onConfigChange
 }: LateFeesSectionProps) {
 	const [showConfigDialog, setShowConfigDialog] = useState(false)
-	const { data, isLoading, error } = useOverduePayments(leaseId)
+	const { data, isLoading, error } = useOverduePayments(lease_id)
 	const processLateFees = useProcessLateFees()
 	const applyLateFee = useApplyLateFee()
 
@@ -145,17 +145,17 @@ export function LateFeesSection({
 			return
 		}
 
-		processLateFees.mutate(leaseId)
+		processLateFees.mutate(lease_id)
 	}
 
 	const handleApplyLateFee = (
 		paymentId: string,
-		lateFeeAmount: number,
+		late_fee_amount: number,
 		reason: string
 	) => {
 		applyLateFee.mutate({
 			paymentId,
-			lateFeeAmount,
+			late_fee_amount,
 			reason
 		})
 	}
@@ -283,7 +283,7 @@ export function LateFeesSection({
 			<LateFeeConfigDialog
 				open={showConfigDialog}
 				onOpenChange={setShowConfigDialog}
-				leaseId={leaseId}
+				lease_id={lease_id}
 				onSuccess={handleConfigSuccess}
 			/>
 		</>

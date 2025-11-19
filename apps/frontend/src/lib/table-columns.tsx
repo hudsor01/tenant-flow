@@ -120,7 +120,7 @@ export function createStatusColumn<TData>(
 }
 
 // Date column with formatting
-export function createDateColumn<TData>(
+export function created_ateColumn<TData>(
 	accessorKey: keyof TData & string,
 	title: string,
 	sortable: boolean = false

@@ -4,6 +4,21 @@ import { createMockUser } from '../../test-utils/mocks'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SubscriptionGuard, SKIP_SUBSCRIPTION_CHECK_KEY } from './subscription.guard'
 
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
+
 describe('SubscriptionGuard', () => {
 	const reflector = {
 		getAllAndOverride: jest.fn()
@@ -40,7 +55,7 @@ describe('SubscriptionGuard', () => {
 		jest.clearAllMocks()
 	})
 
-	it('allows tenant role regardless of subscription state', async () => {
+	it('allows tenant user_type regardless of subscription state', async () => {
 		mockMetadata()
 		supabaseService.rpcWithRetries.mockResolvedValue({ data: false, error: null })
 
@@ -52,10 +67,10 @@ describe('SubscriptionGuard', () => {
 		const result = await guard.canActivate(
 			createContext({
 				user: createMockUser({
-					id: 'tenant-1',
-					email: 'tenant@example.com',
-					role: 'TENANT'
-				})
+				id: 'tenant-1',
+				email: 'tenant@example.com',
+				app_metadata: { user_type: 'TENANT' }
+			})
 			})
 		)
 
@@ -75,10 +90,10 @@ describe('SubscriptionGuard', () => {
 		const result = await guard.canActivate(
 			createContext({
 				user: createMockUser({
-					id: 'owner-1',
-					email: 'owner@example.com',
-					role: 'OWNER'
-				})
+				id: 'owner-1',
+				email: 'owner@example.com',
+				app_metadata: { user_type: 'OWNER' }
+			})
 			})
 		)
 
@@ -96,10 +111,10 @@ describe('SubscriptionGuard', () => {
 		const result = await guard.canActivate(
 			createContext({
 				user: createMockUser({
-					id: 'owner-2',
-					email: 'owner@example.com',
-					role: 'OWNER'
-				})
+				id: 'owner-2',
+				email: 'owner@example.com',
+				app_metadata: { user_type: 'OWNER' }
+			})
 			})
 		)
 
@@ -121,8 +136,7 @@ describe('SubscriptionGuard', () => {
 			eq: jest.fn().mockReturnThis(),
 			single: jest.fn().mockResolvedValue({
 				data: {
-					subscription_status: 'past_due',
-					stripeCustomerId: null
+					stripe_customer_id: null
 				},
 				error: null
 			})
@@ -143,15 +157,13 @@ describe('SubscriptionGuard', () => {
 					user: createMockUser({
 						id: 'owner-3',
 						email: 'owner@example.com',
-						role: 'OWNER'
+						app_metadata: { user_type: 'OWNER' }
 					}),
 					url: path
 				})
 			)
 		).rejects.toThrow(ForbiddenException)
 
-		expect(queryBuilder.select).toHaveBeenCalledWith(
-			'subscription_status, stripeCustomerId'
-		)
+		expect(queryBuilder.select).toHaveBeenCalledWith('stripe_customer_id')
 	})
 })

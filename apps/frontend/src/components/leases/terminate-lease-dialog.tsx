@@ -19,22 +19,22 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface TerminateLeaseDialogProps {
-	leaseId: string
+	lease_id: string
 }
 
-export function TerminateLeaseDialog({ leaseId }: TerminateLeaseDialogProps) {
+export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 	const { closeModal } = useModalStore()
 	const [terminationReason, setTerminationReason] = useState('')
 
 	const terminateLeaseMutation = useTerminateLease()
 
-	const modalId = `terminate-lease-${leaseId}`
+	const modalId = `terminate-lease-${lease_id}`
 
 	const handleSubmit = async () => {
 		try {
 			const payload: { id: string; terminationDate: string; reason?: string } =
 				{
-					id: leaseId,
+					id: lease_id,
 					terminationDate: new Date().toISOString().split('T')[0]!
 				}
 			if (terminationReason) {

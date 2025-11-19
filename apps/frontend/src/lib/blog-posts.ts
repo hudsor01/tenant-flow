@@ -3,8 +3,17 @@
  * Add your blog posts here - they'll automatically appear on the blog index and have individual pages
  */
 
-import type { BlogPost } from '@repo/shared/types/blog'
-
+export interface BlogPost {
+	slug: string
+	title: string
+	excerpt: string
+	content: string
+	author: string
+	date: string
+	readTime: string
+	category: string
+	tags: string[]
+}
 
 /**
  * All blog posts

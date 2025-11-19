@@ -4,19 +4,20 @@
  */
 
 // Import constants from the single source of truth
-import type { USER_ROLE } from '../constants/auth.js'
-import type { AuthUser as BackendAuthUser } from './api-contracts.js'
+import type { USER_user_type } from '../constants/auth.js'
+import type { Database } from './supabase.js'
 
 // Use Supabase User type directly - matches what we get from auth
 import type { User } from '@supabase/supabase-js'
 export type authUser = User
+export type { User } from '@supabase/supabase-js'
 
 // User role type derived from constants
-export type UserRole = (typeof USER_ROLE)[keyof typeof USER_ROLE]
+export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
 
 // Use Supabase SubStatus instead of custom SubscriptionStatus
-import type { Database } from './supabase-generated.js'
-export type SubscriptionStatus = Database['public']['Enums']['SubStatus']
+import type { SubStatus } from '../constants/status-types.js'
+export type SubscriptionStatus = SubStatus
 
 export function hasOrganizationId(
 	user: authUser
@@ -241,7 +242,7 @@ export interface ChangePasswordRequest {
 // Extended auth context and guard types
 // MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
 export interface AuthenticatedRequest {
-	user: BackendAuthUser
+	user: Database['public']['Tables']['users']['Row']
 	// Additional authenticated request context could be added here with specific types
 }
 

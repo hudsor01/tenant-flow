@@ -1,5 +1,8 @@
 import { requireSession } from '#lib/server-auth'
+import { MobileChrome } from '#components/layout/mobile-chrome'
 import type { ReactNode } from 'react'
+
+export const dynamic = 'force-dynamic'
 
 export default async function ProtectedLayout({
 	children
@@ -7,5 +10,5 @@ export default async function ProtectedLayout({
 	children: ReactNode
 }) {
 	await requireSession()
-	return <>{children}</>
+	return <MobileChrome>{children}</MobileChrome>
 }

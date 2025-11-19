@@ -1,25 +1,25 @@
 import { z } from 'zod'
-import { Constants, type Database } from '../types/supabase-generated'
-import
-  {
-    nonEmptyStringSchema,
-    nonNegativeNumberSchema,
-    positiveNumberSchema,
-    requiredString,
-    uuidSchema
-  } from './common'
+import type { UnitStatus } from '../constants/status-types.js'
+import { UNIT_STATUS } from '../constants/status-types.js'
+import {
+  nonEmptyStringSchema,
+  nonNegativeNumberSchema,
+  positiveNumberSchema,
+  requiredString,
+  uuidSchema
+} from './common'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Unit status enum - uses auto-generated Supabase enums
 export const unitStatusSchema = z.enum(
-	Constants.public.Enums.UnitStatus as readonly [string, ...string[]]
+	Object.values(UNIT_STATUS) as unknown as readonly [string, ...string[]]
 )
 
 // Base unit input schema (for forms and API creation) - matches database exactly
 export const unitInputSchema = z.object({
-	propertyId: uuidSchema,
+	property_id: uuidSchema,
 
-	unitNumber: nonEmptyStringSchema
+	unit_number: nonEmptyStringSchema
 		.min(1, 'Unit number is required')
 		.max(VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH, `Unit number cannot exceed ${VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH} characters`),
 
@@ -32,7 +32,7 @@ export const unitInputSchema = z.object({
 		.max(VALIDATION_LIMITS.UNIT_MAX_BATHROOMS, `Maximum ${VALIDATION_LIMITS.UNIT_MAX_BATHROOMS} bathrooms allowed`)
 		.default(1),
 
-	squareFeet: positiveNumberSchema
+	square_feet: positiveNumberSchema
 		.int('Square feet must be a whole number')
 		.max(VALIDATION_LIMITS.UNIT_MAX_SQUARE_FEET, 'Square feet seems unrealistic')
 		.optional(),
@@ -46,8 +46,8 @@ export const unitInputSchema = z.object({
 export const unitSchema = unitInputSchema.extend({
 	id: uuidSchema,
 	status: unitStatusSchema.default('VACANT' as const),
-	createdAt: z.string(),
-	updatedAt: z.string()
+	created_at: z.string(),
+	updated_at: z.string()
 })
 
 // Unit update schema (partial input)
@@ -58,22 +58,22 @@ export const unitUpdateSchema = unitInputSchema.partial().extend({
 // Unit query schema (for search/filtering)
 export const unitQuerySchema = z.object({
 	search: z.string().optional(),
-	propertyId: uuidSchema.optional(),
+	property_id: uuidSchema.optional(),
 	status: unitStatusSchema.optional(),
 	minRent: nonNegativeNumberSchema.optional(),
 	maxRent: nonNegativeNumberSchema.optional(),
 	bedrooms: positiveNumberSchema.int().optional(),
 	bathrooms: positiveNumberSchema.optional(),
-	minSquareFeet: positiveNumberSchema.int().optional(),
-	maxSquareFeet: positiveNumberSchema.int().optional(),
+	minsquare_feet: positiveNumberSchema.int().optional(),
+	maxsquare_feet: positiveNumberSchema.int().optional(),
 	sortBy: z
 		.enum([
-			'unitNumber',
+			'unit_number',
 			'rent',
 			'bedrooms',
 			'bathrooms',
-			'squareFeet',
-			'createdAt'
+			'square_feet',
+			'created_at'
 		])
 		.optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
@@ -99,15 +99,14 @@ export type Unit = z.infer<typeof unitSchema>
 export type UnitUpdate = z.infer<typeof unitUpdateSchema>
 export type UnitQuery = z.infer<typeof unitQuerySchema>
 export type UnitStats = z.infer<typeof unitStatsSchema>
-export type UnitStatus = z.infer<typeof unitStatusSchema>
 
 // Frontend-specific form schema (handles string inputs from HTML forms) - matches database exactly
 export const unitFormSchema = z.object({
-	propertyId: requiredString,
-	unitNumber: requiredString,
+	property_id: requiredString,
+	unit_number: requiredString,
 	bedrooms: z.string().optional(),
 	bathrooms: z.string().optional(),
-	squareFeet: z.string().optional(),
+	square_feet: z.string().optional(),
 	rent: z.string().optional(),
 	lastInspectionDate: z.string().optional(),
 	status: unitStatusSchema.optional()
@@ -115,17 +114,17 @@ export const unitFormSchema = z.object({
 
 // Transform function for converting form data to API format - matches database exactly
 export const transformUnitFormData = (data: UnitFormData) => ({
-	propertyId: data.propertyId,
-	unitNumber: data.unitNumber,
+	property_id: data.property_id,
+	unit_number: data.unit_number,
 	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : 1,
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : 1,
-	squareFeet: data.squareFeet ? parseInt(data.squareFeet, 10) : undefined,
+	square_feet: data.square_feet ? parseInt(data.square_feet, 10) : undefined,
 	rent: data.rent ? parseFloat(data.rent) : 0,
 	lastInspectionDate:
 		data.lastInspectionDate && data.lastInspectionDate !== ''
 			? data.lastInspectionDate
 			: undefined,
-	status: data.status as Database['public']['Enums']['UnitStatus']
+	status: data.status as UnitStatus
 })
 
 export type UnitFormData = z.infer<typeof unitFormSchema>

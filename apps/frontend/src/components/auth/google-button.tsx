@@ -119,10 +119,10 @@ GoogleButton.displayName = 'GoogleButton'
 /**
  * High-resolution Google logo icon that matches Google's brand guidelines
  * Uses proper Google brand colors and proportions
+ * Google brand colors must be preserved exactly as specified
  */
+/* eslint-disable color-tokens/no-hex-colors */
 function HighResGoogleIcon() {
-	/* eslint-disable color-tokens/no-hex-colors */
-	// Google brand colors must be preserved exactly as specified
 	return (
 		<svg
 			width="18"
@@ -149,5 +149,5 @@ function HighResGoogleIcon() {
 			/>
 		</svg>
 	)
-	/* eslint-enable color-tokens/no-hex-colors */
 }
+/* eslint-enable color-tokens/no-hex-colors */

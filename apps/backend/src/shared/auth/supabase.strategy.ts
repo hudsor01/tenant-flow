@@ -15,16 +15,8 @@
  * 3. Validates payload (issuer, audience, expiration)
  * 4. Ensures user exists in users table (creates if needed for OAuth)
  * 5. Returns authUser object for use in request handlers
-<<<<<<< Updated upstream
-
- * Supported Algorithms: HS256 (Supabase default)
-||||||| Stash base
- *
- * Supported Algorithms: HS256 (Supabase default)
-=======
  *
  * Supported Algorithms: ES256 (Supabase default)
->>>>>>> Stashed changes
  */
 
 import { Injectable, Logger } from '@nestjs/common'
@@ -35,8 +27,7 @@ import type { Algorithm } from 'jsonwebtoken'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AppConfigService } from '../../config/app-config.service'
-import type { Database } from '@repo/shared/types/supabase-generated'
-import { USER_ROLE } from '@repo/shared/constants/auth'
+import { USER_user_type } from '@repo/shared/constants/auth'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -74,9 +65,9 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
-		const userId = payload.sub ?? 'unknown'
+		const user_id = payload.sub ?? 'unknown'
 		this.logger.debug('Validating JWT payload', {
-			userId,
+			user_id,
 			issuer: payload.iss,
 			audience: payload.aud,
 			expiration: payload.exp ? new Date(payload.exp * 1000) : null
@@ -117,7 +108,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 		if (now > expWithGrace) {
 			this.logger.warn('Token expired (including grace period)', {
-				userId: payload.sub,
+				user_id: payload.sub,
 				exp: new Date(payload.exp * 1000),
 				now: new Date(now * 1000),
 				gracePeriodSeconds: 30
@@ -129,14 +120,14 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		const fiveMinutesFromNow = now + (5 * 60)
 		if (payload.exp < fiveMinutesFromNow) {
 			this.logger.debug('Token approaching expiry', {
-				userId: payload.sub,
+				user_id: payload.sub,
 				expiresInMinutes: Math.round((payload.exp - now) / 60),
 				exp: new Date(payload.exp * 1000)
 			})
 		}
 
 		if (!payload.email) {
-			this.logger.warn('JWT missing email claim', { userId: payload.sub })
+			this.logger.warn('JWT missing email claim', { user_id: payload.sub })
 			throw new Error('Invalid token: missing email')
 		}
 
@@ -178,97 +169,100 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 		// CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
 		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
-		let internalUserId: string
+		let internaluser_id: string
 		try {
-			internalUserId = await this.utilityService.ensureUserExists(userToEnsure)
+			internaluser_id = await this.utilityService.ensureUserExists(userToEnsure)
 		} catch (error) {
 			// If database is unavailable, throw a system error to prevent false 401s
 			const errorMessage = error instanceof Error ? error.message : 'Unknown database error'
 			this.logger.error('Database error during user lookup/creation', {
-				userId: payload.sub,
+				user_id: payload.sub,
 				email: payload.email,
 				error: errorMessage
 			})
 			throw new Error(`Authentication service unavailable: ${errorMessage}`)
 		}
 
-		const payloadRoleRaw = payload.app_metadata?.role
-		const payloadRoleValid = isValidUserRoleValue(payloadRoleRaw)
-		const tokenRole = payloadRoleValid ? payloadRoleRaw : null
+		// app_metadata doesn't have user_type in JWT - get from database instead
+		const payloaduser_typeRaw = null
+		const payloaduser_typeValid = isValidUserValue(payloaduser_typeRaw)
+		const tokenuser_type = payloaduser_typeValid ? payloaduser_typeRaw : null
 
-		if (payloadRoleRaw && !payloadRoleValid) {
-			this.logger.warn('Invalid role present in JWT payload app_metadata; ignoring', {
-				userId: payload.sub,
-				payloadRole: payloadRoleRaw
+		if (payloaduser_typeRaw && !payloaduser_typeValid) {
+			this.logger.warn('Invalid user_type present in JWT payload app_metadata; ignoring', {
+				user_id: payload.sub,
+				payloaduser_type: payloaduser_typeRaw
 			})
 		}
 
-		let dbRole: Database['public']['Enums']['UserRole'] | null = null
-		let dbRoleLookupFailed = false
+		let dbuser_type: string | null = null
+		let dbuser_typeLookupFailed = false
 		try {
-			dbRole = (await this.utilityService.getUserRoleByUserId(internalUserId)) ?? null
+			dbuser_type = (await this.utilityService.getUserTypeByUserId(internaluser_id)) ?? null
 		} catch (error) {
-			// Log but don't fail - role lookup is not critical for authentication
-			dbRoleLookupFailed = true
-			this.logger.warn('Failed to get user role from database, enforcing least-privilege fallback', {
-				userId: internalUserId,
+			// Log but don't fail - user_type lookup is not critical for authentication
+			dbuser_typeLookupFailed = true
+			this.logger.warn('Failed to get user user_type from database, enforcing least-privilege fallback', {
+				user_id: internaluser_id,
 				error: error instanceof Error ? error.message : 'Unknown error',
-				payloadRole: payloadRoleRaw ?? null,
-				payloadRoleValid
+				payloaduser_type: payloaduser_typeRaw ?? null,
+				payloaduser_typeValid
 			})
 		}
 
-		if (!dbRole && !dbRoleLookupFailed) {
-			this.logger.warn('User role not found in database, enforcing least-privilege fallback', {
-				userId: internalUserId,
-				payloadRole: payloadRoleRaw ?? null,
-				payloadRoleValid
+		if (!dbuser_type && !dbuser_typeLookupFailed) {
+			this.logger.warn('User user_type not found in database, enforcing least-privilege fallback', {
+				user_id: internaluser_id,
+				payloaduser_type: payloaduser_typeRaw ?? null,
+				payloaduser_typeValid
 			})
 		}
 
-		const fallbackRole = tokenRole ?? SAFE_FALLBACK_ROLE
-		let roleSource: RoleVerificationStatus = 'safe-default'
+		const fallbackuser_type = tokenuser_type ?? SAFE_FALLBACK_user_type
+		let user_typeSource: user_typeVerificationStatus = 'safe-default'
 
-		if (dbRole) {
-			roleSource = 'database'
-		} else if (tokenRole) {
-			roleSource = 'token'
+		if (dbuser_type) {
+			user_typeSource = 'database'
+		} else if (tokenuser_type) {
+			user_typeSource = 'token'
 		}
 
-		let resolvedRole = dbRole ?? fallbackRole
+		let resolveduser_type = dbuser_type ?? fallbackuser_type
 
 		if (
-			roleSource !== 'database' &&
-			(resolvedRole === 'OWNER' || resolvedRole === 'ADMIN')
+			user_typeSource !== 'database' &&
+			(resolveduser_type === 'OWNER' || resolveduser_type === 'ADMIN')
 		) {
-			this.logger.warn('Downgrading unverified elevated role until database role verification succeeds', {
-				userId: internalUserId,
-				attemptedRole: resolvedRole,
-				payloadRole: payloadRoleRaw ?? null
+			this.logger.warn('Downgrading unverified elevated user_type until database user_type verification succeeds', {
+				user_id: internaluser_id,
+				attempteduser_type: resolveduser_type,
+				payloaduser_type: payloaduser_typeRaw ?? null
 			})
-			resolvedRole = SAFE_FALLBACK_ROLE
-			roleSource = 'downgraded'
+			resolveduser_type = SAFE_FALLBACK_user_type
+			user_typeSource = 'downgraded'
 		}
 
-		const roleVerified = roleSource === 'database'
+		const user_typeVerified = user_typeSource === 'database'
 
 		// Create user object from JWT payload
 		const mergedAppMetadata = {
 			...(payload.app_metadata ?? {}),
-			roleVerificationStatus: roleSource,
-			roleVerified
+			user_typeVerificationStatus: user_typeSource,
+			user_typeVerified
 		}
 
 		const user: authUser = {
-			id: internalUserId, // Use users.id for RLS compatibility
+			id: internaluser_id, // Use user.id for RLS compatibility
 			aud: actualAud,
 			email: payload.email,
-			role: resolvedRole,
 			// Use timestamps from JWT payload instead of hardcoded current time
 			email_confirmed_at: payload.email_confirmed_at ?? '',
 			confirmed_at: payload.confirmed_at ?? '',
 			last_sign_in_at: payload.last_sign_in_at ?? '',
-			app_metadata: mergedAppMetadata,
+			app_metadata: {
+				...mergedAppMetadata,
+				user_type: resolveduser_type
+			},
 			user_metadata: payload.user_metadata ?? {},
 			identities: [],
 			created_at: payload.created_at ?? new Date().toISOString(),
@@ -276,11 +270,11 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			is_anonymous: false
 		}
 
-		// Sanitize logs: log only userId and role, never email
+		// Sanitize logs: log only user_id and user_type, never email
 		this.logger.debug('User authenticated successfully', {
-			userId: user.id,
-			role: user.role,
-			roleVerificationStatus: roleSource
+			user_id: user.id,
+			user_type: resolveduser_type,
+			user_typeVerificationStatus: user_typeSource
 		})
 
 		return user
@@ -318,11 +312,11 @@ function resolveSupabaseJwtConfig(config: AppConfigService): {
 	}
 }
 
-type RoleVerificationStatus = 'database' | 'token' | 'safe-default' | 'downgraded'
+type user_typeVerificationStatus = 'database' | 'token' | 'safe-default' | 'downgraded'
 
-const VALID_USER_ROLES = Object.values(USER_ROLE) as Database['public']['Enums']['UserRole'][]
-const SAFE_FALLBACK_ROLE: Database['public']['Enums']['UserRole'] = 'TENANT'
+const VALID_USER_user_typeS = Object.values(USER_user_type) as string[]
+const SAFE_FALLBACK_user_type: string = 'TENANT'
 
-function isValidUserRoleValue(role: unknown): role is Database['public']['Enums']['UserRole'] {
-	return typeof role === 'string' && VALID_USER_ROLES.includes(role as Database['public']['Enums']['UserRole'])
+function isValidUserValue(user_type: unknown): user_type is string {
+	return typeof user_type === 'string' && VALID_USER_user_typeS.includes(user_type as string)
 }

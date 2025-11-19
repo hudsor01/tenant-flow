@@ -28,6 +28,15 @@ import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import { AppConfigService } from '../../config/app-config.service'
+import { CONFIG_DEFAULTS } from '../../config/config.constants'
+import { createThrottleDefaults } from '../../config/throttle.config'
+
+const STRIPE_WEBHOOK_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'WEBHOOK_THROTTLE_TTL',
+	envLimitKey: 'WEBHOOK_THROTTLE_LIMIT',
+	defaultTtl: Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_TTL),
+	defaultLimit: Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_LIMIT)
+})
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
@@ -47,7 +56,9 @@ export class StripeWebhookController {
 	 * IMPORTANT: Requires raw body for signature verification
 	 * Configure in main.ts with rawBody: true
 	 */
-	@Throttle({ default: { ttl: 60000, limit: 30 } })
+	@Throttle({
+		default: STRIPE_WEBHOOK_THROTTLE
+	})
 	@Post()
 	async handleWebhook(
 		@Req() req: RawBodyRequest<Request>,
@@ -89,25 +100,6 @@ export class StripeWebhookController {
 		}
 
 		const client = this.supabase.getAdminClient()
-
-		// Check for duplicate events (idempotency)
-		const { data: existing } = await client
-			.from('processed_stripe_events')
-			.select('id')
-			.eq('stripe_event_id', event.id)
-			.single()
-
-		if (existing) {
-			// Record idempotency hit
-			this.prometheus?.recordIdempotencyHit(event.type)
-			this.logger.log('Duplicate webhook event detected', {
-				type: event.type,
-				id: event.id
-			})
-			return { received: true, duplicate: true }
-		}
-
-		// Record event processing start
 		const startTime = Date.now()
 
 		this.logger.log('Stripe webhook received', {
@@ -116,7 +108,34 @@ export class StripeWebhookController {
 		})
 
 		try {
-			// CHANGE: Use emitAsync() instead of emit() to propagate errors
+			// Use atomic lock via RPC to prevent duplicate processing
+			// recordEventProcessing creates an INSERT ... ON CONFLICT DO NOTHING
+			// which is atomic and prevents race conditions
+			const lockAcquired = await this.supabase.getAdminClient().rpc(
+				'record_processed_stripe_event_lock',
+				{
+					p_stripe_event_id: event.id,
+					p_event_type: event.type,
+					p_processed_at: new Date().toISOString(),
+					p_status: 'processing'
+				}
+			)
+
+			const data = lockAcquired.data as Array<{ lock_acquired: boolean }> | null
+			const rows = Array.isArray(data) ? data : (data ? [data] : [])
+			const acquired = rows.some(row => row && 'lock_acquired' in row && row.lock_acquired === true)
+
+			if (!acquired) {
+				// Record idempotency hit
+				this.prometheus?.recordIdempotencyHit(event.type)
+				this.logger.log('Duplicate webhook event detected', {
+					type: event.type,
+					id: event.id
+				})
+				return { received: true, duplicate: true }
+			}
+
+			// Process the webhook event
 			await this.eventEmitter.emitAsync(`stripe.${event.type}`, {
 				...(event.data.object as unknown as Record<string, unknown>),
 				eventId: event.id,
@@ -127,21 +146,31 @@ export class StripeWebhookController {
 			const duration = Date.now() - startTime
 			this.prometheus?.recordWebhookProcessing(event.type, duration, 'success')
 
-			// Store in processed_stripe_events table
-			await client.from('processed_stripe_events').insert({
-				stripe_event_id: event.id,
-				event_type: event.type,
-				processed_at: new Date().toISOString()
-			})
+			// Mark event as processed
+			await client
+				.from('stripe_processed_events')
+				.update({
+					processed_at: new Date().toISOString(),
+					status: 'processed'
+				})
+				.eq('stripe_event_id', event.id)
 
 			// Store metrics in webhook_metrics table
-			await client.from('webhook_metrics').insert({
-				stripe_event_id: event.id,
-				event_type: event.type,
-				processing_duration_ms: duration,
-				success: true,
-				created_at: new Date().toISOString()
-			})
+			const currentDate = new Date().toISOString().split('T')[0] as string
+			await client.from('webhook_metrics').upsert(
+				{
+					date: currentDate,
+					event_type: event.type,
+					total_received: 1,
+					total_processed: 1,
+					total_failed: 0,
+					average_latency_ms: duration,
+					created_at: new Date().toISOString()
+				},
+				{
+					onConflict: 'date,event_type'
+				}
+			)
 
 			return { received: true }
 		} catch (error) {
@@ -153,26 +182,29 @@ export class StripeWebhookController {
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
 
-			// Store in webhook_failures table
-			await client.from('webhook_failures').insert({
-				stripe_event_id: event.id,
-				event_type: event.type,
-				raw_event_data: JSON.parse(JSON.stringify(event)),
-				error_message: error instanceof Error ? error.message : String(error),
-				error_stack: error instanceof Error ? (error.stack || null) : null,
-				failure_reason: 'processing_error',
-				retry_count: 0,
-				created_at: new Date().toISOString()
+			// Store failure details in webhook_attempts table
+			await client.from('webhook_attempts').insert({
+				webhook_event_id: event.id,
+				status: 'failed',
+				failure_reason: 'processing_error'
 			})
 
 			// Store metrics
-			await client.from('webhook_metrics').insert({
-				stripe_event_id: event.id,
-				event_type: event.type,
-				processing_duration_ms: duration,
-				success: false,
-				created_at: new Date().toISOString()
-			})
+			const currentDate = new Date().toISOString().split('T')[0] as string
+			await client.from('webhook_metrics').upsert(
+				{
+					date: currentDate,
+					event_type: event.type,
+					total_received: 1,
+					total_processed: 0,
+					total_failed: 1,
+					average_latency_ms: duration,
+					created_at: new Date().toISOString()
+				},
+				{
+					onConflict: 'date,event_type'
+				}
+			)
 
 			this.logger.error('Webhook processing failed', {
 				type: event.type,

@@ -27,8 +27,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	const { data: unitsResponse } = useAllUnits()
 	const units = unitsResponse?.data || []
 
-	const tenant = tenants.find(t => t.id === lease?.tenantId)
-	const unit = units.find(u => u.id === lease?.unitId)
+	const tenant = tenants.find(t => t.id === lease?.primary_tenant_id)
+	const unit = units.find(u => u.id === lease?.unit_id)
 
 	if (isLoading) {
 		return (
@@ -59,7 +59,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				</div>
 				<CardLayout
 					title={`Lease #${lease.id.slice(0, 8)}`}
-					description={`Status: ${lease.status}`}
+					description={`Status: ${lease.lease_status}`}
 					className="flex-1"
 				>
 					<div className="space-y-8">
@@ -74,12 +74,12 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										Lease period
 									</div>
 									<p className="mt-1 text-sm font-medium">
-										{lease.startDate
-											? new Date(lease.startDate).toLocaleDateString()
+										{lease.start_date
+											? new Date(lease.start_date).toLocaleDateString()
 											: 'Start TBD'}{' '}
 										&mdash;{' '}
-										{lease.endDate
-											? new Date(lease.endDate).toLocaleDateString()
+										{lease.end_date
+											? new Date(lease.end_date).toLocaleDateString()
 											: 'End TBD'}
 									</p>
 								</div>
@@ -92,7 +92,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										{new Intl.NumberFormat('en-US', {
 											style: 'currency',
 											currency: 'USD'
-										}).format(lease.rentAmount ?? 0)}
+										}).format(lease.rent_amount ?? 0)}
 									</p>
 								</div>
 							</div>
@@ -108,9 +108,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										<User className="size-4" />
 										Assigned tenant
 									</div>
-									<p className="mt-1 text-sm font-medium">{tenant.name}</p>
-									<p className="text-sm text-muted-foreground">
-										{tenant.email}
+									<p className="mt-1 text-sm font-medium">{tenant.first_name || tenant.last_name ? `${tenant.first_name ?? ''} ${tenant.last_name ?? ''}`.trim() : tenant.name || 'Unknown'}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {tenant.email}
 									</p>
 								</div>
 							) : (
@@ -126,7 +126,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							</h2>
 							{unit ? (
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<p className="text-sm font-medium">Unit {unit.unitNumber}</p>
+									<p className="text-sm font-medium">Unit {unit.unit_number}</p>
 									<p className="text-sm text-muted-foreground">
 										{unit.bedrooms} bd · {unit.bathrooms} ba
 									</p>
@@ -143,7 +143,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				description={new Intl.NumberFormat('en-US', {
 					style: 'currency',
 					currency: 'USD'
-				}).format(lease.securityDeposit ?? 0)}
+				}).format(lease.security_deposit ?? 0)}
 			/>
 		</div>
 	)

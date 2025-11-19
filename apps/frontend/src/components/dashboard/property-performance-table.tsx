@@ -12,7 +12,7 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { usePropertyPerformance } from '#hooks/api/use-dashboard'
+import { useOwnerPropertyPerformance } from '#hooks/api/use-owner-dashboard'
 import {
 	getOccupancyBadgeClass,
 	getTrendColorClass
@@ -25,11 +25,11 @@ import { formatCurrency } from '@repo/shared/utils/currency'
 const getTrendIcon = (trend: string) => {
 	switch (trend) {
 		case 'up':
-			return <TrendingUp className="size-3" />
+			return <TrendingUp className="w-[var(--spacing-3)] h-[var(--spacing-3)]" />
 		case 'down':
-			return <TrendingDown className="size-3" />
+			return <TrendingDown className="w-[var(--spacing-3)] h-[var(--spacing-3)]" />
 		default:
-			return <Minus className="size-3" />
+			return <Minus className="w-[var(--spacing-3)] h-[var(--spacing-3)]" />
 	}
 }
 
@@ -50,12 +50,12 @@ const getOccupancyBadge = (rate: number) => {
 }
 
 export function PropertyPerformanceTable() {
-	const { data: properties, isLoading, error } = usePropertyPerformance()
+	const { data: properties, isLoading, error } = useOwnerPropertyPerformance()
 
 	if (isLoading) {
 		return (
 			<div className="dashboard-empty-state">
-				<Spinner className="size-5 animate-spin" />
+				<Spinner className="w-[var(--spacing-5)] h-[var(--spacing-5)] animate-spin" />
 				<p className="text-sm font-medium text-muted-foreground">
 					Loading property performance...
 				</p>
@@ -100,7 +100,7 @@ export function PropertyPerformanceTable() {
 							<TableHead>Occupancy</TableHead>
 							<TableHead>Revenue</TableHead>
 							<TableHead>Trend</TableHead>
-							<TableHead className="w-12"></TableHead>
+							<TableHead className="w-[var(--spacing-12)]"></TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -114,10 +114,10 @@ export function PropertyPerformanceTable() {
 								.toUpperCase()
 
 							return (
-								<TableRow key={property.propertyId}>
+								<TableRow key={property.property_id}>
 									<TableCell>
-										<div className="flex items-center gap-3">
-											<Avatar className="size-11">
+										<div className="flex items-center gap-[var(--spacing-3)]">
+								<Avatar className="size-[var(--spacing-11)]">
 												<AvatarFallback className="text-xs font-medium">
 													{avatar}
 												</AvatarFallback>
@@ -125,7 +125,7 @@ export function PropertyPerformanceTable() {
 											<div>
 												<div className="font-medium">{property.property}</div>
 												<div className="text-sm text-muted-foreground">
-													{property.address}
+													{property.address_line1}
 												</div>
 											</div>
 										</div>
@@ -156,15 +156,15 @@ export function PropertyPerformanceTable() {
 									</TableCell>
 									<TableCell>
 										<div
-											className={`flex items-center gap-1 text-sm font-medium ${getTrendColorClass(property.trend || 'stable')}`}
+											className={`flex items-center gap-[var(--spacing-1)] text-sm font-medium ${getTrendColorClass(property.trend || 'stable')}`}
 										>
 											{getTrendIcon(property.trend || 'stable')}
 											{property.trendPercentage?.toFixed(1) ?? '0.0'}%
 										</div>
 									</TableCell>
 									<TableCell>
-										<Button variant="ghost" size="icon" className="size-11">
-											<ArrowUpRight className="size-4" />
+								<Button variant="ghost" size="icon" className="w-[var(--spacing-11)] h-[var(--spacing-11)]">
+											<ArrowUpRight className="w-[var(--spacing-4)] h-[var(--spacing-4)]" />
 											<span className="sr-only">View property details</span>
 										</Button>
 									</TableCell>
@@ -176,7 +176,7 @@ export function PropertyPerformanceTable() {
 			</div>
 
 			{/* View All Properties Button */}
-			<Button variant="outline" className="w-full min-h-11">
+			<Button variant="outline" className="w-full min-h-[var(--spacing-11)]">
 				View All Properties
 			</Button>
 		</div>

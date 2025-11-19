@@ -29,7 +29,7 @@ export default function TenantPaymentsPage() {
 												{payment.description || 'Stripe payment intent'}
 											</div>
 										</div>
-										<div className="text-xs text-muted-foreground">{payment.createdAt ?? 'Date pending'}</div>
+										<div className="text-xs text-muted-foreground">{payment.created_at ?? 'Date pending'}</div>
 									</div>
 								))
 							) : (

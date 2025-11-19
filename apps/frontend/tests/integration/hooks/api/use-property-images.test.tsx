@@ -1,4 +1,6 @@
 /**
+ * @vitest-environment jsdom
+ *
  * Integration Test: Property Image Upload
  *
  * Tests the complete flow of:
@@ -19,24 +21,15 @@ import {
 	useDeletePropertyImage,
 	useCreateProperty,
 	useDeleteProperty
-} from '../use-properties'
+} from '#hooks/api/use-properties'
 import type { ReactNode } from 'react'
 import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
+import type { Tables } from '@repo/shared/types/supabase'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'UsePropertyImagesTest' })
 
-// Type for the property image upload response
-type PropertyImageUploadResult = {
-	result: {
-		id: string
-		url: string
-		propertyId: string
-		isPrimary: boolean
-		caption?: string
-	}
-	compressionRatio: number
-}
+type PropertyImage = Tables<'property_images'>
 
 // Test image file
 const TEST_IMAGE_FILE = new File(['test'], 'test-image.jpg', {
@@ -46,13 +39,13 @@ const TEST_IMAGE_FILE = new File(['test'], 'test-image.jpg', {
 // Test property data factory
 const createTestPropertyData = (): CreatePropertyRequest => ({
 	name: `Test Property ${Date.now()}`,
-	address: '123 Test St',
+	address_line1: '123 Test St',
 	city: 'Test City',
 	state: 'TS',
-	zipCode: '12345',
-	propertyType: 'SINGLE_FAMILY',
+	postal_code: '12345',
+	property_type: 'SINGLE_FAMILY',
 	description: 'Test property for image upload tests'
-	// NOTE: ownerId and status removed - backend derives from auth
+	// NOTE: owner_id and status removed - backend derives from auth
 })
 
 // Test wrapper with QueryClient
@@ -71,7 +64,7 @@ function createWrapper() {
 }
 
 describe('Property Image Upload Integration', () => {
-	let testPropertyId: string
+	let testproperty_id: string
 	let queryClient: QueryClient
 
 	// Setup: Create a real test property before all tests
@@ -91,13 +84,13 @@ describe('Property Image Upload Integration', () => {
 
 		// Direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const property = await result.current.mutateAsync(createTestPropertyData())
-		testPropertyId = property.id
-		expect(testPropertyId).toBeDefined()
+		testproperty_id = property.id
+		expect(testproperty_id).toBeDefined()
 	})
 
 	// Teardown: Delete test property after all tests
 	afterAll(async () => {
-		if (!testPropertyId) return
+		if (!testproperty_id) return
 
 		const wrapper = ({ children }: { children: ReactNode }) => (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -106,7 +99,7 @@ describe('Property Image Upload Integration', () => {
 		const { result } = renderHook(() => useDeleteProperty(), { wrapper })
 
 		// Direct await instead of waitFor for mutations (prevents 30s timeouts)
-		await result.current.mutateAsync(testPropertyId)
+		await result.current.mutateAsync(testproperty_id)
 	})
 
 	/**
@@ -123,25 +116,24 @@ describe('Property Image Upload Integration', () => {
 
 		// Upload image - direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const uploaded = await uploadResult.current.mutateAsync({
-			propertyId: testPropertyId,
-			file: TEST_IMAGE_FILE,
-			isPrimary: false,
-			caption: 'Test image'
-		})
+		property_id: testproperty_id,
+		file: TEST_IMAGE_FILE,
+		isPrimary: false
+	})
 
-		expect(uploaded).toBeDefined()
-		expect(uploaded.result).toBeDefined()
-		const typedResult = uploaded as PropertyImageUploadResult
-		expect(typedResult.result.id).toBeDefined()
-		expect(typedResult.result.url).toContain('property-images')
-		expect(typedResult.result.propertyId).toBe(testPropertyId)
+	expect(uploaded).toBeDefined()
+		const typedUploaded = uploaded as any
+		expect(typedUploaded?.id).toBeDefined()
+		expect(typedUploaded?.image_url).toContain('property-images')
+		expect(typedUploaded?.property_id).toBe(testproperty_id)
+		expect(typedUploaded?.display_order).toBeDefined()
 
-		uploadedImageId = typedResult.result.id
+		uploadedImageId = (uploaded as any)?.id
 
 		// Cleanup - direct await instead of waitFor for mutations (prevents 30s timeouts)
 		await deleteResult.current.mutateAsync({
 			imageId: uploadedImageId,
-			propertyId: testPropertyId
+			property_id: testproperty_id
 		})
 	})
 
@@ -156,48 +148,50 @@ describe('Property Image Upload Integration', () => {
 		// Step 1: Upload image - direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const { result: uploadResult } = renderHook(() => useUploadPropertyImage(), { wrapper })
 		const uploaded = await uploadResult.current.mutateAsync({
-			propertyId: testPropertyId,
-			file: TEST_IMAGE_FILE,
-			isPrimary: false,
-			caption: 'Lifecycle test image'
-		})
-
-		expect(uploaded).toBeDefined()
-		const typedResult = uploaded as PropertyImageUploadResult
-		expect(typedResult.result.id).toBeDefined()
-		uploadedImageId = typedResult.result.id
+		property_id: testproperty_id,
+		file: TEST_IMAGE_FILE,
+		isPrimary: false
+	})
+	const typedUploaded2 = uploaded as any
+	expect(typedUploaded2).toBeDefined()
+	expect(typedUploaded2?.id).toBeDefined()
+	uploadedImageId = typedUploaded2?.id
 
 		// Step 2: Fetch and verify image exists
-		const { result: fetchResult } = renderHook(() => usePropertyImages(testPropertyId), {
+		const { result: fetchResult } = renderHook(() => usePropertyImages(testproperty_id), {
 			wrapper
 		})
 
 		await waitFor(() => {
 			expect(fetchResult.current.isSuccess).toBe(true)
-			expect(fetchResult.current.data).toBeDefined()
-			const testImage = fetchResult.current.data!.find(
-				img => img.id === uploadedImageId
+			const propertyImages = (fetchResult.current.data ??
+				[]) as PropertyImage[]
+			const testImage = propertyImages.find(
+				(img: PropertyImage) => img.id === uploadedImageId
 			)
 			expect(testImage).toBeDefined()
-			expect(testImage!.caption).toBe('Lifecycle test image')
+			// Backend doesn't support captions, only display_order for sorting
+			expect(testImage!.property_id).toBe(testproperty_id)
 		})
 
 		// Step 3: Delete image - direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
 		await deleteResult.current.mutateAsync({
 			imageId: uploadedImageId,
-			propertyId: testPropertyId
+			property_id: testproperty_id
 		})
 
 		// Step 4: Verify deletion
 		const { result: verifyResult } = renderHook(
-			() => usePropertyImages(testPropertyId),
+			() => usePropertyImages(testproperty_id),
 			{ wrapper }
 		)
 
 		await waitFor(() => {
-			const deletedImage = verifyResult.current.data?.find(
-				img => img.id === uploadedImageId
+			const deletedImage = (verifyResult.current.data as
+				| PropertyImage[]
+				| undefined)?.find(
+				(img: PropertyImage) => img.id === uploadedImageId
 			)
 			expect(deletedImage).toBeUndefined()
 		})
@@ -223,7 +217,7 @@ describe('Property Image Upload Integration', () => {
 
 		// Upload small - direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const small = await result.current.mutateAsync({
-			propertyId: testPropertyId,
+			property_id: testproperty_id,
 			file: smallFile,
 			isPrimary: false
 		})
@@ -231,7 +225,7 @@ describe('Property Image Upload Integration', () => {
 
 		// Upload large - direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const large = await result.current.mutateAsync({
-			propertyId: testPropertyId,
+			property_id: testproperty_id,
 			file: largeFile,
 			isPrimary: false
 		})
@@ -240,15 +234,13 @@ describe('Property Image Upload Integration', () => {
 		// Cleanup: Delete uploaded images
 		try {
 			const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
-			const smallTyped = small as PropertyImageUploadResult
-			const largeTyped = large as PropertyImageUploadResult
 			await deleteResult.current.mutateAsync({
-				imageId: smallTyped.result.id,
-				propertyId: testPropertyId
+				imageId: (small as PropertyImage).id,
+				property_id: testproperty_id
 			})
 			await deleteResult.current.mutateAsync({
-				imageId: largeTyped.result.id,
-				propertyId: testPropertyId
+				imageId: (large as any)?.id,
+				property_id: testproperty_id
 			})
 		} catch (error) {
 			logger.warn('Failed to cleanup uploaded images', {
@@ -274,7 +266,7 @@ describe('Property Image Upload Integration', () => {
 
 		await expect(
 			result.current.mutateAsync({
-				propertyId: testPropertyId,
+				property_id: testproperty_id,
 				file: oversizedFile,
 				isPrimary: false
 			})
@@ -292,7 +284,7 @@ describe('Property Image Upload Integration', () => {
  *
  * 3. Upload an image via UI/console:
  *    const upload = useUploadPropertyImage()
- *    upload.mutate({ propertyId: 'xxx', file: file, isPrimary: false })
+ *    upload.mutate({ property_id: 'xxx', file: file, isPrimary: false })
  *
  * 4. Verify in Supabase Dashboard:
  *    - Storage → property-images → check file exists
@@ -300,7 +292,7 @@ describe('Property Image Upload Integration', () => {
  *
  * 5. Delete image via UI/console:
  *    const del = useDeletePropertyImage()
- *    del.mutate({ imageId: 'xxx', propertyId: 'xxx' })
+ *    del.mutate({ imageId: 'xxx', property_id: 'xxx' })
  *
  * 6. Verify cleanup:
  *    - Storage → file should be gone

@@ -6,13 +6,13 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import type Stripe from 'stripe'
-import type { Json } from '@repo/shared/types/supabase-generated'
+import type { Json } from '@repo/shared/types/supabase'
 import type {
 	IdentityVerificationRecord,
 	IdentityVerificationSessionPayload,
 	IdentityVerificationStatus
 } from '@repo/shared/types/identity'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { UsersService } from '../users/users.service'
@@ -34,22 +34,22 @@ export class StripeIdentityService {
 	 * Creates or reuses a Stripe Identity verification session.
 	 */
 	async createVerificationSession(
-		userId: string
+		user_id: string
 	): Promise<IdentityVerificationSessionPayload> {
-		const user = await this.usersService.getUserById(userId)
+		const user = await this.usersService.getUserById(user_id)
 
 		if (!user) {
 			throw new NotFoundException('User not found')
 		}
 
-		if (user.identityverificationstatus === 'verified') {
+		if (user.identity_verification_status === 'verified') {
 			throw new BadRequestException('Identity already verified')
 		}
 
-		if (user.identityverificationsessionid) {
+		if (user.identity_verification_session_id) {
 			const reused = await this.tryReuseSession(
-				userId,
-				user.identityverificationsessionid
+				user_id,
+				user.identity_verification_session_id
 			)
 			if (reused) {
 				return reused
@@ -59,7 +59,7 @@ export class StripeIdentityService {
 		const session = await this.stripe.identity.verificationSessions.create({
 			type: 'document',
 			metadata: {
-				user_id: userId
+				user_id: user_id
 			}
 		})
 
@@ -72,7 +72,7 @@ export class StripeIdentityService {
 			)
 		}
 
-		await this.persistSession(userId, session)
+		await this.persistSession(user_id, session)
 
 		return this.buildPayload(session)
 	}
@@ -80,8 +80,8 @@ export class StripeIdentityService {
 	/**
 	 * Returns the latest identity verification record for a user.
 	 */
-	async getIdentityStatus(userId: string): Promise<IdentityVerificationRecord> {
-		const user = await this.usersService.getUserById(userId)
+	async getIdentityStatus(user_id: string): Promise<IdentityVerificationRecord> {
+		const user = await this.usersService.getUserById(user_id)
 
 		if (!user) {
 			throw new NotFoundException('User not found')
@@ -96,9 +96,9 @@ export class StripeIdentityService {
 	async handleVerificationSessionEvent(
 		session: Stripe.Identity.VerificationSession
 	): Promise<void> {
-		const userId = await this.resolveUserIdFromSession(session)
+		const user_id = await this.resolveuser_idFromSession(session)
 
-		if (!userId) {
+		if (!user_id) {
 			this.logger.warn(
 				'Identity webhook received without user_id metadata, skipping',
 				{
@@ -108,11 +108,11 @@ export class StripeIdentityService {
 			return
 		}
 
-		await this.persistSession(userId, session)
+		await this.persistSession(user_id, session)
 	}
 
 	private async tryReuseSession(
-		userId: string,
+		user_id: string,
 		sessionId: string
 	): Promise<IdentityVerificationSessionPayload | null> {
 		try {
@@ -128,7 +128,7 @@ export class StripeIdentityService {
 				return null
 			}
 
-			await this.persistSession(userId, session)
+			await this.persistSession(user_id, session)
 			return this.buildPayload(session)
 		} catch (error) {
 			this.logger.warn('Unable to reuse verification session', {
@@ -156,25 +156,25 @@ export class StripeIdentityService {
 		user: Database['public']['Tables']['users']['Row']
 	): IdentityVerificationRecord {
 		return {
-			sessionId: user.identityverificationsessionid ?? null,
-			status: user.identityverificationstatus ?? null,
-			verifiedAt: user.identityverifiedat ?? null,
-			lastError: user.identityverificationerror ?? null,
-			data: user.identityverificationdata ?? null
+			sessionId: user.identity_verification_session_id ?? null,
+			status: user.identity_verification_status ?? null,
+			verifiedAt: user.identity_verified_at ?? null,
+			lastError: user.identity_verification_error ?? null,
+			data: user.identity_verification_data ?? null
 		}
 	}
 
 	private async persistSession(
-		userId: string,
+		user_id: string,
 		session: Stripe.Identity.VerificationSession
 	) {
-		await this.usersService.updateUser(userId, {
-			identityverificationsessionid: session.id,
-			identityverificationstatus: this.coerceStatus(session.status),
-			identityverificationdata: this.sanitizeSession(session),
-			identityverificationerror:
+		await this.usersService.updateUser(user_id, {
+			identity_verification_session_id: session.id,
+			identity_verification_status: this.coerceStatus(session.status),
+			identity_verification_data: this.sanitizeSession(session),
+			identity_verification_error:
 				session.last_error?.reason ?? null,
-			identityverifiedat:
+			identity_verified_at:
 				session.status === 'verified'
 					? new Date().toISOString()
 					: null
@@ -190,14 +190,14 @@ export class StripeIdentityService {
 		return sessionData
 	}
 
-	private async resolveUserIdFromSession(
+	private async resolveuser_idFromSession(
 		session: Stripe.Identity.VerificationSession
 	): Promise<string | null> {
 		const metadataUser =
 			typeof session.metadata?.user_id === 'string'
 				? session.metadata.user_id
-				: typeof session.metadata?.userId === 'string'
-				? session.metadata.userId
+				: typeof session.metadata?.user_id === 'string'
+				? session.metadata.user_id
 				: undefined
 
 		if (metadataUser) {

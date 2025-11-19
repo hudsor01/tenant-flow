@@ -5,6 +5,7 @@ import {
 	SecurityEventType
 } from '@repo/shared/types/security'
 import type { SupabaseService } from '../database/supabase.service'
+import type { AppConfigService } from '../config/app-config.service'
 import { createMockSupabaseService } from '../test-utils/mocks'
 import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
 import { SecurityMetricsService } from './security-metrics.service'
@@ -19,6 +20,7 @@ describe('SecurityController', () => {
 		Pick<SupabaseService, 'getAdminClient' | 'getUser'>
 	>
 	let mockLogger: jest.Mocked<LoggerMethods>
+	let mockConfigService: jest.Mocked<AppConfigService>
 
 	beforeEach(() => {
 		mockLogger = {
@@ -42,9 +44,14 @@ describe('SecurityController', () => {
 		})
 
 		securityMetricsService = new SecurityMetricsService(
-			mockSupabaseService as unknown as SupabaseService
+		mockSupabaseService as unknown as SupabaseService
 		)
-		controller = new SecurityController(securityMetricsService)
+		mockConfigService = {
+			getConfig: jest.fn(() => ({})),
+			getEnv: jest.fn((key: string) => process.env[key])
+		} as unknown as jest.Mocked<AppConfigService>
+
+		controller = new SecurityController(securityMetricsService, mockConfigService)
 
 		Object.defineProperty(controller, 'logger', {
 			configurable: true,

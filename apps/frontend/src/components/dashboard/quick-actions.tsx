@@ -67,7 +67,7 @@ export function QuickActions() {
 						key={action.href}
 						href={action.href}
 						className="dashboard-quick-action group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
-						role="button"
+
 						aria-label={`${action.title}: ${action.description}`}
 					>
 						<div className="dashboard-quick-action-icon">

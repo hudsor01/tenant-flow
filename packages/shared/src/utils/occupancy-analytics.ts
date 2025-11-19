@@ -86,7 +86,7 @@ export function mapVacancyAnalysis(data: unknown): VacancyAnalysisEntry[] {
 	return data.map(item => {
 		const record = isObject(item) ? item : {}
 		return {
-			propertyId: toString(record.property_id ?? record.propertyId ?? ''),
+			property_id: toString(record.property_id ?? record.property_id ?? ''),
 			propertyName: toString(
 				record.property_name ?? record.propertyName ?? 'Property'
 			),

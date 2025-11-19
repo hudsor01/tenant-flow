@@ -39,12 +39,12 @@ export class UsersController {
 	 * Returns:
 	 * - id: auth.users.id (from JWT)
 	 * - email: auth.users.email (from JWT)
-	 * - stripeCustomerId: stripe.customers.id (from Stripe Sync Engine)
+	 * - stripe_customer_id: stripe.customers.id (from Stripe Sync Engine)
 	 */
 	@Get('me')
 	@SkipSubscriptionCheck()
 	async getCurrentUser(@Req() req: AuthenticatedRequest) {
-		const authUserId = req.user.id // auth.users.id from JWT
+		const authuser_id = req.user.id // auth.users.id from JWT
 		const authUserEmail = req.user.email
 
 		if (!authUserEmail) {
@@ -54,29 +54,29 @@ export class UsersController {
 		}
 
 		this.logger.debug('Fetching current user data', {
-			userId: authUserId,
+			user_id: authuser_id,
 			email: authUserEmail
 		})
 
 		// Get Stripe customer ID using the indexed user_id column
 		// stripe.customers is auto-populated by Stripe Sync Engine
 		// user_id column is set by webhook when customer.created/updated events occur
-		let stripeCustomerId: string | null = null
+		let stripe_customer_id: string | null = null
 
 		try {
 			const { data, error } = await this.supabaseService!.rpcWithRetries(
 				'get_stripe_customer_by_user_id',
-				{ p_user_id: authUserId },
+				{ p_user_id: authuser_id },
 				2 // Only 2 attempts for fast failure
 			)
 
 			if (error) {
 				this.logger.warn('Could not fetch Stripe customer ID', {
 					error: error.message || String(error),
-					userId: authUserId
+					user_id: authuser_id
 				})
 			} else {
-				stripeCustomerId = (data as string) || null
+				stripe_customer_id = (data as string) || null
 			}
 		} catch (error) {
 			// If function doesn't exist yet or stripe schema not ready,
@@ -87,14 +87,14 @@ export class UsersController {
 		}
 
 		const response = {
-			id: authUserId,
+			id: authuser_id,
 			email: authUserEmail,
-			stripeCustomerId
+			stripe_customer_id
 		}
 
 		this.logger.debug('Current user data fetched', {
-			userId: authUserId,
-			hasStripeCustomer: !!stripeCustomerId
+			user_id: authuser_id,
+			hasStripeCustomer: !!stripe_customer_id
 		})
 
 		return response
@@ -104,7 +104,7 @@ export class UsersController {
 	 * Update current user's profile
 	 *
 	 * Updates the authenticated user's profile information including:
-	 * - firstName, lastName
+	 * - first_name, last_name
 	 * - email (must be unique)
 	 * - phone, company, timezone, bio
 	 */
@@ -114,30 +114,30 @@ export class UsersController {
 		@Req() req: AuthenticatedRequest,
 		@Body() dto: UpdateProfileDto
 	) {
-		const userId = req.user.id
+		const user_id = req.user.id
 
 		this.logger.debug('Updating user profile', {
-			userId,
+			user_id,
 			fields: Object.keys(dto)
 		})
 
-		const updatedUser = await this.usersService.updateUser(userId, {
-			firstName: dto.firstName,
-			lastName: dto.lastName,
+		const updatedUser = await this.usersService.updateUser(user_id, {
+			first_name: dto.first_name,
+			last_name: dto.last_name,
 			email: dto.email,
 			phone: dto.phone ?? null,
-			bio: dto.bio ?? null
+			
 		})
 
-		this.logger.log('User profile updated successfully', { userId })
+		this.logger.log('User profile updated successfully', { user_id })
 
 		return {
 			id: updatedUser.id,
-			firstName: updatedUser.firstName,
-			lastName: updatedUser.lastName,
+			first_name: updatedUser.first_name,
+			last_name: updatedUser.last_name,
 			email: updatedUser.email,
 			phone: updatedUser.phone,
-			bio: updatedUser.bio
+			
 		}
 	}
 }

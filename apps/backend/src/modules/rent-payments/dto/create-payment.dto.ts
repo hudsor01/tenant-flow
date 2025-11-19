@@ -2,8 +2,8 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
 export const createPaymentSchema = z.object({
-	tenantId: z.string().uuid({ message: 'tenantId must be a valid UUID' }),
-	leaseId: z.string().uuid({ message: 'leaseId must be a valid UUID' }),
+	tenant_id: z.string().uuid({ message: 'tenant_id must be a valid UUID' }),
+	lease_id: z.string().uuid({ message: 'lease_id must be a valid UUID' }),
 	amount: z
 		.number({ message: 'amount is required' })
 		.int({ message: 'amount must be an integer number of cents' })

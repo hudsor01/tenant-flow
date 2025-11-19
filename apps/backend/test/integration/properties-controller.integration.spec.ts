@@ -14,14 +14,14 @@ import { PropertiesService } from '../../src/modules/properties/properties.servi
  * by testing the full HTTP request pipeline including:
  * - Zod DTO validation (trims whitespace, validates enum)
  * - Controller request handling
- * - Transform logic (propertyType always included)
+ * - Transform logic (property_type always included)
  *
  * This is NOT a unit test - it spins up a real NestJS app and hits the endpoints.
  *
  * BUG FIXES BEING TESTED:
- * 1. Property creation with propertyType enum validation
+ * 1. Property creation with property_type enum validation
  * 2. Property creation with whitespace trimming via Zod
- * 3. Property update with propertyType validation
+ * 3. Property update with property_type validation
  */
 describe('PropertiesController (Integration - Production Validation)', () => {
 	let app: INestApplication
@@ -66,19 +66,19 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 	})
 
 	describe('POST /properties - Property Creation', () => {
-		it('should accept valid property with propertyType enum', async () => {
+		it('should accept valid property with property_type enum', async () => {
 			const mockCreatedProperty = {
 				id: 'prop-123',
 				name: 'Test Property',
 				address: '123 Main St',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78701',
-				propertyType: 'APARTMENT',
-				ownerId: 'owner-123',
+				postal_code: '78701',
+				property_type: 'APARTMENT',
+				owner_id: 'owner-123',
 				status: 'ACTIVE',
-				createdAt: new Date(),
-				updatedAt: new Date()
+				created_at: new Date(),
+				updated_at: new Date()
 			}
 
 			propertiesService.create.mockResolvedValue(mockCreatedProperty as any)
@@ -88,8 +88,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '123 Main St',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78701',
-				propertyType: 'APARTMENT'
+				postal_code: '78701',
+				property_type: 'APARTMENT'
 			}
 
 			const response = await request(app.getHttpServer())
@@ -103,9 +103,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: mockCreatedProperty.address,
 				city: mockCreatedProperty.city,
 				state: mockCreatedProperty.state,
-				zipCode: mockCreatedProperty.zipCode,
-				propertyType: mockCreatedProperty.propertyType,
-				ownerId: mockCreatedProperty.ownerId,
+				postal_code: mockCreatedProperty.postal_code,
+				property_type: mockCreatedProperty.property_type,
+				owner_id: mockCreatedProperty.owner_id,
 				status: mockCreatedProperty.status
 			})
 			expect(propertiesService.create).toHaveBeenCalledWith(
@@ -121,12 +121,12 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '456 Oak St',
 				city: 'Dallas',
 				state: 'TX',
-				zipCode: '75201',
-				propertyType: 'SINGLE_FAMILY',
-				ownerId: 'owner-456',
+				postal_code: '75201',
+				property_type: 'SINGLE_FAMILY',
+				owner_id: 'owner-456',
 				status: 'ACTIVE',
-				createdAt: new Date(),
-				updatedAt: new Date()
+				created_at: new Date(),
+				updated_at: new Date()
 			}
 
 			propertiesService.create.mockResolvedValue(mockCreatedProperty as any)
@@ -137,8 +137,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '  456 Oak St  ',
 				city: '  Dallas  ',
 				state: '  TX  ',
-				zipCode: '  75201  ',
-				propertyType: 'SINGLE_FAMILY'
+				postal_code: '  75201  ',
+				property_type: 'SINGLE_FAMILY'
 			}
 
 			await request(app.getHttpServer())
@@ -154,19 +154,19 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 					address: '456 Oak St',
 					city: 'Dallas',
 					state: 'TX',
-					zipCode: '75201'
+					postal_code: '75201'
 				})
 			)
 		})
 
-		it('should reject invalid propertyType enum (production validation)', async () => {
+		it('should reject invalid property_type enum (production validation)', async () => {
 			const invalidBody = {
 				name: 'Invalid Property',
 				address: '789 Elm St',
 				city: 'Houston',
 				state: 'TX',
-				zipCode: '77001',
-				propertyType: 'INVALID_TYPE' // Not in enum
+				postal_code: '77001',
+				property_type: 'INVALID_TYPE' // Not in enum
 			}
 
 			const response = await request(app.getHttpServer())
@@ -183,7 +183,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 		it('should reject missing required fields', async () => {
 			const invalidBody = {
 				name: 'Incomplete Property'
-				// Missing address, city, state, zipCode, propertyType
+				// Missing address, city, state, postal_code, property_type
 			}
 
 			await request(app.getHttpServer())
@@ -200,8 +200,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '123 Main St',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '78701',
-				propertyType: 'APARTMENT'
+				postal_code: '78701',
+				property_type: 'APARTMENT'
 			}
 
 			await request(app.getHttpServer())
@@ -218,8 +218,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '123 Main St',
 				city: 'Austin',
 				state: 'texas', // Should be 'TX'
-				zipCode: '78701',
-				propertyType: 'APARTMENT'
+				postal_code: '78701',
+				property_type: 'APARTMENT'
 			}
 
 			await request(app.getHttpServer())
@@ -236,8 +236,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '123 Main St',
 				city: 'Austin',
 				state: 'TX',
-				zipCode: '1234', // Should be 5 or 9 digits
-				propertyType: 'APARTMENT'
+				postal_code: '1234', // Should be 5 or 9 digits
+				property_type: 'APARTMENT'
 			}
 
 			await request(app.getHttpServer())
@@ -255,12 +255,12 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '321 Pine St',
 				city: 'San Antonio',
 				state: 'TX',
-				zipCode: '78205-1234',
-				propertyType: 'CONDO',
-				ownerId: 'owner-789',
+				postal_code: '78205-1234',
+				property_type: 'CONDO',
+				owner_id: 'owner-789',
 				status: 'ACTIVE',
-				createdAt: new Date(),
-				updatedAt: new Date()
+				created_at: new Date(),
+				updated_at: new Date()
 			}
 
 			propertiesService.create.mockResolvedValue(mockCreatedProperty as any)
@@ -270,8 +270,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				address: '321 Pine St',
 				city: 'San Antonio',
 				state: 'TX',
-				zipCode: '78205-1234', // ZIP+4 format
-				propertyType: 'CONDO'
+				postal_code: '78205-1234', // ZIP+4 format
+				property_type: 'CONDO'
 			}
 
 			await request(app.getHttpServer())
@@ -284,12 +284,12 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 	})
 
 	describe('PUT /properties/:id - Property Update', () => {
-		it('should accept valid property update with propertyType', async () => {
-			const propertyId = '550e8400-e29b-41d4-a716-446655440000' // Valid UUID
+		it('should accept valid property update with property_type', async () => {
+			const property_id = '550e8400-e29b-41d4-a716-446655440000' // Valid UUID
 			const mockUpdatedProperty = {
-				id: propertyId,
+				id: property_id,
 				name: 'Updated Property',
-				propertyType: 'TOWNHOUSE',
+				property_type: 'TOWNHOUSE',
 				status: 'ACTIVE'
 			}
 
@@ -297,11 +297,11 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 
 			const updateBody = {
 				name: 'Updated Property',
-				propertyType: 'TOWNHOUSE'
+				property_type: 'TOWNHOUSE'
 			}
 
 			const response = await request(app.getHttpServer())
-				.put(`/properties/${propertyId}`)
+				.put(`/properties/${property_id}`)
 				.send(updateBody)
 
 			// Add assertion with better error message
@@ -311,21 +311,21 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 					`Body: ${JSON.stringify(response.body, null, 2)}`
 				)
 			}
-			
+
 			expect(response.status).toBe(HttpStatus.OK)
 
 			expect(response.body).toEqual(mockUpdatedProperty)
 			expect(propertiesService.update).toHaveBeenCalled()
 		})
 
-		it('should reject invalid propertyType on update', async () => {
-			const propertyId = '550e8400-e29b-41d4-a716-446655440001' // Valid UUID
+		it('should reject invalid property_type on update', async () => {
+			const property_id = '550e8400-e29b-41d4-a716-446655440001' // Valid UUID
 			const invalidBody = {
-				propertyType: 'NOT_A_REAL_TYPE'
+				property_type: 'NOT_A_REAL_TYPE'
 			}
 
 			await request(app.getHttpServer())
-				.put(`/properties/${propertyId}`)
+				.put(`/properties/${property_id}`)
 				.send(invalidBody)
 				.expect(HttpStatus.BAD_REQUEST)
 
@@ -333,9 +333,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 		})
 
 		it('should accept partial update (only some fields)', async () => {
-			const propertyId = '550e8400-e29b-41d4-a716-446655440002' // Valid UUID
+			const property_id = '550e8400-e29b-41d4-a716-446655440002' // Valid UUID
 			const mockUpdatedProperty = {
-				id: propertyId,
+				id: property_id,
 				name: 'Partially Updated Property'
 			}
 
@@ -343,11 +343,11 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 
 			const partialBody = {
 				name: 'Partially Updated Property'
-				// Only updating name, not propertyType or other fields
+				// Only updating name, not property_type or other fields
 			}
 
 			await request(app.getHttpServer())
-				.put(`/properties/${propertyId}`)
+				.put(`/properties/${property_id}`)
 				.send(partialBody)
 				.expect(HttpStatus.OK)
 

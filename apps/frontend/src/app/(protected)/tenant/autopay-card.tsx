@@ -17,21 +17,21 @@ export function TenantAutopayCard() {
 	const cancel = useTenantPortalCancelAutopay()
 	const { data: paymentMethods = [], isFetched: methodsFetched } = usePaymentMethods()
 
-	const leaseId = autopay.data?.leaseId ?? null
-	const tenantId = autopay.data?.tenantId ?? null
+	const lease_id = autopay.data?.lease_id ?? null
+	const tenant_id = autopay.data?.tenant_id ?? null
 	const enabled = autopay.data?.autopayEnabled ?? false
 	const nextPaymentDate = autopay.data?.nextPaymentDate ?? 'Coming soon'
 
 	const defaultMethod = paymentMethods.find(method => method.isDefault) ?? paymentMethods[0]
 	const canEnable = Boolean(defaultMethod)
 
-	if (!tenantId || !leaseId) {
+	if (!tenant_id || !lease_id) {
 		return null
 	}
 
 	const handleToggle = () => {
 		if (enabled) {
-			cancel.mutate({ tenantId, leaseId }, {
+			cancel.mutate({ tenant_id, lease_id }, {
 				onSuccess: () => toast.success('Autopay cancelled'),
 				onError: () => toast.error('Could not cancel autopay')
 			})
@@ -43,7 +43,7 @@ export function TenantAutopayCard() {
 			return
 		}
 
-		setup.mutate({ tenantId, leaseId, paymentMethodId: defaultMethod!.stripePaymentMethodId }, {
+		setup.mutate({ tenant_id, lease_id, paymentMethodId: defaultMethod!.stripePaymentMethodId }, {
 			onSuccess: () => toast.success('Autopay enabled'),
 			onError: () => toast.error('Failed to start autopay')
 		})

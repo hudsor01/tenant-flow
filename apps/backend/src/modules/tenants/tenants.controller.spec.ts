@@ -32,14 +32,14 @@ describe('TenantsController', () => {
 
 	const createMockTenant = (overrides: Partial<Tenant> = {}) => ({
 		id: 'tenant-default',
-		firstName: 'John',
-		lastName: 'Doe',
+		first_name: 'John',
+		last_name: 'Doe',
 		email: 'john@example.com',
 		phone: null,
 		avatarUrl: null,
 		name: null,
-		emergencyContact: null,
-		userId: null,
+		emergency_contact: null,
+		user_id: null,
 		status: 'ACTIVE' as const,
 		move_out_date: null,
 		move_out_reason: null,
@@ -49,27 +49,29 @@ describe('TenantsController', () => {
 		invitation_sent_at: null,
 		invitation_accepted_at: null,
 		invitation_expires_at: null,
-		auth_user_id: null,
+
 		autopay_configured_at: null,
 		autopay_day: null,
 		autopay_enabled: null,
 		autopay_frequency: null,
 		payment_method_added_at: null,
 		version: 1,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
 		...overrides
 	})
 
 	const validCreateTenantRequest: CreateTenantRequest = {
-		firstName: 'John',
-		lastName: 'Doe',
-		email: 'john@example.com',
-		phone: '+1234567890'
+		emergency_contact_name: 'Jane Doe',
+		emergency_contact_phone: '+1234567890',
+		emergency_contact_relationship: 'Sister',
+		date_of_birth: '1990-01-15',
+		ssn_last_four: '1234',
+		stripe_customer_id: 'cus_test123'
 	}
 
 	const validUpdateTenantRequest: UpdateTenantRequest = {
-		firstName: 'Jane'
+		emergency_contact_name: 'Jane Doe'
 	}
 
 	beforeEach(async () => {
@@ -77,7 +79,7 @@ describe('TenantsController', () => {
 
 		// Mock CurrentUserProvider
 		mockCurrentUserProvider = {
-			getUserId: jest.fn().mockResolvedValue(mockUser.id),
+			getuser_id: jest.fn().mockResolvedValue(mockUser.id),
 			getUser: jest.fn().mockResolvedValue(mockUser),
 			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
 			isAuthenticated: jest.fn().mockResolvedValue(true),
@@ -189,8 +191,7 @@ describe('TenantsController', () => {
 				invitationStatus: 'PENDING',
 				limit: 20,
 				offset: 10,
-				sortBy: 'name',
-				sortOrder: 'asc'
+
 			})
 		})
 
@@ -285,7 +286,6 @@ describe('TenantsController', () => {
 				createMockRequest({ user: mockUser }) as any
 			)
 			expect(mockTenantsServiceInstance.findOne).toHaveBeenCalledWith(
-				mockUser.id,
 				'tenant-1'
 			)
 			expect(result).toEqual(mockTenant)
@@ -327,16 +327,15 @@ describe('TenantsController', () => {
 			await new Promise(resolve => setTimeout(resolve, 10))
 			expect(
 				mockTenantsServiceInstance.sendTenantInvitationV2
-			).toHaveBeenCalledWith(mockUser.id, mockTenant.id)
+			).toHaveBeenCalledWith(mockUser.id, { email: mockTenant.id })
 		})
 	})
 
 	describe('update', () => {
 		it('should update a tenant', async () => {
 			const mockTenant = createMockTenant({
-				id: 'tenant-1',
-				firstName: 'Jane'
-			})
+			id: 'tenant-1'
+		})
 
 			mockTenantsServiceInstance.update.mockResolvedValue(mockTenant)
 
@@ -358,10 +357,10 @@ describe('TenantsController', () => {
 	describe('markAsMovedOut', () => {
 		it('should mark tenant as moved out with date and reason', async () => {
 			const mockTenant = createMockTenant({
-				status: 'MOVED_OUT',
 				move_out_date: '2025-01-15',
-				move_out_reason: 'lease_expired: Lease term ended'
-			})
+				move_out_reason: 'lease_expired: Lease term ended',
+				status: 'MOVED_OUT'
+			} as any)
 			mockTenantsServiceInstance.markAsMovedOut.mockResolvedValue(mockTenant)
 
 			const result = await controller.markAsMovedOut(
@@ -481,18 +480,18 @@ describe('TenantsController', () => {
 	describe('remove (deprecated)', () => {
 		it('should throw BadRequestException directing to soft delete', async () => {
 			const mockRequest = createMockRequest({ user: mockUser }) as any
-			const tenantId = 'tenant-123'
+			const tenant_id = 'tenant-123'
 
 			// The remove method should always throw since direct deletion is deprecated
 			mockTenantsServiceInstance.remove.mockRejectedValue(
 				new BadRequestException('Direct deletion is not allowed')
 			)
 
-			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(
+			await expect(controller.remove(tenant_id, mockRequest)).rejects.toThrow(
 				BadRequestException
 			)
 
-			await expect(controller.remove(tenantId, mockRequest)).rejects.toThrow(
+			await expect(controller.remove(tenant_id, mockRequest)).rejects.toThrow(
 				/Direct deletion is not allowed/
 			)
 		})

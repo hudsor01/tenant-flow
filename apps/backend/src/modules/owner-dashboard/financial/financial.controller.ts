@@ -8,7 +8,7 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { UserId } from '../../../shared/decorators/user.decorator'
+import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -38,9 +38,9 @@ export class FinancialController {
 	@Get('billing/insights')
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
-		@Query('startDate') startDate?: string,
-		@Query('endDate') endDate?: string
+		@user_id() user_id: string,
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -49,15 +49,15 @@ export class FinancialController {
 		}
 
 		this.logger.log('Getting billing insights', {
-			userId,
-			dateRange: { startDate, endDate }
+			user_id,
+			dateRange: { start_date, end_date }
 		})
 
-		const parsedStartDate = startDate ? new Date(startDate) : undefined
-		const parsedEndDate = endDate ? new Date(endDate) : undefined
+		const parsedstart_date = start_date ? new Date(start_date) : undefined
+		const parsedEndDate = end_date ? new Date(end_date) : undefined
 
 		if (
-			(parsedStartDate && isNaN(parsedStartDate.getTime())) ||
+			(parsedstart_date && isNaN(parsedstart_date.getTime())) ||
 			(parsedEndDate && isNaN(parsedEndDate.getTime()))
 		) {
 			return {
@@ -69,9 +69,9 @@ export class FinancialController {
 		}
 
 		const data = await this.dashboardService.getBillingInsights(
-			userId,
+			user_id,
 			token,
-			parsedStartDate,
+			parsedstart_date,
 			parsedEndDate
 		)
 
@@ -87,7 +87,7 @@ export class FinancialController {
 	@Get('billing/insights/available')
 	async checkBillingInsightsAvailability(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -95,10 +95,10 @@ export class FinancialController {
 			throw new UnauthorizedException('Authentication token required')
 		}
 
-		this.logger.log('Checking billing insights availability', { userId })
+		this.logger.log('Checking billing insights availability', { user_id })
 
 		const available = await this.dashboardService.isBillingInsightsAvailable(
-			userId,
+			user_id,
 			token
 		)
 
@@ -115,7 +115,7 @@ export class FinancialController {
 	@Get('billing/health')
 	async getBillingHealth(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -123,10 +123,10 @@ export class FinancialController {
 			throw new UnauthorizedException('Authentication token required')
 		}
 
-		this.logger.log('Checking billing health', { userId })
+		this.logger.log('Checking billing health', { user_id })
 
 		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(
-			userId,
+			user_id,
 			token
 		)
 
@@ -155,7 +155,7 @@ export class FinancialController {
 	@Get('revenue-trends')
 	async getRevenueTrends(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
@@ -167,12 +167,12 @@ export class FinancialController {
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger.log('Getting revenue trends', {
-			userId,
+			user_id,
 			months: monthsNum
 		})
 
 		const data = await this.dashboardService.getRevenueTrends(
-			userId,
+			user_id,
 			token,
 			monthsNum
 		)

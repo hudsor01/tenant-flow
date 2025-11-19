@@ -20,7 +20,7 @@ import type {
 	RentSubscriptionResponse,
 	SubscriptionActionResponse,
 	UpdateSubscriptionRequest
-} from '@repo/shared/types/core'
+} from '@repo/shared/types/api-contracts'
 import type { Request as ExpressRequest } from 'express'
 import { SubscriptionsService } from './subscriptions.service'
 
@@ -39,16 +39,16 @@ export class SubscriptionsController {
 	 * POST /subscriptions
 	 */
 	@Post()
-	async createSubscription(
-		@Request() req: AuthenticatedRequest,
-		@Body() request: CreateSubscriptionRequest
-	): Promise<RentSubscriptionResponse> {
-		const userId = req.user?.id
-		if (!userId) {
+		async createSubscription(
+			@Request() req: AuthenticatedRequest,
+			@Body() request: CreateSubscriptionRequest
+		): Promise<RentSubscriptionResponse> {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
-		return this.subscriptionsService.createSubscription(userId, request)
+		return this.subscriptionsService.createSubscription(user_id, request)
 	}
 
 	/**
@@ -59,13 +59,13 @@ export class SubscriptionsController {
 	async listSubscriptions(
 		@Request() req: AuthenticatedRequest
 	): Promise<{ subscriptions: RentSubscriptionResponse[] }> {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
 		const subscriptions =
-			await this.subscriptionsService.listSubscriptions(userId)
+			await this.subscriptionsService.listSubscriptions(user_id)
 		return { subscriptions }
 	}
 
@@ -78,12 +78,12 @@ export class SubscriptionsController {
 		@Request() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string
 	): Promise<RentSubscriptionResponse> {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
-		return this.subscriptionsService.getSubscription(id, userId)
+		return this.subscriptionsService.getSubscription(id, user_id)
 	}
 
 	/**
@@ -96,12 +96,12 @@ export class SubscriptionsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() update: UpdateSubscriptionRequest
 	): Promise<RentSubscriptionResponse> {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
-		return this.subscriptionsService.updateSubscription(id, userId, update)
+		return this.subscriptionsService.updateSubscription(id, user_id, update)
 	}
 
 	/**
@@ -113,12 +113,12 @@ export class SubscriptionsController {
 		@Request() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string
 	): Promise<SubscriptionActionResponse> {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
-		return this.subscriptionsService.pauseSubscription(id, userId)
+		return this.subscriptionsService.pauseSubscription(id, user_id)
 	}
 
 	/**
@@ -130,12 +130,12 @@ export class SubscriptionsController {
 		@Request() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string
 	): Promise<SubscriptionActionResponse> {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
-		return this.subscriptionsService.resumeSubscription(id, userId)
+		return this.subscriptionsService.resumeSubscription(id, user_id)
 	}
 
 	/**
@@ -147,11 +147,11 @@ export class SubscriptionsController {
 		@Request() req: AuthenticatedRequest,
 		@Param('id', ParseUUIDPipe) id: string
 	): Promise<SubscriptionActionResponse> {
-		const userId = req.user?.id
-		if (!userId) {
+		const user_id = req.user?.id
+		if (!user_id) {
 			throw new Error('User not authenticated')
 		}
 
-		return this.subscriptionsService.cancelSubscription(id, userId)
+		return this.subscriptionsService.cancelSubscription(id, user_id)
 	}
 }

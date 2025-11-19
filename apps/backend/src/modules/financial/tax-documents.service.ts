@@ -9,24 +9,14 @@ import {
 	safeNumber
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
-
-interface ExpenseSummaryResponse {
-	category?: string
-	amount?: number
-	percentage?: number
-}
-
-interface NOIPropertyResponse {
-	property_id?: string
-	property_name?: string
-	property_value?: number
-	acquisition_year?: number
-}
-
-interface FinancialMetricsResponse {
-	total_revenue?: number
-	operating_expenses?: number
-}
+import {
+	calculatePropertyFinancials,
+	isWithinRange,
+	loadLedgerData,
+	parseDate,
+	type DateRange,
+	type LedgerData
+} from './financial-ledger.helpers'
 
 @Injectable()
 export class TaxDocumentsService {
@@ -44,7 +34,6 @@ export class TaxDocumentsService {
 	): Promise<TaxDocumentsData> {
 		const client = this.supabaseService.getUserClient(token)
 
-		// Get user ID from token for defense-in-depth security
 		const {
 			data: { user },
 			error: authError
@@ -56,146 +45,189 @@ export class TaxDocumentsService {
 
 		this.logger.log(`Generating tax documents for tax year ${taxYear}`)
 
-		// Calculate year date range
-		const startDate = `${taxYear}-01-01`
-		const endDate = `${taxYear}-12-31`
+		const start_date = `${taxYear}-01-01`
+		const end_date = `${taxYear}-12-31`
+		const range: DateRange = {
+			start: new Date(start_date),
+			end: new Date(end_date)
+		}
 
-		// Get expense summary for deductible expenses
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: expenseSummary, error: expenseError } = await client.rpc(
-			'get_expense_summary',
-			{
-				p_user_id: user.id
-			}
-		)
-
-		if (expenseError) {
-			this.logger.error(
-				`Failed to get expense summary: ${expenseError.message}`
+		try {
+			const ledger = await loadLedgerData(client)
+			const expenseCategories = this.buildExpenseCategories(ledger, range)
+			const propertyDepreciation = this.buildPropertyDepreciation(
+				ledger,
+				range,
+				taxYear
 			)
-			throw expenseError
-		}
 
-		// Get net operating income for property-level data
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: noiData, error: noiError } = await client.rpc(
-			'calculate_net_operating_income',
-			{
-				p_user_id: user.id
-			}
-		)
-
-		if (noiError) {
-			this.logger.error(`Failed to calculate NOI: ${noiError.message}`)
-			throw noiError
-		}
-
-		// Get financial metrics for income breakdown
-		// RLS-protected RPC function with explicit user ID for defense-in-depth
-		const { data: financialMetrics, error: metricsError } = await client.rpc(
-			'calculate_financial_metrics',
-			{
-				p_start_date: startDate,
-				p_end_date: endDate,
-				p_user_id: user.id
-			}
-		)
-
-		if (metricsError) {
-			this.logger.error(
-				`Failed to get financial metrics: ${metricsError.message}`
+			const rentPayments = ledger.rentPayments.filter(payment =>
+				isWithinRange(payment.due_date, range)
 			)
-			throw metricsError
+			const grossRentalIncome = rentPayments
+				.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+				.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
+
+			const totalExpenses = ledger.expenses
+				.filter(expense => isWithinRange(expense.expense_date ?? expense.created_at, range))
+				.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+
+			const netOperatingIncome = grossRentalIncome - totalExpenses
+			const totalDepreciation = propertyDepreciation.reduce(
+				(sum, prop) => sum + prop.annualDepreciation,
+				0
+			)
+			const mortgageInterest = totalExpenses * 0.3
+			const taxableIncome =
+				netOperatingIncome - totalDepreciation - mortgageInterest
+			const totalDeductions = totalExpenses + totalDepreciation
+
+			return {
+				period: createFinancialPeriod(start_date, end_date),
+				taxYear,
+				incomeBreakdown: {
+					grossRentalIncome,
+					totalExpenses,
+					netOperatingIncome,
+					depreciation: totalDepreciation,
+					mortgageInterest,
+					taxableIncome
+				},
+				expenseCategories,
+				propertyDepreciation,
+				totals: {
+					totalIncome: grossRentalIncome,
+					totalDeductions,
+					netTaxableIncome: taxableIncome
+				},
+				schedule: {
+					scheduleE: {
+						grossRentalIncome,
+						totalExpenses,
+						depreciation: totalDepreciation,
+						netIncome: taxableIncome
+					}
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to generate tax documents', {
+				error: error instanceof Error ? error.message : String(error),
+				user_id: user.id,
+				taxYear
+			})
+			throw error instanceof Error
+				? error
+				: new Error('Failed to generate tax documents')
 		}
+	}
 
-		const expenseData = (
-			Array.isArray(expenseSummary) ? expenseSummary : [expenseSummary]
-		) as ExpenseSummaryResponse[]
-		const metricsData = (
-			Array.isArray(financialMetrics) ? financialMetrics[0] : financialMetrics
-		) as FinancialMetricsResponse
+	private buildExpenseCategories(
+		ledger: LedgerData,
+		range: DateRange
+	): TaxExpenseCategory[] {
+		const maintenanceCosts = ledger.maintenanceRequests
+			.filter(
+				request =>
+					request.status === 'COMPLETED' &&
+					isWithinRange(request.completed_at ?? request.created_at, range)
+			)
+			.reduce(
+				(sum, request) =>
+					sum + (request.actual_cost ?? request.estimated_cost ?? 0),
+				0
+			)
 
-		// Map expense categories to tax-deductible expenses
-		const expenseCategories: TaxExpenseCategory[] = expenseData.map(expense => {
-			const category = expense.category || 'Other'
-			const notes = this.getTaxNotes(category)
+		const expenseTotal = ledger.expenses
+			.filter(expense =>
+				isWithinRange(expense.expense_date ?? expense.created_at, range)
+			)
+			.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+
+		const feesTotal = ledger.rentPayments
+			.filter(payment => isWithinRange(payment.due_date, range))
+			.reduce(
+				(sum, payment) =>
+					sum +
+					(payment.late_fee_amount ?? 0) +
+					(payment.application_fee_amount ?? 0),
+				0
+			)
+
+		const operationsAmount = Math.max(expenseTotal - maintenanceCosts, 0)
+		const totalTracked = maintenanceCosts + operationsAmount + feesTotal || 1
+
+		const categories = [
+			{ name: 'Maintenance', amount: maintenanceCosts },
+			{ name: 'Operations', amount: operationsAmount },
+			{ name: 'Fees', amount: feesTotal }
+		]
+
+		return categories.map(category => {
+			const percentage = Number(
+				((category.amount / totalTracked) * 100).toFixed(2)
+			)
 			const mapped: TaxExpenseCategory = {
-				category,
-				amount: safeNumber(expense.amount),
-				percentage: safeNumber(expense.percentage),
-				deductible: true // Most property expenses are deductible
+				category: category.name,
+				amount: safeNumber(category.amount),
+				percentage,
+				deductible: true
 			}
+			const notes = this.getTaxNotes(category.name)
 			if (notes) {
 				mapped.notes = notes
 			}
 			return mapped
 		})
+	}
 
-		// Calculate property depreciation (27.5 years for residential)
-		const propertyDepreciation: TaxPropertyDepreciation[] = Array.isArray(
-			noiData
+	private buildPropertyDepreciation(
+		ledger: LedgerData,
+		range: DateRange,
+		taxYear: number
+	): TaxPropertyDepreciation[] {
+		const financials = calculatePropertyFinancials(ledger, range)
+		const propertyNames = new Map(
+			ledger.properties.map(property => [property.id, property.name ?? 'Property'])
 		)
-			? (noiData as NOIPropertyResponse[]).map(property => {
-					const propertyValue = safeNumber(property.property_value) || 100000 // Estimate if not available
-					const annualDepreciation = propertyValue / 27.5 // Residential depreciation period
-					const yearsOwned = taxYear - (property.acquisition_year || taxYear)
-					const accumulatedDepreciation = annualDepreciation * yearsOwned
-					const remainingBasis = propertyValue - accumulatedDepreciation
 
-					return {
-						propertyId: property.property_id || 'unknown',
-						propertyName: property.property_name || 'Property',
-						propertyValue,
-						annualDepreciation,
-						accumulatedDepreciation,
-						remainingBasis
-					}
-				})
-			: []
+		return Array.from(financials.revenue.entries()).map(
+			([property_id, revenue]) => {
+				const expense = financials.expenses.get(property_id) ?? 0
+				const noi = revenue - expense
+				const propertyValue = noi > 0 ? noi / 0.06 : 100000
+				const annualDepreciation = propertyValue / 27.5
+				const acquisitionYear = this.deriveAcquisitionYear(
+					ledger,
+					property_id,
+					taxYear
+				)
+				const yearsOwned = Math.max(taxYear - acquisitionYear, 0)
+				const accumulatedDepreciation = annualDepreciation * yearsOwned
+				const remainingBasis = propertyValue - accumulatedDepreciation
 
-		// Calculate totals
-		const grossRentalIncome = safeNumber(metricsData?.total_revenue)
-		const totalExpenses = safeNumber(metricsData?.operating_expenses)
-		const netOperatingIncome = grossRentalIncome - totalExpenses
-
-		const totalDepreciation = propertyDepreciation.reduce(
-			(sum, prop) => sum + prop.annualDepreciation,
-			0
-		)
-		const mortgageInterest = totalExpenses * 0.3 // Estimate 30% of expenses are mortgage interest
-
-		const taxableIncome =
-			netOperatingIncome - totalDepreciation - mortgageInterest
-
-		const totalDeductions = totalExpenses + totalDepreciation
-
-		return {
-			period: createFinancialPeriod(startDate, endDate),
-			taxYear,
-			incomeBreakdown: {
-				grossRentalIncome,
-				totalExpenses,
-				netOperatingIncome,
-				depreciation: totalDepreciation,
-				mortgageInterest,
-				taxableIncome
-			},
-			expenseCategories,
-			propertyDepreciation,
-			totals: {
-				totalIncome: grossRentalIncome,
-				totalDeductions,
-				netTaxableIncome: taxableIncome
-			},
-			schedule: {
-				scheduleE: {
-					grossRentalIncome,
-					totalExpenses,
-					depreciation: totalDepreciation,
-					netIncome: taxableIncome
+				return {
+					property_id,
+					propertyName: propertyNames.get(property_id) ?? 'Property',
+					propertyValue,
+					annualDepreciation,
+					accumulatedDepreciation,
+					remainingBasis
 				}
 			}
+		)
+	}
+
+	private deriveAcquisitionYear(
+		ledger: LedgerData,
+		propertyId: string,
+		fallbackYear: number
+	): number {
+		const property = ledger.properties.find(item => item.id === propertyId)
+		if (!property) {
+			return fallbackYear
 		}
+		const created = parseDate(property.created_at)
+		return created ? created.getUTCFullYear() : fallbackYear
 	}
 
 	/**

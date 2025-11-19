@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../__test__/silent-logger'
+import { SupabaseService } from '../database/supabase.service'
 import { SecurityService } from './security.service'
 
 describe('SecurityService', () => {
@@ -9,7 +10,14 @@ describe('SecurityService', () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [SecurityService]
+			providers: [
+				SecurityService,
+				// Provide a minimal SupabaseService mock to satisfy DI
+				{
+					provide: SupabaseService,
+					useValue: {}
+				}
+			]
 		})
 			.setLogger(new SilentLogger())
 			.compile()

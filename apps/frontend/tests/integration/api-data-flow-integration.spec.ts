@@ -88,7 +88,7 @@ test.describe('API Data Flow Integration', () => {
 							}
 							return result
 						} catch (error) {
-							window.apiHookData.errors.push(error.message)
+	window.apiHookData.errors.push(error instanceof Error ? error.message : String(error))
 							throw error
 						}
 					}
@@ -179,7 +179,7 @@ test.describe('API Data Flow Integration', () => {
 				await expect(table).toBeVisible()
 
 				// Check for table headers
-				const headers = page.locator('th, [role="columnheader"]')
+				const headers = page.locator('th, [user_type="columnheader"]')
 				const headerCount = await headers.count()
 				expect(headerCount).toBeGreaterThan(0)
 			}
@@ -228,7 +228,7 @@ test.describe('API Data Flow Integration', () => {
 
 			// Try clicking sortable headers if they exist
 			const sortableHeaders = page.locator(
-				'th[role="columnheader"], th button, [class*="sortable"]'
+				'th[user_type="columnheader"], th button, [class*="sortable"]'
 			)
 			if ((await sortableHeaders.count()) > 0) {
 				await sortableHeaders.first().click()

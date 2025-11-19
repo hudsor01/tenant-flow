@@ -20,7 +20,7 @@ import { isTest } from '#config/env'
  */
 export interface Report {
 	id: string
-	userId: string
+	user_id: string
 	reportType: string
 	reportName: string
 	format: string
@@ -28,12 +28,12 @@ export interface Report {
 	fileUrl: string | null
 	filePath: string | null
 	fileSize: number | null
-	startDate: string
-	endDate: string
+	start_date: string
+	end_date: string
 	metadata: Record<string, unknown>
 	errorMessage: string | null
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 }
 
 export interface ListReportsResponse {
@@ -80,7 +80,7 @@ export interface OccupancyMetrics {
 	vacantUnits: number
 	occupancyRate: number
 	byProperty: Array<{
-		propertyId: string
+		property_id: string
 		propertyName: string
 		totalUnits: number
 		occupiedUnits: number
@@ -102,8 +102,8 @@ export const reportsKeys = {
 		[...reportsKeys.lists(), offset, limit] as const,
 	revenue: (months: number) =>
 		[...reportsKeys.all, 'revenue', 'monthly', months] as const,
-	paymentAnalytics: (startDate?: string, endDate?: string) =>
-		[...reportsKeys.all, 'analytics', 'payments', startDate, endDate] as const,
+	paymentAnalytics: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'analytics', 'payments', start_date, end_date] as const,
 	occupancyMetrics: () =>
 		[...reportsKeys.all, 'analytics', 'occupancy'] as const
 }
@@ -381,13 +381,13 @@ export function useMonthlyRevenue(months: number = 12) {
 /**
  * Hook for fetching payment analytics
  */
-export function usePaymentAnalytics(startDate?: string, endDate?: string) {
+export function usePaymentAnalytics(start_date?: string, end_date?: string) {
 	return useQuery<PaymentAnalytics>({
-		queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
+		queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
 		queryFn: (): Promise<PaymentAnalytics> => {
 			const params = new URLSearchParams()
-			if (startDate) params.append('startDate', startDate)
-			if (endDate) params.append('endDate', endDate)
+			if (start_date) params.append('start_date', start_date)
+			if (end_date) params.append('end_date', end_date)
 			const queryString = params.toString() ? `?${params.toString()}` : ''
 			return clientFetch<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
 		}
@@ -444,13 +444,13 @@ export function usePrefetchMonthlyRevenue() {
 export function usePrefetchPaymentAnalytics() {
 	const queryClient = useQueryClient()
 
-	return (startDate?: string, endDate?: string) => {
+	return (start_date?: string, end_date?: string) => {
 		queryClient.prefetchQuery({
-			queryKey: reportsKeys.paymentAnalytics(startDate, endDate),
+			queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
 			queryFn: (): Promise<PaymentAnalytics> => {
 			const params = new URLSearchParams()
-			if (startDate) params.append('startDate', startDate)
-			if (endDate) params.append('endDate', endDate)
+			if (start_date) params.append('start_date', start_date)
+			if (end_date) params.append('end_date', end_date)
 			const queryString = params.toString() ? `?${params.toString()}` : ''
 			return clientFetch<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
 		}

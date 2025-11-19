@@ -3,6 +3,21 @@ import type { TestingModule } from '@nestjs/testing'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 
+// Mock NestJS Logger to suppress console output during tests
+jest.mock('@nestjs/common', () => {
+	const actual = jest.requireActual('@nestjs/common')
+	return {
+		...actual,
+		Logger: jest.fn().mockImplementation(() => ({
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}))
+	}
+})
+
 describe('ReactLeasePDFService', () => {
 	let service: ReactLeasePDFService
 
@@ -26,20 +41,20 @@ describe('ReactLeasePDFService', () => {
 
 		// Property
 		propertyAddress: '456 Oak Ave, Austin, TX 78702',
-		propertyId: '123e4567-e89b-12d3-a456-426614174000',
+		property_id: '123e4567-e89b-12d3-a456-426614174000',
 
 		// Term
 		commencementDate: '2024-02-01',
 		terminationDate: '2025-01-31',
 
 		// Financial
-		monthlyRent: 1500,
+		rent_amount: 1500,
 		rentDueDay: 1,
-		lateFeeAmount: 50,
+		late_fee_amount: 50,
 		lateFeeGraceDays: 3,
 		nsfFee: 50,
-		securityDeposit: 1500,
-		securityDepositDueDays: 30,
+		security_deposit: 1500,
+		security_depositDueDays: 30,
 		holdOverRentMultiplier: 1.2,
 
 		// Occupancy
@@ -69,7 +84,7 @@ describe('ReactLeasePDFService', () => {
 		noticeEmail: 'john.smith@example.com',
 
 		// Tenant ID
-		tenantId: '987e6543-e21b-12d3-a456-426614174999'
+		tenant_id: '987e6543-e21b-12d3-a456-426614174999'
 	})
 
 	describe('generateLeasePDF', () => {
@@ -82,7 +97,7 @@ describe('ReactLeasePDFService', () => {
 			expect(pdfBuffer.length).toBeGreaterThan(0)
 		})
 
-		
+
 		it('should handle pets allowed = true', async () => {
 			const mockData: LeaseGenerationFormData = {
 				...createMockLeaseData(),
@@ -117,16 +132,16 @@ describe('ReactLeasePDFService', () => {
 				ownerPhone: '555-1234',
 				tenantName: 'Tenant',
 				propertyAddress: 'Property',
-				propertyId: '123e4567-e89b-12d3-a456-426614174000',
+				property_id: '123e4567-e89b-12d3-a456-426614174000',
 				commencementDate: '2024-02-01',
 				terminationDate: '2025-01-31',
-				monthlyRent: 1000,
+				rent_amount: 1000,
 				rentDueDay: 1,
-				lateFeeAmount: 50,
+				late_fee_amount: 50,
 				lateFeeGraceDays: 3,
 				nsfFee: 50,
-				securityDeposit: 1000,
-				securityDepositDueDays: 30,
+				security_deposit: 1000,
+				security_depositDueDays: 30,
 				holdOverRentMultiplier: 1.2,
 				maxOccupants: 2,
 				allowedUse: 'Residential',
@@ -142,7 +157,7 @@ describe('ReactLeasePDFService', () => {
 				propertyBuiltBefore1978: false,
 				noticeAddress: 'Address',
 				noticeEmail: 'owner@example.com',
-				tenantId: '123e4567-e89b-12d3-a456-426614174000'
+				tenant_id: '123e4567-e89b-12d3-a456-426614174000'
 			}
 
 			const pdfBuffer = await service.generateLeasePDF(minimalData)
@@ -155,7 +170,7 @@ describe('ReactLeasePDFService', () => {
 			const fullData: LeaseGenerationFormData = {
 				...createMockLeaseData(),
 				ownerPhone: '512-555-1234',
-				lateFeeAmount: 75,
+				late_fee_amount: 75,
 				maxOccupants: 4,
 				utilitiesIncluded: ['Water', 'Trash', 'Sewer'],
 				tenantResponsibleUtilities: ['Electric', 'Gas', 'Internet', 'Cable'],

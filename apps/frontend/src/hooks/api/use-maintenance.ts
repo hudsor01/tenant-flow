@@ -9,7 +9,7 @@ import type {
 	CreateMaintenanceRequest,
 	UpdateMaintenanceRequest
 } from '@repo/shared/types/api-contracts'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest, MaintenanceRequestWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { maintenanceQueries } from './queries/maintenance-queries'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -42,8 +42,8 @@ export const maintenanceKeys = {
  * Includes prefetching for instant navigation
  */
 export function useAllMaintenanceRequests(query?: {
-	unitId?: string
-	propertyId?: string
+	unit_id?: string
+	property_id?: string
 	priority?: string
 	category?: string
 	status?: string
@@ -56,8 +56,8 @@ export function useAllMaintenanceRequests(query?: {
 		queryKey: [...maintenanceKeys.list(), query],
 		queryFn: async () => {
 			const params = new URLSearchParams()
-			if (query?.unitId) params.append('unitId', query.unitId)
-			if (query?.propertyId) params.append('propertyId', query.propertyId)
+			if (query?.unit_id) params.append('unit_id', query.unit_id)
+			if (query?.property_id) params.append('property_id', query.property_id)
 			if (query?.priority) params.append('priority', query.priority)
 			if (query?.category) params.append('category', query.category)
 			if (query?.status) params.append('status', query.status)
@@ -83,6 +83,16 @@ export function useAllMaintenanceRequests(query?: {
 		retry: 2,
 		structuralSharing: true
 	})
+}
+
+type UseMaintenanceQuery = Parameters<typeof useAllMaintenanceRequests>[0]
+
+/**
+ * @deprecated Prefer useAllMaintenanceRequests so filters remain explicit.
+ * Thin alias for older hooks/tests that still call useMaintenance().
+ */
+export function useMaintenance(query?: UseMaintenanceQuery) {
+	return useAllMaintenanceRequests(query)
 }
 
 /**
@@ -120,30 +130,28 @@ export function useCreateMaintenanceRequest() {
 
 			// Optimistic update
 			const tempId = `temp-${Date.now()}`
-			const optimistic: MaintenanceRequest = {
-				id: tempId,
-				title: newRequest.title,
-				description: newRequest.description,
-				priority:
-					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
-					'MEDIUM',
-				category: newRequest.category || null,
-				status: 'OPEN',
-				unitId: newRequest.unitId || '',
-				requestedBy: null,
-				assignedTo: null,
-				estimatedCost: newRequest.estimatedCost || null,
-				actualCost: null,
-				completedAt: null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				allowEntry: true,
-				contactPhone: null,
-				notes: null,
-				photos: [],
-				preferredDate: null,
-				version: 1 //Optimistic locking
-			}
+							const optimistic: MaintenanceRequest = {
+		id: tempId,
+		description: newRequest.description,
+		priority:
+			(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
+			'MEDIUM',
+		status: 'OPEN',
+		unit_id: newRequest.unit_id,
+		tenant_id: newRequest.tenant_id || '',
+		property_owner_id: '',
+		requested_by: null,
+			actual_cost: null,
+			assigned_to: null,
+			completed_at: null,
+			inspection_date: newRequest.scheduledDate || null,
+			inspection_findings: null,
+			inspector_id: null,
+			scheduled_date: newRequest.scheduledDate || null,
+			estimated_cost: newRequest.estimated_cost ?? null,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString()
+		}
 
 			queryClient.setQueryData<MaintenanceRequest[]>(
 				maintenanceKeys.list(),
@@ -204,26 +212,26 @@ export function useUpdateMaintenanceRequest() {
 			)
 
 			// Optimistic update (use incrementVersion helper)
-			queryClient.setQueryData<MaintenanceRequest>(
-				maintenanceKeys.detail(id),
-				old =>
-					old
-						? incrementVersion(old, data as Partial<MaintenanceRequest>)
-						: undefined
-			)
+		queryClient.setQueryData<MaintenanceRequestWithVersion>(
+	maintenanceKeys.detail(id),
+	(old) =>
+		old
+			? incrementVersion(old, data)
+			: undefined
+)
 
 			// Also update list cache
-			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
-				old => {
-					if (!old) return old
-					return old.map(m =>
-						m.id === id
-							? incrementVersion(m, data as Partial<MaintenanceRequest>)
-							: m
-					)
-				}
-			)
+		queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+	maintenanceKeys.list(),
+	(old) => {
+		if (!old) return old
+		return old.map(m =>
+			m.id === id
+				? incrementVersion(m, data)
+				: m
+		)
+	}
+)
 
 			return { previous }
 		},
@@ -311,33 +319,31 @@ export function useCompleteMaintenance() {
 			)
 
 			// Optimistically update to COMPLETED status
-			queryClient.setQueryData<MaintenanceRequest>(
-				maintenanceKeys.detail(id),
-				old =>
-					old
-						? {
-								...old,
-								status: 'COMPLETED' as const,
-								completedAt: new Date().toISOString(),
-								updatedAt: new Date().toISOString()
-							}
-						: undefined
-			)
+		queryClient.setQueryData<MaintenanceRequestWithVersion>(
+	maintenanceKeys.detail(id),
+	(old) =>
+		old
+			? incrementVersion(old, {
+					status: 'COMPLETED' as const,
+					completed_at: new Date().toISOString(),
+					updated_at: new Date().toISOString()
+				})
+			: undefined
+)
 
-			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
-				old =>
-					old?.map(item =>
-						item.id === id
-							? {
-									...item,
-									status: 'COMPLETED' as const,
-									completedAt: new Date().toISOString(),
-									updatedAt: new Date().toISOString()
-								}
-							: item
-					)
-			)
+			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+	maintenanceKeys.list(),
+	(old) =>
+		old?.map(item =>
+			item.id === id
+				? incrementVersion(item, {
+						status: 'COMPLETED' as const,
+						completed_at: new Date().toISOString(),
+						updated_at: new Date().toISOString()
+					})
+				: item
+		)
+)
 
 			return { previousDetail, previousList }
 		},
@@ -411,31 +417,30 @@ export function useCancelMaintenance() {
 			)
 
 			// Optimistically update to CANCELED status
-			queryClient.setQueryData<MaintenanceRequest>(
-				maintenanceKeys.detail(id),
-				old =>
-					old
-						? {
-								...old,
-								status: 'CANCELED' as const,
-								updatedAt: new Date().toISOString()
-							}
-						: undefined
-			)
+		queryClient.setQueryData<MaintenanceRequestWithVersion>(
+	maintenanceKeys.detail(id),
+	(old) =>
+		old
+			? incrementVersion(old, {
+					status: 'CANCELED' as const,
+					updated_at: new Date().toISOString()
+				})
+			: undefined
+)
 
-			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
-				old =>
-					old?.map(item =>
-						item.id === id
-							? {
-									...item,
-									status: 'CANCELED' as const,
-									updatedAt: new Date().toISOString()
-								}
-							: item
-					)
-			)
+			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+	maintenanceKeys.list(),
+	(old) =>
+		old?.map(item =>
+			item.id === id
+				? incrementVersion(item, {
+						status: 'COMPLETED' as const,
+						completed_at: new Date().toISOString(),
+						updated_at: new Date().toISOString()
+					})
+				: item
+		)
+)
 
 			return { previousDetail, previousList }
 		},

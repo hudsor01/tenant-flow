@@ -20,7 +20,7 @@ export function createMockCurrentUserProvider(
 				}
 				return null
 			}),
-			getUserId: jest.fn(async () => {
+			getuser_id: jest.fn(async () => {
 				if (typeof supabaseMock.getUser === 'function') {
 					const user = await (supabaseMock.getUser as jest.Mock)()
 					if (!user) throw new UnauthorizedException()

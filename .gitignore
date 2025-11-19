@@ -336,8 +336,6 @@ documentation/
 
 # MONITORING & MISC
 monitoring/
-clinerules-bank/
-memory-bank/
 pids
 *.pid
 *.seed
@@ -354,6 +352,12 @@ pids
 .eslintcache
 .eslint/
 
+# TypeScript build artifacts
+**/dist/**/*.d.ts
+**/dist/**/*.d.ts.map
+**/dist/**/*.js
+**/dist/**/*.js.map
+
 # Build outputs
 dist/
 coverage/
@@ -362,6 +366,9 @@ coverage/
 .cache/
 .swc/
 
+# Additional TenantFlow environment patterns
+.env.vault
+.doppler.yaml
 # Additional TenantFlow environment patterns
 .env.vault
 .doppler.yaml
@@ -379,14 +386,6 @@ playwright-report/
 stripe-webhooks.log
 **/stripe-events.log
 **/webhook-*.log
-
-# Development databases
-*.db
-database.dev
-db.dev
-local.db
-*.sqlite
-*.sqlite3
 
 # CRITICAL: Production user data and uploads
 **/uploads/

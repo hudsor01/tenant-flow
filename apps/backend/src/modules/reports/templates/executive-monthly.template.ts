@@ -24,8 +24,8 @@ export interface ExecutiveMonthlyReportData {
 	}>
 	keyMetrics: DashboardStats
 	period: {
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	}
 }
 
@@ -39,21 +39,21 @@ export class ExecutiveMonthlyTemplate {
 	) {}
 
 	async generateReportData(
-		userId: string,
-		startDate: string,
-		endDate: string
+		user_id: string,
+		start_date: string,
+		end_date: string
 	): Promise<ExecutiveMonthlyReportData> {
 		this.logger.log('Generating executive monthly report data', {
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		})
 
 		const [dashboardStats, financialOverview, _monthlyMetrics] =
 			await Promise.all([
-				this.dashboardService.getDashboardStats(userId),
-				this.financialService.getFinancialOverview(userId),
-				this.financialService.getMonthlyMetrics(userId)
+				this.dashboardService.getDashboardStats(user_id),
+				this.financialService.getFinancialOverview(user_id),
+				this.financialService.getMonthlyMetrics(user_id)
 			])
 
 		const summary = {
@@ -88,8 +88,8 @@ export class ExecutiveMonthlyTemplate {
 			topPerformers,
 			keyMetrics: dashboardStats,
 			period: {
-				startDate,
-				endDate
+				start_date,
+				end_date
 			}
 		}
 	}
@@ -97,7 +97,7 @@ export class ExecutiveMonthlyTemplate {
 	formatForPDF(data: ExecutiveMonthlyReportData): string {
 		return `
 EXECUTIVE MONTHLY REPORT
-Period: ${data.period.startDate} to ${data.period.endDate}
+Period: ${data.period.start_date} to ${data.period.end_date}
 
 EXECUTIVE SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

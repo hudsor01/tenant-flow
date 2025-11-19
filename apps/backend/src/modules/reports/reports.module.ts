@@ -2,11 +2,8 @@ import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
 import { ExportService } from './export.service'
-import { GeneratedReportService } from './generated-report.service'
 import { ReportsController } from './reports.controller'
 import { ReportsService } from './reports.service'
-import { ScheduledReportService } from './scheduled-report.service'
-import { SchedulerService } from './scheduler.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
@@ -19,10 +16,7 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 	controllers: [ReportsController],
 	providers: [
 		ExportService,
-		GeneratedReportService,
 		ReportsService,
-		ScheduledReportService,
-		SchedulerService,
 		ExecutiveMonthlyTemplate,
 		FinancialPerformanceTemplate,
 		PropertyPortfolioTemplate,
@@ -32,9 +26,7 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 	],
 	exports: [
 		ExportService,
-		GeneratedReportService,
-		ReportsService,
-		ScheduledReportService
+		ReportsService
 	]
 })
 export class ReportsModule {}

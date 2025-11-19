@@ -284,12 +284,12 @@ export default function TenantDashboardPage() {
 								</div>
 								<div className="text-right">
 									<p className="font-semibold">
-										{formatCurrency(activeLease.rentAmount)}
+										{formatCurrency(activeLease.rent_amount)}
 									</p>
 									<p className="text-xs text-muted-foreground">
-										{activeLease.status === 'ACTIVE'
+										{activeLease?.status === 'active'
 											? 'Active'
-											: activeLease.status}
+											: activeLease?.status}
 									</p>
 								</div>
 							</div>
@@ -316,7 +316,7 @@ export default function TenantDashboardPage() {
 									<div>
 										<p className="font-medium">
 											{(() => {
-												const dateValue = payment.createdAt ?? payment.dueDate
+												const dateValue = payment.created_at ?? payment.dueDate
 												return dateValue
 													? formatDate(dateValue, {
 															month: 'short',
@@ -382,7 +382,7 @@ export default function TenantDashboardPage() {
 									<div>
 										<p className="font-medium">{request.title}</p>
 										<p className="text-sm text-muted-foreground">
-											{formatDate(request.createdAt, {
+											{formatDate(request.created_at, {
 												month: 'short',
 												day: 'numeric',
 												year: 'numeric'

@@ -14,22 +14,18 @@ export default defineConfig([
 		ignores: ['vitest.config.ts', 'jest.config.js', 'eslint.config.mjs']
 	},
 	{
-		name: 'backend/nestjs-overrides',
-		files: [
-			'**/*.ts',
-			'!**/*.spec.ts',
-			'!**/*.test.ts',
-			'!**/*.e2e-spec.ts',
-			'!test/**/*',
-			'!**/test/**/*',
-			'!apps/backend/test/**/*'
-		],
-		languageOptions: {
-			parserOptions: {
-				project: './tsconfig.json',
-				tsconfigRootDir: import.meta.dirname
-			},
-			globals: {
+	name: 'backend/nestjs-overrides',
+	files: [
+		'**/*.ts',
+		'!**/*.spec.ts',
+		'!**/*.test.ts',
+		'!**/*.e2e-spec.ts',
+		'!test/**/*',
+		'!**/test/**/*',
+		'!apps/backend/test/**/*'
+	],
+	languageOptions: {
+		globals: {
 				NodeJS: 'readonly',
 				Buffer: 'readonly',
 				process: 'readonly',
@@ -93,21 +89,17 @@ export default defineConfig([
 		}
 	},
 	{
-		name: 'backend/tests',
-		files: [
-			'**/*.spec.ts',
-			'**/*.test.ts',
-			'**/*.e2e-spec.ts',
-			'test/**/*.ts',
-			'**/test/**/*.ts',
-			'apps/backend/test/**/*.ts'
-		],
-		languageOptions: {
-			parserOptions: {
-				project: './tsconfig.json',
-				tsconfigRootDir: import.meta.dirname
-			},
-			globals: {
+	name: 'backend/tests',
+	files: [
+		'**/*.spec.ts',
+		'**/*.test.ts',
+		'**/*.e2e-spec.ts',
+		'test/**/*.ts',
+		'**/test/**/*.ts',
+		'apps/backend/test/**/*.ts'
+	],
+	languageOptions: {
+		globals: {
 				...globals.jest,
 				...globals.node
 			}

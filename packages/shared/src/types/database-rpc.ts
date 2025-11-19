@@ -43,19 +43,6 @@ export interface RevenueTrendResponse {
 	previous_period_revenue: number
 }
 
-/**
- * Response from get_maintenance_trend_analytics RPC function
- */
-export interface MaintenanceAnalyticsRpcResponse {
-	avg_resolution_time: number
-	completion_rate: number
-	priority_breakdown: Record<string, number>
-	trends_over_time: Array<{
-		month: string
-		completed: number
-		avg_resolution_days: number
-	}>
-}
 
 /**
  * Type guards for runtime validation
@@ -73,19 +60,5 @@ export function isPropertyPerformanceRpcResponse(
 		typeof obj.property_id === 'string' &&
 		'total_units' in obj &&
 		typeof obj.total_units === 'number'
-	)
-}
-
-export function isMaintenanceAnalyticsRpcResponse(
-	data: unknown
-): data is MaintenanceAnalyticsRpcResponse {
-	if (!data || typeof data !== 'object') return false
-
-	const obj = data as Record<string, unknown>
-	return (
-		'avg_resolution_time' in obj &&
-		typeof obj.avg_resolution_time === 'number' &&
-		'completion_rate' in obj &&
-		typeof obj.completion_rate === 'number'
 	)
 }

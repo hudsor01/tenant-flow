@@ -14,16 +14,16 @@ export interface AuthenticatedRequest extends Request {
 	connectedAccountId?: string
 	// Added by OwnerContextInterceptor
 	ownerContext?: {
-		ownerId: string
+		owner_id: string
 		timestamp: string
 		route: string
 		method: string
 	}
 	// Added by TenantContextInterceptor
 	tenantContext?: {
-		tenantId: string
-		authUserId: string
-		status: string
+		tenant_id: string
+		authuser_id: string
+		status?: string
 	}
 }
 

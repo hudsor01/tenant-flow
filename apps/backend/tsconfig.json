@@ -13,8 +13,8 @@
 		"incremental": true,
 		"removeComments": true,
 		"paths": {
-			"@repo/shared": ["../../packages/shared/src/index.ts"],
-			"@repo/shared/*": ["../../packages/shared/src/*"],
+			"@repo/shared": ["../../packages/shared/dist/index.d.ts"],
+			"@repo/shared/*": ["../../packages/shared/dist/*"],
 			"@repo/testing/*": ["../../packages/testing/src/*"]
 		}
 	},

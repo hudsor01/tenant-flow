@@ -1,5 +1,5 @@
 import { isPropertyPerformanceRpcResponse } from '@repo/shared/types/database-rpc'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 if (!process.env.SUPABASE_URL) {
@@ -48,7 +48,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 	let client: SupabaseClient<Database>
 	const supabaseUrl = process.env.SUPABASE_URL as string
 	const serviceKey = process.env.SUPABASE_SECRET_KEY as string
-	const userId = process.env.SUPABASE_RPC_TEST_USER_ID as string
+	const user_id = process.env.SUPABASE_RPC_TEST_USER_ID as string
 
 	beforeAll(() => {
 		client = createClient<Database>(supabaseUrl, serviceKey, {
@@ -77,13 +77,13 @@ describeSupabase('Supabase RPC contract tests', () => {
 		})
 
 		const { data, error } = await (client as any).rpc('get_dashboard_stats', {
-			user_id_param: userId
+			user_id_param: user_id
 		})
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()
 		expect(mockRpc).toHaveBeenCalledWith('get_dashboard_stats', {
-			user_id_param: userId
+			user_id_param: user_id
 		})
 
 		const stats = data as Record<string, unknown>
@@ -113,14 +113,14 @@ describeSupabase('Supabase RPC contract tests', () => {
 		const { data, error } = await (client as any).rpc(
 			'get_property_performance',
 			{
-				p_user_id: userId
+				p_user_id: user_id
 			}
 		)
 
 		expect(error).toBeNull()
 		expect(Array.isArray(data)).toBe(true)
 		expect(mockRpc).toHaveBeenCalledWith('get_property_performance', {
-			p_user_id: userId
+			p_user_id: user_id
 		})
 
 		const rows = (data ?? []) as unknown[]
@@ -143,7 +143,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 		const { data, error } = await (client as any).rpc(
 			'calculate_maintenance_metrics',
 			{
-				p_user_id: userId
+				p_user_id: user_id
 			}
 		)
 
@@ -154,7 +154,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 		expect(metrics).toHaveProperty('completion_rate')
 		expect(metrics).toHaveProperty('avg_resolution_time')
 		expect(mockRpc).toHaveBeenCalledWith('calculate_maintenance_metrics', {
-			p_user_id: userId
+			p_user_id: user_id
 		})
 	})
 
@@ -177,7 +177,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 		const { data, error } = await (client as any).rpc(
 			'get_maintenance_analytics',
 			{
-				user_id: userId
+				user_id: user_id
 			}
 		)
 
@@ -188,7 +188,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 		expect(analytics).toHaveProperty('trends_over_time')
 		expect(analytics).toHaveProperty('priority_breakdown')
 		expect(mockRpc).toHaveBeenCalledWith('get_maintenance_analytics', {
-			user_id: userId
+			user_id: user_id
 		})
 	})
 })

@@ -72,7 +72,7 @@ describe('OccupancyTrendsController', () => {
 	it('returns vacancy analysis from the service', async () => {
 		const request = { ...createRequest(), path: '/analytics/vacancy-analysis' }
 		supabase.getUser.mockResolvedValue({ id: 'user-12' })
-		const vacancy = [{ propertyId: 'prop-9' }]
+		const vacancy = [{ property_id: 'prop-9' }]
 		service.getVacancyAnalysis!.mockResolvedValue(vacancy)
 
 		const response = await controller.getVacancyAnalysis(request as Request)
