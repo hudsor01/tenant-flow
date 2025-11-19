@@ -34,6 +34,14 @@ export class LeaseValidationService {
 		start_date: Date
 		end_date: Date
 	} {
+		// Check that leaseTerms exists and has required start_date
+		if (!leaseData?.leaseTerms) {
+			throw new BadRequestException('Lease terms are required')
+		}
+		if (!leaseData.leaseTerms.start_date) {
+			throw new BadRequestException('Lease start date is required')
+		}
+
 		const start_date = new Date(leaseData.leaseTerms.start_date)
 
 		// end_date is required by schema, but leases can be month-to-month

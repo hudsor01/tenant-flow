@@ -587,6 +587,10 @@ export class FinancialService {
 			map.set(this.buildMonthKey(targetYear, month), 0)
 		}
 
+		// Compute year boundaries for the target year
+		const yearStart = new Date(`${targetYear}-01-01`)
+		const yearEnd = new Date(`${targetYear}-12-31`)
+
 		// Single pass through leases to calculate revenue for each overlapping month
 		for (const lease of leases) {
 			const start_date = new Date(lease.start_date)
@@ -596,12 +600,18 @@ export class FinancialService {
 				: new Date('9999-12-31')
 			const rent = lease.rent_amount || 0
 
-			// Determine which months this lease spans
-			const startMonth = start_date.getFullYear() === targetYear ? start_date.getMonth() : 0
-			const endMonth =
-				end_date.getFullYear() === targetYear
-					? end_date.getMonth()
-					: 11
+			// Skip leases that don't overlap the target year
+			if (end_date < yearStart || start_date > yearEnd) {
+				continue
+			}
+
+			// Clamp lease interval to target year
+			const effectiveStart = start_date < yearStart ? yearStart : start_date
+			const effectiveEnd = end_date > yearEnd ? yearEnd : end_date
+
+			// Determine which months this lease spans within the target year
+			const startMonth = effectiveStart.getMonth()
+			const endMonth = effectiveEnd.getMonth()
 
 			// Add rent to each month in the lease period
 			for (let month = startMonth; month <= endMonth; month++) {

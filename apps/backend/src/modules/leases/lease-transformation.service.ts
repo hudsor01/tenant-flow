@@ -18,6 +18,33 @@ import { LeasesService } from './leases.service'
  * Handles transformation of database lease records to LeaseFormData structure
  * Extracted from LeaseGeneratorController for better separation of concerns
  */
+/**
+ * Map possible property type strings to canonical PropertyType values.
+ * Used in lease transformation to normalize property types from various sources.
+ */
+export const PROPERTY_TYPE_MAP: Record<
+	string,
+	LeaseFormData['property']['type']
+> = {
+	SINGLE_FAMILY: PROPERTY_TYPES.SINGLE_FAMILY,
+	single_family: PROPERTY_TYPES.SINGLE_FAMILY,
+	single_family_home: PROPERTY_TYPES.SINGLE_FAMILY,
+	APARTMENT: PROPERTY_TYPES.APARTMENT,
+	apartment: PROPERTY_TYPES.APARTMENT,
+	CONDO: PROPERTY_TYPES.CONDO,
+	condo: PROPERTY_TYPES.CONDO,
+	TOWNHOUSE: PROPERTY_TYPES.TOWNHOUSE,
+	townhouse: PROPERTY_TYPES.TOWNHOUSE,
+	DUPLEX: PROPERTY_TYPES.MULTI_UNIT,
+	duplex: PROPERTY_TYPES.MULTI_UNIT,
+	MULTI_UNIT: PROPERTY_TYPES.MULTI_UNIT,
+	multi_unit: PROPERTY_TYPES.MULTI_UNIT,
+	COMMERCIAL: PROPERTY_TYPES.COMMERCIAL,
+	commercial: PROPERTY_TYPES.COMMERCIAL,
+	OTHER: PROPERTY_TYPES.OTHER,
+	other: PROPERTY_TYPES.OTHER
+}
+
 @Injectable()
 export class LeaseTransformationService {
 	private readonly logger = new Logger(LeaseTransformationService.name)
@@ -194,26 +221,8 @@ export class LeaseTransformationService {
 			}
 		}
 
-		// Map possible property type strings to canonical PropertyType values
-		const propertyTypeMap: Record<string, LeaseFormData['property']['type']> = {
-			SINGLE_FAMILY: PROPERTY_TYPES.SINGLE_FAMILY,
-			single_family: PROPERTY_TYPES.SINGLE_FAMILY,
-			single_family_home: PROPERTY_TYPES.SINGLE_FAMILY,
-			APARTMENT: PROPERTY_TYPES.APARTMENT,
-			apartment: PROPERTY_TYPES.APARTMENT,
-			CONDO: PROPERTY_TYPES.CONDO,
-			condo: PROPERTY_TYPES.CONDO,
-			TOWNHOUSE: PROPERTY_TYPES.TOWNHOUSE,
-			townhouse: PROPERTY_TYPES.TOWNHOUSE,
-			DUPLEX: PROPERTY_TYPES.MULTI_UNIT,
-			duplex: PROPERTY_TYPES.MULTI_UNIT,
-			MULTI_UNIT: PROPERTY_TYPES.MULTI_UNIT,
-			multi_unit: PROPERTY_TYPES.MULTI_UNIT,
-			COMMERCIAL: PROPERTY_TYPES.COMMERCIAL,
-			commercial: PROPERTY_TYPES.COMMERCIAL,
-			OTHER: PROPERTY_TYPES.OTHER,
-			other: PROPERTY_TYPES.OTHER
-		}
+		// Reference the module-level property type map
+		const propertyTypeMap = PROPERTY_TYPE_MAP
 
 		const property = lease.unit.property
 		const owner = property.owner

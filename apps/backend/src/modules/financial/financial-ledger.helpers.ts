@@ -11,13 +11,21 @@ export type MaintenanceRequestRow = TableRow<'maintenance_requests'>
 export type UnitRow = TableRow<'units'>
 export type PropertyRow = TableRow<'properties'>
 
+// Partial types for optimized queries
+export type RentPaymentPartial = Pick<RentPaymentRow, 'status' | 'paid_date' | 'due_date' | 'amount' | 'lease_id' | 'application_fee_amount' | 'late_fee_amount'>
+export type ExpensePartial = Pick<ExpenseRow, 'expense_date' | 'created_at' | 'amount' | 'maintenance_request_id'>
+export type LeasePartial = Pick<LeaseRow, 'id' | 'unit_id' | 'security_deposit'>
+export type MaintenanceRequestPartial = Pick<MaintenanceRequestRow, 'id' | 'unit_id' | 'status' | 'completed_at' | 'created_at' | 'actual_cost' | 'estimated_cost'>
+export type UnitPartial = Pick<UnitRow, 'id' | 'property_id'>
+export type PropertyPartial = Pick<PropertyRow, 'id' | 'name'>
+
 export interface LedgerData {
-	rentPayments: RentPaymentRow[]
-	expenses: ExpenseRow[]
-	leases: LeaseRow[]
-	maintenanceRequests: MaintenanceRequestRow[]
-	units: UnitRow[]
-	properties: PropertyRow[]
+	rentPayments: RentPaymentPartial[]
+	expenses: ExpensePartial[]
+	leases: LeasePartial[]
+	maintenanceRequests: MaintenanceRequestPartial[]
+	units: UnitPartial[]
+	properties: PropertyPartial[]
 }
 
 export interface DateRange {
@@ -43,12 +51,12 @@ export async function loadLedgerData(
 		unitsResult,
 		propertiesResult
 	] = await Promise.all([
-		client.from('rent_payments').select('*'),
-		client.from('expenses').select('*'),
-		client.from('leases').select('*'),
-		client.from('maintenance_requests').select('*'),
-		client.from('units').select('*'),
-		client.from('properties').select('*')
+		client.from('rent_payments').select('status, paid_date, due_date, amount, lease_id, application_fee_amount, late_fee_amount'),
+		client.from('expenses').select('expense_date, created_at, amount, maintenance_request_id'),
+		client.from('leases').select('id, unit_id, security_deposit'),
+		client.from('maintenance_requests').select('id, unit_id, status, completed_at, created_at, actual_cost, estimated_cost'),
+		client.from('units').select('id, property_id'),
+		client.from('properties').select('id, name')
 	])
 
 	const errors = [
@@ -102,7 +110,7 @@ export function isWithinRange(
 	return true
 }
 
-export function buildUnitPropertyMap(units: UnitRow[]): Map<string, string> {
+export function buildUnitPropertyMap(units: UnitPartial[]): Map<string, string> {
 	return units.reduce((map, unit) => {
 		if (unit.id && unit.property_id) {
 			map.set(unit.id, unit.property_id)
