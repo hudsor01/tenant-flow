@@ -229,11 +229,12 @@ export class CashFlowService {
 		currentNetCashFlow: number
 	) {
 		if (!currentRange.start || !currentRange.end) {
-			const comparison = calculatePeriodComparison(currentNetCashFlow, 0)
+			// When no date range provided, return current cash flow as baseline
+			// with no change/comparison data (treat previous period as 0)
 			return {
-				amount: comparison.previous,
-				change: comparison.change,
-				percentageChange: comparison.changePercent
+				amount: currentNetCashFlow,
+				change: currentNetCashFlow,
+				percentageChange: 0
 			}
 		}
 
