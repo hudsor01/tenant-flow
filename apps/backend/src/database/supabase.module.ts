@@ -9,6 +9,7 @@ import { createClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { SupabaseService } from './supabase.service'
+import { StorageService } from './storage.service'
 
 @Global()
 @Module({})
@@ -42,9 +43,10 @@ export class SupabaseModule {
 					},
 					inject: [AppConfigService]
 				},
-				SupabaseService
+				SupabaseService,
+				StorageService
 			],
-			exports: [SUPABASE_ADMIN_CLIENT, SupabaseService]
+			exports: [SUPABASE_ADMIN_CLIENT, SupabaseService, StorageService]
 		}
 	}
 }

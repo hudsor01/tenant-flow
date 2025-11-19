@@ -333,3 +333,12 @@ export interface PropertyFilters {
 
 // Re-export TenantWithLeaseInfo from core.ts to comply with import location requirements
 export type { TenantWithLeaseInfo }
+
+// Re-export all WithVersion types for optimistic locking
+export type {
+	PropertyWithVersion,
+	UnitWithVersion,
+	TenantWithLeaseInfoWithVersion,
+	PaymentMethodResponseWithVersion
+} from './core.js'
+export type { NotificationPreferencesWithVersion } from './notifications.js'

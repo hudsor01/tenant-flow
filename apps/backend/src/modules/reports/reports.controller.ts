@@ -2,13 +2,9 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
-	Delete,
-	ForbiddenException,
 	Get,
 	Logger,
 	NotFoundException,
-	Param,
-	ParseUUIDPipe,
 	Post,
 	Query,
 	Req,
@@ -19,10 +15,7 @@ import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { ExportService } from './export.service'
-import { GeneratedReportService } from './generated-report.service'
 import { ReportsService } from './reports.service'
-import { ScheduledReportService } from './scheduled-report.service'
-import { SupabaseService } from '../../database/supabase.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
@@ -71,10 +64,7 @@ export class ReportsController {
 
 	constructor(
 		private readonly exportService: ExportService,
-		private readonly generatedReportService: GeneratedReportService,
 		private readonly reportsService: ReportsService,
-		private readonly scheduledReportService: ScheduledReportService,
-		private readonly supabaseService: SupabaseService,
 		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
@@ -108,121 +98,6 @@ export class ReportsController {
 		const cleaned = replaced.replace(/-+/g, '-').replace(/^-|-$/g, '')
 		const normalized = cleaned || fallback
 		return `${normalized}.${extension}`
-	}
-
-	// ==================== REPORT LIBRARY ENDPOINTS ====================
-
-	/**
-	 * List user's generated reports (paginated)
-	 */
-	@Get()
-	@UseGuards(JwtAuthGuard)
-	async listReports(
-		@Req() req: AuthenticatedRequest,
-		@Query('limit') limit?: string,
-		@Query('offset') offset?: string
-	) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		const parsedLimit = limit ? parseInt(limit, 10) : 20
-		const parsedOffset = offset ? parseInt(offset, 10) : 0
-
-		const result = await this.generatedReportService.findAll(user_id, {
-			limit: parsedLimit,
-			offset: parsedOffset
-		})
-
-		return {
-			success: true,
-			data: result.reports,
-			pagination: {
-				total: result.total,
-				limit: parsedLimit,
-				offset: parsedOffset,
-				hasMore: parsedOffset + parsedLimit < result.total
-			}
-		}
-	}
-
-	/**
-	 * Get specific report metadata
-	 */
-	@Get(':id')
-	@UseGuards(JwtAuthGuard)
-	async getReport(
-		@Req() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) reportId: string
-	) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		const report = await this.generatedReportService.findOne(user_id, reportId)
-
-		return {
-			success: true,
-			data: report
-		}
-	}
-
-	/**
-	 * Download report file
-	 */
-	@Get(':id/download')
-	@UseGuards(JwtAuthGuard)
-	async downloadReport(
-		@Req() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) reportId: string,
-		@Res() res: Response
-	) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		const report = await this.generatedReportService.findOne(user_id, reportId)
-		const buffer = await this.generatedReportService.getFileBuffer(
-			user_id,
-			reportId
-		)
-
-		const contentType =
-			report.format === 'excel'
-				? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-				: 'application/pdf'
-		const extension = report.format === 'excel' ? 'xlsx' : 'pdf'
-		const filename = `${report.reportName}.${extension}`
-
-		res.setHeader('Content-Type', contentType)
-		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-		res.setHeader('Content-Length', buffer.length)
-		res.send(buffer)
-	}
-
-	/**
-	 * Delete report
-	 */
-	@Delete(':id')
-	@UseGuards(JwtAuthGuard)
-	async deleteReport(
-		@Req() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) reportId: string
-	) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		await this.generatedReportService.delete(user_id, reportId)
-
-		return {
-			success: true,
-			message: 'Report deleted successfully'
-		}
 	}
 
 	// ==================== REPORT GENERATION ENDPOINTS ====================
@@ -318,16 +193,7 @@ export class ReportsController {
 				'Executive Report'
 			)
 
-			// Save report metadata
-			await this.generatedReportService.create({
-				user_id,
-				reportType: 'executive-monthly',
-				reportName: 'Executive Monthly Report',
-				format: 'excel',
-				start_date,
-				end_date,
-				fileBuffer: buffer
-			})
+			// Note: Report storage feature requires database table that hasn't been created yet
 
 			res.setHeader(
 				'Content-Type',
@@ -345,16 +211,7 @@ export class ReportsController {
 				'Executive Monthly Report'
 			)
 
-			// Save report metadata
-			await this.generatedReportService.create({
-				user_id,
-				reportType: 'executive-monthly',
-				reportName: 'Executive Monthly Report',
-				format: 'pdf',
-				start_date,
-				end_date,
-				fileBuffer: buffer
-			})
+			// Note: Report storage feature requires database table that hasn't been created yet
 
 			res.setHeader('Content-Type', 'application/pdf')
 			res.setHeader(
@@ -393,16 +250,7 @@ export class ReportsController {
 			'Financial Performance'
 		)
 
-		// Save report metadata
-		await this.generatedReportService.create({
-			user_id,
-			reportType: 'financial-performance',
-			reportName: 'Financial Performance Report',
-			format: 'excel',
-			start_date,
-			end_date,
-			fileBuffer: buffer
-		})
+		// Note: Report storage feature requires database table that hasn't been created yet
 
 		res.setHeader(
 			'Content-Type',
@@ -444,16 +292,7 @@ export class ReportsController {
 				'Property Portfolio'
 			)
 
-			// Save report metadata
-			await this.generatedReportService.create({
-				user_id,
-				reportType: 'property-portfolio',
-				reportName: 'Property Portfolio Report',
-				format: 'excel',
-				start_date,
-				end_date,
-				fileBuffer: buffer
-			})
+			// Note: Report storage feature requires database table that hasn't been created yet
 
 			res.setHeader(
 				'Content-Type',
@@ -471,16 +310,7 @@ export class ReportsController {
 				'Property Portfolio Report'
 			)
 
-			// Save report metadata
-			await this.generatedReportService.create({
-				user_id,
-				reportType: 'property-portfolio',
-				reportName: 'Property Portfolio Report',
-				format: 'pdf',
-				start_date,
-				end_date,
-				fileBuffer: buffer
-			})
+			// Note: Report storage feature requires database table that hasn't been created yet
 
 			res.setHeader('Content-Type', 'application/pdf')
 			res.setHeader(
@@ -517,16 +347,7 @@ export class ReportsController {
 			'Lease Portfolio'
 		)
 
-		// Save report metadata
-		await this.generatedReportService.create({
-			user_id,
-			reportType: 'lease-portfolio',
-			reportName: 'Lease Portfolio Report',
-			format: 'excel',
-			start_date,
-			end_date,
-			fileBuffer: buffer
-		})
+		// Note: Report storage feature requires database table that hasn't been created yet
 
 		res.setHeader(
 			'Content-Type',
@@ -572,16 +393,7 @@ export class ReportsController {
 				'Maintenance Operations'
 			)
 
-			// Save report metadata
-			await this.generatedReportService.create({
-				user_id,
-				reportType: 'maintenance-operations',
-				reportName: 'Maintenance Operations Report',
-				format: 'excel',
-				start_date,
-				end_date,
-				fileBuffer: buffer
-			})
+			// Note: Report storage feature requires database table that hasn't been created yet
 
 			res.setHeader(
 				'Content-Type',
@@ -600,16 +412,7 @@ export class ReportsController {
 				'Maintenance Operations Report'
 			)
 
-			// Save report metadata
-			await this.generatedReportService.create({
-				user_id,
-				reportType: 'maintenance-operations',
-				reportName: 'Maintenance Operations Report',
-				format: 'pdf',
-				start_date,
-				end_date,
-				fileBuffer: buffer
-			})
+			// Note: Report storage feature requires database table that hasn't been created yet
 
 			res.setHeader('Content-Type', 'application/pdf')
 			res.setHeader(
@@ -646,16 +449,7 @@ export class ReportsController {
 			'Tax Preparation'
 		)
 
-		// Save report metadata
-		await this.generatedReportService.create({
-			user_id,
-			reportType: 'tax-preparation',
-			reportName: 'Tax Preparation Report',
-			format: 'excel',
-			start_date,
-			end_date,
-			fileBuffer: buffer
-		})
+		// Note: Report storage feature requires database table that hasn't been created yet
 
 		res.setHeader(
 			'Content-Type',
@@ -666,106 +460,6 @@ export class ReportsController {
 			'attachment; filename="tax-preparation-report.xlsx"'
 		)
 		res.send(buffer)
-	}
-
-	// ==================== SCHEDULED REPORTS ENDPOINTS ====================
-
-	/**
-	 * Create a new scheduled report
-	 */
-	@Post('schedules')
-	@UseGuards(JwtAuthGuard)
-	async createSchedule(
-		@Req() req: AuthenticatedRequest,
-		@Body()
-		body: {
-			reportType: string
-			reportName: string
-			format: 'pdf' | 'excel'
-			frequency: 'daily' | 'weekly' | 'monthly'
-			dayOfWeek?: number
-			dayOfMonth?: number
-			hour?: number
-			timezone?: string
-			start_date: string
-			end_date: string
-		}
-	) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		const token = this.supabaseService.getTokenFromRequest(req)
-		if (!token) {
-			throw new ForbiddenException('Authentication token missing')
-		}
-
-		this.logger.log('Creating scheduled report', { user_id, ...body })
-
-		const schedule = await this.scheduledReportService.createSchedule(
-			{
-				user_id,
-				...body
-			},
-			token
-		)
-
-		return {
-			success: true,
-			data: schedule
-		}
-	}
-
-	/**
-	 * List user's scheduled reports
-	 */
-	@Get('schedules')
-	@UseGuards(JwtAuthGuard)
-	async listSchedules(@Req() req: AuthenticatedRequest) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		const token = this.supabaseService.getTokenFromRequest(req)
-		if (!token) {
-			throw new ForbiddenException('Authentication token missing')
-		}
-
-		const schedules = await this.scheduledReportService.listSchedules(user_id, token)
-
-		return {
-			success: true,
-			data: schedules
-		}
-	}
-
-	/**
-	 * Delete a scheduled report
-	 */
-	@Delete('schedules/:id')
-	@UseGuards(JwtAuthGuard)
-	async deleteSchedule(
-		@Req() req: AuthenticatedRequest,
-		@Param('id', ParseUUIDPipe) scheduleId: string
-	) {
-		const user_id = req.user?.id
-		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
-		}
-
-		const token = this.supabaseService.getTokenFromRequest(req)
-		if (!token) {
-			throw new ForbiddenException('Authentication token missing')
-		}
-
-		await this.scheduledReportService.deleteSchedule(scheduleId, user_id, token)
-
-		return {
-			success: true,
-			message: 'Schedule deleted successfully'
-		}
 	}
 
 	// ==================== ANALYTICS ENDPOINTS ====================

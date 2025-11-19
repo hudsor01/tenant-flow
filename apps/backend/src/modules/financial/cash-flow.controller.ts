@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import { CashFlowService } from './cash-flow.service'
+import { CashFlowService, CashFlowData } from './cash-flow.service'
 
 @Controller('financials/cash-flow')
 @UseGuards(JwtAuthGuard)
@@ -20,7 +20,7 @@ export class CashFlowController {
 		@JwtToken() token: string,
 		@Query('start_date') start_date?: string,
 		@Query('end_date') end_date?: string
-	) {
+	): Promise<{ success: boolean; data: CashFlowData }> {
 		if (!token) {
 			throw new UnauthorizedException('Authentication token is required')
 		}

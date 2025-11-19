@@ -1,23 +1,12 @@
 /**
  * Failed Notifications Service
  *
- * Tracks failed notification attempts and provides retry mechanism
- *Event Handler Error Swallowing
+ * Provides retry mechanism with exponential backoff for notification delivery
+ * NOTE: Previously attempted to persist failures to database, but the failed_notifications
+ * table does not exist. This service now focuses on retry logic only.
  */
 
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
-import type { Json } from '@repo/shared/types/supabase'
-
-export interface FailedNotification {
-	id: string
-	event_type: string
-	event_data: Json
-	error_message: string
-	error_stack: string | null
-	attempt_count: number
-	last_attempt_at: string
-	created_at: string
-}
 
 @Injectable()
 export class FailedNotificationsService implements OnModuleDestroy {
@@ -29,87 +18,13 @@ export class FailedNotificationsService implements OnModuleDestroy {
 	constructor() {}
 
 	/**
-	 * Insert failed notification record with proper typing
-	 * NOTE: 'failed_notifications' table does not exist in the current schema
-	 * TODO: Either create the table or use existing tables (webhook_attempts, notification_logs)
-	 */
-	private async insertFailedNotification(_data: {
-		event_type: string
-		event_data: Json
-		error_message: string
-		error_stack: string | null
-		attempt_count: number
-		last_attempt_at: string
-	}) {
-		// Commented out - table does not exist
-		// const client = this.supabase.getAdminClient()
-		// return await client
-		// 	.schema('public')
-		// 	.from('failed_notifications')
-		// 	.insert(data)
-		this.logger.warn('failed_notifications table does not exist - skipping insert')
-		return { data: null, error: null }
-	}
-
-	/**
-	 * Log a failed notification attempt
-	 */
-	async logFailure(
-		eventType: string,
-		eventData: unknown,
-		error: Error,
-		attemptCount = 1
-	): Promise<void> {
-		try {
-			const safeAttemptCount = Math.max(1, attemptCount)
-			const normalizedEventData = this.serializeEventData(eventData)
-			const eventDataForLogging =
-				typeof normalizedEventData === 'object' && normalizedEventData !== null
-					? normalizedEventData
-					: { payload: normalizedEventData }
-
-			const { error: insertError } = await this.insertFailedNotification({
-				event_type: eventType,
-				event_data: normalizedEventData,
-				error_message: error.message,
-				error_stack: error.stack ?? null,
-				attempt_count: safeAttemptCount,
-				last_attempt_at: new Date().toISOString()
-			})
-
-			if (insertError) {
-				this.logger.error('Failed to persist notification failure', {
-					eventType,
-					eventData: eventDataForLogging,
-					errorMessage: error.message
-				})
-				return
-			}
-
-			this.logger.error('Failed notification logged', {
-				eventType,
-				eventData: eventDataForLogging,
-				errorMessage: error.message,
-				stack: error.stack,
-				attemptCount: safeAttemptCount
-			})
-		} catch (logError) {
-			// If logging fails, at least log to console
-			this.logger.error('Failed to log notification failure', {
-				originalError: error.message,
-				logError:
-					logError instanceof Error ? logError.message : String(logError)
-			})
-		}
-	}
-
-	/**
-	 * Retry failed notification with exponential backoff
+	 * Retry operation with exponential backoff
+	 * Used for notification delivery and other transient failures
 	 */
 	async retryWithBackoff<T>(
 		operation: () => Promise<T>,
 		eventType: string,
-		eventData: unknown,
+		_eventData?: unknown,
 		attempt = 0
 	): Promise<T | null> {
 		try {
@@ -132,71 +47,17 @@ export class FailedNotificationsService implements OnModuleDestroy {
 					}, delay)
 					this.pendingTimers.add(timer)
 				})
-				return this.retryWithBackoff(
-					operation,
-					eventType,
-					eventData,
-					attempt + 1
-				)
+
+				return this.retryWithBackoff(operation, eventType, _eventData, attempt + 1)
 			} else {
-				// Max retries exceeded, log failure
-				await this.logFailure(
+				// Max retries exceeded
+				this.logger.error('Retry operation failed after max attempts', {
 					eventType,
-					eventData,
-					error instanceof Error ? error : new Error(String(error)),
-					Math.min(attempt + 1, this.MAX_RETRIES + 1)
-				)
+					error: error instanceof Error ? error.message : String(error),
+					totalAttempts: attempt + 1
+				})
 				return null
 			}
-		}
-	}
-
-	/**
-	 * Query failed notifications for manual retry
-	 * NOTE: 'failed_notifications' table does not exist in the current schema
-	 * TODO: Either create the table or use existing tables (webhook_attempts, notification_logs)
-	 */
-	async getFailedNotifications(_limit = 50): Promise<FailedNotification[]> {
-		// Commented out - table does not exist
-		this.logger.warn('failed_notifications table does not exist - returning empty array')
-		return []
-
-		// try {
-		// 	const client = this.supabase.getAdminClient()
-		//
-		// 	const { data, error } = await client
-		// 		.schema('public')
-		// 		.from('failed_notifications')
-		// 		.select('*')
-		// 		.order('created_at', { ascending: false })
-		// 		.limit(limit)
-		//
-		// 	if (error) {
-		// 		this.logger.error('Failed to query failed notifications', {
-		// 			error: error.message
-		// 		})
-		// 		return []
-		// 	}
-		//
-		// 	return data ?? []
-		// } catch (error) {
-		// 	this.logger.error('Failed to get failed notifications', {
-		// 		error: error instanceof Error ? error.message : String(error)
-		// 	})
-		// 	return []
-		// }
-	}
-
-	private serializeEventData(eventData: unknown): Json {
-		if (eventData === null || typeof eventData === 'undefined') {
-			return {}
-		}
-
-		try {
-			const serialized = JSON.stringify(eventData)
-			return serialized ? (JSON.parse(serialized) as Json) : {}
-		} catch {
-			return { payload: String(eventData) }
 		}
 	}
 

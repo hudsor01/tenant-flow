@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common'
-import type { CashFlowData } from '@repo/shared/types/financial-statements'
 import {
 	calculatePeriodComparison,
 	createFinancialPeriod
@@ -12,6 +11,39 @@ import {
 	type DateRange,
 	type LedgerData
 } from './financial-ledger.helpers'
+
+export interface CashFlowData {
+	period: {
+		start_date: string
+		end_date: string
+	}
+	operatingActivities: {
+		rentalPaymentsReceived: number
+		operatingExpensesPaid: number
+		maintenancePaid: number
+		netOperatingCash: number
+	}
+	investingActivities: {
+		propertyAcquisitions: number
+		propertyImprovements: number
+		netInvestingCash: number
+	}
+	financingActivities: {
+		mortgagePayments: number
+		loanProceeds: number
+		ownerContributions: number
+		ownerDistributions: number
+		netFinancingCash: number
+	}
+	netCashFlow: number
+	beginningCash: number
+	endingCash: number
+	previousPeriod?: {
+		amount: number
+		change: number
+		percentageChange: number
+	}
+}
 
 @Injectable()
 export class CashFlowService {
@@ -197,7 +229,12 @@ export class CashFlowService {
 		currentNetCashFlow: number
 	) {
 		if (!currentRange.start || !currentRange.end) {
-			return calculatePeriodComparison(currentNetCashFlow, 0)
+			const comparison = calculatePeriodComparison(currentNetCashFlow, 0)
+			return {
+				amount: comparison.previous,
+				change: comparison.change,
+				percentageChange: comparison.changePercent
+			}
 		}
 
 		const periodLength =
@@ -209,6 +246,14 @@ export class CashFlowService {
 			end: previousEnd
 		})
 
-		return calculatePeriodComparison(currentNetCashFlow, snapshot.netCashFlow)
+		const comparison = calculatePeriodComparison(
+			currentNetCashFlow,
+			snapshot.netCashFlow
+		)
+		return {
+			amount: comparison.previous,
+			change: comparison.change,
+			percentageChange: comparison.changePercent
+		}
 	}
 }

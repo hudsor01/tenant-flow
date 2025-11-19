@@ -8,6 +8,8 @@ import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
+import type { NotificationPreferencesWithVersion } from '@repo/shared/types/relations'
 
 export interface NotificationPreferences {
 	rentReminders: boolean
@@ -71,14 +73,17 @@ export function useUpdateNotificationPreferences(tenant_id: string) {
 
 			// Optimistically update
 			if (previousPreferences) {
-				queryClient.setQueryData<NotificationPreferences>(
-					notificationPreferencesKeys.tenant(tenant_id),
-					{
-						...previousPreferences,
-						...newPreferences
-					}
-				)
-			}
+			queryClient.setQueryData<NotificationPreferencesWithVersion>(
+				notificationPreferencesKeys.tenant(tenant_id),
+				(old: NotificationPreferencesWithVersion | undefined) =>
+					old
+					? (
+							// eslint-disable-next-line @typescript-eslint/no-explicit-any
+							incrementVersion(old, newPreferences as any) as any
+						)
+					: undefined
+			)
+		}
 
 			return { previousPreferences }
 		},
@@ -87,7 +92,8 @@ export function useUpdateNotificationPreferences(tenant_id: string) {
 			if (context?.previousPreferences) {
 				queryClient.setQueryData(
 					notificationPreferencesKeys.tenant(tenant_id),
-					context.previousPreferences
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(context.previousPreferences as any)
 				)
 			}
 
@@ -103,9 +109,18 @@ export function useUpdateNotificationPreferences(tenant_id: string) {
 		},
 		onSuccess: (data) => {
 			// Update cache with server response
-			queryClient.setQueryData(
+			queryClient.setQueryData<NotificationPreferencesWithVersion>(
 				notificationPreferencesKeys.tenant(tenant_id),
-				data
+				(old: NotificationPreferencesWithVersion | undefined) =>
+					old
+						? (
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
+								incrementVersion(old, data as any) as NotificationPreferencesWithVersion
+							)
+						: (
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
+								data as any
+							)
 			)
 
 			handleMutationSuccess(

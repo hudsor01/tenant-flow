@@ -10,71 +10,11 @@ export type ReportType =
 
 export type ReportFormat = 'pdf' | 'excel'
 
-export interface Report {
-	id: string
-	user_id: string
-	reportType: string
-	reportName: string
-	format: string
-	status: string
-	fileUrl: string | null
-	filePath: string | null
-	fileSize: number | null
-	start_date: string
-	end_date: string
-	metadata: Record<string, unknown>
-	errorMessage: string | null
-	created_at: string
-	updated_at: string
-}
-
-export interface ListReportsResponse {
-	success: boolean
-	data: Report[]
-	pagination: {
-		total: number
-		limit: number
-		offset: number
-		hasMore: boolean
-	}
-}
-
 export interface GenerateReportParams {
 	user_id: string
 	start_date: string
 	end_date: string
 	format?: ReportFormat
-}
-
-export interface CreateScheduleParams {
-	user_id?: string
-	reportType: ReportType
-	reportName?: string
-	frequency: 'daily' | 'weekly' | 'monthly'
-	dayOfWeek?: number
-	dayOfMonth?: number
-	hour?: number
-	timezone?: string
-	format?: ReportFormat
-	start_date?: string
-	end_date?: string
-}
-
-export type ScheduledReport = {
-	id: string
-	user_id: string
-	reportType: ReportType
-	reportName?: string
-	frequency: 'daily' | 'weekly' | 'monthly'
-	dayOfWeek?: number | null | undefined
-	dayOfMonth?: number | null | undefined
-	hour?: number | null
-	timezone?: string | null
-	format: ReportFormat
-	nextRunAt?: string | null
-	lastRunAt?: string | null
-	created_at: string
-	updated_at: string
 }
 
 export const reportsClient = {
@@ -129,101 +69,6 @@ export const reportsClient = {
 	},
 
 	/**
-	 * List generated reports with pagination
-	 */
-	async listReports(params?: {
-		limit?: number
-		offset?: number
-	}): Promise<ListReportsResponse> {
-		const apiBaseUrl = getApiBaseUrl()
-		const queryParams = new URLSearchParams()
-
-		if (params?.limit) queryParams.append('limit', params.limit.toString())
-		if (params?.offset) queryParams.append('offset', params.offset.toString())
-
-		const endpoint = `${apiBaseUrl}/reports?${queryParams.toString()}`
-
-		const response = await fetch(endpoint, {
-			method: 'GET',
-			headers: await getAuthHeaders()
-		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_LIST_FAILED
-			)
-		}
-
-		return response.json()
-	},
-
-	/**
-	 * Download a generated report
-	 */
-	async downloadReport(reportId: string): Promise<void> {
-		const apiBaseUrl = getApiBaseUrl()
-		const endpoint = `${apiBaseUrl}/reports/${reportId}/download`
-
-		const response = await fetch(endpoint, {
-			method: 'GET',
-			headers: await getAuthHeaders()
-		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_DOWNLOAD_FAILED
-			)
-		}
-
-		// Extract filename from Content-Disposition header
-		const contentDisposition = response.headers.get('Content-Disposition')
-		const filenameMatch = contentDisposition?.match(/filename="(.+)"/)
-		const filename = filenameMatch?.[1] || 'report.pdf'
-
-		// Create blob and download
-		const blob = await response.blob()
-		const url = window.URL.createObjectURL(blob)
-		const link = document.createElement('a')
-		link.href = url
-		link.download = filename
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-		setTimeout(() => window.URL.revokeObjectURL(url), 100)
-	},
-
-	/**
-	 * Delete a generated report
-	 */
-	async deleteReport(reportId: string): Promise<void> {
-		const apiBaseUrl = getApiBaseUrl()
-		const endpoint = `${apiBaseUrl}/reports/${reportId}`
-
-		const response = await fetch(endpoint, {
-			method: 'DELETE',
-			headers: await getAuthHeaders()
-		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_DELETE_FAILED
-			)
-		}
-	},
-
-	/**
 	 * Generate Executive Monthly Report
 	 */
 	async generateExecutiveMonthly(params: GenerateReportParams): Promise<void> {
@@ -270,82 +115,6 @@ export const reportsClient = {
 			...params,
 			format: 'excel'
 		})
-	},
-
-	/**
-	 * Create a scheduled report
-	 */
-	async createSchedule(params: CreateScheduleParams): Promise<ScheduledReport> {
-		const apiBaseUrl = getApiBaseUrl()
-		const endpoint = `${apiBaseUrl}/reports/schedules`
-
-		const response = await fetch(endpoint, {
-			method: 'POST',
-			headers: await getAuthHeaders(),
-			body: JSON.stringify(params)
-		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_SCHEDULE_FAILED
-			)
-		}
-
-		const result = await response.json()
-		return result.data
-	},
-
-	/**
-	 * List user's scheduled reports
-	 */
-	async listSchedules(): Promise<ScheduledReport[]> {
-		const apiBaseUrl = getApiBaseUrl()
-		const endpoint = `${apiBaseUrl}/reports/schedules`
-
-		const response = await fetch(endpoint, {
-			method: 'GET',
-			headers: await getAuthHeaders()
-		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_SCHEDULE_FAILED
-			)
-		}
-
-		const result = await response.json()
-		return result.data
-	},
-
-	/**
-	 * Delete a scheduled report
-	 */
-	async deleteSchedule(scheduleId: string): Promise<void> {
-		const apiBaseUrl = getApiBaseUrl()
-		const endpoint = `${apiBaseUrl}/reports/schedules/${scheduleId}`
-
-		const response = await fetch(endpoint, {
-			method: 'DELETE',
-			headers: await getAuthHeaders()
-		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_SCHEDULE_FAILED
-			)
-		}
 	}
 }
 

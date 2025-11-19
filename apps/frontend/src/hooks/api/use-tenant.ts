@@ -18,13 +18,15 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	Tenant,
 	TenantInput,
 	TenantUpdate,
 	TenantWithLeaseInfo,
-	TenantWithExtras
+	TenantWithExtras,
+	TenantWithLeaseInfoWithVersion
 } from '@repo/shared/types/core'
 import {
 	keepPreviousData,
@@ -222,47 +224,44 @@ export function useUpdateTenant() {
 			)
 
 			// Optimistically update detail cache
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						...data,
-						updated_at: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.detail(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+				return incrementVersion(old, {
+					...data,
+					updated_at: new Date().toISOString()
+				})
+			}
+		)
 
 			// Optimistically update with-lease cache
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.withLease(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						...data,
-						updated_at: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.withLease(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+				return incrementVersion(old, {
+					...data,
+					updated_at: new Date().toISOString()
+				})
+			}
+		)
 
 			// Optimistically update list cache
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantQueries.lists(),
-				old => {
-					if (!old) return old
-					return old.map(tenant =>
-						tenant.id === id
-							? ({
-									...tenant,
-									...data,
-									updated_at: new Date().toISOString()
-								} as TenantWithLeaseInfo)
-							: tenant
-					)
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion[]>(
+			tenantQueries.lists(),
+			(old: TenantWithLeaseInfoWithVersion[] | undefined) => {
+				if (!old) return old
+				return old.map(tenant =>
+					tenant.id === id
+						? incrementVersion(tenant, {
+								...data,
+								updated_at: new Date().toISOString()
+							})
+						: tenant
+				)
+			}
+		)
 
 			return { previousDetail, previousWithLease, previousList, id }
 		},
@@ -485,33 +484,33 @@ export function useMarkTenantAsMovedOut() {
 			)
 
 			// Optimistic update - mark as MOVED_OUT in detail caches
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						status: 'MOVED_OUT',
-						move_out_date: data.moveOutDate,
-						move_out_reason: data.moveOutReason,
-						updated_at: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.detail(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+return (incrementVersion(old, {
+				status: 'MOVED_OUT',
+				move_out_date: data.moveOutDate,
+				move_out_reason: data.moveOutReason,
+				updated_at: new Date().toISOString()
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any) as any)
+			}
+		)
 
-			queryClient.setQueryData<TenantWithLeaseInfo>(
-				tenantQueries.withLease(id).queryKey,
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						status: 'MOVED_OUT',
-						move_out_date: data.moveOutDate,
-						move_out_reason: data.moveOutReason,
-						updated_at: new Date().toISOString()
-					} as TenantWithLeaseInfo
-				}
-			)
+			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+			tenantQueries.withLease(id).queryKey,
+			(old: TenantWithLeaseInfoWithVersion | undefined) => {
+				if (!old) return old
+return (incrementVersion(old, {
+				status: 'MOVED_OUT',
+				move_out_date: data.moveOutDate,
+				move_out_reason: data.moveOutReason,
+				updated_at: new Date().toISOString()
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} as any) as any)
+			}
+		)
 
 			// Optimistic update - remove from list (soft delete)
 			queryClient.setQueryData<TenantWithLeaseInfo[]>(

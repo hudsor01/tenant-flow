@@ -390,10 +390,6 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				options
 			})
 
-			// Use centralized client selection
-			this.getClientForToken(token)
-
-			// Call optimized RPC function that consolidates 3 queries into one
 			// Build params conditionally to satisfy exactOptionalPropertyTypes
 			const params: {
 				owner_id_param: string
@@ -409,15 +405,25 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				params.end_date_param = options.end_date.toISOString()
 			}
 
-			// TODO: Re-enable RPC call once get_billing_insights is available
-			// const { data, error } = await client.rpc('get_billing_insights', params)
+			// Call optimized RPC function that consolidates billing insights
+			const data = await this.callRpc<BillingInsights>(
+				'get_billing_insights',
+				params,
+				token
+			)
 
-			// For now, return default values
-			return {
-				totalRevenue: 0,
-				churnRate: 0,
-				mrr: 0
+			if (!data) {
+				this.logger.warn('Billing insights RPC failed, returning defaults', {
+					user_id
+				})
+				return {
+					totalRevenue: 0,
+					churnRate: 0,
+					mrr: 0
+				}
 			}
+
+			return data
 		} catch (error) {
 			this.logger.error(
 				`Database error in getBillingInsights: ${error instanceof Error ? error.message : String(error)}`,

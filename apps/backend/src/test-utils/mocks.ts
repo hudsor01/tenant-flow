@@ -219,6 +219,7 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		late_fee_days: overrides?.late_fee_days || null,
 		late_fee_amount: overrides?.late_fee_amount || null,
 		stripe_subscription_id: overrides?.stripe_subscription_id || null,
+		property_owner_id: overrides?.property_owner_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 
@@ -245,6 +246,7 @@ export function createMockMaintenanceRequest(
 		inspector_id: overrides?.inspector_id || null,
 		inspection_date: overrides?.inspection_date || null,
 		inspection_findings: overrides?.inspection_findings || null,
+		property_owner_id: overrides?.property_owner_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 
