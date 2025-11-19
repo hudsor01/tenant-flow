@@ -22,15 +22,15 @@ describe('BalanceSheetController', () => {
 
 	const mockBalanceSheet: BalanceSheetData = {
 		period: {
-			startDate: '2024-10-31',
-			endDate: '2024-10-31',
+			start_date: '2024-10-31',
+			end_date: '2024-10-31',
 			label: 'As of October 31, 2024'
 		},
 		assets: {
 			currentAssets: {
 				cash: 10000,
 				accountsReceivable: 2000,
-				securityDeposits: 5000,
+				security_deposits: 5000,
 				total: 17000
 			},
 			fixedAssets: {
@@ -44,7 +44,7 @@ describe('BalanceSheetController', () => {
 		liabilities: {
 			currentLiabilities: {
 				accountsPayable: 1000,
-				securityDepositLiability: 5000,
+				security_depositLiability: 5000,
 				accruedExpenses: 500,
 				total: 6500
 			},

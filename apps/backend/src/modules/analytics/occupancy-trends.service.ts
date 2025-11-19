@@ -20,14 +20,14 @@ export class OccupancyTrendsService {
 	constructor(private readonly supabase: SupabaseService) {}
 
 	private buildUserPayload(
-		userId: string,
+		user_id: string,
 		extra?: Record<string, unknown>
 	): Record<string, unknown> {
 		return {
-			user_id: userId,
-			user_id_param: userId,
-			p_user_id: userId,
-			uid: userId,
+			user_id: user_id,
+			user_id_param: user_id,
+			p_user_id: user_id,
+			uid: user_id,
 			...extra
 		}
 	}
@@ -59,37 +59,37 @@ export class OccupancyTrendsService {
 		}
 	}
 
-	async getOccupancyTrends(userId: string): Promise<OccupancyTrendPoint[]> {
+	async getOccupancyTrends(user_id: string): Promise<OccupancyTrendPoint[]> {
 		const raw = await this.callRpc(
 			'get_occupancy_trends',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapOccupancyTrends(raw)
 	}
 
-	async getVacancyAnalysis(userId: string): Promise<VacancyAnalysisEntry[]> {
+	async getVacancyAnalysis(user_id: string): Promise<VacancyAnalysisEntry[]> {
 		const raw = await this.callRpc(
 			'get_vacancy_analysis',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapVacancyAnalysis(raw)
 	}
 
-	async getOccupancyMetrics(userId: string): Promise<OccupancyMetricSummary> {
+	async getOccupancyMetrics(user_id: string): Promise<OccupancyMetricSummary> {
 		const raw = await this.callRpc(
 			'get_occupancy_overview',
-			this.buildUserPayload(userId)
+			this.buildUserPayload(user_id)
 		)
 		return mapOccupancyMetrics(raw)
 	}
 
 	async getOccupancyAnalyticsPageData(
-		userId: string
+		user_id: string
 	): Promise<OccupancyAnalyticsPageResponse> {
 		const [metricsRaw, trendsRaw, vacancyRaw] = await Promise.all([
-			this.callRpc('get_occupancy_overview', this.buildUserPayload(userId)),
-			this.callRpc('get_occupancy_trends', this.buildUserPayload(userId)),
-			this.callRpc('get_vacancy_analysis', this.buildUserPayload(userId))
+			this.callRpc('get_occupancy_overview', this.buildUserPayload(user_id)),
+			this.callRpc('get_occupancy_trends', this.buildUserPayload(user_id)),
+			this.callRpc('get_vacancy_analysis', this.buildUserPayload(user_id))
 		])
 
 		return buildOccupancyAnalyticsPageResponse({

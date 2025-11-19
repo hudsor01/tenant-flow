@@ -1,6 +1,13 @@
 'use client'
 
-export default function GlobalError() {
+export const dynamic = 'force-dynamic'
+
+interface GlobalErrorProps {
+	error: Error & { digest?: string }
+	reset: () => void
+}
+
+export default function GlobalError({ error: _error, reset }: GlobalErrorProps) {
 	return (
 		<html lang="en">
 			<body>
@@ -12,17 +19,19 @@ export default function GlobalError() {
 					justifyContent: 'center',
 					gap: '1rem',
 					fontFamily: 'system-ui, sans-serif',
-					padding: '2rem'
+					padding: '2rem',
+					backgroundColor: 'var(--color-background)',
+					color: 'var(--color-foreground)'
 				}}>
 					<h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
 						Something went wrong!
 					</h2>
 					<button
-						onClick={() => window.location.reload()}
+						onClick={() => reset()}
 						style={{
 							padding: '0.75rem 1.5rem',
 							color: 'white',
-							backgroundColor: 'var(--color-accent-main)',
+							backgroundColor: 'var(--color-primary)',
 							border: 'none',
 							borderRadius: '0.5rem',
 							fontSize: '1rem',

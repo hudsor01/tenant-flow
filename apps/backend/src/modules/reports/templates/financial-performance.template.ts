@@ -26,8 +26,8 @@ export interface FinancialPerformanceReportData {
 		netIncome: number
 	}>
 	period: {
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	}
 }
 
@@ -38,22 +38,22 @@ export class FinancialPerformanceTemplate {
 	constructor(private readonly financialService: FinancialAnalyticsService) {}
 
 	async generateReportData(
-		userId: string,
-		startDate: string,
-		endDate: string
+		user_id: string,
+		start_date: string,
+		end_date: string
 	): Promise<FinancialPerformanceReportData> {
 		this.logger.log('Generating financial performance report data', {
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		})
 
 		const [financialMetrics, noiData, expenseSummary, monthlyMetrics] =
 			await Promise.all([
-				this.financialService.getFinancialMetrics(userId),
-				this.financialService.getNetOperatingIncome(userId),
-				this.financialService.getExpenseSummary(userId),
-				this.financialService.getMonthlyMetrics(userId)
+				this.financialService.getFinancialMetrics(user_id),
+				this.financialService.getNetOperatingIncome(user_id),
+				this.financialService.getExpenseSummary(user_id),
+				this.financialService.getMonthlyMetrics(user_id)
 			])
 
 		const profitLoss = {
@@ -95,8 +95,8 @@ export class FinancialPerformanceTemplate {
 			expenseBreakdown,
 			monthlyTrends,
 			period: {
-				startDate,
-				endDate
+				start_date,
+				end_date
 			}
 		}
 	}

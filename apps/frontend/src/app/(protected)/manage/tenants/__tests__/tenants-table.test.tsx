@@ -49,7 +49,7 @@ const MOCK_COLUMNS: ColumnDef<TenantWithLeaseInfo>[] = [
 		header: 'Email'
 	},
 	{
-		accessorKey: 'invitation_status',
+		accessorKey: 'lease_status',
 		header: 'Status'
 	}
 ]
@@ -57,93 +57,109 @@ const MOCK_COLUMNS: ColumnDef<TenantWithLeaseInfo>[] = [
 const MOCK_TENANTS: TenantWithLeaseInfo[] = [
 	{
 		id: 'tenant-1',
-		name: 'John Doe',
-		email: 'john@example.com',
-		phone: '555-0001',
-		avatarUrl: null,
-		emergencyContact: null,
-		createdAt: '2024-01-01',
-		updatedAt: '2024-01-01',
-		invitation_status: 'ACCEPTED',
-		invitation_sent_at: '2024-01-01',
-		invitation_accepted_at: '2024-01-01',
-		invitation_expires_at: null,
+		user_id: 'user-1',
+		first_name: 'Sarah',
+		last_name: 'Johnson',
+		name: 'Sarah Johnson',
+		email: 'sarah.johnson@email.com',
+		phone: '310-555-0101',
+		emergency_contact_name: null,
+		emergency_contact_phone: null,
+		emergency_contact_relationship: null,
+		date_of_birth: null,
+		identity_verified: false,
+		ssn_last_four: null,
+		stripe_customer_id: 'cus_123',
+		created_at: '2024-05-01',
+		updated_at: '2024-10-01',
+
 		currentLease: {
 			id: 'lease-1',
-			startDate: '2024-01-01',
-			endDate: '2024-12-31',
-			rentAmount: 1500,
-			securityDeposit: 1500,
+			start_date: '2024-05-01',
+			end_date: '2025-04-30',
+			rent_amount: 3500,
+			security_deposit: 7000,
 			status: 'ACTIVE',
-			terms: null
+			primary_tenant_id: 'tenant-1',
+			unit_id: 'unit-101'
 		},
+		leases: [],
 		unit: {
-			id: 'unit-1',
-			unitNumber: '101',
+			id: 'unit-101',
+			unit_number: '101',
 			bedrooms: 2,
-			bathrooms: 1,
-			squareFootage: 850
+			bathrooms: 2,
+			square_feet: 1200,
+			rent_amount: 3500
 		},
 		property: {
 			id: 'property-1',
-			name: 'Sunset Apartments',
-			address: '123 Main St',
-			city: 'San Francisco',
+			name: 'Sunset Towers',
+			address_line1: '123 Ocean Avenue',
+			city: 'Santa Monica',
 			state: 'CA',
-			zipCode: '94105'
+			postal_code: '90401'
 		},
-		monthlyRent: 1500,
-		leaseStatus: 'ACTIVE',
-		paymentStatus: null,
+		monthlyRent: 3500,
+		lease_status: 'ACTIVE',
+		paymentStatus: 'Current',
 		unitDisplay: 'Unit 101',
-		propertyDisplay: 'Sunset Apartments',
-		leaseStart: '2024-01-01',
-		leaseEnd: '2024-12-31'
+		propertyDisplay: 'Sunset Towers, Santa Monica',
+		leaseStart: '2024-05-01',
+		leaseEnd: '2025-04-30'
 	},
 	{
 		id: 'tenant-2',
-		name: 'Jane Smith',
-		email: 'jane@example.com',
-		phone: '555-0002',
-		avatarUrl: null,
-		emergencyContact: null,
-		createdAt: '2024-01-01',
-		updatedAt: '2024-01-01',
-		invitation_status: 'ACCEPTED',
-		invitation_sent_at: '2024-01-01',
-		invitation_accepted_at: '2024-01-01',
-		invitation_expires_at: null,
+		user_id: 'user-2',
+		first_name: 'Michael',
+		last_name: 'Chen',
+		name: 'Michael Chen',
+		email: 'michael.chen@email.com',
+		phone: '310-555-0102',
+		emergency_contact_name: null,
+		emergency_contact_phone: null,
+		emergency_contact_relationship: null,
+		date_of_birth: null,
+		identity_verified: false,
+		ssn_last_four: null,
+		stripe_customer_id: 'cus_124',
+		created_at: '2024-06-10',
+		updated_at: '2024-10-05',
+		
 		currentLease: {
 			id: 'lease-2',
-			startDate: '2024-01-01',
-			endDate: '2024-12-31',
-			rentAmount: 1600,
-			securityDeposit: 1600,
+			start_date: '2024-06-01',
+			end_date: '2025-05-31',
+			rent_amount: 3800,
+			security_deposit: 7600,
 			status: 'ACTIVE',
-			terms: null
+			primary_tenant_id: 'tenant-2',
+			unit_id: 'unit-A'
 		},
+		leases: [],
 		unit: {
-			id: 'unit-2',
-			unitNumber: '102',
-			bedrooms: 2,
-			bathrooms: 1,
-			squareFootage: 900
+			id: 'unit-A',
+			unit_number: 'A',
+			bedrooms: 3,
+			bathrooms: 2,
+			square_feet: 1400,
+			rent_amount: 3800
 		},
 		property: {
-			id: 'property-1',
-			name: 'Sunset Apartments',
-			address: '123 Main St',
-			city: 'San Francisco',
+			id: 'property-2',
+			name: 'Harbor View Residences',
+			address_line1: '456 Marina Boulevard',
+			city: 'San Diego',
 			state: 'CA',
-			zipCode: '94105'
+			postal_code: '92101'
 		},
-		monthlyRent: 1600,
-		leaseStatus: 'ACTIVE',
-		paymentStatus: null,
-		unitDisplay: 'Unit 102',
-		propertyDisplay: 'Sunset Apartments',
-		leaseStart: '2024-01-01',
-		leaseEnd: '2024-12-31'
+		monthlyRent: 3800,
+		lease_status: 'ACTIVE',
+		paymentStatus: 'Current',
+		unitDisplay: 'Unit A',
+		propertyDisplay: 'Harbor View Residences, San Diego',
+		leaseStart: '2024-06-01',
+		leaseEnd: '2025-05-31'
 	}
 ]
 
@@ -170,10 +186,10 @@ describe('TenantsTableClient', () => {
 				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
 			)
 
-			expect(screen.getByText('John Doe')).toBeInTheDocument()
-			expect(screen.getByText('john@example.com')).toBeInTheDocument()
-			expect(screen.getByText('Jane Smith')).toBeInTheDocument()
-			expect(screen.getByText('jane@example.com')).toBeInTheDocument()
+		expect(screen.getByText('Sarah Johnson')).toBeInTheDocument()
+		expect(screen.getByText('sarah.johnson@email.com')).toBeInTheDocument()
+		expect(screen.getByText('Michael Chen')).toBeInTheDocument()
+		expect(screen.getByText('michael.chen@email.com')).toBeInTheDocument()
 		})
 
 		test('shows empty state when no tenants', () => {
@@ -237,8 +253,8 @@ describe('TenantsTableClient', () => {
 			await waitFor(() => {
 				expect(screen.getByText(/delete tenant/i)).toBeInTheDocument()
 				expect(screen.getByText(/permanently delete/i)).toBeInTheDocument()
-				// Look for John Doe in the dialog content (appears in both table and dialog)
-				expect(screen.getAllByText('John Doe').length).toBeGreaterThan(0)
+		// Look for Sarah Johnson in the dialog content (appears in both table and dialog)
+		expect(screen.getAllByText('Sarah Johnson').length).toBeGreaterThan(0)
 			})
 		})
 
@@ -296,8 +312,8 @@ describe('TenantsTableClient', () => {
 			)
 
 			// Should show both tenants
-			expect(screen.getByText('John Doe')).toBeInTheDocument()
-			expect(screen.getByText('Jane Smith')).toBeInTheDocument()
+			expect(screen.getByText('Sarah Johnson')).toBeInTheDocument()
+			expect(screen.getByText('Michael Chen')).toBeInTheDocument()
 		})
 	})
 
@@ -340,29 +356,34 @@ describe('TenantsTableClient', () => {
 				/>
 			)
 
-			expect(screen.getByText('John Doe')).toBeInTheDocument()
-			expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument()
+			expect(screen.getByText('Sarah Johnson')).toBeInTheDocument()
+			expect(screen.queryByText('Michael Chen')).not.toBeInTheDocument()
 		})
 
 		test('handles tenant with missing lease info', () => {
 			const tenantWithoutLease: TenantWithLeaseInfo = {
-				id: 'tenant-1',
-				name: 'John Doe',
-				email: 'john@example.com',
-				phone: '555-0001',
-				avatarUrl: null,
-				emergencyContact: null,
-				createdAt: '2024-01-01',
-				updatedAt: '2024-01-01',
-				invitation_status: 'ACCEPTED',
-				invitation_sent_at: '2024-01-01',
-				invitation_accepted_at: '2024-01-01',
-				invitation_expires_at: null,
+				id: 'tenant-3',
+				user_id: 'user-3',
+				first_name: 'Emily',
+				last_name: 'Rodriguez',
+				name: 'Emily Rodriguez',
+				email: 'emily.rodriguez@email.com',
+				phone: null,
+				emergency_contact_name: null,
+				date_of_birth: '1990-01-01',
+				identity_verified: false,
+				ssn_last_four: null,
+				stripe_customer_id: null,
+				emergency_contact_phone: null,
+				emergency_contact_relationship: null,
+				created_at: '2024-08-01',
+				updated_at: '2024-08-01',
 				currentLease: null,
+				leases: [],
 				unit: null,
 				property: null,
 				monthlyRent: 0,
-				leaseStatus: 'NONE',
+				lease_status: 'NONE',
 				paymentStatus: null,
 				unitDisplay: 'No Unit',
 				propertyDisplay: 'No Property',
@@ -370,14 +391,14 @@ describe('TenantsTableClient', () => {
 				leaseEnd: null
 			}
 
-			renderWithQueryClient(
-				<TenantsTableClient
-					columns={MOCK_COLUMNS}
-					initialTenants={[tenantWithoutLease]}
-				/>
-			)
+            renderWithQueryClient(
+                <TenantsTableClient
+                    columns={MOCK_COLUMNS}
+                    initialTenants={[tenantWithoutLease]}
+                />
+            )
 
-			expect(screen.getByText('John Doe')).toBeInTheDocument()
+            expect(screen.getByText('Emily Rodriguez')).toBeInTheDocument()
 		})
 
 		test('renders correctly with custom columns', () => {
@@ -393,7 +414,7 @@ describe('TenantsTableClient', () => {
 			)
 
 			expect(screen.getByText('Tenant Name')).toBeInTheDocument()
-			expect(screen.getByText('John Doe')).toBeInTheDocument()
+			expect(screen.getByText('Sarah Johnson')).toBeInTheDocument()
 		})
 	})
 })

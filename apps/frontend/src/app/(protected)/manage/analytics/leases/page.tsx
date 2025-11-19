@@ -27,7 +27,7 @@ export default async function LeaseAnalyticsPage() {
 			totalLeases: 0,
 			activeLeases: 0,
 			expiringSoon: 0,
-			totalMonthlyRent: 0,
+			totalrent_amount: 0,
 			averageLeaseValue: 0
 		},
 		profitability = [],
@@ -82,7 +82,7 @@ export default async function LeaseAnalyticsPage() {
 							</CardHeader>
 							<CardContent className="pt-0">
 								<p className="text-3xl font-semibold tabular-nums">
-									{formatCurrency(metrics.totalMonthlyRent)}
+									{formatCurrency(metrics.totalrent_amount)}
 								</p>
 							</CardContent>
 						</Card>
@@ -149,14 +149,14 @@ export default async function LeaseAnalyticsPage() {
 								<TableBody>
 									{profitability && profitability.length > 0 ? (
 										profitability.slice(0, 8).map(lease => (
-											<TableRow key={lease.leaseId}>
+											<TableRow key={lease.lease_id}>
 												<TableCell className="font-medium">
-													{lease.leaseId}
+													{lease.lease_id}
 												</TableCell>
 												<TableCell>{lease.tenantName}</TableCell>
 												<TableCell>{lease.propertyName}</TableCell>
 												<TableCell className="text-right">
-													{formatCurrency(lease.monthlyRent)}
+													{formatCurrency(lease.rent_amount)}
 												</TableCell>
 												<TableCell className="text-right">
 													{formatCurrency(lease.outstandingBalance)}

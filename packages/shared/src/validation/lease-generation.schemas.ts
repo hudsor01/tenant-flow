@@ -2,12 +2,12 @@ import { z } from 'zod'
 
 /**
  * Timezone-safe date validation for YYYY-MM-DD calendar dates
- * 
+ *
  * Lease dates are calendar dates (not timestamps), so we parse them consistently
  * in UTC to avoid timezone-related bugs. For example:
  * - User selects "2024-01-15" → treated as Jan 15 regardless of timezone
  * - Parsing "2024-01-15" as UTC midnight ensures consistent validation
- * 
+ *
  * @param val - Date string in YYYY-MM-DD format
  * @returns val if valid, throws Error if invalid
  */
@@ -17,16 +17,16 @@ export const validateDateString = (val: unknown): unknown => {
 		if (!/^\d{4}-\d{2}-\d{2}$/.test(val)) {
 			throw new Error('Date must be in YYYY-MM-DD format')
 		}
-		
+
 		// Parse as UTC midnight for consistent validation (avoids timezone bugs)
 		// This treats "2024-01-15" as a calendar date, not a timestamp
 		const date = new Date(`${val}T00:00:00.000Z`)
-		
+
 		// Validate it's a real date (rejects 2024-99-99, 2024-02-30, etc.)
 		if (isNaN(date.getTime())) {
 			throw new Error('Invalid date')
 		}
-		
+
 		// Additional validation: Extract parts and verify they match
 		// This catches edge cases like "2024-02-30" which Date might auto-adjust
 		const [year, month, day] = val.split('-').map(Number)
@@ -59,15 +59,15 @@ export const leaseGenerationSchema = z.object({
 	terminationDate: z.preprocess(validateDateString, z.string().min(1, 'Termination date is required')),
 
 	// Section 3: Rent (Pages 1-2)
-	monthlyRent: z.number().gt(0, 'Monthly rent must be positive'),
+	rent_amount: z.number().gt(0, 'Monthly rent must be positive'),
 	rentDueDay: z.number().min(1).max(31).default(1),
-	lateFeeAmount: z.number().min(0).optional(),
+	late_fee_amount: z.number().min(0).optional(),
 	lateFeeGraceDays: z.number().min(0).default(3),
 	nsfFee: z.number().min(0).default(50),
 
 	// Section 4: Security Deposit (Page 2)
-	securityDeposit: z.number().min(0),
-	securityDepositDueDays: z.number().min(0).default(30),
+	security_deposit: z.number().min(0),
+	security_depositDueDays: z.number().min(0).default(30),
 
 	// Section 5: Use of Premises (Page 2)
 	maxOccupants: z.number().min(1).optional(),
@@ -109,8 +109,8 @@ export const leaseGenerationSchema = z.object({
 	leadPaintDisclosureProvided: z.boolean().optional(),
 
 	// Additional metadata (required for authorization/validation)
-	propertyId: z.string().uuid('Invalid property ID'),
-	tenantId: z.string().optional()
+	property_id: z.string().uuid('Invalid property ID'),
+	tenant_id: z.string().optional()
 }).refine(
 	(data) => {
 		// Validate terminationDate > commencementDate
@@ -135,12 +135,12 @@ export type LeaseGenerationFormData = z.infer<typeof leaseGenerationSchema>
 
 /**
  * Auto-fill schema for pre-populating form from property/tenant/unit data
- * Matches the GET /api/v1/leases/auto-fill/:propertyId/:unitId/:tenantId endpoint
+ * Matches the GET /api/v1/leases/auto-fill/:property_id/:unit_id/:tenant_id endpoint
  */
 export const leaseAutoFillSchema = z.object({
-	propertyId: z.string().uuid('Invalid property ID'),
-	unitId: z.string().uuid('Invalid unit ID'),
-	tenantId: z.string().uuid('Invalid tenant ID')
+	property_id: z.string().uuid('Invalid property ID'),
+	unit_id: z.string().uuid('Invalid unit ID'),
+	tenant_id: z.string().uuid('Invalid tenant ID')
 })
 
 export type LeaseAutoFillRequest = z.infer<typeof leaseAutoFillSchema>

@@ -1,342 +1,239 @@
 import { z } from 'zod'
-import { Constants, type Database } from '../types/supabase-generated.js'
-import type { CreatePropertyRequest } from '../types/api-contracts.js'
 import {
-	nonEmptyStringSchema,
-	nonNegativeNumberSchema,
-	positiveNumberSchema,
-	requiredString,
-	urlSchema,
-	uuidSchema
+  uuidSchema,
+  requiredString,
+  nonEmptyStringSchema,
+  positiveNumberSchema,
+ nonNegativeNumberSchema
 } from './common.js'
-import { imageUrlSchema } from './image-url.schemas.js'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
-// Property type schema - uses auto-generated Supabase enums
-export const propertyTypeSchema = z.enum(
-	Constants.public.Enums.PropertyType as readonly [string, ...string[]]
-)
+// Property status enum validation
+export const propertyStatusSchema = z.enum([
+  'active',
+  'inactive',
+  'maintenance',
+  'sold',
+  'leased',
+  'under_construction'
+])
 
-export const propertyStatusSchema = z.enum(
-	Constants.public.Enums.PropertyStatus as readonly [string, ...string[]]
-)
+// Property type enum validation
+export const propertyTypeSchema = z.enum([
+  'single_family',
+  'multi_family',
+  'condo',
+  'townhouse',
+  'apartment',
+  'commercial',
+  'industrial',
+  'mixed_use',
+  'other'
+])
 
-// Base property input schema (for forms and API creation)
+// Base property input schema (matches database exactly)
 export const propertyInputSchema = z.object({
-	name: nonEmptyStringSchema
-		.min(3, 'Property name must be at least 3 characters')
-		.max(VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH, `Property name cannot exceed ${VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH} characters`),
+  name: nonEmptyStringSchema
+    .min(2, 'Property name must be at least 2 characters')
+    .max(VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH, `Property name cannot exceed ${VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH} characters`),
 
-	description: z
-		.string()
-		.max(VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH, `Description cannot exceed ${VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH} characters`)
-		.optional()
-		.or(z.literal('')),
+  address_line1: nonEmptyStringSchema
+    .min(5, 'Address line 1 must be at least 5 characters')
+    .max(200, 'Address line 1 cannot exceed 200 characters'),
 
-	propertyType: propertyTypeSchema,
+  address_line2: z.string()
+    .max(200, 'Address line 2 cannot exceed 200 characters')
+    .optional(),
 
-	address: nonEmptyStringSchema
-		.min(5, 'Address must be at least 5 characters')
-		.max(200, 'Address cannot exceed 200 characters'),
+  city: nonEmptyStringSchema
+    .min(2, 'City must be at least 2 characters')
+    .max(50, 'City cannot exceed 50 characters'),
 
-	city: nonEmptyStringSchema
-		.min(2, 'City must be at least 2 characters')
-		.max(50, 'City cannot exceed 50 characters'),
+  state: z.string()
+    .min(2, 'State is required')
+    .max(2, 'State must be 2 characters')
+    .regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
 
-	state: z
-		.string()
-		.min(2, 'State is required')
-		.max(2, 'State must be 2 characters')
-		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
+  postal_code: z.string()
+    .regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code (12345 or 12345-6789)'),
 
-	zipCode: z
-		.string()
-		.regex(
-			/^\d{5}(-\d{4})?$/,
-			'Please enter a valid ZIP code (12345 or 12345-6789)'
-		),
+  country: z.string()
+    .max(50, 'Country cannot exceed 50 characters')
+    .default('US'),
 
-	bedrooms: positiveNumberSchema
-		.int('Bedrooms must be a whole number')
-		.max(VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS, `Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS} bedrooms allowed`)
-		.optional(),
+  property_type: propertyTypeSchema,
 
-	bathrooms: positiveNumberSchema
-		.max(VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS, `Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS} bathrooms allowed`)
-		.optional(),
+  status: propertyStatusSchema.default('active'),
 
-	squareFootage: positiveNumberSchema
-		.int('Square footage must be a whole number')
-		.max(VALIDATION_LIMITS.SQUARE_FOOTAGE_MAXIMUM, 'Square footage seems unrealistic')
-		.optional(),
+  property_owner_id: uuidSchema,
 
-	rent: nonNegativeNumberSchema
-		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, 'Rent amount seems unrealistic')
-		.optional(),
+  bedrooms: positiveNumberSchema
+    .int('Bedrooms must be a whole number')
+    .max(VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS, `Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS} bedrooms allowed`)
+    .optional(),
 
-	deposit: nonNegativeNumberSchema
-		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, 'Deposit amount seems unrealistic')
-		.optional(),
+  bathrooms: positiveNumberSchema
+    .max(VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS, `Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS} bathrooms allowed`)
+    .optional(),
 
-	images: z.array(urlSchema).optional(),
-
-	amenities: z.array(z.string()).optional()
+  // Note: square footage is not in the database schema based on the supabase.ts file
 })
 
 // Full property schema (includes server-generated fields)
 export const propertySchema = propertyInputSchema.extend({
-	id: uuidSchema,
-	ownerId: uuidSchema,
-	status: propertyStatusSchema,
-	createdAt: z.string(),
-	updatedAt: z.string()
+  id: uuidSchema,
+  created_at: z.string(),
+  updated_at: z.string()
 })
 
 // Property update schema (partial input)
 export const propertyUpdateSchema = propertyInputSchema.partial().extend({
-	status: propertyStatusSchema.optional()
+  id: uuidSchema.optional(),
+  status: propertyStatusSchema.optional(),
+  property_owner_id: uuidSchema.optional()
 })
 
 // Property query schema (for search/filtering)
 export const propertyQuerySchema = z.object({
-	search: z.string().optional(),
-	propertyType: propertyTypeSchema.optional(),
-	city: z.string().optional(),
-	state: z.string().optional(),
-	minRent: nonNegativeNumberSchema.optional(),
-	maxRent: nonNegativeNumberSchema.optional(),
-	bedrooms: positiveNumberSchema.int().optional(),
-	bathrooms: positiveNumberSchema.optional(),
-	status: propertyStatusSchema.optional(),
-	sortBy: z.enum(['name', 'createdAt', 'rent', 'city']).optional(),
-	sortOrder: z.enum(['asc', 'desc']).optional(),
-	page: z.coerce.number().int().positive().default(VALIDATION_LIMITS.API_QUERY_DEFAULT_PAGE),
-	limit: z.coerce.number().int().positive().max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT).default(VALIDATION_LIMITS.API_QUERY_DEFAULT_LIMIT)
+  search: z.string().optional(),
+  property_type: propertyTypeSchema.optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  status: propertyStatusSchema.optional(),
+  property_owner_id: uuidSchema.optional(),
+  min_bedrooms: positiveNumberSchema.int().optional(),
+  max_bedrooms: positiveNumberSchema.int().optional(),
+  min_bathrooms: positiveNumberSchema.optional(),
+  max_bathrooms: positiveNumberSchema.optional(),
+  sort_by: z.enum([
+    'name',
+    'created_at',
+    'city',
+    'status',
+    'bedrooms',
+    'bathrooms'
+  ]).optional(),
+  sort_order: z.enum(['asc', 'desc']).optional().default('asc'),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT).default(20)
+})
+
+// Property creation schema
+export const propertyCreateSchema = propertyInputSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  status: true
+}).extend({
+  status: propertyStatusSchema.default('active')
+})
+
+// Property address validation schema
+export const propertyAddressSchema = z.object({
+  address_line1: nonEmptyStringSchema
+    .min(5, 'Address line 1 must be at least 5 characters')
+    .max(200, 'Address line 1 cannot exceed 200 characters'),
+  address_line2: z.string()
+    .max(200, 'Address line 2 cannot exceed 200 characters')
+    .optional(),
+  city: nonEmptyStringSchema
+    .min(2, 'City must be at least 2 characters')
+    .max(50, 'City cannot exceed 50 characters'),
+  state: z.string()
+    .min(2, 'State is required')
+    .max(2, 'State must be 2 characters')
+    .regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
+  postal_code: z.string()
+    .regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code (12345 or 12345-6789)'),
+  country: z.string()
+    .max(50, 'Country cannot exceed 50 characters')
+    .default('US')
 })
 
 // Property statistics schema
 export const propertyStatsSchema = z.object({
-	total: nonNegativeNumberSchema,
-	active: nonNegativeNumberSchema,
-	inactive: nonNegativeNumberSchema,
-	maintenance: nonNegativeNumberSchema,
-	totalRent: nonNegativeNumberSchema,
-	averageRent: nonNegativeNumberSchema
+  total: nonNegativeNumberSchema,
+  active: nonNegativeNumberSchema,
+  inactive: nonNegativeNumberSchema,
+  maintenance: nonNegativeNumberSchema,
+  units: nonNegativeNumberSchema,
+  occupied_units: nonNegativeNumberSchema,
+  vacant_units: nonNegativeNumberSchema,
+  occupancy_rate: z.number().min(0).max(100)
 })
+
+// Property sold schema
+export const propertySoldSchema = z.object({
+  sale_date: z.string().min(1, 'Sale date is required'),
+  sale_price: positiveNumberSchema
+    .max(VALIDATION_LIMITS.SALE_PRICE_MAXIMUM, 'Sale price seems unrealistic'),
+  sale_notes: z.string()
+    .max(VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH, `Sale notes cannot exceed ${VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH} characters`)
+    .optional()
+})
+
+/**
+ * @deprecated propertyImageUploadSchema - Legacy, not used
+ * 
+ * The new frontend implementation (PropertyImageUpload component + usePropertyImageUpload hook)
+ * handles validation entirely on the client side. This schema is no longer needed.
+ * 
+ * Fields (isPrimary, caption) were not supported by the database schema anyway.
+ * Migration: Use apps/frontend/src/components/properties/property-image-upload.tsx
+ */
 
 // Export types
 export type PropertyInput = z.infer<typeof propertyInputSchema>
 export type Property = z.infer<typeof propertySchema>
 export type PropertyUpdate = z.infer<typeof propertyUpdateSchema>
 export type PropertyQuery = z.infer<typeof propertyQuerySchema>
+export type PropertyCreate = z.infer<typeof propertyCreateSchema>
+export type PropertyAddress = z.infer<typeof propertyAddressSchema>
 export type PropertyStats = z.infer<typeof propertyStatsSchema>
-export type PropertyTypeValidation = z.infer<typeof propertyTypeSchema>
-export type PropertyStatusValidation = z.infer<typeof propertyStatusSchema>
+export type PropertySold = z.infer<typeof propertySoldSchema>
 
-// Frontend-specific form schema (handles string inputs from HTML forms)
-// Clean schema for React Hook Form zodResolver compatibility
+// Frontend-specific form schemas
 export const propertyFormSchema = z.object({
-	name: requiredString,
-	description: z.string().optional(),
-	propertyType: z.enum(
-		Constants.public.Enums.PropertyType as readonly [string, ...string[]]
-	),
-	address: requiredString,
-	city: requiredString,
-	state: requiredString,
-	zipCode: requiredString,
-	bedrooms: z.string().optional(),
-	bathrooms: z.string().optional(),
-	squareFootage: z.string().optional(),
-	rent: z.string().optional(),
-	deposit: z.string().optional(),
-	imageUrl: imageUrlSchema, // Validates trusted image sources only
-	propertyId: z.string().optional(), // Optional propertyId for form.setFieldValue
-	// Frontend-specific UI fields
-	hasGarage: z.boolean().optional(),
-	hasPool: z.boolean().optional(),
-	numberOfUnits: z.string().optional(),
-	createUnitsNow: z.boolean().optional()
+  name: requiredString,
+  address_line1: requiredString,
+  address_line2: z.string().optional(),
+  city: requiredString,
+  state: requiredString,
+ postal_code: requiredString,
+  country: z.string().optional().default('US'),
+  property_type: z.enum([
+    'single_family',
+    'multi_family',
+    'condo',
+    'townhouse',
+    'apartment',
+    'commercial',
+    'industrial',
+    'mixed_use',
+    'other'
+  ]),
+  property_owner_id: requiredString,
+  bedrooms: z.string().optional(),
+  bathrooms: z.string().optional()
 })
 
-// Transform function for converting form data to API format
-// NOTE: Does NOT include ownerId - backend extracts from authenticated user
-export const transformPropertyFormData = (
-	data: PropertyFormData
-): CreatePropertyRequest => {
-	const result: CreatePropertyRequest = {
-		name: data.name,
-		address: data.address,
-		city: data.city,
-		state: data.state,
-		zipCode: data.zipCode,
-		propertyType:
-			data.propertyType as Database['public']['Enums']['PropertyType']
-	}
+export const propertyUpdateFormSchema = propertyFormSchema.partial()
 
-	// Only include optional fields if they have truthy values (exactOptionalPropertyTypes)
-	if (data.description) {
-		result.description = data.description
-	}
-
-	if (data.imageUrl) {
-		result.imageUrl = data.imageUrl
-	}
-
-	return result
-}
-
-// Frontend-specific form schema for updates (handles string inputs from HTML forms)
-export const propertyUpdateFormSchema = z.object({
-	name: z.string().optional(),
-	address: z.string().optional(),
-	city: z.string().optional(),
-	state: z.string().optional(),
-	zipCode: z.string().optional(),
-	propertyType: z
-		.enum(Constants.public.Enums.PropertyType as readonly [string, ...string[]])
-		.optional(),
-	status: z
-		.enum(
-			Constants.public.Enums.PropertyStatus as readonly [string, ...string[]]
-		)
-		.optional()
+// Transform functions for form data
+export const transformPropertyFormData = (data: PropertyFormData) => ({
+  name: data.name,
+  address_line1: data.address_line1,
+  address_line2: data.address_line2 || undefined,
+  city: data.city,
+ state: data.state,
+  postal_code: data.postal_code,
+  country: data.country || 'US',
+  property_type: data.property_type,
+  property_owner_id: data.property_owner_id,
+  bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
+  bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined
 })
-
-// Transform function for converting update form data to API format
-export const transformPropertyUpdateData = (data: PropertyUpdateFormData) => {
-	const result: {
-		name?: string
-		address?: string
-		city?: string
-		state?: string
-		zipCode?: string
-		propertyType?: Database['public']['Enums']['PropertyType']
-		status?: Database['public']['Enums']['PropertyStatus']
-	} = {}
-
-	if (data.name !== undefined) result.name = data.name
-	if (data.address !== undefined) result.address = data.address
-	if (data.city !== undefined) result.city = data.city
-	if (data.state !== undefined) result.state = data.state
-	if (data.zipCode !== undefined) result.zipCode = data.zipCode
-	if (data.propertyType !== undefined) {
-		result.propertyType =
-			data.propertyType as Database['public']['Enums']['PropertyType']
-	}
-	if (data.status !== undefined) {
-		result.status = data.status as Database['public']['Enums']['PropertyStatus']
-	}
-
-	return result
-}
 
 export type PropertyFormData = z.infer<typeof propertyFormSchema>
 export type PropertyUpdateFormData = z.infer<typeof propertyUpdateFormSchema>
-export type TransformedPropertyData = ReturnType<
-	typeof transformPropertyFormData
->
-export type TransformedPropertyUpdateData = ReturnType<
-	typeof transformPropertyUpdateData
->
-
-// Property sold schema (for marking properties as sold with required compliance fields)
-export const propertyMarkedSoldSchema = z.object({
-	dateSold: z.string().refine(val => {
-		const date = new Date(val)
-		return !isNaN(date.getTime()) && date <= new Date()
-	}, 'Sale date must be valid and cannot be in the future'),
-	salePrice: positiveNumberSchema
-		.max(VALIDATION_LIMITS.SALE_PRICE_MAXIMUM, 'Sale price seems unrealistic')
-		.refine(val => val > 0, 'Sale price must be greater than $0'),
-	saleNotes: z
-		.string()
-		.max(VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH, `Sale notes cannot exceed ${VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH} characters`)
-		.optional()
-		.or(z.literal(''))
-})
-
-export type PropertyMarkedSold = z.infer<typeof propertyMarkedSoldSchema>
-
-// Backend DTO schemas - match CreatePropertyRequest/UpdatePropertyRequest from backend-domain.ts
-export const createPropertyRequestSchema = z.object({
-	name: z.string().trim().min(1, 'Property name is required'),
-	address: z.string().trim().min(1, 'Address is required'),
-	city: z.string().trim().min(1, 'City is required'),
-	state: z
-		.string()
-		.trim()
-		.length(2, 'State must be exactly 2 characters')
-		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
-	zipCode: z
-		.string()
-		.trim()
-		.regex(
-			/^\d{5}(-\d{4})?$/,
-			'Please enter a valid ZIP code (12345 or 12345-6789)'
-		),
-	// NOTE: ownerId is NOT in request - backend derives from authenticated user for security
-	unitCount: z.number().int().positive().optional(),
-	description: z.string().optional(),
-	propertyType: z.enum(
-		Constants.public.Enums.PropertyType as readonly [string, ...string[]]
-	),
-	amenities: z.array(z.string()).optional(),
-	imageUrl: imageUrlSchema
-		.transform(val => (val === '' || val === null ? undefined : val))
-		.optional()
-})
-
-export const updatePropertyRequestSchema = z.object({
-	name: z.string().trim().min(1, 'Property name is required').optional(),
-	address: z.string().trim().min(1, 'Address is required').optional(),
-	city: z.string().trim().min(1, 'City is required').optional(),
-	state: z
-		.string()
-		.trim()
-		.length(2, 'State must be exactly 2 characters')
-		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters')
-		.optional(),
-	zipCode: z
-		.string()
-		.trim()
-		.regex(
-			/^\d{5}(-\d{4})?$/,
-			'Please enter a valid ZIP code (12345 or 12345-6789)'
-		)
-		.optional(),
-	unitCount: z.number().int().positive().optional(),
-	description: z.string().optional(),
-	propertyType: propertyTypeSchema.optional(),
-	amenities: z.array(z.string()).optional(),
-	imageUrl: imageUrlSchema
-		.transform(val => (val === '' || val === null ? undefined : val))
-		.optional(),
-	version: z.number().optional()
-})
-
-// Property image upload schema
-export const propertyImageUploadSchema = z.object({
-	isPrimary: z
-		.union([
-			z.boolean(),
-			z
-				.string()
-				.toLowerCase()
-				.transform(val => val.trim())
-				.refine(val => ['true', 'false', '1', '0', 'yes', 'no'].includes(val), {
-					message:
-						'isPrimary must be one of: true, false, 1, 0, yes, no (case-insensitive)'
-				})
-				.transform(val => ['true', '1', 'yes'].includes(val))
-		])
-		.default(false),
-	caption: z
-		.string()
-		.trim()
-		.max(255, 'Caption cannot exceed 255 characters')
-		.optional()
-		.transform(val => (val && val.length > 0 ? val : undefined))
-})
-
-export type PropertyImageUpload = z.infer<typeof propertyImageUploadSchema>
+export type TransformedPropertyData = ReturnType<typeof transformPropertyFormData>

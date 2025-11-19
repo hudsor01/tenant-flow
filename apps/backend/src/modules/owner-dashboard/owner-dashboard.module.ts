@@ -24,7 +24,7 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
  * - /owner/analytics/*      - Dashboard stats and activity
  *
  * Guards & Interceptors:
- * - OwnerAuthGuard: Ensures user has OWNER role
+ * - OwnerAuthGuard: Ensures user has OWNER user_type
  * - OwnerContextInterceptor: Adds owner context to requests
  *
  * Usage in app.module.ts:

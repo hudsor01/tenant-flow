@@ -8,7 +8,7 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { UserId } from '../../../shared/decorators/user.decorator'
+import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -37,7 +37,7 @@ export class TenantsController {
 	@Get('occupancy-trends')
 	async getOccupancyTrends(
 		@Req() req: AuthenticatedRequest,
-		@UserId() userId: string,
+		@user_id() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
@@ -49,12 +49,12 @@ export class TenantsController {
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger.log('Getting occupancy trends', {
-			userId,
+			user_id,
 			months: monthsNum
 		})
 
 		const data = await this.dashboardService.getOccupancyTrends(
-			userId,
+			user_id,
 			token,
 			monthsNum
 		)

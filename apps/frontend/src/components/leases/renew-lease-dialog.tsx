@@ -18,16 +18,16 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface RenewLeaseDialogProps {
-	leaseId: string
+	lease_id: string
 }
 
-export function RenewLeaseDialog({ leaseId }: RenewLeaseDialogProps) {
+export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 	const { closeModal, isModalOpen } = useModalStore()
 	const [newEndDate, setNewEndDate] = useState('')
 
 	const renewLeaseMutation = useRenewLease()
 
-	const modalId = `renew-lease-${leaseId}`
+	const modalId = `renew-lease-${lease_id}`
 
 	const handleSubmit = async () => {
 		if (!newEndDate) {
@@ -37,7 +37,7 @@ export function RenewLeaseDialog({ leaseId }: RenewLeaseDialogProps) {
 
 		try {
 			await renewLeaseMutation.mutateAsync({
-				id: leaseId,
+				id: lease_id,
 				newEndDate
 			})
 			toast.success('Lease renewed successfully')

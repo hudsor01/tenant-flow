@@ -6,17 +6,13 @@ import type {
 	LeaseTemplateContext,
 	LeaseTemplateSelections
 } from '../templates/lease-template.js'
+import type { PropertyType } from '../constants/status-types.js'
 /**
  * US States with specific lease requirements
  */
 // prettier-ignore
 export type USState = 'AL' | 'AK' | 'AZ' | 'AR' | 'CA' | 'CO' | 'CT' | 'DE' | 'FL' | 'GA' | 'HI' | 'ID' | 'IL' | 'IN' | 'IA' | 'KS' | 'KY' | 'LA' | 'ME' | 'MD' | 'MA' | 'MI' | 'MN' | 'MS' | 'MO' | 'MT' | 'NE' | 'NV' | 'NH' | 'NJ' | 'NM' | 'NY' | 'NC' | 'ND' | 'OH' | 'OK' | 'OR' | 'PA' | 'RI' | 'SC' | 'SD' | 'TN' | 'TX' | 'UT' | 'VT' | 'VA' | 'WA' | 'WV' | 'WI' | 'WY' | 'DC' // District of Columbia
 
-/**
- * Property types with different legal requirements
- */
-// prettier-ignore
-export type PropertyType = 'single_family_home' | 'apartment' | 'condo' | 'townhouse' | 'duplex' | 'mobile_home' | 'room_rental' | 'commercial'
 
 /**
  * Lease term types
@@ -35,12 +31,12 @@ export interface LeaseFormData {
 			unit?: string
 			city: string
 			state: USState
-			zipCode: string
+			postal_code: string
 		}
 		type: PropertyType
 		bedrooms: number
 		bathrooms: number
-		squareFeet?: number
+		square_feet?: number
 		parking?: {
 			included: boolean
 			spaces?: number
@@ -58,7 +54,7 @@ export interface LeaseFormData {
 			street: string
 			city: string
 			state: USState
-			zipCode: string
+			postal_code: string
 		}
 		phone: string
 		email: string
@@ -80,9 +76,9 @@ export interface LeaseFormData {
 	// Lease Terms
 	leaseTerms: {
 		type: LeaseTermType
-		startDate: string // ISO date
-		endDate?: string // For fixed term
-		rentAmount: number // Monthly rent in cents
+		start_date: string // ISO date
+		end_date?: string // For fixed term
+		rent_amount: number // Monthly rent in cents
 		currency: 'USD'
 
 		// Payment Terms
@@ -95,7 +91,7 @@ export interface LeaseFormData {
 		}
 
 		// Security Deposit
-		securityDeposit: {
+		security_deposit: {
 			amount: number
 			monthsRent: number // 1x, 2x, etc.
 			holdingAccount?: boolean // Some states require separate account
@@ -166,7 +162,7 @@ export interface StateLeaseRequirements {
 	stateName: string
 
 	// Security Deposit Rules
-	securityDeposit: {
+	security_deposit: {
 		maxAmount: {
 			// prettier-ignore
 			type: 'months_rent' | 'fixed_amount'
@@ -187,7 +183,7 @@ export interface StateLeaseRequirements {
 		title: string
 		content: string
 		applicableIf?: {
-			propertyType?: PropertyType[]
+			property_type?: PropertyType[]
 			buildYear?: 'before_1978' | 'any'
 			floodZone?: boolean
 		}
@@ -234,7 +230,7 @@ export interface StateLeaseRequirements {
  */
 export interface GeneratedLease {
 	id: string
-	userId: string
+	user_id: string
 
 	// Form data used
 	formData: LeaseFormData
@@ -272,8 +268,8 @@ export interface GeneratedLease {
 	status: 'draft' | 'generated' | 'downloaded' | 'signed'
 
 	// Metadata
-	createdAt: string
-	updatedAt: string
+	created_at: string
+	updated_at: string
 	expiresAt: string // When draft expires
 }
 
@@ -281,7 +277,7 @@ export interface GeneratedLease {
  * User's lease generation history
  */
 export interface UserLeaseHistory {
-	userId: string
+	user_id: string
 	leases: GeneratedLease[]
 
 	// Usage statistics

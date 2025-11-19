@@ -57,7 +57,7 @@ describe('PropertyPerformanceController', () => {
 	it('returns property performance payload from the service', async () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
-		const payload = [{ propertyId: 'prop-1' }]
+		const payload = [{ property_id: 'prop-1' }]
 		service.getPropertyPerformance!.mockResolvedValue(payload)
 
 		const response = await controller.getPropertyPerformance(request as Request)
@@ -74,7 +74,7 @@ describe('PropertyPerformanceController', () => {
 	it('returns property units from the service', async () => {
 		const request = createRequest()
 		supabase.getUser.mockResolvedValue({ id: 'user-42' })
-		const units = [{ unitId: 'unit-9' }]
+		const units = [{ unit_id: 'unit-9' }]
 		service.getPropertyUnits!.mockResolvedValue(units)
 
 		const response = await controller.getPropertyUnits(request as Request)

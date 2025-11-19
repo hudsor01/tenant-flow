@@ -224,42 +224,153 @@ export class StripeConnectService {
 	}
 
 	/**
+	 * Create a Stripe customer on a connected account
+	 * Used for tenant billing when they're added to a lease on a property with a connected account
+	 */
+	async createCustomerOnConnectedAccount(
+		connectedAccountId: string,
+		params: {
+			email: string
+			name?: string
+			phone?: string
+			metadata?: Record<string, string>
+		}
+	): Promise<Stripe.Customer> {
+		try {
+			const customer = await this.stripe.customers.create(
+				{
+					email: params.email,
+					...(params.name && { name: params.name }),
+					...(params.phone && { phone: params.phone }),
+					metadata: {
+						platform: 'tenantflow',
+						...params.metadata
+					}
+				},
+				{
+					stripeAccount: connectedAccountId
+				}
+			)
+
+			this.logger.log('Created Stripe customer on connected account', {
+				customer_id: customer.id,
+				stripe_account_id: connectedAccountId,
+				email: customer.email
+			})
+
+			return customer
+		} catch (error) {
+			this.logger.error('Failed to create Stripe customer on connected account', {
+				error: error instanceof Error ? error.message : String(error),
+				stripe_account_id: connectedAccountId,
+				email: params.email
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Create a Stripe subscription on a connected account
+	 * Used for setting up recurring rent payments for tenants
+	 */
+	async createSubscriptionOnConnectedAccount(
+		connectedAccountId: string,
+		params: {
+			customerId: string
+			rentAmount: number // in cents
+			currency?: string
+			metadata?: Record<string, string>
+		}
+	): Promise<Stripe.Subscription> {
+		try {
+			// First, create a price object for the monthly rent
+			const price = await this.stripe.prices.create(
+				{
+					currency: params.currency || 'usd',
+					unit_amount: params.rentAmount,
+					recurring: { interval: 'month' },
+					product_data: {
+						name: 'Monthly Rent Payment'
+					}
+				},
+				{
+					stripeAccount: connectedAccountId
+				}
+			)
+
+			// Create subscription with the price
+			const subscription = await this.stripe.subscriptions.create(
+				{
+					customer: params.customerId,
+					items: [{ price: price.id }],
+					payment_behavior: 'default_incomplete',
+					expand: ['latest_invoice.payment_intent'],
+					metadata: {
+						platform: 'tenantflow',
+						...params.metadata
+					}
+				},
+				{
+					stripeAccount: connectedAccountId
+				}
+			)
+
+			this.logger.log('Created Stripe subscription on connected account', {
+				subscription_id: subscription.id,
+				customer_id: params.customerId,
+				stripe_account_id: connectedAccountId,
+				rent_amount: params.rentAmount
+			})
+
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to create Stripe subscription on connected account', {
+				error: error instanceof Error ? error.message : String(error),
+				stripe_account_id: connectedAccountId,
+				customer_id: params.customerId,
+				rent_amount: params.rentAmount
+			})
+			throw error
+		}
+	}
+
+	/**
 	 * Create a Stripe Connected Account for a owner
 	 * Uses Express account type with Stripe-managed onboarding
 	 */
 	async createConnectedAccount(params: {
-		userId: string
+		user_id: string
 		email: string
-		firstName?: string
-		lastName?: string
+		first_name?: string
+		last_name?: string
 		country?: string
 	}): Promise<{ accountId: string; onboardingUrl: string }> {
 		// Check if user already has a connected account (idempotent)
 		const { data: existingUser, error: fetchError } = await this.supabaseService
 			.getAdminClient()
 			.from('users')
-			.select('connectedAccountId')
-			.eq('id', params.userId)
+			.select('connected_account_id')
+			.eq('id', params.user_id)
 			.single()
 
 		if (fetchError) {
 			this.logger.error('Failed to fetch user', {
 				error: fetchError,
-				userId: params.userId
+				user_id: params.user_id
 			})
 			throw new BadRequestException('Failed to fetch user')
 		}
 
-		if (existingUser?.connectedAccountId) {
+		if (existingUser?.connected_account_id) {
 			this.logger.log('User already has connected account', {
-				userId: params.userId,
-				accountId: existingUser.connectedAccountId
+				user_id: params.user_id,
+				accountId: existingUser.connected_account_id
 			})
 			const accountLink = await this.createAccountLink(
-				existingUser.connectedAccountId
+				existingUser.connected_account_id
 			)
 			return {
-				accountId: existingUser.connectedAccountId,
+				accountId: existingUser.connected_account_id,
 				onboardingUrl: accountLink.url
 			}
 		}
@@ -271,13 +382,13 @@ export class StripeConnectService {
 			const accountCountry = normalizedCountry ?? this.defaultCountry
 			if (params.country && !normalizedCountry) {
 				this.logger.warn('Provided country code is invalid, using default', {
-					userId: params.userId,
+					user_id: params.user_id,
 					providedCountry: params.country,
 					defaultCountry: accountCountry
 				})
 			} else if (!params.country) {
 				this.logger.debug('Falling back to default Stripe country', {
-					userId: params.userId,
+					user_id: params.user_id,
 					defaultCountry: accountCountry
 				})
 			}
@@ -289,13 +400,13 @@ export class StripeConnectService {
 					country: accountCountry,
 					email: params.email,
 					capabilities: {
-					card_payments: { requested: true },
-					transfers: { requested: true }
-				},
-				tos_acceptance: {
-					service_agreement: 'full'
-				},
-				business_type: 'individual',
+						card_payments: { requested: true },
+						transfers: { requested: true }
+					},
+					tos_acceptance: {
+						service_agreement: 'full'
+					},
+					business_type: 'individual',
 					settings: {
 						payouts: {
 							schedule: {
@@ -305,20 +416,20 @@ export class StripeConnectService {
 						}
 					},
 					metadata: {
-						userId: params.userId,
+						user_id: params.user_id,
 						platform: 'tenantflow',
 						country: accountCountry
 					}
 				},
 				{
-					idempotencyKey: `create_account_${params.userId}`
+					idempotencyKey: `create_account_${params.user_id}`
 				}
 			)
 
 			stripeAccountId = account.id
 
 			this.logger.log('Created Connected Account', {
-				userId: params.userId,
+				user_id: params.user_id,
 				accountId: account.id
 			})
 
@@ -327,14 +438,14 @@ export class StripeConnectService {
 				.getAdminClient()
 				.from('users')
 				.update({
-					connectedAccountId: account.id
+					connected_account_id: account.id
 				})
-				.eq('id', params.userId)
+				.eq('id', params.user_id)
 
 			if (updateError) {
 				this.logger.error('Failed to save connectedAccountId', {
 					error: updateError,
-					userId: params.userId,
+					user_id: params.user_id,
 					accountId: account.id
 				})
 				// Cleanup: Delete the Stripe account since DB update failed
@@ -355,7 +466,7 @@ export class StripeConnectService {
 		} catch (error) {
 			this.logger.error('Failed to create Connected Account', {
 				error,
-				userId: params.userId,
+				user_id: params.user_id,
 				stripeAccountId
 			})
 
@@ -499,76 +610,58 @@ export class StripeConnectService {
 	 * Update user onboarding status based on Stripe Account
 	 */
 	async updateOnboardingStatus(
-		userId: string,
+		user_id: string,
 		accountId: string
 	): Promise<void> {
 		try {
 			const account = await this.getConnectedAccount(accountId)
 
 			// Fetch existing user to check current onboardingCompletedAt
-			const { data: existingUser, error: fetchError } =
-				await this.supabaseService
-					.getAdminClient()
-					.from('users')
-					.select('onboardingCompletedAt')
-					.eq('id', userId)
-					.single()
+			const { error: fetchError } = await this.supabaseService
+				.getAdminClient()
+				.from('users')
+				.select('onboarding_completed_at')
+				.eq('id', user_id)
+				.single()
 
 			if (fetchError) {
 				this.logger.error(
 					'Failed to fetch existing user for onboarding status',
 					{
 						error: fetchError,
-						userId
+						user_id
 					}
 				)
 				throw fetchError
 			}
 
-			const isNowComplete = account.charges_enabled && account.payouts_enabled
-			const existingTimestamp = existingUser?.onboardingCompletedAt
-
-			// Only set timestamp if:
-			// 1. Account is now complete AND existing timestamp is falsy (first completion)
-			// 2. Account is not complete -> null (allow re-onboarding)
-			let onboardingCompletedAt: string | null
-			if (isNowComplete) {
-				// Preserve existing timestamp on re-completion, set new timestamp on first completion
-				onboardingCompletedAt = existingTimestamp ?? new Date().toISOString()
-			} else {
-				// Clear timestamp when account is not complete (allow re-onboarding)
-				onboardingCompletedAt = null
-			}
-
+			// For now, just update the connected account ID
+			// TODO: Handle onboarding status updates in property_owners table
 			const { error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.update({
-					onboardingComplete: isNowComplete,
-					detailsSubmitted: account.details_submitted,
-					chargesEnabled: account.charges_enabled,
-					payoutsEnabled: account.payouts_enabled,
-					onboardingCompletedAt
+					connected_account_id: account.id
 				})
-				.eq('id', userId)
+				.eq('id', user_id)
 
 			if (error) {
 				this.logger.error('Failed to update onboarding status', {
 					error,
-					userId
+					user_id
 				})
 				throw error
 			}
 
 			this.logger.log('Updated onboarding status', {
-				userId,
+				user_id,
 				accountId,
 				onboardingComplete: account.charges_enabled && account.payouts_enabled
 			})
 		} catch (error) {
 			this.logger.error('Failed to update onboarding status', {
 				error,
-				userId,
+				user_id,
 				accountId
 			})
 			throw error

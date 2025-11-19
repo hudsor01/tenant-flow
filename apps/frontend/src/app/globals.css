@@ -392,6 +392,7 @@
 	--spacing-24: 6rem;
 	--spacing-28: 7rem;
 	--spacing-32: 8rem;
+	--spacing-35: 8.75rem;
 	--spacing-36: 9rem;
 	--spacing-40: 10rem;
 	--spacing-44: 11rem;
@@ -403,6 +404,9 @@
 	--spacing-72: 18rem;
 	--spacing-80: 20rem;
 	--spacing-96: 24rem;
+	--max-width-2xl: 42rem;
+	--max-width-3xl: 48rem;
+	--width-full: 100%;
 
 	/* Semantic Layout Spacing - purpose-driven spacing tokens for consistent layout structure */
 	--layout-section-padding-y: var(--spacing-20); /* Default section vertical padding */
@@ -417,6 +421,10 @@
 	--layout-gap-items: var(--spacing-4); /* Gap between individual items */
 	--layout-stack-loose: var(--spacing-12); /* Loose vertical rhythm */
 	--layout-stack-default: var(--spacing-6); /* Default vertical rhythm */
+	--layout-grid-cols-1: repeat(1, minmax(0, 1fr));
+	--layout-grid-cols-2: repeat(2, minmax(0, 1fr));
+	--layout-grid-cols-3: repeat(3, minmax(0, 1fr));
+	--layout-grid-cols-5: repeat(5, minmax(0, 1fr));
 	--layout-stack-tight: var(--spacing-3); /* Tight vertical rhythm */
 	--layout-navbar-height: var(--spacing-16); /* Fixed navbar height */
 	--layout-navbar-spacing: var(--spacing-20); /* Space below fixed navbar */
@@ -1729,5 +1737,44 @@
 	}
 
 	@layer utilities {
-		/* Additional utility classes can be added here */
+		@media (max-width: 768px) {
+			.btn,
+			.touch-target,
+			button,
+			[role='button'] {
+				min-height: 44px;
+				min-width: 44px;
+			}
+
+			.form-input,
+			input,
+			select,
+			textarea {
+				min-height: 44px;
+			}
+
+			.mobile-stack > * + * {
+				margin-block-start: 0.75rem;
+			}
+
+			.high-contrast-mode {
+				filter: contrast(1.25) brightness(1.05);
+			}
+
+			.mobile-fade-in {
+				animation: mobile-fade-in 0.3s ease-out;
+			}
+		}
+
+		@keyframes mobile-fade-in {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
 	}

@@ -1,20 +1,6 @@
-/**
- * Image URL Validation
- *
- * Security: Only allow images from trusted sources
- * - Supabase Storage (our CDN)
- * - Data URLs for base64 encoded images (for upload previews)
- */
-
 import { z } from 'zod'
 
-/**
- * Validates image URLs from trusted sources
- *
- * Allowed patterns:
- * - Supabase Storage: https://*.supabase.co/storage/v1/object/public/*
- * - Data URLs: data:image/(jpeg|jpg|png|gif|webp);base64,* (SVG excluded for XSS protection)
- */
+/** Image URL validation schema */
 export const imageUrlSchema = z
 	.string()
 	.refine(
@@ -50,10 +36,3 @@ export const imageUrlSchema = z
 	)
 	.optional()
 	.nullable()
-
-/**
- * Validates required image URLs
- */
-export const requiredImageUrlSchema = imageUrlSchema.refine(url => !!url, {
-	message: 'Image URL is required'
-})

@@ -337,10 +337,11 @@ describe('DashboardController', () => {
 	describe('getPropertyPerformance', () => {
 		it('should return property performance for authenticated user', async () => {
 			const mockPerformance = [
-				{
-					property: 'Property A',
-					propertyId: 'prop-1',
-					units: 20,
+			{
+				property: 'Property A',
+				property_id: 'prop-1',
+				address_line1: '123 Main St',
+				units: 20,
 					totalUnits: 20,
 					occupiedUnits: 19,
 					vacantUnits: 1,
@@ -350,7 +351,7 @@ describe('DashboardController', () => {
 					monthlyRevenue: 8000,
 					potentialRevenue: 8400,
 					address: '123 Main St',
-					propertyType: 'APARTMENT',
+					property_type: 'APARTMENT',
 					status: 'PARTIAL' as const,
 					trend: 'stable' as const,
 					trendPercentage: 0

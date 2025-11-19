@@ -1,6 +1,6 @@
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import { Test as NestTest } from '@nestjs/testing'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { SupabaseService } from '../src/database/supabase.service'
@@ -51,8 +51,8 @@ try {
 			cuProto.getUser = async function () {
 				return null
 			}
-		if (!cuProto.getUserId)
-			cuProto.getUserId = async function () {
+		if (!cuProto.getuser_id)
+			cuProto.getuser_id = async function () {
 				return null
 			}
 		if (!cuProto.isAuthenticated)
@@ -103,7 +103,7 @@ try {
 				provide: CurrentUserProvider,
 				useValue: {
 					getUser: jest.fn(async () => null),
-					getUserId: jest.fn(async () => null),
+					getuser_id: jest.fn(async () => null),
 					isAuthenticated: jest.fn(async () => false),
 					getUserEmail: jest.fn(async () => undefined)
 				}
@@ -134,7 +134,7 @@ try {
 						getUser: jest.fn(
 							async (req: { user?: unknown } | undefined) => req?.user ?? null
 						),
-						getUserId: jest.fn(async () => null),
+						getuser_id: jest.fn(async () => null),
 						isAuthenticated: jest.fn(async () => false),
 						getUserEmail: jest.fn(async () => undefined)
 					}

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common'
 import { BUSINESS_ERROR_CODES, API_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { Request, Response } from 'express'
+import { AppConfigService } from '../config/app-config.service'
 
 type ExceptionResponse = {
 	message?: string | string[]
@@ -19,6 +20,8 @@ type ExceptionResponse = {
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
 	private readonly logger = new Logger(HttpExceptionFilter.name)
+
+	constructor(private readonly config: AppConfigService) {}
 
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp()
@@ -87,7 +90,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 		}
 
 		// Only include stack trace in development
-		if (process.env.NODE_ENV !== 'production' && exception instanceof Error) {
+		if (!this.config.isProduction() && exception instanceof Error) {
 			errorResponse.stack = exception.stack
 		}
 

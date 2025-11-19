@@ -1,7 +1,7 @@
 /**
  * Test Subscription Setup Utility
  *
- * Directly updates test user subscription status in the database using service role.
+ * Directly updates test user subscription status in the database using service user_type.
  * This is the recommended approach for integration tests per Supabase best practices.
  *
  * For production Stripe integration, use proper Stripe API calls.
@@ -20,18 +20,18 @@ interface TestUser {
 
 /**
  * Sets up test user with trial subscription status
- * Uses service role client to bypass RLS for test setup
+ * Uses service user_type client to bypass RLS for test setup
  */
 export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
-	const serviceRoleKey = process.env.SUPABASE_SECRET_KEY
-	if (!serviceRoleKey) {
+	const serviceuser_typeKey = process.env.SUPABASE_SECRET_KEY
+	if (!serviceuser_typeKey) {
 		throw new Error('SUPABASE_SECRET_KEY not found - required for test setup')
 	}
 
-	// Create admin client with service role
+	// Create admin client with service user_type
 	const adminClient = createClient(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		serviceRoleKey,
+		serviceuser_typeKey,
 		{
 			auth: {
 				autoRefreshToken: false,
@@ -43,7 +43,7 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
 	// Get user by email
 	const { data: users, error: userError } = await adminClient
 		.from('users')
-		.select('id, email, subscription_status, stripeCustomerId')
+		.select('id, email, subscription_status, stripe_customer_id')
 		.eq('email', user.email)
 		.limit(1)
 
@@ -51,11 +51,14 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
 		throw new Error(`Failed to fetch user ${user.email}: ${userError.message}`)
 	}
 
-	if (!users || users.length === 0) {
+	const userData = users?.[0]
+	if (!userData) {
 		throw new Error(`User ${user.email} not found in database`)
 	}
 
-	const userData = users[0]
+	if (!userData) {
+		throw new Error(`User data not found`)
+	}
 
 	// Check if already set up
 	if (
@@ -75,13 +78,13 @@ export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
 	const testCustomerId = `cus_test_${userData.id.replace(/-/g, '').substring(0, 24)}`
 
 	// Update user with trial subscription
-	// Note: Using only fields that exist in the users table (subscriptionTier, subscription_status, stripeCustomerId)
+	// Note: Using only fields that exist in the users table (subscriptionTier, subscription_status, stripe_customer_id)
 	const { error: updateError } = await adminClient
 		.from('users')
 		.update({
 			subscriptionTier: 'STARTER',
 			subscription_status: 'trialing',
-			stripeCustomerId: testCustomerId
+			stripe_customer_id: testCustomerId
 		})
 		.eq('id', userData.id)
 

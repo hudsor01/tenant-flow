@@ -37,9 +37,9 @@ interface LeaseActionButtonsProps {
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const { openModal } = useModalStore()
 
-	const getStatusBadge = (status: Lease['status']) => {
+	const getStatusBadge = (status: string) => {
 		const variants: Record<
-			Lease['status'],
+			string,
 			'default' | 'secondary' | 'destructive' | 'outline'
 		> = {
 			ACTIVE: 'default',
@@ -72,7 +72,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					{lease.status === 'ACTIVE' && (
+					{lease.lease_status === 'ACTIVE' && (
 						<>
 							<DropdownMenuItem
 								onClick={() => openModal(`pay-rent-${lease.id}`)}
@@ -119,7 +119,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			</DropdownMenu>
 
 			{/* Status Badge */}
-			{getStatusBadge(lease.status)}
+			{getStatusBadge(lease.lease_status)}
 
 			{/* Modal Components */}
 			<CrudDialog mode="read" modalId={`edit-lease-${lease.id}`}>
@@ -131,23 +131,23 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					<CrudDialogBody>
 						<div>
 					<Label>Start Date</Label>
-					<Input type="date" value={lease.startDate} disabled />
+					<Input type="date" value={lease.start_date} disabled />
 				</div>
 				<div>
 					<Label>End Date</Label>
-					<Input type="date" value={lease.endDate || ''} disabled />
+					<Input type="date" value={lease.end_date || ''} disabled />
 				</div>
 				<div>
 					<Label>Rent Amount</Label>
-					<Input type="number" value={lease.rentAmount} disabled />
+					<Input type="number" value={lease.rent_amount} disabled />
 				</div>
 				<div>
 					<Label>Security Deposit</Label>
-					<Input type="number" value={lease.securityDeposit} disabled />
+					<Input type="number" value={lease.security_deposit} disabled />
 				</div>
 				<div>
 					<Label>Status</Label>
-					{getStatusBadge(lease.status)}
+					{getStatusBadge(lease.lease_status)}
 				</div>
 					</CrudDialogBody>
 				</CrudDialogContent>

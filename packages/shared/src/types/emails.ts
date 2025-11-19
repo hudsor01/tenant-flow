@@ -49,7 +49,7 @@ export interface Day7DemoInvitationProps {
 export interface PaymentReminderEmailProps {
 	tenantName?: string
 	propertyAddress?: string
-	rentAmount?: number
+	rent_amount?: number
 	dueDate?: string
 	daysOverdue?: number
 	lateFee?: number
@@ -60,14 +60,14 @@ export interface PaymentReminderEmailProps {
 }
 
 export interface PropertyTipsEmailProps {
-	firstName?: string
+	first_name?: string
 	tipCategory?: TipCategory
 	seasonalFocus?: SeasonalFocus
 	propertyCount?: number
 }
 
 export interface Day3EducationEmailProps {
-	firstName?: string
+	first_name?: string
 	propertyCount?: number
 	lastLogin?: string
 }
@@ -82,13 +82,13 @@ export interface TenantInvitationEmailProps {
 }
 
 export interface ReEngagementEmailProps {
-	firstName?: string
+	first_name?: string
 	lastLogin?: string
 	propertyCount?: number
 }
 
 export interface WelcomeEmailProps {
-	firstName?: string
+	first_name?: string
 	companyName?: string
 	activationUrl?: string
 }
@@ -109,7 +109,7 @@ export interface EmailConfirmationProps {
 }
 
 export interface FeatureAnnouncementEmailProps {
-	firstName?: string
+	first_name?: string
 	featureTitle?: string
 	featureDescription?: string
 	betaAccess?: boolean
@@ -151,8 +151,6 @@ export interface ReminderData {
 	priority: string
 }
 
-// ADDITIONAL EMAIL TYPES - MIGRATED from backend email components
-
 // MIGRATED from apps/backend/src/emails/payment-failed-email.tsx
 export interface PaymentFailedEmailProps {
 	customerEmail: string
@@ -177,7 +175,7 @@ export interface MaintenanceRequestEmailProps {
 	recipientEmail: string
 	title: string
 	propertyName: string
-	unitNumber: string
+	unit_number: string
 	description: string
 	priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW'
 }

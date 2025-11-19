@@ -121,7 +121,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					method: 'PUT',
 					body: JSON.stringify({
 						status: newStatus,
-						completedAt: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined
+						completed_at: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined
 					})
 				})
 

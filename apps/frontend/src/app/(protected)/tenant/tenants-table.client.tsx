@@ -54,7 +54,7 @@ const VIRTUAL_SCROLL_THRESHOLD = 50
 interface TenantsTableProps {
 	initialTenants: TenantWithLeaseInfo[]
 	initialStats: TenantStats
-	deleteTenantAction: (tenantId: string) => Promise<{ success: boolean }>
+	deleteTenantAction: (tenant_id: string) => Promise<{ success: boolean }>
 }
 
 interface TenantRowProps {
@@ -101,7 +101,7 @@ const TenantRow = memo(
 						>
 							{tenant.paymentStatus}
 						</Badge>
-						<Badge variant="outline">{tenant.leaseStatus}</Badge>
+						<Badge variant="outline">{tenant.lease_status}</Badge>
 					</div>
 				</TableCell>
 				<TableCell className="hidden lg:table-cell">
@@ -125,9 +125,9 @@ const TenantRow = memo(
 				<TableCell className="hidden lg:table-cell">
 					{tenant.monthlyRent
 						? new Intl.NumberFormat('en-US', {
-								style: 'currency',
-								currency: 'USD'
-							}).format(tenant.monthlyRent)
+							style: 'currency',
+							currency: 'USD'
+						}).format(tenant.monthlyRent)
 						: '-'}
 				</TableCell>
 				<TableCell className="flex items-center justify-end gap-1 text-right">
@@ -195,15 +195,15 @@ export function TenantsTable({
 	// React 19 useOptimistic for instant delete feedback
 	const [optimisticTenants, removeOptimistic] = useOptimistic(
 		initialTenants,
-		(state, tenantId: string) => state.filter(t => t.id !== tenantId)
+		(state, tenant_id: string) => state.filter(t => t.id !== tenant_id)
 	)
 	const [isPending, startTransition] = useTransition()
 
-	const handleDelete = (tenantId: string) => {
+	const handleDelete = (tenant_id: string) => {
 		startTransition(async () => {
-			removeOptimistic(tenantId) // Instant UI update
+			removeOptimistic(tenant_id) // Instant UI update
 			try {
-				await deleteTenantAction(tenantId) // Server action with revalidatePath
+				await deleteTenantAction(tenant_id) // Server action with revalidatePath
 				toast.success('Tenant deleted successfully')
 			} catch (error) {
 				toast.error('Failed to delete tenant')
@@ -219,7 +219,7 @@ export function TenantsTable({
 
 	const sortedTenants = useMemo(() => {
 		if (!optimisticTenants || !Array.isArray(optimisticTenants)) return []
-		return [...optimisticTenants].sort((a, b) => a.name.localeCompare(b.name))
+		return [...optimisticTenants].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
 	}, [optimisticTenants])
 
 	// Move hooks to top level - BEFORE any conditional returns

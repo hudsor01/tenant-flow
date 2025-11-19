@@ -8,6 +8,7 @@ import {
 	Request,
 	UseGuards
 } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PaymentMethodsService } from './payment-methods.service'
@@ -32,12 +33,12 @@ export class PaymentMethodsController {
 	async listPaymentMethods(
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
-	) {
-		const userId = req.user!.id
+	): Promise<{ paymentMethods: Database['public']['Tables']['payment_methods']['Row'][] }> {
+		const user_id = req.user!.id
 
 		const paymentMethods = await this.paymentMethodsService.listPaymentMethods(
 			token,
-			userId
+			user_id
 		)
 
 		return { paymentMethods }
@@ -53,7 +54,7 @@ export class PaymentMethodsController {
 		@Request() req: AuthenticatedRequest,
 		@Param('id') paymentMethodId: string
 	) {
-		const userId = req.user!.id
+		const user_id = req.user!.id
 
 		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
 			throw new BadRequestException('Invalid payment method ID format')
@@ -61,7 +62,7 @@ export class PaymentMethodsController {
 
 		return this.paymentMethodsService.setDefaultPaymentMethod(
 			token,
-			userId,
+			user_id,
 			paymentMethodId
 		)
 	}
@@ -76,7 +77,7 @@ export class PaymentMethodsController {
 		@Request() req: AuthenticatedRequest,
 		@Param('id') paymentMethodId: string
 	) {
-		const userId = req.user!.id
+		const user_id = req.user!.id
 
 		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
 			throw new BadRequestException('Invalid payment method ID format')
@@ -84,7 +85,7 @@ export class PaymentMethodsController {
 
 		return this.paymentMethodsService.deletePaymentMethod(
 			token,
-			userId,
+			user_id,
 			paymentMethodId
 		)
 	}

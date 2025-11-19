@@ -30,9 +30,9 @@ import {
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
 import { clientFetch } from '#lib/api/client'
 import { MAINTENANCE_CATEGORY_OPTIONS } from '#lib/constants/status-values'
+import type { MaintenancePriority } from '@repo/shared/constants/status-types'
 import type {
-	Database,
-	MaintenanceRequest,
+	MaintenanceRequestWithExtras,
 	Property,
 	Unit
 } from '@repo/shared/types/core'
@@ -43,12 +43,7 @@ const logger = createLogger({ component: 'MaintenanceForm' })
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'
-	request?: MaintenanceRequest
-}
-
-type MaintenanceRequestWithExtras = MaintenanceRequest & {
-	propertyId?: string | null
-	preferredDate?: string | null
+	request?: MaintenanceRequestWithExtras
 }
 
 export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
@@ -66,9 +61,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 		defaultValues: {
 			title: extendedRequest?.title ?? '',
 			description: extendedRequest?.description ?? '',
-			priority:
-				(extendedRequest?.priority as Database['public']['Enums']['Priority']) ??
-				'LOW',
+			priority: (extendedRequest?.priority as MaintenancePriority) ?? 'LOW',
 			category:
 				(extendedRequest?.category as
 					| 'GENERAL'
@@ -79,9 +72,9 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 					| 'SAFETY'
 					| 'OTHER'
 					| undefined) ?? undefined,
-			unitId: extendedRequest?.unitId ?? '',
-			propertyId: extendedRequest?.propertyId ?? '',
-			estimatedCost: extendedRequest?.estimatedCost?.toString() ?? '',
+			unit_id: extendedRequest?.unit_id ?? '',
+			property_id: extendedRequest?.property_id ?? '',
+			estimated_cost: extendedRequest?.estimated_cost?.toString() ?? '',
 			preferredDate: extendedRequest?.preferredDate ?? ''
 		},
 		createMutation: createRequest,
@@ -95,10 +88,10 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 
 	// Get available units based on selected property
 	const availableUnits = useMemo(() => {
-		const propertyId = form.state.values.propertyId
+		const propertyId = form.state.values.property_id
 		if (!propertyId) return units
-		return units.filter(u => u.propertyId === propertyId)
-	}, [form.state.values.propertyId, units])
+		return units.filter(u => u.property_id === propertyId)
+	}, [form.state.values.property_id, units])
 
 	// Add loading state for form initialization
 	const [isLoading, setIsLoading] = useState(true)
@@ -183,21 +176,21 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 						<CardContent className="grid gap-6">
 							<div className="grid gap-4 md:grid-cols-2">
 								{/* Property Selection */}
-								<form.Field name="propertyId">
+								<form.Field name="property_id">
 									{field => (
 										<Field>
-											<FieldLabel id={propertyLabelId} htmlFor="propertyId">
+											<FieldLabel id={propertyLabelId} htmlFor="property_id">
 												Property *
 											</FieldLabel>
 											<Select
 												value={field.state.value || ''}
 												onValueChange={value => {
 													field.handleChange(value)
-													form.setFieldValue('unitId', '')
+													form.setFieldValue('unit_id', '')
 												}}
 											>
 												<SelectTrigger
-													id="propertyId"
+													id="property_id"
 													aria-labelledby={propertyLabelId}
 													className="w-full justify-between"
 												>
@@ -221,19 +214,19 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 								</form.Field>
 
 								{/* Unit Selection */}
-								<form.Field name="unitId">
+								<form.Field name="unit_id">
 									{field => (
 										<Field>
-											<FieldLabel id={unitLabelId} htmlFor="unitId">
+											<FieldLabel id={unitLabelId} htmlFor="unit_id">
 												Unit (optional)
 											</FieldLabel>
 											<Select
 												value={field.state.value || ''}
 												onValueChange={field.handleChange}
-												disabled={!form.state.values.propertyId}
+												disabled={!form.state.values.property_id}
 											>
 												<SelectTrigger
-													id="unitId"
+													id="unit_id"
 													aria-labelledby={unitLabelId}
 													className="w-full justify-between"
 												>
@@ -242,7 +235,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 												<SelectContent>
 													{availableUnits.map(unit => (
 														<SelectItem key={unit.id} value={unit.id}>
-															Unit {unit.unitNumber}
+															Unit {unit.unit_number}
 														</SelectItem>
 													))}
 												</SelectContent>
@@ -368,36 +361,34 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 								)}
 							</form.Field>
 
-							{/* Estimated Cost Field */}
-							<form.Field name="estimatedCost">
-								{field => (
-									<Field>
-										<FieldLabel htmlFor="estimatedCost">
-											Estimated Cost (optional)
-										</FieldLabel>
-										<Input
-											id="estimatedCost"
-											name="estimatedCost"
-											type="number"
-											min="0"
-											step="0.01"
-											placeholder="0.00"
-											value={field.state.value || ''}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-												field.handleChange(e.target.value)
-											}
-											onBlur={field.handleBlur}
-										/>
-										{(field.state.meta.errors?.length ?? 0) > 0 && (
-											<FieldError>
-												{String(field.state.meta.errors[0])}
-											</FieldError>
-										)}
-									</Field>
-								)}
-							</form.Field>
-
-							{/* Preferred Date Field */}
+						{/* Estimated Cost Field */}
+						<form.Field name="estimated_cost">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="estimated_cost">
+										Estimated Cost (optional)
+									</FieldLabel>
+									<Input
+										id="estimated_cost"
+										name="estimated_cost"
+										type="number"
+										min="0"
+										step="0.01"
+										placeholder="0.00"
+										value={field.state.value || ''}
+										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											field.handleChange(e.target.value)
+										}
+										onBlur={field.handleBlur}
+									/>
+									{(field.state.meta.errors?.length ?? 0) > 0 && (
+										<FieldError>
+											{String(field.state.meta.errors[0])}
+										</FieldError>
+									)}
+								</Field>
+							)}
+						</form.Field>							{/* Preferred Date Field */}
 							<form.Field name="preferredDate">
 								{field => (
 									<Field>

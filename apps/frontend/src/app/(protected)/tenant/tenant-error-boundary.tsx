@@ -51,7 +51,7 @@ export class TenantErrorBoundary extends Component<
 			{ componentStack: errorInfo.componentStack ?? undefined },
 			{
 				component: 'TenantErrorBoundary',
-				entityType: 'tenant',
+				entityType: 'tenants',
 				operation: 'render'
 			}
 		)
@@ -60,7 +60,7 @@ export class TenantErrorBoundary extends Component<
 		recoverFromError(
 			error,
 			{
-				entityType: 'tenant',
+				entityType: 'tenants',
 				operation: 'render tenant component'
 			},
 			{

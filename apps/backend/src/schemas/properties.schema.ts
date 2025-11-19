@@ -13,7 +13,7 @@ const uuidSchema: JSONSchema = {
 	format: 'uuid'
 }
 
-const propertyTypeSchema: JSONSchema = {
+const property_typeSchema: JSONSchema = {
 	type: 'string',
 	enum: ['SINGLE_FAMILY', 'MULTI_UNIT', 'APARTMENT', 'COMMERCIAL'],
 	default: 'SINGLE_FAMILY'
@@ -24,7 +24,7 @@ const propertyTypeSchema: JSONSchema = {
  */
 export const createPropertySchema: JSONSchema = {
 	type: 'object',
-	required: ['name', 'address', 'city', 'state', 'zipCode'],
+	required: ['name', 'address', 'city', 'state', 'postal_code'],
 	additionalProperties: false,
 	properties: {
 		name: {
@@ -47,7 +47,7 @@ export const createPropertySchema: JSONSchema = {
 			minLength: 2,
 			maxLength: 50
 		},
-		zipCode: {
+		postal_code: {
 			type: 'string',
 			pattern: '^[0-9]{5}(-[0-9]{4})?$'
 		},
@@ -59,7 +59,7 @@ export const createPropertySchema: JSONSchema = {
 			type: 'string',
 			format: 'uri'
 		},
-		propertyType: propertyTypeSchema,
+		property_type: property_typeSchema,
 		unit_number: {
 			type: 'string',
 			maxLength: 20
@@ -94,7 +94,7 @@ export const updatePropertySchema: JSONSchema = {
 			minLength: 2,
 			maxLength: 50
 		},
-		zipCode: {
+		postal_code: {
 			type: 'string',
 			pattern: '^[0-9]{5}(-[0-9]{4})?$'
 		},
@@ -106,7 +106,7 @@ export const updatePropertySchema: JSONSchema = {
 			type: 'string',
 			format: 'uri'
 		},
-		propertyType: propertyTypeSchema,
+		property_type: property_typeSchema,
 		unit_number: {
 			type: 'string',
 			maxLength: 20
@@ -130,7 +130,7 @@ export const propertyQuerySchema: JSONSchema = {
 		state: {
 			type: 'string'
 		},
-		propertyType: propertyTypeSchema,
+		property_type: property_typeSchema,
 		limit: {
 			type: 'integer',
 			minimum: 1,
@@ -144,8 +144,8 @@ export const propertyQuerySchema: JSONSchema = {
 		},
 		sortBy: {
 			type: 'string',
-			enum: ['name', 'address', 'city', 'createdAt'],
-			default: 'createdAt'
+			enum: ['name', 'address', 'city', 'created_at'],
+			default: 'created_at'
 		},
 		sortOrder: {
 			type: 'string',
@@ -197,17 +197,17 @@ export const propertyRouteSchemas = {
 					type: 'object',
 					properties: {
 						id: { type: 'string' },
-						ownerId: { type: 'string' },
+						owner_id: { type: 'string' },
 						name: { type: 'string' },
 						address: { type: 'string' },
 						city: { type: 'string' },
 						state: { type: 'string' },
-						zipCode: { type: 'string' },
-						propertyType: propertyTypeSchema,
+						postal_code: { type: 'string' },
+						property_type: property_typeSchema,
 						description: { type: 'string' },
 						imageUrl: { type: 'string' },
-						createdAt: { type: 'string' },
-						updatedAt: { type: 'string' }
+						created_at: { type: 'string' },
+						updated_at: { type: 'string' }
 					}
 				}
 			}

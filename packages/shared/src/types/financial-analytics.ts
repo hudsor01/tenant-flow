@@ -33,7 +33,7 @@ export interface RevenueExpenseBreakdown {
 }
 
 export interface NetOperatingIncomeByProperty {
-	propertyId: string
+	property_id: string
 	propertyName: string
 	noi: number
 	revenue: number
@@ -109,15 +109,15 @@ export interface LeaseFinancialSummary {
 	totalLeases: number
 	activeLeases: number
 	expiringSoon: number
-	totalMonthlyRent: number
+	totalrent_amount: number
 	averageLeaseValue: number
 }
 
 export interface LeaseFinancialInsight {
-	leaseId: string
+	lease_id: string
 	propertyName: string
 	tenantName: string
-	monthlyRent: number
+	rent_amount: number
 	outstandingBalance: number
 	profitabilityScore?: number | null
 }

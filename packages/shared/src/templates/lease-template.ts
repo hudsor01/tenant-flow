@@ -53,18 +53,18 @@ export interface LeaseTemplateContext {
 	tenantNames: string
 	propertyAddress: string
 	propertyState: USState
-	rentAmountCents: number
-	rentAmountFormatted: string
+	rent_amountCents: number
+	rent_amountFormatted: string
 	rentDueDay: number
 	rentDueDayOrdinal: string
-	securityDepositCents: number
-	securityDepositFormatted: string
-	leaseStartDateISO: string
+	security_depositCents: number
+	security_depositFormatted: string
+	leasestart_dateISO: string
 	leaseEndDateISO?: string
-	leaseStartDateFormatted: string
+	leasestart_dateFormatted: string
 	leaseEndDateFormatted?: string
-	lateFeeAmountCents?: number
-	lateFeeAmountFormatted?: string
+	late_fee_amountCents?: number
+	late_fee_amountFormatted?: string
 	gracePeriodDays?: number
 	formattedDateGenerated: string
 }
@@ -172,16 +172,16 @@ const DEFAULT_CONTEXT: LeaseTemplateContext = {
 	tenantNames: 'Tenant One; Tenant Two',
 	propertyAddress: '456 Elm Street, Austin, TX 78701',
 	propertyState: 'TX',
-	rentAmountCents: 180000,
-	rentAmountFormatted: formatCurrency(180000),
+	rent_amountCents: 180000,
+	rent_amountFormatted: formatCurrency(180000),
 	rentDueDay: 1,
 	rentDueDayOrdinal: formatOrdinal(1),
-	securityDepositCents: 180000,
-	securityDepositFormatted: formatCurrency(180000),
-	leaseStartDateISO: new Date().toISOString(),
-	leaseStartDateFormatted: formatDate(new Date().toISOString()),
-	lateFeeAmountCents: 5000,
-	lateFeeAmountFormatted: formatCurrency(5000),
+	security_depositCents: 180000,
+	security_depositFormatted: formatCurrency(180000),
+	leasestart_dateISO: new Date().toISOString(),
+	leasestart_dateFormatted: formatDate(new Date().toISOString()),
+	late_fee_amountCents: 5000,
+	late_fee_amountFormatted: formatCurrency(5000),
 	gracePeriodDays: 5,
 	formattedDateGenerated: formatDate(new Date().toISOString())
 }
@@ -240,7 +240,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Provides the legally enforceable rent obligations including grace periods and accepted payment methods.',
 					defaultSelected: true,
-					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rentAmountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the Owner.</p>`
+					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rent_amountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the Owner.</p>`
 				},
 				{
 					id: 'late-fee',
@@ -250,7 +250,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Late fees must comply with state law; this clause sets enforceable rules to encourage timely payments.',
 					defaultSelected: true,
-					body: `<p>If rent is not received within {{gracePeriodDays}} days after the due date, a late fee of <strong>{{lateFeeAmountFormatted}}</strong> may be assessed. Continued non-payment may result in additional remedies permitted by law.</p>`
+					body: `<p>If rent is not received within {{gracePeriodDays}} days after the due date, a late fee of <strong>{{late_fee_amountFormatted}}</strong> may be assessed. Continued non-payment may result in additional remedies permitted by law.</p>`
 				},
 				{
 					id: 'security-deposit',
@@ -259,7 +259,7 @@ export const leaseTemplateSchema: LeaseTemplateSchema = {
 					tooltip:
 						'Security deposit rules are heavily regulated; this clause reflects the base requirement for most states.',
 					defaultSelected: true,
-					body: `<p>Tenant has paid a security deposit of <strong>{{securityDepositFormatted}}</strong> upon execution of this Agreement. The deposit shall be held to secure Tenant’s performance and will be returned less lawful deductions within the time period prescribed by {{stateName}} law.</p>`
+					body: `<p>Tenant has paid a security deposit of <strong>{{security_depositFormatted}}</strong> upon execution of this Agreement. The deposit shall be held to secure Tenant’s performance and will be returned less lawful deductions within the time period prescribed by {{stateName}} law.</p>`
 				}
 			]
 		},
@@ -698,23 +698,23 @@ export function createDefaultContext(
 	return {
 		...DEFAULT_CONTEXT,
 		...overrides,
-		rentAmountFormatted: formatCurrency(
-			overrides?.rentAmountCents ?? DEFAULT_CONTEXT.rentAmountCents
+		rent_amountFormatted: formatCurrency(
+			overrides?.rent_amountCents ?? DEFAULT_CONTEXT.rent_amountCents
 		),
-		securityDepositFormatted: formatCurrency(
-			overrides?.securityDepositCents ?? DEFAULT_CONTEXT.securityDepositCents
+		security_depositFormatted: formatCurrency(
+			overrides?.security_depositCents ?? DEFAULT_CONTEXT.security_depositCents
 		),
 		rentDueDayOrdinal: formatOrdinal(
 			overrides?.rentDueDay ?? DEFAULT_CONTEXT.rentDueDay
 		),
-		leaseStartDateFormatted: formatDate(
-			overrides?.leaseStartDateISO ?? DEFAULT_CONTEXT.leaseStartDateISO
+		leasestart_dateFormatted: formatDate(
+			overrides?.leasestart_dateISO ?? DEFAULT_CONTEXT.leasestart_dateISO
 		),
 		...(overrides?.leaseEndDateISO
 			? { leaseEndDateFormatted: formatDate(overrides.leaseEndDateISO) }
 			: {}),
-		lateFeeAmountFormatted: formatCurrency(
-			overrides?.lateFeeAmountCents ?? DEFAULT_CONTEXT.lateFeeAmountCents ?? 0
+		late_fee_amountFormatted: formatCurrency(
+			overrides?.late_fee_amountCents ?? DEFAULT_CONTEXT.late_fee_amountCents ?? 0
 		)
 	}
 }
@@ -723,12 +723,12 @@ export function createContextFromLeaseData(
 	leaseData: LeaseFormData
 ): LeaseTemplateContext {
 	const tenantNames = leaseData.tenants.map(tenant => tenant.name).join('; ')
-	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.zipCode}`
+	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.postal_code}`
 	const propertyAddress = `${leaseData.property.address.street}${
 		leaseData.property.address.unit
 			? `, ${leaseData.property.address.unit}`
 			: ''
-	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.zipCode}`
+	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.postal_code}`
 
 	const overrides: Partial<LeaseTemplateContext> = {
 		ownerName: leaseData.owner.name,
@@ -736,18 +736,18 @@ export function createContextFromLeaseData(
 		tenantNames,
 		propertyAddress,
 		propertyState: leaseData.property.address.state,
-		rentAmountCents: leaseData.leaseTerms.rentAmount,
-		securityDepositCents: leaseData.leaseTerms.securityDeposit.amount,
+		rent_amountCents: leaseData.leaseTerms.rent_amount,
+		security_depositCents: leaseData.leaseTerms.security_deposit.amount,
 		rentDueDay: leaseData.leaseTerms.dueDate,
-		leaseStartDateISO: leaseData.leaseTerms.startDate,
+		leasestart_dateISO: leaseData.leaseTerms.start_date,
 		formattedDateGenerated: formatDate(new Date().toISOString())
 	}
 
-	if (leaseData.leaseTerms.endDate) {
-		overrides.leaseEndDateISO = leaseData.leaseTerms.endDate
+	if (leaseData.leaseTerms.end_date) {
+		overrides.leaseEndDateISO = leaseData.leaseTerms.end_date
 	}
 	if (leaseData.leaseTerms.lateFee?.amount) {
-		overrides.lateFeeAmountCents = leaseData.leaseTerms.lateFee.amount
+		overrides.late_fee_amountCents = leaseData.leaseTerms.lateFee.amount
 	}
 	if (leaseData.leaseTerms.lateFee?.gracePeriod) {
 		overrides.gracePeriodDays = leaseData.leaseTerms.lateFee.gracePeriod

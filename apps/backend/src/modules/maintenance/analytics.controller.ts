@@ -14,6 +14,7 @@ import type {
 	MaintenanceRequest
 } from '@repo/shared/types/core'
 import type { Request } from 'express'
+import { isValidUUID } from '@repo/shared/validation/common'
 import { SupabaseService } from '../../database/supabase.service'
 
 /**
@@ -33,7 +34,7 @@ export class MaintenanceAnalyticsController {
 	@Get('metrics')
 	async getMaintenanceMetrics(
 		@Req() req: Request,
-		@Query('propertyId') propertyId?: string,
+		@Query('property_id') property_id?: string,
 		@Query('timeframe') timeframe = '30d'
 	): Promise<MaintenanceMetrics> {
 		const user = await this.supabaseService.getUser(req)
@@ -41,11 +42,16 @@ export class MaintenanceAnalyticsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
+		// Validate property_id if provided
+		if (property_id && !isValidUUID(property_id)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
 		try {
 			const context = await this.loadMaintenanceContext(
 				user.id,
 				timeframe,
-				propertyId
+				property_id
 			)
 			const aggregate = this.calculateAggregateMetrics(context.requests)
 
@@ -64,7 +70,7 @@ export class MaintenanceAnalyticsController {
 				'Failed to get maintenance metrics via analytics service',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId: user.id
+					user_id: user.id
 				}
 			)
 			throw new BadRequestException('Failed to fetch maintenance metrics')
@@ -78,7 +84,7 @@ export class MaintenanceAnalyticsController {
 	@Get('cost-summary')
 	async getCostSummary(
 		@Req() req: Request,
-		@Query('propertyId') propertyId?: string,
+		@Query('property_id') property_id?: string,
 		@Query('timeframe') timeframe = '30d'
 	): Promise<MaintenanceCostSummary> {
 		const user = await this.supabaseService.getUser(req)
@@ -86,11 +92,16 @@ export class MaintenanceAnalyticsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
+		// Validate property_id if provided
+		if (property_id && !isValidUUID(property_id)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
 		try {
 			const context = await this.loadMaintenanceContext(
 				user.id,
 				timeframe,
-				propertyId
+				property_id
 			)
 			const aggregate = this.calculateAggregateMetrics(context.requests)
 
@@ -106,7 +117,7 @@ export class MaintenanceAnalyticsController {
 				'Failed to get maintenance cost summary via analytics service',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId: user.id
+					user_id: user.id
 				}
 			)
 			throw new BadRequestException('Failed to fetch cost summary')
@@ -120,7 +131,7 @@ export class MaintenanceAnalyticsController {
 	@Get('performance')
 	async getPerformanceAnalytics(
 		@Req() req: Request,
-		@Query('propertyId') propertyId?: string,
+		@Query('property_id') property_id?: string,
 		@Query('period') period = 'monthly',
 		@Query('timeframe') timeframe = '90d'
 	): Promise<MaintenancePerformance[]> {
@@ -129,11 +140,16 @@ export class MaintenanceAnalyticsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
+		// Validate property_id if provided
+		if (property_id && !isValidUUID(property_id)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
 		try {
 			const context = await this.loadMaintenanceContext(
 				user.id,
 				timeframe,
-				propertyId
+				property_id
 			)
 			const propertyAggregates = this.calculatePropertyAggregates(
 				context.requests,
@@ -142,12 +158,12 @@ export class MaintenanceAnalyticsController {
 			)
 
 			if (propertyAggregates.size === 0) {
-				if (propertyId) {
+				if (property_id) {
 					const propertyName =
-						context.propertyNames.get(propertyId) ?? 'Unknown Property'
+						context.propertyNames.get(property_id) ?? 'Unknown Property'
 					return [
 						{
-							propertyId,
+							propertyId: property_id,
 							propertyName,
 							totalRequests: 0,
 							completedRequests: 0,
@@ -161,22 +177,13 @@ export class MaintenanceAnalyticsController {
 				return []
 			}
 
-			return Array.from(propertyAggregates.values()).map(aggregate => ({
-				propertyId: aggregate.propertyId,
-				propertyName: aggregate.propertyName,
-				totalRequests: aggregate.totalRequests,
-				completedRequests: aggregate.completedCount,
-				pendingRequests: aggregate.pendingCount,
-				averageResolutionTime: aggregate.averageResolutionTime,
-				totalCost: aggregate.totalCost,
-				emergencyRequests: aggregate.emergencyCount
-			}))
+			return Array.from(propertyAggregates.values())
 		} catch (error) {
 			this.logger.error(
 				'Failed to get maintenance performance analytics via analytics service',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId: user.id,
+					user_id: user.id,
 					period,
 					timeframe
 				}
@@ -206,40 +213,40 @@ export class MaintenanceAnalyticsController {
 	}
 
 	private async loadMaintenanceContext(
-		userId: string,
+		user_id: string,
 		timeframe: string,
-		propertyId?: string
+		property_id?: string
 	) {
 		const client = this.supabaseService.getAdminClient()
 
 		const { data: propertyRows, error: propertyError } = await client
-			.from('property')
+			.from('properties')
 			.select('id, name')
-			.eq('ownerId', userId)
+			.eq('owner_id', user_id)
 
 		if (propertyError) {
 			this.logger.error(
 				'Failed to fetch properties, proceeding with empty data',
 				{
 					error: propertyError.message || propertyError,
-					userId
+					user_id
 				}
 			)
 		}
 
 		const propertyNames = new Map<string, string>()
-		const propertyIds: string[] = []
+		const property_ids: string[] = []
 		for (const property of propertyRows || []) {
 			if (!property?.id) {
 				continue
 			}
-			propertyIds.push(property.id)
+			property_ids.push(property.id)
 			if (typeof property.name === 'string') {
 				propertyNames.set(property.id, property.name)
 			}
 		}
 
-		if (propertyIds.length === 0) {
+		if (property_ids.length === 0) {
 			return {
 				requests: [],
 				unitToProperty: new Map<string, string>(),
@@ -248,31 +255,31 @@ export class MaintenanceAnalyticsController {
 		}
 
 		const { data: unitRows, error: unitError } = await client
-			.from('unit')
-			.select('id, propertyId')
-			.in('propertyId', propertyIds)
+			.from('units')
+			.select('id, property_id')
+			.in('property_id', property_ids)
 
 		if (unitError) {
 			this.logger.error('Failed to fetch units, proceeding with empty data', {
 				error: unitError.message || unitError,
-				userId,
-				propertyIdsCount: propertyIds.length
+				user_id,
+				property_idsCount: property_ids.length
 			})
 		}
 
 		const unitToProperty = new Map<string, string>()
-		const unitIds: string[] = []
+		const unit_ids: string[] = []
 		for (const unit of unitRows || []) {
 			if (!unit?.id) {
 				continue
 			}
-			unitIds.push(unit.id)
-			if (typeof unit.propertyId === 'string' && unit.propertyId.length > 0) {
-				unitToProperty.set(unit.id, unit.propertyId)
+			unit_ids.push(unit.id)
+			if (typeof unit.property_id === 'string' && unit.property_id.length > 0) {
+				unitToProperty.set(unit.id, unit.property_id)
 			}
 		}
 
-		if (unitIds.length === 0) {
+		if (unit_ids.length === 0) {
 			return {
 				requests: [],
 				unitToProperty,
@@ -283,17 +290,17 @@ export class MaintenanceAnalyticsController {
 		let maintenanceRequests: MaintenanceRequest[] = []
 		try {
 			const { data: maintenanceRows, error: maintenanceError } = await client
-				.from('maintenance_request')
+				.from('maintenance_requests')
 				.select('*')
-				.in('unitId', unitIds)
+				.in('unit_id', unit_ids)
 
 			if (maintenanceError) {
 				this.logger.error(
 					'Failed to fetch maintenance requests, proceeding with empty data',
 					{
 						error: maintenanceError.message || maintenanceError,
-						userId,
-						unitIdsCount: unitIds.length
+						user_id,
+						unit_idsCount: unit_ids.length
 					}
 				)
 				// Return empty result shape on error instead of throwing
@@ -310,7 +317,7 @@ export class MaintenanceAnalyticsController {
 				'Unexpected error fetching maintenance requests, proceeding with empty data',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					userId
+					user_id
 				}
 			)
 			// Return empty result shape on unexpected errors
@@ -321,26 +328,26 @@ export class MaintenanceAnalyticsController {
 			}
 		}
 
-		const start = this.calculateStartDate(timeframe)
+		const start = this.calculatestart_date(timeframe)
 		const filteredRequests = maintenanceRequests.filter(request => {
-			if (start && request.createdAt) {
-				const createdAt = new Date(request.createdAt)
-				if (Number.isFinite(start.getTime()) && createdAt < start) {
+			if (start && request.created_at) {
+				const created_at = new Date(request.created_at)
+				if (Number.isFinite(start.getTime()) && created_at < start) {
 					return false
 				}
 			}
 
-			if (!propertyId) {
+			if (!property_id) {
 				return true
 			}
 
-			const mappedPropertyId = unitToProperty.get(request.unitId ?? '')
-			return mappedPropertyId === propertyId
+			const mappedproperty_id = unitToProperty.get(request.unit_id ?? '')
+			return mappedproperty_id === property_id
 		})
 
 		const enrichedRequests = filteredRequests.map(request => ({
 			request,
-			propertyId: unitToProperty.get(request.unitId ?? '') ?? null
+			property_id: unitToProperty.get(request.unit_id ?? '') ?? null
 		}))
 
 		return {
@@ -350,7 +357,7 @@ export class MaintenanceAnalyticsController {
 		}
 	}
 
-	private calculateStartDate(timeframe: string): Date | null {
+	private calculatestart_date(timeframe: string): Date | null {
 		if (!timeframe) {
 			return null
 		}
@@ -381,7 +388,7 @@ export class MaintenanceAnalyticsController {
 	}
 
 	private calculateAggregateMetrics(
-		requests: Array<{ request: MaintenanceRequest; propertyId: string | null }>
+		requests: Array<{ request: MaintenanceRequest; property_id: string | null }>
 	) {
 		const aggregates = {
 			totalRequests: 0,
@@ -398,10 +405,11 @@ export class MaintenanceAnalyticsController {
 		for (const { request } of requests) {
 			aggregates.totalRequests += 1
 
-			if (request.priority === 'URGENT') {
+			const priority = request.priority?.toLowerCase()
+			if (priority === 'urgent') {
 				aggregates.emergencyCount += 1
 			}
-			if (request.priority === 'HIGH') {
+			if (priority === 'high') {
 				aggregates.highPriorityCount += 1
 			}
 
@@ -411,12 +419,12 @@ export class MaintenanceAnalyticsController {
 				aggregates.costSamples += 1
 			}
 
-			const status = request.status?.toUpperCase()
-			if (status === 'COMPLETED') {
+			const status = request.status?.toLowerCase()
+			if (status === 'completed') {
 				aggregates.completedCount += 1
-				if (request.completedAt) {
-					const created = new Date(request.createdAt)
-					const completed = new Date(request.completedAt)
+				if (request.completed_at && request.created_at) {
+					const created = new Date(request.created_at)
+					const completed = new Date(request.completed_at)
 					const durationHours =
 						(completed.getTime() - created.getTime()) / (1000 * 60 * 60)
 					if (Number.isFinite(durationHours) && durationHours >= 0) {
@@ -424,7 +432,7 @@ export class MaintenanceAnalyticsController {
 						aggregates.resolutionSamples += 1
 					}
 				}
-			} else if (status !== 'CANCELED') {
+			} else if (status !== 'cancelled') {
 				aggregates.pendingCount += 1
 			}
 		}
@@ -451,29 +459,27 @@ export class MaintenanceAnalyticsController {
 	}
 
 	private calculatePropertyAggregates(
-		requests: Array<{ request: MaintenanceRequest; propertyId: string | null }>,
+		requests: Array<{ request: MaintenanceRequest; property_id: string | null }>,
 		unitToProperty: Map<string, string>,
 		propertyNames: Map<string, string>
 	) {
-		const map = new Map<
-			string,
-			{
-				propertyId: string
-				propertyName: string
-				totalRequests: number
-				completedCount: number
-				pendingCount: number
-				totalCost: number
-				resolutionTimeSum: number
-				resolutionSamples: number
-				emergencyCount: number
-				averageResolutionTime: number
-			}
-		>()
+		type PropertyAggregate = {
+			propertyId: string
+			propertyName: string
+			totalRequests: number
+			completedRequests: number
+			pendingRequests: number
+			totalCost: number
+			resolutionTimeSum: number
+			resolutionSamples: number
+			emergencyRequests: number
+		}
 
-		for (const { request, propertyId } of requests) {
+		const map = new Map<string, PropertyAggregate>()
+
+		for (const { request, property_id } of requests) {
 			const targetPropertyId =
-				propertyId ?? unitToProperty.get(request.unitId ?? '')
+				property_id ?? unitToProperty.get(request.unit_id ?? '')
 			if (!targetPropertyId) {
 				continue
 			}
@@ -484,13 +490,12 @@ export class MaintenanceAnalyticsController {
 					propertyName:
 						propertyNames.get(targetPropertyId) ?? 'Unknown Property',
 					totalRequests: 0,
-					completedCount: 0,
-					pendingCount: 0,
+					completedRequests: 0,
+					pendingRequests: 0,
 					totalCost: 0,
 					resolutionTimeSum: 0,
 					resolutionSamples: 0,
-					emergencyCount: 0,
-					averageResolutionTime: 0
+					emergencyRequests: 0
 				})
 			}
 
@@ -498,16 +503,17 @@ export class MaintenanceAnalyticsController {
 
 			aggregate.totalRequests += 1
 			aggregate.totalCost += this.deriveCost(request)
-			if (request.priority === 'URGENT') {
-				aggregate.emergencyCount += 1
+			const priority = request.priority?.toLowerCase()
+			if (priority === 'urgent') {
+				aggregate.emergencyRequests += 1
 			}
 
-			const status = request.status?.toUpperCase()
-			if (status === 'COMPLETED') {
-				aggregate.completedCount += 1
-				if (request.completedAt) {
-					const created = new Date(request.createdAt)
-					const completed = new Date(request.completedAt)
+			const status = request.status?.toLowerCase()
+			if (status === 'completed') {
+				aggregate.completedRequests += 1
+				if (request.completed_at && request.created_at) {
+					const created = new Date(request.created_at)
+					const completed = new Date(request.completed_at)
 					const durationHours =
 						(completed.getTime() - created.getTime()) / (1000 * 60 * 60)
 					if (Number.isFinite(durationHours) && durationHours >= 0) {
@@ -515,24 +521,12 @@ export class MaintenanceAnalyticsController {
 						aggregate.resolutionSamples += 1
 					}
 				}
-			} else if (status !== 'CANCELED') {
-				aggregate.pendingCount += 1
+			} else if (status !== 'cancelled') {
+				aggregate.pendingRequests += 1
 			}
 		}
 
-		const result = new Map<
-			string,
-			{
-				propertyId: string
-				propertyName: string
-				totalRequests: number
-				completedCount: number
-				pendingCount: number
-				totalCost: number
-				emergencyCount: number
-				averageResolutionTime: number
-			}
-		>()
+		const result = new Map<string, MaintenancePerformance>()
 
 		for (const aggregate of map.values()) {
 			const averageResolutionTime =
@@ -544,10 +538,10 @@ export class MaintenanceAnalyticsController {
 				propertyId: aggregate.propertyId,
 				propertyName: aggregate.propertyName,
 				totalRequests: aggregate.totalRequests,
-				completedCount: aggregate.completedCount,
-				pendingCount: aggregate.pendingCount,
+				completedRequests: aggregate.completedRequests,
+				pendingRequests: aggregate.pendingRequests,
 				totalCost: aggregate.totalCost,
-				emergencyCount: aggregate.emergencyCount,
+				emergencyRequests: aggregate.emergencyRequests,
 				averageResolutionTime
 			})
 		}
@@ -556,11 +550,11 @@ export class MaintenanceAnalyticsController {
 	}
 
 	private deriveCost(request: MaintenanceRequest): number {
-		if (typeof request.actualCost === 'number') {
-			return request.actualCost
+		if (typeof request.actual_cost === 'number') {
+			return request.actual_cost
 		}
-		if (typeof request.estimatedCost === 'number') {
-			return request.estimatedCost
+		if (typeof request.estimated_cost === 'number') {
+			return request.estimated_cost
 		}
 		return 0
 	}

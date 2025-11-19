@@ -2,17 +2,14 @@ import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ExportService } from './export.service'
-import { GeneratedReportService } from './generated-report.service'
 import { ReportsController } from './reports.controller'
 import { ReportsService } from './reports.service'
-import { ScheduledReportService } from './scheduled-report.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxPreparationTemplate } from './templates/tax-preparation.template'
-import { SupabaseService } from '../../database/supabase.service'
 
 describe('ReportsController', () => {
 	let controller: ReportsController
@@ -33,21 +30,10 @@ describe('ReportsController', () => {
 					useValue: exportService
 				},
 				{
-					provide: GeneratedReportService,
-					useValue: {}
-				},
-				{
 					provide: ReportsService,
 					useValue: {}
 				},
-				{
-					provide: ScheduledReportService,
-					useValue: {}
-				},
-				{
-					provide: SupabaseService,
-					useValue: {}
-				},
+				
 				{
 					provide: ExecutiveMonthlyTemplate,
 					useValue: {}

@@ -38,10 +38,10 @@ export class SecurityMetricsService {
 		const { data, error } = await client
 			.from('security_audit_log')
 			.select(
-				'id, eventType, severity, userId, email, ipAddress, userAgent, resource, action, details, timestamp'
+				'id, event_type, user_id, details, created_at'
 			)
-			.gte('timestamp', start.toISOString())
-			.order('timestamp', { ascending: false })
+			.gte('created_at', start.toISOString())
+			.order('created_at', { ascending: false })
 			.limit(500)
 
 		if (error) {
@@ -49,7 +49,30 @@ export class SecurityMetricsService {
 			return this.getEmptyMetrics(start, end)
 		}
 
-		const auditLogs = (data ?? []) as SecurityAuditLogEntry[]
+		// Cast database rows to SecurityAuditLogEntry
+		type AuditLogRow = {
+			id: string
+			event_type: string
+			user_id: string | null
+			details: unknown
+			created_at: string
+		}
+		const auditLogs = (((data ?? []) as AuditLogRow[]).map(row => {
+			const event: SecurityAuditLogEntry = {
+				id: row.id,
+				eventType: row.event_type as SecurityEventTypeEnum,
+				severity: this.deriveSeverityFromEventType(row.event_type),
+				user_id: row.user_id,
+				email: null,
+				ipAddress: null,
+				userAgent: null,
+				resource: null,
+				action: null,
+				details: row.details as Record<string, unknown> | null,
+				timestamp: row.created_at
+			}
+			return event
+		})) as SecurityAuditLogEntry[]
 
 		const eventsByType = this.initializeTypeBuckets()
 		const eventsBySeverity = this.initializeSeverityBuckets()
@@ -152,8 +175,8 @@ export class SecurityMetricsService {
 			}
 
 			// Only assign optional properties if they have values (exactOptionalPropertyTypes)
-			if (log.userId !== null && log.userId !== undefined) {
-				event.userId = log.userId
+			if (log.user_id !== null && log.user_id !== undefined) {
+				event.user_id = log.user_id
 			}
 			if (log.details !== null && log.details !== undefined) {
 				event.details =
@@ -208,5 +231,61 @@ export class SecurityMetricsService {
 			.sort((a, b) => b[1] - a[1])
 			.slice(0, 10)
 			.map(([ip, count]) => ({ ip, count }))
+	}
+
+	private deriveSeverityFromEventType(
+		eventType: string
+	): SecurityEventSeverityEnum {
+		// Critical events
+		const criticalEvents = [
+			SecurityEventTypeEnum.RLS_BYPASS_ATTEMPT,
+			SecurityEventTypeEnum.SQL_INJECTION_ATTEMPT,
+			SecurityEventTypeEnum.UNAUTHORIZED_QUERY,
+			SecurityEventTypeEnum.SESSION_HIJACK_ATTEMPT,
+			SecurityEventTypeEnum.BRUTE_FORCE_ATTEMPT,
+			SecurityEventTypeEnum.COMMAND_INJECTION_ATTEMPT,
+			SecurityEventTypeEnum.MALICIOUS_FILE_UPLOAD,
+			SecurityEventTypeEnum.ACCOUNT_LOCKED,
+			SecurityEventTypeEnum.AUTH_FAILURE
+		]
+
+		// High severity events
+		const highEvents = [
+			SecurityEventTypeEnum.XSS_ATTEMPT,
+			SecurityEventTypeEnum.CSRF_ATTEMPT,
+			SecurityEventTypeEnum.PATH_TRAVERSAL,
+			SecurityEventTypeEnum.INJECTION_ATTEMPT,
+			SecurityEventTypeEnum.INVALID_INPUT_DETECTED,
+			SecurityEventTypeEnum.FILE_UPLOAD_BLOCKED,
+			SecurityEventTypeEnum.RATE_LIMIT_EXCEEDED,
+			SecurityEventTypeEnum.PERMISSION_DENIED,
+			SecurityEventTypeEnum.FORBIDDEN_ACCESS,
+			SecurityEventTypeEnum.AUTH_TOKEN_INVALID
+		]
+
+		// Medium severity events
+		const mediumEvents = [
+			SecurityEventTypeEnum.SUSPICIOUS_ACTIVITY,
+			SecurityEventTypeEnum.SUSPICIOUS_REQUEST,
+			SecurityEventTypeEnum.SUSPICIOUS_PATTERN,
+			SecurityEventTypeEnum.VALIDATION_FAILURE,
+			SecurityEventTypeEnum.AUTH_RATE_LIMIT,
+			SecurityEventTypeEnum.FILE_TYPE_VIOLATION,
+			SecurityEventTypeEnum.FILE_SIZE_VIOLATION,
+			SecurityEventTypeEnum.CONFIG_ACCESS,
+			SecurityEventTypeEnum.PII_ACCESS,
+			SecurityEventTypeEnum.DATA_EXPORT
+		]
+
+		if (criticalEvents.includes(eventType as SecurityEventTypeEnum)) {
+			return SecurityEventSeverityEnum.CRITICAL
+		}
+		if (highEvents.includes(eventType as SecurityEventTypeEnum)) {
+			return SecurityEventSeverityEnum.HIGH
+		}
+		if (mediumEvents.includes(eventType as SecurityEventTypeEnum)) {
+			return SecurityEventSeverityEnum.MEDIUM
+		}
+		return SecurityEventSeverityEnum.LOW
 	}
 }

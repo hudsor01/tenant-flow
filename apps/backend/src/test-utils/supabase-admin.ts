@@ -21,7 +21,7 @@ export async function createTestUser(email: string, password: string) {
 	return res.data.user
 }
 
-export async function deleteTestUser(userId: string) {
+export async function deleteTestUser(user_id: string) {
 	const admin = createAdminClient()
-	await admin.auth.admin.deleteUser(userId)
+	await admin.auth.admin.deleteUser(user_id)
 }

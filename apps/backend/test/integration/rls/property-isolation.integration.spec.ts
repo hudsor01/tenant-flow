@@ -18,14 +18,14 @@ import {
 	authenticateAs,
 	expectEmptyResult,
 	expectPermissionError,
-	getServiceRoleClient,
+	getServiceuser_typeClient,
 	TEST_USERS,
 	type AuthenticatedTestClient
 } from './setup'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 
-type PropertyRow = Database['public']['Tables']['property']['Row']
-type UnitRow = Database['public']['Tables']['unit']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
 
 const testLogger = new Logger('RLSPropertyIsolationTest')
 
@@ -33,7 +33,7 @@ describe('RLS: Property Isolation', () => {
 	let ownerA: AuthenticatedTestClient
 	let ownerB: AuthenticatedTestClient
 	let tenantA: AuthenticatedTestClient
-	let serviceClient: ReturnType<typeof getServiceRoleClient>
+	let serviceClient: ReturnType<typeof getServiceuser_typeClient>
 
 	// Test data IDs for cleanup
 	const testData = {
@@ -45,49 +45,49 @@ describe('RLS: Property Isolation', () => {
 		ownerA = await authenticateAs(TEST_USERS.OWNER_A)
 		ownerB = await authenticateAs(TEST_USERS.OWNER_B)
 		tenantA = await authenticateAs(TEST_USERS.TENANT_A)
-		serviceClient = getServiceRoleClient()
+		serviceClient = getServiceuser_typeClient()
 	})
 
 	afterAll(async () => {
 		// Cleanup in correct order: units first (foreign key), then properties
 		for (const id of testData.units) {
-			await serviceClient.from('unit').delete().eq('id', id)
+			await serviceClient.from('units').delete().eq('id', id)
 		}
 		for (const id of testData.properties) {
-			await serviceClient.from('property').delete().eq('id', id)
+			await serviceClient.from('properties').delete().eq('id', id)
 		}
 	})
 
 	describe('Property Ownership Access', () => {
-		let ownerAPropertyId: string
-		let ownerBPropertyId: string
+		let ownerAproperty_id: string
+		let ownerBproperty_id: string
 
 		beforeAll(async () => {
 			// Get owner A's first property
 			const { data: propertyA } = await serviceClient
-				.from('property')
+				.from('properties')
 				.select('id')
-				.eq('ownerId', ownerA.userId)
+				.eq('property_owner_id', ownerA.user_id)
 				.limit(1)
 				.single()
 
 			// Get owner B's first property
 			const { data: propertyB } = await serviceClient
-				.from('property')
+				.from('properties')
 				.select('id')
-				.eq('ownerId', ownerB.userId)
+				.eq('property_owner_id', ownerB.user_id)
 				.limit(1)
 				.single()
 
-			if (propertyA) ownerAPropertyId = propertyA.id
-			if (propertyB) ownerBPropertyId = propertyB.id
+			if (propertyA) ownerAproperty_id = propertyA.id
+			if (propertyB) ownerBproperty_id = propertyB.id
 		})
 
 		it('owner A can read their own properties', async () => {
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.select('*')
-				.eq('ownerId', ownerA.userId)
+				.eq('property_owner_id', ownerA.user_id)
 
 			expect(error).toBeNull()
 			expect(data).toBeDefined()
@@ -96,36 +96,36 @@ describe('RLS: Property Isolation', () => {
 			// All returned properties must belong to owner A
 			if (data && data.length > 0) {
 				for (const property of data) {
-					expect(property.ownerId).toBe(ownerA.userId)
+					expect(property.property_owner_id).toBe(ownerA.user_id)
 				}
 			}
 		})
 
 		it('owner A cannot read owner B properties', async () => {
-			if (!ownerBPropertyId) {
+			if (!ownerBproperty_id) {
 				testLogger.warn('owner B has no properties - skipping test')
 				return
 			}
 
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.select('*')
-				.eq('id', ownerBPropertyId)
+				.eq('id', ownerBproperty_id)
 
 			expect(error).toBeNull()
 			expectEmptyResult(data, 'owner A querying owner B property')
 		})
 
 		it('owner A can update their own property', async () => {
-			if (!ownerAPropertyId) {
+			if (!ownerAproperty_id) {
 				testLogger.warn('owner A has no properties - skipping test')
 				return
 			}
 
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.update({ name: `Updated Property ${Date.now()}` })
-				.eq('id', ownerAPropertyId)
+				.eq('id', ownerAproperty_id)
 				.select()
 				.single()
 
@@ -134,15 +134,15 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot update owner B property', async () => {
-			if (!ownerBPropertyId) {
+			if (!ownerBproperty_id) {
 				testLogger.warn('owner B has no properties - skipping test')
 				return
 			}
 
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.update({ name: 'Hacked Property' })
-				.eq('id', ownerBPropertyId)
+				.eq('id', ownerBproperty_id)
 				.select()
 
 			// MUST fail or return empty
@@ -154,22 +154,22 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('tenant cannot read property management data', async () => {
-			if (!ownerAPropertyId) {
+			if (!ownerAproperty_id) {
 				testLogger.warn('owner A has no properties - skipping test')
 				return
 			}
 
 			const { data, error } = await tenantA.client
-				.from('property')
+				.from('properties')
 				.select('*')
-				.eq('id', ownerAPropertyId)
+				.eq('id', ownerAproperty_id)
 
 			expect(error).toBeNull()
 			expectEmptyResult(data, 'tenant querying property management data')
 		})
 
 		it('tenant cannot list all properties', async () => {
-			const { data, error } = await tenantA.client.from('property').select('*')
+			const { data, error } = await tenantA.client.from('properties').select('*')
 
 			expect(error).toBeNull()
 			expectEmptyResult(data, 'tenant listing all properties')
@@ -178,25 +178,25 @@ describe('RLS: Property Isolation', () => {
 
 	describe('Property Creation', () => {
 		it('owner A can create property', async () => {
-			const newProperty: Database['public']['Tables']['property']['Insert'] = {
+			const newProperty: Database['public']['Tables']['properties']['Insert'] = {
 				name: `TEST Property ${Date.now()}`,
-				propertyType: 'SINGLE_FAMILY',
-				address: '123 Test St',
+				property_type: 'SINGLE_FAMILY',
+				address_line1: '123 Test St',
 				city: 'Test City',
 				state: 'TS',
-				zipCode: '12345',
-				ownerId: ownerA.userId
+				postal_code: '12345',
+				property_owner_id: ownerA.user_id
 			}
 
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.insert(newProperty)
 				.select()
 				.single<PropertyRow>()
 
 			expect(error).toBeNull()
 			expect(data).toBeDefined()
-			expect(data?.ownerId).toBe(ownerA.userId)
+			expect(data?.property_owner_id).toBe(ownerA.user_id)
 
 			if (data) {
 				testData.properties.push(data.id)
@@ -204,40 +204,40 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot create property for owner B', async () => {
-			const maliciousProperty: Database['public']['Tables']['property']['Insert'] =
+			const maliciousProperty: Database['public']['Tables']['properties']['Insert'] =
 				{
 					name: 'Spoofed Property',
-					propertyType: 'APARTMENT',
-					ownerId: ownerB.userId, // Attempt to spoof owner
-					address: '123 Fake St',
+					property_type: 'APARTMENT',
+					property_owner_id: ownerB.user_id, // Attempt to spoof owner
+					address_line1: '123 Fake St',
 					city: 'Fake City',
 					state: 'CA',
-					zipCode: '12345'
+					postal_code: '12345'
 				}
 
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.insert(maliciousProperty)
 				.select()
 
-			// MUST fail due to RLS policy check (ownerId = auth.uid())
+			// MUST fail due to RLS policy check (owner_id = auth.uid())
 			expectPermissionError(error, 'owner A creating property for owner B')
 			expect(data).toBeNull()
 		})
 
 		it('tenant cannot create property', async () => {
-			const property: Database['public']['Tables']['property']['Insert'] = {
+			const property: Database['public']['Tables']['properties']['Insert'] = {
 				name: 'Tenant Spoofed Property',
-				propertyType: 'CONDO',
-				ownerId: tenantA.userId,
-				address: '456 Fake Ave',
+				property_type: 'CONDO',
+				property_owner_id: tenantA.user_id,
+				address_line1: '456 Fake Ave',
 				city: 'Fake City',
 				state: 'CA',
-				zipCode: '12345'
+				postal_code: '12345'
 			}
 
 			const { data, error } = await tenantA.client
-				.from('property')
+				.from('properties')
 				.insert(property)
 				.select()
 
@@ -248,102 +248,102 @@ describe('RLS: Property Isolation', () => {
 	})
 
 	describe('Unit Isolation', () => {
-		let ownerAPropertyId: string
-		let ownerAUnitId: string
-		let ownerBPropertyId: string
-		let ownerBUnitId: string
+		let ownerAproperty_id: string
+		let ownerAunit_id: string
+		let ownerBproperty_id: string
+		let ownerBunit_id: string
 
 		beforeAll(async () => {
 			// Get owner A's property and unit
 			const { data: propertyA } = await serviceClient
-				.from('property')
+				.from('properties')
 				.select('id')
-				.eq('ownerId', ownerA.userId)
+				.eq('property_owner_id', ownerA.user_id)
 				.limit(1)
 				.single()
 
 			if (propertyA) {
-				ownerAPropertyId = propertyA.id
+				ownerAproperty_id = propertyA.id
 
 				const { data: unitA } = await serviceClient
-					.from('unit')
+					.from('units')
 					.select('id')
-					.eq('propertyId', propertyA.id)
+					.eq('property_id', propertyA.id)
 					.limit(1)
 					.single()
 
-				if (unitA) ownerAUnitId = unitA.id
+				if (unitA) ownerAunit_id = unitA.id
 			}
 
 			// Get owner B's property and unit
 			const { data: propertyB } = await serviceClient
-				.from('property')
+				.from('properties')
 				.select('id')
-				.eq('ownerId', ownerB.userId)
+				.eq('property_owner_id', ownerB.user_id)
 				.limit(1)
 				.single()
 
 			if (propertyB) {
-				ownerBPropertyId = propertyB.id
+				ownerBproperty_id = propertyB.id
 
 				const { data: unitB } = await serviceClient
-					.from('unit')
+					.from('units')
 					.select('id')
-					.eq('propertyId', propertyB.id)
+					.eq('property_id', propertyB.id)
 					.limit(1)
 					.single()
 
-				if (unitB) ownerBUnitId = unitB.id
+				if (unitB) ownerBunit_id = unitB.id
 			}
 		})
 
 		it('owner A can read units in their own property', async () => {
-		if (!ownerAPropertyId) {
+		if (!ownerAproperty_id) {
 			testLogger.warn('owner A has no properties - skipping test')
 			return
 		}
 
 			const { data, error } = await ownerA.client
-				.from('unit')
+				.from('units')
 				.select('*')
-				.eq('propertyId', ownerAPropertyId)
+				.eq('property_id', ownerAproperty_id)
 
 			expect(error).toBeNull()
 			expect(data).toBeDefined()
 		})
 
 		it('owner A cannot read units in owner B property', async () => {
-		if (!ownerBPropertyId) {
+		if (!ownerBproperty_id) {
 			testLogger.warn('owner B has no properties - skipping test')
 			return
 		}
 
 			const { data, error } = await ownerA.client
-				.from('unit')
+				.from('units')
 				.select('*')
-				.eq('propertyId', ownerBPropertyId)
+				.eq('property_id', ownerBproperty_id)
 
 			expect(error).toBeNull()
 			expectEmptyResult(data, 'owner A querying units in owner B property')
 		})
 
 		it('owner A can create unit in their own property', async () => {
-		if (!ownerAPropertyId) {
+		if (!ownerAproperty_id) {
 			testLogger.warn('owner A has no properties - skipping test')
 			return
 		}
 
-			const newUnit: Database['public']['Tables']['unit']['Insert'] = {
-				propertyId: ownerAPropertyId,
-				unitNumber: `TEST-${Date.now()}`,
+			const newUnit: Database['public']['Tables']['units']['Insert'] = {
+				property_id: ownerAproperty_id,
+				unit_number: `TEST-${Date.now()}`,
 				bedrooms: 2,
 				bathrooms: 1,
-				rent: 1500,
+				rent_amount: 1500,
 				status: 'VACANT'
 			}
 
 			const { data, error } = await ownerA.client
-				.from('unit')
+				.from('units')
 				.insert(newUnit)
 				.select()
 				.single<UnitRow>()
@@ -357,40 +357,40 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot create unit in owner B property', async () => {
-		if (!ownerBPropertyId) {
+		if (!ownerBproperty_id) {
 			testLogger.warn('owner B has no properties - skipping test')
 			return
 		}
 
-			const maliciousUnit: Database['public']['Tables']['unit']['Insert'] = {
-				propertyId: ownerBPropertyId, // Attempt to create unit in another owner's property
-				unitNumber: 'HACKED-UNIT',
+			const maliciousUnit: Database['public']['Tables']['units']['Insert'] = {
+				property_id: ownerBproperty_id, // Attempt to create unit in another owner's property
+				unit_number: 'HACKED-UNIT',
 				bedrooms: 1,
 				bathrooms: 1,
-				rent: 1200,
+				rent_amount: 1200,
 				status: 'VACANT'
 			}
 
 			const { data, error } = await ownerA.client
-				.from('unit')
+				.from('units')
 				.insert(maliciousUnit)
 				.select()
 
-			// MUST fail due to RLS policy (propertyId must belong to auth.uid())
+			// MUST fail due to RLS policy (property_id must belong to auth.uid())
 			expectPermissionError(error, 'owner A creating unit in owner B property')
 			expect(data).toBeNull()
 		})
 
 		it('owner A can update unit in their own property', async () => {
-		if (!ownerAUnitId) {
+		if (!ownerAunit_id) {
 			testLogger.warn('owner A has no units - skipping test')
 			return
 			}
 
 			const { data, error } = await ownerA.client
-				.from('unit')
+				.from('units')
 				.update({ bedrooms: 3 })
-				.eq('id', ownerAUnitId)
+				.eq('id', ownerAunit_id)
 				.select()
 				.single()
 
@@ -400,15 +400,15 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot update unit in owner B property', async () => {
-		if (!ownerBUnitId) {
+		if (!ownerBunit_id) {
 			testLogger.warn('owner B has no units - skipping test')
 			return
 		}
 
 			const { data, error } = await ownerA.client
-				.from('unit')
+				.from('units')
 				.update({ bedrooms: 99 })
-				.eq('id', ownerBUnitId)
+				.eq('id', ownerBunit_id)
 				.select()
 
 			// MUST fail or return empty
@@ -424,44 +424,44 @@ describe('RLS: Property Isolation', () => {
 	})
 
 	describe('Property Status Transitions', () => {
-		let testPropertyId: string
+		let testproperty_id: string
 
 		beforeAll(async () => {
 			// Create a test property for status transition tests
 			const { data } = await serviceClient
-				.from('property')
+				.from('properties')
 				.insert({
 					name: 'Test Property',
-					propertyType: 'SINGLE_FAMILY',
-					ownerId: ownerA.userId,
-					address: '123 Test St',
+					property_type: 'SINGLE_FAMILY',
+					property_owner_id: ownerA.user_id,
+					address_line1: '123 Test St',
 					city: 'Test City',
 					state: 'CA',
-					zipCode: '12345'
+					postal_code: '12345'
 				})
 				.select()
 				.single()
 
 			if (data) {
-				testPropertyId = data.id
+				testproperty_id = data.id
 				testData.properties.push(data.id)
 			}
 		})
 
 		it('owner A can mark their property as sold', async () => {
-		if (!testPropertyId) {
+		if (!testproperty_id) {
 			testLogger.warn('Test property not created - skipping test')
 			return
 		}
 
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.update({
 					status: 'SOLD',
 					date_sold: new Date().toISOString(),
 					sale_price: 500000
 				})
-				.eq('id', testPropertyId)
+				.eq('id', testproperty_id)
 				.select()
 				.single()
 
@@ -470,15 +470,15 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner B cannot mark owner A property as sold', async () => {
-		if (!testPropertyId) {
+		if (!testproperty_id) {
 			testLogger.warn('Test property not created - skipping test')
 			return
 		}
 
 			const { data, error } = await ownerB.client
-				.from('property')
+				.from('properties')
 				.update({ status: 'SOLD' })
-				.eq('id', testPropertyId)
+				.eq('id', testproperty_id)
 				.select()
 
 			// MUST fail or return empty
@@ -493,11 +493,11 @@ describe('RLS: Property Isolation', () => {
 	describe('Property Metadata Access', () => {
 		it('owner A can read property metadata (address, features)', async () => {
 			const { data, error } = await ownerA.client
-				.from('property')
+				.from('properties')
 				.select(
-					'id, name, address, city, state, zipCode, propertyType, description'
+					'id, name, address, city, state, postal_code, property_type, description'
 				)
-				.eq('ownerId', ownerA.userId)
+				.eq('property_owner_id', ownerA.user_id)
 				.limit(1)
 
 			expect(error).toBeNull()
@@ -506,8 +506,8 @@ describe('RLS: Property Isolation', () => {
 
 		it('tenant cannot access property owner information', async () => {
 			const { data, error } = await tenantA.client
-				.from('property')
-				.select('ownerId, createdAt, updatedAt')
+				.from('properties')
+				.select('property_owner_id, created_at, updated_at')
 
 			expect(error).toBeNull()
 			expectEmptyResult(data, 'tenant accessing property ownership data')

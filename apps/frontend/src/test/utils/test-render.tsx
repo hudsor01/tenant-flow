@@ -13,6 +13,7 @@ import type { ReactElement } from 'react'
  * Custom render options extending RTL's RenderOptions
  */
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+	wrapper?: RenderOptions['wrapper']
 	queryClientConfig?: {
 		defaultOptions?: {
 			queries?: Record<string, unknown>
@@ -67,16 +68,24 @@ export function render(
 	ui: ReactElement,
 	options?: CustomRenderOptions
 ): RenderResult {
-	const { queryClientConfig, ...renderOptions } = options || {}
+	const { queryClientConfig, wrapper: userWrapper, ...renderOptions } =
+		options || {}
 
 	const queryClient = queryClientConfig
 		? new QueryClient(queryClientConfig)
 		: createTestQueryClient()
 
 	function Wrapper({ children }: { children: React.ReactNode }) {
-		return (
+		const content = (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
+
+		if (!userWrapper) {
+			return content
+		}
+
+		const UserWrapper = userWrapper
+		return <UserWrapper>{content}</UserWrapper>
 	}
 
 	return rtlRender(ui, { wrapper: Wrapper, ...renderOptions })

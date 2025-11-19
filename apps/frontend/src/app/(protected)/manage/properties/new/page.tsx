@@ -1,5 +1,6 @@
-import { requireSession } from '#lib/server-auth'
 import { PropertyForm } from '#components/properties/property-form.client'
+import { MobilePropertyForm } from '#components/properties/property-form.mobile'
+import { requireSession } from '#lib/server-auth'
 
 /**
  * New Property Page - Server Component
@@ -20,7 +21,10 @@ export default async function NewPropertyPage() {
 					Enter property details to add it to your portfolio
 				</p>
 			</div>
-			<PropertyForm mode="create" />
+			<div className="hidden md:block">
+				<PropertyForm mode="create" />
+			</div>
+			<MobilePropertyForm mode="create" />
 		</div>
 	)
 }

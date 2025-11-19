@@ -6,7 +6,6 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
-import { SupabaseService } from '../../database/supabase.service'
 
 export interface WebhookMetrics {
 	stripeEventId: string
@@ -74,189 +73,83 @@ export interface WebhookEventTypeSummary {
 export class WebhookMonitoringService {
 	private readonly logger = new Logger(WebhookMonitoringService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor() {}
 
 	/**
 	 * Record webhook processing metrics for performance monitoring
+	 * NOTE: Webhook metrics infrastructure not fully deployed - currently logs only
 	 */
 	async recordMetrics(metrics: WebhookMetrics): Promise<void> {
-		try {
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('webhook_metrics')
-				.insert({
-					stripe_event_id: metrics.stripeEventId,
-					event_type: metrics.eventType,
-					processing_duration_ms: metrics.processingDurationMs,
-					signature_verification_ms: metrics.signatureVerificationMs ?? null,
-					business_logic_ms: metrics.businessLogicMs ?? null,
-					database_operations_ms: metrics.databaseOperationsMs ?? null,
-					success: metrics.success
-				})
-
-			if (error) {
-				// Don't fail the webhook processing if metrics recording fails
-				this.logger.warn('Failed to record webhook metrics', {
-					error: error.message,
-					stripeEventId: metrics.stripeEventId
-				})
-			}
-		} catch (error) {
-			this.logger.error('Error recording webhook metrics', {
-				error: error instanceof Error ? error.message : 'Unknown error'
-			})
-		}
+		this.logger.debug('Webhook metrics recorded (logging only)', {
+			eventType: metrics.eventType,
+			duration: metrics.processingDurationMs,
+			success: metrics.success
+		})
 	}
 
 	/**
 	 * Record webhook processing failure for monitoring and debugging
+	 * NOTE: Webhook failures table not deployed - currently logs only
 	 */
 	async recordFailure(failure: WebhookFailure): Promise<void> {
-		try {
-			const { error } = await this.supabaseService
-				.getAdminClient()
-				.from('webhook_failures')
-				.insert({
-					stripe_event_id: failure.stripeEventId,
-					event_type: failure.eventType,
-					failure_reason: failure.failureReason,
-					error_message: failure.errorMessage,
-					error_stack: failure.errorStack ?? null,
-					raw_event_data: (failure.rawEventData ?? null) as never,
-					retry_count: 0
-				})
-
-			if (error) {
-				this.logger.error('Failed to record webhook failure', {
-					error: error.message,
-					stripeEventId: failure.stripeEventId
-				})
-			} else {
-				this.logger.log('Webhook failure recorded for monitoring', {
-					stripeEventId: failure.stripeEventId,
-					failureReason: failure.failureReason
-				})
-			}
-		} catch (error) {
-			this.logger.error('Error recording webhook failure', {
-				error: error instanceof Error ? error.message : 'Unknown error'
-			})
-		}
+		this.logger.warn('Webhook failure detected (logging only)', {
+			stripeEventId: failure.stripeEventId,
+			eventType: failure.eventType,
+			failureReason: failure.failureReason,
+			errorMessage: failure.errorMessage
+		})
 	}
 
 	/**
 	 * Get webhook health summary for the last 24 hours
+	 * NOTE: Health summary views not yet deployed
 	 */
 	async getHealthSummary(): Promise<WebhookHealthSummary[]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('webhook_health_summary')
-			.select('*')
-			.limit(24)
-
-		if (error) {
-			this.logger.error('Failed to fetch webhook health summary', {
-				error: error.message
-			})
-			return []
-		}
-
-		return data || []
+		this.logger.debug('Webhook health summary requested (no data available)')
+		return []
 	}
 
 	/**
 	 * Get event type breakdown for the last 7 days
+	 * NOTE: Event type summary views not yet deployed
 	 */
 	async getEventTypeSummary(): Promise<WebhookEventTypeSummary[]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('webhook_event_type_summary')
-			.select('*')
-
-		if (error) {
-			this.logger.error('Failed to fetch event type summary', {
-				error: error.message
-			})
-			return []
-		}
-
-		return data || []
+		this.logger.debug('Event type summary requested (no data available)')
+		return []
 	}
 
 	/**
 	 * Detect current webhook health issues
+	 * NOTE: Health detection RPC not yet deployed
 	 */
 	async detectHealthIssues(): Promise<WebhookHealthIssue[]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('detect_webhook_health_issues')
-
-		if (error) {
-			this.logger.error('Failed to detect webhook health issues', {
-				error: error.message
-			})
-			return []
-		}
-
-		return (data || []) as WebhookHealthIssue[]
+		this.logger.debug('Health issues detection requested (no data available)')
+		return []
 	}
 
 	/**
 	 * Get unresolved webhook failures
+	 * NOTE: Webhook failures tracking not yet deployed
 	 */
-	async getUnresolvedFailures(limit = 50): Promise<WebhookFailureRecord[]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('webhook_failures')
-			.select('*')
-			.is('resolved_at', null)
-			.order('created_at', { ascending: false })
-			.limit(limit)
-
-		if (error) {
-			this.logger.error('Failed to fetch unresolved failures', {
-				error: error.message
-			})
-			return []
-		}
-
-		return data || []
+	async getUnresolvedFailures(): Promise<WebhookFailureRecord[]> {
+		this.logger.debug('Unresolved failures requested (no data available)')
+		return []
 	}
 
 	/**
 	 * Mark failure as resolved
+	 * NOTE: Webhook failures table not deployed
 	 */
 	async resolveFailure(failureId: string): Promise<void> {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('webhook_failures')
-			.update({ resolved_at: new Date().toISOString() })
-			.eq('id', failureId)
-
-		if (error) {
-			this.logger.error('Failed to resolve webhook failure', {
-				error: error.message,
-				failureId
-			})
-		}
+		this.logger.debug('Resolve failure requested', { failureId })
 	}
 
 	/**
 	 * Cleanup old webhook data (retention policy enforcement)
+	 * NOTE: Cleanup RPC not yet deployed
 	 */
 	async cleanupOldData(): Promise<{ table_name: string; rows_deleted: number }[]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.rpc('cleanup_old_webhook_data')
-
-		if (error) {
-			this.logger.error('Failed to cleanup old webhook data', {
-				error: error.message
-			})
-			return []
-		}
-
-		this.logger.log('Cleanup old webhook data completed', { result: data })
-		return (data as { table_name: string; rows_deleted: number }[]) || []
+		this.logger.debug('Webhook data cleanup requested (no data available)')
+		return []
 	}
 }

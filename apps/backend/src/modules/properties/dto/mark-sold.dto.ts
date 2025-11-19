@@ -1,6 +1,6 @@
 import { createZodDto } from 'nestjs-zod'
-import { propertyMarkedSoldSchema } from '@repo/shared/validation/properties'
+import { propertySoldSchema } from '@repo/shared/validation/properties'
 
 export class MarkPropertyAsSoldDto extends createZodDto(
-	propertyMarkedSoldSchema
+	propertySoldSchema
 ) {}

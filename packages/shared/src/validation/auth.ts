@@ -40,8 +40,8 @@ export const registerZodSchema = z
 // Extended signup form validation schema with additional fields
 export const signupFormSchema = z
 	.object({
-		firstName: z.string().min(1, 'First name is required'),
-		lastName: z.string().min(1, 'Last name is required'),
+		first_name: z.string().min(1, 'First name is required'),
+		last_name: z.string().min(1, 'Last name is required'),
 		company: z.string().min(1, 'Company name is required'),
 		email: z.string().email('Please enter a valid email address'),
 		password: z
@@ -66,8 +66,8 @@ export const authResponseZodSchema = z.object({
 		name: z.string(),
 		company: z.string().optional(),
 		emailVerified: z.boolean(),
-		createdAt: z.string().datetime({ offset: true }),
-		updatedAt: z.string().datetime({ offset: true })
+		created_at: z.string().datetime({ offset: true }),
+		updated_at: z.string().datetime({ offset: true })
 	}),
 	tokens: z.object({
 		accessToken: z.string(),
@@ -87,8 +87,8 @@ export const userProfileResponseZodSchema = z.object({
 	bio: z.string().optional(),
 	avatarUrl: z.string().url().optional(),
 	emailVerified: z.boolean(),
-	createdAt: z.string().datetime({ offset: true }),
-	updatedAt: z.string().datetime({ offset: true })
+	created_at: z.string().datetime({ offset: true }),
+	updated_at: z.string().datetime({ offset: true })
 })
 
 // Contact form schema (shared across frontend/backend)

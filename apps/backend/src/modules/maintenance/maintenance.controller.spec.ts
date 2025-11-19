@@ -1,6 +1,5 @@
 import { NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import type { Database } from '@repo/shared/types/supabase-generated'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { SupabaseService } from '../../database/supabase.service'
@@ -77,25 +76,26 @@ describe('MaintenanceController', () => {
 	})
 
 	it('creates maintenance request (create)', async () => {
-		const createData = {
-			unitId: randomUUID(),
-			title: 'New request',
+		const created_ata = {
+			unit_id: randomUUID(),
+			tenant_id: randomUUID(),
 			description: 'Fix',
 			priority: 'MEDIUM' as const,
-			category: 'GENERAL' as const
+			category: 'GENERAL' as const,
+			status: 'PENDING' as const
 		}
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.create.mockResolvedValue(mockMaintenanceRequest)
-		const result = await controller.create(createData, mockToken, mockUser.id)
+		const result = await controller.create(created_ata, mockToken, mockUser.id)
 		expect(result).toEqual(mockMaintenanceRequest)
 	})
 
 	it('updates maintenance request (update)', async () => {
-		const updated = { ...createMockMaintenanceRequest(), title: 'Updated' }
+		const updated = { ...createMockMaintenanceRequest(), description: 'Updated description' }
 		service.update.mockResolvedValue(updated)
 		const result = await controller.update(
 			createMockMaintenanceRequest().id,
-			{ title: 'Updated' },
+			{ description: 'Updated description' },
 			mockToken
 		)
 		expect(result).toEqual(updated)
@@ -137,7 +137,7 @@ describe('MaintenanceController', () => {
 		const urgent = [
 			{
 				...createMockMaintenanceRequest(),
-				priority: 'URGENT' as Database['public']['Enums']['Priority']
+				priority: 'urgent'
 			}
 		]
 		service.getUrgent.mockResolvedValue(urgent)
@@ -147,7 +147,7 @@ describe('MaintenanceController', () => {
 		const overdue = [
 			{
 				...createMockMaintenanceRequest(),
-				status: 'ON_HOLD' as Database['public']['Enums']['RequestStatus']
+				status: 'open'
 			}
 		]
 		service.getOverdue.mockResolvedValue(overdue)
@@ -159,7 +159,7 @@ describe('MaintenanceController', () => {
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		const completed = {
 			...mockMaintenanceRequest,
-			status: 'COMPLETED' as Database['public']['Enums']['RequestStatus']
+			status: 'completed'
 		}
 		service.complete.mockResolvedValue(completed)
 		const result = await controller.complete(
@@ -199,7 +199,7 @@ describe('MaintenanceController', () => {
 	it('cancels a request (cancel)', async () => {
 		const cancelled = {
 			...createMockMaintenanceRequest(),
-			status: 'CANCELED' as Database['public']['Enums']['RequestStatus']
+			status: 'cancelled'
 		}
 		service.cancel.mockResolvedValue(cancelled)
 		const result = await controller.cancel(

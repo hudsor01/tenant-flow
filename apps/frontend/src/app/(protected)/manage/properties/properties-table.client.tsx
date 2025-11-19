@@ -46,18 +46,18 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 	const [deletingId, setDeletingId] = useState<string | null>(null)
 	const [optimisticProperties, removeOptimistic] = useOptimistic(
 		initialProperties,
-		(state, propertyId: string) => state.filter(p => p.id !== propertyId)
+		(state, property_id: string) => state.filter(p => p.id !== property_id)
 	)
 
-	const handleDelete = (propertyId: string, propertyName: string) => {
-		setDeletingId(propertyId)
+	const handleDelete = (property_id: string, propertyName: string) => {
+		setDeletingId(property_id)
 		startTransition(async () => {
-			removeOptimistic(propertyId)
+			removeOptimistic(property_id)
 			try {
-				await clientFetch(`/api/v1/properties/${propertyId}`, { method: 'DELETE' })
+				await clientFetch(`/api/v1/properties/${property_id}`, { method: 'DELETE' })
 				toast.success(`Property "${propertyName}" deleted`)
 			} catch (error) {
-				logger.error('Delete failed', { action: 'handleDelete', metadata: { propertyId, error } })
+				logger.error('Delete failed', { action: 'handleDelete', metadata: { property_id, error } })
 				toast.error('Failed to delete property')
 				// Optimistic update will auto-rollback on error
 			} finally {
@@ -80,7 +80,7 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 						<div className="font-medium">{property.name}</div>
 						<div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
 							<MapPin className="size-3" />
-							{property.address}
+							{property.address_line1}
 						</div>
 					</div>
 				)

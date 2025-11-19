@@ -1,5 +1,7 @@
 import { Providers } from '#components/providers'
 import SeoJsonLd from '#components/seo/SeoJsonLd'
+
+export const dynamic = 'force-dynamic'
 import RegisterServiceWorker from '#components/sw/register-sw'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { generateSiteMetadata } from '#lib/generate-metadata'
@@ -14,7 +16,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
 import { cookies } from 'next/headers'
-import { Toaster } from '#components/ui/sonner'
+import { Toaster } from '#components/ui/toast'
 import './globals.css'
 
 const splineSans = Spline_Sans({

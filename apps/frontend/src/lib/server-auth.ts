@@ -71,7 +71,7 @@ export async function requireSession(): Promise<{
  * @throws Redirects to /manage/onboarding if no property
  * @returns Primary property or null
  */
-export async function requirePrimaryProperty(userId: string) {
+export async function requirePrimaryProperty(user_id: string) {
 	const cookieStore = await cookies()
 	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 		cookies: {
@@ -85,9 +85,9 @@ export async function requirePrimaryProperty(userId: string) {
 	})
 
 	const { data: property, error } = await supabase
-		.from('property')
+		.from('properties')
 		.select('*')
-		.eq('ownerId', userId)
+		.eq('owner_id', user_id)
 		.limit(1)
 		.single()
 

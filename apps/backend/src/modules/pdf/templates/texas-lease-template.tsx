@@ -105,7 +105,7 @@ export function TexasLeaseTemplate({
 
 	// Calculate hold over rent
 	const holdOverRent =
-		getNumberOrFallback(data.monthlyRent) *
+		getNumberOrFallback(data.rent_amount) *
 		getNumberOrFallback(data.holdOverRentMultiplier, 1.2)
 
 	return (
@@ -180,7 +180,7 @@ export function TexasLeaseTemplate({
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>3. RENT.</Text>
 					<Text style={styles.paragraph}>
-						Tenant shall pay to Property Owner the sum of ${formatCurrency(data.monthlyRent)}{' '}
+						Tenant shall pay to Property Owner the sum of ${formatCurrency(data.rent_amount)}{' '}
 						per month as Rent for the Term of the Agreement. Due date for Rent
 						payment shall be the {data.rentDueDay}
 						{getOrdinalSuffix(data.rentDueDay)}{' '}
@@ -198,7 +198,7 @@ export function TexasLeaseTemplate({
 							{data.rentDueDay + 1}{getOrdinalSuffix(data.rentDueDay + 1)} day of
 							each calendar month. If Tenant fails to timely pay any month's rent,
 							Tenant will pay Property Owner a late charge of $
-							{formatCurrency(data.lateFeeAmount)} per day until rent is paid
+							{formatCurrency(data.late_fee_amount)} per day until rent is paid
 							in full. If Property Owner receives the monthly rent by the{' '}
 							{data.lateFeeGraceDays + 1}
 							{getOrdinalSuffix(data.lateFeeGraceDays + 1)} day of the month,
@@ -259,7 +259,7 @@ export function TexasLeaseTemplate({
 					<Text style={styles.sectionTitle}>4. SECURITY DEPOSIT.</Text>
 					<Text style={styles.paragraph}>
 						Upon execution of this Texas Lease Agreement, Tenant shall deposit with
-						Property Owner the sum of ${formatCurrency(data.securityDeposit)}, receipt of
+						Property Owner the sum of ${formatCurrency(data.security_deposit)}, receipt of
 						which is hereby acknowledged by Property Owner, as security for any damage
 						caused to the Premises during the term hereof.
 					</Text>

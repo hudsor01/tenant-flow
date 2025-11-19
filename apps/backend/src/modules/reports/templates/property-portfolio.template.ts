@@ -29,8 +29,8 @@ export interface PropertyPortfolioReportData {
 		vacancyRate: number
 	}
 	period: {
-		startDate: string
-		endDate: string
+		start_date: string
+		end_date: string
 	}
 }
 
@@ -41,19 +41,19 @@ export class PropertyPortfolioTemplate {
 	constructor(private readonly propertyService: PropertyPerformanceService) {}
 
 	async generateReportData(
-		userId: string,
-		startDate: string,
-		endDate: string
+		user_id: string,
+		start_date: string,
+		end_date: string
 	): Promise<PropertyPortfolioReportData> {
 		this.logger.log('Generating property portfolio report data', {
-			userId,
-			startDate,
-			endDate
+			user_id,
+			start_date,
+			end_date
 		})
 
 		const [propertyPerformance, unitStatistics] = await Promise.all([
-			this.propertyService.getPropertyPerformance(userId),
-			this.propertyService.getUnitStatistics(userId)
+			this.propertyService.getPropertyPerformance(user_id),
+			this.propertyService.getUnitStatistics(user_id)
 		])
 
 		const totalProperties = propertyPerformance.length
@@ -112,8 +112,8 @@ export class PropertyPortfolioTemplate {
 			})),
 			vacancyAnalysis,
 			period: {
-				startDate,
-				endDate
+				start_date,
+				end_date
 			}
 		}
 	}
@@ -121,7 +121,7 @@ export class PropertyPortfolioTemplate {
 	formatForPDF(data: PropertyPortfolioReportData): string {
 		return `
 PROPERTY PORTFOLIO REPORT
-Period: ${data.period.startDate} to ${data.period.endDate}
+Period: ${data.period.start_date} to ${data.period.end_date}
 
 PORTFOLIO SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

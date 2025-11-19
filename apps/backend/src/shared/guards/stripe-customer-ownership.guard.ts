@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
-import { userIdByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
+import { user_idByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
 
 @Injectable()
 export class StripeCustomerOwnershipGuard implements CanActivate {
@@ -27,9 +27,9 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
-		const userId = request.user?.id
+		const user_id = request.user?.id
 
-		if (!userId) {
+		if (!user_id) {
 			this.logger.warn('StripeCustomerOwnershipGuard: No user ID in request')
 			throw new ForbiddenException('Authentication required')
 		}
@@ -43,10 +43,10 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 		}
 
 		// Verify ownership using RPC function
-		const ownsCustomer = await this.verifyCustomerOwnership(userId, customerId)
+		const ownsCustomer = await this.verifyCustomerOwnership(user_id, customerId)
 		if (!ownsCustomer) {
 			this.logger.warn('StripeCustomerOwnershipGuard: Customer access denied', {
-				userId,
+				user_id,
 				customerId
 			})
 			throw new ForbiddenException(
@@ -61,7 +61,7 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 	 * Verify that a user owns a Stripe customer
 	 */
 	private async verifyCustomerOwnership(
-		userId: string,
+		user_id: string,
 		customerId: string
 	): Promise<boolean> {
 		try {
@@ -73,7 +73,7 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 			)
 
 			// Validate response with Zod schema
-			const validatedResult = userIdByStripeCustomerSchema.safeParse(rpcResult)
+			const validatedResult = user_idByStripeCustomerSchema.safeParse(rpcResult)
 			if (!validatedResult.success) {
 				this.logger.error('RPC response validation failed', {
 					errors: validatedResult.error.issues,
@@ -82,10 +82,10 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 				return false
 			}
 
-			const { data: ownerUserId, error } = validatedResult.data
+			const { data: owneruser_id, error } = validatedResult.data
 
 			// Check if there's an error or no user found
-			if (error || !ownerUserId) {
+			if (error || !owneruser_id) {
 				this.logger.warn('No user found for Stripe customer', {
 					customerId,
 					error: error?.message
@@ -94,10 +94,10 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 			}
 
 			// Verify the requesting user matches the owner
-			return ownerUserId === userId
+			return owneruser_id === user_id
 		} catch (error) {
 			this.logger.error('Error verifying Stripe customer ownership', {
-				userId,
+				user_id,
 				customerId,
 				error: error instanceof Error ? error.message : 'Unknown error'
 			})

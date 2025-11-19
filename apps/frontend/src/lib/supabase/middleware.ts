@@ -8,7 +8,7 @@ import {
 	SUPABASE_URL,
 	SUPABASE_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
-import type { Database } from '@repo/shared/types/supabase-generated'
+import type { Database } from '@repo/shared/types/supabase'
 import type { User } from '@supabase/supabase-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
@@ -126,7 +126,7 @@ export async function updateSession(request: NextRequest) {
 					user_metadata: {},
 					aud: 'authenticated',
 					role:
-						getStringClaim(claims, 'role') ??
+						getStringClaim(claims, 'user_role') ??
 						getStringClaim(claims, 'app_role') ??
 						'authenticated',
 					created_at: createdAt,
@@ -180,51 +180,39 @@ export async function updateSession(request: NextRequest) {
 	)
 
 	// PERFORMANCE OPTIMIZATION: Use JWT claims instead of database queries
-	// Custom claims are added via Auth Hook (see migration: 20251031_auth_hook_custom_claims.sql)
+	// Custom claims are added via Auth Hook (see migration: 20251116_fix_auth_hook_for_current_schema.sql)
 	// This eliminates database calls on every request per Next.js middleware best practices
 	// NOTE: Claims are in the JWT token, we need to decode it OR use user_metadata as fallback
-	let userRole: string | null = null
-	let subscriptionStatus: string | null = null
-	let stripeCustomerId: string | null = null
+	let user_type: string | null = null
+	let stripe_customer_id: string | null = null
 
 	if (isAuthenticated && user && accessToken) {
 		//Verify JWT signature before trusting claims
 		const claims = await verifyJwtToken(accessToken)
-		const roleFromClaims = getStringClaim(claims, 'user_role')
-		const subscriptionFromClaims = getStringClaim(claims, 'subscription_status')
-		const stripeIdFromClaims = getStringClaim(claims, 'stripe_customer_id')
+		const user_typeFromClaims = getStringClaim(claims, 'user_type')
+		const stripe_customer_idFromClaims = getStringClaim(claims, 'stripe_customer_id')
 
-		userRole = roleFromClaims ?? user.user_metadata?.role ?? null
-		subscriptionStatus =
-			subscriptionFromClaims ?? user.user_metadata?.subscription_status ?? null
-		stripeCustomerId =
-			stripeIdFromClaims ?? user.user_metadata?.stripe_customer_id ?? null
+		user_type = user_typeFromClaims ?? user.user_metadata?.user_type ?? null
+		stripe_customer_id =
+			stripe_customer_idFromClaims ?? user.user_metadata?.stripe_customer_id ?? null
 	}
 
 	// Early redirect for authenticated users on marketing pages
 	// Do this before payment gate to avoid showing pricing page to users who just need dashboard
-	if (isAuthenticated && isMarketingRedirect && userRole) {
+	if (isAuthenticated && isMarketingRedirect && user_type) {
 		const url = request.nextUrl.clone()
-		const destination = userRole === 'TENANT' ? '/tenant' : '/manage'
+		const destination = user_type === 'TENANT' ? '/tenant' : '/manage'
 		url.pathname = destination
 		return NextResponse.redirect(url)
 	}
 
-	// Payment gate: Check if authenticated user has active subscription
-	// Per Stripe best practices - check subscription_status field
+	// Payment gate: Check if authenticated user has Stripe customer ID
+	// TENANT user_type doesn't need payment (they're invited by OWNER)
 	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
-	if (isAuthenticated && !isPaymentExempt && userRole) {
-		// TENANT role doesn't need payment (they're invited by OWNER)
-		const requiresPayment = userRole !== 'TENANT'
-
-		// Check subscription status per Stripe best practices
-		// Valid statuses for access: active, trialing
-		const validStatuses = ['active', 'trialing']
-		const hasValidSubscription =
-			subscriptionStatus && validStatuses.includes(subscriptionStatus)
-		const hasNoStripeCustomer = !stripeCustomerId
-
-		if (requiresPayment && (!hasValidSubscription || hasNoStripeCustomer)) {
+	if (isAuthenticated && !isPaymentExempt && user_type && user_type !== 'TENANT') {
+		// For now, redirect to pricing if no Stripe customer ID
+		// (subscription status will be checked via Stripe API when needed)
+		if (!stripe_customer_id) {
 			const url = request.nextUrl.clone()
 			url.pathname = '/pricing'
 			url.searchParams.set('required', 'true')
@@ -249,8 +237,8 @@ export async function updateSession(request: NextRequest) {
 			}
 		}
 
-		// Redirect based on role (from JWT claims)
-		if (userRole === 'TENANT') {
+		// Redirect based on user_type (from JWT claims)
+		if (user_type === 'TENANT') {
 			url.pathname = '/tenant'
 		} else {
 			// Default redirect to management dashboard for OWNER, MANAGER, ADMIN

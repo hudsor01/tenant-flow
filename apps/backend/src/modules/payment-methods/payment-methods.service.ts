@@ -4,6 +4,7 @@ import {
 	Logger,
 	NotFoundException
 } from '@nestjs/common'
+import type { Database } from '@repo/shared/types/supabase'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
@@ -22,30 +23,30 @@ export class PaymentMethodsService {
 	 * Get or create Stripe customer for a user.
 	 * Caches the Stripe customer ID on the User record to avoid duplicate customers.
 	 */
-	async getOrCreateStripeCustomer(userId: string, email?: string) {
+	async getOrCreateStripeCustomer(user_id: string, email?: string) {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { data: user, error } = await adminClient
 			.from('users')
-			.select('stripeCustomerId, email')
-			.eq('id', userId)
+			.select('stripe_customer_id, email')
+			.eq('id', user_id)
 			.single()
 
 		if (error) {
 			this.logger.error('Failed to load user while resolving Stripe customer', {
-				userId,
+				user_id,
 				error: error.message
 			})
 			throw new NotFoundException('User not found for Stripe customer lookup')
 		}
 
-		if (user?.stripeCustomerId) {
-			return user.stripeCustomerId
+		if (user?.stripe_customer_id) {
+			return user.stripe_customer_id
 		}
 
-		this.logger.log(`Creating Stripe customer for user ${userId}`)
+		this.logger.log(`Creating Stripe customer for user ${user_id}`)
 		const customerParams: Stripe.CustomerCreateParams = {
-			metadata: { userId }
+			metadata: { user_id }
 		}
 		const resolvedEmail = email || user?.email
 		if (resolvedEmail) {
@@ -54,7 +55,7 @@ export class PaymentMethodsService {
 
 		//Add idempotency key to prevent duplicate customers
 		// Include timestamp to allow retries after failures (Stripe idempotency keys expire after 24h)
-		const idempotencyKey = `customer-create-${userId}-${Date.now()}`
+		const idempotencyKey = `customer-create-${user_id}-${Date.now()}`
 		const customer = await this.stripe.customers.create(customerParams, {
 			idempotencyKey
 		})
@@ -62,14 +63,14 @@ export class PaymentMethodsService {
 		const { error: updateError } = await adminClient
 			.from('users')
 			.update({
-				stripeCustomerId: customer.id,
-				updatedAt: new Date().toISOString()
+				stripe_customer_id: customer.id,
+				updated_at: new Date().toISOString()
 			})
-			.eq('id', userId)
+			.eq('id', user_id)
 
 		if (updateError) {
 			this.logger.error('Failed to persist Stripe customer ID', {
-				userId,
+				user_id,
 				error: updateError.message
 			})
 		}
@@ -84,24 +85,24 @@ export class PaymentMethodsService {
 	 * RLS policies check: tenant.auth_user_id = auth.uid()
 	 *
 	 * @param token - JWT token for RLS-protected Supabase client
-	 * @param userId - Auth user ID (NOT tenant table ID)
+	 * @param user_id - Auth user ID (NOT tenant table ID)
 	 * @returns Tenant ID from tenant table
 	 * @throws NotFoundException if tenant not found for user
 	 */
-	private async resolveTenantId(
+	private async resolvetenant_id(
 		token: string,
-		userId: string
+		user_id: string
 	): Promise<string> {
 		const client = this.supabase.getUserClient(token)
 
 		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
+			.from('tenants')
 			.select('id')
-			.eq('auth_user_id', userId)
+			.eq('user_id', user_id)
 			.single()
 
 		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found for user', { userId })
+			this.logger.warn('Tenant not found for user', { user_id })
 			throw new NotFoundException('Tenant not found')
 		}
 
@@ -111,28 +112,31 @@ export class PaymentMethodsService {
 	/**
 	 * List payment methods saved by the authenticated tenant.
 	 */
-	async listPaymentMethods(token: string, userId: string) {
+	async listPaymentMethods(
+		token: string,
+		user_id: string
+	): Promise<Database['public']['Tables']['payment_methods']['Row'][]> {
 		if (!token) {
 			this.logger.warn('List payment methods requested without token')
 			throw new BadRequestException('Authentication token is required')
 		}
 
 		// Resolve tenant ID from auth_user_id using DRY helper
-		const tenantId = await this.resolveTenantId(token, userId)
+		const tenant_id = await this.resolvetenant_id(token, user_id)
 		const client = this.supabase.getUserClient(token)
 
 		// Now query payment methods using the correct tenant ID
 		const { data, error } = await client
-			.from('tenant_payment_method')
+			.from('payment_methods')
 			.select(
-				'id, tenantId, stripePaymentMethodId, type, last4, brand, bankName, isDefault, verificationStatus, createdAt, updatedAt'
+				'id, tenant_id, stripe_payment_method_id, type, last_four, brand, exp_month, exp_year, bank_name, is_default, created_at, updated_at'
 			)
-			.eq('tenantId', tenantId)
-			.order('createdAt', { ascending: false })
+			.eq('tenant_id', tenant_id)
+			.order('created_at', { ascending: false })
 
 		if (error) {
 			this.logger.error('Failed to fetch tenant payment methods', {
-				userId,
+				user_id,
 				error: error.message
 			})
 			throw new BadRequestException('Failed to load payment methods')
@@ -146,7 +150,7 @@ export class PaymentMethodsService {
 	 */
 	async setDefaultPaymentMethod(
 		token: string,
-		userId: string,
+		user_id: string,
 		paymentMethodId: string
 	) {
 		if (!token) {
@@ -158,14 +162,14 @@ export class PaymentMethodsService {
 
 		// Get tenant with Stripe customer ID
 		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
+			.from('tenants')
 			.select('id, stripe_customer_id')
-			.eq('auth_user_id', userId)
+			.eq('user_id', user_id)
 			.single()
 
 		if (tenantError || !tenant) {
 			this.logger.warn('Tenant not found for user', {
-				userId,
+				user_id,
 				error: tenantError?.message
 			})
 			throw new NotFoundException('Tenant not found')
@@ -173,8 +177,8 @@ export class PaymentMethodsService {
 
 		if (!tenant.stripe_customer_id) {
 			this.logger.warn('No Stripe customer for tenant', {
-				userId,
-				tenantId: tenant.id
+				user_id,
+				tenant_id: tenant.id
 			})
 			throw new BadRequestException('No Stripe customer found for tenant')
 		}
@@ -198,15 +202,15 @@ export class PaymentMethodsService {
 			})
 
 			this.logger.log('Set default payment method via Stripe API', {
-				userId,
-				tenantId: tenant.id,
+				user_id,
+				tenant_id: tenant.id,
 				paymentMethodId
 			})
 
 			return { success: true }
 		} catch (error) {
 			this.logger.error('Failed to set default payment method', {
-				userId,
+				user_id,
 				paymentMethodId,
 				error: error instanceof Error ? error.message : String(error)
 			})
@@ -220,7 +224,7 @@ export class PaymentMethodsService {
 	 */
 	async deletePaymentMethod(
 		token: string,
-		userId: string,
+		user_id: string,
 		paymentMethodId: string
 	) {
 		if (!token) {
@@ -232,72 +236,72 @@ export class PaymentMethodsService {
 
 		// Resolve tenant ID from auth user ID
 		const { data: tenant, error: tenantError } = await client
-			.from('tenant')
+			.from('tenants')
 			.select('id')
-			.eq('auth_user_id', userId)
+			.eq('user_id', user_id)
 			.single()
 
 		if (tenantError || !tenant) {
 			this.logger.warn('Tenant not found for user', {
-				userId,
+				user_id,
 				error: tenantError?.message
 			})
 			throw new NotFoundException('Tenant not found')
 		}
 
 		const { data: paymentMethod, error: fetchError } = await client
-			.from('tenant_payment_method')
-			.select('stripePaymentMethodId, isDefault')
+			.from('payment_methods')
+			.select('stripe_payment_method_id, is_default')
 			.eq('id', paymentMethodId)
-			.eq('tenantId', tenant.id)
+			.eq('tenant_id', tenant.id)
 			.single()
 
 		if (fetchError || !paymentMethod) {
 			this.logger.warn('Attempted to delete unknown payment method', {
-				userId,
+				user_id,
 				paymentMethodId,
 				error: fetchError?.message
 			})
 			throw new NotFoundException('Payment method not found')
 		}
 
-		if (paymentMethod.stripePaymentMethodId) {
+		if (paymentMethod?.stripe_payment_method_id) {
 			await this.stripe.paymentMethods.detach(
-				paymentMethod.stripePaymentMethodId
+				paymentMethod?.stripe_payment_method_id
 			)
 		}
 
 		const { error } = await client
-			.from('tenant_payment_method')
+			.from('payment_methods')
 			.delete()
 			.eq('id', paymentMethodId)
-			.eq('tenantId', tenant.id)
+			.eq('tenant_id', tenant.id)
 
 		if (error) {
 			this.logger.error('Failed to delete payment method', {
-				userId,
+				user_id,
 				paymentMethodId,
 				error: error.message
 			})
 			throw new BadRequestException('Failed to delete payment method')
 		}
 
-		if (paymentMethod.isDefault) {
+		if (paymentMethod?.is_default) {
 			const { data: nextDefault } = await client
-				.from('tenant_payment_method')
+				.from('payment_methods')
 				.select('id')
-				.eq('tenantId', tenant.id)
-				.order('createdAt', { ascending: true })
+				.eq('tenant_id', tenant.id)
+				.order('created_at', { ascending: true })
 				.limit(1)
 
 			if (nextDefault && nextDefault.length > 0) {
 				const firstMethod = nextDefault[0]
 				if (firstMethod) {
 					await client
-						.from('tenant_payment_method')
+						.from('payment_methods')
 						.update({
 							isDefault: true,
-							updatedAt: new Date().toISOString()
+							updated_at: new Date().toISOString()
 						})
 						.eq('id', firstMethod.id)
 				}
