@@ -62,7 +62,7 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,tar
         ls -la apps/backend/dist/ && \
     if [ -f apps/backend/dist/src/main.js ]; then \
         echo "✓ main.js found" && \
-        echo "=== Build verification passed ===\"; \
+        echo "=== Build verification passed ==="; \
     else \
         echo "ERROR: apps/backend/dist/src/main.js not found" && \
         echo "Contents of dist directory:" && \
