@@ -35,7 +35,8 @@ vi.mock('#hooks/use-lightbox-state', () => ({
 	})
 }))
 
-vi.mock('#hooks/api/use-properties', () => ({
+// Mock hooks
+vi.mock('#hooks/api/mutations/property-mutations', () => ({
 	usePropertyImages: (propertyId: string) => {
 		if (propertyId === 'empty-prop') {
 			return { data: [], isLoading: false }
@@ -80,7 +81,7 @@ vi.mock('#hooks/api/use-properties', () => ({
 			isLoading: false
 		}
 	},
-	useDeletePropertyImage: () => ({
+	useDeletePropertyImageMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({}),
 		isPending: false
 	})

@@ -22,6 +22,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { handleMutationSuccess } from '#lib/mutation-error-handler'
+import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
 import type { MaintenanceCategory, Priority } from '@repo/shared/types/core'
 
 // ============================================================================
@@ -197,7 +199,7 @@ export function useTenantPayments() {
 		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		retry: 2
+		retry: DEFAULT_RETRY_ATTEMPTS
 	})
 }
 
@@ -216,7 +218,7 @@ export function useTenantAutopayStatus() {
 		refetchInterval: 5 * 60 * 1000,
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		retry: 2
+		retry: DEFAULT_RETRY_ATTEMPTS
 	})
 }
 
@@ -238,7 +240,7 @@ export function useTenantMaintenance() {
 		refetchInterval: 5 * 60 * 1000,
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		retry: 2
+		retry: DEFAULT_RETRY_ATTEMPTS
 	})
 }
 
@@ -255,6 +257,7 @@ export function useCreateMaintenanceRequest() {
 				body: JSON.stringify(request)
 			}),
 		onSuccess: () => {
+			handleMutationSuccess('Maintenance request created successfully')
 			// Invalidate maintenance list to refetch with new request
 			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.maintenance.list() })
 		}
@@ -321,7 +324,7 @@ export function useTenantLease() {
 		refetchInterval: 10 * 60 * 1000, // Auto-refresh every 10 minutes
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		retry: 2
+		retry: DEFAULT_RETRY_ATTEMPTS
 	})
 }
 
@@ -336,7 +339,7 @@ export function useTenantLeaseDocuments() {
 		refetchInterval: 10 * 60 * 1000,
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		retry: 2
+		retry: DEFAULT_RETRY_ATTEMPTS
 	})
 }
 
@@ -355,7 +358,7 @@ export function useTenantSettings() {
 		refetchInterval: 10 * 60 * 1000,
 		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		retry: 2
+		retry: DEFAULT_RETRY_ATTEMPTS
 	})
 }
 

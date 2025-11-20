@@ -17,7 +17,8 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { usePropertyList } from '#hooks/api/use-properties'
+import { useQuery } from '@tanstack/react-query'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { cn } from '#lib/utils'
 import type {
 	Property,
@@ -52,13 +53,10 @@ const formatPropertyStatus = (status: PropertyStatus): string => {
 }
 
 export function SectionTable() {
-	const { data: properties, isLoading, error } = usePropertyList({ limit: 5 })
+	const { data: properties, isLoading, error } = useQuery(propertyQueries.list({ limit: 5 }))
 
-	// usePropertyList returns a paginated object
-	// (e.g. { data: Property[] }). Normalize to an array for rendering.
-	const propertiesList: Property[] = Array.isArray(properties)
-		? properties
-		: (properties?.data ?? [])
+	// propertyQueries.list returns an array directly
+	const propertiesList: Property[] = properties ?? []
 
 	if (isLoading) {
 		return (
@@ -72,10 +70,10 @@ export function SectionTable() {
 						Overview of your most recently added properties
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
-					<div className="flex items-center justify-center py-[var(--spacing-8)]">
+				<CardContent className="p-3 sm:p-6">
+					<div className="flex items-center justify-center py-8">
 						<Spinner className="size-6 animate-spin" />
-						<span className="ml-[var(--spacing-2)] text-muted-foreground text-sm">
+						<span className="ml-2 text-muted-foreground text-sm">
 							Loading properties...
 						</span>
 					</div>
@@ -96,8 +94,8 @@ export function SectionTable() {
 						Overview of your most recently added properties
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
-					<div className="text-center py-[var(--spacing-8)]">
+				<CardContent className="p-3 sm:p-6">
+					<div className="text-center py-8">
 						<p className="text-sm text-muted-foreground">
 							Failed to load properties
 						</p>
@@ -119,8 +117,8 @@ export function SectionTable() {
 						Overview of your most recently added properties
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
-					<div className="text-center py-[var(--spacing-8)]">
+				<CardContent className="p-3 sm:p-6">
+					<div className="text-center py-8">
 						<p className="text-sm text-muted-foreground">
 							No properties yet. Add your first property to get started.
 						</p>
@@ -141,15 +139,15 @@ export function SectionTable() {
 					Overview of your most recently added properties
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="p-[var(--spacing-3)] sm:p-[var(--spacing-6)]">
+			<CardContent className="p-3 sm:p-6">
 				<div className="overflow-x-auto">
 					<Table>
 						<TableHeader>
 							<TableRow>
-					<TableHead className="min-w-[var(--spacing-35)]">Property</TableHead>
+					<TableHead className="min-w-35">Property</TableHead>
 								<TableHead className="hidden sm:table-cell">Type</TableHead>
 								<TableHead className="hidden md:table-cell">Location</TableHead>
-					<TableHead className="text-center min-w-[var(--spacing-20)]">Status</TableHead>
+					<TableHead className="text-center min-w-20">Status</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -157,14 +155,14 @@ export function SectionTable() {
 								<TableRow key={property.id}>
 									<TableCell className="font-medium">
 										<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-					<div className="flex items-center gap-[var(--spacing-2)]">
-						<Building2 className="size-[var(--spacing-4)] text-muted-foreground" />
+					<div className="flex items-center gap-2">
+						<Building2 className="size-4 text-muted-foreground" />
 												<span className="font-medium">{property.name}</span>
 											</div>
-					<div className="flex items-center gap-[var(--spacing-3)] text-xs text-muted-foreground sm:hidden">
+					<div className="flex items-center gap-3 text-xs text-muted-foreground sm:hidden">
 												<span>{formatPropertyType(property.property_type as PropertyType)}</span>
-								<span className="flex items-center gap-[var(--spacing-1)]">
-									<MapPin className="size-[var(--spacing-3)]" />
+								<span className="flex items-center gap-1">
+									<MapPin className="size-3" />
 													{property.city}, {property.state}
 												</span>
 											</div>
@@ -174,8 +172,8 @@ export function SectionTable() {
 										{formatPropertyType(property.property_type as PropertyType)}
 									</TableCell>
 									<TableCell className="hidden md:table-cell">
-					<div className="flex items-center gap-[var(--spacing-1)]">
-						<MapPin className="size-[var(--spacing-3)] text-muted-foreground" />
+					<div className="flex items-center gap-1">
+						<MapPin className="size-3 text-muted-foreground" />
 											{property.city}, {property.state}
 										</div>
 									</TableCell>
@@ -187,12 +185,12 @@ export function SectionTable() {
 											className={cn(
 												'rounded-full border border-transparent px-3 py-1 font-medium',
 												property.status === 'ACTIVE'
-													? 'bg-(--color-system-green-10) text-(--color-system-green) hover:bg-(--color-system-green-15)'
+													? 'bg-system-green-10 text-system-green hover:bg-system-green-15'
 													: property.status === 'UNDER_CONTRACT'
-														? 'bg-(--color-system-blue-10) text-(--color-system-blue) hover:bg-(--color-system-blue-15)'
+														? 'bg-system-blue-10 text-system-blue hover:bg-system-blue-15'
 														: property.status === 'SOLD'
-															? 'bg-(--color-system-teal-10) text-(--color-system-teal) hover:bg-(--color-system-teal-15)'
-															: 'bg-(--color-system-gray-10) text-(--color-label-tertiary) hover:bg-(--color-system-gray-15)'
+															? 'bg-system-teal-10 text-system-teal hover:bg-system-teal-15'
+															: 'bg-system-gray-10 text-label-tertiary hover:bg-system-gray-15'
 											)}
 										>
 											{formatPropertyStatus(property.status as PropertyStatus)}

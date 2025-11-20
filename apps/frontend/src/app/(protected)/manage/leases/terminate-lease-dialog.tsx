@@ -4,7 +4,7 @@ import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudD
 import { Button } from '#components/ui/button'
 import { Label } from '#components/ui/label'
 import { Textarea } from '#components/ui/textarea'
-import { useTerminateLease } from '#hooks/api/use-lease'
+import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import { AlertTriangle } from 'lucide-react'
@@ -24,7 +24,7 @@ export function TerminateLeaseDialog({
 	lease,
 	onSuccess
 }: TerminateLeaseDialogProps) {
-	const terminateLease = useTerminateLease()
+	const terminateLease = useTerminateLeaseMutation()
 	const [reason, setReason] = useState('')
 
 	const handleSubmit = async (e: React.FormEvent) => {

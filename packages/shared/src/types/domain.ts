@@ -5,6 +5,8 @@
  * Reduces type file count while maintaining domain separation
  */
 
+
+
 // CONTACT DOMAIN
 
 // UI-only const for contact form types (not stored in database)
@@ -204,12 +206,8 @@ export interface UserManagementConfig {
 	requireEmailVerification: boolean
 }
 
-export interface UserStats {
-	totalUsers: number
-	activeUsers: number
-	newUsersThisMonth: number
-	verifiedUsers: number
-}
+// Re-export UserStats from stats.ts
+export type { UserStats } from './stats.js'
 
 
 
