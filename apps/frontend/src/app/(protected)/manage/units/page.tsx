@@ -37,11 +37,12 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { useDeleteUnit, useUnitList } from '#hooks/api/use-unit'
+import { useQuery } from '@tanstack/react-query'
+import { useDeleteUnitMutation } from '#hooks/api/mutations/unit-mutations'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 import type { Unit } from '@repo/shared/types/core'
 import { Edit, Home, MoreVertical, Search, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import Link from 'next/link'
 
 export default function UnitsPage() {
@@ -66,23 +67,13 @@ export default function UnitsPage() {
 			| 'RESERVED'
 	}
 
-	const { data: unitsResponse, isLoading, error } = useUnitList(unitListParams)
+	const { data: units, isLoading, error } = useQuery(unitQueries.list(unitListParams))
 
-	const units = unitsResponse?.data || []
-	const total = unitsResponse?.total || 0
+	const total = units?.length || 0
 
 	// Delete state and mutation
 	const [deleteunit_id, setDeleteunit_id] = useState<string | null>(null)
-	const deleteUnitMutation = useDeleteUnit({
-		onSuccess: () => {
-			toast.success('Unit deleted successfully')
-			setDeleteunit_id(null)
-		},
-		onError: () => {
-			toast.error('Failed to delete unit')
-			setDeleteunit_id(null)
-		}
-	})
+	const deleteUnitMutation = useDeleteUnitMutation()
 
 	const handleDeleteClick = (unit_id: string) => {
 		setDeleteunit_id(unit_id)
@@ -90,7 +81,11 @@ export default function UnitsPage() {
 
 	const handleDeleteConfirm = () => {
 		if (deleteunit_id) {
-			deleteUnitMutation.mutate(deleteunit_id)
+			deleteUnitMutation.mutate(deleteunit_id, {
+				onSuccess: () => {
+					setDeleteunit_id(null)
+				}
+			})
 		}
 	}
 
@@ -174,7 +169,7 @@ export default function UnitsPage() {
 					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
 					<p className="mt-2 text-sm text-muted-foreground">Loading units...</p>
 				</div>
-			) : units.length === 0 ? (
+			) : units?.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<Home className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No units found</h3>
@@ -200,7 +195,7 @@ export default function UnitsPage() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{units.map(unit => (
+							{units?.map(unit => (
 								<TableRow key={unit.id}>
 									<TableCell className="font-medium">
 										{unit.unit_number}

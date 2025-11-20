@@ -11,11 +11,15 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { useCreateUnit, useUpdateUnit, useUnit, unitKeys } from '#hooks/api/use-unit'
-import { usePropertyList } from '#hooks/api/use-properties'
+import {
+	useCreateUnitMutation,
+	useUpdateUnitMutation
+} from '#hooks/api/mutations/unit-mutations'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 import type { Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -41,15 +45,14 @@ interface UnitFormProps {
 export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { data: propertiesResponse } = usePropertyList({ limit: 100 })
-	const properties = propertiesResponse?.data || []
-	const createUnitMutation = useCreateUnit()
-	const updateUnitMutation = useUpdateUnit()
+	const { data: properties } = useQuery(propertyQueries.list({ limit: 100 }))
+	const createUnitMutation = useCreateUnitMutation()
+	const updateUnitMutation = useUpdateUnitMutation()
 
 	// Fetch unit if id provided (for client-side edit mode)
 	// Only fetch if we don't have a unit prop and we're in edit mode
 	const shouldFetch = mode === 'edit' && !!id && !unitProp
-	const { data: fetchedUnit } = useUnit(shouldFetch ? id! : '')
+	const { data: fetchedUnit } = useQuery(unitQueries.detail(shouldFetch ? id! : ''))
 
 	// Use provided unit or fetched unit
 	const unit = unitProp || fetchedUnit
@@ -57,7 +60,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 	// Sync server-fetched unit into TanStack Query cache (edit mode only)
 	useEffect(() => {
 		if (mode === 'edit' && unit) {
-			queryClient.setQueryData(unitKeys.detail(unit.id), unit)
+			queryClient.setQueryData(unitQueries.detail(unit.id).queryKey, unit)
 		}
 	}, [mode, unit, unit?.id, queryClient])
 
@@ -146,8 +149,8 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				// Handle optimistic locking conflicts
 				if (mode === 'edit' && unit && isConflictError(error)) {
 					handleConflictError('units', unit.id, queryClient, [
-						unitKeys.detail(unit.id),
-						unitKeys.all
+						unitQueries.detail(unit.id).queryKey,
+						unitQueries.lists()
 					])
 					toast.error(ERROR_MESSAGES.CONFLICT_UPDATE)
 					return
@@ -182,7 +185,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 									<SelectValue placeholder="Select a property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties.map(property => (
+									{properties?.map(property => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>

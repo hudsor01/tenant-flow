@@ -25,6 +25,7 @@ import {
 	SetMetadata,
 	UseGuards
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -283,6 +284,7 @@ export class TenantsController {
 	 * Uses Supabase Auth's built-in invitation system
 	 */
 	@Post(':id/invite-v2')
+	@Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 invitations per hour
 	async sendInvitationV2(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -307,6 +309,7 @@ export class TenantsController {
 	 */
 	@Post('invite-with-lease')
 	@UseGuards(PropertyOwnershipGuard, StripeConnectedGuard)
+	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 invitations per hour
 	async inviteTenantWithLease(
 		@Body() body: InviteWithLeaseDto,
 		@Req() req: AuthenticatedRequest
@@ -331,6 +334,7 @@ export class TenantsController {
 	}
 
 	@Post(':id/resend-invitation')
+	@Throttle({ default: { limit: 1, ttl: 900000 } }) // 1 resend per 15 minutes
 	async resendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest

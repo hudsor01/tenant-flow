@@ -18,7 +18,7 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-import type { UpdatePropertyInput } from '@repo/shared/types/api-inputs'
+import type { UpdatePropertyInput } from '@repo/shared/types/api-contracts'
 import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase' // Still used in usePropertyImages

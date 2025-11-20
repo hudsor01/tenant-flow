@@ -18,6 +18,7 @@ import {
   DetailedQueryLease,
   MaintenanceQueryProperty
 } from '@repo/shared/src/types/financial-statements.js'
+import { LEASE_STATUS } from '@repo/shared/constants/status-types'
 
 // Helper to extract JWT token from request
 function getTokenFromRequest(req: Request): string | null {
@@ -588,7 +589,7 @@ export class PropertyAnalyticsService {
 		const totalUnits = units.length
 		const occupiedUnits = units.filter((unit: DetailedQueryUnit) => {
 			const activeLease = unit.leases?.find((lease: DetailedQueryLease) =>
-				lease.lease_status === 'active' &&
+				lease.lease_status === LEASE_STATUS.ACTIVE &&
 				new Date(lease.start_date) <= new Date() &&
 				new Date(lease.end_date) >= new Date()
 			)
@@ -656,7 +657,7 @@ export class PropertyAnalyticsService {
 		const totalUnits = units.length
 		const occupiedUnits = units.filter((unit) => {
 			const activeLease = unit.leases?.find((lease) =>
-				lease.lease_status === 'active' &&
+				lease.lease_status === LEASE_STATUS.ACTIVE &&
 				new Date(lease.start_date) <= new Date() &&
 				new Date(lease.end_date) >= new Date()
 			)

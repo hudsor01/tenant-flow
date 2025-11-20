@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common'
 import type { ServiceHealth, SystemHealth } from '@repo/shared/types/health'
+import { AppConfigService } from '../config/app-config.service'
 import { evictOldestEntries } from '../utils/cache-eviction'
 
 export interface PerformanceMetrics {
@@ -53,13 +54,24 @@ export class MetricsService implements OnModuleDestroy {
 	 * @property responseTime.warning - Response time in ms that triggers warning (default: 100ms)
 	 * @property responseTime.critical - Response time in ms that triggers critical alert (default: 200ms)
 	 */
-	private readonly thresholds: MetricsThresholds = {
-		memory: { warning: 80, critical: 95 },
-		cache: { maxEntries: 100 },
-		responseTime: { warning: 100, critical: 200 }
-	}
+	private readonly thresholds: MetricsThresholds
 
-	private readonly MAX_CACHE_SIZE = this.thresholds.cache.maxEntries
+	private readonly MAX_CACHE_SIZE: number
+
+	constructor(private readonly config: AppConfigService) {
+		this.thresholds = {
+			memory: {
+				warning: this.config.getHealthMemoryWarningThreshold(),
+				critical: this.config.getHealthMemoryCriticalThreshold()
+			},
+			cache: { maxEntries: this.config.getHealthCacheMaxEntries() },
+			responseTime: {
+				warning: this.config.getHealthResponseTimeWarningThreshold(),
+				critical: this.config.getHealthResponseTimeCriticalThreshold()
+			}
+		}
+		this.MAX_CACHE_SIZE = this.thresholds.cache.maxEntries
+	}
 
 	/**
 	 * Cleanup cache on module destruction to prevent memory leaks

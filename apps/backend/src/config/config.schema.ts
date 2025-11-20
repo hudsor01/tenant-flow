@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import {
-	CONFIG_DEFAULTS,
 	LOG_LEVELS,
 	NODE_ENVIRONMENTS,
 	STORAGE_PROVIDERS
@@ -10,22 +9,23 @@ import {
  * Environment Configuration using Zod (CLAUDE.md compliant)
  *
  * Native Zod validation - no custom DTOs or decorators
+ * Default values are inlined directly for single source of truth
  */
 
 const environmentSchema = z.object({
 	// Application
 	NODE_ENV: z
 		.enum(NODE_ENVIRONMENTS)
-		.default(CONFIG_DEFAULTS.NODE_ENV),
-	PORT: z.coerce.number().default(CONFIG_DEFAULTS.PORT),
-  BACKEND_TIMEOUT_MS: z.coerce.number().default(Number(CONFIG_DEFAULTS.BACKEND_TIMEOUT_MS)),
-	API_BASE_URL: z.string().url('Must be a valid URL').default(CONFIG_DEFAULTS.API_BASE_URL),
+		.default('production'),
+	PORT: z.coerce.number().default(4600),
+  BACKEND_TIMEOUT_MS: z.coerce.number().default(30000),
+	API_BASE_URL: z.string().url('Must be a valid URL').default('https://api.tenantflow.app'),
 
 	// Frontend
 	FRONTEND_URL: z
 		.string()
 		.url('Must be a valid URL')
-		.default(CONFIG_DEFAULTS.FRONTEND_URL),
+		.default('https://tenantflow.app'),
 	NEXT_PUBLIC_APP_URL: z.string().url('Must be a valid URL'),
 
 	// Database
@@ -39,7 +39,7 @@ const environmentSchema = z.object({
 	// JWT public keys for asymmetric algorithms (supporting key rotation)
 	JWT_PUBLIC_KEY_CURRENT: z.string().optional(),
 	JWT_PUBLIC_KEY_STANDBY: z.string().optional(),
-	JWT_EXPIRES_IN: z.string().default(CONFIG_DEFAULTS.JWT_EXPIRES_IN),
+	JWT_EXPIRES_IN: z.string().default('7d'),
 
 	// Supabase (using modern API key naming convention)
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
@@ -62,7 +62,7 @@ const environmentSchema = z.object({
 		.pipe(z.enum(['ES256', 'RS256']))
 		.optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.string(),
-	SUPABASE_PROJECT_REF: z.string().default(CONFIG_DEFAULTS.SUPABASE_PROJECT_REF),
+	SUPABASE_PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
 	SUPABASE_AUTH_WEBHOOK_SECRET: z.string().optional(),
 
 	// CORS
@@ -73,36 +73,59 @@ const environmentSchema = z.object({
 	RATE_LIMIT_LIMIT: z.string().optional(),
 	HEALTH_THROTTLE_TTL: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_TTL)),
+		.default(60000),
 	HEALTH_THROTTLE_LIMIT: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_LIMIT)),
+		.default(300),
 	CONTACT_THROTTLE_TTL: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.CONTACT_THROTTLE_TTL)),
+		.default(60000),
 	CONTACT_THROTTLE_LIMIT: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.CONTACT_THROTTLE_LIMIT)),
+		.default(5),
 	METRICS_THROTTLE_TTL: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.METRICS_THROTTLE_TTL)),
+		.default(60000),
 	METRICS_THROTTLE_LIMIT: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.METRICS_THROTTLE_LIMIT)),
-	WEBHOOK_THROTTLE_TTL: z.coerce.number().default(Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_TTL)),
-	WEBHOOK_THROTTLE_LIMIT: z.coerce.number().default(Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_LIMIT)),
+		.default(60),
+	WEBHOOK_THROTTLE_TTL: z.coerce.number().default(60000),
+	WEBHOOK_THROTTLE_LIMIT: z.coerce.number().default(30),
 	STRIPE_SYNC_THROTTLE_TTL: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.STRIPE_SYNC_THROTTLE_TTL)),
+		.default(60000),
 	STRIPE_SYNC_THROTTLE_LIMIT: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.STRIPE_SYNC_THROTTLE_LIMIT)),
+		.default(30),
 	SUPABASE_AUTH_THROTTLE_TTL: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_TTL)),
+		.default(60000),
 	SUPABASE_AUTH_THROTTLE_LIMIT: z
 		.coerce.number()
-		.default(Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_LIMIT)),
+		.default(30),
+	TENANT_INVITATION_THROTTLE_TTL: z
+		.coerce.number()
+		.default(3600000),
+	TENANT_INVITATION_THROTTLE_LIMIT: z
+		.coerce.number()
+		.default(5),
+
+	// Health Check Thresholds
+	HEALTH_MEMORY_WARNING_THRESHOLD: z
+		.coerce.number()
+		.default(80),
+	HEALTH_MEMORY_CRITICAL_THRESHOLD: z
+		.coerce.number()
+		.default(95),
+	HEALTH_RESPONSE_TIME_WARNING_THRESHOLD: z
+		.coerce.number()
+		.default(100),
+	HEALTH_RESPONSE_TIME_CRITICAL_THRESHOLD: z
+		.coerce.number()
+		.default(200),
+	HEALTH_CACHE_MAX_ENTRIES: z
+		.coerce.number()
+		.default(100),
 
 	// Stripe
 	STRIPE_SECRET_KEY: z.string(),
@@ -112,23 +135,23 @@ const environmentSchema = z.object({
 	// Stripe Sync Engine Configuration (hardcoded industry best practice defaults)
 	STRIPE_SYNC_DATABASE_SCHEMA: z
 		.string()
-		.default(CONFIG_DEFAULTS.STRIPE_SYNC_DATABASE_SCHEMA),
+		.default('stripe'),
 	STRIPE_SYNC_AUTO_EXPAND_LISTS: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.STRIPE_SYNC_AUTO_EXPAND_LISTS),
+		.default(true),
 	STRIPE_SYNC_BACKFILL_RELATED_ENTITIES: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.STRIPE_SYNC_BACKFILL_RELATED_ENTITIES),
+		.default(true),
 	STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS: z
 		.coerce.number()
-		.default(CONFIG_DEFAULTS.STRIPE_SYNC_MAX_POSTGRES_CONNECTIONS),
+		.default(10),
 	STRIPE_PRICE_ID_STARTER: z.string().optional(),
 	STRIPE_PRICE_ID_GROWTH: z.string().optional(),
 	STRIPE_PRICE_ID_BUSINESS: z.string().optional(),
 	STRIPE_PRICE_ID_TENANTFLOW_MAX: z.string().optional(),
 	STRIPE_CONNECT_DEFAULT_COUNTRY: z
 		.string()
-		.default(CONFIG_DEFAULTS.STRIPE_CONNECT_DEFAULT_COUNTRY),
+		.default('US'),
 
 	// Redis
 	REDIS_URL: z.string().optional(),
@@ -138,12 +161,12 @@ const environmentSchema = z.object({
 	REDIS_DB: z.string().optional(),
 
 	// Logging
-	LOG_LEVEL: z.enum(LOG_LEVELS).default(CONFIG_DEFAULTS.LOG_LEVEL),
+	LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
 
 	// Monitoring
 	ENABLE_METRICS: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.ENABLE_METRICS),
+		.default(true),
 	PROMETHEUS_BEARER_TOKEN: z
 		.string()
 		.min(16, 'PROMETHEUS_BEARER_TOKEN must be at least 16 characters')
@@ -153,13 +176,13 @@ const environmentSchema = z.object({
 			val => (typeof val === 'string' ? val === 'true' : val),
 			z.boolean()
 		)
-		.default(CONFIG_DEFAULTS.PROMETHEUS_REQUIRE_AUTH),
+		.default(true),
 
 	// File Storage
 	STORAGE_PROVIDER: z
 		.enum(STORAGE_PROVIDERS)
-		.default(CONFIG_DEFAULTS.STORAGE_PROVIDER),
-	STORAGE_BUCKET: z.string().default(CONFIG_DEFAULTS.STORAGE_BUCKET),
+		.default('supabase'),
+	STORAGE_BUCKET: z.string().default('tenant-flow-storage'),
 
 	// Email
 	SMTP_HOST: z.string().optional(),
@@ -175,7 +198,7 @@ const environmentSchema = z.object({
 	RESEND_FROM_EMAIL: z
 		.string()
 		.email('Must be a valid email address')
-		.default(CONFIG_DEFAULTS.RESEND_FROM_EMAIL),
+		.default('noreply@tenantflow.app'),
 	TEST_RESEND_API_KEY: z.string().optional(),
 
 	// Security
@@ -189,10 +212,10 @@ const environmentSchema = z.object({
 	// Production Features
 	ENABLE_SWAGGER: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.ENABLE_SWAGGER),
+		.default(false),
 	ENABLE_RATE_LIMITING: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.ENABLE_RATE_LIMITING),
+		.default(true),
 
 	// Platform Detection
 	RAILWAY_PUBLIC_DOMAIN: z.string().optional(),
@@ -205,7 +228,7 @@ const environmentSchema = z.object({
 	RAILWAY_SERVICE_ID: z.string().optional(),
 	ALLOW_LOCALHOST_CORS: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.ALLOW_LOCALHOST_CORS),
+		.default(false),
 	REDISHOST: z.string().optional(),
 	REDISPASSWORD: z.string().optional(),
 	REDISPORT: z.string().optional(),
@@ -213,7 +236,7 @@ const environmentSchema = z.object({
 	VERCEL_URL: z.string().optional(),
 	DOCKER_CONTAINER: z
 		.coerce.boolean()
-		.default(CONFIG_DEFAULTS.DOCKER_CONTAINER)
+		.default(false)
 })
 
 export function validate(config: Record<string, unknown>) {

@@ -35,7 +35,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Input } from '#components/ui/input'
-import { useDeleteUnit } from '#hooks/api/use-unit'
+import { useDeleteUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import {
 	TYPOGRAPHY_SCALE,
 	buttonClasses,
@@ -252,16 +252,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 	const [deleteOpen, setDeleteOpen] = React.useState(false)
 	const [isDeleting, setIsDeleting] = React.useState(false)
 
-	const deleteUnit = useDeleteUnit({
-		onSuccess: () => {
-			toast.success('Unit deleted successfully')
-		},
-		onError: (err: Error) => {
-			toast.error('Failed to delete unit', {
-				description: err.message
-			})
-		}
-	})
+	const deleteUnit = useDeleteUnitMutation()
 
 	const handleDelete = async () => {
 		setIsDeleting(true)

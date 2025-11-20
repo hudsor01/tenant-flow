@@ -30,7 +30,8 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { usePrefetchTenant } from '#hooks/api/use-tenant'
+import { useQueryClient } from '@tanstack/react-query'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Trash2, UserPlus } from 'lucide-react'
@@ -190,7 +191,10 @@ export function TenantsTable({
 	initialTenants,
 	deleteTenantAction
 }: TenantsTableProps) {
-	const { prefetchTenant } = usePrefetchTenant()
+	const queryClient = useQueryClient()
+	const prefetchTenant = (tenantId: string) => {
+		queryClient.prefetchQuery(tenantQueries.detail(tenantId))
+	}
 
 	// React 19 useOptimistic for instant delete feedback
 	const [optimisticTenants, removeOptimistic] = useOptimistic(

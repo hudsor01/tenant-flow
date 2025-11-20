@@ -222,7 +222,7 @@ export default function NewMaintenanceRequestPage() {
 					<Field>
 						<FieldLabel>Description *</FieldLabel>
 						<textarea
-							className="input w-full min-h-[7.5rem]"
+							className="input w-full min-h-30"
 							placeholder="Please describe the issue in detail..."
 							value={formData.description}
 							onChange={e => handleChange('description', e.target.value)}

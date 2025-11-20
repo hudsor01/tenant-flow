@@ -10,7 +10,8 @@ import {
   UseGuards,
   BadRequestException,
   NotFoundException,
-  UnauthorizedException
+  UnauthorizedException,
+  ParseUUIDPipe
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { StripeService } from './stripe.service'
@@ -22,6 +23,7 @@ import { z } from 'zod'
 import type Stripe from 'stripe'
 import type { AuthenticatedRequest } from '@repo/shared/src/types/backend-domain.js'
 import type { Database } from '@repo/shared/src/types/supabase.js'
+import { uuidSchema } from '@repo/shared/validation/common'
 
 // Extended request interface for tenant context
 interface TenantAuthenticatedRequest extends AuthenticatedRequest {
@@ -43,7 +45,7 @@ const CreateCustomerRequestSchema = z.object({
 })
 
 const CreateSubscriptionRequestSchema = z.object({
-  customer: z.string(),
+  customer: uuidSchema,
   items: z.array(z.object({ price: z.string() }))
 })
 
@@ -290,7 +292,7 @@ export class StripeController {
   @Patch('subscriptions/:id')
   @UseGuards(JwtAuthGuard)
   async updateSubscription(
-    @Param('id') subscriptionId: string,
+    @Param('id', ParseUUIDPipe) subscriptionId: string,
     @Req() req: TenantAuthenticatedRequest,
     @Res() res: Response,
     @Body() body: unknown

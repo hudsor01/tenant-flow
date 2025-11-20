@@ -273,11 +273,3 @@
 		}
 	}
 }
-
-/* Dark mode specific overrides */
-.dark {
-	/* Any dark mode specific dashboard styles can go here */
-	.status-indicator {
-		/* Dark mode status indicators might need adjustment */
-	}
-}

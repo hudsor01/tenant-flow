@@ -6,11 +6,16 @@
 // Import constants from the single source of truth
 import type { USER_user_type } from '../constants/auth.js'
 import type { Database } from './supabase.js'
+import type { LoginFormData, SignupFormData, FormState } from './forms.js'
+import type { AuthError as BaseAuthError } from './errors.js'
 
 // Use Supabase User type directly - matches what we get from auth
-import type { User } from '@supabase/supabase-js'
-export type authUser = User
-export type { User } from '@supabase/supabase-js'
+// This is the authenticated user from Supabase Auth (auth.users table)
+// NOT the public.users profile table (use core.User for that)
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
+export type { User as SupabaseAuthUser } from '@supabase/supabase-js'
+// Legacy alias for backward compatibility
+export type { SupabaseAuthUser as authUser }
 
 // User role type derived from constants
 export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
@@ -20,105 +25,31 @@ import type { SubStatus } from '../constants/status-types.js'
 export type SubscriptionStatus = SubStatus
 
 export function hasOrganizationId(
-	user: authUser
-): user is authUser & { organizationId: string } {
-	const userWithOrg = user as authUser & { organizationId?: string }
+	user: SupabaseAuthUser
+): user is SupabaseAuthUser & { organizationId: string } {
+	const userWithOrg = user as SupabaseAuthUser & { organizationId?: string }
 	return (
 		typeof userWithOrg.organizationId === 'string' &&
 		userWithOrg.organizationId.length > 0
 	)
 }
 
-export interface LoginFormData {
+// Re-export Form types from forms.ts
+export type {
+	LoginFormData,
+	SignupFormData,
+	ForgotPasswordFormData,
+	ResetPasswordFormData,
+	UpdatePasswordFormData,
+	ProfileFormData,
+	ContactFormData
+} from './forms.js'
+
+// Auth request/response types for API - now consolidated in api-contracts.ts
+// See api-contracts.ts for: LoginInput, RegisterInput, RefreshTokenInput, etc.
+export type LoginCredentials = {
 	email: string
 	password: string
-	rememberMe?: boolean
-}
-
-export interface SignupFormData {
-	email: string
-	password: string
-	confirmPassword: string
-	fullName: string
-	firstName?: string
-	lastName?: string
-	company?: string
-	companyName?: string
-	acceptTerms: boolean
-}
-
-export interface ForgotPasswordFormData {
-	email: string
-}
-
-export interface ResetPasswordFormData {
-	password: string
-	confirmPassword: string
-}
-
-export interface UpdatePasswordFormData {
-	currentPassword: string
-	newPassword: string
-	confirmPassword: string
-}
-
-export interface ProfileFormData {
-	name: string
-	email: string
-	phone?: string
-	company?: string
-	address?: string
-	avatar?: string
-}
-
-export interface ContactFormData {
-	name: string
-	email: string
-	subject: string
-	message: string
-	phone?: string
-}
-
-// Auth request/response types for API
-export interface LoginCredentials {
-	email: string
-	password: string
-}
-
-export interface RegisterCredentials {
-	email: string
-	password: string
-	fullName?: string
-}
-
-// Client-side auth action types
-export interface SignupData {
-	email: string
-	password: string
-	firstName: string
-	lastName: string
-	company?: string
-}
-
-export interface ClientAuthResponse {
-	success: boolean
-	error?: string
-	data?: unknown
-}
-
-export interface AuthResponse {
-	user: User | authUser
-	session?: {
-		access_token: string
-		refresh_token: string
-		expires_in: number
-		expires_at?: number
-	}
-	message?: string
-}
-
-export interface RefreshTokenRequest {
-	refresh_token: string
 }
 
 // Secure subscription data type
@@ -159,12 +90,8 @@ export type AuthErrorCode =
 	| 'VALIDATION_ERROR'
 	| 'UNKNOWN_ERROR'
 
-export interface AuthError {
-	code: AuthErrorCode
-	message: string
-	field?: string
-	details?: Record<string, string | number | boolean>
-}
+// Re-export AuthError from errors.ts with type alias
+export type AuthError = BaseAuthError
 
 // Use Supabase Session type directly - no custom interface needed
 import type { Session } from '@supabase/supabase-js'
@@ -206,38 +133,13 @@ export interface JwtPayload {
 }
 
 // Google OAuth user type - extends Supabase's User with Google-specific fields
-export interface GoogleOAuthUser extends authUser {
+export interface GoogleOAuthUser extends SupabaseAuthUser {
 	name?: string
 	picture?: string
 }
 
-// Backend auth request/response schemas
-export interface LoginRequest {
-	email: string
-	password: string
-	rememberMe?: boolean
-}
-
-export interface RegisterRequest {
-	email: string
-	password: string
-	fullName?: string
-	companyName?: string
-}
-
-export interface ForgotPasswordRequest {
-	email: string
-}
-
-export interface ResetPasswordRequest {
-	password: string
-	token: string
-}
-
-export interface ChangePasswordRequest {
-	currentPassword: string
-	newPassword: string
-}
+// Backend auth request/response schemas - consolidated in api-contracts.ts
+// See api-contracts.ts for: LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput, ChangePasswordInput
 
 // Extended auth context and guard types
 // MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
@@ -248,7 +150,7 @@ export interface AuthenticatedRequest {
 
 // MIGRATED from apps/backend/src/shared/guards/roles.guard.ts
 export interface RequestWithUser {
-	user?: User & { organizationId?: string }
+	user?: SupabaseAuthUser & { organizationId?: string }
 	params?: Record<string, string>
 	query?: Record<string, string>
 	body?: Record<string, string | number | boolean | null> // HTTP request bodies have constrained JSON values
@@ -283,7 +185,7 @@ export interface SupabaseWebhookEvent {
 }
 
 export interface AuthContextType {
-	user: authUser | null
+	user: SupabaseAuthUser | null
 	loading: boolean
 	signIn: (credentials: LoginCredentials) => Promise<void>
 	signOut: () => Promise<void>
@@ -323,24 +225,23 @@ export interface SecurityValidationResult {
 }
 
 export interface AuthContext {
-	user: User | null
+	user: SupabaseAuthUser | null
 	permissions: PermissionValue[]
 	roles: UserRole[]
 }
 
 // Form state type alias for auth forms
-import type { FormState } from './forms.js'
-export type AuthFormState = FormState<User>
+export type AuthFormState = FormState<SupabaseAuthUser>
 
 // FRONTEND AUTH STORE STATE (moved from auth-store.ts)
 
 // Frontend auth store state for Zustand (compatible with Supabase types)
 export interface AuthState {
-	user: authUser | null // Support both Supabase User and authUser
+	user: SupabaseAuthUser | null // Support both Supabase User and SupabaseAuthUser
 	session: AuthSession | null // Use AuthSession for Supabase compatibility
 	isAuthenticated: boolean
 	isLoading: boolean
-	setUser: (user: authUser | null) => void
+	setUser: (user: SupabaseAuthUser | null) => void
 	setSession: (session: AuthSession | null) => void
 	setLoading: (loading: boolean) => void
 	signOut: () => void

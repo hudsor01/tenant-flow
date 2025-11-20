@@ -57,9 +57,9 @@ const CustomTooltip = ({
 						</span>
 					</div>
 					<div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
-						<div>Units: {data.units}</div>
-						<div>Revenue: ${(data.revenue / 1000).toFixed(0)}k</div>
-						<div>Maintenance: {data.maintenance} requests</div>
+						<div>Units: {data.totalUnits}</div>
+						<div>Revenue: ${(data.monthlyRevenue / 1000).toFixed(0)}k</div>
+						<div>Occupancy: {data.occupancyRate}%</div>
 					</div>
 				</div>
 			</div>

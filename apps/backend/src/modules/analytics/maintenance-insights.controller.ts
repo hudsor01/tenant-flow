@@ -5,7 +5,7 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
-import type { AuthUser } from '@repo/shared/types/api-contracts'
+import type { SupabaseAuthUser as AuthUser } from '@repo/shared/types/auth'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
