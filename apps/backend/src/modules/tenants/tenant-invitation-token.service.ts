@@ -120,15 +120,32 @@ export class TenantInvitationTokenService {
 				throw new BadRequestException('Lease not found')
 			}
 
-			// Fetch and return the tenant record
+			// Link user to tenant and update tenant record
 			const { data: tenantData, error: tenantError } = await client
 				.from('tenants')
-				.select()
+				.update({ user_id })
 				.eq('id', leaseData.primary_tenant_id)
+				.select()
 				.single()
 
 			if (tenantError || !tenantData) {
 				throw new BadRequestException('Failed to retrieve tenant')
+			}
+
+			// Update user record to set user_type='TENANT'
+			const { error: userError } = await client
+				.from('users')
+				.update({ user_type: 'TENANT' })
+				.eq('id', user_id)
+
+			if (userError) {
+				this.logger.warn('Failed to update user type to TENANT', {
+					error: userError.message,
+					user_id
+				})
+				// Don't throw - tenant acceptance is more important than user_type update
+			} else {
+				this.logger.log('User type updated to TENANT on invitation acceptance', { user_id })
 			}
 
 			return tenantData as Tenant
@@ -171,6 +188,23 @@ export class TenantInvitationTokenService {
 					error: error?.message
 				})
 				throw new BadRequestException('Failed to activate tenant')
+			}
+
+			// Update user record to set user_type='TENANT' if not already set
+			const { error: userError } = await client
+				.from('users')
+				.update({ user_type: 'TENANT' })
+				.eq('id', user_id)
+				.eq('user_type', 'OWNER')  // Only update if currently OWNER (avoid overwriting)
+
+			if (userError) {
+				this.logger.warn('Failed to update user type to TENANT on webhook activation', {
+					error: userError.message,
+					user_id
+				})
+				// Don't throw - tenant activation is more important than user_type update
+			} else {
+				this.logger.log('User type updated to TENANT on webhook activation', { user_id })
 			}
 
 			return tenantData as Tenant
