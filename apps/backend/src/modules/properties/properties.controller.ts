@@ -41,6 +41,7 @@ import { PropertiesService } from './properties.service'
 import { PropertyImagesService } from './services/property-images.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
+import { DashboardService } from '../dashboard/dashboard.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
@@ -57,7 +58,8 @@ export class PropertiesController {
 		private readonly propertiesService: PropertiesService,
 		private readonly propertyImagesService: PropertyImagesService,
 		private readonly propertyBulkImportService: PropertyBulkImportService,
-		private readonly propertyAnalyticsService: PropertyAnalyticsService
+		private readonly propertyAnalyticsService: PropertyAnalyticsService,
+		private readonly dashboardService: DashboardService
 	) {}
 
 	/**
@@ -86,9 +88,15 @@ export class PropertiesController {
 
 	/**
 	 * Get property statistics
-	 * Direct RPC call for aggregated data
+	 * Returns aggregated property stats from dashboard service
 	 * MUST BE BEFORE /:id route to avoid route conflict
 	 */
+	@Get('stats')
+	async getStats(@JwtToken() token: string) {
+		const dashboardStats = await this.dashboardService.getStats(undefined, token)
+		return dashboardStats.properties
+	}
+
 	/**
 	 * Get all properties with their units
 	 * Returns properties with units for frontend stat calculations

@@ -50,7 +50,7 @@ test.describe('Staging Tenant Portal Smoke', () => {
 		})
 
 		await test.step('wait for dashboard redirect', async () => {
-			await page.waitForURL('**/dashboard', { timeout: 45_000 })
+			await page.waitForURL('**/tenant', { timeout: 45_000 })
 			await expect(page.locator('[data-testid="dashboard-stats"]')).toBeVisible(
 				{
 					timeout: 45_000

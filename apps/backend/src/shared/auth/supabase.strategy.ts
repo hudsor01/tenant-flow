@@ -167,7 +167,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			userToEnsure.app_metadata = payload.app_metadata
 		}
 
-		// CRITICAL FIX: Get users.id (not auth.uid()) for RLS policies
+		// Get users.id (not auth.uid()) for RLS policies
 		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
 		let internaluser_id: string
 		try {
@@ -252,10 +252,9 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		}
 
 		const user: authUser = {
-			id: internaluser_id, // Use user.id for RLS compatibility
+			id: internaluser_id,
 			aud: actualAud,
 			email: payload.email,
-			// Use timestamps from JWT payload instead of hardcoded current time
 			email_confirmed_at: payload.email_confirmed_at ?? '',
 			confirmed_at: payload.confirmed_at ?? '',
 			last_sign_in_at: payload.last_sign_in_at ?? '',

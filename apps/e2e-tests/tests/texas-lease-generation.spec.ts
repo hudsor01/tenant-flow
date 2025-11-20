@@ -99,24 +99,22 @@ test.describe('Texas Lease Generation', () => {
 			networkErrors.push(`${request.url()} - ${request.failure()?.errorText}`)
 		})
 
-		page.on('response', response => {
-			if (response.status() >= 400) {
-				networkErrors.push(`${response.url()} - Status: ${response.status()}`)
-			}
-		})
-	})
+	page.on('response', response => {
+		if (response.status() >= 400) {
+			networkErrors.push(`${response.url()} - Status: ${response.status()}`)
+	}
+})
+})
 
-	test.afterEach(async (testInfo) => {
-		await attachText(testInfo, 'console-errors', consoleErrors)
-		await attachText(testInfo, 'network-errors', networkErrors)
-	})
+test.afterEach(async (_, testInfo) => {
+	await attachText(testInfo, 'console-errors', consoleErrors)
+	await attachText(testInfo, 'network-errors', networkErrors)
+})
 
-	test('should auto-fill and generate Texas lease PDF', async ({
-		page
-	}, testInfo) => {
-		// Authentication handled in beforeEach
-
-		// Navigate to leases page
+test('should auto-fill and generate Texas lease PDF', async ({
+	page
+}, testInfo) => {
+	// Authentication handled in beforeEach		// Navigate to leases page
 		await page.goto('/manage/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
