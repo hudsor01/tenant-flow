@@ -20,7 +20,7 @@ export class StripeClientService {
 		// Initialize Stripe client with recommended configuration
 		// Using pinned API version to prevent breaking changes (2025 best practice)
 		this.stripe = new Stripe(stripeSecretKey, {
-			apiVersion: '2025-10-29.clover',
+			apiVersion: '2025-11-17.clover',
 			typescript: true
 		})
 	}

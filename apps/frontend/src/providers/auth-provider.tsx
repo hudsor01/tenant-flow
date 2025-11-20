@@ -108,10 +108,10 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 						: ''
 
 				const isUnauthenticated =
-					errorStatus === 401 || /auth session/i.test(errorMessage)
+					errorStatus === 401 || /auth session/i.test(errorMessage) || /auth code and code verifier/i.test(errorMessage)
 
 				if (isUnauthenticated) {
-					logger.debug('No active auth session', {
+					logger.debug('No active auth session or PKCE error', {
 						action: 'get_user_missing_session',
 						metadata: { message: errorMessage }
 					})

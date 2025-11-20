@@ -5,6 +5,7 @@
  * Use these instead of raw createClient calls throughout the application.
  */
 
+import { createBrowserClient } from '@supabase/ssr'
 import {
 	createClient,
 	type AuthError,
@@ -45,20 +46,37 @@ const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY
 let _client: SupabaseClient<Database> | null = null
 
 function getSupabaseClient(): SupabaseClient<Database> {
-	if (!_client) {
-		// Environment variables are validated at module load time
-		_client = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-			auth: {
-				persistSession: true,
-				autoRefreshToken: true,
-				flowType: 'pkce',
-				detectSessionInUrl: true
-			},
-			db: {
-				schema: 'public'
+	if (_client) return _client
+
+	const isBrowser = typeof window !== 'undefined'
+
+	// Use the SSR-aware browser client so PKCE code verifiers are stored in cookies.
+	// This lets the Next.js `/auth/callback` route read the verifier server-side
+	// and prevents "both auth code and code verifier should be non-empty" errors.
+	if (isBrowser) {
+		_client = createBrowserClient<Database>(
+			SUPABASE_URL,
+			SUPABASE_PUBLISHABLE_KEY,
+			{
+				db: { schema: 'public' }
 			}
-		})
+		)
+		return _client
 	}
+
+	// Backend/Node environments can keep using the standard client
+	_client = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+		auth: {
+			persistSession: true,
+			autoRefreshToken: true,
+			flowType: 'pkce',
+			detectSessionInUrl: true
+		},
+		db: {
+			schema: 'public'
+		}
+	})
+
 	return _client
 }
 

@@ -7,9 +7,12 @@
 
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
+
+type SupabaseChannel = ReturnType<
+	ReturnType<typeof getSupabaseClientInstance>['channel']
+>
 
 interface UseRealtimeSubscriptionOptions {
 	table: string
@@ -46,7 +49,7 @@ export function useRealtimeSubscription({
 	enabled = true
 }: UseRealtimeSubscriptionOptions) {
 	const queryClient = useQueryClient()
-	const channelRef = useRef<RealtimeChannel | null>(null)
+	const channelRef = useRef<SupabaseChannel | null>(null)
 	const supabase = getSupabaseClientInstance()
 
 	useEffect(() => {
@@ -65,7 +68,7 @@ export function useRealtimeSubscription({
 				new?: unknown
 				old?: unknown
 			}) => void
-		) => RealtimeChannel
+		) => SupabaseChannel
 
 		const subscribeOptions: {
 			event: string
