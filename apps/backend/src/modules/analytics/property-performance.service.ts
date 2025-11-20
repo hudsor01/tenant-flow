@@ -248,9 +248,9 @@ export class PropertyPerformanceService {
 		}, {} as Record<string, number>)
 
 		// Get total units count
-		const { count: totalUnits, error: countError } = await this.getQueryClient()
-			.from('units')
-			.select('*', { count: 'exact', head: true })
+	const { count: totalUnits, error: countError } = await this.getQueryClient()
+		.from('units')
+		.select('*, properties!inner(property_owner_id)', { count: 'exact', head: true })
 			.eq('properties.property_owner_id', user_id)
 
 		if (countError) {
@@ -288,6 +288,15 @@ export class PropertyPerformanceService {
 			this.logger.warn(
 				`Visitor analytics RPC returned no data for user ${user_id}`
 			)
+			return {
+				summary: {
+					totalVisits: 0,
+					totalInquiries: 0,
+					totalConversions: 0,
+					conversionRate: 0
+				},
+				timeline: []
+			}
 		}
 
 		return mapVisitorAnalytics(raw)
