@@ -25,6 +25,9 @@ const SUPABASE_JWKS = createRemoteJWKSet(
 )
 
 export async function updateSession(request: NextRequest) {
+	const pathname = request.nextUrl.pathname
+	logger.info('[MIDDLEWARE_START]', { pathname })
+	
 	let supabaseResponse = NextResponse.next({
 		request
 	})
@@ -68,13 +71,28 @@ export async function updateSession(request: NextRequest) {
 			error: sessionError
 		} = await supabase.auth.getSession()
 
+		logger.info('[SESSION_CHECK]', {
+			pathname,
+			hasSession: !!session,
+			hasToken: !!session?.access_token,
+			error: sessionError?.message
+		})
+
 		if (sessionError || !session?.access_token) {
 			isAuthenticated = false
+			logger.info('[NO_SESSION]', { pathname })
 		} else {
 			accessToken = session.access_token
+			logger.info('[HAS_TOKEN]', { pathname })
 
 			// Verify JWT signature locally using JWKS (~5-10ms)
 			const claims = await verifyJwtToken(accessToken)
+
+			logger.info('[JWT_VERIFIED]', {
+				pathname,
+				claimsValid: !!claims,
+				claimsKeys: claims ? Object.keys(claims) : []
+			})
 
 			if (claims) {
 				// SECURITY: Validate required JWT claims before trusting token
@@ -154,7 +172,6 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	// Check route protection using centralized constants
-	const pathname = request.nextUrl.pathname
 	const isProtectedRoute = PROTECTED_ROUTE_PREFIXES.some(
 		prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
 	)
@@ -167,6 +184,11 @@ export async function updateSession(request: NextRequest) {
 
 	// Redirect unauthenticated users from protected routes to login
 	if (!isAuthenticated && isProtectedRoute) {
+		logger.info('[REDIRECT_TO_LOGIN]', {
+			fromPath: pathname,
+			reason: 'not_authenticated',
+			isProtected: true
+		})
 		const url = request.nextUrl.clone()
 		url.pathname = '/login'
 		url.searchParams.set('redirectTo', pathname)
@@ -200,6 +222,11 @@ export async function updateSession(request: NextRequest) {
 	// Early redirect for authenticated users on marketing pages
 	// Do this before payment gate to avoid showing pricing page to users who just need dashboard
 	if (isAuthenticated && isMarketingRedirect && user_type) {
+		logger.info('[REDIRECT_MARKETING_PAGE]', {
+			fromPath: pathname,
+			toPath: user_type === 'TENANT' ? '/tenant' : '/manage',
+			userType: user_type
+		})
 		const url = request.nextUrl.clone()
 		const destination = user_type === 'TENANT' ? '/tenant' : '/manage'
 		url.pathname = destination
