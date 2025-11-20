@@ -1,6 +1,7 @@
 import { Logger, Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
+import { DashboardModule } from '../dashboard/dashboard.module'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
 import { PropertyImagesService } from './services/property-images.service'
@@ -12,7 +13,7 @@ import { PropertyAnalyticsService } from './services/property-analytics.service'
  * Uses repository abstractions for clean separation of concerns
  */
 @Module({
-	imports: [SupabaseModule, SharedModule],
+	imports: [SupabaseModule, SharedModule, DashboardModule],
 	controllers: [PropertiesController],
 	providers: [
 		PropertiesService,

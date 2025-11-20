@@ -13,21 +13,28 @@ import type { User } from '@supabase/supabase-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { jwtVerify, createRemoteJWKSet } from 'jose'
 
-const logger = createLogger({ component: 'SupabaseMiddleware' })
+const logger = createLogger({ component: 'AuthMiddleware' })
 
-//Create JWKS for JWT signature verification
-// Per Supabase docs: Always verify JWT signatures against Supabase's public keys
-// Reference: https://supabase.com/docs/guides/auth/jwts
-const SUPABASE_JWKS = createRemoteJWKSet(
-	new URL(`${SUPABASE_URL}/auth/v1/keys`)
-)
-
+/**
+ * Session Update & Auth Validation
+ *
+ * Called by: src/middleware.ts (Next.js entry point)
+ *
+ * Responsibilities:
+ * 1. Extract and validate session from cookies (Supabase SSR)
+ * 2. Verify JWT signature against Supabase public keys
+ * 3. Extract auth claims (user_type, stripe_customer_id)
+ * 4. Enforce route protection (protected routes → /login)
+ * 5. Implement payment gating (non-paying users → /pricing)
+ * 6. Handle user-type redirects (TENANT → /tenant, others → /manage)
+ *
+ * Returns: NextResponse with appropriate redirect or pass-through
+ */
 export async function updateSession(request: NextRequest) {
 	const pathname = request.nextUrl.pathname
-	logger.info('[MIDDLEWARE_START]', { pathname })
-	
+	logger.info('[SESSION_UPDATE_START]', { pathname })
+
 	let supabaseResponse = NextResponse.next({
 		request
 	})
@@ -56,115 +63,38 @@ export async function updateSession(request: NextRequest) {
 	)
 
 	// SECURITY FIX: Use getUser() for server-side JWT validation
-	//Use getSession() + local JWT verification instead of getUser() API call
-	// Performance: ~10-20ms (local) vs 200-500ms (API roundtrip)
-	// Security: Verifies JWT signature locally using Supabase's public JWKS
-	// Per Supabase docs: getSession() validates JWT cryptographically
+	// Performance: ~200-500ms (API roundtrip) but reliable
+	// Security: Supabase handles JWT verification server-side
 	let isAuthenticated = false
 	let user: User | null = null
-	let accessToken: string | null = null
 
 	try {
-		// Get session from cookies (local operation, ~5-10ms)
+		// Get user from Supabase (server-side validation)
 		const {
-			data: { session },
-			error: sessionError
-		} = await supabase.auth.getSession()
+			data: { user: authUser },
+			error: userError
+		} = await supabase.auth.getUser()
 
 		logger.info('[SESSION_CHECK]', {
 			pathname,
-			hasSession: !!session,
-			hasToken: !!session?.access_token,
-			error: sessionError?.message
+			hasUser: !!authUser,
+			error: userError?.message
 		})
 
-		if (sessionError || !session?.access_token) {
+		if (userError || !authUser) {
 			isAuthenticated = false
 			logger.info('[NO_SESSION]', { pathname })
 		} else {
-			accessToken = session.access_token
-			logger.info('[HAS_TOKEN]', { pathname })
-
-			// Verify JWT signature locally using JWKS (~5-10ms)
-			const claims = await verifyJwtToken(accessToken)
-
-			logger.info('[JWT_VERIFIED]', {
+			user = authUser
+			isAuthenticated = true
+			logger.info('[USER_VERIFIED]', {
 				pathname,
-				claimsValid: !!claims,
-				claimsKeys: claims ? Object.keys(claims) : []
+				userId: user.id,
+				email: user.email
 			})
-
-			if (claims) {
-				// SECURITY: Validate required JWT claims before trusting token
-				const userId = getStringClaim(claims, 'sub')
-				const userEmail = getStringClaim(claims, 'email')
-
-				// Reject tokens without required claims (defense against forged/malformed tokens)
-				if (!userId || !userEmail) {
-					logger.warn('JWT missing required claims', {
-						hasUserId: !!userId,
-						hasEmail: !!userEmail
-					})
-					isAuthenticated = false
-					// Early return - don't process invalid token
-					return supabaseResponse
-				}
-
-				// Extract complete user info from verified JWT claims
-				// Map JWT claims to Supabase User type fields
-
-				// SECURITY FIX: Use deterministic timestamps from JWT (not Date.now())
-				// Timestamps: Convert UNIX epoch (seconds) to ISO string
-				// IMPORTANT: Always use JWT's 'iat' (issued at) claim, never Date.now()
-				// This prevents timestamp manipulation attacks
-				const authTime =
-					getNumberClaim(claims, 'auth_time') || getNumberClaim(claims, 'iat')
-
-				// SECURITY: If JWT is missing timestamps, reject it (malformed token)
-				if (!authTime) {
-					logger.warn('JWT missing timestamp claims (iat/auth_time)')
-					isAuthenticated = false
-					return supabaseResponse
-				}
-
-				const createdAt = new Date(authTime * 1000).toISOString()
-
-				// Confirmation timestamps: Map boolean verification claims to ISO timestamps
-				const emailVerified = getBooleanClaim(claims, 'email_verified')
-				const phoneVerified = getBooleanClaim(claims, 'phone_verified')
-
-				// SECURITY: Use JWT auth time for confirmation timestamps (not Date.now())
-				const confirmationTime = new Date(authTime * 1000).toISOString()
-
-				user = {
-					id: userId,
-					email: userEmail,
-					phone: getStringClaim(claims, 'phone') ?? '',
-					app_metadata: {},
-					user_metadata: {},
-					aud: 'authenticated',
-					role:
-						getStringClaim(claims, 'user_role') ??
-						getStringClaim(claims, 'app_role') ??
-						'authenticated',
-					created_at: createdAt,
-					updated_at: getStringClaim(claims, 'updated_at') ?? createdAt,
-					// SECURITY: Use deterministic JWT timestamps for confirmation fields
-					confirmed_at: emailVerified ? confirmationTime : createdAt,
-					email_confirmed_at: emailVerified ? confirmationTime : createdAt,
-					phone_confirmed_at: phoneVerified ? confirmationTime : createdAt,
-					last_sign_in_at: confirmationTime,
-					identities: [],
-					factors: []
-				}
-
-				isAuthenticated = !!user.id && !!user.email
-			} else {
-				isAuthenticated = false
-			}
 		}
 	} catch (err) {
-		// JWT verification error - fail closed for security
+		// Auth check failed
 		logger.error('Auth check failed', {
 			error: err instanceof Error ? err.message : String(err)
 		})
@@ -201,22 +131,15 @@ export async function updateSession(request: NextRequest) {
 		pathname as (typeof MARKETING_REDIRECT_ROUTES)[number]
 	)
 
-	// PERFORMANCE OPTIMIZATION: Use JWT claims instead of database queries
+	// PERFORMANCE OPTIMIZATION: Use user metadata instead of database queries
 	// Custom claims are added via Auth Hook (see migration: 20251116_fix_auth_hook_for_current_schema.sql)
 	// This eliminates database calls on every request per Next.js middleware best practices
-	// NOTE: Claims are in the JWT token, we need to decode it OR use user_metadata as fallback
 	let user_type: string | null = null
 	let stripe_customer_id: string | null = null
 
-	if (isAuthenticated && user && accessToken) {
-		const claims = await verifyJwtToken(accessToken)
-		const user_typeFromClaims =
-			getStringClaim(claims, 'user_type') ?? getStringClaim(claims, 'user_user_type')
-		const stripe_customer_idFromClaims = getStringClaim(claims, 'stripe_customer_id')
-
-		user_type = user_typeFromClaims ?? user.user_metadata?.user_type ?? null
-		stripe_customer_id =
-			stripe_customer_idFromClaims ?? user.user_metadata?.stripe_customer_id ?? null
+	if (isAuthenticated && user) {
+		user_type = user.user_metadata?.user_type ?? null
+		stripe_customer_id = user.user_metadata?.stripe_customer_id ?? null
 	}
 
 	// Early redirect for authenticated users on marketing pages
@@ -276,75 +199,12 @@ export async function updateSession(request: NextRequest) {
 		return NextResponse.redirect(url)
 	}
 
+	// Redirect /dashboard and /dashboard/* to /manage and /manage/*
+	if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+		const url = request.nextUrl.clone()
+		url.pathname = pathname.replace('/dashboard', '/manage')
+		return NextResponse.redirect(url)
+	}
+
 	return supabaseResponse
-}
-
-//Verify JWT signature instead of just decoding
-// Per Supabase docs: Use jwtVerify() to prevent forged tokens with fake claims
-// Reference: https://supabase.com/docs/guides/auth/jwts
-async function verifyJwtToken(
-	accessToken: string
-): Promise<Record<string, unknown> | null> {
-	try {
-		// Verify JWT signature using Supabase's public keys
-		const { payload } = await jwtVerify(accessToken, SUPABASE_JWKS, {
-		issuer: `${SUPABASE_URL}/auth/v1`,
-		audience: 'authenticated'
-	})
-		return payload as Record<string, unknown>
-	} catch (err) {
-		logger.error('JWT verification failed', {
-			error: err instanceof Error ? err.message : String(err)
-		})
-		return null
-	}
-}
-
-function getStringClaim(
-	claims: Record<string, unknown> | null,
-	key: string
-): string | null {
-	if (!claims) {
-		return null
-	}
-
-	const value = claims[key]
-	if (typeof value !== 'string') {
-		return null
-	}
-
-	const normalized = value.trim()
-	return normalized && normalized !== 'null' ? normalized : null
-}
-
-function getNumberClaim(
-	claims: Record<string, unknown> | null,
-	key: string
-): number | null {
-	if (!claims) {
-		return null
-	}
-
-	const value = claims[key]
-	if (typeof value !== 'number') {
-		return null
-	}
-
-	return value
-}
-
-/**
- * Extract boolean claim from JWT payload
- * Helper function to reduce code duplication for boolean verification claims
- */
-function getBooleanClaim(
-	claims: Record<string, unknown> | null,
-	key: string
-): boolean {
-	if (!claims) {
-		return false
-	}
-
-	const value = claims[key]
-	return value === true
 }

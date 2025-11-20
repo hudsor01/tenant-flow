@@ -62,7 +62,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 		// Navigate to dashboard to verify session is valid
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 		await page.goto(`${baseUrl}/manage`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('load')
 
 			debugLog(
 			` Logged in as owner (${email}) - Session reused from cache`
@@ -77,8 +77,8 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 
 	await page.goto(`${baseUrl}/login`)
 	debugLog(' Navigated to login page')
-	await page.waitForLoadState('networkidle')
-	debugLog(' Page load complete (networkidle)')
+	await page.waitForLoadState('load')
+	debugLog(' Page load complete')
 
 	// Wait for login form to be fully visible
 	debugLog('⏳ Waiting for email field to be visible...')
@@ -112,7 +112,8 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	])
 	debugLog(' Navigation complete!')
 
-	await page.waitForLoadState('networkidle')
+	// Wait for page to be mostly loaded (don't wait for all background requests)
+	await page.waitForLoadState('load')
 
 	// Cache session for this worker (includes httpOnly cookies!)
 	const session = await page.context().storageState()
@@ -149,7 +150,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 
 		// Navigate to tenant dashboard to verify session is valid
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/tenant/dashboard`)
+		await page.goto(`${baseUrl}/tenant`)
 		await page.waitForLoadState('networkidle')
 
 		debugLog(
@@ -179,7 +180,8 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		page.getByRole('button', { name: /sign in|login|submit/i }).click()
 	])
 
-	await page.waitForLoadState('networkidle')
+	// Wait for page to be mostly loaded (don't wait for all background requests)
+	await page.waitForLoadState('load')
 
 	// Cache session for this worker (includes httpOnly cookies!)
 	const session = await page.context().storageState()

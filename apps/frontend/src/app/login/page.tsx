@@ -14,6 +14,7 @@ import { LoginLayout } from '#components/auth/login-layout'
 import { useModalStore } from '#stores/modal-store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUserRole } from '#hooks/use-user-role'
+import { loginWithPassword } from './login-action'
 
 const logger = createLogger({ component: 'LoginPage' })
 
@@ -77,30 +78,25 @@ function LoginPageContent() {
 	const handleSubmit = async (data: LoginFormData | SignupFormData) => {
 		setIsLoading(true)
 		try {
-			const supabase = getSupabaseClientInstance()
-
 			// Validate and cast the data to LoginCredentials
 			const credentials: LoginCredentials = {
 				email: data.email as string,
 				password: data.password as string
 			}
 
-			// Sign in with Supabase
-			const { data: authData, error } = await supabase.auth.signInWithPassword({
-				email: credentials.email,
-				password: credentials.password
-			})
+			// Sign in using server action - this ensures cookies are set properly
+			const result = await loginWithPassword(credentials.email, credentials.password)
 
-			if (error) {
-				logger.error('Login failed', {
+			if (!result.success) {
+				logger.error('Server-side login failed', {
 					action: 'email_login_failed',
 					metadata: {
-						error: error.message,
+						error: result.error,
 						emailProvided: !!credentials.email
 					}
 				})
 
-				if (error.message.includes('Email not confirmed')) {
+				if (result.error?.includes('Email not confirmed')) {
 					router.push('/auth/confirm-email')
 					throw new Error(
 						'Please confirm your email address before signing in.'
@@ -108,17 +104,18 @@ function LoginPageContent() {
 				}
 
 				throw new Error(
-					error.message === 'Invalid login credentials'
+					result.error === 'Invalid login credentials'
 						? 'Invalid email or password. Please try again.'
-						: error.message
+						: result.error ?? 'Login failed'
 				)
 			}
 
-			if (authData.user) {
-				logger.info('Login successful', {
+			if (result.user) {
+				logger.info('Server-side login successful', {
 					action: 'email_login_success',
 					metadata: {
-						email: credentials.email
+						email: credentials.email,
+						userId: result.user.id
 					}
 				})
 
@@ -131,13 +128,9 @@ function LoginPageContent() {
 					error: error instanceof Error ? error.message : String(error)
 				}
 			})
-			// Show error toast for unexpected errors
-			// toast.error('Something went wrong', {
-			// 	description:
-			// 		'An unexpected error occurred during sign in. Please try again.'
-			// })
-		} finally {
 			setIsLoading(false)
+			// Re-throw so the form's error handler can display it to the user
+			throw error
 		}
 	}
 
