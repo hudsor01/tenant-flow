@@ -26,6 +26,16 @@ function LoginPageContent() {
 	const searchParams = useSearchParams()
 	const { isTenant, isLoading: roleLoading } = useUserRole()
 
+	// Log page load
+	useEffect(() => {
+		logger.info('[LOGIN_PAGE_LOAD]', {
+			action: 'login_page_mounted',
+			hasRedirectTo: !!searchParams?.get('redirectTo'),
+			hasError: !!searchParams?.get('error'),
+			errorParam: searchParams?.get('error')
+		})
+	}, [])
+
 	useEffect(() => {
 		// Check if searchParams is available before using it
 		if (!searchParams) return
@@ -51,14 +61,14 @@ function LoginPageContent() {
 				destination = redirectTo
 			}
 
-			logger.info('Login successful, redirecting to dashboard', {
-				action: 'email_login_success',
-				metadata: {
-					destination
-				}
-			})
+			logger.info('[LOGIN_REDIRECT_START]', {
+			action: 'post_login_redirect',
+			destination,
+			userType: isTenant ? 'TENANT' : 'OWNER',
+			redirectTo: searchParams?.get('redirectTo')
+		})
 
-			router.push(destination)
+		router.push(destination)
 			router.refresh()
 			setJustLoggedIn(false)
 		}

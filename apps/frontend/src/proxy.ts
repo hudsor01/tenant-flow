@@ -1,26 +1,50 @@
 import { updateSession } from '#lib/supabase/middleware'
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'Proxy' })
 
 /**
- * Next.js 15 Middleware - Supabase SSR Authentication
+ * Next.js 16 Proxy Handler - Supabase SSR Authentication
  *
- * KNOWN VERCEL WARNING: "Unable to find source file for page middleware"
- * This is a cosmetic Vercel monorepo build warning that does NOT affect functionality.
- * Middleware works correctly in production. See CLAUDE.md Deployment section for details.
+ * Runs on every request to:
+ * - Validate session cookies and JWT tokens
+ * - Verify JWT signatures using Supabase JWKS
+ * - Enforce route protection (redirect unauthenticated users to /login)
+ * - Implement payment gating (redirect non-paying users to /pricing)
+ * - Handle user-type based redirects (TENANT -> /tenant, others -> /manage)
  */
 export async function proxy(request: NextRequest) {
-	// Update session with production-ready auth, payment gating, and user_type-based redirects
-	return await updateSession(request)
+	const pathname = request.nextUrl.pathname
+	logger.info('[PROXY_CALLED]', { pathname })
+	
+	try {
+		const response = await updateSession(request)
+		logger.info('[PROXY_RESPONSE]', {
+			pathname,
+			status: response.status,
+			isRedirect: response.status >= 300 && response.status < 400
+		})
+		return response
+	} catch (error) {
+		logger.error('[PROXY_ERROR]', {
+			pathname,
+			error: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined
+		})
+		// Return the request unchanged if proxy fails
+		return NextResponse.next({ request })
+	}
 }
 
 export const config = {
-    matcher: [
+	matcher: [
 		/*
-		 * Match all request paths except for the ones starting with:
+		 * Match all request paths except:
 		 * - _next/static (static files)
-		 * - _next/image (image optimization files)
-		 * - favicon.ico (favicon file)
-		 * - public assets with extensions
+		 * - _next/image (image optimization)
+		 * - favicon.ico (favicon)
+		 * - public assets (*.svg, *.png, *.jpg, etc.)
 		 */
 		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
 	]
