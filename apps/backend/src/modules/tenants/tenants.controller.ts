@@ -284,6 +284,7 @@ export class TenantsController {
 	 * Uses Supabase Auth's built-in invitation system
 	 */
 	@Post(':id/invite-v2')
+	@Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 invitations per hour
 	async sendInvitationV2(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
@@ -333,6 +334,7 @@ export class TenantsController {
 	}
 
 	@Post(':id/resend-invitation')
+	@Throttle({ default: { limit: 1, ttl: 900000 } }) // 1 resend per 15 minutes
 	async resendInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
