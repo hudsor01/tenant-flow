@@ -1,7 +1,7 @@
 /**
  * TanStack Query Infinite Scrolling Tests
  * Tests real browser behavior for infinite scrolling with useInfiniteProperties
- * 
+ *
  * Critical functionality testing:
  * - Intersection observer triggers correctly at 10% visibility
  * - Automatic loading of more properties on scroll
@@ -14,11 +14,11 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
 import { createLargePropertyDataset, createTestProperties } from '../fixtures/property-data'
-import { 
-  TanStackQueryHelper, 
-  NetworkSimulator, 
+import {
+  TanStackQueryHelper,
+  NetworkSimulator,
   PropertyTableHelper,
-  PerformanceHelper 
+  PerformanceHelper
 } from '../utils/tanstack-helpers'
 
 test.describe('TanStack Query Infinite Scrolling', () => {
@@ -30,7 +30,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
 
   test.beforeEach(async ({ browser }) => {
     page = await browser.newPage()
-    
+
     // Initialize helpers
     queryHelper = new TanStackQueryHelper(page)
     networkSim = new NetworkSimulator(page)
@@ -42,7 +42,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
     await mockInfinitePropertiesAPI(testPages)
 
     // Navigate to properties page
-    await page.goto('/dashboard/properties')
+    await page.goto('/manage/properties')
     await page.waitForLoadState('networkidle')
   })
 
@@ -59,10 +59,10 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       const url = new URL(route.request().url())
       const offset = parseInt(url.searchParams.get('offset') || '0')
       const limit = parseInt(url.searchParams.get('limit') || '20')
-      
+
       const pageIndex = Math.floor(offset / limit)
       const pageData = pages[pageIndex] || []
-      
+
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -172,7 +172,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
 
       // Verify loading indicator appears
       await expect(page.locator('text="Loading more properties..."')).toBeVisible()
-      
+
       // Verify loading spinner/animation
       const spinner = page.locator('.animate-spin, .loading-spinner')
       await expect(spinner).toBeVisible()
@@ -219,9 +219,9 @@ test.describe('TanStack Query Infinite Scrolling', () => {
         // Reset API to work
         await networkSim.resetNetworkMocks()
         await mockInfinitePropertiesAPI(createLargePropertyDataset(20, 5))
-        
+
         await retryButton.click()
-        
+
         // Verify retry works
         await tableHelper.waitForLoading(false, 10000)
         const retryCount = await tableHelper.getPropertyCount()
@@ -284,7 +284,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       // Now scroll to trigger the observer
       await tableHelper.scrollToLoadMore()
       await page.waitForTimeout(500) // Brief wait for observer to fire
-      
+
       // Check if observer was triggered
       const wasTriggered = await page.evaluate(() => window.__intersectionObserverTriggered)
       expect(wasTriggered).toBe(true)
@@ -294,7 +294,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       await page.waitForTimeout(2000)
 
       // Navigate away from properties page
-      await page.goto('/dashboard')
+      await page.goto('/manage')
       await page.waitForTimeout(1000)
 
       // Check if observers are properly cleaned up
@@ -307,7 +307,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       expect(activeObservers).toBe(0)
 
       // Navigate back and verify new observer is created
-      await page.goto('/dashboard/properties')
+      await page.goto('/manage/properties')
       await page.waitForTimeout(2000)
 
       const newObservers = await page.evaluate(() => {
@@ -368,12 +368,12 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       await page.route('**/api/properties**', async (route) => {
         const url = new URL(route.request().url())
         const offset = parseInt(url.searchParams.get('offset') || '0')
-        
+
         // Count requests for page 2 (offset 20)
         if (offset === 20) {
           requestCount++
         }
-        
+
         await route.continue()
       })
 
@@ -404,14 +404,14 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       const scrollPosition = await page.evaluate(() => window.scrollY)
 
       // Navigate away and back
-      await page.goto('/dashboard')
+      await page.goto('/manage')
       await page.waitForTimeout(1000)
-      await page.goto('/dashboard/properties')
+      await page.goto('/manage/properties')
       await page.waitForTimeout(2000)
 
       // Scroll position should be maintained (or reasonable alternative)
       const newScrollPosition = await page.evaluate(() => window.scrollY)
-      
+
       // Either maintains exact position or starts from top (both are acceptable UX)
       expect(newScrollPosition >= 0).toBe(true)
 
@@ -434,7 +434,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       await page.evaluate(() => {
         window.scrollTo(0, document.body.scrollHeight)
       })
-      
+
       await tableHelper.waitForLoading(true)
       await tableHelper.waitForLoading(false, 10000)
 
@@ -447,11 +447,11 @@ test.describe('TanStack Query Infinite Scrolling', () => {
 
       // Focus on table
       await page.click('table')
-      
+
       // Use Page Down to scroll
       await page.keyboard.press('PageDown')
       await page.waitForTimeout(1000)
-      
+
       // Should eventually trigger infinite scroll
       await page.keyboard.press('End') // Go to end of page
       await page.waitForTimeout(2000)
@@ -496,7 +496,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       const countAfterScroll = await tableHelper.getPropertyCount()
 
       // Navigate to different page
-      await page.goto('/dashboard/units')
+      await page.goto('/manage/units')
       await page.waitForTimeout(1000)
 
       // Use browser back
