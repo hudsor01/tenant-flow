@@ -18,6 +18,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { Logger } from '@nestjs/common'
+import { getCanonicalPaymentDate } from '@repo/shared/utils/payment-dates'
 
 /**
  * API endpoint paths for tenant portal
@@ -57,7 +58,22 @@ type MaintenanceRequestListItem = Pick<
 	| 'scheduled_date'
 	| 'inspection_findings'
 	| 'requested_by'
->
+> & {
+	units: {
+		id: string
+		unit_number: string | null
+		bedrooms: number | null
+		bathrooms: number | null
+		properties?: {
+			id: string
+			name: string | null
+			address_line1: string | null
+			city: string | null
+			state: string | null
+			postal_code: string | null
+		} | null
+	}
+}
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 type RentPaymentListItem = Pick<
 	RentPaymentRow,
@@ -75,7 +91,9 @@ type RentPaymentListItem = Pick<
 	| 'paid_date'
 	| 'period_end'
 	| 'period_start'
->
+> & {
+	canonical_payment_date: string
+}
 
 /**
  * Tenant Portal Controller
@@ -422,9 +440,15 @@ export class TenantPortalController {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('maintenance_requests')
-			.select(
-				'id, description, priority, status, created_at, updated_at, completed_at, unit_id, actual_cost, assigned_to, estimated_cost, inspection_date, scheduled_date, inspection_findings, requested_by'
-			)
+			.select(`
+				id, description, priority, status, created_at, updated_at, completed_at, unit_id, actual_cost, assigned_to, estimated_cost, inspection_date, scheduled_date, inspection_findings, requested_by,
+				units!inner (
+					id, unit_number, bedrooms, bathrooms,
+					properties!inner (
+					id, name, address_line1, city, state, postal_code
+				)
+				)
+			`)
 			.eq('requested_by', user.id)
 			.order('created_at', { ascending: false })
 
@@ -495,6 +519,16 @@ export class TenantPortalController {
 			throw new InternalServerErrorException('Failed to load payment history')
 		}
 
-		return (data as RentPaymentListItem[]) ?? []
+		// Apply canonical payment date logic
+		const paymentsWithCanonicalDates = (data as RentPaymentListItem[])?.map(payment => ({
+			...payment,
+			canonical_payment_date: getCanonicalPaymentDate(
+				payment.paid_date,
+				payment.created_at!,
+				payment.status!
+			)
+		})) ?? []
+
+		return paymentsWithCanonicalDates
 	}
 }

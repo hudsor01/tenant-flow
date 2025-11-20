@@ -27,17 +27,13 @@ import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeAccessControlService } from '../billing/stripe-access-control.service'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { AppConfigService } from '../../config/app-config.service'
-import { CONFIG_DEFAULTS } from '../../config/config.constants'
 import { createThrottleDefaults } from '../../config/throttle.config'
-
-// Public decorator for webhook endpoints (bypasses JWT auth)
-const Public = () => SetMetadata('isPublic', true)
 
 const STRIPE_SYNC_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'STRIPE_SYNC_THROTTLE_TTL',
 	envLimitKey: 'STRIPE_SYNC_THROTTLE_LIMIT',
-	defaultTtl: Number(CONFIG_DEFAULTS.STRIPE_SYNC_THROTTLE_TTL),
-	defaultLimit: Number(CONFIG_DEFAULTS.STRIPE_SYNC_THROTTLE_LIMIT)
+	defaultTtl: 60000,
+	defaultLimit: 30
 })
 
 @Controller('webhooks')
@@ -452,7 +448,7 @@ export class StripeSyncController {
 	 * Endpoint: POST /webhooks/stripe-sync
 	 * Security: Validates Stripe signature
 	 */
-	@Public() // Stripe webhooks don't use JWT auth
+	@SetMetadata('isPublic', true) // Stripe webhooks don't use JWT auth
 	@Throttle({ default: STRIPE_SYNC_THROTTLE })
 	@Post('stripe-sync')
 	@Header('content-type', 'application/json')

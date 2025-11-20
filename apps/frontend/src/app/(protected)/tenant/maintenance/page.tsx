@@ -14,12 +14,13 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
-import { useTenantMaintenanceRequests } from '#hooks/api/use-lease'
+import { useQuery } from '@tanstack/react-query'
+import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
 import { Calendar, Plus, Wrench } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantMaintenancePage() {
-	const { data: maintenanceData, isLoading, error } = useTenantMaintenanceRequests()
+	const { data: maintenanceData, isLoading, error } = useQuery(maintenanceQueries.tenantPortal())
 
 	const formatDate = (dateString: string) => {
 		const date = new Date(dateString)

@@ -25,6 +25,7 @@ import {
 	SetMetadata,
 	UseGuards
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -307,6 +308,7 @@ export class TenantsController {
 	 */
 	@Post('invite-with-lease')
 	@UseGuards(PropertyOwnershipGuard, StripeConnectedGuard)
+	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 invitations per hour
 	async inviteTenantWithLease(
 		@Body() body: InviteWithLeaseDto,
 		@Req() req: AuthenticatedRequest

@@ -32,11 +32,11 @@ import {
 	TableRow
 } from '#components/ui/table'
 import {
-	useDeleteLease,
-	useLeaseList,
-	useRenewLease,
-	useTerminateLease
-} from '#hooks/api/use-lease'
+	useDeleteLeaseMutation,
+	useRenewLeaseMutation,
+	useTerminateLeaseMutation
+} from '#hooks/api/mutations/lease-mutations'
+import { useLeaseList } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import {
@@ -101,20 +101,13 @@ export default function LeasesPage() {
 	const total = leasesResponse?.total || 0
 
 	// Delete mutation
-	const deleteLeaseMutation = useDeleteLease({
-		onSuccess: () => {
-			toast.success('Lease deleted successfully')
-		},
-		onError: () => {
-			toast.error('Failed to delete lease')
-		}
-	})
+	const deleteLeaseMutation = useDeleteLeaseMutation()
 
 	// Renew mutation
-	const renewLeaseMutation = useRenewLease()
+	const renewLeaseMutation = useRenewLeaseMutation()
 
 	// Terminate mutation
-	const terminateLeaseMutation = useTerminateLease()
+	const terminateLeaseMutation = useTerminateLeaseMutation()
 
 	const _handleRenewSubmit = async () => {
 		if (!selectedlease_id || !newEndDate) {
