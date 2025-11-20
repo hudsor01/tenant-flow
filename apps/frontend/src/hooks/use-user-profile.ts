@@ -59,7 +59,7 @@ export function useUserProfile() {
 			}
 
 			if (error) throw error
-			return data
+		return data
 		},
 		enabled: isAuthenticated && !!user_id && !!session,
 		staleTime: 5 * 60 * 1000, // 5 minutes
