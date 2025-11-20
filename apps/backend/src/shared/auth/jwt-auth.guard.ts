@@ -47,6 +47,7 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 	): TUser {
 		void status
 		const request = context.switchToHttp().getRequest<Request>()
+		const authHeader = (request.headers as { authorization?: string }).authorization
 
 		// For protected routes, require authentication
 		if (err || !user) {
@@ -61,12 +62,24 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 					info: info,
 					path: (request as { url?: string }).url,
 					method: (request as { method?: string }).method,
-					hasAuthHeader: !!(request.headers as { authorization?: string }).authorization
+					hasAuthHeader: !!authHeader
 				})
+
+				// Provide specific error message based on auth failure type
+				let errorMessage = 'Authentication required'
+				
+				if (!authHeader) {
+					errorMessage = 'Missing authentication token. Please log in again.'
+				} else if (err?.message?.includes('expired')) {
+					errorMessage = 'Your session has expired. Please log in again.'
+				} else if (err?.message?.includes('invalid') || err?.message?.includes('malformed')) {
+					errorMessage = 'Invalid authentication token. Please log in again.'
+				}
+
 				// Return 401 for authentication failures
 				throw err instanceof UnauthorizedException
 					? err
-					: new UnauthorizedException('Authentication required')
+					: new UnauthorizedException(errorMessage)
 			} else {
 				// Log system errors that could cause false 401s
 				this.logger.error('System error during authentication - preventing false 401', {
@@ -76,10 +89,20 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 					info: info,
 					path: (request as { url?: string }).url,
 					method: (request as { method?: string }).method,
-					hasAuthHeader: !!(request.headers as { authorization?: string }).authorization
+					hasAuthHeader: !!authHeader
 				})
+
 				// Return 500 for system errors to avoid false 401s for authenticated users
-				throw new InternalServerErrorException('Authentication service temporarily unavailable')
+				// Provide more context about what failed
+				let errorMessage = 'Authentication service temporarily unavailable'
+				
+				if (err?.message?.includes('database') || err?.message?.includes('postgres')) {
+					errorMessage = 'Database connection error. Please try again in a moment.'
+				} else if (err?.message?.includes('timeout')) {
+					errorMessage = 'Authentication service is slow. Please try again.'
+				}
+
+				throw new InternalServerErrorException(errorMessage)
 			}
 		}
 
