@@ -256,7 +256,7 @@ export async function GET(request: NextRequest) {
 		return redirectTo(origin, `/login?error=${encodeURIComponent(errorParam)}`)
 	}
 
-	if (!code) {
+	if (!code || code === '') {
 		return redirectTo(origin, '/login?error=oauth_failed')
 	}
 
