@@ -10,10 +10,14 @@ import type { ContactFormRequest } from '@repo/shared/types/domain'
 import emailConfig from 'src/config/email.config'
 import { EmailService } from '../email/email.service'
 
+type ResendClient = {
+	emails: { send: (args: unknown) => Promise<unknown> }
+}
+
 @Injectable()
 export class ContactService {
 	private readonly logger = new Logger(ContactService.name)
-	private readonly resend: Resend | null
+	private readonly resend: ResendClient | null
 
 	constructor(
 		@Inject(emailConfig.KEY)
