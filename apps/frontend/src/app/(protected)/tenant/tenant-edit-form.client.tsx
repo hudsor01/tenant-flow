@@ -8,12 +8,14 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '#components/ui/input-group'
-import { useTenant, useUpdateTenant } from '#hooks/api/use-tenant'
+import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	tenantUpdateSchema
 } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
+import { useQuery } from '@tanstack/react-query'
 import { Phone, Save, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -24,9 +26,9 @@ export interface TenantEditFormProps {
 }
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
-	const { data: tenant, isLoading, isError } = useTenant(id)
+	const { data: tenant, isLoading, isError } = useQuery(tenantQueries.detail(id))
 	const router = useRouter()
-	const updateMutation = useUpdateTenant()
+	const updateMutation = useUpdateTenantMutation()
 
 	const form = useForm({
 		defaultValues: {

@@ -2,13 +2,10 @@
 
 import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
 import { Button } from '#components/ui/button'
-import { Label } from '#components/ui/label'
-import { Textarea } from '#components/ui/textarea'
-import { useTerminateLease } from '#hooks/api/use-lease'
+import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import { AlertTriangle } from 'lucide-react'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface TerminateLeaseDialogProps {
@@ -24,41 +21,23 @@ export function TerminateLeaseDialog({
 	lease,
 	onSuccess
 }: TerminateLeaseDialogProps) {
-	const terminateLease = useTerminateLease()
-	const [reason, setReason] = useState('')
+	const terminateLease = useTerminateLeaseMutation()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 
 		try {
-			const payload: { id: string; terminationDate: string; reason?: string } =
-				{
-					id: lease.id,
-					terminationDate: new Date().toISOString().split('T')[0]! // Today's date in YYYY-MM-DD format
-				}
-			if (reason.trim()) {
-				payload.reason = reason.trim()
-			}
-
-			await terminateLease.mutateAsync(payload)
+			await terminateLease.mutateAsync(lease.id)
 			toast.success('Lease terminated successfully')
 			onSuccess?.()
 			onOpenChange(false)
-			setReason('')
 		} catch (error) {
 			handleMutationError(error, 'Terminate lease')
 		}
 	}
 
-	const handleDialogChange = (isOpen: boolean) => {
-		if (!isOpen) {
-			setReason('')
-		}
-		onOpenChange(isOpen)
-	}
-
 	return (
-		<CrudDialog mode="edit" open={open} onOpenChange={handleDialogChange}>
+		<CrudDialog mode="edit" open={open} onOpenChange={onOpenChange}>
 			<CrudDialogContent className="sm:max-w-125">
 				<form onSubmit={handleSubmit}>
 					<CrudDialogHeader>
@@ -85,21 +64,7 @@ export function TerminateLeaseDialog({
 								</div>
 							</div>
 
-							{/* Termination Reason */}
-							<div className="space-y-3">
-								<Label htmlFor="reason">Termination Reason (Optional)</Label>
-								<Textarea
-									id="reason"
-									placeholder="Reason for early termination (e.g., tenant request, violation, mutual agreement)..."
-									rows={4}
-									value={reason}
-									onChange={e => setReason(e.target.value)}
-								/>
-								<p className="text-xs text-muted-foreground">
-									Document the reason for termination for record-keeping purposes
-								</p>
-							</div>
-						</div>
+				</div>
 					</CrudDialogBody>
 					<CrudDialogFooter>
 						<Button

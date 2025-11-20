@@ -32,11 +32,11 @@ import {
 	TableRow
 } from '#components/ui/table'
 import {
-	useDeleteLease,
-	useLeaseList,
-	useRenewLease,
-	useTerminateLease
-} from '#hooks/api/use-lease'
+	useDeleteLeaseMutation,
+	useRenewLeaseMutation,
+	useTerminateLeaseMutation
+} from '#hooks/api/mutations/lease-mutations'
+import { useLeaseList } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import {
@@ -78,7 +78,6 @@ export default function LeasesPage() {
 	const [selectedlease_id, setSelectedlease_id] = useState<string | null>(null)
 	const [_selectedLease, setSelectedLease] = useState<Lease | null>(null)
 	const [newEndDate, setNewEndDate] = useState('')
-	const [terminationReason, setTerminationReason] = useState('')
 	const { openModal } = useModalStore()
 
 	// Fetch leases with filters and pagination
@@ -101,20 +100,13 @@ export default function LeasesPage() {
 	const total = leasesResponse?.total || 0
 
 	// Delete mutation
-	const deleteLeaseMutation = useDeleteLease({
-		onSuccess: () => {
-			toast.success('Lease deleted successfully')
-		},
-		onError: () => {
-			toast.error('Failed to delete lease')
-		}
-	})
+	const deleteLeaseMutation = useDeleteLeaseMutation()
 
 	// Renew mutation
-	const renewLeaseMutation = useRenewLease()
+	const renewLeaseMutation = useRenewLeaseMutation()
 
 	// Terminate mutation
-	const terminateLeaseMutation = useTerminateLease()
+	const terminateLeaseMutation = useTerminateLeaseMutation()
 
 	const _handleRenewSubmit = async () => {
 		if (!selectedlease_id || !newEndDate) {
@@ -125,7 +117,7 @@ export default function LeasesPage() {
 		try {
 			await renewLeaseMutation.mutateAsync({
 				id: selectedlease_id,
-				newEndDate
+				data: { end_date: newEndDate }
 			})
 			toast.success('Lease renewed successfully')
 			setSelectedlease_id(null)
@@ -139,18 +131,9 @@ export default function LeasesPage() {
 		if (!selectedlease_id) return
 
 		try {
-			const payload: { id: string; terminationDate: string; reason?: string } =
-				{
-					id: selectedlease_id,
-					terminationDate: new Date().toISOString().split('T')[0]!
-				}
-			if (terminationReason) {
-				payload.reason = terminationReason
-			}
-			await terminateLeaseMutation.mutateAsync(payload)
+			await terminateLeaseMutation.mutateAsync(selectedlease_id)
 			toast.success('Lease terminated successfully')
 			setSelectedlease_id(null)
-			setTerminationReason('')
 		} catch (error) {
 			handleMutationError(error, 'Terminate lease')
 		}

@@ -7,7 +7,6 @@ import { Controller, Get, Logger, SetMetadata } from '@nestjs/common'
 import { SkipThrottle, Throttle } from '@nestjs/throttler'
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
-import { CONFIG_DEFAULTS } from '../config/config.constants'
 import { createThrottleDefaults } from '../config/throttle.config'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
@@ -17,8 +16,8 @@ import { SupabaseHealthIndicator } from './supabase.health'
 const HEALTH_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'HEALTH_THROTTLE_TTL',
 	envLimitKey: 'HEALTH_THROTTLE_LIMIT',
-	defaultTtl: Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_TTL),
-	defaultLimit: Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_LIMIT)
+	defaultTtl: 60000,
+	defaultLimit: 300
 })
 
 @Throttle({ default: HEALTH_THROTTLE })
