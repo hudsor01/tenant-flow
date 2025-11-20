@@ -19,7 +19,7 @@ import {
 } from '../utils/sql-safe.utils'
 
 const VALID_USER_TYPES = Object.values(USER_user_type) as string[]
-const SAFE_DEFAULT_SIGNUP_USER_TYPE: string = 'TENANT'
+const SAFE_DEFAULT_SIGNUP_USER_TYPE: string = 'OWNER'
 
 function isValidUserType(userType: unknown): userType is string {
 	return typeof userType === 'string' && VALID_USER_TYPES.includes(userType)
@@ -341,13 +341,13 @@ export class UtilityService {
 				if (isValidUserType(requestedUserType)) {
 					resolvedUserType = requestedUserType
 				} else if (requestedUserType) {
-					this.logger.warn('Invalid user_type supplied in Supabase app_metadata during signup, defaulting to tenant access', {
+					this.logger.warn('Invalid user_type supplied in Supabase app_metadata during signup, defaulting to owner access', {
 						supabaseId: authUser.id,
 						email: authUser.email,
 						requestedUserType
 					})
 				} else {
-					this.logger.debug('No user_type supplied in Supabase app_metadata during signup, defaulting to tenant access', {
+					this.logger.debug('No user_type supplied in Supabase app_metadata during signup, defaulting to owner access', {
 						supabaseId: authUser.id,
 						email: authUser.email
 					})
