@@ -16,7 +16,7 @@ import type { ContactFormRequest } from '@repo/shared/types/domain'
 @Injectable()
 export class EmailService {
 	private readonly logger = new Logger(EmailService.name)
-	private readonly resend: Resend | null
+	private readonly resend: InstanceType<typeof Resend> | null
 
 	constructor(private readonly config: AppConfigService) {
 		const apiKey = this.config.getResendApiKey()

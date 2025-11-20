@@ -617,7 +617,7 @@ export class StripeConnectService {
 			const account = await this.getConnectedAccount(accountId)
 
 			// Fetch existing user to check current onboardingCompletedAt
-			const { error: fetchError } = await this.supabaseService
+			const { data: existingUser, error: fetchError } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
 				.select('onboarding_completed_at')
@@ -635,8 +635,27 @@ export class StripeConnectService {
 				throw fetchError
 			}
 
-			// For now, just update the connected account ID
-			// TODO: Handle onboarding status updates in property_owners table
+			const onboardingComplete =
+				account.charges_enabled && account.payouts_enabled
+			const onboardingCompletedAt =
+				onboardingComplete && existingUser?.onboarding_completed_at
+					? existingUser.onboarding_completed_at
+					: onboardingComplete
+						? new Date().toISOString()
+						: undefined
+
+			const propertyOwnerUpdate: Record<string, unknown> = {
+				stripe_account_id: account.id,
+				charges_enabled: account.charges_enabled,
+				payouts_enabled: account.payouts_enabled,
+				onboarding_status: onboardingComplete ? 'completed' : 'in_progress',
+				requirements_due: account.requirements?.currently_due ?? null
+			}
+
+			if (onboardingCompletedAt) {
+				propertyOwnerUpdate.onboarding_completed_at = onboardingCompletedAt
+			}
+
 			const { error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
@@ -651,6 +670,21 @@ export class StripeConnectService {
 					user_id
 				})
 				throw error
+			}
+
+			const { error: ownerError } = await this.supabaseService
+				.getAdminClient()
+				.from('property_owners')
+				.update(propertyOwnerUpdate)
+				.eq('user_id', user_id)
+
+			if (ownerError) {
+				this.logger.error('Failed to update property owner onboarding', {
+					error: ownerError,
+					user_id,
+					accountId
+				})
+				throw ownerError
 			}
 
 			this.logger.log('Updated onboarding status', {
