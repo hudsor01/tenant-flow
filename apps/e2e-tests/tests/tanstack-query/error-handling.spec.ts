@@ -38,7 +38,7 @@ test.describe('TanStack Query Error Handling', () => {
     formHelper = new PropertyFormHelper(page)
 
     // Navigate to properties page
-    await page.goto('/dashboard/properties')
+    await page.goto('/manage/properties')
     await page.waitForLoadState('networkidle')
 
     // Expose retry count for testing
