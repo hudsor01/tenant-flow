@@ -6,7 +6,6 @@ import type {
 	UpdatePropertyRequest
 } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
-import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
 import type { CreatePropertyDto } from './dto/create-property.dto'
@@ -16,6 +15,7 @@ import { PropertiesService } from './properties.service'
 import { PropertyImagesService } from './services/property-images.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
+import { DashboardService } from '../dashboard/dashboard.service'
 
 // Mock the PropertiesService
 jest.mock('./properties.service', () => {
@@ -40,7 +40,6 @@ jest.mock('./properties.service', () => {
 describe('PropertiesController', () => {
 	let controller: PropertiesController
 	let mockPropertiesServiceInstance: jest.Mocked<PropertiesService>
-	let mockCurrentUserProvider: jest.Mocked<CurrentUserProvider>
 
 	const mockUser = createMockUser({ id: 'user-123' })
 
@@ -79,15 +78,6 @@ describe('PropertiesController', () => {
 	beforeEach(async () => {
 		jest.clearAllMocks()
 
-		// Mock CurrentUserProvider
-		mockCurrentUserProvider = {
-			getuser_id: jest.fn().mockResolvedValue(mockUser.id),
-			getUser: jest.fn().mockResolvedValue(mockUser),
-			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
-			isAuthenticated: jest.fn().mockResolvedValue(true),
-			getUserOrNull: jest.fn().mockResolvedValue(mockUser)
-		} as any
-
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PropertiesController],
 			providers: [
@@ -95,7 +85,7 @@ describe('PropertiesController', () => {
 			{ provide: PropertyImagesService, useValue: {} },
 			{ provide: PropertyBulkImportService, useValue: {} },
 			{ provide: PropertyAnalyticsService, useValue: {} },
-			{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
+			{ provide: DashboardService, useValue: {} }
 		]
 		}).compile()
 

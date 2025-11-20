@@ -1,7 +1,7 @@
+export const dynamic = 'force-dynamic'
+
 import { Providers } from '#components/providers'
 import SeoJsonLd from '#components/seo/SeoJsonLd'
-
-export const dynamic = 'force-dynamic'
 import RegisterServiceWorker from '#components/sw/register-sw'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { generateSiteMetadata } from '#lib/generate-metadata'
@@ -72,7 +72,6 @@ export default async function RootLayout({
 					content="var(--color-system-blue)"
 				/>
 				<meta name="msapplication-config" content="/browserconfig.xml" />
-				{/* Inject JSON-LD via a small server component for better separation */}
 				<SeoJsonLd />
 			</head>
 			<body

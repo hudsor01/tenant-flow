@@ -38,7 +38,7 @@ describe('navigation store', () => {
 		const { addBreadcrumb, clearBreadcrumbs } = store
 
 		if (setBreadcrumbs) {
-			setBreadcrumbs([{ label: 'Dashboard', href: '/dashboard' }])
+			setBreadcrumbs([{ label: 'Dashboard', href: '/manage' }])
 		}
 		addBreadcrumb({ label: 'Leases', href: '/manage/leases' })
 
@@ -53,13 +53,13 @@ describe('navigation store', () => {
 
 	it('tracks active route and navigation history', () => {
 		const { setActiveRoute } = useNavigationStore.getState()
-		setActiveRoute('/dashboard', 'overview')
+		setActiveRoute('/manage', 'overview')
 		setActiveRoute('/manage/leases', 'leases')
 
 		const state = useNavigationStore.getState()
 		expect(state.activeRoute).toBe('/manage/leases')
 		expect(state.activeSection).toBe('leases')
-		expect(state.navigationHistory).toEqual(['/dashboard', '/manage/leases'])
+		expect(state.navigationHistory).toEqual(['/manage', '/manage/leases'])
 		expect(state.canGoBack).toBe(true)
 	})
 
