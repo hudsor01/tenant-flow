@@ -7,15 +7,11 @@ import {
 	CrudDialogDescription,
 	CrudDialogFooter,
 	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogBody
+	CrudDialogTitle
 } from '#components/ui/crud-dialog'
-import { Field, FieldLabel } from '#components/ui/field'
-import { Textarea } from '#components/ui/textarea'
 import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { useModalStore } from '#stores/modal-store'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface TerminateLeaseDialogProps {
@@ -24,7 +20,6 @@ interface TerminateLeaseDialogProps {
 
 export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 	const { closeModal } = useModalStore()
-	const [terminationReason, setTerminationReason] = useState('')
 
 	const terminateLeaseMutation = useTerminateLeaseMutation()
 
@@ -32,18 +27,9 @@ export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 
 	const handleSubmit = async () => {
 		try {
-			const payload: { id: string; terminationDate: string; reason?: string } =
-				{
-					id: lease_id,
-					terminationDate: new Date().toISOString().split('T')[0]!
-				}
-			if (terminationReason) {
-				payload.reason = terminationReason
-			}
-			await terminateLeaseMutation.mutateAsync(payload)
+			await terminateLeaseMutation.mutateAsync(lease_id)
 			toast.success('Lease terminated successfully')
 			closeModal(modalId)
-			setTerminationReason('')
 		} catch (error) {
 			handleMutationError(error, 'Terminate lease')
 		}
@@ -51,7 +37,6 @@ export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 
 	const handleCancel = () => {
 		closeModal(modalId)
-		setTerminationReason('')
 	}
 
 	return (
@@ -63,20 +48,6 @@ export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 						End this lease early. This action cannot be undone.
 					</CrudDialogDescription>
 				</CrudDialogHeader>
-				<CrudDialogBody>
-					<Field>
-						<FieldLabel htmlFor="terminationReason">
-							Reason (Optional)
-						</FieldLabel>
-						<Textarea
-							id="terminationReason"
-							placeholder="Reason for early termination..."
-							value={terminationReason}
-							onChange={e => setTerminationReason(e.target.value)}
-							rows={3}
-						/>
-					</Field>
-				</CrudDialogBody>
 				<CrudDialogFooter>
 					<Button variant="outline" onClick={handleCancel}>
 						Cancel

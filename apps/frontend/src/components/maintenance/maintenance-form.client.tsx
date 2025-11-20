@@ -30,7 +30,6 @@ import {
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
-import { clientFetch } from '#lib/api/client'
 import { MAINTENANCE_CATEGORY_OPTIONS } from '#lib/constants/status-values'
 import type { MaintenancePriority } from '@repo/shared/constants/status-types'
 import type {
@@ -39,9 +38,6 @@ import type {
 	Unit
 } from '@repo/shared/types/core'
 import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'MaintenanceForm' })
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'
@@ -54,8 +50,8 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const updateRequest = useUpdateMaintenanceRequestMutation()
 
 	// Use query hooks for eager loading of properties and units
-	const { data: properties = [], isLoading: propertiesLoading } = usePropertyList()
-	const { data: units = [], isLoading: unitsLoading } = useUnitList()
+	const { data: propertiesData, isLoading: propertiesLoading } = usePropertyList()
+	const { data: unitsData, isLoading: unitsLoading } = useUnitList()
 
 	const extendedRequest = request as MaintenanceRequestWithExtras | undefined
 
@@ -93,9 +89,9 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	// Get available units based on selected property
 	const availableUnits = useMemo(() => {
 		const propertyId = form.state.values.property_id
-		if (!propertyId || !units.data) return []
-		return units.data.filter((u: any) => u.property_id === propertyId)
-	}, [form.state.values.property_id, units.data])
+		if (!propertyId || !unitsData?.data) return []
+		return unitsData.data.filter((u: Unit) => u.property_id === propertyId)
+	}, [form.state.values.property_id, unitsData?.data])
 
 	// Add loading state for form initialization
 	const isLoading = propertiesLoading || unitsLoading
@@ -166,7 +162,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 													<SelectValue placeholder="Select property" />
 												</SelectTrigger>
 												<SelectContent>
-													{properties.data?.map((property: any) => (
+													{propertiesData?.data?.map((property: Property) => (
 														<SelectItem key={property.id} value={property.id}>
 															{property.name}
 														</SelectItem>
@@ -202,7 +198,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 													<SelectValue placeholder="Select unit" />
 												</SelectTrigger>
 												<SelectContent>
-													{availableUnits.map((unit: any) => (
+													{availableUnits.map((unit: Unit) => (
 														<SelectItem key={unit.id} value={unit.id}>
 															Unit {unit.unit_number}
 														</SelectItem>

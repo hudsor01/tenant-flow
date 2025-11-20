@@ -1,4 +1,5 @@
 import type { LeaseStatus } from '@repo/shared/constants/status-types'
+import { LEASE_STATUS } from '@repo/shared/constants/status-types'
 /**
  * Stripe Webhook Event Listeners
  *
@@ -158,12 +159,12 @@ export class StripeWebhookListener implements OnModuleDestroy {
 			}
 
 			// Map Stripe subscription status to lease status
-			let lease_status: LeaseStatus = 'DRAFT' // FIX: PENDING doesn't exist in LeaseStatus
+			let lease_status: LeaseStatus = LEASE_STATUS.DRAFT
 
 			if (subscription.status === 'active') {
-				lease_status = 'ACTIVE'
+				lease_status = LEASE_STATUS.ACTIVE
 			} else if (subscription.status === 'canceled') {
-				lease_status = 'TERMINATED'
+				lease_status = LEASE_STATUS.TERMINATED
 			}
 
 			await client
