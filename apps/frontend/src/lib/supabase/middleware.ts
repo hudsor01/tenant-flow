@@ -119,8 +119,8 @@ export async function updateSession(request: NextRequest) {
 				const confirmationTime = new Date(authTime * 1000).toISOString()
 
 				user = {
-					id: userId, // Already validated above
-					email: userEmail, // Already validated above
+					id: userId,
+					email: userEmail,
 					phone: getStringClaim(claims, 'phone') ?? '',
 					app_metadata: {},
 					user_metadata: {},
@@ -187,9 +187,9 @@ export async function updateSession(request: NextRequest) {
 	let stripe_customer_id: string | null = null
 
 	if (isAuthenticated && user && accessToken) {
-		//Verify JWT signature before trusting claims
 		const claims = await verifyJwtToken(accessToken)
-		const user_typeFromClaims = getStringClaim(claims, 'user_type')
+		const user_typeFromClaims =
+			getStringClaim(claims, 'user_type') ?? getStringClaim(claims, 'user_user_type')
 		const stripe_customer_idFromClaims = getStringClaim(claims, 'stripe_customer_id')
 
 		user_type = user_typeFromClaims ?? user.user_metadata?.user_type ?? null
