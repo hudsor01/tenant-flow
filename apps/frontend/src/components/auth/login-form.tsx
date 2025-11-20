@@ -11,6 +11,9 @@ import {
 import { useFormProgress } from '#hooks/use-form-progress'
 import { cn } from '#lib/design-system'
 import { getFieldErrorMessage } from '#lib/utils/form'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'LoginForm' })
 import type { AuthFormProps } from '@repo/shared/types/frontend'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
@@ -43,13 +46,19 @@ export function LoginForm({
 			password: ''
 		},
 		onSubmit: async ({ value }) => {
+			logger.info('[LOGIN_FORM_SUBMIT]', { email: value.email })
 			setAuthError(null)
 			try {
 				await onSubmit?.(value)
+				logger.info('[LOGIN_FORM_SUCCESS]', { email: value.email })
 				clearProgress()
 			} catch (error) {
 				const message =
 					error instanceof Error ? error.message : 'Please try again'
+				logger.error('[LOGIN_FORM_ERROR]', {
+					email: value.email,
+					error: message
+				})
 				setAuthError(message)
 				// Remove toast - we already show the error in the form
 			}

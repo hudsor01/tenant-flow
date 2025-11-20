@@ -248,15 +248,26 @@ export async function GET(request: NextRequest) {
 	const nextParam = safeNextPath(searchParams.get('next'))
 	const errorParam = searchParams.get('error')
 
+	logger.info('[OAUTH_CALLBACK_START]', {
+		action: 'oauth_callback_initiated',
+		hasCode: !!code,
+		hasError: !!errorParam,
+		origin,
+		nextParam
+	})
+
 	if (errorParam) {
-		logger.warn('OAuth callback received error parameter', {
+		logger.warn('[OAUTH_ERROR_PARAM]', {
 			action: 'oauth_callback_error_param',
-			metadata: { error: errorParam }
+			error: errorParam
 		})
 		return redirectTo(origin, `/login?error=${encodeURIComponent(errorParam)}`)
 	}
 
 	if (!code) {
+		logger.error('[NO_OAUTH_CODE]', {
+			action: 'oauth_no_code'
+		})
 		return redirectTo(origin, '/login?error=oauth_failed')
 	}
 
@@ -282,14 +293,18 @@ export async function GET(request: NextRequest) {
 		)
 		const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
+		logger.info('[EXCHANGE_CODE_RESULT]', {
+			action: 'oauth_exchange_code',
+			success: !error && !!data.session,
+			error: error?.message,
+			errorCode: error?.code
+		})
+
 		if (error || !data.session) {
-			logger.error('OAuth callback error - exchangeCodeForSession failed', {
+			logger.error('[EXCHANGE_CODE_FAILED]', {
 				action: 'oauth_callback_failed',
-				metadata: {
-					error: error?.message ?? 'Unknown',
-					errorCode: error?.code,
-					codePreview: `${code.substring(0, 10)}...`
-				}
+				error: error?.message ?? 'Unknown',
+				errorCode: error?.code
 			})
 			return redirectTo(origin, '/login?error=oauth_failed')
 		}
