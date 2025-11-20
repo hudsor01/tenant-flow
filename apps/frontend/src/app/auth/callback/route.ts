@@ -304,50 +304,56 @@ export async function GET(request: NextRequest) {
 		const stripe_customer_id = getStringClaim(claims, 'stripe_customer_id')
 
 		if (!user_type) {
-			logger.error('OAuth callback could not extract user user_type from JWT claims - terminating', {
-				action: 'oauth_user_type_missing',
-				metadata: { user_id: user.id, hasClaims: Boolean(claims) }
-			})
-			return redirectTo(origin, '/login?error=user_type_missing')
-		}
+		logger.error('OAuth callback could not extract user_type from JWT claims', {
+			action: 'oauth_user_type_missing',
+			metadata: {
+				user_id: user.id,
+				user_email: user.email,
+				hasClaims: Boolean(claims),
+				claimsKeys: claims ? Object.keys(claims) : [],
+				claimsPreview: claims ? JSON.stringify(claims).substring(0, 200) : null
+			}
+		})
+		return redirectTo(origin, '/login?error=auth_config&reason=claims_incomplete')
+	}
 
-		const requiresPayment = user_type !== 'TENANT'
-		const hasValidSubscription = subscriptionStatus
-			? VALID_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
-			: false
-		const hasStripeCustomer = Boolean(stripe_customer_id)
+	const requiresPayment = user_type !== 'TENANT'
+	const hasValidSubscription = subscriptionStatus
+		? VALID_SUBSCRIPTION_STATUSES.has(subscriptionStatus)
+		: false
+	const hasStripeCustomer = Boolean(stripe_customer_id)
 
-		if (requiresPayment && (!hasValidSubscription || !hasStripeCustomer)) {
-			logger.info('OAuth user requires payment - redirecting to pricing', {
-				action: 'oauth_payment_required',
-				metadata: {
-					user_id: user.id,
-					user_type: user_type,
-					subscriptionStatus: subscriptionStatus,
-					hasValidSubscription,
-					hasStripeCustomer
-				}
-			})
-			return redirectToPricing(origin, request, nextParam)
-		}
-
-		const destination =
-			user_type === 'TENANT'
-				? nextParam === '/manage'
-					? '/tenant'
-					: nextParam
-				: nextParam
-
-		logger.info('OAuth callback successful', {
-			action: 'oauth_callback_success',
+	if (requiresPayment && (!hasValidSubscription || !hasStripeCustomer)) {
+		logger.info('OAuth user requires payment - redirecting to pricing', {
+			action: 'oauth_payment_required',
 			metadata: {
 				user_id: user.id,
 				user_type: user_type,
-				next: destination
+				subscriptionStatus: subscriptionStatus,
+				hasValidSubscription,
+				hasStripeCustomer
 			}
 		})
+		return redirectToPricing(origin, request, nextParam)
+	}
 
-		return finalizeRedirect(origin, request, destination)
+	const destination =
+		user_type === 'TENANT'
+			? nextParam === '/manage'
+				? '/tenant'
+				: nextParam
+			: nextParam
+
+	logger.info('OAuth callback successful', {
+		action: 'oauth_callback_success',
+		metadata: {
+			user_id: user.id,
+			user_type: user_type,
+			next: destination
+		}
+	})
+
+	return finalizeRedirect(origin, request, destination)
 	} catch (callbackError) {
 		logger.error('OAuth callback exception', {
 			action: 'oauth_callback_exception',
