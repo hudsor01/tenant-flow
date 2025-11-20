@@ -1,6 +1,5 @@
 export const HEALTH_PATHS = [
 	'health',
-	'api/v1/health',
 	'webhooks/health',
 	'webhooks/health/summary'
 	// NOTE: /configuration and /failures require authentication
