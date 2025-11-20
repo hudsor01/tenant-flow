@@ -35,11 +35,12 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { unitColumns, type UnitRow } from './columns'
-import { useUnitList, useUnitStats, useCreateUnit } from '#hooks/api/use-unit'
-import { usePropertyList } from '#hooks/api/use-properties'
+import { useCreateUnitMutation } from '#hooks/api/mutations/unit-mutations'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import type { UnitInsert, UnitStatus } from '@repo/shared/types/core'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
@@ -92,16 +93,15 @@ export default function UnitsPage() {
 	if (status) params.status = status as UnitStatus
 	if (property) params.property_id = property
 
-	const { data: unitsData, isLoading } = useUnitList(params)
+	const { data: unitsData, isLoading } = useQuery(unitQueries.list(params))
 
-	const { data: propertiesData } = usePropertyList()
-	const properties = propertiesData?.data ?? []
+	const { data: properties } = useQuery(propertyQueries.list())
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
-	const { data: unitsStats } = useUnitStats()
+	const { data: unitsStats } = useQuery(unitQueries.stats())
 
-	const units = unitsData?.data || []
-	const totalItems = unitsData?.total || 0
+	const units = unitsData || []
+	const totalItems = unitsData?.length || 0
 
 	// Use backend statistics directly - trust the database calculations
 	const totalUnits = unitsStats?.total ?? 0
@@ -215,7 +215,7 @@ export default function UnitsPage() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="ALL">All Properties</SelectItem>
-								{properties.map((property) => (
+								{properties?.map((property) => (
 									<SelectItem key={property.id} value={property.id}>
 										{property.name}
 									</SelectItem>
@@ -413,10 +413,9 @@ function UnitsTable({
 
 function NewUnitButton() {
 	const qc = useQueryClient()
-	const { data: propertiesData } = usePropertyList()
-	const properties = propertiesData?.data ?? []
+	const { data: properties } = useQuery(propertyQueries.list())
 
-	const create = useCreateUnit()
+	const create = useCreateUnitMutation()
 
 	const closeButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -479,7 +478,7 @@ function NewUnitButton() {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties.map((property) => (
+									{properties?.map((property) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>

@@ -99,7 +99,7 @@ export class RentPaymentsController {
 	@Get('history/subscription/:subscriptionId')
 	async getSubscriptionPaymentHistory(
 		@JwtToken() token: string,
-		@Param('subscriptionId') subscriptionId: string
+		@Param('subscriptionId', ParseUUIDPipe) subscriptionId: string
 	) {
 		this.logger.log(
 			`Getting payment history for subscription ${subscriptionId}`
@@ -168,7 +168,7 @@ export class RentPaymentsController {
 	@Get('failed-attempts/subscription/:subscriptionId')
 	async getSubscriptionFailedAttempts(
 		@JwtToken() token: string,
-		@Param('subscriptionId') subscriptionId: string
+		@Param('subscriptionId', ParseUUIDPipe) subscriptionId: string
 	) {
 		this.logger.log(
 			`Getting failed payment attempts for subscription ${subscriptionId}`

@@ -11,7 +11,7 @@ import {
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import { useRenewLease } from '#hooks/api/use-lease'
+import { useRenewLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { useModalStore } from '#stores/modal-store'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useState } from 'react'
@@ -25,7 +25,7 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 	const { closeModal, isModalOpen } = useModalStore()
 	const [newEndDate, setNewEndDate] = useState('')
 
-	const renewLeaseMutation = useRenewLease()
+	const renewLeaseMutation = useRenewLeaseMutation()
 
 	const modalId = `renew-lease-${lease_id}`
 
@@ -38,7 +38,7 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 		try {
 			await renewLeaseMutation.mutateAsync({
 				id: lease_id,
-				newEndDate
+				data: { end_date: newEndDate }
 			})
 			toast.success('Lease renewed successfully')
 			closeModal(modalId)

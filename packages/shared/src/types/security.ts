@@ -5,7 +5,7 @@
 // User user_types are consolidated in auth.ts - import from there
 // This ensures single source of truth and prevents duplication
 export { USER_user_type } from '../constants/auth.js'
-export type { Permission, User } from '../types/auth.js'
+export type { Permission, SupabaseAuthUser } from '../types/auth.js'
 
 /**
  * Comprehensive security event types for monitoring

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Wrench } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -24,11 +24,12 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import {
-	useCreateMaintenanceRequest,
-	useUpdateMaintenanceRequest
-} from '#hooks/api/use-maintenance'
+	useCreateMaintenanceRequestMutation,
+	useUpdateMaintenanceRequestMutation
+} from '#hooks/api/mutations/maintenance-mutations'
+import { usePropertyList } from '#hooks/api/use-properties'
+import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
-import { clientFetch } from '#lib/api/client'
 import { MAINTENANCE_CATEGORY_OPTIONS } from '#lib/constants/status-values'
 import type { MaintenancePriority } from '@repo/shared/constants/status-types'
 import type {
@@ -37,9 +38,6 @@ import type {
 	Unit
 } from '@repo/shared/types/core'
 import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'MaintenanceForm' })
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'
@@ -48,12 +46,14 @@ interface MaintenanceFormProps {
 
 export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const router = useRouter()
-	const createRequest = useCreateMaintenanceRequest()
-	const updateRequest = useUpdateMaintenanceRequest()
+	const createRequest = useCreateMaintenanceRequestMutation()
+	const updateRequest = useUpdateMaintenanceRequestMutation()
+
+	// Use query hooks for eager loading of properties and units
+	const { data: propertiesData, isLoading: propertiesLoading } = usePropertyList()
+	const { data: unitsData, isLoading: unitsLoading } = useUnitList()
 
 	const extendedRequest = request as MaintenanceRequestWithExtras | undefined
-	const [properties, setProperties] = useState<Property[]>([])
-	const [units, setUnits] = useState<Unit[]>([])
 
 	// Initialize form with mutations and success callback
 	const form = useMaintenanceForm({
@@ -89,47 +89,12 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	// Get available units based on selected property
 	const availableUnits = useMemo(() => {
 		const propertyId = form.state.values.property_id
-		if (!propertyId) return units
-		return units.filter(u => u.property_id === propertyId)
-	}, [form.state.values.property_id, units])
+		if (!propertyId || !unitsData?.data) return []
+		return unitsData.data.filter((u: Unit) => u.property_id === propertyId)
+	}, [form.state.values.property_id, unitsData?.data])
 
 	// Add loading state for form initialization
-	const [isLoading, setIsLoading] = useState(true)
-
-	// Load properties and units on mount
-	useEffect(() => {
-		const loadData = async () => {
-			// Set loading state
-			setIsLoading(true)
-
-			// Load properties
-			try {
-				const propertiesData =
-					await clientFetch<Property[]>('/api/v1/properties')
-				setProperties(propertiesData)
-			} catch (error) {
-				logger.error('Failed to load properties', {
-					error,
-					endpoint: '/api/v1/properties'
-				})
-			}
-
-			// Load units
-			try {
-				const unitsData = await clientFetch<Unit[]>('/api/v1/units')
-				setUnits(unitsData)
-			} catch (error) {
-				logger.error('Failed to load units', {
-					error,
-					endpoint: '/api/v1/units'
-				})
-			} finally {
-				// Set loading state to false after both API calls complete
-				setIsLoading(false)
-			}
-		}
-		loadData()
-	}, [])
+	const isLoading = propertiesLoading || unitsLoading
 
 	const propertyLabelId = 'maintenance-property-label'
 	const unitLabelId = 'maintenance-unit-label'
@@ -197,7 +162,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 													<SelectValue placeholder="Select property" />
 												</SelectTrigger>
 												<SelectContent>
-													{properties.map(property => (
+													{propertiesData?.data?.map((property: Property) => (
 														<SelectItem key={property.id} value={property.id}>
 															{property.name}
 														</SelectItem>
@@ -233,7 +198,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 													<SelectValue placeholder="Select unit" />
 												</SelectTrigger>
 												<SelectContent>
-													{availableUnits.map(unit => (
+													{availableUnits.map((unit: Unit) => (
 														<SelectItem key={unit.id} value={unit.id}>
 															Unit {unit.unit_number}
 														</SelectItem>
