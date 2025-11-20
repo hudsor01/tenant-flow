@@ -7,10 +7,6 @@ import { PaymentFailedEmail } from '../../emails/payment-failed-email'
 import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 
-type ResendClient = {
-	emails: { send: (args: unknown) => Promise<{ data?: { id: string } }> }
-}
-
 /**
  * Email Service - Direct Resend Integration
  *
@@ -20,7 +16,7 @@ type ResendClient = {
 @Injectable()
 export class EmailService {
 	private readonly logger = new Logger(EmailService.name)
-	private readonly resend: ResendClient | null
+	private readonly resend: InstanceType<typeof Resend> | null
 
 	constructor(private readonly config: AppConfigService) {
 		const apiKey = this.config.getResendApiKey()

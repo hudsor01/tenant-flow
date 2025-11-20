@@ -17,7 +17,7 @@
 		"arm64",
 		"x64"
 	],
-	"packageManager": "pnpm@10.22.0",
+	"packageManager": "pnpm@10.20.0",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
