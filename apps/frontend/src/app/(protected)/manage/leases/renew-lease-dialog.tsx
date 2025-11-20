@@ -11,7 +11,7 @@ import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudD
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
-import { useRenewLease } from '#hooks/api/use-lease'
+import { useRenewLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'
@@ -40,7 +40,7 @@ export function RenewLeaseDialog({
 	lease,
 	onSuccess
 }: RenewLeaseDialogProps) {
-	const renewLease = useRenewLease()
+	const renewLease = useRenewLeaseMutation()
 
 	// Default to 12 months from current end date
 	const defaultNewEndDate = lease.end_date
@@ -88,7 +88,7 @@ export function RenewLeaseDialog({
 		try {
 			await renewLease.mutateAsync({
 				id: lease.id,
-				newEndDate
+				data: { end_date: newEndDate }
 			})
 			toast.success('Lease renewed successfully')
 			onSuccess?.()

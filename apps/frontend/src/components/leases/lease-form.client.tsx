@@ -14,17 +14,17 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import {
-	useCreateLease,
-	useUpdateLease,
-	leaseKeys
-} from '#hooks/api/use-lease'
-import { usePropertyList } from '#hooks/api/use-properties'
-import { useUnitsByProperty } from '#hooks/api/use-unit'
-import { useTenantList } from '#hooks/api/use-tenant'
+	useCreateLeaseMutation,
+	useUpdateLeaseMutation
+} from '#hooks/api/mutations/lease-mutations'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { LeaseStatus, Property, Unit, LeaseWithExtras } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
@@ -39,21 +39,20 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'LeaseForm' })
 
-	const createLeaseMutation = useCreateLease()
-	const updateLeaseMutation = useUpdateLease()
+	const createLeaseMutation = useCreateLeaseMutation()
+	const updateLeaseMutation = useUpdateLeaseMutation()
 	const {
-		data: propertiesData,
+		data: properties,
 		error: propertiesError,
 		isError: propertiesIsError
-	} = usePropertyList()
-	const properties = Array.isArray(propertiesData) ? propertiesData : propertiesData?.data ?? []
-	const tenantsResponse = useTenantList()
-	const tenants = Array.isArray(tenantsResponse.data) ? tenantsResponse.data : tenantsResponse.data?.data ?? []
+	} = useQuery(propertyQueries.list())
+	const tenantsResponse = useQuery(tenantQueries.list())
+	const tenants = tenantsResponse.data ?? []
 
 	// Sync server-fetched lease into TanStack Query cache (edit mode only)
 	useEffect(() => {
 		if (mode === 'edit' && lease) {
-			queryClient.setQueryData(leaseKeys.detail(lease.id), lease)
+			queryClient.setQueryData(leaseQueries.detail(lease.id).queryKey, lease)
 		}
 	}, [mode, lease, queryClient])
 
@@ -110,11 +109,10 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		lease?.unit?.property_id ?? ''
 	)
 	const {
-		data: unitsData,
+		data: units,
 		error: unitsError,
 		isError: unitsIsError
-	} = useUnitsByProperty(selectedPropertyId)
-	const units = Array.isArray(unitsData) ? unitsData : unitsData?.data ?? []
+	} = useQuery(unitQueries.list({ property_id: selectedPropertyId }))
 
 	const isSubmitting =
 		mode === 'create'
@@ -131,7 +129,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		>
 			<div className="space-y-6">
 				{/* Property Selection (for filtering units, not stored in lease) */}
-				<div className="grid gap-[var(--spacing-4)] md:grid-cols-2">
+				<div className="grid gap-4 md:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor="property-select">Property *</FieldLabel>
 						<Select
@@ -146,7 +144,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 								<SelectValue placeholder="Select property" />
 							</SelectTrigger>
 							<SelectContent>
-								{properties.map((property: Property) => (
+								{(properties ?? []).map((property: Property) => (
 									<SelectItem key={property.id} value={property.id}>
 										{property.name}
 									</SelectItem>
@@ -156,7 +154,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					</Field>
 
 					{propertiesIsError && (
-						<p className="text-sm text-destructive mt-[var(--spacing-2)]">
+						<p className="text-sm text-destructive mt-2">
 							Failed to load properties{propertiesError ? `: ${propertiesError.message}` : ''}.
 							Please refresh to retry.
 						</p>
@@ -175,7 +173,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 										<SelectValue placeholder="Select unit" />
 									</SelectTrigger>
 									<SelectContent>
-										{units.map((unit: Unit) => (
+										{(units ?? []).map((unit: Unit) => (
 											<SelectItem key={unit.id} value={unit.id}>
 												Unit {unit.unit_number}
 											</SelectItem>
@@ -190,7 +188,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					</form.Field>
 
 					{unitsIsError && (
-						<p className="text-sm text-destructive mt-[var(--spacing-2)]">
+						<p className="text-sm text-destructive mt-2">
 							Failed to load units for the selected property.
 							{unitsError ? ` ${unitsError.message}` : ''} Please retry.
 						</p>
@@ -220,7 +218,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					)}
 				</form.Field>
 
-					<div className="grid gap-[var(--spacing-4)] md:grid-cols-2">
+					<div className="grid gap-4 md:grid-cols-2">
 					<form.Field name="start_date">
 						{field => (
 							<Field>
@@ -256,7 +254,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					</form.Field>
 				</div>
 
-					<div className="grid gap-[var(--spacing-4)] md:grid-cols-2">
+					<div className="grid gap-4 md:grid-cols-2">
 					<form.Field name="rent_amount">
 						{field => (
 							<Field>
@@ -326,7 +324,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					)}
 				</form.Field>
 
-				<div className="grid gap-[var(--spacing-4)] md:grid-cols-2">
+				<div className="grid gap-4 md:grid-cols-2">
 					<form.Field name="rent_currency">
 						{field => (
 							<Field>
@@ -372,7 +370,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					</form.Field>
 				</div>
 
-				<div className="flex justify-end gap-[var(--spacing-3)]">
+				<div className="flex justify-end gap-3">
 					<Button
 						type="button"
 						variant="outline"

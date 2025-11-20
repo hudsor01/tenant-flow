@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { usePropertyImages, useDeletePropertyImage } from '#hooks/api/use-properties'
+import { usePropertyImages, useDeletePropertyImageMutation } from '#hooks/api/mutations/property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
 import { ImageLightbox } from './image-lightbox'
 import { Badge } from '#components/ui/badge'
@@ -19,7 +19,7 @@ interface PropertyImageGalleryProps {
 
 export function PropertyImageGallery({ propertyId, editable = false }: PropertyImageGalleryProps) {
 	const { data: images, isLoading } = usePropertyImages(propertyId)
-	const deleteMutation = useDeletePropertyImage()
+	const deleteMutation = useDeletePropertyImageMutation()
 
 	// Use nuqs hook for URL state management
 	const { isOpen: lightboxOpen, currentIndex: lightboxIndex, open: _openLightbox, close: closeLightbox, goToImage } = useLightboxState(0)

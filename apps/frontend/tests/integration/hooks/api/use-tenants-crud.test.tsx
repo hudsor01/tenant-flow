@@ -1,10 +1,10 @@
 /**
  * Tenants CRUD Integration Tests - SIMPLIFIED
  * Tests basic tenant operations with real API calls
- * 
+ *
  * NOTE: These tests are integration tests that require a running backend.
  * They are currently skipped by default unless RUN_INTEGRATION_TESTS=true
- * 
+ *
  * @vitest-environment jsdom
  */
 
@@ -22,10 +22,12 @@ import {
 import {
 	useTenantList,
 	useTenant,
-	useCreateTenant,
-	useUpdateTenant,
 	useMarkTenantAsMovedOut
 } from '#hooks/api/use-tenant'
+import {
+	useCreateTenantMutation,
+	useUpdateTenantMutation
+} from '#hooks/api/mutations/tenant-mutations'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { clientFetch } from '#lib/api/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'

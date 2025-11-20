@@ -3,9 +3,10 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { useMaintenanceRequest } from '#hooks/api/use-maintenance'
-import { usePropertyList } from '#hooks/api/use-properties'
-import { useAllUnits } from '#hooks/api/use-unit'
+import { useQuery } from '@tanstack/react-query'
+import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Calendar, MapPin, Wrench } from 'lucide-react'
 import Link from 'next/link'
@@ -17,16 +18,13 @@ interface MaintenanceDetailsProps {
 const logger = createLogger({ component: 'MaintenanceDetails' })
 
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
-	const { data: request, isLoading, isError } = useMaintenanceRequest(id)
+	const { data: request, isLoading, isError } = useQuery(maintenanceQueries.detail(id))
 
-	const { data: propertiesData } = usePropertyList()
-	const properties = propertiesData?.data ?? []
+	const { data: properties } = useQuery(propertyQueries.list())
+	const { data: units } = useQuery(unitQueries.list())
 
-	const { data: unitsResponse } = useAllUnits()
-	const units = unitsResponse?.data || []
-
-	const unit = units.find(u => u.id === request?.unit_id)
-	const property = properties.find(
+	const unit = (units ?? []).find(u => u.id === request?.unit_id)
+	const property = (properties ?? []).find(
 		(p) => p.id === unit?.property_id
 	)
 

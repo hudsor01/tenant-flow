@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService as NestConfigService } from '@nestjs/config'
 import type { Config } from './config.schema'
-import { CONFIG_DEFAULTS, type NodeEnvironment } from './config.constants'
+import type { NodeEnvironment } from './config.constants'
 
 /**
  * Typed wrapper around NestJS ConfigService
@@ -108,10 +108,7 @@ export class AppConfigService {
 	}
 
 	getSupabaseProjectRef(): string {
-		return (
-			this.configService.get('SUPABASE_PROJECT_REF', { infer: true }) ??
-			CONFIG_DEFAULTS.SUPABASE_PROJECT_REF
-		)
+		return this.configService.get('SUPABASE_PROJECT_REF', { infer: true })
 	}
 
 	getSupabaseAuthWebhookSecret(): string | undefined {
@@ -144,17 +141,11 @@ export class AppConfigService {
 	}
 
 	getHealthThrottleTtl(): number {
-		return (
-			this.configService.get('HEALTH_THROTTLE_TTL', { infer: true }) ??
-			Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_TTL)
-		)
+		return this.configService.get('HEALTH_THROTTLE_TTL', { infer: true })
 	}
 
 	getHealthThrottleLimit(): number {
-		return (
-			this.configService.get('HEALTH_THROTTLE_LIMIT', { infer: true }) ??
-			Number(CONFIG_DEFAULTS.HEALTH_THROTTLE_LIMIT)
-		)
+		return this.configService.get('HEALTH_THROTTLE_LIMIT', { infer: true })
 	}
 
 	getContactThrottleTtl(): number {
@@ -163,6 +154,34 @@ export class AppConfigService {
 
 	getContactThrottleLimit(): number {
 		return this.configService.get('CONTACT_THROTTLE_LIMIT', { infer: true })
+	}
+
+	getTenantInvitationThrottleTtl(): number {
+		return this.configService.get('TENANT_INVITATION_THROTTLE_TTL', { infer: true })
+	}
+
+	getTenantInvitationThrottleLimit(): number {
+		return this.configService.get('TENANT_INVITATION_THROTTLE_LIMIT', { infer: true })
+	}
+
+	getHealthMemoryWarningThreshold(): number {
+		return this.configService.get('HEALTH_MEMORY_WARNING_THRESHOLD', { infer: true })
+	}
+
+	getHealthMemoryCriticalThreshold(): number {
+		return this.configService.get('HEALTH_MEMORY_CRITICAL_THRESHOLD', { infer: true })
+	}
+
+	getHealthResponseTimeWarningThreshold(): number {
+		return this.configService.get('HEALTH_RESPONSE_TIME_WARNING_THRESHOLD', { infer: true })
+	}
+
+	getHealthResponseTimeCriticalThreshold(): number {
+		return this.configService.get('HEALTH_RESPONSE_TIME_CRITICAL_THRESHOLD', { infer: true })
+	}
+
+	getHealthCacheMaxEntries(): number {
+		return this.configService.get('HEALTH_CACHE_MAX_ENTRIES', { infer: true })
 	}
 
 	getMetricsThrottleTtl(): number {
@@ -236,11 +255,9 @@ export class AppConfigService {
 	}
 
 	getStripeConnectDefaultCountry(): string {
-		return (
-			this.configService.get('STRIPE_CONNECT_DEFAULT_COUNTRY', {
-				infer: true
-			}) ?? CONFIG_DEFAULTS.STRIPE_CONNECT_DEFAULT_COUNTRY
-		)
+		return this.configService.get('STRIPE_CONNECT_DEFAULT_COUNTRY', {
+			infer: true
+		})
 	}
 
 	// ==================== Redis ====================
