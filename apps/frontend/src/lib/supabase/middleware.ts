@@ -189,7 +189,8 @@ export async function updateSession(request: NextRequest) {
 	if (isAuthenticated && user && accessToken) {
 		//Verify JWT signature before trusting claims
 		const claims = await verifyJwtToken(accessToken)
-		const user_typeFromClaims = getStringClaim(claims, 'user_type')
+		const user_typeFromClaims =
+			getStringClaim(claims, 'user_type') ?? getStringClaim(claims, 'user_user_type')
 		const stripe_customer_idFromClaims = getStringClaim(claims, 'stripe_customer_id')
 
 		user_type = user_typeFromClaims ?? user.user_metadata?.user_type ?? null
