@@ -38,7 +38,7 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 		try {
 			await renewLeaseMutation.mutateAsync({
 				id: lease_id,
-				newEndDate
+				data: { end_date: newEndDate }
 			})
 			toast.success('Lease renewed successfully')
 			closeModal(modalId)

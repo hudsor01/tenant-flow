@@ -22,9 +22,11 @@ import {
 import {
 	useTenantList,
 	useTenant,
+	useMarkTenantAsMovedOut
+} from '#hooks/api/use-tenant'
+import {
 	useCreateTenantMutation,
-	useUpdateTenantMutation,
-	useMarkTenantAsMovedOutMutation
+	useUpdateTenantMutation
 } from '#hooks/api/mutations/tenant-mutations'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { clientFetch } from '#lib/api/client'

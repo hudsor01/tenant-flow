@@ -30,6 +30,11 @@ vi.mock('#hooks/api/mutations/property-mutations', () => ({
 	useUploadPropertyImageMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({}),
 		isPending: false
+	}),
+	usePropertyImages: () => ({
+		data: [],
+		isLoading: false,
+		error: null
 	})
 }))
 
