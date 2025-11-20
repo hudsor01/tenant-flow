@@ -21,7 +21,7 @@ const HEALTH_THROTTLE = createThrottleDefaults({
 })
 
 @Throttle({ default: HEALTH_THROTTLE })
-@Controller(['health', 'api/v1/health', 'auth', 'api/v1/auth'])
+@Controller(['health', 'auth'])
 export class HealthController {
 	private readonly logger = new Logger(HealthController.name)
 
