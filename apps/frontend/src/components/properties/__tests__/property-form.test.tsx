@@ -14,30 +14,23 @@ import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 
 // Mock hooks
-vi.mock('#hooks/api/use-properties', () => ({
-	useCreateProperty: () => ({
+vi.mock('#hooks/api/mutations/property-mutations', () => ({
+	useCreatePropertyMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'new-property-id' }),
 		isPending: false
 	}),
-	useUpdateProperty: () => ({
+	useUpdatePropertyMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'property-1' }),
 		isPending: false
 	}),
-	usePropertyImages: () => ({
-		data: [],
-		isLoading: false
-	}),
-	useDeletePropertyImage: () => ({
+	useDeletePropertyImageMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({}),
 		isPending: false
 	}),
-	useUploadPropertyImage: () => ({
+	useUploadPropertyImageMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({}),
 		isPending: false
-	}),
-	propertiesKeys: {
-		detail: (id: string) => ['properties', id]
-	}
+	})
 }))
 
 vi.mock('#hooks/api/use-supabase-auth', () => ({

@@ -1,7 +1,8 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { useProperty } from '#hooks/api/use-properties'
+import { useQuery } from '@tanstack/react-query'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { PropertyDetails } from '../property-details.client'
@@ -14,7 +15,7 @@ export default function PropertyDetailPage() {
 		data: property,
 		isLoading,
 		isError
-	} = useProperty(property_id)
+	} = useQuery(propertyQueries.detail(property_id))
 
 	if (isLoading) {
 		return <div className="animate-pulse">Loading property...</div>

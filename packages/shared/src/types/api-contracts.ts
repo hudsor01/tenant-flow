@@ -29,8 +29,310 @@ export const DEFAULT_RETRY_ATTEMPTS = 3;
 export const DEFAULT_RETRY_DELAY = 1000; // 1 second
 export const MAX_RETRY_DELAY = 10000; // 10 seconds
 
-export type AuthUser = Database['public']['Tables']['users']['Row']
+// ============================================================================
+// QUERY PARAMETER TYPES (Consolidated from queries.ts)
+// ============================================================================
 
+/**
+ * Base query interface with common pagination params
+ * Supports both offset-based (backend) and page-based (frontend) pagination
+ */
+export interface BaseQuery
+	extends Record<string, string | number | boolean | string[] | undefined> {
+	limit?: number
+	offset?: number
+	page?: number
+	search?: string
+	sortBy?: string
+	sortOrder?: 'asc' | 'desc'
+}
+
+/**
+ * Property query parameters
+ */
+export interface PropertyQuery extends BaseQuery {
+	property_type?: string
+	type?: string // Alias for property_type for frontend compatibility
+	status?: string
+	owner_id?: string
+	city?: string
+	state?: string
+	zipCode?: string
+}
+
+/**
+ * Lease query parameters
+ */
+export interface LeaseQuery extends BaseQuery {
+	tenantId?: string
+	unitId?: string
+	propertyId?: string
+	status?: string
+	start_date?: string
+	end_date?: string
+	includeExpired?: boolean
+	expiring?: string // Number of days for expiring leases filter
+}
+
+/**
+ * Maintenance query parameters
+ */
+export interface MaintenanceQuery extends BaseQuery {
+	status?: RequestStatus
+	propertyId?: string
+	unitId?: string
+	tenantId?: string
+	priority?: string
+	category?: string
+	assignedTo?: string
+	dateFrom?: string
+	dateTo?: string
+}
+
+/**
+ * Unit query parameters
+ */
+export interface UnitQuery extends BaseQuery {
+	propertyId?: string
+	status?: string
+	type?: string
+	bedroomsMin?: number
+	bedroomsMax?: number
+	bathroomsMin?: number
+	bathroomsMax?: number
+	rentMin?: number
+	rentMax?: number
+}
+
+/**
+ * Tenant query parameters
+ */
+export interface TenantQuery extends BaseQuery {
+	propertyId?: string
+	unitId?: string
+	lease_status?: string
+	status?: string // Alias for lease_status for frontend compatibility
+	moveInDateFrom?: string
+	moveInDateTo?: string
+	email?: string
+	phone?: string
+}
+
+/**
+ * Notification query parameters
+ */
+export interface NotificationQuery extends BaseQuery {
+	userId?: string
+	type?: string
+	priority?: string
+	read?: boolean
+	dateFrom?: string
+	dateTo?: string
+}
+
+/**
+ * Activity query parameters
+ */
+export interface ActivityQueryParams extends BaseQuery {
+	type?: string
+	since?: string
+	userId?: string
+	entityType?: string
+	entityId?: string
+}
+
+/**
+ * Analytics query parameters
+ */
+export interface AnalyticsQueryParams extends BaseQuery {
+	propertyId?: string
+	owner_id?: string
+	start_date?: string
+	end_date?: string
+	metricTypes?: string[]
+	includeAlerts?: boolean
+	includeTrends?: boolean
+	groupBy?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+}
+
+/**
+ * Pagination response wrapper
+ */
+export interface PaginatedResponse<T> {
+	data: T[]
+	total: number
+	limit: number
+	offset: number
+	hasMore: boolean
+}
+
+// ============================================================================
+// BILLING/SUBSCRIPTION INPUT TYPES (Consolidated from api-inputs.ts)
+// ============================================================================
+
+/**
+ * Input for creating a checkout session
+ * Used by useCreateCheckoutSession hook from use-billing
+ */
+export interface CreateCheckoutInput {
+	planType?: string
+	planId?: string // Backend expects either planId or planType
+	priceId?: string // Alternative to planId
+	interval?: 'monthly' | 'annual' // Backend field name
+	billingInterval?: 'monthly' | 'yearly' // Frontend compatibility
+	uiMode?: 'hosted' | 'embedded'
+	successUrl?: string
+	cancelUrl?: string
+}
+
+/**
+ * Input for creating a customer portal session
+ * Used by useCreatePortalSession hook from use-billing
+ */
+export interface CreatePortalInput {
+	returnUrl?: string
+}
+
+/**
+ * Parameters for direct subscription creation (without checkout)
+ * Used by useDirectSubscription hook
+ */
+export interface DirectSubscriptionParams {
+	priceId: string
+	planType: string // From PLAN_TYPE constant
+	billingName?: string
+	paymentMethodId?: string
+	defaultPaymentMethod?: boolean
+}
+
+/**
+ * Parameters for updating an existing subscription
+ * Used by useDirectSubscription hook for plan changes
+ */
+export interface SubscriptionUpdateParams {
+	subscriptionId: string
+	newPriceId: string
+	prorationBehavior?: 'create_prorations' | 'none' | 'always_invoice'
+	coupon?: string
+	metadata?: Record<string, string> // Stripe metadata is always string values
+	description?: string
+	trialEnd?: number | 'now'
+}
+
+/**
+ * Checkout parameters for basic checkout flow
+ * Used by useCreateCheckout hook from use-billing
+ */
+export interface CheckoutParams {
+	planType: string // From PLAN_TYPE constant
+	billingInterval: 'monthly' | 'annual'
+	billingName?: string
+}
+
+/**
+ * Trial activation parameters
+ * Used by useStartFreeTrial hook from use-billing
+ */
+export interface TrialParams {
+	onSuccess?: (subscriptionId: string) => void
+}
+
+// ============================================================================
+// DATABASE INPUT TYPES (Consolidated from api-inputs.ts)
+// ============================================================================
+
+// Property API Inputs
+export type CreatePropertyInput =
+	Database['public']['Tables']['properties']['Insert']
+export type UpdatePropertyInput =
+	Database['public']['Tables']['properties']['Update']
+
+// Unit API Inputs
+export type CreateUnitInput = Database['public']['Tables']['units']['Insert']
+export type UpdateUnitInput = Database['public']['Tables']['units']['Update']
+
+// Tenant API Inputs
+export type CreateTenantInput = Omit<
+	Database['public']['Tables']['tenants']['Insert'],
+	'user_id' | 'id' | 'created_at' | 'updated_at'
+>
+export type UpdateTenantInput = Database['public']['Tables']['tenants']['Update']
+
+// Lease API Inputs
+export type CreateLeaseInput = Database['public']['Tables']['leases']['Insert']
+export type UpdateLeaseInput = Database['public']['Tables']['leases']['Update']
+
+// Maintenance API Inputs
+export type CreateMaintenanceInput =
+	Database['public']['Tables']['maintenance_requests']['Insert']
+export type UpdateMaintenanceInput =
+	Database['public']['Tables']['maintenance_requests']['Update']
+
+// Authentication API Inputs
+export interface RegisterInput {
+	email: string
+	password: string
+	first_name: string
+	last_name: string
+}
+
+export interface LoginInput {
+	email: string
+	password: string
+}
+
+export interface RefreshTokenInput {
+	refreshToken: string
+}
+
+export interface ForgotPasswordInput {
+	email: string
+}
+
+export interface ResetPasswordInput {
+	token: string
+	password: string
+}
+
+export interface ChangePasswordInput {
+	currentPassword: string
+	newPassword: string
+}
+
+export interface AuthCallbackInput {
+	access_token: string
+	refresh_token: string
+	type?: string
+}
+
+// User Management API Inputs
+export interface EnsureUserExistsInput {
+	authUser: {
+		id: string
+		email: string
+		user_metadata?: {
+			name?: string
+			full_name?: string
+		}
+	}
+	options?: {
+		user_type?: 'OWNER' | 'TENANT' | 'MANAGER' | 'ADMIN'
+		name?: string
+		maxRetries?: number
+		retryDelayMs?: number
+	}
+}
+
+// Form Input Types
+// Re-export form hook props from forms.ts
+export type { UseLeaseFormProps, UsePropertyFormDataProps } from './forms.js'
+
+export interface FileUploadRequest {
+	file: string // base64 encoded file
+	filename: string
+	contentType: string
+	folder?: string
+}
 
 // USER AUTHENTICATION CONTRACTS
 export interface LoginRequest {
@@ -72,12 +374,6 @@ export interface AuthResponse {
 		user_type: string
 	}
 	token: string
-}
-
-export interface AuthError {
-	code: string
-	message: string
-	field?: string
 }
 
 export interface CreatePropertyRequest {
@@ -167,9 +463,6 @@ export interface PropertyDetailResponse {
 		email: string
 	}>
 }
-
-export type CreatePropertyInput = Database['public']['Tables']['properties']['Insert']
-export type UpdatePropertyInput = Database['public']['Tables']['properties']['Update']
 
 export interface TenantPaymentRecord {
 	id: string
@@ -660,27 +953,19 @@ export interface CreateSubscriptionWithSignupResponse {
 	refreshToken: string
 }
 
-// ERROR RESPONSE CONTRACTS
-export interface ErrorResponse {
+// ERROR RESPONSE CONTRACTS - Base types re-exported from errors.ts
+// Specialized error responses
+export interface ValidationErrorResponse {
 	success: false
 	error: string
-	details?: Record<string, unknown>
-}
-
-export interface ValidationErrorResponse extends ErrorResponse {
 	validationErrors: Record<string, string[]>
 }
 
-export interface BusinessErrorResponse extends ErrorResponse {
+export interface BusinessErrorResponse {
+	success: false
+	error: string
 	code: string
 	reason: string
-}
-
-
-export interface SuccessResponse<T = void> {
-	success: true
-	data?: T
-	message?: string
 }
 
 export interface ApiResponse<T = unknown> {
@@ -851,28 +1136,27 @@ export interface OccupancyAnalyticsResponse {
 	}
 }
 
-// STANDALONE ERROR CONTRACTS (for error boundaries and exception handling)
-export interface StandaloneError {
-	name: string
-	message: string
-	stack?: string
-	code?: string
-	status?: number
-	severity?: 'low' | 'medium' | 'high' | 'critical'
-	context?: Record<string, unknown>
-	timestamp: string
-}
-
-export interface ErrorBoundaryState {
-	hasError: boolean
-	error?: StandaloneError
-}
-
-export interface ErrorContext {
-	componentStack?: string
-	errorInfo?: Record<string, unknown>
-	operation?: string
-}
+// ERROR CONTRACTS - Re-export consolidated error types from errors.ts
+export type {
+	AppError,
+	AuthError,
+	ValidationError,
+	NetworkError,
+	ServerError,
+	BusinessError,
+	FileUploadError,
+	PaymentError,
+	LoaderError,
+	ErrorResponse,
+	SuccessResponse,
+	StandardApiResponse,
+	ErrorHandler,
+	ErrorBoundaryProps,
+	FormErrorState,
+	AsyncResult,
+	ErrorContext,
+	UserFriendlyError
+} from './errors.js'
 
 // COMMON API RESULT PATTERNS
 export type ApiResult<T = void> =
@@ -912,165 +1196,18 @@ export interface ApiClientConfig {
 	}
 }
 
-// VALIDATION ERROR CONTRACTS
-export interface ValidationError {
-	field: string
-	code: string
-	message: string
-	value?: unknown
-}
-
+// API-SPECIFIC VALIDATION RESPONSE
 export interface ValidationResponse {
 	success: boolean
-	errors?: ValidationError[]
-	warnings?: ValidationError[]
-}
-
-// BUSINESS LOGIC ERROR CONTRACTS
-export interface BusinessRuleError {
-	rule: string
-	entity: string
-	operation: string
-	message: string
-	details?: Record<string, unknown>
-	timestamp: string
-}
-
-// PERMISSION ERROR CONTRACTS
-export interface PermissionError {
-	resource: string
-	action: string
-	user_id: string
-	requiredPermission: string
-	message: string
-	timestamp: string
-}
-
-// RATE LIMIT ERROR CONTRACTS
-export interface RateLimitError {
-	limit: number
-	window: number
-	resetTime: number
-	message: string
-	timestamp: string
-}
-
-// DATABASE ERROR CONTRACTS
-export interface DatabaseError {
-	query: string
-	parameters?: unknown[]
-	driverError?: unknown
-	message: string
-	code: string
-	timestamp: string
-}
-
-// EXTERNAL SERVICE ERROR CONTRACTS
-export interface ExternalServiceError {
-	service: string
-	endpoint: string
-	statusCode?: number
-	response?: unknown
-	message: string
-	timestamp: string
-}
-
-// PAYMENT ERROR CONTRACTS
-export interface PaymentError {
-	paymentIntentId: string
-	errorCode: string
-	errorMessage: string
-	amount: number
-	currency: string
-	message: string
-	timestamp: string
-}
-
-// FILE UPLOAD ERROR CONTRACTS
-export interface FileUploadError {
-	filename: string
-	fileSize: number
-	mimeType: string
-	errorCode: string
-	message: string
-	timestamp: string
-}
-
-// AUTHENTICATION ERROR CONTRACTS
-export interface AuthenticationError {
-	token?: string
-	user_id?: string
-	reason: string
-	message: string
-	timestamp: string
-}
-
-// AUTHORIZATION ERROR CONTRACTS
-export interface AuthorizationError {
-	user_id: string
-	resource: string
-	operation: string
-	requireduser_type: string
-	message: string
-	timestamp: string
-}
-
-// NOT FOUND ERROR CONTRACTS
-export interface NotFoundError {
-	resource: string
-	resourceId: string
-	message: string
-	timestamp: string
-}
-
-// CONFLICT ERROR CONTRACTS
-export interface ConflictError {
-	resource: string
-	field: string
-	value: string
-	message: string
-	timestamp: string
-}
-
-// INTERNAL ERROR CONTRACTS
-export interface InternalError {
-	operation: string
-	errorCode: string
-	details?: Record<string, unknown>
-	message: string
-	timestamp: string
-}
-
-// NETWORK ERROR CONTRACTS
-export interface NetworkError {
-	url: string
-	method: string
-	statusCode?: number
-	message: string
-	timestamp: string
-}
-
-// TIMEOUT ERROR CONTRACTS
-export interface TimeoutError {
-	operation: string
-	timeout: number
-	message: string
-	timestamp: string
-}
-
-// VALIDATION ERROR CONTRACTS
-export interface InputValidationError {
-	field: string
-	expected: string
-	actual: unknown
-	message: string
-	timestamp: string
-}
-
-// GENERIC ERROR CONTRACTS
-export interface GenericError {
-	type: string
-	message: string
-	details?: Record<string, unknown>
-	timestamp: string
+	errors?: Array<{
+		field: string
+		code: string
+		message: string
+		value?: unknown
+	}>
+	warnings?: Array<{
+		field: string
+		code: string
+		message: string
+	}>
 }

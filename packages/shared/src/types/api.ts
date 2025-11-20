@@ -40,9 +40,9 @@ export interface RegisterData extends AuthCredentials {
 	confirmPassword: string
 }
 
-// Note: AuthResponse is defined in auth.ts
+// Note: AuthResponse is defined in auth.ts and api-contracts.ts
 
-export type { RefreshTokenRequest } from './auth.js'
+export type { RefreshTokenRequest } from './api-contracts.js'
 
 export interface UpdateUserProfileDto {
 	name?: string | null
@@ -70,7 +70,7 @@ import type {
 	UpdatePropertyInput,
 	UpdateTenantInput,
 	UpdateUnitInput
-} from './api-inputs.js'
+} from './api-contracts.js'
 
 // Direct re-exports - use Input types consistently
 export type {
@@ -84,29 +84,8 @@ export type {
 	UpdateUnitInput
 }
 
-export interface UnitStatistics {
-	totalUnits: number
-	availableUnits: number
-	occupiedUnits: number
-	maintenanceUnits: number
-	averageRent: number
-	// Additional properties needed by tests
-	total: number
-	occupied: number
-	vacant: number
-	occupancyRate: number
-}
-
-export interface LeaseStatistics {
-	totalLeases: number
-	activeLeases: number
-	expiredLeases: number
-	pendingLeases: number
-	totalRentRoll: number
-	// Additional properties needed by tests
-	total: number
-	active: number
-}
+// Re-export Statistics types from stats.ts
+export type { UnitStatistics, LeaseStatistics } from './stats.js'
 
 export interface ExpiringLease extends Omit<Lease, 'end_date'> {
 	rent_amount: number
@@ -153,7 +132,7 @@ export interface FileUploadResponse {
 	mimeType: string
 }
 
-// Query parameters for API calls - using comprehensive query types from queries.ts
+// Query parameters for API calls - using comprehensive query types from api-contracts.ts
 export type {
 	LeaseQuery,
 	MaintenanceQuery,
@@ -161,7 +140,7 @@ export type {
 	PropertyQuery,
 	TenantQuery,
 	UnitQuery
-} from './queries.js'
+} from './api-contracts.js'
 
 
 export type { ActivityItem } from './activity.js'

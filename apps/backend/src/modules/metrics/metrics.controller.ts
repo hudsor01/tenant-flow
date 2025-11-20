@@ -11,15 +11,14 @@ import { Throttle } from '@nestjs/throttler'
 import { PrometheusController } from '@willsoto/nestjs-prometheus'
 import { timingSafeEqual } from 'crypto'
 import type { Request, Response } from 'express'
-import { CONFIG_DEFAULTS } from '../../config/config.constants'
 import { createThrottleDefaults } from '../../config/throttle.config'
 import { AppConfigService } from '../../config/app-config.service'
 
 const METRICS_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'METRICS_THROTTLE_TTL',
 	envLimitKey: 'METRICS_THROTTLE_LIMIT',
-	defaultTtl: Number(CONFIG_DEFAULTS.METRICS_THROTTLE_TTL),
-	defaultLimit: Number(CONFIG_DEFAULTS.METRICS_THROTTLE_LIMIT)
+	defaultTtl: 60000,
+	defaultLimit: 60
 })
 
 /**

@@ -18,6 +18,7 @@ import type {
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
+import { getCanonicalPaymentDate } from '@repo/shared/utils/payment-dates'
 import type {
 	Lease,
 	RentPayment,
@@ -512,7 +513,7 @@ export class RentPaymentsService {
 
 		const { data: lastPayment } = await adminClient
 			.from('rent_payments')
-			.select('status, paid_date, due_date, amount')
+			.select('status, paid_date, due_date, amount, created_at')
 			.eq('lease_id', lease.id)
 			.order('due_date', { ascending: false })
 			.limit(1)
@@ -524,7 +525,11 @@ export class RentPaymentsService {
 		let lastPaymentDate: string | null = null
 
 		if (lastPayment) {
-			lastPaymentDate = lastPayment.paid_date ?? null
+			lastPaymentDate = getCanonicalPaymentDate(
+				lastPayment.paid_date,
+				lastPayment.created_at!,
+				lastPayment.status!
+			)
 			nextDueDate = lastPayment.due_date ?? lease.end_date ?? null
 			if (lastPayment.status === 'PAID') {
 				status = 'PAID'

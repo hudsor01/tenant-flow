@@ -11,13 +11,12 @@ import { getCORSConfig } from '@repo/shared/security/cors-config'
 import 'reflect-metadata'
 import { AppModule } from './app.module'
 import { AppConfigService } from './config/app-config.service'
-import { CONFIG_DEFAULTS } from './config/config.constants'
 import { registerExpressMiddleware } from './config/express.config'
 
 // Trigger Railway deployment after fixing husky script
 import { HEALTH_PATHS } from './shared/constants/routes'
 
-const DEFAULT_PORT = CONFIG_DEFAULTS.PORT
+const DEFAULT_PORT = 4600
 
 function resolvePort(portValue: string | undefined, fallback: number): number {
 	if (!portValue) {

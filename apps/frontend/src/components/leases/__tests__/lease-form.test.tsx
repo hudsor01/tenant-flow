@@ -13,18 +13,15 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 
 // Mock hooks
-vi.mock('#hooks/api/use-lease', () => ({
-	useCreateLease: () => ({
+vi.mock('#hooks/api/mutations/lease-mutations', () => ({
+	useCreateLeaseMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'new-lease-id' }),
 		isPending: false
 	}),
-	useUpdateLease: () => ({
+	useUpdateLeaseMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'lease-1' }),
 		isPending: false
-	}),
-	leaseKeys: {
-		detail: (id: string) => ['leases', id]
-	}
+	})
 }))
 
 vi.mock('#hooks/api/use-tenant', () => ({
@@ -179,7 +176,7 @@ describe('LeaseForm', () => {
 			expect(screen.getByText(/end date \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/monthly rent \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/security deposit \*/i)).toBeInTheDocument()
-			
+
 		})
 	})
 

@@ -17,11 +17,11 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
 	usePropertyImages,
-	useUploadPropertyImage,
-	useDeletePropertyImage,
-	useCreateProperty,
-	useDeleteProperty
-} from '#hooks/api/use-properties'
+	useUploadPropertyImageMutation,
+	useDeletePropertyImageMutation,
+	useCreatePropertyMutation,
+	useDeletePropertyMutation
+} from '#hooks/api/mutations/property-mutations'
 import type { ReactNode } from 'react'
 import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import type { Tables } from '@repo/shared/types/supabase'
@@ -80,7 +80,7 @@ describe('Property Image Upload Integration', () => {
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
 
-		const { result } = renderHook(() => useCreateProperty(), { wrapper })
+		const { result } = renderHook(() => useCreatePropertyMutation(), { wrapper })
 
 		// Direct await instead of waitFor for mutations (prevents 30s timeouts)
 		const property = await result.current.mutateAsync(createTestPropertyData())
@@ -96,7 +96,7 @@ describe('Property Image Upload Integration', () => {
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
 
-		const { result } = renderHook(() => useDeleteProperty(), { wrapper })
+		const { result } = renderHook(() => useDeletePropertyMutation(), { wrapper })
 
 		// Direct await instead of waitFor for mutations (prevents 30s timeouts)
 		await result.current.mutateAsync(testproperty_id)
@@ -109,8 +109,8 @@ describe('Property Image Upload Integration', () => {
 	 */
 	it('should upload image successfully', async () => {
 		const wrapper = createWrapper()
-		const { result: uploadResult } = renderHook(() => useUploadPropertyImage(), { wrapper })
-		const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
+		const { result: uploadResult } = renderHook(() => useUploadPropertyImageMutation(), { wrapper })
+		const { result: deleteResult } = renderHook(() => useDeletePropertyImageMutation(), { wrapper })
 
 		let uploadedImageId: string
 
@@ -175,7 +175,7 @@ describe('Property Image Upload Integration', () => {
 		})
 
 		// Step 3: Delete image - direct await instead of waitFor for mutations (prevents 30s timeouts)
-		const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
+		const { result: deleteResult } = renderHook(() => useDeletePropertyImageMutation(), { wrapper })
 		await deleteResult.current.mutateAsync({
 			imageId: uploadedImageId,
 			property_id: testproperty_id
@@ -233,7 +233,7 @@ describe('Property Image Upload Integration', () => {
 
 		// Cleanup: Delete uploaded images
 		try {
-			const { result: deleteResult } = renderHook(() => useDeletePropertyImage(), { wrapper })
+			const { result: deleteResult } = renderHook(() => useDeletePropertyImageMutation(), { wrapper })
 			await deleteResult.current.mutateAsync({
 				imageId: (small as PropertyImage).id,
 				property_id: testproperty_id
@@ -291,7 +291,7 @@ describe('Property Image Upload Integration', () => {
  *    - Table Editor → property_images → check record exists
  *
  * 5. Delete image via UI/console:
- *    const del = useDeletePropertyImage()
+ *    const del = useDeletePropertyImageMutation()
  *    del.mutate({ imageId: 'xxx', property_id: 'xxx' })
  *
  * 6. Verify cleanup:

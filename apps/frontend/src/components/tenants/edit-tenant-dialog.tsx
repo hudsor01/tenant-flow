@@ -11,18 +11,12 @@ import {
 	CrudDialogFooter
 } from '#components/ui/crud-dialog'
 import { Field, FieldLabel } from '#components/ui/field'
-import { tenantKeys } from '#hooks/api/use-tenant'
+import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
 import { useModalStore } from '#stores/modal-store'
-import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
-import {
-	tenantUpdateSchema,
-	type TenantUpdate
-} from '@repo/shared/validation/tenants'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { tenantUpdateSchema } from '@repo/shared/validation/tenants'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { clientFetch } from '#lib/api/client'
 
 interface EditTenantDialogProps {
 	tenant: TenantWithLeaseInfo
@@ -30,7 +24,7 @@ interface EditTenantDialogProps {
 
 export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 	const { closeModal } = useModalStore()
-	const queryClient = useQueryClient()
+	const updateMutation = useUpdateTenantMutation()
 
 	const modalId = `edit-tenant-${tenant.id}`
 
@@ -39,47 +33,6 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 		emergency_contact_name: tenant.emergency_contact_name || '',
 		emergency_contact_phone: tenant.emergency_contact_phone || '',
 		emergency_contact_relationship: tenant.emergency_contact_relationship || ''
-	})
-
-	const updateMutation = useMutation({
-		mutationFn: async (data: TenantUpdate) => {
-			const payload: UpdateTenantInput = {}
-
-			// Only include tenant-specific fields - user fields are updated separately
-			if (data.emergency_contact_name !== undefined) {
-				payload.emergency_contact_name = data.emergency_contact_name
-			}
-			if (data.emergency_contact_phone !== undefined) {
-				payload.emergency_contact_phone = data.emergency_contact_phone
-			}
-			if (data.emergency_contact_relationship !== undefined) {
-				payload.emergency_contact_relationship = data.emergency_contact_relationship
-			}
-
-			return await clientFetch<TenantWithLeaseInfo>(
-				`/api/v1/tenants/${tenant.id}`,
-				{
-					method: 'PATCH',
-					body: JSON.stringify(payload)
-				}
-			)
-		},
-		onSuccess: (updated: TenantWithLeaseInfo) => {
-			// Update single tenant cache and the tenants list without refetch
-			queryClient.setQueryData(tenantKeys.detail(tenant.id), updated)
-			queryClient.setQueryData(
-				tenantKeys.list(),
-				(old: TenantWithLeaseInfo[] | undefined) => {
-					if (!Array.isArray(old)) return old
-					return old.map(t => (t.id === tenant.id ? { ...t, ...updated } : t))
-				}
-			)
-			toast.success('Tenant updated successfully')
-			closeModal(modalId)
-		},
-		onError: error => {
-			toast.error(`Failed to update tenant: ${error.message}`)
-		}
 	})
 
 	const handleFormSubmit = (e: React.FormEvent) => {
@@ -95,7 +48,14 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 			return
 		}
 
-		updateMutation.mutate(formData)
+		updateMutation.mutate({
+			id: tenant.id,
+			data: formData
+		}, {
+			onSuccess: () => {
+				closeModal(modalId)
+			}
+		})
 	}
 
 	const handleInputChange = (field: keyof typeof formData, value: string) => {

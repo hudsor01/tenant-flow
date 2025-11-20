@@ -20,9 +20,8 @@ import {
 } from '#components/ui/dropdown-menu'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useModalStore } from '#stores/modal-store'
-import { tenantKeys } from '#hooks/api/use-tenant'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import type { UpdateTenantInput } from '@repo/shared/types/api-inputs'
+import type { UpdateTenantInput } from '@repo/shared/types/api-contracts'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
 	tenantUpdateSchema,
@@ -44,6 +43,7 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { clientFetch } from '#lib/api/client'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 
 interface TenantActionButtonsProps {
 	tenant: TenantWithLeaseInfo
@@ -120,9 +120,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 		},
 		onSuccess: (updated: TenantWithLeaseInfo) => {
 			// Update single tenant cache and the tenants list without refetch
-			queryClient.setQueryData(tenantKeys.detail(tenant.id), updated)
+			queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, updated as never)
 			queryClient.setQueryData(
-				tenantKeys.list(),
+				tenantQueries.lists(),
 				(old: TenantWithLeaseInfo[] | undefined) => {
 					if (!Array.isArray(old)) return old
 					return old.map(t => (t.id === tenant.id ? { ...t, ...updated } : t))

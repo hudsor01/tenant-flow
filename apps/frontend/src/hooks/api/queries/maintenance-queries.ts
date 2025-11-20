@@ -131,4 +131,41 @@ export const maintenanceQueries = {
 			queryFn: () => clientFetch<MaintenanceRequest[]>('/api/v1/maintenance/overdue'),
 			...QUERY_CACHE_TIMES.STATS,
 		}),
+
+	/**
+	 * Tenant portal maintenance requests (for current tenant)
+	 *
+	 * @example
+	 * const { data } = useQuery(maintenanceQueries.tenantPortal())
+	 */
+	tenantPortal: () =>
+		queryOptions({
+			queryKey: ['tenant-portal', 'maintenance'],
+			queryFn: async (): Promise<{
+				requests: MaintenanceRequest[]
+				total: number
+				open: number
+				inProgress: number
+				completed: number
+			}> => {
+				const response = await clientFetch<{
+					requests: MaintenanceRequest[]
+					summary: {
+						total: number
+						open: number
+						inProgress: number
+						completed: number
+					}
+				}>('/api/v1/tenant-portal/maintenance')
+
+				return {
+					requests: response.requests,
+					total: response.summary.total,
+					open: response.summary.open,
+					inProgress: response.summary.inProgress,
+					completed: response.summary.completed,
+				}
+			},
+			...QUERY_CACHE_TIMES.LIST,
+		}),
 }

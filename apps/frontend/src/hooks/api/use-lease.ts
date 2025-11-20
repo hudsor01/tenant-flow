@@ -14,7 +14,7 @@ import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
-} from '@repo/shared/types/api-inputs'
+} from '@repo/shared/types/api-contracts'
 import type { Lease, MaintenanceRequest, LeaseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'

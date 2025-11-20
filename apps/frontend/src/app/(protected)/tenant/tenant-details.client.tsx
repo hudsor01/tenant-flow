@@ -21,12 +21,14 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { useMarkTenantAsMovedOut, useTenantWithLease } from '#hooks/api/use-tenant'
+import { useMarkTenantAsMovedOut } from '#hooks/api/use-tenant'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { TenantSkeleton } from './tenant-skeleton'
 
@@ -63,7 +65,7 @@ const validateMoveOutDate = (dateString: string): void => {
 }
 
 export function TenantDetails({ id }: TenantDetailsProps) {
-	const { data: tenant, isLoading, isError } = useTenantWithLease(id)
+	const { data: tenant, isLoading, isError } = useQuery(tenantQueries.withLease(id))
 	const router = useRouter()
 	const markAsMovedOut = useMarkTenantAsMovedOut()
 

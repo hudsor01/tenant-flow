@@ -20,10 +20,10 @@ import { PropertyImageGallery } from './property-image-gallery'
 import { PropertyImageUpload } from './property-image-upload'
 
 import {
-	useCreateProperty,
-	useUpdateProperty,
-	propertiesKeys
-} from '#hooks/api/use-properties'
+	useCreatePropertyMutation,
+	useUpdatePropertyMutation
+} from '#hooks/api/mutations/property-mutations'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 
 
@@ -68,8 +68,8 @@ export function PropertyForm({
 	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'PropertyForm' })
 
-	const createPropertyMutation = useCreateProperty()
-	const updatePropertyMutation = useUpdateProperty()
+	const createPropertyMutation = useCreatePropertyMutation()
+	const updatePropertyMutation = useUpdatePropertyMutation()
 
 	const mutation =
 		mode === 'create' ? createPropertyMutation : updatePropertyMutation
@@ -87,7 +87,7 @@ export function PropertyForm({
 	// Sync server-fetched property into TanStack Query cache (edit mode only)
 	useEffect(() => {
 		if (mode === 'edit' && property) {
-			queryClient.setQueryData(propertiesKeys.detail(property.id), property)
+			queryClient.setQueryData(propertyQueries.detail(property.id).queryKey, property)
 		}
 	}, [mode, property, queryClient])
 

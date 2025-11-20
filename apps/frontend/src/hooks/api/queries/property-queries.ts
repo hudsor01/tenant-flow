@@ -9,6 +9,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Property, PropertyStats, PropertyPerformance } from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase'
 
 /**
  * Property query filters
@@ -103,5 +104,19 @@ export const propertyQueries = {
 			queryKey: [...propertyQueries.all(), 'performance'],
 			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
 			...QUERY_CACHE_TIMES.DETAIL,
+		}),
+
+	/**
+	 * Property images for a specific property
+	 *
+	 * @example
+	 * const { data } = useQuery(propertyQueries.images(property_id))
+	 */
+	images: (property_id: string) =>
+		queryOptions({
+			queryKey: [...propertyQueries.detail(property_id).queryKey, 'images'],
+			queryFn: () => clientFetch<Tables<'property_images'>[]>(`/api/v1/properties/${property_id}/images`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!property_id,
 		}),
 }

@@ -267,31 +267,8 @@ export interface PropertySummary {
 	monthlyRevenue?: number
 }
 
-/**
- * PropertyFormData - Data structure for property forms
- */
-export interface PropertyFormData {
-	name: string
-	address: string
-	city: string
-	state: string
-	postal_code: string
-	property_type: PropertyType
-	description?: string
-	imageUrl?: string
-
-	// Form-specific computed fields
-	totalUnits?: number
-	rent_amount?: number
-	square_feet?: number
-	bedrooms?: number
-	bathrooms?: number
-	yearBuilt?: number
-	manager?: string
-	amenities?: string[]
-	petsAllowed?: boolean
-	parkingSpaces?: number
-}
+// Re-export PropertyFormData from forms.ts
+export type { PropertyFormData } from './forms.js'
 
 /**
  * PropertyStatsExtended - Property statistics for dashboard

@@ -2,7 +2,6 @@
 
 import { FileText, Trash2 } from 'lucide-react'
 import Link from 'next/link'
-import { toast } from 'sonner'
 
 import {
 	AlertDialog,
@@ -26,40 +25,28 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { useLeaseList, useDeleteLease } from '#hooks/api/use-lease'
-import { useAllTenants } from '#hooks/api/use-tenant'
-import { useAllUnits } from '#hooks/api/use-unit'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useQuery } from '@tanstack/react-query'
+import { useDeleteLeaseMutation } from '#hooks/api/mutations/lease-mutations'
+import { leaseQueries } from '#hooks/api/queries/lease-queries'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 import type { Lease } from '@repo/shared/types/core'
-
-const logger = createLogger({ component: 'LeasesTable' })
 
 export function LeasesTable() {
 	const {
-		data: leasesData,
+		data: leases,
 		isLoading,
 		isError
-	} = useLeaseList()
+	} = useQuery(leaseQueries.list())
 
-	const leases = leasesData?.data ?? []
+	const { data: tenants } = useQuery(tenantQueries.list())
 
-	const { data: tenants = [] } = useAllTenants()
+	const { data: units } = useQuery(unitQueries.list())
 
-	const { data: unitsResponse } = useAllUnits()
-	const units = unitsResponse?.data || []
+	const removeLease = useDeleteLeaseMutation()
 
-	const removeLease = useDeleteLease({
-		onSuccess: () => {
-			toast.success('Lease removed successfully')
-		},
-		onError: error => {
-			toast.error('Failed to remove lease')
-			logger.error('Failed to remove lease', undefined, error)
-		}
-	})
-
-	const tenantMap = new Map(tenants.map(tenant => [tenant.id, `${tenant.first_name} ${tenant.last_name}`]))
-	const unitMap = new Map(units.map(unit => [unit.id, unit]))
+	const tenantMap = new Map(tenants?.map(tenant => [tenant.id, `${tenant.first_name} ${tenant.last_name}`]) ?? [])
+	const unitMap = new Map(units?.map(unit => [unit.id, unit]) ?? [])
 
 	if (isLoading) {
 		return (
@@ -109,7 +96,7 @@ export function LeasesTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-					{leases.map((lease: Lease) => {
+					{leases?.map((lease: Lease) => {
 						const tenantName = lease?.primary_tenant_id ?? ''
 							? tenantMap.get(lease?.primary_tenant_id ?? '') ?? 'Unassigned'
 							: 'Unassigned'

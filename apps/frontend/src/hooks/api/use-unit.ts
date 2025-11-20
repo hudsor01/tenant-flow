@@ -23,7 +23,7 @@ import {
 import type {
 	CreateUnitInput,
 	UpdateUnitInput
-} from '@repo/shared/types/api-inputs'
+} from '@repo/shared/types/api-contracts'
 import type { Unit, UnitWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { unitQueries, type UnitFilters } from './queries/unit-queries'
