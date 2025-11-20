@@ -23,7 +23,7 @@ type UserProfileData = Pick<Database['public']['Tables']['users']['Row'], 'id' |
 
 export function useUserProfile() {
 	const supabase = getSupabaseClientInstance()
-	const { user_id, isAuthenticated, user } = useCurrentUser()
+	const { user_id, isAuthenticated, user, session } = useCurrentUser()
 
 	return useQuery<UserProfileData | null>({
 		queryKey: userProfileKeys.profile(user_id!, user),
@@ -59,9 +59,9 @@ export function useUserProfile() {
 			}
 
 			if (error) throw error
-		return data
+			return data
 		},
-		enabled: isAuthenticated && !!user_id,
+		enabled: isAuthenticated && !!user_id && !!session,
 		staleTime: 5 * 60 * 1000, // 5 minutes
 		retry: 1
 	})
