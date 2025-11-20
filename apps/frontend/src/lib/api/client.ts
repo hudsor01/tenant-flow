@@ -8,7 +8,7 @@
  * so it MUST NOT call browser-only APIs like toast()
  */
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
-import { API_BASE_URL } from '#lib/api-config'
+import { getApiBaseUrl } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import { ApiError, ApiErrorCode } from './api-error'
@@ -206,7 +206,8 @@ export async function clientFetch<T>(
 	let response: Response
 
 	try {
-		response = await fetch(`${API_BASE_URL}${endpoint}`, finalOptions)
+		const apiBaseUrl = getApiBaseUrl()
+		response = await fetch(`${apiBaseUrl}${endpoint}`, finalOptions)
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'Network request failed'
