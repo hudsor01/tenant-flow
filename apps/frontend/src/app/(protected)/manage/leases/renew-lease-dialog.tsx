@@ -88,7 +88,7 @@ export function RenewLeaseDialog({
 		try {
 			await renewLease.mutateAsync({
 				id: lease.id,
-				newEndDate
+				data: { end_date: newEndDate }
 			})
 			toast.success('Lease renewed successfully')
 			onSuccess?.()

@@ -37,15 +37,15 @@ const TEST_IMAGE_FILE = new File(['test'], 'test-image.jpg', {
 })
 
 // Test property data factory
-const createTestPropertyData = (): CreatePropertyRequest => ({
+const createTestPropertyData = (): CreatePropertyRequest & { property_owner_id: string } => ({
 	name: `Test Property ${Date.now()}`,
 	address_line1: '123 Test St',
 	city: 'Test City',
 	state: 'TS',
 	postal_code: '12345',
 	property_type: 'SINGLE_FAMILY',
-	description: 'Test property for image upload tests'
-	// NOTE: owner_id and status removed - backend derives from auth
+	description: 'Test property for image upload tests',
+	property_owner_id: 'test-owner-id'
 })
 
 // Test wrapper with QueryClient
@@ -146,7 +146,7 @@ describe('Property Image Upload Integration', () => {
 		let uploadedImageId: string
 
 		// Step 1: Upload image - direct await instead of waitFor for mutations (prevents 30s timeouts)
-		const { result: uploadResult } = renderHook(() => useUploadPropertyImage(), { wrapper })
+		const { result: uploadResult } = renderHook(() => useUploadPropertyImageMutation(), { wrapper })
 		const uploaded = await uploadResult.current.mutateAsync({
 		property_id: testproperty_id,
 		file: TEST_IMAGE_FILE,
@@ -203,7 +203,7 @@ describe('Property Image Upload Integration', () => {
 	 */
 	it('should handle different image sizes', async () => {
 		const wrapper = createWrapper()
-		const { result } = renderHook(() => useUploadPropertyImage(), { wrapper })
+		const { result } = renderHook(() => useUploadPropertyImageMutation(), { wrapper })
 
 		// Small image (100KB)
 		const smallFile = new File([new ArrayBuffer(100 * 1024)], 'small.jpg', {
@@ -255,7 +255,7 @@ describe('Property Image Upload Integration', () => {
 	 */
 	it('should reject files over 5MB', async () => {
 		const wrapper = createWrapper()
-		const { result } = renderHook(() => useUploadPropertyImage(), { wrapper })
+		const { result } = renderHook(() => useUploadPropertyImageMutation(), { wrapper })
 
 		// 6MB file (over limit)
 		const oversizedFile = new File(
