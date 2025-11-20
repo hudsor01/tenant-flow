@@ -17,18 +17,19 @@ import {
 import { Button } from '#components/ui/button'
 import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
 
-import { useLeaseList } from '#hooks/api/use-lease'
+import { useCreateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import type { Lease } from '@repo/shared/types/core'
 import { FileText, Search, Plus } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { toast } from 'sonner'
 import { useForm } from '@tanstack/react-form'
-import { useCreateLease } from '#hooks/api/use-lease'
-import { useTenantList } from '#hooks/api/use-tenant'
-import { useUnitList } from '#hooks/api/use-unit'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { leaseQueries } from '#hooks/api/queries/lease-queries'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { useState } from 'react'
 
-import type { CreateLeaseInput } from '@repo/shared/types/api-inputs'
+import type { CreateLeaseInput } from '@repo/shared/types/api-contracts'
 
 const ITEMS_PER_PAGE = 25
 
@@ -37,10 +38,13 @@ type LeaseStatus = NonNullable<CreateLeaseInput['lease_status']>
 // Inline create dialog using base component
 function LeaseCreateDialog() {
 	const [open, setOpen] = useState(false)
-	useTenantList(1, 100)
-	useUnitList({ status: 'VACANT', limit: 100 })
+	const queryClient = useQueryClient()
 
-	const createLeaseMutation = useCreateLease()
+	// Prefetch data for create dialog
+	queryClient.prefetchQuery(tenantQueries.list({ limit: 100 }))
+	queryClient.prefetchQuery(unitQueries.list({ status: 'VACANT', limit: 100 }))
+
+	const createLeaseMutation = useCreateLeaseMutation()
 
 	const form = useForm({
 		defaultValues: {
@@ -180,10 +184,10 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	if (status !== 'all')
 		params.status = status as 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
 
-	const { data: leasesResponse, isLoading, error } = useLeaseList(params)
+	const { data: leasesResponse, isLoading, error } = useQuery(leaseQueries.list(params))
 
-	const leases = leasesResponse?.data || initialLeases
-	const total = leasesResponse?.total || initialTotal
+	const leases = leasesResponse || initialLeases
+	const total = leasesResponse?.length || initialTotal
 
 
 

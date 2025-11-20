@@ -28,14 +28,13 @@ import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import { AppConfigService } from '../../config/app-config.service'
-import { CONFIG_DEFAULTS } from '../../config/config.constants'
 import { createThrottleDefaults } from '../../config/throttle.config'
 
 const STRIPE_WEBHOOK_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'WEBHOOK_THROTTLE_TTL',
 	envLimitKey: 'WEBHOOK_THROTTLE_LIMIT',
-	defaultTtl: Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_TTL),
-	defaultLimit: Number(CONFIG_DEFAULTS.WEBHOOK_THROTTLE_LIMIT)
+	defaultTtl: 60000,
+	defaultLimit: 30
 })
 
 @Controller('webhooks/stripe')

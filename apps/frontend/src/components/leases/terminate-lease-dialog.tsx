@@ -12,7 +12,7 @@ import {
 } from '#components/ui/crud-dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { Textarea } from '#components/ui/textarea'
-import { useTerminateLease } from '#hooks/api/use-lease'
+import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { useModalStore } from '#stores/modal-store'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useState } from 'react'
@@ -26,7 +26,7 @@ export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 	const { closeModal } = useModalStore()
 	const [terminationReason, setTerminationReason] = useState('')
 
-	const terminateLeaseMutation = useTerminateLease()
+	const terminateLeaseMutation = useTerminateLeaseMutation()
 
 	const modalId = `terminate-lease-${lease_id}`
 

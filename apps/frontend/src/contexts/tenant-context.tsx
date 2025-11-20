@@ -1,8 +1,8 @@
 'use client'
 
-import { tenantKeys, useTenantWithLeaseSuspense } from '#hooks/api/use-tenant'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { createContext, use, useCallback, useMemo, type ReactNode } from 'react'
 
 /**
@@ -44,17 +44,17 @@ export function TenantProvider({ children, tenant_id }: TenantProviderProps) {
 	const queryClient = useQueryClient()
 
 	// Use Suspense query - automatically suspends during loading
-	const { data: tenant } = useTenantWithLeaseSuspense(tenant_id)
+	const { data: tenant } = useSuspenseQuery(tenantQueries.withLease(tenant_id))
 
 	const refresh = useCallback(async () => {
 		await queryClient.refetchQueries({
-			queryKey: tenantKeys.withLease(tenant_id)
+			queryKey: tenantQueries.withLease(tenant_id).queryKey
 		})
 	}, [queryClient, tenant_id])
 
 	const invalidate = useCallback(async () => {
 		await queryClient.invalidateQueries({
-			queryKey: tenantKeys.withLease(tenant_id)
+			queryKey: tenantQueries.withLease(tenant_id).queryKey
 		})
 	}, [queryClient, tenant_id])
 

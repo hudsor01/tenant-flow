@@ -1,87 +1,152 @@
-export type TenantFlowEvent =
-	// Authentication Events
-	| 'user_signed_up'
-	| 'user_signed_in'
-	| 'user_signed_out'
-	| 'user_login_failed'
-	| 'user_signup_failed'
-	| 'user_oauth_failed'
-	| 'user_oauth_initiated'
-	| 'password_reset_requested'
-	| 'password_reset_completed'
-	| 'password_reset_failed'
-	| 'password_updated'
-	| 'profile_updated'
+/**
+ * Analytics Types - Common interfaces for analytics across all domains
+ * Consolidates shared analytics patterns used by property, occupancy, financial, and other analytics modules
+ */
 
-	// Property Management Events
-	| 'property_created'
-	| 'property_updated'
-	| 'property_deleted'
-	| 'property_viewed'
-
-	// Unit Management Events
-	| 'unit_created'
-	| 'unit_updated'
-	| 'unit_deleted'
-	| 'unit_viewed'
-
-	// Tenant Management Events
-	| 'tenant_created'
-	| 'tenant_updated'
-	| 'tenant_deleted'
-	| 'tenant_viewed'
-	| 'tenant_invited'
-
-	// Lease Management Events
-	| 'lease_created'
-	| 'lease_updated'
-	| 'lease_renewed'
-	| 'lease_terminated'
-	| 'lease_viewed'
-	| 'lease_document_uploaded'
-
-	// Maintenance Events
-	| 'maintenance_request_created'
-	| 'maintenance_request_updated'
-	| 'maintenance_request_completed'
-	| 'maintenance_request_viewed'
-
-	// Payment Events
-	| 'payment_initiated'
-	| 'payment_completed'
-	| 'payment_failed'
-	| 'subscription_upgraded'
-	| 'subscription_downgraded'
-	| 'subscription_cancelled'
-
-	// Feature Usage Events
-	| 'dashboard_viewed'
-	| 'report_generated'
-	| 'document_uploaded'
-	| 'notification_sent'
-	| 'settings_updated'
-
-	// Form Events
-	| 'form_viewed'
-	| 'form_submitted'
-	| 'form_validation_failed'
-	| 'form_submission_failed'
-
-	// Error Events
-	| 'error_occurred'
-	| 'api_error'
-	| 'validation_error'
-
-	// Security Events
-	| 'security_rate_limit_triggered'
-	| 'security_alert_distributed_attack'
-	| 'security_alert_credential_stuffing'
-	| 'security_rate_limit_stats'
-
-export interface PropertyPerformanceData {
-  name: string
-  occupancy: number
-  revenue: number
-  units: number
-  maintenance: number
+// Base analytics data point
+export interface AnalyticsDataPoint {
+	label: string
+	value: number
+	timestamp?: string
+	metadata?: Record<string, unknown>
 }
+
+// Time-series analytics
+export interface TimeSeriesDataPoint {
+	date: string
+	value: number
+	label?: string
+}
+
+// Analytics trend indicator
+export interface MetricTrend {
+	current: number
+	previous: number | null
+	change: number // Absolute change
+	percentChange: number // Percentage change
+}
+
+// Common analytics metric summary
+export interface MetricSummary {
+	label: string
+	value: number
+	trend?: MetricTrend
+	comparison?: {
+		period: string
+		percentChange: number
+	}
+}
+
+// Common analytics breakdown row
+export interface AnalyticsBreakdownRow {
+	label: string
+	value: number
+	percentage?: number | null
+	change?: number | null
+	trend?: 'up' | 'down' | 'stable'
+}
+
+// Analytics response with breakdown
+export interface AnalyticsBreakdown {
+	items: AnalyticsBreakdownRow[]
+	total: number
+	summary?: MetricSummary
+}
+
+// Analytics time-series response
+export interface TimeSeriesResponse {
+	dataPoints: TimeSeriesDataPoint[]
+	summary: {
+		min: number
+		max: number
+		average: number
+		total: number
+	}
+	period: {
+		start: string
+		end: string
+	}
+}
+
+// Analytics pagination response
+export interface AnalyticsPaginatedResponse<T> {
+	items: T[]
+	total: number
+	page: number
+	pageSize: number
+	hasMore: boolean
+}
+
+// Analytics chart data structure
+export interface ChartDataPoint {
+	x: string | number
+	y: number
+	label?: string
+	metadata?: Record<string, unknown>
+}
+
+// Analytics event/activity
+export interface AnalyticsEvent {
+	eventType: string
+	entityType: string
+	entityId: string
+	userId?: string
+	timestamp: string
+	metadata?: Record<string, unknown>
+}
+
+// Analytics filter options
+export interface AnalyticsFilterOptions {
+	dateFrom?: string
+	dateTo?: string
+	period?: 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
+	limit?: number
+	offset?: number
+	sortBy?: string
+	sortOrder?: 'asc' | 'desc'
+}
+
+// Analytics aggregation options
+export interface AggregationOptions {
+	granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	metric: string
+	groupBy?: string
+}
+
+// Common analytics page response structure
+export interface AnalyticsPageResponse<T extends Record<string, unknown>> {
+	metrics: T
+	timestamp: string
+	period?: {
+		start: string
+		end: string
+	}
+}
+
+// Comparison metrics
+export interface ComparisonMetric {
+	current: number
+	previous: number
+	change: number
+	percentChange: number
+	trend: 'up' | 'down' | 'stable'
+}
+
+// Analytics summary snapshot
+export interface AnalyticsSummary {
+	totalCount: number
+	activeCount: number
+	inactiveCount: number
+	changePercent: number
+	trend: 'up' | 'down' | 'stable'
+}
+
+// Re-export from domain-specific analytics modules
+export type { OccupancyMetricSummary } from './occupancy-analytics.js'
+export type { FinancialMetricSummary } from './financial-analytics.js'
+export type {
+	PropertyPerformanceEntry,
+	PropertyPerformanceEntry as PropertyPerformanceData,
+	PropertyPerformanceSummary,
+	VisitorAnalyticsResponse
+} from './property-analytics.js'

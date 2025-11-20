@@ -27,36 +27,14 @@ import { TenantsService } from '../tenants/tenants.service'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { CONFIG_DEFAULTS } from '../../config/config.constants'
 import { createThrottleDefaults } from '../../config/throttle.config'
-
-interface SupabaseAuthWebhookPayload {
-	type: 'user.created' | 'user.updated' | 'user.deleted'
-	table: string
-	record: {
-		id: string
-		email: string
-		email_confirmed_at?: string
-		confirmed_at?: string
-		raw_user_meta_data?: {
-			tenant_id?: string
-			lease_id?: string
-			property_id?: string
-			unit_id?: string
-			first_name?: string
-			last_name?: string
-			[key: string]: unknown
-		}
-	}
-	schema: string
-	old_record: null | Record<string, unknown>
-}
+import type { SupabaseAuthWebhookPayload } from '../../types/webhooks'
 
 const SUPABASE_AUTH_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'SUPABASE_AUTH_THROTTLE_TTL',
 	envLimitKey: 'SUPABASE_AUTH_THROTTLE_LIMIT',
-	defaultTtl: Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_TTL),
-	defaultLimit: Number(CONFIG_DEFAULTS.SUPABASE_AUTH_THROTTLE_LIMIT)
+	defaultTtl: 60000,
+	defaultLimit: 30
 })
 
 @Controller('webhooks/auth')
