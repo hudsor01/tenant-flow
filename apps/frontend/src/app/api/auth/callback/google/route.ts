@@ -15,6 +15,7 @@ import {
 	SB_URL,
 	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 export async function GET(request: NextRequest) {
 	const { searchParams, origin } = new URL(request.url)
@@ -38,11 +39,17 @@ export async function GET(request: NextRequest) {
 		{
 			cookies: {
 				getAll: () => cookieStore.getAll(),
-				setAll: (cookiesToSet) => {
-					cookiesToSet.forEach(({ name, value, options }) => {
-						cookieStore.set(name, value, options)
-					})
-				}
+				setAll: cookiesToSet =>
+					applySupabaseCookies(
+						(name, value, options) => {
+							if (options) {
+								cookieStore.set(name, value, options)
+							} else {
+								cookieStore.set(name, value)
+							}
+						},
+						cookiesToSet
+					)
 			}
 		}
 	)

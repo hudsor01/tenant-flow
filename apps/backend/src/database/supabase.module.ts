@@ -38,8 +38,12 @@ export class SupabaseModule {
 						)
 
 						return createClient(url, key, {
-							auth: { persistSession: false, autoRefreshToken: false }
-						})
+						auth: {
+							persistSession: false,
+							autoRefreshToken: false,
+							detectSessionInUrl: false
+						}
+					})
 					},
 					inject: [AppConfigService]
 				},

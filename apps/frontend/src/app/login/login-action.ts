@@ -8,6 +8,7 @@ import {
 } from '@repo/shared/config/supabase'
 import { cookies } from 'next/headers'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 const logger = createLogger({ component: 'LoginAction' })
 
@@ -21,9 +22,16 @@ export async function loginWithPassword(email: string, password: string) {
 				cookies: {
 					getAll: () => cookieStore.getAll(),
 					setAll: cookiesToSet => {
-						cookiesToSet.forEach(({ name, value, options }) => {
+						applySupabaseCookies(
+					(name, value, options) => {
+						if (options) {
 							cookieStore.set(name, value, options)
-						})
+						} else {
+							cookieStore.set(name, value)
+						}
+					},
+					cookiesToSet
+				)
 					}
 				}
 			}
