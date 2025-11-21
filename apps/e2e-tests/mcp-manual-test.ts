@@ -9,6 +9,8 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 const logger = createLogger({ component: 'ManualMCPTest' })
 
 async function main() {
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+
 	const browser = await chromium.launch({
 		headless: false, // Show browser like MCP does
 		slowMo: 500 // Slow down actions for visibility
@@ -22,7 +24,7 @@ async function main() {
 
 	try {
 		logger.info(' Step 1: Navigate to login page')
-		await page.goto('http://localhost:3000/login', {
+		await page.goto(`${baseUrl}/login`, {
 			waitUntil: 'networkidle'
 		})
 
@@ -75,7 +77,7 @@ async function main() {
 		logger.info('Session info', { metadata: storageKeys })
 
 		logger.info(' Step 6: Navigate to /manage/tenants')
-		await page.goto('http://localhost:3000/manage/tenants', {
+		await page.goto(`${baseUrl}/manage/tenants`, {
 			waitUntil: 'networkidle'
 		})
 
