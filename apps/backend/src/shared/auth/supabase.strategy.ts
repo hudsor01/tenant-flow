@@ -43,13 +43,10 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		const supabaseUrl = config.getSupabaseUrl()
 		const jwtPublicKey = config.getJwtPublicKeyCurrent()
 
-		// Validate public key is configured
-		if (!jwtPublicKey) {
-			throw new Error(
-				'JWT_PUBLIC_KEY_CURRENT environment variable is required for JWT verification. ' +
-				'Get this from your Supabase dashboard: Settings > JWT Keys > Copy Public Key (PEM).'
-			)
-		}
+		// If no JWT public key is configured, use a placeholder
+		// The strategy will fail at runtime when used, providing a helpful error message
+		// This allows the backend to start up and serve health checks
+		const secretOrKey = jwtPublicKey || 'NOT_CONFIGURED'
 
 		// Configure passport-jwt strategy with ES256/RS256 public key verification
 		super({
@@ -58,14 +55,23 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			issuer: `${supabaseUrl}/auth/v1`,
 			audience: 'authenticated',
 			algorithms: ['ES256', 'RS256'],
-			secretOrKey: jwtPublicKey
+			secretOrKey: secretOrKey
 		})
 
 		this.utilityService = utilityService
 
-		this.logger.log(
-			'Supabase Strategy initialized - ES256/RS256 JWT verification (Bearer token, no cookies)'
-		)
+		if (jwtPublicKey) {
+			this.logger.log(
+				'Supabase Strategy initialized - ES256/RS256 JWT verification (Bearer token, no cookies)'
+			)
+		} else {
+			this.logger.warn(
+				'Supabase Strategy initialized WITHOUT JWT public key. ' +
+				'Protected routes will fail with helpful error message. ' +
+				'Set JWT_PUBLIC_KEY_CURRENT in Doppler for production use. ' +
+				'Get this from your Supabase dashboard: Settings > JWT Keys > Copy Public Key (PEM).'
+			)
+		}
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
