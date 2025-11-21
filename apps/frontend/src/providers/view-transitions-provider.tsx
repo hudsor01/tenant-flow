@@ -11,6 +11,7 @@ interface ViewTransitionsProviderProps {
 export function ViewTransitionsProvider({
 	children
 }: ViewTransitionsProviderProps) {
+	const router = useRouter()
 	const [isPending, startTransition] = useTransition()
 
 	// Wrap navigation with view transitions
@@ -30,9 +31,9 @@ export function ViewTransitionsProvider({
 			// Prevent default navigation
 			event.preventDefault()
 
-			// Start view transition if supported
+			// Start view transition if supported - use Next.js router for client-side nav
 			const navigate = () => {
-				window.location.href = link.href
+				router.push(link.href)
 			}
 
 			const { startViewTransition } = document
@@ -47,7 +48,7 @@ export function ViewTransitionsProvider({
 
 		safeDocumentEvents.addEventListener('click', handleClick)
 		return () => safeDocumentEvents.removeEventListener('click', handleClick)
-	}, [startTransition])
+	}, [router, startTransition])
 
 	return (
 		<>
