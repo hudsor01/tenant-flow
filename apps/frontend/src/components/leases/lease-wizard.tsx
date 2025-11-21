@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '#components/ui/button'
 import { Stepper, type Step } from '#components/ui/stepper'
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react'
-import { cn } from '@repo/shared/utils/cn'
+import { cn } from '#lib/utils'
 
 const WIZARD_STEPS: Step[] = [
 	{

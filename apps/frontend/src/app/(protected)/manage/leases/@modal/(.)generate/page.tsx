@@ -1,6 +1,6 @@
 'use client'
 
-import { LeaseGenerationForm } from '#components/leases/lease-generation-form'
+import { LeaseGenerationFormWizard } from '#components/leases/lease-generation-form-wizard'
 import { RouteModal } from '#components/ui/route-modal'
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
@@ -47,17 +47,16 @@ export default function GenerateLeaseModal() {
 	}
 
 	return (
-		<RouteModal className="max-w-4xl max-h-[90vh] overflow-y-auto">
-			<div className="space-y-6 p-6">
+		<RouteModal className="max-w-5xl max-h-[90vh] overflow-y-auto">
+			<div className="space-y-6 p-8">
 				<div className="space-y-2">
 					<h2 className="text-2xl font-bold">Generate Texas Lease Agreement</h2>
 					<p className="text-muted-foreground">
-						Fill out the form below to generate a Texas Residential Lease
-						Agreement PDF
+						Follow the guided steps below to generate your Texas Residential Lease Agreement PDF
 					</p>
 				</div>
 
-				<LeaseGenerationForm
+				<LeaseGenerationFormWizard
 					property_id={property_id}
 					unit_id={unit_id}
 					tenant_id={tenant_id}
