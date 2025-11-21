@@ -31,6 +31,11 @@ export const maintenanceRequestInputSchema = z.object({
   unit_id: uuidSchema,
   tenant_id: uuidSchema,
 
+  title: nonEmptyStringSchema
+    .min(3, 'Title must be at least 3 characters')
+    .max(100, 'Title cannot exceed 100 characters')
+    .default('New Maintenance Request'),
+
   description: nonEmptyStringSchema
     .min(10, 'Description must be at least 10 characters')
     .max(VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH, `Description cannot exceed ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters`),
@@ -165,17 +170,12 @@ export type MaintenanceCompletion = z.infer<typeof maintenanceCompletionSchema>
 export type MaintenanceInspection = z.infer<typeof maintenanceInspectionSchema>
 
 // Frontend-specific form schemas
-// TODO: Add title field to database and validation schema
-// Currently, the frontend form collects a "title" field but it's stored as a workaround in notes: "[Title] {title}"
-// Database migration design:
-//   - Add: title TEXT NOT NULL DEFAULT 'New Maintenance Request' with CHECK (length(trim(title)) > 0)
-//   - No enum types needed, simple string field
-//   - Add to maintenanceRequestInputSchema: title: nonEmptyStringSchema.min(3).max(100)
-// After migration, remove [Title] prefix workaround from use-maintenance-form.ts
 export const maintenanceRequestFormSchema = z.object({
   unit_id: requiredString,
  tenant_id: requiredString,
-  title: z.string().optional(), // Collected by form, stored in notes until DB migration
+  title: nonEmptyStringSchema
+    .min(3, 'Title must be at least 3 characters')
+    .max(100, 'Title cannot exceed 100 characters'),
   description: requiredString,
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   requested_by: z.string().optional(),
@@ -192,6 +192,7 @@ export const maintenanceAssignmentFormSchema = z.object({
 export const transformMaintenanceRequestFormData = (data: MaintenanceRequestFormData) => ({
   unit_id: data.unit_id,
   tenant_id: data.tenant_id,
+  title: data.title,
   description: data.description,
   priority: data.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
   requested_by: data.requested_by || undefined,
