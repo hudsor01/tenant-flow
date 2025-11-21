@@ -12,6 +12,7 @@ import type { User } from '@supabase/supabase-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 const logger = createLogger({ component: 'AuthMiddleware' })
 
@@ -47,15 +48,23 @@ export async function updateSession(request: NextRequest) {
 					return request.cookies.getAll()
 				},
 				setAll(cookiesToSet) {
-					cookiesToSet.forEach(({ name, value }) =>
-						request.cookies.set(name, value)
-					)
+					applySupabaseCookies(
+				(name: string, value: string) => request.cookies.set(name, value),
+				cookiesToSet
+			)
 					supabaseResponse = NextResponse.next({
 						request
 					})
-					cookiesToSet.forEach(({ name, value, options }) =>
+					applySupabaseCookies(
+				(name, value, options) => {
+					if (options) {
 						supabaseResponse.cookies.set(name, value, options)
-					)
+					} else {
+						supabaseResponse.cookies.set(name, value)
+					}
+				},
+				cookiesToSet
+			)
 				}
 			}
 		}
@@ -68,6 +77,21 @@ export async function updateSession(request: NextRequest) {
 	let user: User | null = null
 
 	try {
+		// Refresh/validate session proactively to avoid stale JWTs
+		const {
+			data: { session },
+			error: sessionError
+		} = await supabase.auth.getSession()
+
+		if (sessionError) {
+			logger.warn('[SESSION_REFRESH_ERROR]', { message: sessionError.message })
+		} else {
+			logger.debug('[SESSION_REFRESH]', {
+				hasSession: !!session,
+				expiresAt: session?.expires_at
+			})
+		}
+
 		// Get user from Supabase (server-side validation)
 		const {
 			data: { user: authUser },

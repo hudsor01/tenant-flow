@@ -6,7 +6,6 @@ import {
 	Logger
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
-import { SupabaseService } from '../../../database/supabase.service'
 
 /**
  * OwnerAuthGuard
@@ -16,7 +15,12 @@ import { SupabaseService } from '../../../database/supabase.service'
  *
  * Prerequisites:
  * - User must be authenticated (JWT token in request)
- * - User must have user_type 'OWNER' in the database
+ * - User must have user_type 'property_owner' in JWT app_metadata
+ *
+ * Security:
+ * - Reads user_type from JWT token (set via Supabase Custom Access Token Hook)
+ * - No database queries - reduces latency and eliminates RLS permission issues
+ * - JWT is cryptographically signed by Supabase - cannot be tampered with
  *
  * Usage:
  * @UseGuards(OwnerAuthGuard)
@@ -24,8 +28,6 @@ import { SupabaseService } from '../../../database/supabase.service'
 @Injectable()
 export class OwnerAuthGuard implements CanActivate {
 	private readonly logger = new Logger(OwnerAuthGuard.name)
-
-	constructor(private readonly supabase: SupabaseService) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
@@ -38,29 +40,20 @@ export class OwnerAuthGuard implements CanActivate {
 
 		const user_id = request.user.id
 
-		// Get admin client for user_type verification
-		const client = this.supabase.getAdminClient()
+		// Get user_type from JWT token (set via Supabase Custom Access Token Hook)
+		// No database query needed - already verified and signed by Supabase
+		const userType = request.user.app_metadata?.user_type
 
-		// Fetch user user_type from database
-		const { data: user, error } = await client
-			.from('users')
-			.select('user_type')
-			.eq('id', user_id)
-			.single()
-
-		if (error || !user) {
-			this.logger.error('Failed to fetch user user_type', {
-				user_id,
-				error: error?.message
-			})
+		if (!userType) {
+			this.logger.error('Missing user_type in JWT token', { user_id })
 			throw new UnauthorizedException('Unable to verify user permissions')
 		}
 
-		// Verify OWNER user_type
-		if (user.user_type !== 'OWNER') {
+		// Verify property_owner user_type (matches database constraint)
+		if (userType !== 'property_owner') {
 			this.logger.warn('Non-owner attempted to access owner dashboard', {
 				user_id,
-				user_type: user.user_type
+				user_type: userType
 			})
 			throw new UnauthorizedException(
 				'Owner access required. Please contact support if you need owner privileges.'

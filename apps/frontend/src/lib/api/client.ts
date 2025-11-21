@@ -100,29 +100,24 @@ export async function getAuthHeaders(
 			}
 		} else {
 			// Session exists but user validation failed - token might be expired or revoked
-			logger.warn('Session token invalid during validation', {
-				metadata: {
-					hasSession: !!session,
-					hasUser: !!user,
-					userError: userError?.message,
-					requireAuth
-				}
-			})
-
-			if (requireAuth) {
-				throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
-			}
+				logger.warn('Session token invalid during validation, falling back to cookie auth', {
+					metadata: {
+						hasSession: !!session,
+						hasUser: !!user,
+						userError: userError?.message,
+						requireAuth
+					}
+				})
 		}
 	} else if (requireAuth) {
-		// No session found
-		logger.warn('No authentication session found', {
+		// No session found - fall back to cookie-based auth
+		logger.warn('No authentication session found, falling back to cookie auth', {
 			metadata: {
 				hasSession: !!session,
 				sessionError: sessionError?.message,
 				requireAuth
 			}
 		})
-		throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
 	} else {
 		// Log warning for optional auth endpoints
 		logger.warn('No valid session found for API request', {
@@ -207,7 +202,10 @@ export async function clientFetch<T>(
 
 	try {
 		const apiBaseUrl = getApiBaseUrl()
-		response = await fetch(`${apiBaseUrl}${endpoint}`, finalOptions)
+		response = await fetch(`${apiBaseUrl}${endpoint}`, {
+			...finalOptions,
+			credentials: finalOptions.credentials ?? 'include'
+		})
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'Network request failed'
