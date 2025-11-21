@@ -551,8 +551,8 @@ export class UnitsService {
 	}
 
 	/**
-	 * Get available units for a property via Supabase Functions
-	 * // TODO: FIX - Auth uses claims and headers only: Uses getUserClient(token) - RLS automatically filters to user's properties
+	 * Get available units for a property (RLS-enforced query)
+	 * Uses getUserClient(token) - RLS automatically filters to user's properties only
 	 */
 	async getAvailable(token: string, property_id: string): Promise<Unit[]> {
 		try {

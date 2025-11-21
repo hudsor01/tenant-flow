@@ -79,6 +79,7 @@ describe('MaintenanceController', () => {
 		const created_ata = {
 			unit_id: randomUUID(),
 			tenant_id: randomUUID(),
+			title: 'Repair Request',
 			description: 'Fix',
 			priority: 'MEDIUM' as const,
 			category: 'GENERAL' as const,
