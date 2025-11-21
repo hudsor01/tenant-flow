@@ -1,4 +1,3 @@
-import type { SubStatus } from '@repo/shared/constants/status-types'
 /**
  * Utility Service - Direct Supabase Implementation
 
@@ -242,7 +241,7 @@ export class UtilityService {
 			.getAdminClient()
 			.from('users')
 			.select('id')
-			.eq('supabaseId', supabaseId)
+			.eq('id', supabaseId)
 			.single()
 
 		// Handle database errors separately from missing user
@@ -324,7 +323,7 @@ export class UtilityService {
 				return await this.getUserIdFromSupabaseId(authUser.id)
 		} catch (error) {
 			// User doesn't exist - proceed with atomic upsert to prevent race conditions
-			if (error instanceof NotFoundException) {
+			if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
 				this.logger.log('Creating new user record for OAuth user', {
 					supabaseId: authUser.id,
 					email: authUser.email
@@ -358,15 +357,13 @@ export class UtilityService {
 					.getAdminClient()
 					.from('users')
 					.upsert({
-						supabaseId: authUser.id,
-						email: authUser.email,
-						full_name: fullName || null,
-						avatar_url: avatarUrl || null,
-						user_type: resolvedUserType,
-						profileComplete: false,
-						subscription_status: 'trialing' as SubStatus // New users start with trial
-					} as Database['public']['Tables']['users']['Insert'], {
-						onConflict: 'supabaseId', // Use supabaseId as conflict key
+					id: authUser.id,
+					email: authUser.email,
+					full_name: fullName || null,
+					avatar_url: avatarUrl || null,
+					user_type: resolvedUserType
+				} as Database['public']['Tables']['users']['Insert'], {
+					onConflict: 'id', // Use supabaseId as conflict key
 					})
 					.select('id')
 					.single()

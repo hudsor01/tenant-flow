@@ -153,12 +153,12 @@ export async function authenticateAs(
 		// Check if a user already exists with this auth ID as their primary key
 		const { data: existingUser } = await serviceClient
 			.from('users')
-			.select('id, supabaseId')
+			.select('id')
 			.eq('id', authData.data.user.id)
 			.maybeSingle()
 
 		if (!existingUser) {
-			// Create new user with auth ID as both id and supabaseId
+			// Create new user with auth ID as id
 			const { error: userError } = await serviceClient.from('users').insert({
 				id: authData.data.user.id,
 				email: authData.data.user.email!,

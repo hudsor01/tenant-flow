@@ -1,8 +1,7 @@
 import {
-	MARKETING_REDIRECT_ROUTES,
-	PAYMENT_EXEMPT_ROUTES,
 	PROTECTED_ROUTE_PREFIXES,
-	PUBLIC_AUTH_ROUTES
+	PUBLIC_AUTH_ROUTES,
+	PAYMENT_EXEMPT_ROUTES
 } from '#lib/auth-constants'
 import {
 	SUPABASE_URL,
@@ -108,7 +107,7 @@ export async function updateSession(request: NextRequest) {
 	const isAuthRoute = PUBLIC_AUTH_ROUTES.includes(
 		pathname as (typeof PUBLIC_AUTH_ROUTES)[number]
 	)
-	const isPaymentExempt = PAYMENT_EXEMPT_ROUTES.some(
+	const _isPaymentExempt = PAYMENT_EXEMPT_ROUTES.some(
 		route => pathname === route || pathname.startsWith(route)
 	)
 
@@ -125,53 +124,7 @@ export async function updateSession(request: NextRequest) {
 		return NextResponse.redirect(url)
 	}
 
-	// Redirect authenticated users from marketing pages to their dashboard
-	// Marketing pages show "Get Started" CTAs which don't make sense for logged-in users
-	const isMarketingRedirect = MARKETING_REDIRECT_ROUTES.includes(
-		pathname as (typeof MARKETING_REDIRECT_ROUTES)[number]
-	)
-
-	// PERFORMANCE OPTIMIZATION: Use user metadata instead of database queries
-	// Custom claims are added via Auth Hook (see migration: 20251116_fix_auth_hook_for_current_schema.sql)
-	// This eliminates database calls on every request per Next.js middleware best practices
-	let user_type: string | null = null
-	let stripe_customer_id: string | null = null
-
-	if (isAuthenticated && user) {
-		user_type = user.user_metadata?.user_type ?? null
-		stripe_customer_id = user.user_metadata?.stripe_customer_id ?? null
-	}
-
-	// Early redirect for authenticated users on marketing pages
-	// Do this before payment gate to avoid showing pricing page to users who just need dashboard
-	if (isAuthenticated && isMarketingRedirect && user_type) {
-		logger.info('[REDIRECT_MARKETING_PAGE]', {
-			fromPath: pathname,
-			toPath: user_type === 'TENANT' ? '/tenant' : '/manage',
-			userType: user_type
-		})
-		const url = request.nextUrl.clone()
-		const destination = user_type === 'TENANT' ? '/tenant' : '/manage'
-		url.pathname = destination
-		return NextResponse.redirect(url)
-	}
-
-	// Payment gate: Check if authenticated user has Stripe customer ID
-	// TENANT user_type doesn't need payment (they're invited by OWNER)
-	// Skip for payment-exempt routes (pricing, stripe checkout, etc.)
-	if (isAuthenticated && !isPaymentExempt && user_type && user_type !== 'TENANT') {
-		// For now, redirect to pricing if no Stripe customer ID
-		// (subscription status will be checked via Stripe API when needed)
-		if (!stripe_customer_id) {
-			const url = request.nextUrl.clone()
-			url.pathname = '/pricing'
-			url.searchParams.set('required', 'true')
-			url.searchParams.set('redirectTo', pathname)
-			return NextResponse.redirect(url)
-		}
-	}
-
-	// Redirect authenticated users from auth routes to dashboard or intended destination
+	// Redirect authenticated users from auth routes to dashboard
 	// Only redirect if authentication is valid (validated with Supabase)
 	if (isAuthenticated && isAuthRoute) {
 		const url = request.nextUrl.clone()
@@ -187,14 +140,8 @@ export async function updateSession(request: NextRequest) {
 			}
 		}
 
-		// Redirect based on user_type (from JWT claims)
-		if (user_type === 'TENANT') {
-			url.pathname = '/tenant'
-		} else {
-			// Default redirect to management dashboard for OWNER, MANAGER, ADMIN
-			url.pathname = '/manage'
-		}
-
+		// Default redirect to login page for authenticated users on auth routes
+		url.pathname = '/manage'
 		url.search = '' // Clear search params
 		return NextResponse.redirect(url)
 	}

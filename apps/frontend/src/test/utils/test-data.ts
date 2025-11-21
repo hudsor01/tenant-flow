@@ -167,6 +167,7 @@ export const DEFAULT_UNIT = {
  */
 export const DEFAULT_MAINTENANCE_REQUEST = {
 	id: 'maintenance-1',
+	title: 'Plumbing Issue',
 	description: 'Kitchen faucet has been dripping for the past week',
 	status: 'OPEN' as const,
 	priority: 'MEDIUM' as const,

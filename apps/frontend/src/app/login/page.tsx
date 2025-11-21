@@ -35,7 +35,7 @@ function LoginPageContent() {
 			hasError: !!searchParams?.get('error'),
 			errorParam: searchParams?.get('error')
 		})
-	}, [])
+	}, [searchParams])
 
 	useEffect(() => {
 		// Check if searchParams is available before using it

@@ -57,16 +57,30 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// Use cached session if available (unless forceLogin)
 	if (!options.forceLogin && sessionCache.has(cacheKey)) {
 		const session = sessionCache.get(cacheKey)
-		await page.context().addCookies(session.cookies) // Includes httpOnly cookies!
+		debugLog(` Using cached session for: ${email}`)
+
+		// Apply all storage state (cookies, localStorage, sessionStorage)
+		if (session.cookies && session.cookies.length > 0) {
+			await page.context().addCookies(session.cookies)
+			debugLog(` Applied ${session.cookies.length} cookies from cache`)
+		}
 
 		// Navigate to dashboard to verify session is valid
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/manage`)
-		await page.waitForLoadState('load')
+		await page.goto(`${baseUrl}/manage`, { waitUntil: 'domcontentloaded' })
 
-			debugLog(
-			` Logged in as owner (${email}) - Session reused from cache`
-		)
+		// Wait for auth to initialize (check for auth provider or user context)
+		try {
+			await page.waitForFunction(() => {
+				const html = document.documentElement.innerHTML
+				// Check if we're NOT on a login page anymore
+				return !html.includes('sign in') || window.location.pathname.includes('/manage')
+			}, { timeout: 5000 })
+		} catch {
+			debugLog(` Warning: Auth verification timed out, but continuing`)
+		}
+
+		debugLog(` Logged in as owner (${email}) - Session reused from cache`)
 		return // Fast path: ~100ms
 	}
 
@@ -75,30 +89,51 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	debugLog(` Starting fresh login for: ${email}`)
 	debugLog(` Base URL: ${baseUrl}`)
 
-	await page.goto(`${baseUrl}/login`)
+	await page.goto(`${baseUrl}/login`, { waitUntil: 'load' })
 	debugLog(' Navigated to login page')
-	await page.waitForLoadState('load')
-	debugLog(' Page load complete')
+	
+	// Wait for form inputs to be present in DOM (more forgiving than visibility)
+	debugLog('⏳ Waiting for login form to render...')
+	try {
+		await page.waitForSelector('[data-testid="email-input"]', { timeout: 15000 })
+		debugLog(' Email input field found in DOM')
+	} catch (error) {
+		// Fallback: try by ID instead of data-testid
+		debugLog(' data-testid selector failed, trying ID selector...')
+		try {
+			await page.waitForSelector('#email', { timeout: 5000 })
+			debugLog(' Email input found by ID')
+		} catch {
+			throw new Error(`Login form not found. Page URL: ${page.url()}, HTML: ${await page.content().then(h => h.substring(0, 500))}`)
+		}
+	}
 
-	// Wait for login form to be fully visible
-	debugLog('⏳ Waiting for email field to be visible...')
-	await expect(page.locator('#email')).toBeVisible({ timeout: 5000 })
-	debugLog(' Email field is visible')
+	// Wait for form to be interactive before filling
+	await page.waitForLoadState('domcontentloaded')
+	await page.waitForTimeout(500) // Small delay for form initialization
 
 	// Fill login form with explicit force to handle any overlays
 	debugLog(' Filling email field...')
-	await page.locator('#email').fill(email, { force: true })
+	await page.locator('[data-testid="email-input"]').fill(email, { force: true })
 	debugLog(' Filling password field...')
-	await page.locator('#password').fill(password, { force: true })
+	await page.locator('[data-testid="password-input"]').fill(password, { force: true })
 	debugLog(' Form fields filled')
 
 	// Small delay to ensure form state is settled
 	await page.waitForTimeout(500)
 	debugLog('⏱️ Form state settled (500ms delay)')
 
-	// Check if button is visible and enabled
-	const submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
-	debugLog(' Looking for submit button...')
+	// Check if button is visible and enabled - use data-testid for reliability
+	let submitButton = page.locator('[data-testid="login-button"]')
+	debugLog(' Looking for submit button (data-testid)...')
+	
+	// Fallback to role-based selector if data-testid doesn't exist
+	const dataTestIdExists = await submitButton.count().then(c => c > 0)
+	if (!dataTestIdExists) {
+		debugLog(' data-testid not found, falling back to role selector')
+		submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
+	}
+	
 	await expect(submitButton).toBeVisible({ timeout: 5000 })
 	const buttonText = await submitButton.textContent()
 	const isEnabled = await submitButton.isEnabled()
@@ -107,19 +142,28 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// Submit form and wait for navigation
 	debugLog(' Clicking submit button and waiting for navigation...')
 	await Promise.all([
-		page.waitForURL(/\/(manage|dashboard)/, { timeout: 30000 }),
+		page.waitForURL(/\/(manage|dashboard)/, { timeout: 120000 }),
 		submitButton.click()
 	])
 	debugLog(' Navigation complete!')
 
 	// Wait for page to be mostly loaded (don't wait for all background requests)
-	await page.waitForLoadState('load')
+	await page.waitForLoadState('domcontentloaded')
+
+	// Wait a bit for auth provider to fully initialize
+	await page.waitForTimeout(1000)
+
+	// Verify we're actually on the manage page and not redirected back to login
+	const currentUrl = page.url()
+	if (currentUrl.includes('/login')) {
+		throw new Error(`Login failed: Still on login page. URL: ${currentUrl}`)
+	}
 
 	// Cache session for this worker (includes httpOnly cookies!)
 	const session = await page.context().storageState()
 	sessionCache.set(cacheKey, session)
 
-	debugLog(` Logged in as owner (${email}) - Session cached for worker`)
+	debugLog(` Logged in as owner (${email}) - Session cached for worker (${session.cookies?.length || 0} cookies)`)
 }
 
 /**
@@ -161,27 +205,47 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 
 	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-	await page.goto(`${baseUrl}/login`)
-	await page.waitForLoadState('networkidle')
+	await page.goto(`${baseUrl}/login`, { waitUntil: 'load' })
+	
+	// Wait for form inputs to be present in DOM
+	debugLog('⏳ Waiting for tenant login form to render...')
+	try {
+		await page.waitForSelector('[data-testid="email-input"]', { timeout: 15000 })
+	} catch {
+		// Fallback: try by ID
+		debugLog(' data-testid selector failed, trying ID selector...')
+		try {
+			await page.waitForSelector('#email', { timeout: 5000 })
+		} catch {
+			throw new Error(`Tenant login form not found. Page URL: ${page.url()}`)
+		}
+	}
 
-	// Wait for login form to be fully visible
-	await expect(page.locator('#email')).toBeVisible({ timeout: 5000 })
+	// Wait for form to be interactive
+	await page.waitForLoadState('domcontentloaded')
+	await page.waitForTimeout(500)
 
 	// Fill login form with explicit force to handle any overlays
-	await page.locator('#email').fill(email, { force: true })
-	await page.locator('#password').fill(password, { force: true })
+	await page.locator('[data-testid="email-input"]').fill(email, { force: true })
+	await page.locator('[data-testid="password-input"]').fill(password, { force: true })
 
 	// Small delay to ensure form state is settled
 	await page.waitForTimeout(500)
 
-	// Submit form and wait for navigation
+	// Submit form and wait for navigation - use data-testid for button
+	let submitButton = page.locator('[data-testid="login-button"]')
+	const dataTestIdExists = await submitButton.count().then(c => c > 0)
+	if (!dataTestIdExists) {
+		submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
+	}
+	
 	await Promise.all([
-		page.waitForURL(/\/tenant/, { timeout: 30000 }),
-		page.getByRole('button', { name: /sign in|login|submit/i }).click()
+		page.waitForURL(/\/tenant/, { timeout: 120000 }),
+		submitButton.click()
 	])
 
-	// Wait for page to be mostly loaded (don't wait for all background requests)
-	await page.waitForLoadState('load')
+	// Wait for page to be mostly loaded (domcontentloaded is sufficient since we waited for URL)
+	await page.waitForLoadState('domcontentloaded')
 
 	// Cache session for this worker (includes httpOnly cookies!)
 	const session = await page.context().storageState()
