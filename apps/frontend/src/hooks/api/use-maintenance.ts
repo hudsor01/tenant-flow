@@ -132,7 +132,8 @@ export function useCreateMaintenanceRequest() {
 			const tempId = `temp-${Date.now()}`
 							const optimistic: MaintenanceRequest = {
 		id: tempId,
-		description: newRequest.description,
+	title: newRequest.title || '',
+	description: newRequest.description,
 		priority:
 			(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
 			'MEDIUM',
