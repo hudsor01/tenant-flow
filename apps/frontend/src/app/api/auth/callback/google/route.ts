@@ -1,9 +1,9 @@
 /**
  * Google OAuth Callback Handler
- * 
+ *
  * Official Supabase OAuth pattern - exchanges code for session and redirects.
  * All auth gates (JWT verification, payment, user type routing) handled by middleware.
- * 
+ *
  * See: https://supabase.com/docs/guides/auth/server-side/oauth-with-pkce-flow-for-ssr
  */
 
@@ -12,8 +12,8 @@ import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@repo/shared/types/supabase'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 
 export async function GET(request: NextRequest) {
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
 
 	const cookieStore = await cookies()
 	const supabase = createServerClient<Database>(
-		SUPABASE_URL,
-		SUPABASE_PUBLISHABLE_KEY,
+		SB_URL,
+		SB_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll: () => cookieStore.getAll(),

@@ -104,14 +104,14 @@ export interface AuthenticatedTestClient {
  */
 function createTestClient(): SupabaseClient<Database> {
 	const supabaseUrl =
-		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+		process.env.SB_URL || process.env.NEXT_PUBLIC_SB_URL
 	const supabaseKey =
-		process.env.SUPABASE_PUBLISHABLE_KEY ||
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+		process.env.SB_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY
 
 	if (!supabaseUrl || !supabaseKey) {
 		throw new Error(
-			'Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in environment.'
+			'Missing Supabase credentials. Set SB_URL and SB_PUBLISHABLE_KEY in environment.'
 		)
 	}
 
@@ -187,12 +187,12 @@ export async function authenticateAs(
  */
 export function getServiceuser_typeClient(): SupabaseClient<Database> {
 	const supabaseUrl =
-		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-	const serviceuser_typeKey = process.env.SUPABASE_SECRET_KEY
+		process.env.SB_URL || process.env.NEXT_PUBLIC_SB_URL
+	const serviceuser_typeKey = process.env.SB_SECRET_KEY
 
 	if (!supabaseUrl || !serviceuser_typeKey) {
 		throw new Error(
-			'Missing service user_type credentials (SUPABASE_URL and SUPABASE_SECRET_KEY). Cannot run tests.'
+			'Missing service user_type credentials (SB_URL and SB_SECRET_KEY). Cannot run tests.'
 		)
 	}
 

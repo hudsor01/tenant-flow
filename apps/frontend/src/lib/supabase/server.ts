@@ -1,8 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 
 /**
@@ -12,7 +12,7 @@ import {
 export async function createClient() {
 	const cookieStore = await cookies()
 
-	return createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+	return createServerClient(SB_URL, SB_PUBLISHABLE_KEY, {
 		cookies: {
 			getAll() {
 				return cookieStore.getAll()

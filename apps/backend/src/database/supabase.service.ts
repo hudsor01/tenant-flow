@@ -9,7 +9,7 @@ import type { authUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
-import { SUPABASE_ADMIN_CLIENT, RPC_MAX_RETRIES, RPC_BACKOFF_MS, RPC_TIMEOUT_MS } from './supabase.constants'
+import { SB_ADMIN_CLIENT, RPC_MAX_RETRIES, RPC_BACKOFF_MS, RPC_TIMEOUT_MS } from './supabase.constants'
 import {
 	SupabaseAuthTokenResolver,
 	type ResolvedSupabaseToken
@@ -27,7 +27,7 @@ export class SupabaseService implements OnModuleDestroy {
 	private userClientPool?: SupabaseUserClientPool
 
 	constructor(
-		@Inject(SUPABASE_ADMIN_CLIENT)
+		@Inject(SB_ADMIN_CLIENT)
 		private readonly adminClient: SupabaseClient<Database>,
 		private readonly config: AppConfigService
 	) {
