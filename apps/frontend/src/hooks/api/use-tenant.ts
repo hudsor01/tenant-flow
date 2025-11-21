@@ -32,8 +32,7 @@ import {
 	keepPreviousData,
 	useMutation,
 	useQuery,
-	useQueryClient,
-	useSuspenseQuery
+	useQueryClient
 } from '@tanstack/react-query'
 import { tenantQueries } from './queries/tenant-queries'
 
@@ -78,43 +77,32 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 	// Convert page to offset (backend expects offset, not page)
 	const offset = (page - 1) * limit
 
+	const queryOptions = tenantQueries.list({ limit, offset })
+
 	return useQuery({
-		queryKey: [...tenantQueries.lists(), { page, limit, offset }],
-		queryFn: async () => {
-			const response = await clientFetch<TenantWithLeaseInfo[]>(
-				`/api/v1/tenants?limit=${limit}&offset=${offset}`
-			)
+		...queryOptions,
+		select: response => {
+			// Prefill individual tenant detail caches when data arrives
+			response.data?.forEach?.(tenant => {
+				const detailKey = tenantQueries.detail(tenant.id).queryKey
+				const leaseKey = tenantQueries.withLease(tenant.id).queryKey
 
-			// Prefetch individual tenant details only if not already cached
-			// This prevents overwriting fresher detail data with potentially stale list data
-			response?.forEach?.(tenant => {
-				const existingDetail = queryClient.getQueryData(
-					tenantQueries.detail(tenant.id).queryKey
-				)
-				const existingWithLease = queryClient.getQueryData(
-					tenantQueries.withLease(tenant.id).queryKey
-				)
-
-				// Only set if no existing data (avoids race condition where detail is fresher)
-				if (!existingDetail) {
-					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
+				if (!queryClient.getQueryData(detailKey)) {
+					queryClient.setQueryData(detailKey, tenant as unknown as Tenant)
 				}
-				if (!existingWithLease) {
-					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
+				if (!queryClient.getQueryData(leaseKey)) {
+					queryClient.setQueryData(leaseKey, tenant)
 				}
 			})
 
-			// Transform to expected paginated format for backwards compatibility
 			return {
-				data: response || [],
-				total: response?.length || 0,
+				data: response.data || [],
+				total: response.total || 0,
 				page,
 				limit
 			}
 		},
-		...QUERY_CACHE_TIMES.DETAIL,
 		retry: 2,
-		// Keep previous data while fetching new page (official v5 helper)
 		placeholderData: keepPreviousData
 	})
 }
@@ -313,61 +301,9 @@ export function useTenantOperations() {
 	}
 }
 
-/**
- * React 19 Suspense-enabled hook for tenant fetching
- * Use this with Suspense boundaries for automatic loading states
- * Automatically throws errors to nearest Error Boundary
- */
-export function useTenantSuspense(id: string) {
-	return useSuspenseQuery(tenantQueries.detail(id))
-}
 
-/**
- * React 19 Suspense-enabled hook for tenant with lease information
- * Use this with Suspense boundaries for automatic loading states
- */
-export function useTenantWithLeaseSuspense(id: string) {
-	return useSuspenseQuery(tenantQueries.withLease(id))
-}
 
-/**
- * React 19 Suspense-enabled hook for all tenants list
- * Use this with Suspense boundaries for automatic loading states
- */
-export function useAllTenantsSuspense() {
-	const queryClient = useQueryClient()
 
-	return useSuspenseQuery({
-		queryKey: tenantQueries.lists(),
-		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-			const response =
-				await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
-
-			// Prefetch individual tenant details only if not already cached
-			// This prevents overwriting fresher detail data with potentially stale list data
-			response.forEach(tenant => {
-				const existingDetail = queryClient.getQueryData(
-					tenantQueries.detail(tenant.id).queryKey
-				)
-				const existingWithLease = queryClient.getQueryData(
-					tenantQueries.withLease(tenant.id).queryKey
-				)
-
-				// Only set if no existing data (avoids race condition where detail is fresher)
-				if (!existingDetail) {
-					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
-				}
-				if (!existingWithLease) {
-					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
-				}
-			})
-
-			return response
-		},
-		staleTime: 3 * 60 * 1000, // 3 minutes
-		gcTime: 30 * 60 * 1000
-	})
-}
 
 /**
  * Hook for polling tenant data with configurable interval

@@ -4,7 +4,7 @@
  */
 
 import type { TenantInput, TenantUpdate } from '@repo/shared/types/core'
-import { tenantFormSchema } from '@repo/shared/validation/tenants'
+import { tenantFormSchema, tenantFormUpdateSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useCallback, useState } from 'react'
 import { z } from 'zod'
@@ -59,7 +59,7 @@ export function useTenantUpdateForm(initialValues?: Partial<TenantUpdate>) {
 		},
 		validators: {
 			onSubmit: ({ value }) => {
-				const result = tenantFormSchema.safeParse(value)
+				const result = tenantFormUpdateSchema.safeParse(value)
 				if (!result.success) {
 					return z.treeifyError(result.error)
 				}

@@ -89,9 +89,9 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	// Get available units based on selected property
 	const availableUnits = useMemo(() => {
 		const propertyId = form.state.values.property_id
-		if (!propertyId || !unitsData?.data) return []
-		return unitsData.data.filter((u: Unit) => u.property_id === propertyId)
-	}, [form.state.values.property_id, unitsData?.data])
+		if (!propertyId || !unitsData) return []
+		return unitsData.filter((u: Unit) => u.property_id === propertyId)
+	}, [form.state.values.property_id, unitsData])
 
 	// Add loading state for form initialization
 	const isLoading = propertiesLoading || unitsLoading
@@ -162,7 +162,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 													<SelectValue placeholder="Select property" />
 												</SelectTrigger>
 												<SelectContent>
-													{propertiesData?.data?.map((property: Property) => (
+													{propertiesData?.map((property: Property) => (
 														<SelectItem key={property.id} value={property.id}>
 															{property.name}
 														</SelectItem>

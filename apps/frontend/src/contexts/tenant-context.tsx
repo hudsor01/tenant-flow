@@ -2,7 +2,7 @@
 
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
-import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createContext, use, useCallback, useMemo, type ReactNode } from 'react'
 
 /**
@@ -11,7 +11,7 @@ import { createContext, use, useCallback, useMemo, type ReactNode } from 'react'
  */
 interface TenantContextValue {
 	/** Current tenant from URL parameter */
-	tenant: TenantWithLeaseInfo
+	tenant?: TenantWithLeaseInfo
 	/** Tenant ID from URL */
 	tenant_id: string
 	/** Refresh current tenant data */
@@ -43,8 +43,8 @@ interface TenantProviderProps {
 export function TenantProvider({ children, tenant_id }: TenantProviderProps) {
 	const queryClient = useQueryClient()
 
-	// Use Suspense query - automatically suspends during loading
-	const { data: tenant } = useSuspenseQuery(tenantQueries.withLease(tenant_id))
+	// Use regular query with loading state
+	const { data: tenant, isPending: isLoading } = useQuery(tenantQueries.withLease(tenant_id))
 
 	const refresh = useCallback(async () => {
 		await queryClient.refetchQueries({
@@ -58,15 +58,20 @@ export function TenantProvider({ children, tenant_id }: TenantProviderProps) {
 		})
 	}, [queryClient, tenant_id])
 
-	const value = useMemo<TenantContextValue>(
-		() => ({
-			tenant,
-			tenant_id,
-			refresh,
-			isLoading: false, // Suspense handles loading
-			invalidate
-		}),
-		[tenant, tenant_id, refresh, invalidate]
+	const value: TenantContextValue = useMemo(
+		() => {
+			const obj: TenantContextValue = {
+				tenant_id,
+				refresh,
+				isLoading,
+				invalidate
+			}
+			if (tenant !== undefined) {
+				obj.tenant = tenant
+			}
+			return obj
+		},
+		[tenant, tenant_id, refresh, invalidate, isLoading]
 	)
 
 	return (
@@ -92,7 +97,7 @@ export function useTenantContext(): TenantContextValue {
  * Hook to access only the current tenant
  * Optimized selector to prevent unnecessary re-renders
  */
-export function useCurrentTenantFromContext(): TenantWithLeaseInfo {
+export function useCurrentTenantFromContext(): TenantWithLeaseInfo | undefined {
 	const { tenant } = useTenantContext()
 	return tenant
 }

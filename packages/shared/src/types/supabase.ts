@@ -271,6 +271,7 @@ export type Database = {
           scheduled_date: string | null
           status: string
           tenant_id: string
+          title: string
           unit_id: string
           updated_at: string | null
         }
@@ -291,6 +292,7 @@ export type Database = {
           scheduled_date?: string | null
           status?: string
           tenant_id: string
+          title?: string
           unit_id: string
           updated_at?: string | null
         }
@@ -311,6 +313,7 @@ export type Database = {
           scheduled_date?: string | null
           status?: string
           tenant_id?: string
+          title?: string
           unit_id?: string
           updated_at?: string | null
         }
@@ -3596,7 +3599,7 @@ export type Database = {
         }
         Relationships: []
       }
-      stripe_sync_subscriptions: {
+      subscriptions: {
         Row: {
           application_fee_percent: number | null
           billing_cycle_anchor: number | null

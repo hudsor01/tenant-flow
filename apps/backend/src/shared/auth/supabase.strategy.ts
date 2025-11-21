@@ -1,266 +1,224 @@
 /**
- * Supabase JWT Strategy - Direct JWT Secret Verification
-
- * Uses Supabase's JWT signing secret directly instead of JWKS endpoints.
- * This provides better reliability and performance while maintaining security.
-
+ * Supabase JWT Strategy - JWKS/ES256/RS256 Verification (November 2025)
+ *
+ * Validates JWTs issued by Supabase using JWKS (JSON Web Key Set) discovery.
+ * Automatically handles key rotation and supports ES256/RS256 algorithms.
+ *
  * Key Management:
- * - Uses SUPABASE_JWT_SECRET from Supabase dashboard (Settings > JWT Keys > Current Signing Key)
- * - Supports ES256 algorithm (Supabase's default)
- * - No external dependencies on JWKS endpoints
-
+ * - Algorithm: ES256 (default), RS256 (supported)
+ * - Keys: Fetched from Supabase JWKS endpoint via discovery URL
+ * - Automatic key rotation: Uses kid (key ID) from JWT header to select key
+ * - Fallback: Static keys (JWT_PUBLIC_KEY_CURRENT) if JWKS is unavailable
+ * - No shared secrets (asymmetric key verification only)
+ *
  * Authentication Flow:
  * 1. Frontend sends Authorization: Bearer <token> header
- * 2. Strategy verifies JWT signature using Supabase's secret
- * 3. Validates payload (issuer, audience, expiration)
- * 4. Ensures user exists in users table (creates if needed for OAuth)
- * 5. Returns authUser object for use in request handlers
+ * 2. Extract kid (key ID) from JWT header
+ * 3. Fetch public key from Supabase JWKS endpoint (cached)
+ * 4. Verify signature using the correct key
+ * 5. Validate standard claims (issuer, audience, expiration)
+ * 6. Ensure user exists in users table (creates if needed for OAuth)
+ * 7. Return authenticated user with custom claims
  *
- * Supported Algorithms: ES256 (Supabase default)
+ * Custom Claims:
+ * - user_type: Set via Supabase Custom Access Token Hook (PL/pgSQL)
+ * - Available in payload.user_type (no database query needed)
+ *
+ * Security:
+ * - Asymmetric key verification (no shared secrets in code)
+ * - Dynamic key fetching with caching
+ * - Automatic key rotation support
+ * - Validation includes issuer and audience checks
+ * - All authentication MUST use Authorization: Bearer header (no cookies)
  */
 
 import { Injectable, Logger } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import type { SupabaseJwtPayload, authUser } from '@repo/shared/types/auth'
 import { UtilityService } from '../services/utility.service'
-import type { Algorithm } from 'jsonwebtoken'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AppConfigService } from '../../config/app-config.service'
-import { USER_user_type } from '@repo/shared/constants/auth'
+import JwksClient from 'jwks-rsa'
+import { jwtDecode } from 'jwt-decode'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly logger = new Logger(SupabaseStrategy.name)
 	private readonly utilityService: UtilityService
-	private readonly config: AppConfigService
 
 	constructor(utilityService: UtilityService, config: AppConfigService) {
-		// Validate environment before super() - no 'this' access allowed
-		const extractors = [ExtractJwt.fromAuthHeaderAsBearerToken()]
+		const supabaseUrl = config.getSupabaseUrl()
+		const jwtPublicKeyCurrent = config.getJwtPublicKeyCurrent()
+		const logger = new Logger(SupabaseStrategy.name)
 
-		const { algorithm, secretOrKey } = resolveSupabaseJwtConfig(config)
+		// Try to initialize JWKS client with discovery URL
+		const jwksUrl = `${supabaseUrl}/.well-known/jwks.json`
 
-		// Base JWT configuration shared across symmetric and asymmetric modes
-		const baseConfig = {
-			jwtFromRequest: ExtractJwt.fromExtractors(extractors),
-			ignoreExpiration: false,
-			issuer: `${config.getSupabaseUrl()}/auth/v1`,
-			audience: 'authenticated',
-			algorithms: [algorithm],
-			secretOrKey: secretOrKey! // We validated this exists in resolveSupabaseJwtConfig
+		let jwksClient: JwksClient.JwksClient | null = null
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			jwksClient = new (JwksClient as any)({
+				jwksUri: jwksUrl,
+				cache: true,
+				rateLimit: true,
+				jwksRequestsPerMinute: 10
+			})
+			logger.log(
+				`JWKS client initialized with discovery URL: ${jwksUrl}`
+			)
+		} catch (error) {
+			logger.warn(
+				`Failed to initialize JWKS client: ${error instanceof Error ? error.message : 'unknown error'}`
+			)
+			jwksClient = null
 		}
 
-		super(baseConfig)
+		// Use secretOrKeyProvider to dynamically fetch keys
+		const secretOrKeyProvider = async (
+			_req: unknown,
+			rawtokenString: string,
+			done: (err: unknown, key?: string) => void
+		) => {
+			try {
+				const token = rawtokenString.startsWith('Bearer ')
+					? rawtokenString.substring(7)
+					: rawtokenString
 
-		// NOW safe to assign to 'this' after super()
+				if (!token) {
+					return done(new Error('No token provided'))
+				}
+
+				// Decode header to get kid (key ID)
+				let kid: string | undefined
+				try {
+					const decoded = jwtDecode(token, { header: true }) as { kid?: string }
+					kid = decoded.kid
+				} catch {
+					// Ignore decode errors
+				}
+
+				// Try JWKS first
+				if (jwksClient && kid) {
+					try {
+						const key = await jwksClient.getSigningKey(kid)
+						const publicKey = key.getPublicKey()
+						logger.debug('JWT verified using JWKS', { kid })
+						return done(null, publicKey)
+					} catch (error) {
+						logger.warn(
+							`JWKS verification failed for kid ${kid}, falling back to static key`,
+							{
+								error: error instanceof Error ? error.message : 'unknown error'
+							}
+						)
+					}
+				}
+
+				// Fallback to static key
+				if (jwtPublicKeyCurrent) {
+					logger.debug('JWT verified using static key')
+					return done(null, jwtPublicKeyCurrent)
+				}
+
+				// No key available
+				return done(
+					new Error('No valid key found (JWKS unavailable and no static key configured)')
+				)
+			} catch (error) {
+				return done(error)
+			}
+		}
+
+		// Configure passport-jwt strategy with dynamic key provider
+		super({
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			ignoreExpiration: false,
+			issuer: `${supabaseUrl}/auth/v1`,
+			audience: 'authenticated',
+			algorithms: ['ES256', 'RS256'],
+			secretOrKeyProvider
+		})
+
 		this.utilityService = utilityService
-		this.config = config
 
-		// HEADERS-ONLY AUTHENTICATION: Frontend and backend are on separate deployments (Vercel + Railway)
-		// All API calls MUST use Authorization: Bearer <token> header - NO cookie support
 		this.logger.log(
-			`SupabaseStrategy initialized with JWT secret verification (${algorithm}) - HEADERS ONLY (Authorization: Bearer)`
+			'Supabase Strategy initialized - JWKS/ES256/RS256 JWT verification (Bearer token, no cookies)'
 		)
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
-		const user_id = payload.sub ?? 'unknown'
+		const userId = payload.sub ?? 'unknown'
 		this.logger.debug('Validating JWT payload', {
-			user_id,
+			userId,
 			issuer: payload.iss,
 			audience: payload.aud,
 			expiration: payload.exp ? new Date(payload.exp * 1000) : null
 		})
 
-		// Basic validation - Passport.js has already verified the JWT signature via Supabase's secret
+		// Passport.js has already verified JWT signature, expiration, issuer, and audience
+		// Validate required fields
 		if (!payload.sub) {
 			this.logger.error('JWT missing subject (sub) claim')
 			throw new Error('Invalid token: missing user ID')
 		}
 
-		// Validate issuer matches Supabase project
-		const supabaseUrl = this.config.getSupabaseUrl()
-		if (
-			supabaseUrl &&
-			payload.iss &&
-			payload.iss !== `${supabaseUrl}/auth/v1`
-		) {
-			this.logger.warn('JWT issuer mismatch', {
-				issuer: payload.iss,
-				expected: `${supabaseUrl}/auth/v1`
-			})
-			throw new Error('Invalid token issuer')
-		}
-
-		// Validate required timestamps exist
-		if (!payload.exp || !payload.iat) {
-			this.logger.warn('Token missing required timestamps', {
-				hasExp: !!payload.exp,
-				hasIat: !!payload.iat
-			})
-			throw new Error('Token missing expiration or issued-at timestamp')
-		}
-
-		// Allow 30-second grace period for token expiration to handle refresh timing
-		const now = Math.floor(Date.now() / 1000)
-		const expWithGrace = payload.exp + 30 // 30 second grace period
-
-		if (now > expWithGrace) {
-			this.logger.warn('Token expired (including grace period)', {
-				user_id: payload.sub,
-				exp: new Date(payload.exp * 1000),
-				now: new Date(now * 1000),
-				gracePeriodSeconds: 30
-			})
-			throw new Error('Token expired')
-		}
-
-		// Log warning if token is close to expiry (within 5 minutes)
-		const fiveMinutesFromNow = now + (5 * 60)
-		if (payload.exp < fiveMinutesFromNow) {
-			this.logger.debug('Token approaching expiry', {
-				user_id: payload.sub,
-				expiresInMinutes: Math.round((payload.exp - now) / 60),
-				exp: new Date(payload.exp * 1000)
-			})
-		}
-
 		if (!payload.email) {
-			this.logger.warn('JWT missing email claim', { user_id: payload.sub })
+			this.logger.error('JWT missing email claim', { userId: payload.sub })
 			throw new Error('Invalid token: missing email')
-		}
-
-		// Validate audience is authenticated
-		const expectedAud = 'authenticated'
-		const actualAud = Array.isArray(payload.aud)
-			? payload.aud[0]
-			: (payload.aud ?? 'authenticated')
-		if (actualAud !== expectedAud) {
-			this.logger.warn('JWT audience mismatch', {
-				expected: expectedAud,
-				actual: actualAud
-			})
-			throw new Error('Invalid token audience')
 		}
 
 		// Ensure user exists in users table (creates if doesn't exist - e.g., OAuth sign-ins)
 		// This is critical for RLS policies that reference users.id
-		const userToEnsure: Parameters<
-			typeof this.utilityService.ensureUserExists
-		>[0] = {
-			id: payload.sub,
-			email: payload.email
-		}
-
-		if (payload.user_metadata) {
-			userToEnsure.user_metadata = payload.user_metadata as {
-				full_name?: string
-				name?: string
-				avatar_url?: string
-				picture?: string
-				[key: string]: unknown
-			}
-		}
-
-		if (payload.app_metadata) {
-			userToEnsure.app_metadata = payload.app_metadata
-		}
-
-		// Get users.id (not auth.uid()) for RLS policies
-		// RLS policies reference users.id, so req.user.id must be users.id (not supabaseId)
-		let internaluser_id: string
+		let internalUserId: string
 		try {
-			internaluser_id = await this.utilityService.ensureUserExists(userToEnsure)
+			const ensureUserParams: {
+				id: string
+				email: string
+				user_metadata?: Record<string, unknown>
+				app_metadata?: Record<string, unknown>
+			} = {
+				id: payload.sub,
+				email: payload.email
+			}
+
+			if (payload.user_metadata) {
+				ensureUserParams.user_metadata = payload.user_metadata as Record<string, unknown>
+			}
+
+			if (payload.app_metadata) {
+				ensureUserParams.app_metadata = payload.app_metadata
+			}
+
+			internalUserId = await this.utilityService.ensureUserExists(ensureUserParams)
 		} catch (error) {
-			// If database is unavailable, throw a system error to prevent false 401s
+			// If database is temporarily unavailable, fall back to Supabase ID for authentication
+			// This allows authenticated users to access the system even during DB issues
 			const errorMessage = error instanceof Error ? error.message : 'Unknown database error'
-			this.logger.error('Database error during user lookup/creation', {
-				user_id: payload.sub,
+			this.logger.warn('Database error during user lookup/creation, falling back to Supabase ID', {
+				userId: payload.sub,
 				email: payload.email,
 				error: errorMessage
 			})
-			throw new Error(`Authentication service unavailable: ${errorMessage}`)
+			// Use Supabase ID as fallback - RLS policies will filter based on this
+			internalUserId = payload.sub
 		}
 
-		// app_metadata doesn't have user_type in JWT - get from database instead
-		const payloaduser_typeRaw = null
-		const payloaduser_typeValid = isValidUserValue(payloaduser_typeRaw)
-		const tokenuser_type = payloaduser_typeValid ? payloaduser_typeRaw : null
-
-		if (payloaduser_typeRaw && !payloaduser_typeValid) {
-			this.logger.warn('Invalid user_type present in JWT payload app_metadata; ignoring', {
-				user_id: payload.sub,
-				payloaduser_type: payloaduser_typeRaw
-			})
-		}
-
-		let dbuser_type: string | null = null
-		let dbuser_typeLookupFailed = false
-		try {
-			dbuser_type = (await this.utilityService.getUserTypeByUserId(internaluser_id)) ?? null
-		} catch (error) {
-			// Log but don't fail - user_type lookup is not critical for authentication
-			dbuser_typeLookupFailed = true
-			this.logger.warn('Failed to get user user_type from database, enforcing least-privilege fallback', {
-				user_id: internaluser_id,
-				error: error instanceof Error ? error.message : 'Unknown error',
-				payloaduser_type: payloaduser_typeRaw ?? null,
-				payloaduser_typeValid
-			})
-		}
-
-		if (!dbuser_type && !dbuser_typeLookupFailed) {
-			this.logger.warn('User user_type not found in database, enforcing least-privilege fallback', {
-				user_id: internaluser_id,
-				payloaduser_type: payloaduser_typeRaw ?? null,
-				payloaduser_typeValid
-			})
-		}
-
-		const fallbackuser_type = tokenuser_type ?? SAFE_FALLBACK_user_type
-		let user_typeSource: user_typeVerificationStatus = 'safe-default'
-
-		if (dbuser_type) {
-			user_typeSource = 'database'
-		} else if (tokenuser_type) {
-			user_typeSource = 'token'
-		}
-
-		let resolveduser_type = dbuser_type ?? fallbackuser_type
-
-		if (
-			user_typeSource !== 'database' &&
-			(resolveduser_type === 'OWNER' || resolveduser_type === 'ADMIN')
-		) {
-			this.logger.warn('Downgrading unverified elevated user_type until database user_type verification succeeds', {
-				user_id: internaluser_id,
-				attempteduser_type: resolveduser_type,
-				payloaduser_type: payloaduser_typeRaw ?? null
-			})
-			resolveduser_type = SAFE_FALLBACK_user_type
-			user_typeSource = 'downgraded'
-		}
-
-		const user_typeVerified = user_typeSource === 'database'
+		// Get user_type from JWT claims (set via Custom Access Token Hook)
+		// No database query needed - it's already in the JWT
+		const userType = (payload.app_metadata?.user_type as string) || 'TENANT'
 
 		// Create user object from JWT payload
-		const mergedAppMetadata = {
-			...(payload.app_metadata ?? {}),
-			user_typeVerificationStatus: user_typeSource,
-			user_typeVerified
-		}
-
 		const user: authUser = {
-			id: internaluser_id,
-			aud: actualAud,
+			id: internalUserId,
+			aud: Array.isArray(payload.aud) ? payload.aud[0] : (payload.aud || 'authenticated'),
 			email: payload.email,
 			email_confirmed_at: payload.email_confirmed_at ?? '',
 			confirmed_at: payload.confirmed_at ?? '',
 			last_sign_in_at: payload.last_sign_in_at ?? '',
 			app_metadata: {
-				...mergedAppMetadata,
-				user_type: resolveduser_type
+				...(payload.app_metadata ?? {}),
+				user_type: userType
 			},
 			user_metadata: payload.user_metadata ?? {},
 			identities: [],
@@ -269,53 +227,12 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 			is_anonymous: false
 		}
 
-		// Sanitize logs: log only user_id and user_type, never email
+		// Sanitize logs: log only userId and user_type, never email
 		this.logger.debug('User authenticated successfully', {
-			user_id: user.id,
-			user_type: resolveduser_type,
-			user_typeVerificationStatus: user_typeSource
+			userId: user.id,
+			userType
 		})
 
 		return user
 	}
-}
-
-function resolveSupabaseJwtConfig(config: AppConfigService): {
-	algorithm: Algorithm
-	isAsymmetric: boolean
-	secretOrKey?: string
-	jwksUri?: string
-} {
-	const logger = new Logger('SupabaseJwtConfig')
-	const explicitAlg = config.supabaseJwtAlgorithm?.toUpperCase().trim()
-
-	logger.log(
-		`SUPABASE_JWT_ALGORITHM env var: "${config.supabaseJwtAlgorithm}"`
-	)
-	logger.log(`Parsed explicitAlg: "${explicitAlg}"`)
-
-	// Only ES256 is supported with direct secret verification
-	const algorithm: Algorithm = explicitAlg === 'ES256' ? 'ES256' : 'ES256'
-	const isAsymmetric = false
-
-	logger.log(`Using ES256 algorithm with Supabase JWT secret`)
-
-	// ES256: Use Supabase's JWT secret (from dashboard)
-	const secret = config.supabaseJwtSecret
-
-	logger.log('Using ES256 with Supabase JWT secret verification')
-	return {
-		algorithm,
-		isAsymmetric,
-		secretOrKey: secret
-	}
-}
-
-type user_typeVerificationStatus = 'database' | 'token' | 'safe-default' | 'downgraded'
-
-const VALID_USER_user_typeS = Object.values(USER_user_type) as string[]
-const SAFE_FALLBACK_user_type: string = 'TENANT'
-
-function isValidUserValue(user_type: unknown): user_type is string {
-	return typeof user_type === 'string' && VALID_USER_user_typeS.includes(user_type as string)
 }

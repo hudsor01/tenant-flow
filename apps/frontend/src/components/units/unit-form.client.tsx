@@ -52,7 +52,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 	// Fetch unit if id provided (for client-side edit mode)
 	// Only fetch if we don't have a unit prop and we're in edit mode
 	const shouldFetch = mode === 'edit' && !!id && !unitProp
-	const { data: fetchedUnit } = useQuery(unitQueries.detail(shouldFetch ? id! : ''))
+	const { data: fetchedUnit } = useQuery({
+		...unitQueries.detail(shouldFetch ? id! : ''),
+		enabled: shouldFetch
+	})
 
 	// Use provided unit or fetched unit
 	const unit = unitProp || fetchedUnit
@@ -160,6 +163,21 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			}
 		}
 	})
+
+	// Reset form when unit data loads
+	useEffect(() => {
+		if (unit) {
+			form.reset({
+				property_id: unit.property_id ?? '',
+				unit_number: unit.unit_number ?? '',
+				bedrooms: unit.bedrooms?.toString() ?? '1',
+				bathrooms: unit.bathrooms?.toString() ?? '1',
+				square_feet: unit.square_feet?.toString() ?? '',
+				rent_amount: unit.rent_amount?.toString() ?? '',
+				status: (unit.status ?? 'VACANT') as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+			})
+		}
+	}, [unit, form])
 
 	const isSubmitting =
 		mode === 'create' ? createUnitMutation.isPending : updateUnitMutation.isPending

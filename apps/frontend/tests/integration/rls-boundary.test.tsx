@@ -356,7 +356,7 @@ describe.skip('RLS Boundary Tests', () => {
 		})
 
 		it('tenant cannot access owner dashboard endpoints', async () => {
-			await expectForbidden(tenantA, '/api/v1/dashboard/owner-stats')
+			await expectForbidden(tenantA, '/api/v1/owner/analytics/stats')
 		})
 
 		it('owner cannot access tenant-only endpoints', async () => {
