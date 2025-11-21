@@ -29,7 +29,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDeleteLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
-import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { useUnitList } from '#hooks/api/use-unit'
 import type { Lease } from '@repo/shared/types/core'
 
 export function LeasesTable() {
@@ -39,14 +39,14 @@ export function LeasesTable() {
 		isError
 	} = useQuery(leaseQueries.list())
 
-	const { data: tenants } = useQuery(tenantQueries.list())
+	const { data: tenantsResponse } = useQuery(tenantQueries.list())
 
-	const { data: units } = useQuery(unitQueries.list())
+	const { data: unitsResponse } = useUnitList()
 
 	const removeLease = useDeleteLeaseMutation()
 
-	const tenantMap = new Map(tenants?.map(tenant => [tenant.id, `${tenant.first_name} ${tenant.last_name}`]) ?? [])
-	const unitMap = new Map(units?.map(unit => [unit.id, unit]) ?? [])
+	const tenantMap = new Map(tenantsResponse?.data?.map(tenant => [tenant.id, `${tenant.first_name} ${tenant.last_name}`]) ?? [])
+	const unitMap = new Map(unitsResponse?.map(unit => [unit.id, unit]) ?? [])
 
 	if (isLoading) {
 		return (
