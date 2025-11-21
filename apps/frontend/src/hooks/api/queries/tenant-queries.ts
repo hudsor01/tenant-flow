@@ -16,6 +16,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Tenant, TenantWithLeaseInfo, TenantStats } from '@repo/shared/types/core'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 /**
  * Tenant query filters
@@ -66,7 +67,7 @@ export const tenantQueries = {
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 
 				const params = searchParams.toString()
-				return clientFetch<TenantWithLeaseInfo[]>(
+				return clientFetch<PaginatedResponse<TenantWithLeaseInfo>>(
 					`/api/v1/tenants${params ? `?${params}` : ''}`
 				)
 			},

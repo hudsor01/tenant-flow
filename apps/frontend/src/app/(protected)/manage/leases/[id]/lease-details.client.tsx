@@ -5,7 +5,7 @@ import { CardLayout } from '#components/ui/card-layout'
 import { useQuery } from '@tanstack/react-query'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
-import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { useUnitList } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Calendar, Home, User } from 'lucide-react'
 import Link from 'next/link'
@@ -23,11 +23,11 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		isError
 	} = useQuery(leaseQueries.detail(id))
 
-	const { data: tenants } = useQuery(tenantQueries.list())
+	const { data: tenantsResponse } = useQuery(tenantQueries.list())
 
-	const { data: units } = useQuery(unitQueries.list())
+	const { data: units } = useUnitList()
 
-	const tenant = tenants?.find(t => t.id === lease?.primary_tenant_id)
+	const tenant = tenantsResponse?.data?.find(t => t.id === lease?.primary_tenant_id)
 	const unit = units?.find(u => u.id === lease?.unit_id)
 
 	if (isLoading) {

@@ -73,6 +73,7 @@ export function useProperty(id: string) {
 
 /**
  * Hook to fetch property list with pagination and search
+ * Returns plain array of properties with automatic detail prefetching
  */
 export function usePropertyList(params?: {
 	search?: string | null
@@ -80,7 +81,6 @@ export function usePropertyList(params?: {
 	offset?: number
 }) {
 	const { search = null, limit = 50, offset = 0 } = params || {}
-	const queryClient = useQueryClient()
 
 	return useQuery({
 		queryKey: propertiesKeys.list({
@@ -94,23 +94,11 @@ export function usePropertyList(params?: {
 			searchParams.append('limit', limit.toString())
 			searchParams.append('offset', offset.toString())
 
-			const response = await clientFetch<Property[]>(
+			return clientFetch<Property[]>(
 				`/api/v1/properties?${searchParams.toString()}`
 			)
-
-			// Prefetch individual property details
-			response?.forEach?.(property => {
-				queryClient.setQueryData(propertiesKeys.detail(property.id), property)
-			})
-
-			// Transform to expected paginated format for backwards compatibility
-			return {
-				data: response || [],
-				total: response?.length || 0,
-				limit,
-				offset
-			}
 		},
+
 		...QUERY_CACHE_TIMES.LIST,
 		retry: 2,
 		structuralSharing: true

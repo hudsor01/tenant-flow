@@ -45,22 +45,22 @@ const environmentSchema = z.object({
 	SUPABASE_URL: z.string().url('Must be a valid URL'),
 	SUPABASE_SECRET_KEY: z.string(),
 	/**
-	 * Supabase JWT Secret - Get this from your Supabase dashboard under Settings > JWT Keys > Current Signing Key
-	 * This is used for JWT verification instead of relying on JWKS endpoints
+	 * Supabase JWT Secret - Get this from your Supabase dashboard under Settings > JWT Keys > JWT Secret
+	 * Used for symmetric HS256 verification (Supabase default) and as a fallback when asymmetric keys are missing
 	 */
 	SUPABASE_JWT_SECRET: z
 		.string()
 		.min(32, 'Supabase JWT secret must be at least 32 characters')
 		.optional(),
 	/**
-	 * Supabase JWT Algorithm - Defaults to ES256 (Supabase's default)
-	 * Only ES256 is currently supported for direct key verification
+	 * Supabase JWT Algorithm - Defaults to HS256 (Supabase default)
+	 * Allows optional upgrade to ES256/RS256 when a public key is provided
 	 */
 	SUPABASE_JWT_ALGORITHM: z
-		.string()
-		.transform(val => val.toUpperCase().trim())
-		.pipe(z.enum(['ES256', 'RS256']))
-		.optional(),
+		.preprocess(
+			val => (typeof val === 'string' ? val.toUpperCase().trim() : val),
+			z.enum(['HS256', 'ES256', 'RS256']).default('HS256')
+		),
 	SUPABASE_PUBLISHABLE_KEY: z.string(),
 	SUPABASE_PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
 	SUPABASE_AUTH_WEBHOOK_SECRET: z.string().optional(),

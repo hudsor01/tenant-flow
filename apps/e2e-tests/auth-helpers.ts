@@ -89,23 +89,28 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	debugLog(` Starting fresh login for: ${email}`)
 	debugLog(` Base URL: ${baseUrl}`)
 
-	await page.goto(`${baseUrl}/login`, { waitUntil: 'domcontentloaded' })
+	await page.goto(`${baseUrl}/login`, { waitUntil: 'load' })
 	debugLog(' Navigated to login page')
 	
-	// Wait for both DOM and network to be ready to ensure form is fully rendered
+	// Wait for form inputs to be present in DOM (more forgiving than visibility)
+	debugLog('⏳ Waiting for login form to render...')
 	try {
-		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-			// Network idle might not happen in dev, continue anyway
-			debugLog(' Warning: Network idle timeout, but continuing')
-		})
-	} catch {
-		debugLog(' Network idle wait failed, continuing with form visibility check')
+		await page.waitForSelector('[data-testid="email-input"]', { timeout: 15000 })
+		debugLog(' Email input field found in DOM')
+	} catch (error) {
+		// Fallback: try by ID instead of data-testid
+		debugLog(' data-testid selector failed, trying ID selector...')
+		try {
+			await page.waitForSelector('#email', { timeout: 5000 })
+			debugLog(' Email input found by ID')
+		} catch {
+			throw new Error(`Login form not found. Page URL: ${page.url()}, HTML: ${await page.content().then(h => h.substring(0, 500))}`)
+		}
 	}
 
-	// Wait for login form to be fully visible - use data-testid for more reliable selection
-	debugLog('⏳ Waiting for email field to be visible...')
-	await expect(page.locator('[data-testid="email-input"]')).toBeVisible({ timeout: 10000 })
-	debugLog(' Email field is visible')
+	// Wait for form to be interactive before filling
+	await page.waitForLoadState('domcontentloaded')
+	await page.waitForTimeout(500) // Small delay for form initialization
 
 	// Fill login form with explicit force to handle any overlays
 	debugLog(' Filling email field...')
@@ -200,19 +205,25 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 
 	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-	await page.goto(`${baseUrl}/login`, { waitUntil: 'domcontentloaded' })
+	await page.goto(`${baseUrl}/login`, { waitUntil: 'load' })
 	
-	// Wait for both DOM and network to be ready
+	// Wait for form inputs to be present in DOM
+	debugLog('⏳ Waiting for tenant login form to render...')
 	try {
-		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-			// Network idle might not happen in dev, continue anyway
-		})
+		await page.waitForSelector('[data-testid="email-input"]', { timeout: 15000 })
 	} catch {
-		// Continue if network idle times out
+		// Fallback: try by ID
+		debugLog(' data-testid selector failed, trying ID selector...')
+		try {
+			await page.waitForSelector('#email', { timeout: 5000 })
+		} catch {
+			throw new Error(`Tenant login form not found. Page URL: ${page.url()}`)
+		}
 	}
 
-	// Wait for login form to be fully visible - use data-testid for more reliable selection
-	await expect(page.locator('[data-testid="email-input"]')).toBeVisible({ timeout: 10000 })
+	// Wait for form to be interactive
+	await page.waitForLoadState('domcontentloaded')
+	await page.waitForTimeout(500)
 
 	// Fill login form with explicit force to handle any overlays
 	await page.locator('[data-testid="email-input"]').fill(email, { force: true })

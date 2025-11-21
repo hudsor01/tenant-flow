@@ -27,6 +27,10 @@ import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { ErrorBoundary } from '#components/ui/error-boundary'
+import { LoadingSpinner } from '#components/ui/loading-spinner'
+
+import { z } from 'zod'
 
 interface LeaseFormProps {
 	mode: 'create' | 'edit'
@@ -44,10 +48,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const {
 		data: properties,
 		error: propertiesError,
-		isError: propertiesIsError
+		isError: propertiesIsError,
+		isLoading: propertiesIsLoading
 	} = useQuery(propertyQueries.list())
 	const tenantsResponse = useQuery(tenantQueries.list())
-	const tenants = tenantsResponse.data ?? []
+	const tenants = tenantsResponse.data?.data ?? []
 
 	// Sync server-fetched lease into TanStack Query cache (edit mode only)
 	useEffect(() => {
@@ -55,6 +60,19 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 			queryClient.setQueryData(leaseQueries.detail(lease.id).queryKey, lease)
 		}
 	}, [mode, lease, queryClient])
+
+	// Validation schema
+	const validationSchema = z.object({
+		unit_id: z.string().min(1, 'Unit is required'),
+		primary_tenant_id: z.string().min(1, 'Primary tenant is required'),
+		start_date: z.string().min(1, 'Start date is required'),
+		end_date: z.string().min(1, 'End date is required'),
+		rent_amount: z.number().min(0, 'Rent amount must be positive'),
+		security_deposit: z.number().min(0, 'Security deposit must be positive'),
+		rent_currency: z.string().min(1, 'Currency is required'),
+		payment_day: z.number().min(1).max(31, 'Payment day must be between 1 and 31'),
+		lease_status: z.string().min(1, 'Lease status is required')
+	})
 
 	// Initialize form
 	const form = useForm({
@@ -102,6 +120,22 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 
 				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} lease`)
 			}
+		},
+		validators: {
+			onBlur: ({ value }) => {
+				const result = validationSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
+			},
+			onSubmitAsync: ({ value }) => {
+				const result = validationSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
+			}
 		}
 	})
 
@@ -112,7 +146,10 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		data: units,
 		error: unitsError,
 		isError: unitsIsError
-	} = useQuery(unitQueries.list({ property_id: selectedPropertyId }))
+	} = useQuery({
+		...unitQueries.listByProperty(selectedPropertyId),
+		enabled: !!selectedPropertyId
+	})
 
 	const isSubmitting =
 		mode === 'create'
@@ -120,13 +157,14 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 			: updateLeaseMutation.isPending
 
 	return (
-		<form
-			onSubmit={e => {
-				e.preventDefault()
-				e.stopPropagation()
-				form.handleSubmit()
-			}}
-		>
+		<ErrorBoundary>
+			<form
+				onSubmit={e => {
+					e.preventDefault()
+					e.stopPropagation()
+					form.handleSubmit()
+				}}
+			>
 			<div className="space-y-6">
 				{/* Property Selection (for filtering units, not stored in lease) */}
 				<div className="grid gap-4 md:grid-cols-2">
@@ -144,11 +182,21 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 								<SelectValue placeholder="Select property" />
 							</SelectTrigger>
 							<SelectContent>
-								{(properties ?? []).map((property: Property) => (
-									<SelectItem key={property.id} value={property.id}>
-										{property.name}
-									</SelectItem>
-								))}
+								{propertiesIsLoading ? (
+									<div className="flex items-center justify-center p-4">
+										<LoadingSpinner size="sm" />
+									</div>
+								) : (properties ?? []).length === 0 ? (
+									<div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+										No properties available
+									</div>
+								) : (
+									(properties ?? []).map((property: Property) => (
+										<SelectItem key={property.id} value={property.id}>
+											{property.name}
+										</SelectItem>
+									))
+								)}
 							</SelectContent>
 						</Select>
 					</Field>
@@ -391,5 +439,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 				</div>
 			</div>
 		</form>
+		</ErrorBoundary>
 	)
 }

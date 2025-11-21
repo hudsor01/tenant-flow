@@ -66,88 +66,27 @@ export function useUnit(id: string) {
 /**
  * Hook to fetch units by property ID
  * Optimized for property detail pages showing all units
+ * Uses queryOptions pattern with automatic prefetching of individual units
  */
 export function useUnitsByProperty(property_id: string) {
-	const queryClient = useQueryClient()
-
 	return useQuery({
-		queryKey: unitKeys.byProperty(property_id),
-		queryFn: async (): Promise<{ data: Unit[]; total: number }> => {
-			const response = await clientFetch<Unit[]>(
-				`/api/v1/units/by-property/${property_id}`
-			)
+		...unitQueries.byProperty(property_id),
 
-			// Prefetch individual unit details for faster navigation
-			response?.forEach?.(unit => {
-				queryClient.setQueryData(unitKeys.detail(unit.id), unit)
-			})
 
-			// Transform to expected paginated format for backwards compatibility
-			return {
-				data: response || [],
-				total: response?.length || 0
-			}
-		},
-		enabled: !!property_id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000, // 10 minutes
-		retry: 2
-	})
-}
-
-/**
- * Hook to fetch unit list with pagination and filtering
- * Supports property filter, status filter, and search
- */
-export function useUnitList(params?: {
-	property_id?: string
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-	search?: string
-	limit?: number
-	offset?: number
-}) {
-	const { property_id, status, search, limit = 50, offset = 0 } = params || {}
-	const queryClient = useQueryClient()
-
-	return useQuery({
-		queryKey: unitKeys.list({
-			...(property_id && { property_id }),
-			...(status && { status }),
-			...(search && { search }),
-			...(limit !== 50 && { limit }),
-			...(offset !== 0 && { offset })
-		}),
-		queryFn: async () => {
-			const searchParams = new URLSearchParams()
-			if (property_id) searchParams.append('property_id', property_id)
-			if (status) searchParams.append('status', status)
-			if (search) searchParams.append('search', search)
-			searchParams.append('limit', limit.toString())
-			searchParams.append('offset', offset.toString())
-
-			const response = await clientFetch<Unit[]>(
-				`/api/v1/units?${searchParams.toString()}`
-			)
-
-			// Prefetch individual unit details for faster navigation
-			response?.forEach?.(unit => {
-				queryClient.setQueryData(unitKeys.detail(unit.id), unit)
-			})
-
-			// Transform to expected paginated format for backwards compatibility
-			return {
-				data: response || [],
-				total: response?.length || 0,
-				limit,
-				offset
-			}
-		},
 		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time
 		retry: 2,
 		// Enable structural sharing to prevent re-renders when data hasn't changed
 		structuralSharing: true
 	})
+}
+
+/**
+ * Hook to fetch all units with optional filters
+ * Base hook for other unit list functions
+ */
+export function useUnitList(filters?: Parameters<typeof unitQueries.list>[0]) {
+	return useQuery(unitQueries.list(filters))
 }
 
 /**

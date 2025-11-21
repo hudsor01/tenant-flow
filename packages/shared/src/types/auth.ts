@@ -116,7 +116,12 @@ export interface SupabaseJwtPayload {
 		provider?: string
 		providers?: string[]
 		role?: UserRole
+		user_type?: string
+		org_id?: string
+		organization_id?: string
 	}
+	org_id?: string
+	organization_id?: string
 	iat: number
 	exp: number
 	aud?: string

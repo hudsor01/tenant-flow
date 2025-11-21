@@ -97,7 +97,7 @@ export function PropertyForm({
 	const form = useForm({
 		defaultValues: {
 			name: property?.name ?? '',
-			property_type: (property?.property_type ?? 'single_family') as PropertyType,
+			property_type: (property?.property_type ?? 'SINGLE_FAMILY') as PropertyType,
 			address_line1: property?.address_line1 ?? '',
 			address_line2: property?.address_line2 ?? '',
 			city: property?.city ?? '',
@@ -196,7 +196,14 @@ export function PropertyForm({
 			}
 		},
 		validators: {
-			onChange: ({ value }) => {
+			onBlur: ({ value }) => {
+				const result = validationSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
+			},
+			onSubmitAsync: ({ value }) => {
 				const result = validationSchema.safeParse(value)
 				if (!result.success) {
 					return z.treeifyError(result.error)
@@ -275,13 +282,13 @@ export function PropertyForm({
 										<SelectValue placeholder="Select property type" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="single_family">Single Family</SelectItem>
-										<SelectItem value="multi_family">Multi Family</SelectItem>
-										<SelectItem value="apartment">Apartment</SelectItem>
-										<SelectItem value="commercial">Commercial</SelectItem>
-										<SelectItem value="condo">Condo</SelectItem>
-										<SelectItem value="townhouse">Townhouse</SelectItem>
-										<SelectItem value="other">Other</SelectItem>
+										<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
+				<SelectItem value="MULTI_UNIT">Multi Family</SelectItem>
+				<SelectItem value="APARTMENT">Apartment</SelectItem>
+				<SelectItem value="COMMERCIAL">Commercial</SelectItem>
+				<SelectItem value="CONDO">Condo</SelectItem>
+				<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
+				<SelectItem value="OTHER">Other</SelectItem>
 									</SelectContent>
 								</Select>
 							</Field>
