@@ -51,6 +51,7 @@ export async function createCheckoutSession(
 		`${API_BASE_URL}/api/v1/stripe/create-checkout-session`,
 		{
 			method: 'POST',
+			credentials: 'include',
 			headers,
 			body: JSON.stringify({
 				priceId: request.priceId,
@@ -150,6 +151,7 @@ export async function createPaymentIntent({
 		`${API_BASE_URL}/api/v1/stripe/create-payment-intent`,
 		{
 			method: 'POST',
+			credentials: 'include',
 			headers,
 			body: JSON.stringify({
 				amount,
@@ -213,6 +215,7 @@ export async function createCustomerPortalSession(
 		`${API_BASE_URL}/api/v1/stripe/create-billing-portal`,
 		{
 			method: 'POST',
+			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${session.access_token}`
