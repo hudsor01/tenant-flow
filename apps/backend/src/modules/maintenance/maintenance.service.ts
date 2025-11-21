@@ -465,6 +465,7 @@ export class MaintenanceService {
 				{
 					requested_by: user_id,
 					tenant_id: createRequest.tenant_id || user_id,
+					title: createRequest.title || 'New Maintenance Request',
 					description: createRequest.description,
 					priority: priorityMap[createRequest.priority || 'MEDIUM'] ||
 						'normal',
@@ -571,6 +572,9 @@ export class MaintenanceService {
 				{
 					updated_at: new Date().toISOString()
 				}
+
+			if (updateRequest.title !== undefined)
+				updated_data.title = updateRequest.title || 'New Maintenance Request'
 
 			if (updateRequest.description !== undefined)
 				updated_data.description = updateRequest.description

@@ -95,12 +95,13 @@ export class TenantMaintenanceController {
 			)
 		}
 
-		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
-			{
-				description: body.description,
-				priority: body.priority,
-				status: 'OPEN',
-				requested_by: user.id,
+			const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
+				{
+					title: body.title,
+					description: body.description,
+					priority: body.priority,
+					status: 'OPEN',
+					requested_by: user.id,
 				tenant_id: tenant.id,
 				unit_id: lease.unit_id
 			}

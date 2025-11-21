@@ -28,6 +28,7 @@ const API_ENDPOINTS = {
 } as const
 
 const CreateMaintenanceRequestSchema = z.object({
+	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
 	photos: z.array(z.string().url()).max(6).optional()
@@ -205,6 +206,7 @@ export class TenantPortalController {
 
 		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
 			{
+				title: body.title,
 				description: body.description,
 				priority: body.priority,
 				status: 'OPEN',
