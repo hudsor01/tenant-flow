@@ -93,7 +93,7 @@ describe('Configuration Schema Validation', () => {
 			config.SUPABASE_JWT_ALGORITHM = 'HS512'
 
 			expect(() => validate(config)).toThrow(
-				'Invalid option: expected one of "ES256"|"RS256"'
+				'Invalid option: expected one of "HS256"|"ES256"|"RS256"'
 			)
 		})
 

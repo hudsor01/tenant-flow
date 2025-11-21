@@ -6,7 +6,7 @@
  * the PUBLIC KEY for verification (not a secret).
  *
  * Key Management:
- * - JWT_PUBLIC_KEY_CURRENT: Public key from Supabase Settings > JWT Settings
+ * - SUPABASE_JWT_SECRET: Public key from Supabase Settings > JWT Keys > Current Signing Key
  * - JWT_PUBLIC_KEY_STANDBY: Optional standby key for rotation (currently for reference only)
  * - Algorithm: ES256 (ECDSA, Supabase's default)
  * - Verification: Asymmetric (uses public key only)
@@ -19,7 +19,7 @@
  * 5. Returns authenticated user object for request handlers
  *
  * Security Notes:
- * - Never use JWT_PUBLIC_KEY_CURRENT as a shared secret (it's a public key)
+ * - Never use SUPABASE_JWT_SECRET as a shared secret (it's a public key)
  * - Key rotation: Supabase rotates keys periodically
  * - Tokens issued by Supabase must match the configured issuer
  * - All authentication MUST use Authorization: Bearer header (no cookies)
@@ -289,26 +289,26 @@ function resolveSupabaseJwtConfig(config: AppConfigService): {
 	secretOrKey: string
 } {
 	const logger = new Logger('SupabaseJwtConfig')
-	
+
 	// ES256 requires asymmetric public key verification
-	// Fetch from Supabase Dashboard: Settings > JWT Settings > Copy Public Key
-	const currentPublicKey = config.getJwtPublicKeyCurrent()
-	
-	if (!currentPublicKey) {
+	// Use SUPABASE_JWT_SECRET which contains the public key from Supabase Dashboard > Settings > JWT Keys > Current Signing Key
+	const publicKey = config.supabaseJwtSecret
+
+	if (!publicKey) {
 		throw new Error(
-			'JWT_PUBLIC_KEY_CURRENT environment variable is required for ES256 JWT verification.\n' +
+			'SUPABASE_JWT_SECRET environment variable is required for ES256 JWT verification.\n' +
 			'Get this from your Supabase dashboard:\n' +
-			'  1. Go to Settings > JWT Settings\n' +
-			'  2. Copy the "Current Signing Key" (the public key, not secret)\n' +
-			'  3. Set environment variable: JWT_PUBLIC_KEY_CURRENT=<paste-public-key>'
+			'  1. Go to Settings > JWT Keys\n' +
+			'  2. Copy the "Current Signing Key" (the public key for ES256)\n' +
+			'  3. Set environment variable: SUPABASE_JWT_SECRET=<paste-public-key>'
 		)
 	}
 
 	// Support key rotation: also accept standby key for verification
 	const standbyPublicKey = config.getJwtPublicKeyStandby()
-	
+
 	logger.log('JWT configuration initialized for ES256 verification', {
-		hasCurrent: !!currentPublicKey,
+		hasCurrent: !!publicKey,
 		hasStandby: !!standbyPublicKey,
 		algorithm: 'ES256'
 	})
@@ -317,7 +317,7 @@ function resolveSupabaseJwtConfig(config: AppConfigService): {
 	// For now, use primary key. Standby key is logged but not used for verification
 	return {
 		algorithm: 'ES256',
-		secretOrKey: currentPublicKey
+		secretOrKey: publicKey as string // Type assertion safe: publicKey is validated above
 	}
 }
 
