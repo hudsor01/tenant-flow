@@ -53,7 +53,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		const logger = new Logger(SupabaseStrategy.name)
 
 		// Try to initialize JWKS client with discovery URL
-		const jwksUrl = `${supabaseUrl}/.well-known/jwks.json`
+		const jwksUrl = `${supabaseUrl}/auth/v1/.well-known/jwks.json`
 
 		// Validate JWKS URL format to catch configuration errors early
 		try {
