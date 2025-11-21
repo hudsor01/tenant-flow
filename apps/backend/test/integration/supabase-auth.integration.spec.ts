@@ -67,7 +67,7 @@ describe('Supabase auth integration', () => {
 
 		app = express()
 		app.use(express.json())
-		app.get('/api/v1/dashboard/stats', (req, res) => {
+		app.get('/api/v1/owner/analytics/stats', (req, res) => {
 			if (!req.headers.authorization) {
 				return res.status(401).json({ message: 'Unauthorized' })
 			}
@@ -158,7 +158,7 @@ describe('Supabase auth integration', () => {
 		expect(token).toBeDefined()
 
 		const res = await request(app)
-			.get('/api/v1/dashboard/stats')
+			.get('/api/v1/owner/analytics/stats')
 			.set('Authorization', `Bearer ${token}`)
 
 		expect(res.status).toBe(200)
