@@ -59,6 +59,21 @@ export const unitQueries = {
 		}),
 
 	/**
+	 * Unit list by property ID with enabled condition
+	 * Prevents fetching when property_id is empty
+	 *
+	 * @example
+	 * const { data } = useQuery(unitQueries.listByProperty(property_id))
+	 */
+	listByProperty: (property_id: string) =>
+		queryOptions({
+			queryKey: [...unitQueries.lists(), 'by-property', property_id],
+			queryFn: () => clientFetch<Unit[]>(`/api/v1/units?property_id=${property_id}`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!property_id,
+		}),
+
+	/**
 	 * Base key for all unit details
 	 */
 	details: () => [...unitQueries.all(), 'detail'] as const,
