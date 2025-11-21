@@ -780,6 +780,7 @@ export interface LeaseDetailResponse {
 export interface CreateMaintenanceRequest {
 	unit_id: string
 	tenant_id?: string
+	title?: string
 	description: string
 	priority?: MaintenancePriority
 	category?: MaintenanceCategory
@@ -792,6 +793,7 @@ export interface CreateMaintenanceRequest {
 }
 
 export interface UpdateMaintenanceRequest {
+	title?: string
 	description?: string
 	priority?: MaintenancePriority
 	category?: MaintenanceCategory
