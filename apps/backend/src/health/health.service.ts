@@ -8,7 +8,7 @@ export class HealthService {
 	private readonly logger = new Logger(HealthService.name)
 
 	constructor(
-		@Inject('SUPABASE_SERVICE_FOR_HEALTH')
+		@Inject('SB_SERVICE_FOR_HEALTH')
 		private readonly supabaseClient: SupabaseService,
 		private readonly config: AppConfigService
 	) {}
@@ -54,7 +54,7 @@ export class HealthService {
 				config_loaded: {
 					node_env: !!nodeEnv,
 					cors_origins: !!this.config.get('CORS_ORIGINS'),
-					supabase_url: !!this.config.get('SUPABASE_URL')
+					supabase_url: !!this.config.get('SB_URL')
 				},
 				database: {
 					status: dbHealth.status,
@@ -86,7 +86,7 @@ export class HealthService {
 				config_loaded: {
 					node_env: !!nodeEnv,
 					cors_origins: !!this.config.get('CORS_ORIGINS'),
-					supabase_url: !!this.config.get('SUPABASE_URL')
+					supabase_url: !!this.config.get('SB_URL')
 				},
 				database: {
 					status: 'unhealthy',

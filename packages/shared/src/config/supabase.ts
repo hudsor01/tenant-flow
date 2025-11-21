@@ -5,17 +5,21 @@
 
 /**
  * Validates and returns the Supabase URL from environment variables.
- * Prefers SUPABASE_URL for server contexts, falls back to NEXT_PUBLIC_SUPABASE_URL for browser builds.
+ * Prefers SB_URL for server contexts, falls back to NEXT_PUBLIC_SB_URL for browser builds.
  * Throws an error at build time if neither environment variable is present.
  */
 function getSupabaseUrl(): string {
-	// Prefer server env var, fall back to Next.js public env var
-	const url = process.env["SUPABASE_URL"] || process.env["NEXT_PUBLIC_SUPABASE_URL"]
+	// Doppler integration requires SB_ prefix (Supabase blocks SB_ prefix)
+	// Fallback to SB_* for local development
+	const url =
+		process.env["SB_URL"] ||
+		process.env["SB_URL"] ||
+		process.env["NEXT_PUBLIC_SB_URL"]
 
 	if (!url) {
 		throw new Error(
-			'SUPABASE_URL environment variable is required. ' +
-				'Please set it in your environment variables (or NEXT_PUBLIC_SUPABASE_URL for browser builds).'
+			'Supabase URL environment variable is required. ' +
+				'Set SB_URL (Doppler/production) or SB_URL/NEXT_PUBLIC_SB_URL (local dev).'
 		)
 	}
 
@@ -24,19 +28,21 @@ function getSupabaseUrl(): string {
 
 /**
  * Validates and returns the Supabase publishable key from environment variables.
- * Prefers SUPABASE_PUBLISHABLE_KEY for server contexts, falls back to NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for browser builds.
+ * Prefers SB_PUBLISHABLE_KEY for server contexts, falls back to NEXT_PUBLIC_SB_PUBLISHABLE_KEY for browser builds.
  * Throws an error at build time if neither environment variable is present.
  */
 function getSupabasePublishableKey(): string {
-	// Prefer server env var, fall back to Next.js public env var
+	// Doppler integration requires SB_ prefix (Supabase blocks SB_ prefix)
+	// Fallback to SB_* for local development
 	const key =
-		process.env["SUPABASE_PUBLISHABLE_KEY"] ||
-		process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
+		process.env["SB_PUBLISHABLE_KEY"] ||
+		process.env["SB_PUBLISHABLE_KEY"] ||
+		process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"]
 
 	if (!key) {
 		throw new Error(
-			'SUPABASE_PUBLISHABLE_KEY environment variable is required. ' +
-				'Please set it in your environment variables (or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for browser builds).'
+			'Supabase publishable key environment variable is required. ' +
+				'Set SB_PUBLISHABLE_KEY (Doppler/production) or SB_PUBLISHABLE_KEY/NEXT_PUBLIC_SB_PUBLISHABLE_KEY (local dev).'
 		)
 	}
 
@@ -54,15 +60,20 @@ function getSupabasePublishableKey(): string {
  *
  * @example
  * ```typescript
- * import { SUPABASE_URL } from '@repo/shared/config/supabase'
+ * import { SB_URL } from '@repo/shared/config/supabase'
  *
- * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+ * const client = createBrowserClient(SB_URL, SB_PUBLISHABLE_KEY)
  * ```
  */
-export const SUPABASE_URL = (() => {
+export const SB_URL = (() => {
 	// Allow builds to proceed without env vars when explicitly skipped
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
-		return process.env["SUPABASE_URL"] || process.env["NEXT_PUBLIC_SUPABASE_URL"] || ''
+		return (
+			process.env["SB_URL"] ||
+			process.env["SB_URL"] ||
+			process.env["NEXT_PUBLIC_SB_URL"] ||
+			''
+		)
 	}
 	return getSupabaseUrl()
 })()
@@ -78,17 +89,18 @@ export const SUPABASE_URL = (() => {
  *
  * @example
  * ```typescript
- * import { SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
+ * import { SB_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
  *
- * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+ * const client = createBrowserClient(SB_URL, SB_PUBLISHABLE_KEY)
  * ```
  */
-export const SUPABASE_PUBLISHABLE_KEY = (() => {
+export const SB_PUBLISHABLE_KEY = (() => {
 	// Allow builds to proceed without env vars when explicitly skipped
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
-			process.env["SUPABASE_PUBLISHABLE_KEY"] ||
-			process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||
+			process.env["SB_PUBLISHABLE_KEY"] ||
+			process.env["SB_PUBLISHABLE_KEY"] ||
+			process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
 			''
 		)
 	}
@@ -98,33 +110,33 @@ export const SUPABASE_PUBLISHABLE_KEY = (() => {
 /**
  * Validates that Supabase configuration is properly set.
  *
- * **Warning**: SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY may be empty when
+ * **Warning**: SB_URL and SB_PUBLISHABLE_KEY may be empty when
  * SKIP_ENV_VALIDATION === 'true'. Consumers must call this function before
  * creating Supabase clients to ensure configuration is valid.
  *
- * @throws {Error} If SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is falsy
+ * @throws {Error} If SB_URL or SB_PUBLISHABLE_KEY is falsy
  *
  * @example
  * ```typescript
- * import { assertSupabaseConfig, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
+ * import { assertSupabaseConfig, SB_URL, SB_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
  *
  * // Before creating client
  * assertSupabaseConfig()
- * const client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+ * const client = createBrowserClient(SB_URL, SB_PUBLISHABLE_KEY)
  * ```
  */
 export function assertSupabaseConfig(): void {
-	if (!SUPABASE_URL) {
+	if (!SB_URL) {
 		throw new Error(
-			'SUPABASE_URL is not configured. ' +
-			'Please set SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL in your environment.'
+			'Supabase URL is not configured. ' +
+			'Set SB_URL (Doppler/production) or SB_URL/NEXT_PUBLIC_SB_URL (local dev).'
 		)
 	}
 
-	if (!SUPABASE_PUBLISHABLE_KEY) {
+	if (!SB_PUBLISHABLE_KEY) {
 		throw new Error(
-			'SUPABASE_PUBLISHABLE_KEY is not configured. ' +
-			'Please set SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in your environment.'
+			'Supabase publishable key is not configured. ' +
+			'Set SB_PUBLISHABLE_KEY (Doppler/production) or SB_PUBLISHABLE_KEY/NEXT_PUBLIC_SB_PUBLISHABLE_KEY (local dev).'
 		)
 	}
 }

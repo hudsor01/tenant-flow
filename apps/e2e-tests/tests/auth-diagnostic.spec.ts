@@ -100,8 +100,8 @@ test.describe('Authentication Diagnostic Tests', () => {
 		const envInfo = await page.evaluate(() => ({
 			origin: window.location.origin,
 			pathname: window.location.pathname,
-			supabaseUrl: (window as any).NEXT_PUBLIC_SUPABASE_URL,
-			supabaseKey: (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+			supabaseUrl: (window as any).NEXT_PUBLIC_SB_URL,
+			supabaseKey: (window as any).NEXT_PUBLIC_SB_ANON_KEY ? 'SET' : 'NOT SET'
 		}))
 		console.log('[ENV] Frontend environment:', envInfo)
 
@@ -228,7 +228,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 	test('check Supabase connectivity', async ({ page }) => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		console.log('[SUPABASE_CHECK] Testing Supabase connectivity')
+		console.log('[SB_CHECK] Testing Supabase connectivity')
 
 		await page.goto(`${baseUrl}/login`)
 		await page.waitForLoadState('networkidle')
@@ -237,11 +237,11 @@ test.describe('Authentication Diagnostic Tests', () => {
 		const supabaseTest = await page.evaluate(async () => {
 			try {
 				const response = await fetch(
-					`${(window as any).NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`,
+					`${(window as any).NEXT_PUBLIC_SB_URL}/rest/v1/`,
 					{
 						method: 'HEAD',
 						headers: {
-							'apikey': (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY
+							'apikey': (window as any).NEXT_PUBLIC_SB_ANON_KEY
 						}
 					}
 				)
@@ -257,7 +257,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 			}
 		})
 
-		console.log('[SUPABASE_CHECK] Result:', supabaseTest)
+		console.log('[SB_CHECK] Result:', supabaseTest)
 		expect(supabaseTest).toHaveProperty('status')
 	})
 

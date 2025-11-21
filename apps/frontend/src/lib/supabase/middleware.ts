@@ -4,8 +4,8 @@ import {
 	PAYMENT_EXEMPT_ROUTES
 } from '#lib/auth-constants'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 import type { Database } from '@repo/shared/types/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -39,8 +39,8 @@ export async function updateSession(request: NextRequest) {
 	})
 
 	const supabase = createServerClient<Database>(
-		SUPABASE_URL,
-		SUPABASE_PUBLISHABLE_KEY,
+		SB_URL,
+		SB_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll() {

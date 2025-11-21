@@ -64,7 +64,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Invalid URL format'
 			logger.error(`Invalid JWKS URL configuration: ${message}`)
-			throw new Error(`JWKS URL validation failed: ${message}. Check SUPABASE_URL configuration.`)
+			throw new Error(`JWKS URL validation failed: ${message}. Check SB_URL configuration.`)
 		}
 
 		let jwksClient: ReturnType<typeof jwksRsa> | null = null

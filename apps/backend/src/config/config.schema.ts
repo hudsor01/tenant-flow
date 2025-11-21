@@ -42,14 +42,14 @@ const environmentSchema = z.object({
 	JWT_EXPIRES_IN: z.string().default('7d'),
 
 	// Supabase (using modern API key naming convention)
-	SUPABASE_URL: z.string().url('Must be a valid URL'),
-	SUPABASE_SECRET_KEY: z.string(),
+	SB_URL: z.string().url('Must be a valid URL'),
+	SB_SECRET_KEY: z.string(),
 	/**
 	 * Supabase JWT Secret - Legacy field, not currently used
 	 * Supabase now uses JWKS (JSON Web Key Set) discovery with asymmetric key verification (ES256/RS256)
 	 * This field is kept for potential future use or migration scenarios
 	 */
-	SUPABASE_JWT_SECRET: z
+	SB_JWT_SECRET: z
 		.string()
 		.min(32, 'Supabase JWT secret must be at least 32 characters')
 		.optional(),
@@ -58,14 +58,14 @@ const environmentSchema = z.object({
 	 * Supabase uses asymmetric key verification via JWKS endpoint (no shared secrets)
 	 * Configuration is detected from JWT header (kid) and JWKS discovery
 	 */
-	SUPABASE_JWT_ALGORITHM: z
+	SB_JWT_ALGORITHM: z
 		.preprocess(
 			val => (typeof val === 'string' ? val.toUpperCase().trim() : val),
 			z.enum(['ES256', 'RS256']).default('ES256')
 		),
-	SUPABASE_PUBLISHABLE_KEY: z.string(),
-	SUPABASE_PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
-	SUPABASE_AUTH_WEBHOOK_SECRET: z.string().optional(),
+	SB_PUBLISHABLE_KEY: z.string(),
+	SB_PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
+	SB_AUTH_WEBHOOK_SECRET: z.string().optional(),
 
 	// CORS
 	CORS_ORIGINS: z.string().optional(),
@@ -99,10 +99,10 @@ const environmentSchema = z.object({
 	STRIPE_SYNC_THROTTLE_LIMIT: z
 		.coerce.number()
 		.default(30),
-	SUPABASE_AUTH_THROTTLE_TTL: z
+	SB_AUTH_THROTTLE_TTL: z
 		.coerce.number()
 		.default(60000),
-	SUPABASE_AUTH_THROTTLE_LIMIT: z
+	SB_AUTH_THROTTLE_LIMIT: z
 		.coerce.number()
 		.default(30),
 	TENANT_INVITATION_THROTTLE_TTL: z

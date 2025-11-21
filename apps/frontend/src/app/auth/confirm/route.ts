@@ -5,8 +5,8 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 
 /**
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
 		const cookieStore = await cookies()
 
 		const supabase = createServerClient(
-			SUPABASE_URL,
-			SUPABASE_PUBLISHABLE_KEY,
+			SB_URL,
+			SB_PUBLISHABLE_KEY,
 			{
 				cookies: {
 					getAll() {

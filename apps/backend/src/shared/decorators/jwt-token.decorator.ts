@@ -1,9 +1,9 @@
 /**
  * JWT Token Decorator
- * 
+ *
  * Extracts the JWT token from the request for passing to services.
  * Supports both Authorization header and Supabase cookies (Next.js middleware).
- * 
+ *
  * Usage:
  * @Get()
  * async findAll(@JwtToken() token: string) {
@@ -28,7 +28,7 @@ export const JwtToken = createParamDecorator(
 		}
 
 		// Try cookies (Supabase Next.js middleware sets cookies)
-		const supabaseUrl = process.env.SUPABASE_URL
+		const supabaseUrl = process.env.SB_URL
 		if (!supabaseUrl) {
 			throw new UnauthorizedException('Supabase configuration missing')
 		}
