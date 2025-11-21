@@ -19,8 +19,8 @@ import type { User } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 
 const logger = createLogger({ component: 'ApiAuth' })
@@ -42,8 +42,8 @@ export async function createApiClient(): Promise<ApiAuthResult> {
 	const cookieStore = await cookies()
 
 	const supabase = createServerClient<Database>(
-		SUPABASE_URL,
-		SUPABASE_PUBLISHABLE_KEY,
+		SB_URL,
+		SB_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll() {

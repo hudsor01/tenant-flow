@@ -27,8 +27,8 @@ export default function TenantOnboardingPage() {
 		const activateTenant = async () => {
 			try {
 			// Validate required environment variables
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+			const supabaseUrl = process.env.NEXT_PUBLIC_SB_URL
+			const supabaseKey = process.env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY
 
 			if (!supabaseUrl || !supabaseKey) {
 				logger.error('Missing Supabase configuration')

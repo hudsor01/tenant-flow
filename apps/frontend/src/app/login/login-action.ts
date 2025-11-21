@@ -3,8 +3,8 @@
 import { createServerClient } from '@supabase/ssr'
 import type { Database } from '@repo/shared/types/supabase'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 import { cookies } from 'next/headers'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -15,8 +15,8 @@ export async function loginWithPassword(email: string, password: string) {
 	try {
 		const cookieStore = await cookies()
 		const supabase = createServerClient<Database>(
-			SUPABASE_URL,
-			SUPABASE_PUBLISHABLE_KEY,
+			SB_URL,
+			SB_PUBLISHABLE_KEY,
 			{
 				cookies: {
 					getAll: () => cookieStore.getAll(),
