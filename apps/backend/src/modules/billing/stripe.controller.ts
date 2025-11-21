@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Patch,
   Body,
@@ -18,7 +19,9 @@ import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
 import { SecurityService } from '../../security/security.service'
+import { SupabaseService } from '../../database/supabase.service'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { user_id as UserId } from '../../shared/decorators/user.decorator'
 import { z } from 'zod'
 import type Stripe from 'stripe'
 import type { AuthenticatedRequest } from '@repo/shared/src/types/backend-domain.js'
@@ -64,7 +67,8 @@ export class StripeController {
     private readonly stripeService: StripeService,
     private readonly stripeSharedService: StripeSharedService,
     private readonly billingService: BillingService,
-    private readonly securityService: SecurityService
+    private readonly securityService: SecurityService,
+    private readonly supabase: SupabaseService
   ) {}
 
   /**
@@ -355,6 +359,58 @@ export class StripeController {
       }
       if (error instanceof Error && 'type' in error) {
         this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Get current subscription status for the authenticated user
+   * Verifies subscription status in real-time against Stripe
+   * CRITICAL: Never cache this endpoint - always verify against Stripe to prevent access after cancellation
+   * Returns null status if subscription not found (user gets denied access)
+   */
+  @Get('subscription-status')
+  @UseGuards(JwtAuthGuard)
+  async getSubscriptionStatus(@UserId() userId: string) {
+    // Query subscriptions table for this user (RLS will enforce user can only see their own)
+    const client = this.supabase.getAdminClient()
+    const { data: subscriptions, error } = await client
+      .from('subscriptions')
+      .select('stripe_subscription_id, stripe_customer_id')
+      .eq('user_id', userId)
+      .limit(1)
+
+    if (error) {
+      throw new BadRequestException(`Failed to fetch subscription: ${error.message}`)
+    }
+
+    const subscription = subscriptions?.[0]
+
+    if (!subscription || !subscription.stripe_subscription_id) {
+      return {
+        subscriptionStatus: null,
+        stripeCustomerId: subscription?.stripe_customer_id || null
+      }
+    }
+
+    try {
+      // Verify real-time status with Stripe (fail-closed security)
+      const stripe = this.stripeService.getStripe()
+      const stripeSubscription = await stripe.subscriptions.retrieve(
+        subscription.stripe_subscription_id
+      )
+
+      return {
+        subscriptionStatus: stripeSubscription.status,
+        stripeCustomerId: subscription.stripe_customer_id
+      }
+    } catch (error) {
+      // If Stripe verification fails, deny access (fail-closed)
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Failed to verify subscription status: ${error.message}`
+        )
       }
       throw error
     }
