@@ -91,6 +91,10 @@ export default async function PricingPage() {
 		name: 'TenantFlow Property Management Software',
 		description:
 			'Professional property management software with automated rent collection, maintenance tracking, and financial reporting. Plans starting at $29/month.',
+		image: [
+			`${baseUrl}/images/property-management-og.jpg`,
+			`${baseUrl}/tenant-flow-logo.png`
+		],
 		brand: {
 			'@type': 'Brand',
 			name: 'TenantFlow'
