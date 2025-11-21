@@ -93,7 +93,7 @@ describe('Configuration Schema Validation', () => {
 			config.SUPABASE_JWT_ALGORITHM = 'HS512'
 
 			expect(() => validate(config)).toThrow(
-				'Invalid option: expected one of "HS256"|"ES256"|"RS256"'
+				'Invalid option: expected one of "ES256"|"RS256"'
 			)
 		})
 
@@ -115,7 +115,7 @@ describe('Configuration Schema Validation', () => {
 			expect(result.PORT).toBe(4600) // Default
 			expect(result.JWT_EXPIRES_IN).toBe('7d') // Default
 			expect(result.LOG_LEVEL).toBe('info') // Default
-			expect(result.SUPABASE_JWT_ALGORITHM).toBe('HS256') // Default
+			expect(result.SUPABASE_JWT_ALGORITHM).toBe('ES256') // Default
 			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default
 			expect(result.STORAGE_BUCKET).toBe('tenant-flow-storage') // Default
 			expect(result.ENABLE_METRICS).toBe(true) // Default

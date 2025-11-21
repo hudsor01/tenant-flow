@@ -46,7 +46,7 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 				const parts = accessToken.split('.')
 				if (parts.length === 3 && parts[1]) {
 					const payload = JSON.parse(
-						Buffer.from(parts[1], 'base64').toString()
+						atob(parts[1])
 					) as Record<string, unknown>
 					userType = (payload.user_user_type as string) || 'TENANT'
 					subscriptionStatus = (payload.subscription_status as string) || null
