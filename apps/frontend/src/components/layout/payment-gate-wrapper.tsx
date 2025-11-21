@@ -18,7 +18,6 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useUser } from '#hooks/api/use-auth'
 import { useAuth } from '#providers/auth-provider'
 import { useSubscriptionStatus } from '#hooks/api/use-subscription-status'
 
@@ -31,7 +30,6 @@ const VALID_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
 export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 	const router = useRouter()
 	const { session } = useAuth()
-	const { isLoading: userLoading } = useUser()
 	const [isValidating, setIsValidating] = useState(true)
 
 	// Get user type from JWT (doesn't require real-time check)
@@ -63,12 +61,12 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 		isLoading: isCheckingSubscription,
 		error: subscriptionError
 	} = useSubscriptionStatus({
-		enabled: requiresPayment && !!session && !userLoading
+		enabled: requiresPayment && !!session
 	})
 
 	useEffect(() => {
 		// Don't validate until we have all necessary data
-		if (!session || userLoading || (requiresPayment && isCheckingSubscription)) {
+		if (!session || (requiresPayment && isCheckingSubscription)) {
 			return
 		}
 
@@ -99,10 +97,10 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 		}
 
 		setIsValidating(false)
-	}, [session, userLoading, requiresPayment, isCheckingSubscription, subscriptionData, subscriptionError, router])
+	}, [session, requiresPayment, isCheckingSubscription, subscriptionData, subscriptionError, router])
 
 	// Show nothing while validating payment status
-	if (isValidating || (session && userLoading)) {
+	if (isValidating) {
 		return null
 	}
 

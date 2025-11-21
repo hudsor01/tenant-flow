@@ -176,6 +176,52 @@ export class BillingService {
   }
 
   /**
+   * Find active subscription for a user (RLS-enforced query)
+   * Returns the subscription record from public.subscriptions table
+   * This method exists to avoid using admin client for user-scoped queries
+   */
+  /**
+   * Find active subscription for a user (RLS-enforced query)
+   * Returns the subscription record from public.subscriptions table
+   * Uses service client with user token to enforce RLS policies
+   */
+  /**
+   * Find active subscription for a user (RLS-enforced query)
+   * Returns the subscription record from public.subscriptions table
+   * Uses service client with user token to enforce RLS policies
+   * 
+   * SECURITY: FAIL-CLOSED ERROR HANDLING
+   * - User not found (PGRST116): Returns null (expected for users without subscriptions)
+   * - Database error: Throws exception (fail-closed - denies access)
+   * - RLS denial: Throws exception (fail-closed - denies access)
+   */
+  async findSubscriptionByUserId(
+    userId: string,
+    userToken: string
+  ): Promise<{ stripe_subscription_id: string | null; stripe_customer_id: string | null } | null> {
+    // Use user client to enforce RLS - only returns subscriptions user has access to
+    const client = this.supabase.getUserClient(userToken)
+    const { data, error } = await client
+      .from('subscriptions')
+      .select('stripe_subscription_id, stripe_customer_id')
+      .eq('user_id', userId)
+      .limit(1)
+      .single()
+
+    if (error) {
+      // Not found is expected for users without subscriptions
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      // All other errors throw (fail-closed security)
+      this.logger.error('Failed to find subscription by user ID:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  /**
    * Find payment intent by Stripe payment intent ID (read-only)
    * The Stripe Sync Engine automatically syncs all payment intents
    */

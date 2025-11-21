@@ -39,7 +39,7 @@ import { UtilityService } from '../services/utility.service'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AppConfigService } from '../../config/app-config.service'
-import JwksClient from 'jwks-rsa'
+import jwksRsa from 'jwks-rsa'
 import { jwtDecode } from 'jwt-decode'
 
 @Injectable()
@@ -55,10 +55,21 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 		// Try to initialize JWKS client with discovery URL
 		const jwksUrl = `${supabaseUrl}/.well-known/jwks.json`
 
-		let jwksClient: JwksClient.JwksClient | null = null
+		// Validate JWKS URL format to catch configuration errors early
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			jwksClient = new (JwksClient as any)({
+			const parsedUrl = new URL(jwksUrl)
+			if (parsedUrl.protocol !== 'https:') {
+				throw new Error('JWKS URL must use HTTPS protocol')
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Invalid URL format'
+			logger.error(`Invalid JWKS URL configuration: ${message}`)
+			throw new Error(`JWKS URL validation failed: ${message}. Check SUPABASE_URL configuration.`)
+		}
+
+		let jwksClient: ReturnType<typeof jwksRsa> | null = null
+		try {
+			jwksClient = jwksRsa({
 				jwksUri: jwksUrl,
 				cache: true,
 				rateLimit: true,
