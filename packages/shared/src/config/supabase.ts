@@ -9,17 +9,17 @@
  * Throws an error at build time if neither environment variable is present.
  */
 function getSupabaseUrl(): string {
-	// Doppler integration requires SB_ prefix (Supabase blocks SB_ prefix)
-	// Fallback to SB_* for local development
+	// Priority: NEXT_PUBLIC_* vars first (required for Next.js SSR/browser)
+	// Then fall back to server-only SB_* vars (backend/API routes)
 	const url =
+		process.env["NEXT_PUBLIC_SB_URL"] ||
 		process.env["SB_URL"] ||
-		process.env["SB_URL"] ||
-		process.env["NEXT_PUBLIC_SB_URL"]
+		process.env["NEXT_PUBLIC_SUPABASE_URL"]
 
 	if (!url) {
 		throw new Error(
 			'Supabase URL environment variable is required. ' +
-				'Set SB_URL (Doppler/production) or SB_URL/NEXT_PUBLIC_SB_URL (local dev).'
+				'Set NEXT_PUBLIC_SB_URL (Doppler frontend) or SB_URL (Doppler backend).'
 		)
 	}
 
@@ -32,17 +32,17 @@ function getSupabaseUrl(): string {
  * Throws an error at build time if neither environment variable is present.
  */
 function getSupabasePublishableKey(): string {
-	// Doppler integration requires SB_ prefix (Supabase blocks SB_ prefix)
-	// Fallback to SB_* for local development
+	// Priority: NEXT_PUBLIC_* vars first (required for Next.js SSR/browser)
+	// Then fall back to server-only SB_* vars (backend/API routes)
 	const key =
+		process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
 		process.env["SB_PUBLISHABLE_KEY"] ||
-		process.env["SB_PUBLISHABLE_KEY"] ||
-		process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"]
+		process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
 
 	if (!key) {
 		throw new Error(
 			'Supabase publishable key environment variable is required. ' +
-				'Set SB_PUBLISHABLE_KEY (Doppler/production) or SB_PUBLISHABLE_KEY/NEXT_PUBLIC_SB_PUBLISHABLE_KEY (local dev).'
+				'Set NEXT_PUBLIC_SB_PUBLISHABLE_KEY (Doppler frontend) or SB_PUBLISHABLE_KEY (Doppler backend).'
 		)
 	}
 
@@ -69,9 +69,9 @@ export const SB_URL = (() => {
 	// Allow builds to proceed without env vars when explicitly skipped
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
-			process.env["SB_URL"] ||
-			process.env["SB_URL"] ||
 			process.env["NEXT_PUBLIC_SB_URL"] ||
+			process.env["SB_URL"] ||
+			process.env["NEXT_PUBLIC_SUPABASE_URL"] ||
 			''
 		)
 	}
@@ -98,9 +98,9 @@ export const SB_PUBLISHABLE_KEY = (() => {
 	// Allow builds to proceed without env vars when explicitly skipped
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
-			process.env["SB_PUBLISHABLE_KEY"] ||
-			process.env["SB_PUBLISHABLE_KEY"] ||
 			process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
+			process.env["SB_PUBLISHABLE_KEY"] ||
+			process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||
 			''
 		)
 	}
