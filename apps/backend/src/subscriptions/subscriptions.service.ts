@@ -24,6 +24,7 @@ import type { Database } from '@repo/shared/types/supabase'
 import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
+import { SubscriptionCacheService } from './subscription-cache.service'
 
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
@@ -49,7 +50,8 @@ export class SubscriptionsService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService
+		private readonly stripeClientService: StripeClientService,
+		private readonly cache: SubscriptionCacheService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -153,6 +155,10 @@ export class SubscriptionsService {
 		leaseContext.lease.payment_day = billingDay
 		leaseContext.lease.rent_amount = request.amount
 		leaseContext.lease.rent_currency = currency
+
+		// Invalidate lease cache
+		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
+		await this.cache.invalidatePaymentMethodCache(leaseContext.tenant.id, paymentMethod.id)
 
 		return this.mapLeaseContextToResponse(leaseContext, {
 			stripeSubscription: subscription,
@@ -259,6 +265,9 @@ export class SubscriptionsService {
 
 		leaseContext.lease.auto_pay_enabled = false
 
+		// Invalidate lease cache
+		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
+
 		return {
 			success: true,
 			subscription: await this.mapLeaseContextToResponse(leaseContext, {
@@ -301,6 +310,9 @@ export class SubscriptionsService {
 		}
 
 		leaseContext.lease.auto_pay_enabled = true
+
+		// Invalidate lease cache
+		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
 
 		return {
 			success: true,
@@ -346,6 +358,9 @@ export class SubscriptionsService {
 
 		leaseContext.lease.auto_pay_enabled = false
 		leaseContext.lease.stripe_subscription_id = null
+
+		// Invalidate lease cache
+		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
 
 		return {
 			success: true,
@@ -460,6 +475,12 @@ export class SubscriptionsService {
 			return this.mapLeaseContextToResponse(leaseContext)
 		}
 
+		// Invalidate lease cache
+		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
+		if (nextPaymentMethodId) {
+			await this.cache.invalidatePaymentMethodCache(leaseContext.tenant.id, nextPaymentMethodId)
+		}
+
 		return this.mapLeaseContextToResponse(leaseContext, {
 			paymentMethodId: nextPaymentMethodId,
 			stripeSubscription: latestStripeSubscription ?? undefined
@@ -552,44 +573,50 @@ private computeBillingCycleAnchor(dayOfMonth: number): number {
 		tenant: TenantRow
 		user: UserRow
 	} | null> {
-		const adminClient = this.supabase.getAdminClient()
+		return this.cache.getTenantByUserId(userId, async () => {
+			const adminClient = this.supabase.getAdminClient()
 
-		const { data: tenant, error } = await adminClient
-			.from('tenants')
-			.select('id, stripe_customer_id, user_id')
-			.eq('user_id', userId)
-			.maybeSingle<TenantRow>()
+			const { data: tenant, error } = await adminClient
+				.from('tenants')
+				.select('id, stripe_customer_id, user_id')
+				.eq('user_id', userId)
+				.maybeSingle<TenantRow>()
 
-		if (error) {
-			this.logger.error('Failed to fetch tenant by user id', { userId, error: error.message })
-			throw new BadRequestException('Failed to load tenant profile')
-		}
+			if (error) {
+				this.logger.error('Failed to fetch tenant by user id', { userId, error: error.message })
+				throw new BadRequestException('Failed to load tenant profile')
+			}
 
-		if (!tenant) {
-			return null
-		}
+			if (!tenant) {
+				return null
+			}
 
-		const tenantUser = await this.getUserById(tenant.user_id)
-		return { tenant, user: tenantUser }
+			const tenantUser = await this.getUserById(tenant.user_id)
+			return { tenant, user: tenantUser }
+		})
 	}
 
 	private async findOwnerByUserId(userId: string): Promise<{
 		owner: PropertyOwnerRow
 	} | null> {
-		const adminClient = this.supabase.getAdminClient()
-		const { data: owner, error } = await adminClient
-			.from('property_owners')
-			.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
-			.eq('user_id', userId)
-			.maybeSingle<PropertyOwnerRow>()
+		const owner = await this.cache.getOwnerByUserId(userId, async () => {
+			const adminClient = this.supabase.getAdminClient()
+			const { data: owner, error } = await adminClient
+				.from('property_owners')
+				.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
+				.eq('user_id', userId)
+				.maybeSingle<PropertyOwnerRow>()
 
-		if (error) {
-			this.logger.error('Failed to fetch property owner by user id', {
-				userId,
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load owner profile')
-		}
+			if (error) {
+				this.logger.error('Failed to fetch property owner by user id', {
+					userId,
+					error: error.message
+				})
+				throw new BadRequestException('Failed to load owner profile')
+			}
+
+			return owner
+		})
 
 		return owner ? { owner } : null
 	}
@@ -677,109 +704,121 @@ private computeBillingCycleAnchor(dayOfMonth: number): number {
 	}
 
 	private async loadLeaseContext(leaseId: string): Promise<LeaseContext> {
-		const adminClient = this.supabase.getAdminClient()
-		const { data: lease, error: leaseError } = await adminClient
-			.from('leases')
-			.select(
-				'id, primary_tenant_id, rent_amount, rent_currency, payment_day, auto_pay_enabled, stripe_subscription_id, unit_id, created_at, updated_at'
-			)
-			.eq('id', leaseId)
-			.single<LeaseRow>()
+		return this.cache.getLeaseContext(leaseId, async () => {
+			const adminClient = this.supabase.getAdminClient()
+			const { data: lease, error: leaseError } = await adminClient
+				.from('leases')
+				.select(
+					'id, primary_tenant_id, rent_amount, rent_currency, payment_day, auto_pay_enabled, stripe_subscription_id, unit_id, created_at, updated_at'
+				)
+				.eq('id', leaseId)
+				.single<LeaseRow>()
 
-		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
-		}
+			if (leaseError || !lease) {
+				throw new NotFoundException('Lease not found')
+			}
 
-		const tenant = await this.getTenantById(lease.primary_tenant_id)
-		const tenantUser = await this.getUserById(tenant.user_id)
-		const unit = await this.getUnitById(lease.unit_id)
-		const property = await this.getPropertyById(unit.property_id)
-		const owner = await this.getPropertyOwnerById(property.property_owner_id)
+			const tenant = await this.getTenantById(lease.primary_tenant_id)
+			const tenantUser = await this.getUserById(tenant.user_id)
+			const unit = await this.getUnitById(lease.unit_id)
+			const property = await this.getPropertyById(unit.property_id)
+			const owner = await this.getPropertyOwnerById(property.property_owner_id)
 
-		return {
-			lease,
-			tenant,
-			tenantUser,
-			unit,
-			property,
-			owner
-		}
+			return {
+				lease,
+				tenant,
+				tenantUser,
+				unit,
+				property,
+				owner
+			}
+		})
 	}
 
 	private async getTenantById(tenantId: string): Promise<TenantRow> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('tenants')
-			.select('id, stripe_customer_id, user_id')
-			.eq('id', tenantId)
-			.single<TenantRow>()
+		return this.cache.getTenantById(tenantId, async () => {
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.from('tenants')
+				.select('id, stripe_customer_id, user_id')
+				.eq('id', tenantId)
+				.single<TenantRow>()
 
-		if (error || !data) {
-			throw new NotFoundException('Tenant not found')
-		}
-		return data
+			if (error || !data) {
+				throw new NotFoundException('Tenant not found')
+			}
+			return data
+		})
 	}
 
 	private async getUserById(userId: string): Promise<UserRow> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id, email, first_name, last_name')
-			.eq('id', userId)
-			.single<UserRow>()
+		return this.cache.getUserById(userId, async () => {
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.from('users')
+				.select('id, email, first_name, last_name')
+				.eq('id', userId)
+				.single<UserRow>()
 
-		if (error || !data) {
-			throw new NotFoundException('User profile not found')
-		}
+			if (error || !data) {
+				throw new NotFoundException('User profile not found')
+			}
 
-		return data
+			return data
+		})
 	}
 
 	private async getUnitById(unitId: string): Promise<UnitRow> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('units')
-			.select('id, unit_number, property_id')
-			.eq('id', unitId)
-			.single<UnitRow>()
+		return this.cache.getUnitById(unitId, async () => {
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.from('units')
+				.select('id, unit_number, property_id')
+				.eq('id', unitId)
+				.single<UnitRow>()
 
-		if (error || !data) {
-			throw new NotFoundException('Unit not found for lease')
-		}
+			if (error || !data) {
+				throw new NotFoundException('Unit not found for lease')
+			}
 
-		return data
+			return data
+		})
 	}
 
 	private async getPropertyById(propertyId: string): Promise<PropertyRow> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('properties')
-			.select('id, name, property_owner_id')
-			.eq('id', propertyId)
-			.single<PropertyRow>()
+		return this.cache.getPropertyById(propertyId, async () => {
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.from('properties')
+				.select('id, name, property_owner_id')
+				.eq('id', propertyId)
+				.single<PropertyRow>()
 
-		if (error || !data) {
-			throw new NotFoundException('Property not found for lease')
-		}
+			if (error || !data) {
+				throw new NotFoundException('Property not found for lease')
+			}
 
-		return data
+			return data
+		})
 	}
 
 	private async getPropertyOwnerById(ownerId: string): Promise<PropertyOwnerRow> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('property_owners')
-			.select(
-				'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
-			)
-			.eq('id', ownerId)
-			.single<PropertyOwnerRow>()
+		return this.cache.getPropertyOwnerById(ownerId, async () => {
+			const { data, error } = await this.supabase
+				.getAdminClient()
+				.from('property_owners')
+				.select(
+					'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
+				)
+				.eq('id', ownerId)
+				.single<PropertyOwnerRow>()
 
-		if (error || !data) {
-			throw new NotFoundException('Property owner not found')
-		}
+			if (error || !data) {
+				throw new NotFoundException('Property owner not found')
+			}
 
-		return data
+			return data
+		})
 	}
 
 	private async getPaymentMethod(id: string): Promise<PaymentMethodRow> {

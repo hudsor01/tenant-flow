@@ -234,6 +234,7 @@ export function createMockMaintenanceRequest(
 		id: 'maintenance-' + Math.random().toString(36).substr(2, 9),
 		unit_id: overrides?.unit_id || 'unit-123',
 		tenant_id: overrides?.tenant_id || 'tenant-123',
+		title: overrides?.title || 'New Maintenance Request',
 		description: overrides?.description || 'Urgent leak repair needed',
 		priority: overrides?.priority || 'HIGH',
 		status: overrides?.status || 'PENDING',

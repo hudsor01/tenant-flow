@@ -78,11 +78,12 @@ const getIconForType = (type: string) => {
 	}
 }
 
-export function ActivityFeed() {
+export const ActivityFeed = React.memo(function ActivityFeed() {
 	const { data, isLoading, error } = useOwnerDashboardActivity()
 	const { startLoading, stopLoading, isLoading: isGlobalLoading } = useCategoryLoading('dashboard')
 
 	// Sync React Query loading state with global loading store
+	// React 19: Dependency on isLoading ensures we only update when loading state actually changes
 	React.useEffect(() => {
 		if (isLoading) {
 			startLoading('Loading recent activities...')
@@ -92,7 +93,10 @@ export function ActivityFeed() {
 	}, [isLoading, startLoading, stopLoading])
 
 	// Extract activities array from the response and cast to proper enum type
-	const activities: ActivityWithEnum[] = (data?.activities || []) as ActivityWithEnum[]
+	const activities: ActivityWithEnum[] = React.useMemo(
+		() => (data?.activities || []) as ActivityWithEnum[],
+		[data?.activities]
+	)
 
 	if (isGlobalLoading) {
 		return <ActivityFeedSkeleton items={4} />
@@ -169,4 +173,4 @@ export function ActivityFeed() {
 			</div>
 		</div>
 	)
-}
+})

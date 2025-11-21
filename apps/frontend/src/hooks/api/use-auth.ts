@@ -17,7 +17,7 @@ import { authQueryKeys as authProviderKeys } from '#providers/auth-provider'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -64,6 +64,57 @@ export const supabaseAuthKeys = authKeys.supabase
 // Use provider keys for compatibility
 const authQueryKeys = authProviderKeys
 
+// Single source of truth for auth query configurations
+export const authQueries = {
+	session: () =>
+		queryOptions({
+			queryKey: authQueryKeys.session,
+			queryFn: async () => {
+				const {
+					data: { session },
+					error
+				} = await supabase.auth.getSession()
+				if (error) throw error
+				return session
+			},
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+	user: () =>
+		queryOptions({
+			queryKey: authKeys.me,
+			queryFn: () => clientFetch<User>('/api/v1/users/me'),
+			retry: 1,
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+	supabaseUser: () =>
+		queryOptions({
+			queryKey: authKeys.supabase.user(),
+			queryFn: async () => {
+				const {
+					data: { user },
+					error
+				} = await supabase.auth.getUser()
+				if (error) throw error
+				return user
+			},
+			retry: 1,
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+	supabaseSession: () =>
+		queryOptions({
+			queryKey: authKeys.supabase.session(),
+			queryFn: async () => {
+				const {
+					data: { session },
+					error
+				} = await supabase.auth.getSession()
+				if (error) throw error
+				return session
+			},
+			...QUERY_CACHE_TIMES.DETAIL
+		})
+}
+
 // ============================================================================
 // CACHE UTILITIES
 // ============================================================================
@@ -91,34 +142,34 @@ export function useAuthCacheUtils() {
 
 		// Clear auth data and all dependent queries
 		clearAuthData: () => {
+			// Get current user ID before clearing
+			const currentUserId = queryClient.getQueryData<SupabaseUser>(authQueryKeys.user)?.id
+
+			// Set auth data to null
 			queryClient.setQueryData(authQueryKeys.session, null)
 			queryClient.setQueryData(authQueryKeys.user, null)
 
-			// CRITICAL: Clear ALL user-specific data to prevent cross-user data leakage
-			// This ensures new users don't see cached data from previous sessions
-			queryClient.invalidateQueries({
-				predicate: query => {
-					const queryKey = query.queryKey[0] as string
-					return [
-						'dashboard',
-						'properties',
-						'tenants',
-						'maintenance',
-						'billing',
-						'payment',
-						'leases',
-						'units',
-						'analytics'
-					].includes(queryKey)
-				}
-			})
+			// Invalidate all auth-related queries
+			queryClient.invalidateQueries({ queryKey: ['auth'] })
 
-			// Also clear localStorage cache to ensure fresh start
+			// Invalidate all user-scoped queries (those containing the userId in their key)
+			// This prevents cross-user data leakage without indiscriminately clearing public data
+			if (currentUserId) {
+				queryClient.invalidateQueries({
+					predicate: query => {
+						// Check if query key contains the user ID
+						return query.queryKey.some(key => key === currentUserId)
+					}
+				})
+			}
+
+			// Clear localStorage cache to ensure fresh start
 			if (typeof window !== 'undefined') {
 				try {
 					localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE')
-					logger.info('Cleared offline cache on logout', {
-						action: 'clear_offline_cache'
+					logger.info('Cleared auth cache and user-scoped queries on logout', {
+						action: 'clear_auth_cache',
+						metadata: { userId: currentUserId }
 					})
 				} catch (error) {
 					logger.warn('Failed to clear offline cache', {
@@ -183,50 +234,23 @@ export function useCurrentUser() {
  * }
  */
 export function useUser() {
-	return useQuery({
-		queryKey: authKeys.me,
-		queryFn: () => clientFetch<User>('/api/v1/users/me'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000,
-		retry: 1
-	})
+	return useQuery(authQueries.user())
 }
 
 /**
  * Get current user from Supabase (direct auth state)
+ * @deprecated Use useCurrentUser() or useAuth() from AuthProvider instead
  */
 export function useSupabaseUser() {
-	return useQuery({
-		queryKey: authKeys.supabase.user(),
-		queryFn: async () => {
-			const {
-				data: { user },
-				error
-			} = await supabase.auth.getUser()
-			if (error) throw error
-			return user
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 1
-	})
+	return useQuery(authQueries.supabaseUser())
 }
 
 /**
  * Get current session from Supabase
+ * @deprecated Use useAuth() from AuthProvider instead
  */
 export function useSupabaseSession() {
-	return useQuery({
-		queryKey: authKeys.supabase.session(),
-		queryFn: async () => {
-			const {
-				data: { session },
-				error
-			} = await supabase.auth.getSession()
-			if (error) throw error
-			return session
-		},
-		...QUERY_CACHE_TIMES.DETAIL
-	})
+	return useQuery(authQueries.supabaseSession())
 }
 
 // ============================================================================
@@ -341,20 +365,15 @@ export function useSupabaseSignup() {
 
 /**
  * Logout mutation (alias for useSignOut for backwards compatibility)
+ * @deprecated Use useSignOut() instead
  */
 export function useSupabaseLogout() {
 	const router = useRouter()
-	const { clearAuthData } = useAuthCacheUtils()
+	const signOut = useSignOut()
 
 	return useMutation({
-		mutationFn: async () => {
-			const { error } = await supabase.auth.signOut()
-			if (error) throw error
-		},
+		mutationFn: async () => signOut.mutateAsync(),
 		onSuccess: () => {
-			// Clear auth and user-specific queries
-			clearAuthData()
-
 			handleMutationSuccess('Logout')
 			router.push('/login')
 		},
@@ -464,10 +483,7 @@ export function usePrefetchAuthSession() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: authQueryKeys.session,
-			...QUERY_CACHE_TIMES.DETAIL
-		})
+		queryClient.prefetchQuery(authQueries.session())
 	}
 }
 
@@ -493,18 +509,7 @@ export function usePrefetchSupabaseUser() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: authKeys.supabase.user(),
-			queryFn: async () => {
-				const {
-					data: { user },
-					error
-				} = await supabase.auth.getUser()
-				if (error) throw error
-				return user
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		})
+		queryClient.prefetchQuery(authQueries.supabaseUser())
 	}
 }
 
@@ -515,17 +520,6 @@ export function usePrefetchSupabaseSession() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: authKeys.supabase.session(),
-			queryFn: async () => {
-				const {
-					data: { session },
-					error
-				} = await supabase.auth.getSession()
-				if (error) throw error
-				return session
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		})
+		queryClient.prefetchQuery(authQueries.supabaseSession())
 	}
 }

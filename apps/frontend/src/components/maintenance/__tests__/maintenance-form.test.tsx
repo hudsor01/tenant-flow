@@ -78,6 +78,7 @@ vi.mock('#lib/api/client', () => ({
 
 const mockMaintenanceRequest: MaintenanceRequest = {
 	id: 'request-1',
+	title: 'Kitchen Faucet Issue',
 	unit_id: 'unit-1',
 	requested_by: 'tenant-1',
 	property_owner_id: 'user-1',
