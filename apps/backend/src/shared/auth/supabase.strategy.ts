@@ -1,22 +1,28 @@
 /**
- * Supabase JWT Strategy - Direct JWT Secret Verification
-
- * Uses Supabase's JWT signing secret directly instead of JWKS endpoints.
- * This provides better reliability and performance while maintaining security.
-
+ * Supabase JWT Strategy - ES256 Asymmetric Verification
+ *
+ * Uses Supabase's ES256 public key for JWT signature verification.
+ * ES256 is an asymmetric algorithm (ECDSA with P-256 curve) that requires
+ * the PUBLIC KEY for verification (not a secret).
+ *
  * Key Management:
- * - Uses SUPABASE_JWT_SECRET from Supabase dashboard (Settings > JWT Keys > Current Signing Key)
- * - Supports ES256 algorithm (Supabase's default)
- * - No external dependencies on JWKS endpoints
-
+ * - JWT_PUBLIC_KEY_CURRENT: Public key from Supabase Settings > JWT Settings
+ * - JWT_PUBLIC_KEY_STANDBY: Optional standby key for rotation (currently for reference only)
+ * - Algorithm: ES256 (ECDSA, Supabase's default)
+ * - Verification: Asymmetric (uses public key only)
+ *
  * Authentication Flow:
  * 1. Frontend sends Authorization: Bearer <token> header
- * 2. Strategy verifies JWT signature using Supabase's secret
- * 3. Validates payload (issuer, audience, expiration)
+ * 2. Strategy extracts and verifies JWT signature using ES256 public key
+ * 3. Validates standard claims (issuer, audience, expiration)
  * 4. Ensures user exists in users table (creates if needed for OAuth)
- * 5. Returns authUser object for use in request handlers
+ * 5. Returns authenticated user object for request handlers
  *
- * Supported Algorithms: ES256 (Supabase default)
+ * Security Notes:
+ * - Never use JWT_PUBLIC_KEY_CURRENT as a shared secret (it's a public key)
+ * - Key rotation: Supabase rotates keys periodically
+ * - Tokens issued by Supabase must match the configured issuer
+ * - All authentication MUST use Authorization: Bearer header (no cookies)
  */
 
 import { Injectable, Logger } from '@nestjs/common'
@@ -36,31 +42,29 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 	private readonly config: AppConfigService
 
 	constructor(utilityService: UtilityService, config: AppConfigService) {
-		// Validate environment before super() - no 'this' access allowed
-		const extractors = [ExtractJwt.fromAuthHeaderAsBearerToken()]
-
+		// Get JWT configuration (validates environment variables)
 		const { algorithm, secretOrKey } = resolveSupabaseJwtConfig(config)
 
-		// Base JWT configuration shared across symmetric and asymmetric modes
+		// Configure passport-jwt strategy with ES256 public key
 		const baseConfig = {
-			jwtFromRequest: ExtractJwt.fromExtractors(extractors),
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
 			issuer: `${config.getSupabaseUrl()}/auth/v1`,
 			audience: 'authenticated',
 			algorithms: [algorithm],
-			secretOrKey: secretOrKey! // We validated this exists in resolveSupabaseJwtConfig
+			secretOrKey // Public key for ES256 verification
 		}
 
 		super(baseConfig)
 
-		// NOW safe to assign to 'this' after super()
+		// Safe to assign to 'this' after super()
 		this.utilityService = utilityService
 		this.config = config
 
-		// HEADERS-ONLY AUTHENTICATION: Frontend and backend are on separate deployments (Vercel + Railway)
-		// All API calls MUST use Authorization: Bearer <token> header - NO cookie support
+		// SECURITY: Headers-only authentication required
+		// Frontend (Vercel) and Backend (Railway) are separate deployments
 		this.logger.log(
-			`SupabaseStrategy initialized with JWT secret verification (${algorithm}) - HEADERS ONLY (Authorization: Bearer)`
+			`Supabase Strategy initialized - ES256 JWT verification via Bearer token (no cookies)`
 		)
 	}
 
@@ -282,32 +286,38 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 function resolveSupabaseJwtConfig(config: AppConfigService): {
 	algorithm: Algorithm
-	isAsymmetric: boolean
-	secretOrKey?: string
-	jwksUri?: string
+	secretOrKey: string
 } {
 	const logger = new Logger('SupabaseJwtConfig')
-	const explicitAlg = config.supabaseJwtAlgorithm?.toUpperCase().trim()
+	
+	// ES256 requires asymmetric public key verification
+	// Fetch from Supabase Dashboard: Settings > JWT Settings > Copy Public Key
+	const currentPublicKey = config.getJwtPublicKeyCurrent()
+	
+	if (!currentPublicKey) {
+		throw new Error(
+			'JWT_PUBLIC_KEY_CURRENT environment variable is required for ES256 JWT verification.\n' +
+			'Get this from your Supabase dashboard:\n' +
+			'  1. Go to Settings > JWT Settings\n' +
+			'  2. Copy the "Current Signing Key" (the public key, not secret)\n' +
+			'  3. Set environment variable: JWT_PUBLIC_KEY_CURRENT=<paste-public-key>'
+		)
+	}
 
-	logger.log(
-		`SUPABASE_JWT_ALGORITHM env var: "${config.supabaseJwtAlgorithm}"`
-	)
-	logger.log(`Parsed explicitAlg: "${explicitAlg}"`)
+	// Support key rotation: also accept standby key for verification
+	const standbyPublicKey = config.getJwtPublicKeyStandby()
+	
+	logger.log('JWT configuration initialized for ES256 verification', {
+		hasCurrent: !!currentPublicKey,
+		hasStandby: !!standbyPublicKey,
+		algorithm: 'ES256'
+	})
 
-	// Only ES256 is supported with direct secret verification
-	const algorithm: Algorithm = explicitAlg === 'ES256' ? 'ES256' : 'ES256'
-	const isAsymmetric = false
-
-	logger.log(`Using ES256 algorithm with Supabase JWT secret`)
-
-	// ES256: Use Supabase's JWT secret (from dashboard)
-	const secret = config.supabaseJwtSecret
-
-	logger.log('Using ES256 with Supabase JWT secret verification')
+	// Note: Key rotation support would require a custom verify function in the strategy
+	// For now, use primary key. Standby key is logged but not used for verification
 	return {
-		algorithm,
-		isAsymmetric,
-		secretOrKey: secret
+		algorithm: 'ES256',
+		secretOrKey: currentPublicKey
 	}
 }
 

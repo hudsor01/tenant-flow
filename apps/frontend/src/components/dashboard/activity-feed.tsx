@@ -83,6 +83,8 @@ export function ActivityFeed() {
 	const { startLoading, stopLoading, isLoading: isGlobalLoading } = useCategoryLoading('dashboard')
 
 	// Sync React Query loading state with global loading store
+	// startLoading and stopLoading are memoized in useCategoryLoading hook,
+	// so they're stable references and safe to include in dependencies
 	React.useEffect(() => {
 		if (isLoading) {
 			startLoading('Loading recent activities...')
