@@ -1,7 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { cn } from '@repo/shared/utils/cn'
+import { cn } from '#lib/utils'
 
 export interface Step {
 	id: string
