@@ -25,7 +25,7 @@ import { OwnerContextInterceptor } from '../interceptors/owner-context.intercept
  */
 @UseGuards(OwnerAuthGuard)
 @UseInterceptors(OwnerContextInterceptor)
-@Controller('maintenance')
+@Controller('')
 export class MaintenanceController {
 	private readonly logger = new Logger(MaintenanceController.name)
 

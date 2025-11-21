@@ -67,7 +67,7 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 
 				// Provide specific error message based on auth failure type
 				let errorMessage = 'Authentication required'
-				
+
 				if (!authHeader) {
 					errorMessage = 'Missing authentication token. Please log in again.'
 				} else if (err?.message?.includes('expired')) {
@@ -95,7 +95,7 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 				// Return 500 for system errors to avoid false 401s for authenticated users
 				// Provide more context about what failed
 				let errorMessage = 'Authentication service temporarily unavailable'
-				
+
 				if (err?.message?.includes('database') || err?.message?.includes('postgres')) {
 					errorMessage = 'Database connection error. Please try again in a moment.'
 				} else if (err?.message?.includes('timeout')) {
@@ -142,7 +142,9 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 			'authentication',
 			'auth',
 			'login',
-			'session'
+			'session',
+			'asymmetric',
+			'secretOrPublicKey'
 		]
 
 		// Check error message and name
