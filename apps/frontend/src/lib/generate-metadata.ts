@@ -126,6 +126,10 @@ export function getJsonLd() {
 		description:
 			'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow.',
 		url: SITE_URL,
+		image: [
+			`${SITE_URL}/images/property-management-og.jpg`,
+			`${SITE_URL}/tenant-flow-logo.png`
+		],
 		author: {
 			'@type': 'Organization',
 			name: 'TenantFlow',
