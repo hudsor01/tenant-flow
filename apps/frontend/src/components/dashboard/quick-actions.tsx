@@ -2,10 +2,8 @@
 
 import {
 	ArrowRight,
-	BarChart3,
 	FileText,
 	Home,
-	Search,
 	UserPlus,
 	Wrench,
 	Building
@@ -26,34 +24,22 @@ const quickActions = [
 		href: '/manage/units/new'
 	},
 	{
-		title: 'Add Tenant',
+		title: 'Invite Tenant',
 		description: 'Register new tenant',
 		icon: UserPlus,
 		href: '/manage/tenants/new'
 	},
 	{
-		title: 'Create Lease',
+		title: 'Sign New Lease',
 		description: 'Draft new lease agreement',
 		icon: FileText,
 		href: '/manage/leases/new'
 	},
 	{
-		title: 'Maintenance Request',
+		title: 'Create Repair Request',
 		description: 'Log maintenance issue',
 		icon: Wrench,
 		href: '/manage/maintenance/new'
-	},
-	{
-		title: 'View Analytics',
-		description: 'Property performance',
-		icon: BarChart3,
-		href: '/manage/analytics'
-	},
-	{
-		title: 'Property Search',
-		description: 'Find properties',
-		icon: Search,
-		href: '/manage/properties'
 	}
 ]
 

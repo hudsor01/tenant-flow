@@ -1,6 +1,6 @@
 'use client'
 
-import { SectionCards } from '#app/(protected)/manage/SectionCards'
+import { SectionCards } from '#components/dashboard/section-cards'
 
 /**
  * MetricsSection - Single Responsibility: Display key metrics cards
