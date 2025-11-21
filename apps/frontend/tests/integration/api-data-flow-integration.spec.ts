@@ -46,7 +46,7 @@ test.describe('API Data Flow Integration', () => {
 
 		// Activate mock authentication
 		await page.goto('/api/dev-auth')
-		await expect(page).toHaveURL('/dashboard')
+		await expect(page).toHaveURL('/manage')
 		await page.waitForLoadState('networkidle')
 	})
 
@@ -57,7 +57,7 @@ test.describe('API Data Flow Integration', () => {
 	test.describe('Dashboard Stats Data Flow', () => {
 		test('should load dashboard stats through API hooks', async () => {
 			// Navigate to dashboard
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 
 			// Inject monitoring for API hooks
@@ -75,13 +75,13 @@ test.describe('API Data Flow Integration', () => {
 					window.fetch = async function (...args) {
 						const url = args[0] as string
 
-						if (url.includes('/dashboard/stats')) {
+						if (url.includes('/manage/stats')) {
 							window.apiHookData.loading = true
 						}
 
 						try {
 							const result = await originalFetch.apply(this, args)
-							if (url.includes('/dashboard/stats')) {
+							if (url.includes('/manage/stats')) {
 								window.apiHookData.loading = false
 								const data = await result.clone().json()
 								window.apiHookData.dashboardStats = data
@@ -113,7 +113,7 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should handle mock data provider integration', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 
 			// Check that mock data is being used
@@ -132,7 +132,7 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should validate data transformation pipeline', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 
 			// Look for numeric values that should be transformed/formatted
@@ -157,7 +157,7 @@ test.describe('API Data Flow Integration', () => {
 
 	test.describe('Properties Data Flow', () => {
 		test('should load properties through data table integration', async () => {
-			await page.goto('/dashboard/properties')
+			await page.goto('/manage/properties')
 			await page.waitForLoadState('networkidle')
 
 			// Wait for table to potentially load
@@ -186,7 +186,7 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should handle property data transformation', async () => {
-			await page.goto('/dashboard/properties')
+			await page.goto('/manage/properties')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(3000)
 
@@ -213,7 +213,7 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should integrate with filtering and sorting', async () => {
-			await page.goto('/dashboard/properties')
+			await page.goto('/manage/properties')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(3000)
 
@@ -243,7 +243,7 @@ test.describe('API Data Flow Integration', () => {
 
 	test.describe('Chart Data Integration', () => {
 		test('should load chart components with data', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(4000)
 
@@ -263,7 +263,7 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should handle chart data updates', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(3000)
 
@@ -292,13 +292,13 @@ test.describe('API Data Flow Integration', () => {
 
 	test.describe('Real-time Data Flow', () => {
 		test('should handle data refresh cycles', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 
 			// Monitor network requests during refresh cycle
 			let requestCount = 0
 			page.on('request', request => {
-				if (request.url().includes('/api/v1/dashboard/stats')) {
+				if (request.url().includes('/api/v1/manage/stats')) {
 					requestCount++
 				}
 			})
@@ -325,14 +325,14 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should handle concurrent data updates', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 
 			// Navigate to properties quickly (triggers multiple API calls)
 			await Promise.all([
-				page.goto('/dashboard/properties'),
+				page.goto('/manage/properties'),
 				page.waitForTimeout(100),
-				page.goto('/dashboard'),
+				page.goto('/manage'),
 				page.waitForTimeout(100)
 			])
 
@@ -352,7 +352,7 @@ test.describe('API Data Flow Integration', () => {
 	test.describe('Error Handling Data Flow', () => {
 		test('should handle API errors gracefully', async () => {
 			// Intercept and fail API requests
-			await page.route('**/api/v1/dashboard/stats**', route => {
+			await page.route('**/api/v1/manage/stats**', route => {
 				route.fulfill({
 					status: 500,
 					contentType: 'application/json',
@@ -360,7 +360,7 @@ test.describe('API Data Flow Integration', () => {
 				})
 			})
 
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(3000)
 
@@ -401,7 +401,7 @@ test.describe('API Data Flow Integration', () => {
 				}
 			})
 
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(5000)
 
@@ -423,7 +423,7 @@ test.describe('API Data Flow Integration', () => {
 		})
 
 		test('should validate data integrity', async () => {
-			await page.goto('/dashboard')
+			await page.goto('/manage')
 			await page.waitForLoadState('networkidle')
 			await page.waitForTimeout(2000)
 

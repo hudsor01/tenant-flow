@@ -19,7 +19,7 @@ async function globalTeardown(config: FullConfig) {
 		// 1. Clean up test data created during tests
 
 		try {
-			await page.goto(`${baseURL}/dashboard/properties`)
+			await page.goto(`${baseURL}/manage/properties`)
 			await page.waitForTimeout(2000)
 
 			// Clean up properties with test names

@@ -50,7 +50,7 @@ async function globalSetup() {
 			// Check if already authenticated by looking for dashboard redirect
 			await page.waitForTimeout(2000)
 
-			if (page.url().includes('/dashboard')) {
+			if (page.url().includes('/manage')) {
 				// Already authenticated
 			} else {
 				// Setup mock authentication for testing
@@ -161,7 +161,7 @@ async function globalSetup() {
 		})
 
 		// 4. Clear any existing test data
-		await page.goto(`${baseURL}/dashboard/properties`)
+		await page.goto(`${baseURL}/manage/properties`)
 		await page.waitForTimeout(200)
 
 		// Clean up any properties with "test" in the name
