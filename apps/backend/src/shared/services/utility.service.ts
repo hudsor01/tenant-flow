@@ -323,7 +323,7 @@ export class UtilityService {
 				return await this.getUserIdFromSupabaseId(authUser.id)
 		} catch (error) {
 			// User doesn't exist - proceed with atomic upsert to prevent race conditions
-			if (error instanceof NotFoundException) {
+			if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
 				this.logger.log('Creating new user record for OAuth user', {
 					supabaseId: authUser.id,
 					email: authUser.email
