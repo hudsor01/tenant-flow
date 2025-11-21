@@ -1,8 +1,18 @@
 import { Test } from '@nestjs/testing'
 import { JwtAuthGuard } from './jwt-auth.guard'
 
-// Import the function directly for testing
-import './supabase.strategy'
+// Mock external dependencies that aren't needed for testing the guard logic
+jest.mock('jwks-rsa', () => {
+	return jest.fn().mockImplementation(() => ({
+		getSigningKey: jest.fn().mockResolvedValue({
+			getPublicKey: jest.fn().mockReturnValue('test-key')
+		})
+	}))
+})
+
+jest.mock('jwt-decode', () => ({
+	jwtDecode: jest.fn().mockReturnValue({})
+}))
 
 describe('JwtAuthGuard', () => {
 	let guard: JwtAuthGuard
