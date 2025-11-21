@@ -67,7 +67,7 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 
 				// Provide specific error message based on auth failure type
 				let errorMessage = 'Authentication required'
-				
+
 				if (!authHeader) {
 					errorMessage = 'Missing authentication token. Please log in again.'
 				} else if (err?.message?.includes('expired')) {
@@ -95,7 +95,7 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 				// Return 500 for system errors to avoid false 401s for authenticated users
 				// Provide more context about what failed
 				let errorMessage = 'Authentication service temporarily unavailable'
-				
+
 				if (err?.message?.includes('database') || err?.message?.includes('postgres')) {
 					errorMessage = 'Database connection error. Please try again in a moment.'
 				} else if (err?.message?.includes('timeout')) {
@@ -117,7 +117,10 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 
 	/**
 	 * Determine if an error is an authentication error (invalid token, expired, etc.)
-	 * vs a system error (database issues, network problems, etc.)
+	 * vs a system/configuration error (database issues, network problems, misconfiguration, etc.)
+	 *
+	 * Returns true for 401-worthy errors (user's fault - invalid/missing token)
+	 * Returns false for 500-worthy errors (server's fault - misconfiguration/database/system)
 	 */
 	private isAuthenticationError(
 		err: Error | null,
@@ -130,7 +133,37 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 		const infoMessage = info?.message?.toLowerCase() || ''
 		const infoError = info?.error?.toLowerCase() || ''
 
-		// Authentication-related error patterns
+		// SYSTEM/CONFIG errors (should return 500, not 401)
+		// These indicate misconfiguration or infrastructure problems
+		const systemErrorPatterns = [
+			'asymmetric',
+			'publickey',
+			'secret',
+			'jwks',
+			'keyid',
+			'database',
+			'connection',
+			'network',
+			'timeout',
+			'postgres',
+			'supabase',
+			'econnrefused',
+			'enotfound'
+		]
+
+		if (
+			systemErrorPatterns.some(pattern =>
+				errorMessage.includes(pattern) ||
+				errorName.includes(pattern) ||
+				infoMessage.includes(pattern) ||
+				infoError.includes(pattern)
+			)
+		) {
+			return false // System error - return 500
+		}
+
+		// AUTHENTICATION errors (should return 401)
+		// These are token validation failures (user's responsibility)
 		const authErrorPatterns = [
 			'invalid',
 			'expired',
@@ -138,14 +171,9 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 			'signature',
 			'token',
 			'jwt',
-			'unauthorized',
-			'authentication',
-			'auth',
-			'login',
-			'session'
+			'unauthorized'
 		]
 
-		// Check error message and name
 		const hasAuthError = authErrorPatterns.some(pattern =>
 			errorMessage.includes(pattern) ||
 			errorName.includes(pattern) ||
@@ -153,37 +181,6 @@ export class JwtAuthGuard extends AuthGuard('supabase') {
 			infoError.includes(pattern)
 		)
 
-		// System error patterns (database, network, etc.)
-		const systemErrorPatterns = [
-			'database',
-			'connection',
-			'network',
-			'timeout',
-			'server',
-			'internal',
-			'service',
-			'unavailable',
-			'postgres',
-			'supabase'
-		]
-
-		const hasSystemError = systemErrorPatterns.some(pattern =>
-			errorMessage.includes(pattern) ||
-			errorName.includes(pattern)
-		)
-
-		// If it has both auth and system patterns, it's likely a system error
-		// (e.g., "database connection failed during token validation")
-		if (hasAuthError && hasSystemError) {
-			return false // Treat as system error
-		}
-
-		// If it only has auth patterns, it's an auth error
-		if (hasAuthError) {
-			return true
-		}
-
-		// Default to system error for unknown cases (safer for authenticated users)
-		return false
+		return hasAuthError
 	}
 }

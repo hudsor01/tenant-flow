@@ -165,9 +165,17 @@ export type MaintenanceCompletion = z.infer<typeof maintenanceCompletionSchema>
 export type MaintenanceInspection = z.infer<typeof maintenanceInspectionSchema>
 
 // Frontend-specific form schemas
+// TODO: Add title field to database and validation schema
+// Currently, the frontend form collects a "title" field but it's stored as a workaround in notes: "[Title] {title}"
+// Database migration design:
+//   - Add: title TEXT NOT NULL DEFAULT 'New Maintenance Request' with CHECK (length(trim(title)) > 0)
+//   - No enum types needed, simple string field
+//   - Add to maintenanceRequestInputSchema: title: nonEmptyStringSchema.min(3).max(100)
+// After migration, remove [Title] prefix workaround from use-maintenance-form.ts
 export const maintenanceRequestFormSchema = z.object({
   unit_id: requiredString,
  tenant_id: requiredString,
+  title: z.string().optional(), // Collected by form, stored in notes until DB migration
   description: requiredString,
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   requested_by: z.string().optional(),

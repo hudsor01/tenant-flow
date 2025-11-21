@@ -37,43 +37,40 @@ export function useFormProgress(formType: FormType) {
 		error: null
 	})
 
-	// Load draft on mount - only after hydration
+	// Load draft on mount - React 19 pattern: no setTimeout needed
+	// The effect runs after hydration completes automatically
 	useEffect(() => {
-		let mounted = true
+		let active = true
 
-		const loadDraft = () => {
-			// Ensure we're on the client side and hydration is complete
-			if (typeof window === 'undefined') return
+		// Ensure we're on the client side (check is fast, no setTimeout needed)
+		if (typeof window === 'undefined') return
 
-			try {
-				const savedData = localStorage.getItem(`form-progress-${formType}`)
-				const data = savedData ? JSON.parse(savedData) : null
+		try {
+			const savedData = localStorage.getItem(`form-progress-${formType}`)
+			const data = savedData ? JSON.parse(savedData) : null
 
-				if (mounted) {
-					setState(prev => ({
-						...prev,
-						data,
-						isLoading: false
-					}))
-				}
-			} catch (error) {
-				if (mounted) {
-					setState(prev => ({
-						...prev,
-						error:
-							error instanceof Error ? error.message : 'Failed to load draft',
-						isLoading: false
-					}))
-				}
+			// Only update if component is still mounted
+			if (active) {
+				setState(prev => ({
+					...prev,
+					data,
+					isLoading: false
+				}))
+			}
+		} catch (error) {
+			// Only update if component is still mounted
+			if (active) {
+				setState(prev => ({
+					...prev,
+					error:
+						error instanceof Error ? error.message : 'Failed to load draft',
+					isLoading: false
+				}))
 			}
 		}
 
-		// Delay to ensure hydration is complete
-		const timeoutId = setTimeout(loadDraft, 100)
-
 		return () => {
-			mounted = false
-			clearTimeout(timeoutId)
+			active = false
 		}
 	}, [formType])
 

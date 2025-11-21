@@ -10,8 +10,8 @@ test.describe('Tenant Invitation Flow', () => {
 	const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
 	const TENANT_PASSWORD = process.env.E2E_TENANT_PASSWORD || 'TenantPassword123!'
-	const BASE_URL = process.env.BASE_URL || 'https://tenantflow.app'
-	const API_URL = process.env.API_URL || 'https://api.tenantflow.app'
+	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'https://tenantflow.app'
+	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'https://api.tenantflow.app'
 
 	// Test data
 	const testTenant = {

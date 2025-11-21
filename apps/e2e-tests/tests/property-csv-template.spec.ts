@@ -25,9 +25,12 @@ test.describe('Property CSV Template Download', () => {
 	test('should download CSV template with correct headers and sample data', async ({
 		page
 	}) => {
+		// Setup environment-aware base URL
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+
 		// Step 1: Navigate to properties page (will redirect to login)
 		logStep(' Step 1: Navigating to /manage/properties')
-		await page.goto('http://localhost:3000/manage/properties')
+		await page.goto(`${baseUrl}/manage/properties`)
 
 		// Wait for login page (page.goto already waits for navigation, just verify URL)
 		await page.waitForURL('**/login**', { timeout: 10000 })
@@ -47,7 +50,7 @@ test.describe('Property CSV Template Download', () => {
 
 		// Step 3: Navigate to properties page
 		logStep(' Step 3: Navigating to properties page')
-		await page.goto('http://localhost:3000/manage/properties')
+		await page.goto(`${baseUrl}/manage/properties`)
 		await page.waitForLoadState('networkidle')
 		logStep(' Properties page loaded')
 

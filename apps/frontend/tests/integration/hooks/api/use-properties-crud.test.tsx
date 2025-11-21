@@ -86,7 +86,7 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 				expect(result.current.isSuccess).toBe(true)
 			})
 
-			expect(Array.isArray(result.current.data?.data)).toBe(true)
+			expect(Array.isArray(result.current.data)).toBe(true)
 		})
 	})
 

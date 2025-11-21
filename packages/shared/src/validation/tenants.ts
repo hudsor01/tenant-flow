@@ -130,6 +130,17 @@ export const tenantFormSchema = z.object({
   ssn_last_four: z.string().regex(/^\d{4}$/).optional()
 })
 
+// Frontend-specific form schema for tenant updates (user_id not required)
+export const tenantFormUpdateSchema = z.object({
+  user_id: requiredString.optional().nullable(),
+  date_of_birth: z.string().optional(),
+  emergency_contact_name: z.string().max(100).optional(),
+  emergency_contact_phone: z.string().optional(),
+  emergency_contact_relationship: z.string().max(50).optional(),
+  identity_verified: z.boolean().optional(),
+  ssn_last_four: z.string().regex(/^\d{4}$/).optional()
+})
+
 // Transform functions for form data
 export const transformTenantFormData = (data: TenantFormData) => ({
  user_id: data.user_id,

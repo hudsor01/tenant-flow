@@ -29,13 +29,19 @@ interface UseRealtimeSubscriptionOptions {
  * Hook for subscribing to Supabase Realtime events
  * Automatically invalidates React Query cache on data changes
  *
+ * NOTE: Callbacks (onInsert, onUpdate, onDelete) are stored via ref to prevent
+ * re-subscriptions when callbacks change. Ensure callbacks are stable or memoized
+ * in parent component using useCallback.
+ *
  * Example:
+ * const handleUpdate = useCallback((payload) => {
+ *   // Handle tenant update
+ * }, [])
+ *
  * useRealtimeSubscription({
  *   table: 'tenants',
  *   event: '*',
- *   onUpdate: (payload) => {
- *     // Handle tenant update
- *   }
+ *   onUpdate: handleUpdate
  * })
  */
 export function useRealtimeSubscription({
@@ -51,6 +57,15 @@ export function useRealtimeSubscription({
 	const queryClient = useQueryClient()
 	const channelRef = useRef<SupabaseChannel | null>(null)
 	const supabase = getSupabaseClientInstance()
+	
+	// Store callback references to avoid re-subscriptions when callbacks change
+	// Parent should use useCallback to keep callbacks stable
+	const callbacksRef = useRef({ onInsert, onUpdate, onDelete })
+	
+	// Update callback refs whenever they change (but don't trigger re-subscribe)
+	useEffect(() => {
+		callbacksRef.current = { onInsert, onUpdate, onDelete }
+	}, [onInsert, onUpdate, onDelete])
 
 	useEffect(() => {
 		if (!enabled) return
@@ -94,16 +109,17 @@ export function useRealtimeSubscription({
 				// Invalidate relevant queries
 				queryClient.invalidateQueries({ queryKey: [table] })
 
-				// Call event-specific handlers
+				// Call event-specific handlers using ref (stable across renders)
+				const { onInsert: handleInsert, onUpdate: handleUpdate, onDelete: handleDelete } = callbacksRef.current
 				switch (payload.eventType) {
 					case 'INSERT':
-						onInsert?.(payload.new)
+						handleInsert?.(payload.new)
 						break
 					case 'UPDATE':
-						onUpdate?.(payload.new)
+						handleUpdate?.(payload.new)
 						break
 					case 'DELETE':
-						onDelete?.(payload.old)
+						handleDelete?.(payload.old)
 						break
 				}
 			}
@@ -139,12 +155,10 @@ export function useRealtimeSubscription({
 		schema,
 		filter,
 		event,
-		onInsert,
-		onUpdate,
-		onDelete,
 		queryClient,
 		supabase
 	])
+	// Removed onInsert, onUpdate, onDelete from dependencies - callbacks now tracked via ref
 
 	return {
 		unsubscribe: () => {

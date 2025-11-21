@@ -1,8 +1,10 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
 import { SubscriptionsService } from './subscriptions.service'
+import { SubscriptionCacheService } from './subscription-cache.service'
 
 describe('SubscriptionsService', () => {
 	let service: SubscriptionsService
@@ -156,11 +158,19 @@ items: { data: [{ id: 'si_test123', price: { id: 'price_test123', currency: 'usd
 			getClient: jest.fn(() => mockStripe)
 		}
 
-		const module: TestingModule = await Test.createTestingModule({
+		const mockCacheManager = {
+		get: jest.fn().mockResolvedValue(undefined),
+		set: jest.fn().mockResolvedValue(undefined),
+		del: jest.fn().mockResolvedValue(undefined)
+	}
+
+	const module: TestingModule = await Test.createTestingModule({
 providers: [
 SubscriptionsService,
+SubscriptionCacheService,
 { provide: SupabaseService, useValue: supabaseService },
-{ provide: StripeClientService, useValue: stripeClientService }
+{ provide: StripeClientService, useValue: stripeClientService },
+{ provide: CACHE_MANAGER, useValue: mockCacheManager }
 ]
 }).compile()
 

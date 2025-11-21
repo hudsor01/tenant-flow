@@ -94,17 +94,21 @@ export class AppConfigService {
 	}
 
 	get supabaseJwtAlgorithm(): string {
-		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'ES256'
+		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'HS256'
 	}
 
 	get supabaseJwtSecret(): string {
 		const secret = this.get('SUPABASE_JWT_SECRET')
 		if (!secret) {
 			throw new Error(
-				'SUPABASE_JWT_SECRET is required. Get this from your Supabase dashboard under Settings > JWT Keys > Current Signing Key'
+				'SUPABASE_JWT_SECRET is required. Get this from your Supabase dashboard under Settings > JWT Keys > JWT Secret'
 			)
 		}
 		return secret
+	}
+
+	getSupabaseJwtSecretOptional(): string | undefined {
+		return this.get('SUPABASE_JWT_SECRET')
 	}
 
 	getSupabaseProjectRef(): string {

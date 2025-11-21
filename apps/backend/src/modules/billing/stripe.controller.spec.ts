@@ -18,6 +18,7 @@ import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
 import { SecurityService } from '../../security/security.service'
+import { SupabaseService } from '../../database/supabase.service'
 
 // Mock services
 const mockStripeService = {
@@ -41,6 +42,10 @@ const mockSecurityService = {
 	logAuditEvent: jest.fn()
 }
 
+const mockSupabaseService = {
+	getAdminClient: jest.fn()
+}
+
 describe('StripeController', () => {
 	let controller: StripeController
 	let stripeService: jest.Mocked<StripeService>
@@ -54,7 +59,8 @@ describe('StripeController', () => {
 				{ provide: StripeService, useValue: mockStripeService },
 				{ provide: StripeSharedService, useValue: mockStripeSharedService },
 				{ provide: BillingService, useValue: mockBillingService },
-				{ provide: SecurityService, useValue: mockSecurityService }
+				{ provide: SecurityService, useValue: mockSecurityService },
+				{ provide: SupabaseService, useValue: mockSupabaseService }
 			]
 		}).compile()
 
