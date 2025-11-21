@@ -27,43 +27,59 @@ export async function requireSession(): Promise<{
 	user: User
 	accessToken: string
 }> {
-	const cookieStore = await cookies()
-	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-		cookies: {
-			getAll: () => cookieStore.getAll(),
-			setAll: cookiesToSet => {
-				cookiesToSet.forEach(({ name, value, options }) => {
-					cookieStore.set(name, value, options)
-				})
+	try {
+		const cookieStore = await cookies()
+		const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+			cookies: {
+				getAll: () => cookieStore.getAll(),
+				setAll: cookiesToSet => {
+					cookiesToSet.forEach(({ name, value, options }) => {
+						cookieStore.set(name, value, options)
+					})
+				}
 			}
+		})
+
+		// SECURITY FIX: Use getUser() to validate the session with Supabase Auth server
+		// getSession() reads from storage (cookies) which could be tampered with
+		// getUser() validates the token by contacting Supabase Auth server
+		const {
+			data: { user },
+			error: userError
+		} = await supabase.auth.getUser()
+
+		if (userError) {
+			console.error('[requireSession] getUser() error:', {
+				message: userError.message,
+				status: userError.status,
+				name: userError.name
+			})
 		}
-	})
 
-	// SECURITY FIX: Use getUser() to validate the session with Supabase Auth server
-	// getSession() reads from storage (cookies) which could be tampered with
-	// getUser() validates the token by contacting Supabase Auth server
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
+		if (userError || !user) {
+			// User validation failed - redirect to login
+			redirect('/login')
+		}
 
-	if (userError || !user) {
-		// User validation failed - redirect to login
+		// Now get the access token from the session
+		// We trust the token here because getUser() already validated it
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+
+		if (!session?.access_token) {
+			console.error('[requireSession] No access token in session')
+			// No access token - redirect to login
+			redirect('/login')
+		}
+
+		return { user, accessToken: session.access_token }
+	} catch (error) {
+		// Log the error for debugging (won't show in production build logs, but will show in server logs)
+		console.error('[requireSession] Unexpected error:', error)
+		// Redirect to login on any error
 		redirect('/login')
 	}
-
-	// Now get the access token from the session
-	// We trust the token here because getUser() already validated it
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
-
-	if (!session?.access_token) {
-		// No access token - redirect to login
-		redirect('/login')
-	}
-
-	return { user, accessToken: session.access_token }
 }
 
 /**
