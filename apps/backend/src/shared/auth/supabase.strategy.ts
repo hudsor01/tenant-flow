@@ -1,20 +1,24 @@
 /**
- * Supabase JWT Strategy - ES256/RS256 Verification (November 2025)
+ * Supabase JWT Strategy - JWKS/ES256/RS256 Verification (November 2025)
  *
- * Validates JWTs issued by Supabase using asymmetric algorithms.
- * Uses public key provided by Supabase (ES256 or RS256).
+ * Validates JWTs issued by Supabase using JWKS (JSON Web Key Set) discovery.
+ * Automatically handles key rotation and supports ES256/RS256 algorithms.
  *
  * Key Management:
  * - Algorithm: ES256 (default), RS256 (supported)
- * - Public Key: Obtained from Supabase project settings
- * - No shared secrets (HS256 deprecated for production security)
+ * - Keys: Fetched from Supabase JWKS endpoint via discovery URL
+ * - Automatic key rotation: Uses kid (key ID) from JWT header to select key
+ * - Fallback: Static keys (JWT_PUBLIC_KEY_CURRENT) if JWKS is unavailable
+ * - No shared secrets (asymmetric key verification only)
  *
  * Authentication Flow:
  * 1. Frontend sends Authorization: Bearer <token> header
- * 2. Strategy extracts JWT and verifies signature using Supabase public key
- * 3. Validates standard claims (issuer, audience, expiration)
- * 4. Ensures user exists in users table (creates if needed for OAuth)
- * 5. Returns authenticated user with custom claims from Custom Access Token Hook
+ * 2. Extract kid (key ID) from JWT header
+ * 3. Fetch public key from Supabase JWKS endpoint (cached)
+ * 4. Verify signature using the correct key
+ * 5. Validate standard claims (issuer, audience, expiration)
+ * 6. Ensure user exists in users table (creates if needed for OAuth)
+ * 7. Return authenticated user with custom claims
  *
  * Custom Claims:
  * - user_type: Set via Supabase Custom Access Token Hook (PL/pgSQL)
@@ -22,6 +26,8 @@
  *
  * Security:
  * - Asymmetric key verification (no shared secrets in code)
+ * - Dynamic key fetching with caching
+ * - Automatic key rotation support
  * - Validation includes issuer and audience checks
  * - All authentication MUST use Authorization: Bearer header (no cookies)
  */
@@ -33,6 +39,8 @@ import { UtilityService } from '../services/utility.service'
 
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { AppConfigService } from '../../config/app-config.service'
+import JwksClient from 'jwks-rsa'
+import { jwtDecode } from 'jwt-decode'
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
@@ -41,37 +49,102 @@ export class SupabaseStrategy extends PassportStrategy(Strategy, 'supabase') {
 
 	constructor(utilityService: UtilityService, config: AppConfigService) {
 		const supabaseUrl = config.getSupabaseUrl()
-		const jwtPublicKey = config.getJwtPublicKeyCurrent()
+		const jwtPublicKeyCurrent = config.getJwtPublicKeyCurrent()
+		const logger = new Logger(SupabaseStrategy.name)
 
-		// If no JWT public key is configured, use a placeholder
-		// The strategy will fail at runtime when used, providing a helpful error message
-		// This allows the backend to start up and serve health checks
-		const secretOrKey = jwtPublicKey || 'NOT_CONFIGURED'
+		// Try to initialize JWKS client with discovery URL
+		const jwksUrl = `${supabaseUrl}/.well-known/jwks.json`
 
-		// Configure passport-jwt strategy with ES256/RS256 public key verification
+		let jwksClient: JwksClient.JwksClient | null = null
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			jwksClient = new (JwksClient as any)({
+				jwksUri: jwksUrl,
+				cache: true,
+				rateLimit: true,
+				jwksRequestsPerMinute: 10
+			})
+			logger.log(
+				`JWKS client initialized with discovery URL: ${jwksUrl}`
+			)
+		} catch (error) {
+			logger.warn(
+				`Failed to initialize JWKS client: ${error instanceof Error ? error.message : 'unknown error'}`
+			)
+			jwksClient = null
+		}
+
+		// Use secretOrKeyProvider to dynamically fetch keys
+		const secretOrKeyProvider = async (
+			_req: unknown,
+			rawtokenString: string,
+			done: (err: unknown, key?: string) => void
+		) => {
+			try {
+				const token = rawtokenString.startsWith('Bearer ')
+					? rawtokenString.substring(7)
+					: rawtokenString
+
+				if (!token) {
+					return done(new Error('No token provided'))
+				}
+
+				// Decode header to get kid (key ID)
+				let kid: string | undefined
+				try {
+					const decoded = jwtDecode(token, { header: true }) as { kid?: string }
+					kid = decoded.kid
+				} catch {
+					// Ignore decode errors
+				}
+
+				// Try JWKS first
+				if (jwksClient && kid) {
+					try {
+						const key = await jwksClient.getSigningKey(kid)
+						const publicKey = key.getPublicKey()
+						logger.debug('JWT verified using JWKS', { kid })
+						return done(null, publicKey)
+					} catch (error) {
+						logger.warn(
+							`JWKS verification failed for kid ${kid}, falling back to static key`,
+							{
+								error: error instanceof Error ? error.message : 'unknown error'
+							}
+						)
+					}
+				}
+
+				// Fallback to static key
+				if (jwtPublicKeyCurrent) {
+					logger.debug('JWT verified using static key')
+					return done(null, jwtPublicKeyCurrent)
+				}
+
+				// No key available
+				return done(
+					new Error('No valid key found (JWKS unavailable and no static key configured)')
+				)
+			} catch (error) {
+				return done(error)
+			}
+		}
+
+		// Configure passport-jwt strategy with dynamic key provider
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
 			issuer: `${supabaseUrl}/auth/v1`,
 			audience: 'authenticated',
 			algorithms: ['ES256', 'RS256'],
-			secretOrKey: secretOrKey
+			secretOrKeyProvider
 		})
 
 		this.utilityService = utilityService
 
-		if (jwtPublicKey) {
-			this.logger.log(
-				'Supabase Strategy initialized - ES256/RS256 JWT verification (Bearer token, no cookies)'
-			)
-		} else {
-			this.logger.warn(
-				'Supabase Strategy initialized WITHOUT JWT public key. ' +
-				'Protected routes will fail with helpful error message. ' +
-				'Set JWT_PUBLIC_KEY_CURRENT in Doppler for production use. ' +
-				'Get this from your Supabase dashboard: Settings > JWT Keys > Copy Public Key (PEM).'
-			)
-		}
+		this.logger.log(
+			'Supabase Strategy initialized - JWKS/ES256/RS256 JWT verification (Bearer token, no cookies)'
+		)
 	}
 
 	async validate(payload: SupabaseJwtPayload): Promise<authUser> {
