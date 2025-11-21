@@ -74,22 +74,12 @@ export function useMaintenanceForm({
 						throw new Error('Create mutation is required for create mode')
 					}
 
-					const payload: CreateMaintenanceRequest = {
-				description: value.description,
-				priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-				unit_id: value.unit_id
-			}
-
-			// TODO: Add title field to maintenance_requests table
-			// Currently, title is stored as a prefix in notes field: "[Title] {title}"
-			// Migration needed:
-			//   ALTER TABLE maintenance_requests ADD COLUMN title TEXT NOT NULL DEFAULT 'New Maintenance Request'
-			//   ALTER TABLE maintenance_requests ADD CONSTRAINT title_not_empty CHECK (length(trim(title)) > 0)
-			// Design: Simple TEXT field (not array), no enum types needed, NOT NULL with CHECK for non-empty
-			// After migration: Remove [Title] prefix workaround from notes and update validation schema
-			if (value.title) {
-				payload.notes = `[Title] ${value.title}`
-			}
+			const payload: CreateMaintenanceRequest = {
+							title: value.title,
+							description: value.description,
+							priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+							unit_id: value.unit_id
+						}
 
 					// Add optional fields only if they have values
 					if (value.category) {
@@ -122,21 +112,11 @@ export function useMaintenanceForm({
 						throw new Error('Request ID is required for edit mode')
 					}
 
-					const payload: UpdateMaintenanceRequest = {
-				description: value.description,
-				priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-			}
-
-			// TODO: Add title field to maintenance_requests table
-			// Currently, title is stored as a prefix in notes field: "[Title] {title}"
-			// Migration needed:
-			//   ALTER TABLE maintenance_requests ADD COLUMN title TEXT NOT NULL DEFAULT 'New Maintenance Request'
-			//   ALTER TABLE maintenance_requests ADD CONSTRAINT title_not_empty CHECK (length(trim(title)) > 0)
-			// Design: Simple TEXT field (not array), no enum types needed, NOT NULL with CHECK for non-empty
-			// After migration: Remove [Title] prefix workaround from notes and update validation schema
-			if (value.title) {
-				payload.notes = `[Title] ${value.title}`
-			}
+			const payload: UpdateMaintenanceRequest = {
+							title: value.title,
+							description: value.description,
+							priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+						}
 
 					// Add optional fields only if they have values
 					if (value.category) {

@@ -14,6 +14,7 @@ import {
   UnauthorizedException,
   ParseUUIDPipe
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import type { Response } from 'express'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
@@ -22,6 +23,7 @@ import { SecurityService } from '../../security/security.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { user_id as UserId } from '../../shared/decorators/user.decorator'
+import { createThrottleDefaults } from '../../config/throttle.config'
 import { z } from 'zod'
 import type Stripe from 'stripe'
 import type { AuthenticatedRequest } from '@repo/shared/src/types/backend-domain.js'
@@ -32,6 +34,17 @@ import { uuidSchema } from '@repo/shared/validation/common'
 interface TenantAuthenticatedRequest extends AuthenticatedRequest {
   tenant?: Database['public']['Tables']['tenants']['Row']
 }
+
+/**
+ * Rate limiting for Stripe API endpoints
+ * Subscription status checks are cached client-side (5min), so limit server calls
+ */
+const STRIPE_API_THROTTLE = createThrottleDefaults({
+  envTtlKey: 'STRIPE_API_THROTTLE_TTL',
+  envLimitKey: 'STRIPE_API_THROTTLE_LIMIT',
+  defaultTtl: 60000, // 60 seconds
+  defaultLimit: 20 // 20 requests per minute (generous for cached frontend queries)
+})
 
 /**
  * Validation Schemas
@@ -370,23 +383,42 @@ export class StripeController {
    * CRITICAL: Never cache this endpoint - always verify against Stripe to prevent access after cancellation
    * Returns null status if subscription not found (user gets denied access)
    */
+  /**
+   * Get current subscription status for the authenticated user
+   * Verifies subscription status in real-time against Stripe
+   * 
+   * SECURITY: FAIL-CLOSED BEHAVIOR
+   * - Database error → throws exception → access denied
+   * - Stripe API error → throws exception → access denied
+   * - No subscription found → returns null status → frontend denies access
+   * - Invalid/expired token → auth guard rejects → access denied
+   * 
+   * This ensures users cannot access paid features if:
+   * - Their subscription was cancelled (real-time Stripe check)
+   * - Infrastructure is degraded (fails safely)
+   * - Database queries fail (fails safely)
+   */
   @Get('subscription-status')
   @UseGuards(JwtAuthGuard)
-  async getSubscriptionStatus(@UserId() userId: string) {
-    // Query subscriptions table for this user (RLS will enforce user can only see their own)
-    const client = this.supabase.getAdminClient()
-    const { data: subscriptions, error } = await client
-      .from('subscriptions')
-      .select('stripe_subscription_id, stripe_customer_id')
-      .eq('user_id', userId)
-      .limit(1)
-
-    if (error) {
-      throw new BadRequestException(`Failed to fetch subscription: ${error.message}`)
+  @Throttle({ default: STRIPE_API_THROTTLE })
+  async getSubscriptionStatus(
+    @UserId() userId: string,
+    @Req() req: TenantAuthenticatedRequest
+  ) {
+    // Extract user token for RLS-enforced database queries
+    const userToken = this.supabase.getTokenFromRequest(req)
+    if (!userToken) {
+      throw new UnauthorizedException('Valid authentication token required')
     }
 
-    const subscription = subscriptions?.[0]
+    // Query via BillingService with RLS enforcement
+    // Throws on database errors (fail-closed), returns null if no subscription
+    const subscription = await this.billingService.findSubscriptionByUserId(
+      userId,
+      userToken
+    )
 
+    // No subscription found - return null to deny access via frontend
     if (!subscription || !subscription.stripe_subscription_id) {
       return {
         subscriptionStatus: null,
@@ -394,25 +426,16 @@ export class StripeController {
       }
     }
 
-    try {
-      // Verify real-time status with Stripe (fail-closed security)
-      const stripe = this.stripeService.getStripe()
-      const stripeSubscription = await stripe.subscriptions.retrieve(
-        subscription.stripe_subscription_id
-      )
+    // Verify real-time status with Stripe
+    // Throws on failure (fail-closed security - deny access on any error)
+    const stripe = this.stripeService.getStripe()
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      subscription.stripe_subscription_id
+    )
 
-      return {
-        subscriptionStatus: stripeSubscription.status,
-        stripeCustomerId: subscription.stripe_customer_id
-      }
-    } catch (error) {
-      // If Stripe verification fails, deny access (fail-closed)
-      if (error instanceof Error) {
-        throw new BadRequestException(
-          `Failed to verify subscription status: ${error.message}`
-        )
-      }
-      throw error
+    return {
+      subscriptionStatus: stripeSubscription.status,
+      stripeCustomerId: subscription.stripe_customer_id
     }
   }
 }
