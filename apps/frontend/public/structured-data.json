@@ -6,6 +6,10 @@
 	"url": "https://tenantflow.app",
 	"applicationCategory": "BusinessApplication",
 	"operatingSystem": "Web",
+	"image": [
+		"https://tenantflow.app/images/property-management-og.jpg",
+		"https://tenantflow.app/tenant-flow-logo.png"
+	],
 	"offers": {
 		"@type": "Offer",
 		"price": "29.00",
