@@ -115,6 +115,7 @@ describe('Configuration Schema Validation', () => {
 			expect(result.PORT).toBe(4600) // Default
 			expect(result.JWT_EXPIRES_IN).toBe('7d') // Default
 			expect(result.LOG_LEVEL).toBe('info') // Default
+			expect(result.SUPABASE_JWT_ALGORITHM).toBe('HS256') // Default
 			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default
 			expect(result.STORAGE_BUCKET).toBe('tenant-flow-storage') // Default
 			expect(result.ENABLE_METRICS).toBe(true) // Default

@@ -75,10 +75,15 @@ export function useMaintenanceForm({
 					}
 
 					const payload: CreateMaintenanceRequest = {
-						description: value.description,
-						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-						unit_id: value.unit_id
-					}
+				description: value.description,
+				priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+				unit_id: value.unit_id
+			}
+
+			// Include title in notes field for persistence
+			if (value.title) {
+				payload.notes = `[Title] ${value.title}`
+			}
 
 					// Add optional fields only if they have values
 					if (value.category) {
@@ -112,9 +117,14 @@ export function useMaintenanceForm({
 					}
 
 					const payload: UpdateMaintenanceRequest = {
-						description: value.description,
-						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-					}
+				description: value.description,
+				priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			}
+
+			// Include title in notes field for persistence
+			if (value.title) {
+				payload.notes = `[Title] ${value.title}`
+			}
 
 					// Add optional fields only if they have values
 					if (value.category) {

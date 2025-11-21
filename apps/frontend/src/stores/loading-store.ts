@@ -205,7 +205,8 @@ export const useLoadingStore = create<LoadingStoreState>((set, get) => ({
 	},
 
 	isCategoryLoading: category => {
-		return get().getOperationsByCategory(category).length > 0
+		const operations = get().operations
+		return Object.values(operations).some(op => op.category === category)
 	},
 
 	startModalLoading: (modalId, message) => {
