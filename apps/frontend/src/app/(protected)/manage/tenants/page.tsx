@@ -8,7 +8,7 @@ import {
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import { serverFetch } from '#lib/api/server'
 import { getLeasesPageData } from '#lib/api/dashboard-server'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {

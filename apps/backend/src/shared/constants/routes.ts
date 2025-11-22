@@ -7,3 +7,11 @@ export const HEALTH_PATHS = [
 ] as const
 
 export type HealthPath = (typeof HEALTH_PATHS)[number]
+
+export const WEBHOOK_PATHS = [
+	'webhooks/stripe',
+	'webhooks/stripe-sync',
+	'webhooks/auth/user-confirmed'
+] as const
+
+export type WebhookPath = (typeof WEBHOOK_PATHS)[number]

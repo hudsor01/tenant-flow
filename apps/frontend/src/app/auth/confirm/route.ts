@@ -1,12 +1,13 @@
 export const runtime = 'edge'
 
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import {
 	SB_URL,
-	SB_PUBLISHABLE_KEY
+	SB_PUBLISHABLE_KEY,
+	assertSupabaseConfig
 } from '@repo/shared/config/supabase'
 import { applySupabaseCookies } from '#lib/supabase/cookies'
 
@@ -22,17 +23,18 @@ export async function GET(request: NextRequest) {
 	const next = searchParams.get('next') ?? '/tenant/onboarding'
 
 	if (token_hash && type) {
+		assertSupabaseConfig()
 		const cookieStore = await cookies()
 
 		const supabase = createServerClient(
-			SB_URL,
-			SB_PUBLISHABLE_KEY,
+			SB_URL!, // Non-null: validated by assertSupabaseConfig()
+			SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 			{
 				cookies: {
 					getAll() {
 						return cookieStore.getAll()
 					},
-					setAll(cookiesToSet) {
+					setAll(cookiesToSet: CookieOptionsWithName[]) {
 						try {
 							applySupabaseCookies(
 								(name, value, options) => {

@@ -1,5 +1,5 @@
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 export default async function NewMaintenanceRequestPage() {
 	await requireSession()

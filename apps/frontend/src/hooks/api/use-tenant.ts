@@ -37,7 +37,7 @@ import {
 import { tenantQueries } from './queries/tenant-queries'
 
 /**
- * Legacy query keys for backwards compatibility
+ * // TODO: Migrate from Legacy query keys to current implementation
  * @deprecated Use tenantQueries from ./queries instead
  */
 export const tenantKeys = {

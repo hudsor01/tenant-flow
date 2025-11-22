@@ -1,5 +1,5 @@
 import { UnitForm } from '#components/units/unit-form.client'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 /**
  * Edit Unit Page (Full-Page)

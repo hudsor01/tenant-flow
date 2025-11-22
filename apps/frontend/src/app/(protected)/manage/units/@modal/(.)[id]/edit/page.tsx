@@ -1,6 +1,6 @@
 import { UnitForm } from '#components/units/unit-form.client'
 import { RouteModal } from '#components/ui/route-modal'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 interface EditUnitModalProps {
 	params: Promise<{ id: string }>

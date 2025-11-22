@@ -1,6 +1,6 @@
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
 import { serverFetch } from '#lib/api/server'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 
 interface MaintenanceEditPageProps {

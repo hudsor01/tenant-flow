@@ -12,7 +12,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { serverFetch } from '#lib/api/server'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { Plus, TrendingDown, TrendingUp } from 'lucide-react'

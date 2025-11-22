@@ -1,5 +1,5 @@
 import { serverFetch } from '#lib/api/server'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, Unit } from '@repo/shared/types/core'
 import { CreateTenantForm } from '../../../tenant/create-tenant-form.client'
