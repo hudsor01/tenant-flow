@@ -1,5 +1,5 @@
 import { updateSession } from '#lib/supabase/middleware'
-import { type NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'Proxy' })
@@ -19,7 +19,7 @@ const logger = createLogger({ component: 'Proxy' })
  * - proxy.ts (this file): Transport layer, error boundaries, logging
  * - lib/supabase/middleware.ts: Auth business logic (JWT verification, redirects)
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
 	const pathname = request.nextUrl.pathname
 
 	try {

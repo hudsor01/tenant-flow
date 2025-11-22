@@ -9,12 +9,9 @@
  * Throws an error at build time if neither environment variable is present.
  */
 function getSupabaseUrl(): string {
-	// Priority: NEXT_PUBLIC_* vars first (required for Next.js SSR/browser)
-	// Then fall back to server-only SB_* vars (backend/API routes)
 	const url =
 		process.env["NEXT_PUBLIC_SB_URL"] ||
-		process.env["SB_URL"] ||
-		process.env["NEXT_PUBLIC_SUPABASE_URL"]
+		process.env["SB_URL"]
 
 	if (!url) {
 		throw new Error(
@@ -32,17 +29,13 @@ function getSupabaseUrl(): string {
  * Throws an error at build time if neither environment variable is present.
  */
 function getSupabasePublishableKey(): string {
-	// Priority: NEXT_PUBLIC_* vars first (required for Next.js SSR/browser)
-	// Then fall back to server-only SB_* vars (backend/API routes)
 	const key =
 		process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
-		process.env["SB_PUBLISHABLE_KEY"] ||
-		process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]
+		process.env["SB_PUBLISHABLE_KEY"]
 
 	if (!key) {
 		throw new Error(
-			'Supabase publishable key environment variable is required. ' +
-				'Set NEXT_PUBLIC_SB_PUBLISHABLE_KEY (Doppler frontend) or SB_PUBLISHABLE_KEY (Doppler backend).'
+			'Supabase publishable key environment variable is required.'
 		)
 	}
 
@@ -57,16 +50,8 @@ function getSupabasePublishableKey(): string {
  * - Production: Set via Doppler/environment variables
  * - Development: Set via .env.local or Doppler
  * - Build-time: Validated to prevent runtime errors
- *
- * @example
- * ```typescript
- * import { SB_URL } from '@repo/shared/config/supabase'
- *
- * const client = createBrowserClient(SB_URL, SB_PUBLISHABLE_KEY)
- * ```
  */
 export const SB_URL = (() => {
-	// Allow builds to proceed without env vars when explicitly skipped
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
 			process.env["NEXT_PUBLIC_SB_URL"] ||
@@ -86,22 +71,12 @@ export const SB_URL = (() => {
  * - Production: Set via Doppler/environment variables
  * - Development: Set via .env.local or Doppler
  * - Build-time: Validated to prevent runtime errors
- *
- * @example
- * ```typescript
- * import { SB_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
- *
- * const client = createBrowserClient(SB_URL, SB_PUBLISHABLE_KEY)
- * ```
  */
 export const SB_PUBLISHABLE_KEY = (() => {
-	// Allow builds to proceed without env vars when explicitly skipped
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
 			process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
-			process.env["SB_PUBLISHABLE_KEY"] ||
-			process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||
-			''
+			process.env["SB_PUBLISHABLE_KEY"]
 		)
 	}
 	return getSupabasePublishableKey()
@@ -115,15 +90,6 @@ export const SB_PUBLISHABLE_KEY = (() => {
  * creating Supabase clients to ensure configuration is valid.
  *
  * @throws {Error} If SB_URL or SB_PUBLISHABLE_KEY is falsy
- *
- * @example
- * ```typescript
- * import { assertSupabaseConfig, SB_URL, SB_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
- *
- * // Before creating client
- * assertSupabaseConfig()
- * const client = createBrowserClient(SB_URL, SB_PUBLISHABLE_KEY)
- * ```
  */
 export function assertSupabaseConfig(): void {
 	if (!SB_URL) {

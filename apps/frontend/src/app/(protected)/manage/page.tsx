@@ -1,4 +1,4 @@
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { ActivitySection } from '#components/dashboard/activity-section'
 import { ChartsSection } from '#components/dashboard/charts-section'
