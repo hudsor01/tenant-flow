@@ -14,6 +14,6 @@ import { JwtVerificationService } from './jwt-verification.service'
 	// Note: ServicesModule is @Global() and imported by SharedModule,
 	// so UtilityService is automatically available without explicit import
 	providers: [JwtVerificationService, AuthUserValidationService, JwtAuthGuard],
-	exports: [JwtAuthGuard]
+	exports: [JwtAuthGuard, JwtVerificationService, AuthUserValidationService]
 })
 export class AuthModule {}
