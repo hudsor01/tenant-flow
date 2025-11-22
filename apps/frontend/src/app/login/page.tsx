@@ -14,7 +14,6 @@ import { LoginLayout } from '#components/auth/login-layout'
 import { useModalStore } from '#stores/modal-store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUserRole } from '#hooks/use-user-role'
-import { loginWithPassword } from './login-action'
 
 const logger = createLogger({ component: 'LoginPage' })
 
@@ -84,19 +83,20 @@ function LoginPageContent() {
 				password: data.password as string
 			}
 
-			// Sign in using server action - this ensures cookies are set properly
-			const result = await loginWithPassword(credentials.email, credentials.password)
+			// Use client-side Supabase login - automatically handles auth state
+			const supabase = getSupabaseClientInstance()
+			const { data: authData, error } = await supabase.auth.signInWithPassword({
+				email: credentials.email,
+				password: credentials.password
+			})
 
-			if (!result.success) {
-				logger.error('Server-side login failed', {
+			if (error) {
+				logger.error('Client-side login failed', {
 					action: 'email_login_failed',
-					metadata: {
-						error: result.error,
-						emailProvided: !!credentials.email
-					}
+					error: error.message
 				})
 
-				if (result.error?.includes('Email not confirmed')) {
+				if (error.message.includes('Email not confirmed')) {
 					router.push('/auth/confirm-email')
 					throw new Error(
 						'Please confirm your email address before signing in.'
@@ -104,19 +104,16 @@ function LoginPageContent() {
 				}
 
 				throw new Error(
-					result.error === 'Invalid login credentials'
+					error.message === 'Invalid login credentials'
 						? 'Invalid email or password. Please try again.'
-						: result.error ?? 'Login failed'
+						: error.message
 				)
 			}
 
-			if (result.user) {
-				logger.info('Server-side login successful', {
+			if (authData.user) {
+				logger.info('Client-side login successful', {
 					action: 'email_login_success',
-					metadata: {
-						email: credentials.email,
-						userId: result.user.id
-					}
+					userId: authData.user.id
 				})
 
 				setJustLoggedIn(true)

@@ -1,11 +1,6 @@
 /**
- * Stripe Customer Ownership Guard
- *
- * Ensures authenticated users can only access Stripe customer resources
- * (payment methods, subscriptions, etc.) that belong to them.
- *
- * Uses the get_user_id_by_stripe_customer RPC function to verify ownership
- * through the stripe.customers table populated by Stripe Sync Engine.
+ * Verifies user owns the Stripe customer being accessed
+ * Uses RPC function to check ownership through stripe.customers table
  */
 
 import {
@@ -18,12 +13,16 @@ import {
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 import { user_idByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
+import { AuthRequestCache } from '../services/auth-request-cache.service'
 
 @Injectable()
 export class StripeCustomerOwnershipGuard implements CanActivate {
 	private readonly logger = new Logger(StripeCustomerOwnershipGuard.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly authCache: AuthRequestCache
+	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
@@ -43,7 +42,10 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 		}
 
 		// Verify ownership using RPC function
-		const ownsCustomer = await this.verifyCustomerOwnership(user_id, customerId)
+		const ownsCustomer = await this.authCache.getOrSet(
+			`stripe_customer:${customerId}:owner:${user_id}`,
+			() => this.verifyCustomerOwnership(user_id, customerId)
+		)
 		if (!ownsCustomer) {
 			this.logger.warn('StripeCustomerOwnershipGuard: Customer access denied', {
 				user_id,

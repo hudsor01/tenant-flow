@@ -1,15 +1,6 @@
 /**
- * Property Ownership Guard
- *
- * Ensures authenticated users can only access resources (tenants, leases, payments)
- * associated with properties they own.
- *
- * Usage:
- * @UseGuards(AuthGuard, PropertyOwnershipGuard)
- * @Post('tenants/invite')
- * async inviteTenant(@User() owner: AuthenticatedUser) {
- *   // Guaranteed to be the property owner
- * }
+ * Verifies user owns the property/lease/tenant being accessed
+ * Checks ownership chain through the database
  */
 
 import {
@@ -21,12 +12,16 @@ import {
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
+import { AuthRequestCache } from '../services/auth-request-cache.service'
 
 @Injectable()
 export class PropertyOwnershipGuard implements CanActivate {
 	private readonly logger = new Logger(PropertyOwnershipGuard.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly authCache: AuthRequestCache
+	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
@@ -60,52 +55,63 @@ export class PropertyOwnershipGuard implements CanActivate {
 		}
 		const { tenant_id, lease_id, property_id } = normalized
 
-		// If accessing a specific tenant
+		const checks: Promise<void>[] = []
+
 		if (tenant_id) {
-			const ownsResource = await this.verifyTenantOwnership(user_id, tenant_id)
-			if (!ownsResource) {
-				this.logger.warn('PropertyOwnershipGuard: Tenant access denied', {
-					user_id,
-					tenant_id
-				})
-				throw new ForbiddenException(
-					'You do not have access to this tenant resource'
+			checks.push(
+				this.assertOwnership(
+					`tenant:${tenant_id}:owner:${user_id}`,
+					() => this.verifyTenantOwnership(user_id, tenant_id),
+					'You do not have access to this tenant resource',
+					{ tenant_id, user_id }
 				)
-			}
-		}
-
-		// If accessing a specific lease
-		if (lease_id) {
-			const ownsResource = await this.verifyLeaseOwnership(user_id, lease_id)
-			if (!ownsResource) {
-				this.logger.warn('PropertyOwnershipGuard: Lease access denied', {
-					user_id,
-					lease_id
-				})
-				throw new ForbiddenException(
-					'You do not have access to this lease resource'
-				)
-			}
-		}
-
-		// If accessing a specific property (direct)
-		if (property_id) {
-			const ownsResource = await this.verifyPropertyOwnership(
-				user_id,
-				property_id
 			)
-			if (!ownsResource) {
-				this.logger.warn('PropertyOwnershipGuard: Property access denied', {
-					user_id,
-					property_id
-				})
-				throw new ForbiddenException(
-					'You do not have access to this property resource'
-				)
-			}
 		}
 
+		if (lease_id) {
+			checks.push(
+				this.assertOwnership(
+					`lease:${lease_id}:owner:${user_id}`,
+					() => this.verifyLeaseOwnership(user_id, lease_id),
+					'You do not have access to this lease resource',
+					{ lease_id, user_id }
+				)
+			)
+		}
+
+		if (property_id) {
+			checks.push(
+				this.assertOwnership(
+					`property:${property_id}:owner:${user_id}`,
+					() => this.verifyPropertyOwnership(user_id, property_id),
+					'You do not have access to this property resource',
+					{ property_id, user_id }
+				)
+			)
+		}
+
+		await Promise.all(checks)
 		return true
+	}
+
+	private async cachedOwnership(
+		key: string,
+		factory: () => Promise<boolean>
+	): Promise<boolean> {
+		return this.authCache.getOrSet(key, factory)
+	}
+
+	private async assertOwnership(
+		cacheKey: string,
+		check: () => Promise<boolean>,
+		message: string,
+		context: Record<string, unknown>
+	): Promise<void> {
+		const ownsResource = await this.cachedOwnership(cacheKey, check)
+		if (!ownsResource) {
+			this.logger.warn('PropertyOwnershipGuard: access denied', context)
+			throw new ForbiddenException(message)
+		}
 	}
 
 	/**
