@@ -142,7 +142,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// Submit form and wait for navigation
 	debugLog(' Clicking submit button and waiting for navigation...')
 	await Promise.all([
-		page.waitForURL(/\/(manage|dashboard)/, { timeout: 120000 }),
+		page.waitForURL('/manage', { timeout: 120000 }),
 		submitButton.click()
 	])
 	debugLog(' Navigation complete!')

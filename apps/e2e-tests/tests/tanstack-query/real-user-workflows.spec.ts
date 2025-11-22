@@ -12,6 +12,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
+import { loginAsOwner } from '../../auth-helpers'
 import {
 	createTestProperty,
 	createTestProperties
@@ -45,7 +46,8 @@ test.describe('TanStack Query Real User Workflows', () => {
 		statsHelper = new DashboardStatsHelper(page)
 		perfHelper = new PerformanceHelper(page)
 
-		// Start with authenticated session (assuming auth-helpers.ts has run)
+		// Start with authenticated session
+		await loginAsOwner(page)
 		await page.goto('/manage')
 		await page.waitForLoadState('networkidle')
 	})
@@ -57,7 +59,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 	test.describe('Complete Property Management Workflows', () => {
 		test('should handle complete property lifecycle workflow', async () => {
-			// 1. Navigate to properties from dashboard
+			// 1. Navigate to properties from manage dashboard
 			await page.click('a[href*="properties"], nav a:has-text("Properties")')
 			await page.waitForLoadState('networkidle')
 
@@ -80,7 +82,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			const afterCreateCount = await tableHelper.getPropertyCount()
 			expect(afterCreateCount).toBe(initialCount + 1)
 
-			// 4. Navigate to dashboard and verify stats updated
+			// 4. Navigate to manage dashboard and verify stats updated
 			await page.goto('/manage')
 			await page.waitForTimeout(2000)
 			await statsHelper.waitForStatsUpdate(initialStats + 1)
@@ -129,7 +131,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			const finalCount = await tableHelper.getPropertyCount()
 			expect(finalCount).toBe(initialCount)
 
-			// 12. Verify dashboard stats updated
+			// 12. Verify manage dashboard stats updated
 			await page.goto('/manage')
 			await page.waitForTimeout(2000)
 			await statsHelper.waitForStatsUpdate(initialStats)
@@ -202,9 +204,9 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 	})
 
-	test.describe('Dashboard Integration Workflows', () => {
-		test('should maintain data consistency across dashboard and properties', async () => {
-			// Start at dashboard, check initial stats
+	test.describe('Manage Dashboard Integration Workflows', () => {
+		test('should maintain data consistency across manage dashboard and properties', async () => {
+			// Start at manage dashboard, check initial stats
 			await page.goto('/manage')
 			await page.waitForTimeout(2000)
 			const initialStats = await statsHelper.getTotalPropertiesCount()
@@ -221,7 +223,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await formHelper.createProperty(testProperty)
 			await tableHelper.waitForPropertyInTable(testProperty.name!)
 
-			// Navigate back to dashboard
+			// Navigate back to manage dashboard
 			await page.goto('/manage')
 			await page.waitForTimeout(2000)
 
@@ -251,7 +253,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			expect(persistentCount).toBe(initialCount + 1)
 		})
 
-		test('should handle dashboard navigation while properties are loading', async () => {
+		test('should handle manage dashboard navigation while properties are loading', async () => {
 			// Simulate slow properties API
 			await page.route('**/api/properties**', async route => {
 				await new Promise(resolve => setTimeout(resolve, 2000))
@@ -261,7 +263,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			// Navigate to properties (will be loading)
 			await page.goto('/manage/properties')
 
-			// Immediately navigate to dashboard while loading
+			// Immediately navigate to manage dashboard while loading
 			await page.goto('/manage')
 			await page.waitForTimeout(1000)
 
@@ -413,7 +415,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 	})
 
 	test.describe('Performance with Real Usage Patterns', () => {
-		test('should maintain performance with heavy dashboard navigation', async () => {
+		test('should maintain performance with heavy manage dashboard navigation', async () => {
 			const navigationRoutes = [
 				'/manage',
 				'/manage/properties',

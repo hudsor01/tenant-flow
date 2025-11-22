@@ -12,7 +12,8 @@ import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { DashboardService } from '../../dashboard/dashboard.service'
-import { OwnerAuthGuard } from '../guards/owner-auth.guard'
+import { RolesGuard } from '../../../shared/guards/roles.guard'
+import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
 
 /**
@@ -23,7 +24,8 @@ import { OwnerContextInterceptor } from '../interceptors/owner-context.intercept
  * - Cost analysis
  * - Response time metrics
  */
-@UseGuards(OwnerAuthGuard)
+@UseGuards(RolesGuard)
+@Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class MaintenanceController {

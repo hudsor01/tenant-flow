@@ -5,11 +5,12 @@ import {
 	makeHistogramProvider
 } from '@willsoto/nestjs-prometheus'
 import { MetricsService } from './metrics.service'
+import { MetricsController } from './metrics.controller'
 import { ConfigModule } from '@nestjs/config'
 
 @Module({
 	imports: [ConfigModule],
-	controllers: [],
+	controllers: [MetricsController],
 	providers: [
 		// Stripe webhook metrics
 		makeCounterProvider({

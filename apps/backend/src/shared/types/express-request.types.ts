@@ -3,13 +3,14 @@
  * Express-specific request type definitions for NestJS backend
  */
 
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import type { Request } from 'express'
 
 // Authenticated request with user attached
 export interface AuthenticatedRequest extends Request {
-	user: authUser
+	user: AuthUser
 	startTime?: number | undefined
+	authUserCache?: AuthUser | null
 	// Added by StripeConnectedGuard for ConnectedAccountId decorator
 	connectedAccountId?: string
 	// Added by OwnerContextInterceptor

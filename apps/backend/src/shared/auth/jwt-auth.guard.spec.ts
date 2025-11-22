@@ -1,17 +1,17 @@
 import { Test } from '@nestjs/testing'
 import { JwtAuthGuard } from './jwt-auth.guard'
+import { JwtVerificationService } from './jwt-verification.service'
+import { AuthUserValidationService } from './supabase.strategy'
+import { SupabaseService } from '../../database/supabase.service'
+import { UtilityService } from '../services/utility.service'
+import { AppConfigService } from '../../config/app-config.service'
+import { Reflector } from '@nestjs/core'
+import { ConfigService } from '@nestjs/config'
 
-// Mock external dependencies that aren't needed for testing the guard logic
-jest.mock('jwks-rsa', () => {
-	return jest.fn().mockImplementation(() => ({
-		getSigningKey: jest.fn().mockResolvedValue({
-			getPublicKey: jest.fn().mockReturnValue('test-key')
-		})
-	}))
-})
-
-jest.mock('jwt-decode', () => ({
-	jwtDecode: jest.fn().mockReturnValue({})
+// Mock jose module for testing
+jest.mock('jose', () => ({
+	jwtVerify: jest.fn(),
+	createRemoteJWKSet: jest.fn()
 }))
 
 describe('JwtAuthGuard', () => {
@@ -19,7 +19,37 @@ describe('JwtAuthGuard', () => {
 
 	beforeEach(async () => {
 		const module = await Test.createTestingModule({
-			providers: [JwtAuthGuard]
+			providers: [
+				JwtAuthGuard,
+				{
+					provide: JwtVerificationService,
+					useValue: { verify: jest.fn() }
+				},
+				{
+					provide: AuthUserValidationService,
+					useValue: { validateJwtPayload: jest.fn() }
+				},
+				{
+					provide: SupabaseService,
+					useValue: {}
+				},
+				{
+					provide: UtilityService,
+					useValue: {}
+				},
+				{
+					provide: AppConfigService,
+					useValue: {}
+				},
+				{
+					provide: Reflector,
+					useValue: { get: jest.fn(), getAllAndOverride: jest.fn() }
+				},
+				{
+					provide: ConfigService,
+					useValue: { get: jest.fn() }
+				}
+			]
 		}).compile()
 
 		guard = module.get<JwtAuthGuard>(JwtAuthGuard)

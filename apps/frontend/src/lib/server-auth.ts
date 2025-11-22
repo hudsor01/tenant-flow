@@ -14,6 +14,9 @@ import {
 	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 import { applySupabaseCookies } from '#lib/supabase/cookies'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'ServerAuth' })
 
 /**
  * Get authenticated user session
@@ -57,10 +60,13 @@ export async function requireSession(): Promise<{
 		} = await supabase.auth.getUser()
 
 		if (userError) {
-			console.error('[requireSession] getUser() error:', {
-				message: userError.message,
-				status: userError.status,
-				name: userError.name
+			logger.error('getUser() error', {
+				action: 'requireSession',
+				metadata: {
+					message: userError.message,
+					status: userError.status,
+					name: userError.name
+				}
 			})
 		}
 
@@ -76,7 +82,9 @@ export async function requireSession(): Promise<{
 		} = await supabase.auth.getSession()
 
 		if (!session?.access_token) {
-			console.error('[requireSession] No access token in session')
+			logger.error('No access token in session', {
+				action: 'requireSession'
+			})
 			// No access token - redirect to login
 			redirect('/login')
 		}
@@ -84,7 +92,9 @@ export async function requireSession(): Promise<{
 		return { user, accessToken: session.access_token }
 	} catch (error) {
 		// Log the error for debugging (won't show in production build logs, but will show in server logs)
-		console.error('[requireSession] Unexpected error:', error)
+		logger.error('Unexpected error', {
+			action: 'requireSession'
+		}, error)
 		// Redirect to login on any error
 		redirect('/login')
 	}

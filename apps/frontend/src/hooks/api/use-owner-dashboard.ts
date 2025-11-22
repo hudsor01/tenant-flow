@@ -6,7 +6,7 @@
  * Modern hooks using /owner/* endpoints (replaces legacy /manage/* endpoints)
  *
  * Architecture:
- * - user_type-based access control (OwnerAuthGuard)
+ * - Role-based access control (RolesGuard + @Roles)
  * - Enhanced monitoring and logging
  * - Modular route structure
  * - Optimized caching strategies

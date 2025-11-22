@@ -8,7 +8,7 @@
  *
  * Types:
  *   import type { User, Property } from '@repo/shared/types/core'
- *   import type { authUser } from '@repo/shared/types/auth'
+ *   import type { AuthUser } from '@repo/shared/types/auth'
  *
  * Constants:
  *   import { AUTH_ERROR_MESSAGES } from '@repo/shared/constants/auth'

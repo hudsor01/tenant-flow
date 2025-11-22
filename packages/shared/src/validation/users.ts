@@ -18,10 +18,10 @@ export const userStatusSchema = z.enum([
 
 // User type enum validation
 export const userTypeSchema = z.enum([
-  'property_owner',
-  'tenants',
-  'admin',
-  'staff'
+  'OWNER',
+  'TENANT',
+  'MANAGER',
+  'ADMIN'
 ])
 
 // Base user input schema (matches database exactly)

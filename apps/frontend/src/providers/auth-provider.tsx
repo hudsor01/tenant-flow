@@ -84,57 +84,10 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		}
 	}, [queryClient])
 
-	// SECURITY: Validate user with getUser() instead of using session.user from getSession()
-	// getUser() authenticates with Supabase Auth server, preventing cookie tampering
-	const { data: user, isLoading: isUserLoading } = useQuery({
-		queryKey: authQueryKeys.user,
+	// Single round-trip: fetch session once and derive user from it
+	const { data: session, isLoading: isSessionLoading } = useQuery({
+		queryKey: authQueryKeys.session,
 		queryFn: async () => {
-			logger.info('Fetching user', { action: 'fetchUser' })
-			const {
-				data: { user },
-				error
-			} = await supabaseClient.auth.getUser()
-			if (error) {
-				const errorStatus =
-					typeof error === 'object' &&
-					error !== null &&
-					'status' in error &&
-					typeof (error as { status?: number }).status === 'number'
-						? (error as { status?: number }).status
-						: undefined
-				const errorMessage =
-					typeof error === 'object' && error !== null && 'message' in error
-						? String((error as { message?: string }).message ?? '')
-						: ''
-
-				const isUnauthenticated =
-					errorStatus === 401 || /auth session/i.test(errorMessage) || /auth code and code verifier/i.test(errorMessage)
-
-				if (isUnauthenticated) {
-					logger.debug('No active auth session or PKCE error', {
-						action: 'get_user_missing_session',
-						metadata: { message: errorMessage }
-					})
-				} else {
-					logger.error('Failed to get auth user', {
-						action: 'get_user_error',
-						metadata: { error: errorMessage }
-					})
-				}
-				// Don't throw - user might not be authenticated or the session expired
-				return null
-			}
-			return user
-		},
-		staleTime: 5 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 1
-	})
-
-	// Get session for access token (only after user validation)
-const { data: session, isLoading: isSessionLoading } = useQuery({
-	queryKey: authQueryKeys.session,
-	queryFn: async () => {
 			logger.info('Fetching session', { action: 'fetchSession' })
 			const {
 				data: { session },
@@ -145,31 +98,29 @@ const { data: session, isLoading: isSessionLoading } = useQuery({
 					action: 'get_session_error',
 					metadata: { error: error.message }
 				})
-				// Don't throw - might not be authenticated
 				return null
 			}
 			return session
-	},
-	staleTime: 5 * 60 * 1000,
-	refetchOnWindowFocus: false,
-	retry: 1,
-	enabled: !!user // Only fetch session if user is validated
-})
+		},
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1
+	})
 
+	// Keep derived user in sync with session without issuing another network call
+	const user = session?.user ?? null
 	useEffect(() => {
-		if (user === null) {
-			queryClient.setQueryData(authQueryKeys.session, null)
-		}
-	}, [user, queryClient])
+		queryClient.setQueryData(authQueryKeys.user, user)
+	}, [queryClient, user])
 
-const isLoading = isUserLoading || isSessionLoading
+	const isLoading = isSessionLoading
 
 	const authState: AuthContextType = useMemo(
 		() => ({
 			session,
-			isAuthenticated: !!user, // Use validated user, not session.user
+			isAuthenticated: !!user,
 			isLoading,
-			user: user || null // Use validated user from getUser()
+			user
 		}),
 		[session, user, isLoading]
 	)
