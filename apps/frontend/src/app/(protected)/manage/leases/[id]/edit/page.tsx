@@ -1,6 +1,6 @@
 import { LeaseForm } from '#components/leases/lease-form.client'
 import { serverFetch } from '#lib/api/server'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import type { Lease } from '@repo/shared/types/core'
 
 interface LeaseEditPageProps {

@@ -1,4 +1,4 @@
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import { MobileChrome } from '#components/layout/mobile-chrome'
 import { PaymentGateWrapper } from '#components/layout/payment-gate-wrapper'
 import type { ReactNode } from 'react'

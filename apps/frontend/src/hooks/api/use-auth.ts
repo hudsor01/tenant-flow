@@ -238,24 +238,21 @@ export function useUser() {
 }
 
 /**
- * Get current user from Supabase (direct auth state)
- * @deprecated Use useCurrentUser() or useAuth() from AuthProvider instead
+ * Get Supabase auth user
+ *
+ * Returns the authenticated user from Supabase auth.
+ * Use this when you only need auth user data (id, email, metadata).
+ * For user data with Stripe info, use useUser() instead.
+ *
+ * @example
+ * const { data: user } = useSupabaseUser()
+ * if (user?.id) {
+ *   // User is authenticated
+ * }
  */
 export function useSupabaseUser() {
 	return useQuery(authQueries.supabaseUser())
 }
-
-/**
- * Get current session from Supabase
- * @deprecated Use useAuth() from AuthProvider instead
- */
-export function useSupabaseSession() {
-	return useQuery(authQueries.supabaseSession())
-}
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Sign out mutation with comprehensive cache clearing
@@ -360,24 +357,6 @@ export function useSupabaseSignup() {
 			}
 		},
 		onError: (error: Error) => handleMutationError(error, 'Signup')
-	})
-}
-
-/**
- * Logout mutation (alias for useSignOut for backwards compatibility)
- * @deprecated Use useSignOut() instead
- */
-export function useSupabaseLogout() {
-	const router = useRouter()
-	const signOut = useSignOut()
-
-	return useMutation({
-		mutationFn: async () => signOut.mutateAsync(),
-		onSuccess: () => {
-			handleMutationSuccess('Logout')
-			router.push('/login')
-		},
-		onError: (error: Error) => handleMutationError(error, 'Logout')
 	})
 }
 

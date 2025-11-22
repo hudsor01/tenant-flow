@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { serverFetch } from '#lib/api/server'
 import { Button } from '#components/ui/button'

@@ -26,7 +26,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
-import { useFinancialChartData } from '#hooks/api/use-dashboard'
+import { useFinancialChartData, type FinancialTimeRange } from '#hooks/api/use-dashboard'
 import { useIsMobile } from '#hooks/use-mobile'
 import { cn } from '#lib/utils'
 
@@ -48,7 +48,7 @@ export function ChartAreaInteractive({
 }: {
 	className?: string
 } = {}) {
-	const [timeRange, setTimeRange] = React.useState('6m')
+	const [timeRange, setTimeRange] = React.useState<FinancialTimeRange>('6m')
 	const isMobile = useIsMobile()
 
 	// Fetch financial data with TanStack Query
@@ -83,7 +83,7 @@ export function ChartAreaInteractive({
 				</div>
 				<div className="flex">
 					{isMobile ? (
-						<Select value={timeRange} onValueChange={setTimeRange}>
+						<Select value={timeRange} onValueChange={(value) => setTimeRange(value as FinancialTimeRange)}>
 							<SelectTrigger
 								className="w-40 rounded-lg sm:ml-auto"
 								aria-label="Select time range"
@@ -109,7 +109,7 @@ export function ChartAreaInteractive({
 						<ToggleGroup
 							type="single"
 							value={timeRange}
-							onValueChange={value => value && setTimeRange(value)}
+							onValueChange={value => value && setTimeRange(value as FinancialTimeRange)}
 							className="ml-auto flex gap-2"
 						>
 							<ToggleGroupItem

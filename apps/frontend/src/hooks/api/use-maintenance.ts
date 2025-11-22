@@ -27,6 +27,7 @@ import {
 /**
  * @deprecated Use maintenanceQueries from './queries/maintenance-queries' instead
  * Keeping for backward compatibility during migration
+ * // TODO: Migrate and remove this object
  */
 export const maintenanceKeys = {
 	all: maintenanceQueries.all(),
@@ -90,6 +91,7 @@ type UseMaintenanceQuery = Parameters<typeof useAllMaintenanceRequests>[0]
 /**
  * @deprecated Prefer useAllMaintenanceRequests so filters remain explicit.
  * Thin alias for older hooks/tests that still call useMaintenance().
+ * // TODO: Migrate and remove this function
  */
 export function useMaintenance(query?: UseMaintenanceQuery) {
 	return useAllMaintenanceRequests(query)
