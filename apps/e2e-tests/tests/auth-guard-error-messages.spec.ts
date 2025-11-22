@@ -3,15 +3,15 @@ import { loginAsOwner } from '../auth-helpers'
 import path from 'path'
 
 test.describe('JWT Auth Guard Error Messages', () => {
-	test('should successfully authenticate and display dashboard', async ({ page }) => {
+	test('should successfully authenticate and display manage dashboard', async ({ page }) => {
 		// Login as owner
 		await loginAsOwner(page)
 
-		// Verify we're on the dashboard
+		// Verify we're on the manage dashboard
 		await expect(page.url()).toContain('/manage')
 		await expect(page.locator('main')).toBeVisible()
 
-		// Verify dashboard content is visible
+		// Verify manage dashboard content is visible
 		await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 5000 })
 	})
 
@@ -96,7 +96,7 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		expect(errorText?.length).toBeGreaterThan(10)
 	})
 
-	test('dashboard should remain accessible after multiple navigation', async ({ page }) => {
+	test('manage dashboard should remain accessible after multiple navigation', async ({ page }) => {
 		// Test that auth guard doesn't break subsequent requests
 		await loginAsOwner(page)
 
@@ -115,12 +115,12 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await page.waitForLoadState('networkidle')
 		await expect(page.url()).toContain('/manage/leases')
 
-		// Navigate back to dashboard
+		// Navigate back to manage dashboard
 		await page.goto('/manage')
 		await page.waitForLoadState('networkidle')
 		await expect(page.url()).toContain('/manage')
 
-		// Should still be logged in and dashboard should load
+		// Should still be logged in and manage dashboard should load
 		await expect(page.locator('main')).toBeVisible()
 	})
 

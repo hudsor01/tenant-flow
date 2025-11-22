@@ -30,9 +30,9 @@ import { SupabaseService } from '../../database/supabase.service'
 import { createThrottleDefaults } from '../../config/throttle.config'
 import type { SupabaseAuthWebhookPayload } from '../../types/webhooks'
 
-const SUPABASE_AUTH_THROTTLE = createThrottleDefaults({
-	envTtlKey: 'SUPABASE_AUTH_THROTTLE_TTL',
-	envLimitKey: 'SUPABASE_AUTH_THROTTLE_LIMIT',
+const SB_AUTH_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'SB_AUTH_THROTTLE_TTL',
+	envLimitKey: 'SB_AUTH_THROTTLE_LIMIT',
 	defaultTtl: 60000,
 	defaultLimit: 30
 })
@@ -111,7 +111,7 @@ export class AuthWebhookController {
 	 * PUBLIC ENDPOINT - No auth required (secured via webhook secret)
 	 * SECURITY: Verifies webhook signature using Standard Webhooks spec
 	 */
-	@Throttle({ default: SUPABASE_AUTH_THROTTLE })
+	@Throttle({ default: SB_AUTH_THROTTLE })
 	@Post('user-confirmed')
 	@SetMetadata('isPublic', true)
 	async handleUserConfirmed(

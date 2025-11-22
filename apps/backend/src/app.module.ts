@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-import { PrometheusModule } from '@willsoto/nestjs-prometheus'
+// PrometheusModule removed - metrics handled by MetricsModule with custom controller
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import type { Request } from 'express'
@@ -50,7 +50,6 @@ import { SharedModule } from './shared/shared.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
-import { MetricsController } from './modules/metrics/metrics.controller'
 
 /**
  * Core App Module - KISS principle
@@ -99,14 +98,7 @@ import { MetricsController } from './modules/metrics/metrics.controller'
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),
 
-		// Prometheus metrics - default metrics enabled
-		// Custom MetricsController defined in MetricsModule
-		PrometheusModule.register({
-			defaultMetrics: {
-				enabled: true
-			},
-			controller: MetricsController
-		}),
+		// Prometheus metrics handled by MetricsModule with custom controller and @Public() auth
 
 		// Rate limiting - configurable via environment
 		ThrottlerModule.forRootAsync({

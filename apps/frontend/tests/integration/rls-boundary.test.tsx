@@ -54,8 +54,8 @@ async function authenticateTestUser(
 	password: string
 ): Promise<TestUser> {
 	ensureEnvVars([
-		'NEXT_PUBLIC_SUPABASE_URL',
-		'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+		'NEXT_PUBLIC_SB_URL',
+		'NEXT_PUBLIC_SB_PUBLISHABLE_KEY'
 	])
 	const supabase = createSupabaseTestClient()
 
@@ -102,8 +102,8 @@ async function fetchAsUser<T>(
 			Authorization: `Bearer ${user.session.access_token}`,
 			'User-Agent':
 				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-			Origin: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000',
-			Referer: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000'
+			Origin: process.env.NEXT_PUBLIC_SB_URL || 'http://localhost:3000',
+			Referer: process.env.NEXT_PUBLIC_SB_URL || 'http://localhost:3000'
 		}
 	})
 

@@ -4,7 +4,7 @@
  * DEPRECATED: These hooks use the legacy /manage endpoints.
  * For new development, use hooks from use-owner-dashboard.ts which provide:
  * - Better organization (/owner/financial, /owner/properties, etc.)
- * - user_type-based access control (OwnerAuthGuard)
+ * - Role-based access control (RolesGuard + @Roles)
  * - Enhanced monitoring and logging
  * - Modular route structure
  *

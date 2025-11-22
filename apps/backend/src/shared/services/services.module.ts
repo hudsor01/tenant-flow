@@ -7,11 +7,12 @@
 
 import { Global, Module } from '@nestjs/common'
 import { UtilityService } from './utility.service'
+import { AuthRequestCache } from './auth-request-cache.service'
 
 @Global()
 @Module({
 	imports: [],
-	providers: [UtilityService],
-	exports: [UtilityService]
+	providers: [UtilityService, AuthRequestCache],
+	exports: [UtilityService, AuthRequestCache]
 })
 export class ServicesModule {}

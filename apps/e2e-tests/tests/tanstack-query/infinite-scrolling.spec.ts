@@ -13,6 +13,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
+import { loginAsOwner } from '../../auth-helpers'
 import { createLargePropertyDataset, createTestProperties } from '../fixtures/property-data'
 import {
   TanStackQueryHelper,
@@ -40,6 +41,9 @@ test.describe('TanStack Query Infinite Scrolling', () => {
     // Mock large dataset for infinite scroll testing
     const testPages = createLargePropertyDataset(20, 5) // 5 pages of 20 items each
     await mockInfinitePropertiesAPI(testPages)
+
+    // Authenticate before navigating to protected pages
+    await loginAsOwner(page)
 
     // Navigate to properties page
     await page.goto('/manage/properties')

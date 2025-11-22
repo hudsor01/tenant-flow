@@ -106,7 +106,7 @@ test.describe('Texas Lease Generation', () => {
 })
 })
 
-test.afterEach(async (_, testInfo) => {
+test.afterEach(async ({ page: _page }, testInfo) => {
 	await attachText(testInfo, 'console-errors', consoleErrors)
 	await attachText(testInfo, 'network-errors', networkErrors)
 })

@@ -83,8 +83,8 @@ export const EmailMetadataSchema = z.object({
     .url('Checkout URL must be a valid URL')
     .optional(),
   user_type: z
-    .enum(['tenant', 'owner', 'admin'])
-    .default('tenant'),
+    .enum(['TENANT', 'OWNER', 'ADMIN'])
+    .default('TENANT'),
 })
 
 /**

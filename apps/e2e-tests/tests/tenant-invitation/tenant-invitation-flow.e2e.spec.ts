@@ -1,4 +1,6 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+
+import { test, expect, type Page } from '@playwright/test'
 
 /**
  * Tenant Invitation Flow E2E Tests
@@ -15,14 +17,64 @@ test.describe('Tenant Invitation Flow', () => {
 
 	// Test data
 	const testTenant = {
-		email: `test-tenant-${Date.now()}@example.com`,
-		first_name: 'Test',
-		last_name: 'Tenant',
-		phone: '5555551234'
-	}
+	email: `test-tenant-${Date.now()}@example.com`,
+	first_name: 'Test',
+	last_name: 'Tenant',
+	phone: '5555551234'
+}
 
 	let invitationToken: string
 	let tenant_id: string
+
+	async function getSupabaseAccessToken(page: Page): Promise<string | null> {
+		const cookies = await page.context().cookies()
+		const authCookie = cookies.find(cookie =>
+			/access-token|auth-token/i.test(cookie.name)
+		)
+
+		if (authCookie?.value) return authCookie.value
+
+		return page.evaluate(() => {
+			const tokenKey = Object.keys(localStorage).find(key =>
+				key.includes('auth-token') ||
+				key.includes('access_token') ||
+				key.includes('supabase') ||
+				key.includes('sb-')
+			)
+
+			if (!tokenKey) return null
+
+			try {
+				const raw = localStorage.getItem(tokenKey)
+				if (!raw) return null
+				const parsed = JSON.parse(raw)
+				return (
+					parsed?.currentSession?.access_token ||
+					parsed?.access_token ||
+					parsed?.accessToken ||
+					parsed?.value?.access_token ||
+					null
+				)
+			} catch {
+				return null
+			}
+		})
+	}
+
+	async function getAuthHeaders(page: Page) {
+		const token =
+			process.env.TEST_AUTH_TOKEN || (await getSupabaseAccessToken(page))
+
+		if (!token) {
+			throw new Error(
+				'TEST_AUTH_TOKEN not set and no Supabase access token found after login; backend now requires Authorization header.'
+			)
+		}
+
+		return {
+			Authorization: `Bearer ${token}`
+		}
+	}
 
 	test.beforeEach(async ({ page }) => {
 		// Login as property owner
@@ -31,7 +83,7 @@ test.describe('Tenant Invitation Flow', () => {
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
 
-		// Wait for redirect to dashboard
+		// Wait for redirect to manage dashboard
 		await page.waitForURL(`${BASE_URL}/manage/**`)
 	})
 
@@ -105,8 +157,9 @@ test.describe('Tenant Invitation Flow', () => {
 	})
 
 	test('[Tenant] Click valid invitation link → redirects to signup', async ({ page, context }) => {
-		// Get invitation token from API
-		const response = await page.request.get(`${API_URL}/api/v1/tenants`)
+		// Get invitation token from API using bearer auth (cookie fallback removed)
+		const authHeaders = await getAuthHeaders(page)
+		const response = await page.request.get(`${API_URL}/api/v1/tenants`, { headers: authHeaders })
 		const tenants = await response.json()
 		const tenant = tenants.find((t: any) => t.email === testTenant.email)
 		invitationToken = tenant.invitation_token
@@ -149,9 +202,9 @@ test.describe('Tenant Invitation Flow', () => {
 
 		// Wait for redirect to tenant portal
 		await newPage.waitForURL(`${BASE_URL}/tenant/**`)
-
 		// Verify invitation status updated in database
-		const response = await page.request.get(`${API_URL}/api/v1/tenants/${tenant_id}`)
+		const authHeaders = await getAuthHeaders(page)
+		const response = await page.request.get(`${API_URL}/api/v1/tenants/${tenant_id}`, { headers: authHeaders })
 		const tenant = await response.json()
 		expect(tenant.invitation_status).toBe('ACCEPTED')
 	})

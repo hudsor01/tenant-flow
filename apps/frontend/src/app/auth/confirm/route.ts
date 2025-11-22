@@ -5,9 +5,10 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 /**
  * Auth Confirmation Route Handler
@@ -24,8 +25,8 @@ export async function GET(request: NextRequest) {
 		const cookieStore = await cookies()
 
 		const supabase = createServerClient(
-			SUPABASE_URL,
-			SUPABASE_PUBLISHABLE_KEY,
+			SB_URL,
+			SB_PUBLISHABLE_KEY,
 			{
 				cookies: {
 					getAll() {
@@ -33,8 +34,15 @@ export async function GET(request: NextRequest) {
 					},
 					setAll(cookiesToSet) {
 						try {
-							cookiesToSet.forEach(({ name, value, options }) =>
-								cookieStore.set(name, value, options)
+							applySupabaseCookies(
+								(name, value, options) => {
+									if (options) {
+										cookieStore.set(name, value, options)
+									} else {
+										cookieStore.set(name, value)
+									}
+								},
+								cookiesToSet
 							)
 						} catch {
 							// The `setAll` method was called from a Server Component.

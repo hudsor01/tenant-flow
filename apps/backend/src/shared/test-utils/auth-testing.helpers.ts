@@ -7,6 +7,7 @@
 
 import type { TestingModuleBuilder } from '@nestjs/testing'
 import type { User } from '@supabase/supabase-js'
+import type { Request } from 'express'
 
 import { SupabaseService } from '../../database/supabase.service'
 import {
@@ -108,7 +109,7 @@ export function createAuthTestContext(user?: Partial<User>): AuthTestContext {
 export function setupJwtClaims(context: AuthTestContext) {
 	// Mock JWT claims for RLS testing
 	context.supabaseService.getUser.mockImplementation(
-		async (req: { user?: unknown }) => {
+		async (req: Request & { user?: unknown }) => {
 			if (req.user) {
 				return req.user as User
 			}

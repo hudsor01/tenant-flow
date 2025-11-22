@@ -14,6 +14,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
 import { createTestProperty, networkDelays } from '../fixtures/property-data'
+import { loginAsOwner } from '../../auth-helpers'
 import {
   TanStackQueryHelper,
   NetworkSimulator,
@@ -36,6 +37,9 @@ test.describe('TanStack Query Error Handling', () => {
     networkSim = new NetworkSimulator(page)
     tableHelper = new PropertyTableHelper(page)
     formHelper = new PropertyFormHelper(page)
+
+    // Authenticate before navigating to protected pages
+    await loginAsOwner(page)
 
     // Navigate to properties page
     await page.goto('/manage/properties')

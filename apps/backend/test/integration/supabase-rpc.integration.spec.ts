@@ -2,14 +2,14 @@ import { isPropertyPerformanceRpcResponse } from '@repo/shared/types/database-rp
 import type { Database } from '@repo/shared/types/supabase'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-if (!process.env.SUPABASE_URL) {
-	process.env.SUPABASE_URL = 'https://mock.supabase.co'
+if (!process.env.SB_URL) {
+	process.env.SB_URL = 'https://mock.supabase.co'
 }
-if (!process.env.SUPABASE_SECRET_KEY) {
-	process.env.SUPABASE_SECRET_KEY = 'mock-secret-key'
+if (!process.env.SB_SECRET_KEY) {
+	process.env.SB_SECRET_KEY = 'mock-secret-key'
 }
-if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
-	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
+if (!process.env.SB_RPC_TEST_USER_ID) {
+	process.env.SB_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
 }
 
 const mockRpc = jest.fn()
@@ -26,9 +26,9 @@ jest.mock('@supabase/supabase-js', () => {
 })
 
 const requiredEnv = [
-	'SUPABASE_URL',
-	'SUPABASE_SECRET_KEY',
-	'SUPABASE_RPC_TEST_USER_ID'
+	'SB_URL',
+	'SB_SECRET_KEY',
+	'SB_RPC_TEST_USER_ID'
 ] as const
 
 const missingEnv = requiredEnv.filter(key => !process.env[key])
@@ -46,9 +46,9 @@ jest.setTimeout(30_000)
 
 describeSupabase('Supabase RPC contract tests', () => {
 	let client: SupabaseClient<Database>
-	const supabaseUrl = process.env.SUPABASE_URL as string
-	const serviceKey = process.env.SUPABASE_SECRET_KEY as string
-	const user_id = process.env.SUPABASE_RPC_TEST_USER_ID as string
+	const supabaseUrl = process.env.SB_URL as string
+	const serviceKey = process.env.SB_SECRET_KEY as string
+	const user_id = process.env.SB_RPC_TEST_USER_ID as string
 
 	beforeAll(() => {
 		client = createClient<Database>(supabaseUrl, serviceKey, {

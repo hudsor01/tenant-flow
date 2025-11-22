@@ -12,6 +12,7 @@
 
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test'
+import { loginAsOwner } from '../../auth-helpers'
 import { createTestProperty, basePropertyData } from '../fixtures/property-data'
 import {
   TanStackQueryHelper,
@@ -38,6 +39,9 @@ test.describe('TanStack Query Optimistic Updates', () => {
     tableHelper = new PropertyTableHelper(page)
     formHelper = new PropertyFormHelper(page)
     statsHelper = new DashboardStatsHelper(page)
+
+    // Authenticate before navigating to protected pages
+    await loginAsOwner(page)
 
     // Navigate to properties page
     await page.goto('/manage/properties')
@@ -73,7 +77,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       const optimisticCount = await tableHelper.getPropertyCount()
       expect(optimisticCount).toBe(initialCount + 1)
 
-      // Verify dashboard stats updated optimistically
+      // Verify manage dashboard stats updated optimistically
       await statsHelper.waitForStatsUpdate(initialStats + 1)
 
       // Wait for server confirmation
@@ -228,7 +232,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
       const optimisticCount = await tableHelper.getPropertyCount()
       expect(optimisticCount).toBe(initialCount - 1)
 
-      // Verify dashboard stats updated optimistically
+      // Verify manage dashboard stats updated optimistically
       await statsHelper.waitForStatsUpdate(initialStats - 1)
 
       // Wait for server confirmation

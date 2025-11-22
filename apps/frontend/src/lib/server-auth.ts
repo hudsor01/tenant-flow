@@ -10,9 +10,13 @@ import type { User } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'ServerAuth' })
 
 /**
  * Get authenticated user session
@@ -27,43 +31,73 @@ export async function requireSession(): Promise<{
 	user: User
 	accessToken: string
 }> {
-	const cookieStore = await cookies()
-	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-		cookies: {
-			getAll: () => cookieStore.getAll(),
-			setAll: cookiesToSet => {
-				cookiesToSet.forEach(({ name, value, options }) => {
-					cookieStore.set(name, value, options)
-				})
+	try {
+		const cookieStore = await cookies()
+		const supabase = createServerClient(SB_URL, SB_PUBLISHABLE_KEY, {
+			cookies: {
+				getAll: () => cookieStore.getAll(),
+				setAll: cookiesToSet => {
+					applySupabaseCookies(
+					(name, value, options) => {
+						if (options) {
+							cookieStore.set(name, value, options)
+						} else {
+							cookieStore.set(name, value)
+						}
+					},
+					cookiesToSet
+				)
+				}
 			}
+		})
+
+		// SECURITY FIX: Use getUser() to validate the session with Supabase Auth server
+		// getSession() reads from storage (cookies) which could be tampered with
+		// getUser() validates the token by contacting Supabase Auth server
+		const {
+			data: { user },
+			error: userError
+		} = await supabase.auth.getUser()
+
+		if (userError) {
+			logger.error('getUser() error', {
+				action: 'requireSession',
+				metadata: {
+					message: userError.message,
+					status: userError.status,
+					name: userError.name
+				}
+			})
 		}
-	})
 
-	// SECURITY FIX: Use getUser() to validate the session with Supabase Auth server
-	// getSession() reads from storage (cookies) which could be tampered with
-	// getUser() validates the token by contacting Supabase Auth server
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
+		if (userError || !user) {
+			// User validation failed - redirect to login
+			redirect('/login')
+		}
 
-	if (userError || !user) {
-		// User validation failed - redirect to login
+		// Now get the access token from the session
+		// We trust the token here because getUser() already validated it
+		const {
+			data: { session }
+		} = await supabase.auth.getSession()
+
+		if (!session?.access_token) {
+			logger.error('No access token in session', {
+				action: 'requireSession'
+			})
+			// No access token - redirect to login
+			redirect('/login')
+		}
+
+		return { user, accessToken: session.access_token }
+	} catch (error) {
+		// Log the error for debugging (won't show in production build logs, but will show in server logs)
+		logger.error('Unexpected error', {
+			action: 'requireSession'
+		}, error)
+		// Redirect to login on any error
 		redirect('/login')
 	}
-
-	// Now get the access token from the session
-	// We trust the token here because getUser() already validated it
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
-
-	if (!session?.access_token) {
-		// No access token - redirect to login
-		redirect('/login')
-	}
-
-	return { user, accessToken: session.access_token }
 }
 
 /**
@@ -73,13 +107,20 @@ export async function requireSession(): Promise<{
  */
 export async function requirePrimaryProperty(user_id: string) {
 	const cookieStore = await cookies()
-	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+	const supabase = createServerClient(SB_URL, SB_PUBLISHABLE_KEY, {
 		cookies: {
 			getAll: () => cookieStore.getAll(),
 			setAll: cookiesToSet => {
-				cookiesToSet.forEach(({ name, value, options }) => {
-					cookieStore.set(name, value, options)
-				})
+				applySupabaseCookies(
+					(name, value, options) => {
+						if (options) {
+							cookieStore.set(name, value, options)
+						} else {
+							cookieStore.set(name, value)
+						}
+					},
+					cookiesToSet
+				)
 			}
 		}
 	})

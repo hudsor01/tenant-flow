@@ -82,41 +82,41 @@ export class AppConfigService {
 	}
 
 	getSupabaseUrl(): string {
-		return this.configService.get('SUPABASE_URL', { infer: true })
+		return this.configService.get('SB_URL', { infer: true })
 	}
 
 	getSupabaseSecretKey(): string {
-		return this.configService.get('SUPABASE_SECRET_KEY', { infer: true })
+		return this.configService.get('SB_SECRET_KEY', { infer: true })
 	}
 
 	getSupabasePublishableKey(): string {
-		return this.configService.get('SUPABASE_PUBLISHABLE_KEY', { infer: true })
+		return this.configService.get('SB_PUBLISHABLE_KEY', { infer: true })
 	}
 
 	get supabaseJwtAlgorithm(): string {
-		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'HS256'
+		return this.get('SB_JWT_ALGORITHM') ?? 'HS256'
 	}
 
 	get supabaseJwtSecret(): string {
-		const secret = this.get('SUPABASE_JWT_SECRET')
+		const secret = this.get('SB_JWT_SECRET')
 		if (!secret) {
 			throw new Error(
-				'SUPABASE_JWT_SECRET is required. Get this from your Supabase dashboard under Settings > JWT Keys > JWT Secret'
+				'SB_JWT_SECRET is required. Get this from your Supabase dashboard under Settings > JWT Keys > JWT Secret'
 			)
 		}
 		return secret
 	}
 
 	getSupabaseJwtSecretOptional(): string | undefined {
-		return this.get('SUPABASE_JWT_SECRET')
+		return this.get('SB_JWT_SECRET')
 	}
 
 	getSupabaseProjectRef(): string {
-		return this.configService.get('SUPABASE_PROJECT_REF', { infer: true })
+		return this.configService.get('SB_PROJECT_REF', { infer: true })
 	}
 
 	getSupabaseAuthWebhookSecret(): string | undefined {
-		return this.configService.get('SUPABASE_AUTH_WEBHOOK_SECRET', { infer: true })
+		return this.configService.get('SB_AUTH_WEBHOOK_SECRET', { infer: true })
 	}
 
 	// ==================== CORS ====================
@@ -217,11 +217,11 @@ export class AppConfigService {
 	}
 
 	getSupabaseAuthThrottleTtl(): number {
-		return this.configService.get('SUPABASE_AUTH_THROTTLE_TTL', { infer: true })
+		return this.configService.get('SB_AUTH_THROTTLE_TTL', { infer: true })
 	}
 
 	getSupabaseAuthThrottleLimit(): number {
-		return this.configService.get('SUPABASE_AUTH_THROTTLE_LIMIT', { infer: true })
+		return this.configService.get('SB_AUTH_THROTTLE_LIMIT', { infer: true })
 	}
 
 	// ==================== Stripe ====================
