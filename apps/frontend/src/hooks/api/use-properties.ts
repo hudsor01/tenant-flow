@@ -37,6 +37,7 @@ import { propertyQueries, type PropertyFilters } from './queries/property-querie
 /**
  * @deprecated Use propertyQueries from './queries/property-queries' instead
  * Keeping for backward compatibility during migration
+ * // TODO: Complete this migration and remove this deprecated object
  */
 export const propertiesKeys = {
 	all: propertyQueries.all(),
@@ -108,6 +109,7 @@ export function usePropertyList(params?: {
 /**
  * @deprecated Maintained for backwards compatibility with older integration tests.
  * Prefer usePropertyList for new code so pagination params are explicit.
+ * // TODO: Complete the above migration and remove this function
  */
 export function useProperties(params?: {
 	search?: string | null

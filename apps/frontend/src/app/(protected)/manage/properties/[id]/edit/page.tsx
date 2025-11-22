@@ -5,7 +5,7 @@ import { Button } from '#components/ui/button'
 import { PropertyForm } from '#components/properties/property-form.client'
 import { MobilePropertyForm } from '#components/properties/property-form.mobile'
 import { serverFetch } from '#lib/api/server'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 export default async function EditPropertyPage({
 	params
@@ -35,12 +35,12 @@ export default async function EditPropertyPage({
 				</div>
 			</div>
 			<div className="hidden md:block">
-				<PropertyForm mode="edit" property={property} showSuccessState={false} />
+				<PropertyForm mode="edit" property={property} showSuccessState={true} />
 			</div>
 			<MobilePropertyForm
 				mode="edit"
 				property={property}
-				showSuccessState={false}
+				showSuccessState={true}
 			/>
 		</div>
 	)

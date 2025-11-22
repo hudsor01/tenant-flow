@@ -1,181 +1,114 @@
-import {
-	PROTECTED_ROUTE_PREFIXES,
-	PUBLIC_AUTH_ROUTES,
-	PAYMENT_EXEMPT_ROUTES
-} from '#lib/auth-constants'
-import {
-	SB_URL,
-	SB_PUBLISHABLE_KEY
-} from '@repo/shared/config/supabase'
+import { SB_URL, SB_PUBLISHABLE_KEY, assertSupabaseConfig } from '@repo/shared/config/supabase'
 import type { Database } from '@repo/shared/types/supabase'
-import type { User } from '@supabase/supabase-js'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { applySupabaseCookies } from '#lib/supabase/cookies'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
-const logger = createLogger({ component: 'AuthMiddleware' })
+const logger = createLogger({ component: 'Middleware' })
 
 /**
- * Session Update & Auth Validation
+ * Minimal Session Sync (Next.js 16 + Supabase SSR)
  *
- * Called by: src/middleware.ts (Next.js entry point)
+ * PHILOSOPHY: Keep proxy/middleware MINIMAL
+ * - Session sync (required by Supabase)
+ * - Simple route protection (existence checks only)
+ * - Fast redirects for UX
  *
- * Responsibilities:
- * 1. Extract and validate session from cookies (Supabase SSR)
- * 2. Verify JWT signature against Supabase public keys
- * 3. Extract auth claims (user_type, stripe_customer_id)
- * 4. Enforce route protection (protected routes → /login)
- * 5. Implement payment gating (non-paying users → /pricing)
- * 6. Handle user-type redirects (TENANT → /tenant, others → /manage)
+ * Complex auth logic belongs in:
+ * - Server Components (page-level checks)
+ * - DAL (data access authorization)
+ * - Server Actions (mutation authorization)
  *
- * Returns: NextResponse with appropriate redirect or pass-through
+ * IMPORTANT: Do not add business logic here!
  */
 export async function updateSession(request: NextRequest) {
-	const pathname = request.nextUrl.pathname
-	logger.info('[SESSION_UPDATE_START]', { pathname })
+	const { pathname } = request.nextUrl
 
-	let supabaseResponse = NextResponse.next({
-		request
-	})
+	// Create response that will be returned
+	let response = NextResponse.next({ request })
 
+	// Validate config before creating client
+	assertSupabaseConfig()
+	// Create Supabase client with cookie handling
 	const supabase = createServerClient<Database>(
-		SB_URL,
-		SB_PUBLISHABLE_KEY,
+		SB_URL!, // Non-null: validated by assertSupabaseConfig()
+		SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 		{
 			cookies: {
 				getAll() {
 					return request.cookies.getAll()
 				},
-				setAll(cookiesToSet) {
+				setAll(cookiesToSet: CookieOptionsWithName[]) {
+					// Apply cookies to request
 					applySupabaseCookies(
-				(name: string, value: string) => request.cookies.set(name, value),
-				cookiesToSet
-			)
-					supabaseResponse = NextResponse.next({
-						request
-					})
+						(name: string, value: string) => request.cookies.set(name, value),
+						cookiesToSet
+					)
+					// Create fresh response with updated request
+					response = NextResponse.next({ request })
+					// Apply cookies to response
 					applySupabaseCookies(
-				(name, value, options) => {
-					if (options) {
-						supabaseResponse.cookies.set(name, value, options)
-					} else {
-						supabaseResponse.cookies.set(name, value)
-					}
-				},
-				cookiesToSet
-			)
+						(name: string, value: string, options?: Record<string, unknown>) =>
+							options
+								? response.cookies.set(name, value, options)
+								: response.cookies.set(name, value),
+						cookiesToSet
+					)
 				}
 			}
 		}
 	)
 
-	// SECURITY FIX: Use getUser() for server-side JWT validation
-	// Performance: ~200-500ms (API roundtrip) but reliable
-	// Security: Supabase handles JWT verification server-side
-	let isAuthenticated = false
-	let user: User | null = null
+	// REQUIRED: getClaims() prevents random logouts (Supabase SSR requirement)
+	// Do not add code between createServerClient and getClaims!
+	const { data } = await supabase.auth.getClaims()
+	const hasSession = !!data?.claims?.sub
 
-	try {
-		// Refresh/validate session proactively to avoid stale JWTs
-		const {
-			data: { session },
-			error: sessionError
-		} = await supabase.auth.getSession()
-
-		if (sessionError) {
-			logger.warn('[SESSION_REFRESH_ERROR]', { message: sessionError.message })
-		} else {
-			logger.debug('[SESSION_REFRESH]', {
-				hasSession: !!session,
-				expiresAt: session?.expires_at
-			})
-		}
-
-		// Get user from Supabase (server-side validation)
-		const {
-			data: { user: authUser },
-			error: userError
-		} = await supabase.auth.getUser()
-
-		logger.info('[SESSION_CHECK]', {
-			pathname,
-			hasUser: !!authUser,
-			error: userError?.message
-		})
-
-		if (userError || !authUser) {
-			isAuthenticated = false
-			logger.info('[NO_SESSION]', { pathname })
-		} else {
-			user = authUser
-			isAuthenticated = true
-			logger.info('[USER_VERIFIED]', {
-				pathname,
-				userId: user.id,
-				email: user.email
-			})
-		}
-	} catch (err) {
-		// Auth check failed
-		logger.error('Auth check failed', {
-			error: err instanceof Error ? err.message : String(err)
-		})
-		isAuthenticated = false
+	// DEBUG: Log session state for testing
+	if (!hasSession) {
+		logger.debug('[NO_SESSION]', { pathname })
 	}
 
-	// Check route protection using centralized constants
-	const isProtectedRoute = PROTECTED_ROUTE_PREFIXES.some(
-		prefix => pathname === prefix || pathname.startsWith(`${prefix}/`)
-	)
-	const isAuthRoute = PUBLIC_AUTH_ROUTES.includes(
-		pathname as (typeof PUBLIC_AUTH_ROUTES)[number]
-	)
-	const _isPaymentExempt = PAYMENT_EXEMPT_ROUTES.some(
-		route => pathname === route || pathname.startsWith(route)
-	)
+	// Simple route checks (just prefix matching - fast!)
+	const isProtected =
+		pathname.startsWith('/manage') ||
+		pathname.startsWith('/tenant') ||
+		pathname.startsWith('/settings')
+	const isAuthPage = pathname === '/login' || pathname.startsWith('/auth/')
 
-	// Redirect unauthenticated users from protected routes to login
-	if (!isAuthenticated && isProtectedRoute) {
-		logger.info('[REDIRECT_TO_LOGIN]', {
-			fromPath: pathname,
-			reason: 'not_authenticated',
-			isProtected: true
-		})
+	// Guard: Redirect unauthenticated users from protected routes
+	if (!hasSession && isProtected) {
+		logger.info('[REDIRECT_TO_LOGIN]', { pathname })
 		const url = request.nextUrl.clone()
 		url.pathname = '/login'
 		url.searchParams.set('redirectTo', pathname)
 		return NextResponse.redirect(url)
 	}
 
-	// Redirect authenticated users from auth routes to dashboard
-	// Only redirect if authentication is valid (validated with Supabase)
-	if (isAuthenticated && isAuthRoute) {
+	// Guard: Redirect authenticated users from auth pages
+	if (hasSession && isAuthPage) {
+		logger.info('[REDIRECT_TO_MANAGE]', { pathname })
 		const url = request.nextUrl.clone()
-
-		// Check if there's a redirectTo parameter - if so, use it instead of default dashboard
-		const redirectTo = request.nextUrl.searchParams.get('redirectTo')
-		if (redirectTo && redirectTo !== pathname) {
-			// Validate the redirect path is internal and safe
-			if (redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
-				url.pathname = redirectTo
-				url.search = '' // Clear search params
-				return NextResponse.redirect(url)
-			}
-		}
-
-		// Default redirect to login page for authenticated users on auth routes
-		url.pathname = '/manage'
-		url.search = '' // Clear search params
+		// Honor redirectTo if present and safe
+		const redirectTo = url.searchParams.get('redirectTo')
+		url.pathname =
+			redirectTo?.startsWith('/') && !redirectTo.startsWith('//')
+				? redirectTo
+				: '/manage'
+		url.search = ''
 		return NextResponse.redirect(url)
 	}
 
-	// Redirect /dashboard and /dashboard/* to /manage and /manage/*
-	if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+	// Legacy redirect: /dashboard → /manage
+	if (pathname.startsWith('/dashboard')) {
+		logger.debug('[LEGACY_REDIRECT]', { from: pathname, to: pathname.replace('/dashboard', '/manage') })
 		const url = request.nextUrl.clone()
 		url.pathname = pathname.replace('/dashboard', '/manage')
 		return NextResponse.redirect(url)
 	}
 
-	return supabaseResponse
+	// All good - continue with synced session
+	logger.debug('[SESSION_SYNCED]', { pathname, hasSession })
+	return response
 }
