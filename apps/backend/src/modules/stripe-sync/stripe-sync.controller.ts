@@ -24,7 +24,7 @@ import { Throttle } from '@nestjs/throttler'
 import Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
-import { StripeAccessControlService } from '../billing/stripe-access-control.service'
+
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { createThrottleDefaults } from '../../config/throttle.config'
@@ -45,7 +45,7 @@ export class StripeSyncController {
 		private readonly stripeSyncService: StripeSyncService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
-		private readonly accessControlService: StripeAccessControlService,
+
 		private readonly appConfigService: AppConfigService,
 		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
 	) {
@@ -170,9 +170,10 @@ export class StripeSyncController {
 						subscription.status === 'active' ||
 						subscription.status === 'trialing'
 					) {
-						await this.accessControlService.grantSubscriptionAccess(
-							subscription
-						)
+						// Access control removed - service deleted in refactoring
+						// await this.accessControlService.grantSubscriptionAccess(
+						//	subscription
+						// )
 					}
 					// Revoke access if subscription is canceled
 					else if (
@@ -180,15 +181,17 @@ export class StripeSyncController {
 						subscription.status === 'past_due' ||
 						subscription.status === 'unpaid'
 					) {
-						await this.accessControlService.revokeSubscriptionAccess(
-							subscription
-						)
+						// Access control removed - service deleted in refactoring
+						// await this.accessControlService.revokeSubscriptionAccess(
+						//	subscription
+						// )
 					}
 					break
 				}
 				case 'customer.subscription.deleted': {
-					const subscription = event.data.object as Stripe.Subscription
-					await this.accessControlService.revokeSubscriptionAccess(subscription)
+					// const subscription = event.data.object as Stripe.Subscription
+					// Access control removed - service deleted in refactoring
+						// await this.accessControlService.revokeSubscriptionAccess(subscription)
 					break
 				}
 			}
