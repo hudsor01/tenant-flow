@@ -14,7 +14,7 @@ import { AppConfigService } from './config/app-config.service'
 import { registerExpressMiddleware } from './config/express.config'
 
 // Trigger Railway deployment after fixing husky script
-import { HEALTH_PATHS } from './shared/constants/routes'
+import { HEALTH_PATHS, WEBHOOK_PATHS } from './shared/constants/routes'
 
 const DEFAULT_PORT = 4600
 
@@ -74,13 +74,18 @@ async function bootstrap() {
 	app.setGlobalPrefix(GLOBAL_PREFIX, {
 		exclude: [
 			...HEALTH_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
+			...WEBHOOK_PATHS.map(path => ({ path, method: RequestMethod.ALL })),
 			{ path: '/', method: RequestMethod.ALL },
 			{ path: '/metrics', method: RequestMethod.ALL }
 		]
 	})
 	const healthPaths = HEALTH_PATHS.join(', ')
+	const webhookPaths = WEBHOOK_PATHS.join(', ')
 	bootstrapLogger.log(
 		`Health endpoints registered without prefix at: ${healthPaths}`
+	)
+	bootstrapLogger.log(
+		`Webhook endpoints registered without prefix at: ${webhookPaths}`
 	)
 
 	// Configure CORS using NestJS built-in support

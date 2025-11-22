@@ -7,13 +7,14 @@
  * See: https://supabase.com/docs/guides/auth/server-side/oauth-with-pkce-flow-for-ssr
  */
 
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@repo/shared/types/supabase'
 import {
 	SB_URL,
-	SB_PUBLISHABLE_KEY
+	SB_PUBLISHABLE_KEY,
+	assertSupabaseConfig
 } from '@repo/shared/config/supabase'
 import { applySupabaseCookies } from '#lib/supabase/cookies'
 
@@ -32,14 +33,15 @@ export async function GET(request: NextRequest) {
 		return NextResponse.redirect(`${origin}/login?error=oauth_failed`)
 	}
 
+	assertSupabaseConfig()
 	const cookieStore = await cookies()
 	const supabase = createServerClient<Database>(
-		SB_URL,
-		SB_PUBLISHABLE_KEY,
+		SB_URL!, // Non-null: validated by assertSupabaseConfig()
+		SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 		{
 			cookies: {
 				getAll: () => cookieStore.getAll(),
-				setAll: cookiesToSet =>
+				setAll: (cookiesToSet: CookieOptionsWithName[]) =>
 					applySupabaseCookies(
 						(name, value, options) => {
 							if (options) {
