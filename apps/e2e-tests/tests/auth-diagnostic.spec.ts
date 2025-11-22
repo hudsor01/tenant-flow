@@ -5,18 +5,18 @@
  * Captures network requests, console messages, timing data
  */
 
-import { expect, test } from '@playwright/test'
+import { expect, test, type Location } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'AuthDiagnostic' })
 
 interface NetworkLog {
-	url: string
-	method: string
-	status?: number
-	timing: number
-	type: string
-	error?: string
+  url: string
+  method: string
+  status?: number | undefined
+  timing: number
+  type: string
+  error?: string
 }
 
 interface ConsoleLog {
@@ -92,17 +92,28 @@ test.describe('Authentication Diagnostic Tests', () => {
 
 		// Check for Supabase initialization
 		const supabaseInitialized = await page.evaluate(() => {
-			return !!(window as any).supabase || !!(window as any)._supabaseClient
-		})
+			const w = window as unknown as {
+				supabase?: unknown;
+				_supabaseClient?: unknown;
+			};
+			return !!w.supabase || !!w._supabaseClient;
+		});
 		console.log(`[SUPABASE] Initialized: ${supabaseInitialized}`)
 
 		// Get environment info
-		const envInfo = await page.evaluate(() => ({
-			origin: window.location.origin,
-			pathname: window.location.pathname,
-			supabaseUrl: (window as any).NEXT_PUBLIC_SB_URL,
-			supabaseKey: (window as any).NEXT_PUBLIC_SB_ANON_KEY ? 'SET' : 'NOT SET'
-		}))
+		const envInfo = await page.evaluate(() => {
+			const w = window as unknown as {
+				location: Location;
+				NEXT_PUBLIC_SB_URL?: string;
+				NEXT_PUBLIC_SB_ANON_KEY?: string;
+			};
+			return {
+				origin: w.location.origin,
+				pathname: w.location.pathname,
+				supabaseUrl: w.NEXT_PUBLIC_SB_URL,
+				supabaseKey: w.NEXT_PUBLIC_SB_ANON_KEY ? 'SET' : 'NOT SET'
+			};
+		});
 		console.log('[ENV] Frontend environment:', envInfo)
 
 		// Log initial network requests
