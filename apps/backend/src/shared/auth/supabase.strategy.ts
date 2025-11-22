@@ -7,7 +7,7 @@
 
 import { Injectable, Logger } from '@nestjs/common'
 import type { AuthUser, SupabaseJwtPayload } from '@repo/shared/types/auth'
-import type { UtilityService } from '../services/utility.service'
+import { UtilityService } from '../services/utility.service'
 
 @Injectable()
 export class AuthUserValidationService {

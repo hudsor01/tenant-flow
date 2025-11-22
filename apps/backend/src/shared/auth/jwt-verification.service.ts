@@ -7,7 +7,7 @@
 
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { jwtVerify, createRemoteJWKSet, type JWTPayload, type JWTVerifyResult } from 'jose'
-import type { AppConfigService } from '../../config/app-config.service'
+import { AppConfigService } from '../../config/app-config.service'
 import type { SupabaseJwtPayload } from '@repo/shared/types/auth'
 
 @Injectable()
