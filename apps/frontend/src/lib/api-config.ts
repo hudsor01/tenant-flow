@@ -37,13 +37,3 @@ export function getApiBaseUrl(): string {
  * use getApiBaseUrl() function directly instead.
  */
 export const API_BASE_URL = env.NEXT_PUBLIC_API_BASE_URL
-
-/**
- * Helper to build API endpoint URL
- * @example buildApiUrl('properties') => 'https://api.tenantflow.app/api/v1/properties'
- * @deprecated Use api() from #lib/api instead
- */
-export function buildApiUrl(path: string): string {
-	const cleanPath = path.startsWith('/') ? path.slice(1) : path
-	return `${API_BASE_URL}/api/v1/${cleanPath}`
-}

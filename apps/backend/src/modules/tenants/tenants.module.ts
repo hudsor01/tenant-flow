@@ -48,30 +48,18 @@ import { TenantRelationsService } from './tenant-relations.service'
 	controllers: [TenantsController, AuthWebhookController],
 	providers: [
 		Logger,
-		
-		// Specialized query services
 		TenantListService,
 		TenantDetailService,
 		TenantStatsService,
 		TenantRelationsService,
-		
-		// Main query service (coordinator)
 		TenantQueryService,
-		
-		// Core services
 		TenantCrudService,
-		
-		// Feature services
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantAnalyticsService,
-		
-		// Invitation flow services
 		TenantInvitationService,
 		TenantInvitationTokenService,
 		TenantResendInvitationService,
-		
-		// Facade service (backward compatibility)
 		TenantsService
 	],
 	exports: [

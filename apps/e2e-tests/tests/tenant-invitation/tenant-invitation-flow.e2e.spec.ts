@@ -1,7 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
 
-import { test, expect, type Page } from '@playwright/test'
-
 /**
  * Tenant Invitation Flow E2E Tests
  * Tests all checklist items from docs/TENANT_INVITATION_FLOW.md
