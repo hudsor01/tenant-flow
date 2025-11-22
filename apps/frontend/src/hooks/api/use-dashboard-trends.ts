@@ -3,6 +3,8 @@
 /**
  * Dashboard Trends Hooks
  *
+ * // TODO: migrate from this deprecation completely to the current implementation.
+ *
  * DEPRECATED: These hooks use the legacy /manage endpoints.
  * For new development, use hooks from use-owner-dashboard.ts which use /owner/reports endpoints.
  *

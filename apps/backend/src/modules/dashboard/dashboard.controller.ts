@@ -15,10 +15,12 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { DashboardService } from './dashboard.service'
 import { SupabaseService } from '../../database/supabase.service'
 
-// Validation schemas removed - service handles validation
 
 /**
- * DEPRECATED: This controller uses legacy /manage routes.
+*
+* // TODO: Migrate this controller completely from the deprecated instance to the new and current implementation.
+*
+* DEPRECATED: This controller uses legacy /manage routes.
  *
  * Migration: Use /owner routes from OwnerDashboardModule instead.
  * - /manage/stats → /owner/analytics/stats

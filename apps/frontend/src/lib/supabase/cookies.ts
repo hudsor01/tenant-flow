@@ -1,4 +1,4 @@
-import type { CookieOptions } from '@supabase/ssr'
+import type { CookieOptions, CookieOptionsWithName } from '@supabase/ssr'
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 
 /**
@@ -32,10 +32,16 @@ type SetCookieFn =
 
 export function applySupabaseCookies(
 	setCookie: SetCookieFn,
-	cookiesToSet: { name: string; value: string; options?: CookieOptions }[]
+	cookiesToSet: CookieOptionsWithName[]
 ) {
-	cookiesToSet.forEach(({ name, value, options }) => {
-		const normalizedOptions = normalizeSupabaseCookieOptions(options)
+	cookiesToSet.forEach((cookie) => {
+		// Type assertion: CookieOptionsWithName has name and value
+		const cookieWithProps = cookie as typeof cookie & { name: string; value: string }
+		const name = cookieWithProps.name
+		const value = cookieWithProps.value
+		// Extract all other properties as options
+		const { name: _, value: __, ...options } = cookieWithProps
+		const normalizedOptions = normalizeSupabaseCookieOptions(options as CookieOptions)
 		// Check if setCookie accepts 3 parameters (response.cookies) or 2 (request.cookies)
 		// If normalized options exist and function accepts options, pass them; otherwise just name and value
 		try {

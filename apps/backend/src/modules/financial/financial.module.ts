@@ -16,6 +16,7 @@ import { IncomeStatementService } from './income-statement.service'
 import { TaxDocumentsController } from './tax-documents.controller'
 import { TaxDocumentsService } from './tax-documents.service'
 import { FinancialService } from './financial.service'
+import { FinancialAnalyticsPublicController } from './financial-analytics.controller'
 
 @Module({
 	imports: [],
@@ -23,7 +24,8 @@ import { FinancialService } from './financial.service'
 		IncomeStatementController,
 		CashFlowController,
 		BalanceSheetController,
-		TaxDocumentsController
+		TaxDocumentsController,
+		FinancialAnalyticsPublicController
 	],
 	providers: [
 		FinancialService,

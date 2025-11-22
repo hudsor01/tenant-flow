@@ -36,6 +36,7 @@ export { leaseQueries } from './queries/lease-queries'
 /**
  * @deprecated Use leaseQueries instead for type-safe queryOptions pattern
  * Keeping for backward compatibility during migration
+ * // TODO: Migrate and remove this object
  */
 export const leaseKeys = {
 	all: leaseQueries.all(),

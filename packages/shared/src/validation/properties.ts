@@ -172,16 +172,6 @@ export const propertySoldSchema = z.object({
     .optional()
 })
 
-/**
- * @deprecated propertyImageUploadSchema - Legacy, not used
- * 
- * The new frontend implementation (PropertyImageUpload component + usePropertyImageUpload hook)
- * handles validation entirely on the client side. This schema is no longer needed.
- * 
- * Fields (isPrimary, caption) were not supported by the database schema anyway.
- * Migration: Use apps/frontend/src/components/properties/property-image-upload.tsx
- */
-
 // Export types
 export type PropertyInput = z.infer<typeof propertyInputSchema>
 export type Property = z.infer<typeof propertySchema>

@@ -14,14 +14,10 @@
  */
 
 import { Injectable } from '@nestjs/common'
-
-// Import specialized query services
 import { TenantListService, type ListFilters } from './tenant-list.service'
 import { TenantDetailService } from './tenant-detail.service'
 import { TenantStatsService } from './tenant-stats.service'
 import { TenantRelationsService } from './tenant-relations.service'
-
-// Import other services
 import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
@@ -29,8 +25,6 @@ import { TenantAnalyticsService } from './tenant-analytics.service'
 import { TenantInvitationService } from './tenant-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { TenantResendInvitationService } from './tenant-resend-invitation.service'
-
-// Import types from shared layer
 import type {
 	CreateTenantRequest,
 	UpdateTenantRequest,
@@ -74,10 +68,6 @@ export class TenantsService {
 		private readonly resendInvitationService: TenantResendInvitationService
 	) {}
 
-	// ============================================================================
-	// LIST QUERIES
-	// ============================================================================
-
 	async findAll(userId: string, filters?: ListFilters): Promise<Tenant[]> {
 		return this.list.findAll(userId, filters)
 	}
@@ -85,10 +75,6 @@ export class TenantsService {
 	async findAllWithLeaseInfo(userId: string, filters?: Omit<ListFilters, 'status'>): Promise<TenantWithLeaseInfo[]> {
 		return this.list.findAllWithActiveLease(userId, filters)
 	}
-
-	// ============================================================================
-	// DETAIL QUERIES
-	// ============================================================================
 
 	async findOne(tenantId: string): Promise<Tenant> {
 		return this.detail.findById(tenantId)
@@ -102,10 +88,6 @@ export class TenantsService {
 		return this.detail.findByAuthUserId(authUserId)
 	}
 
-	// ============================================================================
-	// STATISTICS
-	// ============================================================================
-
 	async getStats(userId: string): Promise<TenantStats> {
 		return this.stats.getStatusCounts(userId)
 	}
@@ -113,10 +95,6 @@ export class TenantsService {
 	async getSummary(userId: string): Promise<TenantSummary> {
 		return this.stats.getSummary(userId)
 	}
-
-	// ============================================================================
-	// RELATIONS & JOINS
-	// ============================================================================
 
 	async getOwnerPropertyIds(ownerId: string): Promise<string[]> {
 		return this.relations.getOwnerPropertyIds(ownerId)
@@ -133,10 +111,6 @@ export class TenantsService {
 	async batchFetchPaymentStatuses(tenantIds: string[]): Promise<Map<string, RentPayment>> {
 		return this.relations.fetchPaymentStatuses(tenantIds)
 	}
-
-	// ============================================================================
-	// CRUD OPERATIONS
-	// ============================================================================
 
 	async create(userId: string, createRequest: CreateTenantRequest): Promise<Tenant> {
 		return this.crudService.create(userId, createRequest)
@@ -168,10 +142,6 @@ export class TenantsService {
 	async hardDelete(userId: string, tenantId: string): Promise<{ success: boolean; message: string }> {
 		return this.crudService.hardDelete(userId, tenantId)
 	}
-
-	// ============================================================================
-	// EMERGENCY CONTACT MANAGEMENT
-	// ============================================================================
 
 	async getEmergencyContact(userId: string, tenantId: string): Promise<EmergencyContactResponse | null> {
 		return this.emergencyContactService.getEmergencyContact(userId, tenantId)
@@ -213,10 +183,6 @@ export class TenantsService {
 		return this.emergencyContactService.deleteEmergencyContact(userId, tenantId)
 	}
 
-	// ============================================================================
-	// NOTIFICATION PREFERENCES
-	// ============================================================================
-
 	async getNotificationPreferences(
 		userId: string,
 		tenantId: string
@@ -231,10 +197,6 @@ export class TenantsService {
 	): Promise<TenantNotificationPreferences | null> {
 		return this.notificationPreferencesService.updatePreferences(userId, tenantId, preferences)
 	}
-
-	// ============================================================================
-	// ANALYTICS & PAYMENTS
-	// ============================================================================
 
 	async calculatePaymentStatus(tenantId: string): Promise<Record<string, unknown> | null> {
 		return this.analyticsService.calculatePaymentStatus(tenantId)
@@ -266,10 +228,6 @@ export class TenantsService {
 	isLateFeeRecord(record: RentPayment | TenantPaymentRecord): boolean {
 		return this.analyticsService.isLateFeeRecord(record)
 	}
-
-	// ============================================================================
-	// INVITATIONS
-	// ============================================================================
 
 	async inviteTenantWithLease(
 		userId: string,

@@ -1,5 +1,5 @@
 import { LeaseForm } from '#components/leases/lease-form.client'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 export default async function NewLeasePage() {
 	await requireSession()

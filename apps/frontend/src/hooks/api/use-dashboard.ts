@@ -1,44 +1,28 @@
+'use client'
+
 /**
- * TanStack Query hooks for dashboard data
+ * Performance-first dashboard hooks.
  *
- * DEPRECATED: These hooks use the legacy /manage endpoints.
- * For new development, use hooks from use-owner-dashboard.ts which provide:
- * - Better organization (/owner/financial, /owner/properties, etc.)
- * - Role-based access control (RolesGuard + @Roles)
- * - Enhanced monitoring and logging
- * - Modular route structure
- *
- * Migration Guide:
- * - useDashboardStats() → useOwnerDashboardStats()
- * - useDashboardActivity() → useOwnerDashboardActivity()
- * - useDashboardPageDataUnified() → useOwnerDashboardPageData()
- * - usePropertyPerformance() → useOwnerPropertyPerformance()
- * - useFinancialChartData(timeRange) → useOwnerRevenueTrends(year)
- *
- * Example:
- * ```typescript
- * // OLD
- * import { useDashboardStats } from '#hooks/api/use-dashboard'
- * const { data: stats } = useDashboardStats()
- *
- * // NEW
- * import { useOwnerDashboardStats } from '#hooks/api/use-owner-dashboard'
- * const { data: stats } = useOwnerDashboardStats()
- * ```
+ * This file is now a thin compatibility layer that forwards legacy
+ * `use-dashboard` imports to the optimized owner dashboard hooks. All
+ * legacy /manage endpoints have been removed to avoid duplicate traffic.
+ * Prefer importing directly from `#hooks/api/use-owner-dashboard` in new code.
  */
+
+import { useQuery } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
-import type { Activity } from '@repo/shared/types/activity'
-import type {
-	ActivityItem,
-	DashboardStats,
-	FinancialMetrics,
-	LeaseStatsResponse,
-	PropertyPerformance,
-	SystemUptime,
-	TenantStats
-} from '@repo/shared/types/core'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import type { FinancialMetrics } from '@repo/shared/types/core'
+import {
+	ownerDashboardKeys,
+	useOwnerDashboardActivity,
+	useOwnerDashboardPageData,
+	useOwnerDashboardStats,
+	useOwnerPropertyPerformance,
+	usePrefetchOwnerDashboardActivity,
+	usePrefetchOwnerDashboardStats,
+	usePrefetchOwnerPropertyPerformance
+} from '#hooks/api/use-owner-dashboard'
 
 export interface FinancialChartDatum {
 	date: string
@@ -47,342 +31,80 @@ export interface FinancialChartDatum {
 	profit: number
 }
 
-/**
- * Query keys for dashboard endpoints
- */
+export type FinancialTimeRange = '7d' | '30d' | '6m' | '1y'
+
+// Re-export owner dashboard query keys for backward compatibility and add a
+// financialChart key used by the revenue/expense chart hook.
 export const dashboardKeys = {
-	all: ['dashboard'] as const,
-	stats: () => [...dashboardKeys.all, 'stats'] as const,
-	activity: () => [...dashboardKeys.all, 'activity'] as const,
-	pageData: () => [...dashboardKeys.all, 'page-data'] as const,
-	propertyPerformance: () =>
-		[...dashboardKeys.all, 'property-performance'] as const,
-	uptime: () => [...dashboardKeys.all, 'uptime'] as const,
-	propertyStats: () => [...dashboardKeys.all, 'property-stats'] as const,
-	tenantStats: () => [...dashboardKeys.all, 'tenant-stats'] as const,
-	leaseStats: () => [...dashboardKeys.all, 'lease-stats'] as const,
-	financialChart: (timeRange: string) =>
-		[...dashboardKeys.all, 'financial-chart', timeRange] as const
+	...ownerDashboardKeys,
+	financialChart: (timeRange: FinancialTimeRange) =>
+		['dashboard', 'financial-chart', timeRange] as const
+}
+
+// ---------------------------------------------------------------------------
+// Backwards-compatible wrappers (forward to owner hooks)
+// ---------------------------------------------------------------------------
+
+export const useDashboardStats = useOwnerDashboardStats
+export const useDashboardActivity = useOwnerDashboardActivity
+export const useDashboardPageDataUnified = useOwnerDashboardPageData
+// Alias for older name used in a few components
+export const useDashboardPageData = useOwnerDashboardPageData
+export const usePropertyPerformance = useOwnerPropertyPerformance
+
+export const usePrefetchDashboardStats = usePrefetchOwnerDashboardStats
+export const usePrefetchDashboardActivity = usePrefetchOwnerDashboardActivity
+export const usePrefetchPropertyPerformance = usePrefetchOwnerPropertyPerformance
+
+// ---------------------------------------------------------------------------
+// Financial chart (revenue vs expenses)
+// ---------------------------------------------------------------------------
+
+const timeRangeToMonths: Record<FinancialTimeRange, number> = {
+	'7d': 1,
+	'30d': 1,
+	'6m': 6,
+	'1y': 12
 }
 
 /**
- * Hook to fetch dashboard statistics with 30-second auto-refresh
+ * Revenue/expense chart data fetched from the financial analytics endpoint.
+ * Uses server-calculated revenue/expense/netIncome so the chart reflects
+ * actual expenses instead of placeholders.
  */
-export function useDashboardStats() {
-	return useQuery({
-		queryKey: dashboardKeys.stats(),
-		queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
-		...QUERY_CACHE_TIMES.SECURITY,
-		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 30s)
-		refetchIntervalInBackground: false, // Stop refreshing when tab inactive (CRITICAL: prevents memory leaks)
-		refetchOnWindowFocus: true, // Refresh when user returns to tab
-		refetchOnMount: true, // Always fetch fresh data on component mount
-		retry: 2, // Retry twice on failure
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000) // Exponential backoff
-	})
-}
+export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
+	const months = timeRangeToMonths[timeRange] ?? 6
+	const currentYear = new Date().getFullYear()
 
-/**
- * Hook to fetch dashboard activity with 60-second auto-refresh
- */
-export function useDashboardActivity() {
-	return useQuery({
-		queryKey: dashboardKeys.activity(),
-		queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/manage/activity'),
-		...QUERY_CACHE_TIMES.SECURITY,
-		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes (optimized from 60s)
-		refetchIntervalInBackground: false, // Stop refreshing when tab inactive (CRITICAL: prevents memory leaks)
-		refetchOnWindowFocus: true, // Refresh when user returns to tab
-		refetchOnMount: true, // Always fetch fresh data on component mount
-		retry: 2, // Retry twice on failure
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000) // Exponential backoff
-	})
-}
-
-/**
- * Hook to fetch property performance metrics with 30-second auto-refresh
- * Returns sorted array of property performance data (sorted by occupancy rate desc, then units desc)
- */
-export function usePropertyPerformance() {
-	return useQuery({
-		queryKey: dashboardKeys.propertyPerformance(),
-		queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes (reduced from 30s)
-		refetchIntervalInBackground: false, // Stop refreshing when tab inactive
-		refetchOnWindowFocus: true, // Refresh when user returns to tab
-		refetchOnMount: true, // Always fetch fresh data on component mount
-		retry: 2, // Retry twice on failure
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000) // Exponential backoff
-	})
-}
-
-/**
- * Hook to fetch system uptime metrics with 5-minute auto-refresh
- * Returns current system uptime and SLA status
- */
-export function useSystemUptime() {
-	return useQuery({
-		queryKey: dashboardKeys.uptime(),
-		queryFn: () => clientFetch<SystemUptime>('/api/v1/manage/uptime'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false, // No need to refresh in background for uptime
-		refetchOnWindowFocus: true, // Refresh when user returns to tab
-		refetchOnMount: true, // Always fetch fresh data on component mount
-		retry: 1, // Only retry once for uptime data
-		retryDelay: 2000 // 2 second delay for retry
-	})
-}
-
-/**
- * Hook to fetch property stats with TanStack Query
- */
-export function usePropertyStats() {
-	return useQuery({
-		queryKey: dashboardKeys.propertyStats(),
-		queryFn: () => clientFetch<{
-			totalProperties: number
-			totalUnits: number
-			occupiedUnits: number
-			occupancyRate: number
-			totalRevenue: number
-			vacantUnits: number
-			maintenanceUnits: number
-		}>('/api/v1/properties/stats'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
-}
-
-/**
- * Hook to fetch tenant stats with TanStack Query
- */
-export function useTenantStats() {
-	return useQuery({
-		queryKey: dashboardKeys.tenantStats(),
-		queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
-}
-
-/**
- * Hook to fetch lease stats with TanStack Query
- */
-export function useLeaseStats() {
-	return useQuery({
-		queryKey: dashboardKeys.leaseStats(),
-		queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
-}
-
-/**
- * Hook to fetch financial chart data for revenue/expenses over time
- * Uses the revenue-trends endpoint and maps the response to chart format
- */
-export function useFinancialChartData(timeRange: string = '6m') {
 	return useQuery<FinancialChartDatum[]>({
-		queryKey: dashboardKeys.financialChart(timeRange),
+		queryKey: [...dashboardKeys.financialChart(timeRange), currentYear, months] as const,
 		queryFn: async () => {
-			// Map timeRange to year for the revenue-trends endpoint
-			const currentYear = new Date().getFullYear()
 			const data = await clientFetch<FinancialMetrics[]>(
 				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`
 			)
 
-			// Transform FinancialMetrics to chart format
-			if (Array.isArray(data)) {
-				return data.map((item: FinancialMetrics) => ({
-					date: item.period,
-					revenue: item.revenue,
-					expenses: item.expenses,
-					profit: item.netIncome
-				}))
-			}
+			if (!Array.isArray(data) || data.length === 0) return []
 
-			// Return empty array if no data
-			return [] as FinancialChartDatum[]
+			// Keep UX consistent with the previous time-range selector by
+			// trimming to the most recent N months when the caller requests
+			// shorter ranges (7d/30d map to 1 month of aggregated data).
+			const trimmed = data
+				.sort((a, b) => a.period.localeCompare(b.period))
+				.slice(-months)
+
+			return trimmed.map(item => ({
+				date: item.period,
+				revenue: item.revenue ?? 0,
+				expenses: item.expenses ?? 0,
+				profit: item.netIncome ?? (item.revenue ?? 0) - (item.expenses ?? 0)
+			}))
 		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false, // Stop when tab inactive (prevents memory leaks)
+		...QUERY_CACHE_TIMES.ANALYTICS,
+		refetchInterval: 5 * 60 * 1000,
+		refetchIntervalInBackground: false,
 		refetchOnWindowFocus: true,
-		refetchOnMount: true,
 		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
-}
-
-/**
- * Hook for prefetching dashboard stats (for hover states or preloading)
- */
-export function usePrefetchDashboardStats() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: dashboardKeys.stats(),
-			queryFn: () => clientFetch<DashboardStats>('/api/v1/manage/stats'),
-			...QUERY_CACHE_TIMES.SECURITY
-		})
-	}
-}
-
-/**
- * Hook for prefetching dashboard activity
- */
-export function usePrefetchDashboardActivity() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: dashboardKeys.activity(),
-			queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/manage/activity'),
-			staleTime: 60 * 1000
-		})
-	}
-}
-
-/**
- * Hook for prefetching property performance
- */
-export function usePrefetchPropertyPerformance() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: dashboardKeys.propertyPerformance(),
-			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
-			...QUERY_CACHE_TIMES.DETAIL,
-		})
-	}
-}
-
-/**
- * Hook for prefetching property stats
- */
-export function usePrefetchPropertyStats() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: dashboardKeys.propertyStats(),
-			queryFn: () => clientFetch<{
-				totalProperties: number
-				totalUnits: number
-				occupiedUnits: number
-				occupancyRate: number
-				totalRevenue: number
-				vacantUnits: number
-				maintenanceUnits: number
-			}>('/api/v1/properties/stats'),
-			...QUERY_CACHE_TIMES.DETAIL,
-		})
-	}
-}
-
-/**
- * Hook for prefetching tenant stats
- */
-export function usePrefetchTenantStats() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: dashboardKeys.tenantStats(),
-			queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
-			...QUERY_CACHE_TIMES.DETAIL,
-		})
-	}
-}
-
-/**
- * Hook for prefetching lease stats
- */
-export function usePrefetchLeaseStats() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: dashboardKeys.leaseStats(),
-			queryFn: () => clientFetch<LeaseStatsResponse>('/api/v1/leases/stats'),
-			...QUERY_CACHE_TIMES.DETAIL,
-		})
-	}
-}
-
-/**
- * Combined hook for all dashboard data needed by the main dashboard page
- */
-export function useDashboardPageData() {
-	const dashboardStats = useDashboardStats()
-	const propertyStats = usePropertyStats()
-	const tenantStats = useTenantStats()
-	const leaseStats = useLeaseStats()
-	const activity = useDashboardActivity()
-
-	return {
-		dashboardStats: dashboardStats.data,
-		propertyStats: propertyStats.data,
-		tenantStats: tenantStats.data,
-		leaseStats: leaseStats.data,
-		activity: activity.data,
-		isLoading:
-			dashboardStats.isLoading ||
-			propertyStats.isLoading ||
-			tenantStats.isLoading ||
-			leaseStats.isLoading ||
-			activity.isLoading,
-		error:
-			dashboardStats.error ||
-			propertyStats.error ||
-			tenantStats.error ||
-			leaseStats.error ||
-			activity.error,
-		isRefetching:
-			dashboardStats.isRefetching ||
-			propertyStats.isRefetching ||
-			tenantStats.isRefetching ||
-			leaseStats.isRefetching ||
-			activity.isRefetching
-	}
-}
-
-
-/**
- * Optimized unified dashboard hook - replaces 5 separate API calls with 1
- * Expected performance gain: 40-50% faster initial page load
- * Uses dashboard RPC function for 80% faster backend processing
- */
-export function useDashboardPageDataUnified() {
-	return useQuery({
-		queryKey: dashboardKeys.pageData(),
-		queryFn: () => clientFetch<{
-			stats: DashboardStats
-			activity: ActivityItem[]
-		}>('/api/v1/manage/page-data'),
-		...QUERY_CACHE_TIMES.SECURITY,
-		refetchInterval: 2 * 60 * 1000, // 2 minutes (reduced from 30s)
-		refetchIntervalInBackground: false, // Stop polling when tab inactive (saves 75% of requests)
-		refetchOnWindowFocus: true, // Refresh when user returns to tab
-		retry: 2
+		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
+		structuralSharing: true
 	})
 }

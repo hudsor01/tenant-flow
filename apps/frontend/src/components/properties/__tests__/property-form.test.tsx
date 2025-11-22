@@ -38,7 +38,7 @@ vi.mock('#hooks/api/mutations/property-mutations', () => ({
 	})
 }))
 
-vi.mock('#hooks/api/use-supabase-auth', () => ({
+vi.mock('#hooks/api/use-auth', () => ({
 	useSupabaseUser: () => ({
 		data: { id: 'user-1', email: 'test@example.com' }
 	})

@@ -1,5 +1,5 @@
 import { LeaseGenerationFormWizard } from '#components/leases/lease-generation-form-wizard'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 export default async function GenerateLeasePage({
 	searchParams

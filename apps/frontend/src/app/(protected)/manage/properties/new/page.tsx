@@ -1,6 +1,6 @@
 import { PropertyForm } from '#components/properties/property-form.client'
 import { MobilePropertyForm } from '#components/properties/property-form.mobile'
-import { requireSession } from '#lib/server-auth'
+import { requireSession } from '#lib/dal'
 
 /**
  * New Property Page - Server Component
