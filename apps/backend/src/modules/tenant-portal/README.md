@@ -86,7 +86,7 @@ import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { User } from '../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 
 @Controller()
 @UseGuards(JwtAuthGuard, TenantAuthGuard)
@@ -95,7 +95,7 @@ export class TenantPaymentsController {
   @Get()
   async getPayments(
     @JwtToken() token: string,
-    @User() user: authUser
+    @User() user: AuthUser
   ) {
     // Tenant role validated
     // Context available in request

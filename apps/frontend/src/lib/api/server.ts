@@ -8,10 +8,11 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 import { isProduction } from '#config/env'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 const logger = createLogger({ component: 'ServerAPI' })
 
@@ -29,8 +30,8 @@ export async function serverFetch<T>(
 
 	// Create Supabase client with cookie handling (pattern from login/actions.ts)
 	const supabase = createServerClient<Database>(
-		SUPABASE_URL,
-		SUPABASE_PUBLISHABLE_KEY,
+		SB_URL,
+		SB_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll() {
@@ -38,9 +39,16 @@ export async function serverFetch<T>(
 				},
 				setAll(cookiesToSet) {
 					try {
-						cookiesToSet.forEach(({ name, value, options }) =>
-							cookieStore.set(name, value, options)
-						)
+						applySupabaseCookies(
+						(name, value, options) => {
+							if (options) {
+								cookieStore.set(name, value, options)
+							} else {
+								cookieStore.set(name, value)
+							}
+						},
+						cookiesToSet
+					)
 					} catch {
 						// The `setAll` method was called from a Server Component.
 						// This can be ignored if you have middleware refreshing
@@ -51,36 +59,13 @@ export async function serverFetch<T>(
 		}
 	)
 
-	// SECURITY FIX: Validate session before using it
-	// Get session first (atomic operation)
+	// Single call: fetch session (Supabase validates/refreshes internally)
 	const {
 		data: { session },
 		error: sessionError
 	} = await supabase.auth.getSession()
 
-	// Validate session before using token
-	let accessToken: string | null = null
-	if (session?.access_token) {
-		// SECURITY: Verify session is still valid by checking if we can get user
-		// This ensures the token hasn't been revoked or expired
-		const {
-			data: { user },
-			error: userError
-		} = await supabase.auth.getUser()
-
-		if (!userError && user) {
-			accessToken = session.access_token
-		} else {
-			// Session exists but user validation failed - token might be expired or revoked
-			logger.warn('Session token invalid during validation', {
-				metadata: {
-					hasSession: !!session,
-					hasUser: !!user,
-					userError: userError?.message
-				}
-			})
-		}
-	}
+	const accessToken = session?.access_token ?? null
 
 	// Make API request with Bearer token if available
 	const headers: Record<string, string> = {
@@ -112,6 +97,7 @@ export async function serverFetch<T>(
 
 	const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 		...options,
+		credentials: options?.credentials ?? 'include',
 		headers,
 		cache: options?.cache ?? 'no-store',
 		next: options?.next ?? { revalidate: 0 }

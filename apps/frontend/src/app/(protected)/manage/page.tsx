@@ -1,11 +1,11 @@
 import { requireSession } from '#lib/server-auth'
 import { ErrorBoundary } from '#components/ui/error-boundary'
-import { ActivitySection } from './ActivitySection'
-import { ChartsSection } from './ChartsSection'
-import { PerformanceSection } from './PerformanceSection'
-import { QuickActionsSection } from './QuickActionsSection'
-import { SectionCards } from './SectionCards'
-import { TrendsSection } from './TrendsSection'
+import { ActivitySection } from '#components/dashboard/activity-section'
+import { ChartsSection } from '#components/dashboard/charts-section'
+import { PerformanceSection } from '#components/dashboard/performance-section'
+import { QuickActionsSection } from '#components/dashboard/quick-actions-section'
+import { SectionCards } from '#components/dashboard/section-cards'
+import { TrendsSection } from '#components/dashboard/trends-section'
 import './dashboard.css'
 
 export default async function DashboardPage() {
@@ -17,14 +17,14 @@ export default async function DashboardPage() {
 			className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50"
 		>
 			<div className="dashboard-main border-b-2 border-slate-200/40 bg-gradient-to-b from-white via-slate-50/30 to-slate-100/20 dark:border-slate-700/40 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20">
-				<div className="dashboard-section mx-auto max-w-400 px-6 py-8">
+				<div className="dashboard-section mx-auto max-w-400" style={{ paddingInline: 'var(--layout-container-padding-x)', paddingBlock: 'var(--layout-content-padding)' }}>
 					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-white">
 						Dashboard
 					</h1>
 					<div data-testid="dashboard-stats">
 						<ErrorBoundary
 							fallback={
-								<div className="rounded-xl border bg-card p-5">
+								<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
 									<p className="text-sm text-muted-foreground">
 										Unable to load dashboard stats
 									</p>
@@ -36,11 +36,12 @@ export default async function DashboardPage() {
 					</div>
 				</div>
 			</div>
-			<div className="dashboard-main flex-1 p-8 py-10">
+			<div className="dashboard-main flex-1" style={{ padding: 'var(--layout-content-padding) var(--layout-container-padding-x)' }}>
 				<div className="dashboard-content mx-auto max-w-400">
+					{/* Trends & Performance Cards */}
 					<ErrorBoundary
 						fallback={
-							<div className="rounded-xl border bg-card p-5">
+							<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
 								<p className="text-sm text-muted-foreground">
 									Unable to load trends section
 								</p>
@@ -50,9 +51,23 @@ export default async function DashboardPage() {
 						<TrendsSection />
 					</ErrorBoundary>
 
+					{/* Quick Actions - Moved higher for visibility */}
 					<ErrorBoundary
 						fallback={
-							<div className="rounded-xl border bg-card p-5">
+							<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+								<p className="text-sm text-muted-foreground">
+									Unable to load quick actions
+								</p>
+							</div>
+						}
+					>
+						<QuickActionsSection />
+					</ErrorBoundary>
+
+					{/* Portfolio Analytics Charts */}
+					<ErrorBoundary
+						fallback={
+							<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
 								<p className="text-sm text-muted-foreground">
 									Unable to load charts section
 								</p>
@@ -62,46 +77,31 @@ export default async function DashboardPage() {
 						<ChartsSection />
 					</ErrorBoundary>
 
-					<div className="grid lg:grid-cols-3 gap-6">
-						<div className="lg:col-span-2 flex flex-col gap-4">
-							<ErrorBoundary
-								fallback={
-									<div className="rounded-xl border bg-card p-5">
-										<p className="text-sm text-muted-foreground">
-											Unable to load activity feed
-										</p>
-									</div>
-								}
-							>
-								<ActivitySection />
-							</ErrorBoundary>
+					{/* Activity and Performance Sections */}
+					<div className="dashboard-grid">
+						<ErrorBoundary
+							fallback={
+								<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+									<p className="text-sm text-muted-foreground">
+										Unable to load activity feed
+									</p>
+								</div>
+							}
+						>
+							<ActivitySection />
+						</ErrorBoundary>
 
-							<ErrorBoundary
-								fallback={
-									<div className="rounded-xl border bg-card p-5">
-										<p className="text-sm text-muted-foreground">
-											Unable to load performance section
-										</p>
-									</div>
-								}
-							>
-								<PerformanceSection />
-							</ErrorBoundary>
-						</div>
-
-						<div className="flex flex-col gap-4">
-							<ErrorBoundary
-								fallback={
-									<div className="rounded-xl border bg-card p-5">
-										<p className="text-sm text-muted-foreground">
-											Unable to load quick actions
-										</p>
-									</div>
-								}
-							>
-								<QuickActionsSection />
-							</ErrorBoundary>
-						</div>
+						<ErrorBoundary
+							fallback={
+								<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+									<p className="text-sm text-muted-foreground">
+										Unable to load performance section
+									</p>
+								</div>
+							}
+						>
+							<PerformanceSection />
+						</ErrorBoundary>
 					</div>
 				</div>
 			</div>

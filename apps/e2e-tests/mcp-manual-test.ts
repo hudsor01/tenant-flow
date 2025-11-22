@@ -45,7 +45,7 @@ async function main() {
 
 		logger.info(' Step 3: Submit login form')
 		await Promise.all([
-			page.waitForURL(/\/(manage|dashboard)/, { timeout: 30000 }),
+			page.waitForURL('/manage', { timeout: 30000 }),
 			page.getByRole('button', { name: /sign in|login|submit/i }).click()
 		])
 

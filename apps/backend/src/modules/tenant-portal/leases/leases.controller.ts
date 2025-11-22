@@ -9,7 +9,7 @@ import {
 import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
@@ -36,7 +36,7 @@ export class TenantLeasesController {
 	 * @returns Active lease details
 	 */
 	@Get()
-	async getLease(@JwtToken() token: string, @User() user: authUser) {
+	async getLease(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		return this.fetchActiveLease(token, tenant.id)
 	}
@@ -47,7 +47,7 @@ export class TenantLeasesController {
 	 * @returns List of lease-related documents
 	 */
 	@Get('documents')
-	async getDocuments(@JwtToken() token: string, @User() user: authUser) {
+	async getDocuments(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 		const payments = await this.fetchPayments(token, tenant.id)
@@ -85,7 +85,7 @@ export class TenantLeasesController {
 		return { documents }
 	}
 
-	private async resolveTenant(token: string, user: authUser) {
+	private async resolveTenant(token: string, user: AuthUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('tenants')

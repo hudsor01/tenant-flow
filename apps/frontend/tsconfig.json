@@ -34,7 +34,7 @@
 		"next.config.ts",
 		"tests/**/*.ts",
 		"tests/**/*.tsx"
-	],
+, "proxy.ts"	],
 	"exclude": [
 		"node_modules",
 		".next",

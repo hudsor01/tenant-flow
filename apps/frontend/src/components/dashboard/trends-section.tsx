@@ -1,7 +1,7 @@
 'use client'
 
 import { TrendCard } from '#components/dashboard/trend-card'
-import { MiniTrendChart } from '#components/dashboard/mini-trend-chart'
+import { MiniTrendChart } from '#components/charts/mini-trend-chart'
 import { useOwnerMetricTrend, useOwnerTimeSeries } from '#hooks/api/use-owner-dashboard'
 
 export function TrendsSection() {

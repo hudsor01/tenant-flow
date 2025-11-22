@@ -14,7 +14,7 @@ import {
 import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { createZodDto } from 'nestjs-zod'
@@ -62,7 +62,7 @@ export class TenantMaintenanceController {
 	 * @returns List of maintenance requests with summary stats
 	 */
 	@Get()
-	async getMaintenance(@JwtToken() token: string, @User() user: authUser) {
+	async getMaintenance(@JwtToken() token: string, @User() user: AuthUser) {
 		const requests = await this.fetchMaintenanceRequests(token, user.id)
 		const summary = this.calculateMaintenanceStats(requests)
 
@@ -80,7 +80,7 @@ export class TenantMaintenanceController {
 	async createMaintenanceRequest(
 		@Body() body: CreateMaintenanceRequestDto,
 		@JwtToken() token: string,
-		@User() user: authUser
+		@User() user: AuthUser
 	) {
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
@@ -95,12 +95,13 @@ export class TenantMaintenanceController {
 			)
 		}
 
-		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
-			{
-				description: body.description,
-				priority: body.priority,
-				status: 'OPEN',
-				requested_by: user.id,
+			const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
+				{
+					title: body.title,
+					description: body.description,
+					priority: body.priority,
+					status: 'OPEN',
+					requested_by: user.id,
 				tenant_id: tenant.id,
 				unit_id: lease.unit_id
 			}
@@ -126,7 +127,7 @@ export class TenantMaintenanceController {
 		return data
 	}
 
-	private async resolveTenant(token: string, user: authUser) {
+	private async resolveTenant(token: string, user: AuthUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('tenants')

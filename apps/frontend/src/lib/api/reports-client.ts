@@ -35,6 +35,7 @@ export const reportsClient = {
 		// Fetch binary data
 		const response = await fetch(endpoint, {
 			method: 'POST',
+			credentials: 'include',
 			headers: await getAuthHeaders(),
 			body: JSON.stringify({
 				user_id: params.user_id,

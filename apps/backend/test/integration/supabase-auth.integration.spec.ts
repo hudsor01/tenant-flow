@@ -99,8 +99,8 @@ describe('Supabase auth integration', () => {
 
 		const admin = createAdminClient()
 		const anon = createClient(
-			process.env.SUPABASE_URL as string,
-			process.env.SUPABASE_PUBLISHABLE_KEY as string
+			process.env.SB_URL as string,
+			process.env.SB_PUBLISHABLE_KEY as string
 		)
 
 		adminClient.auth.admin.createUser.mockResolvedValue({
@@ -179,7 +179,7 @@ describe('Supabase auth integration', () => {
 		expect(propertyChain.insert).toHaveBeenCalledWith(propertyPayload)
 		expect(propertyChain.select).toHaveBeenCalled()
 
-		const bucket = process.env.SUPABASE_TEST_BUCKET || 'test-bucket'
+		const bucket = process.env.SB_TEST_BUCKET || 'test-bucket'
 		const filePath = `integration/${user_id}/${unique}.txt`
 		await anon.storage
 			.from(bucket)

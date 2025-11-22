@@ -11,6 +11,5 @@
  */
 
 export { OwnerDashboardModule } from './owner-dashboard.module'
-export { OwnerAuthGuard } from './guards/owner-auth.guard'
 export { OwnerContextInterceptor } from './interceptors/owner-context.interceptor'
 export { FileSizeValidationPipe } from './pipes/file-size-validation.pipe'

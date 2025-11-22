@@ -26,7 +26,7 @@ test.describe('Authentication & JWT Validation', () => {
 		await loginAsOwner(page, { forceLogin: true })
 	})
 
-	test('should login successfully and access dashboard without 401 errors', async ({
+	test('should login successfully and access manage dashboard without 401 errors', async ({
 		page
 	}) => {
 		// Monitor network requests for auth errors
@@ -39,7 +39,7 @@ test.describe('Authentication & JWT Validation', () => {
 
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		// Navigate to dashboard
+		// Navigate to manage dashboard
 		await page.goto(`${baseUrl}/manage`)
 		await page.waitForLoadState('load')
 
@@ -149,7 +149,7 @@ test.describe('Authentication & JWT Validation', () => {
 	test('should have valid JWT token in cookies', async ({ page, context }) => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		// Navigate to dashboard
+		// Navigate to manage dashboard
 		await page.goto(`${baseUrl}/manage`)
 		await page.waitForLoadState('load')
 

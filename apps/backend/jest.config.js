@@ -88,6 +88,6 @@ module.exports = {
 			}
 		]
 	},
-	transformIgnorePatterns: ['node_modules/(?!(uuid|@repo|@supabase)/)'],
+	transformIgnorePatterns: ['node_modules/(?!(uuid|@repo|@supabase|jose)/)'],
 	injectGlobals: true
 }
