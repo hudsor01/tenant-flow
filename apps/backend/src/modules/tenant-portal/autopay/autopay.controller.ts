@@ -8,7 +8,7 @@ import {
 import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
@@ -35,7 +35,7 @@ export class TenantAutopayController {
 	 * @returns Autopay configuration and subscription details
 	 */
 	@Get()
-	async getAutopayStatus(@JwtToken() token: string, @User() user: authUser) {
+	async getAutopayStatus(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 
@@ -58,7 +58,7 @@ export class TenantAutopayController {
 		}
 	}
 
-	private async resolveTenant(token: string, user: authUser) {
+	private async resolveTenant(token: string, user: AuthUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('tenants')

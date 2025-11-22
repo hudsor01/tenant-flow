@@ -11,6 +11,7 @@
 
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { loginAsOwner } from '../auth-helpers'
 
 // Helper to run axe and format violations
 async function checkA11y(page: any, context: string) {
@@ -24,21 +25,25 @@ async function checkA11y(page: any, context: string) {
 test.describe('Public Pages Accessibility', () => {
 	test('homepage should be accessible', async ({ page }) => {
 		await page.goto('/')
+		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Homepage')
 	})
 
 	test('pricing page should be accessible', async ({ page }) => {
 		await page.goto('/pricing')
+		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Pricing page')
 	})
 
 	test('contact page should be accessible', async ({ page }) => {
 		await page.goto('/contact')
+		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Contact page')
 	})
 
 	test('login page should be accessible', async ({ page }) => {
 		await page.goto('/login')
+		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Login page')
 	})
 })
@@ -46,11 +51,13 @@ test.describe('Public Pages Accessibility', () => {
 test.describe('Authentication Flow Accessibility', () => {
 	test('signup form should be accessible', async ({ page }) => {
 		await page.goto('/signup')
+		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Signup form')
 	})
 
 	test('password reset should be accessible', async ({ page }) => {
 		await page.goto('/login')
+		await page.waitForLoadState('networkidle')
 
 		// Click forgot password link
 		await page.click('text=Forgot password?')
@@ -61,9 +68,11 @@ test.describe('Authentication Flow Accessibility', () => {
 })
 
 test.describe('Dashboard Accessibility (Requires Auth)', () => {
-	test.use({ storageState: 'playwright/.auth/user.json' })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
-	test('dashboard page should be accessible', async ({ page }) => {
+	test('manage dashboard page should be accessible', async ({ page }) => {
 		await page.goto('/manage')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Dashboard page')
@@ -101,7 +110,9 @@ test.describe('Dashboard Accessibility (Requires Auth)', () => {
 })
 
 test.describe('Forms Accessibility', () => {
-	test.use({ storageState: 'playwright/.auth/user.json' })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
 	test('property creation form should be accessible', async ({ page }) => {
 		await page.goto('/manage/properties')
@@ -127,7 +138,9 @@ test.describe('Forms Accessibility', () => {
 })
 
 test.describe('Interactive Elements Accessibility', () => {
-	test.use({ storageState: 'playwright/.auth/user.json' })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
 	test('navigation menu should be accessible', async ({ page }) => {
 		await page.goto('/manage')
@@ -162,9 +175,11 @@ test.describe('Interactive Elements Accessibility', () => {
 })
 
 test.describe('Dark Mode Accessibility', () => {
-	test.use({ storageState: 'playwright/.auth/user.json' })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
-	test('dashboard in dark mode should be accessible', async ({ page }) => {
+	test('manage dashboard in dark mode should be accessible', async ({ page }) => {
 		await page.goto('/manage')
 		await page.waitForLoadState('networkidle')
 
@@ -177,7 +192,9 @@ test.describe('Dark Mode Accessibility', () => {
 })
 
 test.describe('Keyboard Navigation', () => {
-	test.use({ storageState: 'playwright/.auth/user.json' })
+	test.beforeEach(async ({ page }) => {
+		await loginAsOwner(page)
+	})
 
 	test('all interactive elements should be keyboard accessible', async ({ page }) => {
 		await page.goto('/manage/properties')
@@ -226,9 +243,8 @@ test.describe('Keyboard Navigation', () => {
 })
 
 test.describe('Screen Reader Compatibility', () => {
-	test.use({ storageState: 'playwright/.auth/user.json' })
-
 	test('page landmarks should be properly labeled', async ({ page }) => {
+		await loginAsOwner(page)
 		await page.goto('/manage')
 		await page.waitForLoadState('networkidle')
 
@@ -242,6 +258,7 @@ test.describe('Screen Reader Compatibility', () => {
 
 	test('form fields should have proper labels', async ({ page }) => {
 		await page.goto('/login')
+		await page.waitForLoadState('networkidle')
 
 		// Check email field has label
 		const emailInput = page.locator('input[type="email"]')

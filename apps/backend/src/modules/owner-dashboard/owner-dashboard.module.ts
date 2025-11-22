@@ -6,7 +6,6 @@ import { MaintenanceModule } from './maintenance/maintenance.module'
 import { TenantsModule } from './tenants/tenants.module'
 import { ReportsModule } from './reports/reports.module'
 import { AnalyticsModule } from './analytics/analytics.module'
-import { OwnerAuthGuard } from './guards/owner-auth.guard'
 import { OwnerContextInterceptor } from './interceptors/owner-context.interceptor'
 
 /**
@@ -24,7 +23,7 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
  * - /owner/analytics/*      - Dashboard stats and activity
  *
  * Guards & Interceptors:
- * - OwnerAuthGuard: Ensures user has OWNER user_type
+ * - RolesGuard: Ensures user has OWNER role via JWT claims
  * - OwnerContextInterceptor: Adds owner context to requests
  *
  * Usage in app.module.ts:
@@ -55,7 +54,7 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
 			}
 		])
 	],
-	providers: [OwnerAuthGuard, OwnerContextInterceptor],
-	exports: [OwnerAuthGuard, OwnerContextInterceptor]
+	providers: [OwnerContextInterceptor],
+	exports: [OwnerContextInterceptor]
 })
 export class OwnerDashboardModule {}

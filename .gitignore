@@ -9,6 +9,10 @@ tarballs/
 packages/**/*.tgz
 .errors/
 
+# Development logs
+logs/
+*.log
+
 # Environment files - NEVER commit ANY .env files
 .env
 .env.*

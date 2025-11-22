@@ -59,36 +59,13 @@ export async function serverFetch<T>(
 		}
 	)
 
-	// SECURITY FIX: Validate session before using it
-	// Get session first (atomic operation)
+	// Single call: fetch session (Supabase validates/refreshes internally)
 	const {
 		data: { session },
 		error: sessionError
 	} = await supabase.auth.getSession()
 
-	// Validate session before using token
-	let accessToken: string | null = null
-	if (session?.access_token) {
-		// SECURITY: Verify session is still valid by checking if we can get user
-		// This ensures the token hasn't been revoked or expired
-		const {
-			data: { user },
-			error: userError
-		} = await supabase.auth.getUser()
-
-		if (!userError && user) {
-			accessToken = session.access_token
-		} else {
-			// Session exists but user validation failed - token might be expired or revoked
-			logger.warn('Session token invalid during validation', {
-				metadata: {
-					hasSession: !!session,
-					hasUser: !!user,
-					userError: userError?.message
-				}
-			})
-		}
-	}
+	const accessToken = session?.access_token ?? null
 
 	// Make API request with Bearer token if available
 	const headers: Record<string, string> = {

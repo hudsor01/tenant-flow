@@ -16,7 +16,7 @@ export class AppService implements OnModuleInit {
 	 * Validates critical configuration and logs startup information
 	 */
 	async onModuleInit() {
-		this.logger.log(' Application initializing...')
+		this.logger.log('✅ Application initializing...')
 
 		try {
 			// Validate critical environment variables
@@ -25,17 +25,35 @@ export class AppService implements OnModuleInit {
 			// Log non-sensitive configuration
 			this.logConfiguration()
 
-			// Check database connection
-			const dbStatus = await this.supabaseService.checkConnection()
-			if (dbStatus.status === 'healthy') {
-				this.logger.log(' Database connection: healthy')
-			} else {
-				this.logger.error(' Database connection: unhealthy', dbStatus.message)
+			// Check database connection with timeout to prevent startup hang
+			const DB_CHECK_TIMEOUT_MS = 5000 // 5 second timeout
+			try {
+				const dbStatus = await Promise.race([
+					this.supabaseService.checkConnection(),
+					new Promise<{ status: 'unhealthy'; message: string }>((_, reject) =>
+						setTimeout(
+							() => reject(new Error('Database connection check timed out')),
+							DB_CHECK_TIMEOUT_MS
+						)
+					)
+				])
+
+				if (dbStatus.status === 'healthy') {
+					this.logger.log('✓ Database connection: healthy')
+				} else {
+					this.logger.error('✗ Database connection: unhealthy', dbStatus.message)
+				}
+			} catch (dbError) {
+				// Don't fail startup on DB check - log warning and continue
+				this.logger.warn(
+					'⚠ Database connection check failed (continuing startup)',
+					dbError instanceof Error ? dbError.message : String(dbError)
+				)
 			}
 
-			this.logger.log(' Application initialized successfully')
+			this.logger.log('✅ Application initialized successfully')
 		} catch (error) {
-			this.logger.error(' Application initialization failed', error)
+			this.logger.error('✗ Application initialization failed', error)
 			throw error
 		}
 	}

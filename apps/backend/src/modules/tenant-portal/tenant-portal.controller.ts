@@ -12,7 +12,7 @@ import {
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { User } from '../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { createZodDto } from 'nestjs-zod'
@@ -100,10 +100,10 @@ type RentPaymentListItem = Pick<
  * Tenant Portal Controller
  *
  * Dedicated endpoints for tenant-only operations with user_type-based access control.
- * Enforces TENANT user_type via @user_types() decorator and user_typesGuard.
+ * Enforces TENANT user_type via @Roles() decorator and RolesGuard.
  *
  * Security: Defense in depth
- * - Application Layer: @user_types('TENANT') + user_typesGuard
+ * - Application Layer: @Roles('TENANT') + RolesGuard
  * - Database Layer: RLS policies enforce auth.uid() = tenant_id
  */
 @Controller('tenant-portal')
@@ -117,7 +117,7 @@ export class TenantPortalController {
 	 * Tenant dashboard - combines lease, payments, and maintenance summaries
 	 */
 	@Get('dashboard')
-	async getDashboard(@JwtToken() token: string, @User() user: authUser) {
+	async getDashboard(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 
 		const [lease, maintenanceSummary, payments, userData] = await Promise.all([
@@ -164,7 +164,7 @@ export class TenantPortalController {
 	 * Lease endpoint - returns the active lease with unit/property metadata
 	 */
 	@Get('leases')
-	async getLease(@JwtToken() token: string, @User() user: authUser) {
+	async getLease(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		return this.fetchActiveLease(token, tenant)
 	}
@@ -173,7 +173,7 @@ export class TenantPortalController {
 	 * List maintenance requests created by the tenant
 	 */
 	@Get('maintenance')
-	async getMaintenance(@JwtToken() token: string, @User() user: authUser) {
+	async getMaintenance(@JwtToken() token: string, @User() user: AuthUser) {
 		const maintenance = await this.fetchMaintenanceRequests(token, user)
 		const summary = this.calculateMaintenanceStats(maintenance)
 		return { requests: maintenance, summary }
@@ -187,7 +187,7 @@ export class TenantPortalController {
 	async createMaintenanceRequest(
 		@Body() body: CreateMaintenanceRequestDto,
 		@JwtToken() token: string,
-		@User() user: authUser
+		@User() user: AuthUser
 	) {
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant)
@@ -240,7 +240,7 @@ export class TenantPortalController {
 	 * Tenant payments endpoint - history & metadata
 	 */
 	@Get('payments')
-	async getPaymentsEndpoint(@JwtToken() token: string, @User() user: authUser) {
+	async getPaymentsEndpoint(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		const payments = await this.fetchPayments(token, tenant)
 
@@ -254,7 +254,7 @@ export class TenantPortalController {
 	 * Tenant documents endpoint – returns lease documents & payment stubs
 	 */
 	@Get('documents')
-	async getDocuments(@JwtToken() token: string, @User() user: authUser) {
+	async getDocuments(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant)
 		const payments = await this.fetchPayments(token, tenant)
@@ -302,7 +302,7 @@ export class TenantPortalController {
 
 	private async resolveTenant(
 		token: string,
-		user: authUser
+		user: AuthUser
 	): Promise<TenantRow> {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
@@ -437,7 +437,7 @@ export class TenantPortalController {
 
 	private async fetchMaintenanceRequests(
 		token: string,
-		user: authUser
+		user: AuthUser
 	): Promise<MaintenanceRequestListItem[]> {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
@@ -469,7 +469,7 @@ export class TenantPortalController {
 
 	private async fetchMaintenanceSummary(
 		token: string,
-		user: authUser
+		user: AuthUser
 	): Promise<{
 		total: number
 		open: number
