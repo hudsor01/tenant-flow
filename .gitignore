@@ -401,4 +401,3 @@ stripe-webhooks.log
 # Generated types that may contain sensitive info
 **/generated-types.secret.ts
 **/api-types.secret.ts
-!stripe_integration_exact_code.md
