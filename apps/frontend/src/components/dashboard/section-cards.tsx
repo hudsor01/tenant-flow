@@ -13,14 +13,15 @@ export function SectionCards() {
 	// Show loading skeletons
 	if (isLoading) {
 		return (
-			<div className="dashboard-cards-container grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+			<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" style={{ gap: 'var(--layout-gap-items)' }}>
 				{[...Array(4)].map((_, i) => (
 					<div
 						key={i}
-						className="dashboard-widget rounded-xl border bg-card p-5"
+						className="dashboard-widget rounded-xl border bg-card"
+						style={{ padding: 'var(--layout-content-padding-compact)' }}
 					>
-						<Skeleton className="h-5 w-32 mb-4" />
-						<Skeleton className="h-9 w-24 mb-2" />
+						<Skeleton className="h-5 w-32" style={{ marginBottom: 'var(--spacing-4)' }} />
+						<Skeleton className="h-9 w-24" style={{ marginBottom: 'var(--spacing-2)' }} />
 						<Skeleton className="h-4 w-full" />
 					</div>
 				))}
@@ -31,8 +32,8 @@ export function SectionCards() {
 	// Show empty state if error or no data
 	if (isError || !stats) {
 		return (
-			<div className="dashboard-cards-container grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-				<div className="dashboard-widget rounded-xl border bg-card p-5">
+			<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" style={{ gap: 'var(--layout-gap-items)' }}>
+				<div className="dashboard-widget rounded-xl border bg-card" style={{ padding: 'var(--layout-content-padding-compact)' }}>
 					<p className="text-sm text-muted-foreground">Unable to load stats</p>
 				</div>
 			</div>
@@ -50,7 +51,7 @@ export function SectionCards() {
 	const isExcellentOccupancy = occupancyRate >= 90
 
 	return (
-		<div className="dashboard-cards-container grid grid-cols-1 gap-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+		<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" style={{ gap: 'var(--layout-gap-group)' }}>
 			{/* Revenue Card */}
 			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
 				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />

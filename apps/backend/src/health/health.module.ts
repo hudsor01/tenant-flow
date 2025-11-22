@@ -11,7 +11,7 @@ import { SupabaseHealthIndicator } from './supabase.health'
 
 // Factory provider pattern for explicit SupabaseService injection
 const SupabaseServiceFactory = {
-	provide: 'SUPABASE_SERVICE_FOR_HEALTH',
+	provide: 'SB_SERVICE_FOR_HEALTH',
 	useFactory: (supabaseService: SupabaseService) => {
 		return supabaseService
 	},

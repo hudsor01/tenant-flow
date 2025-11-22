@@ -14,6 +14,8 @@ import type { AuthError as BaseAuthError } from './errors.js'
 // NOT the public.users profile table (use core.User for that)
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 export type { User as SupabaseAuthUser } from '@supabase/supabase-js'
+// Canonical backend/frontend auth user alias
+export type AuthUser = SupabaseAuthUser
 // Legacy alias for backward compatibility
 export type { SupabaseAuthUser as authUser }
 

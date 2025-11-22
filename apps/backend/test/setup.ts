@@ -5,6 +5,19 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { SupabaseService } from '../src/database/supabase.service'
 import { CurrentUserProvider } from '../src/shared/providers/current-user.provider'
+import { JwtVerificationService } from '../src/shared/auth/jwt-verification.service'
+
+// Mock jose module globally for all tests (ESM compatibility)
+jest.mock('jose', () => ({
+	jwtVerify: jest.fn().mockResolvedValue({
+		payload: {
+			sub: 'test-user-id',
+			email: 'test@example.com',
+			aud: 'authenticated'
+		}
+	}),
+	createRemoteJWKSet: jest.fn().mockReturnValue(jest.fn())
+}))
 
 // Provide a chainable mock client shape commonly used in tests
 type ProviderLike = { provide?: unknown } & Record<string, unknown>
@@ -143,6 +156,24 @@ try {
 					provider => provider?.provide === SupabaseService
 				)
 				if (!hasSupabase) providersArr.push(defaultSupabaseProvider)
+
+				// Also ensure a default JwtVerificationService exists for JWT auth tests
+				const defaultJwtVerificationProvider: ProviderLike = {
+					provide: JwtVerificationService,
+					useValue: {
+						verify: jest.fn(async () => ({
+							payload: {
+								sub: 'test-user-id',
+								email: 'test@example.com',
+								aud: 'authenticated'
+							}
+						}))
+					}
+				}
+				const hasJwtVerification = providersArr.find(
+					provider => provider?.provide === JwtVerificationService
+				)
+				if (!hasJwtVerification) providersArr.push(defaultJwtVerificationProvider)
 				return
 			}
 
@@ -205,17 +236,17 @@ process.env.PUBLIC_CACHE_MAX_AGE = '3600'
 // Provide test environment variables if not already set (for CI/CD)
 // NOTE: These should be loaded from .env.test file instead of hardcoded here
 // The .env.test file contains mock/test values that are safe to commit
-if (!process.env.SUPABASE_URL) {
-	process.env.SUPABASE_URL = 'https://mock.supabase.co'
+if (!process.env.SB_URL) {
+	process.env.SB_URL = 'https://mock.supabase.co'
 }
-if (!process.env.SUPABASE_PUBLISHABLE_KEY) {
-	process.env.SUPABASE_PUBLISHABLE_KEY = 'mock_publishable_key'
+if (!process.env.SB_PUBLISHABLE_KEY) {
+	process.env.SB_PUBLISHABLE_KEY = 'mock_publishable_key'
 }
-if (!process.env.SUPABASE_SECRET_KEY) {
-	process.env.SUPABASE_SECRET_KEY = 'demo-service-key-mock'
+if (!process.env.SB_SECRET_KEY) {
+	process.env.SB_SECRET_KEY = 'demo-service-key-mock'
 }
-if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
-	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
+if (!process.env.SB_RPC_TEST_USER_ID) {
+	process.env.SB_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
 }
 
 if (!process.env.BACKEND_TIMEOUT_MS) {
@@ -261,13 +292,13 @@ if (!process.env.PORT) process.env.PORT = '3001'
 
 // Use actual environment variables (native platform feature)
 export const testSupabase = createClient<Database>(
-	process.env.SUPABASE_URL!,
-	process.env.SUPABASE_PUBLISHABLE_KEY!
+	process.env.SB_URL!,
+	process.env.SB_PUBLISHABLE_KEY!
 )
 
 export const testSupabaseAdmin = createClient<Database>(
-	process.env.SUPABASE_URL!,
-	process.env.SUPABASE_SECRET_KEY!
+	process.env.SB_URL!,
+	process.env.SB_SECRET_KEY!
 )
 
 // Simple unique ID generation (no abstraction)

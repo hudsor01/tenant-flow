@@ -5,11 +5,11 @@ import {
 	Logger,
 	OnModuleDestroy
 } from '@nestjs/common'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
-import { SUPABASE_ADMIN_CLIENT, RPC_MAX_RETRIES, RPC_BACKOFF_MS, RPC_TIMEOUT_MS } from './supabase.constants'
+import { SB_ADMIN_CLIENT, RPC_MAX_RETRIES, RPC_BACKOFF_MS, RPC_TIMEOUT_MS } from './supabase.constants'
 import {
 	SupabaseAuthTokenResolver,
 	type ResolvedSupabaseToken
@@ -27,7 +27,7 @@ export class SupabaseService implements OnModuleDestroy {
 	private userClientPool?: SupabaseUserClientPool
 
 	constructor(
-		@Inject(SUPABASE_ADMIN_CLIENT)
+		@Inject(SB_ADMIN_CLIENT)
 		private readonly adminClient: SupabaseClient<Database>,
 		private readonly config: AppConfigService
 	) {
@@ -218,11 +218,9 @@ export class SupabaseService implements OnModuleDestroy {
 
 	/**
 	 * Extract JWT token from Express request
-	 * Simplified to use Authorization header (standard API pattern) with basic cookie fallback
-	 * Per CLAUDE.md: Backend APIs should use header-based authentication
+	 * Standardized to Authorization header only (per security guidelines)
 	 */
 	getTokenFromRequest(request: Request): string | null {
-		// 1. Try Authorization header (standard for APIs)
 		const authHeader = request.headers?.authorization
 		if (authHeader && typeof authHeader === 'string') {
 			const match = authHeader.match(/^Bearer\s+(.+)$/i)
@@ -230,26 +228,6 @@ export class SupabaseService implements OnModuleDestroy {
 				return match[1]
 			}
 		}
-
-		// 2. Try basic cookie fallback (for browser requests via middleware)
-		const cookies = request.headers?.cookie
-		if (cookies && typeof cookies === 'string') {
-			const match = cookies.match(/sb-[^=]+-auth-token=([^;]+)/)
-			if (match?.[1]) {
-				try {
-					const parsed = JSON.parse(decodeURIComponent(match[1]))
-					return parsed?.access_token || parsed?.accessToken || null
-				} catch {
-					// If not JSON, might be token directly
-					// JWT tokens have format: header.payload.signature
-					const token = match[1]
-					return token.split('.').length === 3 && token.length > 20
-						? token
-						: null
-				}
-			}
-		}
-
 		return null
 	}
 
@@ -258,11 +236,22 @@ export class SupabaseService implements OnModuleDestroy {
 	 * Uses Supabase's native auth.getUser() method as per official docs
 	 * Supports both Authorization header (Bearer token) and SSR cookies
 	 */
-	async getUser(req: Request): Promise<authUser | null> {
+	async getUser(req: Request): Promise<AuthUser | null> {
 		const startTime = Date.now()
 		try {
-			const tokenDetails: ResolvedSupabaseToken =
-				this.tokenResolver.resolve(req)
+			// Request-level cache to avoid duplicate Supabase lookups per request
+			const reqWithCache = req as Request & { authUserCache?: AuthUser | null }
+			if (typeof reqWithCache.authUserCache !== 'undefined') {
+				return reqWithCache.authUserCache
+			}
+			// Check if user was already attached by JwtAuthGuard
+			const guardUser = (req as unknown as { user?: AuthUser }).user
+			if (guardUser) {
+				reqWithCache.authUserCache = guardUser
+				return guardUser
+			}
+
+			const tokenDetails: ResolvedSupabaseToken = this.tokenResolver.resolve(req)
 			const token = tokenDetails.token
 
 			if (!token) {
@@ -270,8 +259,6 @@ export class SupabaseService implements OnModuleDestroy {
 					endpoint: req.path,
 					hasAuthHeader: tokenDetails.authHeaderPresent,
 					expectedCookieName: tokenDetails.expectedCookieName,
-					availableCookies: tokenDetails.availableCookies,
-					cookieKeys: tokenDetails.cookieKeys,
 					headers: {
 						origin: req.headers.origin,
 						referer: req.headers.referer
@@ -310,6 +297,9 @@ export class SupabaseService implements OnModuleDestroy {
 				endpoint: req.path,
 				duration: `${duration}ms`
 			})
+
+			// Cache on request for subsequent consumers in the same request lifecycle
+			reqWithCache.authUserCache = user
 
 			// Return the Supabase User directly
 			return user
