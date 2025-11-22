@@ -14,7 +14,7 @@ import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { StripeIdentityService } from './stripe-identity.service'
+
 
 /**
  * Stripe-supported countries for Express accounts
@@ -84,7 +84,7 @@ export class StripeConnectController {
 	constructor(
 		private readonly stripeConnectService: StripeConnectService,
 		private readonly supabaseService: SupabaseService,
-		private readonly identityService: StripeIdentityService
+		
 	) {}
 
 	/**
@@ -297,8 +297,8 @@ export class StripeConnectController {
 			throw new NotFoundException('No connected account found')
 		}
 
-		const identityVerification =
-			await this.identityService.getIdentityStatus(user_id)
+		// Identity verification removed - service deleted in refactoring
+		const identityVerification = null
 
 		return {
 			success: true,

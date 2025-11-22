@@ -30,7 +30,7 @@ import { unitQueries, type UnitFilters } from './queries/unit-queries'
 
 /**
  * @deprecated Use unitQueries from './queries/unit-queries' instead
- * Keeping for backward compatibility during migration
+ * // TODO: migrate from backward compatibility to current implementation properly
  */
 export const unitKeys = {
 	all: unitQueries.all(),

@@ -1,10 +1,11 @@
 'use server'
 
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import type { Database } from '@repo/shared/types/supabase'
 import {
 	SB_URL,
-	SB_PUBLISHABLE_KEY
+	SB_PUBLISHABLE_KEY,
+	assertSupabaseConfig
 } from '@repo/shared/config/supabase'
 import { cookies } from 'next/headers'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -15,13 +16,17 @@ const logger = createLogger({ component: 'LoginAction' })
 export async function loginWithPassword(email: string, password: string) {
 	try {
 		const cookieStore = await cookies()
+
+		// Validate config before creating client
+		assertSupabaseConfig()
+
 		const supabase = createServerClient<Database>(
-			SB_URL,
-			SB_PUBLISHABLE_KEY,
+			SB_URL!, // Non-null: validated by assertSupabaseConfig()
+			SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 			{
 				cookies: {
 					getAll: () => cookieStore.getAll(),
-					setAll: cookiesToSet => {
+					setAll: (cookiesToSet: CookieOptionsWithName[]) => {
 						applySupabaseCookies(
 					(name, value, options) => {
 						if (options) {

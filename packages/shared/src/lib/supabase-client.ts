@@ -15,16 +15,23 @@ import {
 } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase.js'
 // Import from centralized config for consistent SB_* → SUPABASE_* → NEXT_PUBLIC_SUPABASE_* fallback
-import { SB_URL, SB_PUBLISHABLE_KEY } from '../config/supabase.js'
+import { SB_URL, SB_PUBLISHABLE_KEY, assertSupabaseConfig } from '../config/supabase.js'
 
 // Admin secret key (backend only, not in centralized config)
 const SB_SECRET_KEY = process.env.SB_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
 
-// Create a lazy-initialized client to avoid build-time errors
-let _client: SupabaseClient<Database> | null = null
+// Type alias for public-schema-only clients
+// This prevents type errors when Database includes multiple schemas (public + stripe)
+type PublicSupabaseClient = SupabaseClient<Database, "public">
 
-function getSupabaseClient(): SupabaseClient<Database> {
+// Create a lazy-initialized client to avoid build-time errors
+let _client: PublicSupabaseClient | null = null
+
+function getSupabaseClient(): PublicSupabaseClient {
 	if (_client) return _client
+
+	// Validate config before creating client
+	assertSupabaseConfig()
 
 	const isBrowser = typeof window !== 'undefined'
 
@@ -33,45 +40,49 @@ function getSupabaseClient(): SupabaseClient<Database> {
 	// and prevents "both auth code and code verifier should be non-empty" errors.
 	if (isBrowser) {
 		_client = createBrowserClient<Database>(
-			SB_URL,
-			SB_PUBLISHABLE_KEY,
+			SB_URL!, // Non-null: validated by assertSupabaseConfig()
+			SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 			{
 				db: { schema: 'public' }
 			}
-		)
+		) as unknown as PublicSupabaseClient
 		return _client
 	}
 
 	// Backend/Node environments can keep using the standard client
-	_client = createClient<Database>(SB_URL, SB_PUBLISHABLE_KEY, {
-		auth: {
-			persistSession: true,
-			autoRefreshToken: true,
-			flowType: 'pkce',
-			detectSessionInUrl: true
-		},
-		db: {
-			schema: 'public'
+	_client = createClient<Database>(
+		SB_URL!, // Non-null: validated by assertSupabaseConfig()
+		SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
+		{
+			auth: {
+				persistSession: true,
+				autoRefreshToken: true,
+				flowType: 'pkce',
+				detectSessionInUrl: true
+			},
+			db: {
+				schema: 'public'
+			}
 		}
-	})
+	) as unknown as PublicSupabaseClient
 
 	return _client
 }
 
 // Export function to get client directly - better webpack compatibility
-export function getSupabaseClientInstance(): SupabaseClient<Database> {
+export function getSupabaseClientInstance(): PublicSupabaseClient {
 	return getSupabaseClient()
 }
 
 // Export for backward compatibility and simpler imports
 // Use lazy initialization to avoid build-time errors
-let _exportedClient: SupabaseClient<Database> | null = null
-export const supabaseClient = new Proxy({} as SupabaseClient<Database>, {
+let _exportedClient: PublicSupabaseClient | null = null
+export const supabaseClient = new Proxy({} as PublicSupabaseClient, {
 	get(_target, prop) {
 		if (!_exportedClient) {
 			_exportedClient = getSupabaseClient()
 		}
-		return _exportedClient[prop as keyof SupabaseClient<Database>]
+		return _exportedClient[prop as keyof PublicSupabaseClient]
 	}
 })
 
@@ -82,30 +93,37 @@ export const supabaseClient = new Proxy({} as SupabaseClient<Database>, {
  * SECURITY WARNING: Never use this client with user input without validation
  * IMPORTANT: This will throw an error if used in frontend without SB_SECRET_KEY
  */
-export function getSupabaseAdmin(): SupabaseClient<Database> {
+export function getSupabaseAdmin(): PublicSupabaseClient {
 	if (!SB_SECRET_KEY) {
 		throw new Error(
 			'SB_SECRET_KEY required for admin client - this should only be used in backend services'
 		)
 	}
 
-	return createClient<Database>(SB_URL!, SB_SECRET_KEY, {
-		auth: {
-			persistSession: false,
-			autoRefreshToken: false
-		},
-		db: {
-			schema: 'public'
+	// Validate config before creating client
+	assertSupabaseConfig()
+
+	return createClient<Database>(
+		SB_URL!, // Non-null: validated by assertSupabaseConfig()
+		SB_SECRET_KEY,
+		{
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false
+			},
+			db: {
+				schema: 'public'
+			}
 		}
-	})
+	) as unknown as PublicSupabaseClient
 }
 
 // For environments where admin client is needed, use getSupabaseAdmin()
 // This prevents immediate initialization that would fail in frontend
-let _adminClient: SupabaseClient<Database> | null = null
+let _adminClient: PublicSupabaseClient | null = null
 
 // Export function for admin client - better webpack compatibility
-export function getSupabaseAdminInstance(): SupabaseClient<Database> {
+export function getSupabaseAdminInstance(): PublicSupabaseClient {
 	// Only create admin client when actually accessed (and only in backend)
 	if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
 		throw new Error(
