@@ -8,7 +8,7 @@ import {
 import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
@@ -37,7 +37,7 @@ export class TenantPaymentsController {
 	@Get()
 	async getPayments(
 		@JwtToken() token: string,
-		@User() user: authUser
+		@User() user: AuthUser
 	):
 	Promise<{ payments: Array<Record<string, unknown>>; methodsEndpoint: string }> {
 		const tenant = await this.resolveTenant(token, user)
@@ -49,7 +49,7 @@ export class TenantPaymentsController {
 		}
 	}
 
-	private async resolveTenant(token: string, user: authUser) {
+	private async resolveTenant(token: string, user: AuthUser) {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('tenants')

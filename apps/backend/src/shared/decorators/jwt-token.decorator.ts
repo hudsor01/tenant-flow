@@ -13,18 +13,15 @@
 
 import type { ExecutionContext} from '@nestjs/common';
 import { createParamDecorator, UnauthorizedException } from '@nestjs/common'
-import { ExtractJwt } from 'passport-jwt'
 
 export const JwtToken = createParamDecorator(
 	(_data: unknown, ctx: ExecutionContext): string => {
 		const request = ctx.switchToHttp().getRequest()
 
 		// Try Authorization header first (primary method)
-		const headerExtractor = ExtractJwt.fromAuthHeaderAsBearerToken()
-		const headerToken = headerExtractor(request)
-
-		if (headerToken) {
-			return headerToken
+		const authHeader = request.headers?.authorization
+		if (authHeader && authHeader.startsWith('Bearer ')) {
+			return authHeader.substring(7) // Remove 'Bearer ' prefix
 		}
 
 		// Try cookies (Supabase Next.js middleware sets cookies)

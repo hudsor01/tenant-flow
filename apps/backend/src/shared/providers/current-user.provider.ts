@@ -17,13 +17,13 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { REQUEST } from '@nestjs/core'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import type { Request } from 'express'
 import { SupabaseService } from '../../database/supabase.service'
 
 @Injectable({ scope: Scope.REQUEST })
 export class CurrentUserProvider {
-	private cachedUser: authUser | null = null
+	private cachedUser: AuthUser | null = null
 	private userLoaded = false
 
 	constructor(
@@ -35,7 +35,7 @@ export class CurrentUserProvider {
 	 * Get authenticated user (cached per request)
 	 * @throws UnauthorizedException if user is not authenticated
 	 */
-	async getUser(): Promise<authUser> {
+	async getUser(): Promise<AuthUser> {
 		if (!this.userLoaded) {
 			this.cachedUser = await this.supabaseService.getUser(this.request)
 			this.userLoaded = true
@@ -85,7 +85,7 @@ export class CurrentUserProvider {
 	 * Get user if authenticated, null otherwise (doesn't throw)
 	 * Useful for optional authentication scenarios
 	 */
-	async getUserOrNull(): Promise<authUser | null> {
+	async getUserOrNull(): Promise<AuthUser | null> {
 		if (!this.userLoaded) {
 			this.cachedUser = await this.supabaseService.getUser(this.request)
 			this.userLoaded = true

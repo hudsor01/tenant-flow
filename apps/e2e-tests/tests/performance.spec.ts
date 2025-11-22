@@ -141,7 +141,7 @@ test.describe('Homepage Performance', () => {
 test.describe('Dashboard Performance', () => {
 	test.use({ storageState: 'playwright/.auth/user.json' })
 
-	test('dashboard should load efficiently', async ({ page }) => {
+	test('manage dashboard should load efficiently', async ({ page }) => {
 		const startTime = Date.now()
 
 		await page.goto('/manage')
@@ -154,7 +154,7 @@ test.describe('Dashboard Performance', () => {
 
 		const metrics = await collectWebVitals(page)
 
-		// Check FCP for dashboard
+		// Check FCP for manage dashboard
 		if (metrics.fcp !== null) {
 			expect(metrics.fcp, 'Dashboard FCP should be < 2000ms').toBeLessThan(2000)
 		}
