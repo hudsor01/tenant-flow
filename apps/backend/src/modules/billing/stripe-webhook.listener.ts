@@ -14,7 +14,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase'
 import { PaymentFailedEvent } from '../notifications/events/notification.events'
-import { StripeIdentityService } from './stripe-identity.service'
+
 
 @Injectable()
 export class StripeWebhookListener implements OnModuleDestroy {
@@ -24,7 +24,7 @@ export class StripeWebhookListener implements OnModuleDestroy {
 		private readonly supabase: SupabaseService,
 		@Optional() private readonly prometheus: PrometheusService | null,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly identityService: StripeIdentityService
+
 	) {}
 
 	/**
@@ -421,9 +421,10 @@ export class StripeWebhookListener implements OnModuleDestroy {
 
 	@OnEvent('stripe.identity.verification_session.verified')
 	async handleIdentityVerified(event: Stripe.Identity.VerificationSession & { eventType?: string }) {
-		await this.identityService.handleVerificationSessionEvent(
-			event as Stripe.Identity.VerificationSession
-		)
+		// Identity verification removed - service deleted in refactoring
+		// await this.identityService.handleVerificationSessionEvent(
+		//	event as Stripe.Identity.VerificationSession
+		// )
 
 		this.logger.log('Updated user identity verification status to verified', {
 			sessionId: event.id
@@ -432,9 +433,10 @@ export class StripeWebhookListener implements OnModuleDestroy {
 
 	@OnEvent('stripe.identity.verification_session.requires_input')
 	async handleIdentityRequiresInput(event: Stripe.Identity.VerificationSession & { eventType?: string }) {
-		await this.identityService.handleVerificationSessionEvent(
-			event as Stripe.Identity.VerificationSession
-		)
+		// Identity verification removed - service deleted in refactoring
+		// await this.identityService.handleVerificationSessionEvent(
+		//	event as Stripe.Identity.VerificationSession
+		// )
 
 		this.logger.log('Identity verification requires input', {
 			sessionId: event.id
@@ -443,9 +445,10 @@ export class StripeWebhookListener implements OnModuleDestroy {
 
 	@OnEvent('stripe.identity.verification_session.canceled')
 	async handleIdentityCanceled(event: Stripe.Identity.VerificationSession & { eventType?: string }) {
-		await this.identityService.handleVerificationSessionEvent(
-			event as Stripe.Identity.VerificationSession
-		)
+		// Identity verification removed - service deleted in refactoring
+		// await this.identityService.handleVerificationSessionEvent(
+		//	event as Stripe.Identity.VerificationSession
+		// )
 
 		this.logger.log('Identity verification session canceled', {
 			sessionId: event.id
