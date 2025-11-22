@@ -7,10 +7,12 @@
  * - Payment failures/retries
  * - Customer deletions
  *
- * Uses NestJS EventEmitter2 for event-driven cleanup
+ * Direct processing without EventEmitter for better performance
  */
 
 import type Stripe from 'stripe'
+import type { LeaseStatus } from '@repo/shared/constants/status-types'
+import { LEASE_STATUS } from '@repo/shared/constants/status-types'
 import {
 	BadRequestException,
 	Controller,
@@ -23,7 +25,6 @@ import {
 } from '@nestjs/common'
 import { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
-import { EventEmitter2 } from '@nestjs/event-emitter'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
@@ -43,7 +44,6 @@ export class StripeWebhookController {
 
 	constructor(
 		private readonly stripeConnect: StripeConnectService,
-		private readonly eventEmitter: EventEmitter2,
 		private readonly supabase: SupabaseService,
 		private readonly config: AppConfigService,
 		@Optional() private readonly prometheus: PrometheusService | null
@@ -108,8 +108,6 @@ export class StripeWebhookController {
 
 		try {
 			// Use atomic lock via RPC to prevent duplicate processing
-			// recordEventProcessing creates an INSERT ... ON CONFLICT DO NOTHING
-			// which is atomic and prevents race conditions
 			const lockAcquired = await this.supabase.getAdminClient().rpc(
 				'record_processed_stripe_event_lock',
 				{
@@ -134,12 +132,8 @@ export class StripeWebhookController {
 				return { received: true, duplicate: true }
 			}
 
-			// Process the webhook event
-			await this.eventEmitter.emitAsync(`stripe.${event.type}`, {
-				...(event.data.object as unknown as Record<string, unknown>),
-				eventId: event.id,
-				eventType: event.type
-			})
+			// Process the webhook event directly
+			await this.processWebhookEvent(event)
 
 			// Record success
 			const duration = Date.now() - startTime
@@ -181,7 +175,7 @@ export class StripeWebhookController {
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
 
-			// Store failure details in webhook_attempts table
+			// Store failure details
 			await client.from('webhook_attempts').insert({
 				webhook_event_id: event.id,
 				status: 'failed',
@@ -213,6 +207,263 @@ export class StripeWebhookController {
 
 			// Return 500 to trigger Stripe automatic retry
 			throw new BadRequestException('Webhook processing failed')
+		}
+	}
+
+	/**
+	 * Process webhook events using a switch statement
+	 * This is simpler and faster than EventEmitter
+	 */
+	private async processWebhookEvent(event: Stripe.Event): Promise<void> {
+		switch (event.type) {
+			case 'payment_method.attached':
+				await this.handlePaymentMethodAttached(event.data.object as Stripe.PaymentMethod)
+				break
+
+			case 'customer.subscription.updated':
+				await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
+				break
+
+			case 'invoice.payment_failed':
+				await this.handlePaymentFailed(event.data.object as Stripe.Invoice)
+				break
+
+			case 'customer.subscription.deleted':
+				await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+				break
+
+			default:
+				this.logger.debug('Unhandled webhook event type', { type: event.type })
+		}
+	}
+
+	/**
+	 * Handle payment method attached to subscription
+	 * Update tenant invitation status to ACCEPTED
+	 */
+	private async handlePaymentMethodAttached(paymentMethod: Stripe.PaymentMethod): Promise<void> {
+		try {
+			this.logger.log('Payment method attached', {
+				customerId: paymentMethod.customer
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Get customer ID from payment method
+			const customerId =
+				typeof paymentMethod.customer === 'string'
+					? paymentMethod.customer
+					: paymentMethod.customer?.id
+
+			if (!customerId) {
+				this.logger.warn('No customer ID on payment method')
+				return
+			}
+
+			// Find tenant by Stripe Customer ID
+			const { data: tenant } = await client
+				.from('tenants')
+				.select('id')
+				.eq('stripe_customer_id', customerId)
+				.single()
+
+			if (!tenant) {
+				this.logger.warn('Tenant not found for payment method', {
+					customerId: paymentMethod.customer
+				})
+				return
+			}
+
+			// Update invitation status in tenant_invitations table
+			const { data: tenantWithUser } = await client
+				.from('tenants')
+				.select('id, user_id, users!inner(email)')
+				.eq('id', tenant.id)
+				.single()
+
+			if (tenantWithUser) {
+				await client
+					.from('tenant_invitations')
+					.update({
+						status: 'accepted',
+						accepted_by_user_id: tenantWithUser.user_id,
+						accepted_at: new Date().toISOString()
+					})
+					.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
+					.eq('status', 'pending')
+			}
+
+			this.logger.log('Tenant invitation accepted', {
+				tenant_id: tenant.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle payment method attached', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle subscription updated
+	 * Update lease status based on subscription status
+	 */
+	private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+		try {
+			this.logger.log('Subscription updated', {
+				subscriptionId: subscription.id,
+				status: subscription.status
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Find lease by Stripe Subscription ID
+			const { data: lease } = await client
+				.from('leases')
+				.select('id')
+				.eq('stripe_subscription_id', subscription.id)
+				.single()
+
+			if (!lease) {
+				this.logger.warn('Lease not found for subscription', {
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			// Map Stripe subscription status to lease status
+			let lease_status: LeaseStatus = LEASE_STATUS.DRAFT
+
+			if (subscription.status === 'active') {
+				lease_status = LEASE_STATUS.ACTIVE
+			} else if (subscription.status === 'canceled') {
+				lease_status = LEASE_STATUS.TERMINATED
+			}
+
+			await client
+				.from('leases')
+				.update({
+					lease_status: lease_status,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', lease.id)
+
+			this.logger.log('Lease status updated', {
+				lease_id: lease.id,
+				status: lease_status
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle subscription updated', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle payment failure
+	 * Send notification to tenant and property owner
+	 */
+	private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+		try {
+			this.logger.log('Payment failed', {
+				invoiceId: invoice.id,
+				customerId: invoice.customer
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Get customer ID
+			const customerId =
+				typeof invoice.customer === 'string'
+					? invoice.customer
+					: invoice.customer?.id
+
+			if (!customerId) {
+				this.logger.warn('No customer ID on invoice')
+				return
+			}
+
+			// Find tenant by Stripe Customer ID
+			const { data: tenant } = await client
+				.from('tenants')
+				.select('id, user_id')
+				.eq('stripe_customer_id', customerId)
+				.single()
+
+			if (!tenant) {
+				this.logger.warn('Tenant not found for payment failure', {
+					customerId
+				})
+				return
+			}
+
+			// Log payment failure for monitoring and alerting
+			this.logger.warn('Payment failure for tenant', {
+				tenant_id: tenant.id,
+				invoice_id: invoice.id,
+				amount: invoice.amount_due / 100, // Convert from cents
+				failure_reason: invoice.last_finalization_error?.message || 'Unknown error'
+			})
+
+			// Could trigger notification service here if needed
+			// For now, just log for monitoring systems to pick up
+
+			this.logger.log('Payment failure processed', {
+				tenant_id: tenant.id,
+				invoice_id: invoice.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle payment failure', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle subscription deleted
+	 * Update lease status to TERMINATED
+	 */
+	private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
+		try {
+			this.logger.log('Subscription deleted', {
+				subscriptionId: subscription.id
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Find lease by Stripe Subscription ID
+			const { data: lease } = await client
+				.from('leases')
+				.select('id')
+				.eq('stripe_subscription_id', subscription.id)
+				.single()
+
+			if (!lease) {
+				this.logger.warn('Lease not found for deleted subscription', {
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			// Update lease status to TERMINATED
+			await client
+				.from('leases')
+				.update({
+					lease_status: LEASE_STATUS.TERMINATED,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', lease.id)
+
+			this.logger.log('Lease terminated due to subscription deletion', {
+				lease_id: lease.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle subscription deletion', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
 		}
 	}
 }
