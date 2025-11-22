@@ -1,7 +1,7 @@
 /**
  * Leases CRUD Integration Tests - SIMPLIFIED
  * Tests basic lease operations with real API calls
- * 
+ *
  * @vitest-environment jsdom
  */
 
@@ -31,8 +31,8 @@ const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 let sharedQueryClient: QueryClient | null = null
 const REQUIRED_ENV_VARS = [
-	'NEXT_PUBLIC_SUPABASE_URL',
-	'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+	'NEXT_PUBLIC_SB_URL',
+	'NEXT_PUBLIC_SB_PUBLISHABLE_KEY',
 	'E2E_OWNER_EMAIL',
 	'E2E_OWNER_PASSWORD'
 ] as const

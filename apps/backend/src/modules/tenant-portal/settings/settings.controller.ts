@@ -8,7 +8,7 @@ import {
 import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
-import type { authUser } from '@repo/shared/types/auth'
+import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
@@ -42,7 +42,7 @@ export class TenantSettingsController {
 	 * @returns Tenant profile information
 	 */
 	@Get()
-	async getSettings(@JwtToken() token: string, @User() user: authUser) {
+	async getSettings(@JwtToken() token: string, @User() user: AuthUser) {
 		const [tenant, userData] = await Promise.all([
 			this.fetchTenantProfile(token, user.id),
 			this.supabase

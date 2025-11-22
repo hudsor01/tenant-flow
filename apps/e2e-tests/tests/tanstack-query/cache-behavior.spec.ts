@@ -20,6 +20,7 @@ import {
   PropertyTableHelper,
   PropertyFormHelper
 } from '../utils/tanstack-helpers'
+import { loginAsOwner } from '../../auth-helpers'
 
 test.describe('TanStack Query Cache Behavior', () => {
   let page: Page
@@ -40,6 +41,9 @@ test.describe('TanStack Query Cache Behavior', () => {
     // Mock property data for consistent testing
     const testProperties = createTestProperties(10)
     await networkSim.mockSuccessResponse('/api/properties', testProperties)
+
+    // Authenticate before navigating to protected pages
+    await loginAsOwner(page)
 
     // Navigate to properties page
     await page.goto('/manage/properties')
@@ -187,10 +191,10 @@ test.describe('TanStack Query Cache Behavior', () => {
       expect(hasNewProperty).toBe(true)
     })
 
-    test('should invalidate related caches (dashboard stats)', async () => {
+    test('should invalidate related caches (manage dashboard stats)', async () => {
       await page.waitForTimeout(2000)
 
-      // Navigate to dashboard to populate stats cache
+      // Navigate to manage dashboard to populate stats cache
       await page.goto('/manage')
       await page.waitForTimeout(2000)
 
@@ -204,7 +208,7 @@ test.describe('TanStack Query Cache Behavior', () => {
       await formHelper.createProperty(testProperty)
       await page.waitForTimeout(3000)
 
-      // Check dashboard stats cache was invalidated
+      // Check manage dashboard stats cache was invalidated
       const statsAfterMutation = await queryHelper.getQueryData(['dashboard', 'stats'])
 
       // Stats should be either invalidated (undefined) or updated

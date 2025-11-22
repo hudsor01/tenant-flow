@@ -123,7 +123,7 @@ export default function NewMaintenanceRequestPage() {
 
 		// Get uploaded image URLs from Supabase
 		const photoUrls = successes.map((fileName) => {
-			const baseUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
+			const baseUrl = `${process.env.NEXT_PUBLIC_SB_URL}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
 			return `${baseUrl}${fileName}`
 		})
 

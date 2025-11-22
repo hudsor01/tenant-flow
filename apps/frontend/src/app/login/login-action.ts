@@ -3,11 +3,12 @@
 import { createServerClient } from '@supabase/ssr'
 import type { Database } from '@repo/shared/types/supabase'
 import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
+	SB_URL,
+	SB_PUBLISHABLE_KEY
 } from '@repo/shared/config/supabase'
 import { cookies } from 'next/headers'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 const logger = createLogger({ component: 'LoginAction' })
 
@@ -15,15 +16,22 @@ export async function loginWithPassword(email: string, password: string) {
 	try {
 		const cookieStore = await cookies()
 		const supabase = createServerClient<Database>(
-			SUPABASE_URL,
-			SUPABASE_PUBLISHABLE_KEY,
+			SB_URL,
+			SB_PUBLISHABLE_KEY,
 			{
 				cookies: {
 					getAll: () => cookieStore.getAll(),
 					setAll: cookiesToSet => {
-						cookiesToSet.forEach(({ name, value, options }) => {
+						applySupabaseCookies(
+					(name, value, options) => {
+						if (options) {
 							cookieStore.set(name, value, options)
-						})
+						} else {
+							cookieStore.set(name, value)
+						}
+					},
+					cookiesToSet
+				)
 					}
 				}
 			}
