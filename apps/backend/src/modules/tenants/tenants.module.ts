@@ -5,22 +5,15 @@ import { StripeModule } from '../billing/stripe.module'
 import { AuthWebhookController } from './auth-webhook.controller'
 import { TenantsController } from './tenants.controller'
 
-// Main facade service
-import { TenantsService } from './tenants.service'
-
 // Specialized sub-services
 import { TenantQueryService } from './tenant-query.service'
 import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
-import { TenantAnalyticsService } from './tenant-analytics.service'
+import { TenantPaymentService } from './tenant-payment.service'
 import { TenantInvitationService } from './tenant-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { TenantResendInvitationService } from './tenant-resend-invitation.service'
-import { TenantListService } from './tenant-list.service'
-import { TenantDetailService } from './tenant-detail.service'
-import { TenantStatsService } from './tenant-stats.service'
-import { TenantRelationsService } from './tenant-relations.service'
 
 /**
  * Tenants Module - Refactored with 8 Specialized Services
@@ -31,7 +24,7 @@ import { TenantRelationsService } from './tenant-relations.service'
  * ├─ TenantCrudService (Create, Update, Delete)
  * ├─ TenantEmergencyContactService (Contact management)
  * ├─ TenantNotificationPreferencesService (Settings)
- * ├─ TenantAnalyticsService (Payment analytics)
+ * ├─ TenantPaymentService (Payment queries and analytics)
  * ├─ TenantInvitationService (Invitation SAGA)
  * ├─ TenantInvitationTokenService (Token validation)
  * └─ TenantResendInvitationService (Resend logic)
@@ -48,27 +41,21 @@ import { TenantRelationsService } from './tenant-relations.service'
 	controllers: [TenantsController, AuthWebhookController],
 	providers: [
 		Logger,
-		TenantListService,
-		TenantDetailService,
-		TenantStatsService,
-		TenantRelationsService,
 		TenantQueryService,
 		TenantCrudService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
-		TenantAnalyticsService,
+		TenantPaymentService,
 		TenantInvitationService,
 		TenantInvitationTokenService,
-		TenantResendInvitationService,
-		TenantsService
+		TenantResendInvitationService
 	],
 	exports: [
-		TenantsService,
 		TenantQueryService,
 		TenantCrudService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
-		TenantAnalyticsService,
+		TenantPaymentService,
 		TenantInvitationService,
 		TenantInvitationTokenService,
 		TenantResendInvitationService
