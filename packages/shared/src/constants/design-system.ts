@@ -292,6 +292,34 @@ export const SEMANTIC_COLORS = {
 	'sidebar-ring': 'var(--sidebar-ring)'
 } as const
 
+/**
+ * Brand colors in hex format for compatibility with tools that don't support CSS variables
+ * Use these for:
+ * - OG images (Satori doesn't support var() or oklch())
+ * - Email templates
+ * - External integrations
+ *
+ * Source: apps/frontend/src/design-system/tokens/colors.json
+ */
+export const BRAND_COLORS_HEX = {
+	// Primary brand color (light mode)
+	primary: '#0D6FFF',
+	// Accent with opacity variants
+	accent: '#0D6FFF',
+	accentLight: '#0D6FFF26', // 15% opacity
+	// Status colors
+	destructive: '#FF383C',
+	success: '#34C759',
+	warning: '#FF9500',
+	// Neutral colors
+	white: '#FFFFFF',
+	black: '#000000',
+	// Background (light mode)
+	backgroundLight: '#FFFFFF',
+	// Foreground (light mode)
+	foregroundLight: '#000000'
+} as const
+
 // COMPONENT VARIANTS
 
 /**
