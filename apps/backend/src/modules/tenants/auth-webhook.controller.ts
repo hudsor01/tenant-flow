@@ -23,7 +23,7 @@ import {
 } from '@nestjs/common'
 import { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
-import { TenantsService } from '../tenants/tenants.service'
+import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -42,7 +42,7 @@ export class AuthWebhookController {
 	private readonly logger = new Logger(AuthWebhookController.name)
 
 	constructor(
-		private readonly tenantsService: TenantsService,
+		private readonly invitationTokenService: TenantInvitationTokenService,
 		private readonly appConfigService: AppConfigService,
 		private readonly supabaseService: SupabaseService
 	) {}
@@ -226,7 +226,7 @@ export class AuthWebhookController {
 				email: confirmedPayload.record.email
 			})
 
-			await this.tenantsService.activateTenantFromAuthUser(
+			await this.invitationTokenService.activateTenantFromAuthUser(
 				confirmedPayload.record.id
 			)
 

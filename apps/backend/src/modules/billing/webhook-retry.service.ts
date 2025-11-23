@@ -1,9 +1,10 @@
-import { Injectable, Logger, Optional } from '@nestjs/common'
+import { Injectable, Logger, Optional, forwardRef, Inject } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
-import { EventEmitter2 } from '@nestjs/event-emitter'
+import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase'
+import { StripeWebhookController } from './stripe-webhook.controller'
 
 type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
 
@@ -13,7 +14,8 @@ export class WebhookRetryService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2,
+		@Inject(forwardRef(() => StripeWebhookController))
+		private readonly webhookController: StripeWebhookController,
 		@Optional() private readonly prometheus: PrometheusService | null
 	) {}
 
@@ -73,32 +75,23 @@ export class WebhookRetryService {
 					continue
 				}
 
-				// Re-emit event
+				// Retry by calling webhook controller directly
 				this.logger.log(
 					`Retrying webhook ${webhookEvent.external_id} (attempt ${retryCount + 1})`
 				)
 
-				// Parse raw_payload safely
-				const rawPayload =
-					typeof webhookEvent.raw_payload === 'object' && webhookEvent.raw_payload !== null
-						? (webhookEvent.raw_payload as Record<string, unknown>)
-						: {}
+				// Reconstruct Stripe.Event from raw_payload
+				const stripeEvent: Stripe.Event = webhookEvent.raw_payload as Stripe.Event
 
-				const eventData =
-					'data' in rawPayload && typeof rawPayload.data === 'object'
-						? (rawPayload.data as Record<string, unknown>)
-						: {}
+				if (!stripeEvent || !stripeEvent.type) {
+					this.logger.error('Invalid Stripe event in raw_payload', {
+						eventId: webhookEvent.external_id
+					})
+					continue
+				}
 
-				const objectData =
-					'object' in eventData && typeof eventData.object === 'object'
-						? (eventData.object as Record<string, unknown>)
-						: {}
-
-				await this.eventEmitter.emitAsync(`stripe.${webhookEvent.event_type}`, {
-					...objectData,
-					eventId: webhookEvent.external_id,
-					eventType: webhookEvent.event_type
-				})
+				// Call webhook controller directly instead of emitting event
+				await this.webhookController.processWebhookEvent(stripeEvent)
 
 				// Mark attempt as successful
 				await client

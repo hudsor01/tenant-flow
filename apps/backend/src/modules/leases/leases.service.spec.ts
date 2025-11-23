@@ -1,7 +1,6 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { LeasesService } from './leases.service';
-import { TenantsService } from '../tenants/tenants.service';
 import { SupabaseService } from '../../database/supabase.service';
 import { EmailService } from '../email/email.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -105,11 +104,6 @@ describe('LeasesService', () => {
     })),
   };
 
-  const mockTenantsService = {
-    create: jest.fn(() => Promise.resolve({ id: 'tenant-id', email: 'test@example.com' })),
-    sendTenantInvitationV2: jest.fn(() => Promise.resolve({ success: true })),
-  };
-
   const mockEmailService = {
     sendPaymentSuccessEmail: jest.fn(() => Promise.resolve()),
     sendPaymentFailedEmail: jest.fn(() => Promise.resolve()),
@@ -120,7 +114,6 @@ describe('LeasesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LeasesService,
-        { provide: TenantsService, useValue: mockTenantsService },
         { provide: SupabaseService, useValue: mockSupabaseService },
         { provide: EmailService, useValue: mockEmailService },
         EventEmitter2,

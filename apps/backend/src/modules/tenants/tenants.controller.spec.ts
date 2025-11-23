@@ -1,499 +1,448 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import type { Tenant } from '@repo/shared/types/core'
-import type {
-	CreateTenantRequest,
-	UpdateTenantRequest
-} from '@repo/shared/types/api-contracts'
+import { TenantsController } from './tenants.controller'
+import { TenantQueryService } from './tenant-query.service'
+import { TenantCrudService } from './tenant-crud.service'
+import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
+import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
+import { TenantPaymentService } from './tenant-payment.service'
+import { TenantInvitationService } from './tenant-invitation.service'
+import { TenantInvitationTokenService } from './tenant-invitation-token.service'
+import { TenantResendInvitationService } from './tenant-resend-invitation.service'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
-import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
-import { createMockRequest } from '../../shared/test-utils/types'
-import { createMockUser } from '../../test-utils/mocks'
-import { TenantsController } from './tenants.controller'
-import { TenantInvitationService } from './tenant-invitation.service'
-import { TenantsService } from './tenants.service'
-
-jest.mock('../../database/supabase.service', () => {
-	return {
-		SupabaseService: jest.fn().mockImplementation(() => ({
-			getUser: jest.fn()
-		}))
-	}
-})
 
 describe('TenantsController', () => {
-	let controller: any
-	let mockTenantsServiceInstance: any
-	let mockCurrentUserProvider: any
-
-	const mockUser = createMockUser({ id: 'user-123' })
-
-	const createMockTenant = (overrides: Partial<Tenant> = {}) => ({
-		id: 'tenant-default',
-		first_name: 'John',
-		last_name: 'Doe',
-		email: 'john@example.com',
-		phone: null,
-		avatarUrl: null,
-		name: null,
-		emergency_contact: null,
-		user_id: null,
-		status: 'ACTIVE' as const,
-		move_out_date: null,
-		move_out_reason: null,
-		archived_at: null,
-		invitation_status: 'PENDING' as const,
-		invitation_token: null,
-		invitation_sent_at: null,
-		invitation_accepted_at: null,
-		invitation_expires_at: null,
-
-		autopay_configured_at: null,
-		autopay_day: null,
-		autopay_enabled: null,
-		autopay_frequency: null,
-		payment_method_added_at: null,
-		version: 1,
-		created_at: new Date().toISOString(),
-		updated_at: new Date().toISOString(),
-		...overrides
-	})
-
-	const validCreateTenantRequest: CreateTenantRequest = {
-		emergency_contact_name: 'Jane Doe',
-		emergency_contact_phone: '+1234567890',
-		emergency_contact_relationship: 'Sister',
-		date_of_birth: '1990-01-15',
-		ssn_last_four: '1234',
-		stripe_customer_id: 'cus_test123'
-	}
-
-	const validUpdateTenantRequest: UpdateTenantRequest = {
-		emergency_contact_name: 'Jane Doe'
-	}
+	let controller: TenantsController
+	let mockQueryService: any
+	let mockCrudService: any
+	let mockEmergencyContactService: any
+	let mockNotificationPreferencesService: any
+	let mockPaymentService: any
+	let mockInvitationService: any
+	let mockInvitationTokenService: any
+	let mockResendInvitationService: any
 
 	beforeEach(async () => {
-		jest.clearAllMocks()
+		mockQueryService = {
+			findAll: jest.fn(),
+			findAllWithLeaseInfo: jest.fn(),
+			findOne: jest.fn(),
+			findOneWithLease: jest.fn(),
+			getStats: jest.fn(),
+			getSummary: jest.fn(),
+			getTenantPaymentHistory: jest.fn(),
+			getTenantByAuthUserId: jest.fn()
+		}
 
-		// Mock CurrentUserProvider
-		mockCurrentUserProvider = {
-			getuser_id: jest.fn().mockResolvedValue(mockUser.id),
-			getUser: jest.fn().mockResolvedValue(mockUser),
-			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
-			isAuthenticated: jest.fn().mockResolvedValue(true),
-			getUserOrNull: jest.fn().mockResolvedValue(mockUser)
-		} as any
+		mockCrudService = {
+			create: jest.fn(),
+			update: jest.fn(),
+			softDelete: jest.fn(),
+			hardDelete: jest.fn(),
+			markAsMovedOut: jest.fn()
+		}
+
+		mockEmergencyContactService = {
+			createEmergencyContact: jest.fn(),
+			getEmergencyContact: jest.fn(),
+			updateEmergencyContact: jest.fn(),
+			deleteEmergencyContact: jest.fn()
+		}
+
+		mockNotificationPreferencesService = {
+			getPreferences: jest.fn(),
+			updatePreferences: jest.fn()
+		}
+
+		mockPaymentService = {
+			getTenantPaymentHistory: jest.fn(),
+			getTenantPaymentHistoryForTenant: jest.fn(),
+			getOwnerPaymentSummary: jest.fn(),
+			sendPaymentReminderLegacy: jest.fn()
+		}
+
+		mockInvitationService = {
+			inviteTenantWithLease: jest.fn(),
+			sendInvitation: jest.fn()
+		}
+
+		mockInvitationTokenService = {
+			validateToken: jest.fn(),
+			acceptToken: jest.fn(),
+			activateTenantFromAuthUser: jest.fn()
+		}
+
+		mockResendInvitationService = {
+			resendInvitation: jest.fn()
+		}
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [TenantsController],
 			providers: [
-				{
-					provide: TenantsService,
-					useValue: {
-						findAll: jest.fn(),
-						findAllWithLeaseInfo: jest.fn(),
-						getStats: jest.fn(),
-						getSummary: jest.fn(),
-						findOne: jest.fn(),
-						create: jest.fn(),
-						update: jest.fn(),
-						remove: jest.fn(),
-						markAsMovedOut: jest.fn(),
-					hardDelete: jest.fn(),
-					sendTenantInvitationV2: jest.fn().mockResolvedValue(undefined),
-						resendInvitation: jest.fn()
-					}
-				},
-				{
-					provide: TenantInvitationService,
-					useValue: {
-						inviteTenantWithLease: jest.fn()
-					}
-				},
-				{
-					provide: 'PropertyOwnershipGuard',
-					useValue: {
-						canActivate: jest.fn().mockResolvedValue(true)
-					}
-				},
-				{
-					provide: 'StripeConnectedGuard',
-					useValue: {
-						canActivate: jest.fn().mockResolvedValue(true)
-					}
-				},
-				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
+				{ provide: TenantQueryService, useValue: mockQueryService },
+				{ provide: TenantCrudService, useValue: mockCrudService },
+				{ provide: TenantEmergencyContactService, useValue: mockEmergencyContactService },
+				{ provide: TenantNotificationPreferencesService, useValue: mockNotificationPreferencesService },
+				{ provide: TenantPaymentService, useValue: mockPaymentService },
+				{ provide: TenantInvitationService, useValue: mockInvitationService },
+				{ provide: TenantInvitationTokenService, useValue: mockInvitationTokenService },
+				{ provide: TenantResendInvitationService, useValue: mockResendInvitationService }
 			]
 		})
-			.overrideGuard(PropertyOwnershipGuard)
-			.useValue({ canActivate: jest.fn().mockResolvedValue(true) })
-			.overrideGuard(StripeConnectedGuard)
-			.useValue({ canActivate: jest.fn().mockResolvedValue(true) })
-			.compile()
+		.overrideGuard(PropertyOwnershipGuard)
+		.useValue({ canActivate: () => true })
+		.overrideGuard(StripeConnectedGuard)
+		.useValue({ canActivate: () => true })
+		.compile()
 
 		controller = module.get<TenantsController>(TenantsController)
-		mockTenantsServiceInstance = module.get(
-			TenantsService
-		) as jest.Mocked<TenantsService>
 	})
 
-	it('should be defined', () => {
-		expect(controller).toBeDefined()
+	afterEach(() => {
+		jest.clearAllMocks()
 	})
 
-	describe('findAll', () => {
-		it('should return tenants with default parameters', async () => {
-			const mockTenants = [createMockTenant({ id: 'tenant-1' })]
+	describe('Query Endpoints', () => {
+		describe('findAll', () => {
+			it('should return all tenants with lease info', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const mockTenants = [{ id: 'tenant-1', lease: { id: 'lease-1' } }]
+				mockQueryService.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
 
-			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(
-				mockTenants
-			)
+				const result = await controller.findAll(mockReq as any)
 
-			const result = await controller.findAll(
-				createMockRequest({ user: mockUser }) as any
-			)
-			expect(
-				mockTenantsServiceInstance.findAllWithLeaseInfo
-			).toHaveBeenCalledWith(mockUser.id, {
-				search: undefined,
-				invitationStatus: undefined,
-				limit: undefined,
-				offset: undefined,
-				sortBy: undefined,
-				sortOrder: undefined
-			})
-			expect(result).toEqual(mockTenants)
-		})
-
-		it('should handle all query parameters', async () => {
-			const mockTenants: Tenant[] = []
-
-			mockTenantsServiceInstance.findAllWithLeaseInfo.mockResolvedValue(
-				mockTenants
-			)
-
-			await controller.findAll(
-				createMockRequest({ user: mockUser }) as any,
-				'search term',
-				'PENDING',
-				20,
-				10,
-				'name',
-				'asc'
-			)
-
-			expect(
-				mockTenantsServiceInstance.findAllWithLeaseInfo
-			).toHaveBeenCalledWith(mockUser.id, {
-				search: 'search term',
-				invitationStatus: 'PENDING',
-				limit: 20,
-				offset: 10,
-
+				expect(result).toEqual(mockTenants)
+				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith('user-1', {})
 			})
 		})
 
-		it('should validate limit parameter', async () => {
-			// Test with limit too high (100)
-			await expect(
-				controller.findAll(
-					createMockRequest({ user: mockUser }) as any,
-					undefined,
-					undefined,
-					100
-				)
-			).rejects.toThrow(BadRequestException)
+		describe('getStats', () => {
+			it('should return tenant statistics', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const mockStats = { total: 10, active: 8, inactive: 2 }
+				mockQueryService.getStats.mockResolvedValue(mockStats)
 
-			// Test with limit too low (0)
-			await expect(
-				controller.findAll(
-					createMockRequest({ user: mockUser }) as any,
-					undefined,
-					undefined,
-					0
-				)
-			).rejects.toThrow(BadRequestException)
-		})
+				const result = await controller.getStats(mockReq as any)
 
-		it('should validate invitationStatus parameter', async () => {
-			await expect(
-				controller.findAll(
-					createMockRequest({ user: mockUser }) as any,
-					undefined,
-					'INVALID_STATUS' as any
-				)
-			).rejects.toThrow(BadRequestException)
-		})
-	})
-
-	describe('getStats', () => {
-		it('should return tenant statistics', async () => {
-			const mockStats = {
-				totalTenants: 10,
-				activeTenants: 8,
-				pendingTenants: 2,
-				expiredTenants: 0
-			}
-
-			mockTenantsServiceInstance.getStats.mockResolvedValue(mockStats as any)
-
-			const result = await controller.getStats(
-				createMockRequest({ user: mockUser }) as any
-			)
-			expect(mockTenantsServiceInstance.getStats).toHaveBeenCalledWith(
-				mockUser.id
-			)
-			expect(result).toEqual(mockStats)
+				expect(result).toEqual(mockStats)
+				expect(mockQueryService.getStats).toHaveBeenCalledWith('user-1')
+			})
 		})
 
 		describe('getSummary', () => {
-			it('should return tenant summary from service', async () => {
-				const mockSummary = {
-					total: 3,
-					invited: 1,
-					active: 2,
-					overdueBalanceCents: 4500,
-					upcomingDueCents: 12000,
-					timestamp: new Date().toISOString()
-				}
+			it('should return tenant summary', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const mockSummary = { total: 10, active: 8 }
+				mockQueryService.getSummary.mockResolvedValue(mockSummary)
 
-				mockTenantsServiceInstance.getSummary.mockResolvedValue(
-					mockSummary as any
-				)
+				const result = await controller.getSummary(mockReq as any)
 
-				const result = await controller.getSummary(
-					createMockRequest({ user: mockUser }) as any
-				)
-
-				expect(mockTenantsServiceInstance.getSummary).toHaveBeenCalledWith(
-					mockUser.id
-				)
 				expect(result).toEqual(mockSummary)
+				expect(mockQueryService.getSummary).toHaveBeenCalledWith('user-1')
+			})
+		})
+
+		describe('findOne', () => {
+			it('should return a single tenant', async () => {
+				const mockTenant = { id: 'tenant-1', user_id: 'user-1' }
+				mockQueryService.findOne.mockResolvedValue(mockTenant)
+
+				const result = await controller.findOne('tenant-1')
+
+				expect(result).toEqual(mockTenant)
+				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1')
+			})
+		})
+
+		describe('findOneWithLease', () => {
+			it('should return tenant with lease info', async () => {
+				const mockTenant = { id: 'tenant-1', lease: { id: 'lease-1' } }
+				mockQueryService.findOneWithLease.mockResolvedValue(mockTenant)
+
+				const result = await controller.findOneWithLease('tenant-1')
+
+				expect(result).toEqual(mockTenant)
+				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1')
 			})
 		})
 	})
 
-	describe('findOne', () => {
-		it('should return a tenant by ID', async () => {
-			const mockTenant = createMockTenant({ id: 'tenant-1' })
+	describe('CRUD Endpoints', () => {
+		describe('create', () => {
+			it('should create a new tenant', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const createDto = { email: 'tenant@example.com' }
+				const mockTenant = { id: 'tenant-1', ...createDto }
+				mockCrudService.create.mockResolvedValue(mockTenant)
 
-			mockTenantsServiceInstance.findOne.mockResolvedValue(mockTenant)
+				const result = await controller.create(createDto as any, mockReq as any)
 
-			const result = await controller.findOne(
-				'tenant-1',
-				createMockRequest({ user: mockUser }) as any
-			)
-			expect(mockTenantsServiceInstance.findOne).toHaveBeenCalledWith(
-				'tenant-1'
-			)
-			expect(result).toEqual(mockTenant)
-		})
-
-		it('should throw NotFoundException when tenant not found', async () => {
-			mockTenantsServiceInstance.findOne.mockResolvedValue(null)
-
-			await expect(
-				controller.findOne(
-					'non-existent',
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(NotFoundException)
-		})
-	})
-
-	describe('create', () => {
-		it('should create a new tenant', async () => {
-			const mockTenant = createMockTenant(validCreateTenantRequest)
-
-			mockTenantsServiceInstance.create.mockResolvedValue(mockTenant)
-			mockTenantsServiceInstance.sendTenantInvitationV2.mockResolvedValue({
-				success: true,
-				message: 'Invitation sent'
+				expect(result).toEqual(mockTenant)
+				expect(mockCrudService.create).toHaveBeenCalledWith('user-1', createDto)
 			})
+		})
 
-			const result = await controller.create(
-				validCreateTenantRequest,
-				createMockRequest({ user: mockUser }) as any
-			)
-			expect(mockTenantsServiceInstance.create).toHaveBeenCalledWith(
-				mockUser.id,
-				validCreateTenantRequest
-			)
-			expect(result).toEqual(mockTenant)
+		describe('update', () => {
+			it('should update a tenant', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const updateDto = { emergency_contact_name: 'John Doe' }
+				const mockTenant = { id: 'tenant-1', ...updateDto }
+				mockCrudService.update.mockResolvedValue(mockTenant)
 
-			// Wait for fire-and-forget email to process
-			await new Promise(resolve => setTimeout(resolve, 10))
-			expect(
-				mockTenantsServiceInstance.sendTenantInvitationV2
-			).toHaveBeenCalledWith(mockUser.id, { email: mockTenant.id })
+				const result = await controller.update('tenant-1', updateDto as any, mockReq as any)
+
+				expect(result).toEqual(mockTenant)
+				expect(mockCrudService.update).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto)
+			})
+		})
+
+		describe('remove', () => {
+			it('should soft delete a tenant', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				mockCrudService.softDelete.mockResolvedValue(undefined)
+
+				await controller.remove('tenant-1', mockReq as any)
+
+				expect(mockCrudService.softDelete).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
+		})
+
+		describe('hardDelete', () => {
+			it('should permanently delete a tenant', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				mockCrudService.hardDelete.mockResolvedValue(undefined)
+
+				await controller.hardDelete('tenant-1', mockReq as any)
+
+				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
+		})
+
+		describe('markAsMovedOut', () => {
+			it('should mark tenant as moved out', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const moveOutBody = { moveOutDate: '2025-12-31', moveOutReason: 'End of lease' }
+				const mockTenant = { id: 'tenant-1', status: 'moved_out' }
+				mockCrudService.markAsMovedOut.mockResolvedValue(mockTenant)
+
+				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any)
+
+				expect(result).toEqual(mockTenant)
+				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease')
+			})
 		})
 	})
 
-	describe('update', () => {
-		it('should update a tenant', async () => {
-			const mockTenant = createMockTenant({
-			id: 'tenant-1'
+	describe('Invitation Endpoints', () => {
+		describe('inviteTenantWithLease', () => {
+			it('should invite tenant with lease', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const inviteDto = {
+					tenantData: {
+						email: 'tenant@example.com',
+						first_name: 'John',
+						last_name: 'Doe',
+						phone: '555-0100'
+					},
+					leaseData: {
+						property_id: 'property-1',
+						unit_id: 'unit-1',
+						start_date: '2025-01-01',
+						rent_amount: 1000,
+						security_deposit: 500
+					}
+				}
+				const mockResult = { tenant: { id: 'tenant-1' }, lease: { id: 'lease-1' } }
+				mockInvitationService.inviteTenantWithLease.mockResolvedValue(mockResult)
+
+				const result = await controller.inviteTenantWithLease(inviteDto as any, mockReq as any)
+
+				expect(result).toEqual(mockResult)
+			})
 		})
 
-			mockTenantsServiceInstance.update.mockResolvedValue(mockTenant)
+		describe('resendInvitation', () => {
+			it('should resend invitation', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				mockResendInvitationService.resendInvitation.mockResolvedValue(undefined)
 
-			const result = await controller.update(
-				'tenant-1',
-				validUpdateTenantRequest,
-				createMockRequest({ user: mockUser }) as any
-			)
-			expect(mockTenantsServiceInstance.update).toHaveBeenCalledWith(
-				mockUser.id,
-				'tenant-1',
-				validUpdateTenantRequest,
-				undefined // expectedVersion for optimistic locking
-			)
-			expect(result).toEqual(mockTenant)
-		})
-	})
+				await controller.resendInvitation('tenant-1', mockReq as any)
 
-	describe('markAsMovedOut', () => {
-		it('should mark tenant as moved out with date and reason', async () => {
-			const mockTenant = createMockTenant({
-				move_out_date: '2025-01-15',
-				move_out_reason: 'lease_expired: Lease term ended',
-				status: 'MOVED_OUT'
-			} as any)
-			mockTenantsServiceInstance.markAsMovedOut.mockResolvedValue(mockTenant)
-
-			const result = await controller.markAsMovedOut(
-				'tenant-1',
-				{
-					moveOutDate: '2025-01-15',
-					moveOutReason: 'lease_expired: Lease term ended'
-				},
-				createMockRequest({ user: mockUser }) as any
-			)
-
-			expect(mockTenantsServiceInstance.markAsMovedOut).toHaveBeenCalledWith(
-				mockUser.id,
-				'tenant-1',
-				'2025-01-15',
-				'lease_expired: Lease term ended'
-			)
-			expect(result).toEqual(mockTenant)
-			expect(result.status).toBe('MOVED_OUT')
+				expect(mockResendInvitationService.resendInvitation).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
 		})
 
-		it('should throw BadRequestException when moveOutDate is missing', async () => {
-			await expect(
-				controller.markAsMovedOut(
-					'tenant-1',
-					{ moveOutDate: '', moveOutReason: 'lease_expired' },
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(BadRequestException)
+		describe('validateInvitation', () => {
+			it('should validate invitation token', async () => {
+				const mockValidation = { valid: true, tenant_id: 'tenant-1' }
+				const tokenBody = { token: 'test-token' }
+				mockInvitationTokenService.validateToken.mockResolvedValue(mockValidation)
+
+				const result = await controller.validateInvitation(tokenBody as any)
+
+				expect(result).toEqual(mockValidation)
+				expect(mockInvitationTokenService.validateToken).toHaveBeenCalledWith(tokenBody)
+			})
 		})
 
-		it('should throw BadRequestException when moveOutReason is missing', async () => {
-			await expect(
-				controller.markAsMovedOut(
-					'tenant-1',
-					{ moveOutDate: '2025-01-15', moveOutReason: '' },
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(BadRequestException)
+		describe('acceptInvitation', () => {
+			it('should accept invitation', async () => {
+				const token = 'test-token'
+				const acceptBody = { authuser_id: 'auth-user-1' }
+				mockInvitationTokenService.acceptToken.mockResolvedValue(undefined)
+
+				await controller.acceptInvitation(token, acceptBody as any)
+
+				expect(mockInvitationTokenService.acceptToken).toHaveBeenCalledWith('test-token', 'auth-user-1')
+			})
 		})
 
-		it('should throw NotFoundException when tenant not found', async () => {
-			mockTenantsServiceInstance.markAsMovedOut.mockResolvedValue(null)
+		describe('activateTenant', () => {
+			it('should activate tenant', async () => {
+				const activateBody = { authuser_id: 'auth-user-1' }
+				mockInvitationTokenService.activateTenantFromAuthUser.mockResolvedValue(undefined)
 
-			await expect(
-				controller.markAsMovedOut(
-					'tenant-1',
-					{ moveOutDate: '2025-01-15', moveOutReason: 'lease_expired' },
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(NotFoundException)
+				await controller.activateTenant(activateBody as any)
+
+				expect(mockInvitationTokenService.activateTenantFromAuthUser).toHaveBeenCalledWith('auth-user-1')
+			})
 		})
 	})
 
-	describe('hardDelete', () => {
-		it('should permanently delete tenant after 7-year retention', async () => {
-			mockTenantsServiceInstance.hardDelete.mockResolvedValue(undefined)
+	describe('Emergency Contact Endpoints', () => {
+		describe('getEmergencyContact', () => {
+			it('should get emergency contact', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const mockContact = { id: 'contact-1', name: 'John Doe' }
+				mockEmergencyContactService.getEmergencyContact.mockResolvedValue(mockContact)
 
-			const result = await controller.hardDelete(
-				'tenant-1',
-				createMockRequest({ user: mockUser }) as any
-			)
+				const result = await controller.getEmergencyContact('tenant-1', mockReq as any)
 
-			expect(mockTenantsServiceInstance.hardDelete).toHaveBeenCalledWith(
-				mockUser.id,
-				'tenant-1'
-			)
-			expect(result.message).toBe('Tenant permanently deleted')
+				expect(result).toEqual(mockContact)
+				expect(mockEmergencyContactService.getEmergencyContact).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
 		})
 
-		it('should reject deletion of active tenant', async () => {
-			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
-				new BadRequestException(
-					'Tenant must be marked as moved out before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
-				)
-			)
+		describe('createEmergencyContact', () => {
+			it('should create emergency contact', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const createDto = { contactName: 'John Doe', phoneNumber: '555-0100' }
+				const mockContact = { id: 'contact-1', name: 'John Doe' }
+				mockEmergencyContactService.createEmergencyContact.mockResolvedValue(mockContact)
 
-			await expect(
-				controller.hardDelete(
-					'tenant-1',
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(BadRequestException)
+				const result = await controller.createEmergencyContact('tenant-1', createDto as any, mockReq as any)
+
+				expect(result).toEqual(mockContact)
+			})
 		})
 
-		it('should reject deletion of tenant without move-out date', async () => {
-			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
-				new BadRequestException(
-					'Tenant must have a move-out date before permanent deletion. Use PUT /tenants/:id/mark-moved-out first.'
-				)
-			)
+		describe('updateEmergencyContact', () => {
+			it('should update emergency contact', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const updateDto = { phoneNumber: '555-0200' }
+				const mockContact = { id: 'contact-1', phone: '555-0200' }
+				mockEmergencyContactService.updateEmergencyContact.mockResolvedValue(mockContact)
 
-			await expect(
-				controller.hardDelete(
-					'tenant-1',
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(BadRequestException)
+				const result = await controller.updateEmergencyContact('tenant-1', updateDto as any, mockReq as any)
+
+				expect(result).toEqual(mockContact)
+			})
 		})
 
-		it('should reject deletion within 7-year retention period', async () => {
-			mockTenantsServiceInstance.hardDelete.mockRejectedValue(
-				new BadRequestException(
-					'Tenant can only be permanently deleted 7 years after move-out date (legal retention requirement)'
-				)
-			)
+		describe('deleteEmergencyContact', () => {
+			it('should delete emergency contact', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				mockEmergencyContactService.deleteEmergencyContact.mockResolvedValue(true)
 
-			await expect(
-				controller.hardDelete(
-					'tenant-1',
-					createMockRequest({ user: mockUser }) as any
-				)
-			).rejects.toThrow(BadRequestException)
+				const result = await controller.deleteEmergencyContact('tenant-1', mockReq as any)
+
+				expect(result).toEqual({ success: true, message: 'Emergency contact deleted successfully' })
+				expect(mockEmergencyContactService.deleteEmergencyContact).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
 		})
 	})
 
-	describe('remove (deprecated)', () => {
-		it('should throw BadRequestException directing to soft delete', async () => {
-			const mockRequest = createMockRequest({ user: mockUser }) as any
-			const tenant_id = 'tenant-123'
+	describe('Notification Preferences Endpoints', () => {
+		describe('getNotificationPreferences', () => {
+			it('should get notification preferences', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const mockPrefs = { email_enabled: true, sms_enabled: false }
+				mockNotificationPreferencesService.getPreferences.mockResolvedValue(mockPrefs)
 
-			// The remove method should always throw since direct deletion is deprecated
-			mockTenantsServiceInstance.remove.mockRejectedValue(
-				new BadRequestException('Direct deletion is not allowed')
-			)
+				const result = await controller.getNotificationPreferences('tenant-1', mockReq as any)
 
-			await expect(controller.remove(tenant_id, mockRequest)).rejects.toThrow(
-				BadRequestException
-			)
+				expect(result).toEqual(mockPrefs)
+				expect(mockNotificationPreferencesService.getPreferences).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
+		})
 
-			await expect(controller.remove(tenant_id, mockRequest)).rejects.toThrow(
-				/Direct deletion is not allowed/
-			)
+		describe('updateNotificationPreferences', () => {
+			it('should update notification preferences', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const updateDto = { email_enabled: false }
+				const mockPrefs = { email_enabled: false, sms_enabled: false }
+				mockNotificationPreferencesService.updatePreferences.mockResolvedValue(mockPrefs)
+
+				const result = await controller.updateNotificationPreferences('tenant-1', updateDto as any, mockReq as any)
+
+				expect(result).toEqual(mockPrefs)
+				expect(mockNotificationPreferencesService.updatePreferences).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto)
+			})
+		})
+	})
+
+	describe('Payment Endpoints', () => {
+		describe('getPayments', () => {
+			it('should get payment history', async () => {
+				const mockPayments = [{ id: 'payment-1', amount: 100000, status: 'succeeded' }]
+				mockQueryService.getTenantPaymentHistory.mockResolvedValue(mockPayments)
+
+				const result = await controller.getPayments('tenant-1')
+
+				expect(result).toEqual({ payments: mockPayments })
+				expect(mockQueryService.getTenantPaymentHistory).toHaveBeenCalledWith('tenant-1', 20)
+			})
+		})
+
+		describe('getMyPayments', () => {
+			it('should get tenant portal payments', async () => {
+				const mockReq = { user: { id: 'auth-user-1' } }
+				const mockTenant = { id: 'tenant-1' }
+				const mockPayments = [{ id: 'payment-1', amount: 100000, status: 'succeeded' }]
+				mockQueryService.getTenantByAuthUserId.mockResolvedValue(mockTenant)
+				mockQueryService.getTenantPaymentHistory.mockResolvedValue(mockPayments)
+
+				const result = await controller.getMyPayments(mockReq as any)
+
+				expect(result).toEqual({ payments: mockPayments })
+				expect(mockQueryService.getTenantByAuthUserId).toHaveBeenCalledWith('auth-user-1')
+				expect(mockQueryService.getTenantPaymentHistory).toHaveBeenCalledWith('tenant-1', 20)
+			})
+		})
+
+		describe('getPaymentSummary', () => {
+			it('should get owner payment summary', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const mockSummary = { lateFeeTotal: 5000, unpaidTotal: 10000, unpaidCount: 2, tenantCount: 5 }
+				mockPaymentService.getOwnerPaymentSummary.mockResolvedValue(mockSummary)
+
+				const result = await controller.getPaymentSummary(mockReq as any)
+
+				expect(result).toEqual(mockSummary)
+				expect(mockPaymentService.getOwnerPaymentSummary).toHaveBeenCalledWith('user-1')
+			})
+		})
+
+		describe('sendPaymentReminder', () => {
+			it('should send payment reminder', async () => {
+				const reminderDto = { tenant_id: 'tenant-1', email: 'tenant@example.com', amount_due: 100000 }
+				mockPaymentService.sendPaymentReminderLegacy.mockResolvedValue(undefined)
+
+				await controller.sendPaymentReminder(reminderDto as any)
+
+				expect(mockPaymentService.sendPaymentReminderLegacy).toHaveBeenCalledWith('tenant-1', 'tenant@example.com', 100000)
+			})
 		})
 	})
 })

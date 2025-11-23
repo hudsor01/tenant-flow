@@ -11,6 +11,7 @@ import type {
 	TenantPaymentRecord
 } from '@repo/shared/types/api-contracts'
 import type { Database } from '@repo/shared/types/supabase'
+import type { RentPayment } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 
 type StripePaymentIntentRow = Database['public']['Tables']['stripe_payment_intents']['Row']
@@ -23,6 +24,59 @@ export class TenantPaymentService {
 	constructor(
 		private readonly supabase: SupabaseService
 	) {}
+
+	/**
+	 * Calculate payment status for a tenant
+	 * Moved from TenantAnalyticsService (duplicate)
+	 */
+	async calculatePaymentStatus(tenant_id: string): Promise<{
+		status: string
+		amount_due: number
+		late_fees: number
+		last_payment?: string
+	}> {
+		try {
+			const client = this.supabase.getAdminClient()
+			const { data, error } = await client
+				.from('rent_payments')
+				.select('*')
+				.eq('tenant_id', tenant_id)
+				.order('created_at', { ascending: false })
+				.limit(1)
+
+			if (error || !data?.length) {
+				return {
+					status: 'NO_PAYMENTS',
+					amount_due: 0,
+					late_fees: 0
+				}
+			}
+
+			const payment = data[0] as RentPayment
+			const result: {
+				status: string
+				amount_due: number
+				late_fees: number
+				last_payment?: string
+			} = {
+				status: payment.status,
+				amount_due: 0,
+				late_fees: payment.late_fee_amount || 0
+			}
+
+			if (payment.created_at) {
+				result.last_payment = payment.created_at
+			}
+
+			return result
+		} catch (error) {
+			this.logger.error('Error calculating payment status', {
+				error: error instanceof Error ? error.message : String(error),
+				tenant_id
+			})
+			return { status: 'ERROR', amount_due: 0, late_fees: 0 }
+		}
+	}
 
 
 
@@ -51,7 +105,7 @@ export class TenantPaymentService {
 		}
 
 		const paymentIntents = (data as StripePaymentIntentRow[]) || []
-		const payments = paymentIntents.map(intent => this.mapPaymentIntentToRecord(intent))
+		const payments = paymentIntents.map(intent => this._mapStripePaymentIntentToRecord(intent))
 
 		return { payments }
 	}
@@ -61,7 +115,7 @@ export class TenantPaymentService {
 		limit = 20
 	): Promise<{ payments: TenantPaymentRecord[] }> {
 		const { id: tenant_id } = await this.getTenantByAuthuser_id(authuser_id)
-		return { payments: await this.queryTenantPayments(tenant_id, limit) }
+		return { payments: await this._queryPaymentIntents(tenant_id, limit) }
 	}
 
 	/** Send a rent payment reminder notification to a tenant */
@@ -173,7 +227,41 @@ export class TenantPaymentService {
 		}
 	}
 
-	private mapPaymentIntentToRecord(intent: StripePaymentIntentRow): TenantPaymentRecord {
+	/**
+	 * DEPRECATED: Legacy wrapper for TenantAnalyticsService compatibility
+	 * Used by TenantsService facade only
+	 * TODO: Remove when TenantsService is deleted
+	 */
+	async sendPaymentReminderLegacy(
+		tenant_id: string,
+		_email: string,
+		amount_due: number
+	): Promise<{
+		success: true
+		tenant_id: string
+		notificationId: string
+		message: string
+	}> {
+		// Convert to new signature format
+		// Note: This is a temporary adapter - the new sendPaymentReminder requires user_id
+		// For now, we'll create a simple notification without user validation
+		const client = this.supabase.getAdminClient()
+		const { data: tenant } = await client
+			.from('tenants')
+			.select('user_id')
+			.eq('id', tenant_id)
+			.single()
+
+		if (!tenant?.user_id) {
+			throw new NotFoundException('Tenant not found or not linked to user')
+		}
+
+		// Call the real implementation
+		const note = `Payment reminder: $${(amount_due / 100).toFixed(2)} due`
+		return this.sendPaymentReminder(tenant.user_id, tenant_id, note)
+	}
+
+	private _mapStripePaymentIntentToRecord(intent: StripePaymentIntentRow): TenantPaymentRecord {
 		return {
 			id: intent.id,
 			amount: intent.amount ?? 0,
@@ -186,7 +274,7 @@ export class TenantPaymentService {
 		}
 	}
 
-	private async queryTenantPayments(
+	private async _queryPaymentIntents(
 		tenant_id: string,
 		limit: number
 	): Promise<TenantPaymentRecord[]> {
@@ -207,7 +295,7 @@ export class TenantPaymentService {
 		}
 
 		return ((data as StripePaymentIntentRow[]) || []).map(intent =>
-			this.mapPaymentIntentToRecord(intent)
+			this._mapStripePaymentIntentToRecord(intent)
 		)
 	}
 
@@ -231,7 +319,7 @@ export class TenantPaymentService {
 		let unpaidCount = 0
 
 		for (const tenant_id of tenant_ids) {
-			const payments = await this.queryTenantPayments(tenant_id, limitPerTenant)
+			const payments = await this._queryPaymentIntents(tenant_id, limitPerTenant)
 			for (const payment of payments) {
 				if (payment.status !== 'succeeded') {
 					unpaidTotal += payment.amount
@@ -383,16 +471,113 @@ export class TenantPaymentService {
 		return Array.from(new Set(tenant_ids))
 	}
 
-	private isLateFeeRecord(payment: TenantPaymentRecord): boolean {
-		const description = payment.description?.toLowerCase() ?? ''
-		const metadata = payment.metadata ?? {}
-		const hasLateFlag =
-			(metadata as Record<string, unknown>).lateFee === true ||
-			(metadata as Record<string, unknown>).lateFee === 'true' ||
-			(metadata as Record<string, unknown>).isLateFee === true ||
-			(metadata as Record<string, unknown>).isLateFee === 'true' ||
-			(metadata as Record<string, unknown>).type === 'late_fee'
+	/**
+	 * PUBLIC: Query tenant payments with filters
+	 * Migrated from TenantAnalyticsService
+	 */
+	async queryTenantPayments(
+		tenant_id: string,
+		filters?: {
+			status?: string
+			startDate?: string
+			endDate?: string
+			limit?: number
+		}
+	): Promise<RentPayment[]> {
+		try {
+			const client = this.supabase.getAdminClient()
+			let queryBuilder = client
+				.from('rent_payments')
+				.select('*')
+				.eq('tenant_id', tenant_id)
 
-		return hasLateFlag || description.includes('late fee')
+			if (filters?.status) {
+				queryBuilder = queryBuilder.eq('status', filters.status)
+			}
+
+			if (filters?.startDate) {
+				queryBuilder = queryBuilder.gte('created_at', filters.startDate)
+			}
+
+			if (filters?.endDate) {
+				queryBuilder = queryBuilder.lte('created_at', filters.endDate)
+			}
+
+			const limit = filters?.limit || 50
+			queryBuilder = queryBuilder.order('created_at', { ascending: false }).limit(limit)
+
+			const { data, error } = await queryBuilder
+
+			if (error) {
+				this.logger.error('Failed to query tenant payments', {
+					error: error.message,
+					tenant_id
+				})
+				return []
+			}
+
+			return (data as RentPayment[]) || []
+		} catch (error) {
+			this.logger.error('Error querying tenant payments', {
+				error: error instanceof Error ? error.message : String(error),
+				tenant_id
+			})
+			return []
+		}
+	}
+
+	/**
+	 * PUBLIC: Check if a record is a late fee record
+	 * Migrated from TenantAnalyticsService - polymorphic version
+	 */
+	isLateFeeRecord(record: RentPayment | TenantPaymentRecord): boolean {
+		if ('type' in record && typeof record.type === 'string') {
+			return record.type === 'LATE_FEE'
+		}
+		// For TenantPaymentRecord, check metadata and description
+		if ('description' in record) {
+			const description = (record as TenantPaymentRecord).description?.toLowerCase() ?? ''
+			const metadata = (record as TenantPaymentRecord).metadata ?? {}
+			const hasLateFlag =
+				(metadata as Record<string, unknown>).lateFee === true ||
+				(metadata as Record<string, unknown>).lateFee === 'true' ||
+				(metadata as Record<string, unknown>).isLateFee === true ||
+				(metadata as Record<string, unknown>).isLateFee === 'true' ||
+				(metadata as Record<string, unknown>).type === 'late_fee'
+
+			return hasLateFlag || description.includes('late fee')
+		}
+		return false
+	}
+
+	/** 
+	 * PUBLIC: Map payment intent to record format 
+	 * Migrated from TenantAnalyticsService
+	 */ 
+	mapPaymentIntentToRecord(intent: { 
+		id?: string 
+		amount?: number 
+		currency?: string | null 
+		status?: string 
+		succeeded_at?: string 
+		tenant_id?: string 
+		metadata?: { tenant_id?: string } | null 
+	}): TenantPaymentRecord { 
+		const tenantId = intent.tenant_id ?? intent.metadata?.tenant_id 
+		const paidDate = intent.succeeded_at 
+		const paymentId = typeof intent.id === 'string' && intent.id.length > 0 ? intent.id : `pi_${Date.now()}` 
+ 
+		return { 
+			id: paymentId, 
+			...(tenantId ? { tenant_id: tenantId } : {}), 
+			amount: intent.amount ?? 0, 
+			status: intent.status ?? 'PENDING', 
+			currency: intent.currency ?? 'USD', 
+			description: null, 
+			receiptEmail: null, 
+			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : null, 
+			created_at: new Date().toISOString(), 
+			...(paidDate ? { paid_date: paidDate } : {}) 
+		} 
 	}
 }
