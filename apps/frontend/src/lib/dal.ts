@@ -1,6 +1,7 @@
 import 'server-only'
 import { cache } from 'react'
 import { cookies } from 'next/headers'
+import { connection } from 'next/server'
 import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import {
 	SB_URL,
@@ -45,6 +46,8 @@ const logger = createLogger({ component: 'DAL' })
  * @returns User object if authenticated, null otherwise
  */
 export const verifySession = cache(async (): Promise<User | null> => {
+	// Signal that this function needs dynamic rendering
+	await connection()
 	const cookieStore = await cookies()
 
 	// Validate config before creating client
