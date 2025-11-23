@@ -20,11 +20,9 @@ import {
 	MaintenanceCostChart,
 	MaintenanceTrendChart
 } from './maintenance-charts'
-import { cacheLife } from 'next/cache'
 
 export default async function MaintenanceInsightsPage() {
-	'use cache'
-	cacheLife('minutes')
+	// Data fetching already uses React cache() - no page-level caching needed
 	const data = await getMaintenanceInsightsPageData()
 	const { metrics, costBreakdown, trends, categoryBreakdown } = data
 
