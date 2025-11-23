@@ -5,35 +5,9 @@ import Navbar from '#components/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
-import dynamic from 'next/dynamic'
-
-// Lazy load below-the-fold sections
-const FeaturesSectionDemo = dynamic(
-	() => import('#components/sections/features-section'),
-	{
-		loading: () => <SectionSkeleton height={600} variant="grid" />
-	}
-)
-
-const StatsShowcase = dynamic(
-	() =>
-		import('#components/sections/stats-showcase').then(mod => ({
-			default: mod.StatsShowcase
-		})),
-	{
-		loading: () => <SectionSkeleton height={400} variant="card" />
-	}
-)
-
-const PremiumCta = dynamic(
-	() =>
-		import('#components/sections/premium-cta').then(mod => ({
-			default: mod.PremiumCta
-		})),
-	{
-		loading: () => <SectionSkeleton height={400} variant="card" />
-	}
-)
+import FeaturesSectionDemo from '#components/sections/features-section'
+import { StatsShowcase } from '#components/sections/stats-showcase'
+import { PremiumCta } from '#components/sections/premium-cta'
 
 export default function HomePage() {
 	return (

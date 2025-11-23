@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import { RefreshableAnalytics } from '#app/(protected)/manage/analytics/refreshable-analytics'
 import { ExportButtons } from '#components/export/export-buttons'
 import { Badge } from '#components/ui/badge'

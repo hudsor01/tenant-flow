@@ -13,7 +13,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { BUSINESS_ERROR_CODES } from '@repo/shared/constants/error-codes'
 import { clientFetch } from '#lib/api/client'
 import { ApiErrorCode, isApiError } from '#lib/api/api-error'
-import { AlertCircle, CheckCircle2, Upload } from 'lucide-react'
+import { AlertCircle, CheckCircle2, FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useModalStore } from '#stores/modal-store'
@@ -182,8 +182,13 @@ export function PropertyBulkImportDialog() {
 
 	return (
 		<>
-			<Button variant="outline" onClick={handleOpenModal}>
-				<Upload className="size-4 mr-2" />
+			<Button
+				variant="outline"
+				size="default"
+				className="min-h-11"
+				onClick={handleOpenModal}
+			>
+				<FileUp className="size-4 mr-2" />
 				Bulk Import
 			</Button>
 
