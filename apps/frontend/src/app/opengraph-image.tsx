@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { BRAND_COLORS_HEX } from '@repo/shared/constants/design-system'
 
 export const alt = 'TenantFlow - Simplify Property Management'
 export const size = {
@@ -13,14 +14,14 @@ export default async function Image() {
 			<div
 				style={{
 					fontSize: 60,
-					background: 'var(--color-primary)',
+					background: BRAND_COLORS_HEX.primary,
 					width: '100%',
 					height: '100%',
 					display: 'flex',
 					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
-					color: 'var(--color-fill-primary)',
+					color: BRAND_COLORS_HEX.white,
 					fontFamily: 'Inter, sans-serif'
 				}}
 			>
@@ -41,7 +42,7 @@ export default async function Image() {
 							fontWeight: 'bold',
 							marginBottom: 30,
 							background:
-								'linear-gradient(45deg, var(--color-fill-primary), var(--color-fill-primary))',
+								`linear-gradient(45deg, ${BRAND_COLORS_HEX.white}, ${BRAND_COLORS_HEX.white})`,
 							backgroundClip: 'text',
 							WebkitBackgroundClip: 'text',
 							color: 'transparent'
@@ -95,8 +96,8 @@ export default async function Image() {
 						height: '100%',
 						opacity: 0.1,
 						background: `
-              radial-gradient(circle at 25% 25%, var(--color-background, white) 0%, transparent 50%),
-              radial-gradient(circle at 75% 75%, var(--color-background, white) 0%, transparent 50%)
+              radial-gradient(circle at 25% 25%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%),
+              radial-gradient(circle at 75% 75%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%)
             `
 					}}
 				/>
