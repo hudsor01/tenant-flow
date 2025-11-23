@@ -23,7 +23,15 @@ export class RolesGuard implements CanActivate {
 		const request = context.switchToHttp().getRequest()
 		const userType = request.user?.app_metadata?.user_type
 		
-		if (!userType || !requiredRoles.includes(userType)) {
+		if (!userType) {
+			throw new ForbiddenException('Insufficient permissions')
+		}
+
+		// Case-insensitive role comparison to prevent bugs from inconsistent casing
+		const normalizedUserType = userType.toUpperCase()
+		const normalizedRequiredRoles = requiredRoles.map(role => role.toUpperCase())
+		
+		if (!normalizedRequiredRoles.includes(normalizedUserType)) {
 			throw new ForbiddenException('Insufficient permissions')
 		}
 
