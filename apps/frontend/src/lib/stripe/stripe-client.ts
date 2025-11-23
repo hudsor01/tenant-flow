@@ -6,9 +6,7 @@ import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { API_BASE_URL } from '#lib/api-config'
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'StripeClient' })
+import { env } from '#config/env'
 
 // Cache the Stripe instance to avoid re-initializing
 let stripePromise: Promise<Stripe | null> | null = null
@@ -19,12 +17,8 @@ let stripePromise: Promise<Stripe | null> | null = null
  */
 export function getStripe(): Promise<Stripe | null> {
 	if (!stripePromise) {
-		const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-		if (!publishableKey) {
-			logger.error('Missing NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY')
-			return Promise.resolve(null)
-		}
-		stripePromise = loadStripe(publishableKey)
+		// T3 Env validates this at build time - no runtime check needed
+		stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 	}
 	return stripePromise
 }

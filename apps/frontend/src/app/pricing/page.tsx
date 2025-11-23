@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { PricingSection } from './_components/pricing-section'
 import Footer from '#components/layout/footer'
+import { env } from '#config/env'
 
 const faqs = [
 	{
@@ -49,7 +50,7 @@ export default async function PricingPage() {
 	// Note: 'use cache' directive will be enabled once Next.js stabilizes this feature
 	// Cache the pricing page for 1 hour since pricing doesn't change often
 	// This provides instant loading for all users
-		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+		const baseUrl = env.NEXT_PUBLIC_BASE_URL
 
 	// FAQ Schema for Google rich snippets
 	const faqSchema = {

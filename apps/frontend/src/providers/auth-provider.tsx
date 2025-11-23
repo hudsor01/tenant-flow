@@ -6,6 +6,7 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
+import { env } from '#config/env'
 
 const supabaseClient = getSupabaseClientInstance()
 const logger = createLogger({ component: 'AuthProvider' })
@@ -67,7 +68,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				}
 
 				// Log auth events for debugging
-				if (process.env.NODE_ENV === 'development') {
+				if (env.NODE_ENV === 'development') {
 					logger.info('Auth state changed', {
 						action: 'auth_state_change',
 						metadata: { event, user_id: session?.user?.id }

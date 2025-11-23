@@ -29,6 +29,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
+import { env } from '#config/env'
 
 // Animated background components for bento grid
 const FileMarquee = () => (
@@ -147,7 +148,7 @@ const IntegrationBeam = () => (
 )
 
 export default function FeaturesPage() {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	const baseUrl = env.NEXT_PUBLIC_BASE_URL
 
 	const [currentTestimonial, setCurrentTestimonial] = useState(0)
 	const [stickyCtaVisible, setStickyCtaVisible] = useState(false)

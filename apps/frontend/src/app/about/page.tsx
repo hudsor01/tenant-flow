@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { GridPattern } from '../../components/ui/grid-pattern'
+import { env } from '#config/env'
 
 const stats = [
 	{ number: '10,000+', label: 'Properties Managed', Icon: Building2 },
@@ -42,7 +43,7 @@ const stats = [
 ]
 
 export default function AboutPage() {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	const baseUrl = env.NEXT_PUBLIC_BASE_URL
 
 	// Breadcrumb Schema
 	const breadcrumbSchema = {
