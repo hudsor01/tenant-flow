@@ -1,5 +1,4 @@
 import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
-export const dynamic = 'force-dynamic'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -16,8 +15,11 @@ import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
+import { cacheLife } from 'next/cache'
 
 export default async function AnalyticsPage() {
+	'use cache'
+	cacheLife('minutes')
 	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
 	const {
 		dashboardStats: dashboardData,
