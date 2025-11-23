@@ -23,6 +23,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { env } from '#config/env'
 
 export default function NewMaintenanceRequestPage() {
 	const router = useRouter()
@@ -123,7 +124,7 @@ export default function NewMaintenanceRequestPage() {
 
 		// Get uploaded image URLs from Supabase
 		const photoUrls = successes.map((fileName) => {
-			const baseUrl = `${process.env.NEXT_PUBLIC_SB_URL}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
+			const baseUrl = `${env.NEXT_PUBLIC_SB_URL}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
 			return `${baseUrl}${fileName}`
 		})
 

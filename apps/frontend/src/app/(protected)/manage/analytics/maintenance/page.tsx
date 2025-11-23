@@ -1,5 +1,4 @@
 import { Badge } from '#components/ui/badge'
-export const dynamic = 'force-dynamic'
 import {
 	Card,
 	CardContent,
@@ -21,8 +20,11 @@ import {
 	MaintenanceCostChart,
 	MaintenanceTrendChart
 } from './maintenance-charts'
+import { cacheLife } from 'next/cache'
 
 export default async function MaintenanceInsightsPage() {
+	'use cache'
+	cacheLife('minutes')
 	const data = await getMaintenanceInsightsPageData()
 	const { metrics, costBreakdown, trends, categoryBreakdown } = data
 

@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { env } from '#config/env'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
@@ -26,16 +27,9 @@ export default function TenantOnboardingPage() {
 
 		const activateTenant = async () => {
 			try {
-			// Validate required environment variables
-			const supabaseUrl = process.env.NEXT_PUBLIC_SB_URL
-			const supabaseKey = process.env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY
-
-			if (!supabaseUrl || !supabaseKey) {
-				logger.error('Missing Supabase configuration')
-				setErrorMessage('Application configuration error. Please contact support.')
-				setStatus('error')
-				return
-			}
+			// T3 Env validates these at build time
+			const supabaseUrl = env.NEXT_PUBLIC_SB_URL
+			const supabaseKey = env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY
 
 			// 1. Create Supabase browser client with validated config
 			const supabase = createBrowserClient(supabaseUrl, supabaseKey)
@@ -78,14 +72,8 @@ export default function TenantOnboardingPage() {
 
 				setStatus('activating')
 
-			// Validate API base URL
-			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-			if (!apiBaseUrl) {
-				logger.error('Missing API base URL configuration')
-				setErrorMessage('Application configuration error. Please contact support.')
-				setStatus('error')
-				return
-			}
+			// T3 Env validates this at build time
+			const apiBaseUrl = env.NEXT_PUBLIC_API_BASE_URL
 
 			// 5. Call backend activation endpoint with authentication
 			const response = await fetch(
