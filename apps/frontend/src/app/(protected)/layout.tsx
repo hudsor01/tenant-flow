@@ -3,8 +3,6 @@ import { MobileChrome } from '#components/layout/mobile-chrome'
 import { PaymentGateWrapper } from '#components/layout/payment-gate-wrapper'
 import type { ReactNode } from 'react'
 
-export const dynamic = 'force-dynamic'
-
 export default async function ProtectedLayout({
 	children
 }: {
