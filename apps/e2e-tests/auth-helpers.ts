@@ -69,16 +69,10 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 		await page.goto(`${baseUrl}/manage`, { waitUntil: 'domcontentloaded' })
 
-		// Wait for auth to initialize (check for auth provider or user context)
-		try {
-			await page.waitForFunction(() => {
-				const html = document.documentElement.innerHTML
-				// Check if we're NOT on a login page anymore
-				return !html.includes('sign in') || window.location.pathname.includes('/manage')
-			}, { timeout: 5000 })
-		} catch {
-			debugLog(` Warning: Auth verification timed out, but continuing`)
-		}
+		// CRITICAL: Wait for auth session to initialize even with cached cookies
+		debugLog('⏳ Waiting for cached session to initialize...')
+		await page.waitForLoadState('networkidle', { timeout: 15000 })
+		debugLog(' Network idle - cached session initialized')
 
 		debugLog(` Logged in as owner (${email}) - Session reused from cache`)
 		return // Fast path: ~100ms
@@ -150,8 +144,12 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// Wait for page to be mostly loaded (don't wait for all background requests)
 	await page.waitForLoadState('domcontentloaded')
 
-	// Wait a bit for auth provider to fully initialize
-	await page.waitForTimeout(1000)
+	// CRITICAL: Wait for auth to fully initialize and API calls to succeed
+	// The Supabase client needs time to read cookies and set up the session
+	// Without this, API calls will fail with 403 because no Authorization header is sent
+	debugLog('⏳ Waiting for auth session to initialize...')
+	await page.waitForLoadState('networkidle', { timeout: 15000 })
+	debugLog(' Network idle - session should be initialized')
 
 	// Verify we're actually on the manage page and not redirected back to login
 	const currentUrl = page.url()
