@@ -1,4 +1,5 @@
-import { requireSession } from '#lib/dal'
+'use client'
+
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { ActivitySection } from '#components/dashboard/activity-section'
 import { ChartsSection } from '#components/dashboard/charts-section'
@@ -8,9 +9,8 @@ import { SectionCards } from '#components/dashboard/section-cards'
 import { TrendsSection } from '#components/dashboard/trends-section'
 import './dashboard.css'
 
-export default async function DashboardPage() {
-	// Server-side auth - NO client flash, instant 307 redirect
-	await requireSession()
+export default function DashboardPage() {
+	// Auth handled by middleware + layout - no SSR delay
 
 	return (
 		<main

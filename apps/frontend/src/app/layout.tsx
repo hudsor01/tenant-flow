@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic'
-
 import { Providers } from '#components/providers'
 import SeoJsonLd from '#components/seo/SeoJsonLd'
 import RegisterServiceWorker from '#components/sw/register-sw'
@@ -23,14 +21,12 @@ const splineSans = Spline_Sans({
 	subsets: ['latin'],
 	weight: ['400', '500', '600', '700'],
 	display: 'swap',
-	preload: true,
 	variable: '--font-spline'
 })
 
 const jetbrainsMono = JetBrains_Mono({
 	subsets: ['latin'],
 	display: 'swap',
-	preload: true,
 	variable: '--font-mono'
 })
 
