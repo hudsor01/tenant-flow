@@ -5,6 +5,7 @@
 
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
+import { loginAsOwner } from '../../auth-helpers'
 
 // Test data generators
 const generateTenantData = () => ({
@@ -17,6 +18,9 @@ const generateTenantData = () => ({
 
 test.describe('Tenant Management E2E Workflows', () => {
 	test.beforeEach(async ({ page }) => {
+		// Login as property owner
+		await loginAsOwner(page)
+		
 		// Navigate to tenant management page
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 		await page.goto(`${baseUrl}/manage/tenants`)
@@ -187,6 +191,11 @@ test.describe('Tenant Management E2E Workflows', () => {
 })
 
 test.describe('Tenant Management Error Scenarios', () => {
+	test.beforeEach(async ({ page }) => {
+		// Login as property owner
+		await loginAsOwner(page)
+	})
+
 	test('handle network errors gracefully', async ({ page, context }) => {
 		// Navigate to tenant management first
 		await page.goto('/manage/tenants')
