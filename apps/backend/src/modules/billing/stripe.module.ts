@@ -3,7 +3,6 @@ import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
 import { MetricsModule } from '../metrics/metrics.module'
-import { StripeRecoveryService } from './stripe-recovery.service'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeTenantService } from './stripe-tenant.service'
 import { StripeOwnerService } from './stripe-owner.service'
@@ -42,7 +41,6 @@ import { StripeSharedService } from './stripe-shared.service'
 		BillingService,
 		StripeSyncService,
 		StripeWebhookService,
-		StripeRecoveryService,
 		StripeTenantService,
 		StripeOwnerService,
 		StripeConnectService,
@@ -59,7 +57,6 @@ import { StripeSharedService } from './stripe-shared.service'
 		BillingService,
 		StripeSyncService,
 		StripeWebhookService,
-		StripeRecoveryService,
 		StripeTenantService,
 		StripeOwnerService,
 		StripeConnectService
