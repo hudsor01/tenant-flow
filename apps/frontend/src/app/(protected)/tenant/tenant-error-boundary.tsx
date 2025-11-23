@@ -7,6 +7,7 @@ import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
+import { env } from '#config/env'
 
 const logger = createLogger({ component: 'TenantErrorBoundary' })
 
@@ -146,7 +147,7 @@ export function TenantErrorFallback({
 						<AlertTriangle className="size-8 text-destructive" />
 					</div>
 
-					{process.env.NODE_ENV === 'development' && error && (
+					{env.NODE_ENV === 'development' && error && (
 						<details className="w-full rounded bg-muted p-4 text-xs">
 							<summary className="cursor-pointer font-medium">
 								Technical details
