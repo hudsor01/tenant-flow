@@ -1,7 +1,5 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import {

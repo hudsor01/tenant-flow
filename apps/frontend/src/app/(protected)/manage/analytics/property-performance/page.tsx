@@ -21,8 +21,6 @@ import {
 	VisitorAnalyticsChart
 } from './property-charts'
 
-export const dynamic = 'force-dynamic'
-
 export default async function PropertyPerformancePage() {
 	const data = await getPropertyPerformancePageData()
 	const { metrics, performance, units, unitStats, visitorAnalytics } = data
