@@ -19,7 +19,7 @@ const logger = createLogger({ component: 'Proxy' })
  * - proxy.ts (this file): Transport layer, error boundaries, logging
  * - lib/supabase/middleware.ts: Auth business logic (JWT verification, redirects)
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
 	const pathname = request.nextUrl.pathname
 
 	try {

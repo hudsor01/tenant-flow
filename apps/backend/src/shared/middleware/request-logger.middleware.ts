@@ -67,6 +67,20 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 		res.send = function (this: Response, body: unknown) {
 			const duration = Date.now() - (req.startTime ?? Date.now())
 
+			// 🚨 CRITICAL: Log slow requests (>1000ms)
+			if (duration > 1000) {
+				logger.error(
+					`🐌 SLOW REQUEST: ${req.method} ${req.url} -> ${res.statusCode} in ${duration}ms`,
+					{
+						statusCode: res.statusCode,
+						path: req.url,
+						method: req.method,
+						duration: `${duration}ms`,
+						WARNING: 'PERFORMANCE BOTTLENECK DETECTED'
+					}
+				)
+			}
+
 			// Enhanced logging for errors
 			if (res.statusCode >= 400) {
 				// Safely convert body to string for logging

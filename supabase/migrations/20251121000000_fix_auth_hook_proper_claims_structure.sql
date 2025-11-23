@@ -45,7 +45,8 @@ BEGIN
   END;
 
   -- Extract values with safe defaults
-  db_user_type := COALESCE(user_record.user_type, event -> 'user' -> 'user_metadata' ->> 'user_type', 'TENANT');
+  -- Normalize user_type to uppercase to prevent case-sensitivity issues in guards
+  db_user_type := UPPER(COALESCE(user_record.user_type, event -> 'user' -> 'user_metadata' ->> 'user_type', 'TENANT'));
   db_stripe_customer_id := user_record.stripe_customer_id;
   db_subscription_status := subscription_record.status;
 
