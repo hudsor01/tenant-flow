@@ -48,7 +48,7 @@ export class PropertyAnalyticsService {
 	 */
 	private parseTimeframe(timeframe: string): { start: Date; end: Date } {
 		const now = new Date()
-		const days = parseInt(timeframe.replace('d', ''))
+		const days = parseInt(timeframe.replace('d', ''), 10)
 		const start = new Date(now)
 		start.setDate(now.getDate() - days)
 		return { start, end: now }
