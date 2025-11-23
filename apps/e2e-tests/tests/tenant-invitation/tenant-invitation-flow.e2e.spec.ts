@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { loginAsOwner } from '../../auth-helpers'
 
 /**
  * Tenant Invitation Flow E2E Tests
@@ -75,14 +76,8 @@ test.describe('Tenant Invitation Flow', () => {
 	}
 
 	test.beforeEach(async ({ page }) => {
-		// Login as property owner
-		await page.goto(`${BASE_URL}/login`)
-		await page.fill('input[type="email"]', OWNER_EMAIL)
-		await page.fill('input[type="password"]', OWNER_PASSWORD)
-		await page.click('button[type="submit"]')
-
-		// Wait for redirect to manage dashboard
-		await page.waitForURL(`${BASE_URL}/manage/**`)
+		// Login as property owner using auth helper
+		await loginAsOwner(page)
 	})
 
 	test('[Property Owner] Create tenant with valid lease', async ({ page }) => {
