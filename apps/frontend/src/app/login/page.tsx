@@ -17,6 +17,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { env } from '#config/env'
 
 const logger = createLogger({ component: 'LoginPage' })
 
@@ -106,7 +107,7 @@ function LoginPageContent() {
 		setIsGoogleLoading(true)
 		try {
 			const supabase = getSupabaseClientInstance()
-			const redirectUrl = process.env.NODE_ENV === 'development'
+			const redirectUrl = env.NODE_ENV === 'development'
 				? 'http://localhost:3000/auth/callback'
 				: `${window.location.origin}/auth/callback`
 
