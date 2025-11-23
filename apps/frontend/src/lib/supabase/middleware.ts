@@ -60,14 +60,18 @@ export async function updateSession(request: NextRequest) {
 		}
 	)
 
-	// REQUIRED: getClaims() prevents random logouts (Supabase SSR requirement)
-	// Do not add code between createServerClient and getClaims!
-	const { data } = await supabase.auth.getClaims()
-	const hasSession = !!data?.claims?.sub
+	// REQUIRED: getUser() refreshes session and prevents random logouts (Official Supabase SSR pattern)
+	// CRITICAL: Must call getUser() not getSession() to refresh tokens
+	// Do not add code between createServerClient and getUser!
+	const {
+		data: { user },
+		error
+	} = await supabase.auth.getUser()
+	const hasSession = !!user && !error
 
 	// DEBUG: Log session state for testing
 	if (!hasSession) {
-		logger.debug('[NO_SESSION]', { pathname })
+		logger.debug('[NO_SESSION]', { pathname, error: error?.message })
 	}
 
 	// Simple route checks (just prefix matching - fast!)
