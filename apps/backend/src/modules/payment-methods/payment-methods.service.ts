@@ -310,4 +310,38 @@ export class PaymentMethodsService {
 
 		return { success: true }
 	}
+
+	/**
+	 * Attach a payment method to a Stripe customer
+	 * Direct SDK call for simplicity
+	 */
+	async attachPaymentMethod(methodId: string, customerId: string) {
+		return this.stripe.paymentMethods.attach(methodId, { customer: customerId })
+	}
+
+	/**
+	 * Detach a payment method from a Stripe customer
+	 * Direct SDK call for simplicity
+	 */
+	async detachPaymentMethod(methodId: string) {
+		return this.stripe.paymentMethods.detach(methodId)
+	}
+
+	/**
+	 * List payment methods from Stripe for a customer
+	 * Direct SDK call - returns Stripe API response
+	 */
+	async listStripePaymentMethods(customerId: string) {
+		return this.stripe.paymentMethods.list({ customer: customerId, type: 'card' })
+	}
+
+	/**
+	 * Set default payment method for a Stripe customer
+	 * Updates customer's invoice settings
+	 */
+	async setStripeDefaultPaymentMethod(customerId: string, methodId: string) {
+		return this.stripe.customers.update(customerId, {
+			invoice_settings: { default_payment_method: methodId }
+		})
+	}
 }
