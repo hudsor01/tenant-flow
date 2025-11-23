@@ -18,9 +18,10 @@ import {
 	Video
 } from 'lucide-react'
 import Link from 'next/link'
+import { env } from '#config/env'
 
 export default function ResourcesPage() {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	const baseUrl = env.NEXT_PUBLIC_BASE_URL
 
 	// Breadcrumb Schema
 	const breadcrumbSchema = {

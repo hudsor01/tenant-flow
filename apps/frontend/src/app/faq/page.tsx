@@ -8,9 +8,10 @@ import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
+import { env } from '#config/env'
 
 export default function FAQPage() {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	const baseUrl = env.NEXT_PUBLIC_BASE_URL
 	const faqCategories = faqData
 
 	// FAQ Schema for Google rich snippets - flatten all questions
