@@ -17,14 +17,14 @@ export default function DashboardPage() {
 			className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50"
 		>
 			<div className="dashboard-main border-b-2 border-slate-200/40 bg-gradient-to-b from-white via-slate-50/30 to-slate-100/20 dark:border-slate-700/40 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20">
-				<div className="dashboard-section mx-auto max-w-400" style={{ paddingInline: 'var(--layout-container-padding-x)', paddingBlock: 'var(--layout-content-padding)' }}>
+				<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
 					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-white">
 						Dashboard
 					</h1>
 					<div data-testid="dashboard-stats">
 						<ErrorBoundary
 							fallback={
-								<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+								<div className="dashboard-panel p-(--layout-content-padding-compact)">
 									<p className="text-sm text-muted-foreground">
 										Unable to load dashboard stats
 									</p>
@@ -36,12 +36,12 @@ export default function DashboardPage() {
 					</div>
 				</div>
 			</div>
-			<div className="dashboard-main flex-1" style={{ padding: 'var(--layout-content-padding) var(--layout-container-padding-x)' }}>
+			<div className="dashboard-main flex-1 py-(--layout-content-padding) px-(--layout-container-padding-x)">
 				<div className="dashboard-content mx-auto max-w-400">
 					{/* Trends & Performance Cards */}
 					<ErrorBoundary
 						fallback={
-							<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+							<div className="dashboard-panel p-(--layout-content-padding-compact)">
 								<p className="text-sm text-muted-foreground">
 									Unable to load trends section
 								</p>
@@ -54,7 +54,7 @@ export default function DashboardPage() {
 					{/* Quick Actions - Moved higher for visibility */}
 					<ErrorBoundary
 						fallback={
-							<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+							<div className="dashboard-panel p-(--layout-content-padding-compact)">
 								<p className="text-sm text-muted-foreground">
 									Unable to load quick actions
 								</p>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
 					{/* Portfolio Analytics Charts */}
 					<ErrorBoundary
 						fallback={
-							<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+							<div className="dashboard-panel p-(--layout-content-padding-compact)">
 								<p className="text-sm text-muted-foreground">
 									Unable to load charts section
 								</p>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
 					<div className="dashboard-grid">
 						<ErrorBoundary
 							fallback={
-								<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+								<div className="dashboard-panel p-(--layout-content-padding-compact)">
 									<p className="text-sm text-muted-foreground">
 										Unable to load activity feed
 									</p>
@@ -93,7 +93,7 @@ export default function DashboardPage() {
 
 						<ErrorBoundary
 							fallback={
-								<div className="dashboard-panel" style={{ padding: 'var(--layout-content-padding-compact)' }}>
+								<div className="dashboard-panel p-(--layout-content-padding-compact)">
 									<p className="text-sm text-muted-foreground">
 										Unable to load performance section
 									</p>
