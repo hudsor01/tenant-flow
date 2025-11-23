@@ -13,7 +13,6 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
-	Logger,
 	NotFoundException,
 	Param,
 	ParseIntPipe,
@@ -32,14 +31,19 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
-	InviteTenantRequest,
 	OwnerPaymentSummaryResponse,
 	TenantPaymentHistoryResponse,
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
-import type { ListFilters } from './tenant-list.service'
-import { TenantsService } from './tenants.service'
+import type { ListFilters } from './tenant-query.service'
+import { TenantQueryService } from './tenant-query.service'
+import { TenantCrudService } from './tenant-crud.service'
+import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
+import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
+import { TenantPaymentService } from './tenant-payment.service'
 import { TenantInvitationService } from './tenant-invitation.service'
+import { TenantInvitationTokenService } from './tenant-invitation-token.service'
+import { TenantResendInvitationService } from './tenant-resend-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
@@ -50,11 +54,15 @@ import {
 
 @Controller('tenants')
 export class TenantsController {
-	private readonly logger = new Logger(TenantsController.name)
-
 	constructor(
-		private readonly tenantsService: TenantsService,
-		private readonly tenantInvitationService: TenantInvitationService
+		private readonly queryService: TenantQueryService,
+		private readonly crudService: TenantCrudService,
+		private readonly emergencyContactService: TenantEmergencyContactService,
+		private readonly notificationPreferencesService: TenantNotificationPreferencesService,
+		private readonly paymentService: TenantPaymentService,
+		private readonly invitationService: TenantInvitationService,
+		private readonly invitationTokenService: TenantInvitationTokenService,
+		private readonly resendInvitationService: TenantResendInvitationService
 	) {}
 
 	@Get()
@@ -87,21 +95,21 @@ export class TenantsController {
 		if (limit !== undefined) filters.limit = limit
 		if (offset !== undefined) filters.offset = offset
 
-		return this.tenantsService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
+		return this.queryService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
 	}
 
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		return this.tenantsService.getStats(user_id)
+		return this.queryService.getStats(user_id)
 	}
 
 	@Get('summary')
 	async getSummary(@Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		return this.tenantsService.getSummary(user_id)
+		return this.queryService.getSummary(user_id)
 	}
 
 	/**
@@ -113,7 +121,7 @@ export class TenantsController {
 	async findOneWithLease(
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		const tenantWithLease = await this.tenantsService.findOneWithLease(
+		const tenantWithLease = await this.queryService.findOneWithLease(
 			id
 		)
 		if (!tenantWithLease) {
@@ -126,7 +134,7 @@ export class TenantsController {
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		const tenant = await this.tenantsService.findOne(id)
+		const tenant = await this.queryService.findOne(id)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -139,7 +147,7 @@ export class TenantsController {
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
-		const payments = await this.tenantsService.getTenantPaymentHistory(id, normalizedLimit)
+		const payments = await this.queryService.getTenantPaymentHistory(id, normalizedLimit)
 		return { payments } as unknown as TenantPaymentHistoryResponse
 	}
 
@@ -147,24 +155,13 @@ export class TenantsController {
 	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
-		const tenant = await this.tenantsService.create(
+		const tenant = await this.crudService.create(
 			user_id,
 			dto as unknown as CreateTenantRequest
 		)
 
-		// Auto-send invitation email after tenant creation (V2 - Supabase Auth)
-		// This is fire-and-forget to not block the response
-		// Note: property_id/lease_id are assigned later when lease is created
-		this.tenantsService.sendTenantInvitationV2(user_id, { email: tenant.id } as InviteTenantRequest).catch(err => {
-			// Log but don't fail the tenant creation if email fails
-			this.logger.warn(
-				'Failed to send invitation email after tenant creation',
-				{
-					tenant_id: tenant.id,
-					error: err instanceof Error ? err.message : String(err)
-				}
-			)
-		})
+		// NOTE: Auto-invitation removed - requires full lease data (property_id, unit_id)
+		// Use POST /tenants/invite-with-lease endpoint instead to invite tenants with complete lease information
 
 		return tenant
 	}
@@ -178,13 +175,10 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
 
-		//Pass version for optimistic locking
-		const expectedVersion = (dto as unknown as { version?: number }).version
-		const tenant = await this.tenantsService.update(
+		const tenant = await this.crudService.update(
 			user_id,
 			id,
-			dto as unknown as UpdateTenantRequest,
-			expectedVersion
+			dto as unknown as UpdateTenantRequest
 		)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
@@ -202,7 +196,7 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		const preferences = await this.tenantsService.getNotificationPreferences(
+		const preferences = await this.notificationPreferencesService.getPreferences(
 			user_id,
 			id
 		)
@@ -224,7 +218,7 @@ export class TenantsController {
 	) {
 		const user_id = req.user.id
 
-		const result = await this.tenantsService.updateNotificationPreferences(
+		const result = await this.notificationPreferencesService.updatePreferences(
 			user_id,
 			id,
 			dto as Record<string, boolean>
@@ -247,7 +241,7 @@ export class TenantsController {
 			)
 		}
 		const user_id = req.user.id
-		const tenant = await this.tenantsService.markAsMovedOut(
+		const tenant = await this.crudService.markAsMovedOut(
 			user_id,
 			id,
 			body.moveOutDate,
@@ -265,7 +259,7 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		await this.tenantsService.hardDelete(user_id, id)
+		await this.crudService.hardDelete(user_id, id)
 		return { message: 'Tenant permanently deleted' }
 	}
 
@@ -276,23 +270,21 @@ export class TenantsController {
 	) {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		await this.tenantsService.remove(user_id, id)
+		await this.crudService.softDelete(user_id, id)
 	}
 
 	/**
-	 * NEW: Send tenant invitation via Supabase Auth (V2 - Phase 3.1)
-	 * Uses Supabase Auth's built-in invitation system
+	 * DEPRECATED: This endpoint is incomplete and should not be used.
+	 * Use POST /tenants/invite-with-lease instead to create complete tenant invitations with lease data.
 	 */
 	@Post(':id/invite-v2')
 	@Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 invitations per hour
 	async sendInvitationV2(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Param('id', ParseUUIDPipe) _id: string,
+		@Req() _req: AuthenticatedRequest
 	) {
-		const user_id = req.user.id
-		return this.tenantsService.sendTenantInvitationV2(
-			user_id,
-			{ email: id } as InviteTenantRequest
+		throw new BadRequestException(
+			'This endpoint is deprecated. Use POST /tenants/invite-with-lease instead with complete lease information.'
 		)
 	}
 
@@ -316,7 +308,7 @@ export class TenantsController {
 	) {
 		const user_id = req.user.id
 
-		return this.tenantInvitationService.inviteTenantWithLease(
+		return this.invitationService.inviteTenantWithLease(
 		user_id,
 		{
 			email: body.tenantData.email,
@@ -341,7 +333,7 @@ export class TenantsController {
 	) {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		return this.tenantsService.resendInvitation(user_id, id)
+		return this.resendInvitationService.resendInvitation(user_id, id)
 	}
 
 	/**
@@ -351,7 +343,7 @@ export class TenantsController {
 	@Get('invitation/:token')
 	@SetMetadata('isPublic', true)
 	async validateInvitation(@Param('token') token: string) {
-		return this.tenantsService.validateInvitationToken(token)
+		return this.invitationTokenService.validateToken(token)
 	}
 
 	@Post('invitation/:token/accept')
@@ -363,7 +355,7 @@ export class TenantsController {
 		if (!body.authuser_id) {
 			throw new BadRequestException('authuser_id is required')
 		}
-		return this.tenantsService.acceptInvitationToken(token, body.authuser_id)
+		return this.invitationTokenService.acceptToken(token, body.authuser_id)
 	}
 
 	/**
@@ -377,7 +369,7 @@ export class TenantsController {
 		if (!body.authuser_id) {
 			throw new BadRequestException('authuser_id is required')
 		}
-		return this.tenantsService.activateTenantFromAuthUser(body.authuser_id)
+		return this.invitationTokenService.activateTenantFromAuthUser(body.authuser_id)
 	}
 
 	// ========================================
@@ -394,7 +386,7 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		const emergency_contact = await this.tenantsService.getEmergencyContact(
+		const emergency_contact = await this.emergencyContactService.getEmergencyContact(
 			user_id,
 			id
 		)
@@ -415,13 +407,15 @@ export class TenantsController {
 	) {
 		const user_id = req.user.id
 
-		const emergency_contact = await this.tenantsService.createEmergencyContact(
+		const serviceDto = {
+			contact_name: dto.contactName,
+			relationship: dto.relationship,
+			phone_number: dto.phoneNumber
+		}
+		const emergency_contact = await this.emergencyContactService.createEmergencyContact(
 			user_id,
 			id,
-			{
-				...dto,
-				email: dto.email ?? null
-			}
+			serviceDto
 		)
 
 		if (!emergency_contact) {
@@ -456,7 +450,7 @@ export class TenantsController {
 		if (dto.phoneNumber !== undefined) updated_data.phoneNumber = dto.phoneNumber
 		if (dto.email !== undefined) updated_data.email = dto.email ?? null
 
-		const emergency_contact = await this.tenantsService.updateEmergencyContact(
+		const emergency_contact = await this.emergencyContactService.updateEmergencyContact(
 			user_id,
 			id,
 			updated_data
@@ -478,7 +472,7 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		const deleted = await this.tenantsService.deleteEmergencyContact(user_id, id)
+		const deleted = await this.emergencyContactService.deleteEmergencyContact(user_id, id)
 
 		if (!deleted) {
 			throw new NotFoundException('Emergency contact not found')
@@ -496,8 +490,8 @@ export class TenantsController {
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 
 		// Get the tenant for this user first
-		const tenant = await this.tenantsService.getTenantByAuthUserId(user_id)
-		const payments = await this.tenantsService.getTenantPaymentHistory(tenant.id, normalizedLimit)
+		const tenant = await this.queryService.getTenantByAuthUserId(user_id)
+		const payments = await this.queryService.getTenantPaymentHistory(tenant.id, normalizedLimit)
 		return { payments } as unknown as TenantPaymentHistoryResponse
 	}
 
@@ -506,14 +500,14 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	): Promise<OwnerPaymentSummaryResponse> {
 		const user_id = req.user.id
-		return this.tenantsService.getOwnerPaymentSummary(user_id)
+		return this.paymentService.getOwnerPaymentSummary(user_id)
 	}
 
 	@Post('payments/reminders')
 	async sendPaymentReminder(
 		@Body() body: { tenant_id: string; email: string; amount_due: number }
 	) {
-		return this.tenantsService.sendPaymentReminder(
+		return this.paymentService.sendPaymentReminderLegacy(
 			body.tenant_id,
 			body.email,
 			body.amount_due
