@@ -10,8 +10,6 @@ import {
 import { BarChart3, FileText, Filter, Plus } from 'lucide-react'
 import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
-
 export default function ReportsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">

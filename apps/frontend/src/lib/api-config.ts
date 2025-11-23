@@ -30,18 +30,18 @@ export function getApiBaseUrl(): string {
 
 /**
  * API base URL constant with local development override
- * 
+ *
  * For local development, if API URL is production but NODE_ENV is development,
  * redirect to local backend at http://localhost:4600
  */
 function getServerApiUrl(): string {
 	const baseUrl = env.NEXT_PUBLIC_API_BASE_URL
-	
+
 	// Override production API URL in development mode
-	if (process.env.NODE_ENV === 'development' && baseUrl === 'https://api.tenantflow.app') {
+	if (env.NODE_ENV === 'development' && baseUrl === 'https://api.tenantflow.app') {
 		return 'http://localhost:4600'
 	}
-	
+
 	return baseUrl
 }
 

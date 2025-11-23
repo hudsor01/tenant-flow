@@ -1,7 +1,5 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
 import { PasswordUpdateSection } from '#app/(protected)/settings/password-update-section'
 import { useTransition } from 'react'
 import { toast } from 'sonner'

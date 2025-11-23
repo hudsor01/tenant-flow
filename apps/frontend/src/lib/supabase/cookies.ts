@@ -1,5 +1,6 @@
 import type { CookieOptions, CookieOptionsWithName } from '@supabase/ssr'
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+import { env } from '#config/env'
 
 /**
  * Normalize Supabase-set cookie options so they work in local dev (http://localhost)
@@ -13,7 +14,7 @@ export function normalizeSupabaseCookieOptions(
 	if (!options) return undefined
 
 	const { domain, secure: _secure, ...rest } = options
-	const isProd = process.env.NODE_ENV === 'production'
+	const isProd = env.NODE_ENV === 'production'
 
 	return {
 		...rest,

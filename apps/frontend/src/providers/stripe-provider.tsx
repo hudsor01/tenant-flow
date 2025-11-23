@@ -6,19 +6,13 @@ import { EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useMutation } from '@tanstack/react-query'
 
+import { env } from '#config/env'
 import { clientFetch } from '#lib/api/client'
 import type { StripeCheckoutSessionResponse } from '@repo/shared/types/core'
 import { useModalMutation } from '../hooks/use-modal-mutation'
 
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-
-if (!publishableKey) {
-	throw new Error(
-		'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is required to initialise Stripe.'
-	)
-}
-
-const stripePromise = loadStripe(publishableKey)
+// T3 Env validates this at build time - no runtime check needed
+const stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 interface StripeProviderProps {
 	children: React.ReactNode

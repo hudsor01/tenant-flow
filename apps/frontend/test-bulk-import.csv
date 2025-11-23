@@ -1,0 +1,3 @@
+name,address,city,state,postal_code,property_type,description
+E2E Test Property 1,100 Test Street,San Antonio,TX,78201,APARTMENT,Test apartment for E2E
+E2E Test Property 2,200 Test Avenue,San Antonio,TX,78202,SINGLE_FAMILY,Test single family home

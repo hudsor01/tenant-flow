@@ -21,9 +21,9 @@ const nextConfig: NextConfig = {
 		resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mdx']
 	},
 
-	// Remove broad file tracing of all native addons (.node) which bloats
-	// serverless bundles. Next automatically traces required files.
-	// If a specific route needs native addons, add a narrowly-scoped include later.
+	// Cache Components: Next.js 16 feature for PPR with static shells + dynamic content
+	// Requires removing route segment config exports (dynamic, revalidate, runtime='edge')
+	// All pages are dynamic by default - use 'use cache' directive for static content
 	cacheComponents: true,
 	onDemandEntries: {
 		maxInactiveAge: 25 * 1000,

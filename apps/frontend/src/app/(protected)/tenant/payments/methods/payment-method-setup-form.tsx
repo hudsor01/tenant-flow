@@ -19,14 +19,14 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { env } from '#config/env'
 
 import { Button } from '#components/ui/button'
 
 const logger = createLogger({ component: 'PaymentMethodSetupForm' })
 
-const stripePromise = loadStripe(
-	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-)
+// T3 Env validates this at build time - no fallback needed
+const stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 interface PaymentMethodSetupFormProps {
 	onSuccess: (paymentMethodId: string) => void
