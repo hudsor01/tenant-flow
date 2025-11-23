@@ -27,10 +27,16 @@ export class RolesGuard implements CanActivate {
 			throw new ForbiddenException('Insufficient permissions')
 		}
 
+		// Normalize user_type: uppercase + map legacy values for backward compatibility
+		// Maps: property_owner -> OWNER, owner -> OWNER
+		let normalizedUserType = userType.toUpperCase()
+		if (normalizedUserType === 'PROPERTY_OWNER') {
+			normalizedUserType = 'OWNER'
+		}
+
 		// Case-insensitive role comparison to prevent bugs from inconsistent casing
-		const normalizedUserType = userType.toUpperCase()
 		const normalizedRequiredRoles = requiredRoles.map(role => role.toUpperCase())
-		
+
 		if (!normalizedRequiredRoles.includes(normalizedUserType)) {
 			throw new ForbiddenException('Insufficient permissions')
 		}

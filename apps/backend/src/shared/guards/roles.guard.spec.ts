@@ -190,4 +190,54 @@ describe('RolesGuard', () => {
 			}
 		)
 	})
+
+	describe('legacy user_type mapping', () => {
+		it('allows access when user_type is "property_owner" and required role is "OWNER"', () => {
+			const reflector = createMockReflector(['OWNER'])
+			const guard = new RolesGuard(reflector)
+			const context = createContext({
+				user: createMockUser({
+					id: 'owner-1',
+					email: 'owner@example.com',
+					app_metadata: { user_type: 'property_owner' }
+				})
+			})
+
+			const result = guard.canActivate(context)
+
+			expect(result).toBe(true)
+		})
+
+		it('allows access when user_type is "PROPERTY_OWNER" and required role is "OWNER"', () => {
+			const reflector = createMockReflector(['OWNER'])
+			const guard = new RolesGuard(reflector)
+			const context = createContext({
+				user: createMockUser({
+					id: 'owner-1',
+					email: 'owner@example.com',
+					app_metadata: { user_type: 'PROPERTY_OWNER' }
+				})
+			})
+
+			const result = guard.canActivate(context)
+
+			expect(result).toBe(true)
+		})
+
+		it('allows access when user_type is "Property_Owner" and required role is "OWNER"', () => {
+			const reflector = createMockReflector(['OWNER'])
+			const guard = new RolesGuard(reflector)
+			const context = createContext({
+				user: createMockUser({
+					id: 'owner-1',
+					email: 'owner@example.com',
+					app_metadata: { user_type: 'Property_Owner' }
+				})
+			})
+
+			const result = guard.canActivate(context)
+
+			expect(result).toBe(true)
+		})
+	})
 })
