@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
 	// Remove broad file tracing of all native addons (.node) which bloats
 	// serverless bundles. Next automatically traces required files.
 	// If a specific route needs native addons, add a narrowly-scoped include later.
-	cacheComponents: false,
+	cacheComponents: true,
 	onDemandEntries: {
 		maxInactiveAge: 25 * 1000,
 		pagesBufferLength: 2

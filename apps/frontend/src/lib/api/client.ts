@@ -40,23 +40,22 @@ export async function getAuthHeaders(
 
 	const supabase = getSupabaseClientInstance()
 
-	// SECURITY FIX: Get session first (atomic operation) then validate
-	// This prevents race conditions where session might expire between calls
+	// OFFICIAL SUPABASE SSR PATTERN: Call getUser() first to wait for session initialization
+	// This prevents race conditions where client components try to fetch before session is ready
+	// Reference: apps/frontend/src/lib/supabase/middleware.ts (same pattern)
 	const {
-		data: { session },
-		error: sessionError
-	} = await supabase.auth.getSession()
+		data: { user },
+		error: userError
+	} = await supabase.auth.getUser()
 
-	// Validate session before using token
-	if (session?.access_token) {
-		// SECURITY: Verify session is still valid by checking if we can get user
-		// This ensures the token hasn't been revoked or expired
+	// If user exists, get session to extract token
+	if (!userError && user) {
 		const {
-			data: { user },
-			error: userError
-		} = await supabase.auth.getUser()
+			data: { session },
+			error: sessionError
+		} = await supabase.auth.getSession()
 
-		if (!userError && user) {
+		if (session?.access_token) {
 			// Additional JWT validation: check token expiration
 			try {
 				const tokenParts = session.access_token.split('.')
@@ -99,33 +98,32 @@ export async function getAuthHeaders(
 				}
 			}
 		} else {
-			// Session exists but user validation failed - token might be expired or revoked
-				logger.warn('Session token invalid during validation, falling back to cookie auth', {
-					metadata: {
-						hasSession: !!session,
-						hasUser: !!user,
-						userError: userError?.message,
-						requireAuth
-					}
-				})
+			// User exists but no session - log warning
+			logger.warn('User exists but session unavailable', {
+				metadata: {
+					hasUser: !!user,
+					hasSession: !!session,
+					sessionError: sessionError?.message,
+					requireAuth
+				}
+			})
+			if (requireAuth) {
+				throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+			}
 		}
-	} else if (requireAuth) {
-		// No session found - fall back to cookie-based auth
-		logger.warn('No authentication session found, falling back to cookie auth', {
-			metadata: {
-				hasSession: !!session,
-				sessionError: sessionError?.message,
-				requireAuth
-			}
-		})
 	} else {
-		// Log warning for optional auth endpoints
-		logger.warn('No valid session found for API request', {
+		// No user found - log for debugging but don't fail the request
+		// The middleware/server will handle redirects for protected routes
+		logger.debug('No authenticated user found', {
 			metadata: {
-				hasSession: !!session,
+				hasUser: !!user,
+				userError: userError?.message,
 				requireAuth
 			}
 		})
+		if (requireAuth) {
+			throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+		}
 	}
 
 	return headers

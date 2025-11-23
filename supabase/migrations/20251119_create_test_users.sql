@@ -17,7 +17,7 @@ INSERT INTO public.users (
   'Test Admin',
   'Test',
   'Admin',
-  'property_owner',
+  'OWNER',
   'active'
 )
 ON CONFLICT (email) DO UPDATE SET
