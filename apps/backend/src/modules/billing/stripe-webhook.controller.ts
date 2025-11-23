@@ -245,8 +245,10 @@ export class StripeWebhookController {
 	/**
 	 * Process webhook events using a switch statement
 	 * This is simpler and faster than EventEmitter
+	 *
+	 * Public to allow retry service to call directly
 	 */
-	private async processWebhookEvent(event: Stripe.Event): Promise<void> {
+	async processWebhookEvent(event: Stripe.Event): Promise<void> {
 		switch (event.type) {
 			case 'checkout.session.completed':
 				await this.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
