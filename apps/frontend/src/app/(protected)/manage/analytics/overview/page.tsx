@@ -15,11 +15,9 @@ import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
-import { cacheLife } from 'next/cache'
 
 export default async function AnalyticsPage() {
-	'use cache'
-	cacheLife('minutes')
+	// Data fetching already uses React cache() - no page-level caching needed
 	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
 	const {
 		dashboardStats: dashboardData,
