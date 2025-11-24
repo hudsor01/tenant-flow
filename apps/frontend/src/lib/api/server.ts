@@ -8,12 +8,11 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import {
-	SB_URL,
-	SB_PUBLISHABLE_KEY,
+	SUPABASE_URL,
+	SUPABASE_PUBLISHABLE_KEY,
 	assertSupabaseConfig
 } from '@repo/shared/config/supabase'
 import { isProduction } from '#config/env'
-import { applySupabaseCookies } from '#lib/supabase/cookies'
 
 const logger = createLogger({ component: 'ServerAPI' })
 
@@ -34,8 +33,8 @@ export async function serverFetch<T>(
 
 	// Create Supabase client with cookie handling (pattern from login/actions.ts)
 	const supabase = createServerClient<Database>(
-		SB_URL!, // Non-null: validated by assertSupabaseConfig()
-		SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
+		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
+		SUPABASE_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 		{
 			cookies: {
 				getAll() {
@@ -43,16 +42,20 @@ export async function serverFetch<T>(
 				},
 				setAll(cookiesToSet: CookieOptionsWithName[]) {
 					try {
-						applySupabaseCookies(
-						(name, value, options) => {
-							if (options) {
-								cookieStore.set(name, value, options)
+						cookiesToSet.forEach((cookie) => {
+							// Type assertion: CookieOptionsWithName has name and value
+							const cookieWithProps = cookie as typeof cookie & { name: string; value: string }
+							const name = cookieWithProps.name
+							const value = cookieWithProps.value
+							const { name: _, value: __, ...options } = cookieWithProps
+							const typedOptions = options as Parameters<typeof cookieStore.set>[2]
+							// Only pass options if they exist (some properties might be set)
+							if (typedOptions && Object.keys(typedOptions).length > 0) {
+								cookieStore.set(name, value, typedOptions)
 							} else {
 								cookieStore.set(name, value)
 							}
-						},
-						cookiesToSet
-					)
+						})
 					} catch {
 						// The `setAll` method was called from a Server Component.
 						// This can be ignored if you have middleware refreshing

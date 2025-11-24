@@ -1,0 +1,442 @@
+/**
+ * Webhook Processor Service
+ *
+ * Handles Stripe webhook event processing logic.
+ * Used by both StripeWebhookController and WebhookRetryService.
+ */
+
+import { Injectable, Logger } from '@nestjs/common'
+import type Stripe from 'stripe'
+import type { LeaseStatus } from '@repo/shared/constants/status-types'
+import { LEASE_STATUS } from '@repo/shared/constants/status-types'
+import { SupabaseService } from '../../database/supabase.service'
+import type { SupabaseError, StripeCheckoutSession, StripeCustomer, StripeSubscription } from '../../types/stripe-schema'
+
+@Injectable()
+export class WebhookProcessor {
+	private readonly logger = new Logger(WebhookProcessor.name)
+
+	constructor(private readonly supabase: SupabaseService) {}
+
+	async processEvent(event: Stripe.Event): Promise<void> {
+		switch (event.type) {
+			case 'checkout.session.completed':
+				await this.handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
+				break
+
+			case 'payment_method.attached':
+				await this.handlePaymentAttached(event.data.object as Stripe.PaymentMethod)
+				break
+
+			case 'customer.subscription.updated':
+				await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
+				break
+
+			case 'invoice.payment_failed':
+				await this.handlePaymentFailed(event.data.object as Stripe.Invoice)
+				break
+
+			case 'customer.subscription.deleted':
+				await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
+				break
+
+			default:
+				this.logger.debug('Unhandled webhook event type', { type: event.type })
+		}
+	}
+
+	private async handlePaymentAttached(paymentMethod: Stripe.PaymentMethod): Promise<void> {
+		try {
+			this.logger.log('Payment method attached', {
+				customerId: paymentMethod.customer
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			const customerId =
+				typeof paymentMethod.customer === 'string'
+					? paymentMethod.customer
+					: paymentMethod.customer?.id
+
+			if (!customerId) {
+				this.logger.warn('No customer ID on payment method')
+				return
+			}
+
+			const { data: tenant } = await client
+				.from('tenants')
+				.select('id')
+				.eq('stripe_customer_id', customerId)
+				.single()
+
+			if (!tenant) {
+				this.logger.warn('Tenant not found for payment method', {
+					customerId: paymentMethod.customer
+				})
+				return
+			}
+
+			const { data: tenantWithUser } = await client
+				.from('tenants')
+				.select('id, user_id, users!inner(email)')
+				.eq('id', tenant.id)
+				.single()
+
+			if (tenantWithUser) {
+				await client
+					.from('tenant_invitations')
+					.update({
+						status: 'accepted',
+						accepted_by_user_id: tenantWithUser.user_id,
+						accepted_at: new Date().toISOString()
+					})
+					.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
+					.eq('status', 'pending')
+			}
+
+			this.logger.log('Tenant invitation accepted', {
+				tenant_id: tenant.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle payment method attached', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+		try {
+			this.logger.log('Subscription updated', {
+				subscriptionId: subscription.id,
+				status: subscription.status
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			const { data: lease } = await client
+				.from('leases')
+				.select('id')
+				.eq('stripe_subscription_id', subscription.id)
+				.single()
+
+			if (!lease) {
+				this.logger.warn('Lease not found for subscription', {
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			let lease_status: LeaseStatus = LEASE_STATUS.DRAFT
+
+			if (subscription.status === 'active') {
+				lease_status = LEASE_STATUS.ACTIVE
+			} else if (subscription.status === 'canceled') {
+				lease_status = LEASE_STATUS.TERMINATED
+			}
+
+			await client
+				.from('leases')
+				.update({
+					lease_status: lease_status,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', lease.id)
+
+			this.logger.log('Lease status updated', {
+				lease_id: lease.id,
+				status: lease_status
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle subscription updated', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+		try {
+			this.logger.log('Payment failed', {
+				invoiceId: invoice.id,
+				customerId: invoice.customer
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			const customerId =
+				typeof invoice.customer === 'string'
+					? invoice.customer
+					: invoice.customer?.id
+
+			if (!customerId) {
+				this.logger.warn('No customer ID on invoice')
+				return
+			}
+
+			const { data: tenant } = await client
+				.from('tenants')
+				.select('id, user_id')
+				.eq('stripe_customer_id', customerId)
+				.single()
+
+			if (!tenant) {
+				this.logger.warn('Tenant not found for payment failure', {
+					customerId
+				})
+				return
+			}
+
+			this.logger.warn('Payment failure for tenant', {
+				tenant_id: tenant.id,
+				invoice_id: invoice.id,
+				amount: invoice.amount_due / 100,
+				failure_reason: invoice.last_finalization_error?.message || 'Unknown error'
+			})
+
+			this.logger.log('Payment failure processed', {
+				tenant_id: tenant.id,
+				invoice_id: invoice.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle payment failure', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
+		try {
+			this.logger.log('Subscription deleted', {
+				subscriptionId: subscription.id
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			const { data: lease } = await client
+				.from('leases')
+				.select('id')
+				.eq('stripe_subscription_id', subscription.id)
+				.single()
+
+			if (!lease) {
+				this.logger.warn('Lease not found for deleted subscription', {
+					subscriptionId: subscription.id
+				})
+				return
+			}
+
+			await client
+				.from('leases')
+				.update({
+					lease_status: LEASE_STATUS.TERMINATED,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', lease.id)
+
+			this.logger.log('Lease terminated due to subscription deletion', {
+				lease_id: lease.id
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle subscription deletion', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	private async handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+		try {
+			this.logger.log('Checkout session completed', {
+				sessionId: session.id,
+				stripeCustomerId: session.customer,
+				stripeSubscriptionId: session.subscription
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			const { data: checkoutSession, error: sessionError } = (await (
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+			(client as any).schema('stripe')
+		)
+				.from('checkout_sessions')
+				.select('*')
+				.eq('stripe_id', session.id)
+				.maybeSingle()) as {
+				data: StripeCheckoutSession | null
+				error: SupabaseError | null
+			}
+
+			if (sessionError) {
+				this.logger.error('Failed to query checkout session', {
+					error: sessionError.message,
+					sessionId: session.id
+				})
+			}
+
+			if (!checkoutSession) {
+				this.logger.warn('Checkout session not synced yet - will retry', {
+					sessionId: session.id
+				})
+				throw new Error('Checkout session not synced - retry')
+			}
+
+			const stripeCustomerId = typeof session.customer === 'string'
+				? session.customer
+				: session.customer?.id
+
+			if (!stripeCustomerId) {
+				this.logger.error('No customer ID in checkout session', { sessionId: session.id })
+				return
+			}
+
+			const { data: stripeCustomer, error: customerError} = (await (
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+			(client as any).schema('stripe')
+		)
+				.from('customers')
+				.select('id, stripe_id, email, name')
+				.eq('stripe_id', stripeCustomerId)
+				.maybeSingle()) as {
+				data: Pick<StripeCustomer, 'id' | 'stripe_id' | 'email' | 'name'> | null
+				error: SupabaseError | null
+			}
+
+			if (customerError || !stripeCustomer) {
+				this.logger.error('Failed to query stripe customer', {
+					error: customerError?.message,
+					stripeCustomerId
+				})
+				throw new Error('Stripe customer not synced - retry')
+			}
+
+			const customerEmail = stripeCustomer.email
+			if (!customerEmail) {
+				this.logger.error('No email for stripe customer', {
+					stripeCustomerId,
+					stripeCustomerDbId: stripeCustomer.id
+				})
+				return
+			}
+
+			const { data: existingUser } = await client
+				.from('users')
+				.select('id, email, stripe_customer_id')
+				.eq('email', customerEmail.toLowerCase())
+				.maybeSingle()
+
+			if (existingUser) {
+				this.logger.log('User already exists for checkout session', {
+					userId: existingUser.id,
+					email: customerEmail,
+					sessionId: session.id
+				})
+
+				if (!existingUser.stripe_customer_id) {
+					await client
+						.from('users')
+						.update({
+							stripe_customer_id: stripeCustomerId,
+							updated_at: new Date().toISOString()
+						})
+						.eq('id', existingUser.id)
+
+					this.logger.log('Updated user with stripe_customer_id', {
+						userId: existingUser.id,
+						stripeCustomerId
+					})
+				}
+
+				return
+			}
+
+			const customerName = stripeCustomer.name || customerEmail.split('@')[0] || 'Owner'
+
+			const { data: authUser, error: authError } = await client.auth.admin.createUser({
+				email: customerEmail.toLowerCase(),
+				email_confirm: true,
+				user_metadata: {
+					full_name: customerName,
+					stripe_customer_id: stripeCustomerId,
+					onboarding_source: 'stripe_checkout'
+				}
+			})
+
+			if (authError || !authUser.user) {
+				this.logger.error('Failed to create Supabase auth user', {
+					error: authError?.message,
+					email: customerEmail,
+					sessionId: session.id
+				})
+				throw new Error(`Failed to create auth user: ${authError?.message}`)
+			}
+
+			this.logger.log('Created Supabase auth user', {
+				userId: authUser.user.id,
+				email: customerEmail
+			})
+
+			const { error: usersError } = await client.from('users').insert({
+				id: authUser.user.id,
+				email: customerEmail.toLowerCase(),
+				full_name: customerName,
+				user_type: 'OWNER',
+				stripe_customer_id: stripeCustomerId,
+				status: 'active',
+				created_at: new Date().toISOString()
+			})
+
+			if (usersError) {
+				this.logger.error('Failed to create users table row', {
+					error: usersError.message,
+					userId: authUser.user.id,
+					sessionId: session.id
+				})
+				throw new Error(`Failed to create users row: ${usersError.message}`)
+			}
+
+			this.logger.log('User creation completed', {
+				userId: authUser.user.id,
+				email: customerEmail,
+				stripeCustomerDbId: stripeCustomer.id,
+				stripeCustomerId,
+				sessionId: session.id
+			})
+
+			const stripeSubscriptionId = typeof session.subscription === 'string'
+				? session.subscription
+				: session.subscription?.id
+
+			if (stripeSubscriptionId) {
+				const { data: subscription } = (await (
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+				(client as any).schema('stripe')
+			)
+					.from('subscriptions')
+					.select('id, stripe_id, status')
+					.eq('stripe_id', stripeSubscriptionId)
+					.maybeSingle()) as {
+					data: Pick<StripeSubscription, 'id' | 'stripe_id' | 'status'> | null
+					error: SupabaseError | null
+				}
+
+				if (subscription) {
+					this.logger.log('Subscription already synced', {
+						subscriptionDbId: subscription.id,
+						stripeSubscriptionId,
+						status: subscription.status
+					})
+				} else {
+					this.logger.warn('Subscription not synced yet', { stripeSubscriptionId })
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to handle checkout session completed', {
+				error: error instanceof Error ? error.message : String(error),
+				sessionId: session.id
+			})
+			throw error
+		}
+	}
+}

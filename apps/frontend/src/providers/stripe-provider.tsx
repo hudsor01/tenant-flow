@@ -6,13 +6,12 @@ import { EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useMutation } from '@tanstack/react-query'
 
-import { env } from '#config/env'
 import { clientFetch } from '#lib/api/client'
 import type { StripeCheckoutSessionResponse } from '@repo/shared/types/core'
 import { useModalMutation } from '../hooks/use-modal-mutation'
 
 // T3 Env validates this at build time - no runtime check needed
-const stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface StripeProviderProps {
 	children: React.ReactNode
