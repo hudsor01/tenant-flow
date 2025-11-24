@@ -3,10 +3,11 @@
 import { Button } from '#components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '#components/ui/sheet'
 import { cn } from '#lib/utils'
-import { Building2, Home, Menu, Users, Wrench } from 'lucide-react'
+import { Building2, Home, LogOut, Menu, Users, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useTransition } from 'react'
+import { signOut } from '#app/actions/auth'
 
 interface MobileNavItem {
 	label: string
@@ -43,6 +44,7 @@ NavItem.displayName = 'NavItem'
 
 export const MobileNav = memo(() => {
 	const pathname = usePathname()
+	const [isPending, startTransition] = useTransition()
 
 	const activeIndex = useMemo(() => {
 		// First, try to find an exact match
@@ -52,6 +54,12 @@ export const MobileNav = memo(() => {
 		// If no exact match, find the first prefix match
 		return MOBILE_NAV_ITEMS.findIndex(item => pathname.startsWith(`${item.href}/`))
 	}, [pathname])
+
+	const handleSignOut = () => {
+		startTransition(async () => {
+			await signOut()
+		})
+	}
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background md:hidden">
@@ -72,26 +80,42 @@ export const MobileNav = memo(() => {
 						</Button>
 					</SheetTrigger>
 					<SheetContent side="bottom" className="h-[60vh] px-0">
-						<div className="space-y-2 p-4">
-							{MOBILE_NAV_ITEMS.map(item => {
-								const Icon = item.icon
-								const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
-								return (
-									<Link
-										key={item.href}
-										href={item.href}
-										className={cn(
-											'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
-											isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-										)}
-										aria-label={`${item.label} navigation`}
-										aria-current={isActive ? 'page' : undefined}
-									>
-										<Icon className="size-4" aria-hidden />
-										{item.label}
+						<div className="flex flex-col h-full">
+							<div className="flex-1 space-y-2 p-4">
+								{MOBILE_NAV_ITEMS.map(item => {
+									const Icon = item.icon
+									const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+									return (
+										<Link
+											key={item.href}
+											href={item.href}
+											className={cn(
+												'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
+												isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
+											)}
+											aria-label={`${item.label} navigation`}
+											aria-current={isActive ? 'page' : undefined}
+										>
+											<Icon className="size-4" aria-hidden />
+											{item.label}
 										</Link>
 									)
-							})}
+								})}
+							</div>
+							
+							{/* Logout Button */}
+							<div className="border-t border-border p-4">
+								<Button
+									variant="outline"
+									className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+									onClick={handleSignOut}
+									disabled={isPending}
+									aria-label="Sign out"
+								>
+									<LogOut className="size-4" aria-hidden />
+									{isPending ? 'Signing out...' : 'Sign Out'}
+								</Button>
+							</div>
 						</div>
 					</SheetContent>
 				</Sheet>
