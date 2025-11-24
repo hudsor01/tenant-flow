@@ -25,7 +25,7 @@ export const JwtToken = createParamDecorator(
 		}
 
 		// Try cookies (Supabase Next.js middleware sets cookies)
-		const supabaseUrl = process.env.SB_URL
+		const supabaseUrl = process.env.SUPABASE_URL
 		if (!supabaseUrl) {
 			throw new UnauthorizedException('Supabase configuration missing')
 		}

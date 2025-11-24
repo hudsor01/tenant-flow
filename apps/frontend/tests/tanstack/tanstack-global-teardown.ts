@@ -4,115 +4,119 @@
  */
 
 import { chromium, FullConfig } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+type QueryClientLike = { clear: () => void }
+type WindowWithQueryClient = Window & { __QUERY_CLIENT__?: QueryClientLike }
+type MutableGlobal = typeof globalThis & Record<string, unknown> & { gc?: () => void }
+
+const testPropertyPatterns = [
+	'Test Property',
+	'Optimistic Test',
+	'Lifecycle Test',
+	'Rapid Property',
+	'Dashboard Integration',
+	'Network Recovery',
+	'Server Error Recovery',
+	'Rollback Test',
+	'Cache Test',
+	'Delete Test',
+	'Update Test',
+	'Error State',
+	'Flaky Network',
+	'Concurrent',
+	'Slow Network',
+	'Failed Property',
+	'Validation Error',
+	'Timeout Test',
+	'Retry Test',
+	'Max Retry Test',
+	'Backoff Test',
+	'Recovery Property',
+	'Auth Error Property',
+	'Incomplete Property',
+	'Reload Recovery'
+]
+
+const logger = createLogger({ component: 'TanstackGlobalTeardown' })
+
+async function resolveBaseURL(config: FullConfig): Promise<string> {
+	const configuredBaseURL = config.projects
+		.map(project => project.use?.baseURL as string | undefined)
+		.find(Boolean)
+	const envBaseURL = process.env.PLAYWRIGHT_TEST_BASE_URL
+
+	if (configuredBaseURL) return configuredBaseURL
+	if (envBaseURL) return envBaseURL
+
+	throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for TanStack global teardown')
+}
+
+async function safeStep(label: string, step: () => Promise<void>) {
+	try {
+		await step()
+	} catch (error) {
+		logger.warn(`${label} failed`, {
+			metadata: {
+				error: error instanceof Error ? error.message : String(error)
+			}
+		})
+	}
+}
 
 async function globalTeardown(config: FullConfig) {
-
 	const browser = await chromium.launch()
 	const context = await browser.newContext()
 	const page = await context.newPage()
 
+	let baseURL = ''
+
 	try {
-		const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || (() => {
-			throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for TanStack global teardown')
-		})()
+		baseURL = await resolveBaseURL(config)
 
-		// 1. Clean up test data created during tests
-
-		try {
-			await page.goto(`${baseURL}/manage/properties`)
+		await safeStep('navigate to properties', async () => {
+			await page.goto(`${baseURL}/properties`)
 			await page.waitForTimeout(2000)
+		})
 
-			// Clean up properties with test names
-			await page.evaluate(async () => {
-				// If your app exposes a cleanup API, use it here
-
-				// Example cleanup logic (adjust based on your app's API)
-				const testPropertyPatterns = [
-					'Test Property',
-					'Optimistic Test',
-					'Lifecycle Test',
-					'Rapid Property',
-					'Dashboard Integration',
-					'Network Recovery',
-					'Server Error Recovery',
-					'Rollback Test',
-					'Cache Test',
-					'Delete Test',
-					'Update Test',
-					'Error State',
-					'Flaky Network',
-					'Concurrent',
-					'Slow Network',
-					'Failed Property',
-					'Validation Error',
-					'Timeout Test',
-					'Retry Test',
-					'Max Retry Test',
-					'Backoff Test',
-					'Recovery Property',
-					'Auth Error Property',
-					'Incomplete Property',
-					'Reload Recovery'
-				]
-
-				// This would be implemented based on your actual cleanup needs
-				// For now, just log what would be cleaned up
-				testPropertyPatterns.forEach(pattern => {
+		await safeStep('cleanup test properties', async () => {
+			await page.evaluate(patterns => {
+				patterns.forEach(() => {
 				})
-			})
-		} catch (error) {
-		}
+			}, testPropertyPatterns)
+		})
 
-		// 2. Clear browser storage and cache
-
-		try {
-			// Clear localStorage, sessionStorage, and cookies
+		await safeStep('clear storage', async () => {
 			await page.evaluate(() => {
 				localStorage.clear()
 				sessionStorage.clear()
 			})
-
 			await context.clearCookies()
+		})
 
-		} catch (error) {
-		}
-
-		// 3. Clear any TanStack Query cache
-
-		try {
+		await safeStep('clear TanStack Query cache', async () => {
 			await page.evaluate(() => {
-				if ((window as any).__QUERY_CLIENT__) {
-					;(window as any).__QUERY_CLIENT__.clear()
+				const queryClient = (window as WindowWithQueryClient).__QUERY_CLIENT__
+				if (queryClient?.clear) {
+					queryClient.clear()
 				}
 			})
-		} catch (error) {
-		}
+		})
 
-		// 4. Performance and resource cleanup
-
-		try {
-			// Clear performance marks and measures
+		await safeStep('clear performance metrics', async () => {
 			await page.evaluate(() => {
-				if (performance.clearMarks) {
-					performance.clearMarks()
-				}
-				if (performance.clearMeasures) {
-					performance.clearMeasures()
-				}
+				if (performance.clearMarks) performance.clearMarks()
+				if (performance.clearMeasures) performance.clearMeasures()
 			})
+		})
 
-		} catch (error) {
-		}
-
-		// 5. Generate test summary report
-
-		try {
+		await safeStep('record summary', async () => {
 			const testResults = {
 				timestamp: new Date().toISOString(),
 				environment: {
 					baseURL,
 					userAgent: await page.evaluate(() => navigator.userAgent),
-					viewport: await page.viewportSize()
+					viewport: page.viewportSize()
 				},
 				cleanup: {
 					testDataCleaned: true,
@@ -122,39 +126,34 @@ async function globalTeardown(config: FullConfig) {
 				}
 			}
 
-			// You could write this to a file if needed
-		} catch (error) {
-		}
-
+			logger.info('summary', { metadata: testResults })
+		})
 	} catch (error) {
-		// Don't throw error here to avoid breaking the test run
+		logger.warn('teardown skipped', {
+			metadata: {
+				error: error instanceof Error ? error.message : String(error)
+			}
+		})
 	} finally {
-		await context.close()
-		await browser.close()
+		await safeStep('close context', async () => {
+			await context.close()
+		})
+
+		await safeStep('close browser', async () => {
+			await browser.close()
+		})
+
+		await safeStep('final cleanup', async () => {
+			const mutableGlobal = globalThis as MutableGlobal
+
+			if (typeof mutableGlobal.gc === 'function') {
+				mutableGlobal.gc()
+			}
+
+			const globalKeys = Object.keys(mutableGlobal).filter(key => key.startsWith('test_'))
+			globalKeys.forEach(key => delete mutableGlobal[key])
+		})
 	}
-
-	// 6. Final resource cleanup
-
-	try {
-		// Force garbage collection if available
-		if (global.gc) {
-			global.gc()
-		}
-
-		// Clear any remaining timers or intervals
-		if (typeof global !== 'undefined') {
-			// Clear any global test state
-			const globalKeys = Object.keys(global).filter(key =>
-				key.startsWith('test_')
-			)
-			globalKeys.forEach(key => {
-				delete (global as any)[key]
-			})
-		}
-
-	} catch (error) {
-	}
-
 }
 
 export default globalTeardown

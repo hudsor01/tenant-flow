@@ -13,6 +13,7 @@ import { StripeConnectService } from './stripe-connect.service'
 import { StripeConnectController } from './stripe-connect.controller'
 import { WebhookRetryService } from './webhook-retry.service'
 import { StripeWebhookController } from './stripe-webhook.controller'
+import { WebhookProcessor } from './webhook-processor.service'
 import { UsersModule } from '../users/users.module'
 import { BillingService } from './billing.service'
 import { StripeSharedService } from './stripe-shared.service'
@@ -44,6 +45,7 @@ import { StripeSharedService } from './stripe-shared.service'
 		StripeTenantService,
 		StripeOwnerService,
 		StripeConnectService,
+		WebhookProcessor,
 		WebhookRetryService
 	],
 	controllers: [

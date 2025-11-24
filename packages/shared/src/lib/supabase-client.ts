@@ -14,11 +14,10 @@ import {
 	type User
 } from '@supabase/supabase-js'
 import type { Database } from '../types/supabase.js'
-// Import from centralized config for consistent SB_* → SUPABASE_* → NEXT_PUBLIC_SUPABASE_* fallback
-import { SB_URL, SB_PUBLISHABLE_KEY, assertSupabaseConfig } from '../config/supabase.js'
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, assertSupabaseConfig } from '../config/supabase.js'
 
 // Admin secret key (backend only, not in centralized config)
-const SB_SECRET_KEY = process.env.SB_SECRET_KEY || process.env.SUPABASE_SECRET_KEY
+const SUPABASE_SECRET_KEY = process.env.SECRET_KEY_SUPABASE || process.env.SECRET_KEY_SUPABASE
 
 // Type alias for public-schema-only clients
 // This prevents type errors when Database includes multiple schemas (public + stripe)
@@ -40,8 +39,8 @@ function getSupabaseClient(): PublicSupabaseClient {
 	// and prevents "both auth code and code verifier should be non-empty" errors.
 	if (isBrowser) {
 		_client = createBrowserClient<Database>(
-			SB_URL!, // Non-null: validated by assertSupabaseConfig()
-			SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
+			SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
+			SUPABASE_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 			{
 				db: { schema: 'public' }
 			}
@@ -51,8 +50,8 @@ function getSupabaseClient(): PublicSupabaseClient {
 
 	// Backend/Node environments can keep using the standard client
 	_client = createClient<Database>(
-		SB_URL!, // Non-null: validated by assertSupabaseConfig()
-		SB_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
+		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
+		SUPABASE_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 		{
 			auth: {
 				persistSession: true,
@@ -91,12 +90,12 @@ export const supabaseClient = new Proxy({} as PublicSupabaseClient, {
  * ONLY use this in backend services where you need to bypass RLS
  *
  * SECURITY WARNING: Never use this client with user input without validation
- * IMPORTANT: This will throw an error if used in frontend without SB_SECRET_KEY
+ * IMPORTANT: This will throw an error if used in frontend without SUPABASE_SECRET_KEY
  */
 export function getSupabaseAdmin(): PublicSupabaseClient {
-	if (!SB_SECRET_KEY) {
+	if (!SUPABASE_SECRET_KEY) {
 		throw new Error(
-			'SB_SECRET_KEY required for admin client - this should only be used in backend services'
+			'SUPABASE_SECRET_KEY required for admin client - this should only be used in backend services'
 		)
 	}
 
@@ -104,8 +103,8 @@ export function getSupabaseAdmin(): PublicSupabaseClient {
 	assertSupabaseConfig()
 
 	return createClient<Database>(
-		SB_URL!, // Non-null: validated by assertSupabaseConfig()
-		SB_SECRET_KEY,
+		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
+		SUPABASE_SECRET_KEY,
 		{
 			auth: {
 				persistSession: false,

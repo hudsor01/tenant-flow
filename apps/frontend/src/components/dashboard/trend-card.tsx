@@ -49,9 +49,9 @@ export function TrendCard({
   }
 
   const { current, change, percentChange } = metric
-  const isPositive = change > 0
-  const isNegative = change < 0
-  const isNeutral = change === 0
+  const isPositive = (change ?? 0) > 0
+  const isNegative = (change ?? 0) < 0
+  const isNeutral = (change ?? 0) === 0
 
   const TrendIcon = isPositive ? ArrowUp : isNegative ? ArrowDown : Minus
   const trendColor = isPositive
@@ -67,18 +67,18 @@ export function TrendCard({
         <TrendIcon className={cn('h-4 w-4', trendColor)} />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{valueFormatter(current)}</div>
+        <div className="text-2xl font-bold">{valueFormatter(current ?? 0)}</div>
         <div className="flex items-center gap-1 mt-1">
           <span className={cn('text-xs font-medium', trendColor)}>
             {isPositive && '+'}
-            {percentChange.toFixed(1)}%
+            {(percentChange ?? 0).toFixed(1)}%
           </span>
           <span className="text-xs text-muted-foreground">vs last month</span>
         </div>
         {!isNeutral && (
           <p className="text-xs text-muted-foreground mt-1">
             {isPositive ? '+' : ''}
-            {valueFormatter(change)} from previous period
+            {valueFormatter(change ?? 0)} from previous period
           </p>
         )}
       </CardContent>

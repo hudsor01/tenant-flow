@@ -105,7 +105,7 @@ describe('StripeController', () => {
 
 				stripeSharedService.generateIdempotencyKey.mockReturnValue('key-123')
 				billingService.findSubscriptionByStripeId.mockResolvedValue({
-					customer_id: 'tenant-123'
+					customer: 'tenant-123'
 				} as any)
 				stripeService.updateSubscription.mockResolvedValue(mockSubscription as any)
 

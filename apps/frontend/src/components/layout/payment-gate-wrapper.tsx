@@ -90,7 +90,7 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 			subscriptionError
 		) {
 			const currentPath =
-				typeof window !== 'undefined' ? window.location.pathname : '/manage'
+				typeof window !== 'undefined' ? window.location.pathname : '/'
 			const pricingUrl = `/pricing?required=true&redirectTo=${encodeURIComponent(currentPath)}`
 			router.push(pricingUrl)
 			return
