@@ -141,10 +141,10 @@ test.describe('Homepage Performance', () => {
 test.describe('Dashboard Performance', () => {
 	test.use({ storageState: 'playwright/.auth/user.json' })
 
-	test('manage dashboard should load efficiently', async ({ page }) => {
+	test('owner dashboard should load efficiently', async ({ page }) => {
 		const startTime = Date.now()
 
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
 
 		const loadTime = Date.now() - startTime
@@ -154,14 +154,14 @@ test.describe('Dashboard Performance', () => {
 
 		const metrics = await collectWebVitals(page)
 
-		// Check FCP for manage dashboard
+		// Check FCP for owner dashboard
 		if (metrics.fcp !== null) {
 			expect(metrics.fcp, 'Dashboard FCP should be < 2000ms').toBeLessThan(2000)
 		}
 	})
 
 	test('data tables should render efficiently', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		const startTime = Date.now()

@@ -15,10 +15,10 @@ interface MobileNavItem {
 }
 
 const MOBILE_NAV_ITEMS: MobileNavItem[] = [
-	{ label: 'Dashboard', href: '/manage', icon: Home },
-	{ label: 'Properties', href: '/manage/properties', icon: Building2 },
-	{ label: 'Tenants', href: '/manage/tenants', icon: Users },
-	{ label: 'Maintenance', href: '/manage/maintenance', icon: Wrench }
+	{ label: 'Dashboard', href: '/', icon: Home },
+	{ label: 'Properties', href: '/properties', icon: Building2 },
+	{ label: 'Tenants', href: '/tenants', icon: Users },
+	{ label: 'Maintenance', href: '/maintenance', icon: Wrench }
 ]
 
 const NavItem = memo(({ item, isActive }: { item: MobileNavItem; isActive: boolean }) => {

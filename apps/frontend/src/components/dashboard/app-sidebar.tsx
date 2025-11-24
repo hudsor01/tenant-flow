@@ -50,101 +50,101 @@ const navigation: {
 	navMain: [
 		{
 			title: 'Dashboard',
-			url: '/manage',
+			url: '/dashboard',
 			icon: Home
 		},
 		{
 			title: 'Properties',
-			url: '/manage/properties',
+			url: '/properties',
 			icon: Building2
 		},
 		{
 			title: 'Tenants',
-			url: '/manage/tenants',
+			url: '/tenants',
 			icon: Users
 		},
 		{
 			title: 'Leases',
-			url: '/manage/leases',
+			url: '/leases',
 			icon: ClipboardList
 		},
 		{
 			title: 'Maintenance',
-			url: '/manage/maintenance',
+			url: '/maintenance',
 			icon: Wrench
 		},
 		{
 			title: 'Analytics',
-			url: '/manage/analytics',
+			url: '/analytics',
 			icon: BarChart3,
 			children: [
 				{
 					title: 'Overview',
-					url: '/manage/analytics/overview',
+					url: '/analytics/overview',
 					icon: LayoutDashboard
 				},
 				{
 					title: 'Financial Analytics',
-					url: '/manage/analytics/financial',
+					url: '/analytics/financial',
 					icon: CircleDollarSign
 				},
 				{
 					title: 'Property Performance',
-					url: '/manage/analytics/property-performance',
+					url: '/analytics/property-performance',
 					icon: TrendingUp
 				},
 				{
 					title: 'Lease Analytics',
-					url: '/manage/analytics/leases',
+					url: '/analytics/leases',
 					icon: ClipboardList
 				},
 				{
 					title: 'Maintenance Insights',
-					url: '/manage/analytics/maintenance',
+					url: '/analytics/maintenance',
 					icon: Wrench
 				},
 				{
 					title: 'Occupancy Trends',
-					url: '/manage/analytics/occupancy',
+					url: '/analytics/occupancy',
 					icon: LineChart
 				}
 			]
 		},
 		{
 			title: 'Reports',
-			url: '/manage/reports',
+			url: '/reports',
 			icon: FileText,
 			children: [
 				{
 					title: 'Generate Reports',
-					url: '/manage/reports/generate',
+					url: '/reports/generate',
 					icon: PieChart
 				}
 			]
 		},
 		{
 			title: 'Financials',
-			url: '/manage/financials',
+			url: '/financials',
 			icon: Receipt,
 			children: [
 				{
 					title: 'Income Statement',
-					url: '/manage/financials/income-statement',
+					url: '/financials/income-statement',
 					icon: TrendingUp
 				},
 				{
 					title: 'Cash Flow',
-					url: '/manage/financials/cash-flow',
+					url: '/financials/cash-flow',
 					icon: Wallet
 				},
 				{
 					title: 'Balance Sheet',
-					url: '/manage/financials/balance-sheet',
+					url: '/financials/balance-sheet',
 					icon: Calculator
 				},
 				{
 					title: 'Tax Documents',
-					url: '/manage/financials/tax-documents',
+					url: '/financials/tax-documents',
 					icon: Receipt
 				}
 			]
@@ -153,19 +153,19 @@ const navigation: {
 	navSecondary: [
 		{
 			title: 'Settings',
-			url: '/manage/settings',
+			url: '/dashboard/settings',
 			icon: Settings
 		}
 	],
 	documents: [
 		{
 			name: 'Generate Lease',
-			url: '/manage/leases/generate',
+			url: '/leases/generate',
 			icon: FileText
 		},
 		{
 			name: 'Lease Template',
-			url: '/manage/documents/lease-template',
+			url: '/documents/lease-template',
 			icon: ClipboardList
 		}
 	]
@@ -176,7 +176,7 @@ export function AppSidebar() {
 		<div className="flex h-full flex-col gap-[var(--spacing-4)] p-[var(--spacing-4)]">
 			{/* Card 1: Brand */}
 			<div className="rounded-xl border border-gray-200 bg-white p-[var(--spacing-4)]">
-				<Link href="/" className="flex items-center gap-[var(--spacing-2)]">
+				<Link href="/dashboard" className="flex items-center gap-[var(--spacing-2)]">
 					<Home className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
 					<span className="text-base font-semibold">TenantFlow</span>
 				</Link>

@@ -29,30 +29,32 @@ export function TrendsSection() {
           title="Occupancy Rate"
           metric={occupancyRate}
           isLoading={isOccupancyRateLoading}
-          valueFormatter={(v) => `${v.toFixed(1)}%`}
+          valueFormatter={(v) => v !== null ? `${v.toFixed(1)}%` : '0%'}
         />
         <TrendCard
           title="Active Tenants"
           metric={activeTenants}
           isLoading={isActiveTenantsLoading}
-          valueFormatter={(v) => v.toString()}
+          valueFormatter={(v) => v !== null ? v.toString() : '0'}
         />
         <TrendCard
           title="Monthly Revenue"
           metric={monthlyRevenue}
           isLoading={isMonthlyRevenueLoading}
           valueFormatter={(v) =>
-            `$${(v / 100).toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}`
+            v !== null
+              ? `$${(v / 100).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}`
+              : '$0.00'
           }
         />
         <TrendCard
           title="Open Maintenance"
           metric={openMaintenance}
           isLoading={isOpenMaintenanceLoading}
-          valueFormatter={(v) => v.toString()}
+          valueFormatter={(v) => v !== null ? v.toString() : '0'}
         />
       </div>
 
@@ -61,7 +63,7 @@ export function TrendsSection() {
           title="Occupancy Rate (30 days)"
           data={occupancyTimeSeries}
           isLoading={isOccupancyLoading}
-          valueFormatter={(v) => `${v.toFixed(1)}%`}
+          valueFormatter={(v) => v !== null ? `${v.toFixed(1)}%` : '0%'}
           color="var(--primary)"
         />
         <MiniTrendChart
@@ -69,7 +71,9 @@ export function TrendsSection() {
           data={revenueTimeSeries}
           isLoading={isRevenueLoading}
           valueFormatter={(v) =>
-            `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+            v !== null
+              ? `$${(v / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+              : '$0.00'
           }
           color="var(--color-success)"
         />

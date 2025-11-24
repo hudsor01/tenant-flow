@@ -5,18 +5,21 @@
 
 /**
  * Validates and returns the Supabase URL from environment variables.
- * Prefers SB_URL for server contexts, falls back to NEXT_PUBLIC_SB_URL for browser builds.
- * Throws an error at build time if neither environment variable is present.
+ * Follows official Supabase docs naming convention.
+ * Falls back to custom names for backward compatibility with Doppler.
+ * Throws an error at build time if no environment variable is present.
  */
 function getSupabaseUrl(): string {
 	const url =
-		process.env["NEXT_PUBLIC_SB_URL"] ||
-		process.env["SB_URL"]
+		process.env['NEXT_PUBLIC_SUPABASE_URL'] || // Official Supabase naming (browser)
+		process.env['SUPABASE_URL'] ||              // Official Supabase naming (server)
+		process.env['NEXT_PUBLIC_SUPABASE_URL'] ||  // Custom naming (browser) - backward compat
+		process.env['SUPABASE_URL']                 // Custom naming (server) - backward compat
 
 	if (!url) {
 		throw new Error(
 			'Supabase URL environment variable is required. ' +
-				'Set NEXT_PUBLIC_SB_URL (Doppler frontend) or SB_URL (Doppler backend).'
+				'Set NEXT_PUBLIC_SUPABASE_URL (official) or NEXT_PUBLIC_SUPABASE_URL/SUPABASE_URL (custom).'
 		)
 	}
 
@@ -25,17 +28,21 @@ function getSupabaseUrl(): string {
 
 /**
  * Validates and returns the Supabase publishable key from environment variables.
- * Prefers SB_PUBLISHABLE_KEY for server contexts, falls back to NEXT_PUBLIC_SB_PUBLISHABLE_KEY for browser builds.
- * Throws an error at build time if neither environment variable is present.
+ * Follows official Supabase docs naming convention.
+ * Falls back to custom names for backward compatibility with Doppler.
+ * Throws an error at build time if no environment variable is present.
  */
 function getSupabasePublishableKey(): string {
 	const key =
-		process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
-		process.env["SB_PUBLISHABLE_KEY"]
+		process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'] || // Official Supabase naming (browser)
+		process.env['SUPABASE_PUBLISHABLE_KEY'] || // Official Supabase naming (server)
+		process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'] || // Custom naming (browser) - backward compat
+		process.env['SUPABASE_PUBLISHABLE_KEY']                    // Custom naming (server) - backward compat
 
 	if (!key) {
 		throw new Error(
-			'Supabase publishable key environment variable is required.'
+			'Supabase publishable key environment variable is required. ' +
+				'Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (official) or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/SUPABASE_PUBLISHABLE_KEY (custom).'
 		)
 	}
 
@@ -51,12 +58,13 @@ function getSupabasePublishableKey(): string {
  * - Development: Set via .env.local or Doppler
  * - Build-time: Validated to prevent runtime errors
  */
-export const SB_URL = (() => {
+export const SUPABASE_URL = (() => {
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
-			process.env["NEXT_PUBLIC_SB_URL"] ||
-			process.env["SB_URL"] ||
-			process.env["NEXT_PUBLIC_SUPABASE_URL"] ||
+			process.env["NEXT_PUBLIC_SUPABASE_URL"] ||      // Official naming (browser)
+			process.env["SUPABASE_URL"] ||                  // Official naming (server)
+			process.env["NEXT_PUBLIC_SUPABASE_URL"] ||            // Custom naming (browser)
+			process.env["SUPABASE_URL"] ||                        // Custom naming (server)
 			''
 		)
 	}
@@ -72,11 +80,14 @@ export const SB_URL = (() => {
  * - Development: Set via .env.local or Doppler
  * - Build-time: Validated to prevent runtime errors
  */
-export const SB_PUBLISHABLE_KEY = (() => {
+export const SUPABASE_PUBLISHABLE_KEY = (() => {
 	if (process.env["SKIP_ENV_VALIDATION"] === 'true') {
 		return (
-			process.env["NEXT_PUBLIC_SB_PUBLISHABLE_KEY"] ||
-			process.env["SB_PUBLISHABLE_KEY"]
+			process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||       // Official naming (browser)
+			process.env["SUPABASE_PUBLISHABLE_KEY"] ||                   // Official naming (server)
+			process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ||      // Custom naming (browser)
+			process.env["SUPABASE_PUBLISHABLE_KEY"] ||                  // Custom naming (server)
+			''
 		)
 	}
 	return getSupabasePublishableKey()
@@ -85,24 +96,24 @@ export const SB_PUBLISHABLE_KEY = (() => {
 /**
  * Validates that Supabase configuration is properly set.
  *
- * **Warning**: SB_URL and SB_PUBLISHABLE_KEY may be empty when
+ * **Warning**: SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY may be empty when
  * SKIP_ENV_VALIDATION === 'true'. Consumers must call this function before
  * creating Supabase clients to ensure configuration is valid.
  *
- * @throws {Error} If SB_URL or SB_PUBLISHABLE_KEY is falsy
+ * @throws {Error} If SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY is falsy
  */
 export function assertSupabaseConfig(): void {
-	if (!SB_URL) {
+	if (!SUPABASE_URL) {
 		throw new Error(
 			'Supabase URL is not configured. ' +
-			'Set SB_URL (Doppler/production) or SB_URL/NEXT_PUBLIC_SB_URL (local dev).'
+			'Set SUPABASE_URL (Doppler/production) or SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL (local dev).'
 		)
 	}
 
-	if (!SB_PUBLISHABLE_KEY) {
+	if (!SUPABASE_PUBLISHABLE_KEY) {
 		throw new Error(
 			'Supabase publishable key is not configured. ' +
-			'Set SB_PUBLISHABLE_KEY (Doppler/production) or SB_PUBLISHABLE_KEY/NEXT_PUBLIC_SB_PUBLISHABLE_KEY (local dev).'
+			'Set SUPABASE_PUBLISHABLE_KEY (Doppler/production) or SUPABASE_PUBLISHABLE_KEY/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (local dev).'
 		)
 	}
 }

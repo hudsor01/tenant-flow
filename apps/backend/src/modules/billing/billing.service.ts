@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
+import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-
-type StripeCustomer = Record<string, unknown>
-type StripeSubscription = Record<string, unknown>
-type StripePaymentIntent = Record<string, unknown>
+import type { SupabaseError } from '../../types/stripe-schema'
 
 /**
  * Billing Service - Handles all database operations for Stripe billing entities
@@ -23,11 +21,13 @@ export class BillingService {
    */
   async getStripeCustomer(
     stripeCustomerId: string
-  ): Promise<StripeCustomer | null> {
+  ): Promise<Stripe.Customer | null> {
     const client = this.supabase.getAdminClient()
     // Stripe schema tables are synced at runtime but not in generated types
-    const result = await (client
-      .from('stripe.customers' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+      .schema('stripe')
+      .from('customers')
       .select('*')
       .eq('id', stripeCustomerId)
       .single()
@@ -37,7 +37,7 @@ export class BillingService {
       throw result.error
     }
 
-    return result.data as StripeCustomer | null
+    return result.data as Stripe.Customer | null
   }
 
   /**
@@ -46,7 +46,7 @@ export class BillingService {
    */
   async findCustomerByOwnerId(
     ownerId: string
-  ): Promise<StripeCustomer | null> {
+  ): Promise<Stripe.Customer | null> {
     const { data: user, error } = await this.supabase
       .getAdminClient()
       .from('users')
@@ -68,7 +68,7 @@ export class BillingService {
    */
   async findCustomerByTenantId(
     tenantId: string
-  ): Promise<StripeCustomer | null> {
+  ): Promise<Stripe.Customer | null> {
     const { data: tenant, error } = await this.supabase
       .getAdminClient()
       .from('tenants')
@@ -136,11 +136,13 @@ export class BillingService {
    */
   async findSubscriptionByStripeId(
     stripeSubscriptionId: string
-  ): Promise<StripeSubscription | null> {
+  ): Promise<Stripe.Subscription | null> {
     const client = this.supabase.getAdminClient()
     // Stripe schema tables are synced at runtime but not in generated types
-    const result = await (client
-      .from('stripe.stripe_sync_subscriptions' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+      .schema('stripe')
+      .from('subscriptions')
       .select('*')
       .eq('id', stripeSubscriptionId)
       .single()
@@ -150,7 +152,7 @@ export class BillingService {
       throw result.error
     }
 
-    return result.data as StripeSubscription | null
+    return result.data as Stripe.Subscription | null
   }
 
   /**
@@ -159,11 +161,13 @@ export class BillingService {
    */
   async findSubscriptionsByCustomerId(
     stripeCustomerId: string
-  ): Promise<StripeSubscription[]> {
+  ): Promise<Stripe.Subscription[]> {
     const client = this.supabase.getAdminClient()
     // Stripe schema tables are synced at runtime but not in generated types
-    const result = await (client
-      .from('stripe.stripe_sync_subscriptions' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+      .schema('stripe')
+      .from('subscriptions')
       .select('*')
       .eq('customer', stripeCustomerId)
 
@@ -172,7 +176,7 @@ export class BillingService {
       throw result.error
     }
 
-    return (result.data as StripeSubscription[]) || []
+    return (result.data as Stripe.Subscription[]) || []
   }
 
   /**
@@ -189,7 +193,7 @@ export class BillingService {
    * Find active subscription for a user (RLS-enforced query)
    * Returns the subscription record from public.subscriptions table
    * Uses service client with user token to enforce RLS policies
-   * 
+   *
    * SECURITY: FAIL-CLOSED ERROR HANDLING
    * - User not found (PGRST116): Returns null (expected for users without subscriptions)
    * - Database error: Throws exception (fail-closed - denies access)
@@ -227,11 +231,13 @@ export class BillingService {
    */
   async findPaymentIntentByStripeId(
     stripePaymentIntentId: string
-  ): Promise<StripePaymentIntent | null> {
+  ): Promise<Stripe.PaymentIntent | null> {
     const client = this.supabase.getAdminClient()
     // Stripe schema tables are synced at runtime but not in generated types
-    const result = await (client
-      .from('stripe.payment_intents' as any) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+      .schema('stripe')
+      .from('payment_intents')
       .select('*')
       .eq('id', stripePaymentIntentId)
       .single()
@@ -241,6 +247,6 @@ export class BillingService {
       throw result.error
     }
 
-    return result.data as StripePaymentIntent | null
+    return result.data as Stripe.PaymentIntent | null
   }
 }

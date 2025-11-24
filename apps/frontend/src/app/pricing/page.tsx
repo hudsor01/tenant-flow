@@ -47,10 +47,7 @@ const faqs = [
 ]
 
 export default async function PricingPage() {
-	// Note: 'use cache' directive will be enabled once Next.js stabilizes this feature
-	// Cache the pricing page for 1 hour since pricing doesn't change often
-	// This provides instant loading for all users
-		const baseUrl = env.NEXT_PUBLIC_BASE_URL
+	const baseUrl = env.NEXT_PUBLIC_BASE_URL
 
 	// FAQ Schema for Google rich snippets
 	const faqSchema = {
