@@ -129,18 +129,18 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 
 	// Integration and E2E tests use real test Supabase project
 	// Require explicit environment variables - no silent fallbacks
-	const url = process.env.TEST_SB_URL ?? process.env.SB_URL ?? null
+	const url = process.env.TEST_SUPABASE_URL ?? process.env.SUPABASE_URL ?? null
 	const publishableKey =
-		process.env.TEST_SB_PUBLISHABLE_KEY ??
-		process.env.SB_PUBLISHABLE_KEY ??
+		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ??
+		process.env.SUPABASE_PUBLISHABLE_KEY ??
 		null
 	const serviceuser_typeKey =
-		process.env.TEST_SB_SECRET_KEY ??
-		process.env.SB_SECRET_KEY ??
+		process.env.TEST_SUPABASE_SECRET_KEY ??
+		process.env.SUPABASE_SECRET_KEY ??
 		null
 	const jwtSecret =
-		process.env.TEST_SB_JWT_SECRET ??
-		process.env.SB_JWT_SECRET ??
+		process.env.TEST_SUPABASE_JWT_SECRET ??
+		process.env.SUPABASE_JWT_SECRET ??
 		null
 
 	// If running in CI and vars are missing, fall back to safe mocks to keep tests deterministic
@@ -161,22 +161,22 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 	// Outside CI, preserve existing behavior: throw descriptive errors per-variable
 	if (!url) {
 		throw new Error(
-			'TEST_SB_URL or SB_URL environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_URL or SUPABASE_URL environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!publishableKey) {
 		throw new Error(
-			'TEST_SB_PUBLISHABLE_KEY or SB_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!serviceuser_typeKey) {
 		throw new Error(
-			'TEST_SB_SECRET_KEY or SB_SECRET_KEY environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_SECRET_KEY or SUPABASE_SECRET_KEY environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!jwtSecret) {
 		throw new Error(
-			'TEST_SB_JWT_SECRET or SB_JWT_SECRET environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_JWT_SECRET or SUPABASE_JWT_SECRET environment variable is required for integration/e2e tests'
 		)
 	}
 
@@ -311,10 +311,10 @@ export async function createTestModule(moduleMetadata: {
 	// Set environment variables for test
 	process.env.NODE_ENV = 'test'
 	process.env.DATABASE_URL = testConfig.database.url
-	process.env.SB_URL = testConfig.supabase.url
-	process.env.SB_PUBLISHABLE_KEY = testConfig.supabase.publishableKey
-	process.env.SB_SECRET_KEY = testConfig.supabase.serviceuser_typeKey
-	process.env.SB_JWT_SECRET = testConfig.supabase.jwtSecret
+	process.env.SUPABASE_URL = testConfig.supabase.url
+	process.env.SUPABASE_PUBLISHABLE_KEY = testConfig.supabase.publishableKey
+	process.env.SUPABASE_SECRET_KEY = testConfig.supabase.serviceuser_typeKey
+	process.env.SUPABASE_JWT_SECRET = testConfig.supabase.jwtSecret
 	process.env.STRIPE_SECRET_KEY = testConfig.stripe.secretKey
 	process.env.STRIPE_WEBHOOK_SECRET = testConfig.stripe.webhookSecret
 	process.env.STRIPE_PUBLISHABLE_KEY = testConfig.stripe.publishableKey

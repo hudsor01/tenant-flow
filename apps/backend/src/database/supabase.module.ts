@@ -7,7 +7,7 @@ import {
 import { ConfigModule } from '@nestjs/config'
 import { createClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
-import { SB_ADMIN_CLIENT } from './supabase.constants'
+import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { SupabaseService } from './supabase.service'
 import { StorageService } from './storage.service'
 
@@ -20,7 +20,7 @@ export class SupabaseModule {
 			imports: [ConfigModule],
 			providers: [
 				{
-					provide: SB_ADMIN_CLIENT,
+					provide: SUPABASE_ADMIN_CLIENT,
 					useFactory: (config: AppConfigService) => {
 						const url = config.getSupabaseUrl()
 						const key = config.getSupabaseSecretKey()
@@ -28,7 +28,7 @@ export class SupabaseModule {
 						if (!url || !key) {
 							// Helpful error to aid developers who forget to run with Doppler
 							throw new Error(
-								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SB_URL and SB_SECRET_KEY in the environment.'
+								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SUPABASE_URL and SUPABASE_SECRET_KEY in the environment.'
 							)
 						}
 
@@ -50,7 +50,7 @@ export class SupabaseModule {
 				SupabaseService,
 				StorageService
 			],
-			exports: [SB_ADMIN_CLIENT, SupabaseService, StorageService]
+			exports: [SUPABASE_ADMIN_CLIENT, SupabaseService, StorageService]
 		}
 	}
 }

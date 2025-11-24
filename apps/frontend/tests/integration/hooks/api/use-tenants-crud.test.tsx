@@ -48,8 +48,8 @@ const TEST_TENANT_PREFIX = 'TEST-CRUD'
 // Shared QueryClient instance for tests that need cache coordination
 let sharedQueryClient: QueryClient | null = null
 const REQUIRED_ENV_VARS = [
-	'NEXT_PUBLIC_SB_URL',
-	'NEXT_PUBLIC_SB_PUBLISHABLE_KEY',
+	'NEXT_PUBLIC_SUPABASE_URL',
+	'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
 	'E2E_OWNER_EMAIL',
 	'E2E_OWNER_PASSWORD'
 ] as const

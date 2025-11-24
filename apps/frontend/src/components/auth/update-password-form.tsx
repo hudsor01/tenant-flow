@@ -56,7 +56,7 @@ export function UpdatePasswordForm({
 		},
 		onSuccess: () => {
 			toast.success('Password updated successfully!')
-			setTimeout(() => router.push('/manage'), 1500)
+			setTimeout(() => router.push('/'), 1500)
 		},
 		onError: error => {
 			handleMutationError(error, 'Update password')

@@ -28,7 +28,7 @@ export function MobileChrome({ children }: MobileChromeProps) {
 				{isMobile ? (
 					<>
 						<FloatingActionButton
-							href="/manage/properties/new"
+							href="/properties/new"
 							label="Add property"
 						/>
 						<MobileNav />

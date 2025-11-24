@@ -73,37 +73,37 @@ test.describe('Dashboard Accessibility (Requires Auth)', () => {
 	})
 
 	test('manage dashboard page should be accessible', async ({ page }) => {
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Dashboard page')
 	})
 
 	test('properties page should be accessible', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Properties page')
 	})
 
 	test('tenants page should be accessible', async ({ page }) => {
-		await page.goto('/manage/tenants')
+		await page.goto('/tenants')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Tenants page')
 	})
 
 	test('leases page should be accessible', async ({ page }) => {
-		await page.goto('/manage/leases')
+		await page.goto('/leases')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Leases page')
 	})
 
 	test('maintenance page should be accessible', async ({ page }) => {
-		await page.goto('/manage/maintenance')
+		await page.goto('/maintenance')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Maintenance page')
 	})
 
 	test('units page should be accessible', async ({ page }) => {
-		await page.goto('/manage/properties/units')
+		await page.goto('/properties/units')
 		await page.waitForLoadState('networkidle')
 		await checkA11y(page, 'Units page')
 	})
@@ -115,7 +115,7 @@ test.describe('Forms Accessibility', () => {
 	})
 
 	test('property creation form should be accessible', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Open create property dialog
@@ -126,7 +126,7 @@ test.describe('Forms Accessibility', () => {
 	})
 
 	test('tenant creation form should be accessible', async ({ page }) => {
-		await page.goto('/manage/tenants')
+		await page.goto('/tenants')
 		await page.waitForLoadState('networkidle')
 
 		// Open create tenant dialog
@@ -143,7 +143,7 @@ test.describe('Interactive Elements Accessibility', () => {
 	})
 
 	test('navigation menu should be accessible', async ({ page }) => {
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
 
 		// Test sidebar navigation
@@ -151,7 +151,7 @@ test.describe('Interactive Elements Accessibility', () => {
 	})
 
 	test('data tables should be accessible', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Wait for table to load
@@ -161,7 +161,7 @@ test.describe('Interactive Elements Accessibility', () => {
 	})
 
 	test('dropdown menus should be accessible', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Open actions dropdown
@@ -180,7 +180,7 @@ test.describe('Dark Mode Accessibility', () => {
 	})
 
 	test('manage dashboard in dark mode should be accessible', async ({ page }) => {
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
 
 		// Toggle dark mode
@@ -197,7 +197,7 @@ test.describe('Keyboard Navigation', () => {
 	})
 
 	test('all interactive elements should be keyboard accessible', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Tab through interactive elements
@@ -222,7 +222,7 @@ test.describe('Keyboard Navigation', () => {
 	})
 
 	test('skip navigation link should work', async ({ page }) => {
-		await page.goto('/manage')
+		await page.goto('/')
 
 		// Press Tab to focus skip link
 		await page.keyboard.press('Tab')
@@ -245,7 +245,7 @@ test.describe('Keyboard Navigation', () => {
 test.describe('Screen Reader Compatibility', () => {
 	test('page landmarks should be properly labeled', async ({ page }) => {
 		await loginAsOwner(page)
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
 
 		// Verify semantic HTML landmarks exist

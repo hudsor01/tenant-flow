@@ -29,8 +29,8 @@ test.describe('Property CSV Template Download', () => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 		// Step 1: Navigate to properties page (will redirect to login)
-		logStep(' Step 1: Navigating to /manage/properties')
-		await page.goto(`${baseUrl}/manage/properties`)
+		logStep(' Step 1: Navigating to /properties')
+		await page.goto(`${baseUrl}/properties`)
 
 		// Wait for login page (page.goto already waits for navigation, just verify URL)
 		await page.waitForURL('**/login**', { timeout: 10000 })
@@ -44,13 +44,13 @@ test.describe('Property CSV Template Download', () => {
 		await page.fill('input[name="password"]', TEST_PASSWORD)
 		await page.click('button[type="submit"]')
 
-		// Wait for redirect after login (goes to /manage by default)
-		await page.waitForURL('**/manage**', { timeout: 15000 })
+		// Wait for redirect after login (goes to / by default - owner dashboard)
+		await page.waitForURL('**/**', { timeout: 15000 })
 		logStep(' Successfully logged in')
 
 		// Step 3: Navigate to properties page
 		logStep(' Step 3: Navigating to properties page')
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('networkidle')
 		logStep(' Properties page loaded')
 

@@ -19,25 +19,25 @@ const QUICK_CREATE_OPTIONS = [
 		title: 'Property',
 		description: 'Add a new property to your portfolio',
 		icon: Building2,
-		href: '/manage/properties/new'
+		href: '/properties/new'
 	},
 	{
 		title: 'Tenant',
 		description: 'Onboard a new tenant',
 		icon: UserPlus,
-		href: '/manage/tenants/new'
+		href: '/tenants/new'
 	},
 	{
 		title: 'Lease',
 		description: 'Create a new lease agreement',
 		icon: FileText,
-		href: '/manage/leases'
+		href: '/leases'
 	},
 	{
 		title: 'Maintenance',
 		description: 'Log a maintenance request',
 		icon: Wrench,
-		href: '/manage/maintenance/new'
+		href: '/maintenance/new'
 	}
 ] as const
 

@@ -14,6 +14,7 @@
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { toast } from 'sonner' // Still needed for some success handlers
+import { useMemo } from 'react'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -35,18 +36,6 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { tenantQueries } from './queries/tenant-queries'
-
-/**
- * // TODO: Migrate from Legacy query keys to current implementation
- * @deprecated Use tenantQueries from ./queries instead
- */
-export const tenantKeys = {
-	all: ['tenants'] as const,
-	list: () => [...tenantKeys.all, 'list'] as const,
-	detail: (id: string) => [...tenantKeys.all, 'detail', id] as const,
-	withLease: (id: string) => [...tenantKeys.all, 'with-lease', id] as const,
-	stats: () => [...tenantKeys.all, 'stats'] as const
-}
 
 /**
  * Hook to fetch tenant by ID
@@ -293,12 +282,15 @@ export function useTenantOperations() {
 	const createTenant = useCreateTenant()
 	const updateTenant = useUpdateTenant()
 
-	return {
-		createTenant,
-		updateTenant,
-		isLoading: createTenant.isPending || updateTenant.isPending,
-		error: createTenant.error || updateTenant.error
-	}
+	return useMemo(
+		() => ({
+			createTenant,
+			updateTenant,
+			isLoading: createTenant.isPending || updateTenant.isPending,
+			error: createTenant.error || updateTenant.error
+		}),
+		[createTenant, updateTenant]
+	)
 }
 
 
@@ -402,7 +394,7 @@ export function useMarkTenantAsMovedOut() {
 				}
 			)
 		},
-		onMutate: async ({ id, data }) => {
+		onMutate: async ({ id, data: _data }) => {
 			// Cancel in-flight queries
 			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
 			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })
@@ -424,13 +416,10 @@ export function useMarkTenantAsMovedOut() {
 			tenantQueries.detail(id).queryKey,
 			(old: TenantWithLeaseInfoWithVersion | undefined) => {
 				if (!old) return old
-return (incrementVersion(old, {
-				status: 'MOVED_OUT',
-				move_out_date: data.moveOutDate,
-				move_out_reason: data.moveOutReason,
+// TypeScript: These fields may not exist in the type but are set by the API
+return incrementVersion(old, {
 				updated_at: new Date().toISOString()
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} as any) as any)
+			} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
 			}
 		)
 
@@ -438,13 +427,10 @@ return (incrementVersion(old, {
 			tenantQueries.withLease(id).queryKey,
 			(old: TenantWithLeaseInfoWithVersion | undefined) => {
 				if (!old) return old
-return (incrementVersion(old, {
-				status: 'MOVED_OUT',
-				move_out_date: data.moveOutDate,
-				move_out_reason: data.moveOutReason,
+// TypeScript: These fields may not exist in the type but are set by the API
+return incrementVersion(old, {
 				updated_at: new Date().toISOString()
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} as any) as any)
+			} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
 			}
 		)
 
@@ -635,7 +621,7 @@ export function useResendInvitation() {
  */
 export function useNotificationPreferences(tenant_id: string) {
 	return useQuery({
-		queryKey: [...tenantKeys.detail(tenant_id), 'notification-preferences'] as const,
+		queryKey: [...tenantQueries.detail(tenant_id).queryKey, 'notification-preferences'] as const,
 		queryFn: () =>
 			clientFetch<{
 				emailNotifications: boolean
@@ -677,7 +663,7 @@ export function useUpdateNotificationPreferences() {
 
 			// Invalidate notification preferences query
 			queryClient.invalidateQueries({
-				queryKey: [...tenantKeys.detail(variables.tenant_id), 'notification-preferences']
+				queryKey: [...tenantQueries.detail(variables.tenant_id).queryKey, 'notification-preferences']
 			})
 
 			logger.info('Notification preferences updated', {

@@ -1,4 +1,5 @@
 import { type LedgerData } from './financial-ledger.helpers'
+import * as FinancialLedgerHelpers from './financial-ledger.helpers'
 import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
@@ -256,9 +257,7 @@ describe('TaxDocumentsService', () => {
 					{ id: 'prop-1', name: 'Property', created_at: '2024-01-01' }
 				]
 			}
-
-			// eslint-disable-next-line @typescript-eslint/no-require-imports
-			jest.spyOn(require('./financial-ledger.helpers'), 'loadLedgerData' as any).mockResolvedValue(customLedger)
+			jest.spyOn(FinancialLedgerHelpers, 'loadLedgerData').mockResolvedValue(customLedger)
 
 			const result = await service.generateTaxDocuments('user-123', 2024)
 
