@@ -26,7 +26,7 @@ test.describe('Authentication & JWT Validation', () => {
 		await loginAsOwner(page, { forceLogin: true })
 	})
 
-	test('should login successfully and access manage dashboard without 401 errors', async ({
+	test('should login successfully and access owner dashboard without 401 errors', async ({
 		page
 	}) => {
 		// Monitor network requests for auth errors
@@ -39,12 +39,12 @@ test.describe('Authentication & JWT Validation', () => {
 
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		// Navigate to manage dashboard
-		await page.goto(`${baseUrl}/manage`)
+		// Navigate to owner dashboard
+		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('load')
 
 		// Verify we're on dashboard (not redirected to login)
-		await expect(page).toHaveURL(/\/manage/)
+		await expect(page).toHaveURL(/^\/$/)
 
 		// Verify no auth errors occurred
 		expect(authErrors).toEqual([])
@@ -71,11 +71,11 @@ test.describe('Authentication & JWT Validation', () => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 		// Navigate to properties page
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('load')
 
 		// Verify we're on properties page
-		await expect(page).toHaveURL(/\/manage\/properties/)
+		await expect(page).toHaveURL(/^\/properties/)
 
 		// Wait a moment for any API calls to complete (don't require successful rendering)
 		await page.waitForTimeout(2000)
@@ -108,12 +108,12 @@ test.describe('Authentication & JWT Validation', () => {
 
 		// Test all protected routes
 		const protectedRoutes = [
-			'/manage',
-			'/manage/properties',
-			'/manage/tenants',
-			'/manage/leases',
-			'/manage/maintenance',
-			'/manage/units'
+			'/',
+			'/properties',
+			'/tenants',
+			'/leases',
+			'/maintenance',
+			'/units'
 		]
 
 		for (const route of protectedRoutes) {
@@ -149,8 +149,8 @@ test.describe('Authentication & JWT Validation', () => {
 	test('should have valid JWT token in cookies', async ({ page, context }) => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		// Navigate to manage dashboard
-		await page.goto(`${baseUrl}/manage`)
+		// Navigate to owner dashboard
+		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('load')
 
 		// Get all cookies
@@ -203,7 +203,7 @@ test.describe('Authentication & JWT Validation', () => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 		// Navigate to properties page (most common user flow)
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('load')
 
 		// Wait for any async operations
@@ -241,7 +241,7 @@ test.describe('Authentication & JWT Validation', () => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 		// Navigate to properties page (triggers API calls)
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('load')
 
 		// Wait for API calls to complete
@@ -282,14 +282,14 @@ test.describe('Authentication & JWT Validation', () => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
 		// Navigate to properties
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('load')
 
 		// Wait 2 seconds to allow any background token refresh
 		await page.waitForTimeout(2000)
 
 		// Navigate to another route
-		await page.goto(`${baseUrl}/manage/tenants`)
+		await page.goto(`${baseUrl}/tenants`)
 		await page.waitForLoadState('load')
 
 		// Verify no auth errors during navigation/refresh
@@ -304,7 +304,7 @@ test.describe('JWT Security Validation', () => {
 		await loginAsOwner(page)
 
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/manage`)
+		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('load')
 
 		// Check URL doesn't contain token
