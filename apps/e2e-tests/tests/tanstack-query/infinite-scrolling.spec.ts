@@ -46,7 +46,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
     await loginAsOwner(page)
 
     // Navigate to properties page
-    await page.goto('/manage/properties')
+    await page.goto('/properties')
     await page.waitForLoadState('networkidle')
   })
 
@@ -298,7 +298,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       await page.waitForTimeout(2000)
 
       // Navigate away from properties page
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForTimeout(1000)
 
       // Check if observers are properly cleaned up
@@ -311,7 +311,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       expect(activeObservers).toBe(0)
 
       // Navigate back and verify new observer is created
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForTimeout(2000)
 
       const newObservers = await page.evaluate(() => {
@@ -408,9 +408,9 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       const scrollPosition = await page.evaluate(() => window.scrollY)
 
       // Navigate away and back
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForTimeout(1000)
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForTimeout(2000)
 
       // Scroll position should be maintained (or reasonable alternative)
@@ -500,7 +500,7 @@ test.describe('TanStack Query Infinite Scrolling', () => {
       const countAfterScroll = await tableHelper.getPropertyCount()
 
       // Navigate to different page
-      await page.goto('/manage/units')
+      await page.goto('/units')
       await page.waitForTimeout(1000)
 
       // Use browser back

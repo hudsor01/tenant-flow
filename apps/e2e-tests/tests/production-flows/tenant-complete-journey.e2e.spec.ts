@@ -58,7 +58,7 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.fill('input[type="email"]', OWNER_EMAIL)
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
-		await page.waitForURL(`${BASE_URL}/manage/**`, { timeout: 10000 })
+		await page.waitForURL(`${BASE_URL}/**`, { timeout: 10000 })
 
 		ownerAuthToken = await getAuthToken(page)
 
@@ -99,7 +99,7 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		// Create tenant invitation
 		tenantEmail = `e2e-tenant-${Date.now()}@test.com`
 
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 		await page.waitForSelector('button:has-text("Invite Tenant")')
 		await page.click('button:has-text("Invite Tenant")')
 

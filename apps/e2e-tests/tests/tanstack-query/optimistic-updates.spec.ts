@@ -44,7 +44,7 @@ test.describe('TanStack Query Optimistic Updates', () => {
     await loginAsOwner(page)
 
     // Navigate to properties page
-    await page.goto('/manage/properties')
+    await page.goto('/properties')
     await page.waitForLoadState('networkidle')
 
     // NOTE: App should expose QueryClient via window.__QUERY_CLIENT__ for tests
@@ -285,9 +285,9 @@ test.describe('TanStack Query Optimistic Updates', () => {
       await tableHelper.waitForPropertyInTable(testProperty.name!)
 
       // Navigate away and back
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForTimeout(1000)
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
 
       // Verify property is still visible (from cache)
       await expect(tableHelper.getPropertyByName(testProperty.name!)).toBeVisible()

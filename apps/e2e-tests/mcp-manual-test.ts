@@ -45,7 +45,7 @@ async function main() {
 
 		logger.info(' Step 3: Submit login form')
 		await Promise.all([
-			page.waitForURL('/manage', { timeout: 30000 }),
+			page.waitForURL('/', { timeout: 30000 }),
 			page.getByRole('button', { name: /sign in|login|submit/i }).click()
 		])
 
@@ -76,8 +76,8 @@ async function main() {
 
 		logger.info('Session info', { metadata: storageKeys })
 
-		logger.info(' Step 6: Navigate to /manage/tenants')
-		await page.goto(`${baseUrl}/manage/tenants`, {
+		logger.info(' Step 6: Navigate to /tenants')
+		await page.goto(`${baseUrl}/tenants`, {
 			waitUntil: 'networkidle'
 		})
 

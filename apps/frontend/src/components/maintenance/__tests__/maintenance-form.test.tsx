@@ -329,28 +329,7 @@ describe('MaintenanceForm', () => {
 			// Note: Units are loaded via clientFetch
 		})
 
-		test.skip('filters units by selected property', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			const propertySelect = screen.getByLabelText(/property/i)
-			await userEvent.click(propertySelect)
-
-			await waitFor(() => {
-				const propertyOption = screen.getByRole('option', { name: /sunset apartments/i })
-				return propertyOption
-			})
-
-			const propertyOption = screen.getByRole('option', { name: /sunset apartments/i })
-			await userEvent.click(propertyOption)
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
-			})
-			// Note: Units are filtered via clientFetch
 		})
-	})
 
 	describe('Form Validation', () => {
 		test('validates description is required', async () => {

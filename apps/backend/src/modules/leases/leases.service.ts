@@ -74,11 +74,11 @@ export class LeasesService {
 				countQuery = countQuery.eq('primary_tenant_id', String(query.tenant_id))
 			}
 			if (query.status) {
-				countQuery = countQuery.eq(
-					'status',
-					query.status as string
-				)
-			}
+			countQuery = countQuery.eq(
+				'lease_status',
+				query.status as string
+			)
+		}
 			if (query.start_date) {
 				countQuery = countQuery.gte(
 					'start_date',
@@ -122,11 +122,11 @@ export class LeasesService {
 				queryBuilder = queryBuilder.eq('primary_tenant_id', String(query.tenant_id))
 			}
 			if (query.status) {
-				queryBuilder = queryBuilder.eq(
-					'status',
-					query.status as string
-				)
-			}
+			queryBuilder = queryBuilder.eq(
+				'lease_status',
+				query.status as string
+			)
+		}
 			if (query.start_date) {
 				queryBuilder = queryBuilder.gte(
 					'start_date',

@@ -26,7 +26,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
-import { useFinancialChartData, type FinancialTimeRange } from '#hooks/api/use-dashboard'
+import { useFinancialChartData, type FinancialTimeRange } from '#hooks/api/use-owner-dashboard'
 import { useIsMobile } from '#hooks/use-mobile'
 import { cn } from '#lib/utils'
 

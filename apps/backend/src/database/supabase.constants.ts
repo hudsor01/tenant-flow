@@ -1,7 +1,7 @@
 /**
  * Supabase dependency injection token for admin client
  */
-export const SB_ADMIN_CLIENT = 'SB_ADMIN_CLIENT'
+export const SUPABASE_ADMIN_CLIENT = 'SUPABASE_ADMIN_CLIENT'
 
 /**
  * Supabase RPC retry and timeout constants

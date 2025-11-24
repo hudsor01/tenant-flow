@@ -22,6 +22,7 @@ import type { Cache } from 'cache-manager'
 import type { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import Stripe from 'stripe'
+import type { Database, Json } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
@@ -58,13 +59,15 @@ export class StripeSyncController {
 	/**
 	 * Check if webhook event already processed (idempotency per Stripe best practices 2025)
 	 * Prevents duplicate processing if Stripe sends same event multiple times
+	 * Uses webhook_events table with unique constraint on (webhook_source, external_id)
 	 */
 	private async isEventProcessed(eventId: string): Promise<boolean> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('stripe_processed_events')
-			.select('event_id')
-			.eq('event_id', eventId)
+			.from('webhook_events')
+			.select('id')
+			.eq('webhook_source', 'stripe')
+			.eq('external_id', eventId)
 			.maybeSingle()
 
 		if (error && error.code !== 'PGRST116') {
@@ -80,13 +83,21 @@ export class StripeSyncController {
 
 	/**
 	 * Mark webhook event as processed (idempotency tracking)
+	 * Stores Stripe event in webhook_events table for unified webhook tracking
 	 */
-	private async markEventProcessed(eventId: string): Promise<void> {
+	private async markEventProcessed(
+		eventId: string,
+		eventType?: string,
+		payload?: unknown
+	): Promise<void> {
 		const { error } = await this.supabaseService
 			.getAdminClient()
-			.from('stripe_processed_events')
+			.from('webhook_events')
 			.insert({
-				stripe_event_id: eventId,
+				webhook_source: 'stripe',
+				external_id: eventId,
+				event_type: eventType || 'unknown',
+				raw_payload: (payload || {}) as Json,
 				processed_at: new Date().toISOString()
 			})
 
@@ -197,7 +208,7 @@ export class StripeSyncController {
 			}
 
 			// Mark event as processed AFTER successful handling
-			await this.markEventProcessed(event.id)
+			await this.markEventProcessed(event.id, event.type, event)
 		} catch (error) {
 			this.logger.error('Error processing webhook business logic', {
 				error: error instanceof Error ? error.message : 'Unknown error'
@@ -346,10 +357,7 @@ export class StripeSyncController {
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('rent_payments')
-
-
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			.insert(paymentRecord as any)
+			.insert(paymentRecord as Database['public']['Tables']['rent_payments']['Insert'])
 
 		if (error) {
 			// Check if it's a conflict (duplicate) or actual error

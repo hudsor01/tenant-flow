@@ -60,12 +60,12 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 
 		// Define dashboard pages to test
 		const dashboardPages = [
-			{ path: '/manage', title: 'Dashboard' },
-			{ path: '/manage/properties', title: 'Properties' },
-			{ path: '/manage/units', title: 'Units' },
-			{ path: '/manage/leases', title: 'Leases' },
-			{ path: '/manage/maintenance', title: 'Maintenance' },
-			{ path: '/manage/settings', title: 'Settings' }
+			{ path: '/', title: 'Dashboard' },
+			{ path: '/properties', title: 'Properties' },
+			{ path: '/units', title: 'Units' },
+			{ path: '/leases', title: 'Leases' },
+			{ path: '/maintenance', title: 'Maintenance' },
+			{ path: '/settings', title: 'Settings' }
 		]
 
 		// Test each page
