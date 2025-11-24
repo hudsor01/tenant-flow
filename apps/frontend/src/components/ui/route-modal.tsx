@@ -33,7 +33,7 @@ interface RouteModalProps {
  *
  * @example
  * ```tsx
- * // apps/frontend/src/app/(protected)/manage/properties/@modal/(.)new/page.tsx
+ * // apps/frontend/src/app/(protected)/properties/@modal/(.)new/page.tsx
  * import { RouteModal } from '#components/ui/route-modal'
  * import { PropertyForm } from '#components/properties/property-form.client'
  *

@@ -21,7 +21,7 @@ import {
 import type { UpdatePropertyInput } from '@repo/shared/types/api-contracts'
 import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase' // Still used in usePropertyImages
+import { useMemo } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -30,40 +30,6 @@ import {
 } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { propertyQueries, type PropertyFilters } from './queries/property-queries'
-
-/**
- * Query keys for property endpoints (hierarchical, typed)
- */
-/**
- * @deprecated Use propertyQueries from './queries/property-queries' instead
- * Keeping for backward compatibility during migration
- * // TODO: Complete this migration and remove this deprecated object
- */
-export const propertiesKeys = {
-	all: propertyQueries.all(),
-	list: (params?: {
-		search?: string | null
-		limit?: number
-		offset?: number
-	}) => {
-		// Convert params to PropertyFilters format, only including defined values
-		const filters: PropertyFilters | undefined = params ? Object.assign({},
-			params.search ? { search: params.search } : {},
-			params.limit !== undefined ? { limit: params.limit } : {},
-			params.offset !== undefined ? { offset: params.offset } : {}
-		) as PropertyFilters : undefined
-		return propertyQueries.list(filters).queryKey
-	},
-	detail: (id: string) => propertyQueries.detail(id).queryKey,
-	withUnits: () => [...propertyQueries.all(), 'with-units'] as const,
-	stats: () => propertyQueries.stats().queryKey,
-	analytics: {
-		performance: () => propertyQueries.performance().queryKey,
-		occupancy: () => [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
-		financial: () => [...propertyQueries.all(), 'analytics', 'financial'] as const,
-		maintenance: () => [...propertyQueries.all(), 'analytics', 'maintenance'] as const
-	}
-}
 
 /**
  * Hook to fetch property by ID
@@ -83,23 +49,16 @@ export function usePropertyList(params?: {
 }) {
 	const { search = null, limit = 50, offset = 0 } = params || {}
 
+	const filters: PropertyFilters = {
+		...(search ? { search } : {}),
+		limit,
+		offset
+	}
+
+	const listQuery = propertyQueries.list(filters)
+
 	return useQuery({
-		queryKey: propertiesKeys.list({
-			...(search && { search }),
-			limit,
-			offset
-		}),
-		queryFn: async () => {
-			const searchParams = new URLSearchParams()
-			if (search) searchParams.append('search', search)
-			searchParams.append('limit', limit.toString())
-			searchParams.append('offset', offset.toString())
-
-			return clientFetch<Property[]>(
-				`/api/v1/properties?${searchParams.toString()}`
-			)
-		},
-
+		...listQuery,
 		...QUERY_CACHE_TIMES.LIST,
 		retry: 2,
 		structuralSharing: true
@@ -107,31 +66,11 @@ export function usePropertyList(params?: {
 }
 
 /**
- * @deprecated Maintained for backwards compatibility with older integration tests.
- * Prefer usePropertyList for new code so pagination params are explicit.
- * // TODO: Complete the above migration and remove this function
- */
-export function useProperties(params?: {
-	search?: string | null
-	limit?: number
-	offset?: number
-}) {
-	return usePropertyList(params)
-}
-
-/**
  * Hook to fetch properties with their units
  * Optimized for property management pages
  */
 export function usePropertiesWithUnits() {
-	return useQuery({
-		queryKey: propertiesKeys.withUnits(),
-		queryFn: async (): Promise<Property[]> => {
-			return clientFetch('/api/v1/properties/with-units')
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 2
-	})
+	return useQuery(propertyQueries.withUnits())
 }
 
 /**
@@ -152,42 +91,21 @@ export function usePropertyPerformanceAnalytics() {
  * Hook to fetch property occupancy analytics
  */
 export function usePropertyOccupancyAnalytics() {
-	return useQuery({
-		queryKey: propertiesKeys.analytics.occupancy(),
-		queryFn: async () => {
-			return clientFetch('/api/v1/properties/analytics/occupancy')
-		},
-		...QUERY_CACHE_TIMES.ANALYTICS,
-		retry: 2
-	})
+	return useQuery(propertyQueries.analytics.occupancy())
 }
 
 /**
  * Hook to fetch property financial analytics
  */
 export function usePropertyFinancialAnalytics() {
-	return useQuery({
-		queryKey: propertiesKeys.analytics.financial(),
-		queryFn: async () => {
-			return clientFetch('/api/v1/properties/analytics/financial')
-		},
-		...QUERY_CACHE_TIMES.ANALYTICS,
-		retry: 2
-	})
+	return useQuery(propertyQueries.analytics.financial())
 }
 
 /**
  * Hook to fetch property maintenance analytics
  */
 export function usePropertyMaintenanceAnalytics() {
-	return useQuery({
-		queryKey: propertiesKeys.analytics.maintenance(),
-		queryFn: async () => {
-			return clientFetch('/api/v1/properties/analytics/maintenance')
-		},
-		...QUERY_CACHE_TIMES.ANALYTICS,
-		retry: 2
-	})
+	return useQuery(propertyQueries.analytics.maintenance())
 }
 
 /**
@@ -207,14 +125,11 @@ export function useCreateProperty() {
 		},
 		onMutate: async (newProperty: CreatePropertyRequest) => {
 			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
 			// Snapshot previous state
-			const previousLists = queryClient.getQueriesData<{
-				data: Property[]
-				total: number
-			}>({
-				queryKey: propertiesKeys.all
+			const previousLists = queryClient.getQueriesData<Property[]>({
+				queryKey: propertyQueries.lists()
 			})
 
 			// Create optimistic property entry
@@ -238,16 +153,9 @@ export function useCreateProperty() {
 			}
 
 			// Optimistically update all caches
-			queryClient.setQueriesData<{ data: Property[]; total: number }>(
-				{ queryKey: propertiesKeys.all },
-				old =>
-					old && Array.isArray(old.data)
-						? {
-								...old,
-								data: [optimisticProperty, ...old.data],
-								total: old.total + 1
-							}
-						: { data: [optimisticProperty], total: 1 }
+			queryClient.setQueriesData<Property[]>(
+				{ queryKey: propertyQueries.lists() },
+				old => (old ? [optimisticProperty, ...old] : [optimisticProperty])
 			)
 
 			return { previousLists, tempId }
@@ -269,27 +177,23 @@ export function useCreateProperty() {
 			)
 
 			// Replace optimistic entry with real data
-			queryClient.setQueriesData<{ data: Property[]; total: number }>(
-				{ queryKey: propertiesKeys.all },
+			queryClient.setQueriesData<Property[]>(
+				{ queryKey: propertyQueries.lists() },
 				old => {
-					if (!old || !Array.isArray(old.data))
-						return { data: [data], total: 1 }
-					return {
-						...old,
-						data: old.data.map(property =>
-							property.id === context?.tempId ? data : property
-						)
-					}
+					if (!old) return [data]
+					return old.map(property =>
+						property.id === context?.tempId ? data : property
+					)
 				}
 			)
 
 			// Cache individual property details
-			queryClient.setQueryData(propertiesKeys.detail(data.id), data)
+			queryClient.setQueryData(propertyQueries.detail(data.id).queryKey, data)
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.all })
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
 		}
 	})
 }
@@ -322,36 +226,30 @@ export function useUpdateProperty() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
 			// Snapshot previous state
 			const previousDetail = queryClient.getQueryData<Property>(
-				propertiesKeys.detail(id)
+				propertyQueries.detail(id).queryKey
 			)
-			const previousLists = queryClient.getQueriesData<{
-				data: Property[]
-				total: number
-			}>({
-				queryKey: propertiesKeys.all
+			const previousLists = queryClient.getQueriesData<Property[]>({
+				queryKey: propertyQueries.lists()
 			})
 
 			// Optimistically update detail cache
-		queryClient.setQueryData<PropertyWithVersion>(propertiesKeys.detail(id), old =>
+		queryClient.setQueryData<PropertyWithVersion>(propertyQueries.detail(id).queryKey, old =>
 			old ? incrementVersion(old, data) : undefined
 		)
 
 			// Optimistically update list caches
-			queryClient.setQueriesData<{ data: PropertyWithVersion[]; total: number }>(
-			{ queryKey: propertiesKeys.all },
+		queryClient.setQueriesData<PropertyWithVersion[]>(
+			{ queryKey: propertyQueries.lists() },
 			old => {
-				if (!old || !Array.isArray(old.data)) return old
-				return {
-					...old,
-					data: old.data.map(property =>
-						property.id === id ? incrementVersion(property, data) : property
-					)
-				}
+				if (!old) return old
+				return old.map(property =>
+					property.id === id ? incrementVersion(property, data) : property
+				)
 			}
 		)
 
@@ -361,7 +259,7 @@ export function useUpdateProperty() {
 			// Rollback on error
 			if (context?.previousDetail) {
 				queryClient.setQueryData(
-					propertiesKeys.detail(id),
+					propertyQueries.detail(id).queryKey,
 					context.previousDetail
 				)
 			}
@@ -374,8 +272,8 @@ export function useUpdateProperty() {
 			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('properties', id, queryClient, [
-					propertiesKeys.detail(id),
-					propertiesKeys.all
+					propertyQueries.detail(id).queryKey,
+					propertyQueries.lists()
 				])
 			} else {
 				handleMutationError(err, 'Update property')
@@ -388,26 +286,18 @@ export function useUpdateProperty() {
 			)
 
 			// Replace optimistic update with real data (including correct version)
-			queryClient.setQueryData(propertiesKeys.detail(id), data)
+			queryClient.setQueryData(propertyQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Property[]; total: number }>(
-				{ queryKey: propertiesKeys.all },
-				old => {
-					if (!old || !Array.isArray(old.data)) return old
-					return {
-						...old,
-						data: old.data.map(property =>
-							property.id === id ? data : property
-						)
-					}
-				}
+			queryClient.setQueriesData<Property[]>(
+				{ queryKey: propertyQueries.lists() },
+				old => (old ? old.map(property => (property.id === id ? data : property)) : old)
 			)
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.detail(id) })
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.all })
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
 		}
 	})
 }
@@ -445,18 +335,15 @@ export function useMarkPropertySold() {
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
 			// Snapshot previous state for rollback
 			const previousDetail = queryClient.getQueryData<Property>(
-				propertiesKeys.detail(id)
+				propertyQueries.detail(id).queryKey
 			)
-			const previousLists = queryClient.getQueriesData<{
-				data: Property[]
-				total: number
-			}>({
-				queryKey: propertiesKeys.all
+			const previousLists = queryClient.getQueriesData<Property[]>({
+				queryKey: propertyQueries.lists()
 			})
 
 			return { previousDetail, previousLists }
@@ -465,7 +352,7 @@ export function useMarkPropertySold() {
 			// Rollback on error
 			if (context?.previousDetail) {
 				queryClient.setQueryData(
-					propertiesKeys.detail(id),
+					propertyQueries.detail(id).queryKey,
 					context.previousDetail
 				)
 			}
@@ -485,8 +372,8 @@ export function useMarkPropertySold() {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.all })
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
 		}
 	})
 }
@@ -506,24 +393,19 @@ export function useDeleteProperty() {
 		},
 		onMutate: async id => {
 			// Cancel outgoing queries to avoid overwriting optimistic update
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.all })
-			await queryClient.cancelQueries({ queryKey: propertiesKeys.detail(id) })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
+			await queryClient.cancelQueries({ queryKey: propertyQueries.detail(id).queryKey })
 
 			// Snapshot previous state for rollback
-			const previousList = queryClient.getQueryData<{
-				data: Property[]
-				total: number
-			}>(propertiesKeys.list())
+			const previousList = queryClient.getQueryData<Property[]>(
+				propertyQueries.list().queryKey
+			)
 
 			// Optimistically remove from list
 			if (previousList) {
-				queryClient.setQueryData<{ data: Property[]; total: number }>(
-					propertiesKeys.list(),
-					{
-						...previousList,
-						data: previousList.data.filter(prop => prop.id !== id),
-						total: previousList.total - 1
-					}
+				queryClient.setQueryData<Property[]>(
+					propertyQueries.list().queryKey,
+					previousList.filter(prop => prop.id !== id)
 				)
 			}
 
@@ -532,27 +414,27 @@ export function useDeleteProperty() {
 		onError: (error, id, context) => {
 			// Rollback on error
 			if (context?.previousList) {
-				queryClient.setQueryData<{ data: Property[]; total: number }>(
-					propertiesKeys.list(),
+				queryClient.setQueryData<Property[]>(
+					propertyQueries.list().queryKey,
 					context.previousList
 				)
 			}
 
 			handleMutationError(error, 'Delete property')
 		},
-		onSuccess: (_, id) => {
+			onSuccess: (_, id) => {
 			handleMutationSuccess(
 				'Delete property',
 				'Property has been removed from your portfolio'
 			)
 
 			// Remove individual property cache
-			queryClient.removeQueries({ queryKey: propertiesKeys.detail(id) })
+			queryClient.removeQueries({ queryKey: propertyQueries.detail(id).queryKey })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.all })
-			queryClient.invalidateQueries({ queryKey: propertiesKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
 		}
 	})
 }
@@ -565,7 +447,7 @@ export function usePrefetchProperty() {
 
 	return (id: string) => {
 		queryClient.prefetchQuery({
-			queryKey: propertiesKeys.detail(id),
+			queryKey: propertyQueries.detail(id).queryKey,
 			queryFn: async (): Promise<Property> => {
 				return clientFetch<Property>(`/api/v1/properties/${id}`)
 			},
@@ -582,16 +464,7 @@ export function usePrefetchProperty() {
  * Hook to fetch property images
  */
 export function usePropertyImages(property_id: string) {
-	return useQuery({
-		queryKey: [...propertiesKeys.detail(property_id), 'images'] as const,
-		queryFn: () =>
-			clientFetch<Tables<'property_images'>[]>(
-				`/api/v1/properties/${property_id}/images`
-			),
-		enabled: !!property_id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000
-	})
+	return useQuery(propertyQueries.images(property_id))
 }
 
 /**
@@ -632,11 +505,11 @@ export function useUploadPropertyImage() {
 			)
 			// Invalidate property images
 			queryClient.invalidateQueries({
-				queryKey: [...propertiesKeys.detail(property_id), 'images']
+				queryKey: propertyQueries.images(property_id).queryKey
 			})
 			// Invalidate property list (primary image may have changed)
 			queryClient.invalidateQueries({
-				queryKey: propertiesKeys.all
+				queryKey: propertyQueries.lists()
 			})
 		},
 		onError: error => handleMutationError(error, 'Upload image')
@@ -664,11 +537,11 @@ export function useDeletePropertyImage() {
 			handleMutationSuccess('Delete image')
 			// Invalidate property images
 			queryClient.invalidateQueries({
-				queryKey: [...propertiesKeys.detail(property_id), 'images']
+				queryKey: propertyQueries.images(property_id).queryKey
 			})
 			// Invalidate property list (primary image may have been deleted)
 			queryClient.invalidateQueries({
-				queryKey: propertiesKeys.all
+				queryKey: propertyQueries.lists()
 			})
 		},
 		onError: error => handleMutationError(error, 'Delete image')
@@ -676,10 +549,19 @@ export function useDeletePropertyImage() {
 }
 
 export function usePropertyOperations() {
-	return {
-		create: useCreateProperty(),
-		update: useUpdateProperty(),
-		delete: useDeleteProperty(),
-		markSold: useMarkPropertySold()
-	}
+	const create = useCreateProperty()
+	const update = useUpdateProperty()
+	const remove = useDeleteProperty()
+	const markSold = useMarkPropertySold()
+
+	return useMemo(
+		() => ({
+			create,
+			update,
+			delete: remove,
+			markSold,
+			isLoading: create.isPending || update.isPending || remove.isPending
+		}),
+		[create, update, remove, markSold]
+	)
 }

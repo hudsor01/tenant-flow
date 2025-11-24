@@ -1,14 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { env } from '#config/env'
 
 export default function RegisterServiceWorker() {
 	useEffect(() => {
 		if (typeof window === 'undefined') return
 		if (!('serviceWorker' in navigator)) return
 		// Only register service worker in production
-		if (env.NODE_ENV !== 'production') return
+		if (process.env.NODE_ENV !== 'production') return
 
 		let refreshing = false
 

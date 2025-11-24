@@ -24,10 +24,10 @@ describe('Test Environment Configuration', () => {
 		savedEnv = {
 			NODE_ENV: process.env.NODE_ENV,
 			TEST_TYPE: process.env.TEST_TYPE,
-			TEST_SB_URL: process.env.TEST_SB_URL,
-			TEST_SB_PUBLISHABLE_KEY: process.env.TEST_SB_PUBLISHABLE_KEY,
-			TEST_SB_SECRET_KEY: process.env.TEST_SB_SECRET_KEY,
-			TEST_SB_JWT_SECRET: process.env.TEST_SB_JWT_SECRET,
+			TEST_SUPABASE_URL: process.env.TEST_SUPABASE_URL,
+			TEST_SUPABASE_PUBLISHABLE_KEY: process.env.TEST_SUPABASE_PUBLISHABLE_KEY,
+			TEST_SUPABASE_SECRET_KEY: process.env.TEST_SUPABASE_SECRET_KEY,
+			TEST_SUPABASE_JWT_SECRET: process.env.TEST_SUPABASE_JWT_SECRET,
 			TEST_STRIPE_SECRET_KEY: process.env.TEST_STRIPE_SECRET_KEY,
 			TEST_STRIPE_PUBLISHABLE_KEY: process.env.TEST_STRIPE_PUBLISHABLE_KEY,
 			TEST_STRIPE_WEBHOOK_SECRET: process.env.TEST_STRIPE_WEBHOOK_SECRET,
@@ -107,10 +107,10 @@ describe('Test Environment Configuration', () => {
 
 		it('should use environment variables for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
-			process.env.TEST_SB_URL = 'https://test.supabase.co'
-			process.env.TEST_SB_PUBLISHABLE_KEY = 'test_publishable_key'
-			process.env.TEST_SB_SECRET_KEY = 'test_secret_key'
-			process.env.TEST_SB_JWT_SECRET = 'test_jwt_secret'
+			process.env.TEST_SUPABASE_URL = 'https://test.supabase.co'
+			process.env.TEST_SUPABASE_PUBLISHABLE_KEY = 'test_publishable_key'
+			process.env.TEST_SUPABASE_SECRET_KEY = 'test_secret_key'
+			process.env.TEST_SUPABASE_JWT_SECRET = 'test_jwt_secret'
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://test.supabase.co')

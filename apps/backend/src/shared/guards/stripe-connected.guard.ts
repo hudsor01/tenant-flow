@@ -21,7 +21,6 @@ import {
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
-import type { Database } from '@repo/shared/types/supabase'
 
 @Injectable()
 export class StripeConnectedGuard implements CanActivate {
@@ -39,23 +38,38 @@ export class StripeConnectedGuard implements CanActivate {
 
 		const client = this.supabase.getAdminClient()
 
-		// Get user's Stripe Connect status
-		const { data: user, error } = await client
-			.from('users')
-			.select('connected_account_id, onboarding_completed_at')
-			.eq('id', user_id)
-			.single<Pick<Database['public']['Tables']['users']['Row'], 'connected_account_id' | 'onboarding_completed_at'>>()
+		// Get user's Stripe Connect status from property_owners table
+		const { data: propertyOwner, error: ownerError } = await client
+			.from('property_owners')
+			.select('stripe_account_id')
+			.eq('user_id', user_id)
+			.single()
 
-		if (error || !user) {
+		if (ownerError || !propertyOwner) {
+			this.logger.error('StripeConnectedGuard: Failed to fetch property owner', {
+				user_id,
+				error: ownerError
+			})
+			throw new BadRequestException('Property owner not found')
+		}
+
+		// Get user's onboarding status from users table
+		const { data: user, error: userError } = await client
+			.from('users')
+			.select('onboarding_completed_at')
+			.eq('id', user_id)
+			.single()
+
+		if (userError || !user) {
 			this.logger.error('StripeConnectedGuard: Failed to fetch user', {
 				user_id,
-				error
+				error: userError
 			})
 			throw new BadRequestException('User not found')
 		}
 
 		// Verify Stripe Connected Account exists
-		if (!user.connected_account_id) {
+		if (!propertyOwner.stripe_account_id) {
 			this.logger.warn(
 				'StripeConnectedGuard: Missing connected account',
 				{ user_id }
@@ -78,7 +92,7 @@ export class StripeConnectedGuard implements CanActivate {
 
 		// Attach connected account ID to request for ConnectedAccountId decorator
 		// NestJS pattern: Guards validate, decorators extract
-		request.connectedAccountId = user.connected_account_id
+		request.connectedAccountId = propertyOwner.stripe_account_id
 
 		return true
 	}

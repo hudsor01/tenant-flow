@@ -48,7 +48,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 		// Start with authenticated session
 		await loginAsOwner(page)
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
 	})
 
@@ -83,12 +83,12 @@ test.describe('TanStack Query Real User Workflows', () => {
 			expect(afterCreateCount).toBe(initialCount + 1)
 
 			// 4. Navigate to manage dashboard and verify stats updated
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(2000)
 			await statsHelper.waitForStatsUpdate(initialStats + 1)
 
 			// 5. Navigate back to properties and verify persistence
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 			await expect(
 				tableHelper.getPropertyByName(testProperty.name!)
@@ -106,9 +106,9 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await tableHelper.waitForPropertyToDisappear(testProperty.name!)
 
 			// 8. Navigate away and back again
-			await page.goto('/manage/units')
+			await page.goto('/units')
 			await page.waitForTimeout(1000)
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			// 9. Verify updated property is still there
@@ -132,13 +132,13 @@ test.describe('TanStack Query Real User Workflows', () => {
 			expect(finalCount).toBe(initialCount)
 
 			// 12. Verify manage dashboard stats updated
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(2000)
 			await statsHelper.waitForStatsUpdate(initialStats)
 		})
 
 		test('should handle rapid property management operations', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForLoadState('networkidle')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
@@ -166,9 +166,9 @@ test.describe('TanStack Query Real User Workflows', () => {
 			expect(afterCreateCount).toBe(initialCount + properties.length)
 
 			// Navigate away and back
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForLoadState('networkidle')
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForLoadState('networkidle')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
@@ -207,12 +207,12 @@ test.describe('TanStack Query Real User Workflows', () => {
 	test.describe('Manage Dashboard Integration Workflows', () => {
 		test('should maintain data consistency across manage dashboard and properties', async () => {
 			// Start at manage dashboard, check initial stats
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(2000)
 			const initialStats = await statsHelper.getTotalPropertiesCount()
 
 			// Navigate to properties
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 			const initialCount = await tableHelper.getPropertyCount()
 
@@ -224,16 +224,16 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await tableHelper.waitForPropertyInTable(testProperty.name!)
 
 			// Navigate back to manage dashboard
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(2000)
 
 			// Stats should be updated
 			await statsHelper.waitForStatsUpdate(initialStats + 1)
 
 			// Navigate to a different section and back
-			await page.goto('/manage/units')
+			await page.goto('/units')
 			await page.waitForTimeout(1000)
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(2000)
 
 			// Stats should still be correct
@@ -241,7 +241,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			expect(persistentStats).toBe(initialStats + 1)
 
 			// Go back to properties
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			// Property should still be there
@@ -261,14 +261,14 @@ test.describe('TanStack Query Real User Workflows', () => {
 			})
 
 			// Navigate to properties (will be loading)
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 
 			// Immediately navigate to manage dashboard while loading
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(1000)
 
 			// Navigate back to properties
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(4000) // Wait for slow load
 
 			// Should eventually show data
@@ -279,7 +279,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 	test.describe('Error Recovery Workflows', () => {
 		test('should recover gracefully from network interruptions', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			const testProperty = createTestProperty({
@@ -313,9 +313,9 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await tableHelper.waitForPropertyInTable(testProperty.name!)
 
 			// Navigate away and back to verify persistence
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(1000)
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			await expect(
@@ -324,7 +324,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 
 		test('should handle server errors with user-friendly recovery', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			const testProperty = createTestProperty({
@@ -381,7 +381,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 
 		test('should maintain user session across errors', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			// Simulate authentication errors
@@ -417,12 +417,12 @@ test.describe('TanStack Query Real User Workflows', () => {
 	test.describe('Performance with Real Usage Patterns', () => {
 		test('should maintain performance with heavy manage dashboard navigation', async () => {
 			const navigationRoutes = [
-				'/manage',
-				'/manage/properties',
-				'/manage/units',
-				'/manage/tenants',
-				'/manage/leases',
-				'/manage'
+				'/',
+				'/properties',
+				'/units',
+				'/tenants',
+				'/leases',
+				'/'
 			]
 
 			const navigationTimes: number[] = []
@@ -466,7 +466,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 
 		test('should handle concurrent user actions efficiently', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			const concurrentOperations = []
@@ -500,7 +500,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 
 		test('should maintain responsiveness during infinite scroll', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			// Measure scroll performance
@@ -531,12 +531,12 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 	test.describe('Multi-Tab and Session Management', () => {
 		test('should handle multiple browser tabs correctly', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			// Open second tab
 			const secondTab = await page.context().newPage()
-			await secondTab.goto('/manage/properties')
+			await secondTab.goto('/properties')
 			await secondTab.waitForLoadState('networkidle')
 
 			const property1 = createTestProperty({ name: 'Tab 1 Property' })
@@ -565,10 +565,10 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 
 		test('should handle browser back/forward with cache', async () => {
-			await page.goto('/manage')
+			await page.goto('/')
 			await page.waitForTimeout(1000)
 
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			const testProperty = createTestProperty({ name: 'Back Forward Property' })
@@ -576,7 +576,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await tableHelper.waitForPropertyInTable(testProperty.name!)
 
 			// Navigate to units
-			await page.goto('/manage/units')
+			await page.goto('/units')
 			await page.waitForTimeout(1000)
 
 			// Use browser back
@@ -605,7 +605,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 	test.describe('Real-world Error Scenarios', () => {
 		test('should handle incomplete form submissions gracefully', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			// Open form but don't fill all required fields
@@ -634,7 +634,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		})
 
 		test('should recover from page reload during operations', async () => {
-			await page.goto('/manage/properties')
+			await page.goto('/properties')
 			await page.waitForTimeout(2000)
 
 			const testProperty = createTestProperty({

@@ -60,6 +60,16 @@ export const propertyQueries = {
 		}),
 
 	/**
+	 * Properties with units (e.g., management dashboard)
+	 */
+	withUnits: () =>
+		queryOptions({
+			queryKey: [...propertyQueries.all(), 'with-units'] as const,
+			queryFn: () => clientFetch<Property[]>('/api/v1/properties/with-units'),
+			...QUERY_CACHE_TIMES.DETAIL,
+		}),
+
+	/**
 	 * Base key for all property details
 	 */
 	details: () => [...propertyQueries.all(), 'detail'] as const,
@@ -102,9 +112,30 @@ export const propertyQueries = {
 	performance: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'performance'],
-			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/manage/property-performance'),
+			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/property-performance'),
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),
+
+	analytics: {
+		occupancy: () =>
+			queryOptions({
+				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
+				queryFn: () => clientFetch('/api/v1/properties/analytics/occupancy'),
+				...QUERY_CACHE_TIMES.ANALYTICS,
+			}),
+		financial: () =>
+			queryOptions({
+				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
+				queryFn: () => clientFetch('/api/v1/properties/analytics/financial'),
+				...QUERY_CACHE_TIMES.ANALYTICS,
+			}),
+		maintenance: () =>
+			queryOptions({
+				queryKey: [...propertyQueries.all(), 'analytics', 'maintenance'] as const,
+				queryFn: () => clientFetch('/api/v1/properties/analytics/maintenance'),
+				...QUERY_CACHE_TIMES.ANALYTICS,
+			}),
+	},
 
 	/**
 	 * Property images for a specific property

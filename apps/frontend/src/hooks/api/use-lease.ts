@@ -11,11 +11,12 @@
 
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { useMemo } from 'react'
 import type {
 	CreateLeaseInput,
 	UpdateLeaseInput
 } from '@repo/shared/types/api-contracts'
-import type { Lease, MaintenanceRequest, LeaseWithVersion } from '@repo/shared/types/core'
+import type { Lease, LeaseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
@@ -26,31 +27,13 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { leaseQueries } from './queries/lease-queries'
+import { maintenanceQueries } from './queries/maintenance-queries'
 
 // Re-export for backward compatibility
 export type { TenantPortalLease } from './queries/lease-queries'
 
 // Re-export query factory
 export { leaseQueries } from './queries/lease-queries'
-
-/**
- * @deprecated Use leaseQueries instead for type-safe queryOptions pattern
- * Keeping for backward compatibility during migration
- * // TODO: Migrate and remove this object
- */
-export const leaseKeys = {
-	all: leaseQueries.all(),
-	list: (params?: Parameters<typeof leaseQueries.list>[0]) => leaseQueries.list(params).queryKey,
-	detail: (id: string) => leaseQueries.detail(id).queryKey,
-	expiring: () => leaseQueries.expiring().queryKey,
-	stats: () => leaseQueries.stats().queryKey,
-	analytics: {
-		performance: () => leaseQueries.analytics.performance().queryKey,
-		duration: () => leaseQueries.analytics.duration().queryKey,
-		turnover: () => leaseQueries.analytics.turnover().queryKey,
-		revenue: () => leaseQueries.analytics.revenue().queryKey
-	}
-}
 
 /**
  * Hook to fetch lease by ID
@@ -69,35 +52,11 @@ export function useCurrentLease() {
 /**
  * Hook to fetch maintenance requests for the current tenant's lease
  * Filters maintenance requests by the tenant's unit from their active lease
+ * 
+ * @deprecated Use maintenanceQueries.tenantPortal() directly for better type safety
  */
 export function useTenantMaintenanceRequests() {
-	return useQuery({
-		queryKey: ['tenant-portal', 'maintenance'],
-		queryFn: async (): Promise<{
-			requests: MaintenanceRequest[]
-			total: number
-			open: number
-			inProgress: number
-			completed: number
-		}> => {
-			const response = await clientFetch<{
-				requests: MaintenanceRequest[]
-				summary: {
-					total: number
-					open: number
-					inProgress: number
-					completed: number
-				}
-			}>('/api/v1/tenant-portal/maintenance')
-
-			return {
-				requests: response.requests,
-				...response.summary
-			}
-		},
-		...QUERY_CACHE_TIMES.SECURITY,
-		retry: 2
-	})
+	return useQuery(maintenanceQueries.tenantPortal())
 }
 
 /**
@@ -112,37 +71,22 @@ export function useLeaseList(params?: {
 	const { status, search, limit = 50, offset = 0 } = params || {}
 	const queryClient = useQueryClient()
 
+	const listQuery = leaseQueries.list({
+		...(status && { status }),
+		...(search && { search }),
+		limit,
+		offset
+	})
+
 	return useQuery({
-		queryKey: leaseKeys.list({
-			...(status && { status }),
-			...(search && { search }),
-			limit, // Always include for proper cache keying
-			offset // Always include for proper cache keying
-		}),
-		queryFn: async () => {
-			const searchParams = new URLSearchParams()
-			if (status) searchParams.append('status', status)
-			if (search) searchParams.append('search', search)
-			searchParams.append('limit', limit.toString())
-			searchParams.append('offset', offset.toString())
-
-			const response = await clientFetch<{
-				data: Lease[]
-				total: number
-				limit: number
-				offset: number
-			}>(`/api/v1/leases?${searchParams.toString()}`)
-
-			// Prefetch individual lease details
-			response.data.forEach(lease => {
-				queryClient.setQueryData(leaseKeys.detail(lease.id), lease)
+		...listQuery,
+		select: response => {
+			response?.data?.forEach?.(lease => {
+				queryClient.setQueryData(leaseQueries.detail(lease.id).queryKey, lease)
 			})
 
 			return response
 		},
-		...QUERY_CACHE_TIMES.LIST,
-		gcTime: 30 * 60 * 1000, // 30 minutes
-		retry: 2,
 		structuralSharing: true
 	})
 }
@@ -151,25 +95,15 @@ export function useLeaseList(params?: {
  * Hook to fetch expiring leases
  */
 export function useExpiringLeases(daysUntilExpiry: number = 30) {
-	return useQuery({
-		queryKey: [...leaseKeys.expiring(), { days: daysUntilExpiry }],
-		queryFn: () =>
-			clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${daysUntilExpiry}`),
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 2
-	})
+	const expiringQuery = leaseQueries.expiring(daysUntilExpiry)
+	return useQuery({ ...expiringQuery, ...QUERY_CACHE_TIMES.DETAIL, retry: 2 })
 }
 
 /**
  * Hook to fetch lease statistics
  */
 export function useLeaseStats() {
-	return useQuery({
-		queryKey: leaseKeys.stats(),
-		queryFn: () => clientFetch('/api/v1/leases/stats'),
-		...QUERY_CACHE_TIMES.LIST,
-		retry: 2
-	})
+	return useQuery(leaseQueries.stats())
 }
 
 /**
@@ -186,14 +120,11 @@ export function useCreateLease() {
 			}),
 		onMutate: async (newLease) => {
 			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: leaseKeys.all })
+			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
 
 			// Snapshot previous state
-			const previousLists = queryClient.getQueriesData<{
-				data: Lease[]
-				total: number
-			}>({
-				queryKey: leaseKeys.all
+			const previousLists = queryClient.getQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>({
+				queryKey: leaseQueries.lists()
 			})
 
 			// Create optimistic lease entry
@@ -220,16 +151,16 @@ export function useCreateLease() {
 			}
 
 			// Optimistically update all caches
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
-				{ queryKey: leaseKeys.all },
-				old =>
-					old
-						? {
-								...old,
-								data: [optimisticLease, ...old.data],
-								total: old.total + 1
-							}
-						: { data: [optimisticLease], total: 1 }
+			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() },
+				old => {
+					const data = old?.data ?? []
+					return {
+						...old,
+						data: [optimisticLease, ...data],
+						total: (old?.total ?? data.length) + 1
+					}
+				}
 			)
 
 			return { previousLists, tempId }
@@ -248,8 +179,8 @@ export function useCreateLease() {
 		},
 		onSuccess: (data, _variables, context) => {
 			// Replace optimistic entry with real data
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
-				{ queryKey: leaseKeys.all },
+			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() },
 				old => {
 					if (!old) return { data: [data], total: 1 }
 					return {
@@ -262,14 +193,14 @@ export function useCreateLease() {
 			)
 
 			// Cache individual lease details
-			queryClient.setQueryData(leaseKeys.detail(data.id), data)
+			queryClient.setQueryData(leaseQueries.detail(data.id).queryKey, data)
 
 			logger.info('Lease created successfully', { lease_id: data.id })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
 		}
 	})
 }
@@ -302,45 +233,45 @@ export function useUpdateLease() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: leaseKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: leaseKeys.all })
+			await queryClient.cancelQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
 
 			// Snapshot previous state
 			const previousDetail = queryClient.getQueryData<Lease>(
-				leaseKeys.detail(id)
+				leaseQueries.detail(id).queryKey
 			)
-			const previousLists = queryClient.getQueriesData<{
-				data: Lease[]
-				total: number
-			}>({
-				queryKey: leaseKeys.all
-			})
+			const previousLists = queryClient.getQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() }
+			)
 
 			// Optimistically update detail cache (use incrementVersion helper)
-			queryClient.setQueryData<LeaseWithVersion>(leaseKeys.detail(id), old =>
-				old ? (incrementVersion(old, data)) : undefined
-			)
+		queryClient.setQueryData<LeaseWithVersion>(leaseQueries.detail(id).queryKey, old =>
+			old ? (incrementVersion(old, data)) : undefined
+		)
 
 			// Optimistically update list caches
-			queryClient.setQueriesData<{ data: LeaseWithVersion[]; total: number }>(
-				{ queryKey: leaseKeys.all },
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						data: old.data.map(lease =>
-							lease.id === id ? (incrementVersion(lease, data)) : lease
-						)
-					}
+		queryClient.setQueriesData<{ data: LeaseWithVersion[]; total?: number; limit?: number; offset?: number }>(
+			{ queryKey: leaseQueries.lists() },
+			old => {
+				if (!old) return old
+				return {
+					...old,
+					data: old.data.map(lease =>
+						lease.id === id ? (incrementVersion(lease, data)) : lease
+					)
 				}
-			)
+			}
+		)
 
 			return { previousDetail, previousLists }
 		},
 		onError: (err, { id }, context) => {
 			// Rollback on error
 			if (context?.previousDetail) {
-				queryClient.setQueryData(leaseKeys.detail(id), context.previousDetail)
+				queryClient.setQueryData(
+					leaseQueries.detail(id).queryKey,
+					context.previousDetail
+				)
 			}
 			if (context?.previousLists) {
 				context.previousLists.forEach(([queryKey, data]) => {
@@ -351,8 +282,8 @@ export function useUpdateLease() {
 			// Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('leases', id, queryClient, [
-					leaseKeys.detail(id),
-					leaseKeys.all
+					leaseQueries.detail(id).queryKey,
+					leaseQueries.lists()
 				])
 			} else {
 				handleMutationError(err, 'Update lease')
@@ -360,10 +291,10 @@ export function useUpdateLease() {
 		},
 		onSuccess: (data, { id }) => {
 			// Replace optimistic update with real data (including correct version)
-			queryClient.setQueryData(leaseKeys.detail(id), data)
+			queryClient.setQueryData(leaseQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
-				{ queryKey: leaseKeys.all },
+			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() },
 				old => {
 					if (!old) return old
 					return {
@@ -377,9 +308,9 @@ export function useUpdateLease() {
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: leaseKeys.detail(id) })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
 		}
 	})
 }
@@ -402,40 +333,40 @@ export function useDeleteLease(options?: {
 		},
 		onMutate: async (id: string) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: leaseKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: leaseKeys.all })
+			await queryClient.cancelQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
 
 			// Snapshot previous state
 			const previousDetail = queryClient.getQueryData<Lease>(
-				leaseKeys.detail(id)
+				leaseQueries.detail(id).queryKey
 			)
-			const previousLists = queryClient.getQueriesData<{
-				data: Lease[]
-				total: number
-			}>({
-				queryKey: leaseKeys.all
-			})
+			const previousLists = queryClient.getQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() }
+			)
 
 			// Optimistically remove from all caches
-			queryClient.removeQueries({ queryKey: leaseKeys.detail(id) })
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
-				{ queryKey: leaseKeys.all },
+			queryClient.removeQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() },
 				old =>
 					old
 						? {
 								...old,
 								data: old.data.filter(lease => lease.id !== id),
-								total: old.total - 1
+								total: (old.total ?? old.data.length) - 1
 							}
 						: old
 			)
 
 			return { previousDetail, previousLists }
 		},
-		onError: (err, id, context) => {
+			onError: (err, id, context) => {
 			// Rollback on error
 			if (context?.previousDetail) {
-				queryClient.setQueryData(leaseKeys.detail(id), context.previousDetail)
+				queryClient.setQueryData(
+					leaseQueries.detail(id).queryKey,
+					context.previousDetail
+				)
 			}
 			if (context?.previousLists) {
 				context.previousLists.forEach(([queryKey, data]) => {
@@ -454,10 +385,10 @@ export function useDeleteLease(options?: {
 			logger.info('Lease deleted successfully', { lease_id: id })
 			options?.onSuccess?.()
 		},
-		onSettled: () => {
+			onSettled: () => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
 		}
 	})
 }
@@ -476,10 +407,10 @@ export function useRenewLease() {
 			}),
 		onSuccess: (data, { id }) => {
 			// Update caches with renewed lease
-			queryClient.setQueryData(leaseKeys.detail(id), data)
+			queryClient.setQueryData(leaseQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
-				{ queryKey: leaseKeys.all },
+			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() },
 				old => {
 					if (!old) return old
 					return {
@@ -492,9 +423,9 @@ export function useRenewLease() {
 			logger.info('Lease renewed successfully', { lease_id: id })
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.expiring() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.expiring().queryKey })
 		}
 	})
 }
@@ -525,10 +456,10 @@ export function useTerminateLease() {
 			}),
 		onSuccess: (data, { id }) => {
 			// Update caches with terminated lease
-			queryClient.setQueryData(leaseKeys.detail(id), data)
+			queryClient.setQueryData(leaseQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Lease[]; total: number }>(
-				{ queryKey: leaseKeys.all },
+			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
+				{ queryKey: leaseQueries.lists() },
 				old => {
 					if (!old) return old
 					return {
@@ -541,8 +472,8 @@ export function useTerminateLease() {
 			logger.info('Lease terminated successfully', { lease_id: id })
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: leaseKeys.all })
-			queryClient.invalidateQueries({ queryKey: leaseKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
 		}
 	})
 }
@@ -555,7 +486,7 @@ export function usePrefetchLease() {
 
 	return (id: string) => {
 		queryClient.prefetchQuery({
-			queryKey: leaseKeys.detail(id),
+			queryKey: leaseQueries.detail(id).queryKey,
 			queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
 		})
@@ -567,11 +498,26 @@ export function usePrefetchLease() {
  * Convenience hook for components that need multiple operations
  */
 export function useLeaseOperations() {
-	return {
-		create: useCreateLease(),
-		update: useUpdateLease(),
-		delete: useDeleteLease(),
-		renew: useRenewLease(),
-		terminate: useTerminateLease()
-	}
+	const create = useCreateLease()
+	const update = useUpdateLease()
+	const remove = useDeleteLease()
+	const renew = useRenewLease()
+	const terminate = useTerminateLease()
+
+	return useMemo(
+		() => ({
+			create,
+			update,
+			delete: remove,
+			renew,
+			terminate,
+			isLoading:
+				create.isPending ||
+				update.isPending ||
+				remove.isPending ||
+				renew.isPending ||
+				terminate.isPending
+		}),
+		[create, update, remove, renew, terminate]
+	)
 }

@@ -1,10 +1,10 @@
-import { Injectable, Logger, Optional, forwardRef, Inject } from '@nestjs/common'
+import { Injectable, Logger, Optional } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase'
-import { StripeWebhookController } from './stripe-webhook.controller'
+import { WebhookProcessor } from './webhook-processor.service'
 
 type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
 
@@ -14,8 +14,7 @@ export class WebhookRetryService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		@Inject(forwardRef(() => StripeWebhookController))
-		private readonly webhookController: StripeWebhookController,
+		private readonly processor: WebhookProcessor,
 		@Optional() private readonly prometheus: PrometheusService | null
 	) {}
 
@@ -90,8 +89,8 @@ export class WebhookRetryService {
 					continue
 				}
 
-				// Call webhook controller directly instead of emitting event
-				await this.webhookController.processWebhookEvent(stripeEvent)
+				// Call webhook processor to handle the event
+				await this.processor.processEvent(stripeEvent)
 
 				// Mark attempt as successful
 				await client

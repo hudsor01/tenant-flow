@@ -20,41 +20,14 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
+import { useMemo } from 'react'
 import type {
 	CreateUnitInput,
 	UpdateUnitInput
 } from '@repo/shared/types/api-contracts'
 import type { Unit, UnitWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { unitQueries, type UnitFilters } from './queries/unit-queries'
-
-/**
- * @deprecated Use unitQueries from './queries/unit-queries' instead
- * // TODO: migrate from backward compatibility to current implementation properly
- */
-export const unitKeys = {
-	all: unitQueries.all(),
-	list: (params?: {
-		property_id?: string
-		status?: string
-		search?: string
-		limit?: number
-		offset?: number
-	}) => {
-		// Convert params to UnitFilters format, only including defined values
-		const filters: UnitFilters | undefined = params ? Object.assign({},
-			params.property_id ? { property_id: params.property_id } : {},
-			params.status ? { status: params.status as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' } : {},
-			params.search ? { search: params.search } : {},
-			params.limit !== undefined ? { limit: params.limit } : {},
-			params.offset !== undefined ? { offset: params.offset } : {}
-		) as UnitFilters : undefined
-		return unitQueries.list(filters).queryKey
-	},
-	detail: (id: string) => unitQueries.detail(id).queryKey,
-	byProperty: (property_id: string) => unitQueries.byProperty(property_id).queryKey,
-	stats: () => unitQueries.stats().queryKey
-}
+import { unitQueries } from './queries/unit-queries'
 
 /**
  * Hook to fetch unit by ID
@@ -127,14 +100,11 @@ export function useCreateUnit() {
 			}),
 		onMutate: async (newUnit: CreateUnitInput) => {
 			// Cancel outgoing refetches to prevent overwriting optimistic update
-			await queryClient.cancelQueries({ queryKey: unitKeys.all })
+			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
 
 			// Snapshot previous state for rollback
-			const previousLists = queryClient.getQueriesData<{
-				data: Unit[]
-				total: number
-			}>({
-				queryKey: unitKeys.all
+			const previousLists = queryClient.getQueriesData<Unit[]>({
+				queryKey: unitQueries.lists()
 			})
 
 			// Create optimistic unit entry
@@ -150,22 +120,15 @@ export function useCreateUnit() {
 			rent_amount: newUnit.rent_amount ?? 0,
 			rent_currency: 'USD',
 			rent_period: 'month',
-			status: newUnit.status || 'AVAILABLE',
+			status: (newUnit.status as Unit['status']) || 'VACANT',
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString()
 		}
 
 			// Optimistically update all relevant caches
-			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
-				{ queryKey: unitKeys.all },
-				old =>
-					old
-						? {
-								...old,
-								data: [optimisticUnit, ...old.data],
-								total: old.total + 1
-							}
-						: { data: [optimisticUnit], total: 1 }
+			queryClient.setQueriesData<Unit[]>(
+				{ queryKey: unitQueries.lists() },
+				old => (old ? [optimisticUnit, ...old] : [optimisticUnit])
 			)
 
 			// Return context for rollback
@@ -183,28 +146,23 @@ export function useCreateUnit() {
 		},
 		onSuccess: (data, _variables, context) => {
 			// Replace optimistic entry with real data
-			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
-				{ queryKey: unitKeys.all },
+			queryClient.setQueriesData<Unit[]>(
+				{ queryKey: unitQueries.lists() },
 				old => {
-					if (!old) return { data: [data], total: 1 }
-					return {
-						...old,
-						data: old.data.map(unit =>
-							unit.id === context?.tempId ? data : unit
-						)
-					}
+					if (!old) return [data]
+					return old.map(unit => (unit.id === context?.tempId ? data : unit))
 				}
 			)
 
 			// Cache individual unit details
-			queryClient.setQueryData(unitKeys.detail(data.id), data)
+			queryClient.setQueryData(unitQueries.detail(data.id).queryKey, data)
 
 			logger.info('Unit created successfully', { unit_id: data.id })
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency with server
-			queryClient.invalidateQueries({ queryKey: unitKeys.all })
-			queryClient.invalidateQueries({ queryKey: unitKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
 		}
 	})
 }
@@ -237,22 +195,21 @@ export function useUpdateUnit() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this unit
-			await queryClient.cancelQueries({ queryKey: unitKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: unitKeys.all })
+			await queryClient.cancelQueries({ queryKey: unitQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
 
 			// Snapshot all relevant caches for comprehensive rollback
-			const previousDetail = queryClient.getQueryData<Unit>(unitKeys.detail(id))
-			const previousLists = queryClient.getQueriesData<{
-				data: Unit[]
-				total: number
-			}>({
-				queryKey: unitKeys.all
+			const previousDetail = queryClient.getQueryData<Unit>(
+				unitQueries.detail(id).queryKey
+			)
+			const previousLists = queryClient.getQueriesData<Unit[]>({
+				queryKey: unitQueries.lists()
 			})
 
 			// Optimistically update detail cache
 		if (previousDetail) {
 			queryClient.setQueryData<UnitWithVersion>(
-				unitKeys.detail(id),
+				unitQueries.detail(id).queryKey,
 				(old: UnitWithVersion | undefined) =>
 					old ? incrementVersion(old, data) : undefined
 			)
@@ -264,7 +221,10 @@ export function useUpdateUnit() {
 		onError: (err, { id }, context) => {
 			// Comprehensive rollback: restore all caches
 			if (context?.previousDetail) {
-				queryClient.setQueryData(unitKeys.detail(id), context.previousDetail)
+				queryClient.setQueryData(
+					unitQueries.detail(id).queryKey,
+					context.previousDetail
+				)
 			}
 			if (context?.previousLists) {
 				context.previousLists.forEach(([queryKey, data]) => {
@@ -275,8 +235,8 @@ export function useUpdateUnit() {
 			//Handle 409 Conflict using helper
 			if (isConflictError(err)) {
 				handleConflictError('units', id, queryClient, [
-					unitKeys.detail(id),
-					unitKeys.all
+					unitQueries.detail(id).queryKey,
+					unitQueries.lists()
 				])
 			} else {
 				handleMutationError(err, 'Update unit')
@@ -284,26 +244,20 @@ export function useUpdateUnit() {
 		},
 		onSuccess: (data, { id }) => {
 			// Replace optimistic update with real server data (including correct version)
-			queryClient.setQueryData(unitKeys.detail(id), data)
+			queryClient.setQueryData(unitQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
-				{ queryKey: unitKeys.all },
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						data: old.data.map(unit => (unit.id === id ? data : unit))
-					}
-				}
+			queryClient.setQueriesData<Unit[]>(
+				{ queryKey: unitQueries.lists() },
+				old => (old ? old.map(unit => (unit.id === id ? data : unit)) : old)
 			)
 
 			logger.info('Unit updated successfully', { unit_id: id })
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: unitKeys.detail(id) })
-			queryClient.invalidateQueries({ queryKey: unitKeys.all })
-			queryClient.invalidateQueries({ queryKey: unitKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
 		}
 	})
 }
@@ -327,30 +281,22 @@ export function useDeleteUnit(options?: {
 		},
 		onMutate: async (id: string) => {
 			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: unitKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: unitKeys.all })
+			await queryClient.cancelQueries({ queryKey: unitQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
 
 			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<Unit>(unitKeys.detail(id))
-			const previousLists = queryClient.getQueriesData<{
-				data: Unit[]
-				total: number
-			}>({
-				queryKey: unitKeys.all
+			const previousDetail = queryClient.getQueryData<Unit>(
+				unitQueries.detail(id).queryKey
+			)
+			const previousLists = queryClient.getQueriesData<Unit[]>({
+				queryKey: unitQueries.lists()
 			})
 
 			// Optimistically remove from all caches
-			queryClient.removeQueries({ queryKey: unitKeys.detail(id) })
-			queryClient.setQueriesData<{ data: Unit[]; total: number }>(
-				{ queryKey: unitKeys.all },
-				old =>
-					old
-						? {
-								...old,
-								data: old.data.filter(unit => unit.id !== id),
-								total: old.total - 1
-							}
-						: old
+			queryClient.removeQueries({ queryKey: unitQueries.detail(id).queryKey })
+			queryClient.setQueriesData<Unit[]>(
+				{ queryKey: unitQueries.lists() },
+				old => (old ? old.filter(unit => unit.id !== id) : old)
 			)
 
 			return { previousDetail, previousLists }
@@ -358,7 +304,10 @@ export function useDeleteUnit(options?: {
 		onError: (err, id, context) => {
 			// Rollback: restore previous state
 			if (context?.previousDetail) {
-				queryClient.setQueryData(unitKeys.detail(id), context.previousDetail)
+				queryClient.setQueryData(
+					unitQueries.detail(id).queryKey,
+					context.previousDetail
+				)
 			}
 			if (context?.previousLists) {
 				context.previousLists.forEach(([queryKey, data]) => {
@@ -375,8 +324,8 @@ export function useDeleteUnit(options?: {
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: unitKeys.all })
-			queryClient.invalidateQueries({ queryKey: unitKeys.stats() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
 		}
 	})
 }
@@ -389,7 +338,7 @@ export function usePrefetchUnit() {
 
 	return (id: string) => {
 		queryClient.prefetchQuery({
-			queryKey: unitKeys.detail(id),
+			queryKey: unitQueries.detail(id).queryKey,
 			queryFn: async (): Promise<Unit> => {
 				return clientFetch<Unit>(`/api/v1/units/${id}`)
 			},
@@ -403,9 +352,17 @@ export function usePrefetchUnit() {
  * Convenience hook for components that need multiple operations
  */
 export function useUnitOperations() {
-	return {
-		create: useCreateUnit(),
-		update: useUpdateUnit(),
-		delete: useDeleteUnit()
-	}
+	const create = useCreateUnit()
+	const update = useUpdateUnit()
+	const remove = useDeleteUnit()
+
+	return useMemo(
+		() => ({
+			create,
+			update,
+			delete: remove,
+			isLoading: create.isPending || update.isPending || remove.isPending
+		}),
+		[create, update, remove]
+	)
 }

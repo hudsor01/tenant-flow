@@ -23,15 +23,15 @@ import { SupabaseService } from '../../database/supabase.service'
 * DEPRECATED: This controller uses legacy /manage routes.
  *
  * Migration: Use /owner routes from OwnerDashboardModule instead.
- * - /manage/stats → /owner/analytics/stats
- * - /manage/activity → /owner/analytics/activity
- * - /manage/billing/insights → /owner/financial/billing/insights
- * - /manage/property-performance → /owner/properties/performance
- * - /manage/maintenance-analytics → /owner/maintenance/analytics
- * - /manage/occupancy-trends → /owner/tenants/occupancy-trends
- * - /manage/revenue-trends → /owner/financial/revenue-trends
- * - /manage/time-series → /owner/reports/time-series
- * - /manage/metric-trend → /owner/reports/metric-trend
+ * - /stats → /owner/analytics/stats
+ * - /activity → /owner/analytics/activity
+ * - /billing/insights → /owner/financial/billing/insights
+ * - /property-performance → /owner/properties/performance
+ * - /maintenance-analytics → /owner/maintenance/analytics
+ * - /occupancy-trends → /owner/tenants/occupancy-trends
+ * - /revenue-trends → /owner/financial/revenue-trends
+ * - /time-series → /owner/reports/time-series
+ * - /metric-trend → /owner/reports/metric-trend
  *
  * Sunset Date: 2025-09-01
  * See: apps/backend/src/modules/owner-dashboard/README.md

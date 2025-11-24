@@ -67,7 +67,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 
 		// Navigate to dashboard to verify session is valid
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/manage`, { waitUntil: 'domcontentloaded' })
+		await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
 
 		// CRITICAL: Wait for auth session to initialize even with cached cookies
 		debugLog('⏳ Waiting for cached session to initialize...')
@@ -136,7 +136,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// Submit form and wait for navigation
 	debugLog(' Clicking submit button and waiting for navigation...')
 	await Promise.all([
-		page.waitForURL('/manage', { timeout: 120000 }),
+		page.waitForURL('/dashboard', { timeout: 120000 }),
 		submitButton.click()
 	])
 	debugLog(' Navigation complete!')
@@ -190,9 +190,9 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		const session = sessionCache.get(cacheKey)
 		await page.context().addCookies(session.cookies) // Includes httpOnly cookies!
 
-		// Navigate to tenant dashboard to verify session is valid
+		// Navigate to tenant portal to verify session is valid
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/tenant`)
+		await page.goto(`${baseUrl}/portal`)
 		await page.waitForLoadState('networkidle')
 
 		debugLog(
@@ -238,7 +238,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	}
 	
 	await Promise.all([
-		page.waitForURL(/\/tenant/, { timeout: 120000 }),
+		page.waitForURL(/\/portal/, { timeout: 120000 }),
 		submitButton.click()
 	])
 

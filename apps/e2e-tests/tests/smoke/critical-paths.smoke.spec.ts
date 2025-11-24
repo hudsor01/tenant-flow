@@ -52,7 +52,7 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 		// Wait for either success OR error (with good error message)
 		const outcome = await Promise.race([
-			page.waitForURL(`${BASE_URL}/manage/**`, { timeout: 8000 }).then(() => 'success'),
+			page.waitForURL(`${BASE_URL}/**`, { timeout: 8000 }).then(() => 'success'),
 			page.locator('text=/Sign in failed|Invalid/i').waitFor({ timeout: 8000 }).then(() => 'error')
 		]).catch(() => 'timeout')
 
@@ -74,22 +74,21 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 				`Check: Supabase env vars, backend health, frontend build`)
 		}
 
-		// Extract auth token for API tests
-		authToken = await page.evaluate(() => {
-			const keys = Object.keys(localStorage)
-			const authKey = keys.find(k => k.includes('supabase') || k.includes('sb-'))
-			if (!authKey) return null
+		// Extract auth token from cookies (Supabase SSR uses cookies, not localStorage)
+		const cookies = await page.context().cookies()
+		const authCookie = cookies.find(c =>
+			c.name.includes('sb-') && c.name.includes('-auth-token')
+		)
 
+		if (authCookie) {
 			try {
-				const data = JSON.parse(localStorage.getItem(authKey) || '{}')
-				return data?.currentSession?.access_token ||
-					   data?.access_token ||
-					   data?.session?.access_token ||
-					   null
-			} catch {
-				return null
+				const cookieData = JSON.parse(decodeURIComponent(authCookie.value))
+				authToken = cookieData.access_token || cookieData[0]?.access_token || null
+			} catch (error) {
+				// Cookie might not be JSON encoded, try direct value
+				authToken = authCookie.value
 			}
-		})
+		}
 
 		expect(authToken).toBeTruthy()
 	})
@@ -100,10 +99,10 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.fill('input[type="email"]', OWNER_EMAIL)
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
-		await page.waitForURL(`${BASE_URL}/manage/**`)
+		await page.waitForURL(`${BASE_URL}/**`)
 
 		// Navigate to dashboard
-		await page.goto(`${BASE_URL}/manage`)
+		await page.goto(`${BASE_URL}/dashboard`)
 
 		// Verify dashboard loads - accept any of these as success
 		const dashboardLoaded = await Promise.race([
@@ -121,10 +120,10 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.fill('input[type="email"]', OWNER_EMAIL)
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
-		await page.waitForURL(`${BASE_URL}/manage/**`)
+		await page.waitForURL(`${BASE_URL}/**`)
 
 		// Navigate to properties
-		await page.goto(`${BASE_URL}/manage/properties`)
+		await page.goto(`${BASE_URL}/properties`)
 
 		// Verify properties page loads
 		const propertiesLoaded = await Promise.race([
@@ -141,7 +140,7 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.fill('input[type="email"]', OWNER_EMAIL)
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
-		await page.waitForURL(`${BASE_URL}/manage/**`)
+		await page.waitForURL(`${BASE_URL}/**`)
 
 		const token = await page.evaluate(() => {
 			const keys = Object.keys(localStorage)
@@ -188,14 +187,14 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.fill('input[type="email"]', OWNER_EMAIL)
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
-		await page.waitForURL(`${BASE_URL}/manage/**`)
+		await page.waitForURL(`${BASE_URL}/**`)
 
 		// Test navigation to key pages
 		const pages = [
-			{ url: '/manage', name: 'Dashboard' },
-			{ url: '/manage/properties', name: 'Properties' },
-			{ url: '/manage/tenants', name: 'Tenants' },
-			{ url: '/manage/leases', name: 'Leases' }
+			{ url: '/', name: 'Dashboard' },
+			{ url: '/properties', name: 'Properties' },
+			{ url: '/tenants', name: 'Tenants' },
+			{ url: '/leases', name: 'Leases' }
 		]
 
 		for (const testPage of pages) {
@@ -233,13 +232,13 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.fill('input[type="email"]', OWNER_EMAIL)
 		await page.fill('input[type="password"]', OWNER_PASSWORD)
 		await page.click('button[type="submit"]')
-		await page.waitForURL(`${BASE_URL}/manage/**`)
+		await page.waitForURL(`${BASE_URL}/**`)
 
 		// Visit critical pages
-		await page.goto(`${BASE_URL}/manage`)
+		await page.goto(`${BASE_URL}/dashboard`)
 		await page.waitForLoadState('networkidle')
 
-		await page.goto(`${BASE_URL}/manage/properties`)
+		await page.goto(`${BASE_URL}/properties`)
 		await page.waitForLoadState('networkidle')
 
 		// Filter out known acceptable errors

@@ -68,41 +68,41 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 
 		// Define all pages to test
 		const pagesToTest = [
-			{ path: '/manage', name: 'Dashboard' },
-			{ path: '/manage/properties', name: 'Properties' },
-			{ path: '/manage/units', name: 'Units' },
-			{ path: '/manage/tenants', name: 'Tenants' },
-			{ path: '/manage/leases', name: 'Leases' },
-			{ path: '/manage/maintenance', name: 'Maintenance Requests' },
+			{ path: '/', name: 'Dashboard' },
+			{ path: '/properties', name: 'Properties' },
+			{ path: '/units', name: 'Units' },
+			{ path: '/tenants', name: 'Tenants' },
+			{ path: '/leases', name: 'Leases' },
+			{ path: '/maintenance', name: 'Maintenance Requests' },
 
 			// Analytics pages
-			{ path: '/manage/analytics', name: 'Analytics (Main)' },
-			{ path: '/manage/analytics/overview', name: 'Analytics - Overview' },
-			{ path: '/manage/analytics/financial', name: 'Analytics - Financial' },
-			{ path: '/manage/analytics/occupancy', name: 'Analytics - Occupancy' },
-			{ path: '/manage/analytics/leases', name: 'Analytics - Leases' },
-			{ path: '/manage/analytics/maintenance', name: 'Analytics - Maintenance' },
-			{ path: '/manage/analytics/property-performance', name: 'Analytics - Property Performance' },
+			{ path: '/analytics', name: 'Analytics (Main)' },
+			{ path: '/analytics/overview', name: 'Analytics - Overview' },
+			{ path: '/analytics/financial', name: 'Analytics - Financial' },
+			{ path: '/analytics/occupancy', name: 'Analytics - Occupancy' },
+			{ path: '/analytics/leases', name: 'Analytics - Leases' },
+			{ path: '/analytics/maintenance', name: 'Analytics - Maintenance' },
+			{ path: '/analytics/property-performance', name: 'Analytics - Property Performance' },
 
 			// Reports pages
-			{ path: '/manage/reports', name: 'Reports (Main)' },
-			{ path: '/manage/reports/generate', name: 'Reports - Generate' },
+			{ path: '/reports', name: 'Reports (Main)' },
+			{ path: '/reports/generate', name: 'Reports - Generate' },
 
 			// Financials pages
-			{ path: '/manage/financials', name: 'Financials (Main)' },
-			{ path: '/manage/financials/income-statement', name: 'Financials - Income Statement' },
-			{ path: '/manage/financials/cash-flow', name: 'Financials - Cash Flow' },
-			{ path: '/manage/financials/balance-sheet', name: 'Financials - Balance Sheet' },
-			{ path: '/manage/financials/tax-documents', name: 'Financials - Tax Documents' },
+			{ path: '/financials', name: 'Financials (Main)' },
+			{ path: '/financials/income-statement', name: 'Financials - Income Statement' },
+			{ path: '/financials/cash-flow', name: 'Financials - Cash Flow' },
+			{ path: '/financials/balance-sheet', name: 'Financials - Balance Sheet' },
+			{ path: '/financials/tax-documents', name: 'Financials - Tax Documents' },
 
 			// Documents & Lease Templates
-			{ path: '/manage/documents', name: 'Documents' },
-			{ path: '/manage/documents/lease-template', name: 'Lease Template Builder' },
+			{ path: '/documents', name: 'Documents' },
+			{ path: '/documents/lease-template', name: 'Lease Template Builder' },
 
 			// Settings pages
-			{ path: '/manage/settings', name: 'Settings (Main)' },
-			{ path: '/manage/payments/methods', name: 'Payment Methods' },
-			{ path: '/manage/rent-collection', name: 'Rent Collection' }
+			{ path: '/settings', name: 'Settings (Main)' },
+			{ path: '/payments/methods', name: 'Payment Methods' },
+			{ path: '/rent-collection', name: 'Rent Collection' }
 		]
 
 		// Test each page
@@ -134,7 +134,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 				try {
 					await page.waitForFunction(() => {
 						const url = window.location.pathname
-						return url.includes('/manage') || url.includes('/tenant')
+						return url.includes('/') || url.includes('/tenant')
 					}, { timeout: 10000 })
 				} catch {
 					// Page might redirect if auth fails - that's ok, we'll catch it below

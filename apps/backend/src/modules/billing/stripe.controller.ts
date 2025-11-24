@@ -329,7 +329,7 @@ export class StripeController {
 
       // Verify subscription belongs to tenant
       const subscriptionRecord = await this.billingService.findSubscriptionByStripeId(subscriptionId)
-      if (!subscriptionRecord || subscriptionRecord.customer_id !== tenantId) {
+      if (!subscriptionRecord || subscriptionRecord.customer !== tenantId) {
         throw new NotFoundException('Subscription not found')
       }
 

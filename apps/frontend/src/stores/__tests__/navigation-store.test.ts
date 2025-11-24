@@ -38,9 +38,9 @@ describe('navigation store', () => {
 		const { addBreadcrumb, clearBreadcrumbs } = store
 
 		if (setBreadcrumbs) {
-			setBreadcrumbs([{ label: 'Dashboard', href: '/manage' }])
+			setBreadcrumbs([{ label: 'Dashboard', href: '/' }])
 		}
-		addBreadcrumb({ label: 'Leases', href: '/manage/leases' })
+		addBreadcrumb({ label: 'Leases', href: '/leases' })
 
 		let state = useNavigationStore.getState()
 		expect(state.breadcrumbs).toHaveLength(2)
@@ -53,35 +53,35 @@ describe('navigation store', () => {
 
 	it('tracks active route and navigation history', () => {
 		const { setActiveRoute } = useNavigationStore.getState()
-		setActiveRoute('/manage', 'overview')
-		setActiveRoute('/manage/leases', 'leases')
+		setActiveRoute('/', 'overview')
+		setActiveRoute('/leases', 'leases')
 
 		const state = useNavigationStore.getState()
-		expect(state.activeRoute).toBe('/manage/leases')
+		expect(state.activeRoute).toBe('/leases')
 		expect(state.activeSection).toBe('leases')
-		expect(state.navigationHistory).toEqual(['/manage', '/manage/leases'])
+		expect(state.navigationHistory).toEqual(['/', '/leases'])
 		expect(state.canGoBack).toBe(true)
 	})
 
 	it('goes back to the previous history entry', () => {
 		const { addToHistory, goBack } = useNavigationStore.getState()
 		addToHistory('/dashboard')
-		addToHistory('/manage/leases')
-		addToHistory('/manage/leases/create')
+		addToHistory('/leases')
+		addToHistory('/leases/create')
 
 		const previousRoute = goBack()
-		expect(previousRoute).toBe('/manage/leases')
-		expect(useNavigationStore.getState().activeRoute).toBe('/manage/leases')
+		expect(previousRoute).toBe('/leases')
+		expect(useNavigationStore.getState().activeRoute).toBe('/leases')
 		expect(useNavigationStore.getState().navigationHistory).toEqual([
 			'/dashboard',
-			'/manage/leases'
+			'/leases'
 		])
 	})
 
 	it('clears navigation history', () => {
 		const { addToHistory, clearHistory } = useNavigationStore.getState()
 		addToHistory('/dashboard')
-		addToHistory('/manage/leases')
+		addToHistory('/leases')
 		clearHistory()
 
 		expect(useNavigationStore.getState().navigationHistory).toHaveLength(0)

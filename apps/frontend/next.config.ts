@@ -21,10 +21,7 @@ const nextConfig: NextConfig = {
 		resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mdx']
 	},
 
-	// Cache Components: DISABLED - incompatible with current protected route architecture
-	// Protected routes access cookies() in layout which conflicts with prerendering
-	// TODO: Re-enable after refactoring auth to use middleware pattern
-	cacheComponents: false,
+	cacheComponents: true,
 	onDemandEntries: {
 		maxInactiveAge: 25 * 1000,
 		pagesBufferLength: 2
