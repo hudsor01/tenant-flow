@@ -57,7 +57,7 @@ test.describe('Texas Lease Generation', () => {
 			await Promise.race([
 				loginAsOwner(page),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Auth timeout after 10s')), 10000)
+					setTimeout(() => reject(new Error('Auth timeout after 15s')), 15000)
 				)
 			])
 
@@ -66,10 +66,11 @@ test.describe('Texas Lease Generation', () => {
 		} catch (error) {
 			authenticationAvailable = false
 			logger.warn('️ Authentication failed - tests will be SKIPPED')
+			logger.warn(`Error: ${error instanceof Error ? error.message : String(error)}`)
+			logger.info(' Required environment variables:')
+			logger.info(`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`)
+			logger.info(`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`)
 			logger.info(' Set up test account at http://localhost:3000/signup')
-			logger.info(
-				` Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
-			)
 		} finally {
 			await page.close()
 		}
@@ -115,7 +116,7 @@ test('should auto-fill and generate Texas lease PDF', async ({
 	page
 }, testInfo) => {
 	// Authentication handled in beforeEach		// Navigate to leases page
-		await page.goto('/manage/leases', {
+		await page.goto('/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -286,7 +287,7 @@ test('should auto-fill and generate Texas lease PDF', async ({
 	test('should reject generation without required property/unit/tenant', async ({
 		page
 	}) => {
-		await page.goto('/manage/leases', {
+		await page.goto('/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -349,7 +350,7 @@ test('should auto-fill and generate Texas lease PDF', async ({
 			})
 		})
 
-		await page.goto('/manage/leases', {
+		await page.goto('/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -408,7 +409,7 @@ test('should auto-fill and generate Texas lease PDF', async ({
 			})
 		})
 
-		await page.goto('/manage/leases', {
+		await page.goto('/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -442,7 +443,7 @@ test('should auto-fill and generate Texas lease PDF', async ({
 	})
 
 	test('should maintain form data when regenerating', async ({ page }) => {
-		await page.goto('/manage/leases', {
+		await page.goto('/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})

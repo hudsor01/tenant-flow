@@ -16,7 +16,7 @@ import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
 import { SilentLogger } from '../__test__/silent-logger'
-import { SB_ADMIN_CLIENT } from './supabase.constants'
+import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { SupabaseService } from './supabase.service'
 
 describe('SupabaseService', () => {
@@ -26,10 +26,10 @@ describe('SupabaseService', () => {
 
 	beforeEach(async () => {
 		// Set up environment variables that SupabaseService actually uses
-		process.env.SB_URL = 'https://test-project.supabase.co'
-		process.env.SB_SECRET_KEY =
+		process.env.SUPABASE_URL = 'https://test-project.supabase.co'
+		process.env.SUPABASE_SECRET_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-service-key'
-		process.env.SB_PUBLISHABLE_KEY =
+		process.env.SUPABASE_PUBLISHABLE_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-publishable-key'
 
 		// Spy on Logger before creating the service (logs happen in constructor)
@@ -65,7 +65,7 @@ describe('SupabaseService', () => {
 			providers: [
 				SupabaseService,
 				{
-					provide: SB_ADMIN_CLIENT,
+					provide: SUPABASE_ADMIN_CLIENT,
 					useValue: mockAdminClient
 				},
 				{
@@ -130,8 +130,8 @@ describe('SupabaseService', () => {
 			const userToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-user-token'
 
 			// Mock environment variables for user client
-			process.env.SB_URL = 'https://test-project.supabase.co'
-			process.env.SB_PUBLISHABLE_KEY =
+			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
+			process.env.SUPABASE_PUBLISHABLE_KEY =
 				'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-publishable-key'
 
 			const userClient = service.getUserClient(userToken)
@@ -141,7 +141,7 @@ describe('SupabaseService', () => {
 			expect(typeof userClient.auth).toBe('object')
 		})
 
-		it('should throw error when creating user client without SB_URL', () => {
+		it('should throw error when creating user client without SUPABASE_URL', () => {
 			const mockAppConfigService = {
 				getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
 				getSupabaseUrl: jest.fn().mockReturnValue(undefined),
@@ -155,7 +155,7 @@ describe('SupabaseService', () => {
 			)
 		})
 
-		it('should throw error when creating user client without SB_PUBLISHABLE_KEY', () => {
+		it('should throw error when creating user client without SUPABASE_PUBLISHABLE_KEY', () => {
 			const mockAppConfigService = {
 				getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
 				getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
@@ -203,8 +203,8 @@ describe('SupabaseService', () => {
 
 		it('should provide user client with required methods', () => {
 			// Set required environment variables for user client
-			process.env.SB_URL = 'https://test-project.supabase.co'
-			process.env.SB_PUBLISHABLE_KEY = 'test-publishable-key'
+			process.env.SUPABASE_URL = 'https://test-project.supabase.co'
+			process.env.SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key'
 
 			const userClient = service.getUserClient('test-token')
 

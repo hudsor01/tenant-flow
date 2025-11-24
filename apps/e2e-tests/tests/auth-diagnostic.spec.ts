@@ -104,14 +104,14 @@ test.describe('Authentication Diagnostic Tests', () => {
 		const envInfo = await page.evaluate(() => {
 			const w = window as unknown as {
 				location: Location;
-				NEXT_PUBLIC_SB_URL?: string;
-				NEXT_PUBLIC_SB_ANON_KEY?: string;
+				NEXT_PUBLIC_SUPABASE_URL?: string;
+				NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
 			};
 			return {
 				origin: w.location.origin,
 				pathname: w.location.pathname,
-				supabaseUrl: w.NEXT_PUBLIC_SB_URL,
-				supabaseKey: w.NEXT_PUBLIC_SB_ANON_KEY ? 'SET' : 'NOT SET'
+				supabaseUrl: w.NEXT_PUBLIC_SUPABASE_URL,
+				supabaseKey: w.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
 			};
 		});
 		console.log('[ENV] Frontend environment:', envInfo)
@@ -174,14 +174,21 @@ test.describe('Authentication Diagnostic Tests', () => {
 		const authApiCalls: NetworkLog[] = []
 		const originalOn = page.on.bind(page)
 
+		// Click submit button
+		await submitButton.click()
+
 		// Submit and wait for result
-		await Promise.race([
-			page.waitForURL(/\/(manage|tenant|auth)/, { timeout: 30000 }),
+		// Only wait for URL change - networkidle resolves too early
+		await page.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 }).catch(err => {
+			console.error('[LOGIN_TIMEOUT] URL didnt change')
+		})
+		/*await Promise.race([
+			page.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 }),
 			page.waitForLoadState('networkidle', { timeout: 30000 })
 		]).catch(err => {
 			console.error('[LOGIN_TIMEOUT] Login did not complete within 30s')
 			console.error('[CURRENT_URL]', page.url())
-		})
+		})*/
 
 		timings.loginComplete = Date.now() - navigationStart
 
@@ -233,13 +240,13 @@ test.describe('Authentication Diagnostic Tests', () => {
 		console.log(`Auth-related requests: ${networkLogs.filter(log => log.url.includes('auth')).length}`)
 
 		// Assertion
-		expect(finalUrl).toMatch(/\/(manage|tenant|auth)/)
+		expect(finalUrl).toMatch(/\/(dashboard|portal|auth)/)
 	})
 
 	test('check Supabase connectivity', async ({ page }) => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		console.log('[SB_CHECK] Testing Supabase connectivity')
+		console.log('[SUPABASE_CHECK] Testing Supabase connectivity')
 
 		await page.goto(`${baseUrl}/login`)
 		await page.waitForLoadState('networkidle')
@@ -248,11 +255,11 @@ test.describe('Authentication Diagnostic Tests', () => {
 		const supabaseTest = await page.evaluate(async () => {
 			try {
 				const response = await fetch(
-					`${(window as any).NEXT_PUBLIC_SB_URL}/rest/v1/`,
+					`${(window as any).NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`,
 					{
 						method: 'HEAD',
 						headers: {
-							'apikey': (window as any).NEXT_PUBLIC_SB_ANON_KEY
+							'apikey': (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY
 						}
 					}
 				)
@@ -268,7 +275,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 			}
 		})
 
-		console.log('[SB_CHECK] Result:', supabaseTest)
+		console.log('[SUPABASE_CHECK] Result:', supabaseTest)
 		expect(supabaseTest).toHaveProperty('status')
 	})
 

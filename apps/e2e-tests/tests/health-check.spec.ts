@@ -30,7 +30,7 @@ test.describe('TenantFlow Health Check', () => {
 		// Allow forcing this test to run in dev by setting E2E_FORCE_RUN=true
 		const forceRun = process.env.E2E_FORCE_RUN === 'true'
 		test.skip(
-			!process.env.NEXT_PUBLIC_SB_URL && !forceRun,
+			!process.env.NEXT_PUBLIC_SUPABASE_URL && !forceRun,
 			'Supabase URL not configured for smoke test'
 		)
 
