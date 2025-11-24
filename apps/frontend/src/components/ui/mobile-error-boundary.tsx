@@ -66,7 +66,7 @@ export class MobileErrorBoundary extends Component<
 							Refresh
 						</Button>
 						<Button asChild variant="outline" className="w-full">
-							<Link href="/manage">
+							<Link href="/dashboard">
 								<Home className="mr-2 size-4" aria-hidden />
 								Go Home
 							</Link>

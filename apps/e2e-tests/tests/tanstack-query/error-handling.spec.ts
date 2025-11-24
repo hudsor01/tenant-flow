@@ -42,7 +42,7 @@ test.describe('TanStack Query Error Handling', () => {
     await loginAsOwner(page)
 
     // Navigate to properties page
-    await page.goto('/manage/properties')
+    await page.goto('/properties')
     await page.waitForLoadState('networkidle')
 
     // Expose retry count for testing

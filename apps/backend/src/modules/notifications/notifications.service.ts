@@ -834,7 +834,7 @@ export class NotificationsService {
 				title,
 				message: message,
 				notification_type: 'system',
-				action_url: actionUrl || '/manage',
+				action_url: actionUrl || '/',
 				is_read: false
 			})
 

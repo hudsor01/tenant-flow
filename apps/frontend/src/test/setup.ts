@@ -20,10 +20,10 @@ process.env.SKIP_ENV_VALIDATION = 'true'
 // Set up required environment variables for tests BEFORE importing env
 process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 process.env.NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
-process.env.NEXT_PUBLIC_SB_URL = process.env.NEXT_PUBLIC_SB_URL || 'http://localhost:54321'
-process.env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY || 'mock-key'
+process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
-process.env.NEXT_PUBLIC_SB_JWT_ALGORITHM = process.env.NEXT_PUBLIC_SB_JWT_ALGORITHM || 'ES256'
+process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM = process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM || 'ES256'
 
 // Additional environment variables for server-side validation (optional in tests)
 process.env.STRIPE_STARTER_MONTHLY_PRICE_ID = process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'

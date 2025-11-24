@@ -23,7 +23,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 		
 		// Navigate to tenant management page
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/manage/tenants`)
+		await page.goto(`${baseUrl}/tenants`)
 		await page.waitForLoadState('networkidle')
 	})
 
@@ -34,7 +34,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 		// STEP 1: Navigate to tenant management page
 		await test.step('Navigate to tenant management page', async () => {
-			await page.goto('/manage/tenants')
+			await page.goto('/tenants')
 			await page.waitForLoadState('networkidle')
 		})
 
@@ -70,7 +70,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 				// Wait for success message or redirect
 				await Promise.race([
-					page.waitForURL(/\/manage\/tenants\/[a-f0-9-]+/, { timeout: 10000 }),
+					page.waitForURL(/\/tenants\/[a-f0-9-]+/, { timeout: 10000 }),
 					page.waitForSelector('text=/tenant created|success/i', { timeout: 10000 })
 				])
 			}
@@ -80,7 +80,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 		await test.step('View tenant details', async () => {
 			// Check if we're on a tenant details page
 			const currentUrl = page.url()
-			if (currentUrl.match(/\/manage\/tenants\/[a-f0-9-]+/)) {
+			if (currentUrl.match(/\/tenants\/[a-f0-9-]+/)) {
 				// We should already be on the details page after creation
 				// Verify all details are displayed
 				await expect(
@@ -93,7 +93,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 		// STEP 4: Edit tenant information (if we're on details page)
 		await test.step('Edit tenant information', async () => {
 			const currentUrl = page.url()
-			if (currentUrl.match(/\/manage\/tenants\/[a-f0-9-]+/)) {
+			if (currentUrl.match(/\/tenants\/[a-f0-9-]+/)) {
 				// Look for edit button
 				const editButton = page.getByRole('link', { name: /edit/i })
 					.or(page.getByRole('button', { name: /edit/i }))
@@ -124,14 +124,14 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 		// STEP 5: Navigate back to tenant list
 		await test.step('Navigate back to tenant list', async () => {
-			await page.goto('/manage/tenants')
+			await page.goto('/tenants')
 			await page.waitForLoadState('networkidle')
 		})
 	})
 
 	test('search and filter tenants', async ({ page }) => {
 		await test.step('Navigate to tenant management', async () => {
-			await page.goto('/manage/tenants')
+			await page.goto('/tenants')
 			await page.waitForLoadState('networkidle')
 		})
 
@@ -166,7 +166,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 	test('tenant dashboard navigation', async ({ page }) => {
 		await test.step('Navigate to tenant management', async () => {
-			await page.goto('/manage/tenants')
+			await page.goto('/tenants')
 			await page.waitForLoadState('networkidle')
 		})
 
@@ -180,7 +180,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 				await page.waitForLoadState('networkidle')
 
 				// Should navigate to tenant details
-				await expect(page).toHaveURL(/\/manage\/tenants\/[a-f0-9-]+/)
+				await expect(page).toHaveURL(/^\/tenants\/[a-f0-9-]+/)
 
 				// Go back to list
 				await page.goBack()
@@ -198,7 +198,7 @@ test.describe('Tenant Management Error Scenarios', () => {
 
 	test('handle network errors gracefully', async ({ page, context }) => {
 		// Navigate to tenant management first
-		await page.goto('/manage/tenants')
+		await page.goto('/tenants')
 		await page.waitForLoadState('networkidle')
 
 		// Simulate offline mode
@@ -218,7 +218,7 @@ test.describe('Tenant Management Error Scenarios', () => {
 
 	test('handle API errors gracefully', async ({ page }) => {
 		// Navigate to tenant management first
-		await page.goto('/manage/tenants')
+		await page.goto('/tenants')
 		await page.waitForLoadState('networkidle')
 
 		// Intercept API calls and return errors

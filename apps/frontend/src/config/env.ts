@@ -26,11 +26,11 @@ export const env = createEnv({
 			.default('development'),
 
 		// Supabase Server
-		SB_JWT_ALGORITHM: z
+		SUPABASE_JWT_ALGORITHM: z
 			.enum(['ES256', 'RS256', 'HS256'])
 			.default('ES256')
 			.describe('Algorithm used for Supabase JWT verification'),
-		SB_JWT_SECRET: z
+		SUPABASE_JWT_SECRET: z
 			.string()
 			.min(32, 'JWT secret must be at least 32 characters')
 			.optional()
@@ -120,15 +120,15 @@ export const env = createEnv({
 			.describe('Backend API base URL'),
 
 		// Supabase Client
-		NEXT_PUBLIC_SB_URL: z
+		NEXT_PUBLIC_SUPABASE_URL: z
 			.string()
 			.url('Must be a valid Supabase URL')
 			.describe('Supabase project URL'),
-		NEXT_PUBLIC_SB_PUBLISHABLE_KEY: z
+		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
 			.string()
 			.min(1, 'Supabase anon key is required')
 			.describe('Supabase anonymous/publishable key'),
-		NEXT_PUBLIC_SB_JWT_ALGORITHM: z
+		NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM: z
 			.enum(['ES256', 'RS256', 'HS256'])
 			.default('ES256')
 			.describe('Algorithm for Supabase JWT (client-side validation)'),
@@ -167,9 +167,9 @@ export const env = createEnv({
 		NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
 		NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
 		NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
-		NEXT_PUBLIC_SB_URL: process.env.NEXT_PUBLIC_SB_URL,
-		NEXT_PUBLIC_SB_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SB_PUBLISHABLE_KEY,
-		NEXT_PUBLIC_SB_JWT_ALGORITHM: process.env.NEXT_PUBLIC_SB_JWT_ALGORITHM,
+		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM: process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM,
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 		NEXT_PUBLIC_ENABLE_DEBUG_LOGGING:
@@ -178,8 +178,8 @@ export const env = createEnv({
 			process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
 
 		// Server vars (only accessible server-side)
-		SB_JWT_ALGORITHM: process.env.SB_JWT_ALGORITHM,
-		SB_JWT_SECRET: process.env.SB_JWT_SECRET,
+		SUPABASE_JWT_ALGORITHM: process.env.SUPABASE_JWT_ALGORITHM,
+		SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
 		STRIPE_STARTER_MONTHLY_PRICE_ID: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID,
 		STRIPE_STARTER_ANNUAL_PRICE_ID: process.env.STRIPE_STARTER_ANNUAL_PRICE_ID,
 		STRIPE_GROWTH_MONTHLY_PRICE_ID: process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID,

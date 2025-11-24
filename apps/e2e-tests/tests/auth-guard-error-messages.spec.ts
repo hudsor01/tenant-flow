@@ -8,7 +8,7 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await loginAsOwner(page)
 
 		// Verify we're on the manage dashboard
-		await expect(page.url()).toContain('/manage')
+		await expect(page.url()).toContain('/')
 		await expect(page.locator('main')).toBeVisible()
 
 		// Verify manage dashboard content is visible
@@ -18,7 +18,7 @@ test.describe('JWT Auth Guard Error Messages', () => {
 	test('should handle bulk import with valid authentication', async ({ page }) => {
 		// Login and navigate to properties
 		await loginAsOwner(page)
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Click bulk import button
@@ -45,7 +45,7 @@ test.describe('JWT Auth Guard Error Messages', () => {
 
 		// Login and navigate
 		await loginAsOwner(page)
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Click bulk import
@@ -68,7 +68,7 @@ test.describe('JWT Auth Guard Error Messages', () => {
 
 	test('should show clear error for invalid CSV with proper formatting', async ({ page }) => {
 		await loginAsOwner(page)
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 
 		// Open bulk import modal
 		await page.getByRole('button', { name: /bulk import/i }).click()
@@ -101,24 +101,24 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await loginAsOwner(page)
 
 		// Navigate through multiple protected routes
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
-		await expect(page.url()).toContain('/manage/properties')
+		await expect(page.url()).toContain('/properties')
 
 		// Go to units
-		await page.goto('/manage/units')
+		await page.goto('/units')
 		await page.waitForLoadState('networkidle')
-		await expect(page.url()).toContain('/manage/units')
+		await expect(page.url()).toContain('/units')
 
 		// Go to leases
-		await page.goto('/manage/leases')
+		await page.goto('/leases')
 		await page.waitForLoadState('networkidle')
-		await expect(page.url()).toContain('/manage/leases')
+		await expect(page.url()).toContain('/leases')
 
 		// Navigate back to manage dashboard
-		await page.goto('/manage')
+		await page.goto('/')
 		await page.waitForLoadState('networkidle')
-		await expect(page.url()).toContain('/manage')
+		await expect(page.url()).toContain('/')
 
 		// Should still be logged in and manage dashboard should load
 		await expect(page.locator('main')).toBeVisible()
@@ -127,12 +127,12 @@ test.describe('JWT Auth Guard Error Messages', () => {
 	test('should handle session persistence across page refreshes', async ({ page }) => {
 		// Login once
 		await loginAsOwner(page)
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Verify we're logged in
 		const initialUrl = page.url()
-		expect(initialUrl).toContain('/manage/properties')
+		expect(initialUrl).toContain('/properties')
 
 		// Refresh the page
 		await page.reload()

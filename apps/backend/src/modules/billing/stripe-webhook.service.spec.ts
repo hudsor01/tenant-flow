@@ -80,11 +80,11 @@ describe('StripeWebhookService', () => {
 
 			expect(result).toBe(true)
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith(
-				'stripe_processed_events'
+				'webhook_events'
 			)
 			expect(mockSupabaseClient.select).toHaveBeenCalledWith('id')
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
-				'stripe_event_id',
+				'external_id',
 				eventId
 			)
 		})
@@ -224,7 +224,7 @@ describe('StripeWebhookService', () => {
 				status: 'processed'
 			})
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
-				'stripe_event_id',
+				'external_id',
 				eventId
 			)
 		})
@@ -546,7 +546,7 @@ describe('StripeWebhookService', () => {
 			const eventIds = ['evt_1', 'evt_2', 'evt_3', 'evt_4']
 
 			mockSupabaseClient.in.mockResolvedValue({
-				data: [{ stripe_event_id: 'evt_1' }, { stripe_event_id: 'evt_3' }],
+				data: [{ external_id: 'evt_1' }, { external_id: 'evt_3' }],
 				error: null
 			})
 
@@ -571,7 +571,7 @@ describe('StripeWebhookService', () => {
 			const eventIds = ['evt_1', 'evt_2']
 
 			mockSupabaseClient.in.mockResolvedValue({
-				data: [{ stripe_event_id: 'evt_1' }, { stripe_event_id: 'evt_2' }],
+				data: [{ external_id: 'evt_1' }, { external_id: 'evt_2' }],
 				error: null
 			})
 
@@ -644,7 +644,7 @@ describe('StripeWebhookService', () => {
 			await service.batchCheckEventsProcessed(eventIds)
 
 			expect(mockSupabaseClient.in).toHaveBeenCalledWith(
-				'stripe_event_id',
+				'external_id',
 				eventIds
 			)
 		})
