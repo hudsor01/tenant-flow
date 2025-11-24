@@ -82,7 +82,7 @@ test.describe('Tenant Invitation Flow', () => {
 
 	test('[Property Owner] Create tenant with valid lease', async ({ page }) => {
 		// Navigate to tenants page
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 
 		// Wait for page to load
 		await page.waitForSelector('button:has-text("Invite Tenant")')
@@ -111,7 +111,7 @@ test.describe('Tenant Invitation Flow', () => {
 	})
 
 	test('[Property Owner] Invitation appears in table with SENT badge', async ({ page }) => {
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 
 		// Find the row with our test tenant
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
@@ -121,7 +121,7 @@ test.describe('Tenant Invitation Flow', () => {
 	})
 
 	test('[Property Owner] Resend button appears for SENT status', async ({ page }) => {
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 
 		// Find the row with our test tenant
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
@@ -131,7 +131,7 @@ test.describe('Tenant Invitation Flow', () => {
 	})
 
 	test('[Property Owner] Click resend → new email sent, timestamp updated', async ({ page }) => {
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 
 		// Get initial sent_at timestamp
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
@@ -226,7 +226,7 @@ test.describe('Tenant Invitation Flow', () => {
 		// This test requires access to Resend API or email inbox
 		// For now, we verify the API call was made by checking logs
 
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
 
 		// Verify invitation_sent_at is set
@@ -236,7 +236,7 @@ test.describe('Tenant Invitation Flow', () => {
 	})
 
 	test('[Property Owner] Resend button hidden for ACCEPTED tenants', async ({ page }) => {
-		await page.goto(`${BASE_URL}/manage/tenants`)
+		await page.goto(`${BASE_URL}/tenants`)
 
 		// Find accepted tenant row
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
@@ -248,37 +248,145 @@ test.describe('Tenant Invitation Flow', () => {
 		await expect(tenantRow.locator('button:has-text("Resend")')).not.toBeVisible()
 	})
 
-	test('[Expiry] Wait 7 days → Invitation Expired message', async ({ page, context }) => {
-		// This test would require manipulating the database expiry date
-		// Skipping for now - would need to create a tenant with past expiry
-
-		test.skip()
+	test.skip('[Expiry] Wait 7 days → Invitation Expired message', async ({ page, context }) => {
+		/**
+		 * SKIPPED: This test requires refactoring to match current invitation system
+		 *
+		 * Current invitation flow uses Supabase Auth's verifyOtp with type='invite'
+		 * URL pattern: /accept-invite?token={token}&type=invite
+		 *
+		 * This test uses old URL pattern: /tenant/invitation/{token}
+		 *
+		 * TO FIX:
+		 * 1. Update test to use /accept-invite route
+		 * 2. Mock Supabase verifyOtp to return token expired error
+		 * 3. Verify error handling shows proper expired message
+		 *
+		 * Alternative: Test expiry in backend integration tests instead of E2E
+		 */
 	})
 })
 
 test.describe('Email Template Tests', () => {
-	test.skip('[Email] Email template renders correctly', () => {
-		// Requires access to sent emails via Resend API
-		// Would check: HTML structure, branding, content
+	/**
+	 * NOTE: These tests verify email template structure by intercepting the email API call
+	 * rather than accessing actual sent emails. This allows us to verify the template
+	 * without requiring Resend API access or email inbox integration.
+	 */
+
+	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'https://tenantflow.app'
+
+	test.beforeEach(async ({ page }) => {
+		// Login before each email template test
+		await loginAsOwner(page)
 	})
 
-	test.skip('[Email] Invitation link is clickable', () => {
-		// Requires access to sent emails
-		// Would verify link format and href attribute
+	test('[Email] Invitation email contains required elements', async ({ page }) => {
+		// Mock the email API to capture the email payload
+		let emailPayload: any = null
+
+		await page.route('**/api/v1/emails/send', route => {
+			emailPayload = route.request().postDataJSON()
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ success: true, messageId: 'test-message-id' })
+			})
+		})
+
+		// Navigate to tenants page and send invitation
+		await page.goto(`${BASE_URL}/tenants`)
+		await page.click('button:has-text("Invite Tenant")')
+
+		const testEmail = `email-test-${Date.now()}@example.com`
+		await page.fill('input[name="email"]', testEmail)
+		await page.fill('input[name="first_name"]', 'Email')
+		await page.fill('input[name="last_name"]', 'Test')
+		await page.fill('input[name="phone"]', '5555550000')
+
+		await page.click('button:has-text("Send Invitation")')
+		await page.waitForTimeout(1000) // Wait for API call
+
+		// Verify email payload contains required elements
+		expect(emailPayload).not.toBeNull()
+		expect(emailPayload.to).toBe(testEmail)
+		expect(emailPayload.subject).toContain('invitation')
+		expect(emailPayload.html).toBeTruthy()
+
+		// Verify HTML contains invitation link
+		expect(emailPayload.html).toMatch(/\/tenant\/invitation\/[a-z0-9]{32}/i)
+
+		// Verify expiry warning is present
+		expect(emailPayload.html).toMatch(/expires?.*7.*days?/i)
 	})
 
-	test.skip('[Email] Property/unit info displayed (if available)', () => {
-		// Requires access to sent emails
-		// Would verify property name and unit number in email body
+	test('[Email] Invitation link format is valid', async ({ page }) => {
+		let emailPayload: any = null
+
+		await page.route('**/api/v1/emails/send', route => {
+			emailPayload = route.request().postDataJSON()
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ success: true, messageId: 'test-message-id' })
+			})
+		})
+
+		await page.goto(`${BASE_URL}/tenants`)
+		await page.click('button:has-text("Invite Tenant")')
+
+		const testEmail = `link-test-${Date.now()}@example.com`
+		await page.fill('input[name="email"]', testEmail)
+		await page.fill('input[name="first_name"]', 'Link')
+		await page.fill('input[name="last_name"]', 'Test')
+		await page.fill('input[name="phone"]', '5555550001')
+
+		await page.click('button:has-text("Send Invitation")')
+		await page.waitForTimeout(1000)
+
+		// Extract invitation link from HTML
+		const linkMatch = emailPayload.html.match(/href="([^"]*\/tenant\/invitation\/[a-z0-9]{32}[^"]*)"/i)
+		expect(linkMatch).not.toBeNull()
+
+		const invitationLink = linkMatch[1]
+		expect(invitationLink).toMatch(/^https?:\/\//)
+		expect(invitationLink).toContain('/tenant/invitation/')
+
+		// Verify link has 32-character token
+		const tokenMatch = invitationLink.match(/\/tenant\/invitation\/([a-z0-9]{32})/i)
+		expect(tokenMatch).not.toBeNull()
+		expect(tokenMatch[1].length).toBe(32)
 	})
 
-	test.skip('[Email] Plain text fallback link works', () => {
-		// Requires access to sent emails
-		// Would verify plain text version includes working link
-	})
+	test('[Email] Plain text version includes working link', async ({ page }) => {
+		let emailPayload: any = null
 
-	test.skip('[Email] Expiry warning visible', () => {
-		// Requires access to sent emails
-		// Would verify "expires in 7 days" message is present
+		await page.route('**/api/v1/emails/send', route => {
+			emailPayload = route.request().postDataJSON()
+			route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ success: true, messageId: 'test-message-id' })
+			})
+		})
+
+		await page.goto(`${BASE_URL}/tenants`)
+		await page.click('button:has-text("Invite Tenant")')
+
+		const testEmail = `plaintext-${Date.now()}@example.com`
+		await page.fill('input[name="email"]', testEmail)
+		await page.fill('input[name="first_name"]', 'Plain')
+		await page.fill('input[name="last_name"]', 'Text')
+		await page.fill('input[name="phone"]', '5555550002')
+
+		await page.click('button:has-text("Send Invitation")')
+		await page.waitForTimeout(1000)
+
+		// Verify plain text version exists and contains link
+		expect(emailPayload.text || emailPayload.plainText).toBeTruthy()
+		const plainText = emailPayload.text || emailPayload.plainText
+
+		// Should contain invitation URL
+		expect(plainText).toMatch(/https?:\/\/.*\/tenant\/invitation\/[a-z0-9]{32}/i)
 	})
 })

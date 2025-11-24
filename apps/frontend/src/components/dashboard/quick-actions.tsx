@@ -15,31 +15,31 @@ const quickActions = [
 		title: 'Add Property',
 		description: 'List a new property',
 		icon: Home,
-		href: '/manage/properties/new'
+		href: '/properties/new'
 	},
 	{
 		title: 'Add Unit',
 		description: 'Add a new unit to a property',
 		icon: Building,
-		href: '/manage/units/new'
+		href: '/units/new'
 	},
 	{
 		title: 'Invite Tenant',
 		description: 'Register new tenant',
 		icon: UserPlus,
-		href: '/manage/tenants/new'
+		href: '/tenants/new'
 	},
 	{
 		title: 'Sign New Lease',
 		description: 'Draft new lease agreement',
 		icon: FileText,
-		href: '/manage/leases/new'
+		href: '/leases/new'
 	},
 	{
 		title: 'Create Repair Request',
 		description: 'Log maintenance issue',
 		icon: Wrench,
-		href: '/manage/maintenance/new'
+		href: '/maintenance/new'
 	}
 ]
 

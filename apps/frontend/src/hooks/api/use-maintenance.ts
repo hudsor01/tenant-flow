@@ -10,9 +10,9 @@ import type {
 	UpdateMaintenanceRequest
 } from '@repo/shared/types/api-contracts'
 import type { MaintenanceRequest, MaintenanceRequestWithVersion } from '@repo/shared/types/core'
+import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { maintenanceQueries } from './queries/maintenance-queries'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -24,19 +24,6 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 
-/**
- * @deprecated Use maintenanceQueries from './queries/maintenance-queries' instead
- * Keeping for backward compatibility during migration
- * // TODO: Migrate and remove this object
- */
-export const maintenanceKeys = {
-	all: maintenanceQueries.all(),
-	list: () => maintenanceQueries.lists(),
-	detail: (id: string) => maintenanceQueries.detail(id).queryKey,
-	stats: () => maintenanceQueries.stats().queryKey,
-	urgent: () => maintenanceQueries.urgent().queryKey,
-	overdue: () => maintenanceQueries.overdue().queryKey
-}
 
 /**
  * Hook to fetch all maintenance requests
@@ -51,50 +38,7 @@ export function useAllMaintenanceRequests(query?: {
 	limit?: number
 	offset?: number
 }) {
-	const queryClient = useQueryClient()
-
-	return useQuery({
-		queryKey: [...maintenanceKeys.list(), query],
-		queryFn: async () => {
-			const params = new URLSearchParams()
-			if (query?.unit_id) params.append('unit_id', query.unit_id)
-			if (query?.property_id) params.append('property_id', query.property_id)
-			if (query?.priority) params.append('priority', query.priority)
-			if (query?.category) params.append('category', query.category)
-			if (query?.status) params.append('status', query.status)
-			if (query?.limit) params.append('limit', query.limit.toString())
-			if (query?.offset) params.append('offset', query.offset.toString())
-
-			const response = await clientFetch<MaintenanceRequest[]>(
-				`/api/v1/maintenance${params.toString() ? `?${params.toString()}` : ''}`
-			)
-
-			// Prefetch individual details for instant navigation
-			response?.forEach?.(maintenance => {
-				queryClient.setQueryData(
-					maintenanceKeys.detail(maintenance.id),
-					maintenance
-				)
-			})
-
-			return response || []
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000, // 10 minutes cache
-		retry: 2,
-		structuralSharing: true
-	})
-}
-
-type UseMaintenanceQuery = Parameters<typeof useAllMaintenanceRequests>[0]
-
-/**
- * @deprecated Prefer useAllMaintenanceRequests so filters remain explicit.
- * Thin alias for older hooks/tests that still call useMaintenance().
- * // TODO: Migrate and remove this function
- */
-export function useMaintenance(query?: UseMaintenanceQuery) {
-	return useAllMaintenanceRequests(query)
+	return useQuery(maintenanceQueries.list(query))
 }
 
 /**
@@ -110,10 +54,6 @@ export function useMaintenanceRequest(id: string) {
 export function useMaintenanceStats() {
 	return useQuery(maintenanceQueries.stats())
 }
-
-/**
- * Hook to create maintenance request with optimistic update
- */
 export function useCreateMaintenanceRequest() {
 	const queryClient = useQueryClient()
 
@@ -125,39 +65,39 @@ export function useCreateMaintenanceRequest() {
 			}),
 		onMutate: async newRequest => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+			await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
 			const previous = queryClient.getQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list()
+				maintenanceQueries.lists()
 			)
 
 			// Optimistic update
 			const tempId = `temp-${Date.now()}`
-							const optimistic: MaintenanceRequest = {
-		id: tempId,
-	title: newRequest.title || '',
-	description: newRequest.description,
-		priority:
-			(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
-			'MEDIUM',
-		status: 'OPEN',
-		unit_id: newRequest.unit_id,
-		tenant_id: newRequest.tenant_id || '',
-		property_owner_id: '',
-		requested_by: null,
-			actual_cost: null,
-			assigned_to: null,
-			completed_at: null,
-			inspection_date: newRequest.scheduledDate || null,
-			inspection_findings: null,
-			inspector_id: null,
-			scheduled_date: newRequest.scheduledDate || null,
-			estimated_cost: newRequest.estimated_cost ?? null,
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString()
-		}
+			const optimistic: MaintenanceRequest = {
+				id: tempId,
+				title: newRequest.title || '',
+				description: newRequest.description,
+				priority:
+					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
+					'MEDIUM',
+				status: 'OPEN',
+				unit_id: newRequest.unit_id,
+				tenant_id: newRequest.tenant_id || '',
+				property_owner_id: '',
+				requested_by: null,
+				actual_cost: null,
+				assigned_to: null,
+				completed_at: null,
+				inspection_date: newRequest.scheduledDate || null,
+				inspection_findings: null,
+				inspector_id: null,
+				scheduled_date: newRequest.scheduledDate || null,
+				estimated_cost: newRequest.estimated_cost ?? null,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
+			}
 
 			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
+				maintenanceQueries.lists(),
 				old => (old ? [optimistic, ...old] : [optimistic])
 			)
 
@@ -166,18 +106,18 @@ export function useCreateMaintenanceRequest() {
 		onError: (_err, _variables, context) => {
 			// Rollback on error
 			if (context?.previous) {
-				queryClient.setQueryData(maintenanceKeys.list(), context.previous)
+				queryClient.setQueryData(maintenanceQueries.lists(), context.previous)
 			}
 			handleMutationError(_err, 'Create maintenance request')
 		},
 		onSuccess: data => {
 			handleMutationSuccess('Create maintenance request')
 			// Update cache with real data
-			queryClient.setQueryData(maintenanceKeys.detail(data.id), data)
+			queryClient.setQueryData(maintenanceQueries.detail(data.id).queryKey, data)
 		},
 		onSettled: () => {
 			// Refetch in background
-			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
+			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
 		}
 	})
 }
@@ -208,51 +148,51 @@ export function useUpdateMaintenanceRequest() {
 				)
 			})
 		},
-		onMutate: async ({ id, data }) => {
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
-			const previous = queryClient.getQueryData<MaintenanceRequest>(
-				maintenanceKeys.detail(id)
-			)
+			onMutate: async ({ id, data }) => {
+				await queryClient.cancelQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
+				const previous = queryClient.getQueryData<MaintenanceRequest>(
+					maintenanceQueries.detail(id).queryKey
+				)
 
-			// Optimistic update (use incrementVersion helper)
-		queryClient.setQueryData<MaintenanceRequestWithVersion>(
-	maintenanceKeys.detail(id),
-	(old) =>
-		old
-			? incrementVersion(old, data)
-			: undefined
-)
+				// Optimistic update (use incrementVersion helper)
+				queryClient.setQueryData<MaintenanceRequestWithVersion>(
+					maintenanceQueries.detail(id).queryKey,
+					(old) =>
+						old
+							? incrementVersion(old, data)
+							: undefined
+				)
 
-			// Also update list cache
-		queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
-	maintenanceKeys.list(),
-	(old) => {
-		if (!old) return old
-		return old.map(m =>
-			m.id === id
-				? incrementVersion(m, data)
-				: m
-		)
-	}
-)
+				// Also update list cache
+				queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+					maintenanceQueries.lists(),
+					(old) => {
+						if (!old) return old
+						return old.map(m =>
+							m.id === id
+								? incrementVersion(m, data)
+								: m
+						)
+					}
+				)
 
-			return { previous }
-		},
-		onError: (_err, { id }, context) => {
-			if (context?.previous) {
-				queryClient.setQueryData(maintenanceKeys.detail(id), context.previous)
-			}
+				return { previous }
+			},
+			onError: (_err, { id }, context) => {
+				if (context?.previous) {
+					queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, context.previous)
+				}
 
-			// Handle 409 Conflict using helper
-			if (isConflictError(_err)) {
-				handleConflictError('maintenance request', id, queryClient, [
-					maintenanceKeys.detail(id),
-					maintenanceKeys.list()
-				])
-			} else {
-				handleMutationError(_err, 'Update maintenance request')
-			}
-		},
+				// Handle 409 Conflict using helper
+				if (isConflictError(_err)) {
+					handleConflictError('maintenance request', id, queryClient, [
+						maintenanceQueries.detail(id).queryKey,
+						maintenanceQueries.lists()
+					])
+				} else {
+					handleMutationError(_err, 'Update maintenance request')
+				}
+			},
 		onSuccess: () => {
 			handleMutationSuccess('Update maintenance request')
 		}
@@ -261,7 +201,7 @@ export function useUpdateMaintenanceRequest() {
 
 /**
  * Note: DELETE operations now use React 19 useOptimistic with Server Actions
- * See: apps/frontend/src/app/(protected)/manage/maintenance/page.tsx
+ * See: apps/frontend/src/app/(protected)/maintenance/page.tsx
  */
 
 /**
@@ -272,13 +212,7 @@ export function usePrefetchMaintenanceRequest() {
 
 	return {
 		prefetchMaintenanceRequest: (id: string) => {
-			return queryClient.prefetchQuery({
-				queryKey: maintenanceKeys.detail(id),
-				queryFn: async (): Promise<MaintenanceRequest> => {
-					return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`)
-				},
-				...QUERY_CACHE_TIMES.DETAIL
-			})
+			return queryClient.prefetchQuery(maintenanceQueries.detail(id))
 		}
 	}
 }
@@ -308,78 +242,78 @@ export function useCompleteMaintenance() {
 				}
 			)
 		},
-		onMutate: async ({ id }) => {
-			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+			onMutate: async ({ id }) => {
+				// Cancel outgoing queries
+				await queryClient.cancelQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
+				await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
 
-			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
-				maintenanceKeys.detail(id)
-			)
-			const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list()
-			)
-
-			// Optimistically update to COMPLETED status
-		queryClient.setQueryData<MaintenanceRequestWithVersion>(
-	maintenanceKeys.detail(id),
-	(old) =>
-		old
-			? incrementVersion(old, {
-					status: 'COMPLETED' as const,
-					completed_at: new Date().toISOString(),
-					updated_at: new Date().toISOString()
-				})
-			: undefined
-)
-
-			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
-	maintenanceKeys.list(),
-	(old) =>
-		old?.map(item =>
-			item.id === id
-				? incrementVersion(item, {
-						status: 'COMPLETED' as const,
-						completed_at: new Date().toISOString(),
-						updated_at: new Date().toISOString()
-					})
-				: item
-		)
-)
-
-			return { previousDetail, previousList }
-		},
-		onError: (_err, { id }, context) => {
-			// Rollback on error
-			if (context?.previousDetail) {
-				queryClient.setQueryData(
-					maintenanceKeys.detail(id),
-					context.previousDetail
+				// Snapshot previous state
+				const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
+					maintenanceQueries.detail(id).queryKey
 				)
+				const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
+					maintenanceQueries.lists()
+				)
+
+				// Optimistically update to COMPLETED status
+				queryClient.setQueryData<MaintenanceRequestWithVersion>(
+					maintenanceQueries.detail(id).queryKey,
+					(old) =>
+						old
+							? incrementVersion(old, {
+								status: 'COMPLETED' as const,
+								completed_at: new Date().toISOString(),
+								updated_at: new Date().toISOString()
+							})
+							: undefined
+				)
+
+				queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+					maintenanceQueries.lists(),
+					(old) =>
+						old?.map(item =>
+							item.id === id
+								? incrementVersion(item, {
+									status: 'COMPLETED' as const,
+									completed_at: new Date().toISOString(),
+									updated_at: new Date().toISOString()
+								})
+								: item
+						)
+				)
+
+				return { previousDetail, previousList }
+			},
+			onError: (_err, { id }, context) => {
+				// Rollback on error
+				if (context?.previousDetail) {
+					queryClient.setQueryData(
+						maintenanceQueries.detail(id).queryKey,
+						context.previousDetail
+					)
+				}
+				if (context?.previousList) {
+					queryClient.setQueryData(maintenanceQueries.lists(), context.previousList)
+				}
+				handleMutationError(_err, 'Complete maintenance request')
+			},
+			onSuccess: (data, { id }) => {
+				// Update with real server data
+				queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, data)
+				queryClient.setQueryData<MaintenanceRequest[]>(
+					maintenanceQueries.lists(),
+					old => old?.map(item => (item.id === id ? data : item))
+				)
+				handleMutationSuccess(
+					'Complete maintenance request',
+					'Maintenance request marked as complete'
+				)
+			},
+			onSettled: () => {
+				// Refetch to ensure consistency
+				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+				queryClient.invalidateQueries({ queryKey: maintenanceQueries.stats().queryKey })
 			}
-			if (context?.previousList) {
-				queryClient.setQueryData(maintenanceKeys.list(), context.previousList)
-			}
-			handleMutationError(_err, 'Complete maintenance request')
-		},
-		onSuccess: (data, { id }) => {
-			// Update with real server data
-			queryClient.setQueryData(maintenanceKeys.detail(id), data)
-			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
-				old => old?.map(item => (item.id === id ? data : item))
-			)
-			handleMutationSuccess(
-				'Complete maintenance request',
-				'Maintenance request marked as complete'
-			)
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
-			queryClient.invalidateQueries({ queryKey: maintenanceKeys.stats() })
-		}
 	})
 }
 
@@ -406,77 +340,76 @@ export function useCancelMaintenance() {
 				}
 			)
 		},
-		onMutate: async ({ id }) => {
-			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.detail(id) })
-			await queryClient.cancelQueries({ queryKey: maintenanceKeys.list() })
+			onMutate: async ({ id }) => {
+				// Cancel outgoing queries
+				await queryClient.cancelQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
+				await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
 
-			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
-				maintenanceKeys.detail(id)
-			)
-			const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list()
-			)
-
-			// Optimistically update to CANCELED status
-		queryClient.setQueryData<MaintenanceRequestWithVersion>(
-	maintenanceKeys.detail(id),
-	(old) =>
-		old
-			? incrementVersion(old, {
-					status: 'CANCELED' as const,
-					updated_at: new Date().toISOString()
-				})
-			: undefined
-)
-
-			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
-	maintenanceKeys.list(),
-	(old) =>
-		old?.map(item =>
-			item.id === id
-				? incrementVersion(item, {
-						status: 'COMPLETED' as const,
-						completed_at: new Date().toISOString(),
-						updated_at: new Date().toISOString()
-					})
-				: item
-		)
-)
-
-			return { previousDetail, previousList }
-		},
-		onError: (_err, { id }, context) => {
-			// Rollback on error
-			if (context?.previousDetail) {
-				queryClient.setQueryData(
-					maintenanceKeys.detail(id),
-					context.previousDetail
+				// Snapshot previous state
+				const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
+					maintenanceQueries.detail(id).queryKey
 				)
+				const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
+					maintenanceQueries.lists()
+				)
+
+				// Optimistically update to CANCELED status
+				queryClient.setQueryData<MaintenanceRequestWithVersion>(
+					maintenanceQueries.detail(id).queryKey,
+					(old) =>
+						old
+							? incrementVersion(old, {
+								status: 'CANCELED' as const,
+								updated_at: new Date().toISOString()
+							})
+							: undefined
+				)
+
+				queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+					maintenanceQueries.lists(),
+					(old) =>
+						old?.map(item =>
+							item.id === id
+								? incrementVersion(item, {
+									status: 'CANCELED' as const,
+									updated_at: new Date().toISOString()
+								})
+								: item
+						)
+				)
+
+				return { previousDetail, previousList }
+			},
+			onError: (_err, { id }, context) => {
+				// Rollback on error
+				if (context?.previousDetail) {
+					queryClient.setQueryData(
+						maintenanceQueries.detail(id).queryKey,
+						context.previousDetail
+					)
+				}
+				if (context?.previousList) {
+					queryClient.setQueryData(maintenanceQueries.lists(), context.previousList)
+				}
+				handleMutationError(_err, 'Cancel maintenance request')
+			},
+			onSuccess: (data, { id }) => {
+				// Update with real server data
+				queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, data)
+				queryClient.setQueryData<MaintenanceRequest[]>(
+					maintenanceQueries.lists(),
+					old => old?.map(item => (item.id === id ? data : item))
+				)
+				handleMutationSuccess(
+					'Cancel maintenance request',
+					'Maintenance request cancelled'
+				)
+			},
+			onSettled: () => {
+				// Refetch to ensure consistency
+				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+				queryClient.invalidateQueries({ queryKey: maintenanceQueries.stats().queryKey })
 			}
-			if (context?.previousList) {
-				queryClient.setQueryData(maintenanceKeys.list(), context.previousList)
-			}
-			handleMutationError(_err, 'Cancel maintenance request')
-		},
-		onSuccess: (data, { id }) => {
-			// Update with real server data
-			queryClient.setQueryData(maintenanceKeys.detail(id), data)
-			queryClient.setQueryData<MaintenanceRequest[]>(
-				maintenanceKeys.list(),
-				old => old?.map(item => (item.id === id ? data : item))
-			)
-			handleMutationSuccess(
-				'Cancel maintenance request',
-				'Maintenance request cancelled'
-			)
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: maintenanceKeys.list() })
-			queryClient.invalidateQueries({ queryKey: maintenanceKeys.stats() })
-		}
 	})
 }
 
@@ -490,7 +423,7 @@ export function useMaintenanceOperations() {
 	const completeRequest = useCompleteMaintenance()
 	const cancelRequest = useCancelMaintenance()
 
-	return {
+	return useMemo(() => ({
 		createRequest,
 		updateRequest,
 		completeRequest,
@@ -505,5 +438,5 @@ export function useMaintenanceOperations() {
 			updateRequest.error ||
 			completeRequest.error ||
 			cancelRequest.error
-	}
+	}), [createRequest, updateRequest, completeRequest, cancelRequest])
 }

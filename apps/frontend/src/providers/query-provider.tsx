@@ -15,12 +15,11 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { env } from '#config/env'
 
 const logger = createLogger({ component: 'QueryProvider' })
 
-// Dynamically import DevTools for development only
-const ReactQueryDevtools = dynamic(
+// Dynamically import DevTools for development only (unused but kept for future use)
+const _ReactQueryDevtools = dynamic(
 	() =>
 		import('@tanstack/react-query-devtools').then(
 			mod => mod.ReactQueryDevtools
@@ -275,7 +274,7 @@ export function QueryProvider({
 	useEffect(() => {
 		if (
 			typeof window === 'undefined' ||
-			env.NODE_ENV === 'production'
+			process.env.NODE_ENV === 'production'
 		) {
 			return
 		}
@@ -299,9 +298,6 @@ export function QueryProvider({
 		() => (
 			<HydrationBoundary state={dehydratedState}>
 				{children}
-				{env.NODE_ENV === 'development' && (
-					<ReactQueryDevtools initialIsOpen={false} />
-				)}
 			</HydrationBoundary>
 		),
 		[children, dehydratedState]

@@ -17,7 +17,7 @@
     "#test/*": "./src/test/*"
   },
   "scripts": {
-    "dev": "doppler run -- next dev",
+    "dev": "doppler run -- next dev --webpack",
     "dev:clean": "pnpm clean && pnpm dev",
     "build": "next build",
     "start": "next start",

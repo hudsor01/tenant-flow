@@ -10,11 +10,12 @@ import type {
 	OwnerPaymentSummaryResponse,
 	TenantPaymentRecord
 } from '@repo/shared/types/api-contracts'
-import type { Database } from '@repo/shared/types/supabase'
+import type { Database, Json } from '@repo/shared/types/supabase'
 import type { RentPayment } from '@repo/shared/types/core'
+import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
+import type { SupabaseError } from '../../types/stripe-schema'
 
-type StripePaymentIntentRow = Database['public']['Tables']['stripe_payment_intents']['Row']
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 
 @Injectable()
@@ -88,12 +89,14 @@ export class TenantPaymentService {
 		await this.ensureTenantOwnedByUser(user_id, tenant_id)
 
 		const client = this.supabase.getAdminClient()
-		const { data, error } = await client
-			.from('stripe_payment_intents')
-			.select('*')
-			.contains('metadata', { tenant_id })
-			.order('created_at', { ascending: false })
-			.limit(limit)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+	const { data, error }: { data: unknown; error: SupabaseError | null } = await (client as any)
+		.schema('stripe')
+		.from('payment_intents')
+		.select('*')
+		.contains('metadata', { tenant_id })
+		.order('created', { ascending: false })
+		.limit(limit)
 
 		if (error) {
 			this.logger.error('Failed to fetch tenant payment history', {
@@ -104,7 +107,7 @@ export class TenantPaymentService {
 			throw new InternalServerErrorException('Failed to fetch tenant payment history')
 		}
 
-		const paymentIntents = (data as StripePaymentIntentRow[]) || []
+		const paymentIntents = (data as Stripe.PaymentIntent[]) || []
 		const payments = paymentIntents.map(intent => this._mapStripePaymentIntentToRecord(intent))
 
 		return { payments }
@@ -261,16 +264,16 @@ export class TenantPaymentService {
 		return this.sendPaymentReminder(tenant.user_id, tenant_id, note)
 	}
 
-	private _mapStripePaymentIntentToRecord(intent: StripePaymentIntentRow): TenantPaymentRecord {
+	private _mapStripePaymentIntentToRecord(intent: Stripe.PaymentIntent): TenantPaymentRecord {
 		return {
 			id: intent.id,
 			amount: intent.amount ?? 0,
-			currency: intent.currency,
+			currency: intent.currency ?? 'usd',
 			status: intent.status ?? 'unknown',
-			description: null,
-			receiptEmail: null,
-			metadata: null,
-			created_at: intent.created_at
+			description: intent.description ?? null,
+			receiptEmail: intent.receipt_email ?? null,
+			metadata: (intent.metadata as Json) ?? null,
+			created_at: new Date((intent.created ?? 0) * 1000).toISOString()
 		}
 	}
 
@@ -279,12 +282,14 @@ export class TenantPaymentService {
 		limit: number
 	): Promise<TenantPaymentRecord[]> {
 		const client = this.supabase.getAdminClient()
-		const { data, error } = await client
-			.from('stripe_payment_intents')
-			.select('*')
-			.contains('metadata', { tenant_id })
-			.order('created_at', { ascending: false })
-			.limit(limit)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
+	const { data, error }: { data: unknown; error: SupabaseError | null } = await (client as any)
+		.schema('stripe')
+		.from('payment_intents')
+		.select('*')
+		.contains('metadata', { tenant_id })
+		.order('created', { ascending: false })
+		.limit(limit)
 
 		if (error) {
 			this.logger.error('Failed to query tenant payment intents', {
@@ -294,7 +299,7 @@ export class TenantPaymentService {
 			throw new InternalServerErrorException('Failed to fetch tenant payment history')
 		}
 
-		return ((data as StripePaymentIntentRow[]) || []).map(intent =>
+		return ((data as Stripe.PaymentIntent[]) || []).map(intent =>
 			this._mapStripePaymentIntentToRecord(intent)
 		)
 	}
@@ -550,34 +555,34 @@ export class TenantPaymentService {
 		return false
 	}
 
-	/** 
-	 * PUBLIC: Map payment intent to record format 
+	/**
+	 * PUBLIC: Map payment intent to record format
 	 * Migrated from TenantAnalyticsService
-	 */ 
-	mapPaymentIntentToRecord(intent: { 
-		id?: string 
-		amount?: number 
-		currency?: string | null 
-		status?: string 
-		succeeded_at?: string 
-		tenant_id?: string 
-		metadata?: { tenant_id?: string } | null 
-	}): TenantPaymentRecord { 
-		const tenantId = intent.tenant_id ?? intent.metadata?.tenant_id 
-		const paidDate = intent.succeeded_at 
-		const paymentId = typeof intent.id === 'string' && intent.id.length > 0 ? intent.id : `pi_${Date.now()}` 
- 
-		return { 
-			id: paymentId, 
-			...(tenantId ? { tenant_id: tenantId } : {}), 
-			amount: intent.amount ?? 0, 
-			status: intent.status ?? 'PENDING', 
-			currency: intent.currency ?? 'USD', 
-			description: null, 
-			receiptEmail: null, 
-			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : null, 
-			created_at: new Date().toISOString(), 
-			...(paidDate ? { paid_date: paidDate } : {}) 
-		} 
+	 */
+	mapPaymentIntentToRecord(intent: {
+		id?: string
+		amount?: number
+		currency?: string | null
+		status?: string
+		succeeded_at?: string
+		tenant_id?: string
+		metadata?: { tenant_id?: string } | null
+	}): TenantPaymentRecord {
+		const tenantId = intent.tenant_id ?? intent.metadata?.tenant_id
+		const paidDate = intent.succeeded_at
+		const paymentId = typeof intent.id === 'string' && intent.id.length > 0 ? intent.id : `pi_${Date.now()}`
+
+		return {
+			id: paymentId,
+			...(tenantId ? { tenant_id: tenantId } : {}),
+			amount: intent.amount ?? 0,
+			status: intent.status ?? 'PENDING',
+			currency: intent.currency ?? 'USD',
+			description: null,
+			receiptEmail: null,
+			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : null,
+			created_at: new Date().toISOString(),
+			...(paidDate ? { paid_date: paidDate } : {})
+		}
 	}
 }

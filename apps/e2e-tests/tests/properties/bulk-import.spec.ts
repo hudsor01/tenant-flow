@@ -13,7 +13,7 @@ test.describe('Property Bulk Import', () => {
 		page
 	}) => {
 		// Navigate to properties page
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.waitForLoadState('networkidle')
 
 		// Get initial property count
@@ -69,7 +69,7 @@ test.describe('Property Bulk Import', () => {
 	})
 
 	test('should handle CSV validation errors gracefully', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 
 		// Click bulk import
 		await page.getByRole('button', { name: /bulk import/i }).click()
@@ -97,7 +97,7 @@ test.describe('Property Bulk Import', () => {
 	})
 
 	test('should prevent uploading non-CSV files', async ({ page }) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.getByRole('button', { name: /bulk import/i }).click()
 
 		// Try to upload a text file
@@ -116,7 +116,7 @@ test.describe('Property Bulk Import', () => {
 	test('should show import summary with success/failure counts', async ({
 		page
 	}) => {
-		await page.goto('/manage/properties')
+		await page.goto('/properties')
 		await page.getByRole('button', { name: /bulk import/i }).click()
 
 		const csvPath = path.join(__dirname, '../../../frontend/test-bulk-import.csv')

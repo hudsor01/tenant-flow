@@ -6,11 +6,11 @@ type MutableConfig = Record<string, any>
 const BASE_CONFIG = {
 	DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 	JWT_SECRET: 'a'.repeat(32),
-	SB_URL: 'https://project.supabase.co',
-	SB_SECRET_KEY: 'secret-key',
-	SB_JWT_SECRET: 'b'.repeat(32),
-	SB_PUBLISHABLE_KEY: 'publishable-key',
-	SB_PROJECT_REF: 'project-ref',
+	SUPABASE_URL: 'https://project.supabase.co',
+	SUPABASE_SECRET_KEY: 'secret-key',
+	SUPABASE_JWT_SECRET: 'b'.repeat(32),
+	SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
+	SUPABASE_PROJECT_REF: 'project-ref',
 	STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',
 	STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret',
 	SUPPORT_EMAIL: 'support@tenantflow.app',
@@ -27,8 +27,8 @@ const BASE_CONFIG = {
 	WEBHOOK_THROTTLE_LIMIT: 30,
 	STRIPE_SYNC_THROTTLE_TTL: 60000,
 	STRIPE_SYNC_THROTTLE_LIMIT: 30,
-	SB_AUTH_THROTTLE_TTL: 60000,
-	SB_AUTH_THROTTLE_LIMIT: 30
+	SUPABASE_AUTH_THROTTLE_TTL: 60000,
+	SUPABASE_AUTH_THROTTLE_LIMIT: 30
 } as const
 
 const createValidConfig = (): MutableConfig => ({ ...BASE_CONFIG })
@@ -71,35 +71,35 @@ describe('Configuration Schema Validation', () => {
 			)
 		})
 
-		it('should throw error for short SB_JWT_SECRET', () => {
+		it('should throw error for short SUPABASE_JWT_SECRET', () => {
 			const config = createValidConfig()
-			config.SB_JWT_SECRET = 'short'
+			config.SUPABASE_JWT_SECRET = 'short'
 
 			expect(() => validate(config)).toThrow(
 				'Supabase JWT secret must be at least 32 characters'
 			)
 		})
 
-		it('should normalize SB_JWT_ALGORITHM to uppercase', () => {
+		it('should normalize SUPABASE_JWT_ALGORITHM to uppercase', () => {
 			const config = createValidConfig()
-			config.SB_JWT_ALGORITHM = 'rs256'
+			config.SUPABASE_JWT_ALGORITHM = 'rs256'
 
 			const result = validate(config)
-			expect(result.SB_JWT_ALGORITHM).toBe('RS256')
+			expect(result.SUPABASE_JWT_ALGORITHM).toBe('RS256')
 		})
 
-		it('should throw error for invalid SB_JWT_ALGORITHM', () => {
+		it('should throw error for invalid SUPABASE_JWT_ALGORITHM', () => {
 			const config = createValidConfig()
-			config.SB_JWT_ALGORITHM = 'HS512'
+			config.SUPABASE_JWT_ALGORITHM = 'HS512'
 
 			expect(() => validate(config)).toThrow(
 				'Invalid option: expected one of "ES256"|"RS256"'
 			)
 		})
 
-		it('should throw error for invalid SB_URL', () => {
+		it('should throw error for invalid SUPABASE_URL', () => {
 			const config = createValidConfig()
-			config.SB_URL = 'not-a-valid-url'
+			config.SUPABASE_URL = 'not-a-valid-url'
 
 			expect(() => validate(config)).toThrow('Must be a valid URL')
 		})
@@ -115,7 +115,7 @@ describe('Configuration Schema Validation', () => {
 			expect(result.PORT).toBe(4600) // Default
 			expect(result.JWT_EXPIRES_IN).toBe('7d') // Default
 			expect(result.LOG_LEVEL).toBe('info') // Default
-			expect(result.SB_JWT_ALGORITHM).toBe('ES256') // Default
+			expect(result.SUPABASE_JWT_ALGORITHM).toBe('ES256') // Default
 			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default
 			expect(result.STORAGE_BUCKET).toBe('tenant-flow-storage') // Default
 			expect(result.ENABLE_METRICS).toBe(true) // Default
@@ -338,8 +338,8 @@ describe('Configuration Schema Validation', () => {
 			const config = {
 				...createValidConfig(),
 				JWT_SECRET: 'short', // Too short
-				SB_URL: 'not-a-url', // Invalid URL
-				SB_JWT_SECRET: 'also-short', // Too short
+				SUPABASE_URL: 'not-a-url', // Invalid URL
+				SUPABASE_JWT_SECRET: 'also-short', // Too short
 				FROM_EMAIL: 'not-an-email', // Invalid email
 				NODE_ENV: 'invalid-env' // Invalid enum
 			}

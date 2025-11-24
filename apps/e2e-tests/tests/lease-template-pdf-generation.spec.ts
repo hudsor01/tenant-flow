@@ -37,28 +37,27 @@ test.describe('Lease Template PDF Generation', () => {
 	// Check if authentication is available before running tests
 	test.beforeAll(async ({ browser }) => {
 		const page = await browser.newPage()
-		const controller = new AbortController()
-		const timeoutId = setTimeout(() => controller.abort(), 10000)
 
 		try {
-			// Try to login with timeout using AbortController
-			await loginAsOwner(page)
-
-			if (controller.signal.aborted) {
-				throw new Error('Auth timeout')
-			}
+			// Try to login with timeout using Promise.race
+			await Promise.race([
+				loginAsOwner(page),
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new Error('Auth timeout after 15s')), 15000)
+				)
+			])
 
 			authenticationAvailable = true
 			logger.info(' Authentication successful - tests will run')
 		} catch (error) {
 			authenticationAvailable = false
 			logger.warn('️ Authentication failed - tests will be SKIPPED')
+			logger.warn(`Error: ${error instanceof Error ? error.message : String(error)}`)
+			logger.info(' Required environment variables:')
+			logger.info(`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`)
+			logger.info(`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`)
 			logger.info(' Set up test account at http://localhost:3000/signup')
-			logger.info(
-				` Email: ${process.env.E2E_OWNER_EMAIL || 'test-owner@example.com'}`
-			)
 		} finally {
-			clearTimeout(timeoutId)
 			await page.close()
 		}
 	})
@@ -101,7 +100,7 @@ test.describe('Lease Template PDF Generation', () => {
 
 	test('should generate and preview lease PDF from template builder', async ({ page }, testInfo) => {
 		// Navigate to lease template builder
-		await page.goto('/manage/documents/lease-template', {
+		await page.goto('/documents/lease-template', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -186,7 +185,7 @@ test.describe('Lease Template PDF Generation', () => {
 	})
 
 	test('should handle missing required fields gracefully', async ({ page }) => {
-		await page.goto('/manage/documents/lease-template', {
+		await page.goto('/documents/lease-template', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -225,7 +224,7 @@ test.describe('Lease Template PDF Generation', () => {
 			})
 		})
 
-		await page.goto('/manage/documents/lease-template', {
+		await page.goto('/documents/lease-template', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
@@ -248,7 +247,7 @@ test.describe('Lease Template PDF Generation', () => {
 	})
 
 	test('should maintain template selections when regenerating PDF', async ({ page }) => {
-		await page.goto('/manage/documents/lease-template', {
+		await page.goto('/documents/lease-template', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})

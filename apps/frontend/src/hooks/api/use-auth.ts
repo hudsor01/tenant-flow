@@ -308,7 +308,7 @@ export function useSupabaseLogin() {
 			handleMutationSuccess('Login', `Logged in as ${data.user.email}`)
 
 			// Redirect to dashboard
-			router.push('/manage')
+			router.push('/')
 		},
 		onError: (error: Error) => handleMutationError(error, 'Login')
 	})
@@ -353,7 +353,7 @@ export function useSupabaseSignup() {
 				toast.success('Welcome to TenantFlow!', {
 					description: 'Your account has been created successfully.'
 				})
-				router.push('/manage')
+				router.push('/')
 			}
 		},
 		onError: (error: Error) => handleMutationError(error, 'Signup')

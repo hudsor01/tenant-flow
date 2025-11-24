@@ -1,0 +1,648 @@
+'use client'
+
+import { PasswordUpdateSection } from '#app/(tenant)/portal/settings/password-update-section'
+import { useTransition } from 'react'
+import { toast } from 'sonner'
+import { clientFetch } from '#lib/api/client'
+
+import { useAuth } from '#providers/auth-provider'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Input } from '#components/ui/input'
+import {
+	Item,
+	ItemActions,
+	ItemContent,
+	ItemDescription,
+	ItemGroup,
+	ItemMedia,
+	ItemSeparator,
+	ItemTitle
+} from '#components/ui/item'
+import { Label } from '#components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
+import { Switch } from '#components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
+import { Textarea } from '#components/ui/textarea'
+import {
+	AlertTriangle,
+	Bell,
+	CreditCard,
+	Download,
+	Globe,
+	RefreshCw,
+	Save,
+	Settings,
+	Shield,
+	Trash2,
+	Upload,
+	User
+} from 'lucide-react'
+import { useUserProfile } from '#hooks/use-user-profile'
+import { Skeleton } from '#components/ui/skeleton'
+
+export default function SettingsPage() {
+	const [isPending, startTransition] = useTransition()
+	const { session } = useAuth()
+	const { data: profile, isLoading: profileLoading } = useUserProfile()
+
+	const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+
+		if (!session?.access_token) {
+			toast.error('Authentication required', {
+				description: 'Please sign in to update your profile'
+			})
+			return
+		}
+
+		const formData = new FormData(e.currentTarget)
+		const profileData = {
+			first_name: formData.get('first_name') as string,
+			last_name: formData.get('last_name') as string,
+			email: formData.get('email') as string,
+			phone: (formData.get('phone') as string) || undefined,
+			company: (formData.get('company') as string) || undefined,
+			timezone: (formData.get('timezone') as string) || undefined,
+			bio: (formData.get('bio') as string) || undefined
+		}
+
+		startTransition(async () => {
+			try {
+				await clientFetch('/api/v1/users/profile', {
+					method: 'PATCH',
+					body: JSON.stringify(profileData)
+				})
+
+				handleMutationSuccess('Update profile')
+			} catch (error) {
+				handleMutationError(error, 'Update profile')
+			}
+		})
+	}
+
+	return (
+		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-3xl font-bold text-foreground">
+						Settings & Preferences
+					</h1>
+					<p className="text-muted-foreground mt-1">
+						Manage your account and application preferences
+					</p>
+				</div>
+			</div>
+
+			<Tabs defaultValue="profile" className="space-y-6">
+				<TabsList className="grid w-full grid-cols-5">
+					<TabsTrigger value="profile" className="flex items-center gap-2">
+						<User className="size-4" />
+						Profile
+					</TabsTrigger>
+					<TabsTrigger
+						value="notifications"
+						className="flex items-center gap-2"
+					>
+						<Bell className="size-4" />
+						Notifications
+					</TabsTrigger>
+					<TabsTrigger value="security" className="flex items-center gap-2">
+						<Shield className="size-4" />
+						Security
+					</TabsTrigger>
+					<TabsTrigger value="billing" className="flex items-center gap-2">
+						<CreditCard className="size-4" />
+						Billing
+					</TabsTrigger>
+					<TabsTrigger value="system" className="flex items-center gap-2">
+						<Settings className="size-4" />
+						System
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="profile" className="space-y-6">
+					<CardLayout
+						title="Profile Information"
+						className="p-6 border shadow-sm"
+					>
+						{profileLoading ? (
+							<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="space-y-2">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-10 w-full" />
+								</div>
+								<div className="mt-6 md:col-span-2 space-y-2">
+									<Skeleton className="h-4 w-16" />
+									<Skeleton className="h-24 w-full" />
+								</div>
+							</div>
+						) : (
+							<form
+								onSubmit={handleProfileSubmit}
+								className="grid grid-cols-1 gap-6 md:grid-cols-2"
+							>
+								<div className="space-y-2">
+									<Label htmlFor="first_name">First Name</Label>
+									<Input
+										id="first_name"
+										name="first_name"
+										autoComplete="given-name"
+										defaultValue={profile?.first_name || ''}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="last_name">Last Name</Label>
+									<Input
+										id="last_name"
+										name="last_name"
+										autoComplete="family-name"
+										defaultValue={profile?.last_name || ''}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="email">Email Address</Label>
+									<Input
+										id="email"
+										name="email"
+										autoComplete="email"
+										type="email"
+										defaultValue={profile?.email || ''}
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="phone">Phone Number</Label>
+									<Input
+										id="phone"
+										name="phone"
+										autoComplete="tel"
+										type="tel"
+										defaultValue={''}
+										placeholder="Add your phone number"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="company">Company</Label>
+									<Input
+										id="company"
+										name="company"
+										autoComplete="organization"
+										defaultValue={''}
+										placeholder="Add your company name"
+									/>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="timezone">Timezone</Label>
+									<Select name="timezone" defaultValue="cst">
+										<SelectTrigger id="timezone">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="pst">Pacific Standard Time</SelectItem>
+											<SelectItem value="mst">
+												Mountain Standard Time
+											</SelectItem>
+											<SelectItem value="cst">Central Standard Time</SelectItem>
+											<SelectItem value="est">Eastern Standard Time</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="mt-6 md:col-span-2">
+									<Label htmlFor="bio">Bio</Label>
+									<Textarea
+										id="bio"
+										name="bio"
+										className="mt-2"
+										placeholder="Tell us about yourself..."
+										rows={3}
+									/>
+								</div>
+								<div className="md:col-span-2 flex justify-end gap-2">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => {
+											const form = document.querySelector(
+												'form'
+											) as HTMLFormElement
+											form?.reset()
+											toast.info('Form reset to defaults')
+										}}
+									>
+										<RefreshCw className="size-4 mr-2" />
+										Reset to Defaults
+									</Button>
+									<Button type="submit" disabled={isPending}>
+										<Save className="size-4 mr-2" />
+										{isPending ? 'Saving...' : 'Save Changes'}
+									</Button>
+								</div>
+							</form>
+						)}
+					</CardLayout>
+				</TabsContent>
+
+				<TabsContent value="notifications" className="space-y-6">
+					<CardLayout
+						title="Email Notifications"
+						className="p-6 border shadow-sm"
+					>
+						<ItemGroup>
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<Bell />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>
+										<Label htmlFor="notify-maintenance">
+											New Maintenance Requests
+										</Label>
+									</ItemTitle>
+									<ItemDescription>
+										Get notified when new maintenance requests are submitted
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch
+										id="notify-maintenance"
+										name="notify-maintenance"
+										defaultChecked
+									/>
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<RefreshCw />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>
+										<Label htmlFor="notify-renewals">Lease Renewals</Label>
+									</ItemTitle>
+									<ItemDescription>
+										Reminders for upcoming lease renewals
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch
+										id="notify-renewals"
+										name="notify-renewals"
+										defaultChecked
+									/>
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<CreditCard />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>
+										<Label htmlFor="notify-payments">
+											Payment Notifications
+										</Label>
+									</ItemTitle>
+									<ItemDescription>
+										Alerts for rent payments and overdue accounts
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch
+										id="notify-payments"
+										name="notify-payments"
+										defaultChecked
+									/>
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<Settings />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>
+										<Label htmlFor="notify-system">System Updates</Label>
+									</ItemTitle>
+									<ItemDescription>
+										Information about system maintenance and updates
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch id="notify-system" name="notify-system" />
+								</ItemActions>
+							</Item>
+						</ItemGroup>
+					</CardLayout>
+
+					<CardLayout
+						title="Push Notifications"
+						className="p-6 border shadow-sm"
+					>
+						<ItemGroup>
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<AlertTriangle />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>
+										<Label htmlFor="push-emergency">
+											Emergency Maintenance
+										</Label>
+									</ItemTitle>
+									<ItemDescription>
+										Immediate alerts for critical issues
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch
+										id="push-emergency"
+										name="push-emergency"
+										defaultChecked
+									/>
+								</ItemActions>
+							</Item>
+
+							<ItemSeparator />
+
+							<Item variant="outline">
+								<ItemMedia variant="icon">
+									<Bell />
+								</ItemMedia>
+								<ItemContent>
+									<ItemTitle>
+										<Label htmlFor="push-messages">New Messages</Label>
+									</ItemTitle>
+									<ItemDescription>
+										Notifications for tenant messages
+									</ItemDescription>
+								</ItemContent>
+								<ItemActions>
+									<Switch
+										id="push-messages"
+										name="push-messages"
+										defaultChecked
+									/>
+								</ItemActions>
+							</Item>
+						</ItemGroup>
+					</CardLayout>
+				</TabsContent>
+
+				<TabsContent value="security" className="space-y-6">
+					<PasswordUpdateSection />
+
+					<CardLayout
+						title="Two-Factor Authentication"
+						className="p-6 border shadow-sm"
+					>
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<div>
+									<Label htmlFor="enable-2fa" className="font-medium">
+										Enable 2FA
+									</Label>
+									<p className="text-sm text-muted-foreground">
+										Add an extra layer of security to your account
+									</p>
+								</div>
+								<Switch id="enable-2fa" name="enable-2fa" />
+							</div>
+							<div className="pt-4 border-t">
+								<Button variant="outline">
+									<Shield className="size-4 mr-2" />
+									Configure 2FA
+								</Button>
+							</div>
+						</div>
+					</CardLayout>
+
+					<CardLayout title="Active Sessions" className="p-6 border shadow-sm">
+						<div className="space-y-4">
+							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+								<div className="flex items-center gap-3">
+									<div className="size-11 rounded-full bg-primary/20 flex items-center justify-center">
+										<div className="size-3 rounded-full bg-primary"></div>
+									</div>
+									<div>
+										<p className="font-medium">Current Session</p>
+										<p className="text-sm text-muted-foreground">
+											Chrome on macOS • San Francisco, CA
+										</p>
+									</div>
+								</div>
+								<Badge variant="default" className="text-xs">
+									Current
+								</Badge>
+							</div>
+							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+								<div className="flex items-center gap-3">
+									<div className="size-11 rounded-full bg-muted flex items-center justify-center">
+										<Globe className="size-4" />
+									</div>
+									<div>
+										<p className="font-medium">Mobile App</p>
+										<p className="text-sm text-muted-foreground">
+											iPhone • Last active 2 hours ago
+										</p>
+									</div>
+								</div>
+								<Button variant="ghost" size="sm">
+									Revoke
+								</Button>
+							</div>
+						</div>
+					</CardLayout>
+				</TabsContent>
+
+				<TabsContent value="billing" className="space-y-6">
+					<CardLayout
+						title="Subscription Plan"
+						className="p-6 border shadow-sm"
+					>
+						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+							<div>
+								<p className="font-semibold text-lg">Professional Plan</p>
+								<p className="text-muted-foreground">Manage up to 500 units</p>
+							</div>
+							<div className="text-right">
+								<p className="text-2xl font-bold">$99</p>
+								<p className="text-sm text-muted-foreground">per month</p>
+							</div>
+						</div>
+						<div className="mt-4 flex items-center gap-2">
+							<Button>Upgrade Plan</Button>
+							<Button variant="outline">Cancel Subscription</Button>
+						</div>
+					</CardLayout>
+
+					<CardLayout title="Payment Method" className="p-6 border shadow-sm">
+						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+							<div className="flex items-center gap-3">
+								<div className="size-10 rounded-lg bg-background border flex items-center justify-center">
+									<CreditCard className="size-5" />
+								</div>
+								<div>
+									<p className="font-medium">•••• •••• 4242</p>
+									<p className="text-sm text-muted-foreground">Expires 12/25</p>
+								</div>
+							</div>
+							<Button variant="outline" size="sm">
+								Update
+							</Button>
+						</div>
+					</CardLayout>
+
+					<CardLayout title="Billing History" className="p-6 border shadow-sm">
+						<div className="space-y-3">
+							{[
+								{ date: 'Jan 15, 2024', amount: '$99.00', status: 'Paid' },
+								{ date: 'Dec 15, 2023', amount: '$99.00', status: 'Paid' },
+								{ date: 'Nov 15, 2023', amount: '$99.00', status: 'Paid' }
+							].map((invoice, index) => (
+								<div
+									key={index}
+									className="flex items-center justify-between p-3 rounded-lg bg-muted/20"
+								>
+									<div>
+										<p className="font-medium">{invoice.date}</p>
+										<p className="text-sm text-muted-foreground">
+											{invoice.amount}
+										</p>
+									</div>
+									<div className="flex items-center gap-2">
+										<Badge variant="default" className="text-xs">
+											{invoice.status}
+										</Badge>
+										<Button variant="ghost" size="sm">
+											<Download className="size-4" />
+										</Button>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardLayout>
+				</TabsContent>
+
+				<TabsContent value="system" className="space-y-6">
+					<CardLayout title="Data Management" className="p-6 border shadow-sm">
+						<div className="space-y-4">
+							<div className="flex items-center justify-between">
+								<div>
+									<Label htmlFor="auto-backup" className="font-medium">
+										Auto-backup
+									</Label>
+									<p className="text-sm text-muted-foreground">
+										Automatically backup your data weekly
+									</p>
+								</div>
+								<Switch id="auto-backup" name="auto-backup" defaultChecked />
+							</div>
+							<div className="pt-4 border-t">
+								<div className="flex items-center gap-2">
+									<Button variant="outline">
+										<Download className="size-4 mr-2" />
+										Export Data
+									</Button>
+									<Button variant="outline">
+										<Upload className="size-4 mr-2" />
+										Import Data
+									</Button>
+								</div>
+							</div>
+						</div>
+					</CardLayout>
+
+					<CardLayout
+						title="System Preferences"
+						className="p-6 border shadow-sm"
+					>
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="default-currency">Default Currency</Label>
+								<Select defaultValue="usd">
+									<SelectTrigger id="default-currency" className="w-48">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="usd">USD ($)</SelectItem>
+										<SelectItem value="cad">CAD ($)</SelectItem>
+										<SelectItem value="eur">EUR (€)</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="date-format">Date Format</Label>
+								<Select defaultValue="mdy">
+									<SelectTrigger id="date-format" className="w-48">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="mdy">MM/DD/YYYY</SelectItem>
+										<SelectItem value="dmy">DD/MM/YYYY</SelectItem>
+										<SelectItem value="ymd">YYYY-MM-DD</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+					</CardLayout>
+
+					<CardLayout
+						title="Danger Zone"
+						className="p-6 border shadow-sm border-destructive/20"
+					>
+						<div className="space-y-4">
+							<div>
+								<p className="font-medium">Delete Account</p>
+								<p className="text-sm text-muted-foreground mb-3">
+									Permanently delete your account and all associated data. This
+									action cannot be undone.
+								</p>
+								<Button variant="destructive">
+									<Trash2 className="size-4 mr-2" />
+									Delete Account
+								</Button>
+							</div>
+						</div>
+					</CardLayout>
+				</TabsContent>
+			</Tabs>
+		</div>
+	)
+}
