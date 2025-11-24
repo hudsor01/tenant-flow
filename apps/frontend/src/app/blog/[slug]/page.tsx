@@ -1,48 +1,32 @@
-'use client'
-
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { getBlogPost } from '#lib/blog-posts'
-import DOMPurify from 'dompurify'
+import { getBlogPost, getAllBlogPosts } from '#lib/blog-posts'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { useMemo } from 'react'
 
-export default function BlogArticlePage({
+// Pre-render all blog articles at build time (Next.js 16 static generation)
+export async function generateStaticParams() {
+	const posts = getAllBlogPosts()
+	return posts.map(post => ({ slug: post.slug }))
+}
+
+export default async function BlogArticlePage({
 	params
 }: {
-	params: { slug: string }
+	params: Promise<{ slug: string }>
 }) {
-	const { slug } = params
+	const { slug } = await params
 	const post = getBlogPost(slug)
 
 	if (!post) {
 		notFound()
 	}
 
-	const sanitizedContent = useMemo(() => {
-		// SSR guard: DOMPurify requires window object
-		if (typeof window === 'undefined') {
-			return post.content.replace(/\n/g, '<br />')
-		}
-
-		return DOMPurify.sanitize(post.content.replace(/\n/g, '<br />'), {
-			ALLOWED_TAGS: [
-				'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br',
-				'strong', 'em', 'a', 'ul', 'ol', 'li',
-				'blockquote', 'code', 'pre', 'b', 'i', 'img'
-			],
-			ALLOWED_ATTR: [
-				'href', 'target', 'rel',
-				'src', 'alt', 'width', 'height',
-				'srcset', 'sizes', 'loading', 'decoding',
-				'class', 'title'
-			]
-		})
-	}, [post.content])
+	// Content is trusted (from static blog-posts.ts), just format for rendering
+	const formattedContent = post.content.replace(/\n/g, '<br />')
 
 	return (
 		<div className="relative min-h-screen flex flex-col">
@@ -106,8 +90,8 @@ export default function BlogArticlePage({
 								[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg
 							"
 							dangerouslySetInnerHTML={{
-								__html: sanitizedContent
-							}}
+					__html: formattedContent
+				}}
 						/>
 					</div>
 

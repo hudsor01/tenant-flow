@@ -4,13 +4,15 @@ import { Card, CardContent, CardHeader } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
 
 interface TaxDocumentsPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		year?: string
-	}
+	}>
 }
 
 const TaxDocumentsPage = async ({ searchParams }: TaxDocumentsPageProps) => {
-	const initialYear = searchParams.year ? parseInt(searchParams.year, 10) : new Date().getFullYear()
+	// In Next.js 16, searchParams is a Promise that must be awaited
+	const { year: yearParam } = await searchParams
+	const initialYear = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear()
 
 	return (
 		<Suspense fallback={<TaxDocumentsSkeleton />}>

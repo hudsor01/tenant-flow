@@ -1,5 +1,3 @@
-'use client'
-
 import { ContactForm } from '#app/contact/contact-form'
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
