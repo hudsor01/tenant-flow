@@ -3,7 +3,7 @@
 /**
  * Owner Dashboard Hooks
  *
- * Modern hooks using /owner/* endpoints (replaces legacy /manage/* endpoints)
+ * Modern hooks using /owner/* endpoints (replaces legacy /* endpoints)
  *
  * Architecture:
  * - Role-based access control (RolesGuard + @Roles)
@@ -356,4 +356,66 @@ export function usePrefetchOwnerPropertyPerformance() {
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
+}
+
+// ============================================================================
+// FINANCIAL CHART DATA
+// ============================================================================
+
+export interface FinancialChartDatum {
+	date: string
+	revenue: number
+	expenses: number
+	profit: number
+}
+
+export type FinancialTimeRange = '7d' | '30d' | '6m' | '1y'
+
+const timeRangeToMonths: Record<FinancialTimeRange, number> = {
+	'7d': 1,
+	'30d': 1,
+	'6m': 6,
+	'1y': 12
+}
+
+/**
+ * Revenue/expense chart data fetched from the financial analytics endpoint.
+ * Uses server-calculated revenue/expense/netIncome so the chart reflects
+ * actual expenses instead of placeholders.
+ */
+export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
+	const months = timeRangeToMonths[timeRange] ?? 6
+	const currentYear = new Date().getFullYear()
+
+	return useQuery<FinancialChartDatum[]>({
+		queryKey: [...ownerDashboardKeys.financial.revenueTrends(currentYear), timeRange, months] as const,
+		queryFn: async () => {
+			const data = await clientFetch<FinancialMetrics[]>(
+				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`
+			)
+
+			if (!Array.isArray(data) || data.length === 0) return []
+
+			// Keep UX consistent with the previous time-range selector by
+			// trimming to the most recent N months when the caller requests
+			// shorter ranges (7d/30d map to 1 month of aggregated data).
+			const trimmed = data
+				.sort((a, b) => a.period.localeCompare(b.period))
+				.slice(-months)
+
+			return trimmed.map(item => ({
+				date: item.period,
+				revenue: item.revenue ?? 0,
+				expenses: item.expenses ?? 0,
+				profit: item.netIncome ?? (item.revenue ?? 0) - (item.expenses ?? 0)
+			}))
+		},
+		...QUERY_CACHE_TIMES.ANALYTICS,
+		refetchInterval: 5 * 60 * 1000,
+		refetchIntervalInBackground: false,
+		refetchOnWindowFocus: true,
+		retry: 2,
+		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
+		structuralSharing: true
+	})
 }

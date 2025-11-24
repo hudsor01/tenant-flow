@@ -34,9 +34,9 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			const { data, error } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.select('id')
-				.eq('stripe_event_id', eventId)
+				.eq('external_id', eventId)
 				.single()
 
 			if (error && error.code !== 'PGRST116') {
@@ -193,12 +193,12 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			const { error } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.update({
 					processed_at: new Date().toISOString(),
 					status: 'processed'
 				})
-				.eq('stripe_event_id', eventId)
+				.eq('external_id', eventId)
 
 			if (error) {
 				this.logger.error('Failed to mark event as processed', {
@@ -231,7 +231,7 @@ export class StripeWebhookService {
 
 			// First, count how many will be deleted
 			const { count } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
 				.lt('processed_at', cutoffDate.toISOString())
 
@@ -242,7 +242,7 @@ export class StripeWebhookService {
 
 			// Delete old events
 			const { error } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.delete()
 				.lt('processed_at', cutoffDate.toISOString())
 
@@ -302,18 +302,18 @@ export class StripeWebhookService {
 
 			// Get total count
 			const { count: totalEvents } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
 
 			// Get today's count
 			const { count: todayEvents } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
 				.gte('processed_at', todayStart.toISOString())
 
 			// Get last hour count
 			const { count: lastHourEvents } = await client
-				.from('stripe_processed_events')
+				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
 				.gte('processed_at', hourAgo.toISOString())
 
@@ -353,9 +353,9 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			const { data, error } = await client
-				.from('stripe_processed_events')
-				.select('stripe_event_id')
-				.in('stripe_event_id', eventIds)
+				.from('webhook_events')
+				.select('external_id')
+				.in('external_id', eventIds)
 
 			if (error) {
 				this.logger.error('Failed to batch check events', {
@@ -365,7 +365,7 @@ export class StripeWebhookService {
 				throw error
 			}
 
-			const processedIds = new Set(data?.map(row => row.stripe_event_id) || [])
+			const processedIds = new Set(data?.map(row => row.external_id) || [])
 			const result = new Map<string, boolean>()
 
 			eventIds.forEach(id => {

@@ -24,8 +24,8 @@ export function getRequiredEnvVar(name: string): string {
  * Reuses the same validation logic for URL/key so TypeScript knows they are strings.
  */
 export function createSupabaseTestClient(): SupabaseClient<Database> {
-	const supabaseUrl = getRequiredEnvVar('NEXT_PUBLIC_SB_URL')
-	const supabaseAnonKey = getRequiredEnvVar('NEXT_PUBLIC_SB_PUBLISHABLE_KEY')
+	const supabaseUrl = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_URL')
+	const supabaseAnonKey = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY')
 
 	return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
 }

@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test'
  * That's it. Nothing fancy. No complex flows.
  *
  * Target: <5 seconds
- * Success criteria: User ends up at /manage after login
+ * Success criteria: User ends up at /dashboard after login
  */
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
@@ -46,8 +46,8 @@ test.describe('🎯 MINIMAL SMOKE TEST - Login Only', () => {
 		await page.screenshot({ path: '/tmp/login-result.png', fullPage: true })
 		console.log(`Screenshot saved to: /tmp/login-result.png`)
 
-		// Check if we made it to /manage
-		if (finalURL.includes('/manage')) {
+		// Check if we made it to /dashboard
+		if (finalURL.includes('/dashboard')) {
 			console.log(`✅ SUCCESS: Login worked! User is at ${finalURL}`)
 		} else {
 			console.log(`❌ FAILED: Login did not work. Still at: ${finalURL}`)
@@ -65,9 +65,9 @@ test.describe('🎯 MINIMAL SMOKE TEST - Login Only', () => {
 			const pageText = await page.locator('body').textContent()
 			console.log(`Page content (first 500 chars): ${pageText?.substring(0, 500)}`)
 
-			throw new Error(`Login failed. User did not reach /manage. Currently at: ${finalURL}`)
+			throw new Error(`Login failed. User did not reach /dashboard. Currently at: ${finalURL}`)
 		}
 
-		expect(finalURL).toContain('/manage')
+		expect(finalURL).toContain('/dashboard')
 	})
 })

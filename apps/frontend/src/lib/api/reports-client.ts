@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
+import { getAuthHeaders } from './client'
 
 export type ReportType =
 	| 'executive-monthly'
@@ -117,54 +118,4 @@ export const reportsClient = {
 			format: 'excel'
 		})
 	}
-}
-
-export async function getAuthHeaders(): Promise<Record<string, string>> {
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json'
-	}
-
-	try {
-		if (typeof window !== 'undefined') {
-			// Use Supabase session (consistent with rest of app)
-			const { getSupabaseClientInstance } = await import(
-				'@repo/shared/lib/supabase-client'
-			)
-			const supabase = getSupabaseClientInstance()
-
-			// SECURITY FIX: Validate user with getUser() before extracting token
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser()
-
-			if (userError) {
-				// Log auth errors in development mode
-				const { logErrorInDev } = await import('@repo/shared/utils/api-error')
-				logErrorInDev(userError, 'getAuthHeaders')
-			}
-
-			// Get session for access token (only after user validation)
-			const {
-				data: { session },
-				error: sessionError
-			} = await supabase.auth.getSession()
-
-			if (sessionError) {
-				// Log auth errors in development mode
-				const { logErrorInDev } = await import('@repo/shared/utils/api-error')
-				logErrorInDev(sessionError, 'getAuthHeaders')
-			}
-
-			if (!userError && user && session?.access_token) {
-				headers['Authorization'] = `Bearer ${session.access_token}`
-			}
-		}
-	} catch (err) {
-		// Log errors in development mode instead of silently ignoring
-		const { logErrorInDev } = await import('@repo/shared/utils/api-error')
-		logErrorInDev(err, 'getAuthHeaders')
-	}
-
-	return headers
 }

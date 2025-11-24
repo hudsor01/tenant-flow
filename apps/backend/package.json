@@ -9,7 +9,7 @@
 		"pnpm": ">=9"
 	},
 	"scripts": {
-		"dev": "doppler run -- NODE_NO_WARNINGS=1 nest start --watch",
+		"dev": "NODE_NO_WARNINGS=1 doppler run -- nest start --watch",
 		"dev:clean": "pnpm clean && pnpm dev",
 		"build": "nest build",
 		"start": "node dist/main.js",

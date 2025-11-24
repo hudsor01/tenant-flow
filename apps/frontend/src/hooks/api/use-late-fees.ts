@@ -9,6 +9,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { clientFetch } from '#lib/api/client'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import { leaseQueries } from './queries/lease-queries'
+import { rentPaymentKeys } from './use-rent-payments'
 
 /**
  * Late fee types
@@ -94,7 +96,7 @@ export function useUpdateLateFeeConfig() {
 				queryKey: lateFeesKeys.config(variables.lease_id)
 			})
 			queryClient.invalidateQueries({
-				queryKey: ['leases', variables.lease_id]
+				queryKey: leaseQueries.detail(variables.lease_id).queryKey
 			})
 			handleMutationSuccess('Update late fee configuration', 'Configuration updated successfully')
 		},
@@ -133,10 +135,10 @@ export function useProcessLateFees() {
 				queryKey: lateFeesKeys.overdue(lease_id)
 			})
 			queryClient.invalidateQueries({
-				queryKey: ['leases', lease_id]
+				queryKey: leaseQueries.detail(lease_id).queryKey
 			})
 			queryClient.invalidateQueries({
-				queryKey: ['payments', lease_id]
+				queryKey: rentPaymentKeys.all
 			})
 
 			const totalFormatted = new Intl.NumberFormat('en-US', {
@@ -175,7 +177,7 @@ export function useApplyLateFee() {
 			}),
 		onSuccess: result => {
 			queryClient.invalidateQueries({
-				queryKey: ['payments']
+				queryKey: rentPaymentKeys.all
 			})
 			queryClient.invalidateQueries({
 				queryKey: lateFeesKeys.all

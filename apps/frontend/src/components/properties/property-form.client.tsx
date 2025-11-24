@@ -222,7 +222,7 @@ export function PropertyForm({
 				<p className="text-muted-foreground">
 					Your property has been successfully added to your portfolio.
 				</p>
-				<Button onClick={() => router.push('/manage/properties')}>
+				<Button onClick={() => router.push('/properties')}>
 					Return to Properties
 				</Button>
 			</div>

@@ -33,6 +33,16 @@ describe('TenantPaymentService', () => {
 		return chain
 	}
 
+	// Helper to create a mock Supabase client with schema support
+	const createMockClient = (fromFn?: any, rpcFn?: any) => {
+		const mockClient: any = {
+			from: fromFn || jest.fn(() => createMockChain()),
+			rpc: rpcFn || jest.fn(() => Promise.resolve({ data: null, error: null })),
+			schema: jest.fn(() => mockClient)
+		}
+		return mockClient
+	}
+
 	beforeEach(async () => {
 		mockLogger = {
 			log: jest.fn(),
@@ -42,10 +52,7 @@ describe('TenantPaymentService', () => {
 		}
 
 		mockSupabaseService = {
-			getAdminClient: jest.fn(() => ({
-				from: jest.fn(() => createMockChain()),
-				rpc: jest.fn(() => Promise.resolve({ data: null, error: null }))
-			}))
+			getAdminClient: jest.fn(() => createMockClient())
 		}
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -74,9 +81,9 @@ describe('TenantPaymentService', () => {
 				created_at: '2025-01-15T00:00:00Z'
 			}
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain([mockPayment], null))
-			}))
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(
+				jest.fn(() => createMockChain([mockPayment], null))
+			))
 
 			const result = await service.calculatePaymentStatus('tenant-1')
 
@@ -88,9 +95,9 @@ describe('TenantPaymentService', () => {
 		})
 
 		it('should return NO_PAYMENTS status when tenant has no payments', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain([], null))
-			}))
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(
+				jest.fn(() => createMockChain([], null))
+			))
 
 			const result = await service.calculatePaymentStatus('tenant-1')
 
@@ -111,9 +118,9 @@ describe('TenantPaymentService', () => {
 				created_at: '2025-01-15T00:00:00Z'
 			}
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain([mockPayment], null))
-			}))
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(
+				jest.fn(() => createMockChain([mockPayment], null))
+			))
 
 			const result = await service.calculatePaymentStatus('tenant-1')
 
@@ -122,9 +129,9 @@ describe('TenantPaymentService', () => {
 		})
 
 		it('should return NO_PAYMENTS when database query returns error', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain(null, { message: 'DB error' }))
-			}))
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(
+				jest.fn(() => createMockChain(null, { message: 'DB error' }))
+			))
 
 			const result = await service.calculatePaymentStatus('tenant-1')
 
@@ -142,9 +149,9 @@ describe('TenantPaymentService', () => {
 				late_fee_amount: 0
 			}
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain([mockPayment], null))
-			}))
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(
+				jest.fn(() => createMockChain([mockPayment], null))
+			))
 
 			const result = await service.calculatePaymentStatus('tenant-1')
 
@@ -175,8 +182,7 @@ describe('TenantPaymentService', () => {
 			]
 
 			let callCount = 0
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(jest.fn((table: string) => {
 					callCount++
 					if (table === 'properties' || callCount === 1) {
 						return createMockChain([{ id: 'property-1' }], null)
@@ -191,8 +197,8 @@ describe('TenantPaymentService', () => {
 						], null)
 					}
 					return createMockChain(mockPayments, null)
-				})
-			}))
+			})
+		))
 
 			const result = await service.getOwnerPaymentSummary('owner-1')
 
@@ -205,8 +211,7 @@ describe('TenantPaymentService', () => {
 
 		it('should handle owner with no tenants', async () => {
 			let callCount = 0
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => {
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(jest.fn(() => {
 					callCount++
 					if (callCount === 1) {
 						return createMockChain([{ id: 'property-1' }], null)
@@ -216,7 +221,7 @@ describe('TenantPaymentService', () => {
 					}
 					return createMockChain([], null)
 				})
-			}))
+		))
 
 			const result = await service.getOwnerPaymentSummary('owner-1')
 
@@ -245,8 +250,7 @@ describe('TenantPaymentService', () => {
 			]
 
 			let callCount = 0
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(jest.fn((table: string) => {
 					callCount++
 					if (table === 'leases') {
 						return createMockChain(mockLease, null)
@@ -262,7 +266,7 @@ describe('TenantPaymentService', () => {
 					}
 					return createMockChain([], null)
 				})
-			}))
+		))
 
 			const result = await service.getTenantPaymentHistory('user-1', 'tenant-1')
 
@@ -286,15 +290,14 @@ describe('TenantPaymentService', () => {
 			]
 
 			let callCount = 0
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
+			mockSupabaseService.getAdminClient = jest.fn(() => createMockClient(jest.fn((table: string) => {
 					callCount++
 					if (table === 'tenants' || callCount === 1) {
 						return createMockChain(mockTenant, null)
 					}
 					return createMockChain(mockPayments, null)
-				})
-			}))
+			})
+		))
 
 			const result = await service.getTenantPaymentHistoryForTenant('auth-user-1')
 

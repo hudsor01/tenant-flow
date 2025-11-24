@@ -36,7 +36,7 @@ export class JwtVerificationService {
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Invalid URL format'
 			this.logger.error(`Invalid JWKS URL configuration: ${message}`)
-			throw new Error(`JWKS URL validation failed: ${message}. Check SB_URL configuration.`)
+			throw new Error(`JWKS URL validation failed: ${message}. Check SUPABASE_URL configuration.`)
 		}
 
 		// Create remote JWKS set for automatic key rotation

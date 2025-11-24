@@ -4,23 +4,23 @@
  * This test verifies that all analytics-related RPC endpoints are callable and return expected results.
  * It also ensures that the test database is seeded with required data for analytics queries.
  *
- * NOTE: These tests require SB_URL, SB_SECRET_KEY, and SB_RPC_TEST_USER_ID
+ * NOTE: These tests require SUPABASE_URL, SUPABASE_SECRET_KEY, and SUPABASE_RPC_TEST_USER_ID
  * to be set in the environment. They will be skipped if not configured.
  */
 
 import { createClient } from '@supabase/supabase-js'
 
-if (!process.env.SB_URL) {
-	process.env.SB_URL = 'https://mock.supabase.co'
+if (!process.env.SUPABASE_URL) {
+	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
-if (!process.env.SB_SECRET_KEY) {
-	process.env.SB_SECRET_KEY = 'mock-secret-key'
+if (!process.env.SUPABASE_SECRET_KEY) {
+	process.env.SUPABASE_SECRET_KEY = 'mock-secret-key'
 }
-if (!process.env.SB_RPC_TEST_USER_ID) {
-	process.env.SB_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
+if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
+	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
 }
 
-const testuser_id = process.env.SB_RPC_TEST_USER_ID
+const testuser_id = process.env.SUPABASE_RPC_TEST_USER_ID
 
 const mockRpc = jest.fn()
 const mockFrom = jest.fn()

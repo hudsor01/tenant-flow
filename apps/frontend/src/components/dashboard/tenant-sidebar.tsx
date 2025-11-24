@@ -37,7 +37,7 @@ const navigation: {
 	navMain: [
 		{
 			title: 'Dashboard',
-			url: '/tenant',
+			url: '/portal',
 			icon: Home
 		},
 		{
@@ -81,7 +81,7 @@ const navigation: {
 	navSecondary: [
 		{
 			title: 'Settings',
-			url: '/tenant/settings',
+			url: '/portal/settings',
 			icon: Settings
 		}
 	]
@@ -94,7 +94,7 @@ export function TenantSidebar({
 		<>
 			{/* Card 1: Brand */}
 			<div className="rounded-xl border border-gray-200 bg-white p-4">
-				<Link href="/" className="flex items-center gap-2">
+				<Link href="/portal" className="flex items-center gap-2">
 					<Home className="size-5" />
 					<span className="text-base font-semibold">TenantFlow</span>
 				</Link>

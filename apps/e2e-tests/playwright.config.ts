@@ -8,8 +8,8 @@ import { defineConfig, devices } from '@playwright/test'
 export default defineConfig({
 	// Test organization
 	testDir: './tests',
-	testMatch: '**/*.e2e.spec.ts',
-	testIgnore: ['**/staging/**', '**/production/**'],
+	testMatch: ['**/*.e2e.spec.ts', '**/*.spec.ts'],
+	testIgnore: ['**/staging/**', '**/production/**', '**/fixtures/**', '**/*.setup.ts'],
 
 	// Timeouts (per Playwright docs)
 	timeout: 30000, // 30s per test
@@ -64,10 +64,19 @@ export default defineConfig({
 
 	// Projects with auth setup dependency
 	projects: [
-		// Setup project - runs FIRST
+		// Setup projects - run FIRST (UI-based for Supabase SSR compatibility)
+		// Per Playwright docs: Setup projects should have retries to handle transient auth failures
 		{
 			name: 'setup',
 			testMatch: /auth\.setup\.ts/,
+			testIgnore: [], // Override global testIgnore to allow setup files
+			retries: 2, // Retry auth setup if it fails (network issues, slow servers, etc.)
+		},
+		{
+			name: 'setup-tenant',
+			testMatch: /auth-tenant\.setup\.ts/,
+			testIgnore: [], // Override global testIgnore to allow setup files
+			retries: 2, // Retry auth setup if it fails
 		},
 
 		// Authenticated desktop tests
@@ -78,7 +87,18 @@ export default defineConfig({
 				storageState: 'playwright/.auth/owner.json',
 			},
 			dependencies: ['setup'],
-			testIgnore: ['**/auth.setup.ts', '**/*public.spec.ts'],
+			testIgnore: ['**/auth.setup.ts', '**/*public.spec.ts', '**/stripe-payment-flow.e2e.spec.ts'],
+		},
+
+		// Stripe payment flow tests (tenant auth)
+		{
+			name: 'chromium-stripe',
+			use: {
+				...devices['Desktop Chrome'],
+				storageState: 'playwright/.auth/tenant.json',
+			},
+			dependencies: ['setup-tenant'],
+			testMatch: ['**/stripe-payment-flow.e2e.spec.ts'],
 		},
 
 		// Tenant management tests
@@ -117,17 +137,26 @@ export default defineConfig({
 			command: 'doppler run -- pnpm --filter @repo/backend dev',
 			url: 'http://localhost:4600',
 			timeout: 120000,
-			reuseExistingServer: !process.env.CI,
+			reuseExistingServer: true,
 			stdout: 'ignore',
 			stderr: 'pipe',
 		},
 		{
-			command: 'pnpm --filter @repo/frontend dev',
+			command: 'doppler run -- pnpm --filter @repo/frontend dev',
 			url: 'http://localhost:3000',
 			timeout: 120000,
-			reuseExistingServer: !process.env.CI,
+			reuseExistingServer: true,
 			stdout: 'ignore',
 			stderr: 'pipe',
+			env: {
+				// Explicitly pass through Supabase env vars for Next.js
+				// Doppler provides SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
+				// Next.js needs NEXT_PUBLIC_* versions for client-side access
+				NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '',
+				SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+				SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '',
+			},
 		}
 	],
 

@@ -7,7 +7,6 @@
 
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Profiler, type ProfilerOnRenderCallback } from 'react'
-import { env } from '#config/env'
 
 interface ProfilerWrapperProps {
 	id: string
@@ -28,7 +27,7 @@ interface ProfilerWrapperProps {
 export function ProfilerWrapper({
 	id,
 	children,
-	enabled = env.NODE_ENV === 'development',
+	enabled = process.env.NODE_ENV === 'development',
 	logToConsole = false
 }: ProfilerWrapperProps) {
 	const onRender: ProfilerOnRenderCallback = (

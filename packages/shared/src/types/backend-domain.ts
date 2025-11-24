@@ -406,9 +406,9 @@ export interface ExpressRouter {
 export interface RequiredEnvVars {
 	DATABASE_URL: string
 	DIRECT_URL: string
-	SB_URL: string
+	SUPABASE_URL: string
 	SERVICE_user_type_KEY: string
-	SB_PUBLISHABLE_KEY: string
+	SUPABASE_PUBLISHABLE_KEY: string
 	NEXTAUTH_SECRET: string
 	NEXTAUTH_URL: string
 }

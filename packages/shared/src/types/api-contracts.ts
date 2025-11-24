@@ -16,6 +16,7 @@ import type {
 	RequestStatus,
 	SubscriptionStatus
 } from '../constants/status-types.js'
+import type { Priority } from './core.js'
 
 
 export const DEFAULT_PAGE = 1;
@@ -496,6 +497,74 @@ export interface SendPaymentReminderResponse {
 	tenant_id: string
 	notificationId: string
 	message: string
+}
+
+// ============================================================================
+// TENANT PORTAL TYPES
+// ============================================================================
+
+export interface TenantPayment {
+	id: string
+	amount: number
+	status: string
+	paidAt: string | null
+	dueDate: string
+	created_at: string
+	lease_id: string
+	tenant_id: string
+	stripePaymentIntentId: string | null
+	ownerReceives: number
+	receiptUrl: string | null
+}
+
+export interface TenantAutopayStatus {
+	autopayEnabled: boolean
+	subscriptionId: string | null
+	lease_id?: string
+	tenant_id?: string
+	rent_amount?: number
+	nextPaymentDate?: string | null
+	message?: string
+}
+
+export interface TenantMaintenanceRequest {
+	id: string
+	title: string
+	description: string | null
+	priority: Priority
+	status: string
+	category: MaintenanceCategory | null
+	created_at: string
+	updated_at: string | null
+	completed_at: string | null
+	requestedBy: string
+	unit_id: string
+}
+
+export interface TenantLease {
+	id: string
+	start_date: string
+	end_date: string
+	rent_amount: number
+	security_deposit: number | null
+	status: string
+	stripe_subscription_id: string | null
+	lease_document_url: string | null
+	created_at: string
+	unit: {
+		id: string
+		unit_number: string
+		bedrooms: number
+		bathrooms: number
+		property: {
+			id: string
+			name: string
+			address: string
+			city: string
+			state: string
+			postal_code: string
+		}
+	}
 }
 
 

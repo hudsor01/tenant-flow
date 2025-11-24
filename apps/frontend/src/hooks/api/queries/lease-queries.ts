@@ -17,6 +17,7 @@ import { clientFetch } from '#lib/api/client'
 import type { Lease } from '@repo/shared/types/core'
 import type { LeaseWithDetails } from '@repo/shared/types/relations'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 /**
  * Lease query filters
@@ -70,7 +71,7 @@ export const leaseQueries = {
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 
 				const params = searchParams.toString()
-				return clientFetch<Lease[]>(
+				return clientFetch<PaginatedResponse<Lease>>(
 					`/api/v1/leases${params ? `?${params}` : ''}`
 				)
 			},
@@ -118,10 +119,10 @@ export const leaseQueries = {
 	 * @example
 	 * const { data } = useQuery(leaseQueries.expiring())
 	 */
-	expiring: () =>
+	expiring: (days: number = 30) =>
 		queryOptions({
-			queryKey: [...leaseQueries.all(), 'expiring'],
-			queryFn: () => clientFetch<Lease[]>('/api/v1/leases/expiring'),
+			queryKey: [...leaseQueries.all(), 'expiring', days],
+			queryFn: () => clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${days}`),
 			...QUERY_CACHE_TIMES.LIST,
 		}),
 
