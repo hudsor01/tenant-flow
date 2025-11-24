@@ -3,7 +3,7 @@
  * Provides unified page data loading using the unified API client
  * Replaces analytics-server.ts and dashboard-server.ts cache() wrappers
  */
-import { clientFetch } from '#lib/api/client'
+import { serverFetch } from '#lib/api/server'
 import type {
 	FinancialAnalyticsPageData,
 	LeaseAnalyticsPageData,
@@ -28,13 +28,13 @@ export async function getFinancialAnalyticsPageData(): Promise<FinancialAnalytic
 		monthlyMetrics,
 		leaseAnalytics
 	] = await Promise.all([
-		clientFetch('/financial/analytics/dashboard-metrics'),
-		clientFetch('/financial/analytics/breakdown'),
-		clientFetch('/financial/analytics/net-operating-income'),
-		clientFetch('/financial/analytics/billing-insights'),
-		clientFetch('/financial/analytics/invoice-summary'),
-		clientFetch('/financial/analytics/monthly-metrics'),
-		clientFetch('/financial/analytics/lease-analytics')
+		serverFetch('/financial/analytics/dashboard-metrics'),
+		serverFetch('/financial/analytics/breakdown'),
+		serverFetch('/financial/analytics/net-operating-income'),
+		serverFetch('/financial/analytics/billing-insights'),
+		serverFetch('/financial/analytics/invoice-summary'),
+		serverFetch('/financial/analytics/monthly-metrics'),
+		serverFetch('/financial/analytics/lease-analytics')
 	])
 
 	return {
@@ -60,11 +60,11 @@ export async function getLeaseAnalyticsPageData(): Promise<LeaseAnalyticsPageDat
 		vacancyTrends,
 		leaseDistribution
 	] = await Promise.all([
-		clientFetch('/lease/analytics/metrics'),
-		clientFetch('/lease/analytics/profitability'),
-		clientFetch('/lease/analytics/renewal-rates'),
-		clientFetch('/lease/analytics/vacancy-trends'),
-		clientFetch('/lease/analytics/distribution')
+		serverFetch('/lease/analytics/metrics'),
+		serverFetch('/lease/analytics/profitability'),
+		serverFetch('/lease/analytics/renewal-rates'),
+		serverFetch('/lease/analytics/vacancy-trends'),
+		serverFetch('/lease/analytics/distribution')
 	])
 
 	return {
@@ -88,11 +88,11 @@ export async function getMaintenanceInsightsPageData(): Promise<MaintenanceInsig
 		responseTimes,
 		preventiveMaintenance
 	] = await Promise.all([
-		clientFetch('/maintenance/analytics/metrics'),
-		clientFetch('/maintenance/analytics/category-breakdown'),
-		clientFetch('/maintenance/analytics/cost-trends'),
-		clientFetch('/maintenance/analytics/response-times'),
-		clientFetch('/maintenance/analytics/preventive-maintenance')
+		serverFetch('/maintenance/analytics/metrics'),
+		serverFetch('/maintenance/analytics/category-breakdown'),
+		serverFetch('/maintenance/analytics/cost-trends'),
+		serverFetch('/maintenance/analytics/response-times'),
+		serverFetch('/maintenance/analytics/preventive-maintenance')
 	])
 
 	return {
@@ -116,11 +116,11 @@ export async function getOccupancyAnalyticsPageData(): Promise<OccupancyAnalytic
 		seasonalPatterns,
 		vacancyAnalysis
 	] = await Promise.all([
-		clientFetch('/occupancy/analytics/metrics'),
-		clientFetch('/occupancy/analytics/trends'),
-		clientFetch('/occupancy/analytics/property-performance'),
-		clientFetch('/occupancy/analytics/seasonal-patterns'),
-		clientFetch('/occupancy/analytics/vacancy-analysis')
+		serverFetch('/occupancy/analytics/metrics'),
+		serverFetch('/occupancy/analytics/trends'),
+		serverFetch('/occupancy/analytics/property-performance'),
+		serverFetch('/occupancy/analytics/seasonal-patterns'),
+		serverFetch('/occupancy/analytics/vacancy-analysis')
 	])
 
 	return {
@@ -144,11 +144,11 @@ export async function getAnalyticsPageData(): Promise<AnalyticsPageData> {
 		lease,
 		visitor
 	] = await Promise.all([
-		clientFetch('/analytics/overview/financial'),
-		clientFetch('/analytics/overview/maintenance'),
-		clientFetch('/analytics/overview/occupancy'),
-		clientFetch('/analytics/overview/lease'),
-		clientFetch('/analytics/overview/visitor')
+		serverFetch('/analytics/overview/financial'),
+		serverFetch('/analytics/overview/maintenance'),
+		serverFetch('/analytics/overview/occupancy'),
+		serverFetch('/analytics/overview/lease'),
+		serverFetch('/analytics/overview/visitor')
 	])
 
 	return {
@@ -172,11 +172,11 @@ export async function getPropertyPerformancePageData(): Promise<PropertyPerforma
 		units,
 		revenueTrends
 	] = await Promise.all([
-		clientFetch('/property/analytics/performance/metrics'),
-		clientFetch('/property/analytics/performance/unit-stats'),
-		clientFetch('/property/analytics/performance/data'),
-		clientFetch('/property/analytics/performance/units'),
-		clientFetch('/property/analytics/performance/revenue-trends')
+		serverFetch('/property/analytics/performance/metrics'),
+		serverFetch('/property/analytics/performance/unit-stats'),
+		serverFetch('/property/analytics/performance/data'),
+		serverFetch('/property/analytics/performance/units'),
+		serverFetch('/property/analytics/performance/revenue-trends')
 	])
 
 	return {
@@ -199,10 +199,10 @@ export async function getLeasesPageData(): Promise<LeasesPageData> {
 		properties,
 		metrics
 	] = await Promise.all([
-		clientFetch('/leases'),
-		clientFetch('/tenants'),
-		clientFetch('/properties'),
-		clientFetch('/leases/analytics/metrics')
+		serverFetch('/leases'),
+		serverFetch('/tenants'),
+		serverFetch('/properties'),
+		serverFetch('/leases/analytics/metrics')
 	])
 
 	return {
@@ -264,7 +264,7 @@ export interface OccupancyMetrics {
 export async function getMonthlyRevenue(
 	months: number = 12
 ): Promise<RevenueData[]> {
-	return clientFetch<RevenueData[]>(
+	return serverFetch<RevenueData[]>(
 		`/api/v1/reports/analytics/revenue/monthly?months=${months}`
 	)
 }
@@ -281,7 +281,7 @@ export async function getPaymentAnalytics(
 	if (end_date) params.append('end_date', end_date)
 
 	const queryString = params.toString() ? `?${params.toString()}` : ''
-	return clientFetch<PaymentAnalytics>(
+	return serverFetch<PaymentAnalytics>(
 		`/api/v1/reports/analytics/payments${queryString}`
 	)
 }
@@ -290,7 +290,7 @@ export async function getPaymentAnalytics(
  * Get occupancy metrics across all properties
  */
 export async function getOccupancyMetrics(): Promise<OccupancyMetrics> {
-	return clientFetch<OccupancyMetrics>(
+	return serverFetch<OccupancyMetrics>(
 		'/api/v1/reports/analytics/occupancy'
 	)
 }

@@ -117,3 +117,80 @@ doppler run -- pnpm --filter @repo/backend dev
 # Terminal 2: Frontend
 pnpm --filter @repo/frontend dev
 ```
+
+## Hosting & Cost Management - Vercel Deployment
+
+**CRITICAL**: This project uses a separate NestJS backend (Railway) + Next.js frontend (Vercel). Certain Next.js features trigger metered billing on Vercel even though we have a separate backend.
+
+### Vercel Cost Model
+
+**FREE (Always use these):**
+- Static pages (`generateStaticParams()` pre-rendered at build time)
+- Client Components (`'use client'` - runs in browser)
+- Static assets (images, CSS, JS served from CDN)
+- Edge cached responses (served from CDN after first request)
+
+**PAID (Avoid unless necessary and APPROVED explicitly by the User):**
+- ❌ Server Components (async pages without `'use cache'`)
+- ❌ Server Actions (`'use server'` functions)
+- ❌ API Routes (`app/api/*/route.ts`)
+- ❌ Middleware (runs on every request)
+- ❌ On-demand ISR (revalidation without caching)
+
+### Cost-Conscious Development Rules
+
+**Rule 1: Prefer Client Components for Dynamic Data**
+- Use `'use client'` with TanStack Query for all user-specific data
+- Browser fetches directly from Railway backend (zero Vercel cost)
+
+**Rule 2: Use Static Generation for Static Content**
+- Implement `generateStaticParams()` for blogs, marketing pages, documentation
+- Pages are pre-rendered at build time and served from CDN
+
+**Rule 3: Use Long Cache Times for Shared Data (If Approved)**
+- Only with explicit user approval
+- Use `'use cache'` with `cacheLife({ stale: 3600, revalidate: 86400 })`
+- Shared data like dashboard stats, analytics
+
+**Rule 4: NO Server Actions for Mutations**
+- All mutations must use client-side TanStack Query `useMutation`
+- Never use `'use server'` functions
+
+**Rule 5: Minimize Middleware Usage**
+- Only run on specific protected routes via `matcher` config
+- Keep logic minimal (auth checks only)
+
+### Cache Components Pattern (When Approved)
+
+**Cost-optimized pattern:**
+- Page component serves as static shell (no 'use cache' directive)
+- Extract cacheable sections into separate async server components with 'use cache', cacheLife(), and cacheTag()
+- Wrap cached components in Suspense boundaries with skeleton fallbacks
+- Use client components with TanStack Query for user-specific data (zero Vercel cost)
+
+**Key principle:** Page layouts and shells should be static or minimal. Only apply caching to data-fetching components that benefit from it.
+
+### When Paid Features Are Acceptable
+
+**Requires Explicit User Approval:**
+- Cache Components with long TTL for shared, infrequently-updated data
+- API Routes for webhooks from external services (Stripe, etc.)
+- ISR with long revalidation periods
+- Server-side auth checks for routing (e.g., landing page getClaims for authenticated user routing)
+
+### Cost Monitoring
+
+**Monthly Budget:** $5/month serverless invocations (maximum)
+
+**Warning Signs:**
+- Serverless invocations exceeding 500,000/month
+- Average function duration over 1 second
+- Cache hit rate below 90% for cached routes
+
+### Architecture Decision
+
+**Current (Cost-Optimized):**
+- Static HTML/JS served from Vercel CDN
+- Client-side data fetching with TanStack Query hits Railway NestJS backend directly
+- Minimal serverless invocations for auth routing and webhooks only
+- Target: $0-5/month Vercel costs
