@@ -1,5 +1,3 @@
-'use client'
-
 import { FaqsAccordion } from '#app/faq/faq-accordion'
 import Footer from '#components/layout/footer'
 import Navbar from '#components/layout/navbar'
