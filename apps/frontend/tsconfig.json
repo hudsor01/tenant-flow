@@ -33,8 +33,15 @@
 		"playwright.config.ts",
 		"next.config.ts",
 		"tests/**/*.ts",
-		"tests/**/*.tsx"
-, "proxy.ts"	],
+		"tests/**/*.tsx",
+		"middleware.ts",
+		"proxy.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "/src/lib/supabase/server.ts",
+    "/src/lib/supabase/proxy.ts",
+    "/src/lib/supabase/client.ts"
+  ],
 	"exclude": [
 		"node_modules",
 		".next",

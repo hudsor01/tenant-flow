@@ -134,7 +134,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				if (mode === 'create') {
 					await createUnitMutation.mutateAsync(unitData)
 					toast.success('Unit created successfully')
-					router.push('/manage/units')
+					router.push('/units')
 				} else {
 					if (!unit?.id) {
 						toast.error('Unit ID is missing')

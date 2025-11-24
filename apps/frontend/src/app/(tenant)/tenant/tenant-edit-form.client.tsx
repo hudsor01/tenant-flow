@@ -1,0 +1,178 @@
+'use client'
+
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
+import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
+import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import {
+	tenantUpdateSchema
+} from '@repo/shared/validation/tenants'
+import { useForm } from '@tanstack/react-form'
+import { useQuery } from '@tanstack/react-query'
+import { Phone, Save, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+export interface TenantEditFormProps {
+	id: string
+}
+
+export function TenantEditForm({ id }: TenantEditFormProps) {
+	const { data: tenant, isLoading, isError } = useQuery(tenantQueries.detail(id))
+	const router = useRouter()
+	const updateMutation = useUpdateTenantMutation()
+
+	const form = useForm({
+		defaultValues: {
+			emergency_contact_name: tenant?.emergency_contact_name || '',
+			emergency_contact_phone: tenant?.emergency_contact_phone || '',
+			emergency_contact_relationship: tenant?.emergency_contact_relationship || ''
+		},
+		onSubmit: async ({ value }) => {
+			try {
+				const updateData = {
+					emergency_contact_name: value.emergency_contact_name,
+					emergency_contact_phone: value.emergency_contact_phone,
+					emergency_contact_relationship: value.emergency_contact_relationship
+				}
+				await updateMutation.mutateAsync({ id, data: updateData })
+				toast.success('Tenant updated successfully')
+				router.push(`/tenants/${id}`)
+			} catch (error) {
+				handleMutationError(error, 'Update tenant')
+			}
+		},
+		validators: {
+			onChange: ({ value }) => {
+				const result = tenantUpdateSchema.safeParse(value)
+				if (!result.success) {
+					return z.treeifyError(result.error)
+				}
+				return undefined
+			}
+		}
+	})
+
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault()
+		form.handleSubmit()
+	}
+
+	const footer = (
+		<div className="flex justify-end gap-4 pt-6 border-t">
+			<Button type="button" variant="outline" onClick={() => router.back()}>
+				Cancel
+			</Button>
+			<Button
+				type="submit"
+				disabled={updateMutation.isPending}
+				className="flex items-center gap-2"
+			>
+				<Save className="size-4" />
+				{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+			</Button>
+		</div>
+	)
+
+	return (
+		<CardLayout
+			title="Edit Tenant Information"
+			description="Update emergency contact information"
+			isLoading={isLoading}
+			error={isError ? 'Failed to load tenant data' : null}
+			footer={footer}
+		>
+			<form onSubmit={handleSubmit} className="space-y-6">
+				{/* Emergency Contact Name */}
+				<form.Field name="emergency_contact_name">
+					{field => (
+						<Field>
+							<FieldLabel htmlFor="emergency_contact_name">
+								Emergency Contact Name
+							</FieldLabel>
+							<InputGroup>
+								<InputGroupAddon align="inline-start">
+									<User className="size-4" />
+								</InputGroupAddon>
+								<InputGroupInput
+									id="emergency_contact_name"
+									value={field.state.value}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									onBlur={field.handleBlur}
+									placeholder="John Doe"
+								/>
+							</InputGroup>
+							{field.state.meta.errors?.length && (
+								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+							)}
+						</Field>
+					)}
+				</form.Field>
+
+				{/* Emergency Contact Phone */}
+				<form.Field name="emergency_contact_phone">
+					{field => (
+						<Field>
+							<FieldLabel htmlFor="emergency_contact_phone">
+								Emergency Contact Phone
+							</FieldLabel>
+							<InputGroup>
+								<InputGroupAddon align="inline-start">
+									<Phone className="size-4" />
+								</InputGroupAddon>
+								<InputGroupInput
+									id="emergency_contact_phone"
+									type="tel"
+									value={field.state.value}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									onBlur={field.handleBlur}
+									placeholder="(555) 123-4567"
+								/>
+							</InputGroup>
+							{field.state.meta.errors?.length && (
+								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+							)}
+						</Field>
+					)}
+				</form.Field>
+
+				{/* Emergency Contact Relationship */}
+				<form.Field name="emergency_contact_relationship">
+					{field => (
+						<Field>
+							<FieldLabel htmlFor="emergency_contact_relationship">
+								Relationship
+							</FieldLabel>
+							<InputGroup>
+								<InputGroupInput
+									id="emergency_contact_relationship"
+									value={field.state.value}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									onBlur={field.handleBlur}
+									placeholder="e.g., Mother, Spouse, Friend"
+								/>
+							</InputGroup>
+							{field.state.meta.errors?.length && (
+								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
+							)}
+						</Field>
+					)}
+				</form.Field>
+			</form>
+		</CardLayout>
+	)
+}

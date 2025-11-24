@@ -97,7 +97,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						queryClient.invalidateQueries({ queryKey: ['tenants'] })
 					])
 					toast.success('Lease created successfully')
-					router.push('/manage/leases')
+					router.push('/leases')
 				} else {
 					if (!lease?.id) {
 						toast.error('Lease ID is missing')

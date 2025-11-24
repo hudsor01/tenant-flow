@@ -46,7 +46,7 @@ test.describe('TanStack Query Cache Behavior', () => {
     await loginAsOwner(page)
 
     // Navigate to properties page
-    await page.goto('/manage/properties')
+    await page.goto('/properties')
     await page.waitForLoadState('networkidle')
 
     // Expose cache state for testing
@@ -112,9 +112,9 @@ test.describe('TanStack Query Cache Behavior', () => {
       })
 
       // Navigate away and back
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForLoadState('networkidle')
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForLoadState('networkidle')
       await expect(page.locator('table tbody tr').first()).toBeVisible()
 
@@ -195,13 +195,13 @@ test.describe('TanStack Query Cache Behavior', () => {
       await page.waitForTimeout(2000)
 
       // Navigate to manage dashboard to populate stats cache
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForTimeout(2000)
 
       const initialStats = await queryHelper.getQueryData(['dashboard', 'stats'])
 
       // Go back to properties and create one
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForTimeout(2000)
 
       const testProperty = createTestProperty({ name: 'Stats Invalidation Property' })
@@ -219,11 +219,11 @@ test.describe('TanStack Query Cache Behavior', () => {
       await page.waitForTimeout(2000)
 
       // Populate multiple caches
-      await page.goto('/manage/units')
+      await page.goto('/units')
       await page.waitForTimeout(2000)
       const unitsCache = await queryHelper.getQueryData(['units'])
 
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForTimeout(2000)
 
       // Mutate properties
@@ -299,9 +299,9 @@ test.describe('TanStack Query Cache Behavior', () => {
       requestCount = 0
 
       // Navigate away and immediately back (within stale time)
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForTimeout(100)
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForTimeout(1000)
 
       // Should not make new request if within stale time (5 minutes default)
@@ -320,9 +320,9 @@ test.describe('TanStack Query Cache Behavior', () => {
         }
       })
 
-      await page.goto('/manage')
+      await page.goto('/')
       await page.waitForTimeout(100)
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForTimeout(2000)
 
       // Should make background refetch request when stale
@@ -504,11 +504,11 @@ test.describe('TanStack Query Cache Behavior', () => {
       expect(initialData).toBeDefined()
 
       // Navigate through different routes
-      await page.goto('/manage/units')
+      await page.goto('/units')
       await page.waitForLoadState('networkidle')
-      await page.goto('/manage/tenants')
+      await page.goto('/tenants')
       await page.waitForLoadState('networkidle')
-      await page.goto('/manage/properties')
+      await page.goto('/properties')
       await page.waitForLoadState('networkidle')
       await expect(page.locator('table tbody tr').first()).toBeVisible()
 
@@ -542,7 +542,7 @@ test.describe('TanStack Query Cache Behavior', () => {
       await page.waitForTimeout(2000)
 
       // Navigate to different page
-      await page.goto('/manage/units')
+      await page.goto('/units')
       await page.waitForTimeout(1000)
 
       // Use browser back

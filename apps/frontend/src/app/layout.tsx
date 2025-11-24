@@ -3,17 +3,10 @@ import SeoJsonLd from '#components/seo/SeoJsonLd'
 import RegisterServiceWorker from '#components/sw/register-sw'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { generateSiteMetadata } from '#lib/generate-metadata'
-import {
-	DEFAULT_THEME_MODE,
-	THEME_MODE_COOKIE_NAME,
-	parseThemeMode
-} from '#lib/theme-utils'
-import type { ThemeMode } from '@repo/shared/types/domain'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
-import { cookies } from 'next/headers'
 import { Toaster } from '#components/ui/toast'
 import './globals.css'
 
@@ -39,19 +32,9 @@ export default async function RootLayout({
 }: {
 	children: React.ReactNode
 }) {
-	const cookieStore = await cookies()
-	const themePreference = parseThemeMode(
-		cookieStore.get(THEME_MODE_COOKIE_NAME)?.value
-	)
-	const initialThemeMode: ThemeMode = themePreference ?? DEFAULT_THEME_MODE
-	const resolvedTheme = initialThemeMode === 'dark' ? 'dark' : 'light'
-
 	return (
 		<html
 			lang="en"
-			className={resolvedTheme}
-			data-theme={resolvedTheme}
-			data-theme-preference={initialThemeMode}
 			suppressHydrationWarning
 		>
 			<head>
@@ -73,7 +56,7 @@ export default async function RootLayout({
 			<body
 				className={`${splineSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}
 			>
-				<Providers initialThemeMode={initialThemeMode}>
+				<Providers>
 					<div className="min-h-screen bg-background text-foreground flex flex-col">
 						<ErrorBoundary>{children}</ErrorBoundary>
 						{/* Register service worker silently for performance/offline */}

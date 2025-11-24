@@ -1,17 +1,17 @@
 /**
  * Next.js 16 Data Access Layer (DAL) Tests
  *
- * Tests the DAL pattern for server-side authentication:
- * 1. verifySession() - Cached auth verification
- * 2. requireUser() - Required auth with errors
- * 3. Server Component auth checks
+ * Tests the simplified DAL pattern for data access:
+ * 1. getClaims() - Fetch JWT claims (no auth enforcement)
+ * 2. React.cache() - Request-scoped caching
+ * 3. Server Component data access
  * 4. No 401/403 errors on protected pages
- * 5. Authorization enforcement
  *
- * Architecture:
- * - DAL provides defense-in-depth security
- * - All Server Components call DAL before rendering
- * - All data access goes through DAL
+ * Architecture (Next.js 16 Pattern):
+ * - Proxy: HTTP-level auth enforcement (redirects)
+ * - DAL: Data access only (getClaims for user context)
+ * - Server Components: Business logic using DAL
+ * - RLS: Database-level filtering
  */
 
 import { expect, test } from '@playwright/test'
@@ -19,7 +19,7 @@ import { loginAsOwner } from '../auth-helpers'
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-test.describe('DAL - Server Component Auth Verification', () => {
+test.describe('DAL - Server Component Data Access', () => {
 	test.beforeEach(async ({ page }) => {
 		await loginAsOwner(page)
 	})
@@ -36,12 +36,12 @@ test.describe('DAL - Server Component Auth Verification', () => {
 		})
 
 		const protectedRoutes = [
-			'/manage',
-			'/manage/properties',
-			'/manage/tenants',
-			'/manage/leases',
-			'/manage/maintenance',
-			'/manage/units'
+			'/',
+			'/properties',
+			'/tenants',
+			'/leases',
+			'/maintenance',
+			'/units'
 		]
 
 		for (const route of protectedRoutes) {
@@ -64,34 +64,34 @@ test.describe('DAL - Server Component Auth Verification', () => {
 		expect(authErrors).toEqual([])
 	})
 
-	test('should verify session via DAL on each page load', async ({ page }) => {
-		const routes = ['/manage', '/manage/properties', '/manage/tenants']
+	test('should fetch claims via DAL on each page load', async ({ page }) => {
+		const routes = ['/', '/properties', '/tenants']
 
 		for (const route of routes) {
 			await page.goto(`${baseUrl}${route}`)
 			await page.waitForLoadState('domcontentloaded')
 
-			// Page should load successfully (DAL verified session)
+			// Page should load successfully (proxy handled auth, DAL fetched data)
 			await expect(page).toHaveURL(new RegExp(route))
 
-			// Should not redirect to login
+			// Should not redirect to login (proxy protected)
 			const url = page.url()
 			expect(url).not.toContain('/login')
 		}
 	})
 
-	test('should render user-specific data after DAL auth', async ({ page }) => {
-		await page.goto(`${baseUrl}/manage`)
+	test('should render user-specific data using DAL', async ({ page }) => {
+		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('domcontentloaded')
 
 		// Should render user-specific content
-		// (DAL returned user data to Server Component)
+		// (Proxy enforced auth, DAL fetched claims for context)
 		await page.waitForSelector('main', { timeout: 10000 })
 
 		// Check for user-specific elements (sidebar, header, etc.)
 		const content = await page.content()
 
-		// Should NOT show login form
+		// Should NOT show login form (proxy redirected unauthenticated)
 		expect(content).not.toContain('sign in')
 		expect(content).not.toContain('password')
 	})
@@ -112,7 +112,7 @@ test.describe('DAL - Authorization Enforcement', () => {
 		})
 
 		// Navigate to properties page
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('networkidle')
 
 		// Should NOT have 403 errors (user authorized for own data)
@@ -134,7 +134,7 @@ test.describe('DAL - Authorization Enforcement', () => {
 			}
 		})
 
-		await page.goto(`${baseUrl}/manage/properties`)
+		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('networkidle')
 
 		// Check that responses don't contain sensitive fields
@@ -152,26 +152,27 @@ test.describe('DAL - Authorization Enforcement', () => {
 	})
 })
 
-test.describe('DAL - Session Caching (React.cache)', () => {
+test.describe('DAL - Claims Caching (React.cache)', () => {
 	test.beforeEach(async ({ page }) => {
 		await loginAsOwner(page)
 	})
 
-	test('should cache verifySession() per request', async ({ page }) => {
+	test('should cache getClaims() per request', async ({ page }) => {
 		const authApiCalls: string[] = []
 
 		page.on('request', request => {
 			const url = request.url()
+			// Track getClaims API calls (not getUser)
 			if (url.includes('auth') && url.includes('user')) {
 				authApiCalls.push(url)
 			}
 		})
 
-		await page.goto(`${baseUrl}/manage`)
+		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('networkidle')
 
 		// Should only call auth API once per page load
-		// (React.cache memoizes verifySession for the request)
+		// (React.cache memoizes getClaims for the request)
 		// Allow 1-2 calls max (initial + potential refresh)
 		expect(authApiCalls.length).toBeLessThanOrEqual(2)
 	})
@@ -194,10 +195,10 @@ test.describe('DAL - Error Handling', () => {
 		})
 
 		// Try to access protected route
-		await page.goto(`${baseUrl}/manage`)
+		await page.goto(`${baseUrl}/dashboard`)
 
-		// Should redirect to login (DAL returned null)
-		await expect(page).toHaveURL(/\/login/)
+		// Should redirect to login (proxy redirected, DAL never called)
+		await expect(page).toHaveURL(/^\/login/)
 
 		// Should NOT have console errors (graceful handling)
 		const criticalErrors = consoleErrors.filter(
@@ -221,10 +222,10 @@ test.describe('DAL - Error Handling', () => {
 		])
 
 		// Try to access protected route
-		await page.goto(`${baseUrl}/manage`)
+		await page.goto(`${baseUrl}/dashboard`)
 
-		// Should redirect to login (DAL detected invalid session)
-		await expect(page).toHaveURL(/\/login/)
+		// Should redirect to login (proxy detected invalid session)
+		await expect(page).toHaveURL(/^\/login/)
 	})
 })
 
@@ -233,23 +234,23 @@ test.describe('DAL - Performance', () => {
 		await loginAsOwner(page)
 	})
 
-	test('should verify session quickly (< 200ms)', async ({ page }) => {
+	test('should fetch claims quickly (< 200ms)', async ({ page }) => {
 		const start = Date.now()
 
-		await page.goto(`${baseUrl}/manage`)
+		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('domcontentloaded')
 
-		const authTime = Date.now() - start
+		const loadTime = Date.now() - start
 
-		// Auth verification should be fast (cached)
+		// Claims fetching should be fast (cached)
 		// Total page load in dev should be reasonable
-		expect(authTime).toBeLessThan(3000)
+		expect(loadTime).toBeLessThan(3000)
 	})
 
 	test('should not block page rendering', async ({ page }) => {
 		const metrics: any = {}
 
-		await page.goto(`${baseUrl}/manage`)
+		await page.goto(`${baseUrl}/dashboard`)
 
 		// Wait for page to be interactive
 		await page.waitForLoadState('domcontentloaded')
@@ -261,7 +262,7 @@ test.describe('DAL - Performance', () => {
 				: 0
 		)
 
-		// DOM should load quickly (auth doesn't block)
+		// DOM should load quickly (DAL just fetches data)
 		expect(metrics.domContentLoaded).toBeLessThan(3000)
 	})
 })
