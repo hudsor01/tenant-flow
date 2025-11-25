@@ -19,7 +19,6 @@ import tanstackQueryPlugin from '@tanstack/eslint-plugin-query'
 import colorTokensConfig from './color-tokens.eslint.js'
 
 export default defineConfig([
-	// Extend shared base configuration (TypeScript, ignores, test rules)
 	...baseConfig,
 	{
 		name: 'frontend/next.js-plugin',
@@ -55,7 +54,8 @@ export default defineConfig([
 			'tests/**.ts',
 			'scripts/**',
 			'playwright-report/**',
-			'test-results/**'
+			'test-results/**',
+      'opengraph-image.tsx'
 		]
 	},
 	{
@@ -65,7 +65,6 @@ export default defineConfig([
 			'react-hooks': reactHooksPlugin
 		},
 		languageOptions: {
-			// Parser already configured in base.js, just override parserOptions
 			parserOptions: {
 				ecmaFeatures: {
 					jsx: true
@@ -85,7 +84,6 @@ export default defineConfig([
 			}
 		},
 		rules: {
-			// Override base.js rule to allow inline import() type annotations in React components
 			'@typescript-eslint/consistent-type-imports': 'off',
 			'react/react-in-jsx-scope': 'off',
 			'react/jsx-uses-react': 'off',

@@ -5,6 +5,7 @@ import {
 	FileText,
 	Home,
 	Receipt,
+	Settings,
 	UserCircle,
 	Wrench,
 	type LucideIcon
@@ -15,7 +16,6 @@ import * as React from 'react'
 import { NavMain } from '#components/dashboard/nav-main'
 import { NavSecondary } from '#components/dashboard/nav-secondary'
 import { Sidebar, SidebarContent } from '#components/ui/sidebar'
-import { Settings } from 'lucide-react'
 
 const navigation: {
 	navMain: {
@@ -37,7 +37,7 @@ const navigation: {
 	navMain: [
 		{
 			title: 'Dashboard',
-			url: '/portal',
+			url: '/tenant',
 			icon: Home
 		},
 		{
@@ -81,7 +81,7 @@ const navigation: {
 	navSecondary: [
 		{
 			title: 'Settings',
-			url: '/portal/settings',
+			url: '/tenant/settings',
 			icon: Settings
 		}
 	]
@@ -94,7 +94,7 @@ export function TenantSidebar({
 		<>
 			{/* Card 1: Brand */}
 			<div className="rounded-xl border border-gray-200 bg-white p-4">
-				<Link href="/portal" className="flex items-center gap-2">
+				<Link href="/tenant" className="flex items-center gap-2">
 					<Home className="size-5" />
 					<span className="text-base font-semibold">TenantFlow</span>
 				</Link>
