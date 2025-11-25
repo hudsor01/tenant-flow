@@ -213,27 +213,9 @@ export const env = createEnv({
 })
 
 /**
- * Type export for env object
- * Provides full autocomplete and type safety
+ * Environment helper functions
  */
-export type Env = typeof env
-
-/**
- * Helper functions for environment detection
- * These remain unchanged for backward compatibility
- */
-export function isIntegrationTest(): boolean {
-	return env.RUN_INTEGRATION_TESTS
-}
-
-export function isDevelopment(): boolean {
-	return env.NODE_ENV === 'development'
-}
-
-export function isProduction(): boolean {
-	return env.NODE_ENV === 'production'
-}
-
-export function isTest(): boolean {
-	return env.NODE_ENV === 'test'
-}
+export const isProduction = env.NODE_ENV === 'production'
+export const isDevelopment = env.NODE_ENV === 'development'
+export const isTest = env.NODE_ENV === 'test'
+export const isIntegrationTest = env.RUN_INTEGRATION_TESTS === true

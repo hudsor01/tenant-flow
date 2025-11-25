@@ -12,18 +12,17 @@ import { getClaims } from '#lib/dal'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
-	Lease,
 	TenantStats,
 	TenantSummary,
 	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
-import type { Database } from '@repo/shared/types/supabase'
 import { Mail } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { columns } from './columns'
 import { TenantsTableClient } from './tenants-table.client'
+import { InvitationsTableClient } from './invitations-table.client'
 
 export const metadata: Metadata = {
 	title: 'Tenants | TenantFlow',
@@ -49,7 +48,7 @@ export default async function TenantsPage() {
 	let summary: TenantSummary | null = null as TenantSummary | null
 
 	// Fetch leases for invitation dialog
-	let availableLeases: Array<Database['public']['Tables']['leases']['Row']> = []
+	let availableLeases: Array<{ id: string; primary_tenant_id: string | null }> = []
 	let paymentSummary: OwnerPaymentSummaryResponse | null = null
 
 	try {
@@ -69,10 +68,8 @@ export default async function TenantsPage() {
 		summary = null
 
 		availableLeases =
-			(((leasesData?.leases ?? []) as Lease[])
-				.filter((lease) => !lease.primary_tenant_id) as Array<
-				Database['public']['Tables']['leases']['Row']
-			>) ?? []
+			(leasesData?.leases ?? [])
+				.filter((lease) => !lease.primary_tenant_id)
 		paymentSummary = paymentsData ?? null
 	} catch (err) {
 		// Log server-side; avoid throwing to prevent resetting the RSC tree
@@ -143,6 +140,12 @@ export default async function TenantsPage() {
 		</div>
 
 		<OwnerPaymentSummary summary={paymentSummary} />
+
+		{/* Invitation Tracking - Client Component */}
+		<section className="flex flex-col gap-4">
+			<h2 className="text-xl font-semibold">Invitations</h2>
+			<InvitationsTableClient />
+		</section>
 
 		{/* Client Component for Delete Functionality */}
 		<section className="flex flex-col gap-4">

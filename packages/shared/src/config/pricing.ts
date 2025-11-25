@@ -354,6 +354,3 @@ export const PLAN_FEATURES = {
 		'Custom reports & analytics'
 	]
 } as const
-
-// Backward compatibility - alias the new name to the old one
-export const ENHANCED_PRODUCT_TIERS = PRICING_PLANS

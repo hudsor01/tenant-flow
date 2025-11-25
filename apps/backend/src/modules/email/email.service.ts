@@ -137,6 +137,47 @@ export class EmailService {
 		}
 	}
 
+
+	/**
+	 * Send tenant invitation email using React template
+	 */
+	async sendTenantInvitationEmail(data: {
+		tenantEmail: string
+		invitationUrl: string
+		propertyName?: string
+		unitNumber?: string
+		ownerName?: string
+		expiresAt: string
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping tenant invitation email')
+			return
+		}
+
+		try {
+			// Dynamic import to avoid circular dependency issues
+			const { TenantInvitationEmail } = await import('../../emails/tenant-invitation-email')
+			const emailHtml = await render(TenantInvitationEmail(data))
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.tenantEmail],
+				subject: 'You\'ve Been Invited to TenantFlow - Accept Your Invitation',
+				html: emailHtml
+			})
+
+			this.logger.log('Tenant invitation email sent successfully', {
+				emailId: result.data?.id,
+				tenantEmail: data.tenantEmail
+			})
+		} catch (error) {
+			this.logger.error('Failed to send tenant invitation email', {
+				error: error instanceof Error ? error.message : String(error),
+				tenantEmail: data.tenantEmail
+			})
+		}
+	}
+
 	/**
 	 * Escape HTML special characters to prevent XSS
 	 * Replaces: & < > " ' / with their HTML entity equivalents

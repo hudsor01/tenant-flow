@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
@@ -19,7 +19,11 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supa
  */
 export async function signOut() {
 	const cookieStore = await cookies()
-	
+
+	if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+		throw new Error('Missing Supabase configuration')
+	}
+
 	const supabase = createServerClient(
 		SUPABASE_URL,
 		SUPABASE_PUBLISHABLE_KEY,
@@ -28,7 +32,7 @@ export async function signOut() {
 				getAll() {
 					return cookieStore.getAll()
 				},
-				setAll(cookiesToSet) {
+				setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
 					try {
 						cookiesToSet.forEach(({ name, value, options }) =>
 							cookieStore.set(name, value, options)
@@ -40,7 +44,7 @@ export async function signOut() {
 			}
 		}
 	)
-	
+
 	await supabase.auth.signOut()
 	redirect('/login')
 }
