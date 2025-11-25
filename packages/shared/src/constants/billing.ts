@@ -92,9 +92,6 @@ export const BILLING_PLANS: Record<PlanType, BillingPlan> = {
 
 export const getBillingPlans = () => BILLING_PLANS
 
-// Backward compatibility alias
-export const PLANS = BILLING_PLANS
-
 export const getPlanById = (planId: PlanType): BillingPlan | undefined => {
 	return BILLING_PLANS[planId]
 }

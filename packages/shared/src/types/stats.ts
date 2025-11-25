@@ -130,7 +130,7 @@ export interface DashboardStats {
 		yearly: number
 		growth: number
 	}
-	// Backward compatibility fields (optional)
+
 	totalProperties?: number
 	totalUnits?: number
 	totalTenants?: number

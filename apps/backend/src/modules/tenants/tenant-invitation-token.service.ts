@@ -195,7 +195,7 @@ export class TenantInvitationTokenService {
 				.from('users')
 				.update({ user_type: 'TENANT' })
 				.eq('id', user_id)
-				.eq('user_type', 'OWNER')  // Only update if currently OWNER (avoid overwriting)
+				.is('user_type', null)  // Only update if user_type is NULL (new users)
 
 			if (userError) {
 				this.logger.warn('Failed to update user type to TENANT on webhook activation', {

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import type { SupabaseError } from '../../types/stripe-schema'
+import { asStripeSchemaClient, type SupabaseError } from '../../types/stripe-schema'
 
 /**
  * Billing Service - Handles all database operations for Stripe billing entities
@@ -23,9 +23,9 @@ export class BillingService {
     stripeCustomerId: string
   ): Promise<Stripe.Customer | null> {
     const client = this.supabase.getAdminClient()
-    // Stripe schema tables are synced at runtime but not in generated types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+    const stripeClient = asStripeSchemaClient(client)
+
+    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
       .schema('stripe')
       .from('customers')
       .select('*')
@@ -138,9 +138,9 @@ export class BillingService {
     stripeSubscriptionId: string
   ): Promise<Stripe.Subscription | null> {
     const client = this.supabase.getAdminClient()
-    // Stripe schema tables are synced at runtime but not in generated types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+    const stripeClient = asStripeSchemaClient(client)
+
+    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
       .schema('stripe')
       .from('subscriptions')
       .select('*')
@@ -163,9 +163,9 @@ export class BillingService {
     stripeCustomerId: string
   ): Promise<Stripe.Subscription[]> {
     const client = this.supabase.getAdminClient()
-    // Stripe schema tables are synced at runtime but not in generated types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+    const stripeClient = asStripeSchemaClient(client)
+
+    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
       .schema('stripe')
       .from('subscriptions')
       .select('*')
@@ -233,9 +233,9 @@ export class BillingService {
     stripePaymentIntentId: string
   ): Promise<Stripe.PaymentIntent | null> {
     const client = this.supabase.getAdminClient()
-    // Stripe schema tables are synced at runtime but not in generated types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-    const result: { data: unknown; error: SupabaseError | null } = await (client as any)
+    const stripeClient = asStripeSchemaClient(client)
+
+    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
       .schema('stripe')
       .from('payment_intents')
       .select('*')

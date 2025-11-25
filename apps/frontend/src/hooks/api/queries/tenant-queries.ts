@@ -30,6 +30,32 @@ export interface TenantFilters {
 }
 
 /**
+ * Tenant invitation type
+ */
+export interface TenantInvitation {
+	id: string
+	email: string
+	first_name: string | null
+	last_name: string | null
+	unit_id: string
+	unit_number: string
+	property_name: string
+	created_at: string
+	expires_at: string
+	accepted_at: string | null
+	status: 'sent' | 'accepted' | 'expired'
+}
+
+/**
+ * Invitation filters
+ */
+export interface InvitationFilters {
+	status?: 'sent' | 'accepted' | 'expired'
+	page?: number
+	limit?: number
+}
+
+/**
  * Tenant query factory
  * Hierarchical structure for targeted cache invalidation
  */
@@ -120,5 +146,33 @@ export const tenantQueries = {
 			queryFn: () => clientFetch<TenantStats>('/api/v1/tenants/stats'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000, // Keep 30 minutes for stats
+		}),
+
+	/**
+	 * Base key for all invitation queries
+	 */
+	invitations: () => [...tenantQueries.all(), 'invitations'] as const,
+
+	/**
+	 * Paginated invitation list
+	 *
+	 * @example
+	 * const { data } = useQuery(tenantQueries.invitationList({ status: 'sent' }))
+	 */
+	invitationList: (filters?: InvitationFilters) =>
+		queryOptions({
+			queryKey: [...tenantQueries.invitations(), 'list', filters ?? {}],
+			queryFn: async () => {
+				const searchParams = new URLSearchParams()
+				if (filters?.status) searchParams.append('status', filters.status)
+				if (filters?.page) searchParams.append('page', filters.page.toString())
+				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
+
+				const params = searchParams.toString()
+				return clientFetch<{ data: TenantInvitation[]; total: number }>(
+					`/api/v1/tenants/invitations${params ? `?${params}` : ''}`
+				)
+			},
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 }

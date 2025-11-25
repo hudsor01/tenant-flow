@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
+import { EmailModule } from '../email/email.module'
 import { NotificationsController } from './notifications.controller'
 import { NotificationService } from './notification.service'
 import { NotificationsService } from './notifications.service'
@@ -11,7 +12,7 @@ import { LeaseExpiryNotificationListener } from './listeners/lease-expiry-notifi
  * No service layer - controllers use Supabase directly
  */
 @Module({
-	imports: [SupabaseModule],
+	imports: [SupabaseModule, EmailModule],
 	controllers: [NotificationsController],
 	providers: [
 		NotificationService,

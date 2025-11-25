@@ -53,12 +53,6 @@ export const authKeys = {
 	}
 }
 
-// Legacy export for backwards compatibility
-export const userKeys = {
-	all: ['user'] as const,
-	me: ['user', 'me'] as const
-}
-
 export const supabaseAuthKeys = authKeys.supabase
 
 // Use provider keys for compatibility

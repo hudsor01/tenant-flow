@@ -3,7 +3,10 @@
 import '../../(owner)/dashboard.css'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { Skeleton } from '#components/ui/skeleton'
+import { Badge } from '#components/ui/badge'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
+import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
+import { useQuery } from '@tanstack/react-query'
 import { formatCurrency } from '@repo/shared/utils/currency'
 import {
 	Home,
@@ -15,7 +18,8 @@ import {
 	ArrowRight,
 	CheckCircle2,
 	Clock,
-	AlertCircle
+	AlertCircle,
+	AlertTriangle
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -32,6 +36,7 @@ import Link from 'next/link'
  */
 export default function TenantDashboardPage() {
 	const { data, isLoading } = useTenantPortalDashboard()
+	const { data: amountDue, isLoading: isLoadingAmountDue } = useQuery(tenantPortalQueries.amountDue())
 
 	const activeLease = data?.lease
 	const upcomingPayment = data?.payments?.upcoming
@@ -46,6 +51,29 @@ export default function TenantDashboardPage() {
 			year: 'numeric'
 		})
 	}
+
+	// Calculate payment status for badge
+	const getPaymentStatus = () => {
+		if (isLoadingAmountDue) return null
+		if (amountDue?.already_paid) {
+			return { label: 'Paid', variant: 'success' as const, icon: CheckCircle2 }
+		}
+		if (amountDue && amountDue.days_late > 0) {
+			return { label: 'Overdue', variant: 'destructive' as const, icon: AlertTriangle }
+		}
+		// Check if due within 5 days
+		if (amountDue?.due_date) {
+			const dueDate = new Date(amountDue.due_date)
+			const today = new Date()
+			const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+			if (daysUntilDue <= 5 && daysUntilDue >= 0) {
+				return { label: 'Due Soon', variant: 'warning' as const, icon: Clock }
+			}
+		}
+		return null
+	}
+
+	const paymentStatus = getPaymentStatus()
 
 	// Format next payment
 	const nextPaymentDate = upcomingPayment?.dueDate ? formatDate(upcomingPayment.dueDate) : 'TBD'
@@ -148,13 +176,30 @@ export default function TenantDashboardPage() {
 										<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 										<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
 										<div className="relative p-6">
-											<div className="flex items-center gap-3 mb-4">
-												<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--color-success)]/10 text-[var(--color-success)]">
-													<Calendar className="h-5 w-5" />
+											<div className="flex items-center justify-between mb-4">
+												<div className="flex items-center gap-3">
+													<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--color-success)]/10 text-[var(--color-success)]">
+														<Calendar className="h-5 w-5" />
+													</div>
+													<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
+														Next Payment
+													</p>
 												</div>
-												<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-													Next Payment
-												</p>
+												{paymentStatus && (
+													<Badge
+														variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
+														className={
+															paymentStatus.variant === 'success'
+																? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-100'
+																: paymentStatus.variant === 'warning'
+																? 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-100'
+																: ''
+														}
+													>
+														<paymentStatus.icon className="size-3 mr-1" />
+														{paymentStatus.label}
+													</Badge>
+												)}
 											</div>
 											<div className="space-y-3">
 												<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-[var(--color-success)]">

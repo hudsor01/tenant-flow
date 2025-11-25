@@ -112,6 +112,31 @@ export class TenantsController {
 		return this.queryService.getSummary(user_id)
 	}
 
+	@Get('invitations')
+	async getInvitations(
+		@Req() req: AuthenticatedRequest,
+		@Query('status') status?: 'sent' | 'accepted' | 'expired' | 'cancelled',
+		@Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+		@Query('limit', new DefaultValuePipe(25), ParseIntPipe) limit?: number
+	) {
+		const user_id = req.user.id
+		return this.queryService.getInvitations(user_id, {
+			...(status && { status }),
+			...(page && { page }),
+			...(limit && { limit })
+		})
+	}
+
+	@Post('invitations/:id/cancel')
+	async cancelInvitation(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const user_id = req.user.id
+		await this.invitationService.cancelInvitation(user_id, id)
+		return { success: true }
+	}
+
 	/**
 	 * GET /tenants/:id/with-lease
 	 * Returns tenant with full lease and unit information
@@ -271,21 +296,6 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
 		await this.crudService.softDelete(user_id, id)
-	}
-
-	/**
-	 * DEPRECATED: This endpoint is incomplete and should not be used.
-	 * Use POST /tenants/invite-with-lease instead to create complete tenant invitations with lease data.
-	 */
-	@Post(':id/invite-v2')
-	@Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 invitations per hour
-	async sendInvitationV2(
-		@Param('id', ParseUUIDPipe) _id: string,
-		@Req() _req: AuthenticatedRequest
-	) {
-		throw new BadRequestException(
-			'This endpoint is deprecated. Use POST /tenants/invite-with-lease instead with complete lease information.'
-		)
 	}
 
 	/**
@@ -505,12 +515,14 @@ export class TenantsController {
 
 	@Post('payments/reminders')
 	async sendPaymentReminder(
-		@Body() body: { tenant_id: string; email: string; amount_due: number }
+		@Req() req: AuthenticatedRequest,
+		@Body() body: { tenant_id: string; note?: string }
 	) {
-		return this.paymentService.sendPaymentReminderLegacy(
+		const user_id = req.user.id
+		return this.paymentService.sendPaymentReminder(
+			user_id,
 			body.tenant_id,
-			body.email,
-			body.amount_due
+			body.note
 		)
 	}
 }

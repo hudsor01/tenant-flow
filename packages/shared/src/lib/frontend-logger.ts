@@ -134,7 +134,8 @@ export const createLogger = (defaultContext?: LogContext) => {
 	}
 }
 
-// Default logger instance (backward compatibility)
+/**
+ * Default logger instance
+ * Use this for quick logging without component context
+ */
 export const logger = createLogger()
-
-export default logger

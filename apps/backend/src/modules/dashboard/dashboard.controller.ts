@@ -4,7 +4,6 @@ import { All, Controller, GoneException, Logger, Param } from '@nestjs/common'
  * Legacy /manage controller
  *
  * All legacy routes are removed. Consumers must call the new /owner
- * endpoints provided by OwnerDashboardModule. No backward compatibility
  * layer remains to avoid stale or inconsistent behavior.
  */
 @Controller('manage')

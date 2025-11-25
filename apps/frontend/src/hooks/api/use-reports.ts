@@ -276,7 +276,7 @@ export function useReports({
 	function deleteReport(reportId: string) {
 		// If we're running tests, just call the mutation immediately to keep tests
 		// deterministic and fast.
-		if (isTest()) {
+		if (isTest) {
 			setDeletingIds(prev => {
 				const s = new Set(prev)
 				s.add(reportId)

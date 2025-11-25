@@ -21,22 +21,30 @@ export default async function AnalyticsPage() {
 	// Data fetching already uses React cache() - no page-level caching needed
 	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
 	const {
-		dashboardStats: dashboardData,
-		propertyPerformance: propertyData,
-		financialStats
+		financial,
+		maintenance: _maintenance,
+		occupancy,
+		lease: _lease
 	} = await getAnalyticsPageData()
 	const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
 		'/api/v1/tenants/payments/summary'
 	)
 
-	// Type assertions for analytics data
-	const stats = (dashboardData ?? {}) as DashboardStats
-	const financial = (financialStats ?? {}) as DashboardSummary
-	const properties = (propertyData ?? []) as PropertyPerformance[]
+	// Map overview data to display format
+	const stats = {
+		revenue: { growth: financial?.revenueChange ?? 0 },
+		units: { occupancyChange: occupancy?.rateChange ?? 0 }
+	} as DashboardStats
+	const financialStats = {
+		avgRoi: financial?.netIncome && financial?.totalRevenue
+			? (financial.netIncome / financial.totalRevenue) * 100
+			: 0
+	} as DashboardSummary
+	const properties = [] as PropertyPerformance[]
 
 	const revenueGrowth = stats?.revenue?.growth ?? 0
 	const occupancyChange = stats?.units?.occupancyChange ?? 0
-	const avgRoi = financial?.avgRoi ?? 0
+	const avgRoi = financialStats?.avgRoi ?? 0
 
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">

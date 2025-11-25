@@ -73,18 +73,6 @@ export function getSupabaseClientInstance(): PublicSupabaseClient {
 	return getSupabaseClient()
 }
 
-// Export for backward compatibility and simpler imports
-// Use lazy initialization to avoid build-time errors
-let _exportedClient: PublicSupabaseClient | null = null
-export const supabaseClient = new Proxy({} as PublicSupabaseClient, {
-	get(_target, prop) {
-		if (!_exportedClient) {
-			_exportedClient = getSupabaseClient()
-		}
-		return _exportedClient[prop as keyof PublicSupabaseClient]
-	}
-})
-
 /**
  * Server-side admin client with full database access
  * ONLY use this in backend services where you need to bypass RLS
@@ -176,3 +164,9 @@ export type {
 	TablesInsert,
 	TablesUpdate
 } from '../types/supabase.js'
+
+/**
+ * Exported alias for backward compatibility
+ * Prefer using getSupabaseClientInstance() for better tree-shaking
+ */
+export const supabaseClient = getSupabaseClient()

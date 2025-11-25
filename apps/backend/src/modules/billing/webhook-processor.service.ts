@@ -10,7 +10,7 @@ import type Stripe from 'stripe'
 import type { LeaseStatus } from '@repo/shared/constants/status-types'
 import { LEASE_STATUS } from '@repo/shared/constants/status-types'
 import { SupabaseService } from '../../database/supabase.service'
-import type { SupabaseError, StripeCheckoutSession, StripeCustomer, StripeSubscription } from '../../types/stripe-schema'
+import { asStripeSchemaClient, type SupabaseError, type StripeCheckoutSession, type StripeCustomer, type StripeSubscription } from '../../types/stripe-schema'
 
 @Injectable()
 export class WebhookProcessor {
@@ -255,14 +255,13 @@ export class WebhookProcessor {
 			})
 
 			const client = this.supabase.getAdminClient()
+			const stripeClient = asStripeSchemaClient(client)
 
-			const { data: checkoutSession, error: sessionError } = (await (
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-			(client as any).schema('stripe')
-		)
+			const { data: checkoutSession, error: sessionError } = (await stripeClient
+				.schema('stripe')
 				.from('checkout_sessions')
 				.select('*')
-				.eq('stripe_id', session.id)
+				.eq('id', session.id)
 				.maybeSingle()) as {
 				data: StripeCheckoutSession | null
 				error: SupabaseError | null
@@ -291,15 +290,13 @@ export class WebhookProcessor {
 				return
 			}
 
-			const { data: stripeCustomer, error: customerError} = (await (
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-			(client as any).schema('stripe')
-		)
+			const { data: stripeCustomer, error: customerError} = (await stripeClient
+				.schema('stripe')
 				.from('customers')
-				.select('id, stripe_id, email, name')
-				.eq('stripe_id', stripeCustomerId)
+				.select('id, email, name')
+				.eq('id', stripeCustomerId)
 				.maybeSingle()) as {
-				data: Pick<StripeCustomer, 'id' | 'stripe_id' | 'email' | 'name'> | null
+				data: Pick<StripeCustomer, 'id' | 'email' | 'name'> | null
 				error: SupabaseError | null
 			}
 
@@ -409,15 +406,13 @@ export class WebhookProcessor {
 				: session.subscription?.id
 
 			if (stripeSubscriptionId) {
-				const { data: subscription } = (await (
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-				(client as any).schema('stripe')
-			)
+				const { data: subscription } = (await stripeClient
+					.schema('stripe')
 					.from('subscriptions')
-					.select('id, stripe_id, status')
-					.eq('stripe_id', stripeSubscriptionId)
+					.select('id, status')
+					.eq('id', stripeSubscriptionId)
 					.maybeSingle()) as {
-					data: Pick<StripeSubscription, 'id' | 'stripe_id' | 'status'> | null
+					data: Pick<StripeSubscription, 'id' | 'status'> | null
 					error: SupabaseError | null
 				}
 
