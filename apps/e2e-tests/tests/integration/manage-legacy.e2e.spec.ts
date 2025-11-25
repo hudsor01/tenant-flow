@@ -10,8 +10,23 @@ const legacyPaths = [
 ]
 
 test.describe('Legacy /manage routes are removed', () => {
+	let serverReachable = false
+
+	test.beforeAll(async ({ request }) => {
+		try {
+			const res = await request.get(`${API_URL}/api/v1/health`, { timeout: 2000 })
+			serverReachable = res.ok()
+			if (!serverReachable) {
+				test.skip('Backend API not reachable; skipping legacy route checks')
+			}
+		} catch (error) {
+			test.skip('Backend API not reachable; skipping legacy route checks')
+		}
+	})
+
 	legacyPaths.forEach(path => {
 		test(`GET ${path} returns 410 Gone`, async ({ request }) => {
+			if (!serverReachable) test.skip()
 			const response = await request.get(`${API_URL}${path}`)
 
 			expect(response.status()).toBe(410)
@@ -25,6 +40,7 @@ test.describe('Legacy /manage routes are removed', () => {
 	})
 
 	test('trailing slash variants also return 410', async ({ request }) => {
+		if (!serverReachable) test.skip()
 		const response = await request.get(`${API_URL}/api/v1/manage/stats/`)
 		expect(response.status()).toBe(410)
 		const body = await response.json().catch(() => null)

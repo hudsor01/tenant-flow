@@ -170,3 +170,6 @@ export const baseConfig: PlaywrightTestConfig = {
 	// Global setup/teardown - disabled, tests handle auth directly
 	// globalSetup: './apps/e2e-tests/playwright.auth.ts'
 }
+
+// Default export required by Playwright config loader
+export default baseConfig

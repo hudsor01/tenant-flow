@@ -20,6 +20,7 @@
     "dev": "doppler run -- next dev --webpack",
     "dev:clean": "pnpm clean && pnpm dev",
     "build": "next build",
+    "analyze": "ANALYZE=true next build --webpack",
     "start": "next start",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
@@ -108,6 +109,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@next/bundle-analyzer": "16.0.4",
     "@playwright/test": "1.56.1",
     "@tailwindcss/forms": "0.5.10",
     "@tailwindcss/postcss": "4.1.17",
