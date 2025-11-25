@@ -1,8 +1,9 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"framework": "nextjs",
-	"buildCommand": "cd ../.. && pnpm turbo build --filter=@repo/frontend",
-	"installCommand": "pnpm install --frozen-lockfile --prefer-offline",
+	"buildCommand": "cd ../.. && pnpm --filter @repo/frontend build",
+	"installCommand": "cd ../.. && pnpm install --frozen-lockfile --prefer-offline",
+	"outputDirectory": ".next",
 	"headers": [
 		{
 			"source": "/static/(.*)",
