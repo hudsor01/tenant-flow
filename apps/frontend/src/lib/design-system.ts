@@ -4,10 +4,7 @@
  * Provides frontend-specific implementations with tailwind-merge integration
  */
 
-import {
-	SEMANTIC_COLORS,
-	type ComponentSize
-} from '@repo/shared/constants/design-system'
+import { type ComponentSize } from '@repo/shared/constants/design-system'
 import type {
 	AnimationType,
 	BadgeSize,
@@ -294,23 +291,6 @@ export function generateThemeCSS(
 }
 
 /**
- * Get semantic color value with CSS variable fallback
- * @param colorKey - Semantic color key
- * @param fallback - Fallback color if CSS variable not available
- * @returns Color value string
- */
-export function getSemanticColor(
-	colorKey: keyof typeof SEMANTIC_COLORS,
-	fallback?: string
-): string {
-	return (
-		SEMANTIC_COLORS[colorKey] ||
-		fallback ||
-		'var(--color-foreground, currentColor)'
-	)
-}
-
-/**
  * Generate responsive utility classes
  * @param property - CSS property to make responsive
  * @param values - Values for different breakpoints
@@ -376,119 +356,6 @@ export function formErrorClasses(className?: string): string {
 	const baseClasses = 'text-sm font-medium text-destructive'
 
 	return cn(baseClasses, className)
-}
-
-/**
- * Generate status styling classes with consistent theming
- * @param status - Status label to normalize
- * @param options - Styling overrides (variant, additional classes)
- * @returns Status class string suitable for badges or pills
- */
-type StatusVariant = 'soft' | 'outline'
-
-interface StatusClassOptions {
-	variant?: StatusVariant
-	className?: string
-}
-
-const STATUS_STYLE_MAP: Record<string, { soft: string; outline: string }> = {
-	ACTIVE: {
-		soft: 'border-(--color-system-green) bg-(--color-system-green-10) text-(--color-system-green)',
-		outline:
-			'border-(--color-system-green) text-(--color-system-green) bg-transparent'
-	},
-	COMPLETED: {
-		soft: 'border-(--color-system-green) bg-(--color-system-green-10) text-(--color-system-green)',
-		outline:
-			'border-(--color-system-green) text-(--color-system-green) bg-transparent'
-	},
-	SUCCESS: {
-		soft: 'border-(--color-system-green) bg-(--color-system-green-10) text-(--color-system-green)',
-		outline:
-			'border-(--color-system-green) text-(--color-system-green) bg-transparent'
-	},
-	OPEN: {
-		soft: 'border-(--color-system-yellow) bg-(--color-system-yellow-10) text-(--color-system-yellow)',
-		outline:
-			'border-(--color-system-yellow) text-(--color-system-yellow) bg-transparent'
-	},
-	PENDING: {
-		soft: 'border-(--color-system-yellow) bg-(--color-system-yellow-10) text-(--color-system-yellow)',
-		outline:
-			'border-(--color-system-yellow) text-(--color-system-yellow) bg-transparent'
-	},
-	WARNING: {
-		soft: 'border-(--color-system-yellow) bg-(--color-system-yellow-10) text-(--color-system-yellow)',
-		outline:
-			'border-(--color-system-yellow) text-(--color-system-yellow) bg-transparent'
-	},
-	IN_PROGRESS: {
-		soft: 'border-(--color-system-blue) bg-(--color-system-blue-10) text-(--color-system-blue)',
-		outline:
-			'border-(--color-system-blue) text-(--color-system-blue) bg-transparent'
-	},
-	INFO: {
-		soft: 'border-(--color-system-blue) bg-(--color-system-blue-10) text-(--color-system-blue)',
-		outline:
-			'border-(--color-system-blue) text-(--color-system-blue) bg-transparent'
-	},
-	EXPIRED: {
-		soft: 'border-(--color-system-red) bg-(--color-system-red-10) text-(--color-system-red)',
-		outline:
-			'border-(--color-system-red) text-(--color-system-red) bg-transparent'
-	},
-	OVERDUE: {
-		soft: 'border-(--color-system-red) bg-(--color-system-red-10) text-(--color-system-red)',
-		outline:
-			'border-(--color-system-red) text-(--color-system-red) bg-transparent'
-	},
-	CANCELED: {
-		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
-		outline:
-			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
-	},
-	CANCELLED: {
-		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
-		outline:
-			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
-	},
-	TERMINATED: {
-		soft: 'border-(--color-border-secondary) bg-(--color-fill-tertiary) text-(--color-label-secondary)',
-		outline:
-			'border-(--color-border-secondary) text-(--color-label-secondary) bg-transparent'
-	},
-	ON_HOLD: {
-		soft: 'border-(--color-system-orange) bg-(--color-system-orange-10) text-(--color-system-orange)',
-		outline:
-			'border-(--color-system-orange) text-(--color-system-orange) bg-transparent'
-	},
-	DRAFT: {
-		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-secondary)',
-		outline:
-			'border-(--color-border-secondary) text-(--color-label-secondary) bg-transparent'
-	},
-	UNKNOWN: {
-		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
-		outline:
-			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
-	},
-	DEFAULT: {
-		soft: 'border-(--color-border-secondary) bg-(--color-fill-secondary) text-(--color-label-tertiary)',
-		outline:
-			'border-(--color-border-secondary) text-(--color-label-tertiary) bg-transparent'
-	}
-}
-
-export function statusClasses(
-	status: string,
-	options: StatusClassOptions = {}
-): string {
-	const { variant = 'outline', className } = options
-	const normalized = (status || 'DEFAULT').toString().trim().toUpperCase()
-	const styles = STATUS_STYLE_MAP[normalized] || STATUS_STYLE_MAP.DEFAULT!
-	const selected = variant === 'soft' ? styles.soft : styles.outline
-
-	return cn('border', selected, className)
 }
 
 /**
