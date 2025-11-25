@@ -41,11 +41,7 @@ export default async function Image() {
 							fontSize: 72,
 							fontWeight: 'bold',
 							marginBottom: 30,
-							background:
-								`linear-gradient(45deg, ${BRAND_COLORS_HEX.white}, ${BRAND_COLORS_HEX.white})`,
-							backgroundClip: 'text',
-							WebkitBackgroundClip: 'text',
-							color: 'transparent'
+							color: BRAND_COLORS_HEX.white
 						}}
 					>
 						Simplify
@@ -95,10 +91,7 @@ export default async function Image() {
 						width: '100%',
 						height: '100%',
 						opacity: 0.1,
-						background: `
-              radial-gradient(circle at 25% 25%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%),
-              radial-gradient(circle at 75% 75%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%)
-            `
+						background: `radial-gradient(circle at 25% 25%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%), radial-gradient(circle at 75% 75%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%)`
 					}}
 				/>
 			</div>

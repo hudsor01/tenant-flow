@@ -7,10 +7,6 @@ import { Button } from '#components/ui/button'
 import { useOwnerDashboardActivity } from '#hooks/api/use-owner-dashboard'
 import { useCategoryLoading } from '#hooks/use-loading'
 import { cn } from '#lib/utils'
-import {
-	getActivityBadgeClass,
-	getActivityColorClass
-} from '#lib/utils/color-helpers'
 import type { Activity } from '@repo/shared/types/activity'
 import type { ActivityEntityType } from '@repo/shared/types/core'
 import { formatDistanceToNow } from 'date-fns'
@@ -27,6 +23,29 @@ import React from 'react'
 // Type assertion to handle Supabase entityType as enum
 type ActivityWithEnum = Omit<Activity, 'entityType'> & {
 	entityType: ActivityEntityType
+}
+
+// Inline helpers using CSS classes from globals.css
+const getActivityColorClass = (type: string): string => {
+	const colorMap: Record<string, string> = {
+		payment: 'text-[var(--color-success)] bg-[var(--color-success)]/10',
+		maintenance: 'text-[var(--color-info)] bg-[var(--color-info)]/10',
+		lease: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10',
+		property: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10',
+		tenant: 'text-[var(--color-warning)] bg-[var(--color-warning)]/10'
+	}
+	return colorMap[type] || 'text-muted-foreground bg-muted'
+}
+
+const getActivityBadgeClass = (type: string): string => {
+	const colorMap: Record<string, string> = {
+		payment: 'text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/20',
+		maintenance: 'text-[var(--color-info)] bg-[var(--color-info)]/10 border-[var(--color-info)]/20',
+		lease: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20',
+		property: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20',
+		tenant: 'text-[var(--color-warning)] bg-[var(--color-warning)]/10 border-[var(--color-warning)]/20'
+	}
+	return colorMap[type] || 'text-muted-foreground bg-muted border-border'
 }
 
 // Modern helpers - assume valid inputs

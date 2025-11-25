@@ -27,7 +27,7 @@ jest.mock('@supabase/supabase-js', () => {
 
 const requiredEnv = [
 	'SUPABASE_URL',
-	'SUPABASE_SECRET_KEY',
+	'SECRET_KEY_SUPABASE',
 	'SUPABASE_RPC_TEST_USER_ID'
 ] as const
 
