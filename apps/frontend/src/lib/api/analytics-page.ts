@@ -72,7 +72,10 @@ export async function getLeaseAnalyticsPageData(): Promise<LeaseAnalyticsPageDat
 		profitability: profitability as LeaseAnalyticsPageData['profitability'],
 		renewalRates: renewalRates as LeaseAnalyticsPageData['renewalRates'],
 		vacancyTrends: vacancyTrends as LeaseAnalyticsPageData['vacancyTrends'],
-		leaseDistribution: leaseDistribution as LeaseAnalyticsPageData['leaseDistribution']
+		leaseDistribution: leaseDistribution as LeaseAnalyticsPageData['leaseDistribution'],
+		// Aliases for page compatibility
+		lifecycle: renewalRates as LeaseAnalyticsPageData['lifecycle'],
+		statusBreakdown: leaseDistribution as LeaseAnalyticsPageData['statusBreakdown']
 	}
 }
 
@@ -100,7 +103,10 @@ export async function getMaintenanceInsightsPageData(): Promise<MaintenanceInsig
 		categoryBreakdown: categoryBreakdown as MaintenanceInsightsPageData['categoryBreakdown'],
 		costTrends: costTrends as MaintenanceInsightsPageData['costTrends'],
 		responseTimes: responseTimes as MaintenanceInsightsPageData['responseTimes'],
-		preventiveMaintenance: preventiveMaintenance as MaintenanceInsightsPageData['preventiveMaintenance']
+		preventiveMaintenance: preventiveMaintenance as MaintenanceInsightsPageData['preventiveMaintenance'],
+		// Aliases for page compatibility
+		costBreakdown: categoryBreakdown as MaintenanceInsightsPageData['costBreakdown'],
+		trends: costTrends as MaintenanceInsightsPageData['trends']
 	}
 }
 
@@ -170,13 +176,15 @@ export async function getPropertyPerformancePageData(): Promise<PropertyPerforma
 		unitStats,
 		performance,
 		units,
-		revenueTrends
+		revenueTrends,
+		visitorAnalytics
 	] = await Promise.all([
 		serverFetch('/property/analytics/performance/metrics'),
 		serverFetch('/property/analytics/performance/unit-stats'),
 		serverFetch('/property/analytics/performance/data'),
 		serverFetch('/property/analytics/performance/units'),
-		serverFetch('/property/analytics/performance/revenue-trends')
+		serverFetch('/property/analytics/performance/revenue-trends'),
+		serverFetch('/property/analytics/performance/visitor-analytics')
 	])
 
 	return {
@@ -184,7 +192,8 @@ export async function getPropertyPerformancePageData(): Promise<PropertyPerforma
 		unitStats: unitStats as PropertyPerformancePageData['unitStats'],
 		performance: performance as PropertyPerformancePageData['performance'],
 		units: units as PropertyPerformancePageData['units'],
-		revenueTrends: revenueTrends as PropertyPerformancePageData['revenueTrends']
+		revenueTrends: revenueTrends as PropertyPerformancePageData['revenueTrends'],
+		visitorAnalytics: visitorAnalytics as PropertyPerformancePageData['visitorAnalytics']
 	}
 }
 
