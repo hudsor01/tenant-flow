@@ -35,16 +35,6 @@ export class HealthController {
 	) {}
 
 	/**
-	 * Backward compatibility alias for main health check
-	 */
-	@Get('check')
-	@SetMetadata('isPublic', true)
-	async checkEndpoint() {
-		this.logger.log('Health check alias /check routed to main health handler')
-		return this.check()
-	}
-
-	/**
 	 * Simple ping endpoint for lightweight health checks
 	 */
 	@Get('ping')

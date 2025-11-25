@@ -12,6 +12,7 @@ import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { FailedNotificationsService } from './failed-notifications.service'
+import { EmailService } from '../email/email.service'
 import {
 	LeaseExpiringEvent,
 	MaintenanceUpdatedEvent,
@@ -30,6 +31,17 @@ interface TenantInvitedEventPayload {
 	checkoutUrl: string
 }
 
+/**
+ * Event payload from tenant-invitation.service.ts
+ */
+interface TenantInvitationSentEventPayload {
+	email: string
+	tenant_id: string
+	invitationCode: string
+	invitationUrl: string
+	expiresAt: string
+}
+
 @Injectable()
 export class NotificationsService {
 	private readonly logger = new Logger(NotificationsService.name)
@@ -37,7 +49,8 @@ export class NotificationsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly failedNotifications: FailedNotificationsService,
-		private readonly config: AppConfigService
+		private readonly config: AppConfigService,
+		private readonly emailService: EmailService
 	) {}
 
 	/**
@@ -745,6 +758,94 @@ export class NotificationsService {
 				)
 			},
 			'tenant.invited',
+			event
+		)
+	}
+
+
+	/**
+	 * Handle tenant invitation sent events - SENDS EMAIL TO TENANT
+	 * This is triggered when a property owner invites a tenant and sends the actual invitation email
+	 */
+	@OnEvent('tenant.invitation.sent')
+	async handleTenantInvitationSent(event: TenantInvitationSentEventPayload) {
+		this.logger.log(
+			`Processing tenant.invitation.sent event for ${event.email}`,
+			{
+				tenant_id: event.tenant_id,
+				invitationUrl: event.invitationUrl
+			}
+		)
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				// Fetch property/unit info for the email
+				const client = this.supabaseService.getAdminClient()
+				
+				// Get tenant invitation details to find unit and property info
+				const { data: invitation, error: invError } = await client
+					.from('tenant_invitations')
+					.select(`
+						id,
+						email,
+						unit_id,
+						property_owner_id,
+						unit:unit_id(
+							unit_number,
+							property_id,
+							property:property_id(name)
+						)
+					`)
+					.eq('invitation_code', event.invitationCode)
+					.single()
+
+				let propertyName: string | undefined
+				let unitNumber: string | undefined
+				let ownerName: string | undefined
+
+				if (invError) {
+					this.logger.warn('Could not fetch invitation details for email', {
+						error: invError.message,
+						invitationCode: event.invitationCode.substring(0, 8) + '...'
+					})
+				} else if (invitation) {
+					propertyName = invitation.unit?.property?.name ?? undefined
+					unitNumber = invitation.unit?.unit_number ?? undefined
+
+					// Get owner name separately
+					if (invitation.property_owner_id) {
+						const { data: owner } = await client
+							.from('users')
+							.select('first_name, last_name')
+							.eq('id', invitation.property_owner_id)
+							.single()
+						
+						if (owner?.first_name && owner?.last_name) {
+							ownerName = `${owner.first_name} ${owner.last_name}`
+						}
+					}
+				}
+
+				// Send the actual invitation email to the tenant
+				await this.emailService.sendTenantInvitationEmail({
+					tenantEmail: event.email,
+					invitationUrl: event.invitationUrl,
+					expiresAt: event.expiresAt,
+					...(propertyName && { propertyName }),
+					...(unitNumber && { unitNumber }),
+					...(ownerName && { ownerName })
+				})
+
+				this.logger.log(
+					`Tenant invitation email sent to ${event.email}`,
+					{
+						tenant_id: event.tenant_id,
+						propertyName,
+						unitNumber
+					}
+				)
+			},
+			'tenant.invitation.sent',
 			event
 		)
 	}
