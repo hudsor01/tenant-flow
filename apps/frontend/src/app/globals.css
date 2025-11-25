@@ -47,6 +47,22 @@
 	--tracking-footnote: 0px;
 	--tracking-caption: 0px;
 
+	/* Font Weight Scale */
+	--font-weight-light: 300;
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+	--font-weight-black: 900;
+
+	/* Icon Size Scale */
+	--icon-xs: 0.75rem;   /* 12px */
+	--icon-sm: 0.875rem;  /* 14px */
+	--icon-md: 1rem;      /* 16px */
+	--icon-lg: 1.25rem;   /* 20px */
+	--icon-xl: 1.5rem;    /* 24px */
+	--icon-2xl: 2rem;     /* 32px */
+
 	/* Extended Tailwind palette */
 	--color-slate-50: oklch(0.984 0.003 247.858);
 	--color-slate-100: oklch(0.968 0.007 247.896);
@@ -315,6 +331,18 @@
 	--glass-shadow: 0 20px 60px rgb(15 23 42 / 0.25);
 	--glass-blur: 10px;
 
+	/* Dashboard Widget Tokens */
+	--widget-gradient-from: var(--background);
+	--widget-gradient-via: color-mix(in oklch, var(--muted) 30%, transparent);
+	--widget-gradient-to: var(--card);
+	--widget-border: var(--border);
+	--widget-border-hover: var(--border);
+	--widget-shadow: 0 1px 2px color-mix(in oklch, var(--foreground) 5%, transparent);
+	--widget-shadow-hover: 0 10px 15px -3px color-mix(in oklch, var(--foreground) 10%, transparent);
+	--widget-overlay-gradient-from: color-mix(in oklch, var(--primary) 5%, transparent);
+	--widget-overlay-gradient-to: color-mix(in oklch, var(--muted-foreground) 5%, transparent);
+	--widget-blob-gradient: color-mix(in oklch, var(--primary) 10%, transparent);
+
 	/* Motion tokens */
 	--duration-75: 75ms;
 	--duration-100: 100ms;
@@ -344,6 +372,16 @@
 	--translate-hover-x: 4px;
 	--translate-hover-y: -1px;
 	--translate-slide-y: 20px;
+
+	/* Animation & Transition Presets */
+	--transition-card: all 500ms var(--ease-out);
+	--transition-hover: all 200ms var(--ease-out);
+	--transition-quick: all 150ms var(--ease-out);
+	--transition-color: color 180ms var(--ease-out), background 200ms var(--ease-out);
+	--transform-lift: translateY(-2px);
+	--transform-lift-sm: translateY(-1px);
+	--transform-scale-hover: scale(1.02);
+
 	--spacing: 0.25rem;
 	--spacing-0: 0rem;
 	--spacing-px: 1px;
@@ -837,30 +875,6 @@
 	.btn:disabled {
 		pointer-events: none;
 		opacity: 0.5;
-	}
-
-	.btn-sm {
-		height: 2.75rem;
-		padding: 0 0.75rem;
-		font-size: var(--text-xs);
-	}
-
-	.btn-md {
-		height: 3rem;
-		padding: 0 1rem;
-		font-size: var(--text-sm);
-	}
-
-	.btn-lg {
-		height: 3.5rem;
-		padding: 0 1.5rem;
-		font-size: var(--text-base);
-	}
-
-	.btn-xl {
-		height: 4rem;
-		padding: 0 2rem;
-		font-size: var(--text-lg);
 	}
 
 	.btn-primary {
@@ -1776,6 +1790,117 @@
 
 	.animate-scale {
 		animation: scale-in 200ms ease-out;
+	}
+
+	/* Dashboard Widget Card Class */
+	.dashboard-widget-card {
+		position: relative;
+		overflow: hidden;
+		border-radius: var(--radius-xlarge);
+		border: 2px solid var(--widget-border);
+		background: linear-gradient(to bottom right,
+			var(--widget-gradient-from),
+			var(--widget-gradient-via),
+			var(--widget-gradient-to)
+		);
+		box-shadow: var(--widget-shadow);
+		transition: var(--transition-card);
+	}
+
+	.dashboard-widget-card:hover {
+		border-color: var(--widget-border-hover);
+		box-shadow: var(--widget-shadow-hover);
+		transform: var(--transform-scale-hover);
+	}
+
+	.dashboard-widget-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to bottom right,
+			var(--widget-overlay-gradient-from),
+			transparent,
+			var(--widget-overlay-gradient-to)
+		);
+		opacity: 0;
+		transition: opacity 500ms var(--ease-out);
+	}
+
+	.dashboard-widget-card:hover::before {
+		opacity: 1;
+	}
+
+	.dashboard-widget-card::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 8rem;
+		height: 8rem;
+		background: linear-gradient(to bottom left,
+			var(--widget-blob-gradient),
+			transparent
+		);
+		border-radius: var(--radius-full);
+		transform: translate(4rem, -4rem);
+		transition: transform 500ms var(--ease-out);
+	}
+
+	.dashboard-widget-card:hover::after {
+		transform: translate(4rem, -4rem) scale(1.1);
+	}
+
+	/* Status Badge Utility Classes */
+	.status-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: var(--radius-full);
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-bold);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		transition: var(--transition-quick);
+	}
+
+	.status-badge-success {
+		background: color-mix(in oklch, var(--color-success) 10%, transparent);
+		color: var(--color-success);
+		border: 1px solid color-mix(in oklch, var(--color-success) 20%, transparent);
+	}
+
+	.status-badge-warning {
+		background: color-mix(in oklch, var(--color-warning) 10%, transparent);
+		color: var(--color-warning);
+		border: 1px solid color-mix(in oklch, var(--color-warning) 20%, transparent);
+	}
+
+	.status-badge-destructive {
+		background: color-mix(in oklch, var(--destructive) 10%, transparent);
+		color: var(--destructive);
+		border: 1px solid color-mix(in oklch, var(--destructive) 20%, transparent);
+	}
+
+	/* Icon Background Utility Classes */
+	.icon-bg-success {
+		background: color-mix(in oklch, var(--color-success) 10%, transparent);
+		color: var(--color-success);
+	}
+
+	.icon-bg-warning {
+		background: color-mix(in oklch, var(--color-warning) 10%, transparent);
+		color: var(--color-warning);
+	}
+
+	.icon-bg-info {
+		background: color-mix(in oklch, var(--color-info) 10%, transparent);
+		color: var(--color-info);
+	}
+
+	.icon-bg-primary {
+		background: color-mix(in oklch, var(--primary) 10%, transparent);
+		color: var(--primary);
 	}
 
 	@layer utilities {

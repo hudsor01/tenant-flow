@@ -1,5 +1,6 @@
 'use client'
 
+import { StatCard } from '#components/dashboard/stat-card'
 import { Skeleton } from '#components/ui/skeleton'
 import { useOwnerDashboardPageData } from '#hooks/api/use-owner-dashboard'
 import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
@@ -52,134 +53,85 @@ export function SectionCards() {
 	return (
 		<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 gap-(--layout-gap-group)">
 			{/* Revenue Card */}
-			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-				<div className="relative p-6">
-					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-							Monthly Revenue
-						</p>
-						<div
-							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ${isPositiveGrowth ? 'bg-success/10 text-success border border-success/20 dark:bg-success/20 dark:text-success dark:border-success/30' : 'bg-destructive/10 text-destructive border border-destructive/20 dark:bg-destructive/20 dark:text-destructive dark:border-destructive/30'}`}
-						>
-							{isPositiveGrowth ? (
-								<TrendingUp className="h-3 w-3" />
-							) : (
-								<TrendingDown className="h-3 w-3" />
-							)}
-							{formatPercentage(revenueGrowth)}
-						</div>
+			<StatCard
+				title="Monthly Revenue"
+				value={formatCurrency(totalRevenue)}
+				description={
+					isPositiveGrowth ? 'Trending up this month' : 'Down this month'
+				}
+				badge={
+					<div
+						className={`status-badge ${isPositiveGrowth ? 'status-badge-success' : 'status-badge-destructive'}`}
+					>
+						{isPositiveGrowth ? (
+							<TrendingUp className="h-3 w-3" />
+						) : (
+							<TrendingDown className="h-3 w-3" />
+						)}
+						{formatPercentage(revenueGrowth)}
 					</div>
-					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-[var(--color-corporate-blue-600)] dark:group-hover:text-[var(--color-corporate-blue-400)]">
-							{formatCurrency(totalRevenue)}
-						</h3>
-						<p className="text-sm text-muted-foreground flex items-center gap-2 font-medium">
-							{isPositiveGrowth ? (
-								<>
-									<TrendingUp className="h-4 w-4 text-success" />
-									<span>Trending up this month</span>
-								</>
-							) : (
-								<>
-									<TrendingDown className="h-4 w-4 text-destructive" />
-									<span>Down this month</span>
-								</>
-							)}
-						</p>
-					</div>
-				</div>
-			</div>
+				}
+				icon={isPositiveGrowth ? TrendingUp : TrendingDown}
+			/>
 
 			{/* Tenants Card */}
-			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-				<div className="relative p-6">
-					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-							Active Tenants
-						</p>
-						<div className="badge badge-professional-gray">
-							<TrendingUp className="h-3 w-3" />
-							{totalTenants} total
-						</div>
+			<StatCard
+				title="Active Tenants"
+				value={activeTenants}
+				description={
+					activeTenants > 0
+						? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active rate`
+						: 'No active tenants yet'
+				}
+				badge={
+					<div className="badge badge-professional-gray">
+						<TrendingUp className="h-3 w-3" />
+						{totalTenants} total
 					</div>
-					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
-							{activeTenants}
-						</h3>
-						<p className="text-sm text-muted-foreground font-medium">
-							{activeTenants > 0
-								? `${((activeTenants / totalTenants) * 100).toFixed(0)}% active rate`
-								: 'No active tenants yet'}
-						</p>
-					</div>
-				</div>
-			</div>
+				}
+			/>
 
 			{/* Properties Card */}
-			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-				<div className="relative p-6">
-					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-							Total Properties
-						</p>
-						<div className="badge badge-clean-accent">
-							<TrendingUp className="h-3 w-3" />
-							{stats.properties?.occupied || 0} occupied
-						</div>
+			<StatCard
+				title="Total Properties"
+				value={totalProperties}
+				description={
+					totalProperties > 0
+						? `${stats.properties?.occupied || 0} generating revenue`
+						: 'Add your first property'
+				}
+				badge={
+					<div className="badge badge-clean-accent">
+						<TrendingUp className="h-3 w-3" />
+						{stats.properties?.occupied || 0} occupied
 					</div>
-					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
-							{totalProperties}
-						</h3>
-						<p className="text-sm text-muted-foreground font-medium">
-							{totalProperties > 0
-								? `${stats.properties?.occupied || 0} generating revenue`
-								: 'Add your first property'}
-						</p>
-					</div>
-				</div>
-			</div>
+				}
+			/>
 
 			{/* Occupancy Rate Card */}
-			<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-				<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-				<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-				<div className="relative p-6">
-					<div className="flex items-center justify-between mb-4">
-						<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-							Occupancy Rate
-						</p>
-						<div
-							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ${isExcellentOccupancy ? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20' : 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20'}`}
-						>
-							{isExcellentOccupancy ? (
-								<TrendingUp className="h-3 w-3" />
-							) : (
-								<TrendingDown className="h-3 w-3" />
-							)}
-							{isExcellentOccupancy ? 'Excellent' : 'Good'}
-						</div>
+			<StatCard
+				title="Occupancy Rate"
+				value={`${occupancyRate}%`}
+				description={
+					occupancyRate >= 90
+						? "Excellent occupancy - you're doing great!"
+						: occupancyRate >= 75
+						? 'Good occupancy - room for improvement'
+						: 'Low occupancy - focus on tenant acquisition'
+				}
+				badge={
+					<div
+						className={`status-badge ${isExcellentOccupancy ? 'status-badge-success' : 'status-badge-warning'}`}
+					>
+						{isExcellentOccupancy ? (
+							<TrendingUp className="h-3 w-3" />
+						) : (
+							<TrendingDown className="h-3 w-3" />
+						)}
+						{isExcellentOccupancy ? 'Excellent' : 'Good'}
 					</div>
-					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
-							{occupancyRate}%
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							{occupancyRate >= 90
-								? "Excellent occupancy - you're doing great!"
-								: occupancyRate >= 75
-								? "Good occupancy - room for improvement"
-								: "Low occupancy - focus on tenant acquisition"}
-						</p>
-					</div>
-				</div>
-			</div>
+				}
+			/>
 		</div>
 	)
 }
