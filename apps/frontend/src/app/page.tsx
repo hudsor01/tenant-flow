@@ -8,7 +8,7 @@ import MarketingHomePage from './marketing-home'
  * This page implements role-based routing at the root path:
  * - Unauthenticated users: See marketing homepage
  * - OWNER role: Redirect to /dashboard
- * - TENANT role: Redirect to /portal
+ * - TENANT role: Redirect to /tenant
  *
  * Architecture:
  * - Uses DAL getClaims() to fetch JWT claims (proxy handles auth)
@@ -31,7 +31,7 @@ export default async function RootPage() {
 	if (role === 'OWNER') {
 		redirect('/dashboard')
 	} else if (role === 'TENANT') {
-		redirect('/portal')
+		redirect('/tenant')
 	} else {
 		// Unknown/missing role - proxy will handle on next navigation
 		redirect('/login')
