@@ -268,12 +268,6 @@ export function useCreateMaintenanceRequest() {
 // LEASES HOOKS (/tenant-portal/leases/*)
 // ============================================================================
 
-/**
- * Alias for useTenantLeaseDocuments (backwards compatibility)
- */
-export function useTenantPortalDocuments() {
-	return useTenantLeaseDocuments()
-}
 
 /**
  * Combined dashboard hook for tenant portal homepage
@@ -304,13 +298,6 @@ export function useTenantPortalDashboard() {
 		isLoading,
 		error
 	}
-}
-
-/**
- * Alias for useCreateMaintenanceRequest (backwards compatibility)
- */
-export function useCreateTenantMaintenanceRequest() {
-	return useCreateMaintenanceRequest()
 }
 
 /**

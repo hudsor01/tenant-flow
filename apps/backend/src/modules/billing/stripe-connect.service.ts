@@ -701,4 +701,64 @@ export class StripeConnectService {
 			throw error
 		}
 	}
+
+	/**
+	 * Delete a customer on a connected account.
+	 * Used for SAGA compensation/rollback.
+	 */
+	async deleteCustomer(
+		customerId: string,
+		connectedAccountId: string
+	): Promise<Stripe.DeletedCustomer> {
+		try {
+			const deletedCustomer = await this.stripe.customers.del(customerId, {
+				stripeAccount: connectedAccountId
+			})
+
+			this.logger.log('Deleted Stripe customer on connected account', {
+				customer_id: customerId,
+				stripe_account_id: connectedAccountId
+			})
+
+			return deletedCustomer
+		} catch (error) {
+			this.logger.error('Failed to delete Stripe customer on connected account', {
+				error: error instanceof Error ? error.message : String(error),
+				stripe_account_id: connectedAccountId,
+				customer_id: customerId
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Cancel a subscription on a connected account.
+	 * Used for SAGA compensation/rollback.
+	 */
+	async cancelSubscription(
+		subscriptionId: string,
+		connectedAccountId: string
+	): Promise<Stripe.Subscription> {
+		try {
+			const canceledSubscription = await this.stripe.subscriptions.cancel(
+				subscriptionId,
+				{},
+				{ stripeAccount: connectedAccountId }
+			)
+
+			this.logger.log('Canceled Stripe subscription on connected account', {
+				subscription_id: subscriptionId,
+				stripe_account_id: connectedAccountId
+			})
+
+			return canceledSubscription
+		} catch (error) {
+			this.logger.error('Failed to cancel Stripe subscription on connected account', {
+				error: error instanceof Error ? error.message : String(error),
+				stripe_account_id: connectedAccountId,
+				subscription_id: subscriptionId
+			})
+			throw error
+		}
+	}
 }

@@ -124,7 +124,7 @@ export async function serverFetch<T>(
 
 		// Preserve status code for error handling utilities (isConflictError, isNotFoundError)
 		const errorMessage =
-			isProduction()
+			isProduction
 				? `API request failed with status ${response.status}`
 				: `API Error (${response.status}): ${errorText || response.statusText}`
 

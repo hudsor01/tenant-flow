@@ -3,7 +3,7 @@
  * NATIVE: Direct Stripe integration following CLAUDE.md principles
  */
 
-import { PLANS } from '../constants/billing.js'
+import { BILLING_PLANS } from '../constants/billing.js'
 import { SHARED_ERROR_MESSAGES } from '../constants/error-messages.js'
 import type { BillingPeriod, PlanType } from '../types/stripe.js'
 
@@ -81,8 +81,8 @@ export function getPriceId(plan: PlanType, period: BillingPeriod): string {
 
 /**
  * Get all available plans
- * Returns the PLANS array from billing constants
+ * Returns the BILLING_PLANS record from billing constants
  */
 export function getAllPlans() {
-	return PLANS
+	return BILLING_PLANS
 }
