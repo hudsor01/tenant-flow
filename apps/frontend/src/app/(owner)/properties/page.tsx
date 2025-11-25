@@ -1,9 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
 	Card,
-	CardAction,
 	CardDescription,
 	CardFooter,
 	CardHeader,
@@ -148,12 +146,6 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 						<CardTitle className="text-2xl font-semibold">
 							{stats.total ?? properties.length}
 						</CardTitle>
-						<CardAction>
-							<Badge variant="outline">
-								<TrendingUp className="size-3" />
-								Portfolio growing
-							</Badge>
-						</CardAction>
 					</CardHeader>
 					<CardFooter className="flex-col items-start gap-1.5 text-sm">
 						<div className="flex gap-2 font-medium">
@@ -171,16 +163,6 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 						<CardTitle className="text-2xl font-semibold">
 							{stats.occupancyRate?.toFixed(1) ?? 0}%
 						</CardTitle>
-						<CardAction>
-							<Badge variant="outline">
-								{(stats.occupancyRate ?? 0) >= 90 ? (
-									<TrendingUp className="size-3" />
-								) : (
-									<TrendingDown className="size-3" />
-								)}
-								{(stats.occupancyRate ?? 0) >= 90 ? 'Excellent' : 'Good'}
-							</Badge>
-						</CardAction>
 					</CardHeader>
 					<CardFooter className="flex-col items-start gap-1.5 text-sm">
 						<div className="flex gap-2 font-medium">
@@ -205,16 +187,6 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 						<CardTitle className="text-2xl font-semibold">
 							{stats.vacant ?? 0}
 						</CardTitle>
-						<CardAction>
-							<Badge variant="outline">
-								{(stats.vacant ?? 0) === 0 ? (
-									<TrendingUp className="size-3" />
-								) : (
-									<TrendingDown className="size-3" />
-								)}
-								{(stats.vacant ?? 0) === 0 ? 'Fully occupied' : 'Available'}
-							</Badge>
-						</CardAction>
 					</CardHeader>
 					<CardFooter className="flex-col items-start gap-1.5 text-sm">
 						<div className="flex gap-2 font-medium">
@@ -233,12 +205,6 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 						<CardTitle className="text-2xl font-semibold">
 							${(stats.totalMonthlyRent ?? 0).toLocaleString()}
 						</CardTitle>
-						<CardAction>
-							<Badge variant="outline">
-								<TrendingUp className="size-3" />
-								Revenue potential
-							</Badge>
-						</CardAction>
 					</CardHeader>
 					<CardFooter className="flex-col items-start gap-1.5 text-sm">
 						<div className="flex gap-2 font-medium">
