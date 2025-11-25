@@ -140,6 +140,51 @@ describe('PropertiesService', () => {
 		}).compile()
 
 		service = module.get<PropertiesService>(PropertiesService)
+
+		// Reset mocks to ensure clean state for each test
+		mockUserClient.from.mockReset()
+		mockAdminClient.from.mockReset()
+
+		// Provide safe default mock implementation for all query operations
+		// Tests can override this with specific behavior
+		const createDefaultQueryBuilder = () => ({
+			select: jest.fn().mockReturnThis(),
+			eq: jest.fn().mockReturnThis(),
+			neq: jest.fn().mockReturnThis(),
+			gt: jest.fn().mockReturnThis(),
+			gte: jest.fn().mockReturnThis(),
+			lt: jest.fn().mockReturnThis(),
+			lte: jest.fn().mockReturnThis(),
+			like: jest.fn().mockReturnThis(),
+			ilike: jest.fn().mockReturnThis(),
+			is: jest.fn().mockReturnThis(),
+			in: jest.fn().mockReturnThis(),
+			contains: jest.fn().mockReturnThis(),
+			containedBy: jest.fn().mockReturnThis(),
+			rangeGt: jest.fn().mockReturnThis(),
+			rangeGte: jest.fn().mockReturnThis(),
+			rangeLt: jest.fn().mockReturnThis(),
+			rangeLte: jest.fn().mockReturnThis(),
+			rangeAdjacent: jest.fn().mockReturnThis(),
+			overlaps: jest.fn().mockReturnThis(),
+			textSearch: jest.fn().mockReturnThis(),
+			match: jest.fn().mockReturnThis(),
+			not: jest.fn().mockReturnThis(),
+			or: jest.fn().mockReturnThis(),
+			filter: jest.fn().mockReturnThis(),
+			insert: jest.fn().mockReturnThis(),
+			upsert: jest.fn().mockReturnThis(),
+			update: jest.fn().mockReturnThis(),
+			delete: jest.fn().mockReturnThis(),
+			order: jest.fn().mockReturnThis(),
+			limit: jest.fn().mockReturnThis(),
+			range: jest.fn().mockReturnThis(),
+			single: jest.fn().mockResolvedValue({ data: null, error: null }),
+			maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
+		})
+
+		mockUserClient.from.mockImplementation(() => createDefaultQueryBuilder())
+		mockAdminClient.from.mockImplementation(() => createDefaultQueryBuilder())
 	})
 
 	describe('findAll', () => {
@@ -239,69 +284,109 @@ describe('PropertiesService', () => {
 
 	describe('create', () => {
 		it('should create a property with trimmed values', async () => {
-			const mockCreated = createMockProperty({
+		const mockCreated = createMockProperty({
 			name: 'Park View',
 			address_line1: '123 Main St'
 		})
 
-			const mockQueryBuilder = {
-				insert: jest.fn().mockReturnThis(),
-				select: jest.fn().mockReturnThis(),
-				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
+		// Mock property_owners query - use function binding for proper 'this' context
+		const mockPropertyOwnerQuery = {
+			select: jest.fn(function() { return this }),
+			eq: jest.fn(function() { return this }),
+			single: jest.fn().mockResolvedValue({
+				data: { id: 'property-owner-123' },
+				error: null
+			})
+		}
+
+		// Mock properties insert query - use function binding for proper 'this' context
+		const mockPropertiesQuery = {
+			insert: jest.fn(function() { return this }),
+			select: jest.fn(function() { return this }),
+			single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
+		}
+
+		// Set up from() to return different mocks based on table name
+		mockUserClient.from.mockImplementation((table: string) => {
+			if (table === 'property_owners') {
+				return mockPropertyOwnerQuery
 			}
+			if (table === 'properties') {
+				return mockPropertiesQuery
+			}
+			return mockPropertiesQuery
+		})
 
-			mockUserClient.from.mockReturnValue(mockQueryBuilder)
+		const payload = {
+			name: 'Park View',
+			address_line1: '123 Main St',
+			city: 'Austin',
+			state: 'TX',
+			postal_code: '78701',
+			property_type: 'APARTMENT' as const
+		}
 
-			const payload = {
+		const result = await service.create(
+			createMockRequest('user-123'),
+			payload
+		)
+
+		expect(result).toEqual(mockCreated)
+		expect(mockPropertiesQuery.insert).toHaveBeenCalledWith(
+			expect.objectContaining({
+				property_owner_id: 'property-owner-123',
 				name: 'Park View',
 				address_line1: '123 Main St',
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
-				property_type: 'APARTMENT' as const
-			}
-
-			const result = await service.create(
-				createMockRequest('user-123'),
-				payload
-			)
-
-			expect(result).toEqual(mockCreated)
-			expect(mockQueryBuilder.insert).toHaveBeenCalledWith(
-				expect.objectContaining({
-					property_owner_id: 'user-123',
-					name: 'Park View',
-					address_line1: '123 Main St',
-					city: 'Austin',
-					state: 'TX',
-					postal_code: '78701',
-					property_type: 'APARTMENT'
-				})
-			)
-		})
+				property_type: 'APARTMENT'
+			})
+		)
+	})
 
 		it('should throw BadRequestException on database error', async () => {
-			const mockQueryBuilder = {
-				insert: jest.fn().mockReturnThis(),
-				select: jest.fn().mockReturnThis(),
-				single: jest
-					.fn()
-					.mockResolvedValue({ data: null, error: { message: 'DB error' } })
+		// Mock property_owners query (successful) - use function binding
+		const mockPropertyOwnerQuery = {
+			select: jest.fn(function() { return this }),
+			eq: jest.fn(function() { return this }),
+			single: jest.fn().mockResolvedValue({
+				data: { id: 'property-owner-123' },
+				error: null
+			})
+		}
+
+		// Mock properties insert query (failure) - use function binding
+		const mockPropertiesQuery = {
+			insert: jest.fn(function() { return this }),
+			select: jest.fn(function() { return this }),
+			single: jest
+				.fn()
+				.mockResolvedValue({ data: null, error: { message: 'DB error' } })
+		}
+
+		// Set up from() to return different mocks based on table name
+		mockUserClient.from.mockImplementation((table: string) => {
+			if (table === 'property_owners') {
+				return mockPropertyOwnerQuery
 			}
-
-			mockUserClient.from.mockReturnValue(mockQueryBuilder)
-
-			await expect(
-				service.create(createMockRequest('user-123'), {
-					name: 'Test',
-					address_line1: '123 Main',
-					city: 'Austin',
-					state: 'TX',
-					postal_code: '78701',
-					property_type: 'APARTMENT'
-				})
-			).rejects.toThrow(BadRequestException)
+			if (table === 'properties') {
+				return mockPropertiesQuery
+			}
+			return mockPropertiesQuery
 		})
+
+		await expect(
+			service.create(createMockRequest('user-123'), {
+				name: 'Test',
+				address_line1: '123 Main',
+				city: 'Austin',
+				state: 'TX',
+				postal_code: '78701',
+				property_type: 'APARTMENT'
+			})
+		).rejects.toThrow(BadRequestException)
+	})
 	})
 
 	describe('update', () => {

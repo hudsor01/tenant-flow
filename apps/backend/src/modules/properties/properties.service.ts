@@ -129,11 +129,31 @@ export class PropertiesService {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const owner_id = req.user.id
-		const client = this.supabase.getUserClient(token)
+const user_id = req.user.id
+const client = this.supabase.getUserClient(token)
 
-		const insertData: Database['public']['Tables']['properties']['Insert'] = {
-			property_owner_id: owner_id,
+// Fetch property_owner_id from property_owners table
+// Properties.property_owner_id is FK to property_owners.id (NOT auth.users.id)
+const { data: propertyOwner, error: ownerError } = await client
+.from('property_owners')
+.select('id')
+.eq('user_id', user_id)
+.single()
+
+if (ownerError || !propertyOwner) {
+this.logger.error('Property owner not found', {
+error: ownerError?.message,
+user_id
+})
+throw new BadRequestException(
+'Property owner record not found. Please complete onboarding first.'
+)
+}
+
+const property_owner_id = propertyOwner.id
+
+const insertData: Database['public']['Tables']['properties']['Insert'] = {
+property_owner_id: property_owner_id,
 			name: request.name,
 			address_line1: request.address_line1,
 			city: request.city,
@@ -170,7 +190,7 @@ export class PropertiesService {
 			)
 		}
 
-		await this.invalidatePropertyStatsCache(owner_id)
+await this.invalidatePropertyStatsCache(property_owner_id)
 
 		this.logger.log('Property created successfully', {
 			property_id: data.id

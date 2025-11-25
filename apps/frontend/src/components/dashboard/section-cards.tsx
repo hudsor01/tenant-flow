@@ -72,7 +72,7 @@ export function SectionCards() {
 						</div>
 					</div>
 					<div className="space-y-3">
-						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-corporate-blue-600 dark:group-hover:text-corporate-blue-400">
+						<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-[var(--color-corporate-blue-600)] dark:group-hover:text-[var(--color-corporate-blue-400)]">
 							{formatCurrency(totalRevenue)}
 						</h3>
 						<p className="text-sm text-muted-foreground flex items-center gap-2 font-medium">
@@ -156,7 +156,7 @@ export function SectionCards() {
 							Occupancy Rate
 						</p>
 						<div
-							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ${isExcellentOccupancy ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700' : 'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700'}`}
+							className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide transition-all duration-300 ${isExcellentOccupancy ? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20' : 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20'}`}
 						>
 							{isExcellentOccupancy ? (
 								<TrendingUp className="h-3 w-3" />
