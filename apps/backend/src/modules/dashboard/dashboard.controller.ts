@@ -11,7 +11,7 @@ import { All, Controller, GoneException, Logger, Param } from '@nestjs/common'
 export class DashboardController {
 	private readonly logger = new Logger(DashboardController.name)
 
-	@All(':path(*)')
+	@All('*path')
 	handleLegacyRoute(@Param('path') path = ''): never {
 		const normalizedPath = path ? `/${path.replace(/\/?$/, '')}` : '/'
 		this.logger.warn(
