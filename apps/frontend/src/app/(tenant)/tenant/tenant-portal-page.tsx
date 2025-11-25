@@ -1,6 +1,7 @@
 'use client'
 
 import '../../(owner)/dashboard.css'
+import { StatCard } from '#components/dashboard/stat-card'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { Skeleton } from '#components/ui/skeleton'
 import { Badge } from '#components/ui/badge'
@@ -146,99 +147,55 @@ export default function TenantDashboardPage() {
 							) : (
 								<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-3 gap-(--layout-gap-group)">
 									{/* Lease Card */}
-									<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-										<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-										<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-										<div className="relative p-6">
-											<div className="flex items-center gap-3 mb-4">
-												<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
-													<Home className="h-5 w-5" />
-												</div>
-												<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-													Current Lease
-												</p>
-											</div>
-											<div className="space-y-3">
-												<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-primary">
-													{activeLease?.status === 'active' ? 'Active' : 'Inactive'}
-												</h3>
-												<p className="text-sm text-muted-foreground font-medium">
-													{activeLease?.start_date && activeLease?.end_date
-														? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
-														: 'No active lease'}
-												</p>
-											</div>
-										</div>
-									</div>
+									<StatCard
+										title="Current Lease"
+										value={activeLease?.status === 'active' ? 'Active' : 'Inactive'}
+										description={
+											activeLease?.start_date && activeLease?.end_date
+												? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
+												: 'No active lease'
+										}
+										icon={Home}
+									/>
 
 									{/* Payment Card */}
-									<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-										<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-										<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-										<div className="relative p-6">
-											<div className="flex items-center justify-between mb-4">
-												<div className="flex items-center gap-3">
-													<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--color-success)]/10 text-[var(--color-success)]">
-														<Calendar className="h-5 w-5" />
-													</div>
-													<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-														Next Payment
-													</p>
-												</div>
-												{paymentStatus && (
-													<Badge
-														variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
-														className={
-															paymentStatus.variant === 'success'
-																? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/30 hover:bg-[var(--color-success)]/10'
-																: paymentStatus.variant === 'warning'
-																? 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/30 hover:bg-[var(--color-warning)]/10'
-																: ''
-														}
-													>
-														<paymentStatus.icon className="size-3 mr-1" />
-														{paymentStatus.label}
-													</Badge>
-												)}
-											</div>
-											<div className="space-y-3">
-												<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-[var(--color-success)]">
-													{nextPaymentAmount}
-												</h3>
-												<p className="text-sm text-muted-foreground font-medium">
-													Due: {nextPaymentDate}
-												</p>
-											</div>
-										</div>
-									</div>
+									<StatCard
+										title="Next Payment"
+										value={nextPaymentAmount}
+										description={`Due: ${nextPaymentDate}`}
+										badge={
+											paymentStatus && (
+												<Badge
+													variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
+													className={
+														paymentStatus.variant === 'success'
+															? 'status-badge status-badge-success'
+															: paymentStatus.variant === 'warning'
+															? 'status-badge status-badge-warning'
+															: ''
+													}
+												>
+													<paymentStatus.icon className="size-3 mr-1" />
+													{paymentStatus.label}
+												</Badge>
+											)
+										}
+										icon={Calendar}
+									/>
 
 									{/* Maintenance Card */}
-									<div className="dashboard-widget group relative overflow-hidden rounded-xl border-2 border-border bg-gradient-to-br from-background via-muted/30 to-card shadow-sm transition-all duration-500 hover:shadow-lg hover:border-border hover:scale-[1.02]">
-										<div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-muted-foreground/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-										<div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-16 translate-x-16 transition-transform duration-500 group-hover:scale-110" />
-										<div className="relative p-6">
-											<div className="flex items-center gap-3 mb-4">
-												<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--color-warning)]/10 text-[var(--color-warning)]">
-													<Wrench className="h-5 w-5" />
-												</div>
-												<p className="text-sm font-bold text-muted-foreground tracking-wide uppercase">
-													Maintenance
-												</p>
-											</div>
-											<div className="space-y-3">
-												<h3 className="text-4xl font-black tracking-tight text-foreground transition-colors group-hover:text-[var(--color-warning)]">
-													{maintenanceSummary?.open ?? 0}
-												</h3>
-												<p className="text-sm text-muted-foreground font-medium">
-													{maintenanceSummary?.open === 0
-														? 'No open requests'
-														: maintenanceSummary?.open === 1
-														? '1 request in progress'
-														: `${maintenanceSummary.open} requests in progress`}
-												</p>
-											</div>
-										</div>
-									</div>
+									<StatCard
+										title="Maintenance"
+										value={maintenanceSummary?.open ?? 0}
+										description={
+											maintenanceSummary?.open === 0
+												? 'No open requests'
+												: maintenanceSummary?.open === 1
+												? '1 request in progress'
+												: `${maintenanceSummary.open} requests in progress`
+										}
+										icon={Wrench}
+									/>
 								</div>
 							)}
 						</ErrorBoundary>
