@@ -5,7 +5,6 @@
  *
  * Maintains the legacy hook names while delegating to the new owner dashboard
  * implementations so callers can migrate incrementally without hitting
- * deprecated /manage endpoints.
  */
 
 import { useQuery } from '@tanstack/react-query'

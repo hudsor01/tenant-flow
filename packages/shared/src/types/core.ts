@@ -6,7 +6,10 @@
  */
 
 import type { ReactNode } from 'react'
-import type { DashboardActivity } from './activity.js'
+import type { DashboardActivity, ActivityItem } from './activity.js'
+
+// Re-export ActivityItem for use across the app
+export type { ActivityItem }
 import type {
   ActivityEntityType as ActivityEntityTypeFromConstants,
   LeaseStatus as LeaseStatusFromConstants,
@@ -148,6 +151,10 @@ export type ExpenseRecord = Tables<'expenses'>
 export type ConnectedAccount = Tables<'property_owners'>
 export type PropertyInsert = TablesInsert<'properties'>
 export type UnitInsert = TablesInsert<'units'>
+
+// Tenant input/update types for forms
+export type TenantInput = TablesInsert<'tenants'>
+export type TenantUpdate = Partial<TenantInput>
 
 // Augmented types with optimistic locking version field for mutations
 // IMPORTANT: Only Leases have version field for optimistic locking - other entities don't support versioning
@@ -627,12 +634,6 @@ export interface TenantNotificationPreferences {
 	propertyNotices?: boolean
 	[key: string]: boolean | undefined
 }
-
-// Re-exports from api-contracts for backward compatibility
-export type { TenantInput, TenantUpdate } from './api-contracts.js'
-
-// Re-exports from activity for backward compatibility
-export type { ActivityItem } from './activity.js'
 
 // WithVersion types for optimistic locking - defined after their base types
 export type LeaseWithVersion = Lease & { version?: number }

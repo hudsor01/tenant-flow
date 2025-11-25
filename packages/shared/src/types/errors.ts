@@ -129,7 +129,7 @@ export interface SuccessResponse<
 	timestamp: string
 }
 
-// Standard API response interface (for backward compatibility with controllers)
+// Standard API response interface
 export interface StandardApiResponse<T = unknown> {
 	success: boolean
 	data?: T

@@ -29,9 +29,6 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import { leaseQueries } from './queries/lease-queries'
 import { maintenanceQueries } from './queries/maintenance-queries'
 
-// Re-export for backward compatibility
-export type { TenantPortalLease } from './queries/lease-queries'
-
 // Re-export query factory
 export { leaseQueries } from './queries/lease-queries'
 
@@ -52,8 +49,7 @@ export function useCurrentLease() {
 /**
  * Hook to fetch maintenance requests for the current tenant's lease
  * Filters maintenance requests by the tenant's unit from their active lease
- * 
- * @deprecated Use maintenanceQueries.tenantPortal() directly for better type safety
+ *
  */
 export function useTenantMaintenanceRequests() {
 	return useQuery(maintenanceQueries.tenantPortal())

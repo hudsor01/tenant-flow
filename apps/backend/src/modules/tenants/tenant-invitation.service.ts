@@ -15,12 +15,25 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import { randomBytes } from 'crypto'
 import type { CreateTenantRequest } from '@repo/shared/types/api-contracts'
 import type { Lease } from '@repo/shared/types/core'
 import type { TablesInsert } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 import { TenantCrudService } from './tenant-crud.service'
+
+/**
+ * SAGA State for tracking created resources during invitation flow
+ * Used for compensation/rollback on failure
+ */
+interface SagaState {
+	tenant_id: string | null
+	lease_id: string | null
+	stripe_customer_id: string | null
+	stripe_account_id: string | null
+	subscription_id: string | null
+}
 
 interface InviteWithLeaseRequest extends Omit<CreateTenantRequest, 'stripe_customer_id'> {
 	stripe_customer_id?: string
@@ -48,7 +61,7 @@ export class TenantInvitationService {
 
 	/**
 	 * MAIN SAGA ORCHESTRATOR: Invite tenant with lease
-	 * Coordinates 8 steps of tenant onboarding
+	 * Coordinates 8 steps of tenant onboarding with compensation/rollback on failure
 	 */
 	async inviteTenantWithLease(
 		user_id: string,
@@ -59,23 +72,35 @@ export class TenantInvitationService {
 		lease_id: string
 		message: string
 	}> {
-		const sagaId = `saga_${Date.now()}_${Math.random().toString(36).slice(2)}`
+		const sagaId = `saga_${Date.now()}_${randomBytes(8).toString('hex')}`
 		this.logger.log('Starting invitation SAGA', { sagaId, user_id })
+
+		// Track SAGA state for rollback on failure
+		const sagaState: SagaState = {
+			tenant_id: null,
+			lease_id: null,
+			stripe_customer_id: null,
+			stripe_account_id: null,
+			subscription_id: null
+		}
 
 		try {
 			// STEP 1: Create tenant record
 			const tenant = await this.tenantCrudService.create(user_id, {
-			...dto,
-			stripe_customer_id: dto.stripe_customer_id || `temp_${Date.now()}`
-		})
+				...dto,
+				stripe_customer_id: dto.stripe_customer_id || `temp_${Date.now()}`
+			})
+			sagaState.tenant_id = tenant.id
 			this.logger.log('SAGA Step 1: Tenant created', { sagaId, tenant_id: tenant.id })
 
 			// STEP 2: Create lease record
 			const lease = await this._createLeaseRecord(user_id, tenant.id, dto)
+			sagaState.lease_id = lease.id
 			this.logger.log('SAGA Step 2: Lease created', { sagaId, lease_id: lease.id })
 
 			// STEP 3: Verify owner has Stripe Connect
 			const stripeAccount = await this._verifyOwnerConnectedAccount(user_id)
+			sagaState.stripe_account_id = stripeAccount.stripe_account_id
 			this.logger.log('SAGA Step 3: Stripe verified', { sagaId })
 
 			// STEP 4: Create Stripe customer
@@ -89,6 +114,7 @@ export class TenantInvitationService {
 				},
 				stripeAccount.stripe_account_id
 			)
+			sagaState.stripe_customer_id = stripeCustomer.id
 			this.logger.log('SAGA Step 4: Stripe customer created', {
 				sagaId,
 				stripe_customer_id: stripeCustomer.id
@@ -100,6 +126,7 @@ export class TenantInvitationService {
 				dto.rent_amount,
 				stripeAccount.stripe_account_id
 			)
+			sagaState.subscription_id = subscription.id
 			this.logger.log('SAGA Step 5: Subscription created', {
 				sagaId,
 				subscription_id: subscription.id
@@ -128,13 +155,109 @@ export class TenantInvitationService {
 				message: `Tenant ${dto.email} invited successfully`
 			}
 		} catch (error) {
-			this.logger.error('SAGA failed', {
+			this.logger.error('SAGA failed, initiating rollback', {
 				error: error instanceof Error ? error.message : String(error),
 				sagaId,
-				user_id
+				user_id,
+				sagaState
 			})
+
+			// Compensate/rollback created resources in reverse order
+			await this._compensateSaga(user_id, sagaState, sagaId)
+
 			throw new InternalServerErrorException('Tenant invitation failed')
 		}
+	}
+
+	/**
+	 * SAGA COMPENSATION: Rollback created resources in reverse order
+	 */
+	private async _compensateSaga(
+		user_id: string,
+		state: SagaState,
+		sagaId: string
+	): Promise<void> {
+		this.logger.log('Starting SAGA compensation', { sagaId, state })
+
+		// Step 5 rollback: Cancel Stripe subscription
+		if (state.subscription_id && state.stripe_account_id) {
+			try {
+				await this.stripeConnectService.cancelSubscription(
+					state.subscription_id,
+					state.stripe_account_id
+				)
+				this.logger.log('SAGA Compensation: Subscription cancelled', {
+					sagaId,
+					subscription_id: state.subscription_id
+				})
+			} catch (err) {
+				this.logger.error('Failed to cancel subscription during rollback', {
+					sagaId,
+					subscription_id: state.subscription_id,
+					error: err instanceof Error ? err.message : String(err)
+				})
+			}
+		}
+
+		// Step 4 rollback: Delete Stripe customer
+		if (state.stripe_customer_id && state.stripe_account_id) {
+			try {
+				await this.stripeConnectService.deleteCustomer(
+					state.stripe_customer_id,
+					state.stripe_account_id
+				)
+				this.logger.log('SAGA Compensation: Customer deleted', {
+					sagaId,
+					stripe_customer_id: state.stripe_customer_id
+				})
+			} catch (err) {
+				this.logger.error('Failed to delete Stripe customer during rollback', {
+					sagaId,
+					stripe_customer_id: state.stripe_customer_id,
+					error: err instanceof Error ? err.message : String(err)
+				})
+			}
+		}
+
+		// Step 2 rollback: Delete lease
+		if (state.lease_id) {
+			try {
+				const client = this.supabase.getAdminClient()
+				await client
+					.from('leases')
+					.delete()
+					.eq('id', state.lease_id)
+				this.logger.log('SAGA Compensation: Lease deleted', {
+					sagaId,
+					lease_id: state.lease_id
+				})
+			} catch (err) {
+				this.logger.error('Failed to delete lease during rollback', {
+					sagaId,
+					lease_id: state.lease_id,
+					error: err instanceof Error ? err.message : String(err)
+				})
+			}
+		}
+
+		// Step 1 rollback: Delete tenant
+		if (state.tenant_id) {
+			try {
+				await this.tenantCrudService.hardDelete(user_id, state.tenant_id)
+				this.logger.log('SAGA Compensation: Tenant deleted', {
+					sagaId,
+					tenant_id: state.tenant_id
+				})
+			} catch (err) {
+				this.logger.error('Failed to delete tenant during rollback', {
+					sagaId,
+					tenant_id: state.tenant_id,
+					error: err instanceof Error ? err.message : String(err)
+				})
+			}
+		}
+
+		this.logger.log('SAGA compensation complete', { sagaId })
 	}
 
 	/**
@@ -153,6 +276,50 @@ export class TenantInvitationService {
 		} catch {
 			return false
 		}
+	}
+
+	/**
+	 * Cancel a pending invitation
+	 */
+	async cancelInvitation(user_id: string, invitation_id: string): Promise<void> {
+		const client = this.supabase.getAdminClient()
+
+		// Verify the invitation belongs to this owner and is still pending
+		const { data: invitation, error: fetchError } = await client
+			.from('tenant_invitations')
+			.select('id, accepted_at, property_owner_id')
+			.eq('id', invitation_id)
+			.eq('property_owner_id', user_id)
+			.single()
+
+		if (fetchError || !invitation) {
+			this.logger.warn('Invitation not found or not owned by user', {
+				invitation_id,
+				user_id,
+				error: fetchError?.message
+			})
+			throw new NotFoundException('Invitation not found')
+		}
+
+		if (invitation.accepted_at) {
+			throw new BadRequestException('Cannot cancel an accepted invitation')
+		}
+
+		// Delete the invitation
+		const { error: deleteError } = await client
+			.from('tenant_invitations')
+			.delete()
+			.eq('id', invitation_id)
+
+		if (deleteError) {
+			this.logger.error('Failed to cancel invitation', {
+				invitation_id,
+				error: deleteError.message
+			})
+			throw new InternalServerErrorException('Failed to cancel invitation')
+		}
+
+		this.logger.log('Invitation cancelled', { invitation_id, user_id })
 	}
 
 	// ============================================================================
@@ -324,8 +491,8 @@ export class TenantInvitationService {
 	 */
 	private async _sendAuthInvitation(email: string, tenant_id: string, unit_id: string, property_owner_id: string): Promise<string> {
 		try {
-			const invitationCode = Math.random().toString(36).substring(2, 15) +
-				Math.random().toString(36).substring(2, 15)
+			// Generate cryptographically secure invitation code (64 hex characters)
+			const invitationCode = randomBytes(32).toString('hex')
 
 			const client = this.supabase.getAdminClient()
 			const expiresAt = new Date()

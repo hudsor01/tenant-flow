@@ -12,7 +12,7 @@
  * - Important notices
  */
 
-import { useTenantPortalDocuments } from '#hooks/api/use-tenant-portal'
+import { useTenantLeaseDocuments } from '#hooks/api/use-tenant-portal'
 import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -28,7 +28,7 @@ const logger = createLogger({ component: 'TenantDocumentsPage' })
 // Remove force-dynamic as it's incompatible with cacheComponents
 
 export default function TenantDocumentsPage() {
-	const { data, isLoading, error, refetch } = useTenantPortalDocuments()
+	const { data, isLoading, error, refetch } = useTenantLeaseDocuments()
 	const documents = data?.documents ?? []
 	const leaseDocs = documents.filter(doc => doc.type === 'LEASE')
 

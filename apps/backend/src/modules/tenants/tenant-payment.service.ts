@@ -14,7 +14,7 @@ import type { Database, Json } from '@repo/shared/types/supabase'
 import type { RentPayment } from '@repo/shared/types/core'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import type { SupabaseError } from '../../types/stripe-schema'
+import { asStripeSchemaClient, type SupabaseError } from '../../types/stripe-schema'
 
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 
@@ -89,14 +89,15 @@ export class TenantPaymentService {
 		await this.ensureTenantOwnedByUser(user_id, tenant_id)
 
 		const client = this.supabase.getAdminClient()
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-	const { data, error }: { data: unknown; error: SupabaseError | null } = await (client as any)
-		.schema('stripe')
-		.from('payment_intents')
-		.select('*')
-		.contains('metadata', { tenant_id })
-		.order('created', { ascending: false })
-		.limit(limit)
+		const stripeClient = asStripeSchemaClient(client)
+
+		const { data, error }: { data: unknown; error: SupabaseError | null } = await stripeClient
+			.schema('stripe')
+			.from('payment_intents')
+			.select('*')
+			.contains('metadata', { tenant_id })
+			.order('created', { ascending: false })
+			.limit(limit)
 
 		if (error) {
 			this.logger.error('Failed to fetch tenant payment history', {
@@ -230,40 +231,6 @@ export class TenantPaymentService {
 		}
 	}
 
-	/**
-	 * DEPRECATED: Legacy wrapper for TenantAnalyticsService compatibility
-	 * Used by TenantsService facade only
-	 * TODO: Remove when TenantsService is deleted
-	 */
-	async sendPaymentReminderLegacy(
-		tenant_id: string,
-		_email: string,
-		amount_due: number
-	): Promise<{
-		success: true
-		tenant_id: string
-		notificationId: string
-		message: string
-	}> {
-		// Convert to new signature format
-		// Note: This is a temporary adapter - the new sendPaymentReminder requires user_id
-		// For now, we'll create a simple notification without user validation
-		const client = this.supabase.getAdminClient()
-		const { data: tenant } = await client
-			.from('tenants')
-			.select('user_id')
-			.eq('id', tenant_id)
-			.single()
-
-		if (!tenant?.user_id) {
-			throw new NotFoundException('Tenant not found or not linked to user')
-		}
-
-		// Call the real implementation
-		const note = `Payment reminder: $${(amount_due / 100).toFixed(2)} due`
-		return this.sendPaymentReminder(tenant.user_id, tenant_id, note)
-	}
-
 	private _mapStripePaymentIntentToRecord(intent: Stripe.PaymentIntent): TenantPaymentRecord {
 		return {
 			id: intent.id,
@@ -282,14 +249,15 @@ export class TenantPaymentService {
 		limit: number
 	): Promise<TenantPaymentRecord[]> {
 		const client = this.supabase.getAdminClient()
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Stripe schema not in generated types
-	const { data, error }: { data: unknown; error: SupabaseError | null } = await (client as any)
-		.schema('stripe')
-		.from('payment_intents')
-		.select('*')
-		.contains('metadata', { tenant_id })
-		.order('created', { ascending: false })
-		.limit(limit)
+		const stripeClient = asStripeSchemaClient(client)
+
+		const { data, error }: { data: unknown; error: SupabaseError | null } = await stripeClient
+			.schema('stripe')
+			.from('payment_intents')
+			.select('*')
+			.contains('metadata', { tenant_id })
+			.order('created', { ascending: false })
+			.limit(limit)
 
 		if (error) {
 			this.logger.error('Failed to query tenant payment intents', {

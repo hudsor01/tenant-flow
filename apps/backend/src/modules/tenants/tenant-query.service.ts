@@ -2,7 +2,6 @@
  * Tenant Query Service - Coordinator Pattern
  *
  * Coordinates specialized query services with clean, modern API
- * No backward compatibility - all callers must migrate
  *
  * Performance improvements:
  * - Eliminates N+1 query pattern with batch operations
@@ -20,6 +19,42 @@ export interface ListFilters {
 	invitationStatus?: string
 	limit?: number
 	offset?: number
+}
+
+export interface TenantInvitation {
+	id: string
+	email: string
+	first_name: string | null
+	last_name: string | null
+	unit_id: string
+	unit_number: string
+	property_name: string
+	created_at: string
+	expires_at: string
+	accepted_at: string | null
+	status: 'sent' | 'accepted' | 'expired'
+}
+
+/**
+ * Raw invitation data shape from Supabase query with nested relations
+ */
+interface RawInvitationRow {
+	id: string
+	email: string
+	first_name: string | null
+	last_name: string | null
+	unit_id: string
+	property_owner_id: string
+	created_at: string
+	expires_at: string
+	accepted_at: string | null
+	status: string | null
+	unit: {
+		unit_number: string
+		property: {
+			name: string
+		}
+	} | null
 }
 
 @Injectable()
@@ -104,25 +139,25 @@ export class TenantQueryService {
 				.select(`
 					tenant_id,
 					lease:leases(
-						id, 
-						start_date, 
-						end_date, 
-						lease_status, 
-						rent_amount, 
+						id,
+						start_date,
+						end_date,
+						lease_status,
+						rent_amount,
 						security_deposit,
 						unit:units(
-							id, 
-							unit_number, 
-							bedrooms, 
-							bathrooms, 
+							id,
+							unit_number,
+							bedrooms,
+							bathrooms,
 							square_feet,
 							property:properties(
-								id, 
-								name, 
-								address_line1, 
-								address_line2, 
-								city, 
-								state, 
+								id,
+								name,
+								address_line1,
+								address_line2,
+								city,
+								state,
 								postal_code
 							)
 						)
@@ -209,25 +244,25 @@ export class TenantQueryService {
 				.from('lease_tenants')
 				.select(`
 					lease:leases(
-						id, 
-						start_date, 
-						end_date, 
-						lease_status, 
-						rent_amount, 
+						id,
+						start_date,
+						end_date,
+						lease_status,
+						rent_amount,
 						security_deposit,
 						unit:units(
-							id, 
-							unit_number, 
-							bedrooms, 
-							bathrooms, 
+							id,
+							unit_number,
+							bedrooms,
+							bathrooms,
 							square_feet,
 							property:properties(
-								id, 
-								name, 
-								address_line1, 
-								address_line2, 
-								city, 
-								state, 
+								id,
+								name,
+								address_line1,
+								address_line2,
+								city,
+								state,
 								postal_code
 							)
 						)
@@ -561,5 +596,115 @@ export class TenantQueryService {
 			})
 			return new Map()
 		}
+	}
+
+	/**
+	 * Get paginated tenant invitations for an owner
+	 */
+	async getInvitations(
+		user_id: string,
+		filters?: {
+			status?: 'sent' | 'accepted' | 'expired' | 'cancelled'
+			page?: number
+			limit?: number
+		}
+	): Promise<{ data: TenantInvitation[]; total: number }> {
+		if (!user_id) {
+			throw new BadRequestException('user_id is required')
+		}
+
+		const page = filters?.page || 1
+		const limit = Math.min(filters?.limit || 25, 100)
+		const offset = (page - 1) * limit
+
+		try {
+			const client = this.supabase.getAdminClient()
+
+			// Build the query
+			let query = client
+				.from('tenant_invitations')
+				.select(`
+					id,
+					email,
+					first_name,
+					last_name,
+					unit_id,
+					property_owner_id,
+					created_at,
+					expires_at,
+					accepted_at,
+					status,
+					unit:units!inner(
+						unit_number,
+						property:properties!inner(name)
+					)
+				`, { count: 'exact' })
+				.eq('property_owner_id', user_id)
+				.order('created_at', { ascending: false })
+
+			// Apply status filter
+			if (filters?.status) {
+				if (filters.status === 'expired') {
+					// Expired = not accepted and past expiry date
+					query = query
+						.is('accepted_at', null)
+						.lt('expires_at', new Date().toISOString())
+				} else if (filters.status === 'sent') {
+					// Sent = not accepted and not expired
+					query = query
+						.is('accepted_at', null)
+						.gte('expires_at', new Date().toISOString())
+				} else if (filters.status === 'accepted') {
+					query = query.not('accepted_at', 'is', null)
+				}
+			}
+
+			// Apply pagination
+			const { data, count, error } = await query.range(offset, offset + limit - 1)
+
+			if (error) {
+				this.logger.error('Failed to fetch invitations', { error: error.message })
+				throw new BadRequestException('Failed to fetch invitations')
+			}
+
+			// Transform the data to flatten nested relations
+			// Cast through unknown to handle Supabase generated types that may be out of sync
+			const rawData = data as unknown as RawInvitationRow[]
+			const invitations: TenantInvitation[] = (rawData || []).map((inv) => ({
+				id: inv.id,
+				email: inv.email,
+				first_name: inv.first_name,
+				last_name: inv.last_name,
+				unit_id: inv.unit_id,
+				unit_number: inv.unit?.unit_number ?? '',
+				property_name: inv.unit?.property?.name ?? '',
+				created_at: inv.created_at,
+				expires_at: inv.expires_at,
+				accepted_at: inv.accepted_at,
+				status: this._computeInvitationStatus(inv)
+			}))
+
+			return {
+				data: invitations,
+				total: count || 0
+			}
+		} catch (error) {
+			if (error instanceof BadRequestException) throw error
+			this.logger.error('Error fetching invitations', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+			throw new BadRequestException('Failed to fetch invitations')
+		}
+	}
+
+	/**
+	 * Compute the display status of an invitation
+	 */
+	private _computeInvitationStatus(
+		invitation: { accepted_at: string | null; expires_at: string }
+	): 'sent' | 'accepted' | 'expired' {
+		if (invitation.accepted_at) return 'accepted'
+		if (new Date(invitation.expires_at) < new Date()) return 'expired'
+		return 'sent'
 	}
 }

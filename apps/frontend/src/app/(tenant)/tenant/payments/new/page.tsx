@@ -1,5 +1,8 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '#components/ui/button'
 import {
 	Card,
@@ -9,8 +12,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
+import { Badge } from '#components/ui/badge'
 import {
 	Select,
 	SelectContent,
@@ -18,42 +20,241 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
+import { Separator } from '#components/ui/separator'
+import { Skeleton } from '#components/ui/skeleton'
+import {
+	AlertTriangle,
+	CheckCircle2,
+	CreditCard,
+	Loader2
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { formatCents } from '@repo/shared/lib/format'
+import { clientFetch } from '#lib/api/client'
+import { tenantPortalQueries, type PayRentRequest } from '#hooks/api/queries/tenant-portal-queries'
 
-export default function OneTimePaymentPage() {
+interface PaymentMethod {
+	id: string
+	type: string
+	card?: {
+		brand: string
+		last4: string
+		exp_month: number
+		exp_year: number
+	}
+	is_default: boolean
+}
+
+export default function PayRentPage() {
+	const router = useRouter()
+	const queryClient = useQueryClient()
+	const [selectedMethod, setSelectedMethod] = useState<string>('')
+
+	// Fetch amount due
+	const {
+		data: amountDue,
+		isLoading: isLoadingAmount,
+		error: amountError
+	} = useQuery(tenantPortalQueries.amountDue())
+
+	// Fetch payment methods
+	const { data: methodsData, isLoading: isLoadingMethods } = useQuery({
+		queryKey: ['payment-methods'],
+		queryFn: () => clientFetch<{ methods: PaymentMethod[] }>('/api/v1/stripe/tenant-payment-methods')
+	})
+
+	// Pay rent mutation
+	const payMutation = useMutation({
+		mutationFn: async (data: PayRentRequest) => {
+			return clientFetch('/api/v1/tenant-portal/pay-rent', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			})
+		},
+		onSuccess: () => {
+			toast.success('Payment submitted successfully!')
+			queryClient.invalidateQueries({ queryKey: tenantPortalQueries.all() })
+			router.push('/tenant/payments/history')
+		},
+		onError: (error) => {
+			toast.error(error instanceof Error ? error.message : 'Payment failed')
+		}
+	})
+
+	const handleSubmitPayment = () => {
+		if (!selectedMethod || !amountDue) return
+
+		payMutation.mutate({
+			payment_method_id: selectedMethod,
+			amount_cents: amountDue.total_due_cents
+		})
+	}
+
+	const paymentMethods = methodsData?.methods ?? []
+
+	// Loading state
+	if (isLoadingAmount) {
+		return (
+			<div className="container mx-auto max-w-2xl py-12">
+				<Card>
+					<CardHeader>
+						<Skeleton className="h-8 w-48" />
+						<Skeleton className="h-4 w-64" />
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<Skeleton className="h-20 w-full" />
+						<Skeleton className="h-12 w-full" />
+					</CardContent>
+				</Card>
+			</div>
+		)
+	}
+
+	// Error state
+	if (amountError) {
+		return (
+			<div className="container mx-auto max-w-2xl py-12">
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-destructive flex items-center gap-2">
+							<AlertTriangle className="size-5" />
+							Unable to Load Payment Details
+						</CardTitle>
+						<CardDescription>
+							There was an error loading your payment information. Please try again later.
+						</CardDescription>
+					</CardHeader>
+				</Card>
+			</div>
+		)
+	}
+
+	// Already paid state
+	if (amountDue?.already_paid) {
+		return (
+			<div className="container mx-auto max-w-2xl py-12">
+				<Card>
+					<CardHeader className="text-center">
+						<div className="mx-auto mb-4 rounded-full bg-green-100 p-3 w-fit">
+							<CheckCircle2 className="size-8 text-green-600" />
+						</div>
+						<CardTitle>Rent Paid</CardTitle>
+						<CardDescription>
+							Your rent has already been paid for the current period.
+						</CardDescription>
+					</CardHeader>
+					<CardFooter className="justify-center">
+						<Button variant="outline" onClick={() => router.push('/tenant/payments/history')}>
+							View Payment History
+						</Button>
+					</CardFooter>
+				</Card>
+			</div>
+		)
+	}
+
 	return (
 		<div className="container mx-auto max-w-2xl py-12">
 			<Card>
 				<CardHeader>
-					<CardTitle>Make a One-Time Payment</CardTitle>
+					<CardTitle>Pay Rent</CardTitle>
 					<CardDescription>
-						Enter the details for your one-time rent payment.
+						Complete your rent payment for the current billing period.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
-					<div className="space-y-2">
-						<Label htmlFor="amount">Payment Amount</Label>
-						<Input id="amount" type="number" placeholder="Enter amount" />
+					{/* Payment Breakdown */}
+					<div className="rounded-lg border p-4 space-y-3">
+						<h3 className="font-semibold">Payment Breakdown</h3>
+						{amountDue?.breakdown.map((item, index) => (
+							<div key={index} className="flex justify-between text-sm">
+								<span className="text-muted-foreground">{item.description}</span>
+								<span>{formatCents(item.amount_cents)}</span>
+							</div>
+						))}
+						<Separator />
+						<div className="flex justify-between font-semibold">
+							<span>Total Due</span>
+							<span className="text-lg">{formatCents(amountDue?.total_due_cents ?? 0)}</span>
+						</div>
 					</div>
+
+					{/* Late Fee Warning */}
+					{amountDue && amountDue.days_late > 0 && (
+						<div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+							<div className="flex items-center gap-2 text-yellow-800">
+								<AlertTriangle className="size-4" />
+								<span className="font-medium">Payment is {amountDue.days_late} days late</span>
+							</div>
+							<p className="mt-1 text-sm text-yellow-700">
+								A late fee of {formatCents(amountDue.late_fee_cents)} has been added to your payment.
+							</p>
+						</div>
+					)}
+
+					{/* Payment Method Selection */}
 					<div className="space-y-2">
-						<Label htmlFor="payment-method">Payment Method</Label>
-						<Select>
-							<SelectTrigger id="payment-method">
-								<SelectValue placeholder="Select a payment method" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="card-1">Visa ending in 4242</SelectItem>
-								<SelectItem value="bank-1">Chase ending in 1234</SelectItem>
-								<SelectItem value="new">Add a new payment method</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="notes">Notes (Optional)</Label>
-						<Input id="notes" placeholder="e.g., Early payment for next month" />
+						<label className="text-sm font-medium">Payment Method</label>
+						{isLoadingMethods ? (
+							<Skeleton className="h-10 w-full" />
+						) : paymentMethods.length === 0 ? (
+							<div className="rounded-lg border border-dashed p-4 text-center">
+								<CreditCard className="mx-auto size-8 text-muted-foreground" />
+								<p className="mt-2 text-sm text-muted-foreground">
+									No payment methods on file
+								</p>
+								<Button
+									variant="link"
+									size="sm"
+									onClick={() => router.push('/tenant/settings/payment-methods')}
+								>
+									Add a payment method
+								</Button>
+							</div>
+						) : (
+							<Select value={selectedMethod} onValueChange={setSelectedMethod}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select a payment method" />
+								</SelectTrigger>
+								<SelectContent>
+									{paymentMethods.map((method) => (
+										<SelectItem key={method.id} value={method.id}>
+											<div className="flex items-center gap-2">
+												<CreditCard className="size-4" />
+												<span className="capitalize">{method.card?.brand}</span>
+												<span>ending in {method.card?.last4}</span>
+												{method.is_default && (
+													<Badge variant="secondary" className="ml-2">
+														Default
+													</Badge>
+												)}
+											</div>
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
 					</div>
 				</CardContent>
-				<CardFooter>
-					<Button className="w-full">Submit Payment</Button>
+				<CardFooter className="flex-col gap-4">
+					<Button
+						className="w-full"
+						size="lg"
+						onClick={handleSubmitPayment}
+						disabled={!selectedMethod || payMutation.isPending}
+					>
+						{payMutation.isPending ? (
+							<>
+								<Loader2 className="mr-2 size-4 animate-spin" />
+								Processing...
+							</>
+						) : (
+							`Pay ${formatCents(amountDue?.total_due_cents ?? 0)}`
+						)}
+					</Button>
+					<p className="text-xs text-center text-muted-foreground">
+						By clicking Pay, you authorize this payment to your property manager.
+					</p>
 				</CardFooter>
 			</Card>
 		</div>
