@@ -4,9 +4,21 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { LoadingDots } from '#components/ui/loading-spinner'
 import { useSessionStatus } from '#hooks/api/use-payment-verification'
-import { getStatusColorClass } from '#lib/utils/color-helpers'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+
+// Map status to CSS class name (uses classes from globals.css)
+const getStatusClass = (status: string): string => {
+	const statusMap: Record<string, string> = {
+		ACTIVE: 'status-active',
+		PENDING: 'status-pending',
+		INACTIVE: 'status-inactive',
+		OVERDUE: 'status-overdue',
+		complete: 'status-complete',
+		error: 'status-error'
+	}
+	return statusMap[status] || 'status-inactive'
+}
 
 // Success Icon as per Stripe specification
 const SuccessIcon = () => (
@@ -152,7 +164,7 @@ export default function CompletePage() {
 							{/* Status Icon */}
 							<div
 								id="status-icon"
-								className={`size-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusColorClass(status) : ''}`}
+								className={`size-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusClass(status) : ''}`}
 							>
 								{icon}
 							</div>

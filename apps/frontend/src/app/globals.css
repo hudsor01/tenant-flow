@@ -1700,6 +1700,84 @@
 		opacity: 0.65;
 	}
 
+	/* Status Color Classes - Migrated from color-helpers.ts */
+	.status-active {
+		color: var(--color-success);
+		background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
+		border-color: color-mix(in oklch, var(--color-success) 20%, transparent);
+	}
+
+	.status-pending {
+		color: var(--color-warning);
+		background-color: color-mix(in oklch, var(--color-warning) 10%, transparent);
+		border-color: color-mix(in oklch, var(--color-warning) 20%, transparent);
+	}
+
+	.status-inactive {
+		color: var(--muted-foreground);
+		background-color: var(--muted);
+		border-color: var(--border);
+	}
+
+	.status-overdue {
+		color: var(--destructive);
+		background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
+		border-color: color-mix(in oklch, var(--destructive) 20%, transparent);
+	}
+
+	.status-complete {
+		color: var(--color-success);
+		background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
+	}
+
+	.status-error {
+		color: var(--destructive);
+		background-color: color-mix(in oklch, var(--destructive) 10%, transparent);
+	}
+
+	/* Activity Type Color Classes - Migrated from color-helpers.ts */
+	.activity-payment {
+		color: var(--color-success);
+		background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
+	}
+
+	.activity-maintenance {
+		color: var(--color-info);
+		background-color: color-mix(in oklch, var(--color-info) 10%, transparent);
+	}
+
+	.activity-lease {
+		color: var(--color-primary);
+		background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
+	}
+
+	.activity-property {
+		color: var(--color-primary);
+		background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
+	}
+
+	.activity-tenant {
+		color: var(--color-warning);
+		background-color: color-mix(in oklch, var(--color-warning) 10%, transparent);
+	}
+
+	/* Animation Utility Classes - Already have keyframes, just need class wrappers */
+	.animate-fade-in {
+		animation: fade-in 300ms ease-in-out;
+	}
+
+	.animate-slide-up {
+		animation: slide-up 300ms ease-out;
+	}
+
+	.animate-slide-down {
+		animation: slide-down 300ms ease-out;
+	}
+
+	.animate-scale {
+		animation: scale-in 200ms ease-out;
+	}
+
 	@layer utilities {
 		@media (max-width: 768px) {
 			.btn,
