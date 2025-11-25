@@ -1,6 +1,6 @@
 'use client'
 
-import { PasswordUpdateSection } from '#app/(tenant)/tenant/settings/password-update-section.jsx'
+import { PasswordUpdateSection } from '#app/(tenant)/tenant/settings/password-update-section'
 import { useTransition } from 'react'
 import { toast } from 'sonner'
 import { clientFetch } from '#lib/api/client'
