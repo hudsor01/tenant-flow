@@ -13,23 +13,14 @@ const nextConfig: NextConfig = {
 	typedRoutes: false,
 
 	compiler: {
-		removeConsole: true
+		removeConsole: process.env.NODE_ENV === 'production'
 	},
 
-	logging: {
-		fetches: {
-			fullUrl: true
-		}
-	},
 	turbopack: {
 		resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mdx']
 	},
 
 	cacheComponents: true,
-	onDemandEntries: {
-		maxInactiveAge: 25 * 1000,
-		pagesBufferLength: 2
-	},
 	experimental: {
 		optimizePackageImports: [
 			'lucide-react',

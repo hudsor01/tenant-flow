@@ -50,7 +50,7 @@ const protectedOwnerRoutes = [
 	'/rent-collection'
 ]
 
-const protectedTenantRoutes = ['/portal', '/tenant']
+const protectedTenantRoutes = ['/tenant']
 
 export async function proxy(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({
@@ -131,7 +131,7 @@ export async function proxy(request: NextRequest) {
 		const url = request.nextUrl.clone()
 		// Get user_type from claims (set by custom access token hook)
 		const userType = (claims.app_metadata as { user_type?: string })?.user_type
-		url.pathname = userType === 'OWNER' ? '/dashboard' : '/portal'
+		url.pathname = userType === 'OWNER' ? '/dashboard' : '/tenant'
 		return NextResponse.redirect(url)
 	}
 
@@ -149,7 +149,7 @@ export async function proxy(request: NextRequest) {
 		// TENANT trying to access owner routes
 		if (userType === 'TENANT' && isOwnerRoute) {
 			const url = request.nextUrl.clone()
-			url.pathname = '/portal'
+			url.pathname = '/tenant'
 			return NextResponse.redirect(url)
 		}
 	}
