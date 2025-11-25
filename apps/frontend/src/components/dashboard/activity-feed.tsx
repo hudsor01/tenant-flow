@@ -25,27 +25,27 @@ type ActivityWithEnum = Omit<Activity, 'entityType'> & {
 	entityType: ActivityEntityType
 }
 
-// Inline helpers using CSS classes from globals.css
+// Use pre-defined activity classes from globals.css
 const getActivityColorClass = (type: string): string => {
-	const colorMap: Record<string, string> = {
-		payment: 'text-[var(--color-success)] bg-[var(--color-success)]/10',
-		maintenance: 'text-[var(--color-info)] bg-[var(--color-info)]/10',
-		lease: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10',
-		property: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10',
-		tenant: 'text-[var(--color-warning)] bg-[var(--color-warning)]/10'
+	const classMap: Record<string, string> = {
+		payment: 'activity-payment',
+		maintenance: 'activity-maintenance',
+		lease: 'activity-lease',
+		property: 'activity-property',
+		tenant: 'activity-tenant'
 	}
-	return colorMap[type] || 'text-muted-foreground bg-muted'
+	return classMap[type] || 'text-muted-foreground bg-muted'
 }
 
 const getActivityBadgeClass = (type: string): string => {
-	const colorMap: Record<string, string> = {
-		payment: 'text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/20',
-		maintenance: 'text-[var(--color-info)] bg-[var(--color-info)]/10 border-[var(--color-info)]/20',
-		lease: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20',
-		property: 'text-[var(--color-primary)] bg-[var(--color-primary)]/10 border-[var(--color-primary)]/20',
-		tenant: 'text-[var(--color-warning)] bg-[var(--color-warning)]/10 border-[var(--color-warning)]/20'
+	const classMap: Record<string, string> = {
+		payment: 'activity-payment border border-[var(--color-success)]/20',
+		maintenance: 'activity-maintenance border border-[var(--color-info)]/20',
+		lease: 'activity-lease border border-[var(--color-primary)]/20',
+		property: 'activity-property border border-[var(--color-primary)]/20',
+		tenant: 'activity-tenant border border-[var(--color-warning)]/20'
 	}
-	return colorMap[type] || 'text-muted-foreground bg-muted border-border'
+	return classMap[type] || 'text-muted-foreground bg-muted border-border'
 }
 
 // Modern helpers - assume valid inputs

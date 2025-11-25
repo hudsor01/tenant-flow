@@ -112,10 +112,10 @@ export default function TenantDashboardPage() {
 	]
 
 	return (
-		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50">
-			<div className="dashboard-main border-b-2 border-slate-200/40 bg-gradient-to-b from-white via-slate-50/30 to-slate-100/20 dark:border-slate-700/40 dark:from-slate-900 dark:via-slate-800/30 dark:to-slate-900/20">
+		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--background)] via-[var(--card)] to-[var(--muted)]/50 dark:from-[var(--background)] dark:via-[var(--card)] dark:to-[var(--muted)]/50">
+			<div className="dashboard-main border-b-2 border-[var(--color-border)]/40 bg-gradient-to-b from-[var(--background)] via-[var(--muted)]/30 to-[var(--muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--background)] dark:via-[var(--muted)]/30 dark:to-[var(--muted)]/20">
 				<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
-					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-white">
+					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--foreground)] via-[var(--foreground)]/80 to-[var(--foreground)] bg-clip-text text-transparent dark:from-[var(--background)] dark:via-[var(--background)] dark:to-[var(--background)]">
 						Tenant Portal
 					</h1>
 
@@ -190,9 +190,9 @@ export default function TenantDashboardPage() {
 														variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
 														className={
 															paymentStatus.variant === 'success'
-																? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-100'
+																? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/30 hover:bg-[var(--color-success)]/10'
 																: paymentStatus.variant === 'warning'
-																? 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-100'
+																? 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/30 hover:bg-[var(--color-warning)]/10'
 																: ''
 														}
 													>

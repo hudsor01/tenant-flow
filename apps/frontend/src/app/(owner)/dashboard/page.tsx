@@ -7,7 +7,7 @@ import { PerformanceSection } from '#components/dashboard/performance-section'
 import { QuickActionsSection } from '#components/dashboard/quick-actions-section'
 import { SectionCards } from '#components/dashboard/section-cards'
 import { TrendsSection } from '#components/dashboard/trends-section'
-import '../dashboard.css'
+import './dashboard.css'
 
 /**
  * Owner Dashboard Homepage

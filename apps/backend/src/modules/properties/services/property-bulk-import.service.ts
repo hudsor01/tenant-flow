@@ -137,11 +137,38 @@ export class PropertyBulkImportService {
 				)
 			}
 
-			// Use user_id from req.user.id (Supabase auth UUID) for RLS-compliant inserts
-			const errors: Array<{ row: number; error: string }> = []
-			const validRows: Array<
-				Database['public']['Tables']['properties']['Insert']
-			> = []
+// PHASE 1: Fetch property_owner_id for the authenticated user
+// Properties.property_owner_id is FK to property_owners.id (NOT auth.users.id)
+this.logger.log('[BULK_IMPORT:PHASE1.5] Fetching property_owner_id...', {
+user_id
+})
+
+const { data: propertyOwner, error: ownerError } = await client
+.from('property_owners')
+.select('id')
+.eq('user_id', user_id)
+.single()
+
+if (ownerError || !propertyOwner) {
+this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
+error: ownerError?.message,
+user_id
+})
+throw new BadRequestException(
+'Property owner record not found. Please complete onboarding first.'
+)
+}
+
+const property_owner_id = propertyOwner.id
+this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found', {
+property_owner_id,
+user_id
+})
+
+const errors: Array<{ row: number; error: string }> = []
+const validRows: Array<
+Database['public']['Tables']['properties']['Insert']
+> = []
 
 			// PHASE 1: Validate ALL rows before inserting anything
 			this.logger.log('[BULK_IMPORT:PHASE2:START] Validating all rows...', {
@@ -185,10 +212,11 @@ export class PropertyBulkImportService {
 						)
 					}
 
-					// Build insert object
-					const insertData: Database['public']['Tables']['properties']['Insert'] =
-						{
-							property_owner_id: user_id,
+// Build insert object
+// Use property_owner_id from property_owners table (NOT auth.uid())
+const insertData: Database['public']['Tables']['properties']['Insert'] =
+{
+property_owner_id: property_owner_id,
 							name: name.trim(),
 							address_line1: address.trim(),
 							city: city.trim(),
