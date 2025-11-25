@@ -53,8 +53,8 @@ export class HealthService {
 				service: 'backend-api',
 				config_loaded: {
 					node_env: !!nodeEnv,
-					cors_origins: !!this.config.get('CORS_ORIGINS'),
-					supabase_url: !!this.config.get('SUPABASE_URL')
+					cors_origins: !!this.config.getCorsOrigins(),
+					supabase_url: !!this.config.getSupabaseUrl()
 				},
 				database: {
 					status: dbHealth.status,
@@ -85,8 +85,8 @@ export class HealthService {
 				service: 'backend-api',
 				config_loaded: {
 					node_env: !!nodeEnv,
-					cors_origins: !!this.config.get('CORS_ORIGINS'),
-					supabase_url: !!this.config.get('SUPABASE_URL')
+					cors_origins: !!this.config.getCorsOrigins(),
+					supabase_url: !!this.config.getSupabaseUrl()
 				},
 				database: {
 					status: 'unhealthy',

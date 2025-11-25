@@ -148,7 +148,6 @@ function LoginPageContent() {
 
 							<div className="relative text-center space-y-6 py-12 px-8">
 								<div className="size-16 mx-auto mb-8">
-									<div className="absolute inset-0 bg-primary/55 rounded-2xl blur-xl" />
 									<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
 										<Home className="size-8 text-primary-foreground" />
 									</div>

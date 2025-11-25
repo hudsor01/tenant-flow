@@ -18,7 +18,7 @@ export class AppConfigService {
 	// ==================== Application ====================
 
 	getNodeEnv(): NodeEnvironment {
-		return this.configService.get('NODE_ENV', { infer: true })
+		return this.get('NODE_ENV')
 	}
 
 	isProduction(): boolean {
@@ -34,66 +34,64 @@ export class AppConfigService {
 	}
 
 	getPort(): number {
-		return this.configService.get('PORT', { infer: true })
+		return this.get('PORT')
 	}
 
 	getBackendTimeoutMs(): number {
-		return this.configService.get('BACKEND_TIMEOUT_MS', { infer: true })
+		return this.get('BACKEND_TIMEOUT_MS')
 	}
 
 	getApiBaseUrl(): string {
-		return this.configService.get('API_BASE_URL', { infer: true })
+		return this.get('API_BASE_URL')
 	}
 
 	getFrontendUrl(): string {
-		return this.configService.get('FRONTEND_URL', { infer: true })
+		return this.get('FRONTEND_URL')
 	}
 
 	getNextPublicAppUrl(): string {
-		return this.configService.get('NEXT_PUBLIC_APP_URL', { infer: true })
+		return this.get('NEXT_PUBLIC_APP_URL')
 	}
 
 	// ==================== Database ====================
 
 	getDatabaseUrl(): string {
-		return this.configService.get('DATABASE_URL', { infer: true })
+		return this.get('DATABASE_URL')
 	}
 
 	getDirectUrl(): string | undefined {
-		return this.configService.get('DIRECT_URL', { infer: true })
+		return this.get('DIRECT_URL')
 	}
 
 	// ==================== Authentication ====================
 
 	getJwtSecret(): string {
-		return this.configService.get('JWT_SECRET', { infer: true })
+		return this.get('JWT_SECRET')
 	}
 
 	getJwtPublicKeyCurrent(): string | undefined {
-		return this.configService.get('JWT_PUBLIC_KEY_CURRENT', { infer: true })
+		return this.get('JWT_PUBLIC_KEY_CURRENT')
 	}
 
 	getJwtPublicKeyStandby(): string | undefined {
-		return this.configService.get('JWT_PUBLIC_KEY_STANDBY', { infer: true })
+		return this.get('JWT_PUBLIC_KEY_STANDBY')
 	}
 
 	getJwtExpiresIn(): string {
-		return this.configService.get('JWT_EXPIRES_IN', { infer: true })
+		return this.get('JWT_EXPIRES_IN')
 	}
 
 	getSupabaseUrl(): string {
-		return this.configService.get('SUPABASE_URL', { infer: true })
+		return this.get('SUPABASE_URL')
 	}
 
 	getSupabaseSecretKey(): string {
-		return this.configService.get('SUPABASE_SECRET_KEY', { infer: true })
+		return this.get('SUPABASE_SECRET_KEY')
 	}
 
-	getSupabasePublishableKey(): string {
-		return this.configService.get('SUPABASE_PUBLISHABLE_KEY', { infer: true })
-	}
-
-	get supabaseJwtAlgorithm(): string {
+	getSupabasePublishableKey(): string | undefined {
+		return this.get('SUPABASE_PUBLISHABLE_KEY')
+	}	get supabaseJwtAlgorithm(): string {
 		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'HS256'
 	}
 
@@ -112,17 +110,17 @@ export class AppConfigService {
 	}
 
 	getSupabaseProjectRef(): string {
-		return this.configService.get('SUPABASE_PROJECT_REF', { infer: true })
+		return this.get('SUPABASE_PROJECT_REF')
 	}
 
 	getSupabaseAuthWebhookSecret(): string | undefined {
-		return this.configService.get('SUPABASE_AUTH_WEBHOOK_SECRET', { infer: true })
+		return this.get('SUPABASE_AUTH_WEBHOOK_SECRET')
 	}
 
 	// ==================== CORS ====================
 
 	getCorsOrigins(): string | undefined {
-		return this.configService.get('CORS_ORIGINS', { infer: true })
+		return this.get('CORS_ORIGINS')
 	}
 
 	getCorsOriginsArray(): string[] {
@@ -137,172 +135,161 @@ export class AppConfigService {
 	// ==================== Rate Limiting ====================
 
 	getRateLimitTtl(): string | undefined {
-		return this.configService.get('RATE_LIMIT_TTL', { infer: true })
+		return this.get('RATE_LIMIT_TTL')
 	}
 
 	getRateLimitLimit(): string | undefined {
-		return this.configService.get('RATE_LIMIT_LIMIT', { infer: true })
+		return this.get('RATE_LIMIT_LIMIT')
 	}
 
 	getHealthThrottleTtl(): number {
-		return this.configService.get('HEALTH_THROTTLE_TTL', { infer: true })
+		return this.get('HEALTH_THROTTLE_TTL')
 	}
 
 	getHealthThrottleLimit(): number {
-		return this.configService.get('HEALTH_THROTTLE_LIMIT', { infer: true })
+		return this.get('HEALTH_THROTTLE_LIMIT')
 	}
 
 	getContactThrottleTtl(): number {
-		return this.configService.get('CONTACT_THROTTLE_TTL', { infer: true })
+		return this.get('CONTACT_THROTTLE_TTL')
 	}
 
 	getContactThrottleLimit(): number {
-		return this.configService.get('CONTACT_THROTTLE_LIMIT', { infer: true })
+		return this.get('CONTACT_THROTTLE_LIMIT')
 	}
 
 	getTenantInvitationThrottleTtl(): number {
-		return this.configService.get('TENANT_INVITATION_THROTTLE_TTL', { infer: true })
+		return this.get('TENANT_INVITATION_THROTTLE_TTL')
 	}
 
 	getTenantInvitationThrottleLimit(): number {
-		return this.configService.get('TENANT_INVITATION_THROTTLE_LIMIT', { infer: true })
+		return this.get('TENANT_INVITATION_THROTTLE_LIMIT')
 	}
 
 	getHealthMemoryWarningThreshold(): number {
-		return this.configService.get('HEALTH_MEMORY_WARNING_THRESHOLD', { infer: true })
+		return this.get('HEALTH_MEMORY_WARNING_THRESHOLD')
 	}
 
 	getHealthMemoryCriticalThreshold(): number {
-		return this.configService.get('HEALTH_MEMORY_CRITICAL_THRESHOLD', { infer: true })
+		return this.get('HEALTH_MEMORY_CRITICAL_THRESHOLD')
 	}
 
 	getHealthResponseTimeWarningThreshold(): number {
-		return this.configService.get('HEALTH_RESPONSE_TIME_WARNING_THRESHOLD', { infer: true })
+		return this.get('HEALTH_RESPONSE_TIME_WARNING_THRESHOLD')
 	}
 
 	getHealthResponseTimeCriticalThreshold(): number {
-		return this.configService.get('HEALTH_RESPONSE_TIME_CRITICAL_THRESHOLD', { infer: true })
+		return this.get('HEALTH_RESPONSE_TIME_CRITICAL_THRESHOLD')
 	}
 
 	getHealthCacheMaxEntries(): number {
-		return this.configService.get('HEALTH_CACHE_MAX_ENTRIES', { infer: true })
+		return this.get('HEALTH_CACHE_MAX_ENTRIES')
 	}
 
 	getMetricsThrottleTtl(): number {
-		return this.configService.get('METRICS_THROTTLE_TTL', { infer: true })
+		return this.get('METRICS_THROTTLE_TTL')
 	}
 
 	getMetricsThrottleLimit(): number {
-		return this.configService.get('METRICS_THROTTLE_LIMIT', { infer: true })
+		return this.get('METRICS_THROTTLE_LIMIT')
 	}
 
 	isRateLimitingEnabled(): boolean {
-		return this.configService.get('ENABLE_RATE_LIMITING', { infer: true })
+		return this.get('ENABLE_RATE_LIMITING')
 	}
 
 	getWebhookThrottleTtl(): number {
-		return this.configService.get('WEBHOOK_THROTTLE_TTL', { infer: true })
+		return this.get('WEBHOOK_THROTTLE_TTL')
 	}
 
 	getWebhookThrottleLimit(): number {
-		return this.configService.get('WEBHOOK_THROTTLE_LIMIT', { infer: true })
+		return this.get('WEBHOOK_THROTTLE_LIMIT')
 	}
 
 	getStripeSyncThrottleTtl(): number {
-		return this.configService.get('STRIPE_SYNC_THROTTLE_TTL', { infer: true })
+		return this.get('STRIPE_SYNC_THROTTLE_TTL')
 	}
 
 	getStripeSyncThrottleLimit(): number {
-		return this.configService.get('STRIPE_SYNC_THROTTLE_LIMIT', { infer: true })
+		return this.get('STRIPE_SYNC_THROTTLE_LIMIT')
 	}
 
 	getSupabaseAuthThrottleTtl(): number {
-		return this.configService.get('SUPABASE_AUTH_THROTTLE_TTL', { infer: true })
+		return this.get('SUPABASE_AUTH_THROTTLE_TTL')
 	}
 
 	getSupabaseAuthThrottleLimit(): number {
-		return this.configService.get('SUPABASE_AUTH_THROTTLE_LIMIT', { infer: true })
+		return this.get('SUPABASE_AUTH_THROTTLE_LIMIT')
 	}
 
 	// ==================== Stripe ====================
 
 	getStripeSecretKey(): string {
-		return this.configService.get('STRIPE_SECRET_KEY', { infer: true })
+		return this.get('STRIPE_SECRET_KEY')
 	}
 
 	getStripePublishableKey(): string | undefined {
-		return this.configService.get('STRIPE_PUBLISHABLE_KEY', { infer: true })
+		return this.get('STRIPE_PUBLISHABLE_KEY')
 	}
 
 	getStripeWebhookSecret(): string {
-		return this.configService.get('STRIPE_WEBHOOK_SECRET', { infer: true })
+		return this.get('STRIPE_WEBHOOK_SECRET')
 	}
 
 	getStripePriceIds(): {
-		starter?: string
-		growth?: string
-		business?: string
-		tenantflowMax?: string
+		starter: string | undefined
+		growth: string | undefined
+		business: string | undefined
+		tenantflowMax: string | undefined
 	} {
 		return {
-			starter: this.configService.get('STRIPE_PRICE_ID_STARTER', {
-				infer: true
-			}),
-			growth: this.configService.get('STRIPE_PRICE_ID_GROWTH', { infer: true }),
-			business: this.configService.get('STRIPE_PRICE_ID_BUSINESS', {
-				infer: true
-			}),
-			tenantflowMax: this.configService.get('STRIPE_PRICE_ID_TENANTFLOW_MAX', {
-				infer: true
-			})
+			starter: this.get('STRIPE_PRICE_ID_STARTER'),
+			growth: this.get('STRIPE_PRICE_ID_GROWTH'),
+			business: this.get('STRIPE_PRICE_ID_BUSINESS'),
+			tenantflowMax: this.get('STRIPE_PRICE_ID_TENANTFLOW_MAX')
 		}
 	}
 
 	getStripeConnectDefaultCountry(): string {
-		return this.configService.get('STRIPE_CONNECT_DEFAULT_COUNTRY', {
-			infer: true
-		})
+		return this.get('STRIPE_CONNECT_DEFAULT_COUNTRY')
 	}
 
-	// ==================== Redis ====================
-
 	getRedisUrl(): string | undefined {
-		return this.configService.get('REDIS_URL', { infer: true })
+		return this.get('REDIS_URL')
 	}
 
 	getRedisHost(): string | undefined {
 		return (
-			this.configService.get('REDIS_HOST', { infer: true }) ||
-			this.configService.get('REDISHOST', { infer: true })
+			this.get('REDIS_HOST') ||
+			this.get('REDISHOST')
 		)
 	}
 
 	getRedisPort(): string | undefined {
 		return (
-			this.configService.get('REDIS_PORT', { infer: true }) ||
-			this.configService.get('REDISPORT', { infer: true })
+			this.get('REDIS_PORT') ||
+			this.get('REDISPORT')
 		)
 	}
 
 	getRedisPassword(): string | undefined {
 		return (
-			this.configService.get('REDIS_PASSWORD', { infer: true }) ||
-			this.configService.get('REDISPASSWORD', { infer: true })
+			this.get('REDIS_PASSWORD') ||
+			this.get('REDISPASSWORD')
 		)
 	}
 
 	getRedisDb(): string | undefined {
-		return this.configService.get('REDIS_DB', { infer: true })
+		return this.get('REDIS_DB')
 	}
 
-	getRedisConfig():
-		| { url: string }
-		| {
-				host?: string
-				port?: number
-				password?: string
-				db?: number
-		  } {
+	getRedisConfig(): {
+		url?: string
+		host?: string
+		port?: number
+		password?: string
+		db?: number
+	} {
 		const url = this.getRedisUrl()
 		if (url) {
 			return { url }
@@ -324,100 +311,100 @@ export class AppConfigService {
 	// ==================== Logging ====================
 
 	getLogLevel(): 'error' | 'warn' | 'info' | 'debug' {
-		return this.configService.get('LOG_LEVEL', { infer: true })
+		return this.get('LOG_LEVEL')
 	}
 
 	// ==================== Monitoring ====================
 
 	isMetricsEnabled(): boolean {
-		return this.configService.get('ENABLE_METRICS', { infer: true })
+		return this.get('ENABLE_METRICS')
 	}
 
 	getPrometheusBearerToken(): string | undefined {
-		return this.configService.get('PROMETHEUS_BEARER_TOKEN', { infer: true })
+		return this.get('PROMETHEUS_BEARER_TOKEN')
 	}
 
 	isPrometheusAuthRequired(): boolean {
-		return this.configService.get('PROMETHEUS_REQUIRE_AUTH', { infer: true })
+		return this.get('PROMETHEUS_REQUIRE_AUTH')
 	}
 
-	// ==================== File Storage ====================
+	// ==================== Storage ====================
 
 	getStorageProvider(): 'local' | 'supabase' | 's3' {
-		return this.configService.get('STORAGE_PROVIDER', { infer: true })
+		return this.get('STORAGE_PROVIDER')
 	}
 
 	getStorageBucket(): string {
-		return this.configService.get('STORAGE_BUCKET', { infer: true })
+		return this.get('STORAGE_BUCKET')
 	}
 
 	// ==================== Email ====================
 
 	getFromEmail(): string | undefined {
-		return this.configService.get('FROM_EMAIL', { infer: true })
+		return this.get('FROM_EMAIL')
 	}
 
 	getTestResendApiKey(): string | undefined {
-		return this.configService.get('TEST_RESEND_API_KEY', { infer: true })
+		return this.get('TEST_RESEND_API_KEY')
 	}
 
 	getResendFromEmail(): string {
-		return this.configService.get('RESEND_FROM_EMAIL', { infer: true })
+		return this.get('RESEND_FROM_EMAIL')
 	}
 
 	getResendApiKey(): string | undefined {
-		return this.configService.get('RESEND_API_KEY', { infer: true })
+		return this.get('RESEND_API_KEY')
 	}
 
 	// ==================== Security ====================
 
 	getCsrfSecret(): string | undefined {
-		return this.configService.get('CSRF_SECRET', { infer: true })
+		return this.get('CSRF_SECRET')
 	}
 
 	getSessionSecret(): string | undefined {
-		return this.configService.get('SESSION_SECRET', { infer: true })
+		return this.get('SESSION_SECRET')
 	}
 
-	// ==================== Features ====================
+	// ==================== Swagger ====================
 
 	isSwaggerEnabled(): boolean {
-		return this.configService.get('ENABLE_SWAGGER', { infer: true })
+		return this.get('ENABLE_SWAGGER')
 	}
 
 	// ==================== Platform Detection ====================
 
 	isRailway(): boolean {
-		return !!this.configService.get('RAILWAY_PROJECT_ID', { infer: true })
+		return !!this.get('RAILWAY_PROJECT_ID')
 	}
 
 	isVercel(): boolean {
-		return !!this.configService.get('VERCEL_ENV', { infer: true })
+		return !!this.get('VERCEL_ENV')
 	}
 
 	isDocker(): boolean {
-		return this.configService.get('DOCKER_CONTAINER', { infer: true })
+		return this.get('DOCKER_CONTAINER')
 	}
 
 	isLocalhostCorsAllowed(): boolean {
-		return this.configService.get('ALLOW_LOCALHOST_CORS', { infer: true })
+		return this.get('ALLOW_LOCALHOST_CORS')
 	}
 
-	// ==================== Generic Getter ====================
-
-	get<K extends keyof Config>(key: K): Config[K] {
-		return this.configService.get(key, { infer: true })
-	}
+	// ==================== Support ====================
 
 	getSupportEmail(): string {
-		return this.configService.get('SUPPORT_EMAIL', { infer: true })
+		return this.get('SUPPORT_EMAIL')
 	}
 
 	getSupportPhone(): string {
-		return this.configService.get('SUPPORT_PHONE', { infer: true }) || '(555) 123-4567'
+		return this.get('SUPPORT_PHONE') || '(555) 123-4567'
 	}
 
 	getIdempotencyKeySecret(): string {
-		return this.configService.get('IDEMPOTENCY_KEY_SECRET', { infer: true })
+		return this.get('IDEMPOTENCY_KEY_SECRET')
+	}
+
+	private get<K extends keyof Config>(key: K): Config[K] {
+		return this.configService.get(key, { infer: true })
 	}
 }
