@@ -1,6 +1,10 @@
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { NextConfig } from 'next'
 
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+	enabled: process.env.ANALYZE === 'true'
+})
+
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	productionBrowserSourceMaps: false,
@@ -27,7 +31,16 @@ const nextConfig: NextConfig = {
 		pagesBufferLength: 2
 	},
 	experimental: {
-		optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
+		optimizePackageImports: [
+			'lucide-react',
+			'date-fns',
+			'recharts',
+			'@radix-ui/react-icons',
+			'react-day-picker',
+			'@tanstack/react-table',
+			'@dnd-kit/core',
+			'@dnd-kit/sortable'
+		],
 		serverActions: {
 			bodySizeLimit: '2mb',
 			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
@@ -113,4 +126,4 @@ const nextConfig: NextConfig = {
 	}
 }
 
-export default nextConfig
+export default withBundleAnalyzer(nextConfig)

@@ -334,7 +334,7 @@ export function useTenantLease() {
 export function useTenantLeaseDocuments() {
 	return useQuery({
 		queryKey: tenantPortalKeys.leases.documents(),
-		queryFn: () => clientFetch<{ documents: TenantDocument[] }>('/api/v1/tenant/leases/documents'),
+		queryFn: () => clientFetch<{ documents: TenantDocument[] }>('/api/v1/tenant-portal/documents'),
 		...QUERY_CACHE_TIMES.DETAIL,
 		refetchInterval: 10 * 60 * 1000,
 		refetchIntervalInBackground: false,

@@ -13,14 +13,21 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { useOwnerPropertyPerformance } from '#hooks/api/use-owner-dashboard'
-import {
-	getOccupancyBadgeClass,
-	getTrendColorClass
-} from '#lib/utils/color-helpers'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
-
 import { formatCurrency } from '@repo/shared/utils/currency'
 
+// Inline helpers using CSS classes from globals.css
+const getOccupancyBadgeClass = (rate: number): string => {
+	if (rate >= 90) return 'text-[var(--color-success)] border-[var(--color-success)]/20'
+	if (rate >= 80) return 'text-[var(--color-info)] border-[var(--color-info)]/20'
+	return 'text-[var(--color-warning)] border-[var(--color-warning)]/20'
+}
+
+const getTrendColorClass = (trend: 'up' | 'down' | 'stable' | string): string => {
+	if (trend === 'up') return 'text-[var(--color-success)]'
+	if (trend === 'down') return 'text-[var(--color-warning)]'
+	return 'text-muted-foreground'
+}
 
 const getTrendIcon = (trend: string) => {
 	switch (trend) {

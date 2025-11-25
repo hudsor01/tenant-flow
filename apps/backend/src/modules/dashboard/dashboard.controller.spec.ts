@@ -1,405 +1,72 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import { GoneException } from '@nestjs/common'
 
-import { createAuthenticatedRequest } from '../../shared/test-utils/types'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import { createMockUser } from '../../test-utils/mocks'
-import { SupabaseService } from '../../database/supabase.service'
 import { DashboardController } from './dashboard.controller'
-import { DashboardService } from './dashboard.service'
-
-// Mock the services
-jest.mock('./dashboard.service')
-jest.mock('../../database/supabase.service', () => {
-	return {
-		SupabaseService: jest.fn().mockImplementation(() => ({
-			getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token'),
-			getUserClient: jest.fn(),
-			getAdminClient: jest.fn()
-		}))
-	}
-})
 
 describe('DashboardController', () => {
 	let controller: DashboardController
-	let mockDashboardServiceInstance: jest.Mocked<DashboardService>
-
-	const mockUser = createMockUser({ id: 'user-123' })
-
-	const mockRequest = createAuthenticatedRequest(mockUser.id, {
-		headers: {
-			origin: 'http://localhost:3000',
-			referer: 'http://localhost:3000/dashboard'
-		},
-		body: undefined,
-		// preserve method/path info for any handlers that inspect them
-		url: '/api/v1/dashboard'
-	}) as AuthenticatedRequest
 
 	beforeEach(async () => {
-		jest.clearAllMocks()
-
 		const module: TestingModule = await Test.createTestingModule({
-			controllers: [DashboardController],
-			providers: [
-				DashboardService,
-				{
-					provide: SupabaseService,
-					useValue: {
-						getTokenFromRequest: jest.fn().mockReturnValue('mock-jwt-token'),
-						getUserClient: jest.fn(),
-						getAdminClient: jest.fn()
-					}
-				}
-			]
+			controllers: [DashboardController]
 		}).compile()
 
 		controller = module.get<DashboardController>(DashboardController)
-		mockDashboardServiceInstance = module.get(
-			DashboardService
-		) as jest.Mocked<DashboardService>
 	})
 
 	it('should be defined', () => {
 		expect(controller).toBeDefined()
 	})
 
-	describe('getStats', () => {
-		it('should return dashboard stats for authenticated user', async () => {
-			const mockStats = {} as any // removed unused mock
-
-			mockDashboardServiceInstance.getStats.mockResolvedValue(mockStats)
-
-			const result = await controller.getStats(mockRequest, mockUser.id)
-
-			expect(mockDashboardServiceInstance.getStats).toHaveBeenCalledWith(
-				mockUser.id,
-				'mock-jwt-token'
+	describe('Legacy /manage routes', () => {
+		const expectGone = (path?: string) => {
+			expect(() => controller.handleLegacyRoute(path as any)).toThrow(
+				GoneException
 			)
-			expect(result).toEqual({
-				success: true,
-				data: mockStats,
-				message: 'Dashboard statistics retrieved successfully',
-				// Controller may return Date or ISO string depending on implementation - accept any value
-				timestamp: expect.anything()
-			})
-		})
-	})
-
-	describe('getActivity', () => {
-		it('should return dashboard activity for authenticated user', async () => {
-			const mockActivity = [
-				{
-					id: 'activity-1',
-					activity_type: 'maintenance' as const,
-					entity_id: 'entity-1',
-					property_id: 'prop-1',
-					tenant_id: null,
-					unit_id: 'unit-1',
-					owner_id: null,
-					status: 'pending',
-					priority: 'high',
-					action: 'Maintenance pending',
-					amount: null,
-					activity_timestamp: new Date().toISOString(),
-					details: {}
-				}
-			]
-
-			mockDashboardServiceInstance.getActivity.mockResolvedValue({
-				activities: mockActivity
-			})
-
-			const result = await controller.getActivity(mockRequest, mockUser.id)
-
-			expect(mockDashboardServiceInstance.getActivity).toHaveBeenCalledWith(
-				mockUser.id,
-				'mock-jwt-token'
+			expect(() => controller.handleLegacyRoute(path as any)).toThrow(
+				'Legacy /manage routes have been removed. Use /owner/... endpoints.'
 			)
-			expect(result).toEqual({
-				success: true,
-				data: { activities: mockActivity },
-				message: 'Dashboard activity retrieved successfully',
-				timestamp: expect.anything()
-			})
-		})
-	})
+		}
 
-	describe('getBillingInsights', () => {
-		it('should return billing insights with valid date range', async () => {
-			const mockInsights = {
-				totalRevenue: 50000,
-				churnRate: 0.05,
-				mrr: 12000
-			}
-
-			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(
-				mockInsights
-			)
-
-			const result = await controller.getBillingInsights(
-				mockRequest,
-				mockUser.id,
-				'2024-01-01',
-				'2024-01-31'
-			)
-
-			expect(
-				mockDashboardServiceInstance.getBillingInsights
-			).toHaveBeenCalledWith(
-				mockUser.id,
-				'mock-jwt-token',
-				new Date('2024-01-01'),
-				new Date('2024-01-31')
-			)
-			expect(result).toEqual({
-				success: true,
-				data: mockInsights,
-				message:
-					'Billing insights retrieved successfully from Stripe Sync Engine',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for root legacy route', () => {
+			expectGone('')
 		})
 
-		it('should return billing insights without date range', async () => {
-			const mockInsights = {
-				totalRevenue: 50000,
-				churnRate: 0.05,
-				mrr: 12000
-			}
-
-			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(
-				mockInsights
-			)
-
-			const result = await controller.getBillingInsights(mockRequest, mockUser.id)
-
-			expect(
-				mockDashboardServiceInstance.getBillingInsights
-			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token', undefined, undefined)
-			expect(result.success).toBe(true)
+		it('should throw GoneException for /manage/stats legacy route', () => {
+			expectGone('stats')
 		})
 
-		it('should return error for invalid date format', async () => {
-			const result = await controller.getBillingInsights(
-				mockRequest,
-				mockUser.id,
-				'invalid-date',
-				'2024-01-31'
-			)
-
-			expect(result).toEqual({
-				success: false,
-				data: null,
-				message: 'Invalid date format. Use ISO date strings.',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for /manage/activity legacy route', () => {
+			expectGone('activity')
 		})
 
-		it('should return null when service returns null', async () => {
-			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(null)
-
-			const result = await controller.getBillingInsights(mockRequest, mockUser.id)
-
-			expect(result).toEqual({
-				success: true,
-				data: null,
-				message:
-					'Billing insights retrieved successfully from Stripe Sync Engine',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for /manage/billing/insights legacy route', () => {
+			expectGone('billing/insights')
 		})
 
-		it('should return valid schema from placeholder data', async () => {
-			const placeholderInsights = {
-				totalRevenue: 0,
-				churnRate: 0,
-				mrr: 0
-			}
-
-			mockDashboardServiceInstance.getBillingInsights.mockResolvedValue(
-				placeholderInsights
-			)
-
-			const result = await controller.getBillingInsights(mockRequest, mockUser.id)
-
-			expect(result).toEqual({
-				success: true,
-				data: placeholderInsights,
-				message:
-					'Billing insights retrieved successfully from Stripe Sync Engine',
-				timestamp: expect.anything()
-			})
-		})
-	})
-
-	describe('checkBillingInsightsAvailability', () => {
-		it('should return availability status when billing insights are available', async () => {
-			mockDashboardServiceInstance.isBillingInsightsAvailable.mockResolvedValue(
-				true
-			)
-
-			const result = await controller.checkBillingInsightsAvailability(
-				mockRequest,
-				mockUser.id
-			)
-
-			expect(
-				mockDashboardServiceInstance.isBillingInsightsAvailable
-			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token')
-			expect(result).toEqual({
-				success: true,
-				data: { available: true },
-				message: 'Billing insights are available',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for /manage/billing/health legacy route', () => {
+			expectGone('billing/health')
 		})
 
-		it('should return unavailable when billing insights are not available', async () => {
-			mockDashboardServiceInstance.isBillingInsightsAvailable.mockResolvedValue(
-				false
-			)
-
-			const result = await controller.checkBillingInsightsAvailability(
-				mockRequest,
-				mockUser.id
-			)
-
-			expect(result).toEqual({
-				success: true,
-				data: { available: false },
-				message: 'Billing insights are not available',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for /manage/property-performance legacy route', () => {
+			expectGone('property-performance')
 		})
 
-		it('should throw UnauthorizedException when token is missing', async () => {
-			const mockSupabaseService =
-				controller['supabase'] as jest.Mocked<SupabaseService>
-			mockSupabaseService.getTokenFromRequest = jest.fn().mockReturnValue(null)
-
-			await expect(
-				controller.checkBillingInsightsAvailability(mockRequest, mockUser.id)
-			).rejects.toThrow('Authentication token required')
-		})
-	})
-
-	describe('getBillingHealth', () => {
-		it('should return billing health status when available', async () => {
-			mockDashboardServiceInstance.isBillingInsightsAvailable.mockResolvedValue(
-				true
-			)
-
-			const result = await controller.getBillingHealth(mockRequest, mockUser.id)
-
-			expect(
-				mockDashboardServiceInstance.isBillingInsightsAvailable
-			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token')
-			expect(result).toEqual({
-				success: true,
-				data: {
-					available: true,
-					service: 'Stripe Sync Engine',
-					capabilities: [
-						'Revenue Analytics',
-						'Churn Analysis',
-						'Customer Lifetime Value',
-						'MRR Tracking',
-						'Subscription Status Breakdown'
-					]
-				},
-				message: 'Billing insights are available',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for /manage/uptime legacy route', () => {
+			expectGone('uptime')
 		})
 
-		it('should return billing health status when not available', async () => {
-			mockDashboardServiceInstance.isBillingInsightsAvailable.mockResolvedValue(
-				false
-			)
-
-			const result = await controller.getBillingHealth(mockRequest, mockUser.id)
-
-			expect(result).toEqual({
-				success: true,
-				data: {
-					available: false,
-					service: 'Stripe Sync Engine',
-					capabilities: []
-				},
-				message:
-					'Billing insights not available - Stripe Sync Engine not configured',
-				timestamp: expect.anything()
-			})
+		it('should throw GoneException for nested legacy routes', () => {
+			expectGone('nested/route/path')
 		})
-	})
 
-	describe('getPropertyPerformance', () => {
-		it('should return property performance for authenticated user', async () => {
-			const mockPerformance = [
-			{
-				property: 'Property A',
-				property_id: 'prop-1',
-				address_line1: '123 Main St',
-				units: 20,
-					totalUnits: 20,
-					occupiedUnits: 19,
-					vacantUnits: 1,
-					occupancy: '95%',
-					occupancyRate: 95.0,
-					revenue: 8000,
-					monthlyRevenue: 8000,
-					potentialRevenue: 8400,
-					address: '123 Main St',
-					property_type: 'APARTMENT',
-					status: 'PARTIAL' as const,
-					trend: 'stable' as const,
-					trendPercentage: 0
-				}
-			]
-
-			mockDashboardServiceInstance.getPropertyPerformance.mockResolvedValue(
-				mockPerformance
-			)
-
-			const result = await controller.getPropertyPerformance(mockRequest, mockUser.id)
-
-			expect(
-				mockDashboardServiceInstance.getPropertyPerformance
-			).toHaveBeenCalledWith(mockUser.id, 'mock-jwt-token')
-			expect(result).toEqual({
-				success: true,
-				data: mockPerformance,
-				message: 'Property performance retrieved successfully',
-				timestamp: expect.anything()
-			})
+		it('should handle undefined path parameter', () => {
+			expectGone(undefined)
 		})
-	})
 
-	describe('getUptime', () => {
-		it('should return system uptime metrics', async () => {
-			const mockUptime = {
-				uptime: '99.9%',
-				uptimePercentage: 99.9,
-				sla: '99.5%',
-				slaStatus: 'excellent' as const,
-				status: 'operational' as const,
-				lastIncident: null,
-				responseTime: 150,
-				timestamp: new Date().toISOString()
-			}
-
-			mockDashboardServiceInstance.getUptime.mockResolvedValue(mockUptime)
-
-			const result = await controller.getUptime()
-
-			expect(mockDashboardServiceInstance.getUptime).toHaveBeenCalled()
-			expect(result).toEqual({
-				success: true,
-				data: mockUptime,
-				message: 'System uptime retrieved successfully',
-				timestamp: expect.anything()
-			})
+		it('normalizes trailing slashes before throwing', () => {
+			expectGone('stats/')
 		})
 	})
 })

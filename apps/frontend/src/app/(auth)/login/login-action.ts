@@ -69,7 +69,7 @@ export async function loginAction(
 	if (userType === 'OWNER') {
 		redirect('/dashboard')  // Owner dashboard (direct, avoids login → / → /dashboard timeout)
 	} else if (userType === 'TENANT') {
-		redirect('/portal')  // Tenant portal
+		redirect('/tenant')  // Tenant portal
 	} else {
 		// Unknown role - log out and show error
 		await supabase.auth.signOut()
