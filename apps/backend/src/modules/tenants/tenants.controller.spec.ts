@@ -59,7 +59,7 @@ describe('TenantsController', () => {
 			getTenantPaymentHistory: jest.fn(),
 			getTenantPaymentHistoryForTenant: jest.fn(),
 			getOwnerPaymentSummary: jest.fn(),
-			sendPaymentReminderLegacy: jest.fn()
+			sendPaymentReminder: jest.fn()
 		}
 
 		mockInvitationService = {
@@ -436,12 +436,18 @@ describe('TenantsController', () => {
 
 		describe('sendPaymentReminder', () => {
 			it('should send payment reminder', async () => {
-				const reminderDto = { tenant_id: 'tenant-1', email: 'tenant@example.com', amount_due: 100000 }
-				mockPaymentService.sendPaymentReminderLegacy.mockResolvedValue(undefined)
+				const mockRequest = { user: { id: 'owner-1' } } as any
+				const reminderDto = { tenant_id: 'tenant-1', note: 'Please pay your rent' }
+				mockPaymentService.sendPaymentReminder.mockResolvedValue({
+					success: true,
+					tenant_id: 'tenant-1',
+					notificationId: 'notif-1',
+					message: 'Please pay your rent'
+				})
 
-				await controller.sendPaymentReminder(reminderDto as any)
+				await controller.sendPaymentReminder(mockRequest, reminderDto)
 
-				expect(mockPaymentService.sendPaymentReminderLegacy).toHaveBeenCalledWith('tenant-1', 'tenant@example.com', 100000)
+				expect(mockPaymentService.sendPaymentReminder).toHaveBeenCalledWith('owner-1', 'tenant-1', 'Please pay your rent')
 			})
 		})
 	})
