@@ -229,7 +229,7 @@ describe('HealthController', () => {
 
 	describe('GET /health/check', () => {
 		it('should use the main check endpoint as an alias', async () => {
-			const result = await controller.checkEndpoint()
+			const result = await controller.check()
 
 			expect(result).toEqual(
 				expect.objectContaining({

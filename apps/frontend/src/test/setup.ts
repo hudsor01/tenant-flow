@@ -33,9 +33,6 @@ process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID = process.env.STRIPE_GROWTH_ANNUAL_PRI
 process.env.STRIPE_MAX_MONTHLY_PRICE_ID = process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
 process.env.STRIPE_MAX_ANNUAL_PRICE_ID = process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
 
-// Now safe to import env (validation is skipped via SKIP_ENV_VALIDATION)
-import { isIntegrationTest as isIntegrationTestEnv, env } from '#config/env'
-
 // Create logger instance for structured logging
 const logger = createLogger({ component: 'TestSetup' })
 
@@ -45,12 +42,17 @@ const logger = createLogger({ component: 'TestSetup' })
 
 // Check if we're running unit tests or integration tests
 // Integration tests run via vitest.integration.config.js
-const isIntegrationTest = isIntegrationTestEnv()
+// Note: Use process.env directly to avoid T3 Env client/server validation issues in test context
+const isIntegrationTest = process.env.RUN_INTEGRATION_TESTS === 'true'
+
+// Test credentials - use process.env to avoid T3 Env validation
+const e2eOwnerEmail = process.env.E2E_OWNER_EMAIL || 'test@example.com'
+const e2eOwnerPassword = process.env.E2E_OWNER_PASSWORD || 'test-password'
 
 // Validate required credentials for integration tests
 // Note: T3 Env validation is skipped in test mode, so we do manual checks
 if (isIntegrationTest) {
-	if (!env.E2E_OWNER_EMAIL || !env.E2E_OWNER_PASSWORD) {
+	if (!e2eOwnerEmail || e2eOwnerEmail === 'test@example.com' || !e2eOwnerPassword || e2eOwnerPassword === 'test-password') {
 		throw new Error(
 			`Missing required test credentials: E2E_OWNER_EMAIL and/or E2E_OWNER_PASSWORD
 ` +
@@ -61,11 +63,6 @@ if (isIntegrationTest) {
 	}
 }
 
-// Test credentials loaded from environment (for integration tests)
-// Note: env vars remain SCREAMING_SNAKE_CASE, but local constants use camelCase per CLAUDE.md
-const e2eOwnerEmail = env.E2E_OWNER_EMAIL || 'test@example.com'
-const e2eOwnerPassword = env.E2E_OWNER_PASSWORD || 'test-password'
-
 // Store the authenticated session in a way that mocks can properly access
 const sessionStore = vi.hoisted(() => ({
 	session: null as { access_token: string; expires_at?: number } | null,
@@ -75,7 +72,7 @@ const sessionStore = vi.hoisted(() => ({
 
 // Check if backend is available before running integration tests
 beforeAll(async () => {
-	if (!env.RUN_INTEGRATION_TESTS) {
+	if (!isIntegrationTest) {
 		sessionStore.backendAvailable = false
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
 		return
