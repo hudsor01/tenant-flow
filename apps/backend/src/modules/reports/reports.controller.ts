@@ -8,12 +8,10 @@ import {
 	Post,
 	Query,
 	Req,
-	Res,
-	UseGuards
+	Res
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { z } from 'zod'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { ExportService } from './export.service'
 import { ReportsService } from './reports.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
@@ -469,7 +467,6 @@ export class ReportsController {
 	 * Get monthly revenue data for charts
 	 */
 	@Get('analytics/revenue/monthly')
-	@UseGuards(JwtAuthGuard)
 	async getMonthlyRevenue(
 		@Req() req: AuthenticatedRequest,
 		@Query('months') months?: string
@@ -496,7 +493,6 @@ export class ReportsController {
 	 * Get payment analytics for dashboard
 	 */
 	@Get('analytics/payments')
-	@UseGuards(JwtAuthGuard)
 	async getPaymentAnalytics(
 		@Req() req: AuthenticatedRequest,
 		@Query('start_date') start_date?: string,
@@ -524,7 +520,6 @@ export class ReportsController {
 	 * Get occupancy metrics across all properties
 	 */
 	@Get('analytics/occupancy')
-	@UseGuards(JwtAuthGuard)
 	async getOccupancyMetrics(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user?.id
 		if (!user_id) {

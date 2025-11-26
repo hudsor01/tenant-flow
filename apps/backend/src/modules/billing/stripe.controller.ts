@@ -8,7 +8,6 @@ import {
   Req,
   Res,
   HttpStatus,
-  UseGuards,
   BadRequestException,
   NotFoundException,
   UnauthorizedException,
@@ -21,7 +20,6 @@ import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
 import { SecurityService } from '../../security/security.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { user_id as UserId } from '../../shared/decorators/user.decorator'
 import { createThrottleDefaults } from '../../config/throttle.config'
 import { z } from 'zod'
@@ -91,7 +89,6 @@ export class StripeController {
    * Create a Payment Intent for one-time payments
    */
   @Post('payment-intents')
-  @UseGuards(JwtAuthGuard)
   async createPaymentIntent(
     @Req() req: TenantAuthenticatedRequest,
     @Res() res: Response,
@@ -161,7 +158,6 @@ export class StripeController {
    * Create a Customer for recurring payments
    */
   @Post('customers')
-  @UseGuards(JwtAuthGuard)
   async createCustomer(
     @Req() req: TenantAuthenticatedRequest,
     @Res() res: Response,
@@ -235,7 +231,6 @@ export class StripeController {
    * Note: Subscription data is automatically synced to stripe schema by Stripe Sync Engine
    */
   @Post('subscriptions')
-  @UseGuards(JwtAuthGuard)
   async createSubscription(
     @Req() req: TenantAuthenticatedRequest,
     @Res() res: Response,
@@ -307,7 +302,6 @@ export class StripeController {
    * Note: Changes are automatically synced to stripe schema by Stripe Sync Engine via webhook
    */
   @Patch('subscriptions/:id')
-  @UseGuards(JwtAuthGuard)
   async updateSubscription(
     @Param('id', ParseUUIDPipe) subscriptionId: string,
     @Req() req: TenantAuthenticatedRequest,
@@ -399,7 +393,6 @@ export class StripeController {
    * - Database queries fail (fails safely)
    */
   @Get('subscription-status')
-  @UseGuards(JwtAuthGuard)
   @Throttle({ default: STRIPE_API_THROTTLE })
   async getSubscriptionStatus(
     @UserId() userId: string,

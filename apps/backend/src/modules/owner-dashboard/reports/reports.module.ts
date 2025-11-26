@@ -1,16 +1,19 @@
 import { Module } from '@nestjs/common'
 import { ReportsController } from './reports.controller'
-import { DashboardModule } from '../../dashboard/dashboard.module'
+import { ReportsService } from './reports.service'
+import { AnalyticsModule as GlobalAnalyticsModule } from '../../analytics/analytics.module'
 
 /**
  * ReportsModule
  *
- * Owner reports and analytics
- * - Time-series data
- * - Metric trends
+ * Owner dashboard reporting functionality:
+ * - Time series data for charts
+ * - Metric trend comparisons
  */
 @Module({
-	imports: [DashboardModule],
-	controllers: [ReportsController]
+	imports: [GlobalAnalyticsModule],
+	controllers: [ReportsController],
+	providers: [ReportsService],
+	exports: [ReportsService]
 })
 export class ReportsModule {}

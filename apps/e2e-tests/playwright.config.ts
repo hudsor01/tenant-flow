@@ -72,11 +72,13 @@ export default defineConfig({
 			testIgnore: [], // Override global testIgnore to allow setup files
 			retries: 2, // Retry auth setup if it fails (network issues, slow servers, etc.)
 		},
+		// Tenant invitation setup - runs AFTER owner auth to create tenant via invitation
 		{
-			name: 'setup-tenant',
-			testMatch: /auth-tenant\.setup\.ts/,
+			name: 'setup-invite-tenant',
+			testMatch: /setup-invite-tenant\.setup\.ts/,
 			testIgnore: [], // Override global testIgnore to allow setup files
-			retries: 2, // Retry auth setup if it fails
+			dependencies: ['setup'], // Must run after owner auth
+			retries: 2, // Retry if invitation fails
 		},
 
 		// Authenticated desktop tests
@@ -90,14 +92,14 @@ export default defineConfig({
 			testIgnore: ['**/auth.setup.ts', '**/*public.spec.ts', '**/stripe-payment-flow.e2e.spec.ts'],
 		},
 
-		// Stripe payment flow tests (tenant auth)
+		// Stripe payment flow tests (runs after owner creates tenant via invitation)
 		{
 			name: 'chromium-stripe',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: 'playwright/.auth/tenant.json',
+				// No storageState - tests will use loginAsTenant() after invitation flow
 			},
-			dependencies: ['setup-tenant'],
+			dependencies: ['setup-invite-tenant'], // Depends on tenant invitation (creates tenant user)
 			testMatch: ['**/stripe-payment-flow.e2e.spec.ts'],
 		},
 

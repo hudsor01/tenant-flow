@@ -12,7 +12,7 @@ describe('TenantQueryService', () => {
 	// Helper to create a flexible Supabase query chain
 	const createMockChain = (resolveData: any = [], resolveError: any = null) => {
 		const chain: any = {}
-		const methods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'in', 'or', 'gte', 'lte', 'order']
+		const methods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'in', 'or', 'gte', 'lte', 'order', 'not']
 
 		methods.forEach(method => {
 			chain[method] = jest.fn(() => chain)
@@ -21,6 +21,10 @@ describe('TenantQueryService', () => {
 		chain.range = jest.fn(() => Promise.resolve({ data: resolveData, error: resolveError, count: Array.isArray(resolveData) ? resolveData.length : 0 }))
 		chain.limit = jest.fn(() => Promise.resolve({ data: resolveData, error: resolveError }))
 		chain.single = jest.fn(() => Promise.resolve({
+			data: Array.isArray(resolveData) && resolveData.length > 0 ? resolveData[0] : resolveData,
+			error: resolveError
+		}))
+		chain.maybeSingle = jest.fn(() => Promise.resolve({
 			data: Array.isArray(resolveData) && resolveData.length > 0 ? resolveData[0] : resolveData,
 			error: resolveError
 		}))
@@ -221,10 +225,18 @@ describe('TenantQueryService', () => {
 
 	describe('getOwnerPropertyIds', () => {
 		it('should return property IDs for an owner', async () => {
-			const mockProperties = [{ id: 'property-1' }, { id: 'property-2' }]
+			let callCount = 0
+			const responses = [
+				{ id: 'owner-uuid-1' },  // property_owners lookup (maybeSingle returns object, not array)
+				[{ id: 'property-1' }, { id: 'property-2' }]  // properties
+			]
 
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain(mockProperties, null))
+				from: jest.fn(() => {
+					const response = responses[callCount]
+					callCount++
+					return createMockChain(Array.isArray(response) ? response : [response], null)
+				})
 			}))
 
 			const result = await service.getOwnerPropertyIds('owner-1')
@@ -237,6 +249,7 @@ describe('TenantQueryService', () => {
 		it('should return tenant IDs for an owner', async () => {
 			let callCount = 0
 			const responses = [
+				{ id: 'owner-uuid-1' },  // property_owners lookup (maybeSingle returns object)
 				[{ id: 'property-1' }],  // properties
 				[{ id: 'unit-1' }],       // units
 				[{ primary_tenant_id: 'tenant-1' }, { primary_tenant_id: 'tenant-2' }]  // leases
@@ -246,7 +259,7 @@ describe('TenantQueryService', () => {
 				from: jest.fn(() => {
 					const response = responses[callCount]
 					callCount++
-					return createMockChain(response, null)
+					return createMockChain(Array.isArray(response) ? response : [response], null)
 				})
 			}))
 

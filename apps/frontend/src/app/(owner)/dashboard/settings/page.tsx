@@ -49,13 +49,11 @@ import {
 	Upload,
 	User
 } from 'lucide-react'
-import { useUserProfile } from '#hooks/use-user-profile'
 import { Skeleton } from '#components/ui/skeleton'
 
 export default function SettingsPage() {
 	const [isPending, startTransition] = useTransition()
-	const { session } = useAuth()
-	const { data: profile, isLoading: profileLoading } = useUserProfile()
+	const { session, user, isLoading: authLoading } = useAuth()
 
 	const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -137,7 +135,7 @@ export default function SettingsPage() {
 						title="Profile Information"
 						className="p-6 border shadow-sm"
 					>
-						{profileLoading ? (
+						{authLoading ? (
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 								<div className="space-y-2">
 									<Skeleton className="h-4 w-20" />
@@ -179,7 +177,7 @@ export default function SettingsPage() {
 										id="first_name"
 										name="first_name"
 										autoComplete="given-name"
-										defaultValue={profile?.first_name || ''}
+										defaultValue={(user?.user_metadata?.first_name as string) || ''}
 									/>
 								</div>
 								<div className="space-y-2">
@@ -188,7 +186,7 @@ export default function SettingsPage() {
 										id="last_name"
 										name="last_name"
 										autoComplete="family-name"
-										defaultValue={profile?.last_name || ''}
+										defaultValue={(user?.user_metadata?.last_name as string) || ''}
 									/>
 								</div>
 								<div className="space-y-2">
@@ -198,7 +196,7 @@ export default function SettingsPage() {
 										name="email"
 										autoComplete="email"
 										type="email"
-										defaultValue={profile?.email || ''}
+										defaultValue={user?.email || ''}
 									/>
 								</div>
 								<div className="space-y-2">

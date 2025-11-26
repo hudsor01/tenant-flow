@@ -2,28 +2,42 @@ import {
 	Controller,
 	Get,
 	Query,
-	Req,
-	UnauthorizedException,
 	Logger,
-	BadRequestException,
 	UseGuards,
-	UseInterceptors
+	UseInterceptors,
+	BadRequestException
 } from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
-import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
-import { SupabaseService } from '../../../database/supabase.service'
-import { DashboardService } from '../../dashboard/dashboard.service'
+import { ReportsService, MetricTrend, TimeSeriesDataPoint } from './reports.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
 
+type MetricType =
+	| 'occupancy_rate'
+	| 'active_tenants'
+	| 'monthly_revenue'
+	| 'open_maintenance'
+	| 'total_maintenance'
+
+type PeriodType = 'day' | 'week' | 'month' | 'year'
+
+const VALID_METRICS: MetricType[] = [
+	'occupancy_rate',
+	'active_tenants',
+	'monthly_revenue',
+	'open_maintenance',
+	'total_maintenance'
+]
+
+const VALID_PERIODS: PeriodType[] = ['day', 'week', 'month', 'year']
+
 /**
  * ReportsController
  *
- * Handles owner reports and analytics:
- * - Time-series data
- * - Metric trends
+ * Handles owner dashboard reporting endpoints:
+ * - Metric trends (current vs previous period comparison)
+ * - Time series data for charts
  */
 @UseGuards(RolesGuard)
 @Roles('OWNER')
@@ -32,88 +46,76 @@ import { OwnerContextInterceptor } from '../interceptors/owner-context.intercept
 export class ReportsController {
 	private readonly logger = new Logger(ReportsController.name)
 
-	constructor(
-		private readonly dashboardService: DashboardService,
-		private readonly supabase: SupabaseService
-	) {}
+	constructor(private readonly reportsService: ReportsService) {}
 
+	/**
+	 * Get time series data for a metric
+	 * @param metric - The metric to retrieve (occupancy_rate, monthly_revenue, etc.)
+	 * @param days - Number of days of data (default 30)
+	 */
 	@Get('time-series')
 	async getTimeSeries(
-		@Req() req: AuthenticatedRequest,
 		@user_id() user_id: string,
 		@Query('metric') metric: string,
-		@Query('days') days?: string
-	): Promise<ControllerApiResponse> {
-		const token = this.supabase.getTokenFromRequest(req)
-
-		if (!token) {
-			throw new UnauthorizedException('Authentication token required')
-		}
-
+		@Query('days') daysParam?: string
+	): Promise<TimeSeriesDataPoint[]> {
 		if (!metric) {
-			throw new BadRequestException('metric parameter is required')
+			throw new BadRequestException('metric query parameter is required')
 		}
 
-		const parsedDays = days ? parseInt(days, 10) : 30
-
-		this.logger.log('Getting time-series data', {
-			user_id,
-			metric,
-			days: parsedDays
-		})
-
-		const data = await this.dashboardService.getTimeSeries(
-			user_id,
-			metric,
-			parsedDays,
-			token
-		)
-
-		return {
-			success: true,
-			data,
-			message: 'Time-series data retrieved successfully',
-			timestamp: new Date()
+		if (!VALID_METRICS.includes(metric as MetricType)) {
+			throw new BadRequestException(
+				`Invalid metric. Must be one of: ${VALID_METRICS.join(', ')}`
+			)
 		}
+
+		const days = daysParam ? parseInt(daysParam, 10) : 30
+
+		if (isNaN(days) || days < 1 || days > 365) {
+			throw new BadRequestException('days must be a number between 1 and 365')
+		}
+
+		this.logger.log('Getting time series data', { user_id, metric, days })
+
+		return this.reportsService.getTimeSeries(user_id, metric as MetricType, days)
 	}
 
+	/**
+	 * Get trend data for a metric (current vs previous period)
+	 * @param metric - The metric to retrieve
+	 * @param period - The period to compare (day, week, month, year)
+	 */
 	@Get('metric-trend')
 	async getMetricTrend(
-		@Req() req: AuthenticatedRequest,
 		@user_id() user_id: string,
 		@Query('metric') metric: string,
 		@Query('period') period?: string
-	): Promise<ControllerApiResponse> {
-		const token = this.supabase.getTokenFromRequest(req)
-
-		if (!token) {
-			throw new UnauthorizedException('Authentication token required')
-		}
-
+	): Promise<MetricTrend> {
 		if (!metric) {
-			throw new BadRequestException('metric parameter is required')
+			throw new BadRequestException('metric query parameter is required')
 		}
 
-		const validPeriod = period || 'month'
+		if (!VALID_METRICS.includes(metric as MetricType)) {
+			throw new BadRequestException(
+				`Invalid metric. Must be one of: ${VALID_METRICS.join(', ')}`
+			)
+		}
+
+		const periodValue: PeriodType =
+			period && VALID_PERIODS.includes(period as PeriodType)
+				? (period as PeriodType)
+				: 'month'
 
 		this.logger.log('Getting metric trend', {
 			user_id,
 			metric,
-			period: validPeriod
+			period: periodValue
 		})
 
-		const data = await this.dashboardService.getMetricTrend(
+		return this.reportsService.getMetricTrend(
 			user_id,
-			metric,
-			validPeriod,
-			token
+			metric as MetricType,
+			periodValue
 		)
-
-		return {
-			success: true,
-			data,
-			message: 'Metric trend retrieved successfully',
-			timestamp: new Date()
-		}
 	}
 }

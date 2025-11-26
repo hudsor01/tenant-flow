@@ -291,22 +291,16 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 
 			// Verify both RPC calls were made
 			expect(rpcSpy).toHaveBeenCalledTimes(2)
-			expect(rpcSpy).toHaveBeenNthCalledWith(1, 'get_property_performance', {
-				user_id: mockuser_id,
-				user_id_param: mockuser_id,
-				p_user_id: mockuser_id,
-				uid: mockuser_id
-			})
-			expect(rpcSpy).toHaveBeenNthCalledWith(
-				2,
-				'get_property_performance_trends',
-				{
-					user_id: mockuser_id,
-					user_id_param: mockuser_id,
-					p_user_id: mockuser_id,
-					uid: mockuser_id
-				}
-			)
+			expect(rpcSpy).toHaveBeenNthCalledWith(1, 'get_property_performance_cached', {
+			p_user_id: mockuser_id
+		})
+		expect(rpcSpy).toHaveBeenNthCalledWith(
+			2,
+			'get_property_performance_trends',
+			{
+				p_user_id: mockuser_id
+			}
+		)
 		})
 	})
 

@@ -5,12 +5,10 @@ import {
 	Get,
 	Param,
 	Patch,
-	Request,
-	UseGuards
+	Request
 } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PaymentMethodsService } from './payment-methods.service'
 
 interface AuthenticatedRequest extends Request {
@@ -21,7 +19,6 @@ interface AuthenticatedRequest extends Request {
 }
 
 @Controller('payment-methods')
-@UseGuards(JwtAuthGuard)
 export class PaymentMethodsController {
 	constructor(private readonly paymentMethodsService: PaymentMethodsService) {}
 

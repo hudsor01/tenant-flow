@@ -166,6 +166,7 @@ export class PropertiesController {
 	)
 	async bulkImport(
 		@UploadedFile() file: Express.Multer.File,
+		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
 	) {
 		// Debug logging for file upload issues
@@ -208,7 +209,7 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertyBulkImportService.bulkImport(req, file.buffer)
+		return this.propertyBulkImportService.bulkImport(token, req.user.id, file.buffer)
 	}
 
 	/**
@@ -310,6 +311,7 @@ export class PropertiesController {
 	async uploadImage(
 		@Param('id', ParseUUIDPipe) property_id: string,
 		@UploadedFile() file: Express.Multer.File,
+		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
 	) {
 		if (!file) {
@@ -320,7 +322,8 @@ export class PropertiesController {
 		}
 
 		return this.propertyImagesService.uploadPropertyImage(
-			req,
+			token,
+			req.user.id,
 			property_id,
 			file
 		)
@@ -332,9 +335,9 @@ export class PropertiesController {
 	@Get(':id/images')
 	async getImages(
 		@Param('id', ParseUUIDPipe) property_id: string,
-		@Request() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		return this.propertyImagesService.getPropertyImages(req, property_id)
+		return this.propertyImagesService.getPropertyImages(token, property_id)
 	}
 
 	/**
@@ -343,9 +346,9 @@ export class PropertiesController {
 	@Delete('images/:imageId')
 	async deleteImage(
 		@Param('imageId', ParseUUIDPipe) imageId: string,
-		@Request() req: AuthenticatedRequest
+		@JwtToken() token: string
 	) {
-		await this.propertyImagesService.deletePropertyImage(req, imageId)
+		await this.propertyImagesService.deletePropertyImage(token, imageId)
 		return { message: 'Image deleted successfully' }
 	}
 

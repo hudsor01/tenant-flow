@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, Logger, Optional } from '@nestjs/common'
-import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import type { Database } from '@repo/shared/types/supabase'
 import { parse } from 'csv-parse'
@@ -9,17 +8,6 @@ import {
 	normalizePropertyType,
 	VALID_PROPERTY_TYPES
 } from '../utils/csv-normalizer'
-import type { Request } from 'express'
-import { randomBytes } from 'crypto'
-
-// Helper to extract JWT token from request
-function getTokenFromRequest(req: Request): string | null {
-	const authHeader = req.headers.authorization
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		return null
-	}
-	return authHeader.substring(7)
-}
 
 @Injectable()
 export class PropertyBulkImportService {
@@ -39,7 +27,8 @@ export class PropertyBulkImportService {
 	 * Returns summary of success/errors for user feedback
 	 */
 	async bulkImport(
-		req: AuthenticatedRequest,
+		token: string,
+		user_id: string,
 		fileBuffer: Buffer
 	): Promise<{
 		success: boolean
@@ -48,15 +37,9 @@ export class PropertyBulkImportService {
 		errors: Array<{ row: number; error: string }>
 	}> {
 		const startTime = Date.now()
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('[BULK_IMPORT] No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
 
 		// Use admin client for property_owner lookup to bypass RLS
 		const adminClient = this.supabase.getAdminClient()
-		const user_id = req.user.id
 
 		// Use user client for property operations (respects RLS)
 		const client = this.supabase.getUserClient(token)
@@ -155,77 +138,24 @@ const ownerResult = await adminClient
 .eq('user_id', user_id)
 .single()
 
-let propertyOwner = ownerResult.data
+const propertyOwner = ownerResult.data
 const ownerError = ownerResult.error
 
-// Auto-create property_owner record if it doesn't exist
+// Property owner must exist - created during onboarding with proper Stripe Connect setup
 if (ownerError || !propertyOwner) {
-this.logger.log('[BULK_IMPORT:PHASE1.5] Property owner not found, creating...', {
-user_id
-})
-
-// Generate temporary Stripe account ID for development
-const tempStripeAccountId = `acct_temp_${randomBytes(16).toString('hex')}`
-
-// Use adminClient to bypass RLS for INSERT
-const { data: newOwner, error: createError } = await adminClient
-.from('property_owners')
-.insert({
-	user_id,
-	stripe_account_id: tempStripeAccountId,
-	business_type: 'individual'
-})
-.select('id')
-.single()
-
-// If INSERT returned no data (ON CONFLICT DO NOTHING), fetch the existing record
-if (!newOwner && !createError) {
-	this.logger.log('[BULK_IMPORT:PHASE1.5] Insert conflict, fetching existing record...', {
-		user_id
-	})
-
-	const { data: existingOwner, error: fetchError } = await adminClient
-		.from('property_owners')
-		.select('id')
-		.eq('user_id', user_id)
-		.single()
-
-	if (fetchError || !existingOwner) {
-		this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Failed to fetch existing property owner', {
-			error: fetchError?.message,
-			user_id
-		})
-		throw new BadRequestException(
-			'Failed to retrieve property owner record. Please try again.'
-		)
-	}
-
-	propertyOwner = existingOwner
-	this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found after conflict', {
-		property_owner_id: propertyOwner.id,
-		user_id
-	})
-} else if (createError || !newOwner) {
-	this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Failed to create property owner', {
-		error: createError?.message,
+	this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
+		error: ownerError?.message,
 		user_id
 	})
 	throw new BadRequestException(
-		'Failed to create property owner record. Please try again.'
+		'Property owner profile not found. Please complete your account setup before importing properties.'
 	)
-} else {
-	propertyOwner = newOwner
-	this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner created', {
-		property_owner_id: propertyOwner.id,
-		user_id
-	})
 }
-} else {
+
 this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found', {
-property_owner_id: propertyOwner.id,
-user_id
+	property_owner_id: propertyOwner.id,
+	user_id
 })
-}
 
 const property_owner_id = propertyOwner.id
 

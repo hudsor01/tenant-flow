@@ -38,7 +38,6 @@ import {
 	useDeleteEmergencyContact
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
-import { useUserProfile } from '#hooks/use-user-profile'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
@@ -52,11 +51,10 @@ export default function TenantProfilePage() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const { openModal } = useModalStore()
 	const { user, isLoading: authLoading } = useCurrentUser()
-	const { data: profile, isLoading: profileLoading } = useUserProfile()
 	const updateProfile = useSupabaseUpdateProfile()
 
-	// Notification preferences (get tenant ID from profile)
-	const tenant_id = profile?.id || ''
+	// Notification preferences (get tenant ID from user)
+	const tenant_id = user?.id || ''
 	const { data: notificationPrefs, isLoading: prefsLoading } =
 		useNotificationPreferences(tenant_id)
 	const updatePreferences = useUpdateNotificationPreferences(tenant_id)
@@ -86,21 +84,17 @@ export default function TenantProfilePage() {
 
 	// Sync form with user data
 	useEffect(() => {
-		if (user || profile) {
+		if (user) {
 			queueMicrotask(() => {
 				setFormData({
-					first_name: (user?.user_metadata?.first_name ||
-						profile?.first_name ||
-						'') as string,
-					last_name: (user?.user_metadata?.last_name ||
-						profile?.last_name ||
-						'') as string,
-					email: (user?.email || '') as string,
-					phone: (user?.user_metadata?.phone || '') as string
+					first_name: (user.user_metadata?.first_name || '') as string,
+					last_name: (user.user_metadata?.last_name || '') as string,
+					email: (user.email || '') as string,
+					phone: (user.user_metadata?.phone || '') as string
 				})
 			})
 		}
-	}, [user, profile])
+	}, [user])
 
 	// Sync emergency contact form with data
 	useEffect(() => {
@@ -154,7 +148,7 @@ export default function TenantProfilePage() {
 		setFormData(prev => ({ ...prev, [field]: value }))
 	}
 
-	const isLoading = authLoading || profileLoading || updateProfile.isPending
+	const isLoading = authLoading || updateProfile.isPending
 
 	const handleTogglePreference = async (key: string, value: boolean) => {
 		try {
@@ -349,16 +343,12 @@ export default function TenantProfilePage() {
 									onClick={() => {
 										setIsEditing(false)
 										// Reset form
-										if (user || profile) {
+										if (user) {
 											setFormData({
-												first_name: (user?.user_metadata?.first_name ||
-													profile?.first_name ||
-													'') as string,
-												last_name: (user?.user_metadata?.last_name ||
-													profile?.last_name ||
-													'') as string,
-												email: (user?.email || '') as string,
-												phone: (user?.user_metadata?.phone || '') as string
+												first_name: (user.user_metadata?.first_name || '') as string,
+												last_name: (user.user_metadata?.last_name || '') as string,
+												email: (user.email || '') as string,
+												phone: (user.user_metadata?.phone || '') as string
 											})
 										}
 									}}

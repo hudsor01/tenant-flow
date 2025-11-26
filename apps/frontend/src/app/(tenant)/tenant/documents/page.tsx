@@ -13,7 +13,6 @@
  */
 
 import { useTenantLeaseDocuments } from '#hooks/api/use-tenant-portal'
-import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -128,8 +127,7 @@ export default function TenantDocumentsPage() {
 	)
 
 	return (
-		<TenantGuard>
-			<div className="space-y-8">
+		<div className="space-y-8">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">My Documents</h1>
 					<p className="text-muted-foreground">
@@ -350,7 +348,6 @@ export default function TenantDocumentsPage() {
 						</p>
 					</div>
 				</CardLayout>
-			</div>
-		</TenantGuard>
+		</div>
 	)
 }

@@ -9,7 +9,6 @@
 
 'use client'
 
-import { TenantGuard } from '#components/auth/tenant-guard'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -82,7 +81,6 @@ export default function TenantMaintenancePage() {
 		) || []
 
 	return (
-		<TenantGuard>
 		<div className="space-y-8">
 			<div className="flex items-center justify-between">
 				<div>
@@ -233,6 +231,5 @@ export default function TenantMaintenancePage() {
 				</div>
 			</CardLayout>
 		</div>
-		</TenantGuard>
 	)
 }

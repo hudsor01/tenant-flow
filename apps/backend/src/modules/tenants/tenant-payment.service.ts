@@ -317,7 +317,7 @@ export class TenantPaymentService {
 		const { data, error } = await client
 			.from('tenants')
 			.select('id')
-			.eq('auth_user_id', authuser_id)
+			.eq('user_id', authuser_id)
 			.single()
 
 		if (error || !data) {
@@ -394,16 +394,39 @@ export class TenantPaymentService {
 		}
 	}
 
-	private async getOwnerproperty_ids(owner_id: string): Promise<string[]> {
+	private async getOwnerproperty_ids(auth_user_id: string): Promise<string[]> {
 		const client = this.supabase.getAdminClient()
+
+		// First get the property_owner record for this auth user
+		const { data: ownerRecord, error: ownerError } = await client
+			.from('property_owners')
+			.select('id')
+			.eq('user_id', auth_user_id)
+			.maybeSingle()
+
+		if (ownerError) {
+			this.logger.error('Failed to fetch property owner record', {
+				auth_user_id,
+				error: ownerError.message
+			})
+			throw new InternalServerErrorException('Failed to fetch owner properties')
+		}
+
+		// If no owner record, user has no properties
+		if (!ownerRecord) {
+			return []
+		}
+
+		// Now get properties for this owner
 		const { data, error } = await client
 			.from('properties')
 			.select('id')
-			.eq('property_owner_id', owner_id)
+			.eq('property_owner_id', ownerRecord.id)
 
 		if (error) {
 			this.logger.error('Failed to fetch owner properties for payment summary', {
-				owner_id,
+				auth_user_id,
+				property_owner_id: ownerRecord.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException('Failed to fetch owner properties')
