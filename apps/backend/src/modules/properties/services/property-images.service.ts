@@ -205,7 +205,7 @@ export class PropertyImagesService {
 			property_id
 		})
 
-		// Verify property ownership
+		// Verify property ownership using user client (RLS enforced)
 		this.logger.debug('[IMAGE:GET:VERIFY] Verifying property ownership', {
 			property_id
 		})
@@ -227,7 +227,10 @@ export class PropertyImagesService {
 			property_id
 		})
 
-		const { data, error } = await client
+		// Use admin client to fetch images (ownership already verified above)
+		// This avoids complex nested RLS policy evaluation issues
+		const adminClient = this.supabase.getAdminClient()
+		const { data, error } = await adminClient
 			.from('property_images')
 			.select('*')
 			.eq('property_id', property_id)
@@ -236,7 +239,8 @@ export class PropertyImagesService {
 		if (error) {
 			this.logger.error('[IMAGE:GET:ERROR] Failed to fetch images', {
 				property_id,
-				error: error.message
+				errorMessage: error.message,
+				errorCode: error.code
 			})
 			throw new BadRequestException(`Failed to fetch images: ${error.message}`)
 		}

@@ -5,14 +5,16 @@ import { useQueryClient } from '@tanstack/react-query'
 
 export function useOfflineData<T = unknown>(key: string) {
 	const queryClient = useQueryClient()
-	const [isOnline, setIsOnline] = useState(
-		typeof navigator === 'undefined' ? true : navigator.onLine
-	)
+	// Always initialize to true to match server rendering and avoid hydration mismatch
+	const [isOnline, setIsOnline] = useState(true)
 
 	useEffect(() => {
 		if (typeof window === 'undefined') {
 			return
 		}
+
+		// Sync with actual browser state after hydration
+		setIsOnline(navigator.onLine)
 
 		const handleOnline = () => setIsOnline(true)
 		const handleOffline = () => setIsOnline(false)
