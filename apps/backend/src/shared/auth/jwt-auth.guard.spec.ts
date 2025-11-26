@@ -1,83 +1,92 @@
 import { Test } from '@nestjs/testing'
-import { JwtAuthGuard } from './jwt-auth.guard'
-import { JwtVerificationService } from './jwt-verification.service'
-import { AuthUserValidationService } from './supabase.strategy'
-import { SupabaseService } from '../../database/supabase.service'
-import { UtilityService } from '../services/utility.service'
-import { AppConfigService } from '../../config/app-config.service'
+import type { ExecutionContext } from '@nestjs/common'
+import { UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { ConfigService } from '@nestjs/config'
-
-// Mock jose module for testing
-jest.mock('jose', () => ({
-	jwtVerify: jest.fn(),
-	createRemoteJWKSet: jest.fn()
-}))
+import { JwtAuthGuard } from './jwt-auth.guard'
+import { SupabaseService } from '../../database/supabase.service'
 
 describe('JwtAuthGuard', () => {
 	let guard: JwtAuthGuard
+	let reflector: Reflector
+	let supabaseService: SupabaseService
+
+	const mockUser = {
+		id: 'user-123',
+		email: 'test@example.com',
+		app_metadata: { user_type: 'OWNER' }
+	}
+
+	const createMockContext = (hasAuthHeader = true): ExecutionContext => {
+		const request = {
+			headers: hasAuthHeader ? { authorization: 'Bearer mock-token' } : {},
+			user: undefined
+		}
+		return {
+			switchToHttp: () => ({
+				getRequest: () => request
+			}),
+			getHandler: () => ({}),
+			getClass: () => ({})
+		} as unknown as ExecutionContext
+	}
 
 	beforeEach(async () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				JwtAuthGuard,
 				{
-					provide: JwtVerificationService,
-					useValue: { verify: jest.fn() }
-				},
-				{
-					provide: AuthUserValidationService,
-					useValue: { validateJwtPayload: jest.fn() }
+					provide: Reflector,
+					useValue: {
+						getAllAndOverride: jest.fn().mockReturnValue(false)
+					}
 				},
 				{
 					provide: SupabaseService,
-					useValue: {}
-				},
-				{
-					provide: UtilityService,
-					useValue: {}
-				},
-				{
-					provide: AppConfigService,
-					useValue: {}
-				},
-				{
-					provide: Reflector,
-					useValue: { get: jest.fn(), getAllAndOverride: jest.fn() }
-				},
-				{
-					provide: ConfigService,
-					useValue: { get: jest.fn() }
+					useValue: {
+						getUser: jest.fn()
+					}
 				}
 			]
 		}).compile()
 
 		guard = module.get<JwtAuthGuard>(JwtAuthGuard)
+		reflector = module.get<Reflector>(Reflector)
+		supabaseService = module.get<SupabaseService>(SupabaseService)
 	})
 
-	describe('isAuthenticationError', () => {
-		it('treats config/asymmetric key errors as system errors (return 500)', () => {
-			const error = new Error('secretOrPublicKey must be an asymmetric key when using ES256')
-			const result = (guard as any).isAuthenticationError(error, null)
-			expect(result).toBe(false)
-		})
+	describe('canActivate', () => {
+		it('should allow access for public routes', async () => {
+			jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(true)
 
-		it('treats invalid asymmetric key as system error', () => {
-			const error = new Error('Invalid asymmetric key provided')
-			const result = (guard as any).isAuthenticationError(error, null)
-			expect(result).toBe(false)
-		})
+			const result = await guard.canActivate(createMockContext())
 
-		it('should classify database errors as system errors', () => {
-			const error = new Error('Database connection failed')
-			const result = (guard as any).isAuthenticationError(error, null)
-			expect(result).toBe(false)
-		})
-
-		it('should classify JWT expired as auth error', () => {
-			const error = new Error('jwt expired')
-			const result = (guard as any).isAuthenticationError(error, null)
 			expect(result).toBe(true)
+		})
+
+		it('should allow access for authenticated users', async () => {
+			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(mockUser as any)
+
+			const result = await guard.canActivate(createMockContext())
+
+			expect(result).toBe(true)
+		})
+
+		it('should throw UnauthorizedException when user is not authenticated', async () => {
+			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(null)
+
+			await expect(guard.canActivate(createMockContext())).rejects.toThrow(
+				UnauthorizedException
+			)
+		})
+
+		it('should attach user to request on successful auth', async () => {
+			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(mockUser as any)
+			const context = createMockContext()
+
+			await guard.canActivate(context)
+
+			const request = context.switchToHttp().getRequest()
+			expect(request.user).toEqual(mockUser)
 		})
 	})
 })

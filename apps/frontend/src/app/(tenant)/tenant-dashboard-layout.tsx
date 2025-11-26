@@ -1,6 +1,6 @@
 'use client'
 
-import { AppSidebar } from '#components/dashboard/app-sidebar'
+import { TenantSidebar } from '#components/dashboard/tenant-sidebar'
 import { SiteHeader } from '#components/dashboard/site-header'
 import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
 import { Breadcrumbs } from '#components/ui/breadcrumb'
@@ -24,7 +24,9 @@ export function TenantDashboardLayout({ children }: { children: ReactNode }) {
 					} as React.CSSProperties
 				}
 			>
-				<AppSidebar />
+				<div className="flex h-full flex-col gap-4 p-4">
+					<TenantSidebar />
+				</div>
 				<SidebarInset className="bg-muted/30">
 					<SiteHeader />
 					<div className="flex flex-1 flex-col">

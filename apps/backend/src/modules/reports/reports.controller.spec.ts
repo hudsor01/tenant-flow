@@ -2,8 +2,7 @@ import { BadRequestException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { Reflector } from '@nestjs/core'
-import { JwtVerificationService } from '../../shared/auth/jwt-verification.service'
-import { AuthUserValidationService } from '../../shared/auth/supabase.strategy'
+import { SupabaseService } from '../../database/supabase.service'
 import { ExportService } from './export.service'
 import { ReportsController } from './reports.controller'
 import { ReportsService } from './reports.service'
@@ -41,12 +40,8 @@ describe('ReportsController', () => {
 					useValue: { get: jest.fn(), getAllAndOverride: jest.fn() }
 				},
 				{
-					provide: JwtVerificationService,
-					useValue: { verify: jest.fn() }
-				},
-				{
-					provide: AuthUserValidationService,
-					useValue: { validateJwtPayload: jest.fn() }
+					provide: SupabaseService,
+					useValue: { getAdminClient: jest.fn() }
 				},
 				{
 					provide: ExecutiveMonthlyTemplate,

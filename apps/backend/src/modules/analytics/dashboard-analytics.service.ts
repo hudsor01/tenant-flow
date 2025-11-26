@@ -22,63 +22,33 @@ import {
  * - Multi-table aggregations
  * - Statistical calculations
  * - Performance-optimized analytics using database functions
+ *
+ * NOTE: All retry logic is handled by SupabaseService.rpcWithRetries()
+ * No duplicate retry logic here - single source of truth for retries
  */
 @Injectable()
 export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	private readonly logger = new Logger(DashboardAnalyticsService.name)
-	private readonly MAX_RETRIES = 3
-	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s exponential backoff
-	private pendingTimers: Set<NodeJS.Timeout> = new Set()
 
 	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
-	 * Get client based on token - centralizes client selection logic
+	 * Call RPC using centralized retry logic from SupabaseService
+	 * Uses admin client for server-side calls (RLS bypassed via service role)
 	 */
-	private getClientForToken(token?: string) {
-		return token
-			? this.supabase.getUserClient(token)
-			: this.supabase.getAdminClient()
-	}
-
 	private async callRpc<T = unknown>(
 		functionName: string,
-		payload: Record<string, unknown>,
-		token?: string,
-		attempt: number = 0
+		payload: Record<string, unknown>
 	): Promise<T | null> {
-
 		try {
-			// Use user-scoped client if token provided (RLS-enforced), otherwise admin
-			const client = this.getClientForToken(token)
-
-			type RpcResult<T> = {
-				data?: T
-				error?: { message?: string } | null
-			}
-			type DynamicRpcClient = {
-				rpc: (name: string, args: Record<string, unknown>) => Promise<RpcResult<T>>
-			}
-			const result = await (client as unknown as DynamicRpcClient).rpc(
-				functionName,
-				payload
-			)
-			const res = result
+			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			const res = result as { data?: T; error?: { message?: string } | null }
 
 			if (res.error) {
 				this.logger.warn('Dashboard analytics RPC failed', {
 					functionName,
-					error: res.error?.message,
-					attempt: attempt + 1,
-					maxRetries: this.MAX_RETRIES
+					error: res.error?.message
 				})
-
-				// Retry with exponential backoff
-				if (attempt < this.MAX_RETRIES) {
-					await this.retryWithBackoff(attempt, functionName)
-					return this.callRpc<T>(functionName, payload, token, attempt + 1)
-				}
-
 				return null
 			}
 
@@ -86,47 +56,13 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		} catch (error) {
 			this.logger.error('Unexpected RPC failure', {
 				functionName,
-				error: error instanceof Error ? error.message : String(error),
-				attempt: attempt + 1,
-				maxRetries: this.MAX_RETRIES
+				error: error instanceof Error ? error.message : String(error)
 			})
-
-			// Retry on unexpected errors too
-			if (attempt < this.MAX_RETRIES) {
-				await this.retryWithBackoff(attempt, functionName, 'exception')
-				return this.callRpc<T>(functionName, payload, token, attempt + 1)
-			}
-
 			return null
 		}
 	}
 
-	/**
-	 * Centralized retry logic with exponential backoff and timer cleanup.
-	 * @param attempt - Current attempt number (0-indexed)
-	 * @param functionName - Name of the function being retried
-	 * @param reason - Reason for retry (default: 'error', or 'exception')
-	 */
-	private async retryWithBackoff(
-		attempt: number,
-		functionName: string,
-		reason: 'error' | 'exception' = 'error'
-	): Promise<void> {
-		const delay = this.RETRY_DELAYS_MS[attempt]
-		const reasonText = reason === 'exception' ? 'due to exception ' : ''
-		this.logger.log(
-			`Retrying RPC ${functionName} after ${delay}ms ${reasonText}(attempt ${attempt + 1}/${this.MAX_RETRIES})`
-		)
-		await new Promise<void>(resolve => {
-			const timer = setTimeout(() => {
-				this.pendingTimers.delete(timer)
-				resolve()
-			}, delay)
-			this.pendingTimers.add(timer)
-		})
-	}
-
-	async getDashboardStats(user_id: string, token?: string): Promise<DashboardStats> {
+	async getDashboardStats(user_id: string, _token?: string): Promise<DashboardStats> {
 		try {
 			this.logger.log('Calculating dashboard stats via optimized RPC', {
 				user_id
@@ -135,10 +71,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			// Call RPC with built-in retry logic (3 attempts with exponential backoff)
 			const stats = await this.callRpc<DashboardStats>(
 				'get_dashboard_stats',
-				{
-					p_user_id: user_id
-				},
-				token
+				{ p_user_id: user_id }
 			)
 
 			if (!stats) {
@@ -162,7 +95,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	async getPropertyPerformance(
 		user_id: string,
-		token?: string
+		_token?: string
 	): Promise<PropertyPerformance[]> {
 		try {
 			this.logger.log('Calculating property performance via optimized RPC', {
@@ -172,8 +105,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const [rawProperties, rawTrends] = await Promise.all([
 				this.callRpc<PropertyPerformanceRpcResponse[]>(
 					'get_property_performance_cached',
-					{ p_user_id: user_id },
-					token
+					{ p_user_id: user_id }
 				),
 				this.callRpc<
 					Array<{
@@ -183,7 +115,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 						trend: 'up' | 'down' | 'stable'
 						trend_percentage: number
 					}>
-				>('get_property_performance_trends', { p_user_id: user_id }, token)
+				>('get_property_performance_trends', { p_user_id: user_id })
 			])
 
 			if (!rawProperties) return []
@@ -230,7 +162,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	async getOccupancyTrends(
 		user_id: string,
-		token?: string,
+		_token?: string,
 		months: number = 12
 	): Promise<OccupancyTrendResponse[]> {
 		try {
@@ -239,11 +171,9 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				months
 			})
 
-			// Use the actual RPC function instead of fake data
 			const raw = await this.callRpc<OccupancyTrendResponse[]>(
 				'get_occupancy_trends_optimized',
-				{ p_user_id: user_id, p_months: months },
-				token
+				{ p_user_id: user_id, p_months: months }
 			)
 
 			if (!raw || raw.length === 0) {
@@ -274,7 +204,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 	async getRevenueTrends(
 		user_id: string,
-		token?: string,
+		_token?: string,
 		months: number = 12
 	): Promise<RevenueTrendResponse[]> {
 		try {
@@ -283,11 +213,9 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				months
 			})
 
-			// Use the actual RPC function instead of fake data
 			const raw = await this.callRpc<RevenueTrendResponse[]>(
 				'get_revenue_trends_optimized',
-				{ p_user_id: user_id, p_months: months },
-				token
+				{ p_user_id: user_id, p_months: months }
 			)
 
 			if (!raw || raw.length === 0) {
@@ -318,7 +246,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getMaintenanceAnalytics(user_id: string, token?: string): Promise<{
+	async getMaintenanceAnalytics(user_id: string): Promise<{
 		avgResolutionTime: number
 		completionRate: number
 		priorityBreakdown: Record<string, number>
@@ -342,7 +270,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					completed: number
 					avgResolutionDays: number
 				}>
-			}>('get_maintenance_analytics', { user_id: user_id }, token)
+			}>('get_maintenance_analytics', { p_user_id: user_id })
 
 			if (!maintenanceRaw) {
 				this.logger.error('Failed to calculate maintenance analytics via RPC', {
@@ -376,69 +304,27 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getBillingInsights(
-		user_id: string,
-		token?: string,
-		options?: {
-			start_date?: Date
-			end_date?: Date
-		}
-	): Promise<BillingInsights> {
+	async getBillingInsights(user_id: string): Promise<BillingInsights> {
 		try {
-			this.logger.log('Calculating billing insights via RPC', {
-				user_id,
-				options
-			})
+			this.logger.log('Calculating billing insights via RPC', { user_id })
 
-			// Build params conditionally to satisfy exactOptionalPropertyTypes
-			const params: {
-				owner_id_param: string
-				start_date_param?: string
-				end_date_param?: string
-			} = {
-				owner_id_param: user_id
-			}
-			if (options?.start_date) {
-				params.start_date_param = options.start_date.toISOString()
-			}
-			if (options?.end_date) {
-				params.end_date_param = options.end_date.toISOString()
-			}
-
-			// Call optimized RPC function that consolidates billing insights
 			const data = await this.callRpc<BillingInsights>(
 				'get_billing_insights',
-				params,
-				token
+				{ p_user_id: user_id }
 			)
 
 			if (!data) {
-				this.logger.warn('Billing insights RPC failed, returning defaults', {
-					user_id
-				})
-				return {
-					totalRevenue: 0,
-					churnRate: 0,
-					mrr: 0
-				}
+				this.logger.warn('Billing insights RPC failed, returning defaults', { user_id })
+				return { totalRevenue: 0, churnRate: 0, mrr: 0 }
 			}
 
 			return data
 		} catch (error) {
 			this.logger.error(
 				`Database error in getBillingInsights: ${error instanceof Error ? error.message : String(error)}`,
-				{
-					user_id,
-					error,
-					options
-				}
+				{ user_id, error }
 			)
-			// Return valid schema structure on error
-			return {
-				totalRevenue: 0,
-				churnRate: 0,
-				mrr: 0
-			}
+			return { totalRevenue: 0, churnRate: 0, mrr: 0 }
 		}
 	}
 
@@ -454,106 +340,6 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				error
 			)
 			return false
-		}
-	}
-
-	/**
-	 * Get time-series data for dashboard charts
-	 */
-	async getTimeSeries(
-		user_id: string,
-		metric: string,
-		days: number,
-		token?: string
-	): Promise<unknown[]> {
-		try {
-			this.logger.log('Fetching time-series data via RPC', {
-				user_id,
-				metric,
-				days
-			})
-
-			const raw = await this.callRpc<unknown[]>(
-				'get_dashboard_time_series',
-				{
-					p_user_id: user_id,
-					p_metric_name: metric,
-					p_days: days
-				},
-				token
-			)
-
-			if (!raw || raw.length === 0) {
-				this.logger.warn('No time-series data from RPC, returning empty array', {
-					user_id,
-					metric,
-					days
-				})
-				return []
-			}
-
-			return raw
-		} catch (error) {
-			this.logger.error(
-				`Database error in getTimeSeries: ${error instanceof Error ? error.message : String(error)}`,
-				{
-					user_id,
-					metric,
-					days,
-					error
-				}
-			)
-			return []
-		}
-	}
-
-	/**
-	 * Get metric trend comparing current vs previous period
-	 */
-	async getMetricTrend(
-		user_id: string,
-		metric: string,
-		period: string,
-		token?: string
-	): Promise<unknown> {
-		try {
-			this.logger.log('Fetching metric trend via RPC', {
-				user_id,
-				metric,
-				period
-			})
-
-			const raw = await this.callRpc<unknown>(
-				'get_metric_trend',
-				{
-					p_user_id: user_id,
-					p_metric_name: metric,
-					p_period: period
-				},
-				token
-			)
-
-			if (!raw) {
-				this.logger.warn('No metric trend data from RPC', {
-					user_id,
-					metric,
-					period
-				})
-				return null
-			}
-
-			return raw
-		} catch (error) {
-			this.logger.error(
-				`Database error in getMetricTrend: ${error instanceof Error ? error.message : String(error)}`,
-				{
-					user_id,
-					metric,
-					period,
-					error
-				}
-			)
-			return null
 		}
 	}
 
@@ -613,21 +399,6 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				yearly: 0,
 				growth: 0
 			}
-		}
-	}
-
-	/**
-	 * Cleanup pending timers on module destroy
-	 */
-	async onModuleDestroy() {
-		if (this.pendingTimers.size > 0) {
-			this.logger.log('Clearing pending retry timers', {
-				count: this.pendingTimers.size
-			})
-			for (const timer of this.pendingTimers) {
-				clearTimeout(timer)
-			}
-			this.pendingTimers.clear()
 		}
 	}
 }

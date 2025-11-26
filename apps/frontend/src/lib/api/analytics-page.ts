@@ -19,33 +19,13 @@ import type {
  * Aggregates all financial analytics data for the financial analytics page
  */
 export async function getFinancialAnalyticsPageData(): Promise<FinancialAnalyticsPageData> {
-	const [
-		metrics,
-		breakdown,
-		netOperatingIncome,
-		billingInsights,
-		invoiceSummary,
-		monthlyMetrics,
-		leaseAnalytics
-	] = await Promise.all([
-		serverFetch('/financial/analytics/dashboard-metrics'),
-		serverFetch('/financial/analytics/breakdown'),
-		serverFetch('/financial/analytics/net-operating-income'),
-		serverFetch('/financial/analytics/billing-insights'),
-		serverFetch('/financial/analytics/invoice-summary'),
-		serverFetch('/financial/analytics/monthly-metrics'),
-		serverFetch('/financial/analytics/lease-analytics')
-	])
+	// Single optimized endpoint - backend fetches all data in parallel via Promise.all
+	const response = await serverFetch<{ data: FinancialAnalyticsPageData }>(
+		'/api/v1/analytics/financial/page-data'
+	)
 
-	return {
-		metrics: metrics as FinancialAnalyticsPageData['metrics'],
-		breakdown: breakdown as FinancialAnalyticsPageData['breakdown'],
-		netOperatingIncome: netOperatingIncome as FinancialAnalyticsPageData['netOperatingIncome'],
-		billingInsights: billingInsights as FinancialAnalyticsPageData['billingInsights'],
-		invoiceSummary: invoiceSummary as FinancialAnalyticsPageData['invoiceSummary'],
-		monthlyMetrics: monthlyMetrics as FinancialAnalyticsPageData['monthlyMetrics'],
-		leaseAnalytics: leaseAnalytics as FinancialAnalyticsPageData['leaseAnalytics']
-	}
+	// Backend returns { success: true, data: {...} }
+	return response.data ?? (response as unknown as FinancialAnalyticsPageData)
 }
 
 /**
@@ -53,30 +33,13 @@ export async function getFinancialAnalyticsPageData(): Promise<FinancialAnalytic
  * Aggregates all lease analytics data for the lease analytics page
  */
 export async function getLeaseAnalyticsPageData(): Promise<LeaseAnalyticsPageData> {
-	const [
-		metrics,
-		profitability,
-		renewalRates,
-		vacancyTrends,
-		leaseDistribution
-	] = await Promise.all([
-		serverFetch('/lease/analytics/metrics'),
-		serverFetch('/lease/analytics/profitability'),
-		serverFetch('/lease/analytics/renewal-rates'),
-		serverFetch('/lease/analytics/vacancy-trends'),
-		serverFetch('/lease/analytics/distribution')
-	])
+	// Single optimized endpoint - backend fetches all data in parallel via Promise.all
+	const response = await serverFetch<{ data: LeaseAnalyticsPageData }>(
+		'/api/v1/analytics/lease/page-data'
+	)
 
-	return {
-		metrics: metrics as LeaseAnalyticsPageData['metrics'],
-		profitability: profitability as LeaseAnalyticsPageData['profitability'],
-		renewalRates: renewalRates as LeaseAnalyticsPageData['renewalRates'],
-		vacancyTrends: vacancyTrends as LeaseAnalyticsPageData['vacancyTrends'],
-		leaseDistribution: leaseDistribution as LeaseAnalyticsPageData['leaseDistribution'],
-		// Aliases for page compatibility
-		lifecycle: renewalRates as LeaseAnalyticsPageData['lifecycle'],
-		statusBreakdown: leaseDistribution as LeaseAnalyticsPageData['statusBreakdown']
-	}
+	// Backend returns { success: true, data: {...} }
+	return response.data ?? (response as unknown as LeaseAnalyticsPageData)
 }
 
 /**
@@ -84,30 +47,13 @@ export async function getLeaseAnalyticsPageData(): Promise<LeaseAnalyticsPageDat
  * Aggregates all maintenance analytics data for the maintenance insights page
  */
 export async function getMaintenanceInsightsPageData(): Promise<MaintenanceInsightsPageData> {
-	const [
-		metrics,
-		categoryBreakdown,
-		costTrends,
-		responseTimes,
-		preventiveMaintenance
-	] = await Promise.all([
-		serverFetch('/maintenance/analytics/metrics'),
-		serverFetch('/maintenance/analytics/category-breakdown'),
-		serverFetch('/maintenance/analytics/cost-trends'),
-		serverFetch('/maintenance/analytics/response-times'),
-		serverFetch('/maintenance/analytics/preventive-maintenance')
-	])
+	// Single optimized endpoint - backend fetches all data in parallel via Promise.all
+	const response = await serverFetch<{ data: MaintenanceInsightsPageData }>(
+		'/api/v1/analytics/maintenance/page-data'
+	)
 
-	return {
-		metrics: metrics as MaintenanceInsightsPageData['metrics'],
-		categoryBreakdown: categoryBreakdown as MaintenanceInsightsPageData['categoryBreakdown'],
-		costTrends: costTrends as MaintenanceInsightsPageData['costTrends'],
-		responseTimes: responseTimes as MaintenanceInsightsPageData['responseTimes'],
-		preventiveMaintenance: preventiveMaintenance as MaintenanceInsightsPageData['preventiveMaintenance'],
-		// Aliases for page compatibility
-		costBreakdown: categoryBreakdown as MaintenanceInsightsPageData['costBreakdown'],
-		trends: costTrends as MaintenanceInsightsPageData['trends']
-	}
+	// Backend returns { success: true, data: {...} }
+	return response.data ?? (response as unknown as MaintenanceInsightsPageData)
 }
 
 /**
@@ -115,26 +61,20 @@ export async function getMaintenanceInsightsPageData(): Promise<MaintenanceInsig
  * Aggregates all occupancy analytics data for the occupancy analytics page
  */
 export async function getOccupancyAnalyticsPageData(): Promise<OccupancyAnalyticsPageData> {
-	const [
-		metrics,
-		trends,
-		propertyPerformance,
-		seasonalPatterns,
-		vacancyAnalysis
-	] = await Promise.all([
-		serverFetch('/occupancy/analytics/metrics'),
-		serverFetch('/occupancy/analytics/trends'),
-		serverFetch('/occupancy/analytics/property-performance'),
-		serverFetch('/occupancy/analytics/seasonal-patterns'),
-		serverFetch('/occupancy/analytics/vacancy-analysis')
-	])
+	// Occupancy data comes from owner/tenants endpoint
+	const response = await serverFetch<{ data: OccupancyAnalyticsPageData }>(
+		'/api/v1/owner/tenants/occupancy-trends'
+	)
+
+	// Backend returns { success: true, data: {...} }
+	const data = response.data ?? (response as unknown as OccupancyAnalyticsPageData)
 
 	return {
-		metrics: metrics as OccupancyAnalyticsPageData['metrics'],
-		trends: trends as OccupancyAnalyticsPageData['trends'],
-		propertyPerformance: propertyPerformance as OccupancyAnalyticsPageData['propertyPerformance'],
-		seasonalPatterns: seasonalPatterns as OccupancyAnalyticsPageData['seasonalPatterns'],
-		vacancyAnalysis: vacancyAnalysis as OccupancyAnalyticsPageData['vacancyAnalysis']
+		metrics: data.metrics ?? { occupancyRate: 0, totalUnits: 0, occupiedUnits: 0, vacantUnits: 0 },
+		trends: data.trends ?? [],
+		propertyPerformance: data.propertyPerformance ?? [],
+		seasonalPatterns: data.seasonalPatterns ?? [],
+		vacancyAnalysis: data.vacancyAnalysis ?? { totalVacant: 0, avgVacancyDays: 0, vacancyByProperty: [] }
 	}
 }
 
@@ -143,26 +83,19 @@ export async function getOccupancyAnalyticsPageData(): Promise<OccupancyAnalytic
  * Aggregates all analytics data for the analytics overview page
  */
 export async function getAnalyticsPageData(): Promise<AnalyticsPageData> {
-	const [
-		financial,
-		maintenance,
-		occupancy,
-		lease,
-		visitor
-	] = await Promise.all([
-		serverFetch('/analytics/overview/financial'),
-		serverFetch('/analytics/overview/maintenance'),
-		serverFetch('/analytics/overview/occupancy'),
-		serverFetch('/analytics/overview/lease'),
-		serverFetch('/analytics/overview/visitor')
+	// Fetch overview data from individual page-data endpoints in parallel
+	const [financial, maintenance, lease] = await Promise.all([
+		serverFetch<{ data: unknown }>('/api/v1/analytics/financial/page-data'),
+		serverFetch<{ data: unknown }>('/api/v1/analytics/maintenance/page-data'),
+		serverFetch<{ data: unknown }>('/api/v1/analytics/lease/page-data')
 	])
 
 	return {
-		financial: financial as AnalyticsPageData['financial'],
-		maintenance: maintenance as AnalyticsPageData['maintenance'],
-		occupancy: occupancy as AnalyticsPageData['occupancy'],
-		lease: lease as AnalyticsPageData['lease'],
-		visitor: visitor as AnalyticsPageData['visitor']
+		financial: (financial.data ?? financial) as AnalyticsPageData['financial'],
+		maintenance: (maintenance.data ?? maintenance) as AnalyticsPageData['maintenance'],
+		occupancy: {} as AnalyticsPageData['occupancy'], // Loaded separately if needed
+		lease: (lease.data ?? lease) as AnalyticsPageData['lease'],
+		visitor: {} as AnalyticsPageData['visitor'] // Loaded separately if needed
 	}
 }
 
@@ -171,30 +104,13 @@ export async function getAnalyticsPageData(): Promise<AnalyticsPageData> {
  * Aggregates all property performance analytics data
  */
 export async function getPropertyPerformancePageData(): Promise<PropertyPerformancePageData> {
-	const [
-		metrics,
-		unitStats,
-		performance,
-		units,
-		revenueTrends,
-		visitorAnalytics
-	] = await Promise.all([
-		serverFetch('/property/analytics/performance/metrics'),
-		serverFetch('/property/analytics/performance/unit-stats'),
-		serverFetch('/property/analytics/performance/data'),
-		serverFetch('/property/analytics/performance/units'),
-		serverFetch('/property/analytics/performance/revenue-trends'),
-		serverFetch('/property/analytics/performance/visitor-analytics')
-	])
+	// Single optimized endpoint - backend fetches all data in parallel via Promise.all
+	const response = await serverFetch<{ data: PropertyPerformancePageData }>(
+		'/api/v1/analytics/property-performance/page-data'
+	)
 
-	return {
-		metrics: metrics as PropertyPerformancePageData['metrics'],
-		unitStats: unitStats as PropertyPerformancePageData['unitStats'],
-		performance: performance as PropertyPerformancePageData['performance'],
-		units: units as PropertyPerformancePageData['units'],
-		revenueTrends: revenueTrends as PropertyPerformancePageData['revenueTrends'],
-		visitorAnalytics: visitorAnalytics as PropertyPerformancePageData['visitorAnalytics']
-	}
+	// Backend returns { success: true, data: {...} }
+	return response.data ?? (response as unknown as PropertyPerformancePageData)
 }
 
 /**
@@ -202,23 +118,19 @@ export async function getPropertyPerformancePageData(): Promise<PropertyPerforma
  * Aggregates all lease data for the tenants page
  */
 export async function getLeasesPageData(): Promise<LeasesPageData> {
-	const [
-		leases,
-		tenants,
-		properties,
-		metrics
-	] = await Promise.all([
-		serverFetch('/leases'),
-		serverFetch('/tenants'),
-		serverFetch('/properties'),
-		serverFetch('/leases/analytics/metrics')
+	// Fetch leases page data from individual endpoints in parallel
+	const [leases, tenants, properties, metrics] = await Promise.all([
+		serverFetch<{ data: unknown }>('/api/v1/leases'),
+		serverFetch<{ data: unknown }>('/api/v1/tenants'),
+		serverFetch<{ data: unknown }>('/api/v1/properties'),
+		serverFetch<{ data: unknown }>('/api/v1/analytics/lease-analytics')
 	])
 
 	return {
-		leases: leases as LeasesPageData['leases'],
-		tenants: tenants as LeasesPageData['tenants'],
-		properties: properties as LeasesPageData['properties'],
-		metrics: metrics as LeasesPageData['metrics']
+		leases: (leases.data ?? leases) as LeasesPageData['leases'],
+		tenants: (tenants.data ?? tenants) as LeasesPageData['tenants'],
+		properties: (properties.data ?? properties) as LeasesPageData['properties'],
+		metrics: (metrics.data ?? metrics) as LeasesPageData['metrics']
 	}
 }
 
