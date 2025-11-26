@@ -175,7 +175,11 @@ export class PropertiesController {
 			fileName: file?.originalname,
 			fileSize: file?.size,
 			mimetype: file?.mimetype,
-			user_id: req.user?.id
+			user_id: req.user?.id,
+			user_id_type: typeof req.user?.id,
+			user_email: req.user?.email,
+			hasUser: !!req.user,
+			userKeys: req.user ? Object.keys(req.user) : []
 		})
 
 		if (!file) {

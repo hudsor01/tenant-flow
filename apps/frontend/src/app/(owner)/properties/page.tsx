@@ -70,9 +70,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 									<Building2 className="size-6 text-primary" />
 								</div>
 								<div>
-									<CardTitle className="text-3xl font-bold tracking-tight">
-										Properties
-									</CardTitle>
+									<h1 className="text-3xl font-bold tracking-tight leading-none font-semibold">Properties</h1>
 									<CardDescription className="text-base">
 										Manage your property portfolio and track performance
 									</CardDescription>

@@ -5,10 +5,22 @@ import { expect, type Page } from '@playwright/test'
  */
 
 /**
- * Open a modal by clicking a button with specific text
+ * Open a modal by clicking a button or link with specific text
+ * Handles both <button> elements and <a> elements (Button asChild pattern)
  */
 export async function openModal(page: Page, buttonText: string): Promise<void> {
-  await page.getByRole('button', { name: new RegExp(buttonText, 'i') }).click()
+  // Try button first, then link (for Button asChild pattern)
+  const button = page.getByRole('button', { name: new RegExp(buttonText, 'i') })
+  const link = page.getByRole('link', { name: new RegExp(buttonText, 'i') })
+  
+  if (await button.count() > 0) {
+    await button.click()
+  } else if (await link.count() > 0) {
+    await link.click()
+  } else {
+    throw new Error(`Could not find button or link with text: ${buttonText}`)
+  }
+  
   // Wait for modal to appear
   await page.waitForSelector('[role="dialog"]', { state: 'visible', timeout: 5000 })
 }

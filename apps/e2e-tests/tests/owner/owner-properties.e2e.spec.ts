@@ -76,7 +76,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should display Add Property button', async ({ page }) => {
-    await verifyButtonExists(page, 'Add Property')
+    await verifyButtonExists(page, 'New Property')
   })
 
   test('should display search functionality', async ({ page }) => {
@@ -90,7 +90,7 @@ test.describe('Owner Properties', () => {
 
   test('should open create property modal via button', async ({ page }) => {
     // Click Add Property button
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
 
     // Verify modal opened
     await verifyModalIsOpen(page)
@@ -111,7 +111,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should close modal via X button', async ({ page }) => {
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     await verifyModalIsOpen(page)
 
     await closeModalViaCloseButton(page)
@@ -119,7 +119,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should close modal via Cancel button', async ({ page }) => {
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     await verifyModalIsOpen(page)
 
     await closeModalViaCancelButton(page)
@@ -127,7 +127,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should close modal via Escape key', async ({ page }) => {
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     await verifyModalIsOpen(page)
 
     await closeModalViaEscape(page)
@@ -135,7 +135,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should validate required fields in create form', async ({ page }) => {
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     await verifyModalIsOpen(page)
 
     // Try to submit empty form
@@ -158,7 +158,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should create a new property successfully', async ({ page }) => {
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     await verifyModalIsOpen(page)
 
     // Generate test property data
@@ -189,7 +189,7 @@ test.describe('Owner Properties', () => {
 
   test('should display property in table after creation', async ({ page }) => {
     // Create a property first
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     const property = createProperty()
 
     await fillTextInput(page, 'Name', property.name)
@@ -339,7 +339,7 @@ test.describe('Owner Properties', () => {
   })
 
   test('should handle form validation for invalid data', async ({ page }) => {
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
 
     // Try to submit with invalid data
     await fillTextInput(page, 'Name', 'a') // Too short
@@ -354,7 +354,7 @@ test.describe('Owner Properties', () => {
   test('should handle network errors gracefully', async ({ page }) => {
     // This test would require mocking network failures
     // For now, verify error handling UI exists
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
 
     // Form should have error handling in place
     await verifyModalIsOpen(page)
@@ -385,7 +385,7 @@ test.describe('Owner Properties', () => {
 
   test('should maintain data after modal close and reopen', async ({ page }) => {
     // Create property
-    await openModal(page, 'Add Property')
+    await openModal(page, 'New Property')
     const property = createProperty()
 
     await fillTextInput(page, 'Name', property.name)

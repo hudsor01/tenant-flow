@@ -5,7 +5,6 @@ import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
-// PrometheusModule removed - metrics handled by MetricsModule with custom controller
 import { ThrottlerModule } from '@nestjs/throttler'
 import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import type { Request } from 'express'
