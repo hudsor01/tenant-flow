@@ -447,17 +447,30 @@ export class TenantQueryService {
 	 * Get all owner property IDs
 	 * Consolidated from TenantRelationsService
 	 */
-	async getOwnerPropertyIds(ownerId: string): Promise<string[]> {
-		if (!ownerId) throw new BadRequestException('Owner ID required')
+	async getOwnerPropertyIds(authUserId: string): Promise<string[]> {
+		if (!authUserId) throw new BadRequestException('Owner ID required')
 
 		try {
-			const { data, error } = await this.supabase.getAdminClient()
+			const client = this.supabase.getAdminClient()
+
+			// First get property_owners.id from auth_user_id
+			const { data: ownerRecord } = await client
+				.from('property_owners')
+				.select('id')
+				.eq('user_id', authUserId)
+				.maybeSingle()
+
+			if (!ownerRecord) {
+				return []
+			}
+
+			const { data, error } = await client
 				.from('properties')
 				.select('id')
-				.eq('property_owner_id', ownerId)
+				.eq('property_owner_id', ownerRecord.id)
 
 			if (error) {
-				this.logger.error('Failed to fetch owner properties', { error: error.message, ownerId })
+				this.logger.error('Failed to fetch owner properties', { error: error.message, authUserId })
 				return []
 			}
 
@@ -465,7 +478,7 @@ export class TenantQueryService {
 		} catch (error) {
 			this.logger.error('Error getting owner property IDs', {
 				error: error instanceof Error ? error.message : String(error),
-				ownerId
+				authUserId
 			})
 			return []
 		}
@@ -475,15 +488,28 @@ export class TenantQueryService {
 	 * Get all tenant IDs for owner (via lease relationships)
 	 * Consolidated from TenantRelationsService
 	 */
-	async getTenantIdsForOwner(ownerId: string): Promise<string[]> {
-		if (!ownerId) throw new BadRequestException('Owner ID required')
+	async getTenantIdsForOwner(authUserId: string): Promise<string[]> {
+		if (!authUserId) throw new BadRequestException('Owner ID required')
 
 		try {
+			const client = this.supabase.getAdminClient()
+
+			// First get property_owners.id from auth_user_id
+			const { data: ownerRecord } = await client
+				.from('property_owners')
+				.select('id')
+				.eq('user_id', authUserId)
+				.maybeSingle()
+
+			if (!ownerRecord) {
+				return []
+			}
+
 			// Get all tenant IDs from leases for this owner's properties
-			const { data: propertyData, error: propertyError } = await this.supabase.getAdminClient()
+			const { data: propertyData, error: propertyError } = await client
 				.from('properties')
 				.select('id')
-				.eq('property_owner_id', ownerId)
+				.eq('property_owner_id', ownerRecord.id)
 
 			if (propertyError || !propertyData) {
 				return []
@@ -521,7 +547,7 @@ export class TenantQueryService {
 		} catch (error) {
 			this.logger.error('Error getting tenant IDs for owner', {
 				error: error instanceof Error ? error.message : String(error),
-				ownerId
+				authUserId
 			})
 			return []
 		}
@@ -620,6 +646,17 @@ export class TenantQueryService {
 		try {
 			const client = this.supabase.getAdminClient()
 
+			// First get property_owners.id from auth_user_id
+			const { data: ownerRecord } = await client
+				.from('property_owners')
+				.select('id')
+				.eq('user_id', user_id)
+				.maybeSingle()
+
+			if (!ownerRecord) {
+				return { data: [], total: 0 }
+			}
+
 			// Build the query
 			let query = client
 				.from('tenant_invitations')
@@ -639,7 +676,7 @@ export class TenantQueryService {
 						property:properties!inner(name)
 					)
 				`, { count: 'exact' })
-				.eq('property_owner_id', user_id)
+				.eq('property_owner_id', ownerRecord.id)
 				.order('created_at', { ascending: false })
 
 			// Apply status filter

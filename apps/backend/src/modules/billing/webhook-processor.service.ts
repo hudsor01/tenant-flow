@@ -40,6 +40,18 @@ export class WebhookProcessor {
 				await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
 				break
 
+			case 'account.updated':
+				await this.handleAccountUpdated(event.data.object as Stripe.Account)
+				break
+
+			case 'payment_intent.succeeded':
+				await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent)
+				break
+
+			case 'payment_intent.payment_failed':
+				await this.handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent)
+				break
+
 			default:
 				this.logger.debug('Unhandled webhook event type', { type: event.type })
 		}
@@ -357,6 +369,9 @@ export class WebhookProcessor {
 					full_name: customerName,
 					stripe_customer_id: stripeCustomerId,
 					onboarding_source: 'stripe_checkout'
+				},
+				app_metadata: {
+					user_type: 'OWNER'
 				}
 			})
 
@@ -430,6 +445,235 @@ export class WebhookProcessor {
 			this.logger.error('Failed to handle checkout session completed', {
 				error: error instanceof Error ? error.message : String(error),
 				sessionId: session.id
+			})
+			throw error
+		}
+	}
+
+
+	/**
+	 * Handle Stripe Connect account.updated webhook
+	 * Updates property_owners table with onboarding status and capabilities
+	 */
+	private async handleAccountUpdated(account: Stripe.Account): Promise<void> {
+		try {
+			this.logger.log('Connect account updated', {
+				accountId: account.id,
+				chargesEnabled: account.charges_enabled,
+				payoutsEnabled: account.payouts_enabled,
+				detailsSubmitted: account.details_submitted
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Determine onboarding status based on Stripe account state
+			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' | 'rejected' = 'in_progress'
+			if (account.details_submitted && account.charges_enabled && account.payouts_enabled) {
+				onboardingStatus = 'completed'
+			} else if (account.requirements?.disabled_reason) {
+				onboardingStatus = 'rejected'
+			} else if (!account.details_submitted) {
+				onboardingStatus = 'in_progress'
+			}
+
+			// Combine currently_due and eventually_due requirements
+			const requirementsDue = [
+				...(account.requirements?.currently_due || []),
+				...(account.requirements?.eventually_due || [])
+			]
+
+			const { error } = await client
+				.from('property_owners')
+				.update({
+					charges_enabled: account.charges_enabled,
+					payouts_enabled: account.payouts_enabled,
+					onboarding_status: onboardingStatus,
+					requirements_due: requirementsDue,
+					onboarding_completed_at: onboardingStatus === 'completed' ? new Date().toISOString() : null,
+					updated_at: new Date().toISOString()
+				})
+				.eq('stripe_account_id', account.id)
+
+			if (error) {
+				this.logger.error('Failed to update property owner', {
+					error: error.message,
+					accountId: account.id
+				})
+				throw new Error(`Failed to update property owner: ${error.message}`)
+			}
+
+			this.logger.log('Property owner updated successfully', {
+				accountId: account.id,
+				onboardingStatus,
+				chargesEnabled: account.charges_enabled,
+				payoutsEnabled: account.payouts_enabled
+			})
+		} catch (error) {
+			this.logger.error('Failed to handle account.updated', {
+				error: error instanceof Error ? error.message : String(error),
+				accountId: account.id
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle payment_intent.succeeded webhook
+	 * Updates rent_payments table with successful payment status
+	 */
+	private async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+		try {
+			this.logger.log('Payment intent succeeded', {
+				paymentIntentId: paymentIntent.id,
+				amount: paymentIntent.amount,
+				metadata: paymentIntent.metadata
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Check if this is a rent payment (has lease_id in metadata)
+			const leaseId = paymentIntent.metadata?.lease_id
+			if (!leaseId) {
+				this.logger.debug('Payment intent is not a rent payment (no lease_id metadata)', {
+					paymentIntentId: paymentIntent.id
+				})
+				return
+			}
+
+			// Update rent_payments record
+			const { data: rentPayment, error: selectError } = await client
+				.from('rent_payments')
+				.select('id')
+				.eq('stripe_payment_intent_id', paymentIntent.id)
+				.maybeSingle()
+
+			if (selectError) {
+				this.logger.error('Failed to query rent payment', {
+					error: selectError.message,
+					paymentIntentId: paymentIntent.id
+				})
+			}
+
+			if (rentPayment) {
+				const { error: updateError } = await client
+					.from('rent_payments')
+					.update({
+						status: 'succeeded',
+						paid_date: new Date().toISOString(),
+						updated_at: new Date().toISOString()
+					})
+					.eq('id', rentPayment.id)
+
+				if (updateError) {
+					this.logger.error('Failed to update rent payment status', {
+						error: updateError.message,
+						rentPaymentId: rentPayment.id
+					})
+					throw new Error(`Failed to update rent payment: ${updateError.message}`)
+				}
+
+				this.logger.log('Rent payment marked as succeeded', {
+					rentPaymentId: rentPayment.id,
+					paymentIntentId: paymentIntent.id
+				})
+			} else {
+				// Payment intent may have been created but not yet recorded
+				this.logger.warn('No rent_payment record found for payment intent', {
+					paymentIntentId: paymentIntent.id,
+					leaseId
+				})
+			}
+		} catch (error) {
+			this.logger.error('Failed to handle payment_intent.succeeded', {
+				error: error instanceof Error ? error.message : String(error),
+				paymentIntentId: paymentIntent.id
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle payment_intent.payment_failed webhook
+	 * Updates rent_payments table with failed status and records failure reason
+	 */
+	private async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+		try {
+			this.logger.log('Payment intent failed', {
+				paymentIntentId: paymentIntent.id,
+				amount: paymentIntent.amount,
+				lastPaymentError: paymentIntent.last_payment_error?.message
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Check if this is a rent payment
+			const leaseId = paymentIntent.metadata?.lease_id
+			if (!leaseId) {
+				this.logger.debug('Payment intent is not a rent payment (no lease_id metadata)', {
+					paymentIntentId: paymentIntent.id
+				})
+				return
+			}
+
+			// Find and update rent_payment record
+			const { data: rentPayment, error: selectError } = await client
+				.from('rent_payments')
+				.select('id, tenant_id')
+				.eq('stripe_payment_intent_id', paymentIntent.id)
+				.maybeSingle()
+
+			if (selectError) {
+				this.logger.error('Failed to query rent payment for failure', {
+					error: selectError.message,
+					paymentIntentId: paymentIntent.id
+				})
+			}
+
+			if (rentPayment) {
+				const { error: updateError } = await client
+					.from('rent_payments')
+					.update({
+						status: 'failed',
+						updated_at: new Date().toISOString()
+					})
+					.eq('id', rentPayment.id)
+
+				if (updateError) {
+					this.logger.error('Failed to update rent payment status to failed', {
+						error: updateError.message,
+						rentPaymentId: rentPayment.id
+					})
+				}
+
+				// Record payment transaction with failure details
+				await client.from('payment_transactions').insert({
+					rent_payment_id: rentPayment.id,
+					stripe_payment_intent_id: paymentIntent.id,
+					status: 'failed',
+					amount: paymentIntent.amount,
+					failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
+					attempted_at: new Date().toISOString()
+				})
+
+				this.logger.warn('Rent payment failed', {
+					rentPaymentId: rentPayment.id,
+					tenantId: rentPayment.tenant_id,
+					amount: paymentIntent.amount / 100,
+					failureReason: paymentIntent.last_payment_error?.message
+				})
+
+				// TODO: Send notification to tenant about failed payment
+				// await this.notificationService.sendPaymentFailedEmail(...)
+			} else {
+				this.logger.warn('No rent_payment record found for failed payment intent', {
+					paymentIntentId: paymentIntent.id,
+					leaseId
+				})
+			}
+		} catch (error) {
+			this.logger.error('Failed to handle payment_intent.payment_failed', {
+				error: error instanceof Error ? error.message : String(error),
+				paymentIntentId: paymentIntent.id
 			})
 			throw error
 		}

@@ -6,7 +6,6 @@
 
 'use client'
 
-import { TenantGuard } from '#components/auth/tenant-guard'
 import {
 	Dropzone,
 	DropzoneContent,
@@ -154,7 +153,6 @@ export default function NewMaintenanceRequestPage() {
 	}
 
 	return (
-		<TenantGuard>
 		<div className="max-w-2xl mx-auto space-y-8">
 			<div>
 				<Link href="/tenant/maintenance">
@@ -317,6 +315,5 @@ export default function NewMaintenanceRequestPage() {
 				</form>
 			</CardLayout>
 		</div>
-		</TenantGuard>
 	)
 }

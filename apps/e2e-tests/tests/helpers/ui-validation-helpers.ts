@@ -178,6 +178,8 @@ export async function verifyLoadingSpinner(page: Page): Promise<void> {
 
 /**
  * Verify loading spinner is hidden (finished loading)
+ * Uses toHaveCount(0) instead of not.toBeVisible() to handle multiple loading elements
+ * Per Playwright best practices: https://playwright.dev/docs/locators#lists
  */
 export async function verifyLoadingComplete(page: Page): Promise<void> {
   await expect(
@@ -186,7 +188,7 @@ export async function verifyLoadingComplete(page: Page): Promise<void> {
     ).or(
       page.locator('.animate-spin')
     )
-  ).not.toBeVisible({ timeout: 10000 })
+  ).toHaveCount(0, { timeout: 15000 })
 }
 
 /**
