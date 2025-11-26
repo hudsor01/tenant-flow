@@ -109,12 +109,24 @@ export async function verifyStatCard(page: Page, label: string, value?: string):
 }
 
 /**
- * Verify a button exists and is visible
+ * Verify a button or link exists and is visible
+ * Handles both <button> elements and <a> elements (Button asChild pattern)
  */
 export async function verifyButtonExists(page: Page, buttonName: string): Promise<void> {
-  await expect(page.getByRole('button', { name: new RegExp(buttonName, 'i') })).toBeVisible({
-    timeout: 10000,
-  })
+  const button = page.getByRole('button', { name: new RegExp(buttonName, 'i') })
+  const link = page.getByRole('link', { name: new RegExp(buttonName, 'i') })
+  
+  // Check if either button or link is visible
+  const buttonVisible = await button.count() > 0
+  const linkVisible = await link.count() > 0
+  
+  if (buttonVisible) {
+    await expect(button).toBeVisible({ timeout: 10000 })
+  } else if (linkVisible) {
+    await expect(link).toBeVisible({ timeout: 10000 })
+  } else {
+    throw new Error(`Could not find button or link with name: ${buttonName}`)
+  }
 }
 
 /**

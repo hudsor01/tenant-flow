@@ -33,8 +33,8 @@ export class SupabaseModule {
 						}
 
 						const logger = new Logger('SupabaseModule')
-						logger.debug(
-							'Supabase admin client: using AppConfigService for credentials'
+						logger.log(
+							`[ADMIN_CLIENT_INIT] URL=${url?.substring(0, 35)}..., KEY_PREFIX=${key?.substring(0, 20)}...`
 						)
 
 						return createClient(url, key, {
