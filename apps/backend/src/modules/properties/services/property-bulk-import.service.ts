@@ -10,6 +10,7 @@ import {
 	VALID_PROPERTY_TYPES
 } from '../utils/csv-normalizer'
 import type { Request } from 'express'
+import { randomBytes } from 'crypto'
 
 // Helper to extract JWT token from request
 function getTokenFromRequest(req: Request): string | null {
@@ -53,8 +54,12 @@ export class PropertyBulkImportService {
 			throw new BadRequestException('Authentication required')
 		}
 
-		const client = this.supabase.getUserClient(token)
+		// Use admin client for property_owner lookup to bypass RLS
+		const adminClient = this.supabase.getAdminClient()
 		const user_id = req.user.id
+
+		// Use user client for property operations (respects RLS)
+		const client = this.supabase.getUserClient(token)
 
 		this.logger.log('[BULK_IMPORT:START] Bulk import initiated', {
 			user_id,
@@ -143,27 +148,86 @@ this.logger.log('[BULK_IMPORT:PHASE1.5] Fetching property_owner_id...', {
 user_id
 })
 
-const { data: propertyOwner, error: ownerError } = await client
+// Use adminClient to bypass RLS for property_owner lookup
+const ownerResult = await adminClient
 .from('property_owners')
 .select('id')
 .eq('user_id', user_id)
 .single()
 
+let propertyOwner = ownerResult.data
+const ownerError = ownerResult.error
+
+// Auto-create property_owner record if it doesn't exist
 if (ownerError || !propertyOwner) {
-this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
-error: ownerError?.message,
+this.logger.log('[BULK_IMPORT:PHASE1.5] Property owner not found, creating...', {
 user_id
 })
-throw new BadRequestException(
-'Property owner record not found. Please complete onboarding first.'
-)
+
+// Generate temporary Stripe account ID for development
+const tempStripeAccountId = `acct_temp_${randomBytes(16).toString('hex')}`
+
+// Use adminClient to bypass RLS for INSERT
+const { data: newOwner, error: createError } = await adminClient
+.from('property_owners')
+.insert({
+	user_id,
+	stripe_account_id: tempStripeAccountId,
+	business_type: 'individual'
+})
+.select('id')
+.single()
+
+// If INSERT returned no data (ON CONFLICT DO NOTHING), fetch the existing record
+if (!newOwner && !createError) {
+	this.logger.log('[BULK_IMPORT:PHASE1.5] Insert conflict, fetching existing record...', {
+		user_id
+	})
+
+	const { data: existingOwner, error: fetchError } = await adminClient
+		.from('property_owners')
+		.select('id')
+		.eq('user_id', user_id)
+		.single()
+
+	if (fetchError || !existingOwner) {
+		this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Failed to fetch existing property owner', {
+			error: fetchError?.message,
+			user_id
+		})
+		throw new BadRequestException(
+			'Failed to retrieve property owner record. Please try again.'
+		)
+	}
+
+	propertyOwner = existingOwner
+	this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found after conflict', {
+		property_owner_id: propertyOwner.id,
+		user_id
+	})
+} else if (createError || !newOwner) {
+	this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Failed to create property owner', {
+		error: createError?.message,
+		user_id
+	})
+	throw new BadRequestException(
+		'Failed to create property owner record. Please try again.'
+	)
+} else {
+	propertyOwner = newOwner
+	this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner created', {
+		property_owner_id: propertyOwner.id,
+		user_id
+	})
+}
+} else {
+this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found', {
+property_owner_id: propertyOwner.id,
+user_id
+})
 }
 
 const property_owner_id = propertyOwner.id
-this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found', {
-property_owner_id,
-user_id
-})
 
 const errors: Array<{ row: number; error: string }> = []
 const validRows: Array<
