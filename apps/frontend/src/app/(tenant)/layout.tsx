@@ -1,23 +1,19 @@
-import { TenantDashboardLayout } from './tenant-dashboard-layout'
 import type { ReactNode } from 'react'
 
 /**
- * Tenant Portal Layout (Next.js 16 Pattern)
+ * Tenant Portal Route Group Layout
  *
- * Auth Strategy:
- * - Proxy enforces auth and role validation
- * - This layout only renders UI components
- * - No auth checks needed (proxy guarantees TENANT role)
+ * This is a passthrough layout. The actual dashboard layout with sidebar,
+ * header, and auth guard is defined in the nested /tenant/layout.tsx file.
  *
- * Layout:
- * - Uses AppSidebar (same as owner dashboard)
- * - Visible logout button in sidebar
- * - Desktop-first with responsive mobile support
+ * Structure:
+ * - (tenant)/layout.tsx → passthrough (this file)
+ * - (tenant)/tenant/layout.tsx → TenantSidebar, SiteHeader, TenantGuard
  */
 export default function TenantLayout({
 	children
 }: {
 	children: ReactNode
 }) {
-	return <TenantDashboardLayout>{children}</TenantDashboardLayout>
+	return <>{children}</>
 }

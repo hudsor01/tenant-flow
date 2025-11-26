@@ -284,9 +284,21 @@ export class ReportsService {
 		}
 
 		try {
+			const client = this.supabase.getAdminClient()
+
+			// First get property_owners.id from auth_user_id
+			const { data: ownerRecord } = await client
+				.from('property_owners')
+				.select('id')
+				.eq('user_id', user_id)
+				.maybeSingle()
+
+			if (!ownerRecord) {
+				return this.getEmptyOccupancyMetrics()
+			}
+
 			// Get user's properties with units
-			const { data: properties } = await this.supabase
-				.getAdminClient()
+			const { data: properties } = await client
 				.from('properties')
 				.select(
 					`
@@ -298,7 +310,7 @@ export class ReportsService {
 					)
 					`
 				)
-				.eq('property_owner_id', user_id)
+				.eq('property_owner_id', ownerRecord.id)
 
 			if (!properties) {
 				return this.getEmptyOccupancyMetrics()

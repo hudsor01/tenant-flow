@@ -132,7 +132,8 @@ export class TenantInvitationTokenService {
 				throw new BadRequestException('Failed to retrieve tenant')
 			}
 
-			// Update user record to set user_type='TENANT'
+			// Update user record to set user_type='TENANT' in public.users
+			// The DB trigger will sync this to auth.users.raw_app_meta_data
 			const { error: userError } = await client
 				.from('users')
 				.update({ user_type: 'TENANT' })
@@ -146,6 +147,19 @@ export class TenantInvitationTokenService {
 				// Don't throw - tenant acceptance is more important than user_type update
 			} else {
 				this.logger.log('User type updated to TENANT on invitation acceptance', { user_id })
+			}
+
+			// Also set app_metadata.user_type directly on auth user for immediate effect
+			const { error: authUpdateError } = await client.auth.admin.updateUserById(
+				user_id,
+				{ app_metadata: { user_type: 'TENANT' } }
+			)
+
+			if (authUpdateError) {
+				this.logger.warn('Failed to update auth user app_metadata', {
+					error: authUpdateError.message,
+					user_id
+				})
 			}
 
 			return tenantData as Tenant
@@ -191,6 +205,7 @@ export class TenantInvitationTokenService {
 			}
 
 			// Update user record to set user_type='TENANT' if not already set
+			// The DB trigger will sync this to auth.users.raw_app_meta_data
 			const { error: userError } = await client
 				.from('users')
 				.update({ user_type: 'TENANT' })
@@ -205,6 +220,19 @@ export class TenantInvitationTokenService {
 				// Don't throw - tenant activation is more important than user_type update
 			} else {
 				this.logger.log('User type updated to TENANT on webhook activation', { user_id })
+			}
+
+			// Also set app_metadata.user_type directly on auth user for immediate effect
+			const { error: authUpdateError } = await client.auth.admin.updateUserById(
+				user_id,
+				{ app_metadata: { user_type: 'TENANT' } }
+			)
+
+			if (authUpdateError) {
+				this.logger.warn('Failed to update auth user app_metadata on webhook activation', {
+					error: authUpdateError.message,
+					user_id
+				})
 			}
 
 			return tenantData as Tenant

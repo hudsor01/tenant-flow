@@ -40,9 +40,7 @@ export class FinancialController {
 	@Get('billing/insights')
 	async getBillingInsights(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
-		@Query('start_date') start_date?: string,
-		@Query('end_date') end_date?: string
+		@user_id() user_id: string
 	): Promise<ControllerApiResponse> {
 		const token = this.supabase.getTokenFromRequest(req)
 
@@ -50,38 +48,14 @@ export class FinancialController {
 			throw new UnauthorizedException('Authentication token required')
 		}
 
-		this.logger.log('Getting billing insights', {
-			user_id,
-			dateRange: { start_date, end_date }
-		})
+		this.logger.log('Getting billing insights', { user_id })
 
-		const parsedstart_date = start_date ? new Date(start_date) : undefined
-		const parsedEndDate = end_date ? new Date(end_date) : undefined
-
-		if (
-			(parsedstart_date && isNaN(parsedstart_date.getTime())) ||
-			(parsedEndDate && isNaN(parsedEndDate.getTime()))
-		) {
-			return {
-				success: false,
-				data: null,
-				message: 'Invalid date format. Use ISO date strings.',
-				timestamp: new Date()
-			}
-		}
-
-		const data = await this.dashboardService.getBillingInsights(
-			user_id,
-			token,
-			parsedstart_date,
-			parsedEndDate
-		)
+		const data = await this.dashboardService.getBillingInsights(user_id)
 
 		return {
 			success: true,
 			data,
-			message:
-				'Billing insights retrieved successfully from Stripe Sync Engine',
+			message: 'Billing insights retrieved successfully',
 			timestamp: new Date()
 		}
 	}

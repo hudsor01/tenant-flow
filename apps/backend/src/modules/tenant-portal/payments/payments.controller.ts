@@ -5,7 +5,6 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -22,7 +21,7 @@ import { TenantContextInterceptor } from '../interceptors/tenant-context.interce
  * Routes: /tenant/payments/*
  */
 @Controller()
-@UseGuards(JwtAuthGuard, TenantAuthGuard)
+@UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantPaymentsController {
 	private readonly logger = new Logger(TenantPaymentsController.name)

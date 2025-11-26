@@ -5,7 +5,6 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -29,7 +28,7 @@ type TenantRow = Pick<
  * Routes: /tenant/settings/*
  */
 @Controller()
-@UseGuards(JwtAuthGuard, TenantAuthGuard)
+@UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantSettingsController {
 	private readonly logger = new Logger(TenantSettingsController.name)
