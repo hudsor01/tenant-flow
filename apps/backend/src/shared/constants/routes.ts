@@ -1,5 +1,12 @@
 export const HEALTH_PATHS = [
 	'health',
+	'health/ready',
+	'health/ping',
+	'health/stripe-sync',
+	'health/performance',
+	'health/circuit-breaker',
+	'auth',
+	'auth/ready',
 	'webhooks/health',
 	'webhooks/health/summary'
 	// NOTE: /configuration and /failures require authentication

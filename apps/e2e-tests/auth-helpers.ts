@@ -192,7 +192,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 
 		// Navigate to tenant portal to verify session is valid
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/portal`)
+		await page.goto(`${baseUrl}/tenant`)
 		await page.waitForLoadState('networkidle')
 
 		debugLog(
@@ -238,7 +238,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	}
 	
 	await Promise.all([
-		page.waitForURL(/\/portal/, { timeout: 120000 }),
+		page.waitForURL(/\/tenant/, { timeout: 120000 }),
 		submitButton.click()
 	])
 

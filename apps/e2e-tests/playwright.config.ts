@@ -84,9 +84,9 @@ export default defineConfig({
 			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: 'playwright/.auth/owner.json',
+				// storageState: 'playwright/.auth/owner.json', // Temporarily disabled - tests use loginAsOwner() directly
 			},
-			dependencies: ['setup'],
+			// dependencies: ['setup'], // Temporarily disabled - tests login directly
 			testIgnore: ['**/auth.setup.ts', '**/*public.spec.ts', '**/stripe-payment-flow.e2e.spec.ts'],
 		},
 
@@ -132,33 +132,34 @@ export default defineConfig({
 	],
 
 	// Auto-start development servers
-	webServer: [
-		{
-			command: 'doppler run -- pnpm --filter @repo/backend dev',
-			url: 'http://localhost:4600',
-			timeout: 120000,
-			reuseExistingServer: true,
-			stdout: 'ignore',
-			stderr: 'pipe',
-		},
-		{
-			command: 'doppler run -- pnpm --filter @repo/frontend dev',
-			url: 'http://localhost:3000',
-			timeout: 120000,
-			reuseExistingServer: true,
-			stdout: 'ignore',
-			stderr: 'pipe',
-			env: {
-				// Explicitly pass through Supabase env vars for Next.js
-				// Doppler provides SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
-				// Next.js needs NEXT_PUBLIC_* versions for client-side access
-				NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
-				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '',
-				SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-				SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '',
-			},
-		}
-	],
+	// TEMPORARILY DISABLED - servers already running manually
+	// webServer: [
+	// 	{
+	// 		command: 'doppler run -- pnpm --filter @repo/backend dev',
+	// 		url: 'http://localhost:4600',
+	// 		timeout: 120000,
+	// 		reuseExistingServer: true,
+	// 		stdout: 'ignore',
+	// 		stderr: 'pipe',
+	// 	},
+	// 	{
+	// 		command: 'doppler run -- pnpm --filter @repo/frontend dev',
+	// 		url: 'http://localhost:3000',
+	// 		timeout: 120000,
+	// 		reuseExistingServer: true,
+	// 		stdout: 'ignore',
+	// 		stderr: 'pipe',
+	// 		env: {
+	// 			// Explicitly pass through Supabase env vars for Next.js
+	// 			// Doppler provides SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
+	// 			// Next.js needs NEXT_PUBLIC_* versions for client-side access
+	// 			NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+	// 			NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '',
+	// 			SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+	// 			SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '',
+	// 		},
+	// 	}
+	// ],
 
 	// Output directory
 	outputDir: 'test-results/',
