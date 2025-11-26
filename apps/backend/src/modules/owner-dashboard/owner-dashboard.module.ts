@@ -4,22 +4,21 @@ import { FinancialModule } from './financial/financial.module'
 import { PropertiesModule } from './properties/properties.module'
 import { MaintenanceModule } from './maintenance/maintenance.module'
 import { TenantsModule } from './tenants/tenants.module'
-import { ReportsModule } from './reports/reports.module'
 import { AnalyticsModule } from './analytics/analytics.module'
+import { ReportsModule } from './reports/reports.module'
 import { OwnerContextInterceptor } from './interceptors/owner-context.interceptor'
 
 /**
  * OwnerDashboardModule
  *
  * Parent module for owner dashboard functionality.
- * Organizes routes under /owner prefix with 6 child modules:
+ * Organizes routes under /owner prefix with 5 child modules:
  *
  * Route Structure:
  * - /owner/financial/*      - Financial analytics and billing
  * - /owner/properties/*     - Property performance
  * - /owner/maintenance/*    - Maintenance analytics
  * - /owner/tenants/*        - Tenant and occupancy stats
- * - /owner/reports/*        - Reports and trends
  * - /owner/analytics/*      - Dashboard stats and activity
  *
  * Guards & Interceptors:
@@ -36,8 +35,8 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
 		PropertiesModule,
 		MaintenanceModule,
 		TenantsModule,
-		ReportsModule,
 		AnalyticsModule,
+		ReportsModule,
 
 		// RouterModule configuration for /owner route group
 		RouterModule.register([
@@ -48,8 +47,8 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
 					{ path: 'properties', module: PropertiesModule },
 					{ path: 'maintenance', module: MaintenanceModule },
 					{ path: 'tenants', module: TenantsModule },
-					{ path: 'reports', module: ReportsModule },
-					{ path: 'analytics', module: AnalyticsModule }
+					{ path: 'analytics', module: AnalyticsModule },
+					{ path: 'reports', module: ReportsModule }
 				]
 			}
 		])

@@ -52,9 +52,8 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 			return
 		}
 
-		removeOptimisticProperty(deletePropertyId)
-
 		startTransition(async () => {
+			removeOptimisticProperty(deletePropertyId)
 			try {
 				await clientFetch(`/api/v1/properties/${deletePropertyId}`, { method: 'DELETE' })
 				toast.success('Property deleted successfully')
