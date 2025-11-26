@@ -46,10 +46,7 @@ const environmentSchema = z.object({
 		(val) => val || process.env.NEXT_PUBLIC_SUPABASE_URL,
 		z.string().url('Must be a valid URL')
 	),
-	SUPABASE_SECRET_KEY: z.preprocess(
-		(val) => val || process.env.SECRET_KEY_SUPABASE,
-		z.string()
-	),
+	SECRET_KEY_SUPABASE: z.string(),
 	/**
 	 * Supabase JWT Secret - Legacy field, not currently used
 	 * Supabase now uses JWKS (JSON Web Key Set) discovery with asymmetric key verification (ES256/RS256)

@@ -3,13 +3,13 @@ import {
 	Controller,
 	Post,
 	Get,
-	UseGuards,
 	Request,
 	BadRequestException,
 	Logger,
-	NotFoundException
+	NotFoundException,
+	Query,
+	Param
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeConnectService } from './stripe-connect.service'
@@ -77,7 +77,6 @@ function isValidStripeCountry(country: string | undefined): boolean {
  * Handles Connected Account management for multi-owner SaaS platform
  */
 @Controller('stripe/connect')
-@UseGuards(JwtAuthGuard)
 export class StripeConnectController {
 	private readonly logger = new Logger(StripeConnectController.name)
 
@@ -343,6 +342,173 @@ export class StripeConnectController {
 				user_id
 			})
 			throw error
+		}
+	}
+
+
+	/**
+	 * Get connected account balance
+	 * GET /api/v1/stripe/connect/balance
+	 */
+	@Get('balance')
+	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
+		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
+			req.user.id,
+			'stripe_account_id'
+		)
+
+		if (!userData.stripe_account_id) {
+			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+		}
+
+		const balance = await this.stripeConnectService.getConnectedAccountBalance(
+			userData.stripe_account_id
+		)
+
+		return {
+			success: true,
+			balance: {
+				available: balance.available.map(b => ({
+					amount: b.amount,
+					currency: b.currency
+				})),
+				pending: balance.pending.map(b => ({
+					amount: b.amount,
+					currency: b.currency
+				}))
+			}
+		}
+	}
+
+	/**
+	 * List payouts for connected account
+	 * GET /api/v1/stripe/connect/payouts
+	 */
+	@Get('payouts')
+	async listPayouts(
+		@Request() req: AuthenticatedRequest,
+		@Query('limit') limit?: string,
+		@Query('starting_after') startingAfter?: string
+	) {
+		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
+			req.user.id,
+			'stripe_account_id'
+		)
+
+		if (!userData.stripe_account_id) {
+			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+		}
+
+		const options: { limit?: number; starting_after?: string } = {
+			limit: limit ? parseInt(limit, 10) : 10
+		}
+		if (startingAfter) {
+			options.starting_after = startingAfter
+		}
+
+		const payouts = await this.stripeConnectService.listConnectedAccountPayouts(
+			userData.stripe_account_id,
+			options
+		)
+
+		return {
+			success: true,
+			payouts: payouts.data.map(payout => ({
+				id: payout.id,
+				amount: payout.amount,
+				currency: payout.currency,
+				status: payout.status,
+				arrival_date: payout.arrival_date,
+				created: payout.created,
+				method: payout.method,
+				type: payout.type
+			})),
+			hasMore: payouts.has_more
+		}
+	}
+
+	/**
+	 * Get specific payout details
+	 * GET /api/v1/stripe/connect/payouts/:payoutId
+	 */
+	@Get('payouts/:payoutId')
+	async getPayoutDetails(
+		@Request() req: AuthenticatedRequest,
+		@Param('payoutId') payoutId: string
+	) {
+		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
+			req.user.id,
+			'stripe_account_id'
+		)
+
+		if (!userData.stripe_account_id) {
+			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+		}
+
+		const payout = await this.stripeConnectService.getPayoutDetails(
+			userData.stripe_account_id,
+			payoutId
+		)
+
+		return {
+			success: true,
+			payout: {
+				id: payout.id,
+				amount: payout.amount,
+				currency: payout.currency,
+				status: payout.status,
+				arrival_date: payout.arrival_date,
+				created: payout.created,
+				method: payout.method,
+				type: payout.type,
+				description: payout.description,
+				failure_message: payout.failure_message
+			}
+		}
+	}
+
+	/**
+	 * List rent payments received (transfers to connected account)
+	 * GET /api/v1/stripe/connect/transfers
+	 */
+	@Get('transfers')
+	async listTransfers(
+		@Request() req: AuthenticatedRequest,
+		@Query('limit') limit?: string,
+		@Query('starting_after') startingAfter?: string
+	) {
+		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
+			req.user.id,
+			'stripe_account_id'
+		)
+
+		if (!userData.stripe_account_id) {
+			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+		}
+
+		const options: { limit?: number; starting_after?: string } = {
+			limit: limit ? parseInt(limit, 10) : 10
+		}
+		if (startingAfter) {
+			options.starting_after = startingAfter
+		}
+
+		const transfers = await this.stripeConnectService.listTransfersToAccount(
+			userData.stripe_account_id,
+			options
+		)
+
+		return {
+			success: true,
+			transfers: transfers.data.map(transfer => ({
+				id: transfer.id,
+				amount: transfer.amount,
+				currency: transfer.currency,
+				created: transfer.created,
+				description: transfer.description,
+				metadata: transfer.metadata
+			})),
+			hasMore: transfers.has_more
 		}
 	}
 }
