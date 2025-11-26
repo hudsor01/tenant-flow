@@ -44,8 +44,8 @@ function LoginPageContent() {
 	// Handle post-login redirect
 	useEffect(() => {
 		if (justLoggedIn && !roleLoading) {
-			let destination = isTenant ? '/tenant' : '/'
-			const redirectTo = searchParams?.get('redirectTo')
+			let destination = isTenant ? '/tenant' : '/dashboard'
+			const redirectTo = searchParams?.get('redirect')
 			if (redirectTo?.startsWith('/') && !redirectTo.startsWith('//')) {
 				destination = redirectTo
 			}
