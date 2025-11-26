@@ -128,15 +128,17 @@ export class PropertyBulkImportService {
 // PHASE 1: Fetch property_owner_id for the authenticated user
 // Properties.property_owner_id is FK to property_owners.id (NOT auth.users.id)
 this.logger.log('[BULK_IMPORT:PHASE1.5] Fetching property_owner_id...', {
-user_id
+	user_id,
+	user_id_type: typeof user_id,
+	user_id_length: user_id?.length
 })
 
 // Use adminClient to bypass RLS for property_owner lookup
 const ownerResult = await adminClient
-.from('property_owners')
-.select('id')
-.eq('user_id', user_id)
-.single()
+	.from('property_owners')
+	.select('id')
+	.eq('user_id', user_id)
+	.single()
 
 const propertyOwner = ownerResult.data
 const ownerError = ownerResult.error
@@ -145,7 +147,10 @@ const ownerError = ownerResult.error
 if (ownerError || !propertyOwner) {
 	this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
 		error: ownerError?.message,
-		user_id
+		errorCode: ownerError?.code,
+		errorDetails: ownerError?.details,
+		user_id,
+		user_id_type: typeof user_id
 	})
 	throw new BadRequestException(
 		'Property owner profile not found. Please complete your account setup before importing properties.'
