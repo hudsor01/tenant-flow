@@ -5,6 +5,7 @@ import { StatCard } from '#components/dashboard/stat-card'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { Skeleton } from '#components/ui/skeleton'
 import { Badge } from '#components/ui/badge'
+import { Empty, EmptyHeader, EmptyMedia, EmptyDescription } from '#components/ui/empty'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
 import { useQuery } from '@tanstack/react-query'
@@ -113,10 +114,10 @@ export default function TenantDashboardPage() {
 	]
 
 	return (
-		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--background)] via-[var(--card)] to-[var(--muted)]/50 dark:from-[var(--background)] dark:via-[var(--card)] dark:to-[var(--muted)]/50">
-			<div className="dashboard-main border-b-2 border-[var(--color-border)]/40 bg-gradient-to-b from-[var(--background)] via-[var(--muted)]/30 to-[var(--muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--background)] dark:via-[var(--muted)]/30 dark:to-[var(--muted)]/20">
+		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--background)] via-[var(--card)] to-[var(--muted)]/50 dark:from-[var(--background)] dark:via-(--card) dark:to-(--muted)/50">
+			<div className="dashboard-main border-b-2 border-(--color-border)/40 bg-gradient-to-b from-[var(--background)] via-[var(--muted)]/30 to-[var(--muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--background)] dark:via-[var(--muted)]/30 dark:to-[var(--muted)]/20">
 				<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
-					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--foreground)] via-[var(--foreground)]/80 to-[var(--foreground)] bg-clip-text text-transparent dark:from-[var(--background)] dark:via-[var(--background)] dark:to-[var(--background)]">
+					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--foreground)] via-[var(--foreground)]/80 to-[var(--foreground)] bg-clip-text text-transparent dark:from-[var(--background)] dark:via-(--background) dark:to-[var(--background)]">
 						Tenant Portal
 					</h1>
 
@@ -286,10 +287,14 @@ export default function TenantDashboardPage() {
 											))}
 										</div>
 									) : recentPayments.length === 0 ? (
-										<div className="py-12 text-center border-2 border-dashed rounded-lg">
-											<Calendar className="size-12 mx-auto mb-3 text-muted-foreground/40" />
-											<p className="text-sm text-muted-foreground">No payments yet</p>
-										</div>
+										<Empty>
+											<EmptyHeader>
+												<EmptyMedia variant="icon">
+													<Calendar />
+												</EmptyMedia>
+												<EmptyDescription>No payments yet</EmptyDescription>
+											</EmptyHeader>
+										</Empty>
 									) : (
 										<div className="space-y-1">
 											{recentPayments.slice(0, 5).map(payment => (
@@ -298,8 +303,8 @@ export default function TenantDashboardPage() {
 													className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 												>
 													<div className="flex items-center gap-4">
-														<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[var(--color-success)]/10">
-															<CheckCircle2 className="size-5 text-[var(--color-success)]" />
+														<div className="flex items-center justify-center w-10 h-10 rounded-lg icon-bg-success">
+															<CheckCircle2 className="size-5" />
 														</div>
 														<div>
 															<p className="font-medium text-sm">
@@ -359,35 +364,37 @@ export default function TenantDashboardPage() {
 											))}
 										</div>
 									) : recentRequests.length === 0 ? (
-										<div className="py-12 text-center border-2 border-dashed rounded-lg">
-											<Wrench className="size-12 mx-auto mb-3 text-muted-foreground/40" />
-											<p className="text-sm text-muted-foreground">
-												No maintenance requests yet
-											</p>
-										</div>
+										<Empty>
+											<EmptyHeader>
+												<EmptyMedia variant="icon">
+													<Wrench />
+												</EmptyMedia>
+												<EmptyDescription>No maintenance requests yet</EmptyDescription>
+											</EmptyHeader>
+										</Empty>
 									) : (
 										<div className="space-y-1">
 											{recentRequests.slice(0, 5).map(request => {
 												const statusConfig = {
 													PENDING: {
 														icon: Clock,
-														color: 'text-[var(--color-warning)]',
-														bg: 'bg-[var(--color-warning)]/10'
+														bg: 'icon-bg-warning',
+														textColor: 'text-[var(--color-warning)]'
 													},
 													IN_PROGRESS: {
 														icon: Clock,
-														color: 'text-[var(--color-primary)]',
-														bg: 'bg-[var(--color-primary)]/10'
+														bg: 'icon-bg-primary',
+														textColor: 'text-[var(--color-primary)]'
 													},
 													COMPLETED: {
 														icon: CheckCircle2,
-														color: 'text-[var(--color-success)]',
-														bg: 'bg-[var(--color-success)]/10'
+														bg: 'icon-bg-success',
+														textColor: 'text-[var(--color-success)]'
 													},
 													CANCELED: {
 														icon: AlertCircle,
-														color: 'text-muted-foreground',
-														bg: 'bg-muted'
+														bg: 'bg-muted text-muted-foreground',
+														textColor: 'text-muted-foreground'
 													}
 												} as const
 
@@ -404,7 +411,7 @@ export default function TenantDashboardPage() {
 															<div
 																className={`flex items-center justify-center w-10 h-10 rounded-lg ${config.bg}`}
 															>
-																<Icon className={`size-5 ${config.color}`} />
+																<Icon className="size-5" />
 															</div>
 															<div>
 																<p className="font-medium text-sm">{request.title}</p>
@@ -414,7 +421,7 @@ export default function TenantDashboardPage() {
 															</div>
 														</div>
 														<div className="text-right">
-															<p className={`text-xs font-semibold ${config.color}`}>
+															<p className={`text-xs font-semibold ${config.textColor}`}>
 																{request.status.replace('_', ' ')}
 															</p>
 															<p className="text-xs text-muted-foreground">
