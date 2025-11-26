@@ -5,6 +5,7 @@ import {
 	FileText,
 	Home,
 	Receipt,
+	RefreshCw,
 	Settings,
 	UserCircle,
 	Wrench,
@@ -55,6 +56,11 @@ const navigation: {
 			url: '/tenant/payments',
 			icon: CreditCard,
 			children: [
+				{
+					title: 'Autopay',
+					url: '/tenant/payments/autopay',
+					icon: RefreshCw
+				},
 				{
 					title: 'Payment Methods',
 					url: '/tenant/payments/methods',

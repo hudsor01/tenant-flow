@@ -141,45 +141,28 @@ export class DashboardService {
 	// Performance improvement: 5 queries → 1 query (4x faster)
 
 	/**
-	 * Get comprehensive billing insights from rent payments
-	 * Production implementation using rent_payments table
+	 * Get billing insights - MRR, churn rate, annual revenue
 	 */
 	async getBillingInsights(
-		user_id?: string,
-		token?: string,
-		start_date?: Date,
-		end_date?: Date
+		user_id?: string
 	): Promise<z.infer<typeof billingInsightsSchema> | null> {
 		if (!user_id) {
 			this.logger.warn('getBillingInsights called without user_id')
-			throw new ValidationException(
-				'User ID is required to retrieve billing insights'
-			)
+			throw new ValidationException('User ID is required to retrieve billing insights')
 		}
 		try {
-			const result = await this.dashboardAnalyticsService.getBillingInsights(
-				user_id,
-				token,
-				start_date || end_date
-					? {
-							...(start_date && { start_date }),
-							...(end_date && { end_date })
-						}
-					: undefined
-			)
-			// Validate result with billingInsightsSchema
+			const result = await this.dashboardAnalyticsService.getBillingInsights(user_id)
 			const parsed = billingInsightsSchema.safeParse(result)
 			if (parsed.success) {
 				return parsed.data
-			} else {
-				this.logger.error('Billing insights validation failed', {
-					user_id,
-					validationErrors: parsed.error.format()
-				})
-				throw new ValidationException('Billing insights validation failed', {
-					errors: parsed.error.format()
-				})
 			}
+			this.logger.error('Billing insights validation failed', {
+				user_id,
+				validationErrors: parsed.error.format()
+			})
+			throw new ValidationException('Billing insights validation failed', {
+				errors: parsed.error.format()
+			})
 		} catch (error) {
 			this.logger.error('Failed to get billing insights', {
 				error: error instanceof Error ? error.message : String(error),
@@ -510,7 +493,7 @@ export class DashboardService {
 	 */
 	async getMaintenanceAnalytics(
 		user_id?: string,
-		token?: string
+		_token?: string
 	): Promise<{
 		avgResolutionTime: number
 		completionRate: number
@@ -528,8 +511,7 @@ export class DashboardService {
 		try {
 			// Delegate to DashboardAnalyticsService
 			return await this.dashboardAnalyticsService.getMaintenanceAnalytics(
-				user_id,
-				token
+				user_id
 			)
 		} catch (error) {
 			this.logger.error('Failed to get maintenance analytics', {
@@ -537,70 +519,6 @@ export class DashboardService {
 				user_id
 			})
 			return EMPTY_MAINTENANCE_ANALYTICS
-		}
-	}
-
-	/**
-	 * Get time-series data for dashboard charts
-	 */
-	async getTimeSeries(
-		user_id: string,
-		metric: string,
-		days: number,
-		token?: string
-	): Promise<unknown[]> {
-		if (!user_id) {
-			return []
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getTimeSeries(
-				user_id,
-				metric,
-				days,
-				token
-			)
-		} catch (error) {
-			this.logger.error('Failed to get time-series data', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id,
-				metric,
-				days
-			})
-			return []
-		}
-	}
-
-	/**
-	 * Get metric trend comparing current vs previous period
-	 */
-	async getMetricTrend(
-		user_id: string,
-		metric: string,
-		period: string,
-		token?: string
-	): Promise<unknown | null> {
-		if (!user_id) {
-			return null
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getMetricTrend(
-				user_id,
-				metric,
-				period,
-				token
-			)
-		} catch (error) {
-			this.logger.error('Failed to get metric trend', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id,
-				metric,
-				period
-			})
-			return null
 		}
 	}
 

@@ -200,6 +200,158 @@ export class StripeOwnerService {
 		return { customer, status: 'created' }
 	}
 
+
+	/**
+	 * Create a PaymentIntent for rent payment with destination charges
+	 * Routes payment to property owner's Stripe Connect account with platform application fee
+	 */
+	async createRentPaymentIntent(params: {
+		leaseId: string
+		paymentMethodId: string
+		tenantStripeCustomerId: string
+	}): Promise<Stripe.PaymentIntent> {
+		const { leaseId, paymentMethodId, tenantStripeCustomerId } = params
+
+		const client = this.supabaseService.getAdminClient()
+
+		// Get lease with property owner's Connect account
+		const { data: lease, error: leaseError } = await client
+			.from('leases')
+			.select(`
+				id,
+				rent_amount,
+				rent_currency,
+				primary_tenant_id,
+				property_owner_id,
+				property_owners!inner(
+					stripe_account_id,
+					default_platform_fee_percent,
+					charges_enabled
+				)
+			`)
+			.eq('id', leaseId)
+			.single()
+
+		if (leaseError || !lease) {
+			this.logger.error('Lease not found for rent payment', {
+				leaseId,
+				error: leaseError?.message
+			})
+			throw new NotFoundException('Lease not found')
+		}
+
+		const propertyOwner = lease.property_owners as unknown as {
+			stripe_account_id: string | null
+			default_platform_fee_percent: number
+			charges_enabled: boolean
+		}
+
+		// Validate property owner has completed Stripe Connect onboarding
+		if (!propertyOwner.stripe_account_id) {
+			this.logger.error('Property owner has not connected Stripe account', {
+				leaseId,
+				propertyOwnerId: lease.property_owner_id
+			})
+			throw new BadRequestException(
+				'Property owner has not completed Stripe Connect setup'
+			)
+		}
+
+		if (!propertyOwner.charges_enabled) {
+			this.logger.error('Property owner Stripe account cannot accept charges', {
+				leaseId,
+				propertyOwnerId: lease.property_owner_id,
+				stripeAccountId: propertyOwner.stripe_account_id
+			})
+			throw new BadRequestException(
+				'Property owner Stripe account is not fully verified'
+			)
+		}
+
+		// Calculate application fee (platform revenue)
+		const platformFeePercent = propertyOwner.default_platform_fee_percent ?? 3.0
+		const applicationFeeAmount = Math.round(
+			lease.rent_amount * (platformFeePercent / 100)
+		)
+
+		// Calculate period dates
+		const today = new Date()
+		const periodStart = new Date(today.getFullYear(), today.getMonth(), 1)
+		const periodEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+		const periodStartStr = periodStart.toISOString().slice(0, 10) // YYYY-MM-DD
+		const periodEndStr = periodEnd.toISOString().slice(0, 10)
+		const dueDateStr = periodStart.toISOString().slice(0, 10)
+
+		this.logger.log('Creating rent payment intent', {
+			leaseId,
+			rentAmount: lease.rent_amount,
+			applicationFeeAmount,
+			destinationAccount: propertyOwner.stripe_account_id
+		})
+
+		// Create PaymentIntent with destination charges
+		const paymentIntent = await this.stripe.paymentIntents.create({
+			amount: lease.rent_amount,
+			currency: lease.rent_currency || 'usd',
+			payment_method: paymentMethodId,
+			customer: tenantStripeCustomerId,
+			application_fee_amount: applicationFeeAmount,
+			transfer_data: {
+				destination: propertyOwner.stripe_account_id
+			},
+			// Shows property owner's business name on tenant's bank statement
+			on_behalf_of: propertyOwner.stripe_account_id,
+			metadata: {
+				lease_id: leaseId,
+				tenant_id: lease.primary_tenant_id,
+				property_owner_id: lease.property_owner_id || '',
+				period_start: periodStartStr,
+				period_end: periodEndStr,
+				platform: 'tenantflow'
+			},
+			confirm: true,
+			// Automatic payment methods allows ACH and cards
+			automatic_payment_methods: {
+				enabled: true,
+				allow_redirects: 'never'
+			}
+		})
+
+		// Record rent payment in database
+		const { error: insertError } = await client.from('rent_payments').insert({
+			lease_id: leaseId,
+			tenant_id: lease.primary_tenant_id,
+			stripe_payment_intent_id: paymentIntent.id,
+			amount: lease.rent_amount,
+			currency: lease.rent_currency || 'usd',
+			status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
+			payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
+			period_start: periodStartStr,
+			period_end: periodEndStr,
+			due_date: dueDateStr,
+			paid_date: paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
+			application_fee_amount: applicationFeeAmount
+		})
+
+		if (insertError) {
+			this.logger.error('Failed to record rent payment in database', {
+				leaseId,
+				paymentIntentId: paymentIntent.id,
+				error: insertError.message
+			})
+			// Don't throw - payment was successful, just log the db error
+		}
+
+		this.logger.log('Rent payment intent created', {
+			paymentIntentId: paymentIntent.id,
+			status: paymentIntent.status,
+			amount: paymentIntent.amount,
+			applicationFee: applicationFeeAmount
+		})
+
+		return paymentIntent
+	}
+
 	private async getOwner(user_id: string): Promise<UserRow> {
 		const cached = this.ownerCache.get(user_id)
 		if (cached && Date.now() - cached.cachedAt < this.CACHE_TTL_MS) {

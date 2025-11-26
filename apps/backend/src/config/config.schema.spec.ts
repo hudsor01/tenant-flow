@@ -7,7 +7,7 @@ const BASE_CONFIG = {
 	DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 	JWT_SECRET: 'a'.repeat(32),
 	SUPABASE_URL: 'https://project.supabase.co',
-	SUPABASE_SECRET_KEY: 'secret-key',
+	SECRET_KEY_SUPABASE: 'secret-key',
 	SUPABASE_JWT_SECRET: 'b'.repeat(32),
 	SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 	SUPABASE_PROJECT_REF: 'project-ref',

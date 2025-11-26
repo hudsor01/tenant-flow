@@ -8,6 +8,7 @@ import { TenantSettingsModule } from './settings/settings.module'
 import { TenantAuthGuard } from './guards/tenant-auth.guard'
 import { TenantContextInterceptor } from './interceptors/tenant-context.interceptor'
 import { SupabaseModule } from '../../database/supabase.module'
+import { TenantPortalController } from './tenant-portal.controller'
 
 /**
  * Tenant Portal Module
@@ -16,11 +17,12 @@ import { SupabaseModule } from '../../database/supabase.module'
  * All routes are prefixed with /tenant and enforce TENANT user_type via TenantAuthGuard.
  *
  * Route Structure:
- * - /tenant/payments     - Payment history and methods
- * - /tenant/autopay      - Subscription management
- * - /tenant/maintenance  - Maintenance requests
- * - /tenant/leases       - Lease info and documents
- * - /tenant/settings     - Profile and preferences
+ * - /tenant-portal/*     - Main tenant portal endpoints (dashboard, leases, payments, etc.)
+ * - /tenants/payments    - Payment history and methods
+ * - /tenants/autopay     - Subscription management
+ * - /tenants/maintenance - Maintenance requests
+ * - /tenants/leases      - Lease info and documents
+ * - /tenants/settings    - Profile and preferences
  *
  * Security:
  * - TenantAuthGuard validates TENANT user_type from database
@@ -52,6 +54,7 @@ import { SupabaseModule } from '../../database/supabase.module'
 			}
 		])
 	],
+	controllers: [TenantPortalController],
 	providers: [TenantAuthGuard, TenantContextInterceptor],
 	exports: [TenantAuthGuard, TenantContextInterceptor]
 })

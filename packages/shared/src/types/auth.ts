@@ -173,24 +173,6 @@ export interface ThrottlerRequest {
 	socket?: { remoteAddress?: string }
 }
 
-// MIGRATED from apps/backend/src/auth/auth-webhook.controller.ts
-export interface SupabaseWebhookEvent {
-	type: 'INSERT' | 'UPDATE' | 'DELETE'
-	table: string
-	schema: 'auth' | 'public'
-	record: {
-		id: string
-		email?: string
-		email_confirmed_at?: string | null
-		user_metadata?: {
-			name?: string
-			full_name?: string
-		}
-		created_at: string
-		updated_at: string
-	}
-}
-
 export interface AuthContextType {
 	user: SupabaseAuthUser | null
 	loading: boolean

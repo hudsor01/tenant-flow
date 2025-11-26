@@ -98,7 +98,7 @@ export async function proxy(request: NextRequest) {
 	 * This call is required for Supabase SSR token refresh.
 	 */
 	const claimsResult = await supabase.auth.getClaims()
-	const claims = claimsResult.data as JWTClaims | null
+	const claims = claimsResult.data?.claims as JWTClaims | null
 
 	const path = request.nextUrl.pathname
 

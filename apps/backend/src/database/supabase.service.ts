@@ -325,32 +325,24 @@ export class SupabaseService implements OnModuleDestroy {
 		try {
 			const fn = 'health_check' // Hardcoded health check function name
 			try {
-				// RPC name is dynamic and SDK typings are narrow; cast for runtime call.
-				type RpcResult = {
-					data: unknown
-					error: unknown
-				}
-				const result = (await this.adminClient.rpc(
-					fn
-				)) as unknown as RpcResult
+				// RPC returns single JSONB object: {ok: true, timestamp: ..., version: ...}
+				type HealthCheckResult = { ok?: boolean; timestamp?: string; version?: string }
+				type RpcResult = { data: HealthCheckResult | null; error: unknown }
+
+				const result = (await this.adminClient.rpc(fn)) as unknown as RpcResult
 				const { data, error } = result
-				if (!error && data && typeof data === 'object') {
-					const dataArray = data as unknown[]
-					if (Array.isArray(dataArray) && dataArray.length > 0) {
-						const ok = (dataArray[0] as { ok?: boolean })?.ok ?? true
-						if (ok) {
-							this.logger?.debug({ fn }, 'Supabase RPC health ok')
-							return { status: 'healthy' }
-						}
+
+				if (!error && data && typeof data === 'object' && !Array.isArray(data)) {
+					const healthData = data as HealthCheckResult
+					if (healthData.ok === true) {
+						this.logger?.debug({ fn, version: healthData.version }, 'Supabase RPC health ok')
+						return { status: 'healthy' }
 					}
 				}
+
 				if (error) {
-					const errorMessage =
-						error instanceof Error ? error.message : String(error)
-					this.logger?.warn(
-						{ error: errorMessage, fn },
-						'Supabase RPC health failed; falling back to table ping'
-					)
+					const errorMessage = error instanceof Error ? error.message : String(error)
+					this.logger?.warn({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
 				}
 			} catch (rpcErr) {
 				// RPC not available; continue to table ping

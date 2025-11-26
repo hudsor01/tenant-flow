@@ -6,10 +6,8 @@ import {
 	HttpCode,
 	HttpStatus,
 	InternalServerErrorException,
-	Post,
-	UseGuards
+	Post
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { User } from '../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -114,7 +112,6 @@ type RentPaymentListItem = Pick<
  * - Database Layer: RLS policies enforce auth.uid() = tenant_id
  */
 @Controller('tenant-portal')
-@UseGuards(JwtAuthGuard)
 export class TenantPortalController {
 	private readonly logger = new Logger(TenantPortalController.name)
 
@@ -169,11 +166,20 @@ export class TenantPortalController {
 
 	/**
 	 * Lease endpoint - returns the active lease with unit/property metadata
+	 * Supports both /leases (plural) and /lease (singular) for frontend compatibility
 	 */
 	@Get('leases')
 	async getLease(@JwtToken() token: string, @User() user: AuthUser) {
 		const tenant = await this.resolveTenant(token, user)
 		return this.fetchActiveLease(token, tenant)
+	}
+
+	/**
+	 * Alias for /leases endpoint (singular form)
+	 */
+	@Get('lease')
+	async getLeaseAlias(@JwtToken() token: string, @User() user: AuthUser) {
+		return this.getLease(token, user)
 	}
 
 	/**
@@ -467,11 +473,13 @@ export class TenantPortalController {
 	// -------------------------------------------------------------------------
 
 	private async resolveTenant(
-		token: string,
+		_token: string,
 		user: AuthUser
 	): Promise<TenantRow> {
+		// Use admin client to bypass RLS - user is already authenticated via JWT
+		// and we filter by user.id from the validated token
 		const { data, error } = await this.supabase
-			.getUserClient(token)
+			.getAdminClient()
 			.from('tenants')
 			.select(
 				'id, user_id, stripe_customer_id'
@@ -698,5 +706,78 @@ export class TenantPortalController {
 		})) ?? []
 
 		return paymentsWithCanonicalDates
+	}
+
+	// -------------------------------------------------------------------------
+	// Autopay endpoint
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get autopay/subscription status for active lease
+	 */
+	@Get('autopay')
+	async getAutopayStatus(@JwtToken() token: string, @User() user: AuthUser) {
+		const tenant = await this.resolveTenant(token, user)
+		const lease = await this.fetchActiveLease(token, tenant)
+
+		if (!lease) {
+			return {
+				autopayEnabled: false,
+				message: 'No active lease found'
+			}
+		}
+
+		// Get next payment date if autopay is enabled
+		let nextPaymentDate: string | null = null
+		if (lease.stripe_subscription_id) {
+			const { data } = await this.supabase
+				.getUserClient(token)
+				.from('rent_payments')
+				.select('due_date')
+				.eq('lease_id', lease.id)
+				.in('status', ['DUE', 'PENDING'])
+				.order('due_date', { ascending: true })
+				.limit(1)
+				.maybeSingle()
+			nextPaymentDate = data?.due_date ?? null
+		}
+
+		return {
+			autopayEnabled: !!lease.stripe_subscription_id,
+			subscriptionId: lease.stripe_subscription_id,
+			lease_id: lease.id,
+			tenant_id: tenant.id,
+			rent_amount: lease.rent_amount,
+			nextPaymentDate
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Settings endpoint
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Get tenant profile and settings
+	 */
+	@Get('settings')
+	async getSettings(@JwtToken() token: string, @User() user: AuthUser) {
+		const tenant = await this.resolveTenant(token, user)
+
+		const { data: userData } = await this.supabase
+			.getUserClient(token)
+			.from('users')
+			.select('first_name, last_name, email, phone')
+			.eq('id', tenant.user_id)
+			.single()
+
+		return {
+			profile: {
+				id: tenant.id,
+				first_name: userData?.first_name,
+				last_name: userData?.last_name,
+				email: userData?.email,
+				phone: userData?.phone
+			}
+		}
 	}
 }

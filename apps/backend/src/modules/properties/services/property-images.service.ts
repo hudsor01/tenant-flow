@@ -5,19 +5,8 @@ import {
 	NotFoundException,
 	Optional
 } from '@nestjs/common'
-import type { Request } from 'express'
-import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { StorageService } from '../../../database/storage.service'
 import { SupabaseService } from '../../../database/supabase.service'
-
-// Helper to extract JWT token from request
-function getTokenFromRequest(req: Request): string | null {
-	const authHeader = req.headers.authorization
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		return null
-	}
-	return authHeader.substring(7)
-}
 
 @Injectable()
 export class PropertyImagesService {
@@ -37,19 +26,13 @@ export class PropertyImagesService {
 	 * Cleans up orphaned files if DB insert fails
 	 */
 	async uploadPropertyImage(
-		req: AuthenticatedRequest,
+		token: string,
+		user_id: string,
 		property_id: string,
 		file: Express.Multer.File
 	) {
 		const startTime = Date.now()
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('[IMAGE:UPLOAD] No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
 		const client = this.supabase.getUserClient(token)
-		const user_id = req.user.id
 
 		this.logger.log('[IMAGE:UPLOAD:START] Image upload initiated', {
 			user_id,
@@ -214,21 +197,15 @@ export class PropertyImagesService {
 	 * Get all images for a property
 	 * Returns images ordered by display order
 	 */
-	async getPropertyImages(req: Request, property_id: string) {
+	async getPropertyImages(token: string, property_id: string) {
 		const startTime = Date.now()
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('[IMAGE:GET] No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
 		const client = this.supabase.getUserClient(token)
 
 		this.logger.log('[IMAGE:GET:START] Fetching images for property', {
 			property_id
 		})
 
-		// Verify property ownership
+		// Verify property ownership using user client (RLS enforced)
 		this.logger.debug('[IMAGE:GET:VERIFY] Verifying property ownership', {
 			property_id
 		})
@@ -250,7 +227,10 @@ export class PropertyImagesService {
 			property_id
 		})
 
-		const { data, error } = await client
+		// Use admin client to fetch images (ownership already verified above)
+		// This avoids complex nested RLS policy evaluation issues
+		const adminClient = this.supabase.getAdminClient()
+		const { data, error } = await adminClient
 			.from('property_images')
 			.select('*')
 			.eq('property_id', property_id)
@@ -259,7 +239,8 @@ export class PropertyImagesService {
 		if (error) {
 			this.logger.error('[IMAGE:GET:ERROR] Failed to fetch images', {
 				property_id,
-				error: error.message
+				errorMessage: error.message,
+				errorCode: error.code
 			})
 			throw new BadRequestException(`Failed to fetch images: ${error.message}`)
 		}
@@ -279,14 +260,8 @@ export class PropertyImagesService {
 	 * Delete property image
 	 * Deletes database record first (critical), then storage file (non-blocking)
 	 */
-	async deletePropertyImage(req: Request, imageId: string) {
+	async deletePropertyImage(token: string, imageId: string) {
 		const startTime = Date.now()
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('[IMAGE:DELETE] No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
 		const client = this.supabase.getUserClient(token)
 
 		this.logger.log('[IMAGE:DELETE:START] Image deletion initiated', {

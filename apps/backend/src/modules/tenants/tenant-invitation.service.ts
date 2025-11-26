@@ -284,12 +284,23 @@ export class TenantInvitationService {
 	async cancelInvitation(user_id: string, invitation_id: string): Promise<void> {
 		const client = this.supabase.getAdminClient()
 
+		// First get property_owners.id from auth_user_id
+		const { data: ownerRecord } = await client
+			.from('property_owners')
+			.select('id')
+			.eq('user_id', user_id)
+			.maybeSingle()
+
+		if (!ownerRecord) {
+			throw new NotFoundException('Owner not found')
+		}
+
 		// Verify the invitation belongs to this owner and is still pending
 		const { data: invitation, error: fetchError } = await client
 			.from('tenant_invitations')
 			.select('id, accepted_at, property_owner_id')
 			.eq('id', invitation_id)
-			.eq('property_owner_id', user_id)
+			.eq('property_owner_id', ownerRecord.id)
 			.single()
 
 		if (fetchError || !invitation) {

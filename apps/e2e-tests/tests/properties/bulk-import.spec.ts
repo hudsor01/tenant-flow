@@ -2,6 +2,11 @@ import { test, expect } from '@playwright/test'
 import { loginAsOwner } from '../../auth-helpers'
 import path from 'path'
 import { Buffer, Blob } from 'buffer'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 test.describe('Property Bulk Import', () => {
 	test.beforeEach(async ({ page }) => {
@@ -24,7 +29,7 @@ test.describe('Property Bulk Import', () => {
 
 		// Wait for modal to open
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByText(/import properties/i)).toBeVisible()
+		await expect(page.getByRole('heading', { name: /import properties/i })).toBeVisible()
 
 		// Upload CSV file
 		const csvPath = path.join(__dirname, '../../../frontend/test-bulk-import.csv')

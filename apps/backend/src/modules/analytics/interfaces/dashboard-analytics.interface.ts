@@ -66,7 +66,7 @@ export interface IDashboardAnalyticsService {
 	 * Get maintenance analytics
 	 * Aggregations with priority grouping and resolution time calculations
 	 */
-	getMaintenanceAnalytics(user_id: string, token?: string): Promise<{
+	getMaintenanceAnalytics(user_id: string): Promise<{
 		avgResolutionTime: number
 		completionRate: number
 		priorityBreakdown: Record<string, number>
@@ -78,17 +78,9 @@ export interface IDashboardAnalyticsService {
 	}>
 
 	/**
-	 * Get billing insights with complex aggregations
-	 * Multi-table calculations for revenue analytics
+	 * Get billing insights - MRR, churn rate, annual revenue
 	 */
-	getBillingInsights(
-		user_id: string,
-		token?: string,
-		options?: {
-			start_date?: Date
-			end_date?: Date
-		}
-	): Promise<BillingInsights>
+	getBillingInsights(user_id: string): Promise<BillingInsights>
 
 	/**
 	 * Health check for analytics service

@@ -9,8 +9,6 @@ import { LeaseAnalyticsController } from './lease-analytics.controller'
 import { LeaseAnalyticsService } from './lease-analytics.service'
 import { MaintenanceInsightsController } from './maintenance-insights.controller'
 import { MaintenanceInsightsService } from './maintenance-insights.service'
-import { OccupancyTrendsController } from './occupancy-trends.controller'
-import { OccupancyTrendsService } from './occupancy-trends.service'
 import { PropertyPerformanceController } from './property-performance.controller'
 import { PropertyPerformanceService } from './property-performance.service'
 
@@ -21,8 +19,7 @@ import { PropertyPerformanceService } from './property-performance.service'
 		FinancialAnalyticsController,
 		PropertyPerformanceController,
 		LeaseAnalyticsController,
-		MaintenanceInsightsController,
-		OccupancyTrendsController
+		MaintenanceInsightsController
 	],
 	providers: [
 		AnalyticsService,
@@ -30,8 +27,7 @@ import { PropertyPerformanceService } from './property-performance.service'
 		FinancialAnalyticsService,
 		PropertyPerformanceService,
 		LeaseAnalyticsService,
-		MaintenanceInsightsService,
-		OccupancyTrendsService
+		MaintenanceInsightsService
 	],
 	exports: [
 		AnalyticsService,
@@ -39,8 +35,7 @@ import { PropertyPerformanceService } from './property-performance.service'
 		FinancialAnalyticsService,
 		PropertyPerformanceService,
 		LeaseAnalyticsService,
-		MaintenanceInsightsService,
-		OccupancyTrendsService
+		MaintenanceInsightsService
 	]
 })
 export class AnalyticsModule {}

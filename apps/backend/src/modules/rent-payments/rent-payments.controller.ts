@@ -9,7 +9,6 @@ import {
 	UseGuards,
 	ParseUUIDPipe
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
@@ -17,7 +16,6 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 import { CreatePaymentDto } from './dto/create-payment.dto'
 
 @Controller('rent-payments')
-@UseGuards(JwtAuthGuard)
 export class RentPaymentsController {
 	private readonly logger = new Logger(RentPaymentsController.name)
 

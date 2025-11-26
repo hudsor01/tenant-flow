@@ -76,8 +76,6 @@ import { toast } from 'sonner'
 // Re-export UnitRow for use in other components
 export type { UnitRow }
 
-// Enhanced unit type with comprehensive information - now imported from @repo/shared
-
 type UnitStatus = 'OCCUPIED' | 'VACANT' | 'MAINTENANCE' | 'RESERVED'
 
 // Enhanced sortable header component with professional design

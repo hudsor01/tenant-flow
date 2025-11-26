@@ -60,19 +60,6 @@ export class PropertyPerformanceService {
 		} as unknown as SupabaseClient<Database>
 	}
 
-	private buildUserPayload(
-		user_id: string,
-		extra?: Record<string, unknown>
-	): Record<string, unknown> {
-		return {
-			user_id: user_id,
-			user_id_param: user_id,
-			p_user_id: user_id,
-			uid: user_id,
-			...extra
-		}
-	}
-
 	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
@@ -106,12 +93,12 @@ export class PropertyPerformanceService {
 	): Promise<PropertyPerformanceEntry[]> {
 		const [performanceResult, trendResult] = await Promise.all([
 			this.supabase.rpcWithRetries(
-				'get_property_performance',
-				this.buildUserPayload(user_id)
+				'get_property_performance_cached',
+				{ p_user_id: user_id }
 			),
 			this.supabase.rpcWithRetries(
 				'get_property_performance_trends',
-				this.buildUserPayload(user_id)
+				{ p_user_id: user_id }
 			)
 		])
 
@@ -281,7 +268,7 @@ export class PropertyPerformanceService {
 	async getVisitorAnalytics(user_id: string): Promise<VisitorAnalyticsResponse> {
 		const raw = await this.callRpc(
 			'get_visitor_analytics',
-			this.buildUserPayload(user_id)
+			{ p_user_id: user_id }
 		)
 
 		if (!raw) {

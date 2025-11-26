@@ -15,7 +15,6 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import type { Response } from 'express'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
@@ -40,7 +39,7 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
  * - PropertyOwnershipGuard: Verifies user owns the property (applied to specific routes)
  */
 @Controller('api/v1/leases')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(RolesGuard)
 @Roles('TENANT', 'OWNER', 'MANAGER')
 export class LeaseGenerationController {
 	private readonly logger = new Logger(LeaseGenerationController.name)

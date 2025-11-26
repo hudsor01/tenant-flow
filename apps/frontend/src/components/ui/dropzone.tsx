@@ -1,14 +1,13 @@
 'use client'
 
 import { cn } from '#lib/utils'
-import { type UseSupabaseUploadReturn } from '#hooks/use-supabase-upload'
+import { type UseSupabaseUploadReturn } from '#hooks/use-supabase-upload.js'
 import { Button } from '#components/ui/button'
 import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'
-import Image from 'next/image'
 import { createContext, type PropsWithChildren, useCallback, useContext } from 'react'
 
 export const formatBytes = (
-  bytes: number | undefined,
+  bytes: number,
   decimals = 2,
   size?: 'bytes' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
 ) => {
@@ -41,7 +40,7 @@ const Dropzone = ({
   const isInvalid =
     (restProps.isDragActive && restProps.isDragReject) ||
     (restProps.errors.length > 0 && !restProps.isSuccess) ||
-    restProps.files.some((file: { errors: readonly unknown[] }) => file.errors.length !== 0)
+    restProps.files.some((file) => file.errors.length !== 0)
 
   return (
     <DropzoneContext.Provider value={{ ...restProps }}>
@@ -56,7 +55,7 @@ const Dropzone = ({
           ),
         })}
       >
-        <input {...getInputProps()} ref={restProps.inputRef} />
+        <input {...getInputProps()} />
         {children}
       </div>
     </DropzoneContext.Provider>
@@ -79,11 +78,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 
   const handleRemoveFile = useCallback(
     (fileName: string) => {
-      const fileToRemove = files.find((file: { name: string; preview?: string }) => file.name === fileName)
-      if (fileToRemove?.preview) {
-        URL.revokeObjectURL(fileToRemove.preview)
-      }
-      setFiles(files.filter((file: { name: string }) => file.name !== fileName))
+      setFiles(files.filter((file) => file.name !== fileName))
     },
     [files, setFiles]
   )
@@ -101,9 +96,9 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 
   return (
     <div className={cn('flex flex-col', className)}>
-      {files.map((file: { name: string; type: string; preview?: string; size: number; errors: readonly { message: string }[] }, idx: number) => {
-        const fileError = errors.find((e: { name: string; message: string }) => e.name === file.name)
-        const isSuccessfullyUploaded = !!successes.find((e: string) => e === file.name)
+      {files.map((file, idx) => {
+        const fileError = errors.find((e) => e.name === file.name)
+        const isSuccessfullyUploaded = !!successes.find((e) => e === file.name)
 
         return (
           <div
@@ -111,12 +106,8 @@ const DropzoneContent = ({ className }: { className?: string }) => {
             className="flex items-center gap-x-4 border-b py-2 first:mt-4 last:mb-4 "
           >
             {file.type.startsWith('image/') ? (
-              <div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center relative">
-                {file.preview ? (
-                  <Image src={file.preview} alt={file.name} fill className="object-cover" unoptimized />
-                ) : (
-                  <File size={18} />
-                )}
+              <div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                <img src={file.preview} alt={file.name} className="object-cover" />
               </div>
             ) : (
               <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center">
@@ -130,7 +121,8 @@ const DropzoneContent = ({ className }: { className?: string }) => {
               </p>
               {file.errors.length > 0 ? (
                 <p className="text-xs text-destructive">
-                  {file.errors.map((e: { message: string }) =>
+                  {file.errors
+                    .map((e) =>
                       e.message.startsWith('File is larger than')
                         ? `File is larger than ${formatBytes(maxFileSize, 2)} (Size: ${formatBytes(file.size, 2)})`
                         : e.message
@@ -206,13 +198,12 @@ const DropzoneEmptyState = ({ className }: { className?: string }) => {
       <div className="flex flex-col items-center gap-y-1">
         <p className="text-xs text-muted-foreground">
           Drag and drop or{' '}
-          <button
-            type="button"
+          <a
             onClick={() => inputRef.current?.click()}
             className="underline cursor-pointer transition hover:text-foreground"
           >
             select {maxFiles === 1 ? `file` : 'files'}
-          </button>{' '}
+          </a>{' '}
           to upload
         </p>
         {maxFileSize !== Number.POSITIVE_INFINITY && (
