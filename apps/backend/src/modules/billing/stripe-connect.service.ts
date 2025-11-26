@@ -589,6 +589,82 @@ export class StripeConnectService {
 		}
 	}
 
+
+	/**
+	 * Get balance for a connected account
+	 * Returns available and pending balance amounts
+	 */
+	async getConnectedAccountBalance(stripeAccountId: string): Promise<Stripe.Balance> {
+		this.logger.log('Fetching connected account balance', { stripeAccountId })
+
+		const balance = await this.stripe.balance.retrieve({
+			stripeAccount: stripeAccountId
+		})
+
+		return balance
+	}
+
+	/**
+	 * List payouts for a connected account
+	 */
+	async listConnectedAccountPayouts(
+		stripeAccountId: string,
+		options?: { limit?: number; starting_after?: string }
+	): Promise<Stripe.ApiList<Stripe.Payout>> {
+		this.logger.log('Listing connected account payouts', { 
+			stripeAccountId,
+			limit: options?.limit 
+		})
+
+		const payouts = await this.stripe.payouts.list(
+			{
+				limit: options?.limit || 10,
+				...(options?.starting_after && { starting_after: options.starting_after })
+			},
+			{ stripeAccount: stripeAccountId }
+		)
+
+		return payouts
+	}
+
+	/**
+	 * Get details of a specific payout
+	 */
+	async getPayoutDetails(
+		stripeAccountId: string,
+		payoutId: string
+	): Promise<Stripe.Payout> {
+		this.logger.log('Fetching payout details', { stripeAccountId, payoutId })
+
+		const payout = await this.stripe.payouts.retrieve(
+			payoutId,
+			{ stripeAccount: stripeAccountId }
+		)
+
+		return payout
+	}
+
+	/**
+	 * List transfers to a connected account (rent payments received)
+	 */
+	async listTransfersToAccount(
+		stripeAccountId: string,
+		options?: { limit?: number; starting_after?: string }
+	): Promise<Stripe.ApiList<Stripe.Transfer>> {
+		this.logger.log('Listing transfers to connected account', {
+			stripeAccountId,
+			limit: options?.limit
+		})
+
+		const transfers = await this.stripe.transfers.list({
+			destination: stripeAccountId,
+			limit: options?.limit || 10,
+			...(options?.starting_after && { starting_after: options.starting_after })
+		})
+
+		return transfers
+	}
+
 	/**
 	 * Create dashboard login link for connected account
 	 */

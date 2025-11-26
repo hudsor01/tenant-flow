@@ -14,8 +14,6 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { JwtVerificationService } from '../../shared/auth/jwt-verification.service'
-import { AuthUserValidationService } from '../../shared/auth/supabase.strategy'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
@@ -67,14 +65,6 @@ describe('StripeController', () => {
 				{
 					provide: Reflector,
 					useValue: { get: jest.fn(), getAllAndOverride: jest.fn() }
-				},
-				{
-					provide: JwtVerificationService,
-					useValue: { verify: jest.fn() }
-				},
-				{
-					provide: AuthUserValidationService,
-					useValue: { validateJwtPayload: jest.fn() }
 				}
 			]
 		}).compile()

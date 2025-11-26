@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, Logger, Optional } from '@nestjs/common'
-import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import type { Database } from '@repo/shared/types/supabase'
 import { parse } from 'csv-parse'
@@ -9,16 +8,6 @@ import {
 	normalizePropertyType,
 	VALID_PROPERTY_TYPES
 } from '../utils/csv-normalizer'
-import type { Request } from 'express'
-
-// Helper to extract JWT token from request
-function getTokenFromRequest(req: Request): string | null {
-	const authHeader = req.headers.authorization
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		return null
-	}
-	return authHeader.substring(7)
-}
 
 @Injectable()
 export class PropertyBulkImportService {
@@ -38,7 +27,8 @@ export class PropertyBulkImportService {
 	 * Returns summary of success/errors for user feedback
 	 */
 	async bulkImport(
-		req: AuthenticatedRequest,
+		token: string,
+		user_id: string,
 		fileBuffer: Buffer
 	): Promise<{
 		success: boolean
@@ -47,14 +37,12 @@ export class PropertyBulkImportService {
 		errors: Array<{ row: number; error: string }>
 	}> {
 		const startTime = Date.now()
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('[BULK_IMPORT] No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
 
+		// Use admin client for property_owner lookup to bypass RLS
+		const adminClient = this.supabase.getAdminClient()
+
+		// Use user client for property operations (respects RLS)
 		const client = this.supabase.getUserClient(token)
-		const user_id = req.user.id
 
 		this.logger.log('[BULK_IMPORT:START] Bulk import initiated', {
 			user_id,
@@ -140,30 +128,41 @@ export class PropertyBulkImportService {
 // PHASE 1: Fetch property_owner_id for the authenticated user
 // Properties.property_owner_id is FK to property_owners.id (NOT auth.users.id)
 this.logger.log('[BULK_IMPORT:PHASE1.5] Fetching property_owner_id...', {
-user_id
+	user_id,
+	user_id_type: typeof user_id,
+	user_id_length: user_id?.length
 })
 
-const { data: propertyOwner, error: ownerError } = await client
-.from('property_owners')
-.select('id')
-.eq('user_id', user_id)
-.single()
+// Use adminClient to bypass RLS for property_owner lookup
+const ownerResult = await adminClient
+	.from('property_owners')
+	.select('id')
+	.eq('user_id', user_id)
+	.single()
 
+const propertyOwner = ownerResult.data
+const ownerError = ownerResult.error
+
+// Property owner must exist - created during onboarding with proper Stripe Connect setup
 if (ownerError || !propertyOwner) {
-this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
-error: ownerError?.message,
-user_id
-})
-throw new BadRequestException(
-'Property owner record not found. Please complete onboarding first.'
-)
+	this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
+		error: ownerError?.message,
+		errorCode: ownerError?.code,
+		errorDetails: ownerError?.details,
+		user_id,
+		user_id_type: typeof user_id
+	})
+	throw new BadRequestException(
+		'Property owner profile not found. Please complete your account setup before importing properties.'
+	)
 }
 
-const property_owner_id = propertyOwner.id
 this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found', {
-property_owner_id,
-user_id
+	property_owner_id: propertyOwner.id,
+	user_id
 })
+
+const property_owner_id = propertyOwner.id
 
 const errors: Array<{ row: number; error: string }> = []
 const validRows: Array<

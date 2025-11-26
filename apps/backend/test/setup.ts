@@ -5,19 +5,6 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { SupabaseService } from '../src/database/supabase.service'
 import { CurrentUserProvider } from '../src/shared/providers/current-user.provider'
-import { JwtVerificationService } from '../src/shared/auth/jwt-verification.service'
-
-// Mock jose module globally for all tests (ESM compatibility)
-jest.mock('jose', () => ({
-	jwtVerify: jest.fn().mockResolvedValue({
-		payload: {
-			sub: 'test-user-id',
-			email: 'test@example.com',
-			aud: 'authenticated'
-		}
-	}),
-	createRemoteJWKSet: jest.fn().mockReturnValue(jest.fn())
-}))
 
 // Provide a chainable mock client shape commonly used in tests
 type ProviderLike = { provide?: unknown } & Record<string, unknown>
@@ -156,24 +143,6 @@ try {
 					provider => provider?.provide === SupabaseService
 				)
 				if (!hasSupabase) providersArr.push(defaultSupabaseProvider)
-
-				// Also ensure a default JwtVerificationService exists for JWT auth tests
-				const defaultJwtVerificationProvider: ProviderLike = {
-					provide: JwtVerificationService,
-					useValue: {
-						verify: jest.fn(async () => ({
-							payload: {
-								sub: 'test-user-id',
-								email: 'test@example.com',
-								aud: 'authenticated'
-							}
-						}))
-					}
-				}
-				const hasJwtVerification = providersArr.find(
-					provider => provider?.provide === JwtVerificationService
-				)
-				if (!hasJwtVerification) providersArr.push(defaultJwtVerificationProvider)
 				return
 			}
 

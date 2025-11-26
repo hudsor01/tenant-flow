@@ -10,10 +10,10 @@ import {
 	Request,
 	UseGuards
 } from '@nestjs/common'
-import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeTenantService } from './stripe-tenant.service'
+import { StripeOwnerService } from './stripe-owner.service'
 import { AppConfigService } from '../../config/app-config.service'
 
 /**
@@ -23,10 +23,10 @@ import { AppConfigService } from '../../config/app-config.service'
  * Separate from main StripeController for cleaner domain separation
  */
 @Controller('stripe/tenant')
-@UseGuards(JwtAuthGuard)
 export class StripeTenantController {
 	constructor(
 		private readonly stripeTenantService: StripeTenantService,
+		private readonly stripeOwnerService: StripeOwnerService,
 		private readonly config: AppConfigService
 	) {}
 
@@ -216,6 +216,54 @@ export class StripeTenantController {
 		return {
 			success: true,
 			url: session.url
+		}
+	}
+
+
+	/**
+	 * Pay rent using saved payment method
+	 * Creates PaymentIntent with destination charges to property owner's Connect account
+	 * POST /api/v1/stripe/tenant/pay-rent
+	 */
+	@Post('pay-rent')
+	async payRent(
+		@Request() _req: AuthenticatedRequest,
+		@Body() body: { 
+			lease_id: string
+			payment_method_id: string
+			tenant_id: string
+		}
+	) {
+		if (!body.lease_id || !body.payment_method_id || !body.tenant_id) {
+			throw new BadRequestException('lease_id, payment_method_id, and tenant_id are required')
+		}
+
+		// Get tenant's Stripe customer ID
+		const customer = await this.stripeTenantService.getStripeCustomerForTenant(
+			body.tenant_id
+		)
+
+		if (!customer) {
+			throw new BadRequestException(
+				'Stripe Customer not found for tenant. Please add a payment method first.'
+			)
+		}
+
+		const paymentIntent = await this.stripeOwnerService.createRentPaymentIntent({
+			leaseId: body.lease_id,
+			paymentMethodId: body.payment_method_id,
+			tenantStripeCustomerId: customer.id
+		})
+
+		return {
+			success: true,
+			paymentIntent: {
+				id: paymentIntent.id,
+				status: paymentIntent.status,
+				amount: paymentIntent.amount,
+				currency: paymentIntent.currency,
+				clientSecret: paymentIntent.client_secret
+			}
 		}
 	}
 }

@@ -7,11 +7,12 @@ import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
 import { getFieldErrorMessage } from '#lib/utils/form'
 import { useModalStore } from '#stores/modal-store'
-import { useUserRole } from '#hooks/use-user-role'
+import { authQueryKeys } from '#providers/auth-provider'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
+import { useQueryClient } from '@tanstack/react-query'
 import { Eye, EyeOff, Home, Lock, Mail, Smartphone, Zap } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -25,12 +26,11 @@ function LoginPageContent() {
 	const [authError, setAuthError] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-	const [justLoggedIn, setJustLoggedIn] = useState(false)
 
 	const { openModal } = useModalStore()
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const { isTenant, isLoading: roleLoading } = useUserRole()
+	const queryClient = useQueryClient()
 
 	// Handle OAuth error from URL params
 	useEffect(() => {
@@ -40,26 +40,6 @@ function LoginPageContent() {
 			router.replace('/login')
 		}
 	}, [searchParams, router])
-
-	// Handle post-login redirect
-	useEffect(() => {
-		if (justLoggedIn && !roleLoading) {
-			let destination = isTenant ? '/tenant' : '/'
-			const redirectTo = searchParams?.get('redirectTo')
-			if (redirectTo?.startsWith('/') && !redirectTo.startsWith('//')) {
-				destination = redirectTo
-			}
-
-			logger.info('[LOGIN_REDIRECT]', {
-				destination,
-				userType: isTenant ? 'TENANT' : 'OWNER'
-			})
-
-			router.push(destination)
-			router.refresh()
-			setJustLoggedIn(false)
-		}
-	}, [justLoggedIn, roleLoading, isTenant, router, searchParams])
 
 	const form = useForm({
 		defaultValues: { email: '', password: '' },
@@ -90,9 +70,32 @@ function LoginPageContent() {
 					)
 				}
 
-				if (data.user) {
-					logger.info('[LOGIN_SUCCESS]', { userId: data.user.id })
-					setJustLoggedIn(true)
+				if (data.session?.user) {
+					logger.info('[LOGIN_SUCCESS]', { userId: data.session.user.id })
+
+					// CRITICAL: Update query cache BEFORE navigating to prevent race condition
+					// where the target page's auth guards see stale "no session" data
+					queryClient.setQueryData(authQueryKeys.session, data.session)
+					queryClient.setQueryData(authQueryKeys.user, data.session.user)
+
+					// Read user_type directly from login response to avoid race condition
+					// with useUserRole hook not having updated session yet
+					const userType = data.session.user.app_metadata?.user_type as string | undefined
+					const redirectTo = searchParams?.get('redirect')
+					let destination = userType === 'TENANT' ? '/tenant' : '/dashboard'
+
+					if (redirectTo?.startsWith('/') && !redirectTo.startsWith('//')) {
+						destination = redirectTo
+					}
+
+					logger.info('[LOGIN_REDIRECT]', {
+						destination,
+						userType: userType || 'OWNER'
+					})
+
+					// Navigate to destination - don't call router.refresh() as it can
+					// cause race conditions with the navigation and reset client state
+					router.push(destination)
 				}
 			} catch (error) {
 				const message = error instanceof Error ? error.message : 'Please try again'
