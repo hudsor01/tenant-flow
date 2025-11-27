@@ -54,7 +54,14 @@ describe('MaintenanceController', () => {
 		const requests = [createMockMaintenanceRequest()]
 		service.findAll.mockResolvedValue(requests)
 		const result = await controller.findAll(mockToken)
-		expect(result).toEqual(requests)
+		// Controller wraps service response in PaginatedResponse format
+		expect(result).toEqual({
+			data: requests,
+			total: requests.length,
+			limit: 10,
+			offset: 0,
+			hasMore: false
+		})
 		expect(service.findAll).toHaveBeenCalledWith(
 			mockToken,
 			expect.any(Object)

@@ -79,8 +79,7 @@ export default async function TenantsPage() {
 	}
 
 	return (
-		<main
-			role="main"
+		<div
 			data-available-leases={availableLeases.length}
 			className="flex-1 flex flex-col gap-8 px-8 py-6"
 		>
@@ -152,6 +151,6 @@ export default async function TenantsPage() {
 			<h2 className="text-xl font-semibold">Tenant Directory</h2>
 			<TenantsTableClient columns={columns} initialTenants={tenants} />
 		</section>
-		</main>
+		</div>
 	)
 }

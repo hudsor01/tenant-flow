@@ -38,7 +38,11 @@ export function useAllMaintenanceRequests(query?: {
 	limit?: number
 	offset?: number
 }) {
-	return useQuery(maintenanceQueries.list(query))
+	return useQuery({
+		...maintenanceQueries.list(query),
+		// Extract data array for backward compatibility with components
+		select: (response) => response.data
+	})
 }
 
 /**

@@ -93,15 +93,16 @@ export default function UnitsPage() {
 	if (status) params.status = status as UnitStatus
 	if (property) params.property_id = property
 
-	const { data: unitsData, isLoading } = useQuery(unitQueries.list(params))
+	const { data: unitsResponse, isLoading } = useQuery(unitQueries.list(params))
 
-	const { data: properties } = useQuery(propertyQueries.list())
+	const { data: propertiesResponse } = useQuery(propertyQueries.list())
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
 	const { data: unitsStats } = useQuery(unitQueries.stats())
 
-	const units = unitsData || []
-	const totalItems = unitsData?.length || 0
+	const units = unitsResponse?.data || []
+	const properties = propertiesResponse?.data || []
+	const totalItems = unitsResponse?.total || 0
 
 	// Use backend statistics directly - trust the database calculations
 	const totalUnits = unitsStats?.total ?? 0
@@ -413,7 +414,8 @@ function UnitsTable({
 
 function NewUnitButton() {
 	const qc = useQueryClient()
-	const { data: properties } = useQuery(propertyQueries.list())
+	const { data: propertiesResponse } = useQuery(propertyQueries.list())
+	const properties = propertiesResponse?.data
 
 	const create = useCreateUnitMutation()
 

@@ -28,7 +28,7 @@ export class SupabaseModule {
 						if (!url || !key) {
 							// Helpful error to aid developers who forget to run with Doppler
 							throw new Error(
-								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SUPABASE_URL and SUPABASE_SECRET_KEY in the environment.'
+								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SUPABASE_URL and SERVICE_ROLE in the environment.'
 							)
 						}
 

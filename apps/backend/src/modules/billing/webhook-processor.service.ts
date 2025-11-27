@@ -10,13 +10,17 @@ import type Stripe from 'stripe'
 import type { LeaseStatus } from '@repo/shared/constants/status-types'
 import { LEASE_STATUS } from '@repo/shared/constants/status-types'
 import { SupabaseService } from '../../database/supabase.service'
+import { EmailService } from '../email/email.service'
 import { asStripeSchemaClient, type SupabaseError, type StripeCheckoutSession, type StripeCustomer, type StripeSubscription } from '../../types/stripe-schema'
 
 @Injectable()
 export class WebhookProcessor {
 	private readonly logger = new Logger(WebhookProcessor.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly emailService: EmailService
+	) {}
 
 	async processEvent(event: Stripe.Event): Promise<void> {
 		switch (event.type) {
@@ -662,8 +666,48 @@ export class WebhookProcessor {
 					failureReason: paymentIntent.last_payment_error?.message
 				})
 
-				// TODO: Send notification to tenant about failed payment
-				// await this.notificationService.sendPaymentFailedEmail(...)
+
+				const { data: tenantWithUser, error: tenantQueryError } = await client
+					.from('tenants')
+					.select('id, users!inner(email)')
+					.eq('id', rentPayment.tenant_id)
+					.single()
+
+				if (tenantQueryError) {
+					this.logger.error('Failed to fetch tenant email for payment failure', {
+						error: tenantQueryError.message,
+						tenantId: rentPayment.tenant_id
+					})
+				} else {
+					const tenantEmail = (tenantWithUser as { users?: { email?: string } })
+						?.users?.email
+
+					if (!tenantEmail) {
+						this.logger.warn('No tenant email found for payment failure notification', {
+							tenantId: rentPayment.tenant_id
+						})
+					} else {
+						// Use metadata for attempt tracking (PaymentIntent doesn't have attempt_count)
+						const attemptCount = paymentIntent.metadata?.attempt_count
+							? parseInt(paymentIntent.metadata.attempt_count, 10)
+							: 1
+						// Use latest_charge instead of deprecated charges.data
+						const latestCharge = paymentIntent.latest_charge
+						const invoiceUrl = typeof latestCharge === 'object' && latestCharge
+							? (latestCharge as { receipt_url?: string }).receipt_url || null
+							: null
+						const isLastAttempt = attemptCount >= 3
+
+						await this.emailService.sendPaymentFailedEmail({
+							customerEmail: tenantEmail,
+							amount: paymentIntent.amount,
+							currency: paymentIntent.currency || 'usd',
+							attemptCount,
+							invoiceUrl,
+							isLastAttempt
+						})
+					}
+				}
 			} else {
 				this.logger.warn('No rent_payment record found for failed payment intent', {
 					paymentIntentId: paymentIntent.id,

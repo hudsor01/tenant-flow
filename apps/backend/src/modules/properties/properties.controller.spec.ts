@@ -112,7 +112,14 @@ describe('PropertiesController', () => {
 			)
 
 			expect(mockPropertiesServiceInstance.findAll).toHaveBeenCalled()
-			expect(result).toEqual(mockProperties)
+			// Controller wraps service response in PaginatedResponse format
+			expect(result).toEqual({
+				data: mockProperties,
+				total: mockProperties.length,
+				limit: 10,
+				offset: 0,
+				hasMore: false
+			})
 		})
 
 		// Note: Authentication is handled by @JwtToken() decorator and guards

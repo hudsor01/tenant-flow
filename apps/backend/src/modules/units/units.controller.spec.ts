@@ -118,7 +118,14 @@ describe('UnitsController', () => {
 			)
 
 			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
-			expect(result).toEqual(mockUnits)
+			// Controller wraps service response in PaginatedResponse format
+			expect(result).toEqual({
+				data: mockUnits,
+				total: mockUnits.length,
+				limit: 10,
+				offset: 0,
+				hasMore: false
+			})
 		})
 
 		it('should validate status parameter', async () => {

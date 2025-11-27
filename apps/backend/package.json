@@ -21,7 +21,7 @@
 		"test": "pnpm run test:unit && pnpm run test:integration",
 		"test:unit": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
 		"test:unit:clean": "jest --testMatch=\"**/*.spec.ts\" --forceExit",
-		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --forceExit --passWithNoTests",
+		"test:integration": "jest --testMatch=\"**/*.integration.spec.ts\" --testPathIgnorePatterns=\"/node_modules/\" --testPathIgnorePatterns=\"/dist/\" --testPathIgnorePatterns=\"/coverage/\" --forceExit --passWithNoTests",
 		"test:watch": "jest --watch",
 		"clean": "rimraf dist coverage .turbo node_modules/.cache",
 		"stripe:migrate": "tsx scripts/stripe-sync-migrate.ts"

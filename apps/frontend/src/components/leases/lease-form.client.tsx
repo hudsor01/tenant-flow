@@ -46,11 +46,12 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const createLeaseMutation = useCreateLeaseMutation()
 	const updateLeaseMutation = useUpdateLeaseMutation()
 	const {
-		data: properties,
+		data: propertiesResponse,
 		error: propertiesError,
 		isError: propertiesIsError,
 		isLoading: propertiesIsLoading
 	} = useQuery(propertyQueries.list())
+	const properties = propertiesResponse?.data
 	const tenantsResponse = useQuery(tenantQueries.list())
 	const tenants = tenantsResponse.data?.data ?? []
 

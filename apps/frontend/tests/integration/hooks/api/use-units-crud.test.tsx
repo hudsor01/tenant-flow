@@ -1,41 +1,25 @@
 /**
- * Units CRUD Integration Tests - SIMPLIFIED
+ * Units CRUD Integration Tests
  * Tests basic unit operations with real API calls
+ *
+ * Authentication is handled by the global setup (tests/integration/setup.ts)
+ * which authenticates once and stores tokens for all test files.
  *
  * @vitest-environment jsdom
  */
 
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	afterAll,
-	afterEach
-} from 'vitest'
-import { useUnit } from '#hooks/api/use-unit'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import {
-	createSupabaseTestClient,
-	ensureEnvVars,
-	getRequiredEnvVar
-} from 'tests/utils/env'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { describe, it, expect, afterEach } from 'vitest'
+import { useUnitList } from '#hooks/api/use-unit'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
 
-const logger = createLogger({ component: 'UseUnitsCrudTest' })
 const shouldRunIntegrationTests =
 	process.env.RUN_INTEGRATION_TESTS === 'true' &&
 	process.env.SKIP_INTEGRATION_TESTS !== 'true'
 const describeIfReady = shouldRunIntegrationTests ? describe : describe.skip
 
 let sharedQueryClient: QueryClient | null = null
-const REQUIRED_ENV_VARS = [
-	'NEXT_PUBLIC_SUPABASE_URL',
-	'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-	'E2E_OWNER_EMAIL',
-	'E2E_OWNER_PASSWORD'
-] as const
 
 function createWrapper() {
 	const queryClient = new QueryClient({
@@ -51,25 +35,6 @@ function createWrapper() {
 }
 
 describeIfReady('Units CRUD Integration Tests', () => {
-	beforeAll(async () => {
-		ensureEnvVars(REQUIRED_ENV_VARS)
-		const supabase = createSupabaseTestClient()
-
-		const { data, error } = await supabase.auth.signInWithPassword({
-			email: getRequiredEnvVar('E2E_OWNER_EMAIL'),
-			password: getRequiredEnvVar('E2E_OWNER_PASSWORD')
-		})
-
-		if (error || !data.session) {
-			throw new Error(`Failed to authenticate test user: ${error?.message || 'No session'}`)
-		}
-	})
-
-	afterAll(async () => {
-		const supabase = createSupabaseTestClient()
-		await supabase.auth.signOut()
-	})
-
 	afterEach(async () => {
 		if (sharedQueryClient) {
 			sharedQueryClient.clear()
@@ -77,8 +42,36 @@ describeIfReady('Units CRUD Integration Tests', () => {
 	})
 
 	describe('READ Operations', () => {
-		it('placeholder test - update when backend integration is ready', async () => {
-			expect(true).toBe(true)
+		it('fetches unit list', async () => {
+			const { result } = renderHook(() => useUnitList(), {
+				wrapper: createWrapper()
+			})
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true)
+			})
+
+			// useUnitList returns Unit[] (select extracts data array)
+			expect(Array.isArray(result.current.data)).toBe(true)
+		})
+
+		it('returns 404 for non-existent unit', async () => {
+			const fakeId = '00000000-0000-0000-0000-000000000000'
+			// Use useQuery directly to override retry setting from queryOptions
+			const { result } = renderHook(
+				() =>
+					useQuery({
+						...unitQueries.detail(fakeId),
+						retry: false
+					}),
+				{ wrapper: createWrapper() }
+			)
+
+			await waitFor(() => {
+				expect(result.current.isError).toBe(true)
+			})
+
+			expect(result.current.error).toBeDefined()
 		})
 	})
 })

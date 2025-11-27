@@ -105,14 +105,15 @@ describe('TenantsController', () => {
 
 	describe('Query Endpoints', () => {
 		describe('findAll', () => {
-			it('should return all tenants with lease info', async () => {
+			it('should return all tenants with lease info in PaginatedResponse format', async () => {
 				const mockReq = { user: { id: 'user-1' } }
 				const mockTenants = [{ id: 'tenant-1', lease: { id: 'lease-1' } }]
 				mockQueryService.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
 
 				const result = await controller.findAll(mockReq as any)
 
-				expect(result).toEqual(mockTenants)
+				// Controller now returns PaginatedResponse format
+				expect(result).toEqual({ data: mockTenants, total: mockTenants.length })
 				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith('user-1', {})
 			})
 		})

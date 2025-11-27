@@ -67,9 +67,10 @@ export default function UnitsPage() {
 			| 'RESERVED'
 	}
 
-	const { data: units, isLoading, error } = useQuery(unitQueries.list(unitListParams))
+	const { data: unitsResponse, isLoading, error } = useQuery(unitQueries.list(unitListParams))
 
-	const total = units?.length || 0
+	const units = unitsResponse?.data
+	const total = unitsResponse?.total || 0
 
 	// Delete state and mutation
 	const [deleteunit_id, setDeleteunit_id] = useState<string | null>(null)

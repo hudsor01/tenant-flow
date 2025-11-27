@@ -17,22 +17,44 @@ import type { Database } from '../types/supabase.js'
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, assertSupabaseConfig } from '../config/supabase.js'
 
 // Admin secret key (backend only, not in centralized config)
-const SUPABASE_SECRET_KEY = process.env.SECRET_KEY_SUPABASE || process.env.SECRET_KEY_SUPABASE
+const SERVICE_ROLE = process.env.SERVICE_ROLE || process.env.SERVICE_ROLE
 
 // Type alias for public-schema-only clients
 // This prevents type errors when Database includes multiple schemas (public + stripe)
 type PublicSupabaseClient = SupabaseClient<Database, "public">
 
+// Use globalThis to persist singleton across VM contexts (important for vitest vmThreads)
+// This prevents "Multiple GoTrueClient instances" warnings in tests
+const GLOBAL_CLIENT_KEY = '__supabase_client__' as const
+
+declare global {
+	var __supabase_client__: PublicSupabaseClient | undefined
+}
+
 // Create a lazy-initialized client to avoid build-time errors
 let _client: PublicSupabaseClient | null = null
 
 function getSupabaseClient(): PublicSupabaseClient {
+	// Check globalThis first for cross-VM persistence (vitest vmThreads)
+	if (globalThis[GLOBAL_CLIENT_KEY]) {
+		_client = globalThis[GLOBAL_CLIENT_KEY]
+		return _client
+	}
+
 	if (_client) return _client
 
 	// Validate config before creating client
 	assertSupabaseConfig()
 
-	const isBrowser = typeof window !== 'undefined'
+	// Detect test environment (jsdom doesn't fully support document.cookie)
+	// @supabase/ssr's createBrowserClient requires proper cookie support
+	const isTestEnvironment = typeof process !== 'undefined' && (
+		process.env.VITEST === 'true' ||
+		process.env.VITEST_INTEGRATION === 'true' ||
+		process.env.NODE_ENV === 'test'
+	)
+
+	const isBrowser = typeof window !== 'undefined' && !isTestEnvironment
 
 	// Use the SSR-aware browser client so PKCE code verifiers are stored in cookies.
 	// This lets the Next.js `/auth/callback` route read the verifier server-side
@@ -45,10 +67,13 @@ function getSupabaseClient(): PublicSupabaseClient {
 				db: { schema: 'public' }
 			}
 		) as unknown as PublicSupabaseClient
+		// Store in globalThis for consistency
+		globalThis[GLOBAL_CLIENT_KEY] = _client
 		return _client
 	}
 
-	// Backend/Node environments can keep using the standard client
+	// Backend/Node/Test environments use the standard client
+	// (jsdom in tests doesn't support document.cookie properly)
 	_client = createClient<Database>(
 		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
 		SUPABASE_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
@@ -65,6 +90,9 @@ function getSupabaseClient(): PublicSupabaseClient {
 		}
 	) as unknown as PublicSupabaseClient
 
+	// Store in globalThis for cross-VM persistence (vitest vmThreads)
+	globalThis[GLOBAL_CLIENT_KEY] = _client
+
 	return _client
 }
 
@@ -78,12 +106,12 @@ export function getSupabaseClientInstance(): PublicSupabaseClient {
  * ONLY use this in backend services where you need to bypass RLS
  *
  * SECURITY WARNING: Never use this client with user input without validation
- * IMPORTANT: This will throw an error if used in frontend without SUPABASE_SECRET_KEY
+ * IMPORTANT: This will throw an error if used in frontend without SERVICE_ROLE
  */
 export function getSupabaseAdmin(): PublicSupabaseClient {
-	if (!SUPABASE_SECRET_KEY) {
+	if (!SERVICE_ROLE) {
 		throw new Error(
-			'SUPABASE_SECRET_KEY required for admin client - this should only be used in backend services'
+			'SERVICE_ROLE required for admin client - this should only be used in backend services'
 		)
 	}
 
@@ -92,7 +120,7 @@ export function getSupabaseAdmin(): PublicSupabaseClient {
 
 	return createClient<Database>(
 		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
-		SUPABASE_SECRET_KEY,
+		SERVICE_ROLE,
 		{
 			auth: {
 				persistSession: false,

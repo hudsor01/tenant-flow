@@ -81,7 +81,7 @@ export class LeasesController {
 		}
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.findAll(token, {
+		const data = await this.leasesService.findAll(token, {
 			tenant_id,
 			unit_id,
 			property_id,
@@ -91,6 +91,13 @@ export class LeasesController {
 			sortBy,
 			sortOrder
 		})
+
+		// Return PaginatedResponse format expected by frontend
+		// Service already returns { data, total, limit, offset }, just add hasMore
+		return {
+			...data,
+			hasMore: data.data.length >= data.limit
+		}
 	}
 
 	@Get('stats')

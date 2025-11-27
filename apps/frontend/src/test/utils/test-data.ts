@@ -68,7 +68,6 @@ export const DEFAULT_USER: User = {
 	identity_verification_session_id: null,
 	identity_verification_data: null,
 	identity_verification_error: null,
-	connected_account_id: null,
 	onboarding_completed_at: null,
 	onboarding_status: 'not_started'
 }

@@ -47,7 +47,7 @@ export const createProperty = (
 		address: faker.location.streetAddress(),
 		city: faker.location.city(),
 		state: faker.location.state({ abbreviated: true }),
-		postal_code: faker.location.postal_code('#####'),
+		postal_code: faker.location.zipCode('#####'),
 		property_type: faker.helpers.arrayElement([
 			'apartment',
 			'house',
