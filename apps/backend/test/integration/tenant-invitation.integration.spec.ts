@@ -16,7 +16,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { Logger } from '@nestjs/common'
 import {
 	authenticateAs,
-	getServiceClient,
+	getPropertyOwnerId,
 	TEST_OWNER,
 	type AuthenticatedTestClient
 } from './invitation-setup'
@@ -26,7 +26,7 @@ const testLogger = new Logger('TenantInvitationIntegrationTest')
 
 describe('Tenant Invitation Flow', () => {
 	let ownerA: AuthenticatedTestClient
-	let serviceClient: ReturnType<typeof getServiceClient>
+	let ownerAPropertyOwnerId: string | null = null
 
 	// Test data IDs for cleanup
 	const testData = {
@@ -38,44 +38,35 @@ describe('Tenant Invitation Flow', () => {
 		payments: [] as string[]
 	}
 
-	// Test property/unit for invitations
-	const testPropertyId = `test-prop-invite-${Date.now()}`
-	const testUnitId = `test-unit-invite-${Date.now()}`
+	// Test property/unit for invitations (must be valid UUIDs)
+	const testPropertyId = crypto.randomUUID()
+	const testUnitId = crypto.randomUUID()
 
 	beforeAll(async () => {
 		ownerA = await authenticateAs(TEST_OWNER)
-		serviceClient = getServiceClient()
 
-		// Create a property_owner record first (if not exists)
-		const { data: existingOwner } = await serviceClient
-			.from('property_owners')
-			.select('id')
-			.eq('user_id', ownerA.user_id)
-			.maybeSingle()
-
-		if (!existingOwner) {
-			await serviceClient.from('property_owners').insert({
-				user_id: ownerA.user_id,
-				stripe_account_id: `acct_test_${ownerA.user_id}`,
-				business_type: 'individual',
-				charges_enabled: true,
-				payouts_enabled: true
-			})
+		// Get the property_owners.id for RLS compliance
+		ownerAPropertyOwnerId = await getPropertyOwnerId(ownerA.client, ownerA.user_id)
+		if (!ownerAPropertyOwnerId) {
+			throw new Error(`No property_owners record found for auth user ${ownerA.user_id}. User must be registered as a property owner.`)
 		}
 
-		// Create test property
-		const { data: property, error: propertyError } = await serviceClient
+		// Use owner's authenticated client - RLS policies allow owners to manage their data
+		const client = ownerA.client
+
+		// Create test property (owner can create via RLS policy)
+		const { data: property, error: propertyError } = await client
 			.from('properties')
 			.insert({
 				id: testPropertyId,
-				property_owner_id: ownerA.user_id,
+				property_owner_id: ownerAPropertyOwnerId,
 				name: 'Test Invitation Property',
 				address_line1: '123 Invite St',
 				city: 'Test City',
 				state: 'CA',
 				postal_code: '90210',
 				property_type: 'SINGLE_FAMILY',
-				status: 'ACTIVE'
+				status: 'active'
 			})
 			.select('id')
 			.single()
@@ -86,18 +77,19 @@ describe('Tenant Invitation Flow', () => {
 			testData.properties.push(property.id)
 		}
 
-		// Create test unit
-		const { data: unit, error: unitError } = await serviceClient
+		// Create test unit (owner can create via RLS policy)
+		const { data: unit, error: unitError } = await client
 			.from('units')
 			.insert({
 				id: testUnitId,
 				property_id: testPropertyId,
+				property_owner_id: ownerAPropertyOwnerId,
 				unit_number: '101',
 				rent_amount: 150000, // $1,500
 				bedrooms: 2,
 				bathrooms: 1,
 				square_feet: 800,
-				status: 'VACANT'
+				status: 'available'
 			})
 			.select('id')
 			.single()
@@ -110,30 +102,32 @@ describe('Tenant Invitation Flow', () => {
 	})
 
 	afterAll(async () => {
+		if (!ownerA) return
+		const client = ownerA.client
 		// Cleanup in reverse foreign key order
 		for (const id of testData.invitations) {
-			await serviceClient.from('tenant_invitations').delete().eq('id', id)
+			await client.from('tenant_invitations').delete().eq('id', id)
 		}
 		for (const id of testData.payments) {
-			await serviceClient.from('rent_payments').delete().eq('id', id)
+			await client.from('rent_payments').delete().eq('id', id)
 		}
 		for (const id of testData.leases) {
-			await serviceClient.from('leases').delete().eq('id', id)
+			await client.from('leases').delete().eq('id', id)
 		}
 		for (const id of testData.tenants) {
-			await serviceClient.from('tenants').delete().eq('id', id)
+			await client.from('tenants').delete().eq('id', id)
 		}
 		for (const id of testData.units) {
-			await serviceClient.from('units').delete().eq('id', id)
+			await client.from('units').delete().eq('id', id)
 		}
 		for (const id of testData.properties) {
-			await serviceClient.from('properties').delete().eq('id', id)
+			await client.from('properties').delete().eq('id', id)
 		}
 	})
 
 	describe('Invitation Token Storage', () => {
 		it('should store invitation with secure 64-char hex token', async () => {
-			const testInviteId = `invite-token-test-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `token-test-${Date.now()}@example.com`
 
 			// Generate a secure token (simulating what the service does)
@@ -143,7 +137,7 @@ describe('Tenant Invitation Flow', () => {
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
-			const { data: invitation, error: inviteError } = await serviceClient
+			const { data: invitation, error: inviteError } = await ownerA.client
 				.from('tenant_invitations')
 				.insert({
 					id: testInviteId,
@@ -152,7 +146,7 @@ describe('Tenant Invitation Flow', () => {
 					invitation_url: `https://app.test/accept-invite?code=${secureToken}`,
 					expires_at: expiresAt.toISOString(),
 					unit_id: testUnitId,
-					property_owner_id: ownerA.user_id
+					property_owner_id: ownerAPropertyOwnerId!
 				})
 				.select('id, invitation_code')
 				.single()
@@ -170,7 +164,7 @@ describe('Tenant Invitation Flow', () => {
 		})
 
 		it('should set correct expiration date (7 days)', async () => {
-			const testInviteId = `invite-expiry-test-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `expiry-test-${Date.now()}@example.com`
 
 			// Create invitation with 7-day expiry
@@ -179,7 +173,7 @@ describe('Tenant Invitation Flow', () => {
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
 			const secureToken = crypto.randomBytes(32).toString('hex')
-			const { data: invitation, error } = await serviceClient
+			const { data: invitation, error } = await ownerA.client
 				.from('tenant_invitations')
 				.insert({
 					id: testInviteId,
@@ -188,7 +182,7 @@ describe('Tenant Invitation Flow', () => {
 					invitation_url: `https://app.test/accept-invite?code=${secureToken}`,
 					expires_at: expiresAt.toISOString(),
 					unit_id: testUnitId,
-					property_owner_id: ownerA.user_id
+					property_owner_id: ownerAPropertyOwnerId!
 				})
 				.select('expires_at')
 				.single()
@@ -209,26 +203,26 @@ describe('Tenant Invitation Flow', () => {
 
 	describe('Token Validation', () => {
 		it('should find valid invitation by token', async () => {
-			const testInviteId = `invite-valid-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `valid-test-${Date.now()}@example.com`
 			const token = crypto.randomBytes(32).toString('hex')
 
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
-			await serviceClient.from('tenant_invitations').insert({
+			await ownerA.client.from('tenant_invitations').insert({
 				id: testInviteId,
 				email: testEmail,
 				invitation_code: token,
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiresAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerA.user_id
+				property_owner_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
 			// Query for invitation by token
-			const { data: found, error } = await serviceClient
+			const { data: found, error } = await ownerA.client
 				.from('tenant_invitations')
 				.select('id, email, expires_at, accepted_at')
 				.eq('invitation_code', token)
@@ -243,7 +237,7 @@ describe('Tenant Invitation Flow', () => {
 		})
 
 		it('should reject expired invitation token', async () => {
-			const testInviteId = `invite-expired-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `expired-test-${Date.now()}@example.com`
 			const token = crypto.randomBytes(32).toString('hex')
 
@@ -251,19 +245,19 @@ describe('Tenant Invitation Flow', () => {
 			const expiredAt = new Date()
 			expiredAt.setDate(expiredAt.getDate() - 1) // Yesterday
 
-			await serviceClient.from('tenant_invitations').insert({
+			await ownerA.client.from('tenant_invitations').insert({
 				id: testInviteId,
 				email: testEmail,
 				invitation_code: token,
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiredAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerA.user_id
+				property_owner_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
 			// Query should not find expired invitation
-			const { data: found } = await serviceClient
+			const { data: found } = await ownerA.client
 				.from('tenant_invitations')
 				.select('id')
 				.eq('invitation_code', token)
@@ -275,7 +269,7 @@ describe('Tenant Invitation Flow', () => {
 		})
 
 		it('should reject already accepted invitation token', async () => {
-			const testInviteId = `invite-accepted-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `accepted-test-${Date.now()}@example.com`
 			const token = crypto.randomBytes(32).toString('hex')
 
@@ -283,7 +277,7 @@ describe('Tenant Invitation Flow', () => {
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
-			await serviceClient.from('tenant_invitations').insert({
+			await ownerA.client.from('tenant_invitations').insert({
 				id: testInviteId,
 				email: testEmail,
 				invitation_code: token,
@@ -291,12 +285,12 @@ describe('Tenant Invitation Flow', () => {
 				expires_at: expiresAt.toISOString(),
 				accepted_at: new Date().toISOString(), // Already accepted
 				unit_id: testUnitId,
-				property_owner_id: ownerA.user_id
+				property_owner_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
 			// Query should not find accepted invitation
-			const { data: found } = await serviceClient
+			const { data: found } = await ownerA.client
 				.from('tenant_invitations')
 				.select('id')
 				.eq('invitation_code', token)
@@ -311,11 +305,11 @@ describe('Tenant Invitation Flow', () => {
 	describe('Late Fee Calculation', () => {
 		it('should calculate correct late fee after grace period', async () => {
 			// Create a mock tenant linked to a user
-			const testTenantId = `tenant-latefee-${Date.now()}`
-			const testLeaseId = `lease-latefee-${Date.now()}`
+			const testTenantId = crypto.randomUUID()
+			const testLeaseId = crypto.randomUUID()
 
 			// Create tenant record (requires user_id and stripe_customer_id)
-			const { error: tenantError } = await serviceClient.from('tenants').insert({
+			const { error: tenantError } = await ownerA.client.from('tenants').insert({
 				id: testTenantId,
 				user_id: ownerA.user_id, // Use owner's ID for test (would normally be tenant's user)
 				stripe_customer_id: `cus_test_${Date.now()}`
@@ -333,15 +327,16 @@ describe('Tenant Invitation Flow', () => {
 			const endDate = new Date()
 			endDate.setFullYear(endDate.getFullYear() + 1)
 
-			const { error: leaseError } = await serviceClient.from('leases').insert({
+			const { error: leaseError } = await ownerA.client.from('leases').insert({
 				id: testLeaseId,
 				primary_tenant_id: testTenantId,
 				unit_id: testUnitId,
+				property_owner_id: ownerAPropertyOwnerId!,
 				rent_amount: 150000, // $1,500
 				security_deposit: 150000,
 				start_date: startDate.toISOString().split('T')[0]!,
 				end_date: endDate.toISOString().split('T')[0]!,
-				lease_status: 'ACTIVE',
+				lease_status: 'active',
 				late_fee_amount: 5000, // $50 late fee
 				grace_period_days: 5
 			})
@@ -353,7 +348,7 @@ describe('Tenant Invitation Flow', () => {
 			testData.leases.push(testLeaseId)
 
 			// Verify lease was created with correct late fee configuration
-			const { data: lease } = await serviceClient
+			const { data: lease } = await ownerA.client
 				.from('leases')
 				.select('rent_amount, late_fee_amount, grace_period_days')
 				.eq('id', testLeaseId)
@@ -392,14 +387,14 @@ describe('Tenant Invitation Flow', () => {
 
 	describe('Invitation Status Tracking', () => {
 		it('should track invitation status as sent initially', async () => {
-			const testInviteId = `invite-status-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `status-test-${Date.now()}@example.com`
 			const token = crypto.randomBytes(32).toString('hex')
 
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
-			const { data: invitation } = await serviceClient
+			const { data: invitation } = await ownerA.client
 				.from('tenant_invitations')
 				.insert({
 					id: testInviteId,
@@ -408,42 +403,42 @@ describe('Tenant Invitation Flow', () => {
 					invitation_url: `https://app.test/accept-invite?code=${token}`,
 					expires_at: expiresAt.toISOString(),
 					unit_id: testUnitId,
-					property_owner_id: ownerA.user_id
+					property_owner_id: ownerAPropertyOwnerId!
 				})
 				.select('id, accepted_at, expires_at, status')
 				.single()
 
 			testData.invitations.push(testInviteId)
 
-			// Status should be 'sent' (not accepted, not expired)
+			// Status should be 'pending' (default) until explicitly marked as sent
 			expect(invitation!.accepted_at).toBeNull()
-			expect(invitation!.status).toBe('sent')
+			expect(invitation!.status).toBe('pending')
 			const isExpired = new Date(invitation!.expires_at) < new Date()
 			expect(isExpired).toBe(false)
 		})
 
 		it('should update status when invitation is accepted', async () => {
-			const testInviteId = `invite-accept-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `accept-status-${Date.now()}@example.com`
 			const token = crypto.randomBytes(32).toString('hex')
 
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
-			await serviceClient.from('tenant_invitations').insert({
+			await ownerA.client.from('tenant_invitations').insert({
 				id: testInviteId,
 				email: testEmail,
 				invitation_code: token,
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiresAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerA.user_id
+				property_owner_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
 			// Simulate acceptance
 			const acceptedAt = new Date().toISOString()
-			const { data: updated } = await serviceClient
+			const { data: updated } = await ownerA.client
 				.from('tenant_invitations')
 				.update({
 					accepted_at: acceptedAt,
@@ -461,29 +456,29 @@ describe('Tenant Invitation Flow', () => {
 
 	describe('Owner can view their invitations', () => {
 		it('should return invitations created by the owner', async () => {
-			const testInviteId = `invite-owner-view-${Date.now()}`
+			const testInviteId = crypto.randomUUID()
 			const testEmail = `owner-view-${Date.now()}@example.com`
 			const token = crypto.randomBytes(32).toString('hex')
 
 			const expiresAt = new Date()
 			expiresAt.setDate(expiresAt.getDate() + 7)
 
-			await serviceClient.from('tenant_invitations').insert({
+			await ownerA.client.from('tenant_invitations').insert({
 				id: testInviteId,
 				email: testEmail,
 				invitation_code: token,
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiresAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerA.user_id
+				property_owner_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
 			// Query invitations for this owner
-			const { data: invitations, error } = await serviceClient
+			const { data: invitations, error } = await ownerA.client
 				.from('tenant_invitations')
 				.select('id, email, status, expires_at')
-				.eq('property_owner_id', ownerA.user_id)
+				.eq('property_owner_id', ownerAPropertyOwnerId!)
 				.order('created_at', { ascending: false })
 
 			expect(error).toBeNull()

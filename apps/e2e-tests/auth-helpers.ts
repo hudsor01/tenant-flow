@@ -1,24 +1,37 @@
 /**
- * E2E Authentication Helpers with Session Reuse
-
- * PERFORMANCE OPTIMIZATION: Session reuse per Playwright worker
- * - First test in worker: Real login via form submission (~3s)
- * - Subsequent tests in same worker: Load cached session cookies (~100ms)
- * - Result: 42% faster test execution, 80% reduction in login overhead
-
- * WHY: Supabase uses httpOnly cookies that cannot be captured by Playwright's
- * storageState() mechanism. We must login via form to get all auth cookies.
-
- * SECURITY: Test credentials stored in environment variables (E2E_*_EMAIL/PASSWORD)
- * These are FAKE test-only accounts, NOT production credentials.
+ * E2E Authentication Helpers - API-Based Authentication
+ *
+ * ARCHITECTURE: Uses Supabase REST API for authentication instead of UI login
+ *
+ * WHY API-BASED:
+ * 1. Playwright 1.53+ has fill() regressions with React controlled inputs
+ * 2. UI login is fragile due to React hydration timing
+ * 3. API login is 10x faster (~200ms vs ~3s)
+ * 4. More reliable - no DOM interaction issues
+ *
+ * HOW IT WORKS:
+ * 1. Call Supabase /auth/v1/token endpoint directly
+ * 2. Get access_token, refresh_token, user data
+ * 3. Set cookies AND localStorage in browser context
+ * 4. Navigate to protected pages
+ *
+ * REFERENCES:
+ * - https://playwright.dev/docs/auth
+ * - https://mokkapps.de/blog/login-at-supabase-via-rest-api-in-playwright-e2e-test
+ * - https://supabase.com/docs/guides/auth/sessions
  */
 
-import { type Page, expect } from '@playwright/test'
+import { type Page, type BrowserContext } from '@playwright/test'
+
+// Supabase project reference extracted from URL
+const SUPABASE_PROJECT_REF = 'bshjmbshupiibfiewpxb'
+const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
 
 // Worker-level session cache (isolated per worker process)
-const sessionCache = new Map<string, any>()
+const sessionCache = new Map<string, SupabaseSession>()
 
-// Debug logging helper - only logs when DEBUG env var is set
+// Debug logging helper
 const debugLog = (...args: string[]) => {
 	if (!process.env.DEBUG) return
 	const [message, ...rest] = args
@@ -29,238 +42,220 @@ const debugLog = (...args: string[]) => {
 	}
 }
 
+interface SupabaseSession {
+	access_token: string
+	refresh_token: string
+	expires_in: number
+	expires_at: number
+	token_type: string
+	user: {
+		id: string
+		email: string
+		app_metadata: Record<string, unknown>
+		user_metadata: Record<string, unknown>
+	}
+}
+
 interface LoginOptions {
 	email?: string
 	password?: string
-	forceLogin?: boolean // Skip cache, force fresh login (for logout testing)
+	forceLogin?: boolean // Skip cache, force fresh login
 }
 
 /**
- * Login as property owner with session reuse optimization
+ * Authenticate via Supabase REST API
+ *
+ * Calls the /auth/v1/token endpoint directly to get session tokens.
+ * This is much faster and more reliable than UI-based login.
+ */
+async function authenticateViaAPI(
+	email: string,
+	password: string
+): Promise<SupabaseSession> {
+	const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'apikey': SUPABASE_ANON_KEY,
+			'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+		},
+		body: JSON.stringify({ email, password })
+	})
 
+	if (!response.ok) {
+		const error = await response.json()
+		throw new Error(`Supabase auth failed: ${error.error_description || error.message || response.statusText}`)
+	}
+
+	return response.json()
+}
+
+/**
+ * Inject session into browser context
+ *
+ * Sets up both cookies and localStorage to match what Supabase SSR expects.
+ * This ensures the Next.js middleware can validate the session.
+ */
+async function injectSessionIntoBrowser(
+	context: BrowserContext,
+	session: SupabaseSession,
+	baseUrl: string
+): Promise<void> {
+	const cookieName = `sb-${SUPABASE_PROJECT_REF}-auth-token`
+	const cookieValue = JSON.stringify(session)
+
+	// Parse base URL to get domain
+	const url = new URL(baseUrl)
+	const domain = url.hostname
+
+	// Set the auth cookie - this is what Supabase SSR reads
+	await context.addCookies([
+		{
+			name: cookieName,
+			value: cookieValue,
+			domain: domain,
+			path: '/',
+			httpOnly: false, // Supabase browser client needs to read this
+			secure: url.protocol === 'https:',
+			sameSite: 'Lax',
+			expires: session.expires_at
+		}
+	])
+
+	debugLog(` Cookie set: ${cookieName}`)
+
+	// Also set in localStorage for browser client
+	// This ensures the Supabase browser client can read the session
+	await context.addInitScript(
+		({ cookieName, session }) => {
+			localStorage.setItem(cookieName, JSON.stringify(session))
+		},
+		{ cookieName, session }
+	)
+
+	debugLog(' Session injected into localStorage')
+}
+
+/**
+ * Login as property owner via API
+ *
  * @param page - Playwright Page instance
  * @param options - Login credentials and cache control
-
+ *
  * Performance:
- * - First call: ~3 seconds (real login)
- * - Subsequent calls: ~100ms (cached session)
+ * - First call: ~200ms (API call)
+ * - Subsequent calls: ~50ms (cached session injection)
  */
 export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const email =
 		options.email || process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
-	const password =
+	const rawPassword =
 		options.password ||
 		process.env.E2E_OWNER_PASSWORD ||
 		(() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
+	const password = rawPassword.replace(/\\!/g, '!')
 	const cacheKey = `owner:${email}`
 
-	// Use cached session if available (unless forceLogin)
-	if (!options.forceLogin && sessionCache.has(cacheKey)) {
-		const session = sessionCache.get(cacheKey)
-		debugLog(` Using cached session for: ${email}`)
-
-		// Apply all storage state (cookies, localStorage, sessionStorage)
-		if (session.cookies && session.cookies.length > 0) {
-			await page.context().addCookies(session.cookies)
-			debugLog(` Applied ${session.cookies.length} cookies from cache`)
-		}
-
-		// Navigate to dashboard to verify session is valid
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
-
-		// CRITICAL: Wait for auth session to initialize even with cached cookies
-		debugLog('⏳ Waiting for cached session to initialize...')
-		await page.waitForLoadState('networkidle', { timeout: 15000 })
-		debugLog(' Network idle - cached session initialized')
-
-		debugLog(` Logged in as owner (${email}) - Session reused from cache`)
-		return // Fast path: ~100ms
-	}
-
-	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-	debugLog(` Starting fresh login for: ${email}`)
-	debugLog(` Base URL: ${baseUrl}`)
+	const context = page.context()
 
-	await page.goto(`${baseUrl}/login`, { waitUntil: 'load' })
-	debugLog(' Navigated to login page')
-	
-	// Wait for form inputs to be present in DOM (more forgiving than visibility)
-	debugLog('⏳ Waiting for login form to render...')
-	try {
-		await page.waitForSelector('[data-testid="email-input"]', { timeout: 15000 })
-		debugLog(' Email input field found in DOM')
-	} catch (error) {
-		// Fallback: try by ID instead of data-testid
-		debugLog(' data-testid selector failed, trying ID selector...')
+	// Check cache first
+	let session = sessionCache.get(cacheKey)
+
+	if (!session || options.forceLogin) {
+		debugLog(` Authenticating via API: ${email}`)
+
 		try {
-			await page.waitForSelector('#email', { timeout: 5000 })
-			debugLog(' Email input found by ID')
-		} catch {
-			throw new Error(`Login form not found. Page URL: ${page.url()}, HTML: ${await page.content().then(h => h.substring(0, 500))}`)
+			session = await authenticateViaAPI(email, password)
+			sessionCache.set(cacheKey, session)
+			debugLog(` API authentication successful`)
+		} catch (error) {
+			debugLog(` API authentication failed: ${error}`)
+			throw error
 		}
+	} else {
+		debugLog(` Using cached session for: ${email}`)
 	}
 
-	// Wait for form to be interactive before filling
-	await page.waitForLoadState('domcontentloaded')
-	await page.waitForTimeout(500) // Small delay for form initialization
+	// Inject session into browser context
+	await injectSessionIntoBrowser(context, session, baseUrl)
 
-	// Fill login form with explicit force to handle any overlays
-	debugLog(' Filling email field...')
-	await page.locator('[data-testid="email-input"]').fill(email, { force: true })
-	debugLog(' Filling password field...')
-	await page.locator('[data-testid="password-input"]').fill(password, { force: true })
-	debugLog(' Form fields filled')
+	// Navigate to dashboard - session should be valid
+	await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
 
-	// Small delay to ensure form state is settled
-	await page.waitForTimeout(500)
-	debugLog('⏱️ Form state settled (500ms delay)')
-
-	// Check if button is visible and enabled - use data-testid for reliability
-	let submitButton = page.locator('[data-testid="login-button"]')
-	debugLog(' Looking for submit button (data-testid)...')
-	
-	// Fallback to role-based selector if data-testid doesn't exist
-	const dataTestIdExists = await submitButton.count().then(c => c > 0)
-	if (!dataTestIdExists) {
-		debugLog(' data-testid not found, falling back to role selector')
-		submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
-	}
-	
-	await expect(submitButton).toBeVisible({ timeout: 5000 })
-	const buttonText = await submitButton.textContent()
-	const isEnabled = await submitButton.isEnabled()
-	debugLog(` Submit button found: "${buttonText}" (enabled: ${isEnabled})`)
-
-	// Submit form and wait for navigation
-	debugLog(' Clicking submit button and waiting for navigation...')
-	await Promise.all([
-		page.waitForURL('/dashboard', { timeout: 120000 }),
-		submitButton.click()
-	])
-	debugLog(' Navigation complete!')
-
-	// Wait for page to be mostly loaded (don't wait for all background requests)
-	await page.waitForLoadState('domcontentloaded')
-
-	// CRITICAL: Wait for auth to fully initialize and API calls to succeed
-	// The Supabase client needs time to read cookies and set up the session
-	// Without this, API calls will fail with 403 because no Authorization header is sent
-	debugLog('⏳ Waiting for auth session to initialize...')
+	// Wait for auth to stabilize
 	await page.waitForLoadState('networkidle', { timeout: 15000 })
-	debugLog(' Network idle - session should be initialized')
 
-	// Verify we're actually on the manage page and not redirected back to login
+	// Verify we're on the dashboard, not redirected to login
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
-		throw new Error(`Login failed: Still on login page. URL: ${currentUrl}`)
+		throw new Error(`Login failed: Redirected to login page. Session may be invalid.`)
 	}
 
-	// Cache session for this worker (includes httpOnly cookies!)
-	const session = await page.context().storageState()
-	sessionCache.set(cacheKey, session)
-
-	debugLog(` Logged in as owner (${email}) - Session cached for worker (${session.cookies?.length || 0} cookies)`)
+	debugLog(` Logged in as owner (${email})`)
 }
 
 /**
- * Login as tenant with session reuse optimization
-
+ * Login as tenant via API
+ *
  * @param page - Playwright Page instance
  * @param options - Login credentials and cache control
-
- * Performance:
- * - First call: ~3 seconds (real login)
- * - Subsequent calls: ~100ms (cached session)
  */
 export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	const email =
 		options.email ||
 		process.env.E2E_TENANT_EMAIL ||
 		'test-tenant@tenantflow.app'
-	const password =
+	const rawPassword =
 		options.password ||
 		process.env.E2E_TENANT_PASSWORD ||
 		(() => { throw new Error('E2E_TENANT_PASSWORD environment variable is required') })()
+	const password = rawPassword.replace(/\\!/g, '!')
 	const cacheKey = `tenant:${email}`
 
-	// Use cached session if available (unless forceLogin)
-	if (!options.forceLogin && sessionCache.has(cacheKey)) {
-		const session = sessionCache.get(cacheKey)
-		await page.context().addCookies(session.cookies) // Includes httpOnly cookies!
-
-		// Navigate to tenant portal to verify session is valid
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		await page.goto(`${baseUrl}/tenant`)
-		await page.waitForLoadState('networkidle')
-
-		debugLog(
-			` Logged in as tenant (${email}) - Session reused from cache`
-		)
-		return // Fast path: ~100ms
-	}
-
-	// Perform fresh login (first time in worker or forced)
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-	await page.goto(`${baseUrl}/login`, { waitUntil: 'load' })
-	
-	// Wait for form inputs to be present in DOM
-	debugLog('⏳ Waiting for tenant login form to render...')
-	try {
-		await page.waitForSelector('[data-testid="email-input"]', { timeout: 15000 })
-	} catch {
-		// Fallback: try by ID
-		debugLog(' data-testid selector failed, trying ID selector...')
+	const context = page.context()
+
+	// Check cache first
+	let session = sessionCache.get(cacheKey)
+
+	if (!session || options.forceLogin) {
+		debugLog(` Authenticating tenant via API: ${email}`)
+
 		try {
-			await page.waitForSelector('#email', { timeout: 5000 })
-		} catch {
-			throw new Error(`Tenant login form not found. Page URL: ${page.url()}`)
+			session = await authenticateViaAPI(email, password)
+			sessionCache.set(cacheKey, session)
+			debugLog(` Tenant API authentication successful`)
+		} catch (error) {
+			debugLog(` Tenant API authentication failed: ${error}`)
+			throw error
 		}
+	} else {
+		debugLog(` Using cached tenant session for: ${email}`)
 	}
 
-	// Wait for form to be interactive
-	await page.waitForLoadState('domcontentloaded')
-	await page.waitForTimeout(500)
+	// Inject session into browser context
+	await injectSessionIntoBrowser(context, session, baseUrl)
 
-	// Fill login form with explicit force to handle any overlays
-	await page.locator('[data-testid="email-input"]').fill(email, { force: true })
-	await page.locator('[data-testid="password-input"]').fill(password, { force: true })
+	// Navigate to tenant portal - session should be valid
+	await page.goto(`${baseUrl}/tenant`, { waitUntil: 'domcontentloaded' })
 
-	// Small delay to ensure form state is settled
-	await page.waitForTimeout(500)
+	// Wait for auth to stabilize
+	await page.waitForLoadState('networkidle', { timeout: 15000 })
 
-	// Submit form and wait for navigation - use data-testid for button
-	let submitButton = page.locator('[data-testid="login-button"]')
-	const dataTestIdExists = await submitButton.count().then(c => c > 0)
-	if (!dataTestIdExists) {
-		submitButton = page.getByRole('button', { name: /sign in|login|submit/i })
+	// Verify we're on the tenant page, not redirected to login
+	const currentUrl = page.url()
+	if (currentUrl.includes('/login')) {
+		throw new Error(`Tenant login failed: Redirected to login page. Session may be invalid.`)
 	}
-	
-	await Promise.all([
-		page.waitForURL(/\/tenant/, { timeout: 120000 }),
-		submitButton.click()
-	])
 
-	// Wait for page to be mostly loaded (domcontentloaded is sufficient since we waited for URL)
-	await page.waitForLoadState('domcontentloaded')
-
-	// Cache session for this worker (includes httpOnly cookies!)
-	const session = await page.context().storageState()
-	sessionCache.set(cacheKey, session)
-
-	debugLog(
-		` Logged in as tenant (${email}) - Session cached for worker`
-	)
+	debugLog(` Logged in as tenant (${email})`)
 }
 
 /**
  * Clear session cache (for logout testing or forced re-login)
-
- * Call this in tests that verify logout functionality or when you need
- * to force a fresh login regardless of cached state.
  */
 export function clearSessionCache() {
 	sessionCache.clear()
-	debugLog('️ Session cache cleared')
+	debugLog(' Session cache cleared')
 }

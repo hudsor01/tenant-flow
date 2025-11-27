@@ -2,6 +2,8 @@ import {
 	Body,
 	Controller,
 	Get,
+	HttpCode,
+	HttpStatus,
 	Logger,
 	Param,
 	ParseUUIDPipe,
@@ -91,6 +93,7 @@ export class LeaseGenerationController {
 	 */
 	@UseGuards(PropertyOwnershipGuard)
 	@Post('generate')
+	@HttpCode(HttpStatus.OK)
 	async generateLease(
 		@Body() dto: LeaseGenerationDto,
 		@Res() res: Response
@@ -123,6 +126,7 @@ export class LeaseGenerationController {
 	 */
 	@UseGuards(PropertyOwnershipGuard)
 	@Post('download')
+	@HttpCode(HttpStatus.OK)
 	async downloadLease(
 		@Body() dto: LeaseGenerationDto,
 		@Res() res: Response

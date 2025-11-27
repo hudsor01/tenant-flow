@@ -99,7 +99,7 @@ export class MaintenanceController {
 		}
 
 		// RLS: Pass JWT token to service layer
-		return this.maintenanceService.findAll(token, {
+		const data = await this.maintenanceService.findAll(token, {
 			unit_id,
 			property_id,
 			priority,
@@ -110,6 +110,17 @@ export class MaintenanceController {
 			sortBy,
 			sortOrder
 		})
+
+		// Return PaginatedResponse format expected by frontend
+		const safeLimit = limit ?? 10
+		const safeOffset = offset ?? 0
+		return {
+			data,
+			total: data.length,
+			limit: safeLimit,
+			offset: safeOffset,
+			hasMore: data.length >= safeLimit
+		}
 	}
 
 	/**
