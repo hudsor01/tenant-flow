@@ -2,7 +2,9 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
-const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true'
+// Always run integration tests when this config is explicitly used
+// The conditional skip logic is in individual test files via describeIfReady
+const shouldRunIntegration = true
 
 export default defineConfig({
 	plugins: [
@@ -39,13 +41,13 @@ export default defineConfig({
 		// Integration tests may take longer
 		testTimeout: 30000,
 		hookTimeout: 30000,
-		// Use vmThreads pool with singleThread for cache-sensitive tests
-		// These tests share TanStack Query cache and require serial execution to avoid race conditions
-		// singleThread prevents tests from interfering with each other's optimistic locking and cache updates
-		pool: 'vmThreads',
+		// Use forks pool with singleFork for shared state between test files
+		// Each test file needs access to the same authenticated Supabase session
+		// forks pool runs tests in child processes that can share the session
+		pool: 'forks',
 		poolOptions: {
-			vmThreads: {
-				singleThread: true
+			forks: {
+				singleFork: true
 			}
 		},
 		// Retry failed tests (network issues, etc.)

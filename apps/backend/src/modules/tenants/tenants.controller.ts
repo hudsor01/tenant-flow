@@ -95,7 +95,13 @@ export class TenantsController {
 		if (limit !== undefined) filters.limit = limit
 		if (offset !== undefined) filters.offset = offset
 
-		return this.queryService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
+		const data = await this.queryService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
+
+		// Return PaginatedResponse format expected by frontend
+		return {
+			data,
+			total: data.length
+		}
 	}
 
 	@Get('stats')

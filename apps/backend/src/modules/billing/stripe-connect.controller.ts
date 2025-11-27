@@ -83,27 +83,8 @@ export class StripeConnectController {
 	constructor(
 		private readonly stripeConnectService: StripeConnectService,
 		private readonly supabaseService: SupabaseService,
-		
+
 	) {}
-
-	/**
-	 * Helper method to fetch user data from Supabase
-	 * @private
-	 */
-	private async getUserData<T>(user_id: string, fields: string): Promise<T> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('users')
-			.select(fields)
-			.eq('id', user_id)
-			.single()
-
-		if (error || !data) {
-			throw new BadRequestException('User not found')
-		}
-
-		return data as T
-	}
 
 	/**
 	 * Create a Stripe Connected Account and start onboarding
@@ -127,26 +108,34 @@ export class StripeConnectController {
 		}
 
 		try {
-			// Check if user already has a connected account
-			const { data: user, error } = await this.supabaseService
+			// Get user info from users table
+			const { data: user, error: userError } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
-				.select('connected_account_id, email, first_name, last_name')
+				.select('email, first_name, last_name')
 				.eq('id', user_id)
 				.single()
 
-			if (error || !user) {
+			if (userError || !user) {
 				throw new BadRequestException('User not found')
 			}
 
+			// Check if user already has a property_owner record with stripe_account_id
+			const { data: propertyOwner } = await this.supabaseService
+				.getAdminClient()
+				.from('property_owners')
+				.select('stripe_account_id')
+				.eq('user_id', user_id)
+				.single()
+
 			// If already has connected account, create new account link
-			if (user.connected_account_id) {
+			if (propertyOwner?.stripe_account_id) {
 				const accountLink = await this.stripeConnectService.createAccountLink(
-					user.connected_account_id
+					propertyOwner.stripe_account_id
 				)
 
 				return {
-					accountId: user.connected_account_id,
+					accountId: propertyOwner.stripe_account_id,
 					onboardingUrl: accountLink.url,
 					existing: true
 				}
@@ -184,19 +173,19 @@ export class StripeConnectController {
 		const user_id = req.user.id
 
 		try {
-			const { data: user, error } = await this.supabaseService
+			const { data: propertyOwner, error } = await this.supabaseService
 				.getAdminClient()
-				.from('users')
-				.select('connected_account_id')
-				.eq('id', user_id)
+				.from('property_owners')
+				.select('stripe_account_id')
+				.eq('user_id', user_id)
 				.single()
 
-			if (error || !user || !user.connected_account_id) {
+			if (error || !propertyOwner || !propertyOwner.stripe_account_id) {
 				throw new BadRequestException('No connected account found')
 			}
 
 			const accountLink = await this.stripeConnectService.createAccountLink(
-				user.connected_account_id
+				propertyOwner.stripe_account_id
 			)
 
 			return {
@@ -221,17 +210,15 @@ export class StripeConnectController {
 		const user_id = req.user.id
 
 		try {
-			const user = await this.getUserData<{
-				connectedAccountId: string | null
-				chargesEnabled: boolean | null
-				detailsSubmitted: boolean | null
-				payoutsEnabled: boolean | null
-			}>(
-				user_id,
-				'connectedAccountId, chargesEnabled, detailsSubmitted, payoutsEnabled'
-			)
+			// Get property owner record with Stripe Connect info
+			const { data: propertyOwner, error } = await this.supabaseService
+				.getAdminClient()
+				.from('property_owners')
+				.select('stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
+				.eq('user_id', user_id)
+				.single()
 
-			if (!user.connectedAccountId) {
+			if (error || !propertyOwner || !propertyOwner.stripe_account_id) {
 				return {
 					hasConnectedAccount: false,
 					onboardingComplete: false
@@ -243,38 +230,35 @@ export class StripeConnectController {
 			try {
 				await this.stripeConnectService.updateOnboardingStatus(
 					user_id,
-					user.connectedAccountId
+					propertyOwner.stripe_account_id
 				)
 			} catch (updateError) {
 				this.logger.error('Failed to update onboarding status from Stripe', {
 					user_id,
-					connectedAccountId: user.connectedAccountId,
+					stripe_account_id: propertyOwner.stripe_account_id,
 					error: updateError
 				})
 				// Set flag but continue with cached data instead of throwing
 				staleSyncData = true
 			}
 
-			// Fetch updated status
-			const updatedUser = await this.getUserData<{
-				onboardingComplete: boolean | null
-				detailsSubmitted: boolean | null
-				chargesEnabled: boolean | null
-				payoutsEnabled: boolean | null
-				onboardingCompletedAt: string | null
-			}>(
-				user_id,
-				'onboardingComplete, detailsSubmitted, chargesEnabled, payoutsEnabled, onboardingCompletedAt'
-			)
+			// Fetch updated status from property_owners
+			const { data: updatedOwner } = await this.supabaseService
+				.getAdminClient()
+				.from('property_owners')
+				.select('charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
+				.eq('user_id', user_id)
+				.single()
+
+			const isOnboardingComplete = updatedOwner?.onboarding_status === 'complete'
 
 			return {
 				hasConnectedAccount: true,
-				connectedAccountId: user.connectedAccountId,
-				onboardingComplete: updatedUser.onboardingComplete || false,
-				detailsSubmitted: updatedUser.detailsSubmitted || false,
-				chargesEnabled: updatedUser.chargesEnabled || false,
-				payoutsEnabled: updatedUser.payoutsEnabled || false,
-				onboardingCompletedAt: updatedUser.onboardingCompletedAt,
+				connectedAccountId: propertyOwner.stripe_account_id,
+				onboardingComplete: isOnboardingComplete,
+				chargesEnabled: updatedOwner?.charges_enabled || false,
+				payoutsEnabled: updatedOwner?.payouts_enabled || false,
+				onboardingCompletedAt: updatedOwner?.onboarding_completed_at,
 				staleSyncData
 			}
 		} catch (error) {
@@ -317,22 +301,24 @@ export class StripeConnectController {
 		const user_id = req.user.id
 
 		try {
-			const user = await this.getUserData<{
-				connectedAccountId: string | null
-				onboardingComplete: boolean | null
-			}>(user_id, 'connectedAccountId, onboardingComplete')
+			const { data: propertyOwner, error } = await this.supabaseService
+				.getAdminClient()
+				.from('property_owners')
+				.select('stripe_account_id, onboarding_status')
+				.eq('user_id', user_id)
+				.single()
 
-			if (!user.connectedAccountId) {
+			if (error || !propertyOwner?.stripe_account_id) {
 				throw new BadRequestException('No connected account found')
 			}
 
-			if (!user.onboardingComplete) {
+			if (propertyOwner.onboarding_status !== 'complete') {
 				throw new BadRequestException('Complete onboarding first')
 			}
 
 			// Create Express Dashboard login link
 			const url = await this.stripeConnectService.createDashboardLoginLink(
-				user.connectedAccountId
+				propertyOwner.stripe_account_id
 			)
 
 			return { url }
@@ -352,17 +338,19 @@ export class StripeConnectController {
 	 */
 	@Get('balance')
 	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
-		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
-			req.user.id,
-			'stripe_account_id'
-		)
+		const { data: propertyOwner } = await this.supabaseService
+			.getAdminClient()
+			.from('property_owners')
+			.select('stripe_account_id')
+			.eq('user_id', req.user.id)
+			.single()
 
-		if (!userData.stripe_account_id) {
+		if (!propertyOwner?.stripe_account_id) {
 			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
 		}
 
 		const balance = await this.stripeConnectService.getConnectedAccountBalance(
-			userData.stripe_account_id
+			propertyOwner.stripe_account_id
 		)
 
 		return {
@@ -390,12 +378,14 @@ export class StripeConnectController {
 		@Query('limit') limit?: string,
 		@Query('starting_after') startingAfter?: string
 	) {
-		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
-			req.user.id,
-			'stripe_account_id'
-		)
+		const { data: propertyOwner } = await this.supabaseService
+			.getAdminClient()
+			.from('property_owners')
+			.select('stripe_account_id')
+			.eq('user_id', req.user.id)
+			.single()
 
-		if (!userData.stripe_account_id) {
+		if (!propertyOwner?.stripe_account_id) {
 			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
 		}
 
@@ -407,7 +397,7 @@ export class StripeConnectController {
 		}
 
 		const payouts = await this.stripeConnectService.listConnectedAccountPayouts(
-			userData.stripe_account_id,
+			propertyOwner.stripe_account_id,
 			options
 		)
 
@@ -436,17 +426,19 @@ export class StripeConnectController {
 		@Request() req: AuthenticatedRequest,
 		@Param('payoutId') payoutId: string
 	) {
-		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
-			req.user.id,
-			'stripe_account_id'
-		)
+		const { data: propertyOwner } = await this.supabaseService
+			.getAdminClient()
+			.from('property_owners')
+			.select('stripe_account_id')
+			.eq('user_id', req.user.id)
+			.single()
 
-		if (!userData.stripe_account_id) {
+		if (!propertyOwner?.stripe_account_id) {
 			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
 		}
 
 		const payout = await this.stripeConnectService.getPayoutDetails(
-			userData.stripe_account_id,
+			propertyOwner.stripe_account_id,
 			payoutId
 		)
 
@@ -477,12 +469,14 @@ export class StripeConnectController {
 		@Query('limit') limit?: string,
 		@Query('starting_after') startingAfter?: string
 	) {
-		const userData = await this.getUserData<{ stripe_account_id: string | null }>(
-			req.user.id,
-			'stripe_account_id'
-		)
+		const { data: propertyOwner } = await this.supabaseService
+			.getAdminClient()
+			.from('property_owners')
+			.select('stripe_account_id')
+			.eq('user_id', req.user.id)
+			.single()
 
-		if (!userData.stripe_account_id) {
+		if (!propertyOwner?.stripe_account_id) {
 			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
 		}
 
@@ -494,7 +488,7 @@ export class StripeConnectController {
 		}
 
 		const transfers = await this.stripeConnectService.listTransfersToAccount(
-			userData.stripe_account_id,
+			propertyOwner.stripe_account_id,
 			options
 		)
 

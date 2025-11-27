@@ -77,7 +77,7 @@ export class UnitsController {
 		}
 
 		// RLS: Pass JWT token to service layer
-		return this.unitsService.findAll(token, {
+		const data = await this.unitsService.findAll(token, {
 			property_id,
 			status,
 			search,
@@ -86,6 +86,15 @@ export class UnitsController {
 			sortBy,
 			sortOrder
 		})
+
+		// Return PaginatedResponse format expected by frontend
+		return {
+			data,
+			total: data.length,
+			limit,
+			offset,
+			hasMore: data.length >= limit
+		}
 	}
 
 	/**
