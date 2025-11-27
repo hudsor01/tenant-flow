@@ -53,10 +53,10 @@ const formatPropertyStatus = (status: PropertyStatus): string => {
 }
 
 export function SectionTable() {
-	const { data: properties, isLoading, error } = useQuery(propertyQueries.list({ limit: 5 }))
+	const { data: propertiesResponse, isLoading, error } = useQuery(propertyQueries.list({ limit: 5 }))
 
-	// propertyQueries.list returns an array directly
-	const propertiesList: Property[] = properties ?? []
+	// Extract properties array from PaginatedResponse
+	const propertiesList: Property[] = propertiesResponse?.data ?? []
 
 	if (isLoading) {
 		return (

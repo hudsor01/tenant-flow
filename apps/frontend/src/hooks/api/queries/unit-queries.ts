@@ -9,6 +9,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 /**
  * Unit query filters
@@ -53,7 +54,7 @@ export const unitQueries = {
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 
 				const params = searchParams.toString()
-				return clientFetch<Unit[]>(`/api/v1/units${params ? `?${params}` : ''}`)
+				return clientFetch<PaginatedResponse<Unit>>(`/api/v1/units${params ? `?${params}` : ''}`)
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),

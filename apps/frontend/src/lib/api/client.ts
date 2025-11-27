@@ -15,6 +15,40 @@ import { ApiError, ApiErrorCode } from './api-error'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
+// Pre-load test token at module load time for integration tests
+// This avoids async issues with dynamic imports in jsdom
+let testAccessToken: string | null = null
+
+// Only check test environment on server-side (Node.js)
+// This prevents Webpack from bundling node:module for browser
+const isTestEnvironment =
+	typeof window === 'undefined' &&
+	typeof process !== 'undefined' &&
+	(process.env.VITEST === 'true' ||
+		process.env.VITEST_INTEGRATION === 'true' ||
+		process.env.NODE_ENV === 'test')
+
+// Load test session token server-side only
+if (isTestEnvironment) {
+	try {
+		// Dynamic require to avoid Webpack bundling node: modules
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const fs = require('fs')
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const path = require('path')
+		const sessionFile = path.join(process.cwd(), '.vitest-session.json')
+
+		if (fs.existsSync(sessionFile)) {
+			const sessionData = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'))
+			if (sessionData.access_token) {
+				testAccessToken = sessionData.access_token
+			}
+		}
+	} catch {
+		// Silently fail - will fall back to Supabase session
+	}
+}
+
 /**
  * Get auth headers with Supabase JWT token
  * Extracted for reuse across fetch calls
@@ -37,6 +71,13 @@ export async function getAuthHeaders(
 				'Content-Type': 'application/json',
 				...additionalHeaders
 			}
+
+	// In test environments, use pre-loaded token directly
+	// This bypasses Supabase client session management issues with vitest
+	if (isTestEnvironment && testAccessToken) {
+		headers['Authorization'] = `Bearer ${testAccessToken}`
+		return headers
+	}
 
 	const supabase = getSupabaseClientInstance()
 
@@ -337,7 +378,14 @@ export async function clientFetch<T>(
 		)
 	}
 
-	if (data && typeof data === 'object' && 'data' in data) {
+	// Only unwrap { data: T } responses if they don't have pagination properties
+	// PaginatedResponse format { data: T[], total: number } should be returned as-is
+	if (
+		data &&
+		typeof data === 'object' &&
+		'data' in data &&
+		!('total' in data)
+	) {
 		return (data as { data: T }).data
 	}
 

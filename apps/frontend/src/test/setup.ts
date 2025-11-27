@@ -1,20 +1,24 @@
 /**
  * Integration Test Setup
  *
- * Sets up environment for integration tests that call real APIs
- * Uses REAL Supabase authentication with session persistence
+ * Sets up environment for integration tests with MSW mocking
+ * Uses REAL Supabase authentication - no mocking of the Supabase client
+ * Uses MSW to mock backend API responses
  *
- * ⚠️ IMPORTANT: Environment variables must be set BEFORE importing env
- * T3 Env validates on module load, so we skip validation in test mode
+ * The global setup (tests/integration/setup.ts) authenticates once and stores
+ * session tokens in a temp file. This file restores those tokens in each test
+ * file's VM context.
  */
 
-import { beforeAll, vi } from 'vitest'
+import { beforeAll, afterAll, afterEach, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { readFileSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { server } from '../../tests/integration/mocks/server'
 
 // Skip T3 Env validation in test environment
-// Tests set their own env vars dynamically
 process.env.SKIP_ENV_VALIDATION = 'true'
 
 // Set up required environment variables for tests BEFORE importing env
@@ -33,107 +37,73 @@ process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID = process.env.STRIPE_GROWTH_ANNUAL_PRI
 process.env.STRIPE_MAX_MONTHLY_PRICE_ID = process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
 process.env.STRIPE_MAX_ANNUAL_PRICE_ID = process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
 
-// Create logger instance for structured logging
 const logger = createLogger({ component: 'TestSetup' })
 
-// SECURITY: Load all credentials from environment variables
-// Never hardcode secrets in source code!
-// See E2E_TESTING_GUIDE.md for setup instructions
-
-// Check if we're running unit tests or integration tests
-// Integration tests run via vitest.integration.config.js
-// Note: Use process.env directly to avoid T3 Env client/server validation issues in test context
+// Check if we're running integration tests
 const isIntegrationTest = process.env.RUN_INTEGRATION_TESTS === 'true'
 
-// Test credentials - use process.env to avoid T3 Env validation
-const e2eOwnerEmail = process.env.E2E_OWNER_EMAIL || 'test@example.com'
-const e2eOwnerPassword = process.env.E2E_OWNER_PASSWORD || 'test-password'
+// Temp file path (must match global setup)
+const SESSION_FILE = join(process.cwd(), '.vitest-session.json')
 
-// Validate required credentials for integration tests
-// Note: T3 Env validation is skipped in test mode, so we do manual checks
-if (isIntegrationTest) {
-	if (!e2eOwnerEmail || e2eOwnerEmail === 'test@example.com' || !e2eOwnerPassword || e2eOwnerPassword === 'test-password') {
-		throw new Error(
-			`Missing required test credentials: E2E_OWNER_EMAIL and/or E2E_OWNER_PASSWORD
-` +
-				`Please create a .env.test.local file with test credentials.
-` +
-				`See E2E_TESTING_GUIDE.md for setup instructions.`
-		)
-	}
+// Track test state
+export const testState = {
+	backendAvailable: false,
+	authenticated: false
 }
 
-// Store the authenticated session in a way that mocks can properly access
-const sessionStore = vi.hoisted(() => ({
-	session: null as { access_token: string; expires_at?: number } | null,
-	user: null as { id: string; email?: string } | null,
-	backendAvailable: false
-}))
-
-// Check if backend is available before running integration tests
+// Global setup for integration tests
 beforeAll(async () => {
 	if (!isIntegrationTest) {
-		sessionStore.backendAvailable = false
+		testState.backendAvailable = false
+		process.env.SKIP_INTEGRATION_TESTS = 'true'
+		return
+	}
+
+	// Read session tokens from temp file created by global setup
+	if (!existsSync(SESSION_FILE)) {
+		logger.warn('No session file from global setup - skipping integration tests')
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
 		return
 	}
 
 	try {
-		const controller = new AbortController()
-		const timeoutId = setTimeout(() => controller.abort(), 5000)
+		const sessionData = JSON.parse(readFileSync(SESSION_FILE, 'utf-8'))
+		const { access_token, refresh_token } = sessionData
 
-		const response = await fetch('http://localhost:4600/health', {
-			signal: controller.signal
-		})
-		clearTimeout(timeoutId)
-
-		if (!response.ok) {
-			throw new Error('Backend health check failed')
+		if (!access_token || !refresh_token) {
+			throw new Error('Invalid session data in temp file')
 		}
 
-		// Backend is available, proceed with authentication
-		sessionStore.backendAvailable = true
-		process.env.SKIP_INTEGRATION_TESTS = 'false'
-
+		// Get the singleton Supabase client
 		const supabase = getSupabaseClientInstance()
 
-		// Sign in with test credentials
-		const { data, error } = await supabase.auth.signInWithPassword({
-			email: e2eOwnerEmail,
-			password: e2eOwnerPassword
+		// Restore the session from tokens stored in temp file
+		const { data, error } = await supabase.auth.setSession({
+			access_token,
+			refresh_token
 		})
 
 		if (error) {
-			throw new Error(
-				`Failed to authenticate for integration tests: ${error.message}`
-			)
+			throw new Error(`Failed to restore session: ${error.message}`)
 		}
 
 		if (!data.session) {
-			throw new Error('No session returned from Supabase auth')
+			throw new Error('No session after restoring tokens')
 		}
 
-		// Store session in hoisted store
-		sessionStore.session = data.session
-		sessionStore.user = data.user
-
-		// SECURITY: Do not log PII (email) or token details
-		logger.info('Integration tests authenticated', {
-			user_id: data.user?.id
-		})
+		testState.backendAvailable = true
+		testState.authenticated = true
+		process.env.SKIP_INTEGRATION_TESTS = 'false'
+		logger.info('Integration test session restored', { user_id: data.user?.id || 'unknown' })
 	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : 'Unknown error'
-		logger.warn('Backend not available, integration tests will be skipped', {
-			error: errorMessage
-		})
-		sessionStore.backendAvailable = false
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+		logger.warn('Integration test setup failed', { error: errorMessage })
+		testState.backendAvailable = false
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
-		// Don't throw - let individual tests check backendAvailable flag
 	}
 })
 
-// Mock Next.js router hooks
+// Mock Next.js router hooks (still needed for component rendering)
 vi.mock('next/navigation', () => ({
 	useRouter: () => ({
 		push: vi.fn(),
@@ -148,37 +118,15 @@ vi.mock('next/navigation', () => ({
 	useParams: () => ({})
 }))
 
-// Mock the Supabase client to return our authenticated session
-vi.mock('@repo/shared/lib/supabase-client', () => ({
-	getSupabaseClientInstance: () => ({
-		auth: {
-			getSession: vi.fn().mockImplementation(async () => {
-				if (!sessionStore.session) {
-					throw new Error(
-						'Session not initialized - beforeAll may not have run'
-					)
-				}
-				return {
-					data: {
-						session: sessionStore.session
-					},
-					error: null
-				}
-			}),
-			getUser: vi.fn().mockImplementation(async () => {
-				if (!sessionStore.user) {
-					throw new Error('User not initialized - beforeAll may not have run')
-				}
-				return {
-					data: {
-						user: sessionStore.user
-					},
-					error: null
-				}
-			})
-		}
-	})
-}))
+// MSW server lifecycle - mock backend API responses
+beforeAll(() => {
+	server.listen({ onUnhandledRequest: 'bypass' })
+})
 
-// Export sessionStore for tests to check backend availability
-export { sessionStore }
+afterEach(() => {
+	server.resetHandlers()
+})
+
+afterAll(() => {
+	server.close()
+})
