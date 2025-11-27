@@ -42,7 +42,7 @@ export default defineConfig({
     environment: 'jsdom',
     watch: process.env.CI ? false : undefined,
     globals: true,
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./src/test/unit-setup.ts'],
     pool: 'vmThreads',
     poolOptions: {
       vmThreads: {

@@ -6,7 +6,7 @@
 port = 54322
 shadow_port = 54320
 major_version = 17
-root_key = ""
+root_key = "ioIhm7cl1f6/h3JRlDzufRJd9a7XOzfrHR3GBJ2iHk0="
 
 [db.pooler]
 enabled = false

@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common'
 import { HttpStatus } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ZodValidationPipe } from 'nestjs-zod'
@@ -7,7 +8,16 @@ import request from 'supertest'
 import { LeaseGenerationController } from '../../src/modules/pdf/lease-generation.controller'
 import { ReactLeasePDFService } from '../../src/modules/pdf/react-lease-pdf.service'
 import { SupabaseService } from '../../src/database/supabase.service'
+import { AuthRequestCache } from '../../src/shared/services/auth-request-cache.service'
+import { ZeroCacheService } from '../../src/cache/cache.service'
+import { RolesGuard } from '../../src/shared/guards/roles.guard'
+import { PropertyOwnershipGuard } from '../../src/shared/guards/property-ownership.guard'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
+
+/**
+ * Mock guard that allows all requests (for testing controller logic without auth)
+ */
+const mockGuard = { canActivate: () => true }
 
 /**
  * Integration Tests - Lease Generation Controller
@@ -80,6 +90,19 @@ describe('LeaseGenerationController (Integration)', () => {
 			})
 		}
 
+		const mockAuthRequestCache = {
+			get: jest.fn(),
+			set: jest.fn(),
+			getOrSet: jest.fn().mockImplementation(async (_key: string, factory: () => Promise<boolean>) => factory())
+		}
+
+		const mockZeroCacheService = {
+			get: jest.fn(),
+			set: jest.fn(),
+			del: jest.fn(),
+			wrap: jest.fn()
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeaseGenerationController],
 			providers: [
@@ -90,12 +113,33 @@ describe('LeaseGenerationController (Integration)', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
-				}
+				},
+				{
+					provide: AuthRequestCache,
+					useValue: mockAuthRequestCache
+				},
+				{
+					provide: ZeroCacheService,
+					useValue: mockZeroCacheService
+				},
+				Reflector
 			]
-		}).compile()
+		})
+			.overrideGuard(RolesGuard)
+			.useValue(mockGuard)
+			.overrideGuard(PropertyOwnershipGuard)
+			.useValue(mockGuard)
+			.compile()
 
 		app = module.createNestApplication()
 		app.useGlobalPipes(new ZodValidationPipe())
+
+		// Add middleware to set req.user for tests that need authenticated context
+		app.use((req: any, _res: any, next: any) => {
+			req.user = { id: 'test-user-id', email: 'test@example.com' }
+			next()
+		})
+
 		await app.init()
 
 		leasePDFService = module.get(ReactLeasePDFService)
@@ -147,7 +191,9 @@ describe('LeaseGenerationController (Integration)', () => {
 			const filename = contentDisposition.match(/filename="([^"]+)"/)?.[1]
 			expect(filename).toBeDefined()
 			expect(filename).toMatch(/^lease-[-a-zA-Z0-9]+-[-a-zA-Z0-9]+-\d{4}-\d{2}-\d{2}\.pdf$/)
-			expect(filename).not.toMatch(/[()#'.,]/)
+			// Check that the base filename (without .pdf extension) has no special chars
+			const baseFilename = filename?.replace(/\.pdf$/, '') ?? ''
+			expect(baseFilename).not.toMatch(/[()#'.,]/)
 		})
 
 		it('should reject invalid lease data with Zod validation', async () => {
@@ -248,16 +294,16 @@ describe('LeaseGenerationController (Integration)', () => {
 		it('should auto-fill lease data from property, unit, and tenant', async () => {
 			const mockProperty = {
 				id: mockproperty_id,
-				address: '456 Oak Ave',
+				address_line1: '456 Oak Ave',
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78702',
-				owner_id: 'owner-123'
+				property_owner_id: 'owner-123'
 			}
 
 			const mockUnit = {
 				id: mockunit_id,
-				rent: 1500,
+				rent_amount: 1500,
 				unit_number: '101',
 				property_id: mockproperty_id
 			}
@@ -275,17 +321,33 @@ describe('LeaseGenerationController (Integration)', () => {
 				email: 'john.smith@example.com'
 			}
 
-			// Mock Supabase query chain
-			const mockChain = {
-				from: jest.fn().mockReturnThis(),
+			// Track which table is being queried and user query count
+			let currentTable = ''
+			let userQueryCount = 0
+			const mockChain: Record<string, jest.Mock> = {
+				from: jest.fn((table: string) => {
+					currentTable = table
+					return mockChain
+				}),
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				single: jest
-					.fn()
-					.mockResolvedValueOnce({ data: mockProperty, error: null })
-					.mockResolvedValueOnce({ data: mockUnit, error: null })
-					.mockResolvedValueOnce({ data: mockTenant, error: null })
-					.mockResolvedValueOnce({ data: mockOwner, error: null })
+				single: jest.fn().mockImplementation(() => {
+					if (currentTable === 'properties') {
+						return Promise.resolve({ data: mockProperty, error: null })
+					} else if (currentTable === 'units') {
+						return Promise.resolve({ data: mockUnit, error: null })
+					} else if (currentTable === 'users') {
+						// First user query is for tenant (from Promise.all)
+						// Second user query is for owner (after Promise.all)
+						userQueryCount++
+						if (userQueryCount === 1) {
+							return Promise.resolve({ data: mockTenant, error: null })
+						} else {
+							return Promise.resolve({ data: mockOwner, error: null })
+						}
+					}
+					return Promise.resolve({ data: null, error: { message: 'Not found', code: 'PGRST116' } })
+				})
 			}
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
@@ -307,13 +369,19 @@ describe('LeaseGenerationController (Integration)', () => {
 		})
 
 		it('should return 404 when property not found', async () => {
-			const mockChain = {
-				from: jest.fn().mockReturnThis(),
+			let currentTable = ''
+			const mockChain: Record<string, jest.Mock> = {
+				from: jest.fn((table: string) => {
+					currentTable = table
+					return mockChain
+				}),
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				single: jest.fn().mockResolvedValueOnce({
-					data: null,
-					error: { code: 'PGRST116', message: 'Not found' }
+				single: jest.fn().mockImplementation(() => {
+					if (currentTable === 'properties') {
+						return Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'Not found' } })
+					}
+					return Promise.resolve({ data: null, error: null })
 				})
 			}
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
@@ -326,24 +394,29 @@ describe('LeaseGenerationController (Integration)', () => {
 		it('should return 404 when unit not found', async () => {
 			const mockProperty = {
 				id: mockproperty_id,
-				address: '456 Oak Ave',
+				address_line1: '456 Oak Ave',
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78702',
-				owner_id: 'owner-123'
+				property_owner_id: 'owner-123'
 			}
 
-			const mockChain = {
-				from: jest.fn().mockReturnThis(),
+			let currentTable = ''
+			const mockChain: Record<string, jest.Mock> = {
+				from: jest.fn((table: string) => {
+					currentTable = table
+					return mockChain
+				}),
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				single: jest
-					.fn()
-					.mockResolvedValueOnce({ data: mockProperty, error: null })
-					.mockResolvedValueOnce({
-						data: null,
-						error: { code: 'PGRST116', message: 'Not found' }
-					})
+				single: jest.fn().mockImplementation(() => {
+					if (currentTable === 'properties') {
+						return Promise.resolve({ data: mockProperty, error: null })
+					} else if (currentTable === 'units') {
+						return Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'Not found' } })
+					}
+					return Promise.resolve({ data: null, error: null })
+				})
 			}
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
@@ -361,16 +434,16 @@ describe('LeaseGenerationController (Integration)', () => {
 		it('should return 400 when unit does not belong to property', async () => {
 			const mockProperty = {
 				id: mockproperty_id,
-				address: '456 Oak Ave',
+				address_line1: '456 Oak Ave',
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78702',
-				owner_id: 'owner-123'
+				property_owner_id: 'owner-123'
 			}
 
 			const mockUnit = {
 				id: mockunit_id,
-				rent: 1500,
+				rent_amount: 1500,
 				unit_number: '101',
 				property_id: 'different-property-id' // Mismatch!
 			}
@@ -382,15 +455,24 @@ describe('LeaseGenerationController (Integration)', () => {
 				email: 'jane.doe@example.com'
 			}
 
-			const mockChain = {
-				from: jest.fn().mockReturnThis(),
+			let currentTable = ''
+			const mockChain: Record<string, jest.Mock> = {
+				from: jest.fn((table: string) => {
+					currentTable = table
+					return mockChain
+				}),
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				single: jest
-					.fn()
-					.mockResolvedValueOnce({ data: mockProperty, error: null })
-					.mockResolvedValueOnce({ data: mockUnit, error: null })
-					.mockResolvedValueOnce({ data: mockTenant, error: null })
+				single: jest.fn().mockImplementation(() => {
+					if (currentTable === 'properties') {
+						return Promise.resolve({ data: mockProperty, error: null })
+					} else if (currentTable === 'units') {
+						return Promise.resolve({ data: mockUnit, error: null })
+					} else if (currentTable === 'users') {
+						return Promise.resolve({ data: mockTenant, error: null })
+					}
+					return Promise.resolve({ data: null, error: null })
+				})
 			}
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 

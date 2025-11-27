@@ -47,6 +47,7 @@ interface TenantContext {
 interface LeaseContext {
 	lease: Lease
 	ownerUser: User
+	stripeAccountId: string | null
 }
 
 @Injectable()
@@ -92,7 +93,7 @@ export class RentPaymentsService {
 
 		const adminClient = this.supabase.getAdminClient()
 		const { tenant, tenantUser } = await this.getTenantContext(tenant_id)
-		const { lease, ownerUser } = await this.getLeaseContext(
+		const { lease, stripeAccountId } = await this.getLeaseContext(
 			lease_id,
 			tenant_id,
 			requestinguser_id
@@ -151,9 +152,9 @@ export class RentPaymentsService {
 			},
 			expand: ['latest_charge']
 		}
-		if (ownerUser.connected_account_id) {
+		if (stripeAccountId) {
 			paymentIntentPayload.transfer_data = {
-				destination: ownerUser.connected_account_id
+				destination: stripeAccountId
 			}
 		}
 
@@ -289,7 +290,7 @@ export class RentPaymentsService {
 		const adminClient = this.supabase.getAdminClient()
 
 		const { tenant, tenantUser } = await this.getTenantContext(tenant_id)
-		const { lease, ownerUser } = await this.getLeaseContext(
+		const { lease, stripeAccountId } = await this.getLeaseContext(
 			lease_id,
 			tenant_id,
 			requestinguser_id
@@ -355,9 +356,9 @@ export class RentPaymentsService {
 			expand: ['latest_invoice.payment_intent']
 		}
 
-		if (ownerUser.connected_account_id) {
+		if (stripeAccountId) {
 			subscriptionPayload.transfer_data = {
-				destination: ownerUser.connected_account_id
+				destination: stripeAccountId
 			}
 		}
 
@@ -661,7 +662,7 @@ export class RentPaymentsService {
 
 		const { data: owner, error: ownerError } = await adminClient
 			.from('property_owners')
-			.select('user_id')
+			.select('user_id, stripe_account_id')
 			.eq('id', property.property_owner_id)
 			.single()
 
@@ -687,7 +688,7 @@ export class RentPaymentsService {
 			throw new ForbiddenException('You are not authorized to access this lease')
 		}
 
-		return { lease, ownerUser }
+		return { lease, ownerUser, stripeAccountId: owner.stripe_account_id }
 	}
 
 	private async verifyTenantAccess(

@@ -79,11 +79,20 @@ export class PropertiesController {
 		const safeOffset = Math.max(0, offset)
 
 		// Pass JWT token to service for RLS-enforced queries
-		return this.propertiesService.findAll(token, {
+		const data = await this.propertiesService.findAll(token, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
 		})
+
+		// Return PaginatedResponse format expected by frontend
+		return {
+			data,
+			total: data.length,
+			limit: safeLimit,
+			offset: safeOffset,
+			hasMore: data.length >= safeLimit
+		}
 	}
 
 	/**
