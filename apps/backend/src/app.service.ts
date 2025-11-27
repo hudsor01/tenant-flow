@@ -77,7 +77,7 @@ export class AppService implements OnModuleInit {
 			this.config.getSupabaseSecretKey()
 			this.config.getSupabasePublishableKey()
 		} catch {
-			critical.push('SUPABASE_URL, SUPABASE_SECRET_KEY, or SUPABASE_PUBLISHABLE_KEY')
+			critical.push('SUPABASE_URL, SERVICE_ROLE, or SUPABASE_PUBLISHABLE_KEY')
 		}
 
 		// Authentication

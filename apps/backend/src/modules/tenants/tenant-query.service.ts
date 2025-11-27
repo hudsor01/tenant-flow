@@ -12,6 +12,7 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import type { Tenant, TenantStats, TenantSummary, TenantWithLeaseInfo, RentPayment, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { buildMultiColumnSearch, sanitizeSearchInput } from '../../shared/utils/sql-safe.utils'
 
 export interface ListFilters {
 	status?: string
@@ -76,34 +77,19 @@ export class TenantQueryService {
 		if (!userId) throw new BadRequestException('User ID required')
 
 		try {
-			let query = this.supabase.getAdminClient()
-				.from('tenants')
-				.select('id, user_id, stripe_customer_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
-				.eq('user_id', userId)
+			const [tenantMatches, ownerMatches] = await Promise.all([
+				this.fetchTenantsByUser(userId, filters),
+				this.fetchTenantsByOwner(userId, filters)
+			])
 
-			// Search filter on emergency contact name or phone
-			if (filters.search) {
-				const term = filters.search.trim().toLowerCase()
-				if (term) {
-					query = query.or(
-						`emergency_contact_name.ilike.%${term}%,emergency_contact_phone.ilike.%${term}%`
-					)
+			const deduped = new Map<string, Tenant>()
+			for (const tenant of [...ownerMatches, ...tenantMatches]) {
+				if (tenant?.id && !deduped.has(tenant.id)) {
+					deduped.set(tenant.id, tenant)
 				}
 			}
 
-			// Pagination
-			const limit = Math.min(filters.limit ?? 50, 100)
-			const offset = filters.offset ?? 0
-			query = query.range(offset, offset + limit - 1)
-
-			const { data, error } = await query
-
-			if (error) {
-				this.logger.error('Failed to fetch tenants', { error: error.message, userId })
-				throw new BadRequestException('Failed to retrieve tenants')
-			}
-
-			return (data as Tenant[]) || []
+			return Array.from(deduped.values())
 		} catch (error) {
 			this.logger.error('Error finding all tenants', {
 				error: error instanceof Error ? error.message : String(error),
@@ -111,6 +97,105 @@ export class TenantQueryService {
 			})
 			throw error
 		}
+	}
+
+	private async fetchTenantsByUser(userId: string, filters: ListFilters) {
+		let query = this.supabase.getAdminClient()
+			.from('tenants')
+			.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
+			.eq('user_id', userId)
+
+		if (filters.search) {
+			// Use safe search utilities to prevent SQL injection
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
+					'emergency_contact_name',
+					'emergency_contact_phone'
+				])
+				query = query.or(searchFilter)
+			}
+		}
+
+		const limit = Math.min(filters.limit ?? 50, 100)
+		const offset = filters.offset ?? 0
+		query = query.range(offset, offset + limit - 1)
+
+		const { data, error } = await query
+
+		if (error) {
+			this.logger.error('Failed to fetch tenants', { error: error.message, userId })
+			throw new BadRequestException('Failed to retrieve tenants')
+		}
+
+		return (data as Tenant[]) || []
+	}
+
+	private async fetchTenantsByOwner(userId: string, filters: ListFilters) {
+		const limit = Math.min(filters.limit ?? 50, 100)
+		const offset = filters.offset ?? 0
+
+		// First, look up the property_owners.id for this auth user
+		const { data: ownerRecord } = await this.supabase
+			.getAdminClient()
+			.from('property_owners')
+			.select('id')
+			.eq('user_id', userId)
+			.maybeSingle()
+
+		if (!ownerRecord?.id) {
+			// User is not a property owner, return empty array
+			return []
+		}
+
+		const { data, error } = await this.supabase
+			.getAdminClient()
+			.from('lease_tenants')
+			.select(
+				`
+					tenant:tenants(
+						id,
+						user_id,
+						emergency_contact_name,
+						emergency_contact_phone,
+						emergency_contact_relationship,
+						identity_verified,
+						created_at,
+						updated_at
+					),
+					lease:leases!inner(
+						unit:units!inner(
+							property:properties!inner(
+								id,
+								property_owner_id
+							)
+						)
+					)
+				`
+			)
+			.eq('lease.unit.property.property_owner_id', ownerRecord.id)
+			.range(offset, offset + limit - 1)
+
+		if (error) {
+			this.logger.error('Failed to fetch tenants by owner', { error: error.message, userId })
+			throw new BadRequestException('Failed to retrieve tenants')
+		}
+
+		const tenants = ((data as unknown as { tenant?: Tenant }[] | null) ?? [])
+			.map(row => row.tenant)
+			.filter((tenant): tenant is Tenant => Boolean(tenant))
+
+		if (filters.search) {
+			const term = filters.search.trim().toLowerCase()
+			if (term) {
+				return tenants.filter(tenant =>
+					tenant.emergency_contact_name?.toLowerCase().includes(term) ||
+					tenant.emergency_contact_phone?.toLowerCase().includes(term)
+				)
+			}
+		}
+
+		return tenants
 	}
 
 	/**
@@ -209,7 +294,7 @@ export class TenantQueryService {
 		try {
 			const { data, error } = await this.supabase.getAdminClient()
 				.from('tenants')
-				.select('id, user_id, stripe_customer_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
+				.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
 				.eq('id', tenantId)
 				.single()
 
@@ -308,7 +393,7 @@ export class TenantQueryService {
 		try {
 			const { data, error } = await this.supabase.getAdminClient()
 				.from('tenants')
-				.select('id, user_id, stripe_customer_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
+				.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
 				.eq('user_id', authUserId)
 				.single()
 
