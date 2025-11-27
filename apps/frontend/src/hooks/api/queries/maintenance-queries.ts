@@ -15,6 +15,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 /**
@@ -66,7 +67,7 @@ export const maintenanceQueries = {
 				if (filters?.offset) params.append('offset', filters.offset.toString())
 
 				const queryString = params.toString()
-				return clientFetch<MaintenanceRequest[]>(
+				return clientFetch<PaginatedResponse<MaintenanceRequest>>(
 					`/api/v1/maintenance${queryString ? `?${queryString}` : ''}`
 				)
 			},

@@ -5,8 +5,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 if (!process.env.SUPABASE_URL) {
 	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
-if (!process.env.SUPABASE_SECRET_KEY) {
-	process.env.SUPABASE_SECRET_KEY = 'mock-secret-key'
+if (!process.env.SERVICE_ROLE) {
+	process.env.SERVICE_ROLE = 'mock-secret-key'
 }
 if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
 	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
@@ -27,7 +27,7 @@ jest.mock('@supabase/supabase-js', () => {
 
 const requiredEnv = [
 	'SUPABASE_URL',
-	'SECRET_KEY_SUPABASE',
+	'SERVICE_ROLE',
 	'SUPABASE_RPC_TEST_USER_ID'
 ] as const
 
@@ -47,7 +47,7 @@ jest.setTimeout(30_000)
 describeSupabase('Supabase RPC contract tests', () => {
 	let client: SupabaseClient<Database>
 	const supabaseUrl = process.env.SUPABASE_URL as string
-	const serviceKey = process.env.SUPABASE_SECRET_KEY as string
+	const serviceKey = process.env.SERVICE_ROLE as string
 	const user_id = process.env.SUPABASE_RPC_TEST_USER_ID as string
 
 	beforeAll(() => {

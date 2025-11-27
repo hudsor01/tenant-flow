@@ -1,5 +1,4 @@
-import { createBrowserClient } from '@supabase/ssr'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 
 /**
@@ -20,14 +19,20 @@ export function getRequiredEnvVar(name: string): string {
 }
 
 /**
- * Creates a Supabase browser client that is safe for integration tests.
- * Reuses the same validation logic for URL/key so TypeScript knows they are strings.
+ * Creates a Supabase client for integration tests.
+ * Uses the standard createClient (not createBrowserClient from @supabase/ssr)
+ * because jsdom doesn't fully support document.cookie which @supabase/ssr requires.
  */
 export function createSupabaseTestClient(): SupabaseClient<Database> {
 	const supabaseUrl = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_URL')
 	const supabaseAnonKey = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY')
 
-	return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
+	return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+		auth: {
+			persistSession: true,
+			autoRefreshToken: true
+		}
+	})
 }
 
 /**

@@ -27,7 +27,7 @@ describe('SupabaseService', () => {
 	beforeEach(async () => {
 		// Set up environment variables that SupabaseService actually uses
 		process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-		process.env.SUPABASE_SECRET_KEY =
+		process.env.SERVICE_ROLE =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-service-key'
 		process.env.SUPABASE_PUBLISHABLE_KEY =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-publishable-key'

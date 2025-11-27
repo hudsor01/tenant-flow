@@ -50,17 +50,18 @@ export interface AuthenticatedTestClient {
 
 /**
  * Create Supabase client for testing
+ * NOTE: Prefer NEXT_PUBLIC_* vars first since test/setup.ts may set mock SUPABASE_URL
  */
 function createTestClient(): SupabaseClient<Database> {
 	const supabaseUrl =
-		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
 	const supabaseKey =
-		process.env.SUPABASE_PUBLISHABLE_KEY ||
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.SUPABASE_PUBLISHABLE_KEY
 
 	if (!supabaseUrl || !supabaseKey) {
 		throw new Error(
-			'Missing Supabase credentials. Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in environment.'
+			'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in environment.'
 		)
 	}
 
@@ -92,30 +93,8 @@ export async function authenticateAs(
 		)
 	}
 
-	// Ensure user exists in users table
-	const serviceClient = getServiceClient()
+	// User should already exist in users table (created by database trigger on auth signup)
 	const authUserId = authData.data.user.id
-
-	const { data: existingUser } = await serviceClient
-		.from('users')
-		.select('id')
-		.eq('id', authUserId)
-		.maybeSingle()
-
-	if (!existingUser) {
-		const { error: userError } = await serviceClient.from('users').insert({
-			id: authUserId,
-			email: authData.data.user.email!,
-			full_name: credentials.user_type === 'OWNER' ? 'Owner Test' : 'Tenant Test',
-			user_type: credentials.user_type === 'OWNER' ? 'OWNER' : 'TENANT'
-		})
-
-		if (userError && !userError.message.includes('duplicate key')) {
-			throw new Error(
-				`Failed to create user record for ${credentials.email}: ${userError.message}`
-			)
-		}
-	}
 
 	return {
 		client,
@@ -128,15 +107,22 @@ export async function authenticateAs(
 
 /**
  * Get service role client for cleanup operations
+ * NOTE: Prefer NEXT_PUBLIC_* vars first since test/setup.ts may set mock SUPABASE_URL
+ *
+ * WARNING: The SERVICE_ROLE may not actually bypass RLS. If tests fail with
+ * "permission denied" errors, the SERVICE_ROLE in Doppler needs to be updated
+ * to the actual Supabase service_role JWT key (starts with eyJ...).
  */
 export function getServiceClient(): SupabaseClient<Database> {
 	const supabaseUrl =
-		process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-	const serviceKey = process.env.SUPABASE_SECRET_KEY
+		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+	// SERVICE_ROLE is the actual JWT key that bypasses RLS
+	// SERVICE_ROLE (sb_secret_*) is the new format that doesn't bypass RLS via PostgREST
+	const serviceKey = process.env.SERVICE_ROLE || process.env.SERVICE_ROLE
 
 	if (!supabaseUrl || !serviceKey) {
 		throw new Error(
-			'Missing service role credentials (SUPABASE_URL and SUPABASE_SECRET_KEY).'
+			'Missing service role credentials (NEXT_PUBLIC_SUPABASE_URL and SERVICE_ROLE).'
 		)
 	}
 
@@ -149,4 +135,52 @@ export function getServiceClient(): SupabaseClient<Database> {
 			schema: 'public'
 		}
 	})
+}
+
+/**
+ * Get the property_owners.id for a given auth.users.id
+ * The properties table references property_owners.id, NOT auth.users.id
+ * @param client - Authenticated Supabase client
+ * @param authUserId - The auth.users.id
+ * @returns The property_owners.id or null if not found
+ */
+export async function getPropertyOwnerId(
+	client: SupabaseClient<Database>,
+	authUserId: string
+): Promise<string | null> {
+	const { data, error } = await client
+		.from('property_owners')
+		.select('id')
+		.eq('user_id', authUserId)
+		.maybeSingle()
+
+	if (error) {
+		console.warn(`Failed to get property owner ID: ${error.message}`)
+		return null
+	}
+
+	return data?.id || null
+}
+
+/**
+ * Check if the service key bypasses RLS (required for test data setup).
+ * Returns true if the service key can write to tables, false otherwise.
+ */
+export async function canServiceKeyBypassRLS(): Promise<boolean> {
+	try {
+		const client = getServiceClient()
+		// Try a simple read operation that requires service role
+		const { error } = await client
+			.from('properties')
+			.select('id')
+			.limit(1)
+
+		// If we get "permission denied", the key doesn't bypass RLS
+		if (error?.message?.includes('permission denied')) {
+			return false
+		}
+		return true
+	} catch {
+		return false
+	}
 }

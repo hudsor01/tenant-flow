@@ -5,7 +5,7 @@
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe-connect'
+import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe'
 
 interface CreateConnectAccountRequest {
 	displayName: string

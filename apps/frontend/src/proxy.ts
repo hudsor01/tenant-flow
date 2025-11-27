@@ -52,6 +52,23 @@ const protectedOwnerRoutes = [
 
 const protectedTenantRoutes = ['/tenant']
 
+/**
+ * Check if path matches a protected route
+ *
+ * Uses boundary-aware matching to prevent false positives:
+ * - '/tenant' should match '/tenant' and '/tenant/settings'
+ * - '/tenant' should NOT match '/tenants' (different route)
+ */
+function matchesProtectedRoute(path: string, routes: string[]): boolean {
+	return routes.some((route) => {
+		// Exact match
+		if (path === route) return true
+		// Starts with route followed by '/' (sub-route)
+		if (path.startsWith(route + '/')) return true
+		return false
+	})
+}
+
 export async function proxy(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({
 		request
@@ -102,12 +119,9 @@ export async function proxy(request: NextRequest) {
 
 	const path = request.nextUrl.pathname
 
-	// Helper: Check if path starts with any route in array
-	const isProtectedRoute = (routes: string[]) =>
-		routes.some((route) => path.startsWith(route))
-
-	const isOwnerRoute = isProtectedRoute(protectedOwnerRoutes)
-	const isTenantRoute = isProtectedRoute(protectedTenantRoutes)
+	// Use boundary-aware matching to prevent /tenants from matching /tenant
+	const isOwnerRoute = matchesProtectedRoute(path, protectedOwnerRoutes)
+	const isTenantRoute = matchesProtectedRoute(path, protectedTenantRoutes)
 
 	/**
 	 * Redirect Logic

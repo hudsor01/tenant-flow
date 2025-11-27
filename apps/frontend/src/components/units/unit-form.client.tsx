@@ -45,7 +45,8 @@ interface UnitFormProps {
 export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { data: properties } = useQuery(propertyQueries.list({ limit: 100 }))
+	const { data: propertiesResponse } = useQuery(propertyQueries.list({ limit: 100 }))
+	const properties = propertiesResponse?.data
 	const createUnitMutation = useCreateUnitMutation()
 	const updateUnitMutation = useUpdateUnitMutation()
 

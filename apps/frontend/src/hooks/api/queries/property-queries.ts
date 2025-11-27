@@ -10,6 +10,7 @@ import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Property, PropertyStats, PropertyPerformance } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 /**
  * Property query filters
@@ -54,7 +55,7 @@ export const propertyQueries = {
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 
 				const params = searchParams.toString()
-				return clientFetch<Property[]>(`/api/v1/properties${params ? `?${params}` : ''}`)
+				return clientFetch<PaginatedResponse<Property>>(`/api/v1/properties${params ? `?${params}` : ''}`)
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),

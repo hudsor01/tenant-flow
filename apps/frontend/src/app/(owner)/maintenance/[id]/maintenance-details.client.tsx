@@ -20,11 +20,14 @@ const logger = createLogger({ component: 'MaintenanceDetails' })
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const { data: request, isLoading, isError } = useQuery(maintenanceQueries.detail(id))
 
-	const { data: properties } = useQuery(propertyQueries.list())
-	const { data: units } = useQuery(unitQueries.list())
+	const { data: propertiesResponse } = useQuery(propertyQueries.list())
+	const { data: unitsResponse } = useQuery(unitQueries.list())
 
-	const unit = (units ?? []).find(u => u.id === request?.unit_id)
-	const property = (properties ?? []).find(
+	const units = unitsResponse?.data ?? []
+	const properties = propertiesResponse?.data ?? []
+
+	const unit = units.find(u => u.id === request?.unit_id)
+	const property = properties.find(
 		(p) => p.id === unit?.property_id
 	)
 
