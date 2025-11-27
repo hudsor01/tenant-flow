@@ -28,7 +28,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:unit": "vitest --run",
-    "test:integration": "doppler run -- sh -c 'pnpm --filter @repo/backend dev & BACKEND_PID=$!; if [ $? -ne 0 ]; then echo \"Failed to start backend\"; exit 1; fi; trap \"kill $BACKEND_PID 2>/dev/null || true\" EXIT INT TERM; COUNT=0; MAX_WAIT=60; until curl -s http://localhost:4600/health > /dev/null 2>&1; do COUNT=$((COUNT+1)); if [ $COUNT -gt $MAX_WAIT ]; then echo \"Backend health check timeout after ${MAX_WAIT}s\"; kill $BACKEND_PID 2>/dev/null || true; exit 1; fi; sleep 1; done; vitest --config vitest.integration.config.js --run; TEST_EXIT=$?; kill $BACKEND_PID 2>/dev/null || true; exit $TEST_EXIT'",
+    "test:integration": "RUN_INTEGRATION_TESTS=true doppler run -- vitest --config vitest.integration.config.js --run",
     "generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts"
   },
   "dependencies": {

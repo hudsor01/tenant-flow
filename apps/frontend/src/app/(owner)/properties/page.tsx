@@ -58,7 +58,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 	}
 
 	return (
-		<main role="main" className="flex-1 flex flex-col gap-8">
+		<div className="flex-1 flex flex-col gap-8">
 			{/* Header Card - Card-based redesign with better visual hierarchy */}
 			<Card className="border-2">
 				<CardHeader className="pb-4">
@@ -217,6 +217,6 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 
 		{/* Properties View with Grid/Table Toggle */}
 		<PropertiesViewClient data={properties} />
-		</main>
+		</div>
 	)
 }

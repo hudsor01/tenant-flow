@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       activity: {
@@ -954,7 +929,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           next_run_at: string | null
-          owner_id: string
+          property_owner_id: string
           report_type: string
           schedule_cron: string | null
           title: string
@@ -966,7 +941,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           next_run_at?: string | null
-          owner_id: string
+          property_owner_id: string
           report_type: string
           schedule_cron?: string | null
           title: string
@@ -978,7 +953,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           next_run_at?: string | null
-          owner_id?: string
+          property_owner_id?: string
           report_type?: string
           schedule_cron?: string | null
           title?: string
@@ -986,10 +961,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reports_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "reports_property_owner_id_fkey"
+            columns: ["property_owner_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "property_owners"
             referencedColumns: ["id"]
           },
         ]
@@ -1156,7 +1131,7 @@ export type Database = {
           id: string
           identity_verified: boolean | null
           ssn_last_four: string | null
-          stripe_customer_id: string
+          stripe_customer_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -1169,7 +1144,7 @@ export type Database = {
           id?: string
           identity_verified?: boolean | null
           ssn_last_four?: string | null
-          stripe_customer_id: string
+          stripe_customer_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -1182,7 +1157,7 @@ export type Database = {
           id?: string
           identity_verified?: boolean | null
           ssn_last_four?: string | null
-          stripe_customer_id?: string
+          stripe_customer_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1379,7 +1354,6 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
-          connected_account_id: string | null
           created_at: string | null
           email: string
           first_name: string | null
@@ -1401,7 +1375,6 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          connected_account_id?: string | null
           created_at?: string | null
           email: string
           first_name?: string | null
@@ -1423,7 +1396,6 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
-          connected_account_id?: string | null
           created_at?: string | null
           email?: string
           first_name?: string | null
@@ -1567,6 +1539,9 @@ export type Database = {
         }
         Returns: Json
       }
+      get_current_property_owner_id: { Args: never; Returns: string }
+      get_current_tenant_id: { Args: never; Returns: string }
+      get_current_user_type: { Args: never; Returns: string }
       get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_time_series: {
         Args: { p_days?: number; p_metric_name: string; p_user_id: string }
@@ -1581,6 +1556,7 @@ export type Database = {
         Args: { p_months?: number; p_user_id: string }
         Returns: Json
       }
+      get_owner_lease_tenant_ids: { Args: never; Returns: string[] }
       get_property_performance_cached: {
         Args: { p_user_id: string }
         Returns: Json
@@ -1593,6 +1569,9 @@ export type Database = {
         Args: { p_months?: number; p_user_id: string }
         Returns: Json
       }
+      get_tenant_lease_ids: { Args: never; Returns: string[] }
+      get_tenant_property_ids: { Args: never; Returns: string[] }
+      get_tenant_unit_ids: { Args: never; Returns: string[] }
       get_user_dashboard_activities: {
         Args: { p_limit?: number; p_offset?: number; p_user_id: string }
         Returns: {
@@ -1624,10 +1603,6 @@ export type Database = {
         Returns: {
           success: boolean
         }[]
-      }
-      user_is_property_owner: {
-        Args: { property_owner_id: string }
-        Returns: boolean
       }
       user_is_tenant: { Args: never; Returns: boolean }
     }
@@ -1758,9 +1733,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

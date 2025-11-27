@@ -90,7 +90,8 @@ describe('RentPaymentsService', () => {
 		const unit = { property_id: 'property123' }
 		const property = { owner_id: 'owner123' }
 		const propertyOwner = {
-			user_id: 'owner123'
+			user_id: 'owner123',
+			stripe_account_id: 'acct_456'
 		}
 
 		const ownerUser = {

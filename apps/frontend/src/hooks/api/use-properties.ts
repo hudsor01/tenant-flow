@@ -60,6 +60,8 @@ export function usePropertyList(params?: {
 	return useQuery({
 		...listQuery,
 		...QUERY_CACHE_TIMES.LIST,
+		// Extract data array for backward compatibility with components
+		select: (response) => response.data,
 		retry: 2,
 		structuralSharing: true
 	})

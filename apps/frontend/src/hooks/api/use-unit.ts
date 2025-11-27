@@ -59,7 +59,11 @@ export function useUnitsByProperty(property_id: string) {
  * Base hook for other unit list functions
  */
 export function useUnitList(filters?: Parameters<typeof unitQueries.list>[0]) {
-	return useQuery(unitQueries.list(filters))
+	return useQuery({
+		...unitQueries.list(filters),
+		// Extract data array for backward compatibility with components
+		select: (response) => response.data
+	})
 }
 
 /**

@@ -1,6 +1,6 @@
 /**
  * Tenant Notification Preferences Service
- * 
+ *
  * Handles notification preference management for tenants
  * Manages: Get, Update notification preferences
  */
@@ -38,24 +38,25 @@ export class TenantNotificationPreferencesService {
 	/**
 	 * Get notification preferences for a tenant
 	 * Returns default preferences if none are set
+	 *
+	 * NOTE: The notification_preferences column does not exist in the database yet.
+	 * This service returns defaults until the migration is applied.
 	 */
 	async getPreferences(
 		user_id: string,
 		tenant_id: string
 	): Promise<TenantNotificationPreferences | null> {
 		try {
-			// TODO: Implement when notification_preferences table is created
-			// For now, return default preferences
 			this.logger.debug('Fetching notification preferences for tenant', {
 				tenant_id,
 				user_id
 			})
 
-			// Verify tenant exists and user has access
+			// Query tenant to verify access (without notification_preferences column)
 			const client = this.supabase.getAdminClient()
 			const { error } = await client
 				.from('tenants')
-				.select('id', { count: 'exact', head: true })
+				.select('id')
 				.eq('id', tenant_id)
 				.eq('user_id', user_id)
 				.single()
@@ -72,8 +73,8 @@ export class TenantNotificationPreferencesService {
 				throw new BadRequestException('Failed to retrieve preferences')
 			}
 
-			// Return default preferences (notification_preferences column doesn't exist yet)
-			return DEFAULT_NOTIFICATION_PREFERENCES
+			// Return defaults (notification_preferences column not yet in database)
+			return DEFAULT_NOTIFICATION_PREFERENCES as TenantNotificationPreferences
 		} catch (error) {
 			if (error instanceof NotFoundException ||
 				error instanceof BadRequestException) {
@@ -90,6 +91,9 @@ export class TenantNotificationPreferencesService {
 	/**
 	 * Update notification preferences for a tenant
 	 * Performs partial update - only specified fields are changed
+	 *
+	 * NOTE: The notification_preferences column does not exist in the database yet.
+	 * This method returns merged preferences without persisting until the migration is applied.
 	 */
 	async updatePreferences(
 		user_id: string,
@@ -97,9 +101,6 @@ export class TenantNotificationPreferencesService {
 		preferences: Partial<TenantNotificationPreferences>
 	): Promise<TenantNotificationPreferences | null> {
 		try {
-			// TODO: Implement when notification_preferences table is created
-			// For now, just validate input and verify access, but don't persist
-
 			// Validate input
 			if (!preferences || Object.keys(preferences).length === 0) {
 				throw new BadRequestException(
@@ -107,36 +108,24 @@ export class TenantNotificationPreferencesService {
 				)
 			}
 
-			// Verify tenant exists and user has access
-			const client = this.supabase.getAdminClient()
-			const { error } = await client
-				.from('tenants')
-				.select('id', { count: 'exact', head: true })
-				.eq('id', tenant_id)
-				.eq('user_id', user_id)
-				.single()
+			// Get current preferences first (validates tenant access)
+			const currentPreferences = await this.getPreferences(user_id, tenant_id)
 
-			if (error) {
-				if (error.code === 'PGRST116') {
-					throw new NotFoundException('Tenant not found')
-				}
-				throw new BadRequestException('Failed to retrieve tenant')
+			// Merge preferences with current (or defaults)
+			const mergedPreferences = {
+				...currentPreferences,
+				...preferences
 			}
 
-			this.logger.debug('Notification preferences update requested but not persisted', {
+			// NOTE: notification_preferences column not yet in database
+			// Just log and return merged preferences for now
+			this.logger.debug('Notification preferences would be updated (column not yet available)', {
 				tenant_id,
 				user_id,
 				preferencesKeys: Object.keys(preferences)
 			})
 
-			// Merge preferences with defaults
-			const mergedPreferences = {
-				...DEFAULT_NOTIFICATION_PREFERENCES,
-				...preferences
-			}
-
-			// Return merged preferences (not persisted - notification_preferences column doesn't exist)
-			return mergedPreferences
+			return mergedPreferences as TenantNotificationPreferences
 		} catch (error) {
 			if (error instanceof NotFoundException ||
 				error instanceof BadRequestException) {
