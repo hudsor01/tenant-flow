@@ -18,16 +18,23 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Query
+	Query,
+	Req
 } from '@nestjs/common'
+import { Throttle } from '@nestjs/throttler'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasesService } from './leases.service'
+import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
 
 @Controller('leases')
 export class LeasesController {
-	constructor(private readonly leasesService: LeasesService) {}
+	constructor(
+		private readonly leasesService: LeasesService,
+		private readonly signatureService: LeaseSignatureService
+	) {}
 
 	@Get()
 	async findAll(
@@ -334,5 +341,96 @@ export class LeasesController {
 			new Date().toISOString(),
 			reason
 		)
+	}
+
+	// ============================================================
+	// LEASE SIGNATURE WORKFLOW ENDPOINTS
+	// ============================================================
+
+	/**
+	 * Owner sends lease for signature (draft -> pending_signature)
+	 * If templateId is provided and DocuSeal is configured, creates e-signature request
+	 */
+	@Post(':id/send-for-signature')
+	@Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 sends per hour
+	async sendForSignature(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest,
+		@Body() body?: { message?: string; templateId?: number }
+	) {
+		await this.signatureService.sendForSignature(req.user.id, id, {
+			message: body?.message,
+			templateId: body?.templateId
+		})
+		return { success: true }
+	}
+
+	/**
+	 * Owner signs the lease
+	 */
+	@Post(':id/sign/owner')
+	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 signature attempts per hour
+	async signAsOwner(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const signatureIp = req.ip || 'unknown'
+		await this.signatureService.signLeaseAsOwner(req.user.id, id, signatureIp)
+		return { success: true }
+	}
+
+	/**
+	 * Tenant signs the lease
+	 */
+	@Post(':id/sign/tenant')
+	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 signature attempts per hour
+	async signAsTenant(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const signatureIp = req.ip || 'unknown'
+		await this.signatureService.signLeaseAsTenant(req.user.id, id, signatureIp)
+		return { success: true }
+	}
+
+	/**
+	 * Get signature status for a lease
+	 * Authorization: Only owner or assigned tenant can view
+	 */
+	@Get(':id/signature-status')
+	@Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute (polling)
+	async getSignatureStatus(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		return this.signatureService.getSignatureStatus(id, req.user.id)
+	}
+
+	/**
+	 * Get DocuSeal signing URL for the current user
+	 * Returns embed URL for e-signature if DocuSeal submission exists
+	 */
+	@Get(':id/signing-url')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+	async getSigningUrl(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const signingUrl = await this.signatureService.getSigningUrl(id, req.user.id)
+		return { signing_url: signingUrl }
+	}
+
+	/**
+	 * Cancel/revoke signature request
+	 * Reverts lease to draft status and archives DocuSeal submission
+	 */
+	@Post(':id/cancel-signature')
+	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 cancellations per hour
+	async cancelSignatureRequest(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		await this.signatureService.cancelSignatureRequest(req.user.id, id)
+		return { success: true }
 	}
 }

@@ -222,6 +222,13 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		property_owner_id: overrides?.property_owner_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
+		// Signature tracking fields
+		docuseal_submission_id: overrides?.docuseal_submission_id || null,
+		owner_signed_at: overrides?.owner_signed_at || null,
+		owner_signature_ip: overrides?.owner_signature_ip || null,
+		tenant_signed_at: overrides?.tenant_signed_at || null,
+		tenant_signature_ip: overrides?.tenant_signature_ip || null,
+		sent_for_signature_at: overrides?.sent_for_signature_at || null,
 
 		...overrides
 	}

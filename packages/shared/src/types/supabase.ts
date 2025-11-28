@@ -172,60 +172,78 @@ export type Database = {
         Row: {
           auto_pay_enabled: boolean | null
           created_at: string | null
+          docuseal_submission_id: string | null
           end_date: string
           grace_period_days: number | null
           id: string
           late_fee_amount: number | null
           late_fee_days: number | null
           lease_status: string
+          owner_signature_ip: string | null
+          owner_signed_at: string | null
           payment_day: number
           primary_tenant_id: string
           property_owner_id: string | null
           rent_amount: number
           rent_currency: string
           security_deposit: number
+          sent_for_signature_at: string | null
           start_date: string
           stripe_subscription_id: string | null
+          tenant_signature_ip: string | null
+          tenant_signed_at: string | null
           unit_id: string
           updated_at: string | null
         }
         Insert: {
           auto_pay_enabled?: boolean | null
           created_at?: string | null
+          docuseal_submission_id?: string | null
           end_date: string
           grace_period_days?: number | null
           id?: string
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lease_status?: string
+          owner_signature_ip?: string | null
+          owner_signed_at?: string | null
           payment_day?: number
           primary_tenant_id: string
           property_owner_id?: string | null
           rent_amount: number
           rent_currency?: string
           security_deposit: number
+          sent_for_signature_at?: string | null
           start_date: string
           stripe_subscription_id?: string | null
+          tenant_signature_ip?: string | null
+          tenant_signed_at?: string | null
           unit_id: string
           updated_at?: string | null
         }
         Update: {
           auto_pay_enabled?: boolean | null
           created_at?: string | null
+          docuseal_submission_id?: string | null
           end_date?: string
           grace_period_days?: number | null
           id?: string
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lease_status?: string
+          owner_signature_ip?: string | null
+          owner_signed_at?: string | null
           payment_day?: number
           primary_tenant_id?: string
           property_owner_id?: string | null
           rent_amount?: number
           rent_currency?: string
           security_deposit?: number
+          sent_for_signature_at?: string | null
           start_date?: string
           stripe_subscription_id?: string | null
+          tenant_signature_ip?: string | null
+          tenant_signed_at?: string | null
           unit_id?: string
           updated_at?: string | null
         }
@@ -1067,9 +1085,12 @@ export type Database = {
           id: string
           invitation_code: string
           invitation_url: string
+          lease_id: string | null
+          property_id: string | null
           property_owner_id: string
           status: string
-          unit_id: string
+          type: string | null
+          unit_id: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -1080,9 +1101,12 @@ export type Database = {
           id?: string
           invitation_code: string
           invitation_url: string
+          lease_id?: string | null
+          property_id?: string | null
           property_owner_id: string
           status?: string
-          unit_id: string
+          type?: string | null
+          unit_id?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -1093,9 +1117,12 @@ export type Database = {
           id?: string
           invitation_code?: string
           invitation_url?: string
+          lease_id?: string | null
+          property_id?: string | null
           property_owner_id?: string
           status?: string
-          unit_id?: string
+          type?: string | null
+          unit_id?: string | null
         }
         Relationships: [
           {
@@ -1103,6 +1130,20 @@ export type Database = {
             columns: ["accepted_by_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_invitations_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_invitations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -1612,7 +1653,7 @@ export type Database = {
       user_is_tenant: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      invitation_type: "platform_access" | "lease_signing"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1739,6 +1780,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      invitation_type: ["platform_access", "lease_signing"],
+    },
   },
 } as const

@@ -26,7 +26,6 @@ import {
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
-import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
@@ -41,9 +40,8 @@ import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { TenantPaymentService } from './tenant-payment.service'
-import { TenantInvitationService } from './tenant-invitation.service'
+import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
-import { TenantResendInvitationService } from './tenant-resend-invitation.service'
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
@@ -60,9 +58,8 @@ export class TenantsController {
 		private readonly emergencyContactService: TenantEmergencyContactService,
 		private readonly notificationPreferencesService: TenantNotificationPreferencesService,
 		private readonly paymentService: TenantPaymentService,
-		private readonly invitationService: TenantInvitationService,
-		private readonly invitationTokenService: TenantInvitationTokenService,
-		private readonly resendInvitationService: TenantResendInvitationService
+		private readonly platformInvitationService: TenantPlatformInvitationService,
+		private readonly invitationTokenService: TenantInvitationTokenService
 	) {}
 
 	@Get()
@@ -139,7 +136,7 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		await this.invitationService.cancelInvitation(user_id, id)
+		await this.platformInvitationService.cancelInvitation(user_id, id)
 		return { success: true }
 	}
 
@@ -305,40 +302,41 @@ export class TenantsController {
 	}
 
 	/**
-	 * MODERN: Invite tenant with lease using Stripe + Supabase
-
-	 * Architecture:
-	 * - PropertyOwnershipGuard: Verifies user owns the property
-	 * - StripeConnectedGuard: Verifies user has completed Stripe onboarding
-	 * - Atomic tenant + lease creation via Supabase RPC
-	 * - Stripe Customer + Subscription with inline pricing
-	 * - Stripe Checkout for payment method collection
-	 * - Supabase Auth invitation email with checkout URL
+	 * Invite tenant to platform (no lease created)
+	 *
+	 * NEW ARCHITECTURE:
+	 * - Platform invitation ONLY - no lease, no Stripe
+	 * - PropertyOwnershipGuard: Verifies user owns the property (if provided)
+	 * - Lease creation is a SEPARATE workflow after tenant accepts
+	 * - Stripe subscription created only when BOTH parties sign the lease
 	 */
-	@Post('invite-with-lease')
-	@UseGuards(PropertyOwnershipGuard, StripeConnectedGuard)
+	@Post('invite')
+	@UseGuards(PropertyOwnershipGuard)
 	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 invitations per hour
-	async inviteTenantWithLease(
+	async inviteToPlatform(
 		@Body() body: InviteWithLeaseDto,
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
 
-		return this.invitationService.inviteTenantWithLease(
-		user_id,
-		{
+		// Build request object conditionally to satisfy exactOptionalPropertyTypes
+		const request: {
+			email: string
+			first_name: string
+			last_name: string
+			phone?: string
+			property_id?: string
+			unit_id?: string
+		} = {
 			email: body.tenantData.email,
 			first_name: body.tenantData.first_name,
-			last_name: body.tenantData.last_name,
-			phone: body.tenantData.phone,
-			property_id: body.leaseData.property_id,
-			unit_id: body.leaseData.unit_id,
-			rent_amount: body.leaseData.rent_amount,
-			security_deposit: body.leaseData.security_deposit,
-			lease_start_date: body.leaseData.start_date,
-			lease_end_date: body.leaseData.end_date
+			last_name: body.tenantData.last_name
 		}
-	)
+		if (body.tenantData.phone) request.phone = body.tenantData.phone
+		if (body.leaseData?.property_id) request.property_id = body.leaseData.property_id
+		if (body.leaseData?.unit_id) request.unit_id = body.leaseData.unit_id
+
+		return this.platformInvitationService.inviteToPlatform(user_id, request)
 	}
 
 	@Post(':id/resend-invitation')
@@ -347,9 +345,9 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		return this.resendInvitationService.resendInvitation(user_id, id)
+		await this.platformInvitationService.resendInvitation(user_id, id)
+		return { success: true }
 	}
 
 	/**

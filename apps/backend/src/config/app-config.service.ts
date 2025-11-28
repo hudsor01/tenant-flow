@@ -336,6 +336,24 @@ export class AppConfigService {
 		return this.get('RESEND_API_KEY')
 	}
 
+	// ==================== DocuSeal (Self-hosted e-signature) ====================
+
+	getDocuSealApiUrl(): string {
+		return this.get('DOCUSEAL_API_URL')
+	}
+
+	getDocuSealApiKey(): string | undefined {
+		return this.get('DOCUSEAL_API_KEY')
+	}
+
+	isDocuSealEnabled(): boolean {
+		return !!this.getDocuSealApiKey()
+	}
+
+	getDocuSealWebhookSecret(): string | undefined {
+		return this.get('DOCUSEAL_WEBHOOK_SECRET')
+	}
+
 	// ==================== Security ====================
 
 	getCsrfSecret(): string | undefined {

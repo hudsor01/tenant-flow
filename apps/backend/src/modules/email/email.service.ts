@@ -179,6 +179,176 @@ export class EmailService {
 	}
 
 	/**
+	 * Send lease sent for signature email (tenant receives)
+	 */
+	async sendLeaseSentForSignatureEmail(data: {
+		tenantEmail: string
+		tenantName: string
+		propertyName?: string
+		unitNumber?: string
+		ownerName?: string
+		message?: string
+		signUrl: string
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping lease signature email')
+			return
+		}
+
+		try {
+			const { LeaseSentForSignatureEmail } = await import('../../emails/lease-signature-email')
+			// Build props conditionally to satisfy exactOptionalPropertyTypes
+			const emailProps: {
+				tenantName: string
+				signUrl: string
+				propertyName?: string
+				unitNumber?: string
+				ownerName?: string
+				message?: string
+			} = {
+				tenantName: data.tenantName,
+				signUrl: data.signUrl
+			}
+			if (data.propertyName) emailProps.propertyName = data.propertyName
+			if (data.unitNumber) emailProps.unitNumber = data.unitNumber
+			if (data.ownerName) emailProps.ownerName = data.ownerName
+			if (data.message) emailProps.message = data.message
+
+			const emailHtml = await render(LeaseSentForSignatureEmail(emailProps))
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.tenantEmail],
+				subject: 'Action Required: Your Lease Agreement is Ready for Signature',
+				html: emailHtml
+			})
+
+			this.logger.log('Lease sent for signature email sent', { emailId: result.data?.id })
+		} catch (error) {
+			this.logger.error('Failed to send lease signature email', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
+	}
+
+	/**
+	 * Send owner signed notification (tenant receives)
+	 */
+	async sendOwnerSignedEmail(data: {
+		tenantEmail: string
+		tenantName: string
+		ownerName?: string
+		propertyName?: string
+		signedAt: string
+		signUrl: string
+		tenantHasSigned: boolean
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping owner signed email')
+			return
+		}
+
+		try {
+			const { LeaseOwnerSignedEmail } = await import('../../emails/lease-signature-email')
+			const emailHtml = await render(LeaseOwnerSignedEmail(data))
+
+			const subject = data.tenantHasSigned
+				? 'Your Lease is Now Active!'
+				: 'Your Landlord Has Signed - Your Signature Needed'
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.tenantEmail],
+				subject,
+				html: emailHtml
+			})
+
+			this.logger.log('Owner signed email sent', { emailId: result.data?.id })
+		} catch (error) {
+			this.logger.error('Failed to send owner signed email', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
+	}
+
+	/**
+	 * Send tenant signed notification (owner receives)
+	 */
+	async sendTenantSignedEmail(data: {
+		ownerEmail: string
+		ownerName: string
+		tenantName: string
+		propertyName?: string
+		signedAt: string
+		dashboardUrl: string
+		ownerHasSigned: boolean
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping tenant signed email')
+			return
+		}
+
+		try {
+			const { LeaseTenantSignedEmail } = await import('../../emails/lease-signature-email')
+			const emailHtml = await render(LeaseTenantSignedEmail(data))
+
+			const subject = data.ownerHasSigned
+				? 'Lease Activated - Tenant Has Signed!'
+				: 'Tenant Has Signed - Your Signature Needed'
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.ownerEmail],
+				subject,
+				html: emailHtml
+			})
+
+			this.logger.log('Tenant signed email sent', { emailId: result.data?.id })
+		} catch (error) {
+			this.logger.error('Failed to send tenant signed email', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
+	}
+
+	/**
+	 * Send lease activated email (both parties receive)
+	 */
+	async sendLeaseActivatedEmail(data: {
+		recipientEmail: string
+		recipientName: string
+		isOwner: boolean
+		propertyName?: string
+		rentAmount: number
+		rentCurrency: string
+		startDate: string
+		portalUrl: string
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping lease activated email')
+			return
+		}
+
+		try {
+			const { LeaseActivatedEmail } = await import('../../emails/lease-signature-email')
+			const emailHtml = await render(LeaseActivatedEmail(data))
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.recipientEmail],
+				subject: `Your Lease for ${data.propertyName || 'Your Property'} is Now Active`,
+				html: emailHtml
+			})
+
+			this.logger.log('Lease activated email sent', { emailId: result.data?.id })
+		} catch (error) {
+			this.logger.error('Failed to send lease activated email', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
+	}
+
+	/**
 	 * Escape HTML special characters to prevent XSS
 	 * Replaces: & < > " ' / with their HTML entity equivalents
 	 */

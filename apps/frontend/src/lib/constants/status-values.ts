@@ -11,6 +11,7 @@ export const PROPERTY_STATUS = {
 export const LEASE_STATUS = {
 	ACTIVE: 'ACTIVE',
 	DRAFT: 'DRAFT',
+	PENDING_SIGNATURE: 'pending_signature',
 	EXPIRED: 'EXPIRED',
 	TERMINATED: 'TERMINATED'
 } as const
@@ -49,6 +50,7 @@ export const PROPERTY_STATUS_LABELS: Record<
 export const LEASE_STATUS_LABELS: Record<keyof typeof LEASE_STATUS, string> = {
 	ACTIVE: 'Active',
 	DRAFT: 'Draft',
+	PENDING_SIGNATURE: 'Pending Signature',
 	EXPIRED: 'Expired',
 	TERMINATED: 'Terminated'
 }

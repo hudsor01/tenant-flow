@@ -142,3 +142,82 @@ export function useDeleteLeaseMutation() {
 		}
 	})
 }
+
+// ============================================================
+// LEASE SIGNATURE WORKFLOW MUTATIONS
+// ============================================================
+
+/**
+ * Send lease for signature mutation (owner action)
+ * Transitions lease from 'draft' to 'pending_signature'
+ */
+export function useSendForSignatureMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({ id, message }: { id: string; message?: string }) =>
+			clientFetch<{ success: boolean }>(`/api/v1/leases/${id}/send-for-signature`, {
+				method: 'POST',
+				body: JSON.stringify({ message })
+			}),
+		onSuccess: (_result, { id }) => {
+			// Invalidate lease detail and signature status
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({ queryKey: [...leaseQueries.all(), 'signature-status', id] })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			toast.success('Lease sent for signature')
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Send lease for signature')
+		}
+	})
+}
+
+/**
+ * Owner signs the lease mutation
+ */
+export function useSignLeaseAsOwnerMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: (id: string) =>
+			clientFetch<{ success: boolean }>(`/api/v1/leases/${id}/sign/owner`, {
+				method: 'POST'
+			}),
+		onSuccess: (_result, id) => {
+			// Invalidate lease detail and signature status
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({ queryKey: [...leaseQueries.all(), 'signature-status', id] })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			toast.success('Lease signed successfully')
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Sign lease')
+		}
+	})
+}
+
+/**
+ * Tenant signs the lease mutation
+ */
+export function useSignLeaseAsTenantMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: (id: string) =>
+			clientFetch<{ success: boolean }>(`/api/v1/leases/${id}/sign/tenant`, {
+				method: 'POST'
+			}),
+		onSuccess: (_result, id) => {
+			// Invalidate lease detail, signature status, and tenant portal data
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({ queryKey: [...leaseQueries.all(), 'signature-status', id] })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.tenantPortalActive().queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			toast.success('Lease signed successfully')
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Sign lease')
+		}
+	})
+}
