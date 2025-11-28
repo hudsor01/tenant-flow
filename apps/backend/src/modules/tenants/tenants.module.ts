@@ -2,7 +2,6 @@ import { Module, Logger } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { StripeModule } from '../billing/stripe.module'
-import { AuthWebhookController } from './auth-webhook.controller'
 import { TenantsController } from './tenants.controller'
 
 // Specialized sub-services
@@ -38,7 +37,7 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
  */
 @Module({
 	imports: [SupabaseModule, EmailModule, StripeModule],
-	controllers: [TenantsController, AuthWebhookController],
+	controllers: [TenantsController],
 	providers: [
 		Logger,
 		TenantQueryService,

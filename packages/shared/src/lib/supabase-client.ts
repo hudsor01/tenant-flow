@@ -17,7 +17,7 @@ import type { Database } from '../types/supabase.js'
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, assertSupabaseConfig } from '../config/supabase.js'
 
 // Admin secret key (backend only, not in centralized config)
-const SERVICE_ROLE = process.env.SERVICE_ROLE || process.env.SERVICE_ROLE
+const SB_SECRET_KEY = process.env.SB_SECRET_KEY
 
 // Type alias for public-schema-only clients
 // This prevents type errors when Database includes multiple schemas (public + stripe)
@@ -109,9 +109,9 @@ export function getSupabaseClientInstance(): PublicSupabaseClient {
  * IMPORTANT: This will throw an error if used in frontend without SERVICE_ROLE
  */
 export function getSupabaseAdmin(): PublicSupabaseClient {
-	if (!SERVICE_ROLE) {
+	if (!SB_SECRET_KEY) {
 		throw new Error(
-			'SERVICE_ROLE required for admin client - this should only be used in backend services'
+			'SB_SECRET_KEY required for admin client - this should only be used in backend services'
 		)
 	}
 
@@ -120,7 +120,7 @@ export function getSupabaseAdmin(): PublicSupabaseClient {
 
 	return createClient<Database>(
 		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
-		SERVICE_ROLE,
+		SB_SECRET_KEY,
 		{
 			auth: {
 				persistSession: false,

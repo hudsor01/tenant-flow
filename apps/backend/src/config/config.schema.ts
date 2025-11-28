@@ -46,32 +46,23 @@ const environmentSchema = z.object({
 		(val) => val || process.env.NEXT_PUBLIC_SUPABASE_URL,
 		z.string().url('Must be a valid URL')
 	),
-	SERVICE_ROLE: z.string(),
 	/**
-	 * Supabase JWT Secret - Legacy field, not currently used
-	 * Supabase now uses JWKS (JSON Web Key Set) discovery with asymmetric key verification (ES256/RS256)
-	 * This field is kept for potential future use or migration scenarios
+	 * Supabase Secret Key (sb_secret_*) - Used ONLY for:
+	 * 1. Webhook handlers (Stripe, Supabase Auth) - no user context available
+	 * 2. Background jobs and cron tasks
+	 * 3. System health checks
+	 *
+	 * This key bypasses RLS and has elevated permissions.
+	 *
+	 * WARNING: User-facing requests should use getUserClient(jwt) which respects RLS
+	 * If you're tempted to use getAdminClient() for user requests, your RLS policies are wrong
 	 */
-	SUPABASE_JWT_SECRET: z
-		.string()
-		.min(32, 'Supabase JWT secret must be at least 32 characters')
-		.optional(),
-	/**
-	 * Supabase JWT Algorithm - ES256 (JWKS default) or RS256
-	 * Supabase uses asymmetric key verification via JWKS endpoint (no shared secrets)
-	 * Configuration is detected from JWT header (kid) and JWKS discovery
-	 */
-	SUPABASE_JWT_ALGORITHM: z
-		.preprocess(
-			val => (typeof val === 'string' ? val.toUpperCase().trim() : val),
-			z.enum(['ES256', 'RS256']).default('ES256')
-		),
+	SB_SECRET_KEY: z.string(),
 	SUPABASE_PUBLISHABLE_KEY: z.preprocess(
 		(val) => val || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		z.string()
 	),
-	SUPABASE_PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
-	SUPABASE_AUTH_WEBHOOK_SECRET: z.string().optional(),
+	PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
 
 	// CORS
 	CORS_ORIGINS: z.string().optional(),
