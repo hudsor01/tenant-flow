@@ -46,6 +46,15 @@ const environmentSchema = z.object({
 		(val) => val || process.env.NEXT_PUBLIC_SUPABASE_URL,
 		z.string().url('Must be a valid URL')
 	),
+	/**
+	 * Supabase Service Role Key - Used ONLY for:
+	 * 1. Webhook handlers (Stripe, Supabase Auth) - no user context available
+	 * 2. Background jobs and cron tasks
+	 * 3. System health checks
+	 * 
+	 * WARNING: User-facing requests should use getUserClient(jwt) which respects RLS
+	 * If you're tempted to use getAdminClient() for user requests, your RLS policies are wrong
+	 */
 	SERVICE_ROLE: z.string(),
 	/**
 	 * Supabase JWT Secret - Legacy field, not currently used
