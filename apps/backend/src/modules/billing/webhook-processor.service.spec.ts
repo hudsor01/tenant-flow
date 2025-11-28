@@ -112,4 +112,271 @@ describe('WebhookProcessor handlePaymentIntentFailed', () => {
 
 		expect(emailService.sendPaymentFailedEmail).not.toHaveBeenCalled()
 	})
+
+	it('marks isLastAttempt=true when attempt_count >= 3', async () => {
+		await buildModule('tenant@example.com')
+
+		const paymentIntent = buildPaymentIntent({
+			metadata: { lease_id: 'lease_123', attempt_count: '3' }
+		})
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				isLastAttempt: true,
+				attemptCount: 3
+			})
+		)
+	})
+
+	it('marks isLastAttempt=true when attempt_count exceeds 3', async () => {
+		await buildModule('tenant@example.com')
+
+		const paymentIntent = buildPaymentIntent({
+			metadata: { lease_id: 'lease_123', attempt_count: '5' }
+		})
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				isLastAttempt: true,
+				attemptCount: 5
+			})
+		)
+	})
+
+	it('handles missing receipt_url gracefully (invoiceUrl=null)', async () => {
+		await buildModule('tenant@example.com')
+
+		const paymentIntent = buildPaymentIntent({
+			latest_charge: null // No charge attached
+		})
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				invoiceUrl: null
+			})
+		)
+	})
+
+	it('handles latest_charge as string ID (not expanded object)', async () => {
+		await buildModule('tenant@example.com')
+
+		const paymentIntent = buildPaymentIntent({
+			latest_charge: 'ch_123' as any // String ID instead of expanded object
+		})
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				invoiceUrl: null // Should be null when charge is not expanded
+			})
+		)
+	})
+
+	it('defaults attemptCount to 1 when metadata missing', async () => {
+		await buildModule('tenant@example.com')
+
+		const paymentIntent = buildPaymentIntent({
+			metadata: { lease_id: 'lease_123' } // No attempt_count
+		})
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
+			expect.objectContaining({
+				attemptCount: 1,
+				isLastAttempt: false
+			})
+		)
+	})
+
+	it('does not send email when tenant query fails', async () => {
+		const rentPayment = { id: 'rent_1', tenant_id: 'tenant_1' }
+
+		const rentPaymentsBuilder = createRentPaymentsBuilder(rentPayment)
+		const paymentTransactionsBuilder = createPaymentTransactionsBuilder(() => undefined)
+
+		// Create a tenants builder that returns an error
+		const tenantsBuilder: any = {}
+		tenantsBuilder.select = jest.fn(() => tenantsBuilder)
+		tenantsBuilder.eq = jest.fn(() => tenantsBuilder)
+		tenantsBuilder.single = jest.fn(async () => ({
+			data: null,
+			error: { message: 'Database connection failed' }
+		}))
+
+		const supabaseClient: any = {
+			from: jest.fn((table: string) => {
+				if (table === 'rent_payments') return rentPaymentsBuilder
+				if (table === 'payment_transactions') return paymentTransactionsBuilder
+				if (table === 'tenants') return tenantsBuilder
+				return { insert: jest.fn(() => ({ data: null, error: null })) }
+			})
+		}
+
+		emailService = {
+			sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined)
+		}
+
+		const moduleRef = await Test.createTestingModule({
+			providers: [
+				WebhookProcessor,
+				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
+				{ provide: EmailService, useValue: emailService }
+			]
+		}).compile()
+
+		moduleRef.useLogger(false)
+		processor = moduleRef.get(WebhookProcessor)
+
+		const paymentIntent = buildPaymentIntent()
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).not.toHaveBeenCalled()
+	})
+
+	it('does not send email when no rent_payment record found', async () => {
+		// Create a rent_payments builder that returns null (no record found)
+		const rentPaymentsBuilder: any = { error: null }
+		rentPaymentsBuilder.select = jest.fn(() => rentPaymentsBuilder)
+		rentPaymentsBuilder.update = jest.fn(() => rentPaymentsBuilder)
+		rentPaymentsBuilder.eq = jest.fn(() => rentPaymentsBuilder)
+		rentPaymentsBuilder.maybeSingle = jest.fn(async () => ({ data: null, error: null }))
+
+		const supabaseClient: any = {
+			from: jest.fn((table: string) => {
+				if (table === 'rent_payments') return rentPaymentsBuilder
+				return { insert: jest.fn(() => ({ data: null, error: null })) }
+			})
+		}
+
+		emailService = {
+			sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined)
+		}
+
+		const moduleRef = await Test.createTestingModule({
+			providers: [
+				WebhookProcessor,
+				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
+				{ provide: EmailService, useValue: emailService }
+			]
+		}).compile()
+
+		moduleRef.useLogger(false)
+		processor = moduleRef.get(WebhookProcessor)
+
+		const paymentIntent = buildPaymentIntent()
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).not.toHaveBeenCalled()
+	})
+
+	it('does not send email when tenant data structure is invalid (type guard fails)', async () => {
+		const rentPayment = { id: 'rent_1', tenant_id: 'tenant_1' }
+
+		const rentPaymentsBuilder = createRentPaymentsBuilder(rentPayment)
+		const paymentTransactionsBuilder = createPaymentTransactionsBuilder(() => undefined)
+
+		// Create a tenants builder that returns malformed data (missing users.email)
+		const tenantsBuilder: any = {}
+		tenantsBuilder.select = jest.fn(() => tenantsBuilder)
+		tenantsBuilder.eq = jest.fn(() => tenantsBuilder)
+		tenantsBuilder.single = jest.fn(async () => ({
+			data: { id: 'tenant_1', users: { name: 'John' } }, // Missing email property
+			error: null
+		}))
+
+		const supabaseClient: any = {
+			from: jest.fn((table: string) => {
+				if (table === 'rent_payments') return rentPaymentsBuilder
+				if (table === 'payment_transactions') return paymentTransactionsBuilder
+				if (table === 'tenants') return tenantsBuilder
+				return { insert: jest.fn(() => ({ data: null, error: null })) }
+			})
+		}
+
+		emailService = {
+			sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined)
+		}
+
+		const moduleRef = await Test.createTestingModule({
+			providers: [
+				WebhookProcessor,
+				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
+				{ provide: EmailService, useValue: emailService }
+			]
+		}).compile()
+
+		moduleRef.useLogger(false)
+		processor = moduleRef.get(WebhookProcessor)
+
+		const paymentIntent = buildPaymentIntent()
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).not.toHaveBeenCalled()
+	})
+
+	it('does not send email when users object is null', async () => {
+		const rentPayment = { id: 'rent_1', tenant_id: 'tenant_1' }
+
+		const rentPaymentsBuilder = createRentPaymentsBuilder(rentPayment)
+		const paymentTransactionsBuilder = createPaymentTransactionsBuilder(() => undefined)
+
+		// Create a tenants builder that returns null users
+		const tenantsBuilder: any = {}
+		tenantsBuilder.select = jest.fn(() => tenantsBuilder)
+		tenantsBuilder.eq = jest.fn(() => tenantsBuilder)
+		tenantsBuilder.single = jest.fn(async () => ({
+			data: { id: 'tenant_1', users: null },
+			error: null
+		}))
+
+		const supabaseClient: any = {
+			from: jest.fn((table: string) => {
+				if (table === 'rent_payments') return rentPaymentsBuilder
+				if (table === 'payment_transactions') return paymentTransactionsBuilder
+				if (table === 'tenants') return tenantsBuilder
+				return { insert: jest.fn(() => ({ data: null, error: null })) }
+			})
+		}
+
+		emailService = {
+			sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined)
+		}
+
+		const moduleRef = await Test.createTestingModule({
+			providers: [
+				WebhookProcessor,
+				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
+				{ provide: EmailService, useValue: emailService }
+			]
+		}).compile()
+
+		moduleRef.useLogger(false)
+		processor = moduleRef.get(WebhookProcessor)
+
+		const paymentIntent = buildPaymentIntent()
+
+		// @ts-expect-error accessing private for targeted test
+		await processor.handlePaymentIntentFailed(paymentIntent)
+
+		expect(emailService.sendPaymentFailedEmail).not.toHaveBeenCalled()
+	})
 })

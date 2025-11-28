@@ -48,7 +48,8 @@ describe('SecurityController', () => {
 		)
 		mockConfigService = {
 			getConfig: jest.fn(() => ({})),
-			getEnv: jest.fn((key: string) => process.env[key])
+			getEnv: jest.fn((key: string) => process.env[key]),
+			getNodeEnv: jest.fn(() => 'test')
 		} as unknown as jest.Mocked<AppConfigService>
 
 		controller = new SecurityController(securityMetricsService, mockConfigService)

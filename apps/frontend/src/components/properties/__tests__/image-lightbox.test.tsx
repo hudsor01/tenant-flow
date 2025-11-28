@@ -462,22 +462,20 @@ describe('ImageLightbox Component', () => {
 		expect(screen.queryByRole('button', { name: /next image/i })).not.toBeInTheDocument()
 	})
 
-	it('handles missing image_url gracefully', () => {
-		const imageWithoutUrl: PropertyImage = {
-			...MOCK_IMAGES[0]!,
-			image_url: ''
-		}
-
-		render(
+	it('handles out-of-bounds initialIndex gracefully', () => {
+		// Test with initialIndex beyond array bounds
+		const { container } = render(
 			<ImageLightboxWithState
-				images={[imageWithoutUrl]}
+				images={MOCK_IMAGES}
 				open={true}
 				onClose={() => {}}
+				initialIndex={999} // Out of bounds
 			/>
 		)
 
-		// Counter is only shown when images.length > 1, so shouldn't be visible for single image
-		expect(screen.queryByText(/1 \/ 1/)).not.toBeInTheDocument()
+		// Component returns null when currentImage is undefined (out of bounds)
+		const dialog = container.querySelector('[role="dialog"]')
+		expect(dialog).not.toBeInTheDocument()
 		})
 	})
 

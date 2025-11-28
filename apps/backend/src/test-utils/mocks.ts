@@ -302,7 +302,6 @@ export function createMockAppConfigService(): jest.Mocked<AppConfigService> {
 		getSupabaseSecretKey: jest.fn().mockReturnValue('test-supabase-key'),
 		getSupabasePublishableKey: jest.fn().mockReturnValue('test-pub-key'),
 		getSupabaseProjectRef: jest.fn().mockReturnValue('test-project-ref'),
-		getSupabaseAuthWebhookSecret: jest.fn().mockReturnValue('test-webhook-secret'),
 
 		// CORS
 		getCorsOrigins: jest.fn().mockReturnValue(undefined),

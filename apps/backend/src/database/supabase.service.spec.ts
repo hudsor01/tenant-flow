@@ -27,10 +27,10 @@ describe('SupabaseService', () => {
 	beforeEach(async () => {
 		// Set up environment variables that SupabaseService actually uses
 		process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-		process.env.SERVICE_ROLE =
-			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-service-key'
+		// Use new SB_SECRET_KEY format (fall back still supported via SERVICE_ROLE)
+		process.env.SB_SECRET_KEY = 'sb_secret_test-service-key'
 		process.env.SUPABASE_PUBLISHABLE_KEY =
-			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test-publishable-key'
+			'sb_publishable_test-publishable-key'
 
 		// Spy on Logger before creating the service (logs happen in constructor)
 		const mockLoggerDebug = jest.fn()

@@ -194,20 +194,19 @@ export async function authenticateAs(
 export function getServiceRoleClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	// SERVICE_ROLE is the actual JWT key that bypasses RLS
-	// SERVICE_ROLE (sb_secret_*) is the new format that doesn't bypass RLS via PostgREST
-	const serviceRoleKey = process.env.SERVICE_ROLE || process.env.SERVICE_ROLE
+	const secretKey = process.env.SB_SECRET_KEY
 
-	if (!supabaseUrl || !serviceRoleKey) {
+	if (!supabaseUrl || !secretKey) {
 		throw new Error(
-			'Missing service role credentials (NEXT_PUBLIC_SUPABASE_URL and SERVICE_ROLE). Cannot run tests.'
+			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SB_SECRET_KEY). Cannot run tests.'
 		)
 	}
 
-	return createClient<Database>(supabaseUrl, serviceRoleKey, {
+	return createClient<Database>(supabaseUrl, secretKey, {
 		auth: {
 			autoRefreshToken: false,
-			persistSession: false
+			persistSession: false,
+			detectSessionInUrl: false
 		},
 		db: {
 			schema: 'public'
@@ -408,41 +407,40 @@ export async function ensureTestLease(
 		throw new Error(`Failed to create test unit: ${unitError.message}`)
 	}
 
-	// Create tenant record (owner may need RLS policy to create tenants)
-	const { error: tenantRecordError } = await ownerClient
-		.from('tenants')
-		.upsert({
-			id: testTenantRecordId,
-			user_id: tenant_id, // Link to users table
-			stripe_customer_id: ''
-		})
+	// Create tenant record using service role client (owners can't create tenants via RLS - correct behavior)
+	// In production, tenant records are created via the invitation flow (backend uses admin client)
+	const serviceClient = getServiceRoleClient()
 
-	if (
-		tenantRecordError &&
-		!tenantRecordError.message.includes('duplicate key')
-	) {
-		// If owner can't create tenant record, try to use existing tenant record
-		const { data: existingTenant } = await ownerClient
-			.from('tenants')
-			.select('id')
-			.eq('user_id', tenant_id)
-			.maybeSingle()
-
-		if (!existingTenant) {
-			throw new Error(
-				`Failed to create/find tenant record: ${tenantRecordError.message}`
-			)
-		}
-	}
-
-	// Get the actual tenant record ID (might be different if it already existed)
-	const { data: tenantRecord } = await ownerClient
+	// First check if tenant record already exists (avoid confusing upsert errors)
+	const { data: existingTenant } = await serviceClient
 		.from('tenants')
 		.select('id')
 		.eq('user_id', tenant_id)
 		.maybeSingle()
 
-	const actualTenantRecordId = tenantRecord?.id || testTenantRecordId
+	let actualTenantRecordId: string
+
+	if (existingTenant) {
+		// Tenant already exists (created via invitation flow in production)
+		actualTenantRecordId = existingTenant.id
+	} else {
+		// Create new tenant record for test setup
+		const { error: tenantRecordError } = await serviceClient
+			.from('tenants')
+			.insert({
+				id: testTenantRecordId,
+				user_id: tenant_id,
+				stripe_customer_id: ''
+			})
+
+		if (tenantRecordError) {
+			throw new Error(
+				`Failed to create tenant record for test setup: ${tenantRecordError.message}. ` +
+				`Ensure SERVICE_ROLE is configured correctly in Doppler.`
+			)
+		}
+		actualTenantRecordId = testTenantRecordId
+	}
 
 	// Create minimal test lease
 	const start_date = new Date()
