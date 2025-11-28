@@ -9,7 +9,7 @@
  * - Proper index usage for all queries
  */
 
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common'
 import type { Tenant, TenantStats, TenantSummary, TenantWithLeaseInfo, RentPayment, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { buildMultiColumnSearch, sanitizeSearchInput } from '../../shared/utils/sql-safe.utils'
@@ -144,55 +144,43 @@ export class TenantQueryService {
 	}
 
 	/**
-	 * Fetch tenants for a property owner using a single optimized JOIN query
+	 * Fetch tenants for a property owner using RPC function
 	 *
-	 * Uses Supabase's !inner join syntax to traverse:
-	 * lease_tenants -> leases -> units -> properties -> property_owners
-	 * in a single database round trip (eliminates N+1 query pattern)
+	 * Uses get_tenants_by_owner RPC for efficient single-query JOIN
+	 * instead of 6 sequential cascade queries
 	 */
 	private async fetchTenantsByOwner(userId: string, filters: ListFilters) {
+		const client = this.supabase.getAdminClient()
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
-		// Single query with inner joins to filter by owner
-		let query = this.supabase
-			.getAdminClient()
-			.from('lease_tenants')
-			.select(`
-				tenant_id,
-				tenant:tenants(
-					id,
-					user_id,
-					emergency_contact_name,
-					emergency_contact_phone,
-					emergency_contact_relationship,
-					identity_verified,
-					created_at,
-					updated_at
-				),
-				lease:leases!inner(
-					id,
-					unit:units!inner(
-						id,
-						property:properties!inner(
-							id,
-							property_owner:property_owners!inner(user_id)
-						)
-					)
-				)
-			`)
-			.eq('lease.unit.property.property_owner.user_id', userId)
-			.not('tenant_id', 'is', null)
+		// Get tenant IDs via RPC function (single efficient JOIN query)
+		const { data: tenantIds, error: rpcError } = await client
+			.rpc('get_tenants_by_owner', { p_user_id: userId })
 
-		// Apply search filter at DB level if provided
+		if (rpcError) {
+			this.logger.error('RPC get_tenants_by_owner failed', { error: rpcError.message, userId })
+			throw new InternalServerErrorException('Failed to retrieve tenants')
+		}
+
+		if (!tenantIds?.length) {
+			return []
+		}
+
+		// Fetch tenant records with pagination and search
+		let query = client
+			.from('tenants')
+			.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
+			.in('id', tenantIds as string[])
+
 		if (filters.search) {
-			const sanitizedSearch = sanitizeSearchInput(filters.search)
-			if (sanitizedSearch) {
-				const searchFilter = buildMultiColumnSearch(
-					sanitizedSearch,
-					['emergency_contact_name', 'emergency_contact_phone']
-				)
-				query = query.or(searchFilter, { foreignTable: 'tenants' })
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
+					'emergency_contact_name',
+					'emergency_contact_phone'
+				])
+				query = query.or(searchFilter)
 			}
 		}
 
@@ -203,10 +191,7 @@ export class TenantQueryService {
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		// Filter out rows where tenant is null and extract tenant data
-		return (data ?? [])
-			.filter(row => row.tenant !== null)
-			.map(row => row.tenant as Tenant)
+		return (data as Tenant[]) || []
 	}
 
 	/**
@@ -335,8 +320,9 @@ export class TenantQueryService {
 	}
 
 	/**
-	 * Fetch tenants with lease info where user is the property owner (single JOIN query)
-	 * Uses standard joins with client-side filtering for better TypeScript type inference
+	 * Fetch tenants with lease info where user is the property owner
+	 * Uses get_tenants_with_lease_by_owner RPC for efficient single-query JOIN
+	 * instead of 4 sequential cascade queries
 	 */
 	private async fetchTenantsWithLeaseByOwner(
 		ownerId: string,
@@ -344,7 +330,33 @@ export class TenantQueryService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		// Define types for the query result
+		const client = this.supabase.getAdminClient()
+
+		// Get property owner's user_id for the RPC call
+		const { data: ownerRecord } = await client
+			.from('property_owners')
+			.select('user_id')
+			.eq('id', ownerId)
+			.single()
+
+		if (!ownerRecord?.user_id) {
+			return []
+		}
+
+		// Get tenant IDs via RPC function (single efficient JOIN query with active lease filter)
+		const { data: tenantIds, error: rpcError } = await client
+			.rpc('get_tenants_with_lease_by_owner', { p_user_id: ownerRecord.user_id })
+
+		if (rpcError) {
+			this.logger.error('RPC get_tenants_with_lease_by_owner failed', { error: rpcError.message, ownerId })
+			throw new InternalServerErrorException('Failed to retrieve tenants')
+		}
+
+		if (!tenantIds?.length) {
+			return []
+		}
+
+		// Fetch full tenant+lease data for these tenant IDs
 		interface LeaseWithUnit {
 			id: string
 			start_date: string
@@ -378,10 +390,7 @@ export class TenantQueryService {
 			lease: LeaseWithUnit | null
 		}
 
-		// Apply search filter at DB level if provided
-		const searchTerm = filters.search ? sanitizeSearchInput(filters.search) : null
-
-		let query = this.supabase.getAdminClient()
+		let query = client
 			.from('lease_tenants')
 			.select(`
 				tenant_id,
@@ -422,20 +431,20 @@ export class TenantQueryService {
 					)
 				)
 			`)
-			.not('tenant_id', 'is', null)
-			.not('lease_id', 'is', null)
-			// DB-level filters for property_owner_id and lease_status
-			.eq('lease.unit.property.property_owner_id', ownerId)
+			.in('tenant_id', tenantIds as string[])
 			.eq('lease.lease_status', 'active')
+			.not('tenant_id', 'is', null)
 
-		// Apply search filter at DB level if provided (with proper ILIKE escaping)
-		if (searchTerm) {
-			query = query.or(
-				buildMultiColumnSearch(searchTerm, [
+		// Apply search filter at DB level if provided
+		if (filters.search) {
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
 					'tenant.emergency_contact_name',
 					'tenant.emergency_contact_phone'
 				])
-			)
+				query = query.or(searchFilter)
+			}
 		}
 
 		const { data, error } = await query.range(offset, offset + limit - 1)
@@ -445,13 +454,14 @@ export class TenantQueryService {
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		// Type assertion after DB-level filtering
-		return ((data ?? []) as QueryResult[])
+		// Filter and transform results
+		const results = ((data ?? []) as QueryResult[])
 			.filter(row => row.tenant && row.lease?.unit?.property)
-			.map(row => ({
-				...row.tenant!,
-				lease: row.lease as unknown as Lease
-			})) as TenantWithLeaseInfo[]
+
+		return results.map(row => ({
+			...row.tenant!,
+			lease: row.lease as unknown as Lease
+		})) as TenantWithLeaseInfo[]
 	}
 
 	/**
