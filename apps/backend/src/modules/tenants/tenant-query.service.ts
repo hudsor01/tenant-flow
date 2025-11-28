@@ -9,7 +9,7 @@
  * - Proper index usage for all queries
  */
 
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common'
 import type { Tenant, TenantStats, TenantSummary, TenantWithLeaseInfo, RentPayment, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { buildMultiColumnSearch, sanitizeSearchInput } from '../../shared/utils/sql-safe.utils'
@@ -160,7 +160,7 @@ export class TenantQueryService {
 
 		if (rpcError) {
 			this.logger.error('RPC get_tenants_by_owner failed', { error: rpcError.message, userId })
-			throw new BadRequestException('Failed to retrieve tenants')
+			throw new InternalServerErrorException('Failed to retrieve tenants')
 		}
 
 		if (!tenantIds?.length) {
@@ -349,7 +349,7 @@ export class TenantQueryService {
 
 		if (rpcError) {
 			this.logger.error('RPC get_tenants_with_lease_by_owner failed', { error: rpcError.message, ownerId })
-			throw new BadRequestException('Failed to retrieve tenants')
+			throw new InternalServerErrorException('Failed to retrieve tenants')
 		}
 
 		if (!tenantIds?.length) {
