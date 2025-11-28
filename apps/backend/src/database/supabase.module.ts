@@ -28,7 +28,7 @@ export class SupabaseModule {
 						if (!url || !key) {
 							throw new Error(
 								'Missing Supabase configuration - ensure you run with Doppler (e.g. `doppler run -- pnpm dev`) ' +
-								'or set SUPABASE_URL and SERVICE_ROLE environment variables.'
+								'or set SUPABASE_URL and SB_SECRET_KEY environment variables.'
 							)
 						}
 
