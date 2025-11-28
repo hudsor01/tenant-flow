@@ -38,11 +38,11 @@
 		"jest": "^30.2.0"
 	},
 	"devDependencies": {
-		"@types/jest": "catalog:",
-		"@types/node": "catalog:",
-		"eslint": "catalog:",
-		"jest": "catalog:",
+		"@types/jest": "catalog:default",
+		"@types/node": "catalog:default",
+		"eslint": "catalog:default",
+		"jest": "catalog:default",
 		"rimraf": "6.1.0",
-		"typescript": "catalog:"
+		"typescript": "catalog:default"
 	}
 }
