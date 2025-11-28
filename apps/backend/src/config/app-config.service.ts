@@ -97,10 +97,6 @@ export class AppConfigService {
 		return this.get('PROJECT_REF')
 	}
 
-	getAuthWebhookSecret(): string | undefined {
-		return this.get('AUTH_WEBHOOK_SECRET')
-	}
-
 	// ==================== CORS ====================
 
 	getCorsOrigins(): string | undefined {
