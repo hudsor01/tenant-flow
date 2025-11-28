@@ -32,8 +32,6 @@
 		".next/types/**/*.ts",
 		"playwright.config.ts",
 		"next.config.ts",
-		"tests/**/*.ts",
-		"tests/**/*.tsx",
 		"middleware.ts",
 		"proxy.ts",
     ".next/types/**/*.ts",
@@ -48,6 +46,8 @@
 		"out",
 		"dist",
 		"coverage",
-		"playwright-report"
+		"playwright-report",
+		"src/test/**/*",
+		"tests/**/*"
 	]
 }
