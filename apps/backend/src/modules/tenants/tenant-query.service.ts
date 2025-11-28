@@ -161,6 +161,12 @@ export class TenantQueryService {
 		}
 
 		// Build base query for tenants through lease relationship
+		// NOTE: Using !inner joins is intentional here:
+		// - Ensures we only return tenants with valid, complete relationship chains
+		// - Prevents returning orphaned records or incomplete data
+		// - Required for the .eq() filter on nested property_owner_id to work correctly
+		// - Database constraints (FKs) should prevent orphaned records; if they exist,
+		//   they represent data integrity issues that should be investigated, not hidden
 		let query = this.supabase
 			.getAdminClient()
 			.from('lease_tenants')
@@ -213,8 +219,10 @@ export class TenantQueryService {
 	}
 
 	/**
-	 * Get all tenants with active lease details
-	 * Consolidated from TenantListService
+	 * Get all tenants with active lease details using optimized single-query approach
+	 *
+	 * Performance optimization: Uses a single JOIN query through lease_tenants
+	 * instead of separate tenant fetch + lease fetch (eliminates N+1 pattern)
 	 */
 	async findAllWithLeaseInfo(
 		userId: string,
@@ -222,22 +230,68 @@ export class TenantQueryService {
 	): Promise<TenantWithLeaseInfo[]> {
 		if (!userId) throw new BadRequestException('User ID required')
 
-		try {
-			// Get all tenants for user
-			const tenants = await this.findAll(userId, filters)
+		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+		const offset = filters.offset ?? 0
 
-			if (!tenants.length) {
-				return []
+		try {
+			// First check if user is a property owner
+			const { data: ownerRecord } = await this.supabase
+				.getAdminClient()
+				.from('property_owners')
+				.select('id')
+				.eq('user_id', userId)
+				.maybeSingle()
+
+			// Run both queries in parallel for better performance
+			const [tenantsByUserResult, tenantsByOwnerResult] = await Promise.all([
+				// Query 1: Tenants where user_id matches (user is the tenant)
+				this.fetchTenantsWithLeaseByUser(userId, filters, limit, offset),
+				// Query 2: Tenants through property ownership (if user is an owner)
+				ownerRecord?.id
+					? this.fetchTenantsWithLeaseByOwner(ownerRecord.id, filters, limit, offset)
+					: Promise.resolve([])
+			])
+
+			// Deduplicate by tenant ID, preferring the first occurrence
+			const deduped = new Map<string, TenantWithLeaseInfo>()
+			for (const tenant of [...tenantsByOwnerResult, ...tenantsByUserResult]) {
+				if (tenant?.id && !deduped.has(tenant.id)) {
+					deduped.set(tenant.id, tenant)
+				}
 			}
 
-			const tenantIds = tenants.map(t => t.id)
+			return Array.from(deduped.values())
+		} catch (error) {
+			this.logger.error('Error finding tenants with lease', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			throw error
+		}
+	}
 
-			// Get leases for these tenants
-			const { data: leaseData, error: leaseError } = await this.supabase.getAdminClient()
-				.from('lease_tenants')
-				.select(`
-					tenant_id,
-					lease:leases(
+	/**
+	 * Fetch tenants with lease info where user is the tenant (single JOIN query)
+	 */
+	private async fetchTenantsWithLeaseByUser(
+		userId: string,
+		filters: ListFilters,
+		limit: number,
+		offset: number
+	): Promise<TenantWithLeaseInfo[]> {
+		let query = this.supabase.getAdminClient()
+			.from('tenants')
+			.select(`
+				id,
+				user_id,
+				emergency_contact_name,
+				emergency_contact_phone,
+				emergency_contact_relationship,
+				identity_verified,
+				created_at,
+				updated_at,
+				lease_tenants!inner(
+					lease:leases!inner(
 						id,
 						start_date,
 						end_date,
@@ -261,37 +315,146 @@ export class TenantQueryService {
 							)
 						)
 					)
-				`)
-				.in('tenant_id', tenantIds)
-				.eq('leases.lease_status', 'active')
+				)
+			`)
+			.eq('user_id', userId)
+			.eq('lease_tenants.lease.lease_status', 'active')
 
-			if (leaseError) {
-				this.logger.error('Failed to fetch tenant leases', { error: leaseError.message, userId })
-				// Return tenants without lease info rather than failing completely
-				return tenants.map(t => ({ ...t, lease: null })) as unknown as TenantWithLeaseInfo[]
+		if (filters.search) {
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
+					'emergency_contact_name',
+					'emergency_contact_phone'
+				])
+				query = query.or(searchFilter)
 			}
-
-			// Build map of tenant -> lease (first active lease per tenant)
-			const tenantLeaseMap = new Map<string, Lease>()
-			const leaseRows = ((leaseData as unknown) as { tenant_id?: string; lease?: Lease }[] | null) ?? []
-			for (const item of leaseRows) {
-				if (item.tenant_id && item.lease && !tenantLeaseMap.has(item.tenant_id)) {
-					tenantLeaseMap.set(item.tenant_id, item.lease)
-				}
-			}
-
-			// Merge tenants with their lease info
-			return tenants.map(t => ({
-				...t,
-				lease: tenantLeaseMap.get(t.id) ?? null
-			})) as unknown as TenantWithLeaseInfo[]
-		} catch (error) {
-			this.logger.error('Error finding tenants with lease', {
-				error: error instanceof Error ? error.message : String(error),
-				userId
-			})
-			throw error
 		}
+
+		const { data, error } = await query.range(offset, offset + limit - 1)
+
+		if (error) {
+			this.logger.error('Failed to fetch tenants with lease by user', { error: error.message, userId })
+			return []
+		}
+
+		return this.transformTenantsWithLease(data)
+	}
+
+	/**
+	 * Fetch tenants with lease info where user is the property owner (single JOIN query)
+	 */
+	private async fetchTenantsWithLeaseByOwner(
+		ownerId: string,
+		filters: ListFilters,
+		limit: number,
+		offset: number
+	): Promise<TenantWithLeaseInfo[]> {
+		let query = this.supabase.getAdminClient()
+			.from('lease_tenants')
+			.select(`
+				tenant:tenants!inner(
+					id,
+					user_id,
+					emergency_contact_name,
+					emergency_contact_phone,
+					emergency_contact_relationship,
+					identity_verified,
+					created_at,
+					updated_at
+				),
+				lease:leases!inner(
+					id,
+					start_date,
+					end_date,
+					lease_status,
+					rent_amount,
+					security_deposit,
+					unit:units!inner(
+						id,
+						unit_number,
+						bedrooms,
+						bathrooms,
+						square_feet,
+						property:properties!inner(
+							id,
+							name,
+							address_line1,
+							address_line2,
+							city,
+							state,
+							postal_code,
+							property_owner_id
+						)
+					)
+				)
+			`)
+			.eq('lease.unit.property.property_owner_id', ownerId)
+			.eq('lease.lease_status', 'active')
+
+		if (filters.search) {
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
+					'tenant.emergency_contact_name',
+					'tenant.emergency_contact_phone'
+				])
+				query = query.or(searchFilter, { foreignTable: 'tenants' })
+			}
+		}
+
+		const { data, error } = await query.range(offset, offset + limit - 1)
+
+		if (error) {
+			this.logger.error('Failed to fetch tenants with lease by owner', { error: error.message, ownerId })
+			return []
+		}
+
+		// Transform owner query results to TenantWithLeaseInfo format
+		return ((data as unknown as { tenant?: Tenant; lease?: Lease }[] | null) ?? [])
+			.filter(row => row.tenant && row.lease)
+			.map(row => ({
+				...row.tenant!,
+				lease: row.lease!
+			})) as unknown as TenantWithLeaseInfo[]
+	}
+
+	/**
+	 * Transform raw tenant+lease_tenants query result to TenantWithLeaseInfo[]
+	 */
+	private transformTenantsWithLease(
+		data: unknown[] | null
+	): TenantWithLeaseInfo[] {
+		if (!data) return []
+
+		interface RawTenantWithLeaseTenants {
+			id: string
+			user_id: string
+			emergency_contact_name: string | null
+			emergency_contact_phone: string | null
+			emergency_contact_relationship: string | null
+			identity_verified: boolean
+			created_at: string
+			updated_at: string
+			lease_tenants: Array<{ lease: Lease }>
+		}
+
+		return (data as RawTenantWithLeaseTenants[]).map(row => {
+			// Extract the first active lease from lease_tenants
+			const firstLease = row.lease_tenants?.[0]?.lease ?? null
+
+			return {
+				id: row.id,
+				user_id: row.user_id,
+				emergency_contact_name: row.emergency_contact_name,
+				emergency_contact_phone: row.emergency_contact_phone,
+				emergency_contact_relationship: row.emergency_contact_relationship,
+				identity_verified: row.identity_verified,
+				created_at: row.created_at,
+				updated_at: row.updated_at,
+				lease: firstLease
+			} as unknown as TenantWithLeaseInfo
+		})
 	}
 
 	// ============================================================================
