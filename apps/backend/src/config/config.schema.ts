@@ -61,7 +61,6 @@ const environmentSchema = z.object({
 		z.string()
 	),
 	PROJECT_REF: z.string().default('bshjmbshupiibfiewpxb'),
-	AUTH_WEBHOOK_SECRET: z.string().optional(),
 
 	// CORS
 	CORS_ORIGINS: z.string().optional(),
