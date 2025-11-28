@@ -82,9 +82,14 @@ interface TenantLease {
 	rent_amount: number
 	security_deposit: number | null
 	status: string
+	lease_status: string
 	stripe_subscription_id: string | null
 	lease_document_url: string | null
 	created_at: string
+	// Signature tracking fields
+	owner_signed_at: string | null
+	tenant_signed_at: string | null
+	sent_for_signature_at: string | null
 	unit: {
 		id: string
 		unit_number: string

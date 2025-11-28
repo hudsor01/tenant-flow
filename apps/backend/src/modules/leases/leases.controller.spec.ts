@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { Lease } from '@repo/shared/types/core'
@@ -10,10 +10,12 @@ import { createMockEmailService } from '../../test-utils/mocks'
 import { EmailService } from '../email/email.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { LeaseSignatureService } from './lease-signature.service'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
 	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockSignatureService: jest.Mocked<LeaseSignatureService>
 
 	const generateUUID = () => randomUUID()
 
@@ -36,6 +38,13 @@ describe('LeasesController', () => {
 		property_owner_id: 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
+		// Signature tracking fields
+		docuseal_submission_id: null,
+		owner_signed_at: null,
+		owner_signature_ip: null,
+		tenant_signed_at: null,
+		tenant_signature_ip: null,
+		sent_for_signature_at: null,
 		...overrides
 	})
 
@@ -53,12 +62,23 @@ describe('LeasesController', () => {
 			getAnalytics: jest.fn()
 		} as unknown as jest.Mocked<LeasesService>
 
+		mockSignatureService = {
+			sendForSignature: jest.fn(),
+			signLeaseAsOwner: jest.fn(),
+			signLeaseAsTenant: jest.fn(),
+			getSignatureStatus: jest.fn()
+		} as unknown as jest.Mocked<LeaseSignatureService>
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeasesController],
 			providers: [
 				{
 					provide: LeasesService,
 					useValue: mockLeasesService
+				},
+				{
+					provide: LeaseSignatureService,
+					useValue: mockSignatureService
 				},
 				{
 					provide: SupabaseService,
@@ -345,6 +365,182 @@ describe('LeasesController', () => {
 				reason
 			)
 			expect(result).toEqual(mockLease)
+		})
+	})
+
+	// ============================================================
+	// LEASE SIGNATURE WORKFLOW TESTS (TDD)
+	// ============================================================
+
+	describe('Signature Workflow - sendForSignature', () => {
+		const mockRequest = {
+			user: { id: 'owner-123' },
+			ip: '192.168.1.1'
+		}
+
+		it('should send lease for signature', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.sendForSignature.mockResolvedValue(undefined)
+
+			const result = await controller.sendForSignature(
+				lease_id,
+				mockRequest as any,
+				{ message: 'Please review and sign' }
+			)
+
+			expect(mockSignatureService.sendForSignature).toHaveBeenCalledWith(
+				'owner-123',
+				lease_id,
+				{ message: 'Please review and sign', templateId: undefined }
+			)
+			expect(result).toEqual({ success: true })
+		})
+
+		it('should throw NotFoundException when lease not found', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.sendForSignature.mockRejectedValue(
+				new NotFoundException('Lease not found')
+			)
+
+			await expect(
+				controller.sendForSignature(lease_id, mockRequest as any, {})
+			).rejects.toThrow(NotFoundException)
+		})
+
+		it('should throw BadRequestException when lease is not in draft status', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.sendForSignature.mockRejectedValue(
+				new BadRequestException('Only draft leases can be sent for signature')
+			)
+
+			await expect(
+				controller.sendForSignature(lease_id, mockRequest as any, {})
+			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should throw ForbiddenException when user is not the owner', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.sendForSignature.mockRejectedValue(
+				new ForbiddenException('You do not own this lease')
+			)
+
+			await expect(
+				controller.sendForSignature(lease_id, mockRequest as any, {})
+			).rejects.toThrow(ForbiddenException)
+		})
+	})
+
+	describe('Signature Workflow - signAsOwner', () => {
+		const mockRequest = {
+			user: { id: 'owner-123' },
+			ip: '192.168.1.1'
+		}
+
+		it('should allow owner to sign the lease', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.signLeaseAsOwner.mockResolvedValue(undefined)
+
+			const result = await controller.signAsOwner(lease_id, mockRequest as any)
+
+			expect(mockSignatureService.signLeaseAsOwner).toHaveBeenCalledWith(
+				'owner-123',
+				lease_id,
+				'192.168.1.1'
+			)
+			expect(result).toEqual({ success: true })
+		})
+
+		it('should throw BadRequestException when owner already signed', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.signLeaseAsOwner.mockRejectedValue(
+				new BadRequestException('Owner has already signed this lease')
+			)
+
+			await expect(
+				controller.signAsOwner(lease_id, mockRequest as any)
+			).rejects.toThrow(BadRequestException)
+		})
+	})
+
+	describe('Signature Workflow - signAsTenant', () => {
+		const mockRequest = {
+			user: { id: 'tenant-user-123' },
+			ip: '10.0.0.1'
+		}
+
+		it('should allow tenant to sign the lease', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.signLeaseAsTenant.mockResolvedValue(undefined)
+
+			const result = await controller.signAsTenant(lease_id, mockRequest as any)
+
+			expect(mockSignatureService.signLeaseAsTenant).toHaveBeenCalledWith(
+				'tenant-user-123',
+				lease_id,
+				'10.0.0.1'
+			)
+			expect(result).toEqual({ success: true })
+		})
+
+		it('should throw ForbiddenException when user is not assigned to lease', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.signLeaseAsTenant.mockRejectedValue(
+				new ForbiddenException('You are not assigned to this lease')
+			)
+
+			await expect(
+				controller.signAsTenant(lease_id, mockRequest as any)
+			).rejects.toThrow(ForbiddenException)
+		})
+
+		it('should throw BadRequestException when lease is not pending signature', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.signLeaseAsTenant.mockRejectedValue(
+				new BadRequestException('Lease must be pending signature to sign')
+			)
+
+			await expect(
+				controller.signAsTenant(lease_id, mockRequest as any)
+			).rejects.toThrow(BadRequestException)
+		})
+	})
+
+	describe('Signature Workflow - getSignatureStatus', () => {
+		const mockUserId = 'owner-123'
+		const mockRequest = {
+			user: { id: mockUserId },
+			ip: '192.168.1.1'
+		}
+
+		it('should return signature status for a lease', async () => {
+			const lease_id = generateUUID()
+			const mockStatus = {
+				lease_id,
+				status: 'pending_signature',
+				owner_signed: true,
+				owner_signed_at: '2025-01-15T10:00:00Z',
+				tenant_signed: false,
+				tenant_signed_at: null,
+				sent_for_signature_at: '2025-01-14T10:00:00Z',
+				both_signed: false
+			}
+			mockSignatureService.getSignatureStatus.mockResolvedValue(mockStatus)
+
+			const result = await controller.getSignatureStatus(lease_id, mockRequest as any)
+
+			expect(mockSignatureService.getSignatureStatus).toHaveBeenCalledWith(lease_id, mockUserId)
+			expect(result).toEqual(mockStatus)
+		})
+
+		it('should throw NotFoundException when lease not found', async () => {
+			const lease_id = generateUUID()
+			mockSignatureService.getSignatureStatus.mockRejectedValue(
+				new NotFoundException('Lease not found')
+			)
+
+			await expect(
+				controller.getSignatureStatus(lease_id, mockRequest as any)
+			).rejects.toThrow(NotFoundException)
 		})
 	})
 })

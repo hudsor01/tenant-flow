@@ -30,6 +30,20 @@ export interface LeaseFilters {
 }
 
 /**
+ * Signature status for a lease
+ */
+export interface SignatureStatus {
+	lease_id: string
+	status: string
+	owner_signed: boolean
+	owner_signed_at: string | null
+	tenant_signed: boolean
+	tenant_signed_at: string | null
+	sent_for_signature_at: string | null
+	both_signed: boolean
+}
+
+/**
  * Tenant Portal Lease type
  */
 export type TenantPortalLease = LeaseWithDetails & {
@@ -137,6 +151,21 @@ export const leaseQueries = {
 			queryKey: [...leaseQueries.all(), 'stats'],
 			queryFn: () => clientFetch('/api/v1/leases/stats'),
 			...QUERY_CACHE_TIMES.STATS,
+		}),
+
+	/**
+	 * Lease signature status
+	 *
+	 * @example
+	 * const { data } = useQuery(leaseQueries.signatureStatus(lease_id))
+	 */
+	signatureStatus: (id: string) =>
+		queryOptions({
+			queryKey: [...leaseQueries.all(), 'signature-status', id],
+			queryFn: () =>
+				clientFetch<SignatureStatus>(`/api/v1/leases/${id}/signature-status`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!id,
 		}),
 
 	/**

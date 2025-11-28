@@ -850,6 +850,424 @@ export class NotificationsService {
 		)
 	}
 
+	// ============================================================
+	// LEASE SIGNATURE WORKFLOW EVENT HANDLERS
+	// ============================================================
+
+	/**
+	 * Handle lease sent for signature event - notify tenant
+	 */
+	@OnEvent('lease.sent_for_signature')
+	async handleLeaseSentForSignature(event: { lease_id: string; tenant_id: string; message?: string }) {
+		this.logger.log('Processing lease.sent_for_signature event', { lease_id: event.lease_id })
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				const client = this.supabaseService.getAdminClient()
+
+				// Get lease with tenant and property info
+				const { data: lease } = await client
+					.from('leases')
+					.select(`
+						id,
+						property_owner_id,
+						primary_tenant_id,
+						unit:unit_id(
+							unit_number,
+							property:property_id(name)
+						)
+					`)
+					.eq('id', event.lease_id)
+					.single()
+
+				if (!lease) return
+
+				// Get tenant user info
+				const { data: tenant } = await client
+					.from('tenants')
+					.select('user_id')
+					.eq('id', lease.primary_tenant_id)
+					.single()
+
+				if (!tenant) return
+
+				const { data: tenantUser } = await client
+					.from('users')
+					.select('email, first_name, last_name')
+					.eq('id', tenant.user_id)
+					.single()
+
+				if (!tenantUser?.email) return
+
+				// Get owner name
+				let ownerName: string | undefined
+				if (lease.property_owner_id) {
+					const { data: owner } = await client
+						.from('users')
+						.select('first_name, last_name')
+						.eq('id', lease.property_owner_id)
+						.single()
+					if (owner?.first_name) {
+						ownerName = `${owner.first_name} ${owner.last_name || ''}`.trim()
+					}
+				}
+
+				const tenantName = tenantUser.first_name
+					? `${tenantUser.first_name} ${tenantUser.last_name || ''}`.trim()
+					: 'Tenant'
+
+				const frontendUrl = this.config.getFrontendUrl()
+				const signUrl = `${frontendUrl}/portal/lease`
+
+				// Build params conditionally to satisfy exactOptionalPropertyTypes
+				const emailParams: {
+					tenantEmail: string
+					tenantName: string
+					signUrl: string
+					propertyName?: string
+					unitNumber?: string
+					ownerName?: string
+					message?: string
+				} = {
+					tenantEmail: tenantUser.email,
+					tenantName,
+					signUrl
+				}
+				if (lease.unit?.property?.name) {
+					emailParams.propertyName = lease.unit.property.name
+				}
+				if (lease.unit?.unit_number) {
+					emailParams.unitNumber = lease.unit.unit_number
+				}
+				if (ownerName) {
+					emailParams.ownerName = ownerName
+				}
+				if (event.message) {
+					emailParams.message = event.message
+				}
+
+				// Send email notification
+				await this.emailService.sendLeaseSentForSignatureEmail(emailParams)
+
+				// Create in-app notification
+				await this.createSystemNotification(
+					tenant.user_id,
+					'Lease Ready for Signature',
+					`Your lease is ready for review and signature. Please sign to complete the agreement.`,
+					'/portal/lease'
+				)
+
+				this.logger.log('Lease sent for signature notification sent', { lease_id: event.lease_id })
+			},
+			'lease.sent_for_signature',
+			event
+		)
+	}
+
+	/**
+	 * Handle owner signed event - notify tenant
+	 */
+	@OnEvent('lease.owner_signed')
+	async handleLeaseOwnerSigned(event: { lease_id: string; signed_at: string }) {
+		this.logger.log('Processing lease.owner_signed event', { lease_id: event.lease_id })
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				const client = this.supabaseService.getAdminClient()
+
+				// Get lease with full info
+				const { data: lease } = await client
+					.from('leases')
+					.select(`
+						id,
+						property_owner_id,
+						primary_tenant_id,
+						tenant_signed_at,
+						unit:unit_id(
+							unit_number,
+							property:property_id(name)
+						)
+					`)
+					.eq('id', event.lease_id)
+					.single()
+
+				if (!lease) return
+
+				// Get tenant user info
+				const { data: tenant } = await client
+					.from('tenants')
+					.select('user_id')
+					.eq('id', lease.primary_tenant_id)
+					.single()
+
+				if (!tenant) return
+
+				const { data: tenantUser } = await client
+					.from('users')
+					.select('email, first_name, last_name')
+					.eq('id', tenant.user_id)
+					.single()
+
+				if (!tenantUser?.email) return
+
+				// Get owner name
+				let ownerName: string | undefined
+				if (lease.property_owner_id) {
+					const { data: owner } = await client
+						.from('users')
+						.select('first_name, last_name')
+						.eq('id', lease.property_owner_id)
+						.single()
+					if (owner?.first_name) {
+						ownerName = `${owner.first_name} ${owner.last_name || ''}`.trim()
+					}
+				}
+
+				const tenantName = tenantUser.first_name
+					? `${tenantUser.first_name} ${tenantUser.last_name || ''}`.trim()
+					: 'Tenant'
+
+				const frontendUrl = this.config.getFrontendUrl()
+				const signUrl = `${frontendUrl}/portal/lease`
+				const tenantHasSigned = !!lease.tenant_signed_at
+
+				// Build params conditionally to satisfy exactOptionalPropertyTypes
+				const ownerSignedParams: {
+					tenantEmail: string
+					tenantName: string
+					signedAt: string
+					signUrl: string
+					tenantHasSigned: boolean
+					ownerName?: string
+					propertyName?: string
+				} = {
+					tenantEmail: tenantUser.email,
+					tenantName,
+					signedAt: event.signed_at,
+					signUrl,
+					tenantHasSigned
+				}
+				if (ownerName) {
+					ownerSignedParams.ownerName = ownerName
+				}
+				if (lease.unit?.property?.name) {
+					ownerSignedParams.propertyName = lease.unit.property.name
+				}
+
+				// Send email notification
+				await this.emailService.sendOwnerSignedEmail(ownerSignedParams)
+
+				// Create in-app notification
+				const notificationMessage = tenantHasSigned
+					? 'Your lease is now active! Both parties have signed.'
+					: 'Your landlord has signed the lease. Please sign to activate your lease.'
+
+				await this.createSystemNotification(
+					tenant.user_id,
+					tenantHasSigned ? 'Lease Activated' : 'Owner Has Signed',
+					notificationMessage,
+					'/portal/lease'
+				)
+
+				this.logger.log('Owner signed notification sent', { lease_id: event.lease_id })
+			},
+			'lease.owner_signed',
+			event
+		)
+	}
+
+	/**
+	 * Handle tenant signed event - notify owner
+	 */
+	@OnEvent('lease.tenant_signed')
+	async handleLeaseTenantSigned(event: { lease_id: string; tenant_id: string; signed_at: string }) {
+		this.logger.log('Processing lease.tenant_signed event', { lease_id: event.lease_id })
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				const client = this.supabaseService.getAdminClient()
+
+				// Get lease with full info
+				const { data: lease } = await client
+					.from('leases')
+					.select(`
+						id,
+						property_owner_id,
+						primary_tenant_id,
+						owner_signed_at,
+						unit:unit_id(
+							unit_number,
+							property:property_id(name)
+						)
+					`)
+					.eq('id', event.lease_id)
+					.single()
+
+				if (!lease || !lease.property_owner_id) return
+
+				// Get owner info
+				const { data: owner } = await client
+					.from('users')
+					.select('email, first_name, last_name')
+					.eq('id', lease.property_owner_id)
+					.single()
+
+				if (!owner?.email) return
+
+				// Get tenant name
+				const { data: tenant } = await client
+					.from('tenants')
+					.select('user_id')
+					.eq('id', lease.primary_tenant_id)
+					.single()
+
+				let tenantName = 'Tenant'
+				if (tenant) {
+					const { data: tenantUser } = await client
+						.from('users')
+						.select('first_name, last_name')
+						.eq('id', tenant.user_id)
+						.single()
+					if (tenantUser?.first_name) {
+						tenantName = `${tenantUser.first_name} ${tenantUser.last_name || ''}`.trim()
+					}
+				}
+
+				const ownerName = owner.first_name
+					? `${owner.first_name} ${owner.last_name || ''}`.trim()
+					: 'Property Owner'
+
+				const frontendUrl = this.config.getFrontendUrl()
+				const dashboardUrl = `${frontendUrl}/leases/${event.lease_id}`
+				const ownerHasSigned = !!lease.owner_signed_at
+
+				// Send email notification
+				await this.emailService.sendTenantSignedEmail({
+					ownerEmail: owner.email,
+					ownerName,
+					tenantName,
+					propertyName: lease.unit?.property?.name,
+					signedAt: event.signed_at,
+					dashboardUrl,
+					ownerHasSigned
+				})
+
+				// Create in-app notification
+				const notificationMessage = ownerHasSigned
+					? `Lease activated! ${tenantName} has signed the lease.`
+					: `${tenantName} has signed the lease. Your signature is needed to activate.`
+
+				await this.createSystemNotification(
+					lease.property_owner_id,
+					ownerHasSigned ? 'Lease Activated' : 'Tenant Has Signed',
+					notificationMessage,
+					`/leases/${event.lease_id}`
+				)
+
+				this.logger.log('Tenant signed notification sent', { lease_id: event.lease_id })
+			},
+			'lease.tenant_signed',
+			event
+		)
+	}
+
+	/**
+	 * Handle lease activated event - notify both parties
+	 */
+	@OnEvent('lease.activated')
+	async handleLeaseActivated(event: { lease_id: string; tenant_id: string; subscription_id: string }) {
+		this.logger.log('Processing lease.activated event', { lease_id: event.lease_id })
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				const client = this.supabaseService.getAdminClient()
+
+				// Get full lease info
+				const { data: lease } = await client
+					.from('leases')
+					.select(`
+						id,
+						property_owner_id,
+						primary_tenant_id,
+						rent_amount,
+						rent_currency,
+						start_date,
+						unit:unit_id(
+							unit_number,
+							property:property_id(name)
+						)
+					`)
+					.eq('id', event.lease_id)
+					.single()
+
+				if (!lease || !lease.property_owner_id) return
+
+				const frontendUrl = this.config.getFrontendUrl()
+				const propertyName = lease.unit?.property?.name
+
+				// Send to owner
+				const { data: owner } = await client
+					.from('users')
+					.select('email, first_name, last_name')
+					.eq('id', lease.property_owner_id)
+					.single()
+
+				if (owner?.email) {
+					const ownerName = owner.first_name
+						? `${owner.first_name} ${owner.last_name || ''}`.trim()
+						: 'Property Owner'
+
+					await this.emailService.sendLeaseActivatedEmail({
+						recipientEmail: owner.email,
+						recipientName: ownerName,
+						isOwner: true,
+						propertyName,
+						rentAmount: lease.rent_amount,
+						rentCurrency: lease.rent_currency || 'USD',
+						startDate: lease.start_date,
+						portalUrl: `${frontendUrl}/leases/${event.lease_id}`
+					})
+				}
+
+				// Send to tenant
+				const { data: tenant } = await client
+					.from('tenants')
+					.select('user_id')
+					.eq('id', lease.primary_tenant_id)
+					.single()
+
+				if (tenant) {
+					const { data: tenantUser } = await client
+						.from('users')
+						.select('email, first_name, last_name')
+						.eq('id', tenant.user_id)
+						.single()
+
+					if (tenantUser?.email) {
+						const tenantName = tenantUser.first_name
+							? `${tenantUser.first_name} ${tenantUser.last_name || ''}`.trim()
+							: 'Tenant'
+
+						await this.emailService.sendLeaseActivatedEmail({
+							recipientEmail: tenantUser.email,
+							recipientName: tenantName,
+							isOwner: false,
+							propertyName,
+							rentAmount: lease.rent_amount,
+							rentCurrency: lease.rent_currency || 'USD',
+							startDate: lease.start_date,
+							portalUrl: `${frontendUrl}/portal`
+						})
+					}
+				}
+
+				this.logger.log('Lease activated notifications sent', { lease_id: event.lease_id })
+			},
+			'lease.activated',
+			event
+		)
+	}
+
 	/**
 	 * Handle lease expiring events
 	 */
