@@ -5,6 +5,8 @@
  * REST API endpoints for managing rent subscriptions
  */
 
+// TODO: [CRITICAL] Replace all `throw new Error('User not authenticated')` with `throw new UnauthorizedException()` - generic Error causes 500 instead of 401 responses
+
 import {
 	Body,
 	Controller,

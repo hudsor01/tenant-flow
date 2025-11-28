@@ -21,6 +21,9 @@ import {
 import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { AppConfigService } from '../../config/app-config.service'
 
+// TODO: [CRITICAL] Remove @Public() decorator from /summary endpoint - exposes webhook metrics publicly
+// TODO: [HIGH] Add authentication to /configuration endpoint - exposes Stripe environment info
+
 // Public decorator for monitoring endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
 
