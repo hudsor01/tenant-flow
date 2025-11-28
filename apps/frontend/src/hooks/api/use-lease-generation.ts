@@ -107,8 +107,8 @@ export function useGenerateLease() {
 
 /**
  * Hook to generate and email Texas lease PDF
- * TODO: Implement proper email endpoint
  */
+// TODO: [CRITICAL] Implement email endpoint - hook exposed in UI but backend endpoint does not exist
 export function useEmailLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData & { emailTo: string }) => {

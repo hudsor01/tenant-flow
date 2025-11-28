@@ -57,10 +57,8 @@ export class PropertyAnalyticsService {
 	/**
 	 * Get property performance analytics
 	 * Performance metrics per property (occupancy, revenue, expenses)
-	 *
-	 * TODO: Implement RPC function 'get_property_performance_analytics' in database
-	 * Current implementation returns empty array as stub
 	 */
+	// TODO: [HIGH] Implement RPC function 'get_property_performance_analytics' - returns empty array stub
 	async getPropertyPerformanceAnalytics(
 		req: AuthenticatedRequest,
 		query: { property_id?: string; timeframe: string; limit?: number }
