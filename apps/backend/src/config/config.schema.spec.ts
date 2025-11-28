@@ -7,10 +7,9 @@ const BASE_CONFIG = {
 	DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 	JWT_SECRET: 'a'.repeat(32),
 	SUPABASE_URL: 'https://project.supabase.co',
-	SERVICE_ROLE: 'secret-key',
-	SUPABASE_JWT_SECRET: 'b'.repeat(32),
+	SB_SECRET_KEY: 'sb_secret_test-key',
 	SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-	SUPABASE_PROJECT_REF: 'project-ref',
+	PROJECT_REF: 'project-ref',
 	STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',
 	STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret',
 	SUPPORT_EMAIL: 'support@tenantflow.app',
@@ -71,32 +70,6 @@ describe('Configuration Schema Validation', () => {
 			)
 		})
 
-		it('should throw error for short SUPABASE_JWT_SECRET', () => {
-			const config = createValidConfig()
-			config.SUPABASE_JWT_SECRET = 'short'
-
-			expect(() => validate(config)).toThrow(
-				'Supabase JWT secret must be at least 32 characters'
-			)
-		})
-
-		it('should normalize SUPABASE_JWT_ALGORITHM to uppercase', () => {
-			const config = createValidConfig()
-			config.SUPABASE_JWT_ALGORITHM = 'rs256'
-
-			const result = validate(config)
-			expect(result.SUPABASE_JWT_ALGORITHM).toBe('RS256')
-		})
-
-		it('should throw error for invalid SUPABASE_JWT_ALGORITHM', () => {
-			const config = createValidConfig()
-			config.SUPABASE_JWT_ALGORITHM = 'HS512'
-
-			expect(() => validate(config)).toThrow(
-				'Invalid option: expected one of "ES256"|"RS256"'
-			)
-		})
-
 		it('should throw error for invalid SUPABASE_URL', () => {
 			const config = createValidConfig()
 			config.SUPABASE_URL = 'not-a-valid-url'
@@ -115,7 +88,6 @@ describe('Configuration Schema Validation', () => {
 			expect(result.PORT).toBe(4600) // Default
 			expect(result.JWT_EXPIRES_IN).toBe('7d') // Default
 			expect(result.LOG_LEVEL).toBe('info') // Default
-			expect(result.SUPABASE_JWT_ALGORITHM).toBe('ES256') // Default
 			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default
 			expect(result.STORAGE_BUCKET).toBe('tenant-flow-storage') // Default
 			expect(result.ENABLE_METRICS).toBe(true) // Default
@@ -339,7 +311,6 @@ describe('Configuration Schema Validation', () => {
 				...createValidConfig(),
 				JWT_SECRET: 'short', // Too short
 				SUPABASE_URL: 'not-a-url', // Invalid URL
-				SUPABASE_JWT_SECRET: 'also-short', // Too short
 				FROM_EMAIL: 'not-an-email', // Invalid email
 				NODE_ENV: 'invalid-env' // Invalid enum
 			}
