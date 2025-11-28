@@ -91,30 +91,14 @@ export class AppConfigService {
 
 	getSupabasePublishableKey(): string | undefined {
 		return this.get('SUPABASE_PUBLISHABLE_KEY')
-	}	get supabaseJwtAlgorithm(): string {
-		return this.get('SUPABASE_JWT_ALGORITHM') ?? 'HS256'
-	}
-
-	get supabaseJwtSecret(): string {
-		const secret = this.get('SUPABASE_JWT_SECRET')
-		if (!secret) {
-			throw new Error(
-				'SUPABASE_JWT_SECRET is required. Get this from your Supabase dashboard under Settings > JWT Keys > JWT Secret'
-			)
-		}
-		return secret
-	}
-
-	getSupabaseJwtSecretOptional(): string | undefined {
-		return this.get('SUPABASE_JWT_SECRET')
 	}
 
 	getSupabaseProjectRef(): string {
-		return this.get('SUPABASE_PROJECT_REF')
+		return this.get('PROJECT_REF')
 	}
 
-	getSupabaseAuthWebhookSecret(): string | undefined {
-		return this.get('SUPABASE_AUTH_WEBHOOK_SECRET')
+	getAuthWebhookSecret(): string | undefined {
+		return this.get('AUTH_WEBHOOK_SECRET')
 	}
 
 	// ==================== CORS ====================

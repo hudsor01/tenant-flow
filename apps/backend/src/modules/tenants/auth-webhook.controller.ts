@@ -77,7 +77,7 @@ export class AuthWebhookController {
 
 			for (let i = 0; i < signatures.length; i += 2) {
 				if (signatures[i] === 'v1' && signatures[i + 1]) {
-					v1Signatures.push(signatures[i + 1]!) // Non-null assertion - checked in if condition
+					v1Signatures.push(signatures[i + 1]!)
 				}
 			}
 
@@ -125,7 +125,7 @@ export class AuthWebhookController {
 
 		try {
 			// SECURITY: Verify webhook signature
-			const webhookSecret = this.appConfigService.getSupabaseAuthWebhookSecret()
+			const webhookSecret = this.appConfigService.getAuthWebhookSecret()
 
 			if (!webhookSecret) {
 				throw new BadRequestException('Webhook secret not configured')
@@ -139,12 +139,10 @@ export class AuthWebhookController {
 			const secret = webhookSecret.replace(/^v1,whsec_/, '')
 			const rawBody = req.rawBody?.toString('utf8') || ''
 
-			// At this point, webhookSignature and webhookTimestamp are guaranteed to be strings
-			// (we checked for undefined above)
 			const isValid = this.verifyWebhookSignature(
 				rawBody,
-				webhookSignature!, // Non-null assertion - checked above
-				webhookTimestamp!, // Non-null assertion - checked above
+				webhookSignature,
+				webhookTimestamp,
 				secret
 			)
 
@@ -166,8 +164,7 @@ export class AuthWebhookController {
 				throw new BadRequestException('Invalid webhook payload')
 			}
 
-			// Payload is guaranteed to be defined after successful parse
-			const confirmedPayload = payload!
+			const confirmedPayload = payload
 
 			// Log webhook receipt
 			this.logger.log('Received Supabase Auth webhook', {
