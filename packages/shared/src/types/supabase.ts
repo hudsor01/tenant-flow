@@ -1572,6 +1572,11 @@ export type Database = {
       get_tenant_lease_ids: { Args: never; Returns: string[] }
       get_tenant_property_ids: { Args: never; Returns: string[] }
       get_tenant_unit_ids: { Args: never; Returns: string[] }
+      get_tenants_by_owner: { Args: { p_user_id: string }; Returns: string[] }
+      get_tenants_with_lease_by_owner: {
+        Args: { p_user_id: string }
+        Returns: string[]
+      }
       get_user_dashboard_activities: {
         Args: { p_limit?: number; p_offset?: number; p_user_id: string }
         Returns: {

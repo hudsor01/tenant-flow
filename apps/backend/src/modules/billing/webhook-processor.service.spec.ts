@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
-import { WebhookProcessor } from './webhook-processor.service'
+import { WebhookProcessor, MAX_PAYMENT_RETRY_ATTEMPTS } from './webhook-processor.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { EmailService } from '../email/email.service'
 
@@ -113,11 +113,11 @@ describe('WebhookProcessor handlePaymentIntentFailed', () => {
 		expect(emailService.sendPaymentFailedEmail).not.toHaveBeenCalled()
 	})
 
-	it('marks isLastAttempt=true when attempt_count >= 3', async () => {
+	it(`marks isLastAttempt=true when attempt_count >= ${MAX_PAYMENT_RETRY_ATTEMPTS}`, async () => {
 		await buildModule('tenant@example.com')
 
 		const paymentIntent = buildPaymentIntent({
-			metadata: { lease_id: 'lease_123', attempt_count: '3' }
+			metadata: { lease_id: 'lease_123', attempt_count: String(MAX_PAYMENT_RETRY_ATTEMPTS) }
 		})
 
 		// @ts-expect-error accessing private for targeted test
@@ -126,16 +126,17 @@ describe('WebhookProcessor handlePaymentIntentFailed', () => {
 		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
 			expect.objectContaining({
 				isLastAttempt: true,
-				attemptCount: 3
+				attemptCount: MAX_PAYMENT_RETRY_ATTEMPTS
 			})
 		)
 	})
 
-	it('marks isLastAttempt=true when attempt_count exceeds 3', async () => {
+	it(`marks isLastAttempt=true when attempt_count exceeds ${MAX_PAYMENT_RETRY_ATTEMPTS}`, async () => {
 		await buildModule('tenant@example.com')
+		const exceededAttempts = MAX_PAYMENT_RETRY_ATTEMPTS + 2
 
 		const paymentIntent = buildPaymentIntent({
-			metadata: { lease_id: 'lease_123', attempt_count: '5' }
+			metadata: { lease_id: 'lease_123', attempt_count: String(exceededAttempts) }
 		})
 
 		// @ts-expect-error accessing private for targeted test
@@ -144,7 +145,7 @@ describe('WebhookProcessor handlePaymentIntentFailed', () => {
 		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
 			expect.objectContaining({
 				isLastAttempt: true,
-				attemptCount: 5
+				attemptCount: exceededAttempts
 			})
 		)
 	})
