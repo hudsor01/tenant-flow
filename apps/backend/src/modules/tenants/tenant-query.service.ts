@@ -143,82 +143,45 @@ export class TenantQueryService {
 		return (data as Tenant[]) || []
 	}
 
+	/**
+	 * Fetch tenants for a property owner using a single optimized JOIN query
+	 *
+	 * Uses Supabase's !inner join syntax to traverse:
+	 * lease_tenants -> leases -> units -> properties -> property_owners
+	 * in a single database round trip (eliminates N+1 query pattern)
+	 */
 	private async fetchTenantsByOwner(userId: string, filters: ListFilters) {
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
-		// First, look up the property_owners.id for this auth user
-		const { data: ownerRecord } = await this.supabase
-			.getAdminClient()
-			.from('property_owners')
-			.select('id')
-			.eq('user_id', userId)
-			.maybeSingle()
-
-		if (!ownerRecord?.id) {
-			// User is not a property owner, return empty array
-			return []
-		}
-
-		// Get all property IDs owned by this owner (for DB-level filtering)
-		const { data: properties } = await this.supabase
-			.getAdminClient()
-			.from('properties')
-			.select('id')
-			.eq('property_owner_id', ownerRecord.id)
-
-		if (!properties?.length) {
-			return []
-		}
-
-		const propertyIds = properties.map(p => p.id)
-
-		// Get all unit IDs for these properties
-		const { data: units } = await this.supabase
-			.getAdminClient()
-			.from('units')
-			.select('id')
-			.in('property_id', propertyIds)
-
-		if (!units?.length) {
-			return []
-		}
-
-		const unitIds = units.map(u => u.id)
-
-		// Get all lease IDs for these units
-		const { data: leases } = await this.supabase
-			.getAdminClient()
-			.from('leases')
-			.select('id')
-			.in('unit_id', unitIds)
-
-		if (!leases?.length) {
-			return []
-		}
-
-		const leaseIds = leases.map(l => l.id)
-
-		// Build query for tenants - filter by lease_id at DB level
+		// Single query with inner joins to filter by owner
 		let query = this.supabase
 			.getAdminClient()
 			.from('lease_tenants')
-			.select(
-				`
-					tenant_id,
-					tenant:tenants(
+			.select(`
+				tenant_id,
+				tenant:tenants(
+					id,
+					user_id,
+					emergency_contact_name,
+					emergency_contact_phone,
+					emergency_contact_relationship,
+					identity_verified,
+					created_at,
+					updated_at
+				),
+				lease:leases!inner(
+					id,
+					unit:units!inner(
 						id,
-						user_id,
-						emergency_contact_name,
-						emergency_contact_phone,
-						emergency_contact_relationship,
-						identity_verified,
-						created_at,
-						updated_at
+						property:properties!inner(
+							id,
+							property_owner:property_owners!inner(user_id)
+						)
 					)
-				`
-			)
-			.in('lease_id', leaseIds)
+				)
+			`)
+			.eq('lease.unit.property.property_owner.user_id', userId)
 			.not('tenant_id', 'is', null)
 
 		// Apply search filter at DB level if provided
@@ -241,7 +204,6 @@ export class TenantQueryService {
 		}
 
 		// Filter out rows where tenant is null and extract tenant data
-		// Using simple filter + map instead of type predicate to match Supabase inferred types
 		return (data ?? [])
 			.filter(row => row.tenant !== null)
 			.map(row => row.tenant as Tenant)
@@ -366,7 +328,7 @@ export class TenantQueryService {
 
 		if (error) {
 			this.logger.error('Failed to fetch tenants with lease by user', { error: error.message, userId })
-			return []
+			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
 		return this.transformTenantsWithLease(data)
@@ -480,7 +442,7 @@ export class TenantQueryService {
 
 		if (error) {
 			this.logger.error('Failed to fetch tenants with lease by owner', { error: error.message, ownerId })
-			return []
+			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
 		// Type assertion after DB-level filtering
