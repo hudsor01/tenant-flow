@@ -466,10 +466,13 @@ export class TenantQueryService {
 			.eq('lease.unit.property.property_owner_id', ownerId)
 			.eq('lease.lease_status', 'active')
 
-		// Apply search filter at DB level if provided
+		// Apply search filter at DB level if provided (with proper ILIKE escaping)
 		if (searchTerm) {
 			query = query.or(
-				`tenant.emergency_contact_name.ilike.%${searchTerm}%,tenant.emergency_contact_phone.ilike.%${searchTerm}%`
+				buildMultiColumnSearch(searchTerm, [
+					'tenant.emergency_contact_name',
+					'tenant.emergency_contact_phone'
+				])
 			)
 		}
 
