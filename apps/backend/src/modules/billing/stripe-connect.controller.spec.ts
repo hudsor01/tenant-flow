@@ -138,14 +138,10 @@ describe('StripeConnectController', () => {
 			await buildModule({ propertyOwner: { stripe_account_id: null } })
 
 			// @ts-expect-error accessing private for targeted test
-			await expect(controller.getStripeAccountId('user_123')).rejects.toThrow(
-				BadRequestException
-			)
-
-			// @ts-expect-error accessing private for targeted test
-			await expect(controller.getStripeAccountId('user_123')).rejects.toThrow(
-				'No Stripe Connect account found'
-			)
+			await expect(controller.getStripeAccountId('user_123')).rejects.toMatchObject({
+				name: 'BadRequestException',
+				message: 'No Stripe Connect account found. Please complete onboarding first.'
+			})
 		})
 
 		it('throws BadRequestException when property owner not found', async () => {
