@@ -58,11 +58,14 @@ export class TenantInvitationTokenService {
 				return { valid: false, error: 'Token has already been used' }
 			}
 
-			return {
+			const result: { valid: boolean; unit_id?: string; email?: string; error?: string } = {
 				valid: true,
-				unit_id: data.unit_id,
 				email: data.email
 			}
+			if (data.unit_id) {
+				result.unit_id = data.unit_id
+			}
+			return result
 		} catch (error) {
 			this.logger.error('Error validating token', {
 				error: error instanceof Error ? error.message : String(error)

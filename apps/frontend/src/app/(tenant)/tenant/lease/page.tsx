@@ -7,6 +7,7 @@
  * - Rent amount
  * - Security deposit
  * - Lease agreement document
+ * - Signature status and signing capability
  */
 
 'use client'
@@ -20,6 +21,9 @@ import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { formatCurrency } from '@repo/shared/utils/formatting'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
+import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
+import { SignLeaseButton } from '#components/leases/sign-lease-button'
+import { LEASE_STATUS } from '#lib/constants/status-values'
 
 export default function TenantLeasePage() {
 	const { data: lease, isLoading } = useQuery(leaseQueries.tenantPortalActive())
@@ -55,15 +59,34 @@ export default function TenantLeasePage() {
 						View your current lease details and agreement
 					</p>
 				</div>
-				{lease?.lease_status === 'active' && (
-					<Badge
-						variant="outline"
-						className="bg-success/10 text-success border-success/20"
-					>
-						Active
-					</Badge>
-				)}
+				<div className="flex items-center gap-3">
+					{lease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
+						<SignLeaseButton
+							leaseId={lease.id}
+							role="tenant"
+							alreadySigned={!!lease.tenant_signed_at}
+						/>
+					)}
+					{lease?.lease_status === 'ACTIVE' && (
+						<Badge
+							variant="outline"
+							className="bg-success/10 text-success border-success/20"
+						>
+							Active
+						</Badge>
+					)}
+					{lease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
+						<Badge variant="secondary">
+							Pending Signature
+						</Badge>
+					)}
+				</div>
 			</div>
+
+			{/* Signature Status - Show when pending signature */}
+			{lease && lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
+				<LeaseSignatureStatus leaseId={lease.id} />
+			)}
 			{/* Property Information */}
 			<CardLayout title="Property Details" description="Your current residence">
 				<div className="space-y-4">

@@ -6,11 +6,9 @@ import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { TenantPaymentService } from './tenant-payment.service'
-import { TenantInvitationService } from './tenant-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
-import { TenantResendInvitationService } from './tenant-resend-invitation.service'
+import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
-import { StripeConnectedGuard } from '../../shared/guards/stripe-connected.guard'
 
 describe('TenantsController', () => {
 	let controller: TenantsController
@@ -19,9 +17,8 @@ describe('TenantsController', () => {
 	let mockEmergencyContactService: any
 	let mockNotificationPreferencesService: any
 	let mockPaymentService: any
-	let mockInvitationService: any
+	let mockPlatformInvitationService: any
 	let mockInvitationTokenService: any
-	let mockResendInvitationService: any
 
 	beforeEach(async () => {
 		mockQueryService = {
@@ -62,19 +59,16 @@ describe('TenantsController', () => {
 			sendPaymentReminder: jest.fn()
 		}
 
-		mockInvitationService = {
-			inviteTenantWithLease: jest.fn(),
-			sendInvitation: jest.fn()
+		mockPlatformInvitationService = {
+			inviteToPlatform: jest.fn(),
+			resendInvitation: jest.fn(),
+			cancelInvitation: jest.fn()
 		}
 
 		mockInvitationTokenService = {
 			validateToken: jest.fn(),
 			acceptToken: jest.fn(),
 			activateTenantFromAuthUser: jest.fn()
-		}
-
-		mockResendInvitationService = {
-			resendInvitation: jest.fn()
 		}
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -85,14 +79,11 @@ describe('TenantsController', () => {
 				{ provide: TenantEmergencyContactService, useValue: mockEmergencyContactService },
 				{ provide: TenantNotificationPreferencesService, useValue: mockNotificationPreferencesService },
 				{ provide: TenantPaymentService, useValue: mockPaymentService },
-				{ provide: TenantInvitationService, useValue: mockInvitationService },
-				{ provide: TenantInvitationTokenService, useValue: mockInvitationTokenService },
-				{ provide: TenantResendInvitationService, useValue: mockResendInvitationService }
+				{ provide: TenantPlatformInvitationService, useValue: mockPlatformInvitationService },
+				{ provide: TenantInvitationTokenService, useValue: mockInvitationTokenService }
 			]
 		})
 		.overrideGuard(PropertyOwnershipGuard)
-		.useValue({ canActivate: () => true })
-		.overrideGuard(StripeConnectedGuard)
 		.useValue({ canActivate: () => true })
 		.compile()
 
@@ -236,8 +227,8 @@ describe('TenantsController', () => {
 	})
 
 	describe('Invitation Endpoints', () => {
-		describe('inviteTenantWithLease', () => {
-			it('should invite tenant with lease', async () => {
+		describe('inviteToPlatform', () => {
+			it('should invite tenant to platform', async () => {
 				const mockReq = { user: { id: 'user-1' } }
 				const inviteDto = {
 					tenantData: {
@@ -248,29 +239,71 @@ describe('TenantsController', () => {
 					},
 					leaseData: {
 						property_id: 'property-1',
-						unit_id: 'unit-1',
-						start_date: '2025-01-01',
-						rent_amount: 1000,
-						security_deposit: 500
+						unit_id: 'unit-1'
 					}
 				}
-				const mockResult = { tenant: { id: 'tenant-1' }, lease: { id: 'lease-1' } }
-				mockInvitationService.inviteTenantWithLease.mockResolvedValue(mockResult)
+				const mockResult = { tenant_id: 'tenant-1', invitation_id: 'inv-1' }
+				mockPlatformInvitationService.inviteToPlatform.mockResolvedValue(mockResult)
 
-				const result = await controller.inviteTenantWithLease(inviteDto as any, mockReq as any)
+				const result = await controller.inviteToPlatform(inviteDto as any, mockReq as any)
 
 				expect(result).toEqual(mockResult)
+				expect(mockPlatformInvitationService.inviteToPlatform).toHaveBeenCalledWith('user-1', {
+					email: 'tenant@example.com',
+					first_name: 'John',
+					last_name: 'Doe',
+					phone: '555-0100',
+					property_id: 'property-1',
+					unit_id: 'unit-1'
+				})
+			})
+
+			it('should invite tenant without lease data (platform-only)', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				const inviteDto = {
+					tenantData: {
+						email: 'tenant@example.com',
+						first_name: 'John',
+						last_name: 'Doe'
+					}
+				}
+				const mockResult = { tenant_id: 'tenant-1', invitation_id: 'inv-1' }
+				mockPlatformInvitationService.inviteToPlatform.mockResolvedValue(mockResult)
+
+				const result = await controller.inviteToPlatform(inviteDto as any, mockReq as any)
+
+				expect(result).toEqual(mockResult)
+				expect(mockPlatformInvitationService.inviteToPlatform).toHaveBeenCalledWith('user-1', {
+					email: 'tenant@example.com',
+					first_name: 'John',
+					last_name: 'Doe',
+					phone: undefined,
+					property_id: undefined,
+					unit_id: undefined
+				})
 			})
 		})
 
 		describe('resendInvitation', () => {
 			it('should resend invitation', async () => {
 				const mockReq = { user: { id: 'user-1' } }
-				mockResendInvitationService.resendInvitation.mockResolvedValue(undefined)
+				mockPlatformInvitationService.resendInvitation.mockResolvedValue(undefined)
 
 				await controller.resendInvitation('tenant-1', mockReq as any)
 
-				expect(mockResendInvitationService.resendInvitation).toHaveBeenCalledWith('user-1', 'tenant-1')
+				expect(mockPlatformInvitationService.resendInvitation).toHaveBeenCalledWith('user-1', 'tenant-1')
+			})
+		})
+
+		describe('cancelInvitation', () => {
+			it('should cancel invitation', async () => {
+				const mockReq = { user: { id: 'user-1' } }
+				mockPlatformInvitationService.cancelInvitation.mockResolvedValue(undefined)
+
+				const result = await controller.cancelInvitation('inv-1', mockReq as any)
+
+				expect(result).toEqual({ success: true })
+				expect(mockPlatformInvitationService.cancelInvitation).toHaveBeenCalledWith('user-1', 'inv-1')
 			})
 		})
 
