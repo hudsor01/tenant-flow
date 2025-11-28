@@ -42,13 +42,14 @@ export class LeaseExpiryCheckerService {
 			const adminClient = this.supabase.getAdminClient()
 
 			// Query leases expiring within 95 days
+			// Note: leases -> units -> properties (not direct leases -> properties)
+			// Tenant name comes from users table via tenants.user_id
 			const { data, error } = await adminClient
 				.from('leases')
 				.select(
 					'id, end_date, lease_status, unit_id, ' +
-					'tenant:tenants!primary_tenant_id(id, name), ' +
-					'unit:units!unit_id(id, unit_number, property_id), ' +
-					'property:properties!inner(id, name, owner_id)'
+					'tenant:tenants!primary_tenant_id(id, user_id, users(full_name)), ' +
+					'unit:units!unit_id(id, unit_number, property_id, property:properties(id, name, property_owner_id))'
 				)
 				.eq('lease_status', 'active')
 				.not('end_date', 'is', null)
@@ -67,9 +68,13 @@ export class LeaseExpiryCheckerService {
 				end_date: string
 				lease_status: string
 				unit_id: string
-				property?: { id: string; name: string; owner_id: string }
-				tenant?: { id: string; name: string }
-				unit?: { id: string; unit_number: string; property_id: string }
+				tenant?: { id: string; user_id: string; users?: { full_name: string | null } }
+				unit?: {
+					id: string
+					unit_number: string
+					property_id: string
+					property?: { id: string; name: string; property_owner_id: string }
+				}
 			}>
 
 			if (leases.length === 0) {
@@ -85,21 +90,24 @@ export class LeaseExpiryCheckerService {
 
 				// Only emit if in notification window (25-95 days)
 				if (daysUntilExpiry >= 25 && daysUntilExpiry < 95) {
-					// Validate property and owner_id exist before processing
-					if (!lease.property || !lease.property.owner_id) {
-						this.logger.warn('Skipping lease expiring event: missing property or owner_id', {
+					// Property is now nested under unit (leases -> units -> properties)
+					const property = lease.unit?.property
+
+					// Validate property and property_owner_id exist before processing
+					if (!property || !property.property_owner_id) {
+						this.logger.warn('Skipping lease expiring event: missing property or property_owner_id', {
 							lease_id: lease.id,
-							property_id: lease.property?.id,
+							property_id: property?.id,
 							tenant_id: lease.tenant?.id
 						})
 						continue
 					}
 
 					const event = new LeaseExpiringEvent(
-						lease.property.owner_id,
-					lease.tenant?.name ?? 'Unknown Tenant',
-					lease.property?.name ?? 'Unknown Property',
-					lease.unit?.unit_number ?? 'Unknown Unit',
+						property.property_owner_id,
+						lease.tenant?.users?.full_name ?? 'Unknown Tenant',
+						property.name ?? 'Unknown Property',
+						lease.unit?.unit_number ?? 'Unknown Unit',
 						lease.end_date,
 						daysUntilExpiry
 					)
