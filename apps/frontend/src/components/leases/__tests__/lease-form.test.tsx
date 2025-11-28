@@ -109,7 +109,14 @@ const mockLease: Lease = {
   payment_day: 1,
   rent_currency: 'USD',
   created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z'
+  updated_at: '2024-01-01T00:00:00Z',
+  // Signature tracking fields
+  docuseal_submission_id: null,
+  owner_signed_at: null,
+  owner_signature_ip: null,
+  tenant_signed_at: null,
+  tenant_signature_ip: null,
+  sent_for_signature_at: null
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {
