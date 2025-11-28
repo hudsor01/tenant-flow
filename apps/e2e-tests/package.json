@@ -25,10 +25,10 @@
 		"@lhci/cli": "0.15.1",
 		"@playwright/test": "1.56.1",
 		"@repo/eslint-config": "workspace:*",
-		"@types/node": "catalog:",
-		"eslint": "catalog:",
+		"@types/node": "catalog:default",
+		"eslint": "catalog:default",
 		"lighthouse": "13.0.1",
-		"typescript": "catalog:"
+		"typescript": "catalog:default"
 	},
 	"dependencies": {
 		"@repo/shared": "workspace:*"

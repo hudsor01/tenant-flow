@@ -70,7 +70,7 @@ importers:
         specifier: 9.1.7
         version: 9.1.7
       prettier:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 3.6.2
       rimraf:
         specifier: ^6.1.0
@@ -104,7 +104,7 @@ importers:
         specifier: 1.15.2
         version: 1.15.2(@swc/helpers@0.5.17)
       eslint:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
       globals:
         specifier: 16.5.0
@@ -201,7 +201,7 @@ importers:
         specifier: 0.45.0
         version: 0.45.0(stripe@20.0.0(@types/node@24.10.0))
       '@supabase/supabase-js':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 2.84.0
       '@types/pg':
         specifier: 8.15.6
@@ -352,13 +352,13 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5
       '@types/jest':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 30.0.0
       '@types/multer':
         specifier: 2.0.0
         version: 2.0.0
       '@types/node':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 24.10.0
       '@types/react':
         specifier: 19.2.6
@@ -370,13 +370,13 @@ importers:
         specifier: 17.2.3
         version: 17.2.3
       eslint:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
       globals:
         specifier: 16.5.0
         version: 16.5.0
       jest:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 30.2.0(@types/node@24.10.0)(ts-node@10.9.2(@swc/core@1.15.2(@swc/helpers@0.5.17))(@types/node@24.10.0)(typescript@5.9.3))
       rimraf:
         specifier: ^6.1.0
@@ -419,10 +419,10 @@ importers:
         specifier: workspace:*
         version: link:../../packages/eslint-config
       '@types/node':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 24.10.0
       eslint:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
       lighthouse:
         specifier: 13.0.1
@@ -548,7 +548,7 @@ importers:
         specifier: 0.7.0
         version: 0.7.0(@supabase/supabase-js@2.84.0)
       '@supabase/supabase-js':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 2.84.0
       '@t3-oss/env-nextjs':
         specifier: 0.13.8
@@ -693,7 +693,7 @@ importers:
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.1)
       '@types/node':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 24.10.0
       '@types/react':
         specifier: 19.2.6
@@ -717,7 +717,7 @@ importers:
         specifier: 4.0.13
         version: 4.0.13(vitest@4.0.13)
       eslint:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
       eslint-config-next:
         specifier: 16.0.3
@@ -814,10 +814,10 @@ importers:
   packages/shared:
     dependencies:
       '@supabase/ssr':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 0.7.0(@supabase/supabase-js@2.84.0)
       '@supabase/supabase-js':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 2.84.0
       '@tanstack/react-query':
         specifier: 5.90.10
@@ -830,7 +830,7 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5
       '@types/node':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 24.10.0
       '@types/react':
         specifier: 19.2.6
@@ -839,7 +839,7 @@ importers:
         specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.6)
       eslint:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
       rimraf:
         specifier: ^6.1.0
@@ -867,16 +867,16 @@ importers:
         version: 14.6.1(@testing-library/dom@10.4.1)
     devDependencies:
       '@types/jest':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 30.0.0
       '@types/node':
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 24.10.0
       eslint:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
       jest:
-        specifier: 'catalog:'
+        specifier: catalog:default
         version: 30.2.0(@types/node@24.10.0)(ts-node@10.9.2(@swc/core@1.15.2(@swc/helpers@0.5.17))(@types/node@24.10.0)(typescript@5.9.3))
       rimraf:
         specifier: ^6.1.0
