@@ -47,15 +47,22 @@ const environmentSchema = z.object({
 		z.string().url('Must be a valid URL')
 	),
 	/**
-	 * Supabase Service Role Key - Used ONLY for:
+	 * Supabase Secret Key (sb_secret_*) - Used ONLY for:
 	 * 1. Webhook handlers (Stripe, Supabase Auth) - no user context available
 	 * 2. Background jobs and cron tasks
 	 * 3. System health checks
 	 *
+	 * This key bypasses RLS and has elevated permissions.
+	 * The old SERVICE_ROLE JWT key is deprecated - use the new sb_secret_* format.
+	 *
 	 * WARNING: User-facing requests should use getUserClient(jwt) which respects RLS
 	 * If you're tempted to use getAdminClient() for user requests, your RLS policies are wrong
 	 */
-	SERVICE_ROLE: z.string(),
+	SB_SECRET_KEY: z.string(),
+	/**
+	 * @deprecated Use SB_SECRET_KEY instead. Legacy JWT service role keys are disabled.
+	 */
+	SERVICE_ROLE: z.string().optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.preprocess(
 		(val) => val || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		z.string()

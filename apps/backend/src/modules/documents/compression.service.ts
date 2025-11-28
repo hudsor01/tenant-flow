@@ -108,10 +108,14 @@ export class CompressionService {
 		}
 
 		// Validate PDF header before attempting to load
-		const pdfHeader = buffer.toString('utf-8', 0, 4)
+		const headerBytes = buffer.subarray(0, 4)
+		const pdfHeader = headerBytes.toString('utf-8')
 		if (!pdfHeader.startsWith('%PDF')) {
+			// Show hex for non-printable characters (control chars, etc.)
+			const isPrintable = /^[\x20-\x7E]*$/.test(pdfHeader)
+			const displayHeader = isPrintable ? pdfHeader : `0x${headerBytes.toString('hex')}`
 			this.logger.debug(
-				`Invalid PDF header detected. Expected '%PDF', got '${pdfHeader}' - skipping compression`
+				`Invalid PDF header detected. Expected '%PDF', got '${displayHeader}' - skipping compression`
 			)
 			return buffer
 		}
