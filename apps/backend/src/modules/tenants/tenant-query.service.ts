@@ -160,17 +160,52 @@ export class TenantQueryService {
 			return []
 		}
 
-		// Build base query for tenants through lease relationship
-		// NOTE: Using standard joins with NOT NULL filters instead of !inner syntax
-		// to maintain TypeScript type inference with @supabase/supabase-js
-		// The NOT NULL filters achieve the same result as INNER JOINs
-		const query = this.supabase
+		// Get all property IDs owned by this owner (for DB-level filtering)
+		const { data: properties } = await this.supabase
+			.getAdminClient()
+			.from('properties')
+			.select('id')
+			.eq('property_owner_id', ownerRecord.id)
+
+		if (!properties?.length) {
+			return []
+		}
+
+		const propertyIds = properties.map(p => p.id)
+
+		// Get all unit IDs for these properties
+		const { data: units } = await this.supabase
+			.getAdminClient()
+			.from('units')
+			.select('id')
+			.in('property_id', propertyIds)
+
+		if (!units?.length) {
+			return []
+		}
+
+		const unitIds = units.map(u => u.id)
+
+		// Get all lease IDs for these units
+		const { data: leases } = await this.supabase
+			.getAdminClient()
+			.from('leases')
+			.select('id')
+			.in('unit_id', unitIds)
+
+		if (!leases?.length) {
+			return []
+		}
+
+		const leaseIds = leases.map(l => l.id)
+
+		// Build query for tenants - filter by lease_id at DB level
+		let query = this.supabase
 			.getAdminClient()
 			.from('lease_tenants')
 			.select(
 				`
 					tenant_id,
-					lease_id,
 					tenant:tenants(
 						id,
 						user_id,
@@ -180,24 +215,23 @@ export class TenantQueryService {
 						identity_verified,
 						created_at,
 						updated_at
-					),
-					lease:leases(
-						id,
-						unit_id,
-						unit:units(
-							id,
-							property_id,
-							property:properties(
-								id,
-								property_owner_id
-							)
-						)
 					)
 				`
 			)
-			// Filter to ensure we have complete relationship chains (equivalent to INNER JOIN)
+			.in('lease_id', leaseIds)
 			.not('tenant_id', 'is', null)
-			.not('lease_id', 'is', null)
+
+		// Apply search filter at DB level if provided
+		if (filters.search) {
+			const sanitizedSearch = sanitizeSearchInput(filters.search)
+			if (sanitizedSearch) {
+				const searchFilter = buildMultiColumnSearch(
+					sanitizedSearch,
+					['emergency_contact_name', 'emergency_contact_phone']
+				)
+				query = query.or(searchFilter, { foreignTable: 'tenants' })
+			}
+		}
 
 		const { data, error } = await query.range(offset, offset + limit - 1)
 
@@ -206,40 +240,11 @@ export class TenantQueryService {
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		// Filter results to only include tenants belonging to this owner's properties
-		// and apply search filter if provided
-		const searchTerm = filters.search ? sanitizeSearchInput(filters.search)?.toLowerCase() : null
-
-		return ((data ?? []) as Array<{
-			tenant_id: string
-			lease_id: string
-			tenant: Tenant | null
-			lease: {
-				id: string
-				unit_id: string
-				unit: {
-					id: string
-					property_id: string
-					property: { id: string; property_owner_id: string } | null
-				} | null
-			} | null
-		}>)
-			.filter(row => {
-				// Ensure complete relationship chain exists
-				if (!row.tenant || !row.lease?.unit?.property) return false
-				// Filter by property owner
-				if (row.lease.unit.property.property_owner_id !== ownerRecord.id) return false
-				// Apply search filter if provided
-				if (searchTerm) {
-					const contactName = row.tenant.emergency_contact_name?.toLowerCase() ?? ''
-					const contactPhone = row.tenant.emergency_contact_phone?.toLowerCase() ?? ''
-					if (!contactName.includes(searchTerm) && !contactPhone.includes(searchTerm)) {
-						return false
-					}
-				}
-				return true
-			})
-			.map(row => row.tenant!)
+		// Filter out rows where tenant is null and extract tenant data
+		// Using simple filter + map instead of type predicate to match Supabase inferred types
+		return (data ?? [])
+			.filter(row => row.tenant !== null)
+			.map(row => row.tenant as Tenant)
 	}
 
 	/**

@@ -26,9 +26,9 @@ export class SupabaseModule {
 						const key = config.getSupabaseSecretKey()
 
 						if (!url || !key) {
-							// Helpful error to aid developers who forget to run with Doppler
 							throw new Error(
-								'Missing Supabase configuration - ensure you run the process with Doppler (e.g. `doppler run -- pnpm dev`) or set SUPABASE_URL and SERVICE_ROLE in the environment.'
+								'Missing Supabase configuration - ensure you run with Doppler (e.g. `doppler run -- pnpm dev`) ' +
+								'or set SUPABASE_URL and SERVICE_ROLE environment variables.'
 							)
 						}
 
@@ -37,6 +37,11 @@ export class SupabaseModule {
 							`[ADMIN_CLIENT_INIT] URL=${url?.substring(0, 35)}..., KEY_PREFIX=${key?.substring(0, 20)}...`
 						)
 
+						// NOTE: This admin client bypasses RLS - use ONLY for:
+						// 1. Webhooks (Stripe, Auth) where there's no user context
+						// 2. Background jobs and cron tasks
+						// 3. Health checks
+						// For user requests, use SupabaseService.getUserClient(token) instead
 						return createClient(url, key, {
 						auth: {
 							persistSession: false,

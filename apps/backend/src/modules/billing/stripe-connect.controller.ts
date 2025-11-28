@@ -106,9 +106,12 @@ export class StripeConnectController {
 	 */
 	private validateLimit(limit?: string): number {
 		if (!limit) return DEFAULT_PAGINATION_LIMIT
+		// Trim whitespace before validation
+		const trimmed = limit.trim()
+		if (!trimmed) return DEFAULT_PAGINATION_LIMIT
 		// Validate format: only digits allowed (no negative signs, decimals, etc.)
-		if (!/^\d+$/.test(limit)) return DEFAULT_PAGINATION_LIMIT
-		const parsed = parseInt(limit, 10)
+		if (!/^\d+$/.test(trimmed)) return DEFAULT_PAGINATION_LIMIT
+		const parsed = parseInt(trimmed, 10)
 		// Clamp to valid range: at least 1, at most MAX_PAGINATION_LIMIT
 		return Math.min(Math.max(parsed, 1), MAX_PAGINATION_LIMIT)
 	}
