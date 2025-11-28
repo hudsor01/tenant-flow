@@ -1,6 +1,6 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { BadRequestException, NotFoundException, Logger } from '@nestjs/common'
+import { BadRequestException, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common'
 import { TenantQueryService } from './tenant-query.service'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -98,12 +98,23 @@ describe('TenantQueryService', () => {
 		})
 
 		it('should handle database errors gracefully', async () => {
+			// When direct query fails, it throws BadRequestException
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn(() => createMockChain(null, { message: 'DB error' })),
-				rpc: jest.fn(() => Promise.resolve({ data: null, error: { message: 'RPC error' } }))
+				rpc: jest.fn(() => Promise.resolve({ data: [], error: null })) // RPC succeeds but returns empty
 			}))
 
 			await expect(service.findAll('user-1')).rejects.toThrow(BadRequestException)
+		})
+
+		it('should handle RPC errors with InternalServerErrorException', async () => {
+			// When RPC fails, it throws InternalServerErrorException
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn(() => createMockChain([], null)), // Direct query succeeds
+				rpc: jest.fn(() => Promise.resolve({ data: null, error: { message: 'RPC error' } }))
+			}))
+
+			await expect(service.findAll('user-1')).rejects.toThrow(InternalServerErrorException)
 		})
 	})
 
