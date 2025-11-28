@@ -5,6 +5,7 @@ import {
 	Get,
 	Request,
 	BadRequestException,
+	InternalServerErrorException,
 	Logger,
 	NotFoundException,
 	Query,
@@ -93,8 +94,31 @@ export class StripeConnectController {
 	) {}
 
 	/**
-	 * Helper method to get Stripe account ID for the authenticated user
-	 * @throws BadRequestException if no Stripe account found
+	 * Validates and normalizes pagination limit parameter
+	 * @param limit - Optional string limit from query params
+	 * @returns Normalized limit between 1 and MAX_PAGINATION_LIMIT
+	 */
+	private validateLimit(limit?: string): number {
+		if (!limit) return DEFAULT_PAGINATION_LIMIT
+		const parsed = parseInt(limit, 10)
+		if (isNaN(parsed) || parsed < 1) return DEFAULT_PAGINATION_LIMIT
+		return Math.min(parsed, MAX_PAGINATION_LIMIT)
+	}
+
+	/**
+	 * Retrieves the Stripe Connect account ID for the authenticated user
+	 *
+	 * This helper method looks up the property_owner record for the given user
+	 * and returns their associated Stripe Connect account ID.
+	 *
+	 * @param userId - The authenticated user's ID (from auth.users)
+	 * @returns The Stripe Connect account ID (e.g., "acct_...")
+	 * @throws InternalServerErrorException if database query fails
+	 * @throws BadRequestException if user has no Stripe Connect account
+	 *
+	 * @example
+	 * const stripeAccountId = await this.getStripeAccountId(req.user.id)
+	 * // Returns: "acct_1234567890"
 	 */
 	private async getStripeAccountId(userId: string): Promise<string> {
 		const { data: propertyOwner, error } = await this.supabaseService
@@ -104,7 +128,17 @@ export class StripeConnectController {
 			.eq('user_id', userId)
 			.single()
 
-		if (error || !propertyOwner?.stripe_account_id) {
+		// Separate database errors (500) from missing account (400)
+		if (error) {
+			this.logger.error('Failed to fetch Stripe account', {
+				error: error.message,
+				code: error.code,
+				userId
+			})
+			throw new InternalServerErrorException('Failed to retrieve payment account')
+		}
+
+		if (!propertyOwner?.stripe_account_id) {
 			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
 		}
 
@@ -396,7 +430,7 @@ export class StripeConnectController {
 	) {
 		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		const parsedLimit = limit ? Math.min(parseInt(limit, 10), MAX_PAGINATION_LIMIT) : DEFAULT_PAGINATION_LIMIT
+		const parsedLimit = this.validateLimit(limit)
 		const options: { limit?: number; starting_after?: string } = {
 			limit: parsedLimit
 		}
@@ -470,7 +504,7 @@ export class StripeConnectController {
 	) {
 		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		const parsedLimit = limit ? Math.min(parseInt(limit, 10), MAX_PAGINATION_LIMIT) : DEFAULT_PAGINATION_LIMIT
+		const parsedLimit = this.validateLimit(limit)
 		const options: { limit?: number; starting_after?: string } = {
 			limit: parsedLimit
 		}
