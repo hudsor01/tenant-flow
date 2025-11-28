@@ -14,7 +14,7 @@ import { EmailService } from '../email/email.service'
 import { asStripeSchemaClient, type SupabaseError, type StripeCheckoutSession, type StripeCustomer, type StripeSubscription } from '../../types/stripe-schema'
 
 /** Maximum number of payment retry attempts before marking as final failure */
-const MAX_PAYMENT_RETRY_ATTEMPTS = 3
+export const MAX_PAYMENT_RETRY_ATTEMPTS = 3
 
 /** Tenant with user email from Supabase join query */
 interface TenantWithEmail {
