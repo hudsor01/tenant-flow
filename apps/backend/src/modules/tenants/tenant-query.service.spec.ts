@@ -71,7 +71,8 @@ describe('TenantQueryService', () => {
 			]
 
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain(mockTenants, null))
+				from: jest.fn(() => createMockChain(mockTenants, null)),
+				rpc: jest.fn(() => Promise.resolve({ data: [], error: null }))
 			}))
 
 			const result = await service.findAll('user-1')
@@ -82,7 +83,8 @@ describe('TenantQueryService', () => {
 
 		it('should apply search filter when provided', async () => {
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain([], null))
+				from: jest.fn(() => createMockChain([], null)),
+				rpc: jest.fn(() => Promise.resolve({ data: [], error: null }))
 			}))
 
 			const result = await service.findAll('user-1', { search: 'john' })
@@ -97,7 +99,8 @@ describe('TenantQueryService', () => {
 
 		it('should handle database errors gracefully', async () => {
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn(() => createMockChain(null, { message: 'DB error' }))
+				from: jest.fn(() => createMockChain(null, { message: 'DB error' })),
+				rpc: jest.fn(() => Promise.resolve({ data: null, error: { message: 'RPC error' } }))
 			}))
 
 			await expect(service.findAll('user-1')).rejects.toThrow(BadRequestException)
@@ -117,7 +120,8 @@ describe('TenantQueryService', () => {
 						return createMockChain(mockTenants, null)
 					}
 					return createMockChain(mockLeases, null)
-				})
+				}),
+				rpc: jest.fn(() => Promise.resolve({ data: [], error: null }))
 			}))
 
 			const result = await service.findAllWithLeaseInfo('user-1')
