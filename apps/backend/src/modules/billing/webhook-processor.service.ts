@@ -740,8 +740,8 @@ export class WebhookProcessor {
 							: 1
 						// Use latest_charge instead of deprecated charges.data
 						const latestCharge = paymentIntent.latest_charge
-						const invoiceUrl = typeof latestCharge === 'object' && latestCharge
-							? (latestCharge as Stripe.Charge).receipt_url ?? null
+						const invoiceUrl = latestCharge && typeof latestCharge === 'object' && 'receipt_url' in latestCharge
+							? latestCharge.receipt_url ?? null
 							: null
 						const isLastAttempt = attemptCount >= MAX_PAYMENT_RETRY_ATTEMPTS
 
