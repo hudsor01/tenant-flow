@@ -194,16 +194,16 @@ export async function authenticateAs(
 export function getServiceRoleClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	// SERVICE_ROLE is the service role JWT key that bypasses RLS
-	const serviceRoleKey = process.env.SERVICE_ROLE
+	// Prefer new sb_secret_* key, fall back to deprecated SERVICE_ROLE
+	const secretKey = process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE
 
-	if (!supabaseUrl || !serviceRoleKey) {
+	if (!supabaseUrl || !secretKey) {
 		throw new Error(
-			'Missing service role credentials (NEXT_PUBLIC_SUPABASE_URL and SERVICE_ROLE). Cannot run tests.'
+			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SB_SECRET_KEY). Cannot run tests.'
 		)
 	}
 
-	return createClient<Database>(supabaseUrl, serviceRoleKey, {
+	return createClient<Database>(supabaseUrl, secretKey, {
 		auth: {
 			autoRefreshToken: false,
 			persistSession: false,

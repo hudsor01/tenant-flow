@@ -50,7 +50,7 @@ describe('CompressionService - PDF compression', () => {
 		expect(result.ratio).toBe(1)
 	})
 
-	it('returns the original PDF if compression fails', async () => {
+	it('returns the original buffer for invalid PDF headers', async () => {
 		const invalidPdf = Buffer.alloc(
 			performanceConfig.optimization.compression.threshold + 100,
 			1

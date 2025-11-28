@@ -135,6 +135,8 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 		process.env.SUPABASE_PUBLISHABLE_KEY ??
 		null
 	const serviceuser_typeKey =
+		process.env.TEST_SB_SECRET_KEY ??
+		process.env.SB_SECRET_KEY ??
 		process.env.TEST_SERVICE_ROLE ??
 		process.env.SERVICE_ROLE ??
 		null
