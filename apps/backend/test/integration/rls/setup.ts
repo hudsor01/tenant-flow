@@ -194,8 +194,7 @@ export async function authenticateAs(
 export function getServiceRoleClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	// Prefer new sb_secret_* key, fall back to deprecated SERVICE_ROLE
-	const secretKey = process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE
+	const secretKey = process.env.SB_SECRET_KEY
 
 	if (!supabaseUrl || !secretKey) {
 		throw new Error(

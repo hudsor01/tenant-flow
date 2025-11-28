@@ -8,7 +8,6 @@ const BASE_CONFIG = {
 	JWT_SECRET: 'a'.repeat(32),
 	SUPABASE_URL: 'https://project.supabase.co',
 	SB_SECRET_KEY: 'sb_secret_test-key',
-	SERVICE_ROLE: 'secret-key', // deprecated, kept for backward compatibility
 	SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 	PROJECT_REF: 'project-ref',
 	STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',

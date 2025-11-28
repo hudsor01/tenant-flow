@@ -20,7 +20,6 @@
 		"SUPABASE_PUBLISHABLE_KEY",
 		"TEST_USER_ID",
 		"SUPABASE_URL",
-		"SERVICE_ROLE",
 		"VITEST"
 	],
 	"globalPassThroughEnv": ["CI", "NODE_ENV", "VERCEL_*", "GITHUB_*"],
@@ -94,7 +93,6 @@
 				"DATABASE_URL",
 				"SUPABASE_URL",
 				"SB_SECRET_KEY",
-				"SERVICE_ROLE",
 				"PROJECT_REF",
 				"JWT_SECRET"
 			],

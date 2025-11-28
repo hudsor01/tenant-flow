@@ -416,7 +416,10 @@ export class TenantQueryService {
 			lease: LeaseWithUnit | null
 		}
 
-		const query = this.supabase.getAdminClient()
+		// Apply search filter at DB level if provided
+		const searchTerm = filters.search ? sanitizeSearchInput(filters.search) : null
+
+		let query = this.supabase.getAdminClient()
 			.from('lease_tenants')
 			.select(`
 				tenant_id,
@@ -459,6 +462,16 @@ export class TenantQueryService {
 			`)
 			.not('tenant_id', 'is', null)
 			.not('lease_id', 'is', null)
+			// DB-level filters for property_owner_id and lease_status
+			.eq('lease.unit.property.property_owner_id', ownerId)
+			.eq('lease.lease_status', 'active')
+
+		// Apply search filter at DB level if provided
+		if (searchTerm) {
+			query = query.or(
+				`tenant.emergency_contact_name.ilike.%${searchTerm}%,tenant.emergency_contact_phone.ilike.%${searchTerm}%`
+			)
+		}
 
 		const { data, error } = await query.range(offset, offset + limit - 1)
 
@@ -467,27 +480,9 @@ export class TenantQueryService {
 			return []
 		}
 
-		// Apply filters client-side for type safety
-		const searchTerm = filters.search ? sanitizeSearchInput(filters.search)?.toLowerCase() : null
-
+		// Type assertion after DB-level filtering
 		return ((data ?? []) as QueryResult[])
-			.filter(row => {
-				// Ensure complete relationship chain exists
-				if (!row.tenant || !row.lease?.unit?.property) return false
-				// Filter by property owner
-				if (row.lease.unit.property.property_owner_id !== ownerId) return false
-				// Filter by active lease status
-				if (row.lease.lease_status !== 'active') return false
-				// Apply search filter if provided
-				if (searchTerm) {
-					const contactName = row.tenant.emergency_contact_name?.toLowerCase() ?? ''
-					const contactPhone = row.tenant.emergency_contact_phone?.toLowerCase() ?? ''
-					if (!contactName.includes(searchTerm) && !contactPhone.includes(searchTerm)) {
-						return false
-					}
-				}
-				return true
-			})
+			.filter(row => row.tenant && row.lease?.unit?.property)
 			.map(row => ({
 				...row.tenant!,
 				lease: row.lease as unknown as Lease

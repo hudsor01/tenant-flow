@@ -1,8 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
-// Prefer new sb_secret_* key, fall back to deprecated SERVICE_ROLE
-const SB_SECRET_KEY = process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE!
+const SB_SECRET_KEY = process.env.SB_SECRET_KEY!
 
 if (!SUPABASE_URL || !SB_SECRET_KEY) {
 	// Allow tests to import the module even if env not set; runtime will throw when used.

@@ -53,16 +53,11 @@ const environmentSchema = z.object({
 	 * 3. System health checks
 	 *
 	 * This key bypasses RLS and has elevated permissions.
-	 * The old SERVICE_ROLE JWT key is deprecated - use the new sb_secret_* format.
 	 *
 	 * WARNING: User-facing requests should use getUserClient(jwt) which respects RLS
 	 * If you're tempted to use getAdminClient() for user requests, your RLS policies are wrong
 	 */
 	SB_SECRET_KEY: z.string(),
-	/**
-	 * @deprecated Use SB_SECRET_KEY instead. Legacy JWT service role keys are disabled.
-	 */
-	SERVICE_ROLE: z.string().optional(),
 	SUPABASE_PUBLISHABLE_KEY: z.preprocess(
 		(val) => val || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		z.string()
