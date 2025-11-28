@@ -191,4 +191,101 @@ describeSupabase('Supabase RPC contract tests', () => {
 			user_id: user_id
 		})
 	})
+
+	test('get_tenants_by_owner returns tenant ID array', async () => {
+		const mockTenantIds = [
+			'tenant-uuid-1',
+			'tenant-uuid-2',
+			'tenant-uuid-3'
+		]
+
+		mockRpc.mockResolvedValueOnce({
+			data: mockTenantIds,
+			error: null
+		})
+
+		const { data, error } = await (client as any).rpc(
+			'get_tenants_by_owner',
+			{
+				p_user_id: user_id
+			}
+		)
+
+		expect(error).toBeNull()
+		expect(Array.isArray(data)).toBe(true)
+		expect(mockRpc).toHaveBeenCalledWith('get_tenants_by_owner', {
+			p_user_id: user_id
+		})
+
+		const tenantIds = data as string[]
+		tenantIds.forEach(id => {
+			expect(typeof id).toBe('string')
+		})
+	})
+
+	test('get_tenants_by_owner returns empty array when no tenants', async () => {
+		mockRpc.mockResolvedValueOnce({
+			data: [],
+			error: null
+		})
+
+		const { data, error } = await (client as any).rpc(
+			'get_tenants_by_owner',
+			{
+				p_user_id: user_id
+			}
+		)
+
+		expect(error).toBeNull()
+		expect(Array.isArray(data)).toBe(true)
+		expect(data).toHaveLength(0)
+	})
+
+	test('get_tenants_with_lease_by_owner returns tenant ID array for active leases', async () => {
+		const mockTenantIds = [
+			'tenant-uuid-1',
+			'tenant-uuid-2'
+		]
+
+		mockRpc.mockResolvedValueOnce({
+			data: mockTenantIds,
+			error: null
+		})
+
+		const { data, error } = await (client as any).rpc(
+			'get_tenants_with_lease_by_owner',
+			{
+				p_user_id: user_id
+			}
+		)
+
+		expect(error).toBeNull()
+		expect(Array.isArray(data)).toBe(true)
+		expect(mockRpc).toHaveBeenCalledWith('get_tenants_with_lease_by_owner', {
+			p_user_id: user_id
+		})
+
+		const tenantIds = data as string[]
+		tenantIds.forEach(id => {
+			expect(typeof id).toBe('string')
+		})
+	})
+
+	test('get_tenants_with_lease_by_owner returns empty array when no active leases', async () => {
+		mockRpc.mockResolvedValueOnce({
+			data: [],
+			error: null
+		})
+
+		const { data, error } = await (client as any).rpc(
+			'get_tenants_with_lease_by_owner',
+			{
+				p_user_id: user_id
+			}
+		)
+
+		expect(error).toBeNull()
+		expect(Array.isArray(data)).toBe(true)
+		expect(data).toHaveLength(0)
+	})
 })
