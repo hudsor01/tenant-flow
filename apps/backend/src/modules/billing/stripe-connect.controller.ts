@@ -71,6 +71,12 @@ function isValidStripeCountry(country: string | undefined): boolean {
 	return STRIPE_SUPPORTED_COUNTRIES.has(normalized)
 }
 
+/** Default pagination limit */
+const DEFAULT_PAGINATION_LIMIT = 10
+
+/** Maximum allowed pagination limit */
+const MAX_PAGINATION_LIMIT = 100
+
 /**
  * Stripe Connect Controller
  *
@@ -85,6 +91,25 @@ export class StripeConnectController {
 		private readonly supabaseService: SupabaseService,
 
 	) {}
+
+	/**
+	 * Helper method to get Stripe account ID for the authenticated user
+	 * @throws BadRequestException if no Stripe account found
+	 */
+	private async getStripeAccountId(userId: string): Promise<string> {
+		const { data: propertyOwner, error } = await this.supabaseService
+			.getAdminClient()
+			.from('property_owners')
+			.select('stripe_account_id')
+			.eq('user_id', userId)
+			.single()
+
+		if (error || !propertyOwner?.stripe_account_id) {
+			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+		}
+
+		return propertyOwner.stripe_account_id
+	}
 
 	/**
 	 * Create a Stripe Connected Account and start onboarding
@@ -338,19 +363,10 @@ export class StripeConnectController {
 	 */
 	@Get('balance')
 	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
-		const { data: propertyOwner } = await this.supabaseService
-			.getAdminClient()
-			.from('property_owners')
-			.select('stripe_account_id')
-			.eq('user_id', req.user.id)
-			.single()
-
-		if (!propertyOwner?.stripe_account_id) {
-			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
-		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
 		const balance = await this.stripeConnectService.getConnectedAccountBalance(
-			propertyOwner.stripe_account_id
+			stripeAccountId
 		)
 
 		return {
@@ -378,26 +394,18 @@ export class StripeConnectController {
 		@Query('limit') limit?: string,
 		@Query('starting_after') startingAfter?: string
 	) {
-		const { data: propertyOwner } = await this.supabaseService
-			.getAdminClient()
-			.from('property_owners')
-			.select('stripe_account_id')
-			.eq('user_id', req.user.id)
-			.single()
+		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		if (!propertyOwner?.stripe_account_id) {
-			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
-		}
-
+		const parsedLimit = limit ? Math.min(parseInt(limit, 10), MAX_PAGINATION_LIMIT) : DEFAULT_PAGINATION_LIMIT
 		const options: { limit?: number; starting_after?: string } = {
-			limit: limit ? parseInt(limit, 10) : 10
+			limit: parsedLimit
 		}
 		if (startingAfter) {
 			options.starting_after = startingAfter
 		}
 
 		const payouts = await this.stripeConnectService.listConnectedAccountPayouts(
-			propertyOwner.stripe_account_id,
+			stripeAccountId,
 			options
 		)
 
@@ -426,19 +434,10 @@ export class StripeConnectController {
 		@Request() req: AuthenticatedRequest,
 		@Param('payoutId') payoutId: string
 	) {
-		const { data: propertyOwner } = await this.supabaseService
-			.getAdminClient()
-			.from('property_owners')
-			.select('stripe_account_id')
-			.eq('user_id', req.user.id)
-			.single()
-
-		if (!propertyOwner?.stripe_account_id) {
-			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
-		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
 		const payout = await this.stripeConnectService.getPayoutDetails(
-			propertyOwner.stripe_account_id,
+			stripeAccountId,
 			payoutId
 		)
 
@@ -469,26 +468,18 @@ export class StripeConnectController {
 		@Query('limit') limit?: string,
 		@Query('starting_after') startingAfter?: string
 	) {
-		const { data: propertyOwner } = await this.supabaseService
-			.getAdminClient()
-			.from('property_owners')
-			.select('stripe_account_id')
-			.eq('user_id', req.user.id)
-			.single()
+		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		if (!propertyOwner?.stripe_account_id) {
-			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
-		}
-
+		const parsedLimit = limit ? Math.min(parseInt(limit, 10), MAX_PAGINATION_LIMIT) : DEFAULT_PAGINATION_LIMIT
 		const options: { limit?: number; starting_after?: string } = {
-			limit: limit ? parseInt(limit, 10) : 10
+			limit: parsedLimit
 		}
 		if (startingAfter) {
 			options.starting_after = startingAfter
 		}
 
 		const transfers = await this.stripeConnectService.listTransfersToAccount(
-			propertyOwner.stripe_account_id,
+			stripeAccountId,
 			options
 		)
 

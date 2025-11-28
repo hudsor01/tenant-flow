@@ -1,5 +1,6 @@
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const nextConfig: NextConfig = {
 	reactStrictMode: true,
@@ -12,7 +13,10 @@ const nextConfig: NextConfig = {
 		removeConsole: process.env.NODE_ENV === 'production'
 	},
 
+	outputFileTracingRoot: path.join(__dirname, '../..'),
+
 	turbopack: {
+		root: path.join(__dirname, '../..'),
 		resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.json', '.mdx']
 	},
 

@@ -70,7 +70,7 @@
     "@stripe/react-stripe-js": "^5.4.0",
     "@stripe/stripe-js": "^8.5.2",
     "@supabase/ssr": "0.7.0",
-    "@supabase/supabase-js": "2.84.0",
+    "@supabase/supabase-js": "catalog:",
     "@t3-oss/env-nextjs": "0.13.8",
     "@tanstack/query-core": "5.90.10",
     "@tanstack/react-form": "1.25.0",
