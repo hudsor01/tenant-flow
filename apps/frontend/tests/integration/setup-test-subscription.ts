@@ -23,9 +23,10 @@ interface TestUser {
  * Uses service user_type client to bypass RLS for test setup
  */
 export async function setupTestUserWithTrial(user: TestUser): Promise<void> {
-	const serviceuser_typeKey = process.env.SERVICE_ROLE
+	// Prefer new sb_secret_* key, fall back to deprecated SERVICE_ROLE
+	const serviceuser_typeKey = process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE
 	if (!serviceuser_typeKey) {
-		throw new Error('SERVICE_ROLE not found - required for test setup')
+		throw new Error('SB_SECRET_KEY not found - required for test setup')
 	}
 
 	// Create admin client with service user_type
