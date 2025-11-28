@@ -26,11 +26,11 @@ export const env = createEnv({
 			.default('development'),
 
 		// Supabase Server
-		SUPABASE_JWT_ALGORITHM: z
+		JWT_ALGORITHM: z
 			.enum(['ES256', 'RS256', 'HS256'])
 			.default('ES256')
 			.describe('Algorithm used for Supabase JWT verification'),
-		SUPABASE_JWT_SECRET: z
+		JWT_SECRET: z
 			.string()
 			.min(32, 'JWT secret must be at least 32 characters')
 			.optional()
@@ -128,7 +128,7 @@ export const env = createEnv({
 			.string()
 			.min(1, 'Supabase anon key is required')
 			.describe('Supabase anonymous/publishable key'),
-		NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM: z
+		NEXT_PUBLIC_JWT_ALGORITHM: z
 			.enum(['ES256', 'RS256', 'HS256'])
 			.default('ES256')
 			.describe('Algorithm for Supabase JWT (client-side validation)'),
@@ -169,7 +169,7 @@ export const env = createEnv({
 		NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
 		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
 		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-		NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM: process.env.NEXT_PUBLIC_SUPABASE_JWT_ALGORITHM,
+		NEXT_PUBLIC_JWT_ALGORITHM: process.env.NEXT_PUBLIC_JWT_ALGORITHM,
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 		NEXT_PUBLIC_ENABLE_DEBUG_LOGGING:
@@ -178,8 +178,8 @@ export const env = createEnv({
 			process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true',
 
 		// Server vars (only accessible server-side)
-		SUPABASE_JWT_ALGORITHM: process.env.SUPABASE_JWT_ALGORITHM,
-		SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET,
+		JWT_ALGORITHM: process.env.JWT_ALGORITHM,
+		JWT_SECRET: process.env.JWT_SECRET,
 		STRIPE_STARTER_MONTHLY_PRICE_ID: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID,
 		STRIPE_STARTER_ANNUAL_PRICE_ID: process.env.STRIPE_STARTER_ANNUAL_PRICE_ID,
 		STRIPE_GROWTH_MONTHLY_PRICE_ID: process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID,

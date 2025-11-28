@@ -13,6 +13,53 @@ import { SupabaseService } from '../../database/supabase.service'
 import { EmailService } from '../email/email.service'
 import { asStripeSchemaClient, type SupabaseError, type StripeCheckoutSession, type StripeCustomer, type StripeSubscription } from '../../types/stripe-schema'
 
+/** Maximum number of payment retry attempts before marking as final failure */
+const MAX_PAYMENT_RETRY_ATTEMPTS = 3
+
+/** Tenant with user email from Supabase join query */
+interface TenantWithEmail {
+	id: string
+	users: { email: string }
+}
+
+/**
+ * Runtime type guard for TenantWithEmail
+ *
+ * Validates the shape of data returned from Supabase join query to ensure
+ * it matches the expected TenantWithEmail interface. This provides runtime
+ * safety when working with dynamic database results.
+ *
+ * @param data - Unknown data to validate, typically from a Supabase query
+ * @returns True if data matches TenantWithEmail shape, enabling TypeScript narrowing
+ *
+ * @example
+ * const { data } = await supabase
+ *   .from('tenants')
+ *   .select('id, users(email)')
+ *   .single()
+ *
+ * if (isTenantWithEmail(data)) {
+ *   // TypeScript now knows data.users.email is a string
+ *   console.log(data.users.email)
+ * } else {
+ *   // Handle invalid data structure
+ *   logger.error('Invalid tenant data')
+ * }
+ */
+function isTenantWithEmail(data: unknown): data is TenantWithEmail {
+	return (
+		typeof data === 'object' &&
+		data !== null &&
+		'id' in data &&
+		typeof (data as Record<string, unknown>).id === 'string' &&
+		'users' in data &&
+		typeof (data as Record<string, unknown>).users === 'object' &&
+		(data as Record<string, unknown>).users !== null &&
+		'email' in ((data as Record<string, unknown>).users as Record<string, unknown>) &&
+		typeof ((data as Record<string, unknown>).users as Record<string, unknown>).email === 'string'
+	)
+}
+
 @Injectable()
 export class WebhookProcessor {
 	private readonly logger = new Logger(WebhookProcessor.name)
@@ -678,25 +725,25 @@ export class WebhookProcessor {
 						error: tenantQueryError.message,
 						tenantId: rentPayment.tenant_id
 					})
-				} else {
-					const tenantEmail = (tenantWithUser as { users?: { email?: string } })
-						?.users?.email
-
-					if (!tenantEmail) {
-						this.logger.warn('No tenant email found for payment failure notification', {
-							tenantId: rentPayment.tenant_id
+				} else if (tenantWithUser) {
+					// Validate data structure with runtime type guard
+					if (!isTenantWithEmail(tenantWithUser)) {
+						this.logger.error('Invalid tenant data structure from database', {
+							tenantId: rentPayment.tenant_id,
+							receivedData: JSON.stringify(tenantWithUser)
 						})
 					} else {
+						const tenantEmail = tenantWithUser.users.email
 						// Use metadata for attempt tracking (PaymentIntent doesn't have attempt_count)
 						const attemptCount = paymentIntent.metadata?.attempt_count
 							? parseInt(paymentIntent.metadata.attempt_count, 10)
 							: 1
 						// Use latest_charge instead of deprecated charges.data
 						const latestCharge = paymentIntent.latest_charge
-						const invoiceUrl = typeof latestCharge === 'object' && latestCharge
-							? (latestCharge as { receipt_url?: string }).receipt_url || null
+						const invoiceUrl = latestCharge && typeof latestCharge === 'object' && 'receipt_url' in latestCharge
+							? latestCharge.receipt_url ?? null
 							: null
-						const isLastAttempt = attemptCount >= 3
+						const isLastAttempt = attemptCount >= MAX_PAYMENT_RETRY_ATTEMPTS
 
 						await this.emailService.sendPaymentFailedEmail({
 							customerEmail: tenantEmail,
