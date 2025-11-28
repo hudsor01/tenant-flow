@@ -81,9 +81,14 @@ describe('StripeConnectController', () => {
 			expect(controller.validateLimit('10.5')).toBe(10)
 		})
 
-		it('returns default for string with spaces', () => {
+		it('trims whitespace and parses valid number', () => {
 			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit(' 50 ')).toBe(10)
+			expect(controller.validateLimit(' 50 ')).toBe(50)
+		})
+
+		it('returns default for whitespace-only string', () => {
+			// @ts-expect-error accessing private for targeted test
+			expect(controller.validateLimit('   ')).toBe(10)
 		})
 
 		it('returns 1 for zero', () => {
