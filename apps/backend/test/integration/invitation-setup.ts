@@ -116,13 +116,12 @@ export async function authenticateAs(
 export function getServiceClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	// SERVICE_ROLE is the actual JWT key that bypasses RLS
-	// SERVICE_ROLE (sb_secret_*) is the new format that doesn't bypass RLS via PostgREST
-	const serviceKey = process.env.SERVICE_ROLE || process.env.SERVICE_ROLE
+	// Prefer new sb_secret_* key, fall back to deprecated SERVICE_ROLE
+	const serviceKey = process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE
 
 	if (!supabaseUrl || !serviceKey) {
 		throw new Error(
-			'Missing service role credentials (NEXT_PUBLIC_SUPABASE_URL and SERVICE_ROLE).'
+			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SB_SECRET_KEY).'
 		)
 	}
 

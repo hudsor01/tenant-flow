@@ -1,9 +1,8 @@
-import { createBrowserClient } from '@supabase/ssr'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
-import { env } from '#config/env'
+import { createClient } from '#lib/supabase/client'
 
-const supabase = createBrowserClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+const supabase = createClient()
 
 interface FileWithPreview extends File {
   preview?: string

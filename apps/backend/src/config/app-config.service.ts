@@ -86,7 +86,8 @@ export class AppConfigService {
 	}
 
 	getSupabaseSecretKey(): string {
-		return this.get('SERVICE_ROLE')
+		// Prefer new SB_SECRET_KEY (sb_secret_*), fall back to deprecated SERVICE_ROLE
+		return this.get('SB_SECRET_KEY') || this.get('SERVICE_ROLE') || ''
 	}
 
 	getSupabasePublishableKey(): string | undefined {
