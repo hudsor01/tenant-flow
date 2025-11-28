@@ -5,7 +5,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 if (!process.env.SUPABASE_URL) {
 	process.env.SUPABASE_URL = 'https://mock.supabase.co'
 }
-if (!process.env.SB_SECRET_KEY && !process.env.SERVICE_ROLE) {
+if (!process.env.SB_SECRET_KEY) {
 	process.env.SB_SECRET_KEY = 'mock-secret-key'
 }
 if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
@@ -25,32 +25,29 @@ jest.mock('@supabase/supabase-js', () => {
 	}
 })
 
-// Check for secret key (prefer SB_SECRET_KEY, fall back to SERVICE_ROLE)
-const hasSecretKey = !!(process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE)
-
 const requiredEnv = [
 	'SUPABASE_URL',
+	'SB_SECRET_KEY',
 	'SUPABASE_RPC_TEST_USER_ID'
 ] as const
 
 const missingEnv = requiredEnv.filter(key => !process.env[key])
 
 // Check for missing environment variables and skip tests if any are missing
-if (missingEnv.length > 0 || !hasSecretKey) {
-	const missing = [...missingEnv, ...(hasSecretKey ? [] : ['SB_SECRET_KEY'])]
+if (missingEnv.length > 0) {
 	process.stderr.write(
-		`️ Skipping Supabase RPC contract tests. Missing env: ${missing.join(', ')}\n`
+		`️ Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n`
 	)
 }
 
-const describeSupabase = (missingEnv.length > 0 || !hasSecretKey) ? describe.skip : describe
+const describeSupabase = missingEnv.length > 0 ? describe.skip : describe
 
 jest.setTimeout(30_000)
 
 describeSupabase('Supabase RPC contract tests', () => {
 	let client: SupabaseClient<Database>
 	const supabaseUrl = process.env.SUPABASE_URL as string
-	const serviceKey = (process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE) as string
+	const serviceKey = process.env.SB_SECRET_KEY as string
 	const user_id = process.env.SUPABASE_RPC_TEST_USER_ID as string
 
 	beforeAll(() => {

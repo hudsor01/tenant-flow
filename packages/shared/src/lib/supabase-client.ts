@@ -17,8 +17,7 @@ import type { Database } from '../types/supabase.js'
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, assertSupabaseConfig } from '../config/supabase.js'
 
 // Admin secret key (backend only, not in centralized config)
-// Prefer new sb_secret_* key, fall back to deprecated SERVICE_ROLE
-const SB_SECRET_KEY = process.env.SB_SECRET_KEY || process.env.SERVICE_ROLE
+const SB_SECRET_KEY = process.env.SB_SECRET_KEY
 
 // Type alias for public-schema-only clients
 // This prevents type errors when Database includes multiple schemas (public + stripe)
