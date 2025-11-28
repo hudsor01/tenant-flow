@@ -14,6 +14,18 @@ import type { Tenant, TenantStats, TenantSummary, TenantWithLeaseInfo, RentPayme
 import { SupabaseService } from '../../database/supabase.service'
 import { buildMultiColumnSearch, sanitizeSearchInput } from '../../shared/utils/sql-safe.utils'
 
+/** Default pagination limit for list queries */
+const DEFAULT_LIMIT = 50
+
+/** Maximum allowed pagination limit */
+const MAX_LIMIT = 100
+
+/** Default limit for payment history queries */
+const DEFAULT_PAYMENT_HISTORY_LIMIT = 50
+
+/** Default limit for invitation queries */
+const DEFAULT_INVITATION_LIMIT = 25
+
 export interface ListFilters {
 	status?: string
 	search?: string
@@ -117,7 +129,7 @@ export class TenantQueryService {
 			}
 		}
 
-		const limit = Math.min(filters.limit ?? 50, 100)
+		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 		query = query.range(offset, offset + limit - 1)
 
@@ -132,7 +144,7 @@ export class TenantQueryService {
 	}
 
 	private async fetchTenantsByOwner(userId: string, filters: ListFilters) {
-		const limit = Math.min(filters.limit ?? 50, 100)
+		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
 		// First, look up the property_owners.id for this auth user
@@ -148,12 +160,13 @@ export class TenantQueryService {
 			return []
 		}
 
-		const { data, error } = await this.supabase
+		// Build base query for tenants through lease relationship
+		let query = this.supabase
 			.getAdminClient()
 			.from('lease_tenants')
 			.select(
 				`
-					tenant:tenants(
+					tenant:tenants!inner(
 						id,
 						user_id,
 						emergency_contact_name,
@@ -174,28 +187,29 @@ export class TenantQueryService {
 				`
 			)
 			.eq('lease.unit.property.property_owner_id', ownerRecord.id)
-			.range(offset, offset + limit - 1)
+
+		// Apply search filter at database level instead of client-side
+		if (filters.search) {
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
+					'tenant.emergency_contact_name',
+					'tenant.emergency_contact_phone'
+				])
+				query = query.or(searchFilter, { foreignTable: 'tenants' })
+			}
+		}
+
+		const { data, error } = await query.range(offset, offset + limit - 1)
 
 		if (error) {
 			this.logger.error('Failed to fetch tenants by owner', { error: error.message, userId })
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		const tenants = ((data as unknown as { tenant?: Tenant }[] | null) ?? [])
+		return ((data as unknown as { tenant?: Tenant }[] | null) ?? [])
 			.map(row => row.tenant)
 			.filter((tenant): tenant is Tenant => Boolean(tenant))
-
-		if (filters.search) {
-			const term = filters.search.trim().toLowerCase()
-			if (term) {
-				return tenants.filter(tenant =>
-					tenant.emergency_contact_name?.toLowerCase().includes(term) ||
-					tenant.emergency_contact_phone?.toLowerCase().includes(term)
-				)
-			}
-		}
-
-		return tenants
 	}
 
 	/**
@@ -642,7 +656,7 @@ export class TenantQueryService {
 	 * Get payment history for tenant
 	 * Consolidated from TenantRelationsService
 	 */
-	async getTenantPaymentHistory(tenantId: string, limit = 50): Promise<RentPayment[]> {
+	async getTenantPaymentHistory(tenantId: string, limit = DEFAULT_PAYMENT_HISTORY_LIMIT): Promise<RentPayment[]> {
 		if (!tenantId) throw new BadRequestException('Tenant ID required')
 
 		try {
@@ -725,7 +739,7 @@ export class TenantQueryService {
 		}
 
 		const page = filters?.page || 1
-		const limit = Math.min(filters?.limit || 25, 100)
+		const limit = Math.min(filters?.limit || DEFAULT_INVITATION_LIMIT, MAX_LIMIT)
 		const offset = (page - 1) * limit
 
 		try {

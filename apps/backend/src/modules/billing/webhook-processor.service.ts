@@ -667,6 +667,12 @@ export class WebhookProcessor {
 				})
 
 
+				// Define expected query result type
+				interface TenantWithEmail {
+					id: string
+					users: { email: string }
+				}
+
 				const { data: tenantWithUser, error: tenantQueryError } = await client
 					.from('tenants')
 					.select('id, users!inner(email)')
@@ -678,9 +684,10 @@ export class WebhookProcessor {
 						error: tenantQueryError.message,
 						tenantId: rentPayment.tenant_id
 					})
-				} else {
-					const tenantEmail = (tenantWithUser as { users?: { email?: string } })
-						?.users?.email
+				} else if (tenantWithUser) {
+					// Safely extract email with type assertion
+					const typedTenant = tenantWithUser as unknown as TenantWithEmail
+					const tenantEmail = typedTenant.users?.email
 
 					if (!tenantEmail) {
 						this.logger.warn('No tenant email found for payment failure notification', {
@@ -694,7 +701,7 @@ export class WebhookProcessor {
 						// Use latest_charge instead of deprecated charges.data
 						const latestCharge = paymentIntent.latest_charge
 						const invoiceUrl = typeof latestCharge === 'object' && latestCharge
-							? (latestCharge as { receipt_url?: string }).receipt_url || null
+							? (latestCharge as Stripe.Charge).receipt_url ?? null
 							: null
 						const isLastAttempt = attemptCount >= 3
 
