@@ -27,7 +27,7 @@ describe('Test Environment Configuration', () => {
 			TEST_SUPABASE_URL: process.env.TEST_SUPABASE_URL,
 			TEST_SUPABASE_PUBLISHABLE_KEY: process.env.TEST_SUPABASE_PUBLISHABLE_KEY,
 			TEST_SERVICE_ROLE: process.env.TEST_SERVICE_ROLE,
-			TEST_SUPABASE_JWT_SECRET: process.env.TEST_SUPABASE_JWT_SECRET,
+			TEST_JWT_SECRET: process.env.TEST_JWT_SECRET,
 			TEST_STRIPE_SECRET_KEY: process.env.TEST_STRIPE_SECRET_KEY,
 			TEST_STRIPE_PUBLISHABLE_KEY: process.env.TEST_STRIPE_PUBLISHABLE_KEY,
 			TEST_STRIPE_WEBHOOK_SECRET: process.env.TEST_STRIPE_WEBHOOK_SECRET,
@@ -110,7 +110,7 @@ describe('Test Environment Configuration', () => {
 			process.env.TEST_SUPABASE_URL = 'https://test.supabase.co'
 			process.env.TEST_SUPABASE_PUBLISHABLE_KEY = 'test_publishable_key'
 			process.env.TEST_SERVICE_ROLE = 'test_secret_key'
-			process.env.TEST_SUPABASE_JWT_SECRET = 'test_jwt_secret'
+			process.env.TEST_JWT_SECRET = 'test_jwt_secret'
 
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://test.supabase.co')

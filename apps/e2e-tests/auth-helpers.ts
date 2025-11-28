@@ -24,8 +24,8 @@
 import { type Page, type BrowserContext } from '@playwright/test'
 
 // Supabase project reference extracted from URL
-const SUPABASE_PROJECT_REF = 'bshjmbshupiibfiewpxb'
-const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`
+const PROJECT_REF = 'bshjmbshupiibfiewpxb'
+const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
 
 // Worker-level session cache (isolated per worker process)
@@ -101,7 +101,7 @@ async function injectSessionIntoBrowser(
 	session: SupabaseSession,
 	baseUrl: string
 ): Promise<void> {
-	const cookieName = `sb-${SUPABASE_PROJECT_REF}-auth-token`
+	const cookieName = `sb-${PROJECT_REF}-auth-token`
 	const cookieValue = JSON.stringify(session)
 
 	// Parse base URL to get domain
