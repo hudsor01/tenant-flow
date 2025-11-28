@@ -97,12 +97,20 @@ export class StripeConnectController {
 	 * Validates and normalizes pagination limit parameter
 	 * @param limit - Optional string limit from query params
 	 * @returns Normalized limit between 1 and MAX_PAGINATION_LIMIT
+	 * @example
+	 * validateLimit(undefined) // returns DEFAULT_PAGINATION_LIMIT (10)
+	 * validateLimit('50')      // returns 50
+	 * validateLimit('500')     // returns MAX_PAGINATION_LIMIT (100)
+	 * validateLimit('abc')     // returns DEFAULT_PAGINATION_LIMIT (10)
+	 * validateLimit('-5')      // returns DEFAULT_PAGINATION_LIMIT (10)
 	 */
 	private validateLimit(limit?: string): number {
 		if (!limit) return DEFAULT_PAGINATION_LIMIT
+		// Validate format: only digits allowed (no negative signs, decimals, etc.)
+		if (!/^\d+$/.test(limit)) return DEFAULT_PAGINATION_LIMIT
 		const parsed = parseInt(limit, 10)
-		if (isNaN(parsed) || parsed < 1) return DEFAULT_PAGINATION_LIMIT
-		return Math.min(parsed, MAX_PAGINATION_LIMIT)
+		// Clamp to valid range: at least 1, at most MAX_PAGINATION_LIMIT
+		return Math.min(Math.max(parsed, 1), MAX_PAGINATION_LIMIT)
 	}
 
 	/**
@@ -135,7 +143,7 @@ export class StripeConnectController {
 				code: error.code,
 				userId
 			})
-			throw new InternalServerErrorException('Failed to retrieve payment account')
+			throw new InternalServerErrorException('Failed to retrieve payment account. Please try again or contact support if this persists.')
 		}
 
 		if (!propertyOwner?.stripe_account_id) {
