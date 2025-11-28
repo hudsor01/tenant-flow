@@ -24,7 +24,27 @@ interface TenantWithEmail {
 
 /**
  * Runtime type guard for TenantWithEmail
- * Validates the shape of data returned from Supabase join query
+ *
+ * Validates the shape of data returned from Supabase join query to ensure
+ * it matches the expected TenantWithEmail interface. This provides runtime
+ * safety when working with dynamic database results.
+ *
+ * @param data - Unknown data to validate, typically from a Supabase query
+ * @returns True if data matches TenantWithEmail shape, enabling TypeScript narrowing
+ *
+ * @example
+ * const { data } = await supabase
+ *   .from('tenants')
+ *   .select('id, users(email)')
+ *   .single()
+ *
+ * if (isTenantWithEmail(data)) {
+ *   // TypeScript now knows data.users.email is a string
+ *   console.log(data.users.email)
+ * } else {
+ *   // Handle invalid data structure
+ *   logger.error('Invalid tenant data')
+ * }
  */
 function isTenantWithEmail(data: unknown): data is TenantWithEmail {
 	return (

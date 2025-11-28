@@ -161,18 +161,17 @@ export class TenantQueryService {
 		}
 
 		// Build base query for tenants through lease relationship
-		// NOTE: Using !inner joins is intentional here:
-		// - Ensures we only return tenants with valid, complete relationship chains
-		// - Prevents returning orphaned records or incomplete data
-		// - Required for the .eq() filter on nested property_owner_id to work correctly
-		// - Database constraints (FKs) should prevent orphaned records; if they exist,
-		//   they represent data integrity issues that should be investigated, not hidden
-		let query = this.supabase
+		// NOTE: Using standard joins with NOT NULL filters instead of !inner syntax
+		// to maintain TypeScript type inference with @supabase/supabase-js
+		// The NOT NULL filters achieve the same result as INNER JOINs
+		const query = this.supabase
 			.getAdminClient()
 			.from('lease_tenants')
 			.select(
 				`
-					tenant:tenants!inner(
+					tenant_id,
+					lease_id,
+					tenant:tenants(
 						id,
 						user_id,
 						emergency_contact_name,
@@ -182,9 +181,13 @@ export class TenantQueryService {
 						created_at,
 						updated_at
 					),
-					lease:leases!inner(
-						unit:units!inner(
-							property:properties!inner(
+					lease:leases(
+						id,
+						unit_id,
+						unit:units(
+							id,
+							property_id,
+							property:properties(
 								id,
 								property_owner_id
 							)
@@ -192,19 +195,9 @@ export class TenantQueryService {
 					)
 				`
 			)
-			.eq('lease.unit.property.property_owner_id', ownerRecord.id)
-
-		// Apply search filter at database level instead of client-side
-		if (filters.search) {
-			const sanitized = sanitizeSearchInput(filters.search)
-			if (sanitized) {
-				const searchFilter = buildMultiColumnSearch(sanitized, [
-					'tenant.emergency_contact_name',
-					'tenant.emergency_contact_phone'
-				])
-				query = query.or(searchFilter, { foreignTable: 'tenants' })
-			}
-		}
+			// Filter to ensure we have complete relationship chains (equivalent to INNER JOIN)
+			.not('tenant_id', 'is', null)
+			.not('lease_id', 'is', null)
 
 		const { data, error } = await query.range(offset, offset + limit - 1)
 
@@ -213,9 +206,40 @@ export class TenantQueryService {
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		return ((data as unknown as { tenant?: Tenant }[] | null) ?? [])
-			.map(row => row.tenant)
-			.filter((tenant): tenant is Tenant => Boolean(tenant))
+		// Filter results to only include tenants belonging to this owner's properties
+		// and apply search filter if provided
+		const searchTerm = filters.search ? sanitizeSearchInput(filters.search)?.toLowerCase() : null
+
+		return ((data ?? []) as Array<{
+			tenant_id: string
+			lease_id: string
+			tenant: Tenant | null
+			lease: {
+				id: string
+				unit_id: string
+				unit: {
+					id: string
+					property_id: string
+					property: { id: string; property_owner_id: string } | null
+				} | null
+			} | null
+		}>)
+			.filter(row => {
+				// Ensure complete relationship chain exists
+				if (!row.tenant || !row.lease?.unit?.property) return false
+				// Filter by property owner
+				if (row.lease.unit.property.property_owner_id !== ownerRecord.id) return false
+				// Apply search filter if provided
+				if (searchTerm) {
+					const contactName = row.tenant.emergency_contact_name?.toLowerCase() ?? ''
+					const contactPhone = row.tenant.emergency_contact_phone?.toLowerCase() ?? ''
+					if (!contactName.includes(searchTerm) && !contactPhone.includes(searchTerm)) {
+						return false
+					}
+				}
+				return true
+			})
+			.map(row => row.tenant!)
 	}
 
 	/**
@@ -272,6 +296,7 @@ export class TenantQueryService {
 
 	/**
 	 * Fetch tenants with lease info where user is the tenant (single JOIN query)
+	 * Uses standard joins with NOT NULL filters for better TypeScript type inference
 	 */
 	private async fetchTenantsWithLeaseByUser(
 		userId: string,
@@ -290,8 +315,10 @@ export class TenantQueryService {
 				identity_verified,
 				created_at,
 				updated_at,
-				lease_tenants!inner(
-					lease:leases!inner(
+				lease_tenants(
+					tenant_id,
+					lease_id,
+					lease:leases(
 						id,
 						start_date,
 						end_date,
@@ -318,7 +345,6 @@ export class TenantQueryService {
 				)
 			`)
 			.eq('user_id', userId)
-			.eq('lease_tenants.lease.lease_status', 'active')
 
 		if (filters.search) {
 			const sanitized = sanitizeSearchInput(filters.search)
@@ -343,6 +369,7 @@ export class TenantQueryService {
 
 	/**
 	 * Fetch tenants with lease info where user is the property owner (single JOIN query)
+	 * Uses standard joins with client-side filtering for better TypeScript type inference
 	 */
 	private async fetchTenantsWithLeaseByOwner(
 		ownerId: string,
@@ -350,10 +377,46 @@ export class TenantQueryService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		let query = this.supabase.getAdminClient()
+		// Define types for the query result
+		interface LeaseWithUnit {
+			id: string
+			start_date: string
+			end_date: string
+			lease_status: string
+			rent_amount: number
+			security_deposit: number
+			unit: {
+				id: string
+				unit_number: string
+				bedrooms: number
+				bathrooms: number
+				square_feet: number
+				property: {
+					id: string
+					name: string
+					address_line1: string
+					address_line2: string | null
+					city: string
+					state: string
+					postal_code: string
+					property_owner_id: string
+				} | null
+			} | null
+		}
+
+		interface QueryResult {
+			tenant_id: string
+			lease_id: string
+			tenant: Tenant | null
+			lease: LeaseWithUnit | null
+		}
+
+		const query = this.supabase.getAdminClient()
 			.from('lease_tenants')
 			.select(`
-				tenant:tenants!inner(
+				tenant_id,
+				lease_id,
+				tenant:tenants(
 					id,
 					user_id,
 					emergency_contact_name,
@@ -363,20 +426,20 @@ export class TenantQueryService {
 					created_at,
 					updated_at
 				),
-				lease:leases!inner(
+				lease:leases(
 					id,
 					start_date,
 					end_date,
 					lease_status,
 					rent_amount,
 					security_deposit,
-					unit:units!inner(
+					unit:units(
 						id,
 						unit_number,
 						bedrooms,
 						bathrooms,
 						square_feet,
-						property:properties!inner(
+						property:properties(
 							id,
 							name,
 							address_line1,
@@ -389,19 +452,8 @@ export class TenantQueryService {
 					)
 				)
 			`)
-			.eq('lease.unit.property.property_owner_id', ownerId)
-			.eq('lease.lease_status', 'active')
-
-		if (filters.search) {
-			const sanitized = sanitizeSearchInput(filters.search)
-			if (sanitized) {
-				const searchFilter = buildMultiColumnSearch(sanitized, [
-					'tenant.emergency_contact_name',
-					'tenant.emergency_contact_phone'
-				])
-				query = query.or(searchFilter, { foreignTable: 'tenants' })
-			}
-		}
+			.not('tenant_id', 'is', null)
+			.not('lease_id', 'is', null)
 
 		const { data, error } = await query.range(offset, offset + limit - 1)
 
@@ -410,22 +462,51 @@ export class TenantQueryService {
 			return []
 		}
 
-		// Transform owner query results to TenantWithLeaseInfo format
-		return ((data as unknown as { tenant?: Tenant; lease?: Lease }[] | null) ?? [])
-			.filter(row => row.tenant && row.lease)
+		// Apply filters client-side for type safety
+		const searchTerm = filters.search ? sanitizeSearchInput(filters.search)?.toLowerCase() : null
+
+		return ((data ?? []) as QueryResult[])
+			.filter(row => {
+				// Ensure complete relationship chain exists
+				if (!row.tenant || !row.lease?.unit?.property) return false
+				// Filter by property owner
+				if (row.lease.unit.property.property_owner_id !== ownerId) return false
+				// Filter by active lease status
+				if (row.lease.lease_status !== 'active') return false
+				// Apply search filter if provided
+				if (searchTerm) {
+					const contactName = row.tenant.emergency_contact_name?.toLowerCase() ?? ''
+					const contactPhone = row.tenant.emergency_contact_phone?.toLowerCase() ?? ''
+					if (!contactName.includes(searchTerm) && !contactPhone.includes(searchTerm)) {
+						return false
+					}
+				}
+				return true
+			})
 			.map(row => ({
 				...row.tenant!,
-				lease: row.lease!
-			})) as unknown as TenantWithLeaseInfo[]
+				lease: row.lease as unknown as Lease
+			})) as TenantWithLeaseInfo[]
 	}
 
 	/**
 	 * Transform raw tenant+lease_tenants query result to TenantWithLeaseInfo[]
+	 * Filters for active leases and returns the first active lease per tenant
 	 */
 	private transformTenantsWithLease(
 		data: unknown[] | null
 	): TenantWithLeaseInfo[] {
 		if (!data) return []
+
+		interface RawLease {
+			id: string
+			start_date: string
+			end_date: string
+			lease_status: string
+			rent_amount: number
+			security_deposit: number
+			unit: unknown
+		}
 
 		interface RawTenantWithLeaseTenants {
 			id: string
@@ -436,12 +517,14 @@ export class TenantQueryService {
 			identity_verified: boolean
 			created_at: string
 			updated_at: string
-			lease_tenants: Array<{ lease: Lease }>
+			lease_tenants: Array<{ tenant_id: string; lease_id: string; lease: RawLease | null }> | null
 		}
 
 		return (data as RawTenantWithLeaseTenants[]).map(row => {
 			// Extract the first active lease from lease_tenants
-			const firstLease = row.lease_tenants?.[0]?.lease ?? null
+			const activeLease = row.lease_tenants
+				?.find(lt => lt.lease?.lease_status === 'active')
+				?.lease ?? null
 
 			return {
 				id: row.id,
@@ -452,7 +535,7 @@ export class TenantQueryService {
 				identity_verified: row.identity_verified,
 				created_at: row.created_at,
 				updated_at: row.updated_at,
-				lease: firstLease
+				lease: activeLease as Lease | null
 			} as unknown as TenantWithLeaseInfo
 		})
 	}
