@@ -394,6 +394,7 @@ export class AppConfigService {
 		return this.get('SUPPORT_EMAIL')
 	}
 
+	// TODO: [HIGH] Remove hardcoded fallback phone number - production may show fake placeholder
 	getSupportPhone(): string {
 		return this.get('SUPPORT_PHONE') || '(555) 123-4567'
 	}

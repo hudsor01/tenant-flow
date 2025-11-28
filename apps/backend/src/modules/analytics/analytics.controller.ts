@@ -23,6 +23,7 @@ interface WebVitalData {
 	user_id?: string
 }
 
+// TODO: [HIGH] Replace manual validation in reportWebVitals with Zod DTO - uses generic Error instead of BadRequestException
 @Controller('analytics')
 export class AnalyticsController {
 	private readonly logger = new Logger(AnalyticsController.name)
