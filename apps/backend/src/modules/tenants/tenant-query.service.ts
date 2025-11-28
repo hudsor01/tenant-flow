@@ -144,55 +144,91 @@ export class TenantQueryService {
 	}
 
 	/**
-	 * Fetch tenants for a property owner using a single optimized JOIN query
+	 * Fetch tenants for a property owner using cascade queries
 	 *
-	 * Uses Supabase's !inner join syntax to traverse:
-	 * lease_tenants -> leases -> units -> properties -> property_owners
-	 * in a single database round trip (eliminates N+1 query pattern)
+	 * Traverses: property_owners -> properties -> units -> leases -> lease_tenants -> tenants
+	 * Uses multiple queries to avoid PostgREST nested filter limitations
 	 */
 	private async fetchTenantsByOwner(userId: string, filters: ListFilters) {
+		const client = this.supabase.getAdminClient()
+
+		// Step 1: Get property_owner record
+		const { data: ownerRecord } = await client
+			.from('property_owners')
+			.select('id')
+			.eq('user_id', userId)
+			.maybeSingle()
+
+		if (!ownerRecord) {
+			return []
+		}
+
+		// Step 2: Get all property IDs for this owner
+		const { data: properties } = await client
+			.from('properties')
+			.select('id')
+			.eq('property_owner_id', ownerRecord.id)
+
+		if (!properties?.length) {
+			return []
+		}
+
+		const propertyIds = properties.map(p => p.id)
+
+		// Step 3: Get all unit IDs for these properties
+		const { data: units } = await client
+			.from('units')
+			.select('id')
+			.in('property_id', propertyIds)
+
+		if (!units?.length) {
+			return []
+		}
+
+		const unitIds = units.map(u => u.id)
+
+		// Step 4: Get all lease IDs for these units
+		const { data: leases } = await client
+			.from('leases')
+			.select('id')
+			.in('unit_id', unitIds)
+
+		if (!leases?.length) {
+			return []
+		}
+
+		const leaseIds = leases.map(l => l.id)
+
+		// Step 5: Get tenant IDs from lease_tenants
+		const { data: leaseTenants } = await client
+			.from('lease_tenants')
+			.select('tenant_id')
+			.in('lease_id', leaseIds)
+			.not('tenant_id', 'is', null)
+
+		if (!leaseTenants?.length) {
+			return []
+		}
+
+		const tenantIds = [...new Set(leaseTenants.map(lt => lt.tenant_id))]
+
+		// Step 6: Fetch actual tenant records with pagination and search
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
-		// Single query with inner joins to filter by owner
-		let query = this.supabase
-			.getAdminClient()
-			.from('lease_tenants')
-			.select(`
-				tenant_id,
-				tenant:tenants(
-					id,
-					user_id,
-					emergency_contact_name,
-					emergency_contact_phone,
-					emergency_contact_relationship,
-					identity_verified,
-					created_at,
-					updated_at
-				),
-				lease:leases!inner(
-					id,
-					unit:units!inner(
-						id,
-						property:properties!inner(
-							id,
-							property_owner:property_owners!inner(user_id)
-						)
-					)
-				)
-			`)
-			.eq('lease.unit.property.property_owner.user_id', userId)
-			.not('tenant_id', 'is', null)
+		let query = client
+			.from('tenants')
+			.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
+			.in('id', tenantIds)
 
-		// Apply search filter at DB level if provided
 		if (filters.search) {
-			const sanitizedSearch = sanitizeSearchInput(filters.search)
-			if (sanitizedSearch) {
-				const searchFilter = buildMultiColumnSearch(
-					sanitizedSearch,
-					['emergency_contact_name', 'emergency_contact_phone']
-				)
-				query = query.or(searchFilter, { foreignTable: 'tenants' })
+			const sanitized = sanitizeSearchInput(filters.search)
+			if (sanitized) {
+				const searchFilter = buildMultiColumnSearch(sanitized, [
+					'emergency_contact_name',
+					'emergency_contact_phone'
+				])
+				query = query.or(searchFilter)
 			}
 		}
 
@@ -203,10 +239,7 @@ export class TenantQueryService {
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		// Filter out rows where tenant is null and extract tenant data
-		return (data ?? [])
-			.filter(row => row.tenant !== null)
-			.map(row => row.tenant as Tenant)
+		return (data as Tenant[]) || []
 	}
 
 	/**
@@ -335,8 +368,9 @@ export class TenantQueryService {
 	}
 
 	/**
-	 * Fetch tenants with lease info where user is the property owner (single JOIN query)
-	 * Uses standard joins with client-side filtering for better TypeScript type inference
+	 * Fetch tenants with lease info where user is the property owner
+	 * Uses cascade queries to avoid PostgREST nested filter limitations,
+	 * then fetches full data with joins for the final result
 	 */
 	private async fetchTenantsWithLeaseByOwner(
 		ownerId: string,
@@ -344,7 +378,46 @@ export class TenantQueryService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		// Define types for the query result
+		const client = this.supabase.getAdminClient()
+
+		// Step 1: Get all property IDs for this owner
+		const { data: properties } = await client
+			.from('properties')
+			.select('id')
+			.eq('property_owner_id', ownerId)
+
+		if (!properties?.length) {
+			return []
+		}
+
+		const propertyIds = properties.map(p => p.id)
+
+		// Step 2: Get all unit IDs for these properties
+		const { data: units } = await client
+			.from('units')
+			.select('id')
+			.in('property_id', propertyIds)
+
+		if (!units?.length) {
+			return []
+		}
+
+		const unitIds = units.map(u => u.id)
+
+		// Step 3: Get active lease IDs for these units
+		const { data: leases } = await client
+			.from('leases')
+			.select('id')
+			.in('unit_id', unitIds)
+			.eq('lease_status', 'active')
+
+		if (!leases?.length) {
+			return []
+		}
+
+		const leaseIds = leases.map(l => l.id)
+
+		// Step 4: Fetch lease_tenants with full nested data for these leases
 		interface LeaseWithUnit {
 			id: string
 			start_date: string
@@ -378,10 +451,7 @@ export class TenantQueryService {
 			lease: LeaseWithUnit | null
 		}
 
-		// Apply search filter at DB level if provided
-		const searchTerm = filters.search ? sanitizeSearchInput(filters.search) : null
-
-		let query = this.supabase.getAdminClient()
+		const { data, error } = await client
 			.from('lease_tenants')
 			.select(`
 				tenant_id,
@@ -422,36 +492,34 @@ export class TenantQueryService {
 					)
 				)
 			`)
+			.in('lease_id', leaseIds)
 			.not('tenant_id', 'is', null)
-			.not('lease_id', 'is', null)
-			// DB-level filters for property_owner_id and lease_status
-			.eq('lease.unit.property.property_owner_id', ownerId)
-			.eq('lease.lease_status', 'active')
-
-		// Apply search filter at DB level if provided (with proper ILIKE escaping)
-		if (searchTerm) {
-			query = query.or(
-				buildMultiColumnSearch(searchTerm, [
-					'tenant.emergency_contact_name',
-					'tenant.emergency_contact_phone'
-				])
-			)
-		}
-
-		const { data, error } = await query.range(offset, offset + limit - 1)
+			.range(offset, offset + limit - 1)
 
 		if (error) {
 			this.logger.error('Failed to fetch tenants with lease by owner', { error: error.message, ownerId })
 			throw new BadRequestException('Failed to retrieve tenants')
 		}
 
-		// Type assertion after DB-level filtering
-		return ((data ?? []) as QueryResult[])
+		// Apply search filter client-side if provided
+		let results = ((data ?? []) as QueryResult[])
 			.filter(row => row.tenant && row.lease?.unit?.property)
-			.map(row => ({
-				...row.tenant!,
-				lease: row.lease as unknown as Lease
-			})) as TenantWithLeaseInfo[]
+
+		if (filters.search) {
+			const searchTerm = sanitizeSearchInput(filters.search)?.toLowerCase()
+			if (searchTerm) {
+				results = results.filter(row => {
+					const contactName = row.tenant?.emergency_contact_name?.toLowerCase() ?? ''
+					const contactPhone = row.tenant?.emergency_contact_phone?.toLowerCase() ?? ''
+					return contactName.includes(searchTerm) || contactPhone.includes(searchTerm)
+				})
+			}
+		}
+
+		return results.map(row => ({
+			...row.tenant!,
+			lease: row.lease as unknown as Lease
+		})) as TenantWithLeaseInfo[]
 	}
 
 	/**
