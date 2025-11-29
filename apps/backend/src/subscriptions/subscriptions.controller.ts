@@ -13,7 +13,8 @@ import {
 	ParseUUIDPipe,
 	Patch,
 	Post,
-	Request
+	Request,
+	UnauthorizedException
 } from '@nestjs/common'
 import type {
 	CreateSubscriptionRequest,
@@ -39,13 +40,13 @@ export class SubscriptionsController {
 	 * POST /subscriptions
 	 */
 	@Post()
-		async createSubscription(
+	async createSubscription(
 			@Request() req: AuthenticatedRequest,
 			@Body() request: CreateSubscriptionRequest
 		): Promise<RentSubscriptionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		return this.subscriptionsService.createSubscription(user_id, request)
@@ -61,7 +62,7 @@ export class SubscriptionsController {
 	): Promise<{ subscriptions: RentSubscriptionResponse[] }> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		const subscriptions =
@@ -80,7 +81,7 @@ export class SubscriptionsController {
 	): Promise<RentSubscriptionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		return this.subscriptionsService.getSubscription(id, user_id)
@@ -98,7 +99,7 @@ export class SubscriptionsController {
 	): Promise<RentSubscriptionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		return this.subscriptionsService.updateSubscription(id, user_id, update)
@@ -115,7 +116,7 @@ export class SubscriptionsController {
 	): Promise<SubscriptionActionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		return this.subscriptionsService.pauseSubscription(id, user_id)
@@ -132,7 +133,7 @@ export class SubscriptionsController {
 	): Promise<SubscriptionActionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		return this.subscriptionsService.resumeSubscription(id, user_id)
@@ -149,7 +150,7 @@ export class SubscriptionsController {
 	): Promise<SubscriptionActionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new Error('User not authenticated')
+			throw new UnauthorizedException()
 		}
 
 		return this.subscriptionsService.cancelSubscription(id, user_id)

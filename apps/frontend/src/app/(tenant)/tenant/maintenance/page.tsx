@@ -139,7 +139,7 @@ export default function TenantMaintenancePage() {
 								key={request.id}
 								className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
 							>
-								<div className="flex items-center gap-4 flex-1">
+								<div className="flex items-center gap-(--spacing-4) flex-1">
 									<Wrench className="size-5 text-primary" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
@@ -200,7 +200,7 @@ export default function TenantMaintenancePage() {
 								key={request.id}
 								className="flex items-center justify-between p-4 border rounded-lg"
 							>
-								<div className="flex items-center gap-4 flex-1">
+								<div className="flex items-center gap-(--spacing-4) flex-1">
 									<Wrench className="size-5 text-muted-foreground" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">

@@ -138,7 +138,7 @@ function RentCollectionContent() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+		<div className="flex flex-1 flex-col gap-(--spacing-4) p-4 lg:gap-(--spacing-6) lg:p-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold text-foreground">
@@ -151,7 +151,7 @@ function RentCollectionContent() {
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-(--spacing-4) md:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">

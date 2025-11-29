@@ -8,13 +8,13 @@ import {
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Lease status enum validation
+// Workflow: draft -> pending_signature -> active -> ended/terminated
 export const lease_statusSchema = z.enum([
-  'draft',
-  'pending',
-  'active',
-  'terminated',
-  'expired',
-  'completed'
+  'draft',              // Owner creating/editing terms
+  'pending_signature',  // Sent to tenant for signing
+  'active',             // Both parties signed, billing active
+  'ended',              // Natural end of lease term
+  'terminated'          // Early termination
 ])
 
 // Lease payment day validation (1-31 for day of month)
@@ -106,6 +106,7 @@ export const leaseQuerySchema = z.object({
 })
 
 // Lease creation schema (for API requests)
+// New leases start in 'draft' status until sent for signature
 export const leaseCreateSchema = leaseInputSchema.omit({
   id: true,
   created_at: true,
@@ -114,7 +115,7 @@ export const leaseCreateSchema = leaseInputSchema.omit({
   stripe_subscription_id: true
 }).extend({
   tenant_ids: z.array(uuidSchema).min(1, 'At least one tenant is required'),
-  lease_status: lease_statusSchema.default('pending')
+  lease_status: lease_statusSchema.default('draft')
 })
 
 // Lease termination schema
@@ -142,6 +143,41 @@ export const leasePaymentScheduleSchema = z.object({
   next_payment_date: z.string().min(1, 'Next payment date is required'),
   is_active: z.boolean().default(true)
 })
+
+// ============================================================================
+// LEASE SIGNATURE WORKFLOW SCHEMAS
+// ============================================================================
+
+// Schema for sending lease for signature
+export const sendForSignatureSchema = z.object({
+  lease_id: uuidSchema,
+  message: z.string().max(1000, 'Message cannot exceed 1000 characters').optional()
+})
+
+// Schema for signing a lease
+export const signLeaseSchema = z.object({
+  lease_id: uuidSchema,
+  signature_ip: z.string().optional(), // Captured server-side
+  agreed_to_terms: z.literal(true, 'You must agree to the lease terms')
+})
+
+// Schema for lease with signature info (response)
+export const leaseWithSignatureSchema = leaseInputSchema.extend({
+  id: uuidSchema,
+  created_at: z.string(),
+  updated_at: z.string(),
+  owner_signed_at: z.string().nullable().optional(),
+  owner_signature_ip: z.string().nullable().optional(),
+  tenant_signed_at: z.string().nullable().optional(),
+  tenant_signature_ip: z.string().nullable().optional(),
+  sent_for_signature_at: z.string().nullable().optional(),
+  docuseal_submission_id: z.string().nullable().optional()
+})
+
+// Export types
+export type SendForSignature = z.infer<typeof sendForSignatureSchema>
+export type SignLease = z.infer<typeof signLeaseSchema>
+export type LeaseWithSignature = z.infer<typeof leaseWithSignatureSchema>
 
 // Export types
 export type LeaseInput = z.infer<typeof leaseInputSchema>

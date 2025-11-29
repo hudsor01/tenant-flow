@@ -105,7 +105,7 @@ export function MaintenanceActionButtons({
 
 					<div className="space-y-6">
 						{/* Status and Priority */}
-						<div className="flex items-center gap-4">
+						<div className="flex items-center gap-(--spacing-4)">
 							<div className="flex items-center gap-2">
 								<span className="text-sm font-medium">Status:</span>
 								<Badge className={getStatusColor(maintenance.status)}>
@@ -131,7 +131,7 @@ export function MaintenanceActionButtons({
 						)}
 
 						{/* Property and Unit Information */}
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-2 gap-(--spacing-4)">
 							{maintenance.property && (
 								<div className="flex items-center gap-2">
 									<MapPin className="size-4 text-muted-foreground" />

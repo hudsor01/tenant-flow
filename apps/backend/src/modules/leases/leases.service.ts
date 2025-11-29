@@ -412,7 +412,7 @@ export class LeasesService {
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount,
 				security_deposit: dto.security_deposit || 0,
-				lease_status: dto.lease_status || 'pending',
+				lease_status: dto.lease_status || 'draft',
 				payment_day: 1,
 				rent_currency: 'USD'
 			})

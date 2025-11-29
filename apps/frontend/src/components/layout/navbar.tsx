@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#components/ui/she
 import { useSignOut } from '#hooks/api/use-auth'
 import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
+import { navbarButtonClasses, mobileDropdownLinkClasses } from '#lib/design-system'
 import { useAuth } from '#providers/auth-provider'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
@@ -396,7 +397,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								>
 									<Link
 										href={ctaHref}
-										className="hidden sm:flex items-center px-6 py-2.5 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-(--radius-medium) hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl"
+										className={navbarButtonClasses('cta')}
 									>
 										{ctaText}
 										<ArrowRight className="ml-2 size-4" />
@@ -481,7 +482,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 																	<Link
 																		href={dropdownItem.href}
 																		onClick={() => closeMobileMenu()}
-																		className="block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
+																		className={mobileDropdownLinkClasses}
 																	>
 																		{dropdownItem.name}
 																	</Link>

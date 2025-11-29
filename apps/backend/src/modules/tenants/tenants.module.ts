@@ -10,12 +10,11 @@ import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { TenantPaymentService } from './tenant-payment.service'
-import { TenantInvitationService } from './tenant-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
-import { TenantResendInvitationService } from './tenant-resend-invitation.service'
+import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 
 /**
- * Tenants Module - Refactored with 8 Specialized Services
+ * Tenants Module - Refactored with Specialized Services
  *
  * Architecture:
  * TenantsService (Facade) → Delegates to specialized services
@@ -24,9 +23,8 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
  * ├─ TenantEmergencyContactService (Contact management)
  * ├─ TenantNotificationPreferencesService (Settings)
  * ├─ TenantPaymentService (Payment queries and analytics)
- * ├─ TenantInvitationService (Invitation SAGA)
- * ├─ TenantInvitationTokenService (Token validation)
- * └─ TenantResendInvitationService (Resend logic)
+ * ├─ TenantInvitationTokenService (Token validation/acceptance)
+ * └─ TenantPlatformInvitationService (Platform invitation, lease is separate workflow)
  *
  * Benefits:
  * - Single Responsibility Principle
@@ -45,9 +43,8 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantPaymentService,
-		TenantInvitationService,
 		TenantInvitationTokenService,
-		TenantResendInvitationService
+		TenantPlatformInvitationService
 	],
 	exports: [
 		TenantQueryService,
@@ -55,9 +52,8 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantPaymentService,
-		TenantInvitationService,
 		TenantInvitationTokenService,
-		TenantResendInvitationService
+		TenantPlatformInvitationService
 	]
 })
 export class TenantsModule {}

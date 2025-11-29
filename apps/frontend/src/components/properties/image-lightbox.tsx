@@ -11,6 +11,7 @@ import {
 } from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { lightboxNavButtonClasses } from '#lib/design-system'
 
 interface ImageLightboxProps {
 	images: Tables<'property_images'>[]
@@ -100,7 +101,7 @@ export function ImageLightbox({
 							<Button
 								variant="ghost"
 								size="icon"
-								className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+								className={lightboxNavButtonClasses('left')}
 								onClick={handlePrevious}
 								aria-label="Previous image"
 							>
@@ -111,7 +112,7 @@ export function ImageLightbox({
 							<Button
 								variant="ghost"
 								size="icon"
-								className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+								className={lightboxNavButtonClasses('right')}
 								onClick={handleNext}
 								aria-label="Next image"
 							>

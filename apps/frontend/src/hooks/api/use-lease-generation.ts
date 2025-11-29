@@ -107,7 +107,6 @@ export function useGenerateLease() {
 
 /**
  * Hook to generate and email Texas lease PDF
- * TODO: Implement proper email endpoint
  */
 export function useEmailLease() {
 	return useMutation({
@@ -116,7 +115,7 @@ export function useEmailLease() {
 			const headers = await getAuthHeaders()
 
 			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL!}/api/v1/leases/generate`,
+				`${process.env.NEXT_PUBLIC_API_BASE_URL!}/api/v1/leases/email`,
 				{
 					method: 'POST',
 					headers,
@@ -126,21 +125,25 @@ export function useEmailLease() {
 
 			if (!response.ok) {
 				const errorText = await response.text()
-				throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
+				throw new Error(`Failed to email lease: ${response.status} ${errorText}`)
 			}
 
-			const blob = await response.blob()
-			return { success: true, blob }
+			const result = (await response.json()) as { success: boolean }
+			return { success: result?.success ?? true }
 		},
-		onSuccess: () => {
-			toast.success('Lease generated - email functionality coming soon')
+		onSuccess: (_data, variables) => {
+			toast.success(`Lease sent to ${variables.emailTo}`)
+			logger.info('Lease emailed', {
+				action: 'email_lease',
+				metadata: { emailTo: variables.emailTo }
+			})
 		},
 		onError: error => {
 			logger.error('Error generating lease for email', {
 				action: 'email_lease_error',
 				metadata: { error: String(error) }
 			})
-			handleMutationError(error, 'Generate lease for email')
+			handleMutationError(error, 'Email lease')
 		}
 	})
 }

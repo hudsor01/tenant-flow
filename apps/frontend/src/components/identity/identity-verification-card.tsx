@@ -127,7 +127,7 @@ export function IdentityVerificationCard() {
 		status === 'verified' || sessionMutation.isPending || statusQuery.isLoading
 
 	const iconColor =
-		status === 'verified' ? 'text-green-600' : status === 'requires_input' ? 'text-amber-600' : 'text-muted-foreground'
+		status === 'verified' ? 'text-success' : status === 'requires_input' ? 'text-amber-600' : 'text-muted-foreground'
 
 	return (
 		<CardLayout

@@ -1,45 +1,20 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
-import type { SupabaseAuthUser as AuthUser } from '@repo/shared/types/auth'
+import { Controller, Get } from '@nestjs/common'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import { user_id } from '../../shared/decorators/user.decorator'
 import { PropertyPerformanceService } from './property-performance.service'
 
 @Controller('analytics')
 export class PropertyPerformanceController {
-	private readonly logger = new Logger(PropertyPerformanceController.name)
-
 	constructor(
-		private readonly propertyPerformanceService: PropertyPerformanceService,
-		private readonly supabaseService: SupabaseService
+		private readonly propertyPerformanceService: PropertyPerformanceService
 	) {}
-
-	private async getAuthenticatedUser(request: Request): Promise<AuthUser> {
-		const user = await this.supabaseService.getUser(request)
-		if (!user) {
-			this.logger.warn('Property performance request missing authentication', {
-				endpoint: request.path,
-				method: request.method
-			})
-			throw new UnauthorizedException('Authentication required')
-		}
-
-		return user as unknown as AuthUser
-	}
 
 	@Get('property-performance')
 	async getPropertyPerformance(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.propertyPerformanceService.getPropertyPerformance(
-			user.id
+			userId
 		)
 
 		return {
@@ -52,10 +27,9 @@ export class PropertyPerformanceController {
 
 	@Get('property-units')
 	async getPropertyUnits(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.propertyPerformanceService.getPropertyUnits(user.id)
+		const data = await this.propertyPerformanceService.getPropertyUnits(userId)
 
 		return {
 			success: true,
@@ -67,11 +41,10 @@ export class PropertyPerformanceController {
 
 	@Get('property-unit-statistics')
 	async getUnitStatistics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.propertyPerformanceService.getUnitStatistics(
-			user.id
+			userId
 		)
 
 		return {
@@ -84,11 +57,10 @@ export class PropertyPerformanceController {
 
 	@Get('visitor-analytics')
 	async getVisitorAnalytics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.propertyPerformanceService.getVisitorAnalytics(
-			user.id
+			userId
 		)
 
 		return {
@@ -101,12 +73,11 @@ export class PropertyPerformanceController {
 
 	@Get('property-performance/page-data')
 	async getPropertyPerformancePageData(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data =
 			await this.propertyPerformanceService.getPropertyPerformancePageData(
-				user.id
+				userId
 			)
 
 		return {

@@ -51,7 +51,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 	// Loading state
 	if (isLoading) {
 		return (
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-(--spacing-4)">
 				{Array.from({ length: 4 }).map((_, idx) => (
 					<Skeleton key={idx} className="aspect-video rounded-lg" />
 				))}
@@ -75,7 +75,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 	return (
 		<>
 			{/* Image grid */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-(--spacing-4)">
 				{images.slice(0, 4).map((image, idx) => {
 					const isPrimary = idx === 0
 					const hasMore = idx === 3 && images.length > 4

@@ -25,10 +25,15 @@ import {
 	CreditCard,
 	Eye,
 	MoreVertical,
+	PenLine,
 	RotateCcw,
+	Send,
 	Trash2,
 	X
 } from 'lucide-react'
+import { LEASE_STATUS } from '#lib/constants/status-values'
+import { useSendLeaseForSignature, useSignLeaseAsOwner } from '#hooks/api/use-lease'
+import { toast } from 'sonner'
 
 interface LeaseActionButtonsProps {
 	lease: Lease
@@ -36,6 +41,30 @@ interface LeaseActionButtonsProps {
 
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const { openModal } = useModalStore()
+	const sendForSignature = useSendLeaseForSignature()
+	const signAsOwner = useSignLeaseAsOwner()
+
+	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
+	const isPendingSignature = lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
+	const ownerHasSigned = !!lease.owner_signed_at
+
+	const handleSendForSignature = async () => {
+		try {
+			await sendForSignature.mutateAsync({ leaseId: lease.id })
+			toast.success('Lease sent for signature')
+		} catch {
+			toast.error('Failed to send lease for signature')
+		}
+	}
+
+	const handleSignAsOwner = async () => {
+		try {
+			await signAsOwner.mutateAsync(lease.id)
+			toast.success('Lease signed successfully')
+		} catch {
+			toast.error('Failed to sign lease')
+		}
+	}
 
 	const getStatusBadge = (status: string) => {
 		const variants: Record<
@@ -45,10 +74,15 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			ACTIVE: 'default',
 			EXPIRED: 'destructive',
 			TERMINATED: 'secondary',
-			DRAFT: 'outline'
+			DRAFT: 'outline',
+			pending_signature: 'secondary'
 		}
 
-		return <Badge variant={variants[status]}>{status}</Badge>
+		const labels: Record<string, string> = {
+			pending_signature: 'Pending Signature'
+		}
+
+		return <Badge variant={variants[status] || 'outline'}>{labels[status] || status}</Badge>
 	}
 
 	return (
@@ -72,37 +106,68 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					{lease.lease_status === 'ACTIVE' && (
-						<>
-							<DropdownMenuItem
-								onClick={() => openModal(`pay-rent-${lease.id}`)}
-								className="gap-2"
-							>
-								<CreditCard className="size-4" />
-								Pay Rent
-							</DropdownMenuItem>
+				{/* Draft lease actions */}
+				{isDraft && (
+					<>
+						<DropdownMenuItem
+							onClick={handleSendForSignature}
+							disabled={sendForSignature.isPending}
+							className="gap-2"
+						>
+							<Send className="size-4" />
+							{sendForSignature.isPending ? 'Sending...' : 'Send for Signature'}
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+					</>
+				)}
 
-							<DropdownMenuSeparator />
+				{/* Pending signature actions */}
+				{isPendingSignature && !ownerHasSigned && (
+					<>
+						<DropdownMenuItem
+							onClick={handleSignAsOwner}
+							disabled={signAsOwner.isPending}
+							className="gap-2"
+						>
+							<PenLine className="size-4" />
+							{signAsOwner.isPending ? 'Signing...' : 'Sign as Owner'}
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+					</>
+				)}
 
-							<DropdownMenuItem
-								onClick={() => openModal(`renew-lease-${lease.id}`)}
-								className="gap-2"
-							>
-								<RotateCcw className="size-4" />
-								Renew Lease
-							</DropdownMenuItem>
+				{/* Active lease actions */}
+				{lease.lease_status === 'ACTIVE' && (
+					<>
+						<DropdownMenuItem
+							onClick={() => openModal(`pay-rent-${lease.id}`)}
+							className="gap-2"
+						>
+							<CreditCard className="size-4" />
+							Pay Rent
+						</DropdownMenuItem>
 
-							<DropdownMenuItem
-								onClick={() => openModal(`terminate-lease-${lease.id}`)}
-								className="gap-2 text-destructive focus:text-destructive"
-							>
-								<X className="size-4" />
-								Terminate Lease
-							</DropdownMenuItem>
-						</>
-					)}
+						<DropdownMenuSeparator />
 
-					<DropdownMenuSeparator />
+						<DropdownMenuItem
+							onClick={() => openModal(`renew-lease-${lease.id}`)}
+							className="gap-2"
+						>
+							<RotateCcw className="size-4" />
+							Renew Lease
+						</DropdownMenuItem>
+
+						<DropdownMenuItem
+							onClick={() => openModal(`terminate-lease-${lease.id}`)}
+							className="gap-2 text-destructive focus:text-destructive"
+						>
+							<X className="size-4" />
+							Terminate Lease
+						</DropdownMenuItem>
+					</>
+				)}
+
+				<DropdownMenuSeparator />
 
 					<DropdownMenuItem
 						onClick={() => {

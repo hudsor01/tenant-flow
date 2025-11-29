@@ -20,7 +20,7 @@ export default async function EditPropertyPage({
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-4">
+			<div className="flex items-center gap-(--spacing-4)">
 				<Button variant="outline" size="sm" asChild>
 					<Link href={`/properties/${id}`}>
 						<ArrowLeft className="size-4 mr-2" />

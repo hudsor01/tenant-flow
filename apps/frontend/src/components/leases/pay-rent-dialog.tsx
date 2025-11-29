@@ -110,7 +110,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 
 						<div className="space-y-[var(--spacing-4)]">
 							{/* Rent Amount Display */}
-							<div className="p-[var(--spacing-4)] bg-muted rounded-lg">
+							<div className="p-(--spacing-4) bg-muted rounded-lg">
 								<p className="text-sm text-muted-foreground mb-[var(--spacing-1)]">
 									Rent Amount
 								</p>

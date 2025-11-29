@@ -14,9 +14,9 @@ import { FileText, Filter, FolderOpen, Search, Users } from 'lucide-react'
 export default function SearchPage() {
 	return (
 		<PageLayout containerClass="max-w-6xl py-8">
-			<div className="flex flex-col gap-6">
+			<div className="flex flex-col gap-(--spacing-6)">
 				{/* Search Header */}
-				<div className="flex flex-col gap-4">
+				<div className="flex flex-col gap-(--spacing-4)">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-bold">Search TenantFlow</h1>
 						<p className="text-muted-foreground">
@@ -49,7 +49,7 @@ export default function SearchPage() {
 				</div>
 
 				{/* Quick Searches */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-4)">
 					<Card className="cursor-pointer hover:bg-muted/50 transition-colors">
 						<CardHeader className="pb-3">
 							<div className="flex items-center gap-2">
@@ -88,7 +88,7 @@ export default function SearchPage() {
 				</div>
 
 				{/* Recent Searches */}
-				<div className="flex flex-col gap-4">
+				<div className="flex flex-col gap-(--spacing-4)">
 					<h2 className="text-xl font-semibold">Recent Searches</h2>
 					<div className="flex flex-wrap gap-2">
 						<Badge
@@ -127,7 +127,7 @@ export default function SearchPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-(--spacing-4) text-sm">
 							<div>
 								<strong>Property Search:</strong>
 								<p className="text-muted-foreground mt-1">

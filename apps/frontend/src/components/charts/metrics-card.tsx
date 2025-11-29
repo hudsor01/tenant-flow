@@ -52,7 +52,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				}}
 				{...props}
 			>
-				<CardHeader className="p-0 gap-4">
+				<CardHeader className="p-0 gap-(--spacing-4)">
 					<div className="flex items-center justify-between gap-3">
 						<CardDescription className="font-medium text-muted-foreground text-sm leading-normal">
 							{title}

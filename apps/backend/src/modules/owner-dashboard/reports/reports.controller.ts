@@ -4,33 +4,14 @@ import {
 	Query,
 	Logger,
 	UseGuards,
-	UseInterceptors,
-	BadRequestException
+	UseInterceptors
 } from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
 import { ReportsService, MetricTrend, TimeSeriesDataPoint } from './reports.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
-
-type MetricType =
-	| 'occupancy_rate'
-	| 'active_tenants'
-	| 'monthly_revenue'
-	| 'open_maintenance'
-	| 'total_maintenance'
-
-type PeriodType = 'day' | 'week' | 'month' | 'year'
-
-const VALID_METRICS: MetricType[] = [
-	'occupancy_rate',
-	'active_tenants',
-	'monthly_revenue',
-	'open_maintenance',
-	'total_maintenance'
-]
-
-const VALID_PERIODS: PeriodType[] = ['day', 'week', 'month', 'year']
+import { TimeSeriesQueryDto, MetricTrendQueryDto } from './dto/reports-query.dto'
 
 /**
  * ReportsController
@@ -56,28 +37,13 @@ export class ReportsController {
 	@Get('time-series')
 	async getTimeSeries(
 		@user_id() user_id: string,
-		@Query('metric') metric: string,
-		@Query('days') daysParam?: string
+		@Query() query: TimeSeriesQueryDto
 	): Promise<TimeSeriesDataPoint[]> {
-		if (!metric) {
-			throw new BadRequestException('metric query parameter is required')
-		}
-
-		if (!VALID_METRICS.includes(metric as MetricType)) {
-			throw new BadRequestException(
-				`Invalid metric. Must be one of: ${VALID_METRICS.join(', ')}`
-			)
-		}
-
-		const days = daysParam ? parseInt(daysParam, 10) : 30
-
-		if (isNaN(days) || days < 1 || days > 365) {
-			throw new BadRequestException('days must be a number between 1 and 365')
-		}
+		const { metric, days } = query
 
 		this.logger.log('Getting time series data', { user_id, metric, days })
 
-		return this.reportsService.getTimeSeries(user_id, metric as MetricType, days)
+		return this.reportsService.getTimeSeries(user_id, metric, days)
 	}
 
 	/**
@@ -88,34 +54,16 @@ export class ReportsController {
 	@Get('metric-trend')
 	async getMetricTrend(
 		@user_id() user_id: string,
-		@Query('metric') metric: string,
-		@Query('period') period?: string
+		@Query() query: MetricTrendQueryDto
 	): Promise<MetricTrend> {
-		if (!metric) {
-			throw new BadRequestException('metric query parameter is required')
-		}
-
-		if (!VALID_METRICS.includes(metric as MetricType)) {
-			throw new BadRequestException(
-				`Invalid metric. Must be one of: ${VALID_METRICS.join(', ')}`
-			)
-		}
-
-		const periodValue: PeriodType =
-			period && VALID_PERIODS.includes(period as PeriodType)
-				? (period as PeriodType)
-				: 'month'
+		const { metric, period } = query
 
 		this.logger.log('Getting metric trend', {
 			user_id,
 			metric,
-			period: periodValue
+			period
 		})
 
-		return this.reportsService.getMetricTrend(
-			user_id,
-			metric as MetricType,
-			periodValue
-		)
+		return this.reportsService.getMetricTrend(user_id, metric, period)
 	}
 }

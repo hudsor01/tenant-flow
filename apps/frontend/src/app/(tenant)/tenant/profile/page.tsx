@@ -261,7 +261,7 @@ export default function TenantProfilePage() {
 				description="Your basic contact details"
 			>
 				<form onSubmit={handleSave} className="space-y-6">
-					<div className="grid gap-6 md:grid-cols-2">
+					<div className="grid gap-(--spacing-6) md:grid-cols-2">
 						<Field>
 							<FieldLabel>First Name *</FieldLabel>
 							<input
@@ -323,7 +323,7 @@ export default function TenantProfilePage() {
 						/>
 					</Field>
 
-					<div className="flex gap-4 pt-4">
+					<div className="flex gap-(--spacing-4) pt-4">
 						{!isEditing ? (
 							<Button
 								type="button"
@@ -368,7 +368,7 @@ export default function TenantProfilePage() {
 				description="Someone we can contact in case of emergency"
 			>
 				<form onSubmit={handleSaveEmergencyContact} className="space-y-6">
-					<div className="grid gap-6 md:grid-cols-2">
+					<div className="grid gap-(--spacing-6) md:grid-cols-2">
 						<Field>
 							<FieldLabel>Contact Name *</FieldLabel>
 							<input
@@ -465,7 +465,7 @@ export default function TenantProfilePage() {
 						</p>
 					)}
 
-					<div className="flex gap-4">
+					<div className="flex gap-(--spacing-4)">
 						{!emergency_contactEditing ? (
 							<>
 								<Button

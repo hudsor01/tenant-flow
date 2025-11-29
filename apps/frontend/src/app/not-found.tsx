@@ -16,7 +16,7 @@ export default function NotFound() {
 					</p>
 				</div>
 
-				<div className="flex gap-4 justify-center flex-wrap">
+				<div className="flex gap-(--spacing-4) justify-center flex-wrap">
 					<Link
 						href="/"
 						className="px-6 py-3 rounded-lg font-medium text-white no-underline bg-(--color-accent-main)"

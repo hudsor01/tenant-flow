@@ -1,18 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import type { MobileAnalyticsEvent } from './dto/mobile-analytics-event.dto'
-
-// Local type definition - web vitals removed from frontend but keeping backend endpoint
-interface WebVitalData {
-	name: string
-	value: number
-	rating: 'good' | 'needs-improvement' | 'poor'
-	delta: number
-	id: string
-	page: string
-	timestamp?: string
-	sessionId?: string
-	user_id?: string
-}
+import type { WebVitalMetric } from './dto/web-vital.dto'
 
 @Injectable()
 export class AnalyticsService {
@@ -35,7 +23,7 @@ export class AnalyticsService {
 		})
 	}
 
-	recordWebVitalMetric(metric: WebVitalData, distinctId?: string) {
+	recordWebVitalMetric(metric: WebVitalMetric, distinctId?: string) {
 		const { user_id, sessionId, ...properties } = metric
 		const eventProperties: Record<string, unknown> = {
 			...properties,
