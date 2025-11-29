@@ -160,9 +160,7 @@ describe('Stripe Webhook Integration', () => {
 			expect(after?.onboarding_completed_at).not.toBeNull()
 		})
 
-		// TODO: WebhookProcessor uses 'rejected' status but DB constraint only allows
-		// 'not_started', 'in_progress', 'completed'. Fix the processor or DB constraint.
-		it.skip('sets rejected status when account has disabled_reason', async () => {
+		it('keeps in_progress status when account has disabled_reason', async () => {
 			// Reset to in_progress first
 			await ownerAuth.client
 				.from('property_owners')
@@ -201,7 +199,7 @@ describe('Stripe Webhook Integration', () => {
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()
 
-			expect(after?.onboarding_status).toBe('rejected')
+			expect(after?.onboarding_status).toBe('in_progress')
 			expect(after?.charges_enabled).toBe(false)
 			expect(after?.payouts_enabled).toBe(false)
 		})

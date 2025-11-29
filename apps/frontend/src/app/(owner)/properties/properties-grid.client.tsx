@@ -94,7 +94,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 				</div>
 			)}
 			<div
-				className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+				className="grid gap-(--spacing-6) sm:grid-cols-2 lg:grid-cols-3"
 				style={{ opacity: isPending ? 0.7 : 1 }}
 			>
 				{optimisticProperties.map(property => (

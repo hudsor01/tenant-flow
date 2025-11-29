@@ -191,7 +191,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			}}
 			className="space-y-6"
 		>
-			<div className="grid gap-4 md:grid-cols-2">
+			<div className="grid gap-(--spacing-4) md:grid-cols-2">
 				<form.Field name="property_id">
 					{field => (
 						<Field>
@@ -236,7 +236,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				</form.Field>
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-3">
+			<div className="grid gap-(--spacing-4) md:grid-cols-3">
 				<form.Field name="bedrooms">
 					{field => (
 						<Field>
@@ -285,7 +285,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				</form.Field>
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-2">
+			<div className="grid gap-(--spacing-4) md:grid-cols-2">
 				<form.Field name="rent_amount">
 					{field => (
 						<Field>

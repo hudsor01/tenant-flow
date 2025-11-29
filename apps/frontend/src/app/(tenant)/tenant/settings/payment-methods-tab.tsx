@@ -154,7 +154,7 @@ export function PaymentMethodsTab() {
 										key={method.id}
 										className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
 									>
-										<div className="flex items-center gap-4">
+										<div className="flex items-center gap-(--spacing-4)">
 											<div className="text-muted-foreground">
 												{display.icon}
 											</div>

@@ -95,7 +95,7 @@ export function VacancySummaryList({ entries }: VacancyListProps) {
 							</span>
 						) : null}
 					</div>
-					<div className="flex items-center gap-4">
+					<div className="flex items-center gap-(--spacing-4)">
 						<span className="text-muted-foreground">
 							{entry.vacancyDays} days vacant
 						</span>

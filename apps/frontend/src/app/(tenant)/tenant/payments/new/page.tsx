@@ -136,7 +136,7 @@ export default function PayRentPage() {
 				<Card>
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 rounded-full bg-green-100 p-3 w-fit">
-							<CheckCircle2 className="size-8 text-green-600" />
+							<CheckCircle2 className="size-8 text-success" />
 						</div>
 						<CardTitle>Rent Paid</CardTitle>
 						<CardDescription>
@@ -236,7 +236,7 @@ export default function PayRentPage() {
 						)}
 					</div>
 				</CardContent>
-				<CardFooter className="flex-col gap-4">
+				<CardFooter className="flex-col gap-(--spacing-4)">
 					<Button
 						className="w-full"
 						size="lg"

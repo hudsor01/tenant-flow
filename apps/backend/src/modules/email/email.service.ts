@@ -349,6 +349,116 @@ export class EmailService {
 	}
 
 	/**
+	 * Send subscription failure alert email
+	 * Sent to property owner and optionally admin when subscription creation fails after max retries
+	 */
+	async sendSubscriptionFailureAlertEmail(data: {
+		recipientEmail: string
+		recipientName: string
+		leaseId: string
+		propertyName: string
+		unitNumber?: string
+		tenantName: string
+		rentAmount: number
+		failureReason: string
+		retryCount: number
+		dashboardUrl: string
+	}): Promise<void> {
+		if (!this.resend) {
+			this.logger.warn('Resend not configured, skipping subscription failure alert email')
+			return
+		}
+
+		try {
+			const unitDisplay = data.unitNumber ? ` - Unit ${this.escapeHtml(data.unitNumber)}` : ''
+			const rentFormatted = (data.rentAmount / 100).toFixed(2)
+
+			const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background: #DC2626; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+		.content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
+		.field { margin-bottom: 15px; }
+		.label { font-weight: bold; color: #6B7280; font-size: 12px; text-transform: uppercase; }
+		.value { margin-top: 5px; }
+		.error-box { background: #FEF2F2; border: 1px solid #FECACA; padding: 15px; border-radius: 6px; margin: 15px 0; }
+		.action-btn { display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h2>Action Required: Subscription Creation Failed</h2>
+		</div>
+		<div class="content">
+			<p>Hi ${this.escapeHtml(data.recipientName)},</p>
+			<p>We were unable to set up the billing subscription for the following lease after ${data.retryCount} attempts:</p>
+
+			<div class="field">
+				<div class="label">Property</div>
+				<div class="value">${this.escapeHtml(data.propertyName)}${unitDisplay}</div>
+			</div>
+
+			<div class="field">
+				<div class="label">Tenant</div>
+				<div class="value">${this.escapeHtml(data.tenantName)}</div>
+			</div>
+
+			<div class="field">
+				<div class="label">Monthly Rent</div>
+				<div class="value">$${rentFormatted}</div>
+			</div>
+
+			<div class="error-box">
+				<div class="label">Error Details</div>
+				<div class="value">${this.escapeHtml(data.failureReason)}</div>
+			</div>
+
+			<p><strong>What to do:</strong></p>
+			<ul>
+				<li>Verify the tenant's payment method is set up correctly</li>
+				<li>Check that Stripe Connect is properly configured</li>
+				<li>Contact support if the issue persists</li>
+			</ul>
+
+			<a href="${this.escapeHtml(data.dashboardUrl)}" class="action-btn">View Lease Details</a>
+
+			<p style="margin-top: 20px; color: #6B7280; font-size: 12px;">
+				Lease ID: ${this.escapeHtml(data.leaseId)}
+			</p>
+		</div>
+	</div>
+</body>
+</html>
+			`.trim()
+
+			const result = await this.resend.emails.send({
+				from: 'TenantFlow <noreply@tenantflow.app>',
+				to: [data.recipientEmail],
+				subject: `Action Required: Subscription Setup Failed for ${data.propertyName}`,
+				html: emailHtml
+			})
+
+			this.logger.log('Subscription failure alert email sent', {
+				emailId: result.data?.id,
+				recipientEmail: data.recipientEmail,
+				leaseId: data.leaseId
+			})
+		} catch (error) {
+			this.logger.error('Failed to send subscription failure alert email', {
+				error: error instanceof Error ? error.message : String(error),
+				recipientEmail: data.recipientEmail,
+				leaseId: data.leaseId
+			})
+		}
+	}
+
+	/**
 	 * Escape HTML special characters to prevent XSS
 	 * Replaces: & < > " ' / with their HTML entity equivalents
 	 */
@@ -428,7 +538,10 @@ export class EmailService {
 	generateUserConfirmationHtml(dto: ContactFormRequest): string {
 		const name = this.escapeHtml(dto.name)
 		const subject = this.escapeHtml(dto.subject)
-		const supportPhone = this.escapeHtml(this.config.getSupportPhone())
+		const supportPhone = this.config.getSupportPhone()
+		const phoneSection = supportPhone
+			? `<p class="message">If you need immediate assistance, please call us at ${this.escapeHtml(supportPhone)}.</p>`
+			: ''
 
 		return `
 <!DOCTYPE html>
@@ -452,7 +565,7 @@ export class EmailService {
 			<p class="message">Hi ${name},</p>
 			<p class="message">Thank you for reaching out to us. We've received your message regarding "${subject}" and our team will review it shortly.</p>
 			<p class="message">We typically respond within 4 hours during business hours (9 AM - 5 PM EST, Monday-Friday).</p>
-			<p class="message">If you need immediate assistance, please call us at ${supportPhone}.</p>
+			${phoneSection}
 			<p class="message">Best regards,<br>The TenantFlow Team</p>
 		</div>
 	</div>

@@ -12,8 +12,11 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { Logger, UnauthorizedException, BadRequestException } from '@nestjs/common'
 import { DocuSealWebhookController, type DocuSealWebhookPayload } from './docuseal-webhook.controller'
-import type { FormCompletedPayload, SubmissionCompletedPayload } from './docuseal-webhook.service'
 import { DocuSealWebhookService } from './docuseal-webhook.service'
+import type {
+	FormCompletedPayload,
+	SubmissionCompletedPayload
+} from '@repo/shared/validation/docuseal-webhooks'
 import { AppConfigService } from '../../config/app-config.service'
 
 describe('DocuSealWebhookController', () => {
@@ -87,6 +90,7 @@ describe('DocuSealWebhookController', () => {
 						id: 123,
 						submission_id: 456,
 						email: 'tenant@example.com',
+						role: 'Tenant',
 						completed_at: '2025-01-15T10:00:00Z'
 					}
 				}
@@ -187,7 +191,9 @@ describe('DocuSealWebhookController', () => {
 					data: {
 						id: 123,
 						submission_id: 456,
-						email: 'tenant@example.com'
+						email: 'tenant@example.com',
+						role: 'Tenant',
+						completed_at: '2025-01-15T10:00:00Z'
 					}
 				}
 
@@ -197,6 +203,127 @@ describe('DocuSealWebhookController', () => {
 				await expect(
 					controller.handleWebhook(validHeaders, payload)
 				).rejects.toThrow('Database connection failed')
+			})
+		})
+
+		describe('Payload Validation', () => {
+			it('should reject form.completed with invalid email', async () => {
+				const payload = {
+					event_type: 'form.completed',
+					data: {
+						id: 123,
+						submission_id: 456,
+						email: 'not-an-email', // Invalid email
+						role: 'Tenant',
+						completed_at: '2025-01-15T10:00:00Z'
+					}
+				}
+
+				await expect(
+					controller.handleWebhook(validHeaders, payload)
+				).rejects.toThrow(BadRequestException)
+			})
+
+			it('should reject form.completed with missing required fields', async () => {
+				const payload = {
+					event_type: 'form.completed',
+					data: {
+						id: 123
+						// Missing submission_id, email, role, completed_at
+					}
+				}
+
+				await expect(
+					controller.handleWebhook(validHeaders, payload)
+				).rejects.toThrow(BadRequestException)
+			})
+
+			it('should reject submission.completed with invalid document URL', async () => {
+				const payload = {
+					event_type: 'submission.completed',
+					data: {
+						id: 456,
+						status: 'completed',
+						completed_at: '2025-01-15T10:00:00Z',
+						submitters: [{ email: 'test@example.com', role: 'Tenant' }],
+						documents: [{ name: 'test.pdf', url: 'not-a-url' }] // Invalid URL
+					}
+				}
+
+				await expect(
+					controller.handleWebhook(validHeaders, payload)
+				).rejects.toThrow(BadRequestException)
+			})
+
+			it('should reject form.completed with negative ID', async () => {
+				const payload = {
+					event_type: 'form.completed',
+					data: {
+						id: -1, // Negative ID should be rejected
+						submission_id: 456,
+						email: 'tenant@example.com',
+						role: 'Tenant',
+						completed_at: '2025-01-15T10:00:00Z'
+					}
+				}
+
+				await expect(
+					controller.handleWebhook(validHeaders, payload)
+				).rejects.toThrow(BadRequestException)
+			})
+
+			it('should reject submission.completed with empty submitters array', async () => {
+				const payload = {
+					event_type: 'submission.completed',
+					data: {
+						id: 456,
+						status: 'completed',
+						completed_at: '2025-01-15T10:00:00Z',
+						submitters: [], // Empty array should be rejected (min 1)
+						documents: []
+					}
+				}
+
+				await expect(
+					controller.handleWebhook(validHeaders, payload)
+				).rejects.toThrow(BadRequestException)
+			})
+
+			it('should accept valid form.completed with optional fields omitted', async () => {
+				const payload = {
+					event_type: 'form.completed',
+					data: {
+						id: 123,
+						submission_id: 456,
+						email: 'tenant@example.com',
+						role: 'Tenant',
+						completed_at: '2025-01-15T10:00:00Z'
+						// name and metadata are optional, so omitting them is valid
+					}
+				}
+
+				mockWebhookService.handleFormCompleted.mockResolvedValue(undefined)
+
+				const result = await controller.handleWebhook(validHeaders, payload)
+				expect(result).toEqual({ received: true })
+			})
+
+			it('should accept valid submission.completed with empty documents array', async () => {
+				const payload = {
+					event_type: 'submission.completed',
+					data: {
+						id: 456,
+						status: 'completed',
+						completed_at: '2025-01-15T10:00:00Z',
+						submitters: [{ email: 'owner@example.com', role: 'Owner' }],
+						documents: [] // Empty documents is valid (default)
+					}
+				}
+
+				mockWebhookService.handleSubmissionCompleted.mockResolvedValue(undefined)
+
+				const result = await controller.handleWebhook(validHeaders, payload)
+				expect(result).toEqual({ received: true })
 			})
 		})
 	})

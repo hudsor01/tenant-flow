@@ -106,7 +106,7 @@ const CashFlowPage = () => {
 							</div>
 							<div className="text-right">
 								<div
-									className={`font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}
+									className={`font-semibold ${isPositive ? 'text-success' : 'text-red-600'}`}
 								>
 									{isPositive ? '+' : ''}${Math.abs(item.amount).toLocaleString()}
 								</div>
@@ -134,7 +134,7 @@ const CashFlowPage = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-(--spacing-6)">
 					{[1, 2, 3].map(i => (
 						<Card key={i}>
 							<CardHeader>
@@ -226,7 +226,7 @@ const CashFlowPage = () => {
 			{/* Filters */}
 			<Card>
 				<CardContent className="p-4">
-					<div className="flex flex-wrap items-center gap-4">
+					<div className="flex flex-wrap items-center gap-(--spacing-4)">
 						<div className="flex items-center gap-2">
 							<Label>Period</Label>
 							<Select value={period} onValueChange={setPeriod}>
@@ -264,16 +264,16 @@ const CashFlowPage = () => {
 			</Card>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-(--spacing-6)">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">
 							Operating Cash Flow
 						</CardTitle>
-						<ArrowUp className="h-4 w-4 text-green-600" />
+						<ArrowUp className="h-4 w-4 text-success" />
 				</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-green-600">
+						<div className="text-2xl font-bold text-success">
 						${operatingTotal.toLocaleString()}
 					</div>
 						<p className="text-xs text-muted-foreground">Current period</p>
@@ -314,7 +314,7 @@ const CashFlowPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}
+							className={`text-2xl font-bold ${netCashFlow >= 0 ? 'text-success' : 'text-red-600'}`}
 						>
 							{netCashFlow >= 0 ? '+' : ''}${netCashFlow.toLocaleString()}
 						</div>
@@ -329,7 +329,7 @@ const CashFlowPage = () => {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<ArrowUp className="w-5 h-5 text-green-600" />
+							<ArrowUp className="w-5 h-5 text-success" />
 							Operating Activities
 						</CardTitle>
 					</CardHeader>
@@ -338,7 +338,7 @@ const CashFlowPage = () => {
 						<Separator />
 						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
 							<div className="font-semibold">Net Operating Cash Flow</div>
-							<div className="font-bold text-lg text-green-600">
+							<div className="font-bold text-lg text-success">
 								+${operatingTotal.toLocaleString()}
 							</div>
 						</div>
@@ -396,14 +396,14 @@ const CashFlowPage = () => {
 						<div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Cash Flow</div>
 							<div
-								className={`text-xl font-bold ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}
+								className={`text-xl font-bold ${netCashFlow >= 0 ? 'text-success' : 'text-red-600'}`}
 							>
 								{netCashFlow >= 0 ? '+' : ''}${netCashFlow.toLocaleString()}
 							</div>
 						</div>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-4) mt-4">
 							<div className="text-center p-4 bg-green-50 rounded-lg">
-								<div className="text-2xl font-bold text-green-600">
+								<div className="text-2xl font-bold text-success">
 									+${operatingTotal.toLocaleString()}
 								</div>
 								<div className="text-sm text-gray-600">Operating</div>
