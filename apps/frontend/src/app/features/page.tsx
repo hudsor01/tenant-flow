@@ -282,7 +282,7 @@ export default function FeaturesPage() {
 							</p>
 
 							{/* High-contrast, prominent CTAs */}
-							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
+							<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center pt-4">
 								<Button
 									size="lg"
 									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
@@ -571,7 +571,7 @@ export default function FeaturesPage() {
 									</span>
 								</p>
 
-								<div className="flex flex-col sm:flex-row gap-6 justify-center">
+								<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center">
 									<Button
 										size="lg"
 										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"

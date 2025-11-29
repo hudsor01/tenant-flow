@@ -897,7 +897,13 @@ export class NotificationsService {
 					.eq('id', tenant.user_id)
 					.single()
 
-				if (!tenantUser?.email) return
+				if (!tenantUser?.email) {
+					this.logger.warn('Skipping lease sent notification: tenant email missing', {
+						leaseId: event.lease_id,
+						tenantId: lease.primary_tenant_id
+					})
+					return
+				}
 
 				// Get owner name
 				let ownerName: string | undefined
@@ -1008,7 +1014,13 @@ export class NotificationsService {
 					.eq('id', tenant.user_id)
 					.single()
 
-				if (!tenantUser?.email) return
+				if (!tenantUser?.email) {
+					this.logger.warn('Skipping owner signed notification: tenant email missing', {
+						leaseId: event.lease_id,
+						tenantId: lease.primary_tenant_id
+					})
+					return
+				}
 
 				// Get owner name
 				let ownerName: string | undefined
@@ -1112,7 +1124,13 @@ export class NotificationsService {
 					.eq('id', lease.property_owner_id)
 					.single()
 
-				if (!owner?.email) return
+				if (!owner?.email) {
+					this.logger.warn('Skipping tenant signed notification: owner email missing', {
+						leaseId: event.lease_id,
+						ownerId: lease.property_owner_id
+					})
+					return
+				}
 
 				// Get tenant name
 				const { data: tenant } = await client
@@ -1227,6 +1245,11 @@ export class NotificationsService {
 						startDate: lease.start_date,
 						portalUrl: `${frontendUrl}/leases/${event.lease_id}`
 					})
+				} else {
+					this.logger.warn('Skipping lease activated notification for owner: email missing', {
+						leaseId: event.lease_id,
+						ownerId: lease.property_owner_id
+					})
 				}
 
 				// Send to tenant
@@ -1257,6 +1280,11 @@ export class NotificationsService {
 							rentCurrency: lease.rent_currency || 'USD',
 							startDate: lease.start_date,
 							portalUrl: `${frontendUrl}/portal`
+						})
+					} else {
+						this.logger.warn('Skipping lease activated notification for tenant: email missing', {
+							leaseId: event.lease_id,
+							tenantId: lease.primary_tenant_id
 						})
 					}
 				}

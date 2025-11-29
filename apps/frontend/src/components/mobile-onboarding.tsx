@@ -24,7 +24,7 @@ const STEPS = [
 		icon: Users,
 		title: 'Track Tenants',
 		description: 'Stay ahead of renewals and communication in one timeline.',
-		color: 'text-green-500'
+		color: 'text-success'
 	},
 	{
 		icon: Wrench,

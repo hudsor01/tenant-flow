@@ -107,7 +107,9 @@ describe('DocuSealWebhookService', () => {
 			})
 
 			expect(updateData).toMatchObject({
-				owner_signed_at: expect.any(String)
+				owner_signed_at: expect.any(String),
+				owner_signature_ip: null,
+				owner_signature_method: 'docuseal'
 			})
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'lease.owner_signed',
@@ -151,7 +153,9 @@ describe('DocuSealWebhookService', () => {
 			})
 
 			expect(updateData).toMatchObject({
-				tenant_signed_at: expect.any(String)
+				tenant_signed_at: expect.any(String),
+				tenant_signature_ip: null,
+				tenant_signature_method: 'docuseal'
 			})
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'lease.tenant_signed',

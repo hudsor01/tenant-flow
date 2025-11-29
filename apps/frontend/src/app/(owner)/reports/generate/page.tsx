@@ -170,7 +170,7 @@ export default function GenerateReportsPage() {
 	}
 
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col gap-6">
+		<div className="@container/main flex min-h-screen w-full flex-col gap-(--spacing-6)">
 			<div className="flex flex-col gap-2">
 				<h1 className="text-3xl font-bold tracking-tight">Generate Reports</h1>
 				<p className="text-muted-foreground">
@@ -208,14 +208,14 @@ export default function GenerateReportsPage() {
 			</Card>
 
 			{/* Executive Reports */}
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-(--spacing-4)">
 				<div>
 					<h2 className="text-xl font-semibold">Executive Reports</h2>
 					<p className="text-sm text-muted-foreground">
 						High-level summaries for leadership and stakeholders
 					</p>
 				</div>
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-(--spacing-4) md:grid-cols-2 lg:grid-cols-3">
 					{reportCards
 						.filter(report => report.category === 'executive')
 						.map(report => {
@@ -262,14 +262,14 @@ export default function GenerateReportsPage() {
 			</div>
 
 			{/* Financial Reports */}
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-(--spacing-4)">
 				<div>
 					<h2 className="text-xl font-semibold">Financial Reports</h2>
 					<p className="text-sm text-muted-foreground">
 						Detailed financial analysis and performance metrics
 					</p>
 				</div>
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-(--spacing-4) md:grid-cols-2 lg:grid-cols-3">
 					{reportCards
 						.filter(report => report.category === 'financial')
 						.map(report => {
@@ -316,14 +316,14 @@ export default function GenerateReportsPage() {
 			</div>
 
 			{/* Operations Reports */}
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-(--spacing-4)">
 				<div>
 					<h2 className="text-xl font-semibold">Operations Reports</h2>
 					<p className="text-sm text-muted-foreground">
 						Property and maintenance operations insights
 					</p>
 				</div>
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-(--spacing-4) md:grid-cols-2 lg:grid-cols-3">
 					{reportCards
 						.filter(report => report.category === 'operations')
 						.map(report => {

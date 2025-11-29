@@ -90,7 +90,7 @@ export default function TenantLeasePage() {
 			{/* Property Information */}
 			<CardLayout title="Property Details" description="Your current residence">
 				<div className="space-y-4">
-					<div className="flex items-start gap-4">
+					<div className="flex items-start gap-(--spacing-4)">
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
 							<p className="font-semibold text-lg">
@@ -115,7 +115,7 @@ export default function TenantLeasePage() {
 				</div>
 			</CardLayout>
 			{/* Lease Terms */}
-			<div className="grid gap-4 md:grid-cols-2">
+			<div className="grid gap-(--spacing-4) md:grid-cols-2">
 				<CardLayout title="Lease Term" description="Duration of your lease">
 					<div className="space-y-4">
 						<div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ export default function TenantLeasePage() {
 				</div>
 			</CardLayout>
 			{/* Quick Actions */}
-			<div className="flex gap-4">
+			<div className="flex gap-(--spacing-4)">
 				<Link href="/tenant/payments">
 					<Button>Pay Rent</Button>
 				</Link>

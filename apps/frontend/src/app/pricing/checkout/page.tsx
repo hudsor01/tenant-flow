@@ -213,7 +213,7 @@ function CheckoutPageContent() {
 							</CardLayout>
 
 							{/* Trust indicators */}
-							<div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+							<div className="flex items-center justify-center gap-(--spacing-6) text-sm text-muted-foreground">
 								<div className="flex items-center gap-1">
 									<Shield className="size-4" />
 									<span>SOC 2 Compliant</span>
