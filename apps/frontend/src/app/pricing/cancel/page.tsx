@@ -52,7 +52,7 @@ export default function CheckoutCancelPage() {
 
 							<div className="space-y-4">
 								<h3 className="font-semibold">Ready to get started?</h3>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-(--spacing-4)">
 									<Link href="/pricing">
 										<Button className="w-full" size="lg">
 											<ArrowLeft className="size-4 mr-2" />
@@ -73,7 +73,7 @@ export default function CheckoutCancelPage() {
 									Still have questions about our pricing or need help choosing
 									the right plan?
 								</p>
-								<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+								<div className="flex flex-col sm:flex-row items-center justify-center gap-(--spacing-4)">
 									<Link href="/contact">
 										<Button variant="outline" size="sm">
 											<MessageCircle className="size-4 mr-2" />

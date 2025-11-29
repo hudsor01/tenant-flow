@@ -67,7 +67,7 @@ export function QuickCreateDialog() {
 							<Button
 								key={option.title}
 								variant="outline"
-								className="h-auto justify-start gap-4 p-4 text-left"
+								className="h-auto justify-start gap-(--spacing-4) p-4 text-left"
 								onClick={() => handleOptionClick(option.href)}
 							>
 								<option.icon className="size-8 shrink-0 text-primary" />

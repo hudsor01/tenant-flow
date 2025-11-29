@@ -36,7 +36,7 @@ export default function TenantDocumentsPage() {
 			key={doc.id}
 			className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
 		>
-			<div className="flex items-center gap-4 flex-1">
+			<div className="flex items-center gap-(--spacing-4) flex-1">
 				{doc.type === 'LEASE' ? (
 					<FileText className="size-6 text-accent-main" />
 				) : (
@@ -44,7 +44,7 @@ export default function TenantDocumentsPage() {
 				)}
 				<div className="flex-1">
 					<p className="font-medium">{doc.name}</p>
-					<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+					<div className="flex items-center gap-(--spacing-4) text-sm text-muted-foreground mt-1">
 						{doc.created_at && (
 							<div className="flex items-center gap-1">
 								<Calendar className="size-3" />
@@ -160,7 +160,7 @@ export default function TenantDocumentsPage() {
 					{isLoading ? (
 						<div className="space-y-3">
 							<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-								<div className="flex items-center gap-4 flex-1">
+								<div className="flex items-center gap-(--spacing-4) flex-1">
 									<FileText className="size-6 text-accent-main" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
@@ -172,7 +172,7 @@ export default function TenantDocumentsPage() {
 												Signed
 											</Badge>
 										</div>
-										<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+										<div className="flex items-center gap-(--spacing-4) text-sm text-muted-foreground mt-1">
 											<div className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												<span>
@@ -197,7 +197,7 @@ export default function TenantDocumentsPage() {
 							</div>
 
 							<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-								<div className="flex items-center gap-4 flex-1">
+								<div className="flex items-center gap-(--spacing-4) flex-1">
 									<FileText className="size-6 text-accent-main" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
@@ -209,7 +209,7 @@ export default function TenantDocumentsPage() {
 												Signed
 											</Badge>
 										</div>
-										<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+										<div className="flex items-center gap-(--spacing-4) text-sm text-muted-foreground mt-1">
 											<div className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												<span>
@@ -249,11 +249,11 @@ export default function TenantDocumentsPage() {
 				>
 					<div className="space-y-3">
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-							<div className="flex items-center gap-4 flex-1">
+							<div className="flex items-center gap-(--spacing-4) flex-1">
 								<FileText className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<p className="font-medium">Move-In Checklist</p>
-									<div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+									<div className="flex items-center gap-(--spacing-4) text-sm text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="size-3" />
 											<span>
@@ -290,7 +290,7 @@ export default function TenantDocumentsPage() {
 				>
 					<div className="space-y-3">
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-							<div className="flex items-center gap-4 flex-1">
+							<div className="flex items-center gap-(--spacing-4) flex-1">
 								<FolderOpen className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<p className="font-medium">Community Rules</p>
@@ -311,7 +311,7 @@ export default function TenantDocumentsPage() {
 						</div>
 
 						<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-							<div className="flex items-center gap-4 flex-1">
+							<div className="flex items-center gap-(--spacing-4) flex-1">
 								<FolderOpen className="size-6 text-accent-main" />
 								<div className="flex-1">
 									<p className="font-medium">Emergency Procedures</p>

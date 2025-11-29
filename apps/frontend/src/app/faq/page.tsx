@@ -107,7 +107,7 @@ export default function FAQPage() {
 						Speak with a property management automation expert and get a custom
 						ROI projection for your portfolio.
 					</p>
-					<div className="flex flex-col sm:flex-row gap-4 justify-center">
+					<div className="flex flex-col sm:flex-row gap-(--spacing-4) justify-center">
 						<Button size="lg" variant="secondary" className="px-8">
 							Schedule Expert Consultation
 							<ArrowRight className="size-5 ml-2" />

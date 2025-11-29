@@ -146,7 +146,7 @@ export function ChartAreaInteractive({
 			</CardHeader>
 
 			{/* Summary metrics */}
-			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
+			<div className="grid grid-cols-2 gap-(--spacing-4) p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-sm text-muted-foreground">Total Revenue</p>
 					<p className="text-lg font-semibold text-success">

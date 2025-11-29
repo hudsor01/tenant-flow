@@ -4,7 +4,7 @@ import {
 	Controller,
 	Get,
 	Logger,
-	NotFoundException,
+	UnauthorizedException,
 	Post,
 	Query,
 	Req,
@@ -473,7 +473,7 @@ export class ReportsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		const parsedMonths = months ? parseInt(months, 10) : 12
@@ -500,7 +500,7 @@ export class ReportsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		const data = await this.reportsService.getPaymentAnalytics(
@@ -523,7 +523,7 @@ export class ReportsController {
 	async getOccupancyMetrics(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user?.id
 		if (!user_id) {
-			throw new NotFoundException('User not authenticated')
+			throw new UnauthorizedException('User not authenticated')
 		}
 
 		const data = await this.reportsService.getOccupancyMetrics(user_id)

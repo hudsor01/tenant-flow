@@ -79,6 +79,10 @@ export class WebhookProcessor {
 				await this.handlePaymentAttached(event.data.object as Stripe.PaymentMethod)
 				break
 
+			case 'customer.subscription.created':
+				await this.handleSubscriptionCreated(event.data.object as Stripe.Subscription)
+				break
+
 			case 'customer.subscription.updated':
 				await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription)
 				break
@@ -163,6 +167,94 @@ export class WebhookProcessor {
 		} catch (error) {
 			this.logger.error('Failed to handle payment method attached', {
 				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle customer.subscription.created webhook
+	 * Belt-and-suspenders confirmation of subscription creation
+	 * Updates stripe_subscription_status to 'active' if still 'pending'
+	 */
+	private async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
+		try {
+			this.logger.log('Subscription created webhook received', {
+				subscriptionId: subscription.id,
+				status: subscription.status,
+				metadata: subscription.metadata
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Get lease_id from subscription metadata (set during creation)
+			const leaseId = subscription.metadata?.lease_id
+
+			if (leaseId) {
+				// Find lease by ID from metadata
+				const { data: lease } = await client
+					.from('leases')
+					.select('id, stripe_subscription_status, stripe_subscription_id')
+					.eq('id', leaseId)
+					.single()
+
+				if (lease) {
+					// Only update if still pending (avoid overwriting active status)
+					if (lease.stripe_subscription_status === 'pending') {
+						await client
+							.from('leases')
+							.update({
+								stripe_subscription_id: subscription.id,
+								stripe_subscription_status: 'active',
+								subscription_failure_reason: null,
+								updated_at: new Date().toISOString()
+							})
+							.eq('id', lease.id)
+
+						this.logger.log('Lease subscription confirmed via webhook', {
+							leaseId: lease.id,
+							subscriptionId: subscription.id
+						})
+					} else {
+						this.logger.debug('Lease subscription already active, skipping update', {
+							leaseId: lease.id,
+							currentStatus: lease.stripe_subscription_status
+						})
+					}
+				} else {
+					this.logger.warn('Lease not found for subscription metadata', {
+						leaseId,
+						subscriptionId: subscription.id
+					})
+				}
+			} else {
+				// Fallback: Find by subscription ID (for edge cases)
+				const { data: lease } = await client
+					.from('leases')
+					.select('id, stripe_subscription_status')
+					.eq('stripe_subscription_id', subscription.id)
+					.maybeSingle()
+
+				if (lease && lease.stripe_subscription_status === 'pending') {
+					await client
+						.from('leases')
+						.update({
+							stripe_subscription_status: 'active',
+							subscription_failure_reason: null,
+							updated_at: new Date().toISOString()
+						})
+						.eq('id', lease.id)
+
+					this.logger.log('Lease subscription status confirmed via webhook (fallback)', {
+						leaseId: lease.id,
+						subscriptionId: subscription.id
+					})
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to handle subscription created', {
+				error: error instanceof Error ? error.message : String(error),
+				subscriptionId: subscription.id
 			})
 			throw error
 		}
@@ -517,14 +609,12 @@ export class WebhookProcessor {
 
 			const client = this.supabase.getAdminClient()
 
-			// Determine onboarding status based on Stripe account state
-			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' | 'rejected' = 'in_progress'
+			// Determine onboarding status based on Stripe account state while respecting DB constraint
+			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' = 'in_progress'
 			if (account.details_submitted && account.charges_enabled && account.payouts_enabled) {
 				onboardingStatus = 'completed'
-			} else if (account.requirements?.disabled_reason) {
-				onboardingStatus = 'rejected'
 			} else if (!account.details_submitted) {
-				onboardingStatus = 'in_progress'
+				onboardingStatus = 'not_started'
 			}
 
 			// Combine currently_due and eventually_due requirements

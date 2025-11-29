@@ -281,7 +281,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					)}
 
 					<form onSubmit={handleSubmit} className="space-y-6">
-						<div className="grid md:grid-cols-2 gap-4">
+						<div className="grid md:grid-cols-2 gap-(--spacing-4)">
 							<Field>
 								<FieldLabel htmlFor="name">Full Name *</FieldLabel>
 								<InputGroup>
@@ -329,7 +329,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							</Field>
 						</div>
 
-						<div className="grid md:grid-cols-2 gap-4">
+						<div className="grid md:grid-cols-2 gap-(--spacing-4)">
 							<Field>
 								<FieldLabel htmlFor="company">Company Name</FieldLabel>
 								<Input
