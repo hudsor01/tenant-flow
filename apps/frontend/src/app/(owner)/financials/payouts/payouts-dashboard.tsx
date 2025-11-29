@@ -30,7 +30,7 @@ function formatDate(timestamp: number): string {
 function getPayoutStatusBadge(status: string) {
 	switch (status) {
 		case 'paid':
-			return <Badge variant="default" className="bg-green-500"><CheckCircle className="mr-1 size-3" />Paid</Badge>
+			return <Badge variant="default" className="bg-success"><CheckCircle className="mr-1 size-3" />Paid</Badge>
 		case 'pending':
 			return <Badge variant="secondary"><Clock className="mr-1 size-3" />Pending</Badge>
 		case 'in_transit':
@@ -71,13 +71,13 @@ function BalanceCard() {
 	const pendingUSD = balance.pending.find(b => b.currency === 'usd')?.amount ?? 0
 
 	return (
-		<div className="grid gap-4 md:grid-cols-2">
+		<div className="grid gap-(--spacing-4) md:grid-cols-2">
 			<CardLayout
 				title="Available Balance"
 				description="Funds ready for payout"
 			>
 				<div className="flex items-center gap-2">
-					<DollarSign className="size-8 text-green-600" />
+					<DollarSign className="size-8 text-success" />
 					<span className="text-3xl font-bold">
 						{formatCurrency(availableUSD / 100)}
 					</span>
@@ -209,7 +209,7 @@ function TransfersTable() {
 					{data.transfers.map(transfer => (
 						<TableRow key={transfer.id}>
 							<TableCell>{formatDate(transfer.created)}</TableCell>
-							<TableCell className="font-medium text-green-600">
+							<TableCell className="font-medium text-success">
 								+{formatCurrency(transfer.amount / 100)}
 							</TableCell>
 							<TableCell>{transfer.description || 'Rent payment'}</TableCell>

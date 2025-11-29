@@ -89,7 +89,7 @@ export function InvitationsTableClient() {
 				)
 			case 'accepted':
 				return (
-					<Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">
+					<Badge variant="outline" className="border-success text-success bg-green-50">
 						<CheckCircle2 className="size-3 mr-1" />
 						Accepted
 					</Badge>

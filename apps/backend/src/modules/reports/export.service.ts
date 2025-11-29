@@ -100,8 +100,8 @@ export class ExportService {
 	/**
 	 * PDF export disabled (pdfkit removed)
 	 * Use Excel or CSV exports instead
-	 * TODO: Implement PDF export using @react-pdf/renderer if needed
 	 */
+	// TODO: [HIGH] Implement PDF export or remove option from UI - currently throws error
 	async generatePDF(
 		_payload: unknown,
 		_title = 'Analytics Export'

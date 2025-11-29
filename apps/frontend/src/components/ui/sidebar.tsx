@@ -24,6 +24,7 @@ import {
 } from '#components/ui/tooltip'
 import { useIsMobile } from '#hooks/use-mobile'
 import { cn } from '#lib/utils'
+import { sidebarContainerClasses, sidebarRailClasses } from '#lib/design-system'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -69,9 +70,25 @@ function SidebarProvider({
 	const isMobile = useIsMobile()
 	const [openMobile, setOpenMobile] = React.useState(false)
 
+	// Read initial state from cookie to prevent SSR hydration mismatch
+	const getInitialOpenState = React.useCallback(() => {
+		if (typeof window === 'undefined') {
+			return defaultOpen // Server-side default
+		}
+		try {
+			const cookieValue = document.cookie
+				.split('; ')
+				.find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+				?.split('=')[1]
+			return cookieValue ? cookieValue === 'true' : defaultOpen
+		} catch {
+			return defaultOpen
+		}
+	}, [defaultOpen])
+
 	// This is the internal state of the sidebar.
 	// We use openProp and setOpenProp for control from outside the component.
-	const [_open, _setOpen] = React.useState(defaultOpen)
+	const [_open, _setOpen] = React.useState(getInitialOpenState)
 	const open = openProp ?? _open
 	const setOpen = React.useCallback(
 		(value: boolean | ((value: boolean) => boolean)) => {
@@ -83,7 +100,7 @@ function SidebarProvider({
 			}
 
 			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax; Secure`
 		},
 		[setOpenProp, open]
 	)
@@ -217,14 +234,7 @@ function Sidebar({
 			{/* This is what handles the sidebar gap on desktop */}
 			<div
 				data-slot="sidebar-gap"
-				className={cn(
-					'relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
-					'group-data-[collapsible=offcanvas]:w-0',
-					'group-data-[side=right]:rotate-180',
-					variant === 'floating' || variant === 'inset'
-						? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]'
-						: 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
-				)}
+				className={sidebarContainerClasses(variant, collapsible === 'icon', side, 'group-data-[collapsible=offcanvas]:w-0')}
 			/>
 			<div
 				data-slot="sidebar-container"
@@ -290,15 +300,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 			tabIndex={-1}
 			onClick={toggleSidebar}
 			title="Toggle Sidebar"
-			className={cn(
-				'hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 translate-x-[-50%] transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 sm:flex',
-				'in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize',
-				'[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize',
-				'hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full',
-				'[[data-side=left][data-collapsible=offcanvas]_&]:-right-2',
-				'[[data-side=right][data-collapsible=offcanvas]_&]:-left-2',
-				className
-			)}
+			className={sidebarRailClasses(className)}
 			{...props}
 		/>
 	)

@@ -5,6 +5,7 @@ import { StatCard } from '#components/dashboard/stat-card'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { Skeleton } from '#components/ui/skeleton'
 import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
 import { Empty, EmptyHeader, EmptyMedia, EmptyDescription } from '#components/ui/empty'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
@@ -21,9 +22,11 @@ import {
 	CheckCircle2,
 	Clock,
 	AlertCircle,
-	AlertTriangle
+	AlertTriangle,
+	PenLine
 } from 'lucide-react'
 import Link from 'next/link'
+import { LEASE_STATUS } from '#lib/constants/status-values'
 
 /**
  * Tenant Portal Dashboard
@@ -45,6 +48,9 @@ export default function TenantDashboardPage() {
 	const maintenanceSummary = data?.maintenance
 	const recentPayments = data?.payments?.recent ?? []
 	const recentRequests = data?.maintenance?.recent ?? []
+
+	// Check if lease needs tenant signature
+	const needsSignature = activeLease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && !activeLease?.tenant_signed_at
 
 	const formatDate = (date: string | Date) => {
 		return new Date(date).toLocaleDateString('en-US', {
@@ -120,6 +126,31 @@ export default function TenantDashboardPage() {
 					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--foreground)] via-[var(--foreground)]/80 to-[var(--foreground)] bg-clip-text text-transparent dark:from-[var(--background)] dark:via-(--background) dark:to-[var(--background)]">
 						Tenant Portal
 					</h1>
+
+					{/* Pending Signature Alert */}
+					{needsSignature && activeLease && (
+						<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4 flex items-center justify-between gap-(--spacing-4)" data-testid="pending-signature">
+							<div className="flex items-center gap-3">
+								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900">
+									<PenLine className="size-5 text-amber-600 dark:text-amber-400" />
+								</div>
+								<div>
+									<p className="font-semibold text-amber-900 dark:text-amber-100">
+										Lease Agreement Pending Your Signature
+									</p>
+									<p className="text-sm text-amber-700 dark:text-amber-300">
+										Please review and sign your lease agreement to complete the process.
+									</p>
+								</div>
+							</div>
+							<Link href="/tenant/lease">
+								<Button className="gap-2">
+									<PenLine className="size-4" />
+									Sign Lease
+								</Button>
+							</Link>
+						</div>
+					)}
 
 					{/* Stats Cards - Inline from SectionCards pattern */}
 					<div data-testid="tenant-dashboard-stats">
@@ -302,7 +333,7 @@ export default function TenantDashboardPage() {
 													key={payment.id}
 													className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 												>
-													<div className="flex items-center gap-4">
+													<div className="flex items-center gap-(--spacing-4)">
 														<div className="flex items-center justify-center w-10 h-10 rounded-lg icon-bg-success">
 															<CheckCircle2 className="size-5" />
 														</div>
@@ -407,7 +438,7 @@ export default function TenantDashboardPage() {
 														key={request.id}
 														className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 													>
-														<div className="flex items-center gap-4">
+														<div className="flex items-center gap-(--spacing-4)">
 															<div
 																className={`flex items-center justify-center w-10 h-10 rounded-lg ${config.bg}`}
 															>

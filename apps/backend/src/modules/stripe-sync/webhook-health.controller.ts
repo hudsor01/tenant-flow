@@ -16,10 +16,27 @@ import {
 	ParseUUIDPipe,
 	HttpStatus,
 	HttpCode,
-	SetMetadata
+	SetMetadata,
+	UnauthorizedException,
+	Req
 } from '@nestjs/common'
+import { timingSafeEqual } from 'crypto'
+import type { Request } from 'express'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { AppConfigService } from '../../config/app-config.service'
+
+const CONFIG_AUTH_HEADER = 'x-webhook-config-token'
+
+const constantTimeEquals = (a?: string, b?: string): boolean => {
+	if (!a || !b) return false
+
+	const aBuf = Buffer.from(a)
+	const bBuf = Buffer.from(b)
+
+	if (aBuf.length !== bBuf.length) return false
+
+	return timingSafeEqual(aBuf, bBuf)
+}
 
 // Public decorator for monitoring endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
@@ -64,7 +81,6 @@ export class WebhookHealthController {
 	 * Returns detailed 24-hour health summary with hourly breakdown
 	 * Used for dashboards and trend analysis
 	 */
-	@Public()
 	@Get('summary')
 	async getHealthSummary() {
 		const [healthSummary, eventTypeSummary] = await Promise.all([
@@ -131,7 +147,14 @@ export class WebhookHealthController {
 	 * Requires authentication to prevent exposing internal configuration
 	 */
 	@Get('configuration')
-	async getConfiguration() {
+	async getConfiguration(@Req() req: Request) {
+		const expectedToken = this.appConfigService.getStripeWebhookSecret()
+		const providedToken = this.getConfigurationToken(req)
+
+		if (!constantTimeEquals(providedToken, expectedToken)) {
+			throw new UnauthorizedException('Invalid configuration access token')
+		}
+
 		const webhookSecret = this.appConfigService.getStripeWebhookSecret()
 		const stripeKey = this.appConfigService.getStripeSecretKey()
 
@@ -187,5 +210,22 @@ export class WebhookHealthController {
 			recommendations,
 			endpoint_url: `${this.appConfigService.getApiBaseUrl()}/webhooks/stripe-sync`
 		}
+	}
+
+	private getConfigurationToken(req: Request): string | undefined {
+		const header = req.headers[CONFIG_AUTH_HEADER]
+		const authHeader = Array.isArray(header) ? header[0] : header
+
+		if (authHeader) return authHeader
+
+		const authorization = Array.isArray(req.headers.authorization)
+			? req.headers.authorization[0]
+			: req.headers.authorization
+
+		if (authorization?.startsWith('Bearer ')) {
+			return authorization.slice(7)
+		}
+
+		return authorization
 	}
 }

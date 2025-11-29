@@ -64,7 +64,7 @@ export default function TenantPaymentHistoryPage() {
 			</div>
 
 			{/* Payment Summary */}
-			<div className="grid gap-4 md:grid-cols-3">
+			<div className="grid gap-(--spacing-4) md:grid-cols-3">
 				<CardLayout title="Total Paid" description="Lifetime payments">
 					<div className="flex items-center gap-3">
 						<DollarSign className="size-8 text-accent-main" />
@@ -117,7 +117,7 @@ export default function TenantPaymentHistoryPage() {
 			>
 				<div className="space-y-1">
 					{/* Header */}
-					<div className="grid grid-cols-5 gap-4 p-4 text-sm font-medium text-muted-foreground border-b">
+					<div className="grid grid-cols-5 gap-(--spacing-4) p-4 text-sm font-medium text-muted-foreground border-b">
 						<div>Date</div>
 						<div>Amount</div>
 						<div>Method</div>
@@ -140,7 +140,7 @@ export default function TenantPaymentHistoryPage() {
 					payments.map((payment: PaymentHistoryItem) => (
 							<div
 								key={payment.id}
-								className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
+								className="grid grid-cols-5 gap-(--spacing-4) p-4 items-center border-b hover:bg-accent/5 transition-colors"
 							>
 								<div>
 									<p className="font-medium">{payment.formattedDate}</p>

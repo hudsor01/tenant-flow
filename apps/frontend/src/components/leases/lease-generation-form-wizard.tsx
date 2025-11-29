@@ -270,7 +270,7 @@ export function LeaseGenerationFormWizard({
 											)}
 										</form.Field>
 
-										<div className="grid grid-cols-2 gap-4">
+										<div className="grid grid-cols-2 gap-(--spacing-4)">
 											<form.Field name="commencementDate">
 												{field => (
 													<div className="space-y-2">
@@ -309,7 +309,7 @@ export function LeaseGenerationFormWizard({
 									<h3 className="text-lg font-semibold mb-4">
 										Rent & Deposits
 									</h3>
-									<div className="grid grid-cols-2 gap-4">
+									<div className="grid grid-cols-2 gap-(--spacing-4)">
 										<form.Field name="rent_amount">
 											{field => (
 												<div className="space-y-2">
@@ -380,7 +380,7 @@ export function LeaseGenerationFormWizard({
 
 								<div>
 									<h3 className="text-lg font-semibold mb-4">Fees & Penalties</h3>
-									<div className="grid grid-cols-2 gap-4">
+									<div className="grid grid-cols-2 gap-(--spacing-4)">
 										<form.Field name="late_fee_amount">
 											{field => (
 												<div className="space-y-2">
@@ -560,7 +560,7 @@ export function LeaseGenerationFormWizard({
 												if (!petsAllowed) return null
 
 												return (
-													<div className="grid grid-cols-2 gap-4 ml-6">
+													<div className="grid grid-cols-2 gap-(--spacing-4) ml-6">
 														<form.Field name="petDeposit">
 															{field => (
 																<div className="space-y-2">
@@ -742,7 +742,7 @@ export function LeaseGenerationFormWizard({
 											security_deposit,
 											petsAllowed
 										}) => (
-											<dl className="grid grid-cols-2 gap-4 text-sm">
+											<dl className="grid grid-cols-2 gap-(--spacing-4) text-sm">
 												<div>
 													<dt className="font-medium text-muted-foreground">
 														Property Owner

@@ -1,44 +1,19 @@
-'use client'
-
-import { TenantSidebar } from '#components/dashboard/tenant-sidebar'
-import { SiteHeader } from '#components/dashboard/site-header'
-import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
-import { Breadcrumbs } from '#components/ui/breadcrumb'
-import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
-import { generateBreadcrumbs } from '#lib/breadcrumbs'
-import { usePathname } from 'next/navigation'
+import { ServerSidebarProvider } from '#components/ui/server-sidebar-provider'
+import { TenantDashboardLayoutClient } from './tenant-dashboard-layout-client'
 import type { ReactNode } from 'react'
 import '../(owner)/dashboard.css'
 
-export function TenantDashboardLayout({ children }: { children: ReactNode }) {
-	const pathname = usePathname()
-	const breadcrumbs = generateBreadcrumbs(pathname)
-
+export async function TenantDashboardLayout({ children }: { children: ReactNode }) {
 	return (
-		<ViewTransitionsProvider>
-			<SidebarProvider
-				style={
-					{
-						'--sidebar-width': 'calc(var(--spacing) * 72)',
-						'--header-height': 'calc(var(--spacing) * 12)'
-					} as React.CSSProperties
-				}
-			>
-				<div className="flex h-full flex-col gap-4 p-4">
-					<TenantSidebar />
-				</div>
-				<SidebarInset className="bg-muted/30">
-					<SiteHeader />
-					<div className="flex flex-1 flex-col">
-						<div className="@container/main flex min-h-screen w-full flex-col p-6">
-							<div className="mb-6">
-								<Breadcrumbs items={breadcrumbs} />
-							</div>
-							{children}
-						</div>
-					</div>
-				</SidebarInset>
-			</SidebarProvider>
-		</ViewTransitionsProvider>
+		<ServerSidebarProvider
+			style={
+				{
+					'--sidebar-width': 'calc(var(--spacing) * 72)',
+					'--header-height': 'calc(var(--spacing) * 12)'
+				} as React.CSSProperties
+			}
+		>
+			<TenantDashboardLayoutClient>{children}</TenantDashboardLayoutClient>
+		</ServerSidebarProvider>
 	)
 }
