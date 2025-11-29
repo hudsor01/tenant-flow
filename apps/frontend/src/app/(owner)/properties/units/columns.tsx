@@ -352,7 +352,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 						<DialogTitle>Unit {unit.unit_number} Details</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-4">
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-2 gap-(--spacing-4)">
 							<div className="flex items-center gap-2">
 								<BedDouble className="size-4 text-muted-foreground" />
 								<span>{unit.bedrooms} Bedrooms</span>
@@ -394,7 +394,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							<Label>Unit Number</Label>
 							<Input value={unit.unit_number || ''} disabled />
 						</div>
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-2 gap-(--spacing-4)">
 							<div>
 								<Label>Bedrooms</Label>
 								<Input type="number" value={unit.bedrooms ?? ''} disabled />

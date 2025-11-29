@@ -114,7 +114,7 @@ const BalanceSheetPage = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-(--spacing-6)">
 					{[1, 2, 3].map(i => (
 						<Card key={i}>
 							<CardHeader>
@@ -205,7 +205,7 @@ const BalanceSheetPage = () => {
 			{/* Filters */}
 			<Card>
 				<CardContent className="p-4">
-					<div className="flex flex-wrap items-center gap-4">
+					<div className="flex flex-wrap items-center gap-(--spacing-4)">
 						<div className="flex items-center gap-2">
 							<Label>As Of Date</Label>
 							<Select value={year} onValueChange={setYear}>
@@ -249,7 +249,7 @@ const BalanceSheetPage = () => {
 			</Card>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-6)">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Assets</CardTitle>
@@ -379,7 +379,7 @@ const BalanceSheetPage = () => {
 					<CardTitle>Financial Summary</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-4)">
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
 							<div className="text-2xl font-bold text-blue-600">
 								${totalAssets.toLocaleString()}
@@ -393,7 +393,7 @@ const BalanceSheetPage = () => {
 							<div className="text-sm text-gray-600">Total Liabilities</div>
 						</div>
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-2xl font-bold text-green-600">
+							<div className="text-2xl font-bold text-success">
 								${totalEquity.toLocaleString()}
 							</div>
 							<div className="text-sm text-gray-600">Total Equity</div>

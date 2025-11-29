@@ -232,7 +232,7 @@ export default function CompletePage() {
 							</div>
 
 							{/* Action Buttons */}
-							<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+							<div className="flex flex-col sm:flex-row gap-(--spacing-4) items-center justify-center">
 								{sessionData?.payment_intent_id && (
 									<a
 										href={`https://dashboard.stripe.com/payments/${sessionData.payment_intent_id}`}

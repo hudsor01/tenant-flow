@@ -123,6 +123,10 @@ export const DEFAULT_LEASE: Lease = {
 	lease_status: 'ACTIVE',
 	payment_day: 1,
 	stripe_subscription_id: null,
+	stripe_subscription_status: 'none',
+	subscription_failure_reason: null,
+	subscription_retry_count: 0,
+	subscription_last_attempt_at: null,
 	auto_pay_enabled: null,
 	grace_period_days: null,
 	late_fee_amount: null,
@@ -133,8 +137,10 @@ export const DEFAULT_LEASE: Lease = {
 	docuseal_submission_id: null,
 	owner_signed_at: null,
 	owner_signature_ip: null,
+	owner_signature_method: null,
 	tenant_signed_at: null,
 	tenant_signature_ip: null,
+	tenant_signature_method: null,
 	sent_for_signature_at: null
 }
 

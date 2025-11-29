@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '#components/ui/sheet'
-import { cn } from '#lib/utils'
+import { mobileNavItemClasses, mobileNavLinkClasses } from '#lib/design-system'
 import { Building2, Home, LogOut, Menu, Users, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -28,10 +28,7 @@ const NavItem = memo(({ item, isActive }: { item: MobileNavItem; isActive: boole
 	return (
 		<Link
 			href={item.href}
-			className={cn(
-				'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
-				isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
-			)}
+			className={mobileNavItemClasses(isActive)}
 			aria-label={`${item.label} navigation`}
 			aria-current={isActive ? 'page' : undefined}
 		>
@@ -89,10 +86,7 @@ export const MobileNav = memo(() => {
 										<Link
 											key={item.href}
 											href={item.href}
-											className={cn(
-												'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors',
-												isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted'
-											)}
+											className={mobileNavLinkClasses(isActive)}
 											aria-label={`${item.label} navigation`}
 											aria-current={isActive ? 'page' : undefined}
 										>
@@ -102,7 +96,7 @@ export const MobileNav = memo(() => {
 									)
 								})}
 							</div>
-							
+
 							{/* Logout Button */}
 							<div className="border-t border-border p-4">
 								<Button

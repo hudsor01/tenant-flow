@@ -3,10 +3,10 @@ import { Home } from 'lucide-react'
 
 export default function Footer() {
 	return (
-		<footer className="bg-background py-[var(--spacing-4)]">
-			<div className="max-w-7xl mx-auto px-[var(--spacing-4)]">
+		<footer className="bg-background py-(--spacing-4)">
+			<div className="max-w-7xl mx-auto px-(--spacing-4)">
 			<div
-				className="flex justify-center items-center gap-[var(--spacing-8)] text-muted-foreground"
+				className="flex justify-center items-center gap-(--spacing-8) text-muted-foreground"
 				style={{ fontSize: 'var(--text-sm)' }}
 			>
 					<div className="flex items-center space-x-2">

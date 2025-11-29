@@ -102,7 +102,7 @@ export function LateFeeConfigDialog({
 									>
 										Grace Period
 									</Label>
-									<div className="flex items-center gap-4">
+									<div className="flex items-center gap-(--spacing-4)">
 										<Calendar className="size-5 text-label-tertiary shrink-0" />
 										<div className="flex-1 space-y-2">
 											<Slider
@@ -142,7 +142,7 @@ export function LateFeeConfigDialog({
 									>
 										Flat Fee Amount
 									</Label>
-									<div className="flex items-center gap-4">
+									<div className="flex items-center gap-(--spacing-4)">
 										<DollarSign className="size-5 text-label-tertiary shrink-0" />
 										<div className="flex-1 space-y-2">
 											<div className="relative">

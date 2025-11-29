@@ -129,7 +129,7 @@ export default function TenantDashboardPage() {
 
 					{/* Pending Signature Alert */}
 					{needsSignature && activeLease && (
-						<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4 flex items-center justify-between gap-4" data-testid="pending-signature">
+						<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4 flex items-center justify-between gap-(--spacing-4)" data-testid="pending-signature">
 							<div className="flex items-center gap-3">
 								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900">
 									<PenLine className="size-5 text-amber-600 dark:text-amber-400" />
@@ -333,7 +333,7 @@ export default function TenantDashboardPage() {
 													key={payment.id}
 													className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 												>
-													<div className="flex items-center gap-4">
+													<div className="flex items-center gap-(--spacing-4)">
 														<div className="flex items-center justify-center w-10 h-10 rounded-lg icon-bg-success">
 															<CheckCircle2 className="size-5" />
 														</div>
@@ -438,7 +438,7 @@ export default function TenantDashboardPage() {
 														key={request.id}
 														className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 													>
-														<div className="flex items-center gap-4">
+														<div className="flex items-center gap-(--spacing-4)">
 															<div
 																className={`flex items-center justify-center w-10 h-10 rounded-lg ${config.bg}`}
 															>

@@ -237,12 +237,16 @@ export class DocuSealService {
 		const apiUrl = this.config.getDocuSealApiUrl()
 		const apiKey = this.config.getDocuSealApiKey()
 
+		if (!apiKey) {
+			throw new Error('DocuSeal API key is not configured')
+		}
+
 		const url = `${apiUrl}${endpoint}`
 
 		const response = await fetch(url, {
 			...options,
 			headers: {
-				'X-Auth-Token': apiKey!,
+				'X-Auth-Token': apiKey,
 				'Content-Type': 'application/json',
 				...options.headers
 			}
@@ -257,6 +261,7 @@ export class DocuSealService {
 			throw new Error(`DocuSeal API error: ${response.status} ${response.statusText}`)
 		}
 
-		return response.json() as Promise<T>
+		const json = await response.json()
+		return json as T
 	}
 }

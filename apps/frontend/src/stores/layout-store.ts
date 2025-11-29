@@ -24,10 +24,6 @@ export type PanelSize = {
 }
 
 export interface LayoutState {
-	// Sidebar state
-	sidebarCollapsed: boolean
-	sidebarWidth: number
-
 	// Panel sizes
 	panelSizes: Record<string, PanelSize>
 
@@ -52,10 +48,6 @@ export interface LayoutState {
 	}
 
 	// Actions
-	toggleSidebar: () => void
-	setSidebarCollapsed: (collapsed: boolean) => void
-	setSidebarWidth: (width: number) => void
-
 	updatePanelSize: (panelId: string, size: PanelSize) => void
 	resetPanelSizes: () => void
 
@@ -108,8 +100,6 @@ const DEFAULT_PANEL_SIZES: Record<string, PanelSize> = {
 }
 
 export const useLayoutStore = create<LayoutState>((set, _get) => ({
-	sidebarCollapsed: false,
-	sidebarWidth: 280,
 	panelSizes: DEFAULT_PANEL_SIZES,
 	gridLayouts: DEFAULT_GRID_LAYOUTS,
 	activeGridLayout: null,
@@ -119,12 +109,6 @@ export const useLayoutStore = create<LayoutState>((set, _get) => ({
 		tablet: 1024,
 		desktop: 1280
 	},
-
-	toggleSidebar: () => set(state => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-
-	setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-
-	setSidebarWidth: (width) => set({ sidebarWidth: width }),
 
 	updatePanelSize: (panelId, size) =>
 		set(state => ({
@@ -166,8 +150,6 @@ export const useLayoutStore = create<LayoutState>((set, _get) => ({
 
 	resetToDefaults: () =>
 		set({
-			sidebarCollapsed: false,
-			sidebarWidth: 280,
 			panelSizes: DEFAULT_PANEL_SIZES,
 			gridLayouts: DEFAULT_GRID_LAYOUTS,
 			activeGridLayout: null,

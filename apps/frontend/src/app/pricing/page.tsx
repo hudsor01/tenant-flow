@@ -12,6 +12,7 @@ import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { PricingSection } from './_components/pricing-section'
 import Footer from '#components/layout/footer'
 import { env } from '#config/env'
+import { trustIndicatorBadgeClasses, statCardClasses, accordionItemClasses } from '#lib/design-system'
 
 const faqs = [
 	{
@@ -163,8 +164,8 @@ export default async function PricingPage() {
 				<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 					<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">
 						{/* Compact Hero */}
-						<div className="flex flex-col items-center gap-6">
-							<div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm">
+						<div className="flex flex-col items-center gap-(--spacing-6)">
+							<div className={trustIndicatorBadgeClasses()}>
 								<div className="h-2 w-2 rounded-full bg-primary animate-pulse" aria-hidden="true" />
 								Trusted by 35,000+ property professionals
 							</div>
@@ -185,7 +186,7 @@ export default async function PricingPage() {
 						</div>
 
 						{/* Trust Indicators Below Pricing */}
-						<div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+						<div className="flex flex-wrap items-center justify-center gap-(--spacing-6) text-sm text-muted-foreground">
 							<div className="flex items-center gap-2">
 								<CheckCircle2 className="h-4 w-4 text-success" />
 								No credit card required
@@ -205,7 +206,7 @@ export default async function PricingPage() {
 				{/* Stats Grid - Social Proof After Conversion Point */}
 				<section className="section-spacing animate-in fade-in duration-700 delay-150">
 					<div className="mx-auto max-w-7xl px-6 lg:px-8">
-						<div className="grid gap-8 text-left sm:grid-cols-3">
+						<div className="grid gap-(--spacing-8) text-left sm:grid-cols-3">
 							{[
 								{
 									label: 'Active Properties',
@@ -228,7 +229,7 @@ export default async function PricingPage() {
 							].map((stat, index) => (
 								<div
 									key={stat.label}
-									className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card/60 p-8 shadow-lg backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 animate-in fade-in"
+									className={statCardClasses()}
 									style={{ animationDelay: `${index * 150}ms` }}
 								>
 									<div className="relative">
@@ -267,7 +268,7 @@ export default async function PricingPage() {
 									works for teams and tenants.
 								</p>
 							</div>
-							<div className="grid gap-4 lg:grid-cols-2">
+							<div className="grid gap-(--spacing-4) lg:grid-cols-2">
 								{faqs.map((faq, index) => (
 							<Accordion
 								key={faq.question}
@@ -277,7 +278,7 @@ export default async function PricingPage() {
 									>
 										<AccordionItem
 											value={`item-${index}`}
-											className="rounded-2xl border border-border/50 bg-background/60 px-5 transition-colors hover:border-primary/30"
+											className={accordionItemClasses()}
 										>
 											<AccordionTrigger className="text-left text-base font-medium leading-7 text-foreground hover:no-underline sm:text-lg sm:leading-8">
 												{faq.question}
@@ -289,7 +290,7 @@ export default async function PricingPage() {
 									</Accordion>
 								))}
 							</div>
-							<div className="mt-14 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+							<div className="mt-14 flex flex-col items-center gap-(--spacing-4) text-center sm:flex-row sm:justify-between sm:text-left">
 								<div>
 									<p className="text-base font-medium text-foreground">
 										Still unsure which plan fits best?

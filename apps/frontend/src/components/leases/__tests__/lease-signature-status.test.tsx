@@ -286,7 +286,7 @@ describe('LeaseSignatureStatus', () => {
 
 			// The badge should have green background class
 			const badge = screen.getByText(/fully signed/i)
-			expect(badge).toHaveClass('bg-green-500')
+			expect(badge).toHaveClass('bg-success')
 		})
 
 		test('shows both signature dates', () => {
@@ -332,7 +332,7 @@ describe('LeaseSignatureStatus', () => {
 			const ownerText = screen.getByText('Owner')
 			// The Badge component is a span with data-slot="badge"
 			const ownerBadge = ownerText.closest('[data-slot="badge"]')
-			expect(ownerBadge).toHaveClass('bg-green-500')
+			expect(ownerBadge).toHaveClass('bg-success')
 		})
 	})
 

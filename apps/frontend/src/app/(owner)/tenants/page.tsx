@@ -101,7 +101,7 @@ export default async function TenantsPage() {
 			</div>
 
 			{/* Summary / Stats Cards */}
-		<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+		<div className="grid gap-(--spacing-6) sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Tenants</CardDescription>
@@ -141,13 +141,13 @@ export default async function TenantsPage() {
 		<OwnerPaymentSummary summary={paymentSummary} />
 
 		{/* Invitation Tracking - Client Component */}
-		<section className="flex flex-col gap-4">
+		<section className="flex flex-col gap-(--spacing-4)">
 			<h2 className="text-xl font-semibold">Invitations</h2>
 			<InvitationsTableClient />
 		</section>
 
 		{/* Client Component for Delete Functionality */}
-		<section className="flex flex-col gap-4">
+		<section className="flex flex-col gap-(--spacing-4)">
 			<h2 className="text-xl font-semibold">Tenant Directory</h2>
 			<TenantsTableClient columns={columns} initialTenants={tenants} />
 		</section>

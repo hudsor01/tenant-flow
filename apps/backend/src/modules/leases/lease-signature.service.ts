@@ -40,6 +40,16 @@ export interface SendForSignatureOptions {
 	templateId?: number | undefined // DocuSeal template ID (if not provided, uses default)
 }
 
+
+/**
+ * Result from the sign_lease_and_check_activation RPC function
+ */
+export interface SignLeaseRpcResult {
+	success: boolean
+	both_signed: boolean
+	error_message: string | null
+}
+
 @Injectable()
 export class LeaseSignatureService {
 	constructor(
@@ -49,6 +59,25 @@ export class LeaseSignatureService {
 		private readonly stripeConnectService: StripeConnectService,
 		private readonly docuSealService: DocuSealService
 	) {}
+
+
+	/**
+	 * Parse the result from sign_lease_and_check_activation RPC
+	 * RPC returns SETOF (array of rows), extract the first row's values
+	 */
+	private parseSignLeaseRpcResult(rpcResult: unknown): SignLeaseRpcResult {
+		if (!rpcResult || (Array.isArray(rpcResult) && rpcResult.length === 0)) {
+			return { success: false, both_signed: false, error_message: 'RPC returned no result' }
+		}
+
+		const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult
+
+		return {
+			success: Boolean((row as Record<string, unknown>).success),
+			both_signed: Boolean((row as Record<string, unknown>).both_signed),
+			error_message: ((row as Record<string, unknown>).error_message as string) || null
+		}
+	}
 
 	/**
 	 * Check if a user ID (from auth.users) is the owner of a lease
@@ -107,54 +136,64 @@ export class LeaseSignatureService {
 			throw new BadRequestException('Only draft leases can be sent for signature')
 		}
 
-		// Step 4: Get owner and tenant details for DocuSeal
-		const { data: owner } = await client
-			.from('property_owners')
-			.select('id, user_id')
-			.eq('id', ownerId)
-			.single()
+		// Step 4: Get owner and tenant details for DocuSeal (parallel queries for performance)
+		const [{ data: owner }, { data: tenant }] = await Promise.all([
+			client.from('property_owners').select('id, user_id').eq('id', ownerId).single(),
+			client.from('tenants').select('id, user_id').eq('id', lease.primary_tenant_id).single()
+		])
 
+		// Fetch user details in parallel
 		let ownerUser: { email: string; first_name: string | null; last_name: string | null } | null = null
-		if (owner?.user_id) {
-			const { data } = await client
-				.from('users')
-				.select('email, first_name, last_name')
-				.eq('id', owner.user_id)
-				.single()
-			ownerUser = data
-		}
-
-		const { data: tenant } = await client
-			.from('tenants')
-			.select('id, user_id')
-			.eq('id', lease.primary_tenant_id)
-			.single()
-
 		let tenantUser: { email: string; first_name: string | null; last_name: string | null } | null = null
-		if (tenant?.user_id) {
-			const { data } = await client
-				.from('users')
-				.select('email, first_name, last_name')
-				.eq('id', tenant.user_id)
-				.single()
-			tenantUser = data
+
+		if (owner?.user_id && tenant?.user_id) {
+			// Both exist - fetch in parallel
+			const [ownerResult, tenantResult] = await Promise.all([
+				client.from('users').select('email, first_name, last_name').eq('id', owner.user_id).single(),
+				client.from('users').select('email, first_name, last_name').eq('id', tenant.user_id).single()
+			])
+			ownerUser = ownerResult.data
+			tenantUser = tenantResult.data
+		} else {
+			// Fetch individually if only one exists
+			if (owner?.user_id) {
+				const { data } = await client.from('users').select('email, first_name, last_name').eq('id', owner.user_id).single()
+				ownerUser = data
+			}
+			if (tenant?.user_id) {
+				const { data } = await client.from('users').select('email, first_name, last_name').eq('id', tenant.user_id).single()
+				tenantUser = data
+			}
 		}
 
 		// Step 5: Create DocuSeal submission if enabled
 		let docusealSubmissionId: string | null = null
+		const docusealTemplate = this.docuSealService.isEnabled() && options?.templateId
 
-		if (this.docuSealService.isEnabled() && options?.templateId) {
+		if (docusealTemplate) {
+			// Validate email addresses before DocuSeal submission
+			if (!ownerUser?.email) {
+				throw new BadRequestException(
+					'Cannot send lease for signature: property owner email is missing',
+				)
+			}
+			if (!tenantUser?.email) {
+				throw new BadRequestException(
+					'Cannot send lease for signature: tenant email is missing',
+				)
+			}
+
 			try {
 				const unit = lease.unit as { unit_number?: string; property?: { name?: string; address?: string } } | null
 				const propertyAddress = unit?.property?.address || unit?.property?.name || 'Property Address'
 
 				const submission = await this.docuSealService.createLeaseSubmission({
-					templateId: options.templateId,
+					templateId: options!.templateId!,
 					leaseId: lease.id,
-					ownerEmail: ownerUser?.email || '',
-					ownerName: `${ownerUser?.first_name || ''} ${ownerUser?.last_name || ''}`.trim() || 'Property Owner',
-					tenantEmail: tenantUser?.email || '',
-					tenantName: `${tenantUser?.first_name || ''} ${tenantUser?.last_name || ''}`.trim() || 'Tenant',
+					ownerEmail: ownerUser.email,
+					ownerName: `${ownerUser.first_name || ''} ${ownerUser.last_name || ''}`.trim() || 'Property Owner',
+					tenantEmail: tenantUser.email,
+					tenantName: `${tenantUser.first_name || ''} ${tenantUser.last_name || ''}`.trim() || 'Tenant',
 					propertyAddress,
 					unitNumber: unit?.unit_number,
 					rentAmount: lease.rent_amount,
@@ -212,10 +251,10 @@ export class LeaseSignatureService {
 		this.logger.log('Owner signing lease', { ownerId, leaseId })
 		const client = this.supabase.getAdminClient()
 
-		// Step 1: Get lease
+		// Step 1: Get lease for authorization check (read-only, no lock needed)
 		const { data: lease, error: leaseError } = await client
 			.from('leases')
-			.select('id, lease_status, property_owner_id, owner_signed_at, tenant_signed_at, rent_amount, primary_tenant_id')
+			.select('id, property_owner_id, rent_amount, primary_tenant_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -232,48 +271,44 @@ export class LeaseSignatureService {
 			throw new ForbiddenException('You do not own this lease')
 		}
 
-		// Step 3: Verify lease is in correct status
-		if (lease.lease_status !== 'pending_signature' && lease.lease_status !== 'draft') {
-			throw new BadRequestException('Lease cannot be signed in its current status')
-		}
-
-		// Step 4: Check if already signed
-		if (lease.owner_signed_at) {
-			throw new BadRequestException('Owner has already signed this lease')
-		}
-
-		// Step 5: Record owner signature
+		// Step 3: Call atomic RPC to sign and check if both signed
+		// This uses SELECT FOR UPDATE to prevent race conditions
 		const now = new Date().toISOString()
-		const tenantAlreadySigned = !!lease.tenant_signed_at
-		const bothWillBeSigned = tenantAlreadySigned
+		const { data: rpcResult, error: rpcError } = await client.rpc(
+			'sign_lease_and_check_activation',
+			{
+				p_lease_id: leaseId,
+				p_signer_type: 'owner',
+				p_signature_ip: signatureIp,
+				p_signed_at: now
+			}
+		)
 
-		if (bothWillBeSigned) {
-			// Both parties will have signed - activate the lease
+		if (rpcError) {
+			this.logger.error('RPC sign_lease_and_check_activation failed', { leaseId, error: rpcError })
+			throw new BadRequestException('Failed to record signature')
+		}
+
+		const result = this.parseSignLeaseRpcResult(rpcResult)
+
+		if (!result.success) {
+			throw new BadRequestException(result.error_message || 'Failed to sign lease')
+		}
+
+		// Step 4: Handle activation if both signed
+		if (result.both_signed) {
 			await this.activateLease(client, lease, {
 				owner_signed_at: now,
 				owner_signature_ip: signatureIp
 			})
 		} else {
-			// Just record owner signature
-			const { error: updateError } = await client
-				.from('leases')
-				.update({
-					owner_signed_at: now,
-					owner_signature_ip: signatureIp
-				})
-				.eq('id', leaseId)
-
-			if (updateError) {
-				throw new BadRequestException('Failed to record signature')
-			}
-
 			this.eventEmitter.emit('lease.owner_signed', {
 				lease_id: leaseId,
 				signed_at: now
 			})
 		}
 
-		this.logger.log('Owner signed lease', { leaseId, bothSigned: bothWillBeSigned })
+		this.logger.log('Owner signed lease', { leaseId, bothSigned: result.both_signed })
 	}
 
 	/**
@@ -294,10 +329,10 @@ export class LeaseSignatureService {
 			throw new NotFoundException('Tenant not found')
 		}
 
-		// Step 2: Get lease
+		// Step 2: Get lease for authorization check (read-only, no lock needed)
 		const { data: lease, error: leaseError } = await client
 			.from('leases')
-			.select('id, lease_status, property_owner_id, primary_tenant_id, owner_signed_at, tenant_signed_at, rent_amount')
+			.select('id, property_owner_id, primary_tenant_id, rent_amount')
 			.eq('id', leaseId)
 			.single()
 
@@ -310,41 +345,37 @@ export class LeaseSignatureService {
 			throw new ForbiddenException('You are not assigned to this lease')
 		}
 
-		// Step 4: Verify lease is in pending_signature status
-		if (lease.lease_status !== 'pending_signature') {
-			throw new BadRequestException('Lease must be pending signature to sign')
-		}
-
-		// Step 5: Check if already signed
-		if (lease.tenant_signed_at) {
-			throw new BadRequestException('Tenant has already signed this lease')
-		}
-
-		// Step 6: Record tenant signature
+		// Step 4: Call atomic RPC to sign and check if both signed
+		// This uses SELECT FOR UPDATE to prevent race conditions
 		const now = new Date().toISOString()
-		const ownerAlreadySigned = !!lease.owner_signed_at
-		const bothWillBeSigned = ownerAlreadySigned
+		const { data: rpcResult, error: rpcError } = await client.rpc(
+			'sign_lease_and_check_activation',
+			{
+				p_lease_id: leaseId,
+				p_signer_type: 'tenant',
+				p_signature_ip: signatureIp,
+				p_signed_at: now
+			}
+		)
 
-		if (bothWillBeSigned) {
-			// Both parties will have signed - activate the lease
+		if (rpcError) {
+			this.logger.error('RPC sign_lease_and_check_activation failed', { leaseId, error: rpcError })
+			throw new BadRequestException('Failed to record signature')
+		}
+
+		const result = this.parseSignLeaseRpcResult(rpcResult)
+
+		if (!result.success) {
+			throw new BadRequestException(result.error_message || 'Failed to sign lease')
+		}
+
+		// Step 5: Handle activation if both signed
+		if (result.both_signed) {
 			await this.activateLease(client, lease, {
 				tenant_signed_at: now,
 				tenant_signature_ip: signatureIp
 			})
 		} else {
-			// Just record tenant signature
-			const { error: updateError } = await client
-				.from('leases')
-				.update({
-					tenant_signed_at: now,
-					tenant_signature_ip: signatureIp
-				})
-				.eq('id', leaseId)
-
-			if (updateError) {
-				throw new BadRequestException('Failed to record signature')
-			}
-
 			this.eventEmitter.emit('lease.tenant_signed', {
 				lease_id: leaseId,
 				tenant_id: tenant.id,
@@ -352,11 +383,19 @@ export class LeaseSignatureService {
 			})
 		}
 
-		this.logger.log('Tenant signed lease', { leaseId, bothSigned: bothWillBeSigned })
+		this.logger.log('Tenant signed lease', { leaseId, bothSigned: result.both_signed })
 	}
 
 	/**
 	 * Activate lease and create Stripe subscription (called when both parties sign)
+	 *
+	 * Database-first approach:
+	 * 1. Validate prerequisites (owner Stripe account, tenant exists)
+	 * 2. Atomically activate lease with stripe_subscription_status = 'pending'
+	 * 3. Emit lease.activated event (lease is now active, subscription pending)
+	 * 4. Create Stripe subscription with idempotency key
+	 * 5. On success: Update status to 'active' with subscription ID
+	 * 6. On failure: Update status to 'failed' with error reason (will be retried)
 	 */
 	private async activateLease(
 		client: ReturnType<SupabaseService['getAdminClient']>,
@@ -366,11 +405,13 @@ export class LeaseSignatureService {
 			primary_tenant_id: string
 			rent_amount: number
 		},
-		signatureData: {
+		_signatureData: {
 			owner_signed_at?: string
 			owner_signature_ip?: string
+			owner_signature_method?: 'in_app' | 'docuseal'
 			tenant_signed_at?: string
 			tenant_signature_ip?: string
+			tenant_signature_method?: 'in_app' | 'docuseal'
 		}
 	): Promise<void> {
 		this.logger.log('Activating lease - both parties have signed', { leaseId: lease.id })
@@ -398,7 +439,57 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Step 2: Get tenant with user profile (for email)
+		// Step 2: Atomically activate lease with pending subscription status
+		const { data: activationResult, error: activationError } = await client.rpc(
+			'activate_lease_with_pending_subscription',
+			{ p_lease_id: lease.id }
+		)
+
+		if (activationError) {
+			this.logger.error('RPC activate_lease_with_pending_subscription failed', {
+				leaseId: lease.id,
+				error: activationError
+			})
+			throw new BadRequestException('Failed to activate lease')
+		}
+
+		// Parse RPC result (returns SETOF)
+		const result = Array.isArray(activationResult) ? activationResult[0] : activationResult
+		if (!result?.success) {
+			throw new BadRequestException(result?.error_message || 'Failed to activate lease')
+		}
+
+		// Step 3: Emit lease.activated event (lease is active, subscription pending)
+		this.eventEmitter.emit('lease.activated', {
+			lease_id: lease.id,
+			tenant_id: lease.primary_tenant_id,
+			subscription_id: null, // Pending
+			subscription_status: 'pending'
+		})
+
+		this.logger.log('Lease activated with pending subscription', { leaseId: lease.id })
+
+		// Step 4: Create Stripe subscription (deferred, with retry capability)
+		await this.createSubscriptionForLease(client, lease, owner.stripe_account_id)
+	}
+
+	/**
+	 * Create Stripe subscription for an activated lease
+	 * Called immediately after activation and by background retry job
+	 *
+	 * On success: Updates stripe_subscription_status to 'active'
+	 * On failure: Updates stripe_subscription_status to 'failed' with error reason
+	 */
+	async createSubscriptionForLease(
+		client: ReturnType<SupabaseService['getAdminClient']>,
+		lease: {
+			id: string
+			primary_tenant_id: string
+			rent_amount: number
+		},
+		connectedAccountId: string
+	): Promise<void> {
+		// Get tenant with stripe customer ID
 		const { data: tenant, error: tenantError } = await client
 			.from('tenants')
 			.select('id, user_id, stripe_customer_id')
@@ -406,10 +497,11 @@ export class LeaseSignatureService {
 			.single()
 
 		if (tenantError || !tenant) {
-			throw new NotFoundException('Tenant not found')
+			await this.markSubscriptionFailed(client, lease.id, 'Tenant not found')
+			return
 		}
 
-		// Get user info for email
+		// Get user info for email (needed if creating new customer)
 		const { data: user } = await client
 			.from('users')
 			.select('email, first_name, last_name, phone')
@@ -420,77 +512,142 @@ export class LeaseSignatureService {
 
 		// Create Stripe customer on connected account if needed
 		if (!stripeCustomerId) {
-			const customerName = user
-				? `${user.first_name || ''} ${user.last_name || ''}`.trim() || undefined
-				: undefined
+			try {
+				const customerName = user
+					? `${user.first_name || ''} ${user.last_name || ''}`.trim() || undefined
+					: undefined
 
-			// Build params object conditionally to satisfy exactOptionalPropertyTypes
-			const createCustomerParams: {
-				email: string
-				name?: string
-				phone?: string
-				metadata?: Record<string, string>
-			} = {
-				email: user?.email || `tenant-${tenant.id}@placeholder.local`,
-				metadata: {
-					tenant_id: tenant.id,
-					user_id: tenant.user_id
+				const createCustomerParams: {
+					email: string
+					name?: string
+					phone?: string
+					metadata?: Record<string, string>
+				} = {
+					email: user?.email || `tenant-${tenant.id}@placeholder.local`,
+					metadata: {
+						tenant_id: tenant.id,
+						user_id: tenant.user_id
+					}
 				}
-			}
-			if (customerName) {
-				createCustomerParams.name = customerName
-			}
-			if (user?.phone) {
-				createCustomerParams.phone = user.phone
-			}
+				if (customerName) {
+					createCustomerParams.name = customerName
+				}
+				if (user?.phone) {
+					createCustomerParams.phone = user.phone
+				}
 
-			const customer = await this.stripeConnectService.createCustomerOnConnectedAccount(
-				owner.stripe_account_id,
-				createCustomerParams
-			)
-			stripeCustomerId = customer.id
+				const customer = await this.stripeConnectService.createCustomerOnConnectedAccount(
+					connectedAccountId,
+					createCustomerParams
+				)
+				stripeCustomerId = customer.id
 
-			// Update tenant with Stripe customer ID
-			await client
-				.from('tenants')
-				.update({ stripe_customer_id: stripeCustomerId })
-				.eq('id', tenant.id)
+				// Update tenant with Stripe customer ID
+				await client
+					.from('tenants')
+					.update({ stripe_customer_id: stripeCustomerId })
+					.eq('id', tenant.id)
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : 'Failed to create Stripe customer'
+				await this.markSubscriptionFailed(client, lease.id, errorMessage)
+				return
+			}
 		}
 
-		// Step 3: Create Stripe subscription
-		const subscription = await this.stripeConnectService.createSubscriptionOnConnectedAccount(
-			owner.stripe_account_id,
-			{
-				customerId: stripeCustomerId,
-				rentAmount: lease.rent_amount
-			}
-		)
+		// Create Stripe subscription with idempotency key for safe retries
+		try {
+			const subscription = await this.stripeConnectService.createSubscriptionOnConnectedAccount(
+				connectedAccountId,
+				{
+					customerId: stripeCustomerId,
+					rentAmount: lease.rent_amount,
+					idempotencyKey: `lease-activation-${lease.id}`,
+					metadata: {
+						lease_id: lease.id,
+						tenant_id: lease.primary_tenant_id
+					}
+				}
+			)
 
-		// Step 4: Update lease to active status with subscription ID
-		const { error: updateError } = await client
+			// Success: Update subscription status to active
+			const { error: updateError } = await client
+				.from('leases')
+				.update({
+					stripe_subscription_id: subscription.id,
+					stripe_subscription_status: 'active',
+					subscription_failure_reason: null,
+					subscription_retry_count: 0,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', lease.id)
+
+			if (updateError) {
+				this.logger.error('Failed to update lease with subscription ID', {
+					leaseId: lease.id,
+					subscriptionId: subscription.id,
+					error: updateError.message
+				})
+				// Don't throw - subscription was created successfully, just log the error
+				// Webhook will also confirm the subscription
+			}
+
+			// Emit subscription success event
+			this.eventEmitter.emit('lease.subscription_created', {
+				lease_id: lease.id,
+				tenant_id: lease.primary_tenant_id,
+				subscription_id: subscription.id
+			})
+
+			this.logger.log('Lease subscription created successfully', {
+				leaseId: lease.id,
+				subscriptionId: subscription.id
+			})
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : 'Unknown Stripe error'
+			await this.markSubscriptionFailed(client, lease.id, errorMessage)
+
+			// Emit failure event for alerting
+			this.eventEmitter.emit('lease.subscription_failed', {
+				lease_id: lease.id,
+				tenant_id: lease.primary_tenant_id,
+				error: errorMessage
+			})
+		}
+	}
+
+	/**
+	 * Mark a lease's subscription as failed
+	 * Increments retry count and records failure reason
+	 */
+	private async markSubscriptionFailed(
+		client: ReturnType<SupabaseService['getAdminClient']>,
+		leaseId: string,
+		errorMessage: string
+	): Promise<void> {
+		this.logger.error('Stripe subscription creation failed', {
+			leaseId,
+			error: errorMessage
+		})
+
+		// Get current retry count
+		const { data: lease } = await client
+			.from('leases')
+			.select('subscription_retry_count')
+			.eq('id', leaseId)
+			.single()
+
+		const currentRetryCount = lease?.subscription_retry_count ?? 0
+
+		await client
 			.from('leases')
 			.update({
-				...signatureData,
-				lease_status: 'active',
-				stripe_subscription_id: subscription.id
+				stripe_subscription_status: 'failed',
+				subscription_failure_reason: errorMessage,
+				subscription_retry_count: currentRetryCount + 1,
+				subscription_last_attempt_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
 			})
-			.eq('id', lease.id)
-
-		if (updateError) {
-			throw new BadRequestException('Failed to activate lease')
-		}
-
-		// Step 5: Emit lease activated event
-		this.eventEmitter.emit('lease.activated', {
-			lease_id: lease.id,
-			tenant_id: lease.primary_tenant_id,
-			subscription_id: subscription.id
-		})
-
-		this.logger.log('Lease activated with Stripe subscription', {
-			leaseId: lease.id,
-			subscriptionId: subscription.id
-		})
+			.eq('id', leaseId)
 	}
 
 	/**
@@ -678,8 +835,10 @@ export class LeaseSignatureService {
 				docuseal_submission_id: null,
 				owner_signed_at: null,
 				owner_signature_ip: null,
+				owner_signature_method: null,
 				tenant_signed_at: null,
-				tenant_signature_ip: null
+				tenant_signature_ip: null,
+				tenant_signature_method: null
 			})
 			.eq('id', leaseId)
 

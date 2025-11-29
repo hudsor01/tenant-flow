@@ -1,45 +1,20 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
-import type { SupabaseAuthUser as AuthUser } from '@repo/shared/types/auth'
+import { Controller, Get } from '@nestjs/common'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceInsightsService } from './maintenance-insights.service'
 
 @Controller('analytics')
 export class MaintenanceInsightsController {
-	private readonly logger = new Logger(MaintenanceInsightsController.name)
-
 	constructor(
-		private readonly maintenanceInsightsService: MaintenanceInsightsService,
-		private readonly supabaseService: SupabaseService
+		private readonly maintenanceInsightsService: MaintenanceInsightsService
 	) {}
-
-	private async getAuthenticatedUser(request: Request): Promise<AuthUser> {
-		const user = await this.supabaseService.getUser(request)
-		if (!user) {
-			this.logger.warn('Maintenance analytics request missing authentication', {
-				endpoint: request.path,
-				method: request.method
-			})
-			throw new UnauthorizedException('Authentication required')
-		}
-
-		return user as unknown as AuthUser
-	}
 
 	@Get('maintenance-metrics')
 	async getMaintenanceMetrics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.maintenanceInsightsService.getMaintenanceMetrics(
-			user.id
+			userId
 		)
 
 		return {
@@ -52,11 +27,10 @@ export class MaintenanceInsightsController {
 
 	@Get('maintenance-analytics')
 	async getMaintenanceAnalytics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.maintenanceInsightsService.getMaintenanceAnalytics(
-			user.id
+			userId
 		)
 
 		return {
@@ -69,12 +43,11 @@ export class MaintenanceInsightsController {
 
 	@Get('maintenance/page-data')
 	async getMaintenancePageData(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data =
 			await this.maintenanceInsightsService.getMaintenanceInsightsPageData(
-				user.id
+				userId
 			)
 
 		return {

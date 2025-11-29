@@ -15,14 +15,6 @@ export const useLayout = () => {
 }
 
 /**
- * Hook for sidebar management
- */
-export const useSidebar = () => {
-	const { sidebarCollapsed, toggleSidebar, setSidebarCollapsed } = useLayoutStore()
-	return { sidebarCollapsed, toggleSidebar, setSidebarCollapsed }
-}
-
-/**
  * Hook for panel size management
  */
 export const usePanelSizes = () => {

@@ -14,7 +14,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 			<div className="rounded-md border">
 				{/* Header */}
 				<div className="border-b bg-muted/50 p-4">
-					<div className="flex gap-4">
+					<div className="flex gap-(--spacing-4)">
 						<Skeleton className="h-4 w-8" />
 						<Skeleton className="h-4 flex-1" />
 						<Skeleton className="h-4 w-24" />
@@ -26,7 +26,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 				{/* Rows */}
 				{Array.from({ length: rows }).map((_, i) => (
 					<div key={i} className="border-b p-4 last:border-0">
-						<div className="flex gap-4 items-center">
+						<div className="flex gap-(--spacing-4) items-center">
 							<Skeleton className="h-4 w-8" />
 							<Skeleton className="h-4 flex-1" />
 							<Skeleton className="h-4 w-24" />
@@ -70,7 +70,7 @@ export function CardSkeleton() {
 
 export function StatsSkeleton() {
 	return (
-		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+		<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 lg:grid-cols-4">
 			{Array.from({ length: 4 }).map((_, i) => (
 				<Card key={i}>
 					<CardHeader>

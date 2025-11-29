@@ -110,7 +110,7 @@ function FullSignatureStatus({
 }) {
 	const getStatusIcon = () => {
 		if (status.both_signed) {
-			return <CheckCircle2 className="h-5 w-5 text-green-500" />
+			return <CheckCircle2 className="h-5 w-5 text-success" />
 		}
 		if (status.sent_for_signature_at) {
 			return <Clock className="h-5 w-5 text-amber-500" />
@@ -148,7 +148,7 @@ function FullSignatureStatus({
 					<Badge
 						variant={status.both_signed ? 'default' : 'secondary'}
 						className={cn(
-							status.both_signed && 'bg-green-500 hover:bg-green-600'
+							status.both_signed && 'bg-success hover:bg-success'
 						)}
 					>
 						{getStatusText()}
@@ -196,7 +196,7 @@ function SignatureBadge({
 			variant={signed ? 'default' : 'outline'}
 			className={cn(
 				'gap-1',
-				signed && 'bg-green-500 hover:bg-green-600'
+				signed && 'bg-success hover:bg-success'
 			)}
 			title={signedAt ? `Signed on ${new Date(signedAt).toLocaleString()}` : undefined}
 		>
@@ -225,8 +225,8 @@ function SignatureRow({
 			<div className="flex items-center gap-2">
 				{signed ? (
 					<>
-						<CheckCircle2 className="h-4 w-4 text-green-500" />
-						<span className="text-sm text-green-600">
+						<CheckCircle2 className="h-4 w-4 text-success" />
+						<span className="text-sm text-success">
 							Signed {signedAt && new Date(signedAt).toLocaleDateString()}
 						</span>
 					</>

@@ -62,7 +62,7 @@ export function SignLeaseButton({
 			await mutation.mutateAsync(leaseId)
 			toast.success('Lease signed successfully', {
 				description: 'Your signature has been recorded.',
-				icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
+				icon: <CheckCircle2 className="h-4 w-4 text-success" />
 			})
 			setOpen(false)
 			setAgreed(false)
@@ -81,7 +81,7 @@ export function SignLeaseButton({
 				variant="outline"
 				size={size}
 				disabled
-				className={cn('gap-2 text-green-600 border-green-200', className)}
+				className={cn('gap-2 text-success border-green-200', className)}
 			>
 				<CheckCircle2 className="h-4 w-4" />
 				Signed
@@ -191,7 +191,7 @@ export function SignLeaseActions({
 	// If both signed, show completed state
 	if (bothSigned) {
 		return (
-			<div className={cn('flex items-center gap-2 text-green-600', className)}>
+			<div className={cn('flex items-center gap-2 text-success', className)}>
 				<CheckCircle2 className="h-5 w-5" />
 				<span className="font-medium">Lease Fully Signed</span>
 			</div>

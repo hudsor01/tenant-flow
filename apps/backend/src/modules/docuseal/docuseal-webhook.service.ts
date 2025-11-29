@@ -8,41 +8,13 @@
  * Updates lease signature timestamps and triggers activation events.
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
-
-export interface FormCompletedPayload {
-	id: number
-	submission_id: number
-	email: string
-	name?: string
-	role: string
-	completed_at: string
-	metadata?: {
-		lease_id?: string
-		[key: string]: string | undefined
-	}
-}
-
-export interface SubmissionCompletedPayload {
-	id: number
-	status: string
-	completed_at: string
-	submitters: Array<{
-		email: string
-		role: string
-		completed_at?: string
-	}>
-	documents: Array<{
-		name: string
-		url: string
-	}>
-	metadata?: {
-		lease_id?: string
-		[key: string]: string | undefined
-	}
-}
+import type {
+	FormCompletedPayload,
+	SubmissionCompletedPayload
+} from '@repo/shared/validation/docuseal-webhooks'
 
 @Injectable()
 export class DocuSealWebhookService {
@@ -73,10 +45,17 @@ export class DocuSealWebhookService {
 			.eq('docuseal_submission_id', String(data.submission_id))
 			.single()
 
-		if (error || !lease) {
-			this.logger.warn('Lease not found for DocuSeal submission', {
+		if (error) {
+			this.logger.error('Database error querying lease', {
 				submissionId: data.submission_id,
-				error: error?.message
+				error: error.message
+			})
+			throw new InternalServerErrorException(`Database error: ${error.message}`)
+		}
+
+		if (!lease) {
+			this.logger.warn('Lease not found for DocuSeal submission', {
+				submissionId: data.submission_id
 			})
 			return
 		}
@@ -88,13 +67,22 @@ export class DocuSealWebhookService {
 		const signedAt = data.completed_at || new Date().toISOString()
 
 		if (isOwner && !lease.owner_signed_at) {
-			await client
+			const { error: updateError } = await client
 				.from('leases')
 				.update({
 					owner_signed_at: signedAt,
-					owner_signature_ip: 'docuseal' // Mark as DocuSeal signature
+					owner_signature_ip: null,
+					owner_signature_method: 'docuseal'
 				})
 				.eq('id', lease.id)
+
+			if (updateError) {
+				this.logger.error('Failed to update owner signature', {
+					leaseId: lease.id,
+					error: updateError.message
+				})
+				throw new InternalServerErrorException(`Update failed: ${updateError.message}`)
+			}
 
 			this.eventEmitter.emit('lease.owner_signed', {
 				lease_id: lease.id,
@@ -104,13 +92,22 @@ export class DocuSealWebhookService {
 
 			this.logger.log('Owner signature recorded via DocuSeal', { leaseId: lease.id })
 		} else if (isTenant && !lease.tenant_signed_at) {
-			await client
+			const { error: updateError } = await client
 				.from('leases')
 				.update({
 					tenant_signed_at: signedAt,
-					tenant_signature_ip: 'docuseal' // Mark as DocuSeal signature
+					tenant_signature_ip: null,
+					tenant_signature_method: 'docuseal'
 				})
 				.eq('id', lease.id)
+
+			if (updateError) {
+				this.logger.error('Failed to update tenant signature', {
+					leaseId: lease.id,
+					error: updateError.message
+				})
+				throw new InternalServerErrorException(`Update failed: ${updateError.message}`)
+			}
 
 			this.eventEmitter.emit('lease.tenant_signed', {
 				lease_id: lease.id,
@@ -141,10 +138,17 @@ export class DocuSealWebhookService {
 			.eq('docuseal_submission_id', String(data.id))
 			.single()
 
-		if (error || !lease) {
-			this.logger.warn('Lease not found for DocuSeal submission', {
+		if (error) {
+			this.logger.error('Database error querying lease', {
 				submissionId: data.id,
-				error: error?.message
+				error: error.message
+			})
+			throw new InternalServerErrorException(`Database error: ${error.message}`)
+		}
+
+		if (!lease) {
+			this.logger.warn('Lease not found for DocuSeal submission', {
+				submissionId: data.id
 			})
 			return
 		}

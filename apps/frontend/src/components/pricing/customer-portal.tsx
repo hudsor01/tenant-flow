@@ -37,6 +37,7 @@ import {
 	cardClasses,
 	TYPOGRAPHY_SCALE
 } from '../../lib/design-system'
+import { portalFeatureGridClasses, portalFeatureCardClasses, featureIconContainerClasses, pricingFeatureCardClasses, billingInfoCardClasses, trustSignalItemClasses, trustSignalIconClasses } from '#lib/design-system'
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -235,10 +236,10 @@ export function CustomerPortalCard({
 				<div className="absolute inset-0 bg-primary/5 opacity-50" />
 
 				<div className="flex items-center justify-between mb-[var(--spacing-6)]">
-					<div className="flex items-center gap-[var(--spacing-4)]">
+					<div className="flex items-center gap-(--spacing-4)">
 						<div
 							className={cn(
-								'p-[var(--spacing-4)] rounded-2xl gradient-background shadow-lg'
+								'p-(--spacing-4) rounded-2xl gradient-background shadow-lg'
 							)}
 						>
 							<Settings className="size-8 text-primary-foreground" />
@@ -286,7 +287,7 @@ export function CustomerPortalCard({
 				>
 					{/* Enhanced Usage Stats */}
 					{showStats && (
-						<div className="bg-muted/10 rounded-2xl p-[var(--spacing-6)] border-2 border-muted/20">
+						<div className="bg-muted/10 rounded-2xl p-(--spacing-6) border-2 border-muted/20">
 							<div className="flex items-center justify-between mb-[var(--spacing-6)]">
 								<h4
 									className="text-foreground flex items-center gap-[var(--spacing-3)]"
@@ -302,9 +303,9 @@ export function CustomerPortalCard({
 									Updated 2 hours ago
 								</Badge>
 							</div>
-								<div className="grid gap-[var(--spacing-6)] [grid-template-columns:var(--layout-grid-cols-2)] lg:[grid-template-columns:var(--layout-grid-cols-5)]">
-								<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-									<div className="size-[var(--spacing-10)] bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+								<div className={portalFeatureGridClasses()}>
+								<div className={portalFeatureCardClasses()}>
+									<div className={featureIconContainerClasses('accent')}>
 										<FileText className="size-5 text-accent" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
@@ -314,8 +315,8 @@ export function CustomerPortalCard({
 										Properties
 									</p>
 								</div>
-								<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-									<div className="size-[var(--spacing-10)] bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+								<div className={portalFeatureCardClasses()}>
+									<div className={featureIconContainerClasses('primary')}>
 										<Users className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
@@ -325,8 +326,8 @@ export function CustomerPortalCard({
 										Tenants
 									</p>
 								</div>
-								<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-									<div className="size-[var(--spacing-10)] bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+								<div className={portalFeatureCardClasses()}>
+									<div className={featureIconContainerClasses('primary')}>
 										<Zap className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-primary tabular-nums">
@@ -337,8 +338,8 @@ export function CustomerPortalCard({
 									</p>
 								</div>
 								{usageStats.monthlyRevenue && (
-									<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-										<div className="size-[var(--spacing-10)] bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+									<div className={portalFeatureCardClasses()}>
+										<div className={featureIconContainerClasses('primary')}>
 											<TrendingUp className="size-5 text-primary" />
 										</div>
 										<p className="text-2xl font-black text-primary tabular-nums">
@@ -350,8 +351,8 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{usageStats.activeLeases && (
-									<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-										<div className="size-[var(--spacing-10)] bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+									<div className={portalFeatureCardClasses()}>
+										<div className={featureIconContainerClasses('accent')}>
 											<FileText className="size-5 text-accent" />
 										</div>
 										<p className="text-2xl font-black text-accent tabular-nums">
@@ -368,7 +369,7 @@ export function CustomerPortalCard({
 
 					{/* Billing Information */}
 					{billingInfo && (
-						<div className="bg-accent/8 rounded-2xl p-[var(--spacing-6)] border border-accent/20">
+						<div className="bg-accent/8 rounded-2xl p-(--spacing-6) border border-accent/20">
 							<div className="flex items-center justify-between mb-[var(--spacing-6)]">
 								<h4
 									className="text-foreground flex items-center gap-[var(--spacing-3)]"
@@ -385,9 +386,9 @@ export function CustomerPortalCard({
 								</Badge>
 							</div>
 
-							<div className="grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-1)] md:[grid-template-columns:var(--layout-grid-cols-3)]">
+							<div className="grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-1)] md:[grid-template-columns:var(--layout-grid-cols-3)]">
 								{billingInfo.nextBillingDate && (
-									<div className="bg-background/70 rounded-lg p-[var(--spacing-4)] border border-primary/20">
+									<div className={billingInfoCardClasses()}>
 										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
 											<Calendar className="size-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -407,7 +408,7 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.lastPayment && (
-									<div className="bg-background/70 rounded-lg p-[var(--spacing-4)] border-primary/20">
+									<div className={billingInfoCardClasses()}>
 										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
 											<CheckCircle2 className="size-4 text-accent" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -427,7 +428,7 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.paymentMethod && (
-									<div className="bg-background/70 rounded-lg p-[var(--spacing-4)] border-primary/20">
+									<div className={billingInfoCardClasses()}>
 										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
 											<CreditCard className="size-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -452,7 +453,7 @@ export function CustomerPortalCard({
 						</p>
 
 						{showTestimonial && testimonial && (
-							<div className="bg-primary/8 rounded-2xl p-[var(--spacing-6)] border-2 border-primary/20 max-w-[var(--max-width-2xl)] mx-auto">
+							<div className="bg-primary/8 rounded-2xl p-(--spacing-6) border-2 border-primary/20 max-w-[var(--max-width-2xl)] mx-auto">
 								<div className="flex items-center justify-center gap-[var(--spacing-1)] mb-[var(--spacing-4)]">
 									{[...Array(testimonial.rating)].map((_, i) => (
 										<Star key={i} className="size-4 fill-accent text-accent" />
@@ -482,12 +483,12 @@ export function CustomerPortalCard({
 					{/* Enhanced Feature Grid */}
 					<div
 						className={cn(
-						'grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
+						'grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
 							animationClasses('fade-in')
 						)}
 					>
-						<div className="group p-[var(--spacing-5)] bg-primary/8 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('primary')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-primary/10 rounded-xl">
 									<CreditCard className="size-6 text-primary" />
 								</div>
@@ -508,8 +509,8 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-[var(--spacing-5)] bg-accent/8 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('accent')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-accent/10 rounded-xl">
 									<FileText className="size-6 text-accent" />
 								</div>
@@ -530,8 +531,8 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-[var(--spacing-5)] bg-primary/8 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('primary')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-primary/10 rounded-xl">
 									<Download className="size-6 text-primary" />
 								</div>
@@ -550,8 +551,8 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-[var(--spacing-5)] bg-accent/8 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('accent')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-accent/10 rounded-xl">
 									<Sparkles className="size-6 text-accent" />
 								</div>
@@ -593,10 +594,10 @@ export function CustomerPortalCard({
 			</CardLayout>
 
 			{/* Enhanced Trust Signals */}
-			<div className="bg-muted/10 rounded-2xl p-[var(--spacing-6)] border-2 border-muted/20">
-				<div className="flex flex-wrap items-center justify-center gap-[var(--spacing-6)] text-sm">
-					<div className="flex items-center gap-[var(--spacing-3)]">
-						<div className="p-[var(--spacing-2)] bg-accent/10 rounded-lg">
+			<div className="bg-muted/10 rounded-2xl p-(--spacing-6) border-2 border-muted/20">
+				<div className="flex flex-wrap items-center justify-center gap-(--spacing-6) text-sm">
+					<div className={trustSignalItemClasses()}>
+						<div className={trustSignalIconClasses('accent')}>
 							<Shield className="size-5 text-accent" />
 						</div>
 						<div>
@@ -606,8 +607,8 @@ export function CustomerPortalCard({
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-[var(--spacing-3)]">
-						<div className="p-[var(--spacing-2)] bg-primary/10 rounded-lg">
+					<div className={trustSignalItemClasses()}>
+						<div className={trustSignalIconClasses('primary')}>
 							<CheckCircle2 className="size-5 text-primary" />
 						</div>
 						<div>
@@ -617,8 +618,8 @@ export function CustomerPortalCard({
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-[var(--spacing-3)]">
-						<div className="p-[var(--spacing-2)] bg-primary/10 rounded-lg">
+					<div className={trustSignalItemClasses()}>
+						<div className={trustSignalIconClasses('primary')}>
 							<Users className="size-5 text-primary" />
 						</div>
 						<div>

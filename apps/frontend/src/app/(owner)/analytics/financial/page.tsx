@@ -163,7 +163,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			<div className="@container/main flex min-h-screen w-full flex-col">
 				<OwnerPaymentSummary summary={paymentSummary} />
 				<div className="border-b bg-background p-6 border-fill-tertiary">
-					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
 							<h1 className="text-3xl font-semibold tracking-tight">
 								Financial Analytics
@@ -183,7 +183,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								Download insight summary
 							</a>
 						</div>
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
 							<Card className="@container/card">
 								<CardHeader>
 									<CardTitle>Total Revenue</CardTitle>
@@ -240,7 +240,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 				</div>
 				<div className="flex-1 bg-muted/30 p-6">
 					<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
 							<div className="xl:col-span-2">
 								<Card>
 									<CardHeader>
@@ -281,7 +281,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								</Card>
 							</div>
 						</div>
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-2">
 							<Card>
 								<CardHeader>
 									<CardTitle>Net Operating Income</CardTitle>
@@ -305,7 +305,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								</CardContent>
 							</Card>
 						</div>
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-2">
 							<Card>
 								<CardHeader>
 									<CardTitle>Billing Timeline</CardTitle>
@@ -354,7 +354,7 @@ function FinancialAnalyticsSkeleton() {
 		<div className="@container/main flex min-h-screen w-full flex-col">
 # Additional component after top metrics
 			<div className="border-b bg-background p-6 border-fill-tertiary">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
 							Financial Analytics
@@ -364,7 +364,7 @@ function FinancialAnalyticsSkeleton() {
 							time.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
 						{Array.from({ length: 4 }).map((_, i) => (
 							<Card key={i} className="@container/card">
 								<CardHeader>
@@ -383,7 +383,7 @@ function FinancialAnalyticsSkeleton() {
 			<OwnerPaymentSummary summary={null} />
 			<div className="flex-1 bg-muted/30 p-6">
 				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+					<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
 						<div className="xl:col-span-2">
 							<Card>
 								<CardHeader>
