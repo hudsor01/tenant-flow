@@ -228,7 +228,7 @@ export function CreateTenantForm({
 				</CardHeader>
 
 				<CardContent className="space-y-6">
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<form.Field
 							name="first_name"
 							validators={{
@@ -471,7 +471,7 @@ export function CreateTenantForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<form.Field
 							name="rent_amount"
 							validators={{
@@ -537,7 +537,7 @@ export function CreateTenantForm({
 						</form.Field>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<form.Field
 							name="start_date"
 							validators={{
@@ -598,7 +598,7 @@ export function CreateTenantForm({
 			</Card>
 
 			{/* Form Actions */}
-			<div className="flex justify-end gap-4">
+			<div className="flex justify-end gap-(--spacing-4)">
 				<Button type="button" variant="outline" onClick={() => router.back()}>
 					Cancel
 				</Button>

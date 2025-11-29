@@ -260,7 +260,7 @@ export function ChangePasswordDialog() {
 
 							{/* Validation Errors */}
 							{validationErrors.length > 0 && (
-								<div className="rounded-[var(--radius-large)] border border-destructive/50 bg-destructive/10 p-[var(--spacing-4)]">
+								<div className="rounded-[var(--radius-large)] border border-destructive/50 bg-destructive/10 p-(--spacing-4)">
 									<p className="font-semibold text-destructive mb-2">
 										Please fix the following errors:
 									</p>

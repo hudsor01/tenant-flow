@@ -121,7 +121,7 @@ export default function ConfirmEmailPage() {
 							</p>
 
 							{/* Stats */}
-							<div className="grid grid-cols-3 gap-6 pt-6">
+							<div className="grid grid-cols-3 gap-(--spacing-6) pt-6">
 								<div className="text-center group">
 									<div className="text-foreground font-bold text-2xl mb-1">
 										$2.4K+

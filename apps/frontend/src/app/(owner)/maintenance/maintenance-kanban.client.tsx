@@ -150,7 +150,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			onDragEnd={handleDragEnd}
 			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-(--spacing-4)">
 				{COLUMNS.map(column => {
 					const columnRequests = requestsByStatus[column.id] || []
 					return (

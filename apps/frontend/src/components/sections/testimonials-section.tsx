@@ -1,7 +1,7 @@
 'use client'
 
 import { BlurFade } from '#components/ui/blur-fade'
-import { cn } from '#lib/utils'
+import { cn, testimonialCardClasses } from '#lib/design-system'
 import { Quote } from 'lucide-react'
 
 interface TestimonialsSectionProps {
@@ -58,7 +58,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 					{testimonials.map((testimonial, index) => (
 						<BlurFade key={index} delay={0.2 + index * 0.1} inView>
 							<div className="relative group h-full">
-								<div className="relative bg-card border border-border rounded-2xl p-8 h-full hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
+								<div className={testimonialCardClasses()}>
 									{/* Quote icon */}
 									<Quote className="size-10 text-primary/20 mb-6" />
 

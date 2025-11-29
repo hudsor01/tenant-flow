@@ -382,6 +382,46 @@
 	--transform-lift-sm: translateY(-1px);
 	--transform-scale-hover: scale(1.02);
 
+	/* Complex Hover Effects */
+	--hover-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+	--hover-lift: translateY(-2px) scale(1.02);
+	--hover-shadow: 0 20px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.1);
+	--hover-border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+	--hover-bg-overlay: linear-gradient(135deg, color-mix(in oklch, var(--primary) 5%, transparent), transparent, color-mix(in oklch, var(--muted-foreground) 5%, transparent));
+
+	/* Sidebar Specific */
+	--sidebar-transition: width 200ms ease-linear;
+	--sidebar-width-icon: 3rem;
+	--sidebar-width: 16rem;
+	--sidebar-collapsible-transition: all 200ms ease-out;
+
+	/* Feature Card Effects */
+	--feature-card-hover-bg: color-mix(in oklch, var(--card) 90%, transparent);
+	--feature-card-hover-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.25);
+	--feature-card-icon-hover: scale(1.1) rotate(3deg);
+	--feature-card-transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* Navbar Button Effects */
+	--navbar-btn-hover-bg: color-mix(in oklch, var(--primary) 5%, transparent);
+	--navbar-btn-hover-text: var(--primary);
+	--navbar-btn-transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* Lightbox Navigation */
+	--lightbox-nav-bg: rgba(0, 0, 0, 0.5);
+	--lightbox-nav-hover-bg: rgba(0, 0, 0, 0.7);
+	--lightbox-nav-transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* Pricing Card Effects */
+	--pricing-card-hover: translateY(-1px);
+	--pricing-card-shadow: 0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1);
+	--pricing-card-hover-shadow: 0 12px 20px -5px rgb(15 23 42 / 0.15), 0 6px 12px -6px rgb(15 23 42 / 0.12);
+
+	/* Portal Feature Grid */
+	--portal-grid-cols-2: repeat(2, minmax(0, 1fr));
+	--portal-grid-cols-5: repeat(5, minmax(0, 1fr));
+	--portal-feature-hover: scale(1.05) rotate(1deg);
+	--portal-feature-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
 	--spacing: 0.25rem;
 	--spacing-0: 0rem;
 	--spacing-px: 1px;
@@ -1515,189 +1555,7 @@
 	}
 }
 
-@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	@keyframes ping {
-		75%,
-		100% {
-			transform: scale(2);
-			opacity: 0;
-		}
-	}
-
-	@keyframes pulse {
-		50% {
-			opacity: 0.5;
-		}
-	}
-
-	@keyframes bounce {
-		0%,
-		100% {
-			transform: translateY(-25%);
-			animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-		}
-		50% {
-			transform: none;
-			animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-		}
-	}
-
-	@keyframes fade-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes slide-up {
-		from {
-			opacity: 0;
-			transform: translateY(1rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes slide-down {
-		from {
-			opacity: 0;
-			transform: translateY(-1rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes slide-left {
-		from {
-			opacity: 0;
-			transform: translateX(1rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateX(0);
-		}
-	}
-
-	@keyframes slide-right {
-		from {
-			opacity: 0;
-			transform: translateX(-1rem);
-		}
-		to {
-			opacity: 1;
-			transform: translateX(0);
-		}
-	}
-
-	@keyframes scale-in {
-		from {
-			opacity: 0;
-			transform: scale(0.9);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
-	@keyframes scale-out {
-		from {
-			opacity: 1;
-			transform: scale(1);
-		}
-		to {
-			opacity: 0;
-			transform: scale(0.9);
-		}
-	}
-
-	@keyframes skeleton-pulse {
-		0%,
-		100% {
-			background-position: -200% 0;
-		}
-		50% {
-			background-position: 200% 0;
-		}
-	}
-
-	@keyframes border-beam {
-		from {
-			offset-distance: 0%;
-		}
-		to {
-			offset-distance: 100%;
-		}
-	}
-
-	@keyframes rotate {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	@supports not (backdrop-filter: blur(10px)) {
-		.glass,
-		.glass-strong,
-		.modal-content,
-		.nav-elegant {
-			opacity: 1;
-			background: var(--card);
-			transform: none;
-			border: 1px solid var(--border);
-		}
-	}
-
-	@media (min-width: 640px) {
-		:root {
-			--container-padding: 1.5rem;
-		}
-	}
-
-	@media (min-width: 1024px) {
-		:root {
-			--container-padding: 2.5rem;
-		}
-	}
-
-	@media (min-width: 1440px) {
-		:root {
-			--container-padding: 4rem;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		*,
-		*::before,
-		*::after {
-			animation-duration: 0.01ms !important;
-			animation-iteration-count: 1 !important;
-		}
-	}
-
-	@media (forced-colors: active) {
-		.btn {
-			forced-color-adjust: none;
-			border: 1px solid ButtonText;
-		}
-
-		.card {
-			forced-color-adjust: none;
-			border: 1px solid CanvasText;
-		}
-	}
-
+@layer utilities {
 	.hero-highlight {
 		@apply relative inline-block text-primary font-semibold;
 	}
@@ -1902,46 +1760,44 @@
 		background: color-mix(in oklch, var(--primary) 10%, transparent);
 		color: var(--primary);
 	}
-
-	@layer utilities {
-		@media (max-width: 768px) {
-			.btn,
-			.touch-target,
-			button,
-			[role='button'] {
-				min-height: 44px;
-				min-width: 44px;
-			}
-
-			.form-input,
-			input,
-			select,
-			textarea {
-				min-height: 44px;
-			}
-
-			.mobile-stack > * + * {
-				margin-block-start: 0.75rem;
-			}
-
-			.high-contrast-mode {
-				filter: contrast(1.25) brightness(1.05);
-			}
-
-			.mobile-fade-in {
-				animation: mobile-fade-in 0.3s ease-out;
-			}
+	@media (max-width: 768px) {
+		.btn,
+		.touch-target,
+		button,
+		[role='button'] {
+			min-height: 44px;
+			min-width: 44px;
 		}
 
-		@keyframes mobile-fade-in {
-			from {
-				opacity: 0;
-				transform: translateY(10px);
-			}
+		.form-input,
+		input,
+		select,
+		textarea {
+			min-height: 44px;
+		}
 
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
+		.mobile-stack > * + * {
+			margin-block-start: 0.75rem;
+		}
+
+		.high-contrast-mode {
+			filter: contrast(1.25) brightness(1.05);
+		}
+
+		.mobile-fade-in {
+			animation: mobile-fade-in 0.3s ease-out;
 		}
 	}
+
+	@keyframes mobile-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+}
