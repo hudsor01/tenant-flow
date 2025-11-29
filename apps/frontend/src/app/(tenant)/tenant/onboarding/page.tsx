@@ -169,7 +169,7 @@ export default function TenantOnboardingPage() {
 						<Loader2 className="h-16 w-16 animate-spin text-primary" />
 					)}
 					{status === 'success' && (
-						<CheckCircle2 className="h-16 w-16 text-green-500" />
+						<CheckCircle2 className="h-16 w-16 text-success" />
 					)}
 					{status === 'error' && (
 						<XCircle className="h-16 w-16 text-destructive" />

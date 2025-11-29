@@ -173,7 +173,7 @@ const navigation: {
 
 export function AppSidebar() {
 	return (
-		<div className="flex h-full flex-col gap-4 p-4">
+		<div className="flex h-full flex-col gap-(--spacing-4) p-4">
 			{/* Card 1: Brand */}
 			<div className="rounded-xl border border-gray-200 bg-white p-4">
 				<Link href="/dashboard" className="flex items-center gap-2">

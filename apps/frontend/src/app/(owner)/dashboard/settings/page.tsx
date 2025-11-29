@@ -91,7 +91,7 @@ export default function SettingsPage() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+		<div className="flex flex-1 flex-col gap-(--spacing-4) p-4 lg:gap-(--spacing-6) lg:p-6">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold text-foreground">
@@ -136,7 +136,7 @@ export default function SettingsPage() {
 						className="p-6 border shadow-sm"
 					>
 						{authLoading ? (
-							<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+							<div className="grid grid-cols-1 gap-(--spacing-6) md:grid-cols-2">
 								<div className="space-y-2">
 									<Skeleton className="h-4 w-20" />
 									<Skeleton className="h-10 w-full" />
@@ -169,7 +169,7 @@ export default function SettingsPage() {
 						) : (
 							<form
 								onSubmit={handleProfileSubmit}
-								className="grid grid-cols-1 gap-6 md:grid-cols-2"
+								className="grid grid-cols-1 gap-(--spacing-6) md:grid-cols-2"
 							>
 								<div className="space-y-2">
 									<Label htmlFor="first_name">First Name</Label>

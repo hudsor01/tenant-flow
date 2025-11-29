@@ -12,7 +12,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import { cn } from '#lib/utils'
+import { pricingCardClasses } from '#lib/design-system'
 import { ArrowRight, BadgeCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useStripeProducts } from '#hooks/use-stripe-products'
@@ -246,17 +246,14 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		const plansToShow = fallbackPricingPlans
 		return (
 			<>
-					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-[var(--spacing-4)] sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
+					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
 					<p className="text-center text-sm text-muted-foreground">
 						Loading live pricing...
 					</p>
-						<div className="mt-10 grid w-full gap-[var(--spacing-6)] sm:grid-cols-2 xl:grid-cols-3">
+						<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
 						{plansToShow.map(plan => (
 							<Card
-								className={cn(
-									'relative flex h-full flex-col overflow-hidden border border-border/60 bg-card/80 text-left shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg opacity-60',
-									plan.popular && 'ring-2 ring-primary/70'
-								)}
+								className={pricingCardClasses(plan.popular)}
 								key={plan.id}
 							>
 									<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
@@ -325,20 +322,17 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 
 	return (
 		<>
-				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-[var(--spacing-4)] sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
+				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
 				{usingFallback && (
 					<p className="text-center text-sm text-muted-foreground">
 						Live pricing is warming up. Showing the default TenantFlow plans
 						with active Stripe checkout links.
 					</p>
 				)}
-					<div className="mt-10 grid w-full gap-[var(--spacing-6)] sm:grid-cols-2 xl:grid-cols-3">
+					<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card
-							className={cn(
-								'relative flex h-full flex-col overflow-hidden border border-border/60 bg-card/80 text-left shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg',
-								plan.popular && 'ring-2 ring-primary/70'
-							)}
+							className={pricingCardClasses(plan.popular)}
 							key={plan.id}
 						>
 						<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">

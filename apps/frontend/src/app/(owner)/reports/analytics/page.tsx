@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
 						</Select>
 					</div>
 
-					<div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+					<div className="grid grid-cols-1 gap-(--spacing-4) *:data-[slot=card]:bg-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{paymentsLoading ? (
 							<>
 								<Skeleton className="h-28" />
@@ -222,7 +222,7 @@ export default function AnalyticsPage() {
 			</div>
 
 			<div className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto max-w-400 flex flex-col gap-6">
+				<div className="mx-auto max-w-400 flex flex-col gap-(--spacing-6)">
 					{/* Revenue Chart */}
 					<Card className="@container/card">
 						<div className="p-6 border-b">
@@ -324,7 +324,7 @@ export default function AnalyticsPage() {
 						</div>
 					</Card>
 
-					<div className="grid lg:grid-cols-2 gap-6">
+					<div className="grid lg:grid-cols-2 gap-(--spacing-6)">
 						{/* Payment Methods Breakdown */}
 						<Card className="@container/card">
 							<div className="p-6 border-b">

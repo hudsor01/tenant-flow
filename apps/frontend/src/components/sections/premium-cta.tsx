@@ -50,7 +50,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 
 					{/* CTA Buttons */}
 					<BlurFade delay={0.3} inView>
-						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+						<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center mb-12">
 							{/* Primary CTA with Glow */}
 							<GlowingEffect
 								glowColor="var(--primary)"

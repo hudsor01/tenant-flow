@@ -56,9 +56,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	}
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-3">
+		<div className="grid gap-(--spacing-6) lg:grid-cols-3">
 			<Card className="lg:col-span-2">
-				<CardHeader className="flex-row items-start justify-between gap-4">
+				<CardHeader className="flex-row items-start justify-between gap-(--spacing-4)">
 					<div className="space-y-2">
 						<CardTitle className="flex items-center gap-2 text-2xl font-semibold">
 							<Wrench className="size-5 text-primary" />
@@ -85,7 +85,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						</p>
 					</section>
 
-					<section className="grid gap-4 md:grid-cols-2">
+					<section className="grid gap-(--spacing-4) md:grid-cols-2">
 						<div className="rounded-xl border bg-muted/20 p-4">
 							<div className="flex items-center gap-2 text-sm text-muted-foreground">
 								<MapPin className="size-4" />

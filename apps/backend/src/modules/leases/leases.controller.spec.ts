@@ -35,6 +35,10 @@ describe('LeasesController', () => {
 		late_fee_amount: null,
 		late_fee_days: null,
 		stripe_subscription_id: null,
+		stripe_subscription_status: 'none',
+		subscription_failure_reason: null,
+		subscription_retry_count: 0,
+		subscription_last_attempt_at: null,
 		property_owner_id: 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
@@ -42,8 +46,10 @@ describe('LeasesController', () => {
 		docuseal_submission_id: null,
 		owner_signed_at: null,
 		owner_signature_ip: null,
+		owner_signature_method: null,
 		tenant_signed_at: null,
 		tenant_signature_ip: null,
+		tenant_signature_method: null,
 		sent_for_signature_at: null,
 		...overrides
 	})

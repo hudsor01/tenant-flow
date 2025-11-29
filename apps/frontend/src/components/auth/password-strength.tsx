@@ -114,7 +114,7 @@ const PasswordStrength = React.forwardRef<
 
 					<Popover.Portal>
 						<Popover.Content
-							className="z-50 w-80 rounded-[var(--radius-large)] bg-popover p-[var(--spacing-4)] shadow-[var(--shadow-medium)] border border-(--color-separator)"
+							className="z-50 w-80 rounded-[var(--radius-large)] bg-popover p-(--spacing-4) shadow-[var(--shadow-medium)] border border-(--color-separator)"
 							sideOffset={5}
 							onOpenAutoFocus={e => e.preventDefault()}
 						>

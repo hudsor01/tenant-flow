@@ -272,6 +272,13 @@ export class StripeConnectService {
 	/**
 	 * Create a Stripe subscription on a connected account
 	 * Used for setting up recurring rent payments for tenants
+	 *
+	 * @param connectedAccountId - The Stripe Connect account ID
+	 * @param params.customerId - The Stripe customer ID on the connected account
+	 * @param params.rentAmount - Monthly rent amount in cents
+	 * @param params.currency - Currency code (default: 'usd')
+	 * @param params.metadata - Additional metadata to attach to the subscription
+	 * @param params.idempotencyKey - Optional key for safe retries (prevents duplicate subscriptions)
 	 */
 	async createSubscriptionOnConnectedAccount(
 		connectedAccountId: string,
@@ -280,6 +287,7 @@ export class StripeConnectService {
 			rentAmount: number // in cents
 			currency?: string
 			metadata?: Record<string, string>
+			idempotencyKey?: string
 		}
 	): Promise<Stripe.Subscription> {
 		try {
@@ -294,7 +302,8 @@ export class StripeConnectService {
 					}
 				},
 				{
-					stripeAccount: connectedAccountId
+					stripeAccount: connectedAccountId,
+					...(params.idempotencyKey && { idempotencyKey: `${params.idempotencyKey}-price` })
 				}
 			)
 
@@ -311,7 +320,8 @@ export class StripeConnectService {
 					}
 				},
 				{
-					stripeAccount: connectedAccountId
+					stripeAccount: connectedAccountId,
+					...(params.idempotencyKey && { idempotencyKey: `${params.idempotencyKey}-subscription` })
 				}
 			)
 
