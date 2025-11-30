@@ -43,7 +43,7 @@ const Button = styled.button`
 
 #### Typography
 - 11 text styles from LargeTitle (26px) to Caption (10px)
-- Roboto Flex font family
+- Spline Sans font family
 - Regular and Emphasized variants
 
 #### Colors
@@ -95,7 +95,7 @@ For full implementation details, refer to `.claude/rules/ui-ux-standards.md`
 
 ```js
 Primary: #0D6FFF
-Font: Roboto Flex
+Font: Spline Sans
 Body: 13px
 Title: 22px
 Success: #34C759

@@ -240,17 +240,17 @@ export const SPACING_SCALE = {
  */
 export const SEMANTIC_COLORS = {
 	// Base colors
-	background: 'var(--background)',
-	foreground: 'var(--foreground)',
+	background: 'var(--color-background)',
+	foreground: 'var(--color-foreground)',
 
 	// Interactive colors
-	primary: 'var(--primary)',
+	primary: 'var(--color-primary)',
 	'primary-foreground': 'var(--primary-foreground)',
 	secondary: 'var(--secondary)',
 	'secondary-foreground': 'var(--secondary-foreground)',
 
 	// Utility colors
-	muted: 'var(--muted)',
+	muted: 'var(--color-muted)',
 	'muted-foreground': 'var(--muted-foreground)',
 	accent: 'var(--accent)',
 	'accent-foreground': 'var(--accent-foreground)',
@@ -264,13 +264,13 @@ export const SEMANTIC_COLORS = {
 	'warning-foreground': 'var(--warning-foreground)',
 
 	// Surface colors
-	card: 'var(--card)',
+	card: 'var(--color-card)',
 	'card-foreground': 'var(--card-foreground)',
 	popover: 'var(--popover)',
 	'popover-foreground': 'var(--popover-foreground)',
 
 	// Border and input colors
-	border: 'var(--border)',
+	border: 'var(--color-border)',
 	input: 'var(--input)',
 	ring: 'var(--ring)',
 

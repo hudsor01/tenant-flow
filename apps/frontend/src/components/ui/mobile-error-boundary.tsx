@@ -11,6 +11,7 @@ import { Home, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface MobileErrorBoundaryProps {
 	children: ReactNode
@@ -19,7 +20,7 @@ interface MobileErrorBoundaryProps {
 
 interface MobileErrorBoundaryState {
 	hasError: boolean
-	error?: Error
+	error?: Error | undefined
 }
 
 export class MobileErrorBoundary extends Component<
@@ -27,6 +28,10 @@ export class MobileErrorBoundary extends Component<
 	MobileErrorBoundaryState
 > {
 	override state: MobileErrorBoundaryState = { hasError: false }
+
+	private resetBoundary = () => {
+		this.setState({ hasError: false, error: undefined })
+	}
 
 	static getDerivedStateFromError(error: Error): MobileErrorBoundaryState {
 		return { hasError: true, error }
@@ -39,12 +44,6 @@ export class MobileErrorBoundary extends Component<
 		})
 	}
 
-	private handleRefresh = () => {
-		if (typeof window !== 'undefined') {
-			window.location.reload()
-		}
-	}
-
 	override render() {
 		if (this.state.hasError) {
 			if (this.props.fallback) {
@@ -52,30 +51,52 @@ export class MobileErrorBoundary extends Component<
 			}
 
 			return (
-				<div className="p-4">
-					<Alert variant="destructive" className="mb-4 rounded-2xl">
-						<AlertTitle>Something went wrong</AlertTitle>
-						<AlertDescription>
-							{this.state.error?.message ??
-								'We could not load this view. Try refreshing the page.'}
-						</AlertDescription>
-					</Alert>
-					<div className="flex flex-col gap-2">
-						<Button className="w-full" onClick={this.handleRefresh}>
-							<RefreshCw className="mr-2 size-4" aria-hidden />
-							Refresh
-						</Button>
-						<Button asChild variant="outline" className="w-full">
-							<Link href="/dashboard">
-								<Home className="mr-2 size-4" aria-hidden />
-								Go Home
-							</Link>
-						</Button>
-					</div>
-				</div>
+				<MobileErrorFallback
+					error={this.state.error}
+					onReset={this.resetBoundary}
+				/>
 			)
 		}
 
 		return this.props.children
 	}
+}
+
+function MobileErrorFallback({
+	error,
+	onReset
+}: {
+	error?: Error | undefined
+	onReset: () => void
+}) {
+	const router = useRouter()
+
+	const handleRefresh = () => {
+		onReset()
+		router.refresh()
+	}
+
+	return (
+		<div className="p-4">
+			<Alert variant="destructive" className="mb-4 rounded-2xl">
+				<AlertTitle>Something went wrong</AlertTitle>
+				<AlertDescription>
+					{error?.message ??
+						'We could not load this view. Try refreshing the page.'}
+				</AlertDescription>
+			</Alert>
+			<div className="flex flex-col gap-2">
+				<Button className="w-full" onClick={handleRefresh}>
+					<RefreshCw className="mr-2 size-4" aria-hidden />
+					Refresh
+				</Button>
+				<Button asChild variant="outline" className="w-full">
+					<Link href="/dashboard">
+						<Home className="mr-2 size-4" aria-hidden />
+						Go Home
+					</Link>
+				</Button>
+			</div>
+		</div>
+	)
 }

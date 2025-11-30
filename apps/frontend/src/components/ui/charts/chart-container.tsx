@@ -47,7 +47,7 @@ export const TENANTFLOW_CHART_COLORS = {
 	primary: 'var(--color-primary)',
 	secondary: 'var(--color-accent)',
 	accent: 'var(--color-accent-main)',
-	muted: 'var(--color-gray-secondary)',
+	muted: 'var(--color-muted/secondary)',
 	success: 'var(--color-system-green)',
 	warning: 'var(--color-system-orange)',
 	destructive: 'var(--color-system-red)',
@@ -67,13 +67,13 @@ export const TENANTFLOW_CHART_CONFIG = {
 	colors: Object.values(TENANTFLOW_CHART_COLORS),
 	grid: {
 		strokeDasharray: '3 3',
-		stroke: 'var(--border)',
+		stroke: 'var(--color-border)',
 		strokeOpacity: 0.5
 	},
 	tooltip: {
-		backgroundColor: 'var(--popover)',
-		border: '1px solid var(--border)',
-		borderRadius: 'var(--radius-medium)',
+		backgroundColor: 'var(--color-popover)',
+		border: '1px solid var(--color-border)',
+		borderRadius: 'var(--radius-md)',
 		padding: '12px',
 		fontSize: '14px',
 		fontFamily: 'var(--font-sans)',
@@ -83,11 +83,11 @@ export const TENANTFLOW_CHART_CONFIG = {
 	legend: {
 		fontSize: '12px',
 		fontFamily: 'var(--font-sans)',
-		color: 'var(--foreground)'
+		color: 'var(--color-foreground)'
 	},
 	axis: {
 		fontSize: '11px',
 		fontFamily: 'var(--font-sans)',
-		color: 'var(--muted-foreground)'
+		color: 'var(--color-muted-foreground)'
 	}
 }

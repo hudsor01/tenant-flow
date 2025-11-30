@@ -22,6 +22,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 import { DocuSealService } from '../docuseal/docuseal.service'
+import { LEASE_SIGNATURE_ERROR_MESSAGES, LEASE_SIGNATURE_ERROR_CODES } from '@repo/shared/constants/lease-signature-errors'
 
 export interface SignatureStatus {
 	lease_id: string
@@ -67,7 +68,7 @@ export class LeaseSignatureService {
 	 */
 	private parseSignLeaseRpcResult(rpcResult: unknown): SignLeaseRpcResult {
 		if (!rpcResult || (Array.isArray(rpcResult) && rpcResult.length === 0)) {
-			return { success: false, both_signed: false, error_message: 'RPC returned no result' }
+			return { success: false, both_signed: false, error_message: LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.RPC_NO_RESULT] }
 		}
 
 		const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult
@@ -79,20 +80,7 @@ export class LeaseSignatureService {
 		}
 	}
 
-	/**
-	 * Check if a user ID (from auth.users) is the owner of a lease
-	 * property_owner_id in leases references property_owners.id, not auth.users.id
-	 */
-	private async isUserLeaseOwner(propertyOwnerId: string, userId: string): Promise<boolean> {
-		const client = this.supabase.getAdminClient()
-		const { data: propertyOwner } = await client
-			.from('property_owners')
-			.select('user_id')
-			.eq('id', propertyOwnerId)
-			.single()
 
-		return propertyOwner?.user_id === userId
-	}
 
 	/**
 	 * Owner sends a lease for signature (draft -> pending_signature)
@@ -108,6 +96,7 @@ export class LeaseSignatureService {
 			.select(`
 				id, lease_status, property_owner_id, primary_tenant_id,
 				rent_amount, start_date, end_date,
+				property_owner:property_owners!leases_property_owner_id_fkey (user_id),
 				unit:units!leases_unit_id_fkey (
 					unit_number,
 					property:properties!units_property_id_fkey (
@@ -119,21 +108,21 @@ export class LeaseSignatureService {
 			.single()
 
 		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_FOUND])
 		}
 
 		// Step 2: Verify owner owns the lease (ownerId is auth.users.id)
 		if (!lease.property_owner_id) {
-			throw new NotFoundException('Lease has no owner assigned')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER])
 		}
-		const isOwner = await this.isUserLeaseOwner(lease.property_owner_id, ownerId)
+		const isOwner = lease.property_owner?.user_id === ownerId
 		if (!isOwner) {
-			throw new ForbiddenException('You do not own this lease')
+			throw new ForbiddenException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER])
 		}
 
 		// Step 3: Verify lease is in draft status
 		if (lease.lease_status !== 'draft') {
-			throw new BadRequestException('Only draft leases can be sent for signature')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_DRAFT])
 		}
 
 		// Step 4: Get owner and tenant details for DocuSeal (parallel queries for performance)
@@ -174,12 +163,12 @@ export class LeaseSignatureService {
 			// Validate email addresses before DocuSeal submission
 			if (!ownerUser?.email) {
 				throw new BadRequestException(
-					'Cannot send lease for signature: property owner email is missing',
+					LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.OWNER_EMAIL_MISSING],
 				)
 			}
 			if (!tenantUser?.email) {
 				throw new BadRequestException(
-					'Cannot send lease for signature: tenant email is missing',
+					LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.TENANT_EMAIL_MISSING],
 				)
 			}
 
@@ -230,7 +219,7 @@ export class LeaseSignatureService {
 
 		if (updateError) {
 			this.logger.error('Failed to update lease status', { error: updateError.message })
-			throw new BadRequestException('Failed to send lease for signature')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.SEND_FOR_SIGNATURE_FAILED])
 		}
 
 		// Step 7: Emit event for notification service
@@ -254,21 +243,21 @@ export class LeaseSignatureService {
 		// Step 1: Get lease for authorization check (read-only, no lock needed)
 		const { data: lease, error: leaseError } = await client
 			.from('leases')
-			.select('id, property_owner_id, rent_amount, primary_tenant_id')
+			.select('id, property_owner_id, rent_amount, primary_tenant_id, property_owner:property_owners!leases_property_owner_id_fkey (user_id)')
 			.eq('id', leaseId)
 			.single()
 
 		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_FOUND])
 		}
 
 		// Step 2: Verify owner owns the lease (ownerId is auth.users.id)
 		if (!lease.property_owner_id) {
-			throw new NotFoundException('Lease has no owner assigned')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER])
 		}
-		const isOwner = await this.isUserLeaseOwner(lease.property_owner_id, ownerId)
+		const isOwner = lease.property_owner?.user_id === ownerId
 		if (!isOwner) {
-			throw new ForbiddenException('You do not own this lease')
+			throw new ForbiddenException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER])
 		}
 
 		// Step 3: Call atomic RPC to sign and check if both signed
@@ -286,13 +275,13 @@ export class LeaseSignatureService {
 
 		if (rpcError) {
 			this.logger.error('RPC sign_lease_and_check_activation failed', { leaseId, error: rpcError })
-			throw new BadRequestException('Failed to record signature')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.RECORD_SIGNATURE_FAILED])
 		}
 
 		const result = this.parseSignLeaseRpcResult(rpcResult)
 
 		if (!result.success) {
-			throw new BadRequestException(result.error_message || 'Failed to sign lease')
+			throw new BadRequestException(result.error_message || LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.SIGN_LEASE_FAILED])
 		}
 
 		// Step 4: Handle activation if both signed
@@ -326,7 +315,7 @@ export class LeaseSignatureService {
 			.single()
 
 		if (tenantError || !tenant) {
-			throw new NotFoundException('Tenant not found')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.TENANT_NOT_FOUND])
 		}
 
 		// Step 2: Get lease for authorization check (read-only, no lock needed)
@@ -337,12 +326,12 @@ export class LeaseSignatureService {
 			.single()
 
 		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_FOUND])
 		}
 
 		// Step 3: Verify tenant is assigned to this lease
 		if (lease.primary_tenant_id !== tenant.id) {
-			throw new ForbiddenException('You are not assigned to this lease')
+			throw new ForbiddenException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.NOT_ASSIGNED_TO_LEASE])
 		}
 
 		// Step 4: Call atomic RPC to sign and check if both signed
@@ -360,13 +349,13 @@ export class LeaseSignatureService {
 
 		if (rpcError) {
 			this.logger.error('RPC sign_lease_and_check_activation failed', { leaseId, error: rpcError })
-			throw new BadRequestException('Failed to record signature')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.RECORD_SIGNATURE_FAILED])
 		}
 
 		const result = this.parseSignLeaseRpcResult(rpcResult)
 
 		if (!result.success) {
-			throw new BadRequestException(result.error_message || 'Failed to sign lease')
+			throw new BadRequestException(result.error_message || LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.SIGN_LEASE_FAILED])
 		}
 
 		// Step 5: Handle activation if both signed
@@ -417,7 +406,7 @@ export class LeaseSignatureService {
 		this.logger.log('Activating lease - both parties have signed', { leaseId: lease.id })
 
 		if (!lease.property_owner_id) {
-			throw new BadRequestException('Lease must have a property owner to activate')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NEEDS_OWNER_TO_ACTIVATE])
 		}
 
 		// Step 1: Get property owner's Stripe account
@@ -428,14 +417,13 @@ export class LeaseSignatureService {
 			.single()
 
 		if (ownerError || !owner || !owner.stripe_account_id) {
-			throw new BadRequestException('Property owner must have Stripe Connect setup to activate lease')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.STRIPE_CONNECT_NOT_SETUP])
 		}
 
 		// Verify charges are enabled on the Stripe account
 		if (!owner.charges_enabled) {
 			throw new BadRequestException(
-				'Property owner must complete Stripe Connect verification before lease can be activated. ' +
-				'Please complete Stripe onboarding to enable payments.'
+				LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.STRIPE_VERIFICATION_INCOMPLETE]
 			)
 		}
 
@@ -450,13 +438,13 @@ export class LeaseSignatureService {
 				leaseId: lease.id,
 				error: activationError
 			})
-			throw new BadRequestException('Failed to activate lease')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.ACTIVATE_LEASE_FAILED])
 		}
 
 		// Parse RPC result (returns SETOF)
 		const result = Array.isArray(activationResult) ? activationResult[0] : activationResult
 		if (!result?.success) {
-			throw new BadRequestException(result?.error_message || 'Failed to activate lease')
+			throw new BadRequestException(result?.error_message || LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.ACTIVATE_LEASE_FAILED])
 		}
 
 		// Step 3: Emit lease.activated event (lease is active, subscription pending)
@@ -659,19 +647,19 @@ export class LeaseSignatureService {
 
 		const { data: lease, error } = await client
 			.from('leases')
-			.select('id, lease_status, owner_signed_at, tenant_signed_at, sent_for_signature_at, property_owner_id, primary_tenant_id, docuseal_submission_id')
+			.select('id, lease_status, owner_signed_at, tenant_signed_at, sent_for_signature_at, property_owner_id, primary_tenant_id, docuseal_submission_id, property_owner:property_owners!leases_property_owner_id_fkey (user_id)')
 			.eq('id', leaseId)
 			.single()
 
 		if (error || !lease) {
-			throw new NotFoundException('Lease not found')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_FOUND])
 		}
 
 		// Authorization check: user must be owner or tenant
 		if (!lease.property_owner_id) {
-			throw new NotFoundException('Lease has no owner assigned')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER])
 		}
-		const isOwner = await this.isUserLeaseOwner(lease.property_owner_id, userId)
+		const isOwner = lease.property_owner?.user_id === userId
 
 		let isTenant = false
 		if (!isOwner) {
@@ -687,7 +675,7 @@ export class LeaseSignatureService {
 		}
 
 		if (!isOwner && !isTenant) {
-			throw new ForbiddenException('You do not have access to this lease')
+			throw new ForbiddenException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.NO_ACCESS_TO_LEASE])
 		}
 
 		const ownerSigned = !!lease.owner_signed_at
@@ -716,7 +704,7 @@ export class LeaseSignatureService {
 		// Get lease with DocuSeal submission ID
 		const { data: lease, error } = await client
 			.from('leases')
-			.select('id, docuseal_submission_id, property_owner_id, primary_tenant_id')
+			.select('id, docuseal_submission_id, property_owner_id, primary_tenant_id, property_owner:property_owners!leases_property_owner_id_fkey (user_id)')
 			.eq('id', leaseId)
 			.single()
 
@@ -729,7 +717,7 @@ export class LeaseSignatureService {
 			return null // Can't determine ownership without property_owner_id
 		}
 		let userEmail: string | null = null
-		const isOwner = await this.isUserLeaseOwner(lease.property_owner_id, userId)
+		const isOwner = lease.property_owner?.user_id === userId
 
 		if (isOwner) {
 			// User is the owner - get their email
@@ -786,25 +774,25 @@ export class LeaseSignatureService {
 		// Get lease and verify ownership
 		const { data: lease, error } = await client
 			.from('leases')
-			.select('id, lease_status, property_owner_id, docuseal_submission_id')
+			.select('id, lease_status, property_owner_id, docuseal_submission_id, property_owner:property_owners!leases_property_owner_id_fkey (user_id)')
 			.eq('id', leaseId)
 			.single()
 
 		if (error || !lease) {
-			throw new NotFoundException('Lease not found')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_FOUND])
 		}
 
 		// Verify owner owns the lease (ownerId is auth.users.id)
 		if (!lease.property_owner_id) {
-			throw new NotFoundException('Lease has no owner assigned')
+			throw new NotFoundException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER])
 		}
-		const isOwner = await this.isUserLeaseOwner(lease.property_owner_id, ownerId)
+		const isOwner = lease.property_owner?.user_id === ownerId
 		if (!isOwner) {
-			throw new ForbiddenException('You do not own this lease')
+			throw new ForbiddenException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER])
 		}
 
 		if (lease.lease_status !== 'pending_signature') {
-			throw new BadRequestException('Only pending signature leases can be cancelled')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_PENDING_SIGNATURE])
 		}
 
 		// Archive DocuSeal submission if exists
@@ -843,7 +831,7 @@ export class LeaseSignatureService {
 			.eq('id', leaseId)
 
 		if (updateError) {
-			throw new BadRequestException('Failed to cancel signature request')
+			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.CANCEL_SIGNATURE_FAILED])
 		}
 
 		this.eventEmitter.emit('lease.signature_cancelled', {

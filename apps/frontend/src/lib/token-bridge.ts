@@ -73,7 +73,7 @@ export const animationPresets = {
 	lift: {
 		transition: `all ${animationTokens.durations.standard} ${animationTokens.easings.out}`,
 		transform: 'translateY(var(--translate-hover-y))',
-		boxShadow: 'var(--shadow-large)'
+		boxShadow: 'var(--shadow-lg)'
 	},
 
 	scale: {
@@ -113,11 +113,11 @@ export const animationPresets = {
 } as const
 
 export const radiusTokens = {
-	small: 'var(--radius-small)',
-	medium: 'var(--radius-medium)',
-	large: 'var(--radius-large)',
-	xlarge: 'var(--radius-xlarge)',
-	xxlarge: 'var(--radius-xxlarge)'
+	small: 'var(--radius-sm)',
+	medium: 'var(--radius-md)',
+	large: 'var(--radius-lg)',
+	xlarge: 'var(--radius-xl)',
+	xxlarge: 'var(--radius-2xl)'
 } as const
 
 
@@ -160,37 +160,37 @@ export const spacingTokens = {
 } as const
 
 export const shadowTokens = {
-	small: 'var(--shadow-small)',
-	medium: 'var(--shadow-medium)',
-	large: 'var(--shadow-large)'
+	small: 'var(--shadow-sm)',
+	medium: 'var(--shadow-md)',
+	large: 'var(--shadow-lg)'
 } as const
 
 export const typographyTokens = {
 	fontFamily: 'var(--font-family)',
 	sizes: {
-		largeTitle: 'var(--font-large-title)',
-		title1: 'var(--font-title-1)',
-		title2: 'var(--font-title-2)',
-		title3: 'var(--font-title-3)',
-		headline: 'var(--font-headline)',
-		body: 'var(--font-body)',
-		callout: 'var(--font-callout)',
-		subheadline: 'var(--font-subheadline)',
-		footnote: 'var(--font-footnote)',
-		caption1: 'var(--font-caption-1)',
-		caption2: 'var(--font-caption-2)'
+		largeTitle: 'var(--text-large-title)',
+		title1: 'var(--text-title-1)',
+		title2: 'var(--text-title-2)',
+		title3: 'var(--text-title-3)',
+		headline: 'var(--text-headline)',
+		body: 'var(--text-body)',
+		callout: 'var(--text-callout)',
+		subheadline: 'var(--text-subheadline)',
+		footnote: 'var(--text-footnote)',
+		caption1: 'var(--text-caption-1)',
+		caption2: 'var(--text-caption-2)'
 	},
 	lineHeights: {
-		largeTitle: 'var(--line-height-large-title)',
-		title1: 'var(--line-height-title-1)',
-		title2: 'var(--line-height-title-2)',
-		title3: 'var(--line-height-title-3)',
-		headline: 'var(--line-height-headline)',
-		body: 'var(--line-height-body)',
-		callout: 'var(--line-height-callout)',
-		subheadline: 'var(--line-height-subheadline)',
-		footnote: 'var(--line-height-footnote)',
-		caption: 'var(--line-height-caption)'
+		largeTitle: 'var(--leading-large-title)',
+		title1: 'var(--leading-title-1)',
+		title2: 'var(--leading-title-2)',
+		title3: 'var(--leading-title-3)',
+		headline: 'var(--leading-headline)',
+		body: 'var(--leading-body)',
+		callout: 'var(--leading-callout)',
+		subheadline: 'var(--leading-subheadline)',
+		footnote: 'var(--leading-footnote)',
+		caption: 'var(--leading-caption)'
 	}
 } as const
 
@@ -247,7 +247,7 @@ export const glassPresets = {
 	strong: {
 		background: 'var(--color-primary-brand-15)',
 		border: '1px solid var(--color-primary-brand-25)',
-		boxShadow: 'var(--shadow-medium)',
+		boxShadow: 'var(--shadow-md)',
 		backdropFilter: 'blur(24px)',
 		WebkitBackdropFilter: 'blur(24px)'
 	},
@@ -255,7 +255,7 @@ export const glassPresets = {
 	subtle: {
 		background: 'var(--color-fill-primary)',
 		border: '1px solid var(--color-fill-tertiary)',
-		boxShadow: 'var(--shadow-small)',
+		boxShadow: 'var(--shadow-sm)',
 		backdropFilter: 'blur(4px)',
 		WebkitBackdropFilter: 'blur(4px)'
 	},
@@ -263,7 +263,7 @@ export const glassPresets = {
 	frosted: {
 		background: 'var(--color-fill-secondary)',
 		border: '1px solid var(--color-separator)',
-		boxShadow: 'var(--shadow-medium)',
+		boxShadow: 'var(--shadow-md)',
 		backdropFilter: 'blur(16px)',
 		WebkitBackdropFilter: 'blur(16px)'
 	},
@@ -271,7 +271,7 @@ export const glassPresets = {
 	vibrant: {
 		background: 'var(--color-primary-brand-10)',
 		border: '1px solid var(--color-primary-brand-15)',
-		boxShadow: 'var(--shadow-large)',
+		boxShadow: 'var(--shadow-lg)',
 		backdropFilter: 'blur(24px)',
 		WebkitBackdropFilter: 'blur(24px)'
 	}

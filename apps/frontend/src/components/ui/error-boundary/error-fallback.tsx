@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import { AlertCircle, RotateCcw } from 'lucide-react'
 import React from 'react'
+import { useRouter } from 'next/navigation'
 
 interface ErrorFallbackProps {
 	error?: Error
@@ -22,13 +23,15 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
 	showResetButton = true,
 	onRetry
 }) => {
+	const router = useRouter()
+
 	const handleReset = () => {
 		if (onRetry) {
 			onRetry()
 		} else if (resetError) {
 			resetError()
 		} else {
-			window.location.reload()
+			router.refresh()
 		}
 	}
 

@@ -18,7 +18,7 @@ export function OwnerDashboardLayoutClient({ children }: { children: ReactNode }
 				<SiteHeader />
 				<div className="flex flex-1 flex-col">
 					<div className="@container/main flex min-h-screen w-full flex-col p-6">
-						<div className="mb-6">
+						<div className="mb-8 border-b border-border/50 pb-4">
 							<Breadcrumbs items={breadcrumbs} />
 						</div>
 						{children}

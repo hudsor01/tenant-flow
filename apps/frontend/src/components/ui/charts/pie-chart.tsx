@@ -57,7 +57,7 @@ export function ModernExplodedPieChart({
 		},
 		maintenance: {
 			label: 'Maintenance',
-			color: 'var(--destructive)' // Destructive red
+			color: 'var(--color-destructive)' // Destructive red
 		},
 		pending: {
 			label: 'Pending',
@@ -133,7 +133,7 @@ export function ModernExplodedPieChart({
 									fill={entry.fill}
 									stroke={
 										index === activeIndex
-											? 'var(--color-gray-tertiary)'
+											? 'var(--color-muted/tertiary)'
 											: 'none'
 									}
 									strokeWidth={index === activeIndex ? 2 : 0}

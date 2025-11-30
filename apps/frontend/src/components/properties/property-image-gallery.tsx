@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import Image from 'next/image'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { usePropertyImages, useDeletePropertyImageMutation } from '#hooks/api/mutations/property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
@@ -87,11 +88,12 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 							onClick={() => goToImage(idx)}
 						>
 							{/* Image */}
-							<img
+							<Image
 								src={image.image_url}
 								alt={`Property image ${idx + 1}`}
-								className="object-cover w-full h-full transition-transform group-hover:scale-105"
-								loading="lazy"
+								fill
+								className="object-cover transition-transform group-hover:scale-105"
+								sizes="(max-width: 640px) 100vw, 50vw"
 							/>
 
 							{/* Primary badge */}

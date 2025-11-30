@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * Mobile Analytics Utility
  * Lightweight analytics for mobile-specific events
@@ -26,13 +28,18 @@ class MobileAnalytics {
   track(eventName: string, properties: Record<string, unknown> = {}) {
     if (!this.isTracking) return
 
+    // Avoid SSR/RSC crashes when browser globals are unavailable
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return
+
+    const navigatorWithConnection = navigator as NavigatorWithConnection
+
     const analyticsEvent: MobileAnalyticsEvent = {
       eventName,
       properties,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
-      networkType: (navigator as NavigatorWithConnection).connection?.effectiveType || 'unknown',
+      networkType: navigatorWithConnection.connection?.effectiveType || 'unknown',
       isOnline: navigator.onLine
     }
 

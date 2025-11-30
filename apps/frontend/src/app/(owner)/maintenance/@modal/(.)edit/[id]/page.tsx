@@ -1,6 +1,6 @@
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
 import { RouteModal } from '#components/ui/route-modal'
-import { clientFetch } from '#lib/api/client'
+import { serverFetch } from '#lib/api/server'
 import { logErrorDetails } from '#lib/utils/error-logging'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { notFound } from 'next/navigation'
@@ -16,10 +16,11 @@ export default async function EditMaintenanceModal({
 }: {
 	params: Promise<{ id: string }>
 }) {
+	const { id } = await params
+
 	try {
-		const { id } = await params
-		const request = await clientFetch<MaintenanceRequest>(
-			`${process.env.API_BASE_URL}/api/v1/maintenance/${id}`
+		const request = await serverFetch<MaintenanceRequest>(
+			`/api/v1/maintenance/${id}`
 		)
 
 		if (!request?.id) {
@@ -32,7 +33,6 @@ export default async function EditMaintenanceModal({
 			</RouteModal>
 		)
 	} catch (error) {
-		const { id } = await params
 		logErrorDetails(logger, 'Failed to fetch maintenance request', error, { id })
 		notFound()
 	}

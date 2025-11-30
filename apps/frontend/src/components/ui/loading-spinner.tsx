@@ -1,8 +1,21 @@
 'use client'
 
+import { Loader2Icon } from "lucide-react"
+
 import { Button } from '#components/ui/button'
-import { Spinner } from '#components/ui/spinner'
-import { cn } from '#lib/design-system'
+import { cn } from "#lib/design-system"
+
+// Basic spinner icon component (moved from spinner.tsx)
+function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
+  return (
+    <Loader2Icon
+      role="status"
+      aria-label="Loading"
+      className={cn("size-4 animate-spin", className)}
+      {...props}
+    />
+  )
+}
 
 interface LoadingSpinnerProps {
 	size?: 'sm' | 'default' | 'lg' | 'xl'
@@ -25,7 +38,7 @@ const variantClasses = {
 	muted: 'text-(--color-label-tertiary)'
 }
 
-// Typography System: Using Roboto Flex scale from globals.css
+// Typography System: Using Spline Sans scale from globals.css
 const textSizeClasses = {
 	sm: 'text-(--font-footnote)', // 10px
 	default: 'text-(--font-body)', // 13px
@@ -68,8 +81,8 @@ function LoadingSpinner({
 					className={cn(
 						textSizeClasses[size],
 						variantClasses[variant],
-						// Design System Typography: Roboto Flex medium weight
-						'font-medium tracking-[var(--tracking-body)] leading-[var(--line-height-body)]',
+						// Design System Typography: Spline Sans medium weight
+						'font-medium tracking-[var(--tracking-body)] leading-[var(--leading-body)]',
 						// Design System Animation: Using actual globals.css variables
 						'animate-pulse animation-duration-(--duration-500) [animation-timing-function:var(--ease-in-out)]'
 					)}
@@ -155,7 +168,7 @@ function SectionLoader({
 	return (
 		<div data-tokens="applied" className={cn('relative', className)} {...props}>
 			{/* Glass Backdrop */}
-			<div className="absolute inset-0 glass z-10 flex items-center justify-center rounded-[var(--radius-large)]">
+			<div className="absolute inset-0 glass z-10 flex items-center justify-center rounded-[var(--radius-lg)]">
 				<div className="shadow-md bg-card/50 border border-border backdrop-blur-sm p-6">
 					{' '}
 					{/* p-6 = 1.5rem = var(--spacing-6) */}
@@ -281,5 +294,6 @@ export {
 	LoadingDots,
 	LoadingSpinner,
 	PageLoader,
-	SectionLoader
+	SectionLoader,
+	Spinner
 }

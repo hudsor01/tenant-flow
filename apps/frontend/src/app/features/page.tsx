@@ -2,8 +2,8 @@
 'use client'
 
 import { useState, useEffect, type ReactNode } from 'react'
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
@@ -258,10 +258,10 @@ export default function FeaturesPage() {
 			{/* Hero Section with Modern Background */}
 			<section className="relative pb-16 overflow-hidden">
 				{/* Solid tint background */}
-				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--primary)_5%,transparent)]" />
+				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--color-primary)_5%,transparent)]" />
 
 				{/* Subtle pattern overlay */}
-				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
+				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--color-foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
@@ -496,7 +496,7 @@ export default function FeaturesPage() {
 							{/* Results grid with enhanced visual design */}
 							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<TrendingUp className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -508,7 +508,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Clock className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -520,7 +520,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Users className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -530,7 +530,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<BarChart3 className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">

@@ -1,7 +1,7 @@
 'use client'
 
 import { clientFetch } from '#lib/api/client'
-import { tenantPortalKeys } from '#hooks/api/use-tenant-portal'
+import { tenantPortalKeys } from './queries/tenant-portal-queries'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export function useTenantPortalSetupAutopay() {

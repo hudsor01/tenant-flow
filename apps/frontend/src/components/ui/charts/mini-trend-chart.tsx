@@ -20,7 +20,7 @@ export function MiniTrendChart({
   isLoading,
   valueFormatter = (v) => v.toString(),
   className,
-  color = 'var(--primary)',
+  color = 'var(--color-primary)',
 }: MiniTrendChartProps) {
   if (isLoading) {
     return (

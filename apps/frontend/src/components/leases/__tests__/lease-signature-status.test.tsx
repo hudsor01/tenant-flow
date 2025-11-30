@@ -330,8 +330,8 @@ describe('LeaseSignatureStatus', () => {
 
 			// Owner badge (signed) should have green background - Badge component is a span
 			const ownerText = screen.getByText('Owner')
-			// The Badge component is a span with data-slot="badge"
-			const ownerBadge = ownerText.closest('[data-slot="badge"]')
+			// Find the badge by traversing up to the span element
+			const ownerBadge = ownerText.closest('span')
 			expect(ownerBadge).toHaveClass('bg-success')
 		})
 	})

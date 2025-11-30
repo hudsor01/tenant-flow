@@ -56,7 +56,7 @@ const IncomeStatementPage = () => {
 	}, [period, year])
 
 	// Fetch data from backend
-	const { data: response, isLoading, error } = useIncomeStatement(dateRange)
+	const { data: response, isLoading, error, refetch } = useIncomeStatement(dateRange)
 
 	// Extract data from API response ({success: true, data: IncomeStatementData})
 	const data = response?.data
@@ -94,7 +94,7 @@ const IncomeStatementPage = () => {
 									{error instanceof Error ? error.message : 'An error occurred'}
 								</p>
 							</div>
-							<Button onClick={() => window.location.reload()}>Try Again</Button>
+							<Button onClick={() => void refetch()}>Try Again</Button>
 						</div>
 					</CardContent>
 				</Card>
@@ -108,7 +108,7 @@ const IncomeStatementPage = () => {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Income Statement</h1>
-					<p className="text-gray-600">
+					<p className="text-muted-foreground">
 						Revenue, expenses, and net income over a period
 					</p>
 				</div>
@@ -231,19 +231,19 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Rental Income</span>
 								<span className="font-semibold">
 									${(data?.revenue.rentalIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Late Fees Income</span>
 								<span className="font-semibold">
 									${(data?.revenue.lateFeesIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Other Income</span>
 								<span className="font-semibold">
 									${(data?.revenue.otherIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -270,43 +270,43 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Property Management</span>
 								<span className="font-semibold">
 									${(data?.expenses.propertyManagement || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Maintenance</span>
 								<span className="font-semibold">
 									${(data?.expenses.maintenance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Utilities</span>
 								<span className="font-semibold">
 									${(data?.expenses.utilities || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Insurance</span>
 								<span className="font-semibold">
 									${(data?.expenses.insurance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Property Tax</span>
 								<span className="font-semibold">
 									${(data?.expenses.propertyTax || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Mortgage</span>
 								<span className="font-semibold">
 									${(data?.expenses.mortgage || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Other</span>
 								<span className="font-semibold">
 									${(data?.expenses.other || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -367,8 +367,8 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						{data?.previousPeriod && (
-							<div className="mt-4 p-3 bg-gray-50 rounded-lg">
-								<div className="text-sm text-gray-600 mb-2">Period Comparison</div>
+							<div className="mt-4 p-3 bg-muted/50 rounded-lg">
+								<div className="text-sm text-muted-foreground mb-2">Period Comparison</div>
 								<div className="flex items-center gap-2">
 									<span className="text-sm">Previous Period:</span>
 									<span className="font-semibold">

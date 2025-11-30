@@ -6,51 +6,23 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { clientFetch } from '#lib/api/client'
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
-
-// ========================================
-// Types
-// ========================================
-
-export interface EmergencyContact {
-	id: string
-	tenant_id: string
-	contactName: string
-	relationship: string
-	phoneNumber: string
-	email: string | null
-	created_at: string
-	updated_at: string
-}
-
-export interface CreateEmergencyContactInput {
-	tenant_id: string
-	contactName: string
-	relationship: string
-	phoneNumber: string
-	email?: string | null
-}
-
-export interface UpdateEmergencyContactInput {
-	contactName?: string
-	relationship?: string
-	phoneNumber?: string
-	email?: string | null
-}
+import {
+	emergencyContactQueries,
+	emergencyContactKeys,
+	type EmergencyContact,
+	type CreateEmergencyContactInput,
+	type UpdateEmergencyContactInput
+} from './queries/emergency-contact-queries'
 
 // ========================================
 // Query Keys
 // ========================================
 
-export const emergencyContactKeys = {
-	all: ['emergency-contacts'] as const,
-	tenant: (tenant_id: string) =>
-		[...emergencyContactKeys.all, tenant_id] as const
-}
+// Query keys are now imported from emergency-contact-queries.ts
 
 // ========================================
 // Query Hooks
@@ -61,16 +33,7 @@ export const emergencyContactKeys = {
  * Returns null if no emergency contact exists
  */
 export function useEmergencyContact(tenant_id: string) {
-	return useQuery({
-		queryKey: emergencyContactKeys.tenant(tenant_id),
-		queryFn: () =>
-			clientFetch<EmergencyContact | null>(
-				`/api/v1/tenants/${tenant_id}/emergency-contact`
-			),
-		enabled: !!tenant_id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 2
-	})
+	return useQuery(emergencyContactQueries.contact(tenant_id))
 }
 
 // ========================================

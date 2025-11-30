@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	AddressElement,
 	Elements,
@@ -497,25 +497,20 @@ export function PaymentMethodSetupForm({
 		// No clientSecret needed for direct PaymentMethod.create
 		mode: 'setup', // Still use setup mode for payment method collection
 		// Enable fonts for better cross-platform consistency
-		fonts: [
-			{
-				cssSrc:
-					'https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;600&display=swap'
-			}
-		],
+		fonts: [],
 		appearance: {
 			theme: 'stripe',
 			labels: 'floating',
 			variables: {
-				colorPrimary: 'var(--primary)',
-				colorBackground: 'var(--background)',
-				colorText: 'var(--foreground)',
-				colorDanger: 'var(--destructive)',
-				colorTextSecondary: 'var(--muted-foreground)',
-				colorTextPlaceholder: 'var(--muted-foreground)',
-				colorIcon: 'var(--muted-foreground)',
-				colorSuccess: 'var(--primary)',
-				fontFamily: 'var(--font-roboto-flex), system-ui, sans-serif',
+				colorPrimary: 'var(--color-primary)',
+				colorBackground: 'var(--color-background)',
+				colorText: 'var(--color-foreground)',
+				colorDanger: 'var(--color-destructive)',
+				colorTextSecondary: 'var(--color-muted-foreground)',
+				colorTextPlaceholder: 'var(--color-muted-foreground)',
+				colorIcon: 'var(--color-muted-foreground)',
+				colorSuccess: 'var(--color-primary)',
+				fontFamily: 'var(--font-sans), system-ui, sans-serif',
 				fontSizeBase: '14px',
 				fontSizeSm: '12px',
 				fontSizeXs: '11px',
@@ -526,7 +521,7 @@ export function PaymentMethodSetupForm({
 				fontWeightBold: '600',
 				borderRadius: 'var(--radius)',
 				focusOutline: 'none',
-				focusBoxShadow: '0 0 0 2px var(--ring)',
+				focusBoxShadow: '0 0 0 2px var(--color-ring)',
 				spacingUnit: '4px',
 				spacingGridRow: '16px',
 				spacingGridColumn: '16px',
@@ -539,25 +534,25 @@ export function PaymentMethodSetupForm({
 					transition: 'box-shadow 0.15s ease'
 				},
 				'.Input:focus': {
-					boxShadow: '0 0 0 2px var(--ring)'
+					boxShadow: '0 0 0 2px var(--color-ring)'
 				},
 				'.Tab': {
-					border: '1px solid var(--border)',
-					backgroundColor: 'var(--muted)',
-					color: 'var(--muted-foreground)'
+					border: '1px solid var(--color-border)',
+					backgroundColor: 'var(--color-muted)',
+					color: 'var(--color-muted-foreground)'
 				},
 				'.Tab:hover': {
-					backgroundColor: 'var(--accent)',
-					color: 'var(--accent-foreground)'
+					backgroundColor: 'var(--color-accent)',
+					color: 'var(--color-accent-foreground)'
 				},
 				'.Tab--selected': {
-					backgroundColor: 'var(--primary)',
-					color: 'var(--primary-foreground)'
+					backgroundColor: 'var(--color-primary)',
+					color: 'var(--color-primary-foreground)'
 				},
 				'.AccordionItem': {
-					border: '1px solid var(--border)',
+					border: '1px solid var(--color-border)',
 					borderRadius: 'var(--radius)',
-					backgroundColor: 'var(--card)'
+					backgroundColor: 'var(--color-card)'
 				}
 			}
 		}

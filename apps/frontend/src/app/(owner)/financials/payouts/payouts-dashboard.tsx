@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { CardLayout } from '#components/ui/card-layout'
 import { DollarSign, ArrowDownRight, Clock, CheckCircle, XCircle } from 'lucide-react'
 import {
