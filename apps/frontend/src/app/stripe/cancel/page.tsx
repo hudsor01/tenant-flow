@@ -1,5 +1,5 @@
 import { Button } from '#components/ui/button'
-import { PageLayout } from '#components/layout/page-layout'
+import { PageLayout } from '#components/ui/layout/page-layout'
 import { MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'

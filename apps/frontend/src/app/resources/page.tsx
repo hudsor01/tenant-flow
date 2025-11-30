@@ -1,5 +1,5 @@
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import {
@@ -138,7 +138,7 @@ export default function ResourcesPage() {
 			{/* Hero Section */}
 			<section className="relative page-content pb-16 overflow-hidden">
 				<div className="absolute inset-0 bg-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--primary)_5%,transparent),transparent_50%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--color-primary)_5%,transparent),transparent_50%)]" />
 				</div>
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -271,7 +271,7 @@ export default function ResourcesPage() {
 			{/* CTA Section */}
 			<section className="section-content relative overflow-hidden">
 				<div className="absolute inset-0 bg-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_10%,transparent),transparent_70%)]" />
 				</div>
 
 				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">

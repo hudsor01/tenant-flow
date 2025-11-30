@@ -1,4 +1,4 @@
-import { PageLayout } from '#components/layout/page-layout'
+import { PageLayout } from '#components/ui/layout/page-layout'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {

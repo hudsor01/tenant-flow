@@ -100,7 +100,7 @@ const PasswordStrength = React.forwardRef<
 							type="password"
 						autoComplete="new-password"
 							className={cn(
-								'flex h-10 w-full rounded-[var(--radius-medium)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-offset-[var(--focus-ring-offset)] disabled:cursor-not-allowed disabled:opacity-50',
+								'flex h-10 w-full rounded-[var(--radius-md)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-[var(--focus-ring-width)] focus-visible:ring-offset-[var(--focus-ring-offset)] disabled:cursor-not-allowed disabled:opacity-50',
 								className
 							)}
 							ref={ref}
@@ -114,7 +114,7 @@ const PasswordStrength = React.forwardRef<
 
 					<Popover.Portal>
 						<Popover.Content
-							className="z-50 w-80 rounded-[var(--radius-large)] bg-popover p-(--spacing-4) shadow-[var(--shadow-medium)] border border-(--color-separator)"
+							className="z-50 w-80 rounded-[var(--radius-lg)] bg-popover p-(--spacing-4) shadow-[var(--shadow-md)] border border-(--color-separator)"
 							sideOffset={5}
 							onOpenAutoFocus={e => e.preventDefault()}
 						>

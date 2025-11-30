@@ -75,19 +75,19 @@ const BalanceSheetPage = () => {
 
 	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">
-			<h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+			<h3 className="text-lg font-semibold text-muted/900">{title}</h3>
 			<div className="space-y-2">
 				{items.map((item, index) => {
 					return (
 						<div
 							key={index}
-							className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+							className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
 						>
 							<div className="flex-1">
-								<div className="font-medium text-gray-900">{item.name}</div>
+								<div className="font-medium text-muted/900">{item.name}</div>
 							</div>
 							<div className="text-right">
-								<div className="font-semibold text-gray-900">
+								<div className="font-semibold text-muted/900">
 									${Math.abs(item.amount).toLocaleString()}
 								</div>
 							</div>
@@ -104,7 +104,7 @@ const BalanceSheetPage = () => {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
-						<p className="text-gray-600">
+						<p className="text-muted/600">
 							Financial position at a specific point in time
 						</p>
 					</div>
@@ -136,7 +136,7 @@ const BalanceSheetPage = () => {
 								{[1, 2, 3].map(j => (
 									<div
 										key={j}
-										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+										className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
 									>
 										<Skeleton className="h-4 w-32" />
 										<Skeleton className="h-6 w-24" />
@@ -156,7 +156,7 @@ const BalanceSheetPage = () => {
 				<div className="flex items-center justify-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
-						<p className="text-gray-600">
+						<p className="text-muted/600">
 							Financial position at a specific point in time
 						</p>
 					</div>
@@ -186,7 +186,7 @@ const BalanceSheetPage = () => {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Balance Sheet</h1>
-					<p className="text-gray-600">
+					<p className="text-muted/600">
 						Financial position at a specific point in time
 					</p>
 				</div>
@@ -380,31 +380,31 @@ const BalanceSheetPage = () => {
 				</CardHeader>
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-4)">
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
+						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-blue-600">
 								${totalAssets.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Assets</div>
+							<div className="text-sm text-muted/600">Total Assets</div>
 						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
+						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-red-600">
 								${totalLiabilities.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Liabilities</div>
+							<div className="text-sm text-muted/600">Total Liabilities</div>
 						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
+						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-success">
 								${totalEquity.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Equity</div>
+							<div className="text-sm text-muted/600">Total Equity</div>
 						</div>
 					</div>
 					<div className="mt-4 p-4 bg-blue-50 rounded-lg">
-						<div className="text-sm text-gray-600">
+						<div className="text-sm text-muted/600">
 							<strong>Balance Sheet Equation:</strong> Assets = Liabilities +
 							Equity
 						</div>
-						<div className="text-sm text-gray-600 mt-1">
+						<div className="text-sm text-muted/600 mt-1">
 							${totalAssets.toLocaleString()} = $
 							{totalLiabilities.toLocaleString()} + $
 							{totalEquity.toLocaleString()}

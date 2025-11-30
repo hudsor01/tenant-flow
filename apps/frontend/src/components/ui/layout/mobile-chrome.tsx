@@ -1,8 +1,8 @@
 'use client'
 
-import { FloatingActionButton } from '#components/floating-action-button'
-import { MobileOnboarding } from '#components/mobile-onboarding'
-import { MobileNav } from '#components/mobile-nav'
+import { FloatingActionButton } from '#components/ui/floating-action-button'
+import { MobileOnboarding } from '#components/ui/mobile-onboarding'
+import { MobileNav } from '#components/ui/mobile-nav'
 import { MobileErrorBoundary } from '#components/ui/mobile-error-boundary'
 import { useIsMobile } from '#hooks/use-mobile'
 import { useMobileSecurity } from '#hooks/use-mobile-security'

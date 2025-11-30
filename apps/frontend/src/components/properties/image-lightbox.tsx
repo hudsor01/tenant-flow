@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import type { Tables } from '@repo/shared/types/supabase'
 import {
 	Dialog,
@@ -87,11 +88,12 @@ export function ImageLightbox({
 
 				{/* Main image container */}
 				<div className="relative flex items-center justify-center min-h-[400px] w-full">
-					<img
+					<Image
 						src={currentImage.image_url}
 						alt={`Property image ${currentIndex + 1}`}
-						className="max-w-full max-h-[90vh] object-contain"
-						loading="lazy"
+						fill
+						className="object-contain"
+						sizes="(max-width: 768px) 95vw, (max-width: 1200px) 80vw, 70vw"
 					/>
 
 					{/* Navigation controls - only show if multiple images */}

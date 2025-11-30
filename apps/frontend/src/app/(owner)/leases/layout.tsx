@@ -1,5 +1,7 @@
 
 
+import ModalLayout from '#components/ui/layout/modal-layout'
+
 /**
  * Leases Layout with Modal Slot
  *
@@ -9,10 +11,5 @@ export default function LeasesLayout({
 	children,
 	modal
 }: LayoutProps<'/leases'>) {
-	return (
-		<>
-			{children}
-			{modal}
-		</>
-	)
+	return <ModalLayout modal={modal}>{children}</ModalLayout>
 }

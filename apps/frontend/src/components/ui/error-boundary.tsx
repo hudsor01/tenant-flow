@@ -4,9 +4,11 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useErrorBoundary } from '#hooks/use-error-boundary'
+import { useErrorBoundaryStore } from '#stores/error-boundary-store'
 import type { ReactNode } from 'react'
 import { Component } from 'react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useRouter } from 'next/navigation'
 
 const logger = createLogger({ component: 'ErrorBoundary' })
 
@@ -17,13 +19,17 @@ interface Props {
 
 interface State {
 	hasError: boolean
-	error?: Error
+	error?: Error | undefined
 }
 
 export class ErrorBoundary extends Component<Props, State> {
 	constructor(props: Props) {
 		super(props)
 		this.state = { hasError: false }
+	}
+
+	private resetBoundary = () => {
+		this.setState({ hasError: false, error: undefined })
 	}
 
 	static getDerivedStateFromError(error: Error): State {
@@ -41,11 +47,9 @@ export class ErrorBoundary extends Component<Props, State> {
 			}
 		})
 
-		// Store error in global error boundary store
-		const errorBoundaryStore = (this as unknown as Record<string, { setError?: (error: Error, source: string) => void }>).errorBoundaryStore
-	if (errorBoundaryStore?.setError) {
-		errorBoundaryStore.setError(error, 'ErrorBoundary')
-	}
+		// Persist error in global error boundary store for cross-page visibility
+		const { setError } = useErrorBoundaryStore.getState()
+		setError?.(error, 'ErrorBoundary')
 	}
 
 	override render() {
@@ -55,7 +59,10 @@ export class ErrorBoundary extends Component<Props, State> {
 			}
 
 			return (
-				<ErrorBoundaryWithStore error={this.state.error} />
+				<ErrorBoundaryWithStore
+					error={this.state.error}
+					onReset={this.resetBoundary}
+				/>
 			)
 		}
 
@@ -64,17 +71,25 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 // Separate component to use hooks within the error boundary
-function ErrorBoundaryWithStore({ error }: { error: Error | undefined }) {
+function ErrorBoundaryWithStore({
+	error,
+	onReset
+}: {
+	error: Error | undefined
+	onReset?: () => void
+}) {
 	const { clearError, errorState } = useErrorBoundary()
+	const router = useRouter()
 
 	const handleRetry = () => {
 		clearError()
-		window.location.reload()
+		onReset?.()
+		router.refresh()
 	}
 
 	return (
 		<div className="min-h-screen flex items-center justify-center p-4">
-			    <CardLayout title="Something went wrong" className="max-w-md w-full">
+			<CardLayout title="Something went wrong" className="max-w-md w-full">
 				<div className="flex flex-col items-center space-y-4 text-center">
 					<AlertTriangle className="size-12 text-destructive" />
 					<div className="space-y-2">

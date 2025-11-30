@@ -45,14 +45,14 @@ const quickActions = [
 
 export function QuickActions() {
 	return (
-		<div className="dashboard-quick-actions">
+		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
 			{quickActions.map(action => {
 				const Icon = action.icon
 				return (
 					<Link
 						key={action.href}
 						href={action.href}
-						className="dashboard-quick-action group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+						className="dashboard-quick-action group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring touch-target"
 
 						aria-label={`${action.title}: ${action.description}`}
 					>

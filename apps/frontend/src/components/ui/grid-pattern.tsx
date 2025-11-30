@@ -39,9 +39,9 @@ export function GridPattern({
 			'fill-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)]',
 		bold: 'fill-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)]',
 		primary:
-			'fill-[color-mix(in oklab,var(--primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--primary) 40%, transparent)]',
+			'fill-[color-mix(in oklab,var(--color-primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-primary) 40%, transparent)]',
 		accent:
-			'fill-[color-mix(in oklab,var(--accent) 35%, transparent)] stroke-[color-mix(in oklab,var(--accent) 40%, transparent)]'
+			'fill-[color-mix(in oklab,var(--color-accent) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-accent) 40%, transparent)]'
 	}
 
 	const selectedStyle = variantStyles[variant]

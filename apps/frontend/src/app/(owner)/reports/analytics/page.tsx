@@ -282,17 +282,17 @@ export default function AnalyticsPage() {
 										<XAxis
 											dataKey="month"
 											className="text-xs"
-											tick={{ fill: 'var(--muted-foreground)' }}
+											tick={{ fill: 'var(--color-muted-foreground)' }}
 										/>
 										<YAxis
 											className="text-xs"
-											tick={{ fill: 'var(--muted-foreground)' }}
+											tick={{ fill: 'var(--color-muted-foreground)' }}
 											tickFormatter={formatCurrency}
 										/>
 										<Tooltip
 											contentStyle={{
-												backgroundColor: 'var(--background)',
-												border: '1px solid var(--border)',
+												backgroundColor: 'var(--color-background)',
+												border: '1px solid var(--color-border)',
 												borderRadius: '8px'
 											}}
 											formatter={(value: number) => formatCurrency(value)}
@@ -357,16 +357,16 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="name"
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'var(--background)',
-													border: '1px solid var(--border)',
+													backgroundColor: 'var(--color-background)',
+													border: '1px solid var(--color-border)',
 													borderRadius: '8px'
 												}}
 											/>
@@ -403,21 +403,21 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="propertyName"
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 												angle={-45}
 												textAnchor="end"
 												height={80}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 												domain={[0, 100]}
 												tickFormatter={formatPercent}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'var(--background)',
-													border: '1px solid var(--border)',
+													backgroundColor: 'var(--color-background)',
+													border: '1px solid var(--color-border)',
 													borderRadius: '8px'
 												}}
 												formatter={(value: number) => formatPercent(value)}

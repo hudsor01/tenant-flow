@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { API_BASE_URL } from '#lib/api-config'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'

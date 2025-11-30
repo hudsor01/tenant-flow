@@ -154,25 +154,70 @@ export const tenantQueries = {
 	invitations: () => [...tenantQueries.all(), 'invitations'] as const,
 
 	/**
-	 * Paginated invitation list
+	 * All tenants (for dropdowns, selects)
+	 * Cached longer for UI components
 	 *
 	 * @example
-	 * const { data } = useQuery(tenantQueries.invitationList({ status: 'sent' }))
+	 * const { data } = useQuery(tenantQueries.allTenants())
 	 */
-	invitationList: (filters?: InvitationFilters) =>
+	allTenants: () =>
 		queryOptions({
-			queryKey: [...tenantQueries.invitations(), 'list', filters ?? {}],
-			queryFn: async () => {
-				const searchParams = new URLSearchParams()
-				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.page) searchParams.append('page', filters.page.toString())
-				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
-
-				const params = searchParams.toString()
-				return clientFetch<{ data: TenantInvitation[]; total: number }>(
-					`/api/v1/tenants/invitations${params ? `?${params}` : ''}`
-				)
-			},
+			queryKey: [...tenantQueries.lists(), 'all'],
+			queryFn: () => clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants'),
 			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 30 * 60 * 1000, // Keep 30 minutes for dropdown data
+			retry: 3,
+			retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+			structuralSharing: true
 		}),
+
+	/**
+	 * Tenant polling (real-time updates)
+	 *
+	 * @example
+	 * const { data } = useQuery(tenantQueries.polling(tenant_id))
+	 */
+	polling: (id: string) =>
+		queryOptions({
+			queryKey: [...tenantQueries.details(), id, 'polling'],
+			queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
+			enabled: !!id,
+			refetchInterval: 30000, // 30 seconds
+			refetchIntervalInBackground: false,
+			staleTime: 0 // Always refetch on interval
+		}),
+
+	/**
+	 * Tenant notification preferences
+	 *
+	 * @example
+	 * const { data } = useQuery(tenantQueries.notificationPreferences(tenant_id))
+	 */
+	notificationPreferences: (tenant_id: string) =>
+		queryOptions({
+			queryKey: [...tenantQueries.details(), tenant_id, 'notification-preferences'],
+			queryFn: () =>
+				clientFetch<{
+					emailNotifications: boolean
+					smsNotifications: boolean
+					maintenanceUpdates: boolean
+					paymentReminders: boolean
+				}>(`/api/v1/tenants/${tenant_id}/notification-preferences`),
+			enabled: !!tenant_id,
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 10 * 60 * 1000 // 10 minutes
+		}),
+
+	/**
+	 * List of tenant invitations
+	 *
+	 * @example
+	 * const { data } = useQuery(tenantQueries.invitationList())
+	 */
+	invitationList: () =>
+		queryOptions({
+			queryKey: tenantQueries.invitations(),
+			queryFn: () => clientFetch<PaginatedResponse<TenantInvitation>>('/api/v1/tenants/invitations'),
+			...QUERY_CACHE_TIMES.LIST
+		})
 }

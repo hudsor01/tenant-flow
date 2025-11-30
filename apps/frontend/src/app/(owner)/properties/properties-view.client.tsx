@@ -1,10 +1,11 @@
 'use client'
 
-import { PullToRefresh } from '#components/pull-to-refresh'
-import { ViewSwitcher, type ViewType } from '#components/view-switcher'
+import { PullToRefresh } from '#components/ui/pull-to-refresh'
+import { ViewSwitcher, type ViewType } from '#components/ui/view-switcher'
 import { useIsMobile } from '#hooks/use-mobile'
 import { usePreferencesStore } from '#providers/preferences-provider'
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { PropertiesGridClient } from './properties-grid.client'
 import { PropertiesTableClient } from './properties-table.client'
 import { MobilePropertiesTable } from './properties-table.mobile'
@@ -16,12 +17,13 @@ interface PropertiesViewClientProps {
 
 export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 	const isMobile = useIsMobile()
+	const router = useRouter()
 	const viewPreferences = usePreferencesStore(state => state.viewPreferences)
 	const setViewPreference = usePreferencesStore(state => state.setViewPreference)
 	const currentView = viewPreferences?.properties ?? 'grid'
 	const handleRefresh = useCallback(async () => {
-		window.location.reload()
-	}, [])
+		router.refresh()
+	}, [router])
 
 	const handleViewChange = (view: ViewType) => {
 		if (view === 'grid' || view === 'table') {

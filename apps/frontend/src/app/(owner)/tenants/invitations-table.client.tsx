@@ -13,7 +13,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { RotateCcw, X, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useState, useTransition } from 'react'
@@ -96,7 +96,7 @@ export function InvitationsTableClient() {
 				)
 			case 'expired':
 				return (
-					<Badge variant="outline" className="border-gray-500 text-gray-600 bg-gray-50">
+					<Badge variant="outline" className="border-muted/500 text-muted/600 bg-muted/50">
 						<AlertCircle className="size-3 mr-1" />
 						Expired
 					</Badge>

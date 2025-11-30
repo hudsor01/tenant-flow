@@ -200,6 +200,9 @@ const environmentSchema = z.object({
 		.default('noreply@tenantflow.app'),
 	TEST_RESEND_API_KEY: z.string().optional(),
 
+	// OpenAI
+	OPENAI_API_KEY: z.string().optional(),
+
 	// DocuSeal (Self-hosted e-signature)
 	DOCUSEAL_API_URL: z
 		.string()

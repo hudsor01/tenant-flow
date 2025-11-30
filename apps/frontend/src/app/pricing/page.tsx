@@ -1,4 +1,4 @@
-import { Navbar } from '#components/layout/navbar'
+import { Navbar } from '#components/ui/layout/navbar'
 import {
 	Accordion,
 	AccordionContent,
@@ -10,7 +10,7 @@ import { ArrowRight, CheckCircle2, Building, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { PricingSection } from './_components/pricing-section'
-import Footer from '#components/layout/footer'
+import Footer from '#components/ui/layout/footer'
 import { env } from '#config/env'
 import { trustIndicatorBadgeClasses, statCardClasses, accordionItemClasses } from '#lib/design-system'
 

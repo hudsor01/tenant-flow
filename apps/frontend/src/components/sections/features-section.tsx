@@ -64,7 +64,7 @@ export default function FeaturesSectionDemo({
 		>
 			<div className="container px-(--spacing-4) mx-auto relative z-10">
 				<div className="text-center mb-[var(--spacing-10)] max-w-[var(--max-width-3xl)] mx-auto">
-					<h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+					<h2 className="text-responsive-display-lg font-bold tracking-tight text-foreground mb-6 leading-tight">
 						Everything you need for
 						<span className="text-primary block">
 							professional property management

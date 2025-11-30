@@ -16,8 +16,8 @@ export function BorderGlow({
 	className,
 	duration = '15s',
 	borderWidth = 1,
-	colorFrom = 'var(--primary)', // primary color
-	colorTo = 'var(--accent)' // accent color
+	colorFrom = 'var(--color-primary)', // primary color
+	colorTo = 'var(--color-accent)' // accent color
 }: BorderGlowProps) {
 	return (
 		<div

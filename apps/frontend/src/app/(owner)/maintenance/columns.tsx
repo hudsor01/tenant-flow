@@ -1,7 +1,9 @@
 "use client"
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { useQueryClient } from '@tanstack/react-query'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -14,11 +16,12 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 import { clientFetch } from '#lib/api/client'
+import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
 
 const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'> = {
 	HIGH: 'destructive',
@@ -75,47 +78,66 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 	{
 		id: 'actions',
 		header: 'Actions',
-		cell: ({ row }) => {
-			const request = row.original
-			return (
-				<div className="flex items-center gap-2">
-					<Button asChild size="sm" variant="ghost">
-						<Link href={`/maintenance/${request.id}/edit`}>Edit</Link>
-					</Button>
-					<AlertDialog>
-						<AlertDialogTrigger asChild>
-							<Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
-								<Trash2 className="size-4" />
-							</Button>
-						</AlertDialogTrigger>
-						<AlertDialogContent>
-							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Request</AlertDialogTitle>
-								<AlertDialogDescription>
-									Permanently delete "{request.description}"? This action cannot be undone.
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
-								<AlertDialogAction
-									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-									onClick={async () => {
-									try {
-										await clientFetch(`/api/v1/maintenance/${request.id}`, { method: 'DELETE' })
-										toast.success('Request deleted')
-										window.location.reload()
-									} catch {
-										toast.error('Failed to delete')
-									}
-								}}
-								>
-									Delete
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
-				</div>
-			)
-		}
+		cell: ({ row }) => <MaintenanceActionsCell request={row.original} />
 	}
 ]
+
+function MaintenanceActionsCell({ request }: { request: MaintenanceRequest }) {
+	const queryClient = useQueryClient()
+	const [isDeleting, setIsDeleting] = useState(false)
+
+	const handleDelete = async () => {
+		setIsDeleting(true)
+		try {
+			await clientFetch(`/api/v1/maintenance/${request.id}`, { method: 'DELETE' })
+			toast.success('Request deleted')
+
+			await Promise.all([
+				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() }),
+				queryClient.invalidateQueries({ queryKey: maintenanceQueries.stats().queryKey })
+			])
+		} catch {
+			toast.error('Failed to delete')
+		} finally {
+			setIsDeleting(false)
+		}
+	}
+
+	return (
+		<div className="flex items-center gap-2">
+			<Button asChild size="sm" variant="ghost">
+				<Link href={`/maintenance/${request.id}/edit`}>Edit</Link>
+			</Button>
+			<AlertDialog>
+				<AlertDialogTrigger asChild>
+					<Button
+						size="sm"
+						variant="ghost"
+						className="text-destructive hover:text-destructive"
+						disabled={isDeleting}
+					>
+						<Trash2 className="size-4" />
+					</Button>
+				</AlertDialogTrigger>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Request</AlertDialogTitle>
+						<AlertDialogDescription>
+							Permanently delete "{request.description}"? This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							disabled={isDeleting}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							onClick={handleDelete}
+						>
+							{isDeleting ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</div>
+	)
+}
