@@ -5,7 +5,7 @@ import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Slider } from '#components/ui/slider'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	useLateFeeConfig,
 	useUpdateLateFeeConfig

@@ -11,6 +11,28 @@ import {
 	Section,
 	Text
 } from '@react-email/components'
+import {
+	main,
+	container,
+	header,
+	h1,
+	h2,
+	badge,
+	content,
+	text,
+	paymentDetails,
+	detailsTitle,
+	details,
+	urgentNotice,
+	urgentText,
+	buttonContainer,
+	button,
+	linkContainer,
+	link,
+	hr,
+	footer,
+	footerText
+} from './email-styles'
 
 interface PaymentFailedEmailProps {
 	customerEmail: string
@@ -134,129 +156,3 @@ export const PaymentFailedEmail = ({
 }
 
 export default PaymentFailedEmail
-
-// Styles
-const main = {
-	fontFamily: 'Arial, sans-serif',
-	lineHeight: '1.6',
-	color: '#333',
-	backgroundColor: '#f8f9fa'
-}
-
-const container = {
-	maxWidth: '600px',
-	margin: '0 auto',
-	padding: '20px'
-}
-
-const header = {
-	backgroundColor: '#f8f9fa',
-	padding: '20px',
-	borderRadius: '8px',
-	marginBottom: '20px'
-}
-
-const h1 = {
-	color: '#2c3e50',
-	margin: '0 0 10px 0',
-	fontSize: '24px'
-}
-
-const h2 = {
-	color: '#2c3e50',
-	marginBottom: '20px',
-	fontSize: '20px'
-}
-
-const badge = {
-	color: '#ffffff',
-	padding: '8px 12px',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold',
-	fontSize: '14px'
-}
-
-const content = {
-	backgroundColor: '#fff',
-	border: '1px solid #e9ecef',
-	borderRadius: '8px',
-	padding: '20px',
-	marginBottom: '20px'
-}
-
-const text = {
-	margin: '16px 0',
-	fontSize: '16px'
-}
-
-const paymentDetails = {
-	backgroundColor: '#f8f9fa',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '15px 0'
-}
-
-const detailsTitle = {
-	margin: '0 0 10px 0',
-	fontSize: '16px'
-}
-
-const details = {
-	margin: '0',
-	fontSize: '16px'
-}
-
-const urgentNotice = {
-	backgroundColor: '#fff3cd',
-	border: '1px solid #ffeaa7',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '20px 0'
-}
-
-const urgentText = {
-	color: '#856404',
-	margin: '10px 0 0 0',
-	fontSize: '16px'
-}
-
-const buttonContainer = {
-	textAlign: 'center' as const,
-	margin: '30px 0'
-}
-
-const button = {
-	backgroundColor: '#007bff',
-	color: '#ffffff',
-	padding: '12px 24px',
-	textDecoration: 'none',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold'
-}
-
-const linkContainer = {
-	textAlign: 'center' as const,
-	margin: '20px 0'
-}
-
-const link = {
-	color: '#007bff',
-	textDecoration: 'none',
-	fontSize: '14px'
-}
-
-const hr = {
-	borderColor: '#e9ecef',
-	margin: '30px 0'
-}
-
-const footer = {
-	fontSize: '14px',
-	color: '#6c757d'
-}
-
-const footerText = {
-	margin: '8px 0'
-}

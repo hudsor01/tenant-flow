@@ -45,7 +45,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 			<div className="container px-4 mx-auto">
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
-						<h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+						<h2 className="text-responsive-display-lg font-bold tracking-tight text-foreground mb-6 leading-tight">
 							What Our Customers Say
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">

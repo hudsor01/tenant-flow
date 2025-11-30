@@ -19,10 +19,10 @@ export const getUserLabel = (user_type: UserType): string => {
 
 export const getUserColor = (user_type: UserType): string => {
 	const colors: Record<UserType, string> = {
-		OWNER: 'bg-purple-100 text-purple-800',
-		MANAGER: 'bg-blue-100 text-blue-800',
-		TENANT: 'bg-green-100 text-green-800',
-		ADMIN: 'bg-red-100 text-red-800'
+		OWNER: 'bg-primary/10 text-primary-foreground border-primary/20',
+		MANAGER: 'bg-info/10 text-info-foreground border-info/20',
+		TENANT: 'bg-success/10 text-success-foreground border-success/20',
+		ADMIN: 'bg-destructive/10 text-destructive-foreground border-destructive/20'
 	}
-	return colors[user_type] || 'bg-gray-100 text-gray-800'
+	return colors[user_type] || 'bg-muted text-muted-foreground border-border'
 }

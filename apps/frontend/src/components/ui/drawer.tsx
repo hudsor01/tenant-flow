@@ -8,25 +8,25 @@ import { cn } from '#lib/design-system'
 function Drawer({
 	...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-	return <DrawerPrimitive.Root data-slot="drawer" {...props} />
+	return <DrawerPrimitive.Root {...props} />
 }
 
 function DrawerTrigger({
 	...props
 }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
-	return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />
+	return <DrawerPrimitive.Trigger {...props} />
 }
 
 function DrawerPortal({
 	...props
 }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
-	return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />
+	return <DrawerPrimitive.Portal {...props} />
 }
 
 function DrawerClose({
 	...props
 }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
-	return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />
+	return <DrawerPrimitive.Close {...props} />
 }
 
 function DrawerOverlay({
@@ -35,7 +35,6 @@ function DrawerOverlay({
 }: React.ComponentProps<typeof DrawerPrimitive.Overlay>) {
 	return (
 		<DrawerPrimitive.Overlay
-			data-slot="drawer-overlay"
 			data-tokens="applied"
 			className={cn(
 				'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
@@ -54,10 +53,9 @@ function DrawerContent({
 	...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
 	return (
-		<DrawerPortal data-slot="drawer-portal">
+		<DrawerPortal>
 			<DrawerOverlay />
 			<DrawerPrimitive.Content
-				data-slot="drawer-content"
 				data-tokens="applied"
 				className={cn(
 					'group/drawer-content fixed flex h-auto flex-col',
@@ -73,13 +71,13 @@ function DrawerContent({
 				style={{
 					zIndex: 'var(--z-modal)',
 					borderTopLeftRadius:
-						'data-[vaul-drawer-direction=bottom]:var(--radius-large)',
+						'data-[vaul-drawer-direction=bottom]:var(--radius-lg)',
 					borderTopRightRadius:
-						'data-[vaul-drawer-direction=bottom]:var(--radius-large)',
+						'data-[vaul-drawer-direction=bottom]:var(--radius-lg)',
 					borderBottomLeftRadius:
-						'data-[vaul-drawer-direction=top]:var(--radius-large)',
+						'data-[vaul-drawer-direction=top]:var(--radius-lg)',
 					borderBottomRightRadius:
-						'data-[vaul-drawer-direction=top]:var(--radius-large)'
+						'data-[vaul-drawer-direction=top]:var(--radius-lg)'
 				}}
 				{...props}
 			>
@@ -93,7 +91,6 @@ function DrawerContent({
 function DrawerHeader({ className, ...props }: React.ComponentProps<'div'>) {
 	return (
 		<div
-			data-slot="drawer-header"
 			data-tokens="applied"
 			className={cn(
 				'flex flex-col gap-0.5 p-(--spacing-4) group-data-[vaul-drawer-direction=bottom]/drawer-content:text-center group-data-[vaul-drawer-direction=top]/drawer-content:text-center md:gap-1.5 md:text-left',
@@ -107,7 +104,6 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<'div'>) {
 function DrawerFooter({ className, ...props }: React.ComponentProps<'div'>) {
 	return (
 		<div
-			data-slot="drawer-footer"
 			data-tokens="applied"
 			className={cn(
 				'mt-auto flex flex-col gap-(--spacing-2) p-(--spacing-4)',
@@ -124,7 +120,6 @@ function DrawerTitle({
 }: React.ComponentProps<typeof DrawerPrimitive.Title>) {
 	return (
 		<DrawerPrimitive.Title
-			data-slot="drawer-title"
 			data-tokens="applied"
 			className={cn(
 				'text-(--font-title-2) leading-(--line-height-title-2) font-semibold tracking-(--tracking-title)',
@@ -142,7 +137,6 @@ function DrawerDescription({
 }: React.ComponentProps<typeof DrawerPrimitive.Description>) {
 	return (
 		<DrawerPrimitive.Description
-			data-slot="drawer-description"
 			data-tokens="applied"
 			className={cn('text-(--color-label-tertiary) text-sm', className)}
 			{...props}

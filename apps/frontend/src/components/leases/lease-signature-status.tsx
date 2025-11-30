@@ -7,6 +7,7 @@ import { Skeleton } from '#components/ui/skeleton'
 import { cn } from '#lib/utils'
 import { useLeaseSignatureStatus } from '#hooks/api/use-lease'
 import type { SignatureStatus } from '#hooks/api/queries/lease-queries'
+import { LEASE_SIGNATURE_ERROR_MESSAGES, LEASE_SIGNATURE_ERROR_CODES } from '@repo/shared/constants/lease-signature-errors'
 
 interface LeaseSignatureStatusProps {
 	leaseId: string
@@ -35,7 +36,7 @@ export function LeaseSignatureStatus({
 				<CardContent className="py-4">
 					<div className="flex items-center gap-2 text-destructive">
 						<AlertCircle className="h-4 w-4" />
-						<span className="text-sm">Unable to load signature status</span>
+						<span className="text-sm">{LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.FRONTEND_LOAD_FAILED]}</span>
 					</div>
 				</CardContent>
 			</Card>

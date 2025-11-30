@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function RegisterServiceWorker() {
+	const router = useRouter()
+
 	useEffect(() => {
 		if (typeof window === 'undefined') return
 		if (!('serviceWorker' in navigator)) return
@@ -42,14 +45,14 @@ export default function RegisterServiceWorker() {
 				// Fail silently; service worker is optional
 			})
 
-		// When the new worker takes control, reload to ensure clients get latest
+		// When the new worker takes control, soft-refresh to ensure clients get latest
 		const handleControllerChange = () => {
 			if (refreshing) return
 			refreshing = true
 			try {
-				window.location.reload()
+				router.refresh()
 			} catch {
-				// ignore reload failures in uncommon browsers
+				// ignore refresh failures in uncommon scenarios
 			}
 		}
 		navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
@@ -75,7 +78,7 @@ export default function RegisterServiceWorker() {
 			clearInterval(trimInterval)
 			navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
 		}
-	}, [])
+	}, [router])
 
 	return null
 }

@@ -20,7 +20,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'

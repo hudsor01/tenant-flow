@@ -1,4 +1,6 @@
 
+import ModalLayout from '#components/ui/layout/modal-layout'
+
 /**
  * Units Layout with Modal Slot
  *
@@ -8,10 +10,5 @@ export default function UnitsLayout({
 	children,
 	modal
 }: LayoutProps<'/units'>) {
-	return (
-		<>
-			{children}
-			{modal}
-		</>
-	)
+	return <ModalLayout modal={modal}>{children}</ModalLayout>
 }
