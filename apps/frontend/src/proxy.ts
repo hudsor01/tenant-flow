@@ -171,13 +171,13 @@ export async function proxy(request: NextRequest) {
 	// Add pathname to headers for layouts (for redirectTo parameter)
 	supabaseResponse.headers.set('x-pathname', path)
 
-	/**
-	 * IMPORTANT: Return supabaseResponse
-	 *
-	 * This response contains updated session cookies from Supabase.
-	 * Returning a different response will break session management.
-	 */
-	return supabaseResponse
+/**
+ * IMPORTANT: Return supabaseResponse
+ *
+ * This response contains updated session cookies from Supabase.
+ * Returning a different response will break session management.
+ */
+return supabaseResponse
 }
 
 /**
@@ -187,12 +187,20 @@ export async function proxy(request: NextRequest) {
  * - _next/static (static files)
  * - _next/image (image optimization)
  * - favicon.ico
- * - Image files (svg, png, jpg, jpeg, gif, webp)
+ * - static (static assets)
+ * - public (public assets)
+ * - assets (asset files)
+ * - api (API routes are handled separately)
+ * - auth (auth routes handled by auth provider)
+ * - stripe (stripe webhooks handled separately)
+ * - sw.js (service worker)
+ * - manifest.json (PWA manifest)
+ * - .well-known (security files)
  *
- * This ensures session refresh happens on all actual pages.
+ * This ensures session refresh happens only on routes that need auth/session handling.
  */
 export const config = {
 	matcher: [
-		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
+		'/((?!_next/static|_next/image|favicon.ico|static|public|assets|api|auth|stripe|sw.js|manifest.json|\\.well-known).*)'
 	]
 }

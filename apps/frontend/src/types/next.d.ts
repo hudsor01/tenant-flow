@@ -9,8 +9,8 @@ declare global {
    * Type helper for page component props with typed params
    */
   type PageProps<T extends string> = {
-    params: Promise<ExtractRouteParams<T>>
-    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+    params: ExtractRouteParams<T>
+    searchParams?: { [key: string]: string | string[] | undefined }
   }
 
   /**
@@ -18,7 +18,7 @@ declare global {
    */
   type LayoutProps<T extends string> = {
     children: React.ReactNode
-    params?: Promise<ExtractRouteParams<T>>
+    params?: ExtractRouteParams<T>
     modal?: React.ReactNode
   }
 

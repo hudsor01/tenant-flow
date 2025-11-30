@@ -39,7 +39,7 @@ body {
 
 /* Hide elements that may cause flakiness */
 .cursor-pointer:hover,
-.hover\:bg-gray-50:hover,
+.hover\:bg-muted/50:hover,
 .hover\:bg-brand-600:hover {
   transition: none !important;
 }

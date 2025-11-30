@@ -1,5 +1,7 @@
 
 
+import ModalLayout from '#components/ui/layout/modal-layout'
+
 /**
  * Properties Layout with Modal Slot
  *
@@ -14,10 +16,5 @@ export default function PropertiesLayout({
 	children,
 	modal
 }: LayoutProps<'/properties'>) {
-	return (
-		<>
-			{children}
-			{modal}
-		</>
-	)
+	return <ModalLayout modal={modal}>{children}</ModalLayout>
 }

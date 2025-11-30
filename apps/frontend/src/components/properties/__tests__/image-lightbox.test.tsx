@@ -122,7 +122,8 @@ describe('ImageLightbox Component', () => {
 
 			const image = screen.getByAltText(/property image 1/i)
 			expect(image).toBeInTheDocument()
-			expect(image).toHaveAttribute('src', PRIMARY_IMAGE.image_url)
+			expect(image).toHaveAttribute('src')
+			expect(image.getAttribute('src')).toContain(encodeURIComponent(PRIMARY_IMAGE.image_url))
 		})
 
 		it('displays image counter', () => {
@@ -427,7 +428,8 @@ describe('ImageLightbox Component', () => {
 			)
 
 			const image = screen.getByAltText(/property image 2/i)
-			expect(image).toHaveAttribute('src', SECOND_IMAGE.image_url)
+			expect(image).toHaveAttribute('src')
+			expect(image.getAttribute('src')).toContain(encodeURIComponent(SECOND_IMAGE.image_url))
 		})
 	})
 

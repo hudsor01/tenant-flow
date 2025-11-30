@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -284,7 +284,7 @@ export function StripeConnectStatus() {
 			case 'pending':
 				return 'text-amber-600 dark:text-amber-400'
 			default:
-				return 'text-gray-600 dark:text-gray-400'
+				return 'text-muted/600 dark:text-muted/400'
 		}
 	}
 
@@ -295,7 +295,7 @@ export function StripeConnectStatus() {
 			case 'pending':
 				return <Spinner className="size-5 text-amber-600 animate-spin" />
 			default:
-				return <XCircle className="size-5 text-gray-600" />
+				return <XCircle className="size-5 text-muted/600" />
 		}
 	}
 
@@ -361,7 +361,7 @@ export function StripeConnectStatus() {
 								{account.charges_enabled ? (
 									<span className="text-success">Enabled</span>
 								) : (
-									<span className="text-gray-600">Disabled</span>
+									<span className="text-muted/600">Disabled</span>
 								)}
 							</p>
 						</div>
@@ -371,7 +371,7 @@ export function StripeConnectStatus() {
 								{account.payouts_enabled ? (
 									<span className="text-success">Enabled</span>
 								) : (
-									<span className="text-gray-600">Disabled</span>
+									<span className="text-muted/600">Disabled</span>
 								)}
 							</p>
 						</div>

@@ -80,7 +80,7 @@ export function UpdatePasswordForm({
 				)}
 			>
 				<CardHeader className="text-center space-y-[var(--spacing-4)] animate-slide-in-top">
-					<div className="mx-auto bg-[color-mix(in oklch,var(--primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
+					<div className="mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
 						<Lock className="size-[var(--spacing-6)] text-primary" />
 					</div>
 				<div className="space-y-[var(--spacing-2)]">

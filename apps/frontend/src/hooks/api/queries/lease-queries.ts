@@ -137,7 +137,8 @@ export const leaseQueries = {
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'expiring', days],
 			queryFn: () => clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${days}`),
-			...QUERY_CACHE_TIMES.LIST,
+			...QUERY_CACHE_TIMES.DETAIL,
+			retry: 2,
 		}),
 
 	/**

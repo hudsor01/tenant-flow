@@ -5,119 +5,41 @@
  * TanStack Query hooks for payment history management
  */
 
-import { clientFetch } from '#lib/api/client'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { paymentHistoryQueries } from './queries/payment-history-queries'
 
-/**
- * Query keys for payment history endpoints
- */
-export const paymentHistoryKeys = {
-	all: ['payment-history'] as const,
-	list: () => [...paymentHistoryKeys.all, 'list'] as const,
-	bySubscription: (subscriptionId: string) =>
-		[...paymentHistoryKeys.all, 'subscription', subscriptionId] as const,
-	byTenant: (tenant_id: string) =>
-		[...paymentHistoryKeys.all, 'tenants', tenant_id] as const
-}
-
-/**
- * Payment history response interface
- */
-export interface PaymentHistoryItem {
-	id: string
-	subscriptionId: string
-	tenant_id: string
-	amount: number
-	currency: string
-	status: 'succeeded' | 'failed' | 'pending' | 'canceled'
-	stripePaymentIntentId?: string
-	description?: string
-	metadata?: Record<string, unknown>
-	created_at: string
-	updated_at: string
-
-	// Additional fields for display
-	formattedAmount: string
-	formattedDate: string
-	isSuccessful: boolean
-	failureReason?: string
-}
-
-/**
- * Failed payment attempts interface
- */
-export interface FailedPaymentAttempt {
-	id: string
-	subscriptionId: string
-	tenant_id: string
-	amount: number
-	attemptNumber: number
-	failureReason: string
-	stripePaymentIntentId?: string
-	nextRetryDate?: string
-	created_at: string
-}
+// Re-export types for backward compatibility
+export type {
+	PaymentHistoryItem,
+	FailedPaymentAttempt
+} from './queries/payment-history-queries'
 
 /**
  * List payment history for all subscriptions
  */
 export function usePaymentHistory() {
-	return useQuery({
-		queryKey: paymentHistoryKeys.list(),
-		queryFn: async (): Promise<PaymentHistoryItem[]> => {
-			const response = await clientFetch<{ payments: PaymentHistoryItem[] }>('/api/v1/rent-payments/history')
-			return response.payments
-		},
-		staleTime: 60 * 1000 // 1 minute
-	})
+	return useQuery(paymentHistoryQueries.list())
 }
 
 /**
  * List payment history for a specific subscription
  */
 export function useSubscriptionPaymentHistory(subscriptionId: string) {
-	return useQuery({
-		queryKey: paymentHistoryKeys.bySubscription(subscriptionId),
-		queryFn: async (): Promise<PaymentHistoryItem[]> => {
-			const response = await clientFetch<{ payments: PaymentHistoryItem[] }>(
-				`/api/v1/rent-payments/history/subscription/${subscriptionId}`
-			)
-			return response.payments
-		},
-		enabled: !!subscriptionId,
-		staleTime: 60 * 1000 // 1 minute
-	})
+	return useQuery(paymentHistoryQueries.bySubscription(subscriptionId))
 }
 
 /**
  * List failed payment attempts for all subscriptions
  */
 export function useFailedPaymentAttempts() {
-	return useQuery({
-		queryKey: [...paymentHistoryKeys.all, 'failed'],
-		queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-			const response = await clientFetch<{ failedAttempts: FailedPaymentAttempt[] }>('/api/v1/rent-payments/failed-attempts')
-			return response.failedAttempts
-		},
-		staleTime: 30 * 1000 // 30 seconds
-	})
+	return useQuery(paymentHistoryQueries.failed())
 }
 
 /**
  * List failed payment attempts for a specific subscription
  */
 export function useSubscriptionFailedAttempts(subscriptionId: string) {
-	return useQuery({
-		queryKey: [...paymentHistoryKeys.all, 'failed', subscriptionId],
-		queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-			const response = await clientFetch<{ failedAttempts: FailedPaymentAttempt[] }>(
-				`/api/v1/rent-payments/failed-attempts/subscription/${subscriptionId}`
-			)
-			return response.failedAttempts
-		},
-		enabled: !!subscriptionId,
-		staleTime: 30 * 1000 // 30 seconds
-	})
+	return useQuery(paymentHistoryQueries.failedBySubscription(subscriptionId))
 }
 
 /**
@@ -127,14 +49,7 @@ export function usePrefetchPaymentHistory() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: paymentHistoryKeys.list(),
-			queryFn: async (): Promise<PaymentHistoryItem[]> => {
-				const response = await clientFetch<{ payments: PaymentHistoryItem[] }>('/api/v1/rent-payments/history')
-			return response.payments
-			},
-			staleTime: 60 * 1000
-		})
+		queryClient.prefetchQuery(paymentHistoryQueries.list())
 	}
 }
 
@@ -145,15 +60,28 @@ export function usePrefetchSubscriptionPaymentHistory() {
 	const queryClient = useQueryClient()
 
 	return (subscriptionId: string) => {
-		queryClient.prefetchQuery({
-			queryKey: paymentHistoryKeys.bySubscription(subscriptionId),
-			queryFn: async (): Promise<PaymentHistoryItem[]> => {
-				const response = await clientFetch<{ payments: PaymentHistoryItem[] }>(
-				`/api/v1/rent-payments/history/subscription/${subscriptionId}`
-			)
-			return response.payments
-			},
-			staleTime: 60 * 1000
-		})
+		queryClient.prefetchQuery(paymentHistoryQueries.bySubscription(subscriptionId))
+	}
+}
+
+/**
+ * Hook for prefetching failed payment attempts
+ */
+export function usePrefetchFailedPaymentAttempts() {
+	const queryClient = useQueryClient()
+
+	return () => {
+		queryClient.prefetchQuery(paymentHistoryQueries.failed())
+	}
+}
+
+/**
+ * Hook for prefetching subscription failed attempts
+ */
+export function usePrefetchSubscriptionFailedAttempts() {
+	const queryClient = useQueryClient()
+
+	return (subscriptionId: string) => {
+		queryClient.prefetchQuery(paymentHistoryQueries.failedBySubscription(subscriptionId))
 	}
 }

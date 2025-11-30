@@ -4,8 +4,10 @@
  * Provides health check and monitoring endpoints for webhook system
  * Used for observability, alerting, and debugging
  *
- * Note: Access control removed - webhook health is for internal monitoring
- * Can be secured via network/firewall rules in production
+ * Security: Implements role-based access control
+ * - Public health endpoint for monitoring systems
+ * - OWNER role required for administrative webhook monitoring
+ * - Custom token authentication for configuration endpoint
  */
 
 import {
@@ -18,12 +20,15 @@ import {
 	HttpCode,
 	SetMetadata,
 	UnauthorizedException,
-	Req
+	Req,
+	UseGuards
 } from '@nestjs/common'
 import { timingSafeEqual } from 'crypto'
 import type { Request } from 'express'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { AppConfigService } from '../../config/app-config.service'
+import { RolesGuard } from '../../shared/guards/roles.guard'
+import { Roles } from '../../shared/decorators/roles.decorator'
 
 const CONFIG_AUTH_HEADER = 'x-webhook-config-token'
 
@@ -80,7 +85,10 @@ export class WebhookHealthController {
 	 *
 	 * Returns detailed 24-hour health summary with hourly breakdown
 	 * Used for dashboards and trend analysis
+	 * Requires OWNER role for administrative webhook monitoring access
 	 */
+	@UseGuards(RolesGuard)
+	@Roles('OWNER')
 	@Get('summary')
 	async getHealthSummary() {
 		const [healthSummary, eventTypeSummary] = await Promise.all([
@@ -99,8 +107,10 @@ export class WebhookHealthController {
 	 * GET /webhooks/health/failures
 	 *
 	 * Returns unresolved webhook failures for investigation
-	 * Requires authentication to prevent exposing error details
+	 * Requires OWNER role to prevent exposing sensitive error details
 	 */
+	@UseGuards(RolesGuard)
+	@Roles('OWNER')
 	@Get('failures')
 	async getFailures() {
 		const failures = await this.webhookMonitoringService.getUnresolvedFailures()
@@ -125,7 +135,10 @@ export class WebhookHealthController {
 	 * PATCH /webhooks/health/failures/:id/resolve
 	 *
 	 * Mark a webhook failure as resolved
+	 * Requires OWNER role for administrative webhook management
 	 */
+	@UseGuards(RolesGuard)
+	@Roles('OWNER')
 	@Patch('failures/:id/resolve')
 	@HttpCode(HttpStatus.OK)
 	async resolveFailure(

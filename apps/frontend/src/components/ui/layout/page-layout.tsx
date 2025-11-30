@@ -1,4 +1,4 @@
-import { Navbar } from '#components/layout/navbar'
+import { Navbar } from '#components/ui/layout/navbar'
 import { cn } from '#lib/utils'
 import React from 'react'
 

@@ -234,7 +234,7 @@ export function TenantEditViewButtons({
 									<span className="text-sm font-medium">Status</span>
 								</div>
 								<Badge
-								className="bg-(--chart-1) text-[var(--primary-foreground)]"
+								className="bg-(--chart-1) text-[var(--color-primary-foreground)]"
 							>
 									Active
 								</Badge>

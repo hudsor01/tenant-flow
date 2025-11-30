@@ -27,7 +27,7 @@ const TaxDocumentsSkeleton = () => {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Tax Documents</h1>
-					<p className="text-gray-600">
+					<p className="text-muted/600">
 						Tax preparation and filing documents
 					</p>
 				</div>
@@ -59,7 +59,7 @@ const TaxDocumentsSkeleton = () => {
 							{[1, 2, 3].map(j => (
 								<div
 									key={j}
-									className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+									className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
 								>
 									<Skeleton className="h-4 w-32" />
 									<Skeleton className="h-6 w-24" />

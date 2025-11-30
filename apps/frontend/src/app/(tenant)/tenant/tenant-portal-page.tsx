@@ -120,10 +120,10 @@ export default function TenantDashboardPage() {
 	]
 
 	return (
-		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--background)] via-[var(--card)] to-[var(--muted)]/50 dark:from-[var(--background)] dark:via-(--card) dark:to-(--muted)/50">
-			<div className="dashboard-main border-b-2 border-(--color-border)/40 bg-gradient-to-b from-[var(--background)] via-[var(--muted)]/30 to-[var(--muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--background)] dark:via-[var(--muted)]/30 dark:to-[var(--muted)]/20">
+		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--color-background)] via-[var(--color-card)] to-[var(--color-muted)]/50 dark:from-[var(--color-background)] dark:via-(--card) dark:to-(--muted)/50">
+			<div className="dashboard-main border-b-2 border-(--color-border)/40 bg-gradient-to-b from-[var(--color-background)] via-[var(--color-muted)]/30 to-[var(--color-muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--color-background)] dark:via-[var(--color-muted)]/30 dark:to-[var(--color-muted)]/20">
 				<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
-					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--foreground)] via-[var(--foreground)]/80 to-[var(--foreground)] bg-clip-text text-transparent dark:from-[var(--background)] dark:via-(--background) dark:to-[var(--background)]">
+					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--color-foreground)] via-[var(--color-foreground)]/80 to-[var(--color-foreground)] bg-clip-text text-transparent dark:from-[var(--color-background)] dark:via-(--background) dark:to-[var(--color-background)]">
 						Tenant Portal
 					</h1>
 
