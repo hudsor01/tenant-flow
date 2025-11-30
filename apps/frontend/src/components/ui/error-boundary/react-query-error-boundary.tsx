@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from '#components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert';
 import { AlertCircle, RotateCcw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ReactQueryErrorBoundaryProps {
   error?: Error;
@@ -9,8 +11,8 @@ interface ReactQueryErrorBoundaryProps {
   title?: string;
   description?: string;
   showResetButton?: boolean;
-  onRetry?: () => void;
- children?: React.ReactNode;
+  onRetry?: () => void | Promise<void>;
+  children?: React.ReactNode;
 }
 
 export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = ({
@@ -19,15 +21,28 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
   title = 'Something went wrong',
   description = 'An error occurred while loading the data. Please try again.',
   showResetButton = true,
-  onRetry}) => {
-  const handleReset = () => {
+  onRetry
+}) => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const handleReset = async () => {
     if (onRetry) {
-      onRetry();
-    } else if (resetError) {
-      resetError();
-    } else {
-      window.location.reload();
+      await onRetry();
+      return;
     }
+
+    if (resetError) {
+      resetError();
+    }
+
+    try {
+      await queryClient.invalidateQueries();
+    } catch {
+      // best-effort cache invalidation
+    }
+
+    router.refresh();
   };
 
   return (
@@ -48,7 +63,7 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleReset}
+                  onClick={() => void handleReset()}
                   className="flex items-center gap-2"
                 >
                   <RotateCcw className="size-4" />

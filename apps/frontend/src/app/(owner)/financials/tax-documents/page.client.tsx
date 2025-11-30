@@ -10,7 +10,7 @@ export const TaxDocumentsClient = ({ initialYear }: TaxDocumentsClientProps) => 
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Tax Documents</h1>
-					<p className="text-gray-600">
+					<p className="text-muted/600">
 						Tax preparation and filing documents for {initialYear}
 					</p>
 				</div>

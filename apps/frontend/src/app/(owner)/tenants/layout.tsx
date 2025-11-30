@@ -1,3 +1,5 @@
+import ModalLayout from '#components/ui/layout/modal-layout'
+
 /**
  * Tenants Layout with Modal Slot
  *
@@ -8,10 +10,5 @@ export default function TenantsLayout({
 	children,
 	modal
 }: LayoutProps<'/tenants'>) {
-	return (
-		<>
-			{children}
-			{modal}
-		</>
-	)
+	return <ModalLayout modal={modal}>{children}</ModalLayout>
 }

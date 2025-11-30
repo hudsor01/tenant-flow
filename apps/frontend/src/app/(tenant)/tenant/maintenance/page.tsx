@@ -55,13 +55,13 @@ export default function TenantMaintenancePage() {
 	const getPriorityColor = (priority: string) => {
 		switch (priority) {
 			case 'URGENT':
-				return 'text-red-600'
+				return 'text-destructive'
 			case 'HIGH':
-				return 'text-orange-600'
+				return 'text-warning'
 			case 'MEDIUM':
-				return 'text-yellow-600'
+				return 'text-warning'
 			case 'LOW':
-				return 'text-blue-600'
+				return 'text-info'
 			default:
 				return 'text-muted-foreground'
 		}

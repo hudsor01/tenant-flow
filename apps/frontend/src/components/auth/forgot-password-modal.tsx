@@ -11,7 +11,7 @@ import {
 } from '#components/ui/dialog'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { useSupabasePasswordReset } from '#hooks/api/use-auth'
 import { useModalStore } from '#stores/modal-store'
 import { CheckCircle2, Info, Mail } from 'lucide-react'

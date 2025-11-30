@@ -11,6 +11,34 @@ import {
 	Section,
 	Text
 } from '@react-email/components'
+import {
+	main,
+	container,
+	header,
+	h1,
+	h2,
+	signatureBadge,
+	activeBadge,
+	content,
+	text,
+	messageBox,
+	messageTitle,
+	messageText,
+	actionBox,
+	actionText,
+	buttonContainer,
+	button,
+	helpText,
+	hr,
+	footer,
+	footerText,
+	link,
+	successBox,
+	successText,
+	detailsBox,
+	detailsTitle,
+	detailsText
+} from './email-styles'
 
 // ============================================================
 // LEASE SENT FOR SIGNATURE EMAIL (Tenant receives)
@@ -415,181 +443,4 @@ export const LeaseActivatedEmail = ({
 			</Body>
 		</Html>
 	)
-}
-
-// ============================================================
-// SHARED STYLES
-// ============================================================
-
-const main = {
-	fontFamily: 'Arial, sans-serif',
-	lineHeight: '1.6',
-	color: '#333',
-	backgroundColor: '#f8f9fa'
-}
-
-const container = {
-	maxWidth: '600px',
-	margin: '0 auto',
-	padding: '20px'
-}
-
-const header = {
-	backgroundColor: '#f8f9fa',
-	padding: '20px',
-	borderRadius: '8px',
-	marginBottom: '20px'
-}
-
-const h1 = {
-	color: '#2c3e50',
-	margin: '0 0 10px 0',
-	fontSize: '24px'
-}
-
-const h2 = {
-	color: '#2c3e50',
-	marginBottom: '20px',
-	fontSize: '20px'
-}
-
-const signatureBadge = {
-	backgroundColor: '#ffc107',
-	color: '#212529',
-	padding: '8px 12px',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold',
-	fontSize: '14px'
-}
-
-const activeBadge = {
-	backgroundColor: '#28a745',
-	color: '#ffffff',
-	padding: '8px 12px',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold',
-	fontSize: '14px'
-}
-
-const content = {
-	backgroundColor: '#fff',
-	border: '1px solid #e9ecef',
-	borderRadius: '8px',
-	padding: '20px',
-	marginBottom: '20px'
-}
-
-const text = {
-	margin: '16px 0',
-	fontSize: '16px'
-}
-
-const messageBox = {
-	backgroundColor: '#e8f4fd',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '20px 0',
-	borderLeft: '4px solid #007bff'
-}
-
-const messageTitle = {
-	margin: '0 0 10px 0',
-	fontSize: '14px'
-}
-
-const messageText = {
-	margin: '0',
-	fontSize: '14px',
-	fontStyle: 'italic'
-}
-
-const actionBox = {
-	backgroundColor: '#fff3cd',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '20px 0',
-	borderLeft: '4px solid #ffc107'
-}
-
-const actionText = {
-	margin: '0',
-	fontSize: '14px',
-	color: '#856404'
-}
-
-const successBox = {
-	backgroundColor: '#d4edda',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '20px 0',
-	borderLeft: '4px solid #28a745'
-}
-
-const successText = {
-	margin: '0',
-	fontSize: '14px',
-	color: '#155724'
-}
-
-const detailsBox = {
-	backgroundColor: '#f8f9fa',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '20px 0',
-	border: '1px solid #e9ecef'
-}
-
-const detailsTitle = {
-	margin: '0 0 10px 0',
-	fontSize: '14px'
-}
-
-const detailsText = {
-	margin: '0',
-	fontSize: '14px',
-	lineHeight: '1.8'
-}
-
-const buttonContainer = {
-	textAlign: 'center' as const,
-	margin: '30px 0'
-}
-
-const button = {
-	backgroundColor: '#007bff',
-	color: '#ffffff',
-	padding: '14px 28px',
-	textDecoration: 'none',
-	borderRadius: '6px',
-	display: 'inline-block',
-	fontWeight: 'bold',
-	fontSize: '16px'
-}
-
-const helpText = {
-	margin: '16px 0',
-	fontSize: '14px',
-	color: '#6c757d',
-	textAlign: 'center' as const
-}
-
-const hr = {
-	borderColor: '#e9ecef',
-	margin: '30px 0'
-}
-
-const footer = {
-	fontSize: '14px',
-	color: '#6c757d',
-	textAlign: 'center' as const
-}
-
-const footerText = {
-	margin: '8px 0'
-}
-
-const link = {
-	color: '#007bff'
 }

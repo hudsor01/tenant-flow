@@ -1,6 +1,6 @@
 'use client'
 
-import { ViewSwitcher, type ViewType } from '#components/view-switcher'
+import { ViewSwitcher, type ViewType } from '#components/ui/view-switcher'
 import { usePreferencesStore } from '#providers/preferences-provider'
 import { MaintenanceKanban } from './maintenance-kanban.client'
 import { MaintenanceTableClient } from './maintenance-table.client'

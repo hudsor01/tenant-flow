@@ -35,60 +35,7 @@ import type {
 	TimeSeriesDataPoint,
 	DashboardTimeSeriesOptions
 } from '@repo/shared/types/dashboard-repository'
-
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
-/**
- * Hierarchical query keys for owner dashboard
- * Enables targeted cache invalidation
- */
-export const ownerDashboardKeys = {
-	all: ['owner-dashboard'] as const,
-
-	// Analytics endpoints (/owner/analytics/*)
-	analytics: {
-		all: () => [...ownerDashboardKeys.all, 'analytics'] as const,
-		stats: () => [...ownerDashboardKeys.analytics.all(), 'stats'] as const,
-		activity: () => [...ownerDashboardKeys.analytics.all(), 'activity'] as const,
-		pageData: () => [...ownerDashboardKeys.analytics.all(), 'page-data'] as const
-	},
-
-	// Reports endpoints (/owner/reports/*)
-	reports: {
-		all: () => [...ownerDashboardKeys.all, 'reports'] as const,
-		timeSeries: (metric: string, days: number) =>
-			[...ownerDashboardKeys.reports.all(), 'time-series', metric, days] as const,
-		metricTrend: (metric: string, period: string) =>
-			[...ownerDashboardKeys.reports.all(), 'metric-trend', metric, period] as const
-	},
-
-	// Properties endpoints (/owner/properties/*)
-	properties: {
-		all: () => [...ownerDashboardKeys.all, 'properties'] as const,
-		performance: () => [...ownerDashboardKeys.properties.all(), 'performance'] as const
-	},
-
-	// Financial endpoints (/owner/financial/*)
-	financial: {
-		all: () => [...ownerDashboardKeys.all, 'financial'] as const,
-		billingInsights: () => [...ownerDashboardKeys.financial.all(), 'billing-insights'] as const,
-		revenueTrends: (year: number) => [...ownerDashboardKeys.financial.all(), 'revenue-trends', year] as const
-	},
-
-	// Maintenance endpoints (/owner/maintenance/*)
-	maintenance: {
-		all: () => [...ownerDashboardKeys.all, 'maintenance'] as const,
-		analytics: () => [...ownerDashboardKeys.maintenance.all(), 'analytics'] as const
-	},
-
-	// Tenants endpoints (/owner/tenants/*)
-	tenants: {
-		all: () => [...ownerDashboardKeys.all, 'tenants'] as const,
-		occupancyTrends: () => [...ownerDashboardKeys.tenants.all(), 'occupancy-trends'] as const
-	}
-}
+import { ownerDashboardQueries, ownerDashboardKeys } from './queries/owner-dashboard-queries'
 
 // ============================================================================
 // ANALYTICS HOOKS (/owner/analytics/*)
@@ -99,17 +46,7 @@ export const ownerDashboardKeys = {
  * Optimized with 2-minute auto-refresh
  */
 export function useOwnerDashboardStats() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.analytics.stats(),
-		queryFn: () => clientFetch<DashboardStats>('/api/v1/owner/analytics/stats'),
-		...QUERY_CACHE_TIMES.SECURITY,
-		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
-		refetchIntervalInBackground: false, // Stop when tab inactive
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
+	return useQuery(ownerDashboardQueries.analytics.stats())
 }
 
 /**
@@ -117,17 +54,7 @@ export function useOwnerDashboardStats() {
  * Optimized with 2-minute auto-refresh
  */
 export function useOwnerDashboardActivity() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.analytics.activity(),
-		queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
-		...QUERY_CACHE_TIMES.SECURITY,
-		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
+	return useQuery(ownerDashboardQueries.analytics.activity())
 }
 
 /**
@@ -160,19 +87,7 @@ export function useOwnerDashboardPageData() {
 export function useOwnerTimeSeries(
 	options: DashboardTimeSeriesOptions
 ) {
-	const { metric, days = 30 } = options
-
-	return useQuery({
-		queryKey: ownerDashboardKeys.reports.timeSeries(metric, days),
-		queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
-			const data = await clientFetch<TimeSeriesDataPoint[]>(
-				`/api/v1/owner/reports/time-series?metric=${metric}&days=${days}`
-			)
-			return data ?? []
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000 // 10 minutes
-	})
+	return useQuery(ownerDashboardQueries.reports.timeSeries(options))
 }
 
 /**
@@ -182,16 +97,7 @@ export function useOwnerMetricTrend(
 	metric: string,
 	period: 'day' | 'week' | 'month' | 'year' = 'month'
 ) {
-	return useQuery({
-		queryKey: ownerDashboardKeys.reports.metricTrend(metric, period),
-		queryFn: async (): Promise<MetricTrend> => {
-			return clientFetch<MetricTrend>(
-				`/api/v1/owner/reports/metric-trend?metric=${metric}&period=${period}`
-			)
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000 // 10 minutes
-	})
+	return useQuery(ownerDashboardQueries.reports.metricTrend(metric, period))
 }
 
 // ============================================================================
@@ -203,17 +109,7 @@ export function useOwnerMetricTrend(
  * Returns sorted array (by occupancy rate desc, then units desc)
  */
 export function useOwnerPropertyPerformance() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.properties.performance(),
-		queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/owner/properties/performance'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
-	})
+	return useQuery(ownerDashboardQueries.properties.performance())
 }
 
 // ============================================================================
@@ -224,38 +120,14 @@ export function useOwnerPropertyPerformance() {
  * Get billing insights and revenue analytics
  */
 export function useBillingInsights() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.financial.billingInsights(),
-		queryFn: () => clientFetch<{
-			totalRevenue: number
-			monthlyRevenue: number
-			outstandingBalance: number
-			paidInvoices: number
-			unpaidInvoices: number
-		}>('/api/v1/owner/financial/billing/insights'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: 2
-	})
+	return useQuery(ownerDashboardQueries.financial.billingInsights())
 }
 
 /**
  * Get revenue trends over time
  */
 export function useOwnerRevenueTrends(year: number = new Date().getFullYear()) {
-	return useQuery({
-		queryKey: ownerDashboardKeys.financial.revenueTrends(year),
-		queryFn: () => clientFetch<FinancialMetrics[]>(
-			`/api/v1/owner/financial/revenue-trends?year=${year}`
-		),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: 2
-	})
+	return useQuery(ownerDashboardQueries.financial.revenueTrends(year))
 }
 
 // ============================================================================
@@ -266,22 +138,7 @@ export function useOwnerRevenueTrends(year: number = new Date().getFullYear()) {
  * Get maintenance analytics
  */
 export function useMaintenanceAnalytics() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.maintenance.analytics(),
-		queryFn: () => clientFetch<{
-			totalRequests: number
-			openRequests: number
-			inProgressRequests: number
-			completedRequests: number
-			averageResolutionTime: number
-			urgentRequests: number
-		}>('/api/v1/owner/maintenance/analytics'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: 2
-	})
+	return useQuery(ownerDashboardQueries.maintenance.analytics())
 }
 
 // ============================================================================
@@ -292,21 +149,7 @@ export function useMaintenanceAnalytics() {
  * Get occupancy trends and tenant statistics
  */
 export function useOccupancyTrends() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.tenants.occupancyTrends(),
-		queryFn: () => clientFetch<{
-			totalTenants: number
-			activeTenants: number
-			occupancyRate: number
-			averageLeaseLength: number
-			expiringLeases: number
-		}>('/api/v1/owner/tenants/occupancy-trends'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: 2
-	})
+	return useQuery(ownerDashboardQueries.tenants.occupancyTrends())
 }
 
 // ============================================================================
@@ -359,8 +202,155 @@ export function usePrefetchOwnerPropertyPerformance() {
 }
 
 // ============================================================================
-// FINANCIAL CHART DATA
+// COMBINED TRENDS HOOK
 // ============================================================================
+
+type OwnerDashboardData = {
+	// Core stats from page data
+	stats: DashboardStats
+	activity: ActivityItem[]
+
+	// Trends data (batched)
+	metricTrends: {
+		occupancyRate: MetricTrend | null
+		activeTenants: MetricTrend | null
+		monthlyRevenue: MetricTrend | null
+		openMaintenance: MetricTrend | null
+	}
+
+	// Time series for charts (shared between sections)
+	timeSeries: {
+		occupancyRate: TimeSeriesDataPoint[]
+		monthlyRevenue: TimeSeriesDataPoint[]
+	}
+
+	// Property performance
+	propertyPerformance: PropertyPerformance[]
+}
+
+/**
+ * Unified dashboard data hook
+ * Fetches ALL dashboard data in a single optimized request
+ * Eliminates redundant API calls and improves performance
+ */
+export function useOwnerDashboardData() {
+	return useQuery<OwnerDashboardData>({
+		queryKey: [...ownerDashboardKeys.all, 'unified-dashboard'],
+		queryFn: async () => {
+			const trendLabels = [
+				'occupancy_rate trend',
+				'active_tenants trend',
+				'monthly_revenue trend',
+				'open_maintenance trend',
+				'occupancy_rate time series',
+				'monthly_revenue time series'
+			] as const
+
+			const trendRequests = [
+				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=occupancy_rate&period=month'),
+				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=active_tenants&period=month'),
+				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=monthly_revenue&period=month'),
+				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=open_maintenance&period=month'),
+				clientFetch<TimeSeriesDataPoint[]>('/api/v1/owner/reports/time-series?metric=occupancy_rate&days=30'),
+				clientFetch<TimeSeriesDataPoint[]>('/api/v1/owner/reports/time-series?metric=monthly_revenue&days=30')
+			] as const
+
+			const toMessage = (reason: unknown) =>
+				reason instanceof Error ? reason.message : String(reason ?? 'unknown error')
+
+			const [
+				pageDataResult,
+				trendResults,
+				propertyPerformanceResult
+			] = await Promise.allSettled([
+				clientFetch<{
+					stats: DashboardStats
+					activity: ActivityItem[]
+				}>('/api/v1/owner/analytics/page-data'),
+				Promise.allSettled(trendRequests),
+				clientFetch<PropertyPerformance[]>('/api/v1/owner/properties/performance')
+			])
+
+			const errors: string[] = []
+			let stats: DashboardStats | undefined
+			let activity: ActivityItem[] | undefined
+			let propertyPerformance: PropertyPerformance[] | undefined
+
+			const metricTrends: OwnerDashboardData['metricTrends'] = {
+				occupancyRate: null,
+				activeTenants: null,
+				monthlyRevenue: null,
+				openMaintenance: null
+			}
+
+			const timeSeries: OwnerDashboardData['timeSeries'] = {
+				occupancyRate: [],
+				monthlyRevenue: []
+			}
+
+			if (pageDataResult.status === 'fulfilled') {
+				stats = pageDataResult.value.stats
+				activity = pageDataResult.value.activity
+			} else {
+				errors.push(`page-data: ${toMessage(pageDataResult.reason)}`)
+			}
+
+			if (trendResults.status === 'fulfilled') {
+				trendResults.value.forEach((result, index) => {
+					if (result.status === 'fulfilled') {
+						if (index === 0) metricTrends.occupancyRate = result.value as MetricTrend
+						else if (index === 1) metricTrends.activeTenants = result.value as MetricTrend
+						else if (index === 2) metricTrends.monthlyRevenue = result.value as MetricTrend
+						else if (index === 3) metricTrends.openMaintenance = result.value as MetricTrend
+						else if (index === 4) timeSeries.occupancyRate = result.value as TimeSeriesDataPoint[]
+						else if (index === 5) timeSeries.monthlyRevenue = result.value as TimeSeriesDataPoint[]
+					} else {
+						errors.push(`${trendLabels[index]}: ${toMessage(result.reason)}`)
+					}
+				})
+			} else {
+				errors.push(`trend batch: ${toMessage(trendResults.reason)}`)
+			}
+
+			if (propertyPerformanceResult.status === 'fulfilled') {
+				propertyPerformance = propertyPerformanceResult.value
+			} else {
+				errors.push(`property-performance: ${toMessage(propertyPerformanceResult.reason)}`)
+			}
+
+			const partialData: Partial<OwnerDashboardData> = {
+				...(stats ? { stats } : {}),
+				...(activity ? { activity } : {}),
+				metricTrends,
+				timeSeries,
+				...(propertyPerformance ? { propertyPerformance } : {})
+			}
+
+			if (errors.length > 0) {
+				const error = new Error(`Owner dashboard data failed: ${errors.join('; ')}`)
+				;(error as Error & { partialData?: Partial<OwnerDashboardData> }).partialData = partialData
+				throw error
+			}
+
+			return {
+				stats: stats!,
+				activity: activity ?? [],
+				metricTrends,
+				timeSeries,
+				propertyPerformance: propertyPerformance ?? []
+			}
+		},
+		...QUERY_CACHE_TIMES.SECURITY,
+		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
+		refetchIntervalInBackground: false,
+		refetchOnWindowFocus: true,
+		refetchOnMount: true,
+		retry: 2,
+		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
+		// Enable structural sharing for better performance
+		structuralSharing: true
+	})
+}
 
 export interface FinancialChartDatum {
 	date: string
@@ -419,3 +409,6 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 		structuralSharing: true
 	})
 }
+
+// Re-export query keys for backward compatibility
+export { ownerDashboardKeys } from './queries/owner-dashboard-queries'

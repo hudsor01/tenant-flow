@@ -35,14 +35,14 @@ export default function TenantPaymentHistoryPage() {
 	const getStatusBadgeClass = (status: string) => {
 		switch (status) {
 			case 'succeeded':
-				return 'bg-green-50 text-green-700 border-green-200'
+				return 'bg-success/10 text-success-foreground border-success/20'
 			case 'pending':
-				return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+				return 'bg-warning/10 text-warning-foreground border-warning/20'
 			case 'failed':
 			case 'canceled':
-				return 'bg-red-50 text-red-700 border-red-200'
+				return 'bg-destructive/10 text-destructive-foreground border-destructive/20'
 			default:
-				return ''
+				return 'bg-muted text-muted-foreground border-border'
 		}
 	}
 

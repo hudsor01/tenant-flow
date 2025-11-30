@@ -11,6 +11,26 @@ import {
 	Section,
 	Text
 } from '@react-email/components'
+import {
+	main,
+	container,
+	header,
+	h1,
+	h2,
+	successBadge,
+	content,
+	text,
+	paymentDetails,
+	detailsTitle,
+	details,
+	buttonContainer,
+	button,
+	secondaryButton,
+	hr,
+	footer,
+	footerText,
+	link
+} from './email-styles'
 
 interface PaymentSuccessEmailProps {
 	customerEmail: string
@@ -112,119 +132,3 @@ export const PaymentSuccessEmail = ({
 }
 
 export default PaymentSuccessEmail
-
-// Styles
-const main = {
-	fontFamily: 'Arial, sans-serif',
-	lineHeight: '1.6',
-	color: '#333',
-	backgroundColor: '#f8f9fa'
-}
-
-const container = {
-	maxWidth: '600px',
-	margin: '0 auto',
-	padding: '20px'
-}
-
-const header = {
-	backgroundColor: '#f8f9fa',
-	padding: '20px',
-	borderRadius: '8px',
-	marginBottom: '20px'
-}
-
-const h1 = {
-	color: '#2c3e50',
-	margin: '0 0 10px 0',
-	fontSize: '24px'
-}
-
-const h2 = {
-	color: '#2c3e50',
-	marginBottom: '20px',
-	fontSize: '20px'
-}
-
-const successBadge = {
-	backgroundColor: '#28a745',
-	color: '#ffffff',
-	padding: '8px 12px',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold',
-	fontSize: '14px'
-}
-
-const content = {
-	backgroundColor: '#fff',
-	border: '1px solid #e9ecef',
-	borderRadius: '8px',
-	padding: '20px',
-	marginBottom: '20px'
-}
-
-const text = {
-	margin: '16px 0',
-	fontSize: '16px'
-}
-
-const paymentDetails = {
-	backgroundColor: '#f8f9fa',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '15px 0'
-}
-
-const detailsTitle = {
-	margin: '0 0 10px 0',
-	fontSize: '16px'
-}
-
-const details = {
-	margin: '0',
-	fontSize: '16px'
-}
-
-const buttonContainer = {
-	textAlign: 'center' as const,
-	margin: '30px 0'
-}
-
-const button = {
-	backgroundColor: '#007bff',
-	color: '#ffffff',
-	padding: '10px 20px',
-	textDecoration: 'none',
-	borderRadius: '4px',
-	display: 'inline-block',
-	margin: '0 5px'
-}
-
-const secondaryButton = {
-	backgroundColor: '#6c757d',
-	color: '#ffffff',
-	padding: '10px 20px',
-	textDecoration: 'none',
-	borderRadius: '4px',
-	display: 'inline-block',
-	margin: '0 5px'
-}
-
-const hr = {
-	borderColor: '#e9ecef',
-	margin: '30px 0'
-}
-
-const footer = {
-	fontSize: '14px',
-	color: '#6c757d'
-}
-
-const footerText = {
-	margin: '8px 0'
-}
-
-const link = {
-	color: '#007bff'
-}

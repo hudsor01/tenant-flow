@@ -57,7 +57,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							<Badge className="bg-(--chart-1) text-[var(--primary-foreground)]">
+							<Badge className="bg-(--chart-1) text-[var(--color-primary-foreground)]">
 								{property.status || 'Active'}
 							</Badge>
 						</div>

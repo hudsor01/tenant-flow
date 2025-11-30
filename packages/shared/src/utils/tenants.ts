@@ -23,11 +23,11 @@ export const getInvitationStatusLabel = (status: InvitationStatus): string => {
 
 export const getInvitationStatusColor = (status: InvitationStatus): string => {
 	const colors: Record<InvitationStatus, string> = {
-		PENDING: 'bg-yellow-100 text-yellow-800',
-		ACCEPTED: 'bg-green-100 text-green-800',
-		EXPIRED: 'bg-red-100 text-red-800',
-		DECLINED: 'bg-red-100 text-red-800',
-		CANCELLED: 'bg-gray-100 text-gray-800'
+		PENDING: 'bg-warning/10 text-warning-foreground border-warning/20',
+		ACCEPTED: 'bg-success/10 text-success-foreground border-success/20',
+		EXPIRED: 'bg-destructive/10 text-destructive-foreground border-destructive/20',
+		DECLINED: 'bg-destructive/10 text-destructive-foreground border-destructive/20',
+		CANCELLED: 'bg-muted text-muted-foreground border-border'
 	}
-	return colors[status] || 'bg-gray-100 text-gray-800'
+	return colors[status] || 'bg-muted text-muted-foreground border-border'
 }

@@ -15,7 +15,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { clientFetch } from '#lib/api/client'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useMobileGestures } from '#hooks/use-mobile-gestures'
@@ -94,8 +94,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 				</div>
 			)}
 			<div
-				className="grid gap-(--spacing-6) sm:grid-cols-2 lg:grid-cols-3"
-				style={{ opacity: isPending ? 0.7 : 1 }}
+				className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ${isPending ? 'opacity-70' : ''}`}
 			>
 				{optimisticProperties.map(property => (
 					<PropertyCard key={property.id} property={property} onDelete={handleDeleteClick} />

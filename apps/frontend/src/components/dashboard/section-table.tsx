@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	Table,
 	TableBody,
@@ -190,7 +190,7 @@ export function SectionTable() {
 														? 'bg-system-blue-10 text-system-blue hover:bg-system-blue-15'
 														: property.status === 'SOLD'
 															? 'bg-system-teal-10 text-system-teal hover:bg-system-teal-15'
-															: 'bg-system-gray-10 text-label-tertiary hover:bg-system-gray-15'
+															: 'bg-system-muted/10 text-label-tertiary hover:bg-system-muted/15'
 											)}
 										>
 											{formatPropertyStatus(property.status as PropertyStatus)}

@@ -13,15 +13,15 @@
 
 import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
 import { clientFetch } from '#lib/api/client'
-import { authQueryKeys as authProviderKeys } from '#providers/auth-provider'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import { authQueries, authKeys } from './queries/auth-queries'
 
 // Create browser client for authentication
 const supabase = getSupabaseClientInstance()
@@ -33,80 +33,6 @@ interface User {
 	id: string
 	email: string
 	stripe_customer_id: string | null
-}
-
-/**
- * Query keys for auth operations
- * Hierarchical pattern for selective cache invalidation
- */
-export const authKeys = {
-	all: ['auth'] as const,
-	session: () => [...authKeys.all, 'session'] as const,
-	user: () => [...authKeys.all, 'user'] as const,
-	// User with Stripe data from database
-	me: ['user', 'me'] as const,
-	// Supabase auth-specific keys
-	supabase: {
-		all: ['supabase-auth'] as const,
-		user: () => ['supabase-auth', 'user'] as const,
-		session: () => ['supabase-auth', 'session'] as const
-	}
-}
-
-export const supabaseAuthKeys = authKeys.supabase
-
-// Use provider keys for compatibility
-const authQueryKeys = authProviderKeys
-
-// Single source of truth for auth query configurations
-export const authQueries = {
-	session: () =>
-		queryOptions({
-			queryKey: authQueryKeys.session,
-			queryFn: async () => {
-				const {
-					data: { session },
-					error
-				} = await supabase.auth.getSession()
-				if (error) throw error
-				return session
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		}),
-	user: () =>
-		queryOptions({
-			queryKey: authKeys.me,
-			queryFn: () => clientFetch<User>('/api/v1/users/me'),
-			retry: 1,
-			...QUERY_CACHE_TIMES.DETAIL
-		}),
-	supabaseUser: () =>
-		queryOptions({
-			queryKey: authKeys.supabase.user(),
-			queryFn: async () => {
-				const {
-					data: { user },
-					error
-				} = await supabase.auth.getUser()
-				if (error) throw error
-				return user
-			},
-			retry: 1,
-			...QUERY_CACHE_TIMES.DETAIL
-		}),
-	supabaseSession: () =>
-		queryOptions({
-			queryKey: authKeys.supabase.session(),
-			queryFn: async () => {
-				const {
-					data: { session },
-					error
-				} = await supabase.auth.getSession()
-				if (error) throw error
-				return session
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		})
 }
 
 // ============================================================================
@@ -127,21 +53,21 @@ export function useAuthCacheUtils() {
 
 		// Invalidate specific auth query types
 		invalidateSession: () => {
-			queryClient.invalidateQueries({ queryKey: authQueryKeys.session })
+			queryClient.invalidateQueries({ queryKey: authKeys.session() })
 		},
 
 		invalidateUser: () => {
-			queryClient.invalidateQueries({ queryKey: authQueryKeys.user })
+			queryClient.invalidateQueries({ queryKey: authKeys.user() })
 		},
 
 		// Clear auth data and all dependent queries
 		clearAuthData: () => {
 			// Get current user ID before clearing
-			const currentUserId = queryClient.getQueryData<SupabaseUser>(authQueryKeys.user)?.id
+			const currentUserId = queryClient.getQueryData<SupabaseUser>(authKeys.user())?.id
 
 			// Set auth data to null
-			queryClient.setQueryData(authQueryKeys.session, null)
-			queryClient.setQueryData(authQueryKeys.user, null)
+			queryClient.setQueryData(authKeys.session(), null)
+			queryClient.setQueryData(authKeys.user(), null)
 
 			// Invalidate all auth-related queries
 			queryClient.invalidateQueries({ queryKey: ['auth'] })
@@ -179,8 +105,8 @@ export function useAuthCacheUtils() {
 		// Refresh auth state after critical operations
 		refreshAuthState: async () => {
 			await Promise.all([
-				queryClient.invalidateQueries({ queryKey: authQueryKeys.session }),
-				queryClient.invalidateQueries({ queryKey: authQueryKeys.user })
+			queryClient.invalidateQueries({ queryKey: authKeys.session() }),
+			queryClient.invalidateQueries({ queryKey: authKeys.user() })
 			])
 		}
 	}
@@ -196,11 +122,11 @@ export function useAuthCacheUtils() {
  */
 export function useCurrentUser() {
 	const queryClient = useQueryClient()
-	const sessionData = queryClient.getQueryData(authQueryKeys.session) as
+	const sessionData = queryClient.getQueryData(authKeys.session()) as
 		| Session
 		| null
 		| undefined
-	const userData = queryClient.getQueryData(authQueryKeys.user) as
+	const userData = queryClient.getQueryData(authKeys.user()) as
 		| SupabaseUser
 		| null
 		| undefined
