@@ -22,12 +22,16 @@ import {
 } from '@nestjs/common'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { LeasesService } from './leases.service'
+import { LeaseFinancialService } from './lease-financial.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
 
 @Controller('leases')
 export class LeasesController {
-	constructor(private readonly leasesService: LeasesService) {}
+	constructor(
+		private readonly leasesService: LeasesService,
+		private readonly financialService: LeaseFinancialService
+	) {}
 
 	@Get()
 	async findAll(
@@ -103,7 +107,7 @@ export class LeasesController {
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.getStats(token)
+		return this.financialService.getStats(token)
 	}
 
 	@Get('analytics/performance')
@@ -139,7 +143,7 @@ export class LeasesController {
 		}
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.getAnalytics(token, {
+		return this.financialService.getAnalytics(token, {
 			...(lease_id ? { lease_id } : {}),
 			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '90d'
@@ -170,7 +174,7 @@ export class LeasesController {
 		}
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.getAnalytics(token, {
+		return this.financialService.getAnalytics(token, {
 			...(property_id ? { property_id } : {}),
 			timeframe: '90d',
 			period: period ?? 'yearly'
@@ -201,7 +205,7 @@ export class LeasesController {
 		}
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.getAnalytics(token, {
+		return this.financialService.getAnalytics(token, {
 			...(property_id ? { property_id } : {}),
 			timeframe: timeframe ?? '12m'
 		})
@@ -240,7 +244,7 @@ export class LeasesController {
 		}
 
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.getAnalytics(token, {
+		return this.financialService.getAnalytics(token, {
 			...(lease_id ? { lease_id } : {}),
 			...(property_id ? { property_id } : {}),
 			timeframe: '90d',
@@ -257,7 +261,7 @@ export class LeasesController {
 			throw new BadRequestException('Days must be between 1 and 365')
 		}
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.getExpiring(token, days ?? 30)
+		return this.financialService.getExpiring(token, days ?? 30)
 	}
 
 	@Get(':id')

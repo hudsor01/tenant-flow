@@ -24,12 +24,16 @@ import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/s
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
+import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 
 @Controller('maintenance')
 export class MaintenanceController {
-	constructor(private readonly maintenanceService: MaintenanceService) {}
+	constructor(
+		private readonly maintenanceService: MaintenanceService,
+		private readonly reportingService: MaintenanceReportingService
+	) {}
 
 	/**
 	 * Get all maintenance requests
@@ -129,7 +133,7 @@ export class MaintenanceController {
 	 */
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
-		return this.maintenanceService.getStats(token)
+		return this.reportingService.getStats(token)
 	}
 
 	/**
@@ -138,7 +142,7 @@ export class MaintenanceController {
 	 */
 	@Get('urgent')
 	async getUrgent(@JwtToken() token: string) {
-		return this.maintenanceService.getUrgent(token)
+		return this.reportingService.getUrgent(token)
 	}
 
 	/**
@@ -147,7 +151,7 @@ export class MaintenanceController {
 	 */
 	@Get('overdue')
 	async getOverdue(@JwtToken() token: string) {
-		return this.maintenanceService.getOverdue(token)
+		return this.reportingService.getOverdue(token)
 	}
 
 	/**
