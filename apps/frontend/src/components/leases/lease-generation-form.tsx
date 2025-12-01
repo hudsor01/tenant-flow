@@ -125,12 +125,12 @@ export function LeaseGenerationForm({
 	// Show error if required data is missing (after all hooks)
 	if (!property_id || !unit_id || !tenant_id) {
 		return (
-			<div className="flex items-center justify-center p-(--spacing-8)">
+			<div className="flex-center p-(--spacing-8)">
 				<div className="text-center space-y-[var(--spacing-2)]">
 					<p className="text-destructive font-semibold">
 						Missing Required Information
 					</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Property, unit, and tenant must all be selected to generate a lease agreement.
 					</p>
 				</div>
@@ -140,7 +140,7 @@ export function LeaseGenerationForm({
 
 	if (isAutoFilling) {
 		return (
-			<div className="flex items-center justify-center p-(--spacing-8)">
+			<div className="flex-center p-(--spacing-8)">
 				<Loader2 className="size-[var(--spacing-8)] animate-spin text-muted-foreground" />
 			</div>
 		)

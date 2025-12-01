@@ -452,9 +452,9 @@ function SetupForm({
 			)}
 
 			{isLoading && (
-				<div className="flex items-center justify-center py-4">
+				<div className="flex-center py-4">
 					<Spinner className="size-5 animate-spin" />
-					<span className="ml-2 text-sm text-muted-foreground">
+					<span className="ml-2 text-muted">
 						Loading payment form...
 					</span>
 				</div>

@@ -22,7 +22,7 @@ import { Roles } from '../../shared/decorators/roles.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
-import { LeaseGenerationDto } from './dto/lease-generation.dto'
+import type { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
 import { ZeroCacheService } from '../../cache/cache.service'
@@ -99,7 +99,7 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto as LeaseGenerationFormData)
 			const filename = this.generateLeaseFilename(dto)
 
 			// Preview mode - display in browser (NO DOWNLOAD, NO DATABASE SAVE)
@@ -132,7 +132,7 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto as LeaseGenerationFormData)
 			const filename = this.generateLeaseFilename(dto)
 
 			// Force download

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
  * CRITICAL PATH SMOKE TESTS
@@ -16,6 +17,7 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL!
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD!
+const logger = createLogger({ component: 'CriticalPathsSmoke' })
 
 test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 	test.describe.configure({ mode: 'serial' }) // Run in order
@@ -250,7 +252,7 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		)
 
 		if (criticalErrors.length > 0) {
-			console.warn('⚠️  Console errors detected:', criticalErrors)
+			logger.warn('⚠️  Console errors detected:', { metadata: { criticalErrors } })
 			// Don't fail the test, just warn
 			// In production, you might want to fail on any errors
 		}

@@ -130,7 +130,7 @@ export function InvitationsTableClient() {
 					<div className="flex flex-col">
 						<span>{invitation.property_name}</span>
 						{invitation.unit_number && (
-							<span className="text-sm text-muted-foreground">
+							<span className="text-muted">
 								Unit {invitation.unit_number}
 							</span>
 						)}
@@ -233,7 +233,7 @@ export function InvitationsTableClient() {
 					<CardDescription>Track tenant invitation status</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center justify-center h-32">
+					<div className="flex-center h-32">
 						<span className="text-muted-foreground">Loading invitations...</span>
 					</div>
 				</CardContent>
@@ -249,7 +249,7 @@ export function InvitationsTableClient() {
 					<CardDescription>Track tenant invitation status</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center justify-center h-32">
+					<div className="flex-center h-32">
 						<span className="text-muted-foreground">No invitations yet</span>
 					</div>
 				</CardContent>

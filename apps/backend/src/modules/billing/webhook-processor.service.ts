@@ -40,7 +40,7 @@ interface TenantWithEmail {
  *
  * if (isTenantWithEmail(data)) {
  *   // TypeScript now knows data.users.email is a string
- *   console.log(data.users.email)
+ *   // Example: inspect webhook payload email for debugging
  * } else {
  *   // Handle invalid data structure
  *   logger.error('Invalid tenant data')
@@ -130,39 +130,33 @@ export class WebhookProcessor {
 				return
 			}
 
-			const { data: tenant } = await client
+			// Fetch tenant and email in a single query to avoid multiple round-trips
+			const { data: tenantWithUser, error: tenantLookupError } = await client
 				.from('tenants')
-				.select('id')
+				.select('id, user_id, users!inner(email)')
 				.eq('stripe_customer_id', customerId)
 				.single()
 
-			if (!tenant) {
+			if (tenantLookupError || !tenantWithUser) {
 				this.logger.warn('Tenant not found for payment method', {
-					customerId: paymentMethod.customer
+					customerId: paymentMethod.customer,
+					error: tenantLookupError?.message
 				})
 				return
 			}
 
-			const { data: tenantWithUser } = await client
-				.from('tenants')
-				.select('id, user_id, users!inner(email)')
-				.eq('id', tenant.id)
-				.single()
-
-			if (tenantWithUser) {
-				await client
-					.from('tenant_invitations')
-					.update({
-						status: 'accepted',
-						accepted_by_user_id: tenantWithUser.user_id,
-						accepted_at: new Date().toISOString()
-					})
-					.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
-					.eq('status', 'pending')
-			}
+			await client
+				.from('tenant_invitations')
+				.update({
+					status: 'accepted',
+					accepted_by_user_id: tenantWithUser.user_id,
+					accepted_at: new Date().toISOString()
+				})
+				.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
+				.eq('status', 'pending')
 
 			this.logger.log('Tenant invitation accepted', {
-				tenant_id: tenant.id
+				tenant_id: tenantWithUser.id
 			})
 		} catch (error) {
 			this.logger.error('Failed to handle payment method attached', {
@@ -771,30 +765,38 @@ export class WebhookProcessor {
 			}
 
 			if (rentPayment) {
-				const { error: updateError } = await client
-					.from('rent_payments')
-					.update({
+				const [updateResult, transactionResult] = await Promise.all([
+					client
+						.from('rent_payments')
+						.update({
+							status: 'failed',
+							updated_at: new Date().toISOString()
+						})
+						.eq('id', rentPayment.id),
+					client.from('payment_transactions').insert({
+						rent_payment_id: rentPayment.id,
+						stripe_payment_intent_id: paymentIntent.id,
 						status: 'failed',
-						updated_at: new Date().toISOString()
+						amount: paymentIntent.amount,
+						failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
+						attempted_at: new Date().toISOString()
 					})
-					.eq('id', rentPayment.id)
+				])
 
-				if (updateError) {
+				if (updateResult.error) {
 					this.logger.error('Failed to update rent payment status to failed', {
-						error: updateError.message,
+						error: updateResult.error.message,
 						rentPaymentId: rentPayment.id
 					})
 				}
 
-				// Record payment transaction with failure details
-				await client.from('payment_transactions').insert({
-					rent_payment_id: rentPayment.id,
-					stripe_payment_intent_id: paymentIntent.id,
-					status: 'failed',
-					amount: paymentIntent.amount,
-					failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
-					attempted_at: new Date().toISOString()
-				})
+				if (transactionResult?.error) {
+					this.logger.error('Failed to record failed payment transaction', {
+						error: transactionResult.error.message,
+						rentPaymentId: rentPayment.id,
+						paymentIntentId: paymentIntent.id
+					})
+				}
 
 				this.logger.warn('Rent payment failed', {
 					rentPaymentId: rentPayment.id,

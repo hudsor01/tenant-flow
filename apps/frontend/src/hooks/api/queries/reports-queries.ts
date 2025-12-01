@@ -6,7 +6,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
-import type { ListReportsResponse, RevenueData, PaymentAnalytics, OccupancyMetrics } from '../types/reports'
+import type { ListReportsResponse, RevenueData, PaymentAnalytics, OccupancyMetrics } from '@repo/shared/types/reports'
 
 /**
  * Query keys for reports

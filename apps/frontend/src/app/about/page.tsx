@@ -259,7 +259,7 @@ export default function AboutPage() {
 											<div className="text-3xl font-bold text-primary mb-2">
 												{stat.number}
 											</div>
-											<div className="text-sm text-muted-foreground">
+											<div className="text-muted">
 												{stat.label}
 											</div>
 										</div>
@@ -305,7 +305,7 @@ export default function AboutPage() {
 								].map((member, index) => (
 									<BlurFade key={index} delay={0.8 + index * 0.1} inView>
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-											<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
+											<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
 												<User className="size-12 text-primary" />
 											</div>
 											<h3 className="text-lg font-semibold text-foreground mb-2">
@@ -314,7 +314,7 @@ export default function AboutPage() {
 											<p className="text-primary font-medium mb-4">
 												{member.user_type}
 											</p>
-											<p className="text-sm text-muted-foreground leading-relaxed">
+											<p className="text-muted leading-relaxed">
 												{member.bio}
 											</p>
 										</div>
@@ -366,7 +366,7 @@ export default function AboutPage() {
 										<Link href="/contact">Talk to Sales</Link>
 									</Button>
 								</div>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									No setup fees • Enterprise security • 99.9% uptime SLA •
 									Cancel anytime
 								</p>

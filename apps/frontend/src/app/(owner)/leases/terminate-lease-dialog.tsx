@@ -56,7 +56,7 @@ export function TerminateLeaseDialog({
 										<p className="text-sm font-medium text-destructive">
 											Early Termination Warning
 										</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											This lease will be marked as terminated immediately. Ensure
 											all financial settlements are complete before proceeding.
 										</p>

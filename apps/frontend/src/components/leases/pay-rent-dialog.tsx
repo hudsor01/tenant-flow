@@ -19,7 +19,7 @@ import {
 import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { useModalStore } from '#stores/modal-store'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
 import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
@@ -111,7 +111,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 						<div className="space-y-[var(--spacing-4)]">
 							{/* Rent Amount Display */}
 							<div className="p-(--spacing-4) bg-muted rounded-lg">
-								<p className="text-sm text-muted-foreground mb-[var(--spacing-1)]">
+								<p className="text-muted mb-[var(--spacing-1)]">
 									Rent Amount
 								</p>
 								<p className="text-2xl font-semibold">
@@ -141,7 +141,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 									</SelectContent>
 								</Select>
 								{!paymentMethods?.length && (
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										No payment methods saved. Please add a payment method first.
 									</p>
 								)}

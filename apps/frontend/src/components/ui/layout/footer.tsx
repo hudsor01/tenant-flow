@@ -10,7 +10,7 @@ export default function Footer() {
 				style={{ fontSize: 'var(--text-sm)' }}
 			>
 					<div className="flex items-center space-x-2">
-						<div className="rounded bg-primary flex items-center justify-center w-[var(--spacing-4)] h-[var(--spacing-4)] min-w-[var(--spacing-4)] min-h-[var(--spacing-4)]">
+						<div className="rounded bg-primary flex-center w-[var(--spacing-4)] h-[var(--spacing-4)] min-w-[var(--spacing-4)] min-h-[var(--spacing-4)]">
 							<Home className="w-[var(--spacing-2_5)] h-[var(--spacing-2_5)] text-primary-foreground" />
 						</div>
 						<span className="font-medium text-foreground">TenantFlow</span>

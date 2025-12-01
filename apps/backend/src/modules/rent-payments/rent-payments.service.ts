@@ -5,7 +5,7 @@ import {
 	Logger,
 	NotFoundException
 } from '@nestjs/common'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import type {
 	CancelTenantAutopayParams,
 	CancelTenantAutopayResponse,
@@ -97,7 +97,7 @@ export class RentPaymentsService {
 			lease_id,
 			tenant_id,
 			requestinguser_id
-		)
+	)
 
 		const { data: paymentMethod, error: paymentMethodError } = await adminClient
 			.from('payment_methods')

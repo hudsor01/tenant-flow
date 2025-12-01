@@ -5,10 +5,11 @@
  * Manages: Create, Update, MarkAsMovedOut (soft delete), HardDelete (7+ years only)
  */
 
+import type {
+	Logger} from '@nestjs/common';
 import {
 	BadRequestException,
 	Injectable,
-	Logger,
 	NotFoundException
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'

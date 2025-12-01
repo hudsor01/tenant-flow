@@ -6,7 +6,6 @@
 import { API_BASE_URL } from '#lib/api-config'
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { UseMutationResult } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -15,7 +14,8 @@ import {
 } from '#lib/mutation-error-handler'
 import { isTest } from '#config/env'
 import { reportsQueries, reportsKeys } from './queries/reports-queries'
-import type { ListReportsResponse, Report as ReportType } from './types/reports'
+import type { ListReportsResponse, Report as ReportType } from '@repo/shared/types/reports'
+import type { UseReportsResult } from './types/reports'
 
 // Re-export types for backward compatibility
 export type {
@@ -28,24 +28,6 @@ export type {
 
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
-
-type UseReportsResult = {
-	reports: ReportType[]
-	total: number
-	isLoading: boolean
-	isFetching: boolean
-	deleteMutation: UseMutationResult<
-		unknown,
-		unknown,
-		string,
-		{ previous?: unknown }
-	>
-	downloadMutation: UseMutationResult<unknown, unknown, string, unknown>
-	downloadingIds: Set<string>
-	deletingIds: Set<string>
-	downloadReport: (reportId: string) => void
-	deleteReport: (reportId: string) => void
-}
 
 export function useReports({
 	offset,

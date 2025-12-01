@@ -13,7 +13,7 @@ import {
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 import { user_idByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
-import { AuthRequestCache } from '../services/auth-request-cache.service'
+import type { AuthRequestCache } from '../services/auth-request-cache.service'
 
 @Injectable()
 export class StripeCustomerOwnershipGuard implements CanActivate {

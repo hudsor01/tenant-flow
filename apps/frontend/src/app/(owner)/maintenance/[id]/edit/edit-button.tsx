@@ -19,7 +19,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { useUpdateMaintenanceRequest } from '#hooks/api/use-maintenance'
+import { useUpdateMaintenanceRequestInput } from '#hooks/api/use-maintenance'
 import { maintenanceRequestUpdateSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { Edit } from 'lucide-react'
@@ -38,7 +38,7 @@ export function EditMaintenanceButton({
 	maintenance
 }: EditMaintenanceButtonProps) {
 	const { openModal } = useModalStore()
-	const updateMaintenanceRequest = useUpdateMaintenanceRequest()
+	const updateMaintenanceRequest = useUpdateMaintenanceRequestInput()
 
 	const modalId = `edit-maintenance-${maintenance.id}`
 

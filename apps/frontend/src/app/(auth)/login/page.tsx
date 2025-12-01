@@ -145,13 +145,13 @@ function LoginPageContent() {
 					</div>
 					<div className="absolute inset-0 bg-black/25" />
 
-					<div className="absolute inset-0 flex items-center justify-center">
+					<div className="absolute inset-0 flex-center">
 						<div className="relative max-w-lg mx-auto px-8">
 							<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
 
 							<div className="relative text-center space-y-6 py-12 px-8">
 								<div className="size-16 mx-auto mb-8">
-									<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
+									<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-white/20 shadow-lg">
 										<Home className="size-8 text-primary-foreground" />
 									</div>
 								</div>
@@ -187,12 +187,12 @@ function LoginPageContent() {
 				</div>
 
 				{/* Form Section */}
-				<div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 min-h-screen">
+				<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 min-h-screen">
 					<div className="w-full max-w-sm space-y-8">
 						{/* Logo & Title */}
 						<div className="text-center space-y-4">
 							<div className="size-14 mx-auto">
-								<div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
+								<div className="w-full h-full bg-primary rounded-xl flex-center shadow-sm">
 									<Home className="size-7 text-primary-foreground" />
 								</div>
 							</div>
@@ -340,7 +340,7 @@ function LoginPageContent() {
 							/>
 
 							{/* Footer Links */}
-							<div className="flex items-center justify-between text-sm text-muted-foreground">
+							<div className="flex-between text-muted">
 								<button
 									type="button"
 									onClick={() => openModal('forgot-password')}
@@ -365,7 +365,7 @@ function LoginPageContent() {
 							<p className="text-muted-foreground/80 text-xs font-medium">
 								Trusted by property managers worldwide
 							</p>
-							<div className="flex items-center justify-center flex-wrap gap-(--spacing-4) sm:gap-(--spacing-6) text-xs">
+							<div className="flex-center flex-wrap gap-(--spacing-4) sm:gap-(--spacing-6) text-xs">
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Lock className="size-3" />
 									<span className="font-medium hidden sm:inline">Bank-level Security</span>

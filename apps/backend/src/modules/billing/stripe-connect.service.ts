@@ -1,10 +1,10 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import * as countries from 'i18n-iso-countries'
 import enLocale from 'i18n-iso-countries/langs/en.json'
-import { StripeClientService } from '../../shared/stripe-client.service'
-import { SupabaseService } from '../../database/supabase.service'
-import { AppConfigService } from '../../config/app-config.service'
+import type { StripeClientService } from '../../shared/stripe-client.service'
+import type { SupabaseService } from '../../database/supabase.service'
+import type { AppConfigService } from '../../config/app-config.service'
 
 /**
  * Stripe Connect Service

@@ -228,7 +228,7 @@ export function useHasActiveSubscription(lease_id?: string): boolean {
 	const { data: subscriptions } = useSubscriptions()
 	if (!lease_id || !subscriptions) return false
 
-	return subscriptions.some(s => s.leaseId === lease_id && s.status === 'active')
+	return subscriptions.some(s => s.lease_id === lease_id && s.status === 'active')
 }
 
 /**
