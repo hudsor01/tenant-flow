@@ -19,7 +19,7 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import type { UpdatePropertyInput } from '@repo/shared/types/api-contracts'
-import type { CreatePropertyRequest } from '@repo/shared/types/api-contracts'
+import type { CreatePropertyInput } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
 
@@ -118,14 +118,14 @@ export function useCreateProperty() {
 
 	return useMutation({
 		mutationFn: async (
-			propertyData: CreatePropertyRequest
+			propertyData: CreatePropertyInput
 		): Promise<Property> => {
 			return clientFetch<Property>('/api/v1/properties', {
 				method: 'POST',
 				body: JSON.stringify(propertyData)
 			})
 		},
-		onMutate: async (newProperty: CreatePropertyRequest) => {
+		onMutate: async (newProperty: CreatePropertyInput) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 

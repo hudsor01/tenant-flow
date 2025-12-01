@@ -213,7 +213,7 @@ export function PropertyBulkImportDialog() {
 									type="file"
 									accept=".csv,text/csv"
 									onChange={handleFileChange}
-									className="block w-full text-sm text-muted-foreground
+									className="block w-full text-muted
 									file:mr-4 file:py-2 file:px-4
 									file:rounded-md file:border-0
 									file:text-sm file:font-semibold
@@ -409,7 +409,7 @@ function BulkImportResultPanel({ result }: { result: BulkImportResult | null }) 
 					<p className="font-medium text-sm">
 						{isSuccessful ? 'Import Complete' : 'Import Failed'}
 					</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						{result.imported > 0 && `${result.imported} properties imported`}
 						{result.failed > 0 && ` • ${result.failed} failed`}
 					</p>

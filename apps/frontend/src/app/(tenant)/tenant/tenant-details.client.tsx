@@ -24,6 +24,7 @@ import { Textarea } from '#components/ui/textarea'
 import { useMarkTenantAsMovedOut } from '#hooks/api/use-tenant'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { formatDate } from '#lib/formatters'
 import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -34,15 +35,6 @@ import { TenantSkeleton } from './tenant-skeleton'
 
 interface TenantDetailsProps {
 	id: string
-}
-
-// Modern date formatting helper - assumes valid inputs
-const formatDate = (
-	date: string | Date,
-	options?: Intl.DateTimeFormatOptions
-): string => {
-	const dateObj = new Date(date)
-	return dateObj.toLocaleDateString('en-US', options)
 }
 
 // Modern date validation - throws on invalid input
@@ -129,7 +121,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 
 	// Header with Actions
 	const header = (
-		<div className="flex items-center justify-between">
+		<div className="flex-between">
 			<div>
 				<h1 className="text-3xl font-bold tracking-tight">{tenant.name}</h1>
 				<p className="text-muted-foreground mt-1">{tenant.email}</p>
@@ -158,7 +150,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				>
 					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<div className="space-y-1">
-							<div className="text-sm text-muted-foreground flex items-center gap-2">
+							<div className="text-muted flex items-center gap-2">
 								<Mail className="size-4" />
 								Email
 							</div>
@@ -168,7 +160,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						</div>
 
 						<div className="space-y-1">
-							<div className="text-sm text-muted-foreground flex items-center gap-2">
+							<div className="text-muted flex items-center gap-2">
 								<Phone className="size-4" />
 								Phone
 							</div>
@@ -180,7 +172,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 
 					{tenant.emergency_contact_name && (
 				<div className="pt-4 border-t">
-					<div className="text-sm text-muted-foreground mb-2">
+					<div className="text-muted mb-2">
 						Emergency Contact
 					</div>
 					<div className="font-medium whitespace-pre-wrap">
@@ -200,11 +192,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Created
 								</div>
 								<div className="font-medium">
-									{formatDate(tenant.created_at ?? new Date().toISOString(), {
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric'
-									})}
+							{formatDate(tenant.created_at ?? new Date().toISOString(), {
+								formatOptions: {
+									year: 'numeric',
+									month: 'long',
+									day: 'numeric'
+								}
+							})}
 								</div>
 							</div>
 							<div className="space-y-1">
@@ -213,11 +207,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Updated
 								</div>
 								<div className="font-medium">
-									{formatDate(tenant.updated_at as string, {
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric'
-									})}
+							{formatDate(tenant.updated_at as string, {
+								formatOptions: {
+									year: 'numeric',
+									month: 'long',
+									day: 'numeric'
+								}
+							})}
 								</div>
 							</div>
 						</div>
@@ -234,13 +230,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 							{tenant.leases.map(lease => (
 								<div
 									key={lease.id}
-									className="flex items-center justify-between p-4 border rounded-lg"
+									className="flex-between p-4 border rounded-lg"
 								>
 									<div className="space-y-1">
 										<div className="font-medium">
 											{lease.property?.address_line1 || 'Unknown Property'}
 										</div>
-										<div className="text-sm text-muted-foreground flex items-center gap-(--spacing-4)">
+										<div className="text-muted flex items-center gap-(--spacing-4)">
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.start_date)} -{' '}

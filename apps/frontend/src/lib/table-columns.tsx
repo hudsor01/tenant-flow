@@ -74,7 +74,7 @@ export function createAddressColumn<
 		cell: ({ row }) => {
 			const data = row.original
 			return (
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted">
 					{data.address}, {data.city}, {data.state}
 				</div>
 			)

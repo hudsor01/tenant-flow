@@ -60,7 +60,7 @@ export const MobileNav = memo(() => {
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background md:hidden">
-			<div className="flex items-center justify-between px-2 py-1">
+			<div className="flex-between px-2 py-1">
 				{MOBILE_NAV_ITEMS.map((item, index) => (
 					<NavItem key={item.href} item={item} isActive={index === activeIndex} />
 				))}

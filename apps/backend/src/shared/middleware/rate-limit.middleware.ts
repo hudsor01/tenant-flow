@@ -9,11 +9,13 @@
  * - Security event logging and alerting
  */
 
-import {
-	Injectable,
-	Logger,
+import type {
 	NestMiddleware,
 	OnModuleDestroy
+} from '@nestjs/common';
+import {
+	Injectable,
+	Logger
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 

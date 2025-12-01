@@ -81,7 +81,7 @@ const BalanceSheetPage = () => {
 					return (
 						<div
 							key={index}
-							className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+							className="flex-between p-3 bg-muted/50 rounded-lg"
 						>
 							<div className="flex-1">
 								<div className="font-medium text-muted/900">{item.name}</div>
@@ -101,7 +101,7 @@ const BalanceSheetPage = () => {
 	if (isLoading) {
 		return (
 			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
 						<p className="text-muted/600">
@@ -136,7 +136,7 @@ const BalanceSheetPage = () => {
 								{[1, 2, 3].map(j => (
 									<div
 										key={j}
-										className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+										className="flex-between p-3 bg-muted/50 rounded-lg"
 									>
 										<Skeleton className="h-4 w-32" />
 										<Skeleton className="h-6 w-24" />
@@ -153,7 +153,7 @@ const BalanceSheetPage = () => {
 	if (error) {
 		return (
 			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
 						<p className="text-muted/600">
@@ -176,14 +176,14 @@ const BalanceSheetPage = () => {
 		return null
 	}
 
-	const totalAssets = data?.data.assets.totalAssets || 0
-	const totalLiabilities = data?.data.liabilities.totalLiabilities || 0
-	const totalEquity = data?.data.equity.totalEquity || 0
+	const totalAssets = data?.data?.assets.totalAssets || 0
+	const totalLiabilities = data?.data?.liabilities.totalLiabilities || 0
+	const totalEquity = data?.data?.equity.totalEquity || 0
 
 	return (
 		<div className="p-6 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold">Balance Sheet</h1>
 					<p className="text-muted/600">
@@ -311,7 +311,7 @@ const BalanceSheetPage = () => {
 							transformedData.assets.nonCurrent
 						)}
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+						<div className="flex-between p-3 bg-blue-50 rounded-lg">
 							<div className="font-semibold">Total Assets</div>
 							<div className="font-bold text-lg">
 								${totalAssets.toLocaleString()}
@@ -340,7 +340,7 @@ const BalanceSheetPage = () => {
 								transformedData.liabilities.nonCurrent
 							)}
 							<Separator />
-							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+							<div className="flex-between p-3 bg-red-50 rounded-lg">
 								<div className="font-semibold">Total Liabilities</div>
 								<div className="font-bold text-lg">
 									${totalLiabilities.toLocaleString()}
@@ -362,7 +362,7 @@ const BalanceSheetPage = () => {
 								transformedData.equity
 							)}
 							<Separator />
-							<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+							<div className="flex-between p-3 bg-green-50 rounded-lg">
 								<div className="font-semibold">Total Equity</div>
 								<div className="font-bold text-lg">
 									${totalEquity.toLocaleString()}
@@ -409,7 +409,7 @@ const BalanceSheetPage = () => {
 							{totalLiabilities.toLocaleString()} + $
 							{totalEquity.toLocaleString()}
 						</div>
-						{data?.data.balanceCheck === false && (
+						{data?.data?.balanceCheck === false && (
 							<div className="mt-2 text-sm text-red-600">
 								⚠️ Warning: Balance sheet equation does not balance
 							</div>

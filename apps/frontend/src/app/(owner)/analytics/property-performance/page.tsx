@@ -15,7 +15,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getPropertyPerformancePageData } from '#lib/api/analytics-page'
-import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
+import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters'
 import type {
 	PropertyPerformanceSummary,
 	PropertyPerformanceEntry,
@@ -139,7 +139,7 @@ export default async function PropertyPerformancePage() {
 								{unitStats.slice(0, 6).map(stat => (
 									<div
 										key={stat.label}
-										className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+										className="flex-between rounded-lg border px-3 py-2 text-sm"
 									>
 										<span className="text-muted-foreground">{stat.label}</span>
 										<span className="font-medium tabular-nums">

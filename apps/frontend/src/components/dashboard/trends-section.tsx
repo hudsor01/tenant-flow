@@ -1,6 +1,6 @@
 'use client'
 
-import { TrendCard } from '#components/dashboard/trend-card'
+import { MetricCard } from '#components/dashboard/metric-card'
 import { MiniTrendChart } from '#components/ui/charts/mini-trend-chart'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
@@ -50,37 +50,41 @@ function TrendsSectionContent() {
       </div>
 
       <div className="dashboard-trend-grid">
-        <TrendCard
-          title="Occupancy Rate"
-          metric={occupancyRate}
-          isLoading={isLoading}
-          valueFormatter={(v) => v !== null ? `${v.toFixed(1)}%` : '0%'}
-        />
-        <TrendCard
-          title="Active Tenants"
-          metric={activeTenants}
-          isLoading={isLoading}
-          valueFormatter={(v) => v !== null ? v.toString() : '0'}
-        />
-        <TrendCard
-          title="Monthly Revenue"
-          metric={monthlyRevenue}
-          isLoading={isLoading}
-          valueFormatter={(v) =>
-            v !== null
-              ? `$${(v / 100).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              : '$0.00'
-          }
-        />
-        <TrendCard
-          title="Open Maintenance"
-          metric={openMaintenance}
-          isLoading={isLoading}
-          valueFormatter={(v) => v !== null ? v.toString() : '0'}
-        />
+		<MetricCard
+			variant="trend"
+			title="Occupancy Rate"
+			metric={occupancyRate}
+			isLoading={isLoading}
+			valueFormatter={(v) => v !== null ? `${v.toFixed(1)}%` : '0%'}
+		/>
+		<MetricCard
+			variant="trend"
+			title="Active Tenants"
+			metric={activeTenants}
+			isLoading={isLoading}
+			valueFormatter={(v) => v !== null ? v.toString() : '0'}
+		/>
+		<MetricCard
+			variant="trend"
+			title="Monthly Revenue"
+			metric={monthlyRevenue}
+			isLoading={isLoading}
+			valueFormatter={(v) =>
+				v !== null
+					? `$${(v / 100).toLocaleString('en-US', {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2,
+						})}`
+					: '$0.00'
+			}
+		/>
+		<MetricCard
+			variant="trend"
+			title="Open Maintenance"
+			metric={openMaintenance}
+			isLoading={isLoading}
+			valueFormatter={(v) => v !== null ? v.toString() : '0'}
+		/>
       </div>
 
       <div className="dashboard-grid">

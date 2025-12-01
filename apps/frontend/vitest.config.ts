@@ -44,6 +44,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/unit-setup.ts'],
     pool: 'vmThreads',
+    // @ts-expect-error poolOptions is supported in Vitest 1.x but not yet in typings bundled with our version
     poolOptions: {
       vmThreads: {
         singleThread: true

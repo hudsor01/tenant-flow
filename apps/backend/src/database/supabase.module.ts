@@ -1,5 +1,6 @@
+import type {
+	DynamicModule} from '@nestjs/common';
 import {
-	DynamicModule,
 	Global,
 	Logger,
 	Module

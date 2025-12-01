@@ -144,8 +144,8 @@ function FullSignatureStatus({
 				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="flex items-center justify-between">
-					<span className="text-sm text-muted-foreground">Overall Status</span>
+				<div className="flex-between">
+					<span className="text-muted">Overall Status</span>
 					<Badge
 						variant={status.both_signed ? 'default' : 'secondary'}
 						className={cn(
@@ -221,7 +221,7 @@ function SignatureRow({
 	signedAt: string | null
 }) {
 	return (
-		<div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
+		<div className="flex-between py-2 px-3 rounded-md bg-muted/50">
 			<span className="text-sm font-medium">{label}</span>
 			<div className="flex items-center gap-2">
 				{signed ? (
@@ -234,7 +234,7 @@ function SignatureRow({
 				) : (
 					<>
 						<Clock className="h-4 w-4 text-amber-500" />
-						<span className="text-sm text-muted-foreground">Pending</span>
+						<span className="text-muted">Pending</span>
 					</>
 				)}
 			</div>

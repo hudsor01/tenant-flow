@@ -87,13 +87,15 @@ export function buttonClasses(
 	}
 
 	const variantClasses = {
+		default: 'bg-primary text-primary-foreground hover:bg-primary/90',
 		primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
 		secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
 		outline:
 			'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
 		ghost: 'hover:bg-accent hover:text-accent-foreground',
 		destructive:
-			'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+			'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+		link: 'text-primary underline-offset-4 hover:underline'
 	}
 
 	return cn(baseClasses, sizeClasses[size], variantClasses[variant], className)
@@ -170,7 +172,9 @@ export function badgeClasses(
 		'inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
 
 	const sizeClasses = {
+		xs: 'px-2 py-0.5 text-[10px]',
 		sm: 'px-2 py-0.5 text-xs',
+		md: 'px-2.5 py-0.5 text-xs',
 		default: 'px-2.5 py-0.5 text-xs',
 		lg: 'px-3 py-1 text-sm'
 	}
@@ -230,6 +234,7 @@ export function containerClasses(
 	const baseClasses = 'mx-auto px-4 sm:px-6 lg:px-8'
 
 	const sizeClasses = {
+		xs: 'max-w-screen-sm',
 		sm: 'max-w-screen-sm',
 		md: 'max-w-screen-md',
 		lg: 'max-w-screen-lg',
@@ -252,12 +257,15 @@ export function animationClasses(
 	className?: string
 ): string {
 	const animationClasses = {
+		fade: 'animate-in fade-in-0 duration-200',
 		'fade-in': 'animate-in fade-in-0 duration-300',
 		'slide-up': 'animate-in slide-in-from-bottom-2 duration-300',
 		'slide-down': 'animate-in slide-in-from-top-2 duration-300',
+		slide: 'animate-in slide-in-from-bottom-2 duration-300',
 		scale: 'animate-in zoom-in-95 duration-200',
 		bounce: 'animate-bounce',
-		pulse: 'animate-pulse'
+		pulse: 'animate-pulse',
+		spin: 'animate-spin'
 	}
 
 	return cn(animationClasses[type], className)

@@ -117,7 +117,7 @@ export function PaymentMethodsTab() {
 				description="Manage your cards and bank accounts for rent payments"
 			>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between">
+					<div className="flex-between">
 						<div className="flex-1" />
 						<Button onClick={() => setShowAddDialog(true)} size="sm">
 							<Plus className="mr-2 size-4" />
@@ -126,13 +126,13 @@ export function PaymentMethodsTab() {
 					</div>
 
 					{isLoading ? (
-						<div className="flex items-center justify-center py-8">
+						<div className="flex-center py-8">
 							<Spinner className="size-8 animate-spin text-muted-foreground" />
 						</div>
 					) : !hasPaymentMethods ? (
 						<div className="text-center py-8">
 							<CreditCard className="mx-auto size-12 text-muted-foreground mb-4" />
-							<p className="text-sm text-muted-foreground mb-4">
+							<p className="text-muted mb-4">
 								No payment methods saved yet
 							</p>
 							<Button
@@ -152,7 +152,7 @@ export function PaymentMethodsTab() {
 								return (
 									<div
 										key={method.id}
-										className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+										className="flex-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
 									>
 										<div className="flex items-center gap-(--spacing-4)">
 											<div className="text-muted-foreground">
@@ -169,7 +169,7 @@ export function PaymentMethodsTab() {
 													)}
 												</div>
 												{display.details && (
-													<p className="text-sm text-muted-foreground">
+													<p className="text-muted">
 														{display.details}
 													</p>
 												)}

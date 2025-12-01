@@ -1,4 +1,5 @@
 import { test, expect, type Page } from './fixtures/auth.fixture'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
  * Financial Statements E2E Tests
@@ -14,6 +15,7 @@ import { test, expect, type Page } from './fixtures/auth.fixture'
 
 test.describe('Financial Statements - Production Flow', () => {
 	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const logger = createLogger({ component: 'FinancialStatementsE2E' })
 
 	/**
 	 * Helper to check if page loaded with data or error
@@ -22,7 +24,7 @@ test.describe('Financial Statements - Production Flow', () => {
 	async function hasDataLoaded(page: Page): Promise<boolean> {
 		// Wait for all network requests to complete (API calls)
 		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-			console.log('[hasDataLoaded] Network idle timeout - proceeding anyway')
+			logger.warn('[hasDataLoaded] Network idle timeout - proceeding anyway')
 		})
 
 		// Additional wait for React to render the result
@@ -33,7 +35,7 @@ test.describe('Financial Statements - Production Flow', () => {
 		const hasFailedText = pageText.toLowerCase().includes('failed to load')
 
 		if (hasFailedText) {
-			console.log('[hasDataLoaded] Error detected - no data available')
+			logger.warn('[hasDataLoaded] Error detected - no data available')
 			return false
 		}
 
@@ -53,14 +55,14 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Cash Flow Statement")', { timeout: 10000 })
 
 			const dataLoaded = await hasDataLoaded(page)
-			console.log(`[Operating Activities] hasDataLoaded = ${dataLoaded}`)
+			logger.info(`[Operating Activities] hasDataLoaded = ${dataLoaded}`)
 
 			if (!dataLoaded) {
-				console.log('⚠️  No data available - skipping test')
+				logger.warn('⚠️  No data available - skipping test')
 				test.skip()
 			}
 
-			console.log('[Operating Activities] Checking for data elements')
+			logger.info('[Operating Activities] Checking for data elements')
 			await page.waitForSelector('text=Operating Activities', { timeout: 5000 })
 			await expect(page.locator('text=Operating Activities').first()).toBeVisible()
 			await expect(page.locator('text=Net Operating Cash Flow')).toBeVisible()
@@ -71,7 +73,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Cash Flow Statement")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -84,7 +86,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Cash Flow Statement")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -97,7 +99,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Cash Flow Statement")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -112,7 +114,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Cash Flow Statement")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -150,7 +152,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Balance Sheet")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -165,7 +167,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Balance Sheet")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -180,7 +182,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Balance Sheet")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -193,7 +195,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Balance Sheet")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -205,7 +207,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Balance Sheet")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 
@@ -219,7 +221,7 @@ test.describe('Financial Statements - Production Flow', () => {
 			await page.waitForSelector('h1:has-text("Balance Sheet")', { timeout: 10000 })
 
 			if (!(await hasDataLoaded(page))) {
-				console.log('⚠️  No data available - skipping')
+				logger.warn('⚠️  No data available - skipping')
 				test.skip()
 			}
 

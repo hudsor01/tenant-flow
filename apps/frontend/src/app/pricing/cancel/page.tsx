@@ -30,7 +30,7 @@ export default function CheckoutCancelPage() {
 						className="text-center"
 					>
 						<div className="pb-8">
-							<div className="size-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+							<div className="size-16 bg-muted/30 rounded-full flex-center mx-auto mb-6">
 								<XCircle className="size-8 text-muted-foreground" />
 							</div>
 							<p className="text-xl text-muted-foreground">
@@ -42,7 +42,7 @@ export default function CheckoutCancelPage() {
 						<div className="space-y-6">
 							<div className="bg-muted/50 rounded-lg p-6 text-left">
 								<h3 className="font-semibold mb-4">What happened?</h3>
-								<ul className="space-y-2 text-sm text-muted-foreground">
+								<ul className="space-y-2 text-muted">
 									<li>• You cancelled the checkout process</li>
 									<li>• No payment was processed</li>
 									<li>• Your account remains unchanged</li>
@@ -69,7 +69,7 @@ export default function CheckoutCancelPage() {
 							</div>
 
 							<div className="pt-6 border-t">
-								<p className="text-sm text-muted-foreground mb-4">
+								<p className="text-muted mb-4">
 									Still have questions about our pricing or need help choosing
 									the right plan?
 								</p>

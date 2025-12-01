@@ -1025,6 +1025,100 @@
 	}
 }
 
+/* === SEMANTIC LAYOUT UTILITIES === */
+/* These classes consolidate common patterns for global styling updates */
+
+/* Text & Typography Patterns */
+@utility text-muted {
+	@apply text-sm text-muted-foreground;
+}
+
+@utility text-caption {
+	@apply text-xs text-muted-foreground;
+}
+
+/* Flexbox Patterns */
+@utility flex-center {
+	@apply flex items-center justify-center;
+}
+
+@utility flex-between {
+	@apply flex items-center justify-between;
+}
+
+@utility flex-start {
+	@apply flex items-center;
+}
+
+@utility flex-col-center {
+	@apply flex flex-col items-center justify-center;
+}
+
+/* Card Patterns */
+@utility card-standard {
+	@apply rounded-lg border border-border bg-card shadow-sm;
+}
+
+@utility card-elevated {
+	@apply rounded-xl border border-border bg-card shadow-md;
+}
+
+@utility card-bordered {
+	@apply rounded-2xl border border-border bg-card/50 backdrop-blur-sm;
+}
+
+@utility card-glass {
+	@apply rounded-2xl border border-border/20 bg-background/60 backdrop-blur-lg shadow-2xl;
+}
+
+/* Icon Container Patterns */
+@utility icon-container-sm {
+	@apply size-8 rounded-lg flex-center;
+}
+
+@utility icon-container-md {
+	@apply size-10 rounded-xl flex-center;
+}
+
+@utility icon-container-lg {
+	@apply size-16 rounded-full flex-center;
+}
+
+@utility icon-container-primary {
+	@apply bg-primary/10 text-primary border border-primary/20;
+}
+
+/* Content Container Patterns */
+@utility content-section {
+	@apply space-y-4 p-6;
+}
+
+@utility content-padded {
+	@apply p-8;
+}
+
+@utility content-compact {
+	@apply space-y-2 p-4;
+}
+
+/* Spacing Patterns */
+@utility gap-standard {
+	@apply gap-2;
+}
+
+@utility gap-comfortable {
+	@apply gap-4;
+}
+
+/* Interactive Patterns */
+@utility interactive-item {
+	@apply transition-colors hover:bg-accent/50 rounded-lg p-2 cursor-pointer;
+}
+
+@utility clickable-card {
+	@apply transition-all hover:border-primary/50 hover:shadow-md cursor-pointer;
+}
+
 /* Mobile-Specific Enhancements */
 @media (max-width: 768px) {
 	.mobile-full-width {

@@ -46,7 +46,7 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
   };
 
   return (
-    <div className="flex items-center justify-center p-4">
+    <div className="flex-center p-4">
       <Alert variant="destructive" className="max-w-md w-full">
         <AlertCircle className="size-4" />
         <AlertTitle>{title}</AlertTitle>
@@ -54,7 +54,7 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
           <div className="space-y-2">
             <p>{description}</p>
             {error?.message && (
-              <p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+              <p className="text-muted font-mono bg-muted p-2 rounded">
                 {error.message}
               </p>
             )}
@@ -157,7 +157,7 @@ export const FormMutationErrorBoundary: React.FC<FormMutationErrorBoundaryProps>
   };
 
   return (
-    <div className="flex items-center justify-center p-4">
+    <div className="flex-center p-4">
       <Alert variant="destructive" className="max-w-md w-full">
         <AlertCircle className="size-4" />
         <AlertTitle>{getErrorTitle()}</AlertTitle>
@@ -165,7 +165,7 @@ export const FormMutationErrorBoundary: React.FC<FormMutationErrorBoundaryProps>
           <div className="space-y-2">
             <p>{getErrorDescription()}</p>
             {error?.message && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted">
                 {error.message}
               </p>
             )}

@@ -200,7 +200,7 @@ export default function PayRentPage() {
 						) : paymentMethods.length === 0 ? (
 							<div className="rounded-lg border border-dashed p-4 text-center">
 								<CreditCard className="mx-auto size-8 text-muted-foreground" />
-								<p className="mt-2 text-sm text-muted-foreground">
+								<p className="mt-2 text-muted">
 									No payment methods on file
 								</p>
 								<Button

@@ -247,7 +247,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		return (
 			<>
 					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
-					<p className="text-center text-sm text-muted-foreground">
+					<p className="text-center text-muted">
 						Loading live pricing...
 					</p>
 						<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
@@ -296,7 +296,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 										{plan.features.map((feature, index) => (
 												<li key={index} className="flex items-start gap-[var(--spacing-3)]">
 												<BadgeCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-												<span className="text-sm text-muted-foreground">
+												<span className="text-muted">
 													{feature}
 												</span>
 											</li>
@@ -324,7 +324,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		<>
 				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
 				{usingFallback && (
-					<p className="text-center text-sm text-muted-foreground">
+					<p className="text-center text-muted">
 						Live pricing is warming up. Showing the default TenantFlow plans
 						with active Stripe checkout links.
 					</p>

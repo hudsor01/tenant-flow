@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ROUTES } from '../../constants/routes'
 import { loginAsTenant } from '../../auth-helpers'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
@@ -26,6 +27,7 @@ import {
 
 test.describe('Tenant Dashboard', () => {
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const logger = createLogger({ component: 'TenantDashboardE2E' })
 
   test.beforeEach(async ({ page }) => {
     // Login as tenant and navigate to dashboard
@@ -49,13 +51,13 @@ test.describe('Tenant Dashboard', () => {
 
     // Verify no console errors
     if (errors.length > 0) {
-      console.error('Console errors on tenant dashboard:', errors)
+      logger.error('Console errors on tenant dashboard:', { metadata: { errors } })
     }
     expect(errors).toHaveLength(0)
 
     // Verify no network errors
     if (networkErrors.length > 0) {
-      console.error('Network errors on tenant dashboard:', networkErrors)
+      logger.error('Network errors on tenant dashboard:', { metadata: { networkErrors } })
     }
     expect(networkErrors).toHaveLength(0)
   })

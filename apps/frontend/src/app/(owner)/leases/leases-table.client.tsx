@@ -120,7 +120,7 @@ export function LeasesTable() {
 												<div className="font-medium">
 													Unit {unit.unit_number}
 												</div>
-												<div className="text-sm text-muted-foreground">
+												<div className="text-muted">
 													{unit.bedrooms} bd · {unit.bathrooms} ba
 												</div>
 											</>

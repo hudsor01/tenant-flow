@@ -122,7 +122,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 
 							{/* "+N more" overlay on 4th image if > 4 total */}
 							{hasMore && (
-								<div className="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/70 transition-colors">
+								<div className="absolute inset-0 bg-black/60 flex-center group-hover:bg-black/70 transition-colors">
 									<span className="text-white text-3xl font-bold">
 										+{images.length - 4}
 									</span>
@@ -135,7 +135,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 
 			{/* Image count info */}
 			{images.length > 4 && (
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Showing 4 of {images.length} images
 					{editable && '. Click image to view full gallery.'}
 				</p>

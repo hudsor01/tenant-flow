@@ -99,7 +99,7 @@ const CashFlowPage = () => {
 					return (
 						<div
 							key={index}
-							className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+							className="flex-between p-3 bg-muted/50 rounded-lg"
 						>
 							<div className="flex-1">
 								<div className="font-medium text-foreground">{item.name}</div>
@@ -121,7 +121,7 @@ const CashFlowPage = () => {
 	if (isLoading) {
 		return (
 			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<div>
 						<h1 className="text-3xl font-bold">Cash Flow Statement</h1>
 						<p className="text-muted-foreground">
@@ -156,7 +156,7 @@ const CashFlowPage = () => {
 								{[1, 2, 3].map(j => (
 									<div
 										key={j}
-										className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+										className="flex-between p-3 bg-muted/50 rounded-lg"
 									>
 										<Skeleton className="h-4 w-32" />
 										<Skeleton className="h-6 w-24" />
@@ -173,7 +173,7 @@ const CashFlowPage = () => {
 	if (error) {
 		return (
 			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<div>
 						<h1 className="text-3xl font-bold">Cash Flow Statement</h1>
 						<p className="text-muted-foreground">
@@ -192,19 +192,19 @@ const CashFlowPage = () => {
 		)
 	}
 
-	if (!transformedData) {
+	if (!transformedData || !data?.data) {
 		return null
 	}
 
-	const operatingTotal = data?.data.operatingActivities.netOperatingCash || 0
-	const investingTotal = data?.data.investingActivities.netInvestingCash || 0
-	const financingTotal = data?.data.financingActivities.netFinancingCash || 0
-	const netCashFlow = data?.data.netCashFlow || 0
+	const operatingTotal = data.data.operatingActivities.netOperatingCash || 0
+	const investingTotal = data.data.investingActivities.netInvestingCash || 0
+	const financingTotal = data.data.financingActivities.netFinancingCash || 0
+	const netCashFlow = data.data.netCashFlow || 0
 
 	return (
 		<div className="p-6 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold">Cash Flow Statement</h1>
 					<p className="text-muted-foreground">
@@ -336,7 +336,7 @@ const CashFlowPage = () => {
 					<CardContent className="space-y-6">
 						{renderSection('Operating Activities', transformedData.operating)}
 						<Separator />
-						<div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+						<div className="flex-between p-4 bg-muted/50 rounded-lg">
 							<div className="font-semibold">Net Operating Cash Flow</div>
 							<div className="font-bold text-lg text-success">
 								+${operatingTotal.toLocaleString()}
@@ -356,7 +356,7 @@ const CashFlowPage = () => {
 					<CardContent className="space-y-6">
 						{renderSection('Investing Activities', transformedData.investing)}
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+						<div className="flex-between p-3 bg-red-50 rounded-lg">
 							<div className="font-semibold">Net Investing Cash Flow</div>
 							<div className="font-bold text-lg text-red-600">
 								${investingTotal.toLocaleString()}
@@ -376,7 +376,7 @@ const CashFlowPage = () => {
 					<CardContent className="space-y-6">
 						{renderSection('Financing Activities', transformedData.financing)}
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+						<div className="flex-between p-3 bg-blue-50 rounded-lg">
 							<div className="font-semibold">Net Financing Cash Flow</div>
 							<div className="font-bold text-lg">
 								${financingTotal.toLocaleString()}
@@ -393,7 +393,7 @@ const CashFlowPage = () => {
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-4">
-						<div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+						<div className="flex-between p-4 bg-muted/50 rounded-lg">
 							<div className="text-lg font-semibold">Net Cash Flow</div>
 							<div
 								className={`text-xl font-bold ${netCashFlow >= 0 ? 'text-success' : 'text-red-600'}`}
@@ -406,19 +406,19 @@ const CashFlowPage = () => {
 								<div className="text-2xl font-bold text-success">
 									+${operatingTotal.toLocaleString()}
 								</div>
-								<div className="text-sm text-muted-foreground">Operating</div>
+								<div className="text-muted">Operating</div>
 							</div>
 							<div className="text-center p-4 bg-red-50 rounded-lg">
 								<div className="text-2xl font-bold text-red-600">
 									${investingTotal.toLocaleString()}
 								</div>
-								<div className="text-sm text-muted-foreground">Investing</div>
+								<div className="text-muted">Investing</div>
 							</div>
 							<div className="text-center p-4 bg-blue-50 rounded-lg">
 								<div className="text-2xl font-bold">
 									${financingTotal.toLocaleString()}
 								</div>
-								<div className="text-sm text-muted-foreground">Financing</div>
+								<div className="text-muted">Financing</div>
 							</div>
 						</div>
 					</div>

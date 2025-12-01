@@ -6,7 +6,8 @@
  * table does not exist. This service now focuses on retry logic only.
  */
 
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
+import type { OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common'
 
 @Injectable()
 export class FailedNotificationsService implements OnModuleDestroy {

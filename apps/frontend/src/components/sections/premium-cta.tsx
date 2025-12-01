@@ -96,7 +96,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									<div className="text-lg font-semibold text-foreground mb-1">
 										No Setup Fees
 									</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="text-muted">
 										Start immediately with zero upfront costs
 									</div>
 								</div>
@@ -108,7 +108,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									<div className="text-lg font-semibold text-foreground mb-1">
 										ROI in 30 Days
 									</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="text-muted">
 										See measurable results within first month
 									</div>
 								</div>

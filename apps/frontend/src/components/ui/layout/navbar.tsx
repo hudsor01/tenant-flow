@@ -270,7 +270,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 					className="h-full bg-[--color-accent-main] transition-all duration-150 ease-out"
 					style={{ width: `${scrollProgress}%` }}
 				/>
-			</div>				<div className="flex items-center justify-between">
+			</div>				<div className="flex-between">
 					{/* Logo */}
 					<animated.div
 						style={logoSpring}
@@ -278,7 +278,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 						onMouseLeave={() => setLogoHover(false)}
 						className="flex items-center space-x-2"
 					>
-						<div className="size-11 rounded-lg overflow-hidden bg-background border border-border flex items-center justify-center">
+						<div className="size-11 rounded-lg overflow-hidden bg-background border border-border flex-center">
 							<Image
 								src="/tenant-flow-logo.png"
 								alt="TenantFlow"
@@ -442,7 +442,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												href={item.href}
 												onClick={() => !item.hasDropdown && closeMobileMenu()}
 												className={cn(
-													'relative flex items-center justify-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200',
+													'relative flex-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200',
 													isActiveLink(item.href) &&
 														'text-foreground bg-muted/50 border-l-2 border-l-[--color-accent-main]'
 												)}
@@ -546,7 +546,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 											<Link
 												href={ctaHref}
 												onClick={() => closeMobileMenu()}
-												className="flex items-center justify-center w-full px-6 py-3 mt-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
+												className="flex-center w-full px-6 py-3 mt-4 bg-linear-to-r from-primary to-primary/80 text-primary-foreground font-medium text-sm rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg"
 											>
 												{ctaText}
 												<ArrowRight className="ml-2 size-4" />
