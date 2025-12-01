@@ -106,7 +106,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 				<CardFooter className="border-t bg-muted/20 pt-4">
 					<div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						{/* Left side - Quick info */}
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<div className="flex items-center gap-2 text-muted">
 							<span className="font-medium">
 								{stats.occupancyRate?.toFixed(0) ?? 0}% occupancy
 							</span>

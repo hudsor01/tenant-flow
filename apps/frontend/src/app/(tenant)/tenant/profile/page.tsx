@@ -301,7 +301,7 @@ export default function TenantProfilePage() {
 							disabled
 							required
 						/>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-muted mt-1">
 							Email cannot be changed. Contact support if needed.
 						</p>
 					</Field>
@@ -572,12 +572,12 @@ export default function TenantProfilePage() {
 				description="Manage your password and security settings"
 			>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between p-4 border rounded-lg">
+					<div className="flex-between p-4 border rounded-lg">
 						<div className="flex items-center gap-3">
 							<Shield className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Password</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Last changed:{' '}
 									{user?.last_sign_in_at
 										? new Date(user.last_sign_in_at).toLocaleDateString()

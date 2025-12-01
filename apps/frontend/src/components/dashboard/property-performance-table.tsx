@@ -15,7 +15,7 @@ import {
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters'
 
 // Inline helpers using CSS classes from globals.css
 const getOccupancyBadgeClass = (rate: number): string => {
@@ -145,7 +145,7 @@ function PropertyPerformanceTableContent() {
 											</Avatar>
 											<div>
 												<div className="font-medium">{property.property}</div>
-												<div className="text-sm text-muted-foreground">
+												<div className="text-muted">
 													{property.address_line1}
 												</div>
 											</div>
@@ -156,7 +156,7 @@ function PropertyPerformanceTableContent() {
 											<div className="font-medium">
 												{property.occupiedUnits}/{property.totalUnits}
 											</div>
-											<div className="text-sm text-muted-foreground">
+											<div className="text-muted">
 												occupied
 											</div>
 										</div>
@@ -173,7 +173,7 @@ function PropertyPerformanceTableContent() {
 										<div className="font-medium">
 											{formatCurrency(property.monthlyRevenue || 0)}
 										</div>
-										<div className="text-sm text-muted-foreground">monthly</div>
+										<div className="text-muted">monthly</div>
 									</TableCell>
 									<TableCell>
 										<div

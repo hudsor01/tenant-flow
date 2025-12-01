@@ -68,14 +68,14 @@ export function MobileOnboarding() {
 	const Icon = currentStep.icon
 
 	return (
-		<div className="fixed inset-0 z-60 flex items-center justify-center bg-background/95 px-4 py-6 md:hidden">
+		<div className="fixed inset-0 z-60 flex-center bg-background/95 px-4 py-6 md:hidden">
 			<Card className="w-full max-w-sm rounded-3xl">
 				<CardHeader className="text-center space-y-4">
 					<div className={cn('mx-auto rounded-full bg-primary/10 p-4', currentStep.color)}>
 						<Icon className="size-8" aria-hidden />
 					</div>
 					<CardTitle className="text-xl font-semibold">{currentStep.title}</CardTitle>
-					<p className="text-sm text-muted-foreground">{currentStep.description}</p>
+					<p className="text-muted">{currentStep.description}</p>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex justify-center gap-2">

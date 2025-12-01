@@ -15,7 +15,7 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { PaymentHistoryItem, usePaymentHistory } from '#hooks/api/use-payment-history'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCurrency } from '@repo/shared/utils/formatting'
+import { formatCurrency } from '#lib/formatters'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -48,7 +48,7 @@ export default function TenantPaymentHistoryPage() {
 
 	return (
 		<div className="space-y-8">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
 					<p className="text-muted-foreground">
@@ -76,7 +76,7 @@ export default function TenantPaymentHistoryPage() {
 									{formatCurrency(totalPaid)}
 								</p>
 							)}
-							<p className="text-sm text-muted-foreground mt-1">All time</p>
+							<p className="text-muted mt-1">All time</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -94,7 +94,7 @@ export default function TenantPaymentHistoryPage() {
 							) : (
 								<p className="text-muted-foreground">No payments yet</p>
 							)}
-							<p className="text-sm text-muted-foreground mt-1">Date</p>
+							<p className="text-muted mt-1">Date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -104,7 +104,7 @@ export default function TenantPaymentHistoryPage() {
 						<Calendar className="size-8 text-accent-main" />
 						<div>
 							<Skeleton className="h-8 w-24" />
-							<p className="text-sm text-muted-foreground mt-1">Due date</p>
+							<p className="text-muted mt-1">Due date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -144,7 +144,7 @@ export default function TenantPaymentHistoryPage() {
 							>
 								<div>
 									<p className="font-medium">{payment.formattedDate}</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										{payment.description || 'Monthly Rent'}
 									</p>
 								</div>
@@ -209,7 +209,7 @@ export default function TenantPaymentHistoryPage() {
 						paymentMethods.map(method => (
 							<div
 								key={method.id}
-								className="flex items-center justify-between p-4 border rounded-lg"
+								className="flex-between p-4 border rounded-lg"
 							>
 								<div className="flex items-center gap-3">
 									<CreditCard className="size-5 text-accent-main" />
@@ -217,7 +217,7 @@ export default function TenantPaymentHistoryPage() {
 										<p className="font-medium">
 											{method.brand || 'Card'} •••• {method.last4}
 										</p>
-										<p className="text-sm text-muted-foreground capitalize">
+										<p className="text-muted capitalize">
 											{method.type.replace('_', ' ')}
 										</p>
 									</div>

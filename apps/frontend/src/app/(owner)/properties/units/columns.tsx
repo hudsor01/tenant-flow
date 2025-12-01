@@ -44,8 +44,7 @@ import {
 	inputClasses
 } from '#lib/design-system'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { UnitStats } from '@repo/shared/types/core'
-import type { UnitRow } from '@repo/shared/types/frontend'
+import type { UnitStats, UnitRowWithRelations as UnitRow, UnitStatus } from '@repo/shared/types/core'
 import type { Column, ColumnDef } from '@tanstack/react-table'
 import {
 	AlertTriangle,
@@ -75,8 +74,6 @@ import { toast } from 'sonner'
 
 // Re-export UnitRow for use in other components
 export type { UnitRow }
-
-type UnitStatus = 'OCCUPIED' | 'VACANT' | 'MAINTENANCE' | 'RESERVED'
 
 // Enhanced sortable header component with professional design
 interface SortableHeaderProps {
@@ -117,7 +114,7 @@ function SortableHeader({
 		>
 			<div className="flex items-center gap-2">
 				{children}
-				<div className="size-4 flex items-center justify-center">
+				<div className="size-4 flex-center">
 					{sortDirection === 'desc' ? (
 						<ArrowDown
 							className={cn(
@@ -279,7 +276,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 
 	return (
 		<>
-			<div className="flex items-center justify-center">
+			<div className="flex-center">
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button
@@ -562,7 +559,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 
 			return (
 				<div className="text-center space-y-1">
-					<div className="flex items-center justify-center gap-3">
+					<div className="flex-center gap-3">
 						<div className="flex items-center gap-1">
 							<Bed className="size-3 text-muted-foreground" />
 							<span className="font-medium" style={TYPOGRAPHY_SCALE['body-md']}>
@@ -577,7 +574,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 						</div>
 					</div>
 					{square_feet && (
-						<div className="flex items-center justify-center gap-1">
+						<div className="flex-center gap-1">
 							<Maximize2 className="size-3 text-muted-foreground" />
 							<span
 								className="text-muted-foreground text-xs"

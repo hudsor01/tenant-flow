@@ -1,13 +1,15 @@
-import {
+import type {
 	CallHandler,
 	ExecutionContext,
+	NestInterceptor} from '@nestjs/common';
+import {
 	Injectable,
 	Logger,
-	NestInterceptor,
 	RequestTimeoutException
 } from '@nestjs/common'
 import type { Request } from 'express'
-import { Observable, TimeoutError, catchError, throwError, timeout } from 'rxjs'
+import type { Observable} from 'rxjs';
+import { TimeoutError, catchError, throwError, timeout } from 'rxjs'
 import { AppConfigService } from '../config/app-config.service'
 
 // Simple global timeout to catch unusually slow handlers

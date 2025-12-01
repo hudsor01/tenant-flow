@@ -1,128 +1,24 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { ErrorBoundary } from '#components/ui/error-boundary'
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react'
-import { cn } from '#lib/utils'
+import { MetricCard } from '#components/dashboard/metric-card'
 import type { MetricTrend } from '@repo/shared/types/dashboard-repository'
+import { type LucideIcon } from 'lucide-react'
+import { type ReactNode } from 'react'
 
-interface TrendCardProps {
+export type TrendCardProps = {
   title: string
   metric: MetricTrend | null | undefined
   isLoading?: boolean
   valueFormatter?: (value: number) => string
   className?: string
+  comparisonLabel?: string
+  changeLabel?: string
+  emptyLabel?: string
+  icon?: LucideIcon
+  badge?: ReactNode
+  testId?: string
 }
 
-interface TrendCardContentProps {
-  title: string
-  metric: MetricTrend | null | undefined
-  isLoading: boolean
-  valueFormatter: (value: number) => string
-  className?: string
-}
-
-export function TrendCard({
-  title,
-  metric,
-  isLoading = false,
-  valueFormatter = (v) => v.toString(),
-  className,
-}: TrendCardProps) {
-  return (
-    <ErrorBoundary
-      fallback={
-        <Card className={cn('dashboard-card-surface', className)}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">--</div>
-            <p className="text-xs text-muted-foreground">Error loading data</p>
-          </CardContent>
-        </Card>
-      }
-    >
-      <TrendCardContent
-        title={title}
-        metric={metric}
-        isLoading={isLoading}
-        valueFormatter={valueFormatter}
-        {...(className && { className })}
-      />
-    </ErrorBoundary>
-  )
-}
-
-function TrendCardContent({
-  title,
-  metric,
-  isLoading,
-  valueFormatter = (v) => v.toString(),
-  className,
-}: TrendCardContentProps) {
-  if (isLoading) {
-    return (
-      <Card className={cn('dashboard-card-surface animate-pulse', className)}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-8 w-24 bg-muted rounded" />
-          <div className="mt-2 h-4 w-32 bg-muted rounded" />
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!metric) {
-    return (
-      <Card className={cn('dashboard-card-surface', className)}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">--</div>
-          <p className="text-xs text-muted-foreground">No data available</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const { current, change, percentChange } = metric
-  const isPositive = (change ?? 0) > 0
-  const isNegative = (change ?? 0) < 0
-  const isNeutral = (change ?? 0) === 0
-
-  const TrendIcon = isPositive ? ArrowUp : isNegative ? ArrowDown : Minus
-  const trendColor = isPositive
-    ? 'text-success'
-    : isNegative
-      ? 'text-destructive'
-      : 'text-muted-foreground'
-
-  return (
-    <Card className={cn('dashboard-card-surface', className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <TrendIcon className={cn('h-4 w-4', trendColor)} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{valueFormatter(current ?? 0)}</div>
-        <div className="flex items-center gap-1 mt-1">
-          <span className={cn('text-xs font-medium', trendColor)}>
-            {isPositive && '+'}
-            {(percentChange ?? 0).toFixed(1)}%
-          </span>
-          <span className="text-xs text-muted-foreground">vs last month</span>
-        </div>
-        {!isNeutral && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {isPositive ? '+' : ''}
-            {valueFormatter(change ?? 0)} from previous period
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  )
+export function TrendCard(props: TrendCardProps) {
+  return <MetricCard variant="trend" {...props} />
 }

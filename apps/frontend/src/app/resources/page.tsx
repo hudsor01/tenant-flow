@@ -175,13 +175,13 @@ export default function ResourcesPage() {
 								href={link.href}
 								className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
 							>
-								<div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
+								<div className="size-12 rounded-xl bg-primary/10 flex-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
 									{link.icon}
 								</div>
 								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
 									{link.title}
 								</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									{link.description}
 								</p>
 							</Link>
@@ -214,7 +214,7 @@ export default function ResourcesPage() {
 								>
 									<div className="flex items-start gap-(--spacing-6)">
 										<div
-											className={`size-16 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${resource.iconColor}`}
+											className={`size-16 rounded-2xl bg-card border border-border flex-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${resource.iconColor}`}
 										>
 											{resource.icon}
 										</div>
@@ -308,7 +308,7 @@ export default function ResourcesPage() {
 						</div>
 
 						{/* Trust Indicators */}
-						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-sm text-muted-foreground">
+						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-muted">
 							<div className="flex items-center gap-2">
 								<Clock className="size-4" />
 								<span>24-48h response time</span>

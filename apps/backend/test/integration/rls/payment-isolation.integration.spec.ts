@@ -104,7 +104,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('tenant A can only see their own payments', async () => {
 			if (!tenantA) {
-				console.warn('[SKIP] Tenant A not available')
+				testLogger.warn('[SKIP] Tenant A not available')
 				return
 			}
 			const { data, error } = await tenantA.client
@@ -124,7 +124,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('tenant A cannot see tenant B payments', async () => {
 			if (!tenantA || !tenantB) {
-				console.warn('[SKIP] Tenant A or B not available')
+				testLogger.warn('[SKIP] Tenant A or B not available')
 				return
 			}
 			const { data, error } = await tenantA.client
@@ -138,7 +138,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('tenant cannot see owner payments for other properties', async () => {
 			if (!tenantA) {
-				console.warn('[SKIP] Tenant A not available')
+				testLogger.warn('[SKIP] Tenant A not available')
 				return
 			}
 			const { data, error } = await tenantA.client
@@ -154,7 +154,7 @@ describe('RLS: Payment Isolation', () => {
 	describe('INSERT Policy: Service user_type Only', () => {
 		it('authenticated user (owner) CANNOT insert payments', async () => {
 			if (!tenantA || !testlease_id) {
-				console.warn('[SKIP] Tenant A or test lease not available')
+				testLogger.warn('[SKIP] Tenant A or test lease not available')
 				return
 			}
 
@@ -182,7 +182,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('authenticated user (tenant) CANNOT insert payments', async () => {
 			if (!tenantA || !testlease_id) {
-				console.warn('[SKIP] Tenant A or test lease not available')
+				testLogger.warn('[SKIP] Tenant A or test lease not available')
 				return
 			}
 
@@ -210,7 +210,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('service user_type CAN insert payments', async () => {
 			if (!tenantA || !testlease_id) {
-				console.warn('[SKIP] Tenant A or test lease not available')
+				testLogger.warn('[SKIP] Tenant A or test lease not available')
 				return
 			}
 
@@ -251,7 +251,7 @@ describe('RLS: Payment Isolation', () => {
 
 		beforeAll(async () => {
 			if (!tenantA || !testlease_id) {
-				console.warn('[SKIP] Tenant A or test lease not available - UPDATE tests will be skipped')
+				testLogger.warn('[SKIP] Tenant A or test lease not available - UPDATE tests will be skipped')
 				return
 			}
 
@@ -282,7 +282,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('authenticated user (owner) CANNOT update payments', async () => {
 			if (!testPaymentId) {
-				console.warn('[SKIP] Test payment not created')
+				testLogger.warn('[SKIP] Test payment not created')
 				return
 			}
 
@@ -299,7 +299,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('authenticated user (tenant) CANNOT update payments', async () => {
 			if (!tenantA || !testPaymentId) {
-				console.warn('[SKIP] Tenant A or test payment not available')
+				testLogger.warn('[SKIP] Tenant A or test payment not available')
 				return
 			}
 
@@ -316,7 +316,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('service user_type CAN update payments', async () => {
 			if (!testPaymentId) {
-				console.warn('[SKIP] Test payment not created')
+				testLogger.warn('[SKIP] Test payment not created')
 				return
 			}
 
@@ -338,7 +338,7 @@ describe('RLS: Payment Isolation', () => {
 
 		beforeAll(async () => {
 			if (!tenantA || !testlease_id) {
-				console.warn('[SKIP] Tenant A or test lease not available - DELETE tests will be skipped')
+				testLogger.warn('[SKIP] Tenant A or test lease not available - DELETE tests will be skipped')
 				return
 			}
 
@@ -369,7 +369,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('authenticated user (owner) CANNOT delete payments', async () => {
 			if (!testPaymentId) {
-				console.warn('[SKIP] Test payment not created')
+				testLogger.warn('[SKIP] Test payment not created')
 				return
 			}
 
@@ -385,7 +385,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('authenticated user (tenant) CANNOT delete payments', async () => {
 			if (!tenantA || !testPaymentId) {
-				console.warn('[SKIP] Tenant A or test payment not available')
+				testLogger.warn('[SKIP] Tenant A or test payment not available')
 				return
 			}
 
@@ -401,7 +401,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('service user_type CAN delete payments (cleanup only)', async () => {
 			if (!testPaymentId) {
-				console.warn('[SKIP] Test payment not created')
+				testLogger.warn('[SKIP] Test payment not created')
 				return
 			}
 
@@ -421,7 +421,7 @@ describe('RLS: Payment Isolation', () => {
 	describe('Cross-Tenant Payment Spoofing Prevention', () => {
 		it('tenant cannot create payment with another tenant ID', async () => {
 			if (!tenantA || !tenantB || !testlease_id) {
-				console.warn('[SKIP] Tenant A, B, or test lease not available')
+				testLogger.warn('[SKIP] Tenant A, B, or test lease not available')
 				return
 			}
 			// Tenant A tries to create payment claiming to be Tenant B
@@ -449,7 +449,7 @@ describe('RLS: Payment Isolation', () => {
 
 		it('owner cannot create payment for another owner', async () => {
 			if (!tenantA || !testlease_id) {
-				console.warn('[SKIP] Tenant A or test lease not available')
+				testLogger.warn('[SKIP] Tenant A or test lease not available')
 				return
 			}
 

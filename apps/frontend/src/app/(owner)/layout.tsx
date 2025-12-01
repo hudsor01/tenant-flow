@@ -1,4 +1,5 @@
 import { OwnerDashboardLayout } from './owner-dashboard-layout'
+import ModalLayout from '#components/ui/layout/modal-layout'
 import type { ReactNode } from 'react'
 
 /**
@@ -8,11 +9,22 @@ import type { ReactNode } from 'react'
  * - Proxy enforces auth and role validation
  * - This layout only renders UI components
  * - No auth checks needed (proxy guarantees OWNER role)
+ *
+ * Modal Support:
+ * - Enables intercepting routes for modal-based navigation across all owner routes
+ * - Child routes (properties, tenants, leases, etc.) inherit this modal capability
+ * - No need for individual layout files in child routes
  */
 export default function OwnerLayout({
-	children
+	children,
+	modal
 }: {
 	children: ReactNode
+	modal?: ReactNode
 }) {
-	return <OwnerDashboardLayout>{children}</OwnerDashboardLayout>
+	return (
+		<OwnerDashboardLayout>
+			<ModalLayout modal={modal}>{children}</ModalLayout>
+		</OwnerDashboardLayout>
+	)
 }

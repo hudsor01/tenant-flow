@@ -49,7 +49,7 @@ export function MiniTrendChart({
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[80px] flex items-center justify-center">
+          <div className="h-[80px] flex-center">
             <p className="text-xs text-muted-foreground">No trend data available</p>
           </div>
         </CardContent>

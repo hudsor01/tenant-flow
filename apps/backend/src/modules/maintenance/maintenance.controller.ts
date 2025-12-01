@@ -24,8 +24,8 @@ import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/s
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
-import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
-import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
+import type { CreateMaintenanceDto } from './dto/create-maintenance.dto'
+import type { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 
 @Controller('maintenance')
 export class MaintenanceController {

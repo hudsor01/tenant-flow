@@ -18,7 +18,7 @@ import {
 } from '#components/ui/table'
 import { getFinancialAnalyticsPageData } from '#lib/api/analytics-page'
 import { serverFetch } from '#lib/api/server'
-import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
+import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters'
 import type {
 	FinancialBreakdownRow,
 	LeaseFinancialInsight
@@ -31,8 +31,8 @@ import {
 	NetOperatingIncomeChart,
 	RevenueExpenseChart
 } from './financial-charts'
-import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
+import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
@@ -62,7 +62,7 @@ function BreakdownList({
 }) {
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<p className="text-sm font-medium text-muted-foreground">{title}</p>
 				<Link
 					className="text-xs text-muted-foreground underline-offset-2 hover:underline"
@@ -75,13 +75,13 @@ function BreakdownList({
 				{rows.slice(0, 5).map(item => (
 					<div
 						key={`${title}-${item.label}`}
-						className="flex items-center justify-between"
+						className="flex-between"
 					>
 						<div className="flex items-center gap-2">
 							<span className="text-sm font-medium">{item.label}</span>
 							{item.change !== null && <TrendPill value={item.change} />}
 						</div>
-						<div className="text-sm text-muted-foreground">
+						<div className="text-muted">
 							{formatCurrency(item.value)}
 						</div>
 					</div>
@@ -95,7 +95,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	if (!leases.length) {
 		return (
 			<div className="flex min-h-50 flex-col items-center justify-center rounded-lg border border-dashed">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					We couldn&apos;t find leases with financial analytics yet.
 				</p>
 			</div>
@@ -176,7 +176,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 						<div className="flex flex-wrap items-center gap-3">
 							<ExportButtons filename="financial-analytics" payload={data} />
 							<a
-								className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+								className="inline-flex items-center gap-2 text-muted hover:text-foreground"
 								href="#"
 							>
 								<FileDown className="size-4" />
@@ -326,7 +326,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 									{invoiceSummary.map(status => (
 										<div
 											key={status.status}
-											className="flex items-center justify-between"
+											className="flex-between"
 										>
 											<div className="flex items-center gap-2">
 												<span className="text-sm font-medium">

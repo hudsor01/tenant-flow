@@ -124,7 +124,7 @@ export function MaintenanceActionButtons({
 						{maintenance.description && (
 							<div className="space-y-2">
 								<h4 className="font-medium">Description</h4>
-								<p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+								<p className="text-muted bg-muted p-3 rounded-lg">
 									{maintenance.description}
 								</p>
 							</div>
@@ -137,7 +137,7 @@ export function MaintenanceActionButtons({
 									<MapPin className="size-4 text-muted-foreground" />
 									<div>
 										<p className="text-sm font-medium">Property</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											{maintenance.property?.name || 'No Property'}
 										</p>
 									</div>
@@ -146,12 +146,12 @@ export function MaintenanceActionButtons({
 
 							{maintenance.unit_id && (
 								<div className="flex items-center gap-2">
-									<div className="size-4 rounded bg-muted flex items-center justify-center">
+									<div className="size-4 rounded bg-muted flex-center">
 										<span className="text-xs font-bold">#</span>
 									</div>
 									<div>
 										<p className="text-sm font-medium">Unit</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Unit {maintenance.unit_id}
 										</p>
 									</div>
@@ -165,7 +165,7 @@ export function MaintenanceActionButtons({
 								<DollarSign className="size-4 text-muted-foreground" />
 								<div>
 									<p className="text-sm font-medium">Estimated Cost</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										${maintenance.estimated_cost.toLocaleString()}
 									</p>
 								</div>
@@ -178,7 +178,7 @@ export function MaintenanceActionButtons({
 							<Calendar className="size-4 text-muted-foreground" />
 							<div>
 								<p className="text-sm font-medium">Created</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									{maintenance.created_at
 										? new Date(maintenance.created_at).toLocaleDateString()
 										: 'No date'}

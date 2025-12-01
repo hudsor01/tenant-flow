@@ -7,9 +7,10 @@ async function MaintenanceDetailsWrapper({ params }: { params: Promise<{ id: str
 	return <MaintenanceDetails id={id} />
 }
 
-export default function MaintenanceDetailPage({
+export default async function MaintenanceDetailPage({
 	params
 }: PageProps<'/maintenance/[id]'>) {
+	const resolvedParams = await params
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -21,7 +22,7 @@ export default function MaintenanceDetailPage({
 				</p>
 			</div>
 			<Suspense fallback={<Skeleton className="h-96 w-full" />}>
-				<MaintenanceDetailsWrapper params={params} />
+				<MaintenanceDetailsWrapper params={Promise.resolve(resolvedParams)} />
 			</Suspense>
 		</div>
 	)

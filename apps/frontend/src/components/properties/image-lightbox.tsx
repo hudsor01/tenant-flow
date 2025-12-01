@@ -87,7 +87,7 @@ export function ImageLightbox({
 				</DialogClose>
 
 				{/* Main image container */}
-				<div className="relative flex items-center justify-center min-h-[400px] w-full">
+				<div className="relative flex-center min-h-[400px] w-full">
 					<Image
 						src={currentImage.image_url}
 						alt={`Property image ${currentIndex + 1}`}

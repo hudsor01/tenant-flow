@@ -22,6 +22,7 @@ export interface TenantStats extends BaseStats {
 	active: number
 	inactive: number
 	newThisMonth: number
+	pending?: number
 	// Additional fields used by frontend
 	totalTenants?: number
 	activeTenants?: number

@@ -34,7 +34,7 @@ export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 	if (isMobile) {
 		return (
 			<div className="space-y-4">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<h2 className="text-xl font-semibold">Portfolio</h2>
 				</div>
 				<PullToRefresh onRefresh={handleRefresh}>
@@ -46,7 +46,7 @@ export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<h2 className="text-xl font-semibold">Portfolio</h2>
 				<ViewSwitcher
 					currentView={currentView}

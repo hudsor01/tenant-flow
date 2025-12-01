@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
-import { AiService } from './ai.service'
 import { ExportService } from './export.service'
 import { ReportsController } from './reports.controller'
 import { ReportsService } from './reports.service'
@@ -16,7 +15,6 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 	imports: [AnalyticsModule, SupabaseModule],
 	controllers: [ReportsController],
 	providers: [
-		AiService,
 		ExportService,
 		ReportsService,
 		ExecutiveMonthlyTemplate,
@@ -27,7 +25,6 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 		TaxPreparationTemplate
 	],
 	exports: [
-		AiService,
 		ExportService,
 		ReportsService
 	]

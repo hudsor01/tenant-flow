@@ -111,7 +111,7 @@ export default function UnitsPage() {
 					<h2 className="text-lg font-semibold text-destructive">
 						Error Loading Units
 					</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						{error instanceof Error ? error.message : 'Failed to load units'}
 					</p>
 				</div>
@@ -122,7 +122,7 @@ export default function UnitsPage() {
 	return (
 		<div className="container py-8 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Units</h1>
 					<p className="text-muted-foreground">
@@ -159,7 +159,7 @@ export default function UnitsPage() {
 					</SelectContent>
 				</Select>
 
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted">
 					{total} unit{total !== 1 ? 's' : ''} found
 				</div>
 			</div>
@@ -168,13 +168,13 @@ export default function UnitsPage() {
 			{isLoading ? (
 				<div className="rounded-lg border p-8 text-center">
 					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-					<p className="mt-2 text-sm text-muted-foreground">Loading units...</p>
+					<p className="mt-2 text-muted">Loading units...</p>
 				</div>
 			) : units?.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<Home className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No units found</h3>
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						{search || statusFilter !== 'all'
 							? 'Try adjusting your filters'
 							: 'Get started by creating your first unit'}
@@ -202,7 +202,7 @@ export default function UnitsPage() {
 										{unit.unit_number}
 									</TableCell>
 									<TableCell>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											Property ID: {unit.property_id.substring(0, 8)}...
 										</span>
 									</TableCell>

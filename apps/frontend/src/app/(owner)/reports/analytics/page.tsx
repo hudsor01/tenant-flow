@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
 				className="border-b bg-background p-6 border-(--color-fill-tertiary)"
 			>
 				<div className="mx-auto max-w-400 py-4">
-					<div className="flex items-center justify-between mb-4">
+					<div className="flex-between mb-4">
 						<div>
 							<h1 className="text-3xl font-bold">Analytics Dashboard</h1>
 							<p className="text-muted-foreground mt-1">
@@ -317,7 +317,7 @@ export default function AnalyticsPage() {
 									</AreaChart>
 								</ResponsiveContainer>
 							) : (
-								<div className="h-80 flex items-center justify-center text-muted-foreground">
+								<div className="h-80 flex-center text-muted-foreground">
 									No revenue data available
 								</div>
 							)}
@@ -374,7 +374,7 @@ export default function AnalyticsPage() {
 										</BarChart>
 									</ResponsiveContainer>
 								) : (
-									<div className="h-64 flex items-center justify-center text-muted-foreground">
+									<div className="h-64 flex-center text-muted-foreground">
 										No payment data available
 									</div>
 								)}
@@ -432,7 +432,7 @@ export default function AnalyticsPage() {
 										</LineChart>
 									</ResponsiveContainer>
 								) : (
-									<div className="h-64 flex items-center justify-center text-muted-foreground">
+									<div className="h-64 flex-center text-muted-foreground">
 										No occupancy data available
 									</div>
 								)}

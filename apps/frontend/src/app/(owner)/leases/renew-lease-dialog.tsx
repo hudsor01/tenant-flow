@@ -29,7 +29,7 @@ interface RenewLeaseDialogProps {
 /**
  * Format currency for display
  */
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters'
 
 /**
  * Main dialog component for lease renewal
@@ -214,7 +214,7 @@ export function RenewLeaseDialog({
 
 							{/* Rent Adjustment Toggle */}
 							<div className="space-y-3">
-								<div className="flex items-center justify-between">
+								<div className="flex-between">
 									<Label className="text-label-secondary text-xs font-medium uppercase tracking-[0.01em]">
 										Rent Adjustment
 									</Label>

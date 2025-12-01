@@ -1,11 +1,12 @@
-import {
-	Injectable,
+import type {
 	NestInterceptor,
 	ExecutionContext,
-	CallHandler,
+	CallHandler} from '@nestjs/common';
+import {
+	Injectable,
 	Logger
 } from '@nestjs/common'
-import { Observable } from 'rxjs'
+import type { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 

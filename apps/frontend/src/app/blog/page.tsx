@@ -60,13 +60,13 @@ export default function BlogPage() {
 									<div className="flex items-center gap-(--spacing-6) mb-6">
 										<div className="flex items-center gap-2">
 											<Clock className="size-4 text-accent" />
-											<span className="text-sm text-muted-foreground">
+											<span className="text-muted">
 												15 min to implement
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<Users className="size-4 text-primary" />
-											<span className="text-sm text-muted-foreground">
+											<span className="text-muted">
 												$2.4M+ saved by readers
 											</span>
 										</div>
@@ -81,7 +81,7 @@ export default function BlogPage() {
 										<div className="text-4xl font-bold text-primary mb-2">
 											40%
 										</div>
-										<p className="text-sm text-muted-foreground mb-4">
+										<p className="text-muted mb-4">
 											Average NOI Increase
 										</p>
 
@@ -156,7 +156,7 @@ export default function BlogPage() {
 									className="bg-card p-8 rounded-lg border border-border/50 shadow-md transition-all duration-300 text-center group hover:-translate-y-1"
 								>
 									<div
-										className={`size-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
+										className={`size-16 rounded-2xl flex-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
 									>
 										<category.icon
 											className={`size-8 ${category.color.split(' ')[1]}`}
@@ -194,8 +194,8 @@ export default function BlogPage() {
 									href={`/blog/${post.slug}`}
 									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 								>
-									<div className="flex items-center justify-between mb-4">
-										<div className="text-sm text-muted-foreground">
+									<div className="flex-between mb-4">
+										<div className="text-muted">
 											{post.readTime}
 										</div>
 									</div>
@@ -208,11 +208,11 @@ export default function BlogPage() {
 										{post.excerpt}
 									</p>
 
-									<div className="flex items-center justify-between">
+									<div className="flex-between">
 										<div className="text-sm font-semibold text-primary">
 											Read Article
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted">
 											{post.date}
 										</div>
 									</div>

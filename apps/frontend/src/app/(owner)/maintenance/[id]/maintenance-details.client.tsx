@@ -64,7 +64,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 							<Wrench className="size-5 text-primary" />
 							{request.description ?? 'Maintenance Request'}
 						</CardTitle>
-						<div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+						<div className="flex flex-wrap gap-2 text-muted">
 							<Badge variant="outline">{request.status}</Badge>
 							<Badge variant="secondary">{request.priority}</Badge>
 						</div>
@@ -87,7 +87,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 
 					<section className="grid gap-(--spacing-4) md:grid-cols-2">
 						<div className="rounded-xl border bg-muted/20 p-4">
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2 text-muted">
 								<MapPin className="size-4" />
 								Property
 							</div>
@@ -95,14 +95,14 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 								{property?.name ?? 'Unassigned property'}
 							</p>
 							{unit ? (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Unit {unit.unit_number}
 								</p>
 							) : null}
 						</div>
 
 						<div className="rounded-xl border bg-muted/20 p-4">
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2 text-muted">
 								<Calendar className="size-4" />
 								Scheduled date
 							</div>

@@ -31,7 +31,7 @@ function RadioGroupItem({
       {...props}
     >
       <RadioGroupPrimitive.Indicator
-        className="relative flex items-center justify-center"
+        className="relative flex-center"
       >
         <CircleIcon className="fill-primary absolute top-1/2 left-1/2 size-2 translate-x-[-50%] translate-y-[-50%]" />
       </RadioGroupPrimitive.Indicator>

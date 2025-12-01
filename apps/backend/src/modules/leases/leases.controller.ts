@@ -26,8 +26,8 @@ import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeasesService } from './leases.service'
 import { LeaseSignatureService } from './lease-signature.service'
-import { CreateLeaseDto } from './dto/create-lease.dto'
-import { UpdateLeaseDto } from './dto/update-lease.dto'
+import type { CreateLeaseDto } from './dto/create-lease.dto'
+import type { UpdateLeaseDto } from './dto/update-lease.dto'
 
 @Controller('leases')
 export class LeasesController {

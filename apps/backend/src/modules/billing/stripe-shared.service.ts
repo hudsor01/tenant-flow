@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { createHmac } from 'crypto'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { AppConfigService } from '../../config/app-config.service'
 
 /**

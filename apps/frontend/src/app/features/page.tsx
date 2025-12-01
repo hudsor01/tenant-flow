@@ -78,7 +78,7 @@ const FinancialDashboard = () => (
 		<div className="absolute top-4 left-4 right-4 space-y-3">
 			{/* Revenue Chart */}
 			<div className="bg-card/90 rounded-lg p-3 shadow-sm">
-				<div className="flex items-center justify-between mb-2">
+				<div className="flex-between mb-2">
 					<span className="text-sm font-medium">Monthly Revenue</span>
 					<DollarSign className="size-4 text-primary" />
 				</div>
@@ -114,10 +114,10 @@ const FinancialDashboard = () => (
 
 const IntegrationBeam = () => (
 	<div className="absolute inset-0 overflow-hidden">
-		<div className="absolute inset-0 flex items-center justify-center">
+		<div className="absolute inset-0 flex-center">
 			<div className="relative">
 				{/* Central hub */}
-				<div className="size-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+				<div className="size-8 bg-primary rounded-full flex-center animate-pulse">
 					<Building className="size-4 text-primary-foreground" />
 				</div>
 				{/* Connecting beams */}
@@ -135,7 +135,7 @@ const IntegrationBeam = () => (
 						}}
 					>
 						<div className="flex flex-col items-center space-y-1 animate-fade-in" style={{ animationDelay: `${i * 0.3}s` }}>
-							<div className="size-6 bg-card rounded-full flex items-center justify-center shadow-sm border">
+							<div className="size-6 bg-card rounded-full flex-center shadow-sm border">
 								<Icon className="size-3 text-primary" />
 							</div>
 							<span className="text-xs font-medium transform -rotate-90 whitespace-nowrap">{label}</span>
@@ -372,7 +372,7 @@ export default function FeaturesPage() {
 											<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
 												&quot;{t.quote}&quot;
 											</blockquote>
-											<div className="flex items-center justify-center space-x-4">
+											<div className="flex-center space-x-4">
 												<Image
 													src={t.avatar}
 													alt={t.author}
@@ -496,7 +496,7 @@ export default function FeaturesPage() {
 							{/* Results grid with enhanced visual design */}
 							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<TrendingUp className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -508,7 +508,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Clock className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -520,7 +520,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Users className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -530,7 +530,7 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<BarChart3 className="size-10 text-primary" />
 									</div>
 									<div className="text-4xl font-bold text-foreground mb-2">
@@ -599,19 +599,19 @@ export default function FeaturesPage() {
 								</div>
 
 								<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 text-sm font-medium">
-									<div className="flex items-center">
+									<div className="flex-start">
 										<Check className="size-4 text-primary mr-2" />
 										No setup fees
 									</div>
-									<div className="flex items-center">
+									<div className="flex-start">
 										<Check className="size-4 text-primary mr-2" />
 										Enterprise security
 									</div>
-									<div className="flex items-center">
+									<div className="flex-start">
 										<Check className="size-4 text-primary mr-2" />
 										99.9% uptime SLA
 									</div>
-									<div className="flex items-center">
+									<div className="flex-start">
 										<Check className="size-4 text-primary mr-2" />
 										Cancel anytime
 									</div>
@@ -638,7 +638,7 @@ function FeaturePill({
 }) {
 	return (
 		<div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm px-4 py-3 hover:border-primary/30 transition-colors">
-			<div className="size-9 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
+			<div className="size-9 rounded-xl bg-primary/15 text-primary flex-center">
 				{icon}
 			</div>
 			<div>

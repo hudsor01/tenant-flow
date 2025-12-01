@@ -28,14 +28,14 @@ export function ToggleSwitch({
 	const id = `toggle-${label.toLowerCase().replace(/\s+/g, '-')}`
 
 	return (
-		<div className="flex items-center justify-between p-4 border rounded-lg">
+		<div className="flex-between p-4 border rounded-lg">
 			<div className="flex items-center gap-3">
 				<Icon className="size-5 text-accent-main" />
 				<div>
 					<Label htmlFor={id} className="font-medium cursor-pointer">
 						{label}
 					</Label>
-					<p className="text-sm text-muted-foreground">{description}</p>
+					<p className="text-muted">{description}</p>
 				</div>
 			</div>
 			<Switch

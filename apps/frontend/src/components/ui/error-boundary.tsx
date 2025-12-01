@@ -88,7 +88,7 @@ function ErrorBoundaryWithStore({
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center p-4">
+		<div className="min-h-screen flex-center p-4">
 			<CardLayout title="Something went wrong" className="max-w-md w-full">
 				<div className="flex flex-col items-center space-y-4 text-center">
 					<AlertTriangle className="size-12 text-destructive" />
@@ -98,7 +98,7 @@ function ErrorBoundaryWithStore({
 							An unexpected error occurred. Our team has been notified.
 						</p>
 						{error?.message && (
-							<p className="text-sm text-muted-foreground font-mono bg-muted p-2 rounded">
+							<p className="text-muted font-mono bg-muted p-2 rounded">
 								{error.message}
 							</p>
 						)}

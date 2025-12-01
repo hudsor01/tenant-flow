@@ -9,10 +9,12 @@
  * - Proper index usage for all queries
  */
 
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common'
+import { Logger} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import type { Tenant, TenantStats, TenantSummary, TenantWithLeaseInfo, RentPayment, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { buildMultiColumnSearch, sanitizeSearchInput } from '../../shared/utils/sql-safe.utils'
+import { ZeroCacheService } from '../../cache/cache.service'
 
 /** Default pagination limit for list queries */
 const DEFAULT_LIMIT = 50
@@ -70,11 +72,17 @@ interface RawInvitationRow {
 	} | null
 }
 
+/** Cache TTLs per CLAUDE.md: Lists 10min, Stats 1min */
+const LIST_CACHE_TTL = 600_000 // 10 minutes
+const STATS_CACHE_TTL = 60_000 // 1 minute
+const DETAIL_CACHE_TTL = 300_000 // 5 minutes
+
 @Injectable()
 export class TenantQueryService {
 	constructor(
 		private readonly logger: Logger,
-		private readonly supabase: SupabaseService
+		private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService
 	) {}
 
 	// ============================================================================
@@ -87,6 +95,11 @@ export class TenantQueryService {
 	 */
 	async findAll(userId: string, filters: ListFilters = {}): Promise<Tenant[]> {
 		if (!userId) throw new BadRequestException('User ID required')
+
+		// Check cache first
+		const cacheKey = ZeroCacheService.getUserKey(userId, 'tenants:findAll', filters)
+		const cached = this.cache.get<Tenant[]>(cacheKey)
+		if (cached) return cached
 
 		try {
 			const [tenantMatches, ownerMatches] = await Promise.all([
@@ -101,7 +114,9 @@ export class TenantQueryService {
 				}
 			}
 
-			return Array.from(deduped.values())
+			const result = Array.from(deduped.values())
+			this.cache.set(cacheKey, result, LIST_CACHE_TTL, [`user:${userId}`, 'tenants'])
+			return result
 		} catch (error) {
 			this.logger.error('Error finding all tenants', {
 				error: error instanceof Error ? error.message : String(error),
@@ -526,6 +541,11 @@ export class TenantQueryService {
 	async findOne(tenantId: string): Promise<Tenant> {
 		if (!tenantId) throw new Error('Tenant ID required')
 
+		// Check cache first
+		const cacheKey = ZeroCacheService.getEntityKey('tenants', tenantId, 'details')
+		const cached = this.cache.get<Tenant>(cacheKey)
+		if (cached) return cached
+
 		try {
 			const { data, error } = await this.supabase.getAdminClient()
 				.from('tenants')
@@ -537,7 +557,9 @@ export class TenantQueryService {
 				throw new NotFoundException(`Tenant ${tenantId} not found`)
 			}
 
-			return data as Tenant
+			const result = data as Tenant
+			this.cache.set(cacheKey, result, DETAIL_CACHE_TTL, [`tenants:${tenantId}`, 'tenants'])
+			return result
 		} catch (error) {
 			if (error instanceof NotFoundException) throw error
 			this.logger.error('Error finding tenant', {
@@ -658,6 +680,11 @@ export class TenantQueryService {
 	async getStats(userId: string): Promise<TenantStats> {
 		if (!userId) throw new BadRequestException('User ID required')
 
+		// Check cache first (1 minute TTL for stats per CLAUDE.md)
+		const cacheKey = ZeroCacheService.getUserKey(userId, 'tenants:stats')
+		const cached = this.cache.get<TenantStats>(cacheKey)
+		if (cached) return cached
+
 		try {
 			// Fetch all tenants (minimal data)
 			const { count, error } = await this.supabase.getAdminClient()
@@ -672,7 +699,7 @@ export class TenantQueryService {
 
 			// Return basic counts matching TenantStats interface
 			const total = count || 0
-			return {
+			const stats = {
 				total,
 				active: total,
 				inactive: 0,
@@ -680,6 +707,9 @@ export class TenantQueryService {
 				totalTenants: total,
 				activeTenants: total
 			} as TenantStats
+
+			this.cache.set(cacheKey, stats, STATS_CACHE_TTL, [`user:${userId}`, 'tenants'])
+			return stats
 		} catch (error) {
 			this.logger.error('Error getting tenant statistics', {
 				error: error instanceof Error ? error.message : String(error),
@@ -825,45 +855,43 @@ export class TenantQueryService {
 				return []
 			}
 
-			// Get all tenant IDs from leases for this owner's properties
-			const { data: propertyData, error: propertyError } = await client
+			// Query 2: Get ALL tenant IDs via single query with joins
+			// properties → units → leases (with tenant IDs) in ONE query
+			const { data: propertiesWithLeases, error } = await client
 				.from('properties')
-				.select('id')
+				.select(`
+					id,
+					units!inner(
+						id,
+						leases!inner(
+							primary_tenant_id
+						)
+					)
+				`)
 				.eq('property_owner_id', ownerRecord.id)
+				.not('units.leases.primary_tenant_id', 'is', null)
 
-			if (propertyError || !propertyData) {
+			if (error || !propertiesWithLeases) {
 				return []
 			}
 
-			const propertyIds = (propertyData as Array<{ id: string }>).map(p => p.id)
-			if (!propertyIds.length) return []
-
-			// Get units for these properties
-			const { data: unitData, error: unitError } = await this.supabase.getAdminClient()
-				.from('units')
-				.select('id')
-				.in('property_id', propertyIds)
-
-			if (unitError || !unitData) {
-				return []
+			// Extract tenant IDs from nested structure and deduplicate
+			const tenantIds = new Set<string>()
+			for (const property of propertiesWithLeases as Array<{ units?: Array<{ leases?: Array<{ primary_tenant_id?: string }> }> }>) {
+				if (property.units) {
+					for (const unit of property.units) {
+						if (unit.leases) {
+							for (const lease of unit.leases) {
+								if (lease.primary_tenant_id) {
+									tenantIds.add(lease.primary_tenant_id)
+								}
+							}
+						}
+					}
+				}
 			}
 
-			const unitIds = (unitData as Array<{ id: string }>).map(u => u.id)
-			if (!unitIds.length) return []
-
-			// Get tenant IDs from leases for these units
-			const { data: leaseData, error: leaseError } = await this.supabase.getAdminClient()
-				.from('leases')
-				.select('primary_tenant_id')
-				.in('unit_id', unitIds)
-				.not('primary_tenant_id', 'is', null)
-
-			if (leaseError || !leaseData) {
-				return []
-			}
-
-			// Deduplicate using Set
-			return [...new Set((leaseData as Array<{ primary_tenant_id: string }> || []).map(l => l.primary_tenant_id))]
+			return [...tenantIds]
 		} catch (error) {
 			this.logger.error('Error getting tenant IDs for owner', {
 				error: error instanceof Error ? error.message : String(error),

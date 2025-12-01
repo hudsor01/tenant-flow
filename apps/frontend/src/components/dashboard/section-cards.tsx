@@ -1,10 +1,10 @@
 'use client'
 
-import { StatCard } from '#components/dashboard/stat-card'
+import { MetricCard } from '#components/dashboard/metric-card'
 import { Skeleton } from '#components/ui/skeleton'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters'
 import { TrendingUp, UserPlus, Building } from 'lucide-react'
 
 export function SectionCards() {
@@ -13,7 +13,7 @@ export function SectionCards() {
 			fallback={
 				<div className="dashboard-cards-container grid grid-cols-1 xl:grid-cols-2 5xl:grid-cols-4 gap-6">
 					<div className="dashboard-widget rounded-xl border bg-card p-6">
-						<p className="text-sm text-muted-foreground">Unable to load dashboard stats</p>
+						<p className="text-muted">Unable to load dashboard stats</p>
 					</div>
 				</div>
 			}
@@ -51,7 +51,7 @@ function SectionCardsContent() {
 		return (
 			<div className="dashboard-cards-container grid grid-cols-1 xl:grid-cols-2 5xl:grid-cols-4 gap-6">
 				<div className="dashboard-widget rounded-xl border bg-card p-6">
-					<p className="text-sm text-muted-foreground">Unable to load stats</p>
+					<p className="text-muted">Unable to load stats</p>
 				</div>
 			</div>
 		)
@@ -66,7 +66,8 @@ function SectionCardsContent() {
 	return (
 		<div className="dashboard-cards-container grid grid-cols-1 xl:grid-cols-2 5xl:grid-cols-4 gap-6">
 			{/* Revenue Card */}
-			<StatCard
+			<MetricCard
+				variant="stat"
 				title="Monthly Revenue"
 				value={formatCurrency(totalRevenue)}
 				description={`Revenue for this month`}
@@ -74,7 +75,8 @@ function SectionCardsContent() {
 			/>
 
 			{/* Tenants Card */}
-			<StatCard
+			<MetricCard
+				variant="stat"
 				title="Active Tenants"
 				value={activeTenants}
 				description={`${totalTenants} total tenants registered`}
@@ -82,7 +84,8 @@ function SectionCardsContent() {
 			/>
 
 			{/* Properties Card */}
-			<StatCard
+			<MetricCard
+				variant="stat"
 				title="Total Properties"
 				value={totalProperties}
 				description={`${stats.properties?.occupied || 0} properties occupied`}
@@ -90,7 +93,8 @@ function SectionCardsContent() {
 			/>
 
 			{/* Occupancy Rate Card */}
-			<StatCard
+			<MetricCard
+				variant="stat"
 				title="Occupancy Rate"
 				value={`${occupancyRate}%`}
 				description="Current property utilization"

@@ -69,10 +69,10 @@ const IncomeStatementPage = () => {
 	// Show loading state
 	if (isLoading) {
 		return (
-			<div className="p-6 flex items-center justify-center min-h-[400px]">
+			<div className="p-6 flex-center min-h-[400px]">
 				<div className="flex flex-col items-center gap-(--spacing-4)">
 					<Loader2 className="w-8 h-8 animate-spin text-primary" />
-					<p className="text-sm text-muted-foreground">Loading income statement...</p>
+					<p className="text-muted">Loading income statement...</p>
 				</div>
 			</div>
 		)
@@ -90,7 +90,7 @@ const IncomeStatementPage = () => {
 							</div>
 							<div>
 								<h3 className="text-lg font-semibold">Failed to Load Income Statement</h3>
-								<p className="text-sm text-muted-foreground mt-2">
+								<p className="text-muted mt-2">
 									{error instanceof Error ? error.message : 'An error occurred'}
 								</p>
 							</div>
@@ -105,7 +105,7 @@ const IncomeStatementPage = () => {
 	return (
 		<div className="p-6 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold">Income Statement</h1>
 					<p className="text-muted-foreground">
@@ -251,7 +251,7 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+						<div className="flex-between p-3 bg-green-50 rounded-lg">
 							<div className="font-semibold">Total Revenue</div>
 							<div className="font-bold text-lg text-success">
 								${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -314,7 +314,7 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+						<div className="flex-between p-3 bg-red-50 rounded-lg">
 							<div className="font-semibold">Total Expenses</div>
 							<div className="font-bold text-lg text-red-600">
 								${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -358,7 +358,7 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-4 bg-corporate-blue-50 rounded-lg">
+						<div className="flex-between p-4 bg-corporate-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
 								className={`text-xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-red-600'}`}
@@ -368,7 +368,7 @@ const IncomeStatementPage = () => {
 						</div>
 						{data?.previousPeriod && (
 							<div className="mt-4 p-3 bg-muted/50 rounded-lg">
-								<div className="text-sm text-muted-foreground mb-2">Period Comparison</div>
+								<div className="text-muted mb-2">Period Comparison</div>
 								<div className="flex items-center gap-2">
 									<span className="text-sm">Previous Period:</span>
 									<span className="font-semibold">

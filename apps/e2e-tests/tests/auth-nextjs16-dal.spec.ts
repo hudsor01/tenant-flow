@@ -15,9 +15,11 @@
  */
 
 import { expect, test } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+const logger = createLogger({ component: 'AuthNextjs16DAL' })
 
 test.describe('DAL - Server Component Data Access', () => {
 	test.beforeEach(async ({ page }) => {
@@ -59,7 +61,7 @@ test.describe('DAL - Server Component Data Access', () => {
 
 		// Should have NO auth errors (DAL verified session)
 		if (authErrors.length > 0) {
-			console.error('Auth errors detected:', authErrors)
+			logger.error('Auth errors detected:', { metadata: { authErrors } })
 		}
 		expect(authErrors).toEqual([])
 	})

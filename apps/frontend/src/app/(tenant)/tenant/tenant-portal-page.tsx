@@ -1,7 +1,7 @@
 'use client'
 
 import '../../(owner)/dashboard.css'
-import { StatCard } from '#components/dashboard/stat-card'
+import { MetricCard } from '#components/dashboard/metric-card'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { Skeleton } from '#components/ui/skeleton'
 import { Badge } from '#components/ui/badge'
@@ -10,7 +10,7 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyDescription } from '#components/ui
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
 import { useQuery } from '@tanstack/react-query'
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency, formatDate } from '#lib/formatters'
 import {
 	Home,
 	Calendar,
@@ -51,14 +51,6 @@ export default function TenantDashboardPage() {
 
 	// Check if lease needs tenant signature
 	const needsSignature = activeLease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && !activeLease?.tenant_signed_at
-
-	const formatDate = (date: string | Date) => {
-		return new Date(date).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		})
-	}
 
 	// Calculate payment status for badge
 	const getPaymentStatus = () => {
@@ -129,9 +121,9 @@ export default function TenantDashboardPage() {
 
 					{/* Pending Signature Alert */}
 					{needsSignature && activeLease && (
-						<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4 flex items-center justify-between gap-(--spacing-4)" data-testid="pending-signature">
+						<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4 flex-between gap-(--spacing-4)" data-testid="pending-signature">
 							<div className="flex items-center gap-3">
-								<div className="flex items-center justify-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900">
+								<div className="flex-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900">
 									<PenLine className="size-5 text-amber-600 dark:text-amber-400" />
 								</div>
 								<div>
@@ -157,7 +149,7 @@ export default function TenantDashboardPage() {
 						<ErrorBoundary
 							fallback={
 								<div className="dashboard-panel p-(--layout-content-padding-compact)">
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Unable to load dashboard stats
 									</p>
 								</div>
@@ -177,58 +169,61 @@ export default function TenantDashboardPage() {
 									))}
 								</div>
 							) : (
-								<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-3 gap-(--layout-gap-group)">
-									{/* Lease Card */}
-									<StatCard
-										title="Current Lease"
-										value={activeLease?.status === 'active' ? 'Active' : 'Inactive'}
-										description={
-											activeLease?.start_date && activeLease?.end_date
-												? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
-												: 'No active lease'
-										}
-										icon={Home}
-									/>
+					<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-3 gap-(--layout-gap-group)">
+						{/* Lease Card */}
+						<MetricCard
+							variant="stat"
+							title="Current Lease"
+							value={activeLease?.status === 'active' ? 'Active' : 'Inactive'}
+							description={
+								activeLease?.start_date && activeLease?.end_date
+									? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
+									: 'No active lease'
+							}
+							icon={Home}
+						/>
 
-									{/* Payment Card */}
-									<StatCard
-										title="Next Payment"
-										value={nextPaymentAmount}
-										description={`Due: ${nextPaymentDate}`}
-										badge={
-											paymentStatus && (
-												<Badge
-													variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
-													className={
-														paymentStatus.variant === 'success'
-															? 'status-badge status-badge-success'
-															: paymentStatus.variant === 'warning'
-															? 'status-badge status-badge-warning'
-															: ''
-													}
-												>
-													<paymentStatus.icon className="size-3 mr-1" />
-													{paymentStatus.label}
-												</Badge>
-											)
+						{/* Payment Card */}
+						<MetricCard
+							variant="stat"
+							title="Next Payment"
+							value={nextPaymentAmount}
+							description={`Due: ${nextPaymentDate}`}
+							badge={
+								paymentStatus && (
+									<Badge
+										variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
+										className={
+											paymentStatus.variant === 'success'
+												? 'status-badge status-badge-success'
+											: paymentStatus.variant === 'warning'
+											? 'status-badge status-badge-warning'
+											: ''
 										}
-										icon={Calendar}
-									/>
+									>
+										<paymentStatus.icon className="size-3 mr-1" />
+										{paymentStatus.label}
+									</Badge>
+								)
+							}
+							icon={Calendar}
+						/>
 
-									{/* Maintenance Card */}
-									<StatCard
-										title="Maintenance"
-										value={maintenanceSummary?.open ?? 0}
-										description={
-											maintenanceSummary?.open === 0
-												? 'No open requests'
-												: maintenanceSummary?.open === 1
-												? '1 request in progress'
-												: `${maintenanceSummary.open} requests in progress`
-										}
-										icon={Wrench}
-									/>
-								</div>
+						{/* Maintenance Card */}
+						<MetricCard
+							variant="stat"
+							title="Maintenance"
+							value={maintenanceSummary?.open ?? 0}
+							description={
+								maintenanceSummary?.open === 0
+									? 'No open requests'
+									: maintenanceSummary?.open === 1
+									? '1 request in progress'
+									: `${maintenanceSummary.open} requests in progress`
+							}
+							icon={Wrench}
+						/>
+					</div>
 							)}
 						</ErrorBoundary>
 					</div>
@@ -241,7 +236,7 @@ export default function TenantDashboardPage() {
 					<ErrorBoundary
 						fallback={
 							<div className="dashboard-panel p-(--layout-content-padding-compact)">
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Unable to load quick actions
 								</p>
 							</div>
@@ -291,7 +286,7 @@ export default function TenantDashboardPage() {
 					<ErrorBoundary
 						fallback={
 							<div className="dashboard-panel p-(--layout-content-padding-compact)">
-								<p className="text-sm text-muted-foreground">Unable to load activity</p>
+								<p className="text-muted">Unable to load activity</p>
 							</div>
 						}
 					>
@@ -331,10 +326,10 @@ export default function TenantDashboardPage() {
 											{recentPayments.slice(0, 5).map(payment => (
 												<div
 													key={payment.id}
-													className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
+													className="flex-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 												>
 													<div className="flex items-center gap-(--spacing-4)">
-														<div className="flex items-center justify-center w-10 h-10 rounded-lg icon-bg-success">
+														<div className="flex-center w-10 h-10 rounded-lg icon-bg-success">
 															<CheckCircle2 className="size-5" />
 														</div>
 														<div>
@@ -436,11 +431,11 @@ export default function TenantDashboardPage() {
 												return (
 													<div
 														key={request.id}
-														className="flex items-center justify-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
+														className="flex-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 													>
 														<div className="flex items-center gap-(--spacing-4)">
 															<div
-																className={`flex items-center justify-center w-10 h-10 rounded-lg ${config.bg}`}
+																className={`flex-center w-10 h-10 rounded-lg ${config.bg}`}
 															>
 																<Icon className="size-5" />
 															</div>

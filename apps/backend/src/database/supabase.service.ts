@@ -1,9 +1,11 @@
+import type {
+	OnModuleDestroy
+} from '@nestjs/common';
 import {
 	Inject,
 	Injectable,
 	InternalServerErrorException,
-	Logger,
-	OnModuleDestroy
+	Logger
 } from '@nestjs/common'
 import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'

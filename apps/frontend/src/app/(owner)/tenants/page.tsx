@@ -83,7 +83,7 @@ export default async function TenantsPage() {
 			data-available-leases={availableLeases.length}
 			className="flex-1 flex flex-col gap-8 px-8 py-6"
 		>
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
 					<p className="text-muted-foreground">

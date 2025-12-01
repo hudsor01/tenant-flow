@@ -98,7 +98,7 @@ export default function PostCheckoutPage() {
 					description="Please wait while we prepare your login..."
 					isLoading={true}
 				>
-					<div className="flex items-center justify-center py-8">
+					<div className="flex-center py-8">
 						<Spinner className="size-12 animate-spin text-muted-foreground" />
 					</div>
 				</CardLayout>
@@ -149,7 +149,7 @@ export default function PostCheckoutPage() {
 						</AlertDescription>
 					</Alert>
 
-					<div className="space-y-3 text-sm text-muted-foreground">
+					<div className="space-y-3 text-muted">
 						<p>Click the link in your email to sign in to your dashboard.</p>
 						<p>The link will expire in 1 hour for security.</p>
 						<p className="text-xs">

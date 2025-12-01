@@ -7,7 +7,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { getOccupancyAnalyticsPageData } from '#lib/api/analytics-page'
-import { formatNumber, formatPercentage } from '@repo/shared/utils/currency'
+import { formatNumber, formatPercentage } from '#lib/formatters'
 import { OccupancyTrendChart, VacancySummaryList } from './occupancy-charts'
 
 export default async function OccupancyAnalyticsPage() {

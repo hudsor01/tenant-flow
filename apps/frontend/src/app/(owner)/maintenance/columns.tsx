@@ -41,7 +41,7 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 				<Link href={`/maintenance/${request.id}`} className="hover:underline">
 					<div className="flex flex-col gap-1">
 						<span className="font-medium">{request.description}</span>
-						<span className="text-sm text-muted-foreground">
+						<span className="text-muted">
 							Created {new Date(request.created_at ?? '').toLocaleDateString()}
 						</span>
 					</div>

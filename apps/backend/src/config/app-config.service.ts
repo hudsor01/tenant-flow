@@ -336,12 +336,6 @@ export class AppConfigService {
 		return this.get('RESEND_API_KEY')
 	}
 
-	// ==================== OpenAI ====================
-
-	getOpenAiApiKey(): string | undefined {
-		return this.get('OPENAI_API_KEY')
-	}
-
 	// ==================== DocuSeal (Self-hosted e-signature) ====================
 
 	getDocuSealApiUrl(): string {

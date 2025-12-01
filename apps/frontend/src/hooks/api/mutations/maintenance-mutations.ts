@@ -7,8 +7,10 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
-import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/api-contracts'
+import type { CreateMaintenanceRequestInput } from '@repo/shared/types/api-contracts'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
+
+type UpdateMaintenanceRequest = Partial<CreateMaintenanceRequestInput>
 import { maintenanceQueries } from '../queries/maintenance-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
@@ -20,7 +22,7 @@ export function useCreateMaintenanceRequestMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateMaintenanceRequest) =>
+		mutationFn: (data: CreateMaintenanceRequestInput) =>
 			clientFetch<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(data)

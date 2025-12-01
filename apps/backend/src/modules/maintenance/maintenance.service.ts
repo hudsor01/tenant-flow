@@ -21,6 +21,7 @@ import type {
 } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -41,8 +42,25 @@ export class MaintenanceService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly cache: ZeroCacheService
 	) {}
+
+	/**
+	 * Invalidate maintenance-related caches
+	 * Uses ZeroCacheService surgical invalidation
+	 */
+	private invalidateMaintenanceCaches(request_id?: string, property_id?: string): void {
+		if (request_id) {
+			this.cache.invalidateByEntity('maintenance', request_id)
+		}
+		if (property_id) {
+			this.cache.invalidateByEntity('properties', property_id)
+		}
+		// Invalidate general maintenance lists
+		this.cache.invalidate('maintenance:list')
+		this.logger.debug('Invalidated maintenance caches', { request_id, property_id })
+	}
 
 	/**
 	 * Get all maintenance requests for a user with search and filters
@@ -469,7 +487,7 @@ export class MaintenanceService {
 					description: createRequest.description,
 					priority: priorityMap[createRequest.priority || 'MEDIUM'] ||
 						'normal',
-					unit_id: createRequest.unit_id,
+				unit_id: createRequest.unit_id || '',
 					...(createRequest.category ? { category: createRequest.category } : {}),
 					...(createRequest.scheduledDate ? { scheduled_date: new Date(createRequest.scheduledDate).toISOString() } : {}),
 					...(createRequest.estimated_cost ? { estimated_cost: createRequest.estimated_cost } : {})
@@ -499,6 +517,9 @@ export class MaintenanceService {
 				priority: maintenance.priority,
 				unit_id: maintenance.unit_id
 			})
+
+			// Invalidate maintenance caches after creation
+			this.invalidateMaintenanceCaches(maintenance.id, maintenance.property_id)
 
 			return maintenance
 		} catch (error) {
@@ -586,7 +607,7 @@ export class MaintenanceService {
 					'open'
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
-			if (updateRequest.completedDate !== undefined)
+			if (updateRequest.completedDate)
 				updated_data.completed_at = new Date(
 					updateRequest.completedDate
 				).toISOString()
@@ -659,6 +680,9 @@ export class MaintenanceService {
 				)
 			}
 
+			// Invalidate maintenance caches after update
+			this.invalidateMaintenanceCaches(updated.id, updated.property_id)
+
 			return updated
 		} catch (error) {
 			// Re-throw ConflictException as-is
@@ -717,6 +741,9 @@ export class MaintenanceService {
 				})
 				throw new BadRequestException('Failed to delete maintenance request')
 			}
+
+			// Invalidate maintenance caches after deletion
+			this.invalidateMaintenanceCaches(maintenanceId)
 		} catch (error) {
 			this.logger.error(
 				'Maintenance service failed to remove maintenance request',
@@ -787,7 +814,12 @@ export class MaintenanceService {
 				return null
 			}
 
-			return data as MaintenanceRequest
+			const updated = data as MaintenanceRequest
+
+			// Invalidate maintenance caches after status update
+			this.invalidateMaintenanceCaches(updated.id, updated.property_id)
+
+			return updated
 		} catch (error) {
 			this.logger.error('Maintenance service failed to update status', {
 				error: error instanceof Error ? error.message : String(error),
@@ -866,7 +898,12 @@ export class MaintenanceService {
 				)
 			}
 
-			return data as MaintenanceRequest
+			const completed = data as MaintenanceRequest
+
+			// Invalidate maintenance caches after completion
+			this.invalidateMaintenanceCaches(completed.id, completed.property_id)
+
+			return completed
 		} catch (error) {
 			this.logger.error('Failed to complete maintenance request', {
 				error: error instanceof Error ? error.message : String(error),

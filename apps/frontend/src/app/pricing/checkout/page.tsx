@@ -27,7 +27,7 @@ function CheckoutPageContent() {
 	// Loading state
 	if (isLoading) {
 		return (
-			<main className="min-h-screen bg-linear-to-br from-slate-50 to-white flex items-center justify-center">
+			<main className="min-h-screen bg-linear-to-br from-slate-50 to-white flex-center">
 				<div className="text-center space-y-4">
 					<LoadingDots size="lg" variant="primary" />
 					<p className="text-muted-foreground">
@@ -110,7 +110,7 @@ function CheckoutPageContent() {
 							title="Pricing Configuration Error"
 							description="This plan doesn't have a valid price configured"
 						>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								Please contact support or select a different plan.
 							</p>
 						</CardLayout>
@@ -125,7 +125,7 @@ function CheckoutPageContent() {
 			{/* Clean header */}
 			<div className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
 				<div className="container mx-auto px-4 py-4">
-					<div className="flex items-center justify-between">
+					<div className="flex-between">
 						<Link
 							href="/pricing"
 							className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
@@ -135,7 +135,7 @@ function CheckoutPageContent() {
 						</Link>
 						<div className="flex items-center gap-2">
 							<Shield className="size-4 text-success" />
-							<span className="text-sm text-muted-foreground">
+							<span className="text-muted">
 								Secure checkout
 							</span>
 						</div>
@@ -174,7 +174,7 @@ function CheckoutPageContent() {
 												</span>
 											)}
 										</div>
-										<p className="text-sm text-muted-foreground mb-3">
+										<p className="text-muted mb-3">
 											{plan.description}
 										</p>
 									</div>
@@ -182,7 +182,7 @@ function CheckoutPageContent() {
 										<div className="text-2xl font-bold text-foreground">
 											{formatStripePrice(displayPrice)}
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted">
 											per month
 										</div>
 									</div>
@@ -213,7 +213,7 @@ function CheckoutPageContent() {
 							</CardLayout>
 
 							{/* Trust indicators */}
-							<div className="flex items-center justify-center gap-(--spacing-6) text-sm text-muted-foreground">
+							<div className="flex-center gap-(--spacing-6) text-muted">
 								<div className="flex items-center gap-1">
 									<Shield className="size-4" />
 									<span>SOC 2 Compliant</span>
@@ -242,7 +242,7 @@ export default function CheckoutPage() {
 	return (
 		<Suspense
 			fallback={
-				<div className="min-h-screen flex items-center justify-center">
+				<div className="min-h-screen flex-center">
 					<LoadingDots size="lg" variant="primary" />
 				</div>
 			}

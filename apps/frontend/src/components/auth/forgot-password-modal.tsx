@@ -122,7 +122,7 @@ export function ForgotPasswordModal() {
 						) : (
 							<>
 								<DialogHeader>
-									<div className="mx-auto mb-4 size-[var(--spacing-12)] rounded-full bg-success/10 flex items-center justify-center">
+									<div className="mx-auto mb-4 size-[var(--spacing-12)] rounded-full bg-success/10 flex-center">
 										<CheckCircle2 className="size-[var(--spacing-6)] text-success" />
 									</div>
 									<DialogTitle className="text-center">

@@ -60,7 +60,7 @@ function LoadingSpinner({
 		<div
 			data-tokens="applied"
 			className={cn(
-				'flex items-center justify-center',
+				'flex-center',
 				text ? 'flex-col gap-3' : '', // gap-3 = 0.75rem = var(--spacing-3)
 				className
 			)}
@@ -106,7 +106,7 @@ function PageLoader({
 		<div
 			data-tokens="applied"
 			className={cn(
-				'flex items-center justify-center min-h-screen bg-background',
+				'flex-center min-h-screen bg-background',
 				className
 			)}
 			{...props}
@@ -168,7 +168,7 @@ function SectionLoader({
 	return (
 		<div data-tokens="applied" className={cn('relative', className)} {...props}>
 			{/* Glass Backdrop */}
-			<div className="absolute inset-0 glass z-10 flex items-center justify-center rounded-[var(--radius-lg)]">
+			<div className="absolute inset-0 glass z-10 flex-center rounded-[var(--radius-lg)]">
 				<div className="shadow-md bg-card/50 border border-border backdrop-blur-sm p-6">
 					{' '}
 					{/* p-6 = 1.5rem = var(--spacing-6) */}

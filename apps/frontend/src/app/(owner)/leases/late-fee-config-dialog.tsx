@@ -21,7 +21,7 @@ interface LateFeeConfigDialogProps {
 	onSuccess?: () => void
 }
 
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters'
 
 
 export function LateFeeConfigDialog({
@@ -90,7 +90,7 @@ export function LateFeeConfigDialog({
 					</CrudDialogHeader>
 					<CrudDialogBody>
 						{isLoading ? (
-							<div className="flex items-center justify-center section-spacing-compact">
+							<div className="flex-center section-spacing-compact">
 								<Spinner className="size-6 animate-spin text-accent-main" />
 							</div>
 						) : (

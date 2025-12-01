@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import type {
 	AttachPaymentMethodParams,
 	CreateTenantCustomerParams

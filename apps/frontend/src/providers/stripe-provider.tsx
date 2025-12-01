@@ -64,7 +64,7 @@ export function StripeProvider({
 
 	if (!publishableKey) {
 		return (
-			<div role="alert" className="text-sm text-muted-foreground">
+			<div role="alert" className="text-muted">
 				Stripe is not configured. Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to
 				enable checkout.
 			</div>

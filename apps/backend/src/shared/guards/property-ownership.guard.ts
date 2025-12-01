@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
-import { AuthRequestCache } from '../services/auth-request-cache.service'
+import type { AuthRequestCache } from '../services/auth-request-cache.service'
 
 @Injectable()
 export class PropertyOwnershipGuard implements CanActivate {

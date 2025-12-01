@@ -72,7 +72,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 										<div className="font-bold text-foreground text-lg mb-1">
 											{testimonial.author}
 										</div>
-										<div className="text-sm text-muted-foreground mb-2">
+										<div className="text-muted mb-2">
 											{testimonial.title}
 										</div>
 										<div className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
