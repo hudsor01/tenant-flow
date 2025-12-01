@@ -1,3 +1,14 @@
+/**
+ * Notifications Service (Facade)
+ * Handles notification creation and event handling
+ * Delegates query operations to NotificationQueryService
+ * Delegates formatting to NotificationFormatterService
+ *
+ * Decomposed Services:
+ * - NotificationQueryService: CRUD operations and queries
+ * - NotificationFormatterService: Priority formatting and type mapping
+ */
+
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import type { MaintenanceNotificationData } from '@repo/shared/types/notifications'
@@ -12,6 +23,8 @@ import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { FailedNotificationsService } from './failed-notifications.service'
+import { NotificationQueryService } from './notification-query.service'
+import { NotificationFormatterService } from './notification-formatter.service'
 import { EmailService } from '../email/email.service'
 import {
 	LeaseExpiringEvent,
@@ -21,7 +34,6 @@ import {
 	TenantCreatedEvent
 } from './events/notification.events'
 
-type NotificationType = 'maintenance' | 'leases' | 'payment' | 'system'
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
 interface TenantInvitedEventPayload {
@@ -31,9 +43,6 @@ interface TenantInvitedEventPayload {
 	checkoutUrl: string
 }
 
-/**
- * Event payload from tenant-invitation.service.ts
- */
 interface TenantInvitationSentEventPayload {
 	email: string
 	tenant_id: string
@@ -50,7 +59,9 @@ export class NotificationsService {
 		private readonly supabaseService: SupabaseService,
 		private readonly failedNotifications: FailedNotificationsService,
 		private readonly config: AppConfigService,
-		private readonly emailService: EmailService
+		private readonly emailService: EmailService,
+		private readonly queryService: NotificationQueryService,
+		private readonly formatterService: NotificationFormatterService
 	) {}
 
 	/**
@@ -87,54 +98,73 @@ export class NotificationsService {
 		})
 	}
 
-	/**
-	 * Get notification type based on maintenance priority and urgency
-	 */
+	// ==================
+	// DELEGATED TO QUERY SERVICE
+	// ==================
+
+	async getUnreadNotifications(
+		user_id: string
+	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
+		return this.queryService.getUnreadNotifications(user_id)
+	}
+
+	async markAsRead(
+		notificationId: string,
+		user_id: string
+	): Promise<Database['public']['Tables']['notifications']['Row']> {
+		return this.queryService.markAsRead(notificationId, user_id)
+	}
+
+	async getUnreadCount(user_id: string): Promise<number> {
+		return this.queryService.getUnreadCount(user_id)
+	}
+
+	async markAllAsRead(user_id: string): Promise<number> {
+		return this.queryService.markAllAsRead(user_id)
+	}
+
+	async cancelNotification(
+		notificationId: string,
+		user_id: string
+	): Promise<Database['public']['Tables']['notifications']['Row']> {
+		return this.queryService.cancelNotification(notificationId, user_id)
+	}
+
+	async cleanupOldNotifications(daysToKeep = 30): Promise<void> {
+		return this.queryService.cleanupOldNotifications(daysToKeep)
+	}
+
+	// ==================
+	// DELEGATED TO FORMATTER SERVICE
+	// ==================
+
 	getNotificationType(
 		priority: Priority,
 		isNewRequest = false
-	): NotificationType {
-		const baseType = isNewRequest
-			? 'maintenance_request_created'
-			: 'maintenance_update'
-
-		switch (priority) {
-			case 'URGENT':
-				return `${baseType}_emergency` as NotificationType
-			case 'HIGH':
-				return `${baseType}_high` as NotificationType
-			case 'MEDIUM':
-				return `${baseType}_medium` as NotificationType
-			case 'LOW':
-				return `${baseType}_low` as NotificationType
-			default:
-				return baseType as NotificationType
-		}
+	): string {
+		return this.formatterService.getNotificationType(priority, isNewRequest)
 	}
 
-	/**
-	 * Get priority label for display
-	 */
 	getPriorityLabel(priority: Priority): string {
-		const labels = {
-			URGENT: 'Urgent',
-			HIGH: 'High Priority',
-			MEDIUM: 'Medium Priority',
-			LOW: 'Low Priority'
-		}
-		return labels[priority] || priority
+		return this.formatterService.getPriorityLabel(priority)
 	}
 
-	/**
-	 * Get notification urgency for system processing
-	 */
 	getNotificationUrgency(priority: Priority): boolean {
-		return priority === 'URGENT' || priority === 'HIGH'
+		return this.formatterService.getNotificationUrgency(priority)
 	}
 
-	/**
-	 * Create and send maintenance notification
-	 */
+	getNotificationTimeout(priority: Priority): number {
+		return this.formatterService.getNotificationTimeout(priority)
+	}
+
+	shouldSendImmediately(priority: Priority): boolean {
+		return this.formatterService.shouldSendImmediately(priority)
+	}
+
+	// ==================
+	// NOTIFICATION CREATION (Remaining in Facade)
+	// ==================
+
 	async createMaintenanceNotification(
 		owner_id: string,
 		title: string,
@@ -145,7 +175,6 @@ export class NotificationsService {
 		maintenanceId?: string,
 		actionUrl?: string
 	): Promise<MaintenanceNotificationData> {
-		// Validate input data using Zod directly (no wrapper abstractions)
 		const validationResult =
 			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse({
 				owner_id,
@@ -170,27 +199,26 @@ export class NotificationsService {
 			)
 		}
 
-		const priorityLabel = this.getPriorityLabel(priority)
+		const priorityLabel = this.formatterService.getPriorityLabel(priority)
 
 		const notification = {
 			recipientId: owner_id,
 			title: `${priorityLabel} Maintenance Request`,
 			message: `New maintenance request for ${propertyName} - Unit ${unit_number}: ${title}`,
-			type: this.getNotificationType(priority, true),
+			type: this.formatterService.getNotificationType(priority, true),
 			priority: priority,
 			actionUrl: actionUrl ?? '/maintenance',
 			maintenanceId: maintenanceId || '',
-			unit_id: '', // Will be populated when we have the actual unit ID
-			category: 'GENERAL', // Default category
+			unit_id: '',
+			category: 'GENERAL',
 			data: {
 				propertyName,
 				unit_number,
-				description: description.substring(0, 200), // Truncate for notification
+				description: description.substring(0, 200),
 				requestTitle: title
 			}
 		}
 
-		// Validate notification data with Zod directly (no wrapper abstractions)
 		const notificationValidation =
 			NotificationsService.NOTIFICATION_SCHEMAS.maintenanceNotification.safeParse(
 				notification
@@ -208,7 +236,6 @@ export class NotificationsService {
 			)
 		}
 
-		// Store notification in database using existing notifications table
 		const { error } = await this.supabaseService
 			.getAdminClient()
 			.from('notifications')
@@ -229,49 +256,19 @@ export class NotificationsService {
 			throw error
 		}
 
-		// If high priority, trigger immediate sending
-		if (this.shouldSendImmediately(priority)) {
+		if (this.formatterService.shouldSendImmediately(priority)) {
 			await this.sendImmediateNotification(notification)
 		}
 
 		return notification as unknown as MaintenanceNotificationData
 	}
 
-	/**
-	 * Calculate notification timeout based on priority
-	 */
-	getNotificationTimeout(priority: Priority): number {
-		switch (priority) {
-			case 'URGENT':
-				return 15000
-			case 'HIGH':
-				return 12000
-			case 'MEDIUM':
-				return 8000
-			case 'LOW':
-				return 5000
-			default:
-				return 8000
-		}
-	}
-
-	/**
-	 * Determine if notification should be sent immediately
-	 */
-	shouldSendImmediately(priority: Priority): boolean {
-		return priority === 'URGENT' || priority === 'HIGH'
-	}
-
-	/**
-	 * Send immediate notification (email for high priority)
-	 */
 	private async sendImmediateNotification(notification: {
 		recipientId: string
 		type: string
 		title: string
 	}): Promise<void> {
 		try {
-			// Get user email from database
 			const { data: user, error } = await this.supabaseService
 				.getAdminClient()
 				.from('users')
@@ -297,7 +294,6 @@ export class NotificationsService {
 				return
 			}
 
-			// Email notifications removed for MVP - focus on in-app notifications only
 			this.logger.log(
 				{
 					notification: {
@@ -315,14 +311,14 @@ export class NotificationsService {
 		} catch (error) {
 			this.logger.error(
 				{
-							error: {
-								name: error instanceof Error ? error.constructor.name : 'Unknown',
-								message: error instanceof Error ? error.message : String(error),
-								stack:
-									!this.config.isProduction() && error instanceof Error
-										? error.stack
-										: undefined
-							},
+					error: {
+						name: error instanceof Error ? error.constructor.name : 'Unknown',
+						message: error instanceof Error ? error.message : String(error),
+						stack:
+							!this.config.isProduction() && error instanceof Error
+								? error.stack
+								: undefined
+					},
 					notification: {
 						recipientId: notification.recipientId,
 						type: notification.type
@@ -330,206 +326,13 @@ export class NotificationsService {
 				},
 				'Failed to send immediate notification'
 			)
-			// Don't throw - notification was still stored in database
-		}
-	}
-
-	/**
-	 * Get unread notifications for a user
-	 */
-	async getUnreadNotifications(
-		user_id: string
-	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.select('*')
-			.eq('user_id', user_id)
-			.eq('isRead', false)
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			throw error
-		}
-
-		return data
-	}
-
-	/**
-	 * Mark notification as read
-	 */
-	async markAsRead(
-		notificationId: string,
-		user_id: string
-	): Promise<Database['public']['Tables']['notifications']['Row']> {
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({ is_read: true, read_at: new Date().toISOString() })
-			.eq('id', notificationId)
-			.eq('user_id', user_id)
-			.select()
-			.single()
-
-		if (error) {
-			throw error
-		}
-
-		return data
-	}
-
-	/**
-	 * Cancel notification
-	 */
-	async cancelNotification(
-		notificationId: string,
-		user_id: string
-	): Promise<Database['public']['Tables']['notifications']['Row']> {
-		// First get the current notification
-		const { data: currentData, error: fetchError } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.select()
-			.eq('id', notificationId)
-			.eq('user_id', user_id)
-			.single()
-
-		if (fetchError) {
-			throw fetchError
-		}
-
-		// Then update it
-		const { data, error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.update({
-				message: '[CANCELLED] ' + (currentData?.message || ''),
-				title: '[CANCELLED] ' + (currentData?.title || '')
-			})
-			.eq('id', notificationId)
-			.eq('user_id', user_id)
-			.select()
-			.single()
-
-		if (error) {
-			throw error
-		}
-
-		this.logger.log(
-			{
-				notification: {
-					id: notificationId,
-					user_id,
-					action: 'cancelled'
-				}
-			},
-			`Notification ${notificationId} cancelled for user ${user_id}`
-		)
-		return data
-	}
-
-	/**
-	 * Delete old notifications
-	 */
-	async cleanupOldNotifications(daysToKeep = 30): Promise<void> {
-		const cutoffDate = new Date()
-		cutoffDate.setDate(cutoffDate.getDate() - daysToKeep)
-
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.delete()
-			.lt('created_at', cutoffDate.toISOString())
-			.eq('is_read', true)
-
-		if (error) {
-			throw error
-		}
-	}
-
-	/**
-	 * Get unread notification count - replaces get_unread_notification_count function
-	 * Uses direct table query instead of database function
-	 */
-	async getUnreadCount(user_id: string): Promise<number> {
-		try {
-			this.logger.log('Getting unread notification count via direct query', {
-				user_id
-			})
-
-			// Type assertion needed due to Supabase generated types limitation
-			// When using head: true with count: 'exact', TypeScript doesn't infer count field
-			const { count, error } = (await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.select('*', { count: 'exact', head: true })
-				.eq('user_id', user_id)
-				.eq('isRead', false)) as { count: number | null; error: unknown }
-
-			if (error) {
-				this.logger.error('Failed to get unread notification count', {
-					error,
-					user_id
-				})
-				return 0
-			}
-
-			return count || 0
-		} catch (error) {
-			this.logger.error('Error getting unread notification count', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return 0
-		}
-	}
-
-	/**
-	 * Mark all notifications as read - replaces mark_all_notifications_read function
-	 * Uses direct table update instead of database function
-	 */
-	async markAllAsRead(user_id: string): Promise<number> {
-		try {
-			this.logger.log('Marking all notifications as read via direct query', {
-				user_id
-			})
-
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.update({
-					is_read: true,
-					read_at: new Date().toISOString()
-				})
-				.eq('user_id', user_id)
-				.eq('is_read', false)
-				.select('*')
-
-			if (error) {
-				this.logger.error('Failed to mark all notifications as read', {
-					error,
-					user_id
-				})
-				return 0
-			}
-
-			return data?.length ?? 0
-		} catch (error) {
-			this.logger.error('Error marking all notifications as read', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return 0
 		}
 	}
 
 	// ==================
-	// NATIVE EVENT LISTENERS - No Custom Abstractions
+	// EVENT HANDLERS
 	// ==================
 
-	/**
-	 * Handle maintenance update events
-	 */
 	@OnEvent('maintenance.updated')
 	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {
 		this.logger.log(
@@ -541,7 +344,6 @@ export class NotificationsService {
 			}
 		)
 
-		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createMaintenanceNotification(
@@ -563,9 +365,6 @@ export class NotificationsService {
 		)
 	}
 
-	/**
-	 * Handle payment received events
-	 */
 	@OnEvent('payment.received')
 	async handlePaymentReceived(event: PaymentReceivedEvent) {
 		this.logger.log(
@@ -577,14 +376,13 @@ export class NotificationsService {
 			}
 		)
 
-		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createPaymentNotification(
 					event.user_id,
 					'Payment Received',
-				event.description,
-				event.subscriptionId
+					event.description,
+					event.subscriptionId
 				)
 
 				this.logger.log(`Payment notification created for user ${event.user_id}`)
@@ -594,9 +392,6 @@ export class NotificationsService {
 		)
 	}
 
-	/**
-	 * Handle payment failed events
-	 */
 	@OnEvent('payment.failed')
 	async handlePaymentFailed(event: PaymentFailedEvent) {
 		this.logger.log(
@@ -608,15 +403,14 @@ export class NotificationsService {
 			}
 		)
 
-		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createPaymentNotification(
 					event.user_id,
 					'Payment Failed',
-				event.reason,
-				event.subscriptionId,
-				'/billing/payment-methods'
+					event.reason,
+					event.subscriptionId,
+					'/billing/payment-methods'
 				)
 
 				this.logger.log(
@@ -628,9 +422,6 @@ export class NotificationsService {
 		)
 	}
 
-	/**
-	 * Handle tenant created events
-	 */
 	@OnEvent('tenant.created')
 	async handleTenantCreated(event: TenantCreatedEvent) {
 		this.logger.log(
@@ -642,14 +433,13 @@ export class NotificationsService {
 			}
 		)
 
-		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createSystemNotification(
 					event.user_id,
 					'New Tenant Added',
-				event.description,
-				'/tenants'
+					event.description,
+					'/tenants'
 				)
 
 				this.logger.log(
@@ -661,9 +451,6 @@ export class NotificationsService {
 		)
 	}
 
-	/**
-	 * Handle tenant invitation events
-	 */
 	@OnEvent('tenant.invited')
 	async handleTenantInvited(event: TenantInvitedEventPayload) {
 		this.logger.log(
@@ -762,11 +549,6 @@ export class NotificationsService {
 		)
 	}
 
-
-	/**
-	 * Handle tenant invitation sent events - SENDS EMAIL TO TENANT
-	 * This is triggered when a property owner invites a tenant and sends the actual invitation email
-	 */
 	@OnEvent('tenant.invitation.sent')
 	async handleTenantInvitationSent(event: TenantInvitationSentEventPayload) {
 		this.logger.log(
@@ -779,10 +561,8 @@ export class NotificationsService {
 
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
-				// Fetch property/unit info for the email
 				const client = this.supabaseService.getAdminClient()
-				
-				// Get tenant invitation details to find unit and property info
+
 				const { data: invitation, error: invError } = await client
 					.from('tenant_invitations')
 					.select(`
@@ -812,21 +592,19 @@ export class NotificationsService {
 					propertyName = invitation.unit?.property?.name ?? undefined
 					unitNumber = invitation.unit?.unit_number ?? undefined
 
-					// Get owner name separately
 					if (invitation.property_owner_id) {
 						const { data: owner } = await client
 							.from('users')
 							.select('first_name, last_name')
 							.eq('id', invitation.property_owner_id)
 							.single()
-						
+
 						if (owner?.first_name && owner?.last_name) {
 							ownerName = `${owner.first_name} ${owner.last_name}`
 						}
 					}
 				}
 
-				// Send the actual invitation email to the tenant
 				await this.emailService.sendTenantInvitationEmail({
 					tenantEmail: event.email,
 					invitationUrl: event.invitationUrl,
@@ -850,9 +628,6 @@ export class NotificationsService {
 		)
 	}
 
-	/**
-	 * Handle lease expiring events
-	 */
 	@OnEvent('lease.expiring')
 	async handleLeaseExpiring(event: LeaseExpiringEvent) {
 		this.logger.log(
@@ -863,17 +638,13 @@ export class NotificationsService {
 			}
 		)
 
-				// Note: Priority could be determined by daysUntilExpiry if system notifications support priority
-		// const priority = event.daysUntilExpiry <= 7 ? 'HIGH' : 'MEDIUM'
-
-		//Retry with exponential backoff instead of silent failure
 		await this.failedNotifications.retryWithBackoff(
 			async () => {
 				await this.createSystemNotification(
 					event.user_id,
 					'Lease Expiring Soon',
-				`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unit_number} expires in ${event.daysUntilExpiry} days`,
-				'/leases'
+					`Lease for ${event.tenantName} at ${event.propertyName} - Unit ${event.unit_number} expires in ${event.daysUntilExpiry} days`,
+					'/leases'
 				)
 
 				this.logger.log(
@@ -886,12 +657,9 @@ export class NotificationsService {
 	}
 
 	// ==================
-	// HELPER METHODS FOR EVENT HANDLERS
+	// PRIVATE HELPER METHODS
 	// ==================
 
-	/**
-	 * Create payment notification
-	 */
 	private async createPaymentNotification(
 		user_id: string,
 		title: string,
@@ -918,9 +686,6 @@ export class NotificationsService {
 		}
 	}
 
-	/**
-	 * Create system notification
-	 */
 	private async createSystemNotification(
 		user_id: string,
 		title: string,
