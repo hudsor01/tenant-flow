@@ -1,295 +1,141 @@
-import type { TestingModule } from '@nestjs/testing'
-import { Test } from '@nestjs/testing'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import { SupabaseService } from '../database/supabase.service'
-import { StripeClientService } from '../shared/stripe-client.service'
-import { SubscriptionsService } from './subscriptions.service'
-import { SubscriptionCacheService } from './subscription-cache.service'
+/**
+ * SubscriptionsService (Facade) Tests
+ * Tests delegation to specialized services
+ */
 
-describe('SubscriptionsService', () => {
+import { Test } from '@nestjs/testing'
+import { SubscriptionsService } from './subscriptions.service'
+import { SubscriptionQueryService } from './subscription-query.service'
+import { SubscriptionBillingService } from './subscription-billing.service'
+import { SubscriptionLifecycleService } from './subscription-lifecycle.service'
+
+describe('SubscriptionsService (Facade)', () => {
 	let service: SubscriptionsService
-	let supabaseService: any
-	let stripeClientService: any
+	let mockQueryService: jest.Mocked<SubscriptionQueryService>
+	let mockBillingService: jest.Mocked<SubscriptionBillingService>
+	let mockLifecycleService: jest.Mocked<SubscriptionLifecycleService>
+
+	const mockUserId = 'user-123'
+	const mockLeaseId = 'lease-abc'
 
 	beforeEach(async () => {
-		// Create a mock that properly handles Supabase query chaining
-		const createQueryBuilder = (tableName: string): any => {
-		const conditions: Record<string, any> = {}
-		const notConditions: Record<string, any> = {}
+		mockQueryService = {
+			getSubscription: jest.fn(),
+			listSubscriptions: jest.fn()
+		} as unknown as jest.Mocked<SubscriptionQueryService>
 
-		const queryBuilder: any = {
-				    select: jest.fn(() => {
-					return queryBuilder
-				}),
-				eq: jest.fn((column: string, value: any) => {
-					conditions[column] = value
-					return queryBuilder
-				}),
-				not: jest.fn((column: string, operator: string, value: any) => {
-					notConditions[column] = { operator, value }
-					return queryBuilder
-				}),
-				order: jest.fn((_column: string, _options?: any) => {
-					return queryBuilder
-				}),
-				limit: jest.fn((_count: number) => {
-					return queryBuilder
-				}),
-				single: jest.fn(() => {
-					// Handle different tables and conditions
-					if (tableName === 'users' && conditions.id === 'user123') {
-						return Promise.resolve({
-							data: { id: 'user123', email: 'test@example.com', first_name: 'Test', last_name: 'User' },
-							error: null
-						})
-					}
-					if (tableName === 'tenants' && conditions.id === 'tenant123') {
-						return Promise.resolve({
-							data: { id: 'tenant123', stripe_customer_id: 'cus_test123', user_id: 'user123' },
-							error: null
-						})
-					}
-					if (tableName === 'leases') {
-						if (conditions.id === 'lease_new') {
-							return Promise.resolve({
-								data: { id: 'lease_new', primary_tenant_id: 'tenant123', unit_id: 'unit123', rent_amount: 100000, rent_currency: 'usd', payment_day: 1, auto_pay_enabled: false, stripe_subscription_id: null, created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
-								error: null
-							})
-						}
-						if (conditions.id === 'lease123') {
-							return Promise.resolve({
-								data: { id: 'lease123', primary_tenant_id: 'tenant123', unit_id: 'unit123', rent_amount: 100000, rent_currency: 'usd', payment_day: 1, auto_pay_enabled: true, stripe_subscription_id: 'sub_test123', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
-								error: null
-							})
-						}
-					}
-					if (tableName === 'units' && conditions.id === 'unit123') {
-						return Promise.resolve({
-							data: { id: 'unit123', unit_number: '101', property_id: 'prop123' },
-							error: null
-						})
-					}
-					if (tableName === 'properties' && conditions.id === 'prop123') {
-						return Promise.resolve({
-							data: { id: 'prop123', name: 'Test Property', property_owner_id: 'owner123' },
-							error: null
-						})
-					}
-					if (tableName === 'property_owners' && conditions.id === 'owner123') {
-						return Promise.resolve({
-							data: { id: 'owner123', user_id: 'owner_user123', stripe_account_id: 'acct_test123', charges_enabled: true, default_platform_fee_percent: 0 },
-							error: null
-						})
-					}
-					if (tableName === 'payment_methods' && conditions.id === 'pm_test123') {
-						return Promise.resolve({
-							data: { id: 'pm_test123', stripe_payment_method_id: 'pm_test123', stripe_customer_id: 'cus_test123', tenant_id: 'tenant123' },
-							error: null
-						})
-					}
-					return Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'No rows returned' } })
-				}),
-				maybeSingle: jest.fn(() => {
-					// Handle different tables and conditions
-					if (tableName === 'users' && conditions.user_id === 'user123') {
-						return Promise.resolve({
-							data: { id: 'user123', email: 'test@example.com', first_name: 'Test', last_name: 'User' },
-							error: null
-						})
-					}
-					if (tableName === 'tenants' && conditions.user_id === 'user123') {
-						return Promise.resolve({
-							data: { id: 'tenant123', stripe_customer_id: 'cus_test123', user_id: 'user123' },
-							error: null
-						})
-					}
-					if (tableName === 'leases') {
-						// For listSubscriptions, filter by tenant and not null stripe_subscription_id
-						if (conditions.primary_tenant_id === 'tenant123' && notConditions.stripe_subscription_id) {
-							return Promise.resolve({
-								data: { id: 'lease123', primary_tenant_id: 'tenant123', unit_id: 'unit123', rent_amount: 100000, rent_currency: 'usd', payment_day: 1, auto_pay_enabled: true, stripe_subscription_id: 'sub_test123', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
-								error: null
-							})
-						}
-					}
-					return Promise.resolve({ data: null, error: null })
-				}),
-				update: jest.fn((updates: any) => ({
-					eq: jest.fn(() => Promise.resolve({ data: updates, error: null }))
-				}))
-			}
-			return queryBuilder
-		}
+		mockBillingService = {
+			createSubscription: jest.fn(),
+			updateSubscription: jest.fn()
+		} as unknown as jest.Mocked<SubscriptionBillingService>
 
-		const mockSupabaseClient = {
-			from: jest.fn((table: string) => createQueryBuilder(table))
-		}
+		mockLifecycleService = {
+			pauseSubscription: jest.fn(),
+			resumeSubscription: jest.fn(),
+			cancelSubscription: jest.fn()
+		} as unknown as jest.Mocked<SubscriptionLifecycleService>
 
-		// Create mock Stripe client
-		const mockStripe = {
-			prices: {
-				create: jest.fn().mockResolvedValue({ id: 'price_test123', product: 'prod_test123' })
-			},
-			subscriptions: {
-				create: jest.fn().mockResolvedValue({
-id: 'sub_test123',
-status: 'active',
-customer: 'cus_test123',
-items: { data: [{ id: 'si_test123', price: { id: 'price_test123' } }] }
-}),
-				update: jest.fn().mockResolvedValue({ id: 'sub_test123', status: 'active' }),
-				retrieve: jest.fn().mockResolvedValue({
-id: 'sub_test123',
-status: 'active',
-items: { data: [{ id: 'si_test123', price: { id: 'price_test123', currency: 'usd' } }] }
-}),
-				cancel: jest.fn().mockResolvedValue({ id: 'sub_test123', status: 'canceled' })
-			},
-			customers: {
-				create: jest.fn().mockResolvedValue({ id: 'cus_test123' })
-			}
-		}
-
-		supabaseService = {
-			getAdminClient: jest.fn(() => mockSupabaseClient)
-		}
-
-		stripeClientService = {
-			getClient: jest.fn(() => mockStripe)
-		}
-
-		const mockCacheManager = {
-		get: jest.fn().mockResolvedValue(undefined),
-		set: jest.fn().mockResolvedValue(undefined),
-		del: jest.fn().mockResolvedValue(undefined)
-	}
-
-	const module: TestingModule = await Test.createTestingModule({
-providers: [
-SubscriptionsService,
-SubscriptionCacheService,
-{ provide: SupabaseService, useValue: supabaseService },
-{ provide: StripeClientService, useValue: stripeClientService },
-{ provide: CACHE_MANAGER, useValue: mockCacheManager }
-]
-}).compile()
+		const module = await Test.createTestingModule({
+			providers: [
+				SubscriptionsService,
+				{ provide: SubscriptionQueryService, useValue: mockQueryService },
+				{ provide: SubscriptionBillingService, useValue: mockBillingService },
+				{ provide: SubscriptionLifecycleService, useValue: mockLifecycleService }
+			]
+		}).compile()
 
 		service = module.get<SubscriptionsService>(SubscriptionsService)
 	})
 
-	afterEach(() => {
-		jest.clearAllMocks()
-	})
-
 	describe('createSubscription', () => {
-		it('should create subscription with destination charges', async () => {
-			const result = await service.createSubscription('user123', {
-leaseId: 'lease_new',
-paymentMethodId: 'pm_test123',
-amount: 1000,
-billingDayOfMonth: 1,
-currency: 'usd'
-})
+		it('should delegate to billing service', async () => {
+			const mockRequest = {
+				leaseId: mockLeaseId,
+				paymentMethodId: 'pm-123',
+				amount: 1500,
+				billingDayOfMonth: 1,
+				currency: 'usd'
+			}
+			const mockResponse = { id: mockLeaseId, status: 'active' }
+			mockBillingService.createSubscription.mockResolvedValue(mockResponse as any)
 
-			expect(result.status).toBe('active')
-		})
+			const result = await service.createSubscription(mockUserId, mockRequest)
 
-		it('should store subscription with correct currency', async () => {
-			await service.createSubscription('user123', {
-leaseId: 'lease_new',
-paymentMethodId: 'pm_test123',
-amount: 1000,
-billingDayOfMonth: 1,
-currency: 'usd'
-})
-
-			const stripe = stripeClientService.getClient()
-			expect(stripe.prices.create).toHaveBeenCalled()
-		})
-
-		it('should handle billing day validation', async () => {
-			await service.createSubscription('user123', {
-leaseId: 'lease_new',
-paymentMethodId: 'pm_test123',
-amount: 1000,
-billingDayOfMonth: 15,
-currency: 'usd'
-})
-
-			const stripe = stripeClientService.getClient()
-			expect(stripe.subscriptions.create).toHaveBeenCalled()
-		})
-
-		it('should normalize amount to cents', async () => {
-			await service.createSubscription('user123', {
-leaseId: 'lease_new',
-paymentMethodId: 'pm_test123',
-amount: 1000,
-billingDayOfMonth: 1,
-currency: 'usd'
-})
-
-			const stripe = stripeClientService.getClient()
-			expect(stripe.prices.create).toHaveBeenCalledWith(
-expect.objectContaining({
-unit_amount: 100000
-})
-)
+			expect(mockBillingService.createSubscription).toHaveBeenCalledWith(mockUserId, mockRequest)
+			expect(result).toBe(mockResponse)
 		})
 	})
 
-	describe('pauseSubscription', () => {
-		it('should pause active subscription', async () => {
-			const result = await service.pauseSubscription('lease123', 'user123')
+	describe('getSubscription', () => {
+		it('should delegate to query service', async () => {
+			const mockResponse = { id: mockLeaseId }
+			mockQueryService.getSubscription.mockResolvedValue(mockResponse as any)
 
-			expect(result.success).toBe(true)
-			const stripe = stripeClientService.getClient()
-			expect(stripe.subscriptions.update).toHaveBeenCalledWith(
-'sub_test123',
-expect.objectContaining({
-pause_collection: { behavior: 'keep_as_draft' }
-})
-)
-		})
-	})
+			const result = await service.getSubscription(mockLeaseId, mockUserId)
 
-	describe('resumeSubscription', () => {
-		it('should resume paused subscription', async () => {
-			const result = await service.resumeSubscription('lease123', 'user123')
-
-			expect(result.success).toBe(true)
-			const stripe = stripeClientService.getClient()
-			expect(stripe.subscriptions.update).toHaveBeenCalledWith(
-'sub_test123',
-expect.objectContaining({
-pause_collection: null
-})
-)
-		})
-	})
-
-	describe('cancelSubscription', () => {
-		it('should cancel subscription at period end', async () => {
-			const result = await service.cancelSubscription('lease123', 'user123')
-
-			expect(result.success).toBe(true)
-			const stripe = stripeClientService.getClient()
-			expect(stripe.subscriptions.update).toHaveBeenCalledWith(
-'sub_test123',
-expect.objectContaining({
-cancel_at_period_end: true
-})
-)
+			expect(mockQueryService.getSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(result).toBe(mockResponse)
 		})
 	})
 
 	describe('listSubscriptions', () => {
-		it('should list subscriptions for tenant', async () => {
-			jest.spyOn(service as any, 'findOwnerByUserId').mockResolvedValue(null)
+		it('should delegate to query service', async () => {
+			const mockResponse = [{ id: mockLeaseId }]
+			mockQueryService.listSubscriptions.mockResolvedValue(mockResponse as any)
 
-			const result = await service.listSubscriptions('user123')
+			const result = await service.listSubscriptions(mockUserId)
 
-			expect(Array.isArray(result)).toBe(true)
+			expect(mockQueryService.listSubscriptions).toHaveBeenCalledWith(mockUserId)
+			expect(result).toBe(mockResponse)
+		})
+	})
+
+	describe('pauseSubscription', () => {
+		it('should delegate to lifecycle service', async () => {
+			const mockResponse = { success: true, message: 'Paused' }
+			mockLifecycleService.pauseSubscription.mockResolvedValue(mockResponse as any)
+
+			const result = await service.pauseSubscription(mockLeaseId, mockUserId)
+
+			expect(mockLifecycleService.pauseSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(result).toBe(mockResponse)
+		})
+	})
+
+	describe('resumeSubscription', () => {
+		it('should delegate to lifecycle service', async () => {
+			const mockResponse = { success: true, message: 'Resumed' }
+			mockLifecycleService.resumeSubscription.mockResolvedValue(mockResponse as any)
+
+			const result = await service.resumeSubscription(mockLeaseId, mockUserId)
+
+			expect(mockLifecycleService.resumeSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(result).toBe(mockResponse)
+		})
+	})
+
+	describe('cancelSubscription', () => {
+		it('should delegate to lifecycle service', async () => {
+			const mockResponse = { success: true, message: 'Canceled' }
+			mockLifecycleService.cancelSubscription.mockResolvedValue(mockResponse as any)
+
+			const result = await service.cancelSubscription(mockLeaseId, mockUserId)
+
+			expect(mockLifecycleService.cancelSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(result).toBe(mockResponse)
+		})
+	})
+
+	describe('updateSubscription', () => {
+		it('should delegate to billing service', async () => {
+			const mockUpdate = { amount: 2000 }
+			const mockResponse = { id: mockLeaseId, amount: 2000 }
+			mockBillingService.updateSubscription.mockResolvedValue(mockResponse as any)
+
+			const result = await service.updateSubscription(mockLeaseId, mockUserId, mockUpdate)
+
+			expect(mockBillingService.updateSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId, mockUpdate)
+			expect(result).toBe(mockResponse)
 		})
 	})
 })
