@@ -45,28 +45,36 @@ describe('NotificationQueryService', () => {
 	})
 
 	describe('getUnreadNotifications', () => {
-		it('returns unread notifications for user', async () => {
+		it('returns unread notifications for user with pagination', async () => {
 			const mockNotifications = [
 				{ id: 'notif-1', user_id: mockUserId, is_read: false, title: 'Test 1' },
 				{ id: 'notif-2', user_id: mockUserId, is_read: false, title: 'Test 2' }
 			]
 			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = createMockQueryBuilder(mockNotifications)
+			const mockBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				order: jest.fn().mockReturnThis(),
+				range: jest.fn().mockResolvedValue({ data: mockNotifications, error: null })
+			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
-			// Override single to return array
-			mockBuilder.order = jest.fn().mockResolvedValue({ data: mockNotifications, error: null })
 
 			const result = await service.getUnreadNotifications(mockUserId)
 
 			expect(result).toEqual(mockNotifications)
 			expect(mockClient.from).toHaveBeenCalledWith('notifications')
+			expect(mockBuilder.range).toHaveBeenCalledWith(0, 49) // default limit=50, offset=0
 		})
 
-		it('returns empty array on error', async () => {
+		it('throws error on database failure', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = createMockQueryBuilder(null, new Error('db error'))
+			const mockBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				order: jest.fn().mockReturnThis(),
+				range: jest.fn().mockResolvedValue({ data: null, error: new Error('db error') })
+			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
-			mockBuilder.order = jest.fn().mockResolvedValue({ data: null, error: new Error('db error') })
 
 			await expect(service.getUnreadNotifications(mockUserId)).rejects.toThrow()
 		})
@@ -109,7 +117,7 @@ describe('NotificationQueryService', () => {
 			expect(result).toBe(5)
 		})
 
-		it('returns 0 on error', async () => {
+		it('throws error on database failure', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -118,9 +126,7 @@ describe('NotificationQueryService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.getUnreadCount(mockUserId)
-
-			expect(result).toBe(0)
+			await expect(service.getUnreadCount(mockUserId)).rejects.toThrow('db error')
 		})
 	})
 
@@ -142,7 +148,7 @@ describe('NotificationQueryService', () => {
 			expect(result).toBe(3)
 		})
 
-		it('returns 0 on error', async () => {
+		it('throws error on database failure', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
 			const mockBuilder = {
 				update: jest.fn().mockReturnThis(),
@@ -151,9 +157,7 @@ describe('NotificationQueryService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.markAllAsRead(mockUserId)
-
-			expect(result).toBe(0)
+			await expect(service.markAllAsRead(mockUserId)).rejects.toThrow('db error')
 		})
 	})
 
