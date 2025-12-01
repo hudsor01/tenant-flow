@@ -7,10 +7,11 @@
 declare global {
   /**
    * Type helper for page component props with typed params
+   * In Next.js 15+, params is a Promise that must be awaited
    */
   type PageProps<T extends string> = {
-    params: ExtractRouteParams<T>
-    searchParams?: { [key: string]: string | string[] | undefined }
+    params: Promise<ExtractRouteParams<T>>
+    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
   }
 
   /**
