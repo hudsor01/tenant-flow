@@ -21,7 +21,6 @@ import {
 } from '@repo/shared/validation/common'
 import { z } from 'zod'
 import { SupabaseService } from '../../database/supabase.service'
-import { AppConfigService } from '../../config/app-config.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import { NotificationQueryService } from './notification-query.service'
 import { NotificationFormatterService } from './notification-formatter.service'
@@ -58,45 +57,25 @@ export class NotificationsService {
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly failedNotifications: FailedNotificationsService,
-		private readonly config: AppConfigService,
 		private readonly emailService: EmailService,
 		private readonly queryService: NotificationQueryService,
 		private readonly formatterService: NotificationFormatterService
 	) {}
 
 	/**
-	 * Zod schemas for notification validation
+	 * Zod schema for maintenance notification input validation
+	 * Validates at API boundary - trusted downstream per Zod best practices
 	 */
-	private static readonly NOTIFICATION_SCHEMAS = {
-		maintenanceNotification: z.object({
-			recipientId: uuidSchema,
-			title: requiredTitle,
-			message: requiredDescription,
-			type: requiredString,
-			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'], {
-				message: 'Invalid priority level'
-			}),
-			actionUrl: z.string().optional(),
-			maintenanceId: uuidSchema.optional(),
-			data: z.object({
-				propertyName: requiredString,
-				unit_number: requiredString,
-				description: z.string().max(200, 'Description too long'),
-				requestTitle: requiredString
-			})
-		}),
-
-		notificationInput: z.object({
-			owner_id: uuidSchema,
-			title: requiredTitle,
-			description: requiredDescription,
-			priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-			propertyName: requiredString,
-			unit_number: requiredString,
-			maintenanceId: uuidSchema.optional(),
-			actionUrl: z.string().url('Invalid URL format').optional()
-		})
-	}
+	private static readonly maintenanceInputSchema = z.object({
+		owner_id: uuidSchema,
+		title: requiredTitle,
+		description: requiredDescription,
+		priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+		propertyName: requiredString,
+		unit_number: requiredString,
+		maintenanceId: uuidSchema.optional(),
+		actionUrl: z.string().url('Invalid URL format').optional()
+	})
 
 	// ==================
 	// DELEGATED TO QUERY SERVICE
@@ -176,7 +155,7 @@ export class NotificationsService {
 		actionUrl?: string
 	): Promise<MaintenanceNotificationData> {
 		const validationResult =
-			NotificationsService.NOTIFICATION_SCHEMAS.notificationInput.safeParse({
+			NotificationsService.maintenanceInputSchema.safeParse({
 				owner_id,
 				title,
 				description,
@@ -201,6 +180,8 @@ export class NotificationsService {
 
 		const priorityLabel = this.formatterService.getPriorityLabel(priority)
 
+		// Build notification from validated input - no need for second validation
+		// since all fields come from already-validated data
 		const notification = {
 			recipientId: owner_id,
 			title: `${priorityLabel} Maintenance Request`,
@@ -209,31 +190,12 @@ export class NotificationsService {
 			priority: priority,
 			actionUrl: actionUrl ?? '/maintenance',
 			maintenanceId: maintenanceId || '',
-			unit_id: '',
-			category: 'GENERAL',
 			data: {
 				propertyName,
 				unit_number,
 				description: description.substring(0, 200),
 				requestTitle: title
 			}
-		}
-
-		const notificationValidation =
-			NotificationsService.NOTIFICATION_SCHEMAS.maintenanceNotification.safeParse(
-				notification
-			)
-
-		if (!notificationValidation.success) {
-			this.logger.error('Notification data validation failed', {
-				validationErrors: notificationValidation.error.format()
-			})
-			const errorMessages = notificationValidation.error.issues
-				.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
-				.join(', ')
-			throw new BadRequestException(
-				`Invalid notification data: ${errorMessages}`
-			)
 		}
 
 		const { error } = await this.supabaseService
@@ -263,70 +225,19 @@ export class NotificationsService {
 		return notification as unknown as MaintenanceNotificationData
 	}
 
+	/**
+	 * Placeholder for immediate notification delivery (email disabled for MVP)
+	 * TODO: Implement email delivery when ready to enable
+	 */
 	private async sendImmediateNotification(notification: {
 		recipientId: string
 		type: string
 		title: string
 	}): Promise<void> {
-		try {
-			const { data: user, error } = await this.supabaseService
-				.getAdminClient()
-				.from('users')
-				.select('email')
-				.eq('id', notification.recipientId)
-				.single()
-
-			if (error || !user.email) {
-				this.logger.warn(
-					{
-						notification: {
-							recipientId: notification.recipientId,
-							type: notification.type,
-							title: notification.title
-						},
-						user: {
-							found: !error,
-							hasEmail: !!user?.email
-						}
-					},
-					`Could not find email for user ${notification.recipientId}`
-				)
-				return
-			}
-
-			this.logger.log(
-				{
-					notification: {
-						recipientId: notification.recipientId,
-						type: notification.type,
-						title: notification.title
-					},
-					mvp: {
-						emailDisabled: true,
-						inAppOnly: true
-					}
-				},
-				`In-app notification sent for user ${notification.recipientId} (email disabled for MVP)`
-			)
-		} catch (error) {
-			this.logger.error(
-				{
-					error: {
-						name: error instanceof Error ? error.constructor.name : 'Unknown',
-						message: error instanceof Error ? error.message : String(error),
-						stack:
-							!this.config.isProduction() && error instanceof Error
-								? error.stack
-								: undefined
-					},
-					notification: {
-						recipientId: notification.recipientId,
-						type: notification.type
-					}
-				},
-				'Failed to send immediate notification'
-			)
-		}
+		this.logger.log(
+			`High-priority notification queued for ${notification.recipientId} (email disabled for MVP)`,
+			{ type: notification.type, title: notification.title }
+		)
 	}
 
 	// ==================
@@ -508,18 +419,6 @@ export class NotificationsService {
 				const leaseLabel = `${propertyName}${
 					unit_number ? ` - Unit ${unit_number}` : ''
 				}`
-
-				const metadata: Record<string, string | null> = {
-					checkoutUrl: event.checkoutUrl,
-					tenant_id: event.tenant_id,
-					lease_id: event.lease_id,
-					propertyName,
-					tenantName
-				}
-
-				if (unit_number) {
-					metadata.unit_number = unit_number
-				}
 
 				const { error } = await client.from('notifications').insert({
 					user_id: event.owner_id,
