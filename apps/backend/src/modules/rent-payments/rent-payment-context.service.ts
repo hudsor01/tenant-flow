@@ -35,13 +35,16 @@ export interface LeaseContext {
 	stripeAccountId: string | null
 }
 
-// Type for the nested join query result
+// Type for the nested join query result - includes tenant for authorization
 interface LeaseWithOwnerData {
 	id: string
 	primary_tenant_id: string
 	unit_id: string
 	rent_amount: number
 	stripe_subscription_id: string | null
+	tenant: {
+		user_id: string
+	}
 	unit: {
 		id: string
 		property_id: string
@@ -82,7 +85,7 @@ export class RentPaymentContextService {
 
 	/**
 	 * Get lease context with owner details and authorization check
-	 * Optimized: Single query with nested joins instead of 6 sequential queries
+	 * Optimized: Single query with nested joins instead of multiple sequential queries
 	 * per Supabase documentation best practices
 	 */
 	async getLeaseContext(
@@ -92,7 +95,7 @@ export class RentPaymentContextService {
 	): Promise<LeaseContext> {
 		const adminClient = this.supabase.getAdminClient()
 
-		// Single query with nested joins - replaces 5 sequential queries
+		// Single query with nested joins - includes tenant for authorization
 		const { data: leaseData, error: leaseError } = await adminClient
 			.from('leases')
 			.select(`
@@ -101,6 +104,7 @@ export class RentPaymentContextService {
 				unit_id,
 				rent_amount,
 				stripe_subscription_id,
+				tenant:primary_tenant_id (user_id),
 				unit:unit_id (
 					id,
 					property_id,
@@ -133,13 +137,16 @@ export class RentPaymentContextService {
 			throw new NotFoundException('Property owner not found for lease')
 		}
 
+		if (!typedData.tenant?.user_id) {
+			throw new NotFoundException('Tenant not found for lease')
+		}
+
 		const ownerUser = typedData.unit.property.owner.user
 		const stripeAccountId = typedData.unit.property.owner.stripe_account_id
 
-		// Authorization check - separate query for tenant since we need tenant.user_id
-		const { tenant } = await this.getTenantContext(tenant_id)
+		// Authorization check - no separate query needed, tenant included in join
 		const isOwner = ownerUser.id === requestingUserId
-		const isTenant = tenant.user_id === requestingUserId
+		const isTenant = typedData.tenant.user_id === requestingUserId
 
 		if (!isOwner && !isTenant) {
 			throw new ForbiddenException('You are not authorized to access this lease')
@@ -159,6 +166,9 @@ export class RentPaymentContextService {
 
 	/**
 	 * Verify tenant access for requesting user
+	 * Security: Verifies ownership through relationship chain per Supabase RLS best practices
+	 * - Tenant can access their own data
+	 * - Owner can only access tenants on their properties (not any tenant)
 	 */
 	async verifyTenantAccess(
 		requestingUserId: string,
@@ -167,17 +177,30 @@ export class RentPaymentContextService {
 		const adminClient = this.supabase.getAdminClient()
 		const { tenant } = await this.getTenantContext(tenant_id)
 
+		// Tenant accessing their own data
 		if (tenant.user_id === requestingUserId) {
 			return
 		}
 
-		const { data: owner, error } = await adminClient
-			.from('property_owners')
-			.select('user_id')
-			.eq('user_id', requestingUserId)
-			.single()
+		// Owner must own a property that has a lease for this tenant
+		// Uses nested join to verify the relationship chain
+		const { data: leaseWithOwner, error } = await adminClient
+			.from('leases')
+			.select(`
+				id,
+				unit:unit_id (
+					property:property_id (
+						owner:property_owner_id (user_id)
+					)
+				)
+			`)
+			.eq('primary_tenant_id', tenant_id)
+			.limit(1)
+			.maybeSingle()
 
-		if (error || !owner) {
+		const ownerUserId = leaseWithOwner?.unit?.property?.owner?.user_id
+
+		if (error || ownerUserId !== requestingUserId) {
 			throw new ForbiddenException('You are not authorized to access this tenant')
 		}
 	}
