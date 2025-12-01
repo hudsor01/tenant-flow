@@ -42,12 +42,16 @@ describe('RentPaymentContextService', () => {
 	}
 
 	// Nested join result structure matching LeaseWithOwnerData
+	// Now includes tenant for authorization check
 	const mockLeaseWithOwnerData = {
 		id: mockLeaseId,
 		primary_tenant_id: mockTenantId,
 		unit_id: 'unit-001',
 		rent_amount: 150000,
 		stripe_subscription_id: 'sub_test123',
+		tenant: {
+			user_id: mockUserId
+		},
 		unit: {
 			id: 'unit-001',
 			property_id: 'prop-001',
@@ -67,6 +71,17 @@ describe('RentPaymentContextService', () => {
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		single: jest.fn().mockResolvedValue({
+			data: shouldError ? null : data,
+			error: shouldError ? { message: 'Not found' } : null
+		})
+	})
+
+	// Helper for verifyTenantAccess nested join query with .limit().maybeSingle()
+	const createMaybeSingleQueryMock = (data: any, shouldError = false) => ({
+		select: jest.fn().mockReturnThis(),
+		eq: jest.fn().mockReturnThis(),
+		limit: jest.fn().mockReturnThis(),
+		maybeSingle: jest.fn().mockResolvedValue({
 			data: shouldError ? null : data,
 			error: shouldError ? { message: 'Not found' } : null
 		})
@@ -116,12 +131,10 @@ describe('RentPaymentContextService', () => {
 
 	describe('getLeaseContext', () => {
 		it('should return lease context with owner details using nested joins', async () => {
-			// First call: lease with nested joins
-			// Second call: getTenantContext (for authorization)
-			const tenantWithUser = { ...mockTenant, users: mockUser }
-			mockAdminClient.from
-				.mockReturnValueOnce(createSingleQueryMock(mockLeaseWithOwnerData))
-				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
+			// Single query with nested joins - includes tenant for authorization
+			mockAdminClient.from.mockReturnValue(
+				createSingleQueryMock(mockLeaseWithOwnerData)
+			)
 
 			const result = await service.getLeaseContext(
 				mockLeaseId,
@@ -135,10 +148,10 @@ describe('RentPaymentContextService', () => {
 		})
 
 		it('should allow owner to access lease', async () => {
-			const tenantWithUser = { ...mockTenant, users: mockUser }
-			mockAdminClient.from
-				.mockReturnValueOnce(createSingleQueryMock(mockLeaseWithOwnerData))
-				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
+			// Single query with nested joins - includes tenant for authorization
+			mockAdminClient.from.mockReturnValue(
+				createSingleQueryMock(mockLeaseWithOwnerData)
+			)
 
 			const result = await service.getLeaseContext(
 				mockLeaseId,
@@ -192,10 +205,10 @@ describe('RentPaymentContextService', () => {
 		})
 
 		it('should throw ForbiddenException when user is neither owner nor tenant', async () => {
-			const tenantWithUser = { ...mockTenant, users: mockUser }
-			mockAdminClient.from
-				.mockReturnValueOnce(createSingleQueryMock(mockLeaseWithOwnerData))
-				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
+			// Single query with nested joins - includes tenant for authorization
+			mockAdminClient.from.mockReturnValue(
+				createSingleQueryMock(mockLeaseWithOwnerData)
+			)
 
 			await expect(
 				service.getLeaseContext(
@@ -219,13 +232,21 @@ describe('RentPaymentContextService', () => {
 			).resolves.not.toThrow()
 		})
 
-		it('should allow property owner to access tenant', async () => {
+		it('should allow property owner to access tenant via lease relationship', async () => {
 			const tenantWithUser = { ...mockTenant, users: mockUser }
-			const propertyOwner = { user_id: 'other-user-id' }
+			// Nested join result for verifyTenantAccess - verifies ownership through relationship chain
+			const leaseWithOwner = {
+				id: mockLeaseId,
+				unit: {
+					property: {
+						owner: { user_id: 'other-user-id' }
+					}
+				}
+			}
 
 			mockAdminClient.from
 				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
-				.mockReturnValueOnce(createSingleQueryMock(propertyOwner))
+				.mockReturnValueOnce(createMaybeSingleQueryMock(leaseWithOwner))
 
 			await expect(
 				service.verifyTenantAccess('other-user-id', mockTenantId)
@@ -234,12 +255,34 @@ describe('RentPaymentContextService', () => {
 
 		it('should throw ForbiddenException when user is not authorized', async () => {
 			const tenantWithUser = { ...mockTenant, users: mockUser }
+			// No lease found or owner doesn't match
 			mockAdminClient.from
 				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
-				.mockReturnValueOnce(createSingleQueryMock(null, true))
+				.mockReturnValueOnce(createMaybeSingleQueryMock(null, true))
 
 			await expect(
 				service.verifyTenantAccess('unauthorized-user', mockTenantId)
+			).rejects.toThrow(ForbiddenException)
+		})
+
+		it('should throw ForbiddenException when lease exists but owner does not match', async () => {
+			const tenantWithUser = { ...mockTenant, users: mockUser }
+			// Lease exists but requesting user is not the owner
+			const leaseWithDifferentOwner = {
+				id: mockLeaseId,
+				unit: {
+					property: {
+						owner: { user_id: 'actual-owner-id' }
+					}
+				}
+			}
+
+			mockAdminClient.from
+				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
+				.mockReturnValueOnce(createMaybeSingleQueryMock(leaseWithDifferentOwner))
+
+			await expect(
+				service.verifyTenantAccess('wrong-user-id', mockTenantId)
 			).rejects.toThrow(ForbiddenException)
 		})
 	})

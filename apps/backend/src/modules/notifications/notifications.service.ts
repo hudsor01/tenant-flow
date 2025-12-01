@@ -198,25 +198,15 @@ export class NotificationsService {
 			}
 		}
 
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.insert({
-				user_id: notification.recipientId,
-				title: notification.title,
-				message: notification.message,
-				notification_type: notification.type,
-				entity_id: notification.maintenanceId,
-				entity_type: 'maintenance',
-				action_url: notification.actionUrl,
-				is_read: false
-			})
-			.select()
-			.single()
-
-		if (error) {
-			throw error
-		}
+		await this.insertNotification({
+			user_id: notification.recipientId,
+			title: notification.title,
+			message: notification.message,
+			notification_type: notification.type,
+			action_url: notification.actionUrl,
+			entity_id: notification.maintenanceId || undefined,
+			entity_type: 'maintenance'
+		})
 
 		if (this.formatterService.shouldSendImmediately(priority)) {
 			await this.sendImmediateNotification(notification)
@@ -420,20 +410,15 @@ export class NotificationsService {
 					unit_number ? ` - Unit ${unit_number}` : ''
 				}`
 
-				const { error } = await client.from('notifications').insert({
+				await this.insertNotification({
 					user_id: event.owner_id,
-					entity_id: event.tenant_id,
-					entity_type: 'tenant_invitation',
 					title: 'Tenant Invitation Sent',
 					message: `Invitation sent to ${tenantName} for ${leaseLabel}. Payment setup link ready.`,
 					notification_type: 'system',
 					action_url: '/tenants',
-					is_read: false
+					entity_id: event.tenant_id,
+					entity_type: 'tenant_invitation'
 				})
-
-				if (error) {
-					throw error
-				}
 
 				this.logger.log(
 					`Tenant invitation notification stored for owner ${event.owner_id}`,
@@ -462,6 +447,8 @@ export class NotificationsService {
 			async () => {
 				const client = this.supabaseService.getAdminClient()
 
+				// Single query with nested joins - includes owner to avoid N+1
+				// Path: tenant_invitations.property_owner_id -> property_owners.user_id -> users
 				const { data: invitation, error: invError } = await client
 					.from('tenant_invitations')
 					.select(`
@@ -469,6 +456,10 @@ export class NotificationsService {
 						email,
 						unit_id,
 						property_owner_id,
+						owner:property_owner_id(
+							user_id,
+							user:user_id(first_name, last_name)
+						),
 						unit:unit_id(
 							unit_number,
 							property_id,
@@ -491,16 +482,10 @@ export class NotificationsService {
 					propertyName = invitation.unit?.property?.name ?? undefined
 					unitNumber = invitation.unit?.unit_number ?? undefined
 
-					if (invitation.property_owner_id) {
-						const { data: owner } = await client
-							.from('users')
-							.select('first_name, last_name')
-							.eq('id', invitation.property_owner_id)
-							.single()
-
-						if (owner?.first_name && owner?.last_name) {
-							ownerName = `${owner.first_name} ${owner.last_name}`
-						}
+					// Owner included in nested join: property_owners -> users
+					const ownerUser = invitation.owner?.user as { first_name: string | null; last_name: string | null } | null
+					if (ownerUser?.first_name && ownerUser?.last_name) {
+						ownerName = `${ownerUser.first_name} ${ownerUser.last_name}`
 					}
 				}
 
@@ -559,6 +544,54 @@ export class NotificationsService {
 	// PRIVATE HELPER METHODS
 	// ==================
 
+	/**
+	 * Insert a notification record
+	 * Centralized helper per DRY principle - reduces 4 similar patterns to 1
+	 */
+	private async insertNotification(params: {
+		user_id: string
+		title: string
+		message: string
+		notification_type: string
+		action_url: string
+		entity_id?: string | undefined
+		entity_type?: string | undefined
+	}): Promise<void> {
+		const insertData: {
+			user_id: string
+			title: string
+			message: string
+			notification_type: string
+			action_url: string
+			is_read: boolean
+			entity_id?: string
+			entity_type?: string
+		} = {
+			user_id: params.user_id,
+			title: params.title,
+			message: params.message,
+			notification_type: params.notification_type,
+			action_url: params.action_url,
+			is_read: false
+		}
+
+		if (params.entity_id) {
+			insertData.entity_id = params.entity_id
+		}
+		if (params.entity_type) {
+			insertData.entity_type = params.entity_type
+		}
+
+		const { error } = await this.supabaseService
+			.getAdminClient()
+			.from('notifications')
+			.insert(insertData)
+
+		if (error) {
+			throw error
+		}
+	}
+
 	private async createPaymentNotification(
 		user_id: string,
 		title: string,
@@ -566,23 +599,15 @@ export class NotificationsService {
 		paymentId?: string,
 		actionUrl?: string
 	): Promise<void> {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.insert({
-				user_id,
-				title,
-				message: message,
-				notification_type: 'payment',
-				...(paymentId ? { entity_id: paymentId } : {}),
-				entity_type: 'payment',
-				action_url: actionUrl || '/billing',
-				is_read: false
-			})
-
-		if (error) {
-			throw error
-		}
+		await this.insertNotification({
+			user_id,
+			title,
+			message,
+			notification_type: 'payment',
+			action_url: actionUrl || '/billing',
+			entity_id: paymentId,
+			entity_type: 'payment'
+		})
 	}
 
 	private async createSystemNotification(
@@ -591,20 +616,12 @@ export class NotificationsService {
 		message: string,
 		actionUrl?: string
 	): Promise<void> {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('notifications')
-			.insert({
-				user_id,
-				title,
-				message: message,
-				notification_type: 'system',
-				action_url: actionUrl || '/',
-				is_read: false
-			})
-
-		if (error) {
-			throw error
-		}
+		await this.insertNotification({
+			user_id,
+			title,
+			message,
+			notification_type: 'system',
+			action_url: actionUrl || '/'
+		})
 	}
 }
