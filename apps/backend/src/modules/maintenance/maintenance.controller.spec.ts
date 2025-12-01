@@ -9,10 +9,12 @@ import {
 } from '../../test-utils/mocks'
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
+import { MaintenanceReportingService } from './maintenance-reporting.service'
 
 describe('MaintenanceController', () => {
 	let controller: MaintenanceController
 	let service: jest.Mocked<MaintenanceService>
+	let reportingService: jest.Mocked<MaintenanceReportingService>
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const mockUser = createMockUser()
@@ -25,11 +27,14 @@ describe('MaintenanceController', () => {
 			create: jest.fn(),
 			update: jest.fn(),
 			remove: jest.fn(),
-			getStats: jest.fn(),
-			getUrgent: jest.fn(),
-			getOverdue: jest.fn(),
 			complete: jest.fn(),
 			cancel: jest.fn()
+		}
+
+		const mockReportingService = {
+			getStats: jest.fn(),
+			getUrgent: jest.fn(),
+			getOverdue: jest.fn()
 		}
 
 		mockSupabaseService = {
@@ -40,6 +45,7 @@ describe('MaintenanceController', () => {
 			controllers: [MaintenanceController],
 			providers: [
 				{ provide: MaintenanceService, useValue: mockService },
+				{ provide: MaintenanceReportingService, useValue: mockReportingService },
 				{ provide: SupabaseService, useValue: mockSupabaseService }
 			]
 		})
@@ -48,6 +54,7 @@ describe('MaintenanceController', () => {
 
 		controller = module.get<MaintenanceController>(MaintenanceController)
 		service = module.get(MaintenanceService) as jest.Mocked<MaintenanceService>
+		reportingService = module.get(MaintenanceReportingService) as jest.Mocked<MaintenanceReportingService>
 	})
 
 	it('returns maintenance requests (findAll)', async () => {
@@ -136,7 +143,7 @@ describe('MaintenanceController', () => {
 			avgResponseTimeHours: 12.5,
 			byPriority: { low: 2, medium: 4, high: 3, emergency: 1 }
 		}
-		service.getStats.mockResolvedValue(stats as any)
+		reportingService.getStats.mockResolvedValue(stats as any)
 		const result = await controller.getStats(mockToken)
 		expect(result).toEqual(stats)
 	})
@@ -148,7 +155,7 @@ describe('MaintenanceController', () => {
 				priority: 'urgent'
 			}
 		]
-		service.getUrgent.mockResolvedValue(urgent)
+		reportingService.getUrgent.mockResolvedValue(urgent)
 		const urgentResult = await controller.getUrgent(mockToken)
 		expect(urgentResult).toEqual(urgent)
 
@@ -158,7 +165,7 @@ describe('MaintenanceController', () => {
 				status: 'open'
 			}
 		]
-		service.getOverdue.mockResolvedValue(overdue)
+		reportingService.getOverdue.mockResolvedValue(overdue)
 		const overdueResult = await controller.getOverdue(mockToken)
 		expect(overdueResult).toEqual(overdue)
 	})
