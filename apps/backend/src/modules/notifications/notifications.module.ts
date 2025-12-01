@@ -4,6 +4,8 @@ import { EmailModule } from '../email/email.module'
 import { NotificationsController } from './notifications.controller'
 import { NotificationService } from './notification.service'
 import { NotificationsService } from './notifications.service'
+import { NotificationQueryService } from './notification-query.service'
+import { NotificationFormatterService } from './notification-formatter.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import { LeaseExpiryNotificationListener } from './listeners/lease-expiry-notification.listener'
 
@@ -17,9 +19,17 @@ import { LeaseExpiryNotificationListener } from './listeners/lease-expiry-notifi
 	providers: [
 		NotificationService,
 		NotificationsService,
+		NotificationQueryService,
+		NotificationFormatterService,
 		FailedNotificationsService,
 		LeaseExpiryNotificationListener
 	],
-	exports: [NotificationService, NotificationsService, FailedNotificationsService]
+	exports: [
+		NotificationService,
+		NotificationsService,
+		NotificationQueryService,
+		NotificationFormatterService,
+		FailedNotificationsService
+	]
 })
 export class NotificationsModule {}

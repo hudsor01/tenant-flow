@@ -25,6 +25,7 @@ import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceReportingService } from './maintenance-reporting.service'
+import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 
@@ -32,7 +33,8 @@ import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 export class MaintenanceController {
 	constructor(
 		private readonly maintenanceService: MaintenanceService,
-		private readonly reportingService: MaintenanceReportingService
+		private readonly reportingService: MaintenanceReportingService,
+		private readonly workflowService: MaintenanceWorkflowService
 	) {}
 
 	/**
@@ -234,7 +236,7 @@ export class MaintenanceController {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
 			throw new BadRequestException('Actual cost must be between 0 and 999999')
 		}
-		return this.maintenanceService.complete(token, id, actualCost, notes)
+		return this.workflowService.complete(token, id, actualCost, notes)
 	}
 
 	/**
@@ -247,6 +249,6 @@ export class MaintenanceController {
 		@JwtToken() token: string,
 		@Body('reason') reason?: string
 	) {
-		return this.maintenanceService.cancel(token, id, reason)
+		return this.workflowService.cancel(token, id, reason)
 	}
 }
