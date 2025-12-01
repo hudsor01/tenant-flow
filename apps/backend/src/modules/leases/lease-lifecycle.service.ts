@@ -1,0 +1,203 @@
+/**
+ * Lease Lifecycle Service
+ * Handles lease renewal and termination workflows
+ * Extracted from LeasesService for SRP compliance
+ */
+
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import type { Lease } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase'
+import { SupabaseService } from '../../database/supabase.service'
+
+@Injectable()
+export class LeaseLifecycleService {
+	private readonly logger = new Logger(LeaseLifecycleService.name)
+
+	constructor(private readonly supabase: SupabaseService) {}
+
+	/**
+	 * Find one lease by ID (internal helper for ownership verification)
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
+	 */
+	private async findOne(token: string, lease_id: string): Promise<Lease | null> {
+		const client = this.supabase.getUserClient(token)
+
+		const { data, error } = await client
+			.from('leases')
+			.select('*')
+			.eq('id', lease_id)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to fetch lease from Supabase', {
+				error: error.message,
+				lease_id
+			})
+			return null
+		}
+
+		return data as Lease
+	}
+
+	/**
+	 * Renew lease - consolidated method with validation
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 */
+	async renew(
+		token: string,
+		lease_id: string,
+		newEndDate: string,
+		newRentAmount?: number
+	): Promise<Lease | null> {
+		try {
+			this.logger.log('Renewing lease via RLS-protected query', {
+				lease_id,
+				newEndDate,
+				newRentAmount
+			})
+
+			// Verify ownership and lease exists (RLS will enforce ownership)
+			const existingLease = await this.findOne(token, lease_id)
+			if (!existingLease) {
+				throw new BadRequestException('Lease not found or access denied')
+			}
+
+			// Month-to-month leases cannot be renewed (no fixed end date)
+			if (!existingLease.end_date) {
+				throw new BadRequestException(
+					'Cannot renew a month-to-month lease. Convert to fixed-term first.'
+				)
+			}
+
+			// Validate new end date is after current
+			const currentEndDate = new Date(existingLease.end_date)
+			const renewalEndDate = new Date(newEndDate)
+			if (renewalEndDate <= currentEndDate) {
+				throw new BadRequestException(
+					'New end date must be after current lease end date'
+				)
+			}
+
+			// Validate new rent amount if provided
+			if (newRentAmount && newRentAmount <= 0) {
+				throw new BadRequestException('Rent amount must be positive')
+			}
+
+			const client = this.supabase.getUserClient(token)
+
+			const updated_data: Database['public']['Tables']['leases']['Update'] = {
+				end_date: newEndDate,
+				updated_at: new Date().toISOString()
+			}
+			if (newRentAmount) {
+				updated_data.rent_amount = newRentAmount
+			}
+
+			const { data, error } = await client
+				.from('leases')
+				.update(updated_data)
+				.eq('id', lease_id)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to renew lease in Supabase', {
+					error: error.message,
+					lease_id
+				})
+				throw new BadRequestException('Failed to renew lease')
+			}
+
+			return data as Lease
+		} catch (error) {
+			this.logger.error('Failed to renew lease', {
+				error: error instanceof Error ? error.message : String(error),
+				lease_id,
+				newEndDate,
+				newRentAmount
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to renew lease')
+		}
+	}
+
+	/**
+	 * Terminate lease - consolidated method with validation
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
+	 */
+	async terminate(
+		token: string,
+		lease_id: string,
+		terminationDate: string,
+		reason?: string
+	): Promise<Lease | null> {
+		try {
+			this.logger.log('Terminating lease via RLS-protected query', {
+				lease_id,
+				terminationDate,
+				reason
+			})
+
+			// Verify ownership and lease exists (RLS will enforce ownership)
+			const existingLease = await this.findOne(token, lease_id)
+			if (!existingLease) {
+				throw new BadRequestException('Lease not found or access denied')
+			}
+
+			// Validate termination date
+			const termDate = new Date(terminationDate)
+			const currentDate = new Date()
+			if (termDate < currentDate) {
+				throw new BadRequestException('Termination date cannot be in the past')
+			}
+
+			// Check if lease is already terminated
+			if (
+				existingLease.lease_status === 'terminated' ||
+				existingLease.lease_status === 'ended'
+			) {
+				throw new BadRequestException('Lease is already terminated or expired')
+			}
+
+			const client = this.supabase.getUserClient(token)
+
+			const { data, error } = await client
+				.from('leases')
+				.update({
+					lease_status: 'terminated',
+					end_date: terminationDate,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', lease_id)
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to terminate lease in Supabase', {
+					error: error.message,
+					lease_id
+				})
+				throw new BadRequestException('Failed to terminate lease')
+			}
+
+			return data as Lease
+		} catch (error) {
+			this.logger.error('Failed to terminate lease', {
+				error: error instanceof Error ? error.message : String(error),
+				lease_id,
+				terminationDate,
+				reason
+			})
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException('Failed to terminate lease')
+		}
+	}
+}
