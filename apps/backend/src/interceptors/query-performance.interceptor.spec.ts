@@ -50,9 +50,9 @@ describe('QueryPerformanceInterceptor', () => {
 			// Mock slow handler that takes >1000ms
 			const slowDuration = 1100
 			const startTime = performance.now()
-			
+
 			mockCallHandler.handle.mockReturnValue(of('result'))
-			
+
 			// Override performance.now to simulate slow request
 			const originalNow = performance.now
 			let callCount = 0
@@ -72,10 +72,16 @@ describe('QueryPerformanceInterceptor', () => {
 							handler: 'findAll',
 							method: 'GET',
 							route: '/api/properties',
-							durationMs: slowDuration,
-							thresholdMs: 1000
-						})
-					)
+						durationMs: expect.any(Number),
+						thresholdMs: 1000
+					})
+				)
+				// Verify duration is approximately correct (allow for floating point precision)
+				const warnCall = mockLogger.warn.mock.calls[0]
+				const loggedDuration = warnCall[1].durationMs
+				expect(loggedDuration).toBeGreaterThanOrEqual(slowDuration)
+				expect(loggedDuration).toBeLessThan(slowDuration + 1)
+
 					performance.now = originalNow
 					done()
 				},
