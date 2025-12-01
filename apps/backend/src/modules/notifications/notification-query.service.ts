@@ -25,7 +25,7 @@ export class NotificationQueryService {
 			.from('notifications')
 			.select('*')
 			.eq('user_id', user_id)
-			.eq('isRead', false)
+			.eq('is_read', false)
 			.order('created_at', { ascending: false })
 
 		if (error) {
@@ -70,7 +70,7 @@ export class NotificationQueryService {
 				.from('notifications')
 				.select('*', { count: 'exact', head: true })
 				.eq('user_id', user_id)
-				.eq('isRead', false)) as { count: number | null; error: unknown }
+				.eq('is_read', false)) as { count: number | null; error: unknown }
 
 			if (error) {
 				this.logger.error('Failed to get unread notification count', {
