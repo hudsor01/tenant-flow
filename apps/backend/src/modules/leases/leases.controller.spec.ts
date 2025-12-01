@@ -10,10 +10,12 @@ import { createMockEmailService } from '../../test-utils/mocks'
 import { EmailService } from '../email/email.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { LeaseFinancialService } from './lease-financial.service'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
 	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockFinancialService: jest.Mocked<LeaseFinancialService>
 
 	const generateUUID = () => randomUUID()
 
@@ -42,16 +44,20 @@ describe('LeasesController', () => {
 	beforeEach(async () => {
 		mockLeasesService = {
 			findAll: jest.fn(),
-			getStats: jest.fn(),
-			getExpiring: jest.fn(),
 			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
 			remove: jest.fn(),
 			renew: jest.fn(),
-			terminate: jest.fn(),
-			getAnalytics: jest.fn()
+			terminate: jest.fn()
 		} as unknown as jest.Mocked<LeasesService>
+
+		mockFinancialService = {
+			getStats: jest.fn(),
+			getExpiring: jest.fn(),
+			getAnalytics: jest.fn(),
+			getPaymentHistory: jest.fn()
+		} as unknown as jest.Mocked<LeaseFinancialService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeasesController],
@@ -59,6 +65,10 @@ describe('LeasesController', () => {
 				{
 					provide: LeasesService,
 					useValue: mockLeasesService
+				},
+				{
+					provide: LeaseFinancialService,
+					useValue: mockFinancialService
 				},
 				{
 					provide: SupabaseService,
@@ -190,11 +200,11 @@ describe('LeasesController', () => {
 				totalsecurity_deposits: 12000,
 				expiringLeases: 5
 			}
-			mockLeasesService.getStats.mockResolvedValue(mockStats)
+			mockFinancialService.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats('mock-jwt-token')
 
-			expect(mockLeasesService.getStats).toHaveBeenCalledWith('mock-jwt-token')
+			expect(mockFinancialService.getStats).toHaveBeenCalledWith('mock-jwt-token')
 			expect(result).toEqual(mockStats)
 		})
 	})
@@ -202,11 +212,11 @@ describe('LeasesController', () => {
 	describe('getExpiring', () => {
 		it('should return expiring leases with default days', async () => {
 			const mockExpiring = [createMockLease()]
-			mockLeasesService.getExpiring.mockResolvedValue(mockExpiring)
+			mockFinancialService.getExpiring.mockResolvedValue(mockExpiring)
 
 			const result = await controller.getExpiring('mock-jwt-token', 30)
 
-			expect(mockLeasesService.getExpiring).toHaveBeenCalledWith(
+			expect(mockFinancialService.getExpiring).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				30
 			)

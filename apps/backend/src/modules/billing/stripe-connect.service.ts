@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { ConnectSetupService } from './connect-setup.service'
 import { ConnectBillingService } from './connect-billing.service'
@@ -19,8 +19,6 @@ import { ConnectPayoutsService } from './connect-payouts.service'
  */
 @Injectable()
 export class StripeConnectService {
-	private readonly logger = new Logger(StripeConnectService.name)
-
 	constructor(
 		private readonly setupService: ConnectSetupService,
 		private readonly billingService: ConnectBillingService,
