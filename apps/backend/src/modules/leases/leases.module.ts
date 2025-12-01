@@ -4,6 +4,7 @@ import { SharedModule } from '../../shared/shared.module'
 import { PDFModule } from '../pdf/pdf.module'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { LeaseFinancialService } from './lease-financial.service'
 import { LeaseTransformationService } from './lease-transformation.service'
 import { LeaseValidationService } from './lease-validation.service'
 import { LeaseExpiryCheckerService } from './lease-expiry-checker.service'
@@ -23,12 +24,14 @@ import { TenantsModule } from '../tenants/tenants.module'
 	controllers: [LeasesController],
 	providers: [
 		LeasesService,
+		LeaseFinancialService,
 		LeaseTransformationService,
 		LeaseValidationService,
 		LeaseExpiryCheckerService
 	],
 	exports: [
 		LeasesService,
+		LeaseFinancialService,
 		LeaseTransformationService,
 		LeaseValidationService
 	]
