@@ -5,6 +5,7 @@ import { PDFModule } from '../pdf/pdf.module'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
 import { LeaseFinancialService } from './lease-financial.service'
+import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseTransformationService } from './lease-transformation.service'
 import { LeaseValidationService } from './lease-validation.service'
 import { LeaseExpiryCheckerService } from './lease-expiry-checker.service'
@@ -25,6 +26,7 @@ import { TenantsModule } from '../tenants/tenants.module'
 	providers: [
 		LeasesService,
 		LeaseFinancialService,
+		LeaseLifecycleService,
 		LeaseTransformationService,
 		LeaseValidationService,
 		LeaseExpiryCheckerService
@@ -32,6 +34,7 @@ import { TenantsModule } from '../tenants/tenants.module'
 	exports: [
 		LeasesService,
 		LeaseFinancialService,
+		LeaseLifecycleService,
 		LeaseTransformationService,
 		LeaseValidationService
 	]

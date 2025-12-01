@@ -10,11 +10,13 @@ import {
 import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceReportingService } from './maintenance-reporting.service'
+import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 
 describe('MaintenanceController', () => {
 	let controller: MaintenanceController
 	let service: jest.Mocked<MaintenanceService>
 	let reportingService: jest.Mocked<MaintenanceReportingService>
+	let workflowService: jest.Mocked<MaintenanceWorkflowService>
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const mockUser = createMockUser()
@@ -26,15 +28,19 @@ describe('MaintenanceController', () => {
 			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
-			remove: jest.fn(),
-			complete: jest.fn(),
-			cancel: jest.fn()
+			remove: jest.fn()
 		}
 
 		const mockReportingService = {
 			getStats: jest.fn(),
 			getUrgent: jest.fn(),
 			getOverdue: jest.fn()
+		}
+
+		const mockWorkflowService = {
+			updateStatus: jest.fn(),
+			complete: jest.fn(),
+			cancel: jest.fn()
 		}
 
 		mockSupabaseService = {
@@ -46,6 +52,7 @@ describe('MaintenanceController', () => {
 			providers: [
 				{ provide: MaintenanceService, useValue: mockService },
 				{ provide: MaintenanceReportingService, useValue: mockReportingService },
+				{ provide: MaintenanceWorkflowService, useValue: mockWorkflowService },
 				{ provide: SupabaseService, useValue: mockSupabaseService }
 			]
 		})
@@ -55,6 +62,7 @@ describe('MaintenanceController', () => {
 		controller = module.get<MaintenanceController>(MaintenanceController)
 		service = module.get(MaintenanceService) as jest.Mocked<MaintenanceService>
 		reportingService = module.get(MaintenanceReportingService) as jest.Mocked<MaintenanceReportingService>
+		workflowService = module.get(MaintenanceWorkflowService) as jest.Mocked<MaintenanceWorkflowService>
 	})
 
 	it('returns maintenance requests (findAll)', async () => {
@@ -176,7 +184,7 @@ describe('MaintenanceController', () => {
 			...mockMaintenanceRequest,
 			status: 'completed'
 		}
-		service.complete.mockResolvedValue(completed)
+		workflowService.complete.mockResolvedValue(completed)
 		const result = await controller.complete(
 			mockMaintenanceRequest.id,
 			mockToken,
@@ -184,7 +192,7 @@ describe('MaintenanceController', () => {
 			'Fixed'
 		)
 		expect(result).toEqual(completed)
-		expect(service.complete).toHaveBeenCalledWith(
+		expect(workflowService.complete).toHaveBeenCalledWith(
 			mockToken,
 			mockMaintenanceRequest.id,
 			500,
@@ -216,7 +224,7 @@ describe('MaintenanceController', () => {
 			...createMockMaintenanceRequest(),
 			status: 'cancelled'
 		}
-		service.cancel.mockResolvedValue(cancelled)
+		workflowService.cancel.mockResolvedValue(cancelled)
 		const result = await controller.cancel(
 			createMockMaintenanceRequest().id,
 			mockToken,

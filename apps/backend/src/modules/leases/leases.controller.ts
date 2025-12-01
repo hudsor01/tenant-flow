@@ -23,6 +23,7 @@ import {
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { LeasesService } from './leases.service'
 import { LeaseFinancialService } from './lease-financial.service'
+import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
 
@@ -30,7 +31,8 @@ import { UpdateLeaseDto } from './dto/update-lease.dto'
 export class LeasesController {
 	constructor(
 		private readonly leasesService: LeasesService,
-		private readonly financialService: LeaseFinancialService
+		private readonly financialService: LeaseFinancialService,
+		private readonly lifecycleService: LeaseLifecycleService
 	) {}
 
 	@Get()
@@ -322,7 +324,7 @@ export class LeasesController {
 			throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
 		}
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.renew(token, id, end_date)
+		return this.lifecycleService.renew(token, id, end_date)
 	}
 
 	@Post(':id/terminate')
@@ -332,7 +334,7 @@ export class LeasesController {
 		@Body('reason') reason?: string
 	) {
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		return this.leasesService.terminate(
+		return this.lifecycleService.terminate(
 			token,
 			id,
 			new Date().toISOString(),
