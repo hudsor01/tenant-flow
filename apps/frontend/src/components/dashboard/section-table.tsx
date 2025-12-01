@@ -71,7 +71,7 @@ export function SectionTable() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
-					<div className="flex items-center justify-center py-8">
+					<div className="flex-center py-8">
 						<Spinner className="size-6 animate-spin" />
 						<span className="ml-2 text-muted-foreground text-sm">
 							Loading properties...
@@ -96,7 +96,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="text-center py-8">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							Failed to load properties
 						</p>
 					</div>
@@ -119,7 +119,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="text-center py-8">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							No properties yet. Add your first property to get started.
 						</p>
 					</div>

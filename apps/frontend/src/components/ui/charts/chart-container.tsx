@@ -8,7 +8,15 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { cn } from '#lib/utils'
-import type { ChartContainerProps } from '@repo/shared/types/frontend'
+import type { ReactNode } from 'react'
+
+interface ChartContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+	title?: string
+	description?: string
+	children: ReactNode
+	height?: number
+	className?: string
+}
 
 export function ChartContainer({
 	title,

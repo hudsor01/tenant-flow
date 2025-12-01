@@ -78,7 +78,7 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 				return (
 					<div>
 						<div className="font-medium">{property.name}</div>
-						<div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+						<div className="text-muted flex items-center gap-1 mt-1">
 							<MapPin className="size-3" />
 							{property.address_line1}
 						</div>

@@ -242,7 +242,7 @@ export default function NewMaintenanceRequestPage() {
 								Allow maintenance team to enter unit if I&apos;m not home
 							</FieldLabel>
 						</div>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-muted mt-1">
 							Check this box if maintenance can access your unit without you being present
 						</p>
 					</Field>

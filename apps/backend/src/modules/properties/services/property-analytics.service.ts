@@ -7,7 +7,7 @@ import {
 import type { Request } from 'express'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
-import {
+import type {
   PropertyPerformanceData,
   PropertyOccupancyData,
   PropertyFinancialData,

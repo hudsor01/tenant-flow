@@ -38,6 +38,7 @@ import {
 } from '#hooks/api/mutations/lease-mutations'
 import { useLeaseList } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { formatDate } from '#lib/formatters'
 import type { Lease } from '@repo/shared/types/core'
 import {
 	Edit,
@@ -167,14 +168,6 @@ export default function LeasesPage() {
 		return <Badge variant={variants[status]}>{status}</Badge>
 	}
 
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		})
-	}
-
 	if (error) {
 		return (
 			<div className="container py-8">
@@ -182,7 +175,7 @@ export default function LeasesPage() {
 					<h2 className="text-lg font-semibold text-destructive">
 						Error Loading Leases
 					</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						{error instanceof Error ? error.message : 'Failed to load leases'}
 					</p>
 				</div>
@@ -193,7 +186,7 @@ export default function LeasesPage() {
 	return (
 		<div className="container py-8 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Leases</h1>
 					<p className="text-muted-foreground">
@@ -236,7 +229,7 @@ export default function LeasesPage() {
 					</SelectContent>
 				</Select>
 
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted">
 					{total} lease{total !== 1 ? 's' : ''} found
 				</div>
 			</div>
@@ -245,7 +238,7 @@ export default function LeasesPage() {
 			{isLoading ? (
 				<div className="rounded-lg border p-8 text-center">
 					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						Loading leases...
 					</p>
 				</div>
@@ -253,7 +246,7 @@ export default function LeasesPage() {
 				<div className="rounded-lg border p-8 text-center">
 					<FileText className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						{search || status !== 'all'
 							? 'Try adjusting your filters'
 							: 'Get started by creating your first lease'}
@@ -278,14 +271,14 @@ export default function LeasesPage() {
 							{leases.map(lease => (
 								<TableRow key={lease.id}>
 									<TableCell>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											{lease?.primary_tenant_id ?? ''
 												? `${lease?.primary_tenant_id ?? ''.substring(0, 8)}...`
 												: 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											{lease.unit_id
 												? `${lease.unit_id.substring(0, 8)}...`
 												: 'N/A'}

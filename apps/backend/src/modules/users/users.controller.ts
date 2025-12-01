@@ -19,7 +19,8 @@ import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UsersService } from './users.service'
-import { UpdateProfileDto } from './dto/update-profile.dto'
+import type { UpdateProfileDto } from './dto/update-profile.dto'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 
 @Controller('users')
 export class UsersController {
@@ -111,6 +112,7 @@ export class UsersController {
 	@Patch('profile')
 	@SkipSubscriptionCheck()
 	async updateProfile(
+		@JwtToken() token: string,
 		@Req() req: AuthenticatedRequest,
 		@Body() dto: UpdateProfileDto
 	) {
@@ -121,12 +123,12 @@ export class UsersController {
 			fields: Object.keys(dto)
 		})
 
-		const updatedUser = await this.usersService.updateUser(user_id, {
+		const updatedUser = await this.usersService.updateUser(token, user_id, {
 			first_name: dto.first_name,
 			last_name: dto.last_name,
 			email: dto.email,
 			phone: dto.phone ?? null,
-			
+
 		})
 
 		this.logger.log('User profile updated successfully', { user_id })
@@ -137,7 +139,7 @@ export class UsersController {
 			last_name: updatedUser.last_name,
 			email: updatedUser.email,
 			phone: updatedUser.phone,
-			
+
 		}
 	}
 }

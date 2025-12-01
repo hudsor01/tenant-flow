@@ -15,7 +15,7 @@ export function MetricsCardSkeleton({ className }: MetricsCardSkeletonProps) {
 		)}
 		>
 			<CardHeader className="p-0 gap-(--spacing-4)">
-				<div className="flex items-center justify-between gap-3">
+				<div className="flex-between gap-3">
 					<Skeleton className="w-20 h-4 rounded-sm" />
 					<Skeleton className="size-10 rounded-lg" />
 				</div>

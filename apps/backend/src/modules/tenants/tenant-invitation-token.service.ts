@@ -5,10 +5,11 @@
  * Manages: Token validation, Token expiration, Tenant activation
  */
 
+import type {
+	Logger} from '@nestjs/common';
 import {
 	BadRequestException,
 	Injectable,
-	Logger,
 	NotFoundException
 } from '@nestjs/common'
 import type { Tenant } from '@repo/shared/types/core'

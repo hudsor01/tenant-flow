@@ -8,7 +8,7 @@
  */
 
 import type { NestExpressApplication } from '@nestjs/platform-express'
-import type { AppConfigService } from './app-config.service'
+import { AppConfigService } from './app-config.service'
 import cookieParser from 'cookie-parser'
 import express, {
 	type NextFunction,

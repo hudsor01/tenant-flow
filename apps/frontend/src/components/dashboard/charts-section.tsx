@@ -42,7 +42,7 @@ export function ChartsSection() {
 							Unable to load analytics data
 						</p>
 					</div>
-					<div className="flex items-center justify-center h-64 text-muted-foreground">
+					<div className="flex-center h-64 text-muted-foreground">
 						Error loading portfolio analytics
 					</div>
 				</section>

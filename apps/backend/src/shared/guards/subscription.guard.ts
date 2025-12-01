@@ -1,6 +1,7 @@
-import {
+import type {
 	CanActivate,
-	ExecutionContext,
+	ExecutionContext} from '@nestjs/common';
+import {
 	ForbiddenException,
 	Injectable,
 	Logger,
@@ -8,7 +9,7 @@ import {
 	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
+import type { Reflector } from '@nestjs/core'
 
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'

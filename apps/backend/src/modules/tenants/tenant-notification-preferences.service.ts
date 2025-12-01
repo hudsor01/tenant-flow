@@ -5,10 +5,11 @@
  * Manages: Get, Update notification preferences
  */
 
+import type {
+	Logger} from '@nestjs/common';
 import {
 	BadRequestException,
 	Injectable,
-	Logger,
 	NotFoundException
 } from '@nestjs/common'
 import type { TenantNotificationPreferences } from '@repo/shared/types/core'

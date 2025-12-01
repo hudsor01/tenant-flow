@@ -152,12 +152,12 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	if (submitMessage) {
 		return (
 			<section
-				className={`min-h-screen flex items-center justify-center bg-background ${className}`}
+				className={`min-h-screen flex-center bg-background ${className}`}
 				id="contact-form"
 			>
 				<div className="max-w-md w-full p-8">
 					<div className="p-8 bg-card rounded-2xl border border-border shadow-lg">
-						<div className="size-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+						<div className="size-16 rounded-full bg-primary/10 flex-center mx-auto mb-4">
 							<Check className="size-8 text-primary" />
 						</div>
 						<h2 className="text-2xl font-bold text-foreground text-center mb-4">
@@ -267,7 +267,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					{/* Progress indicator */}
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								Restoring your progress...
 							</p>
 						</div>
@@ -457,7 +457,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							{isSubmitting ? 'Sending...' : 'Send Message'}
 						</Button>
 
-						<p className="text-center text-sm text-muted-foreground">
+						<p className="text-center text-muted">
 							We typically respond within 4 hours during business hours
 						</p>
 					</form>

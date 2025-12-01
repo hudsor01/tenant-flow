@@ -92,7 +92,7 @@ export default function SettingsPage() {
 
 	return (
 		<div className="flex flex-1 flex-col gap-(--spacing-4) p-4 lg:gap-(--spacing-6) lg:p-6">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold text-foreground">
 						Settings & Preferences
@@ -431,12 +431,12 @@ export default function SettingsPage() {
 						className="p-6 border shadow-sm"
 					>
 						<div className="space-y-4">
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<div>
 									<Label htmlFor="enable-2fa" className="font-medium">
 										Enable 2FA
 									</Label>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Add an extra layer of security to your account
 									</p>
 								</div>
@@ -453,14 +453,14 @@ export default function SettingsPage() {
 
 					<CardLayout title="Active Sessions" className="p-6 border shadow-sm">
 						<div className="space-y-4">
-							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+							<div className="flex-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="size-11 rounded-full bg-primary/20 flex items-center justify-center">
+									<div className="size-11 rounded-full bg-primary/20 flex-center">
 										<div className="size-3 rounded-full bg-primary"></div>
 									</div>
 									<div>
 										<p className="font-medium">Current Session</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Chrome on macOS • San Francisco, CA
 										</p>
 									</div>
@@ -469,14 +469,14 @@ export default function SettingsPage() {
 									Current
 								</Badge>
 							</div>
-							<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+							<div className="flex-between p-4 rounded-lg bg-muted/20">
 								<div className="flex items-center gap-3">
-									<div className="size-11 rounded-full bg-muted flex items-center justify-center">
+									<div className="size-11 rounded-full bg-muted flex-center">
 										<Globe className="size-4" />
 									</div>
 									<div>
 										<p className="font-medium">Mobile App</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											iPhone • Last active 2 hours ago
 										</p>
 									</div>
@@ -494,14 +494,14 @@ export default function SettingsPage() {
 						title="Subscription Plan"
 						className="p-6 border shadow-sm"
 					>
-						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+						<div className="flex-between p-4 rounded-lg bg-muted/20">
 							<div>
 								<p className="font-semibold text-lg">Professional Plan</p>
 								<p className="text-muted-foreground">Manage up to 500 units</p>
 							</div>
 							<div className="text-right">
 								<p className="text-2xl font-bold">$99</p>
-								<p className="text-sm text-muted-foreground">per month</p>
+								<p className="text-muted">per month</p>
 							</div>
 						</div>
 						<div className="mt-4 flex items-center gap-2">
@@ -511,14 +511,14 @@ export default function SettingsPage() {
 					</CardLayout>
 
 					<CardLayout title="Payment Method" className="p-6 border shadow-sm">
-						<div className="flex items-center justify-between p-4 rounded-lg bg-muted/20">
+						<div className="flex-between p-4 rounded-lg bg-muted/20">
 							<div className="flex items-center gap-3">
-								<div className="size-10 rounded-lg bg-background border flex items-center justify-center">
+								<div className="size-10 rounded-lg bg-background border flex-center">
 									<CreditCard className="size-5" />
 								</div>
 								<div>
 									<p className="font-medium">•••• •••• 4242</p>
-									<p className="text-sm text-muted-foreground">Expires 12/25</p>
+									<p className="text-muted">Expires 12/25</p>
 								</div>
 							</div>
 							<Button variant="outline" size="sm">
@@ -536,11 +536,11 @@ export default function SettingsPage() {
 							].map((invoice, index) => (
 								<div
 									key={index}
-									className="flex items-center justify-between p-3 rounded-lg bg-muted/20"
+									className="flex-between p-3 rounded-lg bg-muted/20"
 								>
 									<div>
 										<p className="font-medium">{invoice.date}</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											{invoice.amount}
 										</p>
 									</div>
@@ -561,12 +561,12 @@ export default function SettingsPage() {
 				<TabsContent value="system" className="space-y-6">
 					<CardLayout title="Data Management" className="p-6 border shadow-sm">
 						<div className="space-y-4">
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<div>
 									<Label htmlFor="auto-backup" className="font-medium">
 										Auto-backup
 									</Label>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Automatically backup your data weekly
 									</p>
 								</div>
@@ -628,7 +628,7 @@ export default function SettingsPage() {
 						<div className="space-y-4">
 							<div>
 								<p className="font-medium">Delete Account</p>
-								<p className="text-sm text-muted-foreground mb-3">
+								<p className="text-muted mb-3">
 									Permanently delete your account and all associated data. This
 									action cannot be undone.
 								</p>

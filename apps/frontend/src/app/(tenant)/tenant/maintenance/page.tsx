@@ -15,27 +15,12 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useQuery } from '@tanstack/react-query'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { formatDate } from '#lib/formatters'
 import { Calendar, Plus, Wrench } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantMaintenancePage() {
 	const { data: maintenanceData, isLoading, error } = useQuery(maintenanceQueries.tenantPortal())
-
-	const formatDate = (dateString: string) => {
-		const date = new Date(dateString)
-		const now = new Date()
-		const diffTime = Math.abs(now.getTime() - date.getTime())
-		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-		if (diffDays === 0) return 'Today'
-		if (diffDays === 1) return 'Yesterday'
-		if (diffDays < 7) return `${diffDays} days ago`
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		})
-	}
 
 	const getStatusBadge = (status: string) => {
 		switch (status) {
@@ -82,7 +67,7 @@ export default function TenantMaintenancePage() {
 
 	return (
 		<div className="space-y-8">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">
 						Maintenance Requests
@@ -123,7 +108,7 @@ export default function TenantMaintenancePage() {
 					{!isLoading && !error && activeRequests.length === 0 && (
 						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
 							<Wrench className="size-12 text-muted-foreground mx-auto mb-3" />
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								No active maintenance requests
 							</p>
 							<p className="text-xs text-muted-foreground mt-1">
@@ -137,7 +122,7 @@ export default function TenantMaintenancePage() {
 						activeRequests.map(request => (
 							<div
 								key={request.id}
-								className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
+								className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
 							>
 								<div className="flex items-center gap-(--spacing-4) flex-1">
 									<Wrench className="size-5 text-primary" />
@@ -150,14 +135,14 @@ export default function TenantMaintenancePage() {
 												{request.priority}
 											</span>
 										</div>
-										<p className="text-sm text-muted-foreground mt-1">
+										<p className="text-muted mt-1">
 											{request.description.length > 100
 												? `${request.description.substring(0, 100)}...`
 												: request.description}
 										</p>
 										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
 											<Calendar className="size-3" />
-											<span>Submitted {formatDate(request.created_at || new Date().toISOString())}</span>
+							<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
 										</div>
 									</div>
 								</div>
@@ -187,7 +172,7 @@ export default function TenantMaintenancePage() {
 
 					{!isLoading && !error && completedRequests.length === 0 && (
 						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								No request history yet
 							</p>
 						</div>
@@ -198,7 +183,7 @@ export default function TenantMaintenancePage() {
 						completedRequests.map(request => (
 							<div
 								key={request.id}
-								className="flex items-center justify-between p-4 border rounded-lg"
+								className="flex-between p-4 border rounded-lg"
 							>
 								<div className="flex items-center gap-(--spacing-4) flex-1">
 									<Wrench className="size-5 text-muted-foreground" />
@@ -208,12 +193,12 @@ export default function TenantMaintenancePage() {
 										</div>
 										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
 											<Calendar className="size-3" />
-											<span>Submitted {formatDate(request.created_at || new Date().toISOString())}</span>
+							<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
 											{request.completed_at && (
 												<>
 													<span>•</span>
 													<span>
-														Completed {formatDate(request.completed_at)}
+									Completed {formatDate(request.completed_at, { relative: true })}
 													</span>
 												</>
 											)}

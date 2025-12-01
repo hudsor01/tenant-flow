@@ -1,5 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common'
-import type { SupabaseService } from '../database/supabase.service'
+import { SupabaseService } from '../database/supabase.service'
 import { CurrentUserProvider } from '../shared/providers/current-user.provider'
 
 /**

@@ -8,11 +8,12 @@
 import { Global, Module } from '@nestjs/common'
 import { UtilityService } from './utility.service'
 import { AuthRequestCache } from './auth-request-cache.service'
+import { EventIdempotencyService } from './event-idempotency.service'
 
 @Global()
 @Module({
 	imports: [],
-	providers: [UtilityService, AuthRequestCache],
-	exports: [UtilityService, AuthRequestCache]
+	providers: [UtilityService, AuthRequestCache, EventIdempotencyService],
+	exports: [UtilityService, AuthRequestCache, EventIdempotencyService]
 })
 export class ServicesModule {}

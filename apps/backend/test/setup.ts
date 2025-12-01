@@ -1,300 +1,114 @@
-import type { TestingModuleBuilder } from '@nestjs/testing'
-import { Test as NestTest } from '@nestjs/testing'
-import type { Database } from '@repo/shared/types/supabase'
-import { createClient } from '@supabase/supabase-js'
-import { randomUUID } from 'crypto'
-import { SupabaseService } from '../src/database/supabase.service'
-import { CurrentUserProvider } from '../src/shared/providers/current-user.provider'
-
-// Provide a chainable mock client shape commonly used in tests
-type ProviderLike = { provide?: unknown } & Record<string, unknown>
-
-function createChainableClient(): Record<string, unknown> {
-	const chain: Record<string, unknown> = {}
-	// assign jest fns referencing chain after declaration to satisfy TS and linter
-	chain.from = jest.fn(() => chain)
-	chain.select = jest.fn(() => chain)
-	chain.insert = jest.fn(() => chain)
-	chain.update = jest.fn(() => chain)
-	chain.delete = jest.fn(() => chain)
-	chain.eq = jest.fn(() => chain)
-	chain.order = jest.fn(() => chain)
-	chain.range = jest.fn(async () => ({ data: [], error: null }))
-	chain.single = jest.fn(async () => ({ data: {}, error: null }))
-	return chain
-}
-
-// Ensure SupabaseService.getAdminClient is always available in tests
-try {
-	const proto = (
-		SupabaseService as unknown as { prototype: Record<string, unknown> }
-	).prototype
-	if (proto && !proto.getAdminClient) {
-		proto.getAdminClient = function () {
-			return createChainableClient()
-		}
-	}
-} catch {
-	// ignore errors during test setup
-}
-
-// Provide a lightweight fallback CurrentUserProvider for tests that don't
-// register one in their testing module. This attaches a simple provider to
-// the module when requested via DI — tests that supply their own provider
-// will override this.
-try {
-	const cuProto = (
-		CurrentUserProvider as unknown as { prototype: Record<string, unknown> }
-	).prototype
-	if (cuProto) {
-		if (!cuProto.getUser)
-			cuProto.getUser = async function () {
-				return null
-			}
-		if (!cuProto.getuser_id)
-			cuProto.getuser_id = async function () {
-				return null
-			}
-		if (!cuProto.isAuthenticated)
-			cuProto.isAuthenticated = async function () {
-				return false
-			}
-		if (!cuProto.getUserEmail)
-			cuProto.getUserEmail = async function () {
-				return undefined
-			}
-	}
-} catch {
-	// ignore
-}
-
-// Monkeypatch Nest's Test.createTestingModule so tests that forget to provide
-// CurrentUserProvider still get a usable default. We wrap the returned
-// TestingModuleBuilder.compile to inject a provider metadata entry if it's
-// missing. This is defensive and tries several internal metadata locations
-// to be compatible across @nestjs/testing versions.
-try {
-	type CreateTestingModule = typeof NestTest.createTestingModule
-	const nestTest = NestTest as unknown as {
-		createTestingModule: (
-			...args: Parameters<CreateTestingModule>
-		) => ReturnType<CreateTestingModule>
-	}
-	const originalCreate = nestTest.createTestingModule
-	nestTest.createTestingModule = function (
-		...args: Parameters<CreateTestingModule>
-	) {
-		const builder = originalCreate.apply(this, args) as TestingModuleBuilder & {
-			metadata?: { providers?: ProviderLike[] }
-			_metadata?: { providers?: ProviderLike[] }
-			options?: { providers?: ProviderLike[] }
-			_options?: { providers?: ProviderLike[] }
-			providers?: ProviderLike[]
-			addProvider?: (provider: ProviderLike) => unknown
-		}
-
-		const originalCompile = builder?.compile
-
-		// no-op if compile isn't present (defensive)
-		if (typeof originalCompile !== 'function') return builder
-
-		const ensureProviderInjected = () => {
-			const defaultProvider: ProviderLike = {
-				provide: CurrentUserProvider,
-				useValue: {
-					getUser: jest.fn(async () => null),
-					getuser_id: jest.fn(async () => null),
-					isAuthenticated: jest.fn(async () => false),
-					getUserEmail: jest.fn(async () => undefined)
-				}
-			}
-
-			// Try common metadata locations
-			const meta:
-				| { providers?: ProviderLike[] }
-				| undefined
-				| Record<string, unknown> =
-				builder.metadata ??
-				builder._metadata ??
-				builder.options ??
-				builder._options
-			if (meta && Array.isArray(meta.providers)) {
-				const providersArr = meta.providers
-				const already = providersArr.find(
-					provider => provider?.provide === CurrentUserProvider
-				)
-				if (!already) providersArr.push(defaultProvider)
-
-				// Also ensure a default SupabaseService provider exists so tests that
-				// forget to supply a mock won't blow up when calling getAdminClient().
-				const defaultSupabaseProvider: ProviderLike = {
-					provide: SupabaseService,
-					useValue: {
-						getAdminClient: jest.fn(() => createChainableClient()),
-						getUser: jest.fn(
-							async (req: { user?: unknown } | undefined) => req?.user ?? null
-						),
-						getuser_id: jest.fn(async () => null),
-						isAuthenticated: jest.fn(async () => false),
-						getUserEmail: jest.fn(async () => undefined)
-					}
-				}
-				const hasSupabase = providersArr.find(
-					provider => provider?.provide === SupabaseService
-				)
-				if (!hasSupabase) providersArr.push(defaultSupabaseProvider)
-				return
-			}
-
-			// Fallback: builder.providers array
-			if (Array.isArray(builder.providers)) {
-				const providersArr = builder.providers
-				const already = providersArr.find(
-					provider => provider?.provide === CurrentUserProvider
-				)
-				if (!already) providersArr.push(defaultProvider)
-				return
-			}
-
-			// Last resort: call addProvider if available
-			if (typeof builder.addProvider === 'function') {
-				builder.addProvider(defaultProvider)
-				return
-			}
-		}
-
-		builder.compile = async function (...cargs: unknown[]) {
-			try {
-				ensureProviderInjected()
-			} catch (err) {
-				// swallow errors - proceed to original compile which may still work
-			}
-			// originalCompile may have a narrow tuple signature in some @nestjs/testing
-			// versions which causes TS to complain about spreading unknown[] into it.
-			// Cast to a varargs-compatible function to avoid that type error.
-			return (
-				originalCompile as unknown as (...args: any[]) => Promise<any>
-			).apply(this, cargs as any)
-		}
-
-		return builder
-	}
-} catch {
-	// ignore monkeypatch failures
-}
-
 /**
- * Simple test setup following CLAUDE.md rules:
- * - NO ABSTRACTIONS: Use Supabase client directly
- * - KISS: Simplest possible setup
- * - DRY: Only when actually reused 2+ places
+ * Jest Test Setup - Phase 0 Test Infrastructure
+ *
+ * This setup file:
+ * - Loads test environment variables from .env.test.local
+ * - Configures test timeouts
+ * - Sets up global test utilities
+ * - Initializes mock data
  */
 
-// Set test environment variables before any modules are loaded
-// Use Object.defineProperty to bypass TypeScript readonly restriction for test setup
-Object.defineProperty(process.env, 'NODE_ENV', {
-	value: 'test',
-	writable: true,
-	configurable: true,
-	enumerable: true
-})
-process.env.npm_package_version = '0.0.2'
-process.env.HEALTH_CHECK_FUNCTION = 'get_system_health'
-process.env.PUBLIC_CACHE_MAX_AGE = '3600'
+import * as dotenv from 'dotenv'
+import * as path from 'path'
 
-// Provide test environment variables if not already set (for CI/CD)
-// NOTE: These should be loaded from .env.test file instead of hardcoded here
-// The .env.test file contains mock/test values that are safe to commit
-if (!process.env.SUPABASE_URL) {
-	process.env.SUPABASE_URL = 'https://mock.supabase.co'
-}
-if (!process.env.SUPABASE_PUBLISHABLE_KEY) {
-	process.env.SUPABASE_PUBLISHABLE_KEY = 'mock_publishable_key'
-}
-if (!process.env.SUPABASE_SECRET_KEY) {
-	process.env.SUPABASE_SECRET_KEY = 'demo-service-key-mock'
-}
-if (!process.env.SUPABASE_RPC_TEST_USER_ID) {
-	process.env.SUPABASE_RPC_TEST_USER_ID = '11111111-1111-1111-1111-111111111111'
+// Load test environment variables from both project root and backend-specific
+const projectRootEnvPath = path.resolve(__dirname, '../../.env.test.local')
+const backendEnvPath = path.resolve(__dirname, '../.env.test.local')
+
+// Load project root first (base config)
+dotenv.config({ path: projectRootEnvPath })
+
+// Load backend-specific second (overrides)
+const envResult = dotenv.config({ path: backendEnvPath })
+
+if (envResult.error) {
+  console.warn(`⚠️  Could not load backend .env.test.local: ${envResult.error.message}`)
+  console.warn('   Tests will use project root environment variables')
 }
 
-if (!process.env.BACKEND_TIMEOUT_MS) {
-	process.env.BACKEND_TIMEOUT_MS = '5000'
+// Global test configuration
+jest.setTimeout(10000) // 10 second timeout for all tests
+
+// Suppress console logs during tests (unless DEBUG is set)
+if (!process.env.DEBUG) {
+  global.console.log = jest.fn()
+  global.console.debug = jest.fn()
+  global.console.info = jest.fn()
 }
 
-// Test database config (for integration tests)
-if (!process.env.TEST_DATABASE_URL)
-	process.env.TEST_DATABASE_URL =
-		process.env.DATABASE_URL ||
-		'postgresql://postgres.bshjmbshupiibfiewpxb:bornir-7fyxbi-Timgen@aws-0-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true'
-if (!process.env.TEST_DATABASE_HOST)
-	process.env.TEST_DATABASE_HOST = 'aws-0-us-east-2.pooler.supabase.com'
-if (!process.env.TEST_DATABASE_PORT) process.env.TEST_DATABASE_PORT = '6543'
-if (!process.env.TEST_DATABASE_NAME) process.env.TEST_DATABASE_NAME = 'postgres'
-if (!process.env.TEST_DATABASE_USER)
-	process.env.TEST_DATABASE_USER = 'postgres.bshjmbshupiibfiewpxb'
-if (!process.env.TEST_DATABASE_PASSWORD)
-	process.env.TEST_DATABASE_PASSWORD = 'bornir-7fyxbi-Timgen'
+// Keep error and warn logs visible
+global.console.error = jest.fn()
+global.console.warn = jest.fn()
 
-// E2E test database config
-if (!process.env.E2E_DATABASE_URL)
-	process.env.E2E_DATABASE_URL = process.env.TEST_DATABASE_URL
-if (!process.env.E2E_DATABASE_HOST)
-	process.env.E2E_DATABASE_HOST = process.env.TEST_DATABASE_HOST
-if (!process.env.E2E_DATABASE_PORT)
-	process.env.E2E_DATABASE_PORT = process.env.TEST_DATABASE_PORT
-if (!process.env.E2E_DATABASE_NAME)
-	process.env.E2E_DATABASE_NAME = process.env.TEST_DATABASE_NAME
-if (!process.env.E2E_DATABASE_USER)
-	process.env.E2E_DATABASE_USER = process.env.TEST_DATABASE_USER
-if (!process.env.E2E_DATABASE_PASSWORD)
-	process.env.E2E_DATABASE_PASSWORD = process.env.TEST_DATABASE_PASSWORD
+// Setup global test utilities
+declare global {
+  namespace NodeJS {
+    interface Global {
+      /**
+       * Test helper to create a mock Supabase client
+       */
+      createMockSupabaseClient: () => any
+      /**
+       * Test helper to create a mock authenticated request
+       */
+      createMockRequest: (userId?: string) => any
+      /**
+       * Test helper to cleanup after tests
+       */
+      testCleanup: () => void
+    }
+  }
+}
 
-// Email test config
-if (!process.env.TEST_RESEND_API_KEY)
-	process.env.TEST_RESEND_API_KEY = 're_test_123456789_test_key'
+// Example global test helper (can be expanded)
+global.testCleanup = () => {
+  jest.clearAllMocks()
+}
 
-// Frontend URL config
-if (!process.env.FRONTEND_URL)
-	process.env.FRONTEND_URL = 'https://tenantflow.app'
-if (!process.env.PORT) process.env.PORT = '3001'
+// Log test environment setup
+const testEnv = process.env.NODE_ENV || 'test'
+const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321'
 
-// Use actual environment variables (native platform feature)
-export const testSupabase = createClient<Database>(
-	process.env.SUPABASE_URL!,
-	process.env.SUPABASE_PUBLISHABLE_KEY!
-)
+if (process.env.DEBUG) {
+  console.log(`✓ Jest test setup initialized`)
+  console.log(`  Environment: ${testEnv}`)
+  console.log(`  Supabase URL: ${supabaseUrl}`)
+  console.log(`  Database: ${process.env.DATABASE_URL ? '✓ configured' : '✗ not configured'}`)
+}
 
-export const testSupabaseAdmin = createClient<Database>(
-	process.env.SUPABASE_URL!,
-	process.env.SUPABASE_SECRET_KEY!
-)
+// Export test utilities
+export const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  }) as `${string}-${string}-${string}-${string}-${string}`
+}
 
-// Simple unique ID generation (no abstraction)
-export const generateId = () =>
-	`test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+export const generateId = () => Math.random().toString(36).substring(7)
 
-// UUID generation for Supabase Auth (requires valid UUID format)
-export const generateUUID = () => randomUUID()
-
-// Modern 2025 test utilities - simplified and native
 export const createMockLogger = () => ({
-	log: jest.fn(),
-	error: jest.fn(),
-	warn: jest.fn(),
-	debug: jest.fn(),
-	verbose: jest.fn()
+  log: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  verbose: jest.fn(),
 })
 
-export const createMockStripe = () => ({
-	paymentIntents: { create: jest.fn(), retrieve: jest.fn() },
-	customers: { create: jest.fn(), retrieve: jest.fn() },
-	webhooks: { constructEvent: jest.fn() },
-	setupIntents: { create: jest.fn() },
-	subscriptions: { create: jest.fn(), list: jest.fn() },
-	checkout: { sessions: { create: jest.fn(), retrieve: jest.fn() } },
-	billingPortal: { sessions: { create: jest.fn() } },
-	paymentMethods: { list: jest.fn() },
-	products: { list: jest.fn() },
-	prices: { create: jest.fn(), list: jest.fn() }
-})
+// Ensure test database is accessible (optional check)
+if (process.env.VERIFY_DB_CONNECTION === 'true') {
+  const { execSync } = require('child_process')
+  try {
+    execSync(
+      `PGPASSWORD=${process.env.DB_PASSWORD} psql -h ${process.env.DB_HOST} -p ${process.env.DB_PORT} -U ${process.env.DB_USER} -d ${process.env.DB_NAME} -c "SELECT 1"`,
+      { stdio: 'ignore' }
+    )
+    if (process.env.DEBUG) {
+      console.log(`  Database: ✓ connection verified`)
+    }
+  } catch {
+    console.warn(
+      `⚠️  Could not verify database connection. Make sure Supabase is running:\n   supabase start`
+    )
+  }
+}

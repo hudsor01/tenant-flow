@@ -6,9 +6,9 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { cn } from '#lib/utils'
+import { formatRelativeDate } from '#lib/formatters'
 import type { Activity } from '@repo/shared/types/activity'
 import type { ActivityEntityType } from '@repo/shared/types/core'
-import { formatDistanceToNow } from 'date-fns'
 import {
 	CheckCircle,
 	Clock,
@@ -46,13 +46,6 @@ const getActivityBadgeClass = (type: string): string => {
 	}
 	return classMap[type] || 'text-muted-foreground bg-muted border-border'
 }
-
-// Modern helpers - assume valid inputs
-const formatDate = (date: string | Date): string => {
-	const dateObj = new Date(date)
-	return formatDistanceToNow(dateObj, { addSuffix: true })
-}
-
 const safeEntityDisplay = (
 	entityName: string | null,
 	entityId: string | null
@@ -165,7 +158,7 @@ export const ActivityFeed = React.memo(function ActivityFeed() {
 							</p>
 							<div className="dashboard-activity-meta">
 								<Clock className="size-3" aria-hidden="true" />
-								{formatDate(activity.created_at)}
+								{formatRelativeDate(activity.created_at)}
 							</div>
 						</div>
 					</div>

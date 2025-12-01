@@ -91,12 +91,12 @@ export function LeaseWizard({
 	// Show error if required data is missing
 	if (!property_id || !unit_id || !tenant_id) {
 		return (
-			<div className="flex items-center justify-center p-8">
+			<div className="flex-center p-8">
 				<div className="text-center space-y-2">
 					<p className="text-destructive font-semibold">
 						Missing Required Information
 					</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Property, unit, and tenant must all be selected to generate a lease
 						agreement.
 					</p>
