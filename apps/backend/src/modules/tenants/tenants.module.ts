@@ -4,7 +4,14 @@ import { EmailModule } from '../email/email.module'
 import { StripeModule } from '../billing/stripe.module'
 import { TenantsController } from './tenants.controller'
 
-// Specialized sub-services
+// Query services (decomposed from TenantQueryService)
+import { TenantDetailService } from './tenant-detail.service'
+import { TenantListService } from './tenant-list.service'
+import { TenantStatsService } from './tenant-stats.service'
+import { TenantRelationService } from './tenant-relation.service'
+import { TenantInvitationQueryService } from './tenant-invitation-query.service'
+
+// Coordinator and other specialized services
 import { TenantQueryService } from './tenant-query.service'
 import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
@@ -15,11 +22,17 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { TenantResendInvitationService } from './tenant-resend-invitation.service'
 
 /**
- * Tenants Module - Refactored with 8 Specialized Services
+ * Tenants Module - Refactored with Decomposed Query Services
  *
  * Architecture:
- * TenantsService (Facade) → Delegates to specialized services
- * ├─ TenantQueryService (Read operations)
+ * TenantQueryService (Facade) → Delegates to specialized query services
+ * ├─ TenantDetailService (findOne, findOneWithLease, getTenantByAuthUserId)
+ * ├─ TenantListService (findAll, findAllWithLeaseInfo)
+ * ├─ TenantStatsService (getStats, getSummary, fetchPaymentStatuses)
+ * ├─ TenantRelationService (getOwnerPropertyIds, getTenantIdsForOwner, payments)
+ * └─ TenantInvitationQueryService (getInvitations, computeInvitationStatus)
+ *
+ * Other Services:
  * ├─ TenantCrudService (Create, Update, Delete)
  * ├─ TenantEmergencyContactService (Contact management)
  * ├─ TenantNotificationPreferencesService (Settings)
@@ -31,7 +44,7 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
  * Benefits:
  * - Single Responsibility Principle
  * - Easy to test in isolation
- * - Low cognitive complexity per service
+ * - Low cognitive complexity per service (<150 lines each)
  * - Independent development
  * - Clear dependency graph
  */
@@ -40,7 +53,15 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
 	controllers: [TenantsController],
 	providers: [
 		Logger,
+		// Query services (decomposed)
+		TenantDetailService,
+		TenantListService,
+		TenantStatsService,
+		TenantRelationService,
+		TenantInvitationQueryService,
+		// Coordinator service (facade)
 		TenantQueryService,
+		// Other services
 		TenantCrudService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
@@ -50,7 +71,15 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
 		TenantResendInvitationService
 	],
 	exports: [
+		// Export query services for direct use if needed
+		TenantDetailService,
+		TenantListService,
+		TenantStatsService,
+		TenantRelationService,
+		TenantInvitationQueryService,
+		// Export coordinator service (main entry point)
 		TenantQueryService,
+		// Export other services
 		TenantCrudService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
