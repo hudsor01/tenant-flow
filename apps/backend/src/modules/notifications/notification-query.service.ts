@@ -8,6 +8,9 @@ import { Injectable, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 
+/** Default pagination limit per Supabase best practices */
+const DEFAULT_LIMIT = 50
+
 @Injectable()
 export class NotificationQueryService {
 	private readonly logger = new Logger(NotificationQueryService.name)
@@ -15,10 +18,13 @@ export class NotificationQueryService {
 	constructor(private readonly supabaseService: SupabaseService) {}
 
 	/**
-	 * Get unread notifications for a user
+	 * Get unread notifications for a user with pagination
+	 * Per Supabase docs: "You should keep the limit and paginate the rest"
 	 */
 	async getUnreadNotifications(
-		user_id: string
+		user_id: string,
+		limit = DEFAULT_LIMIT,
+		offset = 0
 	): Promise<Database['public']['Tables']['notifications']['Row'][]> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
@@ -27,6 +33,7 @@ export class NotificationQueryService {
 			.eq('user_id', user_id)
 			.eq('is_read', false)
 			.order('created_at', { ascending: false })
+			.range(offset, offset + limit - 1)
 
 		if (error) {
 			throw error
@@ -60,70 +67,52 @@ export class NotificationQueryService {
 
 	/**
 	 * Get unread notification count
+	 * Per NestJS best practices: throw on error instead of returning silent defaults
 	 */
 	async getUnreadCount(user_id: string): Promise<number> {
-		try {
-			this.logger.log('Getting unread notification count', { user_id })
+		const { count, error } = (await this.supabaseService
+			.getAdminClient()
+			.from('notifications')
+			.select('*', { count: 'exact', head: true })
+			.eq('user_id', user_id)
+			.eq('is_read', false)) as { count: number | null; error: unknown }
 
-			const { count, error } = (await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.select('*', { count: 'exact', head: true })
-				.eq('user_id', user_id)
-				.eq('is_read', false)) as { count: number | null; error: unknown }
-
-			if (error) {
-				this.logger.error('Failed to get unread notification count', {
-					error,
-					user_id
-				})
-				return 0
-			}
-
-			return count || 0
-		} catch (error) {
-			this.logger.error('Error getting unread notification count', {
-				error: error instanceof Error ? error.message : String(error),
+		if (error) {
+			this.logger.error('Failed to get unread notification count', {
+				error,
 				user_id
 			})
-			return 0
+			throw error
 		}
+
+		return count || 0
 	}
 
 	/**
 	 * Mark all notifications as read
+	 * Per NestJS best practices: throw on error instead of returning silent defaults
 	 */
 	async markAllAsRead(user_id: string): Promise<number> {
-		try {
-			this.logger.log('Marking all notifications as read', { user_id })
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.from('notifications')
+			.update({
+				is_read: true,
+				read_at: new Date().toISOString()
+			})
+			.eq('user_id', user_id)
+			.eq('is_read', false)
+			.select('*')
 
-			const { data, error } = await this.supabaseService
-				.getAdminClient()
-				.from('notifications')
-				.update({
-					is_read: true,
-					read_at: new Date().toISOString()
-				})
-				.eq('user_id', user_id)
-				.eq('is_read', false)
-				.select('*')
-
-			if (error) {
-				this.logger.error('Failed to mark all notifications as read', {
-					error,
-					user_id
-				})
-				return 0
-			}
-
-			return data?.length ?? 0
-		} catch (error) {
-			this.logger.error('Error marking all notifications as read', {
-				error: error instanceof Error ? error.message : String(error),
+		if (error) {
+			this.logger.error('Failed to mark all notifications as read', {
+				error,
 				user_id
 			})
-			return 0
+			throw error
 		}
+
+		return data?.length ?? 0
 	}
 
 	/**
