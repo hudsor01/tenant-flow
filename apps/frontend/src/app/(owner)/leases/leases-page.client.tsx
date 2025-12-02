@@ -58,7 +58,7 @@ function LeaseCreateDialog() {
 			gracePeriodDays: '5',
 			late_fee_amount: '',
 			lateFeePercentage: '',
-			status: 'ACTIVE' as LeaseStatus
+			status: 'active' as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -174,7 +174,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	// Fetch leases with filters and pagination (uses initialData from Server Component)
 	const params: {
 		search?: string
-		status?: 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		status?: 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -183,7 +183,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		params.status = status as 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useQuery(leaseQueries.list(params))
 
@@ -246,7 +246,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
-						<SelectItem value="ACTIVE">Active</SelectItem>
+						<SelectItem value="active">Active</SelectItem>
 						<SelectItem value="EXPIRED">Expired</SelectItem>
 						<SelectItem value="TERMINATED">Terminated</SelectItem>
 					</SelectContent>

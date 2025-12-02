@@ -22,7 +22,7 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
  * Tenant query filters
  */
 export interface TenantFilters {
-	status?: 'ACTIVE' | 'INACTIVE' | 'PENDING'
+	status?: 'active' | 'INACTIVE' | 'PENDING'
 	property_id?: string
 	search?: string
 	limit?: number
@@ -76,10 +76,10 @@ export const tenantQueries = {
 	 *
 	 * @example
 	 * // In component
-	 * const { data } = useQuery(tenantQueries.list({ status: 'ACTIVE' }))
+	 * const { data } = useQuery(tenantQueries.list({ status: 'active' }))
 	 *
 	 * // Prefetch
-	 * queryClient.prefetchQuery(tenantQueries.list({ status: 'ACTIVE' }))
+	 * queryClient.prefetchQuery(tenantQueries.list({ status: 'active' }))
 	 */
 	list: (filters?: TenantFilters) =>
 		queryOptions({

@@ -79,7 +79,7 @@ const mockData = {
 				end_date: '2025-01-01',
 				rent_amount: 1500,
 				security_deposit: 1500,
-				lease_status: 'ACTIVE'
+				lease_status: 'active'
 			}
 		],
 		total: 1
