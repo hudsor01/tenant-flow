@@ -33,7 +33,7 @@ function ParticlesComponent({
 	staticity = 50,
 	ease = 50,
 	size = 0.4,
-	color = 'var(--foreground)',
+	color = 'var(--color-foreground)',
 	refresh = false,
 	theme = 'auto',
 	preset = 'subtle',
@@ -85,11 +85,11 @@ function ParticlesComponent({
 	const getThemeColor = useCallback(() => {
 		if (theme === 'auto') {
 			const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-			return isDark ? 'var(--foreground)' : 'var(--foreground)'
+			return isDark ? 'var(--color-foreground)' : 'var(--color-foreground)'
 		}
 		return theme === 'dark'
-			? 'var(--foreground)'
-			: 'var(--foreground)'
+			? 'var(--color-foreground)'
+			: 'var(--color-foreground)'
 	}, [theme])
 
 	// Calculate particle quantity based on preset and density

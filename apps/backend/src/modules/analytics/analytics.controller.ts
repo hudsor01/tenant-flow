@@ -8,20 +8,8 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { AnalyticsService } from './analytics.service'
-import { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
-
-// Local type definition - web vitals removed from frontend but keeping backend endpoint
-interface WebVitalData {
-	name: string
-	value: number
-	rating: 'good' | 'needs-improvement' | 'poor'
-	delta: number
-	id: string
-	page: string
-	timestamp?: string
-	sessionId?: string
-	user_id?: string
-}
+import type { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
+import type { WebVitalDto } from './dto/web-vital.dto'
 
 @Controller('analytics')
 export class AnalyticsController {
@@ -40,26 +28,8 @@ export class AnalyticsController {
 	@Post('web-vitals')
 	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.ACCEPTED)
-	async reportWebVitals(@Body() payload: WebVitalData) {
-		// Manual validation for web vitals data
-		if (!payload || typeof payload !== 'object') {
-			throw new Error('Invalid payload')
-		}
-
-		const validNames = ['FCP', 'LCP', 'CLS', 'FID', 'TTFB', 'INP']
-		const validRatings = ['good', 'needs-improvement', 'poor']
-
-		if (
-			!validNames.includes(payload.name) ||
-			typeof payload.value !== 'number' ||
-			!validRatings.includes(payload.rating) ||
-			typeof payload.delta !== 'number' ||
-			typeof payload.id !== 'string'
-		) {
-			throw new Error('Invalid web vitals data')
-		}
-		const { user_id, sessionId } = payload
-		const distinctId = user_id ?? sessionId ?? payload.id
+	async reportWebVitals(@Body() payload: WebVitalDto) {
+		const distinctId = payload.user_id ?? payload.sessionId ?? payload.id
 
 		this.logger.verbose('Received web vital metric', {
 			name: payload.name,

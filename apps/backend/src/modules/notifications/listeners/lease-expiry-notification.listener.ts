@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
-import { LeaseExpiringEvent } from '../events/notification.events'
+import type { LeaseExpiringEvent } from '../events/notification.events'
 import { NotificationService } from '../notification.service'
+import { EventIdempotencyService } from '../../../shared/services/event-idempotency.service'
 import {
 	calculateNotificationTypes,
 	formatNotificationTitle,
@@ -20,7 +21,8 @@ export class LeaseExpiryNotificationListener {
 	)
 
 	constructor(
-		private readonly notificationService: NotificationService
+		private readonly notificationService: NotificationService,
+		private readonly idempotency: EventIdempotencyService
 	) {}
 
 	/**
@@ -30,95 +32,97 @@ export class LeaseExpiryNotificationListener {
 	 */
 	@OnEvent('lease.expiring')
 	async handleLeaseExpiring(event: LeaseExpiringEvent): Promise<void> {
-		try {
-			this.logger.log('Processing lease expiring event', {
-				user_id: event.user_id,
-				expirationDate: event.expirationDate,
-				daysUntilExpiry: event.daysUntilExpiry,
-				tenantName: event.tenantName
-			})
+		await this.idempotency.withIdempotency('lease.expiring.listener', event, async () => {
+			try {
+				this.logger.log('Processing lease expiring event', {
+					user_id: event.user_id,
+					expirationDate: event.expirationDate,
+					daysUntilExpiry: event.daysUntilExpiry,
+					tenantName: event.tenantName
+				})
 
-			// Calculate which notification types are needed
-			const notificationTypes = calculateNotificationTypes(
-				event.daysUntilExpiry
-			)
+				// Calculate which notification types are needed
+				const notificationTypes = calculateNotificationTypes(
+					event.daysUntilExpiry
+				)
 
-			// No notifications needed if not in any warning window
-			if (notificationTypes.length === 0) {
-				this.logger.debug(
-					'Lease not in notification window - no notifications created',
-					{
-						daysUntilExpiry: event.daysUntilExpiry,
+				// No notifications needed if not in any warning window
+				if (notificationTypes.length === 0) {
+					this.logger.debug(
+						'Lease not in notification window - no notifications created',
+						{
+							daysUntilExpiry: event.daysUntilExpiry,
+							expirationDate: event.expirationDate
+						}
+					)
+					return
+				}
+
+				// Check for existing notifications (idempotency)
+				const existingNotifications: Record<string, boolean> = {}
+				for (const notificationType of notificationTypes) {
+					existingNotifications[notificationType] =
+						await this.notificationService.existsLeaseNotification(
+							event.user_id,
+							notificationType
+						)
+				}
+
+				// Filter out notification types that already exist
+				const notificationsToCreate = notificationTypes
+					.filter(
+						notificationType =>
+							!existingNotifications[notificationType]
+					)
+					.map(notificationType => {
+						const title = formatNotificationTitle(notificationType)
+						const message = formatNotificationMessage(
+							event.tenantName,
+							event.propertyName,
+							event.unit_number,
+							event.expirationDate
+						)
+
+						return {
+							user_id: event.user_id,
+							type: notificationType,
+							title,
+							message,
+							priority: 'high' as const,
+							data: {
+								tenantName: event.tenantName,
+								propertyName: event.propertyName,
+								unitNumber: event.unit_number,
+								expirationDate: event.expirationDate,
+								daysUntilExpiry: event.daysUntilExpiry
+							}
+						}
+					})
+
+				// Create notifications
+				await this.notificationService.createBulkNotifications(
+					notificationsToCreate
+				)
+
+				this.logger.log('Lease expiry notifications created', {
+					user_id: event.user_id,
+					count: notificationsToCreate.length,
+					types: notificationTypes
+				})
+			} catch (error) {
+				this.logger.error('Failed to create lease expiry notifications', {
+					error: error instanceof Error ? error.message : String(error),
+					stack:
+						error instanceof Error
+							? error.stack?.split('\n').slice(0, 3).join('\n')
+							: undefined,
+					event: {
+						user_id: event.user_id,
 						expirationDate: event.expirationDate
 					}
-				)
-				return
+				})
+				// Don't throw - notification failures should not break lease operations
 			}
-
-			// Check for existing notifications (idempotency)
-			const existingNotifications: Record<string, boolean> = {}
-			for (const notificationType of notificationTypes) {
-				existingNotifications[notificationType] =
-					await this.notificationService.existsLeaseNotification(
-						event.user_id,
-						notificationType
-					)
-			}
-
-			// Filter out notification types that already exist
-			const notificationsToCreate = notificationTypes
-				.filter(
-					notificationType =>
-						!existingNotifications[notificationType]
-				)
-				.map(notificationType => {
-				const title = formatNotificationTitle(notificationType)
-				const message = formatNotificationMessage(
-					event.tenantName,
-					event.propertyName,
-					event.unit_number,
-					event.expirationDate
-				)
-
-				return {
-					user_id: event.user_id,
-					type: notificationType,
-					title,
-					message,
-					priority: 'high' as const,
-					data: {
-						tenantName: event.tenantName,
-						propertyName: event.propertyName,
-						unitNumber: event.unit_number,
-						expirationDate: event.expirationDate,
-						daysUntilExpiry: event.daysUntilExpiry
-					}
-				}
-			})
-
-			// Create notifications
-			await this.notificationService.createBulkNotifications(
-				notificationsToCreate
-			)
-
-			this.logger.log('Lease expiry notifications created', {
-				user_id: event.user_id,
-				count: notificationsToCreate.length,
-				types: notificationTypes
-			})
-		} catch (error) {
-			this.logger.error('Failed to create lease expiry notifications', {
-				error: error instanceof Error ? error.message : String(error),
-				stack:
-					error instanceof Error
-					? error.stack?.split('\n').slice(0, 3).join('\n')
-					: undefined,
-				event: {
-					user_id: event.user_id,
-					expirationDate: event.expirationDate
-				}
-			})
-			// Don't throw - notification failures should not break lease operations
-		}
+		})
 	}
 }

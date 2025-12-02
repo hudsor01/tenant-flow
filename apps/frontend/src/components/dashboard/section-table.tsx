@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	Table,
 	TableBody,
@@ -42,9 +42,10 @@ const formatPropertyType = (type: PropertyType): string => {
 }
 
 // Format property status for display
+// Note: PROPERTY_STATUS values are mixed case - 'active' is lowercase, others uppercase
 const formatPropertyStatus = (status: PropertyStatus): string => {
 	const statusMap: Record<PropertyStatus, string> = {
-		ACTIVE: 'Active',
+		active: 'Active',
 		INACTIVE: 'Inactive',
 		UNDER_CONTRACT: 'Under Contract',
 		SOLD: 'Sold'
@@ -71,7 +72,7 @@ export function SectionTable() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
-					<div className="flex items-center justify-center py-8">
+					<div className="flex-center py-8">
 						<Spinner className="size-6 animate-spin" />
 						<span className="ml-2 text-muted-foreground text-sm">
 							Loading properties...
@@ -96,7 +97,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="text-center py-8">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							Failed to load properties
 						</p>
 					</div>
@@ -119,7 +120,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="text-center py-8">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							No properties yet. Add your first property to get started.
 						</p>
 					</div>
@@ -180,17 +181,17 @@ export function SectionTable() {
 									<TableCell className="text-center">
 										<Badge
 											variant={
-												property.status === 'ACTIVE' ? 'default' : 'secondary'
+												property.status === 'active' ? 'default' : 'secondary'
 											}
 											className={cn(
 												'rounded-full border border-transparent px-3 py-1 font-medium',
-												property.status === 'ACTIVE'
+												property.status === 'active'
 													? 'bg-system-green-10 text-system-green hover:bg-system-green-15'
 													: property.status === 'UNDER_CONTRACT'
 														? 'bg-system-blue-10 text-system-blue hover:bg-system-blue-15'
 														: property.status === 'SOLD'
 															? 'bg-system-teal-10 text-system-teal hover:bg-system-teal-15'
-															: 'bg-system-gray-10 text-label-tertiary hover:bg-system-gray-15'
+															: 'bg-system-muted/10 text-label-tertiary hover:bg-system-muted/15'
 											)}
 										>
 											{formatPropertyStatus(property.status as PropertyStatus)}

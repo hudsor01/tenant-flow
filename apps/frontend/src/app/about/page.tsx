@@ -1,5 +1,5 @@
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
@@ -248,7 +248,7 @@ export default function AboutPage() {
 
 							<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
 								{stats.map((stat, index) => (
-									<BlurFade key={index} delay={0.6 + index * 0.1} inView>
+									<BlurFade key={stat.label} delay={0.6 + index * 0.1} inView>
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 											<div className="mb-4 flex justify-center">
 												<stat.Icon
@@ -259,7 +259,7 @@ export default function AboutPage() {
 											<div className="text-3xl font-bold text-primary mb-2">
 												{stat.number}
 											</div>
-											<div className="text-sm text-muted-foreground">
+											<div className="text-muted">
 												{stat.label}
 											</div>
 										</div>
@@ -303,9 +303,9 @@ export default function AboutPage() {
 										bio: 'Product strategist focused on user experience and customer success.'
 									}
 								].map((member, index) => (
-									<BlurFade key={index} delay={0.8 + index * 0.1} inView>
+									<BlurFade key={member.name} delay={0.8 + index * 0.1} inView>
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-											<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex items-center justify-center">
+											<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
 												<User className="size-12 text-primary" />
 											</div>
 											<h3 className="text-lg font-semibold text-foreground mb-2">
@@ -314,7 +314,7 @@ export default function AboutPage() {
 											<p className="text-primary font-medium mb-4">
 												{member.user_type}
 											</p>
-											<p className="text-sm text-muted-foreground leading-relaxed">
+											<p className="text-muted leading-relaxed">
 												{member.bio}
 											</p>
 										</div>
@@ -355,7 +355,7 @@ export default function AboutPage() {
 									their operations and scaled their business with
 									TenantFlow&apos;s enterprise platform.
 								</p>
-								<div className="flex flex-col sm:flex-row gap-4 justify-center">
+								<div className="flex flex-col sm:flex-row gap-(--spacing-4) justify-center">
 									<Button asChild size="lg" className="group">
 										<Link href="/pricing">
 											Start Free Trial
@@ -366,7 +366,7 @@ export default function AboutPage() {
 										<Link href="/contact">Talk to Sales</Link>
 									</Button>
 								</div>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									No setup fees • Enterprise security • 99.9% uptime SLA •
 									Cancel anytime
 								</p>

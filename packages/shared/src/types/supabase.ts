@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -172,60 +192,108 @@ export type Database = {
         Row: {
           auto_pay_enabled: boolean | null
           created_at: string | null
+          docuseal_submission_id: string | null
           end_date: string
           grace_period_days: number | null
           id: string
           late_fee_amount: number | null
           late_fee_days: number | null
           lease_status: string
+          owner_signature_ip: string | null
+          owner_signature_method:
+            | Database["public"]["Enums"]["signature_method"]
+            | null
+          owner_signed_at: string | null
           payment_day: number
           primary_tenant_id: string
           property_owner_id: string | null
           rent_amount: number
           rent_currency: string
           security_deposit: number
+          sent_for_signature_at: string | null
           start_date: string
           stripe_subscription_id: string | null
+          stripe_subscription_status: Database["public"]["Enums"]["stripe_subscription_status"]
+          subscription_failure_reason: string | null
+          subscription_last_attempt_at: string | null
+          subscription_retry_count: number | null
+          tenant_signature_ip: string | null
+          tenant_signature_method:
+            | Database["public"]["Enums"]["signature_method"]
+            | null
+          tenant_signed_at: string | null
           unit_id: string
           updated_at: string | null
         }
         Insert: {
           auto_pay_enabled?: boolean | null
           created_at?: string | null
+          docuseal_submission_id?: string | null
           end_date: string
           grace_period_days?: number | null
           id?: string
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lease_status?: string
+          owner_signature_ip?: string | null
+          owner_signature_method?:
+            | Database["public"]["Enums"]["signature_method"]
+            | null
+          owner_signed_at?: string | null
           payment_day?: number
           primary_tenant_id: string
           property_owner_id?: string | null
           rent_amount: number
           rent_currency?: string
           security_deposit: number
+          sent_for_signature_at?: string | null
           start_date: string
           stripe_subscription_id?: string | null
+          stripe_subscription_status?: Database["public"]["Enums"]["stripe_subscription_status"]
+          subscription_failure_reason?: string | null
+          subscription_last_attempt_at?: string | null
+          subscription_retry_count?: number | null
+          tenant_signature_ip?: string | null
+          tenant_signature_method?:
+            | Database["public"]["Enums"]["signature_method"]
+            | null
+          tenant_signed_at?: string | null
           unit_id: string
           updated_at?: string | null
         }
         Update: {
           auto_pay_enabled?: boolean | null
           created_at?: string | null
+          docuseal_submission_id?: string | null
           end_date?: string
           grace_period_days?: number | null
           id?: string
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lease_status?: string
+          owner_signature_ip?: string | null
+          owner_signature_method?:
+            | Database["public"]["Enums"]["signature_method"]
+            | null
+          owner_signed_at?: string | null
           payment_day?: number
           primary_tenant_id?: string
           property_owner_id?: string | null
           rent_amount?: number
           rent_currency?: string
           security_deposit?: number
+          sent_for_signature_at?: string | null
           start_date?: string
           stripe_subscription_id?: string | null
+          stripe_subscription_status?: Database["public"]["Enums"]["stripe_subscription_status"]
+          subscription_failure_reason?: string | null
+          subscription_last_attempt_at?: string | null
+          subscription_retry_count?: number | null
+          tenant_signature_ip?: string | null
+          tenant_signature_method?:
+            | Database["public"]["Enums"]["signature_method"]
+            | null
+          tenant_signed_at?: string | null
           unit_id?: string
           updated_at?: string | null
         }
@@ -599,6 +667,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      processed_internal_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          idempotency_key: string
+          payload_hash: string
+          processed_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          idempotency_key: string
+          payload_hash: string
+          processed_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          idempotency_key?: string
+          payload_hash?: string
+          processed_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
       }
       properties: {
         Row: {
@@ -1067,9 +1165,12 @@ export type Database = {
           id: string
           invitation_code: string
           invitation_url: string
+          lease_id: string | null
+          property_id: string | null
           property_owner_id: string
           status: string
-          unit_id: string
+          type: string | null
+          unit_id: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -1080,9 +1181,12 @@ export type Database = {
           id?: string
           invitation_code: string
           invitation_url: string
+          lease_id?: string | null
+          property_id?: string | null
           property_owner_id: string
           status?: string
-          unit_id: string
+          type?: string | null
+          unit_id?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -1093,9 +1197,12 @@ export type Database = {
           id?: string
           invitation_code?: string
           invitation_url?: string
+          lease_id?: string | null
+          property_id?: string | null
           property_owner_id?: string
           status?: string
-          unit_id?: string
+          type?: string | null
+          unit_id?: string | null
         }
         Relationships: [
           {
@@ -1103,6 +1210,20 @@ export type Database = {
             columns: ["accepted_by_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_invitations_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_invitations_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -1526,9 +1647,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_internal_event_lock: {
+        Args: {
+          p_event_name: string
+          p_idempotency_key: string
+          p_payload_hash: string
+        }
+        Returns: {
+          lock_acquired: boolean
+        }[]
+      }
+      activate_lease_with_pending_subscription: {
+        Args: { p_lease_id: string }
+        Returns: {
+          error_message: string
+          success: boolean
+        }[]
+      }
       check_user_feature_access: {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
+      }
+      cleanup_old_internal_events: {
+        Args: { days_to_keep?: number }
+        Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       get_billing_insights: {
@@ -1603,16 +1745,44 @@ export type Database = {
         }[]
       }
       health_check: { Args: never; Returns: Json }
-      record_processed_stripe_event_lock: {
-        Args: { p_stripe_event_id: string }
+      record_processed_stripe_event_lock:
+        | {
+            Args: { p_stripe_event_id: string }
+            Returns: {
+              success: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_event_type: string
+              p_processed_at: string
+              p_status?: string
+              p_stripe_event_id: string
+            }
+            Returns: {
+              lock_acquired: boolean
+            }[]
+          }
+      sign_lease_and_check_activation: {
+        Args: {
+          p_lease_id: string
+          p_signature_ip: string
+          p_signature_method?: Database["public"]["Enums"]["signature_method"]
+          p_signed_at: string
+          p_signer_type: string
+        }
         Returns: {
+          both_signed: boolean
+          error_message: string
           success: boolean
         }[]
       }
       user_is_tenant: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      invitation_type: "platform_access" | "lease_signing"
+      signature_method: "in_app" | "docuseal"
+      stripe_subscription_status: "none" | "pending" | "active" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1738,7 +1908,14 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  public: {
+  graphql_public: {
     Enums: {},
+  },
+  public: {
+    Enums: {
+      invitation_type: ["platform_access", "lease_signing"],
+      signature_method: ["in_app", "docuseal"],
+      stripe_subscription_status: ["none", "pending", "active", "failed"],
+    },
   },
 } as const

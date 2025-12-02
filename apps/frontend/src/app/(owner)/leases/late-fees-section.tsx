@@ -10,13 +10,14 @@
 
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	useApplyLateFee,
 	useOverduePayments,
 	useProcessLateFees
 } from '#hooks/api/use-late-fees'
-import { format } from 'date-fns'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 import {
 	AlertCircle,
 	Calendar,
@@ -31,18 +32,6 @@ import { LateFeeConfigDialog } from './late-fee-config-dialog'
 interface LateFeesSectionProps {
 	lease_id: string
 	onConfigChange?: () => void
-}
-
-/**
- * Format currency for display
- */
-import { formatCurrency } from '@repo/shared/utils/currency'
-
-/**
- * Format date for display
- */
-function formatDate(dateString: string): string {
-	return format(new Date(dateString), 'MMM d, yyyy')
 }
 
 /**
@@ -71,7 +60,7 @@ function OverduePaymentCard({
 
 	return (
 		<div className="rounded-lg border border-separator bg-fill-secondary p-4">
-			<div className="flex items-start justify-between gap-4">
+			<div className="flex items-start justify-between gap-(--spacing-4)">
 				<div className="flex-1 space-y-2">
 					<div className="flex items-center gap-2">
 						{payment.lateFeeApplied ? (
@@ -171,7 +160,7 @@ export function LateFeesSection({
 				description="Manage overdue payments and late fee configuration"
 			>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between">
+					<div className="flex-between">
 						<div className="flex-1">
 							{/* Grace Period Info */}
 							<div className="rounded-lg bg-fill-tertiary p-3">
@@ -202,7 +191,7 @@ export function LateFeesSection({
 
 					{/* Loading State */}
 					{isLoading && (
-						<div className="flex items-center justify-center py-8">
+						<div className="flex-center py-8">
 							<Spinner className="size-6 animate-spin text-accent-main" />
 						</div>
 					)}
@@ -251,7 +240,7 @@ export function LateFeesSection({
 							</div>
 
 							{/* Batch Process Button */}
-							<div className="flex items-center justify-between gap-4 pt-2">
+							<div className="flex-between gap-(--spacing-4) pt-2">
 								<div className="flex items-center gap-2 text-sm text-label-secondary">
 									<DollarSign className="size-4" />
 									<span>

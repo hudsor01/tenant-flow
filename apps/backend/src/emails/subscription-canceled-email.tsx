@@ -10,6 +10,28 @@ import {
 	Section,
 	Text
 } from '@react-email/components'
+import {
+	main,
+	container,
+	header,
+	h1,
+	h2,
+	canceledBadge,
+	content,
+	text,
+	cancellationDetails,
+	detailsTitle,
+	details,
+	smallText,
+	comeBackNotice,
+	comeBackTitle,
+	comeBackText,
+	buttonContainer,
+	button,
+	hr,
+	footer,
+	footerText
+} from './email-styles'
 
 interface SubscriptionCanceledEmailProps {
 	customerEmail: string
@@ -122,128 +144,3 @@ export const SubscriptionCanceledEmail = ({
 }
 
 export default SubscriptionCanceledEmail
-
-// Styles
-const main = {
-	fontFamily: 'Arial, sans-serif',
-	lineHeight: '1.6',
-	color: '#333',
-	backgroundColor: '#f8f9fa'
-}
-
-const container = {
-	maxWidth: '600px',
-	margin: '0 auto',
-	padding: '20px'
-}
-
-const header = {
-	backgroundColor: '#f8f9fa',
-	padding: '20px',
-	borderRadius: '8px',
-	marginBottom: '20px'
-}
-
-const h1 = {
-	color: '#2c3e50',
-	margin: '0 0 10px 0',
-	fontSize: '24px'
-}
-
-const h2 = {
-	color: '#2c3e50',
-	marginBottom: '20px',
-	fontSize: '20px'
-}
-
-const canceledBadge = {
-	backgroundColor: '#6c757d',
-	color: '#ffffff',
-	padding: '8px 12px',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold',
-	fontSize: '14px'
-}
-
-const content = {
-	backgroundColor: '#fff',
-	border: '1px solid #e9ecef',
-	borderRadius: '8px',
-	padding: '20px',
-	marginBottom: '20px'
-}
-
-const text = {
-	margin: '16px 0',
-	fontSize: '16px'
-}
-
-const cancellationDetails = {
-	backgroundColor: '#f8f9fa',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '15px 0'
-}
-
-const detailsTitle = {
-	margin: '0 0 10px 0',
-	fontSize: '16px'
-}
-
-const details = {
-	margin: '0',
-	fontSize: '16px'
-}
-
-const smallText = {
-	color: '#6c757d',
-	fontSize: '14px'
-}
-
-const comeBackNotice = {
-	backgroundColor: '#e7f3ff',
-	border: '1px solid #b3d9ff',
-	padding: '15px',
-	borderRadius: '4px',
-	margin: '20px 0'
-}
-
-const comeBackTitle = {
-	margin: '0 0 10px 0',
-	fontSize: '16px'
-}
-
-const comeBackText = {
-	margin: '0',
-	fontSize: '16px'
-}
-
-const buttonContainer = {
-	textAlign: 'center' as const,
-	margin: '30px 0'
-}
-
-const button = {
-	backgroundColor: '#007bff',
-	color: '#ffffff',
-	padding: '12px 24px',
-	textDecoration: 'none',
-	borderRadius: '4px',
-	display: 'inline-block',
-	fontWeight: 'bold'
-}
-
-const hr = {
-	borderColor: '#e9ecef',
-	margin: '30px 0'
-}
-
-const footer = {
-	fontSize: '14px',
-	color: '#6c757d'
-}
-
-const footerText = {
-	margin: '8px 0'
-}

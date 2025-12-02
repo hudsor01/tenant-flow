@@ -11,6 +11,8 @@
  */
 
 import type Stripe from 'stripe'
+import type {
+	RawBodyRequest} from '@nestjs/common';
 import {
 	BadRequestException,
 	Controller,
@@ -18,10 +20,9 @@ import {
 	Logger,
 	Optional,
 	Post,
-	RawBodyRequest,
 	Req
 } from '@nestjs/common'
-import { Request } from 'express'
+import type { Request } from 'express'
 import { Public } from '../../shared/decorators/public.decorator'
 import { Throttle } from '@nestjs/throttler'
 import { StripeConnectService } from './stripe-connect.service'

@@ -15,7 +15,7 @@ import {
 	Logger,
 	NotFoundException
 } from '@nestjs/common'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import type {
 	CancelTenantAutopayParams,
 	CancelTenantAutopayResponse,
@@ -257,7 +257,7 @@ export class RentPaymentsService {
 			.from('leases')
 			.select('id, rent_amount, lease_status, start_date, end_date')
 			.eq('primary_tenant_id', tenant_id)
-			.eq('lease_status', 'ACTIVE')
+			.eq('lease_status', 'active')
 			.single()
 
 		if (leaseError || !lease) {

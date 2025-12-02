@@ -55,7 +55,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 					disabled={isLoading || props.disabled}
 					{...props}
 				>
-					<div className="flex items-center justify-center gap-3 relative z-10">
+					<div className="flex-center gap-3 relative z-10">
 						{isLoading ? (
 							<ButtonLoader />
 						) : (
@@ -94,7 +94,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 				</Button>
 
 				{showTrustIndicators && (
-					<div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground/60">
+					<div className="flex-center gap-(--spacing-4) mt-2 text-xs text-muted-foreground/60">
 						<div className="flex items-center gap-1">
 							<div className="size-2 rounded-full bg-primary" />
 							<span>Encrypted</span>

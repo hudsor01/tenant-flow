@@ -14,13 +14,7 @@ import type {
 	BalanceSheetData
 } from '@repo/shared/types/financial-statements'
 
-/**
- * API response wrapper type (backend returns {success: true, data})
- */
-type ApiResponse<T> = {
-	success: boolean
-	data: T
-}
+import { ApiResponse } from '@repo/shared/types/api-contracts'
 
 /**
  * Query keys for financial statements (hierarchical, typed)

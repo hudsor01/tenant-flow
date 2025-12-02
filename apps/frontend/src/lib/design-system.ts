@@ -76,7 +76,7 @@ export function buttonClasses(
 	className?: string
 ): string {
 	const baseClasses =
-		'inline-flex items-center justify-center whitespace-nowrap rounded-[var(--radius-medium)] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
+		'inline-flex items-center justify-center whitespace-nowrap rounded-[var(--radius-md)] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 
 	const sizeClasses = {
 		xs: 'h-6 px-2 text-xs',
@@ -87,13 +87,15 @@ export function buttonClasses(
 	}
 
 	const variantClasses = {
+		default: 'bg-primary text-primary-foreground hover:bg-primary/90',
 		primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
 		secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
 		outline:
 			'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
 		ghost: 'hover:bg-accent hover:text-accent-foreground',
 		destructive:
-			'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+			'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+		link: 'text-primary underline-offset-4 hover:underline'
 	}
 
 	return cn(baseClasses, sizeClasses[size], variantClasses[variant], className)
@@ -112,7 +114,7 @@ export function inputClasses(
 	className?: string
 ): string {
 	const baseClasses =
-		'flex w-full rounded-[var(--radius-medium)] border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+		'flex w-full rounded-[var(--radius-md)] border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
 
 	const sizeClasses = {
 		xs: 'h-6 px-2 py-1 text-xs',
@@ -141,7 +143,7 @@ export function cardClasses(
 	className?: string
 ): string {
 	const baseClasses =
-		'rounded-[var(--radius-large)] border bg-card text-card-foreground'
+		'rounded-[var(--radius-lg)] border bg-card text-card-foreground'
 
 	const variantClasses = {
 		default: 'shadow-sm',
@@ -170,7 +172,9 @@ export function badgeClasses(
 		'inline-flex items-center rounded-full border font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
 
 	const sizeClasses = {
+		xs: 'px-2 py-0.5 text-[10px]',
 		sm: 'px-2 py-0.5 text-xs',
+		md: 'px-2.5 py-0.5 text-xs',
 		default: 'px-2.5 py-0.5 text-xs',
 		lg: 'px-3 py-1 text-sm'
 	}
@@ -230,6 +234,7 @@ export function containerClasses(
 	const baseClasses = 'mx-auto px-4 sm:px-6 lg:px-8'
 
 	const sizeClasses = {
+		xs: 'max-w-screen-sm',
 		sm: 'max-w-screen-sm',
 		md: 'max-w-screen-md',
 		lg: 'max-w-screen-lg',
@@ -252,12 +257,15 @@ export function animationClasses(
 	className?: string
 ): string {
 	const animationClasses = {
+		fade: 'animate-in fade-in-0 duration-200',
 		'fade-in': 'animate-in fade-in-0 duration-300',
 		'slide-up': 'animate-in slide-in-from-bottom-2 duration-300',
 		'slide-down': 'animate-in slide-in-from-top-2 duration-300',
+		slide: 'animate-in slide-in-from-bottom-2 duration-300',
 		scale: 'animate-in zoom-in-95 duration-200',
 		bounce: 'animate-bounce',
-		pulse: 'animate-pulse'
+		pulse: 'animate-pulse',
+		spin: 'animate-spin'
 	}
 
 	return cn(animationClasses[type], className)
@@ -525,3 +533,460 @@ export {
 	ANIMATION_DURATIONS,
 	TYPOGRAPHY_SCALE
 } from '@repo/shared/constants/design-system'
+
+/**
+ * Generate sidebar container classes with responsive and conditional variants
+ * @param variant - Sidebar style variant (sidebar, floating, inset)
+ * @param collapsible - Whether sidebar is collapsible
+ * @param side - Sidebar side (left, right)
+ * @param className - Additional classes
+ * @returns Complete sidebar container class string
+ */
+export function sidebarContainerClasses(
+	variant?: 'sidebar' | 'floating' | 'inset',
+	collapsible?: boolean,
+	side?: 'left' | 'right',
+	className?: string
+): string {
+	const baseClasses = 'relative bg-transparent transition-[width] duration-200 ease-linear'
+
+	const variantClasses = {
+		sidebar: '',
+		floating: 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4))]',
+		inset: 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4))]'
+	}
+
+	const collapsibleClasses = collapsible ? 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)' : ''
+	const sideClasses = side === 'right' ? 'rotate-180' : ''
+
+	return cn(baseClasses, variantClasses[variant || 'sidebar'], collapsibleClasses, sideClasses, className)
+}
+
+/**
+ * Generate sidebar rail classes
+ * @param className - Additional classes
+ * @returns Complete sidebar rail class string
+ */
+export function sidebarRailClasses(className?: string): string {
+	const baseClasses = 'hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 translate-x-[-50%] transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 sm:flex in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize [[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full [[data-side=left][data-collapsible=offcanvas]_&]:-right-2 [[data-side=right][data-collapsible=offcanvas]_&]:-left-2'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate feature card classes with hover effects
+ * @param className - Additional classes
+ * @returns Complete feature card class string
+ */
+export function sectionFeatureCardClasses(className?: string): string {
+	const baseClasses = 'group/feature relative p-[var(--spacing-6)] rounded bg-card/50 border border-border/40 hover:border-(--hover-border-color) hover:bg-(--feature-card-hover-bg) transition-(--feature-card-transition) hover:shadow-(--feature-card-hover-shadow) hover:shadow-primary/10 backdrop-blur-sm hover:transform-(--hover-lift)'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate feature card icon classes with hover animations
+ * @param className - Additional classes
+ * @returns Complete feature card icon class string
+ */
+export function featureCardIconClasses(className?: string): string {
+	const baseClasses = 'size-[var(--spacing-12)] rounded bg-primary/10 text-primary flex items-center justify-center group-hover/feature:bg-primary/20 group-hover/feature:transform-(--feature-card-icon-hover) transition-(--feature-card-transition) group-hover/feature:shadow-lg group-hover/feature:shadow-primary/25'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate navbar button classes with hover effects
+ * @param variant - Button variant (cta, link)
+ * @param className - Additional classes
+ * @returns Complete navbar button class string
+ */
+export function navbarButtonClasses(
+	variant: 'cta' | 'link' = 'link',
+	className?: string
+): string {
+	const baseClasses = 'hidden sm:flex items-center px-6 py-2.5 font-medium text-sm rounded-(--radius-medium) transition-(--navbar-btn-transition)'
+
+	const variantClasses = {
+		cta: 'bg-linear-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl',
+		link: 'text-foreground hover:bg-(--navbar-btn-hover-bg) hover:text-(--navbar-btn-hover-text)'
+	}
+
+	return cn(baseClasses, variantClasses[variant], className)
+}
+
+/**
+ * Generate lightbox navigation button classes
+ * @param position - Button position (left or right)
+ * @param className - Additional classes
+ * @returns Complete lightbox navigation button class string
+ */
+export function lightboxNavButtonClasses(
+	position: 'left' | 'right',
+	className?: string
+): string {
+	const baseClasses = 'absolute top-1/2 -translate-y-1/2 bg-(--lightbox-nav-bg) hover:bg-(--lightbox-nav-hover-bg) text-white rounded-full transition-(--lightbox-nav-transition)'
+	const positionClasses = position === 'left' ? 'left-4' : 'right-4'
+
+	return cn(baseClasses, positionClasses, className)
+}
+
+/**
+ * Generate pricing card classes with hover effects
+ * @param popular - Whether card is popular variant
+ * @param className - Additional classes
+ * @returns Complete pricing card class string
+ */
+export function pricingCardClasses(
+	popular?: boolean,
+	className?: string
+): string {
+	const baseClasses = 'relative flex h-full flex-col overflow-hidden border border-border/60 bg-card/80 text-left shadow-sm backdrop-blur transition-(--hover-transition) ease-out hover:transform-(--pricing-card-hover) hover:shadow-(--pricing-card-hover-shadow)'
+
+	const popularClasses = popular ? 'ring-2 ring-primary/70' : ''
+
+	return cn(baseClasses, popularClasses, className)
+}
+
+/**
+ * Generate portal feature grid classes
+ * @param className - Additional classes
+ * @returns Complete portal feature grid class string
+ */
+export function portalFeatureGridClasses(className?: string): string {
+	const baseClasses = 'grid gap-[var(--spacing-6)] [grid-template-columns:var(--layout-grid-cols-2)] lg:[grid-template-columns:var(--layout-grid-cols-5)]'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate portal feature card classes with hover effects
+ * @param colorVariant - Color variant for the card
+ * @param className - Additional classes
+ * @returns Complete portal feature card class string
+ */
+export function portalFeatureCardClasses(
+	colorVariant?: 'primary' | 'secondary' | 'accent',
+	className?: string
+): string {
+	const baseClasses = 'text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30 group-hover:transform-(--portal-feature-hover) transition-(--portal-feature-transition)'
+
+	const colorClasses = {
+		primary: 'hover:bg-primary/5',
+		secondary: 'hover:bg-secondary/5',
+		accent: 'hover:bg-accent/5'
+	}
+
+	return cn(baseClasses, colorClasses[colorVariant || 'primary'], className)
+}
+
+/**
+ * Generate mobile dropdown link classes
+ * @param className - Additional classes
+ * @returns Complete mobile dropdown link class string
+ */
+export const mobileDropdownLinkClasses = cn(
+	'block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200'
+)
+
+/**
+ * Generate bento card classes with hover effects and animations
+ * @param className - Additional classes
+ * @returns Complete bento card class string
+ */
+export function bentoCardClasses(className?: string): string {
+	const baseClasses = 'group relative flex flex-col justify-between overflow-hidden rounded-xl bg-card shadow-sm border hover:shadow-lg transition-all duration-300'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate bento card content classes with hover animations
+ * @param className - Additional classes
+ * @returns Complete bento card content class string
+ */
+export function bentoCardContentClasses(className?: string): string {
+	const baseClasses = 'flex transform-gpu flex-col gap-2 transition-all duration-300 lg:group-hover:-translate-y-2'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate bento card icon classes with hover scaling
+ * @param className - Additional classes
+ * @returns Complete bento card icon class string
+ */
+export function bentoCardIconClasses(className?: string): string {
+	const baseClasses = 'size-12 origin-left transform-gpu text-foreground transition-all duration-300 group-hover:scale-90'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate bento card overlay classes for hover effects
+ * @param className - Additional classes
+ * @returns Complete bento card overlay class string
+ */
+export function bentoCardOverlayClasses(className?: string): string {
+	const baseClasses = 'pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-accent/5'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate border beam classes with complex animations and masks
+ * @param variant - Color variant for the beam
+ * @param className - Additional classes
+ * @returns Complete border beam class string
+ */
+export function borderBeamClasses(
+	variant: 'primary' | 'accent' | 'rainbow' | 'success' | 'warning' | 'danger' = 'primary',
+	className?: string
+): string {
+	const baseClasses = 'pointer-events-none absolute inset-0 rounded-[inherit] [border:calc(var(--color-border-width)*1px)_solid_transparent] ![mask-clip:padding-box,border-box] ![mask-composite:intersect] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)] after:absolute after:aspect-square after:w-[calc(var(--size)*1px)] after:animate-border-beam after:[animation-delay:var(--delay)] after:[offset-anchor:calc(var(--anchor)*1%)_50%] after:[offset-path:rect(0_auto_auto_0_round_calc(var(--size)*1px))] after:will-change-transform after:backface-visibility-hidden'
+
+	const variantClasses = {
+		primary: 'after:[background:linear-gradient(to_left,var(--color-primary),var(--color-primary-foreground),transparent)]',
+		accent: 'after:[background:linear-gradient(to_left,var(--color-accent),var(--color-accent-foreground),transparent)]',
+		rainbow: 'after:[background:linear-gradient(to_left,var(--color-primary),var(--color-accent),transparent)]',
+		success: 'after:[background:linear-gradient(to_left,var(--color-primary),var(--color-primary-foreground),transparent)]',
+		warning: 'after:[background:linear-gradient(to_left,var(--color-accent),var(--color-accent-foreground),transparent)]',
+		danger: 'after:[background:linear-gradient(to_left,var(--color-destructive),var(--color-destructive-foreground),transparent)]'
+	}
+
+	return cn(baseClasses, variantClasses[variant], className)
+}
+
+/**
+ * Generate glowing effect classes with blur and scaling
+ * @param glowOpacity - Opacity of the glow effect
+ * @param className - Additional classes
+ * @returns Complete glowing effect class string
+ */
+export function glowingEffectClasses(
+	glowOpacity: number = 0.4,
+	className?: string
+): string {
+	const baseClasses = 'relative'
+	const glowClasses = `absolute inset-0 rounded-[inherit] blur-xl opacity-${Math.round(glowOpacity * 100)}`
+
+	return cn(baseClasses, glowClasses, className)
+}
+
+/**
+ * Generate glowing effect blur classes
+ * @param className - Additional classes
+ * @returns Complete glowing effect blur class string
+ */
+export function glowingEffectBlurClasses(className?: string): string {
+	const baseClasses = 'absolute inset-0 rounded-[inherit] blur-xl'
+
+	return cn(baseClasses, className)
+}
+
+/**
+ * Generate timeline content classes with blur and transform effects
+ * @param isInView - Whether the element is in view
+ * @param className - Additional classes
+ * @returns Complete timeline content class string
+ */
+export function timelineContentClasses(
+	isInView: boolean,
+	className?: string
+): string {
+	const baseClasses = 'transition-all duration-500 ease-out'
+	const inViewClasses = isInView
+		? 'opacity-100 blur-none translate-y-0'
+		: 'opacity-0 blur-sm translate-y-5'
+
+	return cn(baseClasses, inViewClasses, className)
+}
+
+/**
+ * Generate mobile navigation item classes
+ * @param isActive - Whether the navigation item is active
+ * @param className - Additional classes
+ * @returns Complete mobile navigation item class string
+ */
+export function mobileNavItemClasses(
+	isActive: boolean,
+	className?: string
+): string {
+	const baseClasses = 'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors'
+	const activeClasses = isActive
+		? 'text-primary bg-primary/10'
+		: 'text-muted-foreground hover:text-foreground'
+
+	return cn(baseClasses, activeClasses, className)
+}
+
+/**
+ * Generate mobile navigation link classes
+ * @param isActive - Whether the navigation link is active
+ * @param className - Additional classes
+ * @returns Complete mobile navigation link class string
+ */
+export function mobileNavLinkClasses(
+	isActive: boolean,
+	className?: string
+): string {
+	const baseClasses = 'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors'
+	const activeClasses = isActive
+		? 'text-primary bg-primary/10'
+		: 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+
+	return cn(baseClasses, activeClasses, className)
+}
+
+/**
+ * Generate feature icon container classes with consistent styling
+ * @param variant - Color variant for the icon background
+ * @param className - Additional classes
+ * @returns Complete feature icon container class string
+ */
+export function featureIconContainerClasses(
+	variant: 'primary' | 'accent' | 'success' | 'warning' = 'primary',
+	className?: string
+): string {
+	const variantClasses = {
+		primary: 'bg-primary/10',
+		accent: 'bg-accent/10',
+		success: 'bg-success/10',
+		warning: 'bg-warning/10'
+	}
+
+	return cn(
+		'size-[var(--spacing-10)] rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]',
+		variantClasses[variant],
+		className
+	)
+}
+
+/**
+ * Generate pricing feature card classes with hover effects
+ * @param variant - Color variant for the card
+ * @param className - Additional classes
+ * @returns Complete pricing feature card class string
+ */
+export function pricingFeatureCardClasses(
+	variant: 'primary' | 'accent' = 'primary',
+	className?: string
+): string {
+	const variantClasses = {
+		primary: 'bg-primary/8 border-primary/20 hover:border-primary/30',
+		accent: 'bg-accent/8 border-accent/20 hover:border-accent/30'
+	}
+
+	return cn(
+		'group p-[var(--spacing-5)] rounded-2xl border-2 hover:shadow-lg cursor-pointer transition-all duration-200',
+		variantClasses[variant],
+		className
+	)
+}
+
+/**
+ * Generate billing info card classes
+ * @param className - Additional classes
+ * @returns Complete billing info card class string
+ */
+export function billingInfoCardClasses(className?: string): string {
+	return cn(
+		'bg-background/70 rounded-lg p-(--spacing-4) border border-primary/20',
+		className
+	)
+}
+
+/**
+ * Generate trust signal item classes
+ * @param className - Additional classes
+ * @returns Complete trust signal item class string
+ */
+export function trustSignalItemClasses(className?: string): string {
+	return cn(
+		'flex items-center gap-[var(--spacing-3)]',
+		className
+	)
+}
+
+/**
+ * Generate trust signal icon classes
+ * @param variant - Color variant for the icon background
+ * @param className - Additional classes
+ * @returns Complete trust signal icon class string
+ */
+export function trustSignalIconClasses(
+	variant: 'primary' | 'accent' | 'success' = 'primary',
+	className?: string
+): string {
+	const variantClasses = {
+		primary: 'bg-primary/10',
+		accent: 'bg-accent/10',
+		success: 'bg-success/10'
+	}
+
+	return cn(
+		'size-[var(--spacing-8)] rounded-lg flex items-center justify-center',
+		variantClasses[variant],
+		className
+	)
+}
+
+/**
+ * Generate trust indicator badge classes
+ * @param className - Additional classes
+ * @returns Complete trust indicator badge class string
+ */
+export function trustIndicatorBadgeClasses(className?: string): string {
+	return cn(
+		'inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm',
+		className
+	)
+}
+
+/**
+ * Generate stat card classes
+ * @param className - Additional classes
+ * @returns Complete stat card class string
+ */
+export function statCardClasses(className?: string): string {
+	return cn(
+		'group relative p-[var(--spacing-6)] rounded-lg bg-card border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5',
+		className
+	)
+}
+
+/**
+ * Generate enhanced showcase card classes with complex hover effects
+ * @param className - Additional classes
+ * @returns Complete showcase card class string
+ */
+export function showcaseCardClasses(className?: string): string {
+	return cn(
+		'relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm hover:bg-card/90 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden hover:-translate-y-1 hover:scale-[1.02]',
+		className
+	)
+}
+
+/**
+ * Generate testimonial card classes
+ * @param className - Additional classes
+ * @returns Complete testimonial card class string
+ */
+export function testimonialCardClasses(className?: string): string {
+	return cn(
+		'relative bg-card border border-border rounded-2xl p-8 h-full hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5',
+		className
+	)
+}
+
+/**
+ * Generate accordion item classes
+ * @param className - Additional classes
+ * @returns Complete accordion item class string
+ */
+export function accordionItemClasses(className?: string): string {
+	return cn(
+		'rounded-2xl border border-border/50 bg-background/60 px-5 transition-colors hover:border-primary/30',
+		className
+	)
+}

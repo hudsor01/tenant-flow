@@ -7,7 +7,7 @@ import {
 import type { Request } from 'express'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
-import {
+import type {
   PropertyPerformanceData,
   PropertyOccupancyData,
   PropertyFinancialData,
@@ -57,9 +57,6 @@ export class PropertyAnalyticsService {
 	/**
 	 * Get property performance analytics
 	 * Performance metrics per property (occupancy, revenue, expenses)
-	 *
-	 * TODO: Implement RPC function 'get_property_performance_analytics' in database
-	 * Current implementation returns empty array as stub
 	 */
 	async getPropertyPerformanceAnalytics(
 		req: AuthenticatedRequest,
@@ -126,72 +123,61 @@ export class PropertyAnalyticsService {
 		}
 		const client = this.supabase.getUserClient(token)
 
-		// Parse timeframe
-		const { start, end } = this.parseTimeframe(query.timeframe)
-
-		let result: PropertyPerformanceData[]
-
-		if (query.property_id) {
-			// Single property
-			const { data: propertyData, error } = await client
-				.from('properties')
-				.select(`
-					id, name,
-					units (
-						id, status,
-						leases (
-							id, lease_status, start_date, end_date,
-							rent_payments (amount, status, paid_date)
-						),
-						maintenance_requests (
-							id, status, created_at, estimated_cost, actual_cost, completed_at,
-							expenses (amount, expense_date)
-						)
-					)
-				`)
-				.eq('id', query.property_id)
-				.single()
-
-			if (error || !propertyData) {
-				this.logger.warn('[ANALYTICS:PERFORMANCE] Property not found', {
-					user_id,
-					property_id: query.property_id,
-					error
-				})
-				return []
+		const { data, error } = await (client as any).rpc( // eslint-disable-line @typescript-eslint/no-explicit-any
+			'get_property_performance_analytics',
+			{
+				p_user_id: user_id,
+				p_property_id: query.property_id ?? null,
+				p_timeframe: query.timeframe,
+				p_limit: query.limit ?? null
 			}
+		)
 
-			result = [this.processPropertyData(propertyData, start, end, query.timeframe)]
-		} else {
-			// All properties
-			const { data: propertiesData, error } = await client
-				.from('properties')
-				.select(`
-					id, name,
-					units (
-						id, status,
-						leases (
-							id, lease_status, start_date, end_date,
-							rent_payments (amount, status, paid_date)
-						),
-						maintenance_requests (
-							id, status, created_at, estimated_cost, actual_cost, completed_at,
-							expenses (amount, expense_date)
-						)
-					)
-				`)
-				.limit(query.limit || 50)
-
-			if (error || !propertiesData) {
-				this.logger.warn('[ANALYTICS:PERFORMANCE] Failed to fetch properties', {
-					user_id,
-					error
-				})
-				return []
-			}
-
-			result = propertiesData.map(p => this.processPropertyData(p, start, end, query.timeframe))
+		if (error) {
+			this.logger.warn('[ANALYTICS:PERFORMANCE] RPC failed', {
+				user_id,
+				error
+			})
+			return []
 		}
+
+		const toNumber = (value: unknown) =>
+			typeof value === 'number' && Number.isFinite(value)
+				? value
+				: Number(value ?? 0) || 0
+
+		const result: PropertyPerformanceData[] = (Array.isArray(data) ? data : [])
+			.filter(item => Boolean((item as { property_id?: string }).property_id))
+			.map(item => {
+				const castItem = item as {
+					property_id?: string
+					property_name?: string
+					propertyName?: string
+					name?: string
+					occupancy_rate?: unknown
+					occupancyRate?: unknown
+					total_revenue?: unknown
+					totalRevenue?: unknown
+					total_expenses?: unknown
+					totalExpenses?: unknown
+					net_income?: unknown
+					netIncome?: unknown
+					timeframe?: string
+				}
+				return {
+					property_id: castItem.property_id as string,
+					property_name:
+						castItem.property_name ??
+						castItem.propertyName ??
+						castItem.name ??
+						'Unknown property',
+					occupancy_rate: toNumber(castItem.occupancy_rate ?? castItem.occupancyRate),
+					total_revenue: toNumber(castItem.total_revenue ?? castItem.totalRevenue),
+					total_expenses: toNumber(castItem.total_expenses ?? castItem.totalExpenses),
+					net_income: toNumber(castItem.net_income ?? castItem.netIncome),
+					timeframe: castItem.timeframe ?? query.timeframe
+				}
+			})
 
 		this.logger.log('[ANALYTICS:PERFORMANCE:COMPLETE] Performance analytics completed', {
 			user_id,
@@ -574,79 +560,6 @@ export class PropertyAnalyticsService {
 			duration_ms: Date.now() - startTime
 		})
 		return result
-	}
-
-	/**
-	 * Process property data to calculate performance metrics
-	 */
-	private processPropertyData(
-		property: DetailedQueryProperty,
-		start: Date,
-		end: Date,
-		timeframe: string
-	): PropertyPerformanceData {
-		const units = property.units || []
-		const totalUnits = units.length
-		const occupiedUnits = units.filter((unit: DetailedQueryUnit) => {
-			const activeLease = unit.leases?.find((lease: DetailedQueryLease) =>
-				lease.lease_status === LEASE_STATUS.ACTIVE &&
-				new Date(lease.start_date) <= new Date() &&
-				new Date(lease.end_date) >= new Date()
-			)
-			return activeLease
-		}).length
-		const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-
-		let totalRevenue = 0
-		let totalExpenses = 0
-
-		units.forEach((unit: DetailedQueryUnit) => {
-			// Revenue from payments
-			unit.leases?.forEach((lease: DetailedQueryLease) => {
-				lease.rent_payments?.forEach((payment) => {
-					if (
-						payment.status === 'succeeded' &&
-						payment.paid_date &&
-						new Date(payment.paid_date) >= start &&
-						new Date(payment.paid_date) <= end
-					) {
-						totalRevenue += payment.amount || 0
-					}
-				})
-			})
-
-			// Expenses from maintenance
-			unit.maintenance_requests?.forEach((req) => {
-				if (
-					req.completed_at &&
-					new Date(req.completed_at) >= start &&
-					new Date(req.completed_at) <= end
-				) {
-					totalExpenses += req.actual_cost || req.estimated_cost || 0
-				}
-				req.expenses?.forEach((exp) => {
-					if (
-						exp.expense_date &&
-						new Date(exp.expense_date) >= start &&
-						new Date(exp.expense_date) <= end
-					) {
-						totalExpenses += exp.amount
-					}
-				})
-			})
-		})
-
-		const netIncome = totalRevenue - totalExpenses
-
-		return {
-			property_id: property.id,
-			property_name: property.name,
-			occupancy_rate: occupancyRate,
-			total_revenue: totalRevenue / 100, // Convert cents to dollars
-			total_expenses: totalExpenses / 100,
-			net_income: netIncome / 100,
-			timeframe
-		}
 	}
 
 	/**

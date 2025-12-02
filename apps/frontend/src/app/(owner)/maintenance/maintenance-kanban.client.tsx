@@ -150,13 +150,13 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			onDragEnd={handleDragEnd}
 			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-(--spacing-4)">
 				{COLUMNS.map(column => {
 					const columnRequests = requestsByStatus[column.id] || []
 					return (
 						<Card key={column.id} className="flex flex-col">
 							<CardHeader className="pb-3">
-								<div className="flex items-center justify-between">
+								<div className="flex-between">
 									<CardTitle className="text-base font-medium">
 										{column.title}
 									</CardTitle>

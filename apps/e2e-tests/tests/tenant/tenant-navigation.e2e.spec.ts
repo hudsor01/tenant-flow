@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ROUTES } from '../../constants/routes'
 import { loginAsTenant } from '../../auth-helpers'
 import {
@@ -30,6 +31,7 @@ import { takePageScreenshot } from '../helpers/ui-validation-helpers'
 
 test.describe('Tenant Navigation', () => {
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const logger = createLogger({ component: 'TenantNavigationE2E' })
 
   // Define all navigation links to test
   const tenantNavigationLinks = [
@@ -75,13 +77,13 @@ test.describe('Tenant Navigation', () => {
 
       // Verify no console errors
       if (errors.length > 0) {
-        console.error(`Console errors on ${link.name}:`, errors)
+        logger.error(`Console errors on ${link.name}:`, { metadata: { errors } })
       }
       expect(errors).toHaveLength(0)
 
       // Verify no network errors
       if (networkErrors.length > 0) {
-        console.error(`Network errors on ${link.name}:`, networkErrors)
+        logger.error(`Network errors on ${link.name}:`, { metadata: { networkErrors } })
       }
       expect(networkErrors).toHaveLength(0)
 

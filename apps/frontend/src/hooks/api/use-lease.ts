@@ -91,8 +91,7 @@ export function useLeaseList(params?: {
  * Hook to fetch expiring leases
  */
 export function useExpiringLeases(daysUntilExpiry: number = 30) {
-	const expiringQuery = leaseQueries.expiring(daysUntilExpiry)
-	return useQuery({ ...expiringQuery, ...QUERY_CACHE_TIMES.DETAIL, retry: 2 })
+	return useQuery(leaseQueries.expiring(daysUntilExpiry))
 }
 
 /**
@@ -128,22 +127,35 @@ export function useCreateLease() {
 			const optimisticLease: Lease = {
 				id: tempId,
 				primary_tenant_id: newLease.primary_tenant_id ?? null,
-			unit_id: newLease.unit_id ?? null,
-			property_owner_id: newLease.property_owner_id ?? null,
-			start_date: newLease.start_date,
+				unit_id: newLease.unit_id ?? null,
+				property_owner_id: newLease.property_owner_id ?? null,
+				start_date: newLease.start_date,
 				end_date: newLease.end_date,
 				rent_amount: newLease.rent_amount,
 				security_deposit: newLease.security_deposit ?? null,
-				lease_status: 'ACTIVE',
+				lease_status: 'active',
 				auto_pay_enabled: null,
 				grace_period_days: null,
 				late_fee_amount: null,
 				late_fee_days: null,
 				stripe_subscription_id: null,
+				stripe_subscription_status: 'none',
+				subscription_failure_reason: null,
+				subscription_retry_count: 0,
+				subscription_last_attempt_at: null,
 				payment_day: newLease.payment_day ?? 1,
 				rent_currency: newLease.rent_currency ?? 'USD',
 				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
+				updated_at: new Date().toISOString(),
+				// Signature tracking fields
+				docuseal_submission_id: null,
+				owner_signed_at: null,
+				owner_signature_ip: null,
+				owner_signature_method: null,
+				tenant_signed_at: null,
+				tenant_signature_ip: null,
+				tenant_signature_method: null,
+				sent_for_signature_at: null
 			}
 
 			// Optimistically update all caches
@@ -515,5 +527,115 @@ export function useLeaseOperations() {
 				terminate.isPending
 		}),
 		[create, update, remove, renew, terminate]
+	)
+}
+
+// ============================================================
+// LEASE SIGNATURE WORKFLOW HOOKS
+// ============================================================
+
+/**
+ * Hook to fetch signature status for a lease
+ */
+export function useLeaseSignatureStatus(leaseId: string) {
+	return useQuery(leaseQueries.signatureStatus(leaseId))
+}
+
+/**
+ * Hook to send a lease for signature (owner action)
+ */
+export function useSendLeaseForSignature() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
+			clientFetch<{ success: boolean }>(`/api/v1/leases/${leaseId}/send-for-signature`, {
+				method: 'POST',
+				body: JSON.stringify({ message })
+			}),
+		onSuccess: (_result, { leaseId }) => {
+			// Invalidate lease detail and signature status
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(leaseId).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.signatureStatus(leaseId).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			logger.info('Lease sent for signature', { leaseId })
+		},
+		onError: (err) => {
+			handleMutationError(err, 'Send lease for signature')
+		}
+	})
+}
+
+/**
+ * Hook for owner to sign a lease
+ */
+export function useSignLeaseAsOwner() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: (leaseId: string) =>
+			clientFetch<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/owner`, {
+				method: 'POST'
+			}),
+		onSuccess: (_result, leaseId) => {
+			// Invalidate lease detail and signature status
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(leaseId).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.signatureStatus(leaseId).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			logger.info('Lease signed by owner', { leaseId })
+		},
+		onError: (err) => {
+			handleMutationError(err, 'Sign lease')
+		}
+	})
+}
+
+/**
+ * Hook for tenant to sign a lease
+ */
+export function useSignLeaseAsTenant() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: (leaseId: string) =>
+			clientFetch<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/tenant`, {
+				method: 'POST'
+			}),
+		onSuccess: (_result, leaseId) => {
+			// Invalidate lease detail, signature status, and tenant portal data
+			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(leaseId).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.signatureStatus(leaseId).queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.tenantPortalActive().queryKey })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			logger.info('Lease signed by tenant', { leaseId })
+		},
+		onError: (err) => {
+			handleMutationError(err, 'Sign lease')
+		}
+	})
+}
+
+/**
+ * Combined hook for lease signature operations
+ */
+export function useLeaseSignatureOperations(leaseId: string) {
+	const signatureStatus = useLeaseSignatureStatus(leaseId)
+	const sendForSignature = useSendLeaseForSignature()
+	const signAsOwner = useSignLeaseAsOwner()
+	const signAsTenant = useSignLeaseAsTenant()
+
+	return useMemo(
+		() => ({
+			signatureStatus,
+			sendForSignature,
+			signAsOwner,
+			signAsTenant,
+			isLoading:
+				signatureStatus.isLoading ||
+				sendForSignature.isPending ||
+				signAsOwner.isPending ||
+				signAsTenant.isPending
+		}),
+		[signatureStatus, sendForSignature, signAsOwner, signAsTenant]
 	)
 }

@@ -22,11 +22,14 @@
  */
 
 import { type Page, type BrowserContext } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 // Supabase project reference extracted from URL
 const PROJECT_REF = 'bshjmbshupiibfiewpxb'
 const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
+
+const logger = createLogger({ component: 'AuthHelpers' })
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, SupabaseSession>()
@@ -36,9 +39,9 @@ const debugLog = (...args: string[]) => {
 	if (!process.env.DEBUG) return
 	const [message, ...rest] = args
 	if (rest.length > 0) {
-		console.log(message, ...rest)
+		logger.debug(message, undefined, ...rest)
 	} else {
-		console.log(message)
+		logger.debug(message)
 	}
 }
 

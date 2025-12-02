@@ -151,7 +151,7 @@ export class ReportsService {
 				.from('leases')
 				.select('id, unit_id')
 				.in('property_id', property_ids)
-				.eq('status', 'ACTIVE')
+				.eq('status', 'active')
 
 			const totalUnits = units?.length || 0
 			const occupiedUnits = activeLeases?.length || 0

@@ -48,7 +48,7 @@ function normalizeAuthFailureReason(reason: string): string {
 	const upper = reason.toUpperCase()
 	if (upper.includes('CREDENTIAL') || upper.includes('PASSWORD') || upper.includes('INVALID'))
 		return 'INVALID_CREDENTIALS'
-	if (upper.includes('EXPIRED')) return 'TOKEN_EXPIRED'
+	if (upper.includes('expired')) return 'TOKEN_EXPIRED'
 	if (upper.includes('MALFORMED') || upper.includes('DECODE')) return 'TOKEN_INVALID'
 	if (upper.includes('MISSING') || upper.includes('NOT FOUND')) return 'TOKEN_MISSING'
 	if (upper.includes('LOCKED')) return 'ACCOUNT_LOCKED'

@@ -1,4 +1,5 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
+import type { OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common'
 import { StripeSync } from '@supabase/stripe-sync-engine'
 import { AppConfigService } from '../../config/app-config.service'
 

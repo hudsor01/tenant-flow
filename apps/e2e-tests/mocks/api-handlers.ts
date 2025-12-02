@@ -10,6 +10,9 @@
  */
 
 import type { Page, Route } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'ApiHandlersMock' })
 
 // API Base URL patterns
 const API_PATTERN = '**/api/v1/**'
@@ -76,7 +79,7 @@ const mockData = {
 				end_date: '2025-01-01',
 				rent_amount: 1500,
 				security_deposit: 1500,
-				lease_status: 'ACTIVE'
+				lease_status: 'active'
 			}
 		],
 		total: 1
@@ -262,7 +265,7 @@ export async function setupApiMocks(page: Page): Promise<void> {
 			await handler(route)
 		} else {
 			// Default: return empty success response for unhandled routes
-			console.log(`[Mock] Unhandled: ${method} ${pathname}`)
+			logger.warn(`[Mock] Unhandled: ${method} ${pathname}`)
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',

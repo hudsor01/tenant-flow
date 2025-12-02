@@ -336,6 +336,24 @@ export class AppConfigService {
 		return this.get('RESEND_API_KEY')
 	}
 
+	// ==================== DocuSeal (Self-hosted e-signature) ====================
+
+	getDocuSealApiUrl(): string {
+		return this.get('DOCUSEAL_API_URL')
+	}
+
+	getDocuSealApiKey(): string | undefined {
+		return this.get('DOCUSEAL_API_KEY')
+	}
+
+	isDocuSealEnabled(): boolean {
+		return !!this.getDocuSealApiKey()
+	}
+
+	getDocuSealWebhookSecret(): string | undefined {
+		return this.get('DOCUSEAL_WEBHOOK_SECRET')
+	}
+
 	// ==================== Security ====================
 
 	getCsrfSecret(): string | undefined {
@@ -376,8 +394,8 @@ export class AppConfigService {
 		return this.get('SUPPORT_EMAIL')
 	}
 
-	getSupportPhone(): string {
-		return this.get('SUPPORT_PHONE') || '(555) 123-4567'
+	getSupportPhone(): string | undefined {
+		return this.get('SUPPORT_PHONE')
 	}
 
 	getIdempotencyKeySecret(): string {

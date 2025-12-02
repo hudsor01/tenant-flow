@@ -215,7 +215,7 @@ export function useUpdateUnit() {
 			queryClient.setQueryData<UnitWithVersion>(
 				unitQueries.detail(id).queryKey,
 				(old: UnitWithVersion | undefined) =>
-					old ? incrementVersion(old, data) : undefined
+					old ? incrementVersion(old, data as Partial<UnitWithVersion>) : undefined
 			)
 		}
 

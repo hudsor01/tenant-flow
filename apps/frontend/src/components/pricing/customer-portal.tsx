@@ -6,8 +6,33 @@ import { CardLayout } from '#components/ui/card-layout'
 import { useUser } from '#hooks/api/use-auth'
 import { API_BASE_URL } from '#lib/api-config'
 import { cn } from '#lib/utils'
-import type { CustomerPortalCardProps } from '@repo/shared/types/frontend'
 import { useMutation } from '@tanstack/react-query'
+
+interface CustomerPortalCardProps {
+	className?: string
+	showStats?: boolean
+	showTestimonial?: boolean
+	currentPlan?: string
+	planTier?: string
+	usageStats?: {
+		properties: number
+		tenants: number
+		uptime: string
+		monthlyRevenue: number
+		activeLeases: number
+	}
+	billingInfo?: {
+		nextBillingDate: string
+		lastPayment: string
+		paymentMethod: string
+	}
+	testimonial?: {
+		text: string
+		author: string
+		company: string
+		rating: number
+	}
+}
 import {
 	Activity,
 	ArrowRight,
@@ -37,6 +62,7 @@ import {
 	cardClasses,
 	TYPOGRAPHY_SCALE
 } from '../../lib/design-system'
+import { portalFeatureGridClasses, portalFeatureCardClasses, featureIconContainerClasses, pricingFeatureCardClasses, billingInfoCardClasses, trustSignalItemClasses, trustSignalIconClasses } from '#lib/design-system'
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -234,11 +260,11 @@ export function CustomerPortalCard({
 			>
 				<div className="absolute inset-0 bg-primary/5 opacity-50" />
 
-				<div className="flex items-center justify-between mb-[var(--spacing-6)]">
-					<div className="flex items-center gap-[var(--spacing-4)]">
+				<div className="flex-between mb-[var(--spacing-6)]">
+					<div className="flex items-center gap-(--spacing-4)">
 						<div
 							className={cn(
-								'p-[var(--spacing-4)] rounded-2xl gradient-background shadow-lg'
+								'p-(--spacing-4) rounded-2xl gradient-background shadow-lg'
 							)}
 						>
 							<Settings className="size-8 text-primary-foreground" />
@@ -286,8 +312,8 @@ export function CustomerPortalCard({
 				>
 					{/* Enhanced Usage Stats */}
 					{showStats && (
-						<div className="bg-muted/10 rounded-2xl p-[var(--spacing-6)] border-2 border-muted/20">
-							<div className="flex items-center justify-between mb-[var(--spacing-6)]">
+						<div className="bg-muted/10 rounded-2xl p-(--spacing-6) border-2 border-muted/20">
+							<div className="flex-between mb-[var(--spacing-6)]">
 								<h4
 									className="text-foreground flex items-center gap-[var(--spacing-3)]"
 									style={TYPOGRAPHY_SCALE['heading-md']}
@@ -302,9 +328,9 @@ export function CustomerPortalCard({
 									Updated 2 hours ago
 								</Badge>
 							</div>
-								<div className="grid gap-[var(--spacing-6)] [grid-template-columns:var(--layout-grid-cols-2)] lg:[grid-template-columns:var(--layout-grid-cols-5)]">
-								<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-									<div className="size-[var(--spacing-10)] bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+								<div className={portalFeatureGridClasses()}>
+								<div className={portalFeatureCardClasses()}>
+									<div className={featureIconContainerClasses('accent')}>
 										<FileText className="size-5 text-accent" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
@@ -314,8 +340,8 @@ export function CustomerPortalCard({
 										Properties
 									</p>
 								</div>
-								<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-									<div className="size-[var(--spacing-10)] bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+								<div className={portalFeatureCardClasses()}>
+									<div className={featureIconContainerClasses('primary')}>
 										<Users className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
@@ -325,8 +351,8 @@ export function CustomerPortalCard({
 										Tenants
 									</p>
 								</div>
-								<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-									<div className="size-[var(--spacing-10)] bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+								<div className={portalFeatureCardClasses()}>
+									<div className={featureIconContainerClasses('primary')}>
 										<Zap className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-primary tabular-nums">
@@ -337,8 +363,8 @@ export function CustomerPortalCard({
 									</p>
 								</div>
 								{usageStats.monthlyRevenue && (
-									<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-										<div className="size-[var(--spacing-10)] bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+									<div className={portalFeatureCardClasses()}>
+										<div className={featureIconContainerClasses('primary')}>
 											<TrendingUp className="size-5 text-primary" />
 										</div>
 										<p className="text-2xl font-black text-primary tabular-nums">
@@ -350,8 +376,8 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{usageStats.activeLeases && (
-									<div className="text-center p-[var(--spacing-4)] bg-background/50 rounded-xl border border-muted/30">
-										<div className="size-[var(--spacing-10)] bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-[var(--spacing-2)]">
+									<div className={portalFeatureCardClasses()}>
+										<div className={featureIconContainerClasses('accent')}>
 											<FileText className="size-5 text-accent" />
 										</div>
 										<p className="text-2xl font-black text-accent tabular-nums">
@@ -368,8 +394,8 @@ export function CustomerPortalCard({
 
 					{/* Billing Information */}
 					{billingInfo && (
-						<div className="bg-accent/8 rounded-2xl p-[var(--spacing-6)] border border-accent/20">
-							<div className="flex items-center justify-between mb-[var(--spacing-6)]">
+						<div className="bg-accent/8 rounded-2xl p-(--spacing-6) border border-accent/20">
+							<div className="flex-between mb-[var(--spacing-6)]">
 								<h4
 									className="text-foreground flex items-center gap-[var(--spacing-3)]"
 									style={TYPOGRAPHY_SCALE['heading-md']}
@@ -385,9 +411,9 @@ export function CustomerPortalCard({
 								</Badge>
 							</div>
 
-							<div className="grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-1)] md:[grid-template-columns:var(--layout-grid-cols-3)]">
+							<div className="grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-1)] md:[grid-template-columns:var(--layout-grid-cols-3)]">
 								{billingInfo.nextBillingDate && (
-									<div className="bg-background/70 rounded-lg p-[var(--spacing-4)] border border-primary/20">
+									<div className={billingInfoCardClasses()}>
 										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
 											<Calendar className="size-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -407,7 +433,7 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.lastPayment && (
-									<div className="bg-background/70 rounded-lg p-[var(--spacing-4)] border-primary/20">
+									<div className={billingInfoCardClasses()}>
 										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
 											<CheckCircle2 className="size-4 text-accent" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -427,7 +453,7 @@ export function CustomerPortalCard({
 									</div>
 								)}
 								{billingInfo.paymentMethod && (
-									<div className="bg-background/70 rounded-lg p-[var(--spacing-4)] border-primary/20">
+									<div className={billingInfoCardClasses()}>
 										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
 											<CreditCard className="size-4 text-primary" />
 											<span className="text-sm font-semibold text-muted-foreground">
@@ -452,8 +478,8 @@ export function CustomerPortalCard({
 						</p>
 
 						{showTestimonial && testimonial && (
-							<div className="bg-primary/8 rounded-2xl p-[var(--spacing-6)] border-2 border-primary/20 max-w-[var(--max-width-2xl)] mx-auto">
-								<div className="flex items-center justify-center gap-[var(--spacing-1)] mb-[var(--spacing-4)]">
+							<div className="bg-primary/8 rounded-2xl p-(--spacing-6) border-2 border-primary/20 max-w-[var(--max-width-2xl)] mx-auto">
+								<div className="flex-center gap-[var(--spacing-1)] mb-[var(--spacing-4)]">
 									{[...Array(testimonial.rating)].map((_, i) => (
 										<Star key={i} className="size-4 fill-accent text-accent" />
 									))}
@@ -464,8 +490,8 @@ export function CustomerPortalCard({
 								<blockquote className="text-foreground text-center leading-relaxed font-medium">
 									&quot;{testimonial.text}&quot;
 								</blockquote>
-								<div className="flex items-center justify-center gap-[var(--spacing-3)] mt-[var(--spacing-4)] pt-[var(--spacing-4)] border-t border-primary/10">
-									<div className="size-[var(--spacing-10)] bg-primary/15 rounded-full flex items-center justify-center">
+								<div className="flex-center gap-[var(--spacing-3)] mt-[var(--spacing-4)] pt-[var(--spacing-4)] border-t border-primary/10">
+									<div className="size-[var(--spacing-10)] bg-primary/15 rounded-full flex-center">
 										<Users className="size-5 text-primary" />
 									</div>
 									<cite className="text-sm font-bold text-foreground not-italic">
@@ -482,12 +508,12 @@ export function CustomerPortalCard({
 					{/* Enhanced Feature Grid */}
 					<div
 						className={cn(
-						'grid gap-[var(--spacing-4)] [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
+						'grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
 							animationClasses('fade-in')
 						)}
 					>
-						<div className="group p-[var(--spacing-5)] bg-primary/8 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('primary')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-primary/10 rounded-xl">
 									<CreditCard className="size-6 text-primary" />
 								</div>
@@ -495,12 +521,12 @@ export function CustomerPortalCard({
 									<h5 className="font-bold text-foreground">
 										Payment Management
 									</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Update cards & billing info
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-primary font-medium">
 									Secure & instant updates
 								</span>
@@ -508,8 +534,8 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-[var(--spacing-5)] bg-accent/8 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('accent')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-accent/10 rounded-xl">
 									<FileText className="size-6 text-accent" />
 								</div>
@@ -517,12 +543,12 @@ export function CustomerPortalCard({
 									<h5 className="font-bold text-foreground">
 										Invoices & Receipts
 									</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Download & track payments
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-accent font-medium">
 									Instant PDF downloads
 								</span>
@@ -530,19 +556,19 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-[var(--spacing-5)] bg-primary/8 rounded-2xl border-2 border-primary/20 hover:border-primary/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('primary')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-primary/10 rounded-xl">
 									<Download className="size-6 text-primary" />
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Usage Reports</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Analytics & insights
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-primary font-medium">
 									Detailed breakdowns
 								</span>
@@ -550,19 +576,19 @@ export function CustomerPortalCard({
 							</div>
 						</div>
 
-						<div className="group p-[var(--spacing-5)] bg-accent/8 rounded-2xl border-2 border-accent/20 hover:border-accent/30 hover:shadow-lg cursor-pointer">
-							<div className="flex items-center gap-[var(--spacing-4)] mb-[var(--spacing-3)]">
+						<div className={pricingFeatureCardClasses('accent')}>
+							<div className="flex items-center gap-(--spacing-4) mb-[var(--spacing-3)]">
 								<div className="p-[var(--spacing-3)] bg-accent/10 rounded-xl">
 									<Sparkles className="size-6 text-accent" />
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Plan Management</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Upgrade, downgrade or cancel
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-accent font-medium">
 									Flexible changes
 								</span>
@@ -593,10 +619,10 @@ export function CustomerPortalCard({
 			</CardLayout>
 
 			{/* Enhanced Trust Signals */}
-			<div className="bg-muted/10 rounded-2xl p-[var(--spacing-6)] border-2 border-muted/20">
-				<div className="flex flex-wrap items-center justify-center gap-[var(--spacing-6)] text-sm">
-					<div className="flex items-center gap-[var(--spacing-3)]">
-						<div className="p-[var(--spacing-2)] bg-accent/10 rounded-lg">
+			<div className="bg-muted/10 rounded-2xl p-(--spacing-6) border-2 border-muted/20">
+				<div className="flex flex-wrap items-center justify-center gap-(--spacing-6) text-sm">
+					<div className={trustSignalItemClasses()}>
+						<div className={trustSignalIconClasses('accent')}>
 							<Shield className="size-5 text-accent" />
 						</div>
 						<div>
@@ -606,8 +632,8 @@ export function CustomerPortalCard({
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-[var(--spacing-3)]">
-						<div className="p-[var(--spacing-2)] bg-primary/10 rounded-lg">
+					<div className={trustSignalItemClasses()}>
+						<div className={trustSignalIconClasses('primary')}>
 							<CheckCircle2 className="size-5 text-primary" />
 						</div>
 						<div>
@@ -617,8 +643,8 @@ export function CustomerPortalCard({
 							</p>
 						</div>
 					</div>
-					<div className="flex items-center gap-[var(--spacing-3)]">
-						<div className="p-[var(--spacing-2)] bg-primary/10 rounded-lg">
+					<div className={trustSignalItemClasses()}>
+						<div className={trustSignalIconClasses('primary')}>
 							<Users className="size-5 text-primary" />
 						</div>
 						<div>
