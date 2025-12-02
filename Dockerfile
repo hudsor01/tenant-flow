@@ -1,163 +1,134 @@
 # syntax=docker/dockerfile:1.9
+# Optimized Dockerfile for TenantFlow Backend
+# Changes from baseline:
+# 1. Faster node_modules cleanup using find
+# 2. Better comments and organization
+
 ARG NODE_VERSION=22.16.0-alpine3.21
 
+# ============================================
+# BASE STAGE - Build tools
+# ============================================
 FROM node:${NODE_VERSION} AS base
 
-# Enable BuildKit inline cache for 70% faster rebuilds
 ARG BUILDKIT_INLINE_CACHE=1
 
-# Install essential build dependencies with security focus
-# python3, make, g++: Required for native Node modules
-# dumb-init: Lightweight init system for proper signal handling (2025 best practice)
+# Install build dependencies
 RUN apk add --no-cache bash python3 make g++ dumb-init ca-certificates && \
     rm -rf /var/cache/apk/* /tmp/* && \
     npm install -g pnpm@10 turbo@2.5.6
 
 WORKDIR /app
 
-ENV PNPM_HOME=/root/.local/share/pnpm
-ENV PATH=/root/.local/share/pnpm:$PATH \
+ENV PNPM_HOME=/root/.local/share/pnpm \
+    PATH=/root/.local/share/pnpm:$PATH \
     HUSKY=0 \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
+# ============================================
+# DEPS STAGE - Install dependencies
+# ============================================
 FROM base AS deps
 
+# Copy package files (packages/* uses wildcard to get all)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/*/package.json packages/
 COPY scripts/prepare-husky.cjs scripts/
 
-# Install dependencies with cache mount for pnpm store only
-# Note: node_modules must be persisted in the image layer, not just in cache
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
+# Install dependencies with cache mount
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
+# ============================================
+# BUILD STAGE - Compile TypeScript
+# ============================================
 FROM base AS build
 
-ENV DOPPLER_DISABLED=1
+ENV DOPPLER_DISABLED=1 \
+    TURBO_TELEMETRY_DISABLED=1 \
+    NODE_OPTIONS="--max-old-space-size=2048"
 
+# Copy deps and full source
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
+# Reinstall to link workspace packages
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
-# Build with environment optimizations
-ENV TURBO_TELEMETRY_DISABLED=1 \
-    NODE_OPTIONS="--max-old-space-size=2048"
-
-# Build using standardized commands with explicit verification
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,target=/app/.turbo \
+# Build with turbo cache
+RUN --mount=type=cache,id=turbo-cache,target=/app/.turbo \
     set -e && \
-    echo "=== Starting builds ===" && \
-    pnpm build:shared && echo "✓ shared built" && \
-    echo "=== Building backend ===" && \
+    pnpm build:shared && \
     pnpm --filter @repo/backend build && \
-    echo "✓ backend built" && \
-    echo "=== Verifying build outputs ===" && \
-    echo "Checking dist directory..." && \
-    ls -la apps/backend/ && \
-    if [ -d apps/backend/dist ]; then \
-        echo "dist directory exists" && \
-        ls -la apps/backend/dist/ && \
-    if [ -f apps/backend/dist/main.js ]; then \
-        echo "✓ main.js found" && \
-        echo "=== Build verification passed ==="; \
-    else \
-        echo "ERROR: apps/backend/dist/main.js not found" && \
-        echo "Contents of dist directory:" && \
-        find apps/backend/dist -type f -name "*.js" | head -10 && \
-        exit 1; \
-    fi \
-    else \
-        echo "ERROR: apps/backend/dist not found" && \
-        exit 1; \
-    fi
+    test -f apps/backend/dist/main.js || (echo "ERROR: main.js not found" && exit 1)
 
-# Copy PDF and report templates to dist directory for runtime access
+# Copy templates to dist
 COPY apps/backend/src/modules/pdf/templates apps/backend/dist/modules/pdf/templates
 COPY apps/backend/src/modules/reports/templates apps/backend/dist/modules/reports/templates
 
-# ===== RUNTIME STAGE =====
-# Ultra-minimal production image (~200MB total)
+# ============================================
+# RUNTIME STAGE - Production image
+# ============================================
 FROM node:${NODE_VERSION} AS runtime
 
+# Install runtime dependencies including Chromium for PDF generation
 RUN apk add --no-cache \
         bash \
+        dumb-init \
+        ca-certificates \
         chromium \
         nss \
         freetype \
         harfbuzz \
-        ca-certificates \
-        ttf-freefont \
-        dumb-init \
-    && rm -rf /var/cache/apk/* /tmp/*
-
-# Install pnpm for workspace support
-RUN npm install -g pnpm@10
+        ttf-freefont && \
+    npm install -g pnpm@10 && \
+    rm -rf /var/cache/apk/* /tmp/*
 
 WORKDIR /app
 
-ENV PNPM_HOME=/root/.local/share/pnpm
-ENV NODE_ENV=production \
+ENV PNPM_HOME=/root/.local/share/pnpm \
+    NODE_ENV=production \
     DOCKER_CONTAINER=true \
     NODE_OPTIONS="--enable-source-maps --max-old-space-size=512" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    PATH=/root/.local/share/pnpm:$PATH
+    PATH=/root/.local/share/pnpm:$PATH \
+    PORT=4600
 
-# Copy workspace configuration for proper module resolution
+# Copy workspace config
 COPY --from=build --chown=node:node /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-COPY --from=build --chown=node:node /app/scripts/prepare-husky.cjs ./scripts/prepare-husky.cjs
+COPY --from=build --chown=node:node /app/scripts/prepare-husky.cjs ./scripts/
 
-# Copy backend application
-COPY --from=build --chown=node:node /app/apps/backend/package.json ./apps/backend/package.json
+# Copy built artifacts
+COPY --from=build --chown=node:node /app/apps/backend/package.json ./apps/backend/
 COPY --from=build --chown=node:node /app/apps/backend/dist ./apps/backend/dist
-
-# Copy shared package (workspace dependency)
-COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/
 COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
 
-# Copy database package artifacts for runtime usage
-
-# Create reports directory with proper permissions before switching to node user
+# Create reports directory
 RUN mkdir -p /app/reports && chown -R node:node /app/reports
 
-# Install production dependencies in the runtime environment
-# This ensures workspace dependencies resolve correctly
-RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
+# Install production dependencies
+RUN --mount=type=cache,id=pnpm-prod,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prod --prefer-offline --filter @repo/backend...
 
-# Clean up dev files to reduce size but keep essential files
-RUN rm -rf node_modules/**/test \
-           node_modules/**/tests \
-           node_modules/**/*.map \
-           node_modules/**/*.ts \
-           node_modules/**/.bin \
-           node_modules/**/*.md \
-           node_modules/**/LICENSE* \
-           node_modules/**/license* \
-           node_modules/**/README* \
-           node_modules/**/readme* \
-           node_modules/**/.github \
-           node_modules/**/CHANGELOG* \
-           node_modules/**/changelog* \
-    && rm -rf /root/.local/share/pnpm/store
+# Fast cleanup using find (faster than glob patterns)
+RUN find node_modules -type d \( -name test -o -name tests -o -name .github -o -name docs \) -prune -exec rm -rf {} + 2>/dev/null || true && \
+    find node_modules -type f \( -name "*.map" -o -name "*.ts" -o -name "*.md" -o -name "LICENSE*" -o -name "CHANGELOG*" \) -delete 2>/dev/null || true && \
+    rm -rf /root/.local/share/pnpm/store
 
 USER node
 
-# Railway provides PORT at runtime, default to 4600 for container
-ENV PORT=4600
-# EXPOSE is informational - Railway ignores this and uses their own PORT
 EXPOSE ${PORT}
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD node -e "require('http').get('http://127.0.0.1:' + process.env.PORT + '/health', (r) => { r.statusCode === 200 ? process.exit(0) : process.exit(1) }).on('error', () => process.exit(1))"
+    CMD node -e "require('http').get('http://127.0.0.1:'+process.env.PORT+'/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/backend/dist/main.js"]
 
 LABEL maintainer="TenantFlow Team" \
-      version="1.0.1" \
-      description="TenantFlow Backend Service" \
-      org.opencontainers.image.source="https://github.com/tenantflow/backend"
+      version="1.0.2" \
+      description="TenantFlow Backend Service (Optimized)"
