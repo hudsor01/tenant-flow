@@ -16,7 +16,7 @@ export default function ReportsPage() {
 			{/* Top Section - Matching Dashboard */}
 			<div className="border-b bg-background p-6 border-fill-tertiary">
 				<div className="mx-auto max-w-400 py-4">
-					<div className="flex items-center justify-between mb-4">
+					<div className="flex-between mb-4">
 						<div>
 							<h1 className="text-3xl font-bold">Reports & Analytics</h1>
 							<p className="text-muted-foreground mt-1">

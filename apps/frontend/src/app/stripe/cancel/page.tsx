@@ -1,5 +1,5 @@
 import { Button } from '#components/ui/button'
-import { PageLayout } from '#components/layout/page-layout'
+import { PageLayout } from '#components/ui/layout/page-layout'
 import { MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -9,7 +9,7 @@ function CancelContent() {
 		<PageLayout
 			showNavbar={false}
 			className="gradient-authority"
-			containerClass="flex items-center justify-center min-h-screen max-w-md"
+			containerClass="flex-center min-h-screen max-w-md"
 		>
 			<div className="w-full shadow-md bg-card/50 border border-border backdrop-blur-sm rounded-2xl p-8 text-center">
 				<div className="mb-6">
@@ -36,7 +36,7 @@ function CancelContent() {
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-border">
-					<div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+					<div className="flex-center space-x-2 text-muted">
 						<MessageCircle className="size-4" />
 						<span>Need help? Contact our support team</span>
 					</div>
@@ -53,7 +53,7 @@ export default function CancelPage() {
 				<PageLayout
 					showNavbar={false}
 					className="gradient-authority"
-					containerClass="flex items-center justify-center min-h-screen"
+					containerClass="flex-center min-h-screen"
 				>
 					<div className="animate-spin rounded-full size-12 border-b-2 border-destructive"></div>
 				</PageLayout>

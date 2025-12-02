@@ -1,14 +1,14 @@
 'use client'
 
 import {
-	CrudModal,
-	CrudModalContent,
-	CrudModalHeader,
-	CrudModalTitle,
-	CrudModalDescription,
-	CrudModalContent as CrudModalBody,
-	CrudModalFooter
-} from '#components/ui/crud-modal'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogDescription,
+	CrudDialogContent as CrudDialogBody,
+	CrudDialogFooter
+} from '#components/ui/crud-dialog'
 import { Button } from '#components/ui/button'
 import { useModalStore } from '#stores/modal-store'
 
@@ -73,18 +73,18 @@ export function ConfirmDialog({
 	}
 
 	return (
-		<CrudModal mode="delete" modalId={modalId}>
-			<CrudModalContent className="sm:max-w-md">
-				<CrudModalHeader>
-					<CrudModalTitle>{title}</CrudModalTitle>
-					<CrudModalDescription>{description}</CrudModalDescription>
-				</CrudModalHeader>
-				<CrudModalBody>
-					<p className="text-sm text-muted-foreground">
+		<CrudDialog mode="delete" modalId={modalId}>
+			<CrudDialogContent className="sm:max-w-md">
+				<CrudDialogHeader>
+					<CrudDialogTitle>{title}</CrudDialogTitle>
+					<CrudDialogDescription>{description}</CrudDialogDescription>
+				</CrudDialogHeader>
+				<CrudDialogBody>
+					<p className="text-muted">
 						This action cannot be undone.
 					</p>
-				</CrudModalBody>
-				<CrudModalFooter>
+				</CrudDialogBody>
+				<CrudDialogFooter>
 					<Button variant="outline" onClick={handleCancel} disabled={loading}>
 						Cancel
 					</Button>
@@ -95,8 +95,8 @@ export function ConfirmDialog({
 					>
 						{loading ? 'Processing...' : confirmText}
 					</Button>
-				</CrudModalFooter>
-			</CrudModalContent>
-		</CrudModal>
+				</CrudDialogFooter>
+			</CrudDialogContent>
+		</CrudDialog>
 	)
 }

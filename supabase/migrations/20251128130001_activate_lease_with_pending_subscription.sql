@@ -36,7 +36,7 @@ BEGIN
 
   -- Step 2: Validate lease exists
   IF v_lease.id IS NULL THEN
-    RETURN QUERY SELECT FALSE, 'Lease not found'::TEXT;
+    RETURN QUERY SELECT FALSE, 'Lease not found.'::TEXT;
     RETURN;
   END IF;
 
@@ -55,12 +55,12 @@ BEGIN
 
   -- Step 5: Validate both parties have signed
   IF v_lease.owner_signed_at IS NULL THEN
-    RETURN QUERY SELECT FALSE, 'Owner has not signed the lease'::TEXT;
+    RETURN QUERY SELECT FALSE, 'Owner has not signed the lease.'::TEXT;
     RETURN;
   END IF;
 
   IF v_lease.tenant_signed_at IS NULL THEN
-    RETURN QUERY SELECT FALSE, 'Tenant has not signed the lease'::TEXT;
+    RETURN QUERY SELECT FALSE, 'Tenant has not signed the lease.'::TEXT;
     RETURN;
   END IF;
 

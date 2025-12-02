@@ -231,7 +231,7 @@ export function PropertyImageUpload({ propertyId, maxImages = 5 }: PropertyImage
 
 			{/* Remaining slots info */}
 			{remainingSlots <= maxImages && (
-				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+				<div className="flex items-center gap-2 text-muted">
 					<Badge variant="secondary">{remainingSlots} slots available</Badge>
 					{remainingSlots === 0 && (
 						<span className="flex items-center gap-1 text-amber-600">
@@ -245,7 +245,7 @@ export function PropertyImageUpload({ propertyId, maxImages = 5 }: PropertyImage
 			{/* File previews with compression stats */}
 			{filesWithPreviews.length > 0 && (
 				<div className="space-y-3">
-					<div className="flex items-center justify-between">
+					<div className="flex-between">
 						<h4 className="font-medium">Images to upload ({filesWithPreviews.length})</h4>
 						{totalSavings > 0 && (
 							<span className="text-sm text-success font-medium">

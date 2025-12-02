@@ -8,7 +8,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	Table,
 	TableBody,
@@ -71,7 +71,7 @@ export function SectionTable() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
-					<div className="flex items-center justify-center py-8">
+					<div className="flex-center py-8">
 						<Spinner className="size-6 animate-spin" />
 						<span className="ml-2 text-muted-foreground text-sm">
 							Loading properties...
@@ -96,7 +96,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="text-center py-8">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							Failed to load properties
 						</p>
 					</div>
@@ -119,7 +119,7 @@ export function SectionTable() {
 				</CardHeader>
 				<CardContent className="p-3 sm:p-6">
 					<div className="text-center py-8">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							No properties yet. Add your first property to get started.
 						</p>
 					</div>
@@ -190,7 +190,7 @@ export function SectionTable() {
 														? 'bg-system-blue-10 text-system-blue hover:bg-system-blue-15'
 														: property.status === 'SOLD'
 															? 'bg-system-teal-10 text-system-teal hover:bg-system-teal-15'
-															: 'bg-system-gray-10 text-label-tertiary hover:bg-system-gray-15'
+															: 'bg-system-muted/10 text-label-tertiary hover:bg-system-muted/15'
 											)}
 										>
 											{formatPropertyStatus(property.status as PropertyStatus)}

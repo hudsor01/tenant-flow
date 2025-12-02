@@ -12,11 +12,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
-import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY,
-	assertSupabaseConfig
-} from '@repo/shared/config/supabase'
+
 import type { Database } from '@repo/shared/types/supabase'
 
 export async function GET(request: NextRequest) {
@@ -27,11 +23,10 @@ export async function GET(request: NextRequest) {
 	if (code) {
 		const cookieStore = await cookies()
 
-		assertSupabaseConfig()
 
 		const supabase = createServerClient<Database>(
-			SUPABASE_URL!,
-			SUPABASE_PUBLISHABLE_KEY!,
+			process.env.NEXT_PUBLIC_SUPABASE_URL!,
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
 			{
 				cookies: {
 					getAll() {

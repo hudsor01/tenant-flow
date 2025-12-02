@@ -211,7 +211,7 @@ export default function GenerateReportsPage() {
 			<div className="flex flex-col gap-(--spacing-4)">
 				<div>
 					<h2 className="text-xl font-semibold">Executive Reports</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						High-level summaries for leadership and stakeholders
 					</p>
 				</div>
@@ -265,7 +265,7 @@ export default function GenerateReportsPage() {
 			<div className="flex flex-col gap-(--spacing-4)">
 				<div>
 					<h2 className="text-xl font-semibold">Financial Reports</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Detailed financial analysis and performance metrics
 					</p>
 				</div>
@@ -319,7 +319,7 @@ export default function GenerateReportsPage() {
 			<div className="flex flex-col gap-(--spacing-4)">
 				<div>
 					<h2 className="text-xl font-semibold">Operations Reports</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Property and maintenance operations insights
 					</p>
 				</div>

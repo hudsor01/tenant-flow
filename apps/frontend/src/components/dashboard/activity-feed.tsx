@@ -1,15 +1,14 @@
 'use client'
 
 import { ActivityFeedSkeleton } from '#components/dashboard/activity-feed-skeleton'
-import { ErrorFallback } from '#components/error-boundary/error-fallback'
+import { ErrorFallback } from '#components/ui/error-boundary/error-fallback'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { useOwnerDashboardActivity } from '#hooks/api/use-owner-dashboard'
-import { useCategoryLoading } from '#hooks/use-loading'
+import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { cn } from '#lib/utils'
+import { formatRelativeDate } from '#lib/formatters/date'
 import type { Activity } from '@repo/shared/types/activity'
 import type { ActivityEntityType } from '@repo/shared/types/core'
-import { formatDistanceToNow } from 'date-fns'
 import {
 	CheckCircle,
 	Clock,
@@ -47,13 +46,6 @@ const getActivityBadgeClass = (type: string): string => {
 	}
 	return classMap[type] || 'text-muted-foreground bg-muted border-border'
 }
-
-// Modern helpers - assume valid inputs
-const formatDate = (date: string | Date): string => {
-	const dateObj = new Date(date)
-	return formatDistanceToNow(dateObj, { addSuffix: true })
-}
-
 const safeEntityDisplay = (
 	entityName: string | null,
 	entityId: string | null
@@ -98,26 +90,15 @@ const getIconForType = (type: string) => {
 }
 
 export const ActivityFeed = React.memo(function ActivityFeed() {
-	const { data, isLoading, error } = useOwnerDashboardActivity()
-	const { startLoading, stopLoading, isLoading: isGlobalLoading } = useCategoryLoading('dashboard')
+	const { data, isLoading, error, refetch } = useOwnerDashboardData()
 
-	// Sync React Query loading state with global loading store
-	// React 19: Dependency on isLoading ensures we only update when loading state actually changes
-	React.useEffect(() => {
-		if (isLoading) {
-			startLoading('Loading recent activities...')
-		} else {
-			stopLoading()
-		}
-	}, [isLoading, startLoading, stopLoading])
-
-	// Extract activities array from the response and cast to proper enum type
+	// Extract activities array from the unified response
 	const activities: ActivityWithEnum[] = React.useMemo(
-		() => (data?.activities || []) as ActivityWithEnum[],
-		[data?.activities]
+		() => (data?.activity || []) as ActivityWithEnum[],
+		[data?.activity]
 	)
 
-	if (isGlobalLoading) {
+	if (isLoading) {
 		return <ActivityFeedSkeleton items={4} />
 	}
 
@@ -127,7 +108,7 @@ export const ActivityFeed = React.memo(function ActivityFeed() {
 				error={error as Error}
 				title="Failed to load activities"
 				description="Unable to load recent activities. Please try again."
-				onRetry={() => window.location.reload()}
+				onRetry={() => void refetch()}
 			/>
 		)
 	}
@@ -177,7 +158,7 @@ export const ActivityFeed = React.memo(function ActivityFeed() {
 							</p>
 							<div className="dashboard-activity-meta">
 								<Clock className="size-3" aria-hidden="true" />
-								{formatDate(activity.created_at)}
+								{formatRelativeDate(activity.created_at)}
 							</div>
 						</div>
 					</div>

@@ -5,6 +5,7 @@
  * since invitation tests don't require multi-user RLS boundary testing.
  */
 
+import { Logger } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 
@@ -19,6 +20,8 @@ export interface TestCredentials {
 
 // Only require primary owner for invitation tests
 const REQUIRED_VARS = ['E2E_OWNER_EMAIL', 'E2E_OWNER_PASSWORD'] as const
+
+const logger = new Logger('InvitationSetup')
 
 const missingVars = REQUIRED_VARS.filter(varName => !process.env[varName])
 
@@ -153,7 +156,7 @@ export async function getPropertyOwnerId(
 		.maybeSingle()
 
 	if (error) {
-		console.warn(`Failed to get property owner ID: ${error.message}`)
+		logger.warn(`Failed to get property owner ID: ${error.message}`)
 		return null
 	}
 

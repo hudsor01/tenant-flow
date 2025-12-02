@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { CardLayout } from '#components/ui/card-layout'
 import { DollarSign, ArrowDownRight, Clock, CheckCircle, XCircle } from 'lucide-react'
 import {
@@ -17,15 +17,8 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { Badge } from '#components/ui/badge'
-import { formatCurrency } from '#lib/utils/format'
-
-function formatDate(timestamp: number): string {
-	return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric'
-	})
-}
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 
 function getPayoutStatusBadge(status: string) {
 	switch (status) {
@@ -49,7 +42,7 @@ function BalanceCard() {
 	if (isLoading) {
 		return (
 			<CardLayout title="Account Balance" description="Loading...">
-				<div className="flex items-center justify-center py-8">
+				<div className="flex-center py-8">
 					<Spinner className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			</CardLayout>
@@ -59,7 +52,7 @@ function BalanceCard() {
 	if (error || !balance) {
 		return (
 			<CardLayout title="Account Balance" description="Unable to load balance">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Connect your Stripe account to view balance.
 				</p>
 			</CardLayout>
@@ -104,7 +97,7 @@ function PayoutsTable() {
 	if (isLoading) {
 		return (
 			<CardLayout title="Payout History" description="Loading...">
-				<div className="flex items-center justify-center py-8">
+				<div className="flex-center py-8">
 					<Spinner className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			</CardLayout>
@@ -114,7 +107,7 @@ function PayoutsTable() {
 	if (error) {
 		return (
 			<CardLayout title="Payout History" description="Unable to load payouts">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Connect your Stripe account to view payout history.
 				</p>
 			</CardLayout>
@@ -124,7 +117,7 @@ function PayoutsTable() {
 	if (!data?.payouts?.length) {
 		return (
 			<CardLayout title="Payout History" description="No payouts yet">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Your payout history will appear here once you receive rent payments.
 				</p>
 			</CardLayout>
@@ -167,7 +160,7 @@ function TransfersTable() {
 	if (isLoading) {
 		return (
 			<CardLayout title="Rent Payments Received" description="Loading...">
-				<div className="flex items-center justify-center py-8">
+				<div className="flex-center py-8">
 					<Spinner className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			</CardLayout>
@@ -177,7 +170,7 @@ function TransfersTable() {
 	if (error) {
 		return (
 			<CardLayout title="Rent Payments Received" description="Unable to load transfers">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Connect your Stripe account to view rent payments.
 				</p>
 			</CardLayout>
@@ -187,7 +180,7 @@ function TransfersTable() {
 	if (!data?.transfers?.length) {
 		return (
 			<CardLayout title="Rent Payments Received" description="No rent payments yet">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Rent payments from tenants will appear here.
 				</p>
 			</CardLayout>

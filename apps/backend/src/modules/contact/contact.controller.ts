@@ -7,9 +7,9 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
-import type { ContactFormResponse } from '@repo/shared/types/domain'
+import type { ContactFormResponse, ContactFormRequest } from '@repo/shared/types/domain'
 import { ContactService } from './contact.service'
-import { ContactFormDto } from './dto/contact-form.dto'
+import type { ContactFormDto } from './dto/contact-form.dto'
 import { createThrottleDefaults } from '../../config/throttle.config'
 
 const CONTACT_THROTTLE = createThrottleDefaults({
@@ -30,6 +30,6 @@ export class ContactController {
 	async submitContactForm(
 		@Body() dto: ContactFormDto
 	): Promise<ContactFormResponse> {
-		return this.contactService.processContactForm(dto)
+		return this.contactService.processContactForm(dto as ContactFormRequest)
 	}
 }

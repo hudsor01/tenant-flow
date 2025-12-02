@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ROUTES } from '../../constants/routes'
 import { loginAsTenant, clearSessionCache } from '../../auth-helpers'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
@@ -16,6 +17,7 @@ import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-he
 
 test.describe('Tenant Authentication', () => {
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const logger = createLogger({ component: 'TenantAuthenticationE2E' })
 
   test.beforeEach(() => {
     // Clear session cache to ensure fresh login for each test
@@ -173,7 +175,7 @@ test.describe('Tenant Authentication', () => {
 
     // Verify no console errors
     if (consoleErrors.length > 0) {
-      console.error('Console errors detected:', consoleErrors)
+      logger.error('Console errors detected:', { metadata: { consoleErrors } })
     }
     expect(consoleErrors).toHaveLength(0)
   })

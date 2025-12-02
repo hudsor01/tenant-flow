@@ -6,28 +6,14 @@
  *
  * Architecture:
  * - Proxy: HTTP-level auth enforcement (this file)
- * - DAL: Data access only (no redirects)
  * - Layouts: Just UI (no auth checks)
  * - RLS: Database-level security
  */
 
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY
-} from '@repo/shared/config/supabase'
 
-/**
- * JWT Claims interface from Supabase
- */
-interface JWTClaims {
-	sub: string
-	email?: string
-	app_metadata?: Record<string, unknown>
-	user_metadata?: Record<string, unknown>
-	[key: string]: unknown
-}
+import type { SupabaseJwtPayload } from '@repo/shared/types/auth'
 
 /**
  * Route Configuration
@@ -75,13 +61,13 @@ export async function proxy(request: NextRequest) {
 	})
 
 	// Validate Supabase config
-	if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+	if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
 		// Missing configuration - return response without auth check
 		return supabaseResponse
 	}
 
 	// Create Supabase client with cookie handling for token refresh
-	const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+	const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
 		cookies: {
 			getAll() {
 				return request.cookies.getAll()
@@ -115,7 +101,7 @@ export async function proxy(request: NextRequest) {
 	 * This call is required for Supabase SSR token refresh.
 	 */
 	const claimsResult = await supabase.auth.getClaims()
-	const claims = claimsResult.data?.claims as JWTClaims | null
+	const claims = claimsResult.data?.claims as SupabaseJwtPayload | null
 
 	const path = request.nextUrl.pathname
 
@@ -143,15 +129,31 @@ export async function proxy(request: NextRequest) {
 	// Redirect authenticated users away from login page
 	if (claims && path === '/login') {
 		const url = request.nextUrl.clone()
-		// Get user_type from claims (set by custom access token hook)
-		const userType = (claims.app_metadata as { user_type?: string })?.user_type
-		url.pathname = userType === 'OWNER' ? '/dashboard' : '/tenant'
+		const userType = claims.app_metadata?.user_type
+
+		if (userType === 'OWNER') {
+			url.pathname = '/dashboard'
+		} else if (userType === 'TENANT') {
+			url.pathname = '/tenant'
+		} else {
+			// Invalid or missing role - stay on login to re-authenticate
+			return supabaseResponse
+		}
+
 		return NextResponse.redirect(url)
 	}
 
 	// Role-based route protection
-	if (claims) {
-		const userType = (claims.app_metadata as { user_type?: string })?.user_type
+	if (claims && (isOwnerRoute || isTenantRoute)) {
+		const userType = claims.app_metadata?.user_type
+
+		// Invalid or missing role on protected route - redirect to login
+		if (userType !== 'OWNER' && userType !== 'TENANT') {
+			const url = request.nextUrl.clone()
+			url.pathname = '/login'
+			url.searchParams.set('redirect', path)
+			return NextResponse.redirect(url)
+		}
 
 		// OWNER trying to access tenant routes
 		if (userType === 'OWNER' && isTenantRoute) {
@@ -171,13 +173,13 @@ export async function proxy(request: NextRequest) {
 	// Add pathname to headers for layouts (for redirectTo parameter)
 	supabaseResponse.headers.set('x-pathname', path)
 
-	/**
-	 * IMPORTANT: Return supabaseResponse
-	 *
-	 * This response contains updated session cookies from Supabase.
-	 * Returning a different response will break session management.
-	 */
-	return supabaseResponse
+/**
+ * IMPORTANT: Return supabaseResponse
+ *
+ * This response contains updated session cookies from Supabase.
+ * Returning a different response will break session management.
+ */
+return supabaseResponse
 }
 
 /**
@@ -187,12 +189,20 @@ export async function proxy(request: NextRequest) {
  * - _next/static (static files)
  * - _next/image (image optimization)
  * - favicon.ico
- * - Image files (svg, png, jpg, jpeg, gif, webp)
+ * - static (static assets)
+ * - public (public assets)
+ * - assets (asset files)
+ * - api (API routes are handled separately)
+ * - auth (auth routes handled by auth provider)
+ * - stripe (stripe webhooks handled separately)
+ * - sw.js (service worker)
+ * - manifest.json (PWA manifest)
+ * - .well-known (security files)
  *
- * This ensures session refresh happens on all actual pages.
+ * This ensures session refresh happens only on routes that need auth/session handling.
  */
 export const config = {
 	matcher: [
-		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
+		'/((?!_next/static|_next/image|favicon.ico|static|public|assets|api|auth|stripe|sw.js|manifest.json|\\.well-known).*)'
 	]
 }

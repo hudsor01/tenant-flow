@@ -10,7 +10,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -72,7 +72,7 @@ const TenantRow = memo(
 				<TableCell>
 					<div className="flex flex-col">
 						<span className="font-medium">{tenant.name}</span>
-						<span className="text-sm text-muted-foreground">
+						<span className="text-muted">
 							{tenant.email}
 						</span>
 					</div>
@@ -81,7 +81,7 @@ const TenantRow = memo(
 					{tenant.property?.name ? (
 						<div className="flex flex-col">
 							<span>{tenant.property.name}</span>
-							<span className="text-sm text-muted-foreground">
+							<span className="text-muted">
 								{tenant.property.city}, {tenant.property.state}
 							</span>
 						</div>
@@ -109,7 +109,7 @@ const TenantRow = memo(
 					{tenant.currentLease ? (
 						<div className="flex flex-col">
 							<span>#{tenant.currentLease.id.slice(0, 8)}</span>
-							<span className="text-sm text-muted-foreground">
+							<span className="text-muted">
 								{tenant.leaseStart
 									? new Date(tenant.leaseStart).toLocaleDateString()
 									: 'Start TBD'}{' '}

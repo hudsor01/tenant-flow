@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import path from 'node:path'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
  * Complete Owner Journey E2E Test
@@ -20,6 +21,7 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
 	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+	const logger = createLogger({ component: 'CompleteOwnerJourneyE2E' })
 
 	let authToken: string
 	let propertyId: string
@@ -286,8 +288,8 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	test('7. Leases: Create new lease', async ({ page }) => {
 		// Skip with helpful message if prerequisites not met
 		if (!tenantId || !unitId) {
-			console.warn(`⚠️  Skipping lease creation: Missing prerequisites (tenantId=${!!tenantId}, unitId=${!!unitId})`)
-			console.warn('   This test requires tests 3-6 to complete successfully')
+			logger.warn(`⚠️  Skipping lease creation: Missing prerequisites (tenantId=${!!tenantId}, unitId=${!!unitId})`)
+			logger.warn('   This test requires tests 3-6 to complete successfully')
 			test.skip()
 			return
 		}
@@ -335,8 +337,8 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	test('8. Maintenance: Create maintenance request', async ({ page }) => {
 		// Skip with helpful message if prerequisites not met
 		if (!propertyId || !unitId) {
-			console.warn(`⚠️  Skipping maintenance request: Missing prerequisites (propertyId=${!!propertyId}, unitId=${!!unitId})`)
-			console.warn('   This test requires tests 3-5 to complete successfully')
+			logger.warn(`⚠️  Skipping maintenance request: Missing prerequisites (propertyId=${!!propertyId}, unitId=${!!unitId})`)
+			logger.warn('   This test requires tests 3-5 to complete successfully')
 			test.skip()
 			return
 		}
@@ -390,8 +392,8 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	test('9. Maintenance: Update request status', async ({ page }) => {
 		// Skip with helpful message if prerequisites not met
 		if (!maintenanceRequestId) {
-			console.warn(`⚠️  Skipping maintenance status update: Missing maintenance request from test 8`)
-			console.warn('   This test requires test 8 to complete successfully')
+			logger.warn(`⚠️  Skipping maintenance status update: Missing maintenance request from test 8`)
+			logger.warn('   This test requires test 8 to complete successfully')
 			test.skip()
 			return
 		}

@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -672,6 +667,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      processed_internal_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          idempotency_key: string
+          payload_hash: string
+          processed_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          idempotency_key: string
+          payload_hash: string
+          processed_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          idempotency_key?: string
+          payload_hash?: string
+          processed_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
       }
       properties: {
         Row: {
@@ -1622,6 +1647,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_internal_event_lock: {
+        Args: {
+          p_event_name: string
+          p_idempotency_key: string
+          p_payload_hash: string
+        }
+        Returns: {
+          lock_acquired: boolean
+        }[]
+      }
       activate_lease_with_pending_subscription: {
         Args: { p_lease_id: string }
         Returns: {
@@ -1632,6 +1667,10 @@ export type Database = {
       check_user_feature_access: {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
+      }
+      cleanup_old_internal_events: {
+        Args: { days_to_keep?: number }
+        Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       get_billing_insights: {
@@ -1706,12 +1745,24 @@ export type Database = {
         }[]
       }
       health_check: { Args: never; Returns: Json }
-      record_processed_stripe_event_lock: {
-        Args: { p_stripe_event_id: string }
-        Returns: {
-          success: boolean
-        }[]
-      }
+      record_processed_stripe_event_lock:
+        | {
+            Args: { p_stripe_event_id: string }
+            Returns: {
+              success: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_event_type: string
+              p_processed_at: string
+              p_status?: string
+              p_stripe_event_id: string
+            }
+            Returns: {
+              lock_acquired: boolean
+            }[]
+          }
       sign_lease_and_check_activation: {
         Args: {
           p_lease_id: string

@@ -5,7 +5,8 @@
 
 import { Controller, Get, Logger, SetMetadata } from '@nestjs/common'
 import { SkipThrottle, Throttle } from '@nestjs/throttler'
-import { HealthCheck, HealthCheckService } from '@nestjs/terminus'
+import { HealthCheckService } from '@nestjs/terminus';
+import { HealthCheck } from '@nestjs/terminus'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { createThrottleDefaults } from '../config/throttle.config'
 import { CircuitBreakerService } from './circuit-breaker.service'

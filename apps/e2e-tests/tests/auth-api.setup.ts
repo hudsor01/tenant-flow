@@ -1,9 +1,11 @@
 import { test as setup } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const authFile = path.join(__dirname, '../playwright/.auth/owner.json')
+const logger = createLogger({ component: 'AuthApiSetup' })
 
 /**
  * API-based authentication setup for Playwright tests
@@ -115,5 +117,5 @@ setup('authenticate as owner via API', async ({ request }) => {
 	await fs.mkdir(path.dirname(authFile), { recursive: true })
 	await fs.writeFile(authFile, JSON.stringify(storageState, null, 2))
 
-	console.log(`✓ API authentication completed for ${email}`)
+	logger.info(`✓ API authentication completed for ${email}`)
 })

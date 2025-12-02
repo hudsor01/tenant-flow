@@ -18,7 +18,7 @@ interface StepperProps {
 export function Stepper({ steps, currentStep, className }: StepperProps) {
 	return (
 		<nav aria-label="Progress" className={cn('w-full', className)}>
-			<ol role="list" className="flex items-center justify-between">
+			<ol role="list" className="flex-between">
 				{steps.map((step, stepIdx) => {
 					const isComplete = stepIdx < currentStep
 					const isCurrent = stepIdx === currentStep
@@ -49,7 +49,7 @@ export function Stepper({ steps, currentStep, className }: StepperProps) {
 							)}
 
 							<div className="group relative flex flex-col items-start">
-								<span className="flex items-center">
+								<span className="flex-start">
 									<span
 										className={cn(
 											'relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors',

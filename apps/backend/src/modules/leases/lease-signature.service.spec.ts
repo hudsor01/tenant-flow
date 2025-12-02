@@ -114,7 +114,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							lease_status: 'draft',
 							property_owner_id: propertyOwnerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 						chain.update = jest.fn((data: any) => {
 							updateData = data
@@ -147,7 +148,8 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'active', // Already active
-							property_owner_id: propertyOwnerId
+							property_owner_id: propertyOwnerId,
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'property_owners') {
@@ -168,7 +170,8 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'draft',
-							property_owner_id: 'different-property-owner' // Not the requesting owner
+							property_owner_id: 'different-property-owner', // Not the requesting owner
+							property_owner: { user_id: 'different-user-id' }
 						})
 					}
 					if (table === 'property_owners') {
@@ -191,7 +194,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							lease_status: 'draft',
 							property_owner_id: propertyOwnerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'property_owners') {
@@ -223,7 +227,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							lease_status: 'draft',
 							property_owner_id: propertyOwnerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'property_owners') {
@@ -254,7 +259,8 @@ describe('LeaseSignatureService', () => {
 								id: leaseId,
 								lease_status: 'draft',
 								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456'
+								primary_tenant_id: 'tenant-456',
+								property_owner: { user_id: ownerId }
 							})
 						}
 						if (table === 'property_owners') {
@@ -288,7 +294,8 @@ describe('LeaseSignatureService', () => {
 								id: leaseId,
 								lease_status: 'draft',
 								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456'
+								primary_tenant_id: 'tenant-456',
+								property_owner: { user_id: ownerId }
 							})
 						}
 						if (table === 'property_owners') {
@@ -323,7 +330,8 @@ describe('LeaseSignatureService', () => {
 								id: leaseId,
 								lease_status: 'draft',
 								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456'
+								primary_tenant_id: 'tenant-456',
+								property_owner: { user_id: ownerId }
 							})
 							chain.update = jest.fn(() => chain)
 							return chain
@@ -356,7 +364,8 @@ describe('LeaseSignatureService', () => {
 								id: leaseId,
 								lease_status: 'draft',
 								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456'
+								primary_tenant_id: 'tenant-456',
+								property_owner: { user_id: ownerId }
 							})
 							chain.update = jest.fn(() => chain)
 							return chain
@@ -398,7 +407,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'property_owners') {
@@ -429,7 +439,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'property_owners') {
@@ -461,7 +472,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 						chain.update = jest.fn((data: unknown) => {
 							updateData = data
@@ -531,7 +543,8 @@ describe('LeaseSignatureService', () => {
 							id: leaseId,
 							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'property_owners') {
@@ -691,6 +704,185 @@ describe('LeaseSignatureService', () => {
 		})
 	})
 
+	describe('concurrency and race conditions', () => {
+		const ownerUserId = 'owner-user-123'
+		const tenantUserId = 'tenant-user-456'
+		const leaseId = 'lease-concurrency-1'
+
+		const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+		const buildInMemorySupabaseClient = (
+			ownerId: string,
+			leaseState: {
+				id: string
+				lease_status: string
+				property_owner_id: string
+				primary_tenant_id: string
+				rent_amount: number
+				owner_signed_at: string | null
+				tenant_signed_at: string | null
+				owner_signature_ip?: string | null
+				tenant_signature_ip?: string | null
+			},
+			tenantRecord: { id: string; user_id: string; stripe_customer_id?: string | null },
+			options: { rpcDelayMs?: number } = {}
+		) => {
+			let isLocked = false
+			const rpcDelayMs = options.rpcDelayMs ?? 5
+
+			const makeChain = (getData: () => unknown) => {
+				const chain: Record<string, jest.Mock> = {
+					select: jest.fn(() => chain),
+					eq: jest.fn(() => chain),
+					single: jest.fn(async () => ({ data: getData(), error: null })),
+					update: jest.fn(() => chain),
+					is: jest.fn(() => chain),
+					order: jest.fn(() => chain)
+				}
+
+				return chain
+			}
+
+			const rpc = jest.fn(async (name: string, params: Record<string, unknown>) => {
+				if (name === 'sign_lease_and_check_activation') {
+					// Simulate the SELECT FOR UPDATE lock inside the RPC
+					while (isLocked) {
+						await delay(1)
+					}
+					isLocked = true
+					if (rpcDelayMs > 0) {
+						await delay(rpcDelayMs)
+					}
+
+					if (params.p_signer_type === 'owner') {
+						if (leaseState.owner_signed_at) {
+							isLocked = false
+							return { data: [{ success: false, both_signed: false, error_message: 'Owner has already signed this lease' }], error: null }
+						}
+
+						leaseState.owner_signed_at = params.p_signed_at as string
+						leaseState.owner_signature_ip = params.p_signature_ip as string
+						const bothSigned = Boolean(leaseState.tenant_signed_at)
+						isLocked = false
+						return { data: [{ success: true, both_signed: bothSigned, error_message: null }], error: null }
+					}
+
+					if (params.p_signer_type === 'tenant') {
+						if (leaseState.tenant_signed_at) {
+							isLocked = false
+							return { data: [{ success: false, both_signed: false, error_message: 'Tenant has already signed this lease' }], error: null }
+						}
+
+						leaseState.tenant_signed_at = params.p_signed_at as string
+						leaseState.tenant_signature_ip = params.p_signature_ip as string
+						const bothSigned = Boolean(leaseState.owner_signed_at)
+						isLocked = false
+						return { data: [{ success: true, both_signed: bothSigned, error_message: null }], error: null }
+					}
+				}
+
+				if (name === 'activate_lease_with_pending_subscription') {
+					return { data: [{ success: true }], error: null }
+				}
+
+				return { data: null, error: null }
+			})
+
+			const from = jest.fn((table: string) => {
+				switch (table) {
+					case 'leases':
+						return makeChain(() => ({
+							...leaseState,
+							property_owner: { user_id: ownerId }
+						}))
+					case 'tenants':
+						return makeChain(() => tenantRecord)
+					case 'property_owners':
+						return makeChain(() => ({
+							id: leaseState.property_owner_id,
+							user_id: ownerId,
+							stripe_account_id: 'acct_123',
+							charges_enabled: true,
+							payouts_enabled: true
+						}))
+					case 'users':
+						return makeChain(() => ({ email: 'tenant@test.com', first_name: 'Test', last_name: 'Tenant' }))
+					default:
+						return makeChain(() => ({}))
+				}
+			})
+
+			return { from, rpc }
+		}
+
+		it('handles owner and tenant signing concurrently without double activation', async () => {
+			const leaseState = {
+				id: leaseId,
+				lease_status: 'pending_signature',
+				property_owner_id: 'property-owner-001',
+				primary_tenant_id: 'tenant-001',
+				rent_amount: 250000,
+				owner_signed_at: null,
+				tenant_signed_at: null
+			}
+
+			const tenantRecord = { id: 'tenant-001', user_id: tenantUserId, stripe_customer_id: null }
+			const supabaseClient = buildInMemorySupabaseClient(ownerUserId, leaseState, tenantRecord)
+			mockSupabaseService.getAdminClient = jest.fn(() => supabaseClient) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			const activateLeaseSpy = jest.spyOn(service as never, 'activateLease').mockResolvedValue(undefined as never)
+
+			await Promise.all([
+				service.signLeaseAsOwner(ownerUserId, leaseId, '10.0.0.1'),
+				service.signLeaseAsTenant(tenantUserId, leaseId, '10.0.0.2')
+			])
+
+			expect(leaseState.owner_signed_at).toBeTruthy()
+			expect(leaseState.tenant_signed_at).toBeTruthy()
+			expect(activateLeaseSpy).toHaveBeenCalledTimes(1)
+			expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1)
+			expect(supabaseClient.rpc.mock.calls.filter(([name]) => name === 'sign_lease_and_check_activation')).toHaveLength(2)
+
+			activateLeaseSpy.mockRestore()
+		})
+
+		it('prevents duplicate tenant signatures when requests race each other', async () => {
+			const leaseState = {
+				id: leaseId,
+				lease_status: 'pending_signature',
+				property_owner_id: 'property-owner-002',
+				primary_tenant_id: 'tenant-002',
+				rent_amount: 180000,
+				owner_signed_at: null,
+				tenant_signed_at: null
+			}
+
+			const tenantRecord = { id: 'tenant-002', user_id: tenantUserId, stripe_customer_id: null }
+			const supabaseClient = buildInMemorySupabaseClient(ownerUserId, leaseState, tenantRecord)
+			mockSupabaseService.getAdminClient = jest.fn(() => supabaseClient) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			const activateLeaseSpy = jest.spyOn(service as never, 'activateLease').mockResolvedValue(undefined as never)
+
+			const results = await Promise.allSettled([
+				service.signLeaseAsTenant(tenantUserId, leaseId, '10.0.0.3'),
+				service.signLeaseAsTenant(tenantUserId, leaseId, '10.0.0.4')
+			])
+
+			const fulfilled = results.filter(r => r.status === 'fulfilled') as PromiseFulfilledResult<void>[]
+			const rejected = results.filter(r => r.status === 'rejected') as PromiseRejectedResult[]
+
+			expect(fulfilled).toHaveLength(1)
+			expect(rejected).toHaveLength(1)
+			expect(rejected[0]?.reason).toBeInstanceOf(BadRequestException)
+			expect(leaseState.tenant_signed_at).toBeTruthy()
+			expect(activateLeaseSpy).not.toHaveBeenCalled()
+		expect(mockEventEmitter.emit).toHaveBeenCalledTimes(1)
+		expect(supabaseClient.rpc.mock.calls.filter(([name]) => name === 'sign_lease_and_check_activation')).toHaveLength(2)
+
+			activateLeaseSpy.mockRestore()
+		})
+	})
+
 	describe('activateLease (private, triggered when both sign)', () => {
 		it('should create Stripe customer if not exists', async () => {
 			// This is tested indirectly through signLease tests
@@ -751,6 +943,83 @@ describe('LeaseSignatureService', () => {
 				customerId: 'cus_123',
 				rentAmount: 150000
 			}))
+		})
+
+		it('marks subscription as failed and keeps subscription inactive when Stripe call throws', async () => {
+			let leaseUpdateData: any = null
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						const chain = createMockChain({
+							id: 'lease-123',
+							property_owner_id: 'owner-123',
+							rent_amount: 150000,
+							primary_tenant_id: 'tenant-456',
+							lease_status: 'pending_signature',
+							owner_signed_at: '2024-01-01T00:00:00Z',
+							tenant_signed_at: '2024-01-02T00:00:00Z',
+							subscription_retry_count: 0
+						})
+						chain.update = jest.fn((data: any) => {
+							leaseUpdateData = data
+							return chain
+						})
+						return chain
+					}
+					if (table === 'tenants') {
+						const chain = createMockChain({
+							id: 'tenant-456',
+							user_id: 'user-789',
+							stripe_customer_id: 'cus_existing'
+						})
+						chain.update = jest.fn(() => chain)
+						return chain
+					}
+					if (table === 'property_owners') {
+						return createMockChain({
+							id: 'owner-123',
+							stripe_account_id: 'acct_123',
+							charges_enabled: true,
+							payouts_enabled: true
+						})
+					}
+					if (table === 'users') {
+						return createMockChain({ email: 'tenant@test.com', first_name: 'Test', last_name: 'Tenant' })
+					}
+					return createMockChain()
+				}),
+				rpc: jest.fn((rpcName: string) => {
+					if (rpcName === 'sign_lease_and_check_activation') {
+						return Promise.resolve(createSignLeaseRpcResult(true, true))
+					}
+					if (rpcName === 'activate_lease_with_pending_subscription') {
+						return Promise.resolve({ data: [{ success: true }], error: null })
+					}
+					return Promise.resolve({ data: null, error: null })
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			mockStripeConnectService.createCustomerOnConnectedAccount = jest.fn()
+			mockStripeConnectService.createSubscriptionOnConnectedAccount = jest.fn()
+				.mockRejectedValue(new Error('Stripe failure'))
+
+			await service.signLeaseAsTenant('user-789', 'lease-123', '192.168.1.1')
+
+			expect(mockStripeConnectService.createSubscriptionOnConnectedAccount).toHaveBeenCalledTimes(1)
+			expect(leaseUpdateData).toEqual(expect.objectContaining({
+				stripe_subscription_status: 'failed',
+				subscription_failure_reason: 'Stripe failure',
+				subscription_retry_count: 1
+			}))
+			expect(leaseUpdateData).not.toHaveProperty('stripe_subscription_id')
+			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+				'lease.subscription_failed',
+				expect.objectContaining({
+					lease_id: 'lease-123',
+					error: 'Stripe failure'
+				})
+			)
 		})
 
 		it('should update lease with stripe_subscription_id and status', async () => {
@@ -898,7 +1167,8 @@ describe('LeaseSignatureService', () => {
 							tenant_signed_at: null,
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
 							property_owner_id: ownerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					return createMockChain()
@@ -930,7 +1200,8 @@ describe('LeaseSignatureService', () => {
 							tenant_signed_at: null,
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
 							property_owner_id: ownerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					if (table === 'tenants') {
@@ -956,7 +1227,8 @@ describe('LeaseSignatureService', () => {
 							tenant_signed_at: null,
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
 							property_owner_id: ownerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: 'different-owner' }
 						})
 					}
 					if (table === 'tenants') {
@@ -981,7 +1253,8 @@ describe('LeaseSignatureService', () => {
 							tenant_signed_at: '2024-01-11T10:00:00Z',
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
 							property_owner_id: ownerId,
-							primary_tenant_id: 'tenant-456'
+							primary_tenant_id: 'tenant-456',
+							property_owner: { user_id: ownerId }
 						})
 					}
 					return createMockChain()

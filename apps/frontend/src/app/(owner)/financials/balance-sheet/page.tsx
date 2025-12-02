@@ -75,19 +75,19 @@ const BalanceSheetPage = () => {
 
 	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">
-			<h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+			<h3 className="text-lg font-semibold text-muted/900">{title}</h3>
 			<div className="space-y-2">
-				{items.map((item, index) => {
+				{items.map((item) => {
 					return (
 						<div
-							key={index}
-							className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+							key={item.name}
+							className="flex-between p-3 bg-muted/50 rounded-lg"
 						>
 							<div className="flex-1">
-								<div className="font-medium text-gray-900">{item.name}</div>
+								<div className="font-medium text-muted/900">{item.name}</div>
 							</div>
 							<div className="text-right">
-								<div className="font-semibold text-gray-900">
+								<div className="font-semibold text-muted/900">
 									${Math.abs(item.amount).toLocaleString()}
 								</div>
 							</div>
@@ -101,10 +101,10 @@ const BalanceSheetPage = () => {
 	if (isLoading) {
 		return (
 			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
-						<p className="text-gray-600">
+						<p className="text-muted/600">
 							Financial position at a specific point in time
 						</p>
 					</div>
@@ -136,7 +136,7 @@ const BalanceSheetPage = () => {
 								{[1, 2, 3].map(j => (
 									<div
 										key={j}
-										className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+										className="flex-between p-3 bg-muted/50 rounded-lg"
 									>
 										<Skeleton className="h-4 w-32" />
 										<Skeleton className="h-6 w-24" />
@@ -153,10 +153,10 @@ const BalanceSheetPage = () => {
 	if (error) {
 		return (
 			<div className="p-6 space-y-6">
-				<div className="flex items-center justify-between">
+				<div className="flex-between">
 					<div>
 						<h1 className="text-3xl font-bold">Balance Sheet</h1>
-						<p className="text-gray-600">
+						<p className="text-muted/600">
 							Financial position at a specific point in time
 						</p>
 					</div>
@@ -176,17 +176,17 @@ const BalanceSheetPage = () => {
 		return null
 	}
 
-	const totalAssets = data?.data.assets.totalAssets || 0
-	const totalLiabilities = data?.data.liabilities.totalLiabilities || 0
-	const totalEquity = data?.data.equity.totalEquity || 0
+	const totalAssets = data?.data?.assets.totalAssets || 0
+	const totalLiabilities = data?.data?.liabilities.totalLiabilities || 0
+	const totalEquity = data?.data?.equity.totalEquity || 0
 
 	return (
 		<div className="p-6 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold">Balance Sheet</h1>
-					<p className="text-gray-600">
+					<p className="text-muted/600">
 						Financial position at a specific point in time
 					</p>
 				</div>
@@ -311,7 +311,7 @@ const BalanceSheetPage = () => {
 							transformedData.assets.nonCurrent
 						)}
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+						<div className="flex-between p-3 bg-blue-50 rounded-lg">
 							<div className="font-semibold">Total Assets</div>
 							<div className="font-bold text-lg">
 								${totalAssets.toLocaleString()}
@@ -340,7 +340,7 @@ const BalanceSheetPage = () => {
 								transformedData.liabilities.nonCurrent
 							)}
 							<Separator />
-							<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+							<div className="flex-between p-3 bg-red-50 rounded-lg">
 								<div className="font-semibold">Total Liabilities</div>
 								<div className="font-bold text-lg">
 									${totalLiabilities.toLocaleString()}
@@ -362,7 +362,7 @@ const BalanceSheetPage = () => {
 								transformedData.equity
 							)}
 							<Separator />
-							<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+							<div className="flex-between p-3 bg-green-50 rounded-lg">
 								<div className="font-semibold">Total Equity</div>
 								<div className="font-bold text-lg">
 									${totalEquity.toLocaleString()}
@@ -380,36 +380,36 @@ const BalanceSheetPage = () => {
 				</CardHeader>
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-4)">
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
+						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-blue-600">
 								${totalAssets.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Assets</div>
+							<div className="text-sm text-muted/600">Total Assets</div>
 						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
+						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-red-600">
 								${totalLiabilities.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Liabilities</div>
+							<div className="text-sm text-muted/600">Total Liabilities</div>
 						</div>
-						<div className="text-center p-4 bg-gray-50 rounded-lg">
+						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-success">
 								${totalEquity.toLocaleString()}
 							</div>
-							<div className="text-sm text-gray-600">Total Equity</div>
+							<div className="text-sm text-muted/600">Total Equity</div>
 						</div>
 					</div>
 					<div className="mt-4 p-4 bg-blue-50 rounded-lg">
-						<div className="text-sm text-gray-600">
+						<div className="text-sm text-muted/600">
 							<strong>Balance Sheet Equation:</strong> Assets = Liabilities +
 							Equity
 						</div>
-						<div className="text-sm text-gray-600 mt-1">
+						<div className="text-sm text-muted/600 mt-1">
 							${totalAssets.toLocaleString()} = $
 							{totalLiabilities.toLocaleString()} + $
 							{totalEquity.toLocaleString()}
 						</div>
-						{data?.data.balanceCheck === false && (
+						{data?.data?.balanceCheck === false && (
 							<div className="mt-2 text-sm text-red-600">
 								⚠️ Warning: Balance sheet equation does not balance
 							</div>
