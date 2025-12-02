@@ -133,7 +133,7 @@ export function useCreateLease() {
 				end_date: newLease.end_date,
 				rent_amount: newLease.rent_amount,
 				security_deposit: newLease.security_deposit ?? null,
-				lease_status: 'ACTIVE',
+				lease_status: 'active',
 				auto_pay_enabled: null,
 				grace_period_days: null,
 				late_fee_amount: null,

@@ -241,7 +241,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 
       // Populate different property-related caches
       await queryHelper.getQueryData(['properties', 'ALL'])
-      await queryHelper.getQueryData(['properties', 'ACTIVE'])
+      await queryHelper.getQueryData(['properties', 'active'])
 
       // Mock selective invalidation
       await page.evaluate(() => {

@@ -93,7 +93,7 @@ export const DEFAULT_PROPERTY: Property = {
 	postal_code: '94102',
 	country: 'USA',
 	property_type: 'APARTMENT',
-	status: 'ACTIVE',
+	status: 'active',
 	date_sold: null,
 	sale_price: null,
 	created_at: '2024-01-01T00:00:00Z',
@@ -106,7 +106,7 @@ export const DEFAULT_PROPERTY: Property = {
  * @example
  * const expiredLease: Lease = {
  *   ...DEFAULT_LEASE,
- *   status: 'EXPIRED',
+ *   status: 'expired',
  *   end_date: '2023-12-31'
  * }
  */
@@ -120,7 +120,7 @@ export const DEFAULT_LEASE: Lease = {
 	rent_amount: 1500,
 	rent_currency: 'USD',
 	security_deposit: 1500,
-	lease_status: 'ACTIVE',
+	lease_status: 'active',
 	payment_day: 1,
 	stripe_subscription_id: null,
 	stripe_subscription_status: 'none',

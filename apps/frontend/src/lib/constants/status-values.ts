@@ -4,16 +4,16 @@
  */
 
 export const PROPERTY_STATUS = {
-	ACTIVE: 'ACTIVE',
+	ACTIVE: 'active',
 	INACTIVE: 'INACTIVE'
 } as const
 
 export const LEASE_STATUS = {
-	ACTIVE: 'ACTIVE',
-	DRAFT: 'DRAFT',
+	ACTIVE: 'active',
+	DRAFT: 'draft',
 	PENDING_SIGNATURE: 'pending_signature',
-	EXPIRED: 'EXPIRED',
-	TERMINATED: 'TERMINATED'
+	EXPIRED: 'expired',
+	TERMINATED: 'terminated'
 } as const
 
 export const UNIT_STATUS = {
@@ -31,7 +31,7 @@ export const MAINTENANCE_STATUS = {
 } as const
 
 export const TENANT_STATUS = {
-	ACTIVE: 'ACTIVE',
+	ACTIVE: 'active',
 	INACTIVE: 'INACTIVE',
 	PENDING: 'PENDING'
 } as const

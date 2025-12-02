@@ -247,7 +247,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									</div>
 									<Badge
 										variant={
-											lease.status === 'ACTIVE' ? 'default' : 'secondary'
+											lease.status === 'active' ? 'default' : 'secondary'
 										}
 									>
 										{lease.status}

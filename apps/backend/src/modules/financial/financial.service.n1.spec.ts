@@ -68,9 +68,9 @@ describe('FinancialService - N+1 Query Prevention', () => {
 			]
 
 			const mockLeases = [
-				{ unit_id: 'unit-1', rent_amount: 150000, lease_status: 'ACTIVE' },
-				{ unit_id: 'unit-2', rent_amount: 120000, lease_status: 'ACTIVE' },
-				{ unit_id: 'unit-3', rent_amount: 180000, lease_status: 'ACTIVE' }
+				{ unit_id: 'unit-1', rent_amount: 150000, lease_status: 'active' },
+				{ unit_id: 'unit-2', rent_amount: 120000, lease_status: 'active' },
+				{ unit_id: 'unit-3', rent_amount: 180000, lease_status: 'active' }
 			]
 
 			// Mock client responses

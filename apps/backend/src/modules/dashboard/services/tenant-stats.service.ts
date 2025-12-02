@@ -52,7 +52,7 @@ export class TenantStatsService {
 		for (const tenant of tenants) {
 			// Check if tenant has active lease
 			const hasActiveLease = (tenant.leases as { lease_status?: string }[])?.some(l =>
-				['ACTIVE', 'PENDING'].includes(l.lease_status?.toUpperCase() ?? '')
+				['active', 'PENDING'].includes(l.lease_status?.toUpperCase() ?? '')
 			)
 
 			if (hasActiveLease) {

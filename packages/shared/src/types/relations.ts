@@ -15,7 +15,7 @@ type Tenant = Database['public']['Tables']['tenants']['Row']
 type Lease = Database['public']['Tables']['leases']['Row']
 type MaintenanceRequest =
 	Database['public']['Tables']['maintenance_requests']['Row']
-type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
+type InvitationStatus = 'PENDING' | 'accepted' | 'expired' | 'CANCELLED'
 
 // Document type from database
 type Document = Database['public']['Tables']['documents']['Row']
@@ -299,7 +299,7 @@ export interface PropertySearchResult extends PropertyWithUnits {
  */
 export interface PropertyFilters {
 	property_type?: PropertyType
-	status?: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+	status?: 'active' | 'INACTIVE' | 'MAINTENANCE'
 	minUnits?: number
 	maxUnits?: number
 	minRent?: number

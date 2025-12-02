@@ -42,9 +42,10 @@ const formatPropertyType = (type: PropertyType): string => {
 }
 
 // Format property status for display
+// Note: PROPERTY_STATUS values are mixed case - 'active' is lowercase, others uppercase
 const formatPropertyStatus = (status: PropertyStatus): string => {
 	const statusMap: Record<PropertyStatus, string> = {
-		ACTIVE: 'Active',
+		active: 'Active',
 		INACTIVE: 'Inactive',
 		UNDER_CONTRACT: 'Under Contract',
 		SOLD: 'Sold'
@@ -180,11 +181,11 @@ export function SectionTable() {
 									<TableCell className="text-center">
 										<Badge
 											variant={
-												property.status === 'ACTIVE' ? 'default' : 'secondary'
+												property.status === 'active' ? 'default' : 'secondary'
 											}
 											className={cn(
 												'rounded-full border border-transparent px-3 py-1 font-medium',
-												property.status === 'ACTIVE'
+												property.status === 'active'
 													? 'bg-system-green-10 text-system-green hover:bg-system-green-15'
 													: property.status === 'UNDER_CONTRACT'
 														? 'bg-system-blue-10 text-system-blue hover:bg-system-blue-15'

@@ -77,7 +77,7 @@ export class TenantsController {
 
 		if (
 			invitationStatus &&
-			!['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED', 'REVOKED'].includes(
+			!['PENDING', 'SENT', 'accepted', 'expired', 'REVOKED'].includes(
 				invitationStatus
 			)
 		) {

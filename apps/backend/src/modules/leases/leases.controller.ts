@@ -77,7 +77,7 @@ export class LeasesController {
 		// Validate status enum
 		if (
 			status &&
-			!['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED'].includes(status)
+			!['draft', 'active', 'expired', 'terminated'].includes(status)
 		) {
 			throw new BadRequestException('Invalid lease status')
 		}
