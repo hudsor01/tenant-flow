@@ -343,7 +343,7 @@ export class SupabaseService implements OnModuleDestroy {
 				}
 
 				if (error) {
-					const errorMessage = error instanceof Error ? error.message : String(error)
+					const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
 					this.logger?.warn({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
 				}
 			} catch (rpcErr) {
@@ -381,7 +381,7 @@ export class SupabaseService implements OnModuleDestroy {
 							(error as SupabaseError)?.hint ||
 							(error as SupabaseError)?.code ||
 							JSON.stringify(error)
-				this.logger?.error({ error, table }, 'Supabase table ping failed')
+				this.logger?.error({ error: JSON.stringify(error), table }, 'Supabase table ping failed')
 				return { status: 'unhealthy', message }
 			}
 
