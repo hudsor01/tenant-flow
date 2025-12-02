@@ -387,10 +387,10 @@ export class MaintenanceService {
 					'open'
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
-			if (updateRequest.completedDate)
-				updated_data.completed_at = new Date(
-					updateRequest.completedDate
-				).toISOString()
+			if (updateRequest.completedDate !== undefined)
+				updated_data.completed_at = updateRequest.completedDate
+					? new Date(updateRequest.completedDate).toISOString()
+					: null
 
 			// Optimistic locking: Add version check
 			const query = client
