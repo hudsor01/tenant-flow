@@ -15,7 +15,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getLeaseAnalyticsPageData } from '#lib/api/analytics-page'
-import { formatCurrency, formatNumber } from '#lib/formatters'
+import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
 
 export default async function LeaseAnalyticsPage() {

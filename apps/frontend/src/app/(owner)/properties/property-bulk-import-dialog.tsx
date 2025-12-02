@@ -419,8 +419,8 @@ function BulkImportResultPanel({ result }: { result: BulkImportResult | null }) 
 								View errors ({result.errors.length})
 							</summary>
 							<div className="mt-2 max-h-32 overflow-y-auto space-y-1">
-								{result.errors.map((err, idx) => (
-									<p key={idx} className="text-xs text-destructive/80">
+								{result.errors.map((err) => (
+									<p key={`${err.row}-${err.error}`} className="text-xs text-destructive/80">
 										Row {err.row}: {err.error}
 									</p>
 								))}

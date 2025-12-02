@@ -15,7 +15,7 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useQuery } from '@tanstack/react-query'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
-import { formatDate } from '#lib/formatters'
+import { formatDate } from '#lib/formatters/date'
 import { Calendar, Plus, Wrench } from 'lucide-react'
 import Link from 'next/link'
 

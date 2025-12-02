@@ -8,7 +8,6 @@ import {
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import { serverFetch } from '#lib/api/server'
 import { getLeasesPageData } from '#lib/api/analytics-page'
-import { getClaims } from '#lib/dal'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
@@ -30,10 +29,7 @@ export const metadata: Metadata = {
 }
 
 export default async function TenantsPage() {
-	// Server-side auth - NO client flash, instant 307 redirect
-	const { claims } = await getClaims()
-
-	const logger = createLogger({ component: 'TenantsPage', user_id: claims?.sub ?? 'unknown' })
+	const logger = createLogger({ component: 'TenantsPage' })
 
 	// Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []

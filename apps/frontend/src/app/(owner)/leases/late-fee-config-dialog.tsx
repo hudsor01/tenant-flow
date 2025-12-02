@@ -21,7 +21,7 @@ interface LateFeeConfigDialogProps {
 	onSuccess?: () => void
 }
 
-import { formatCurrency } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
 
 
 export function LateFeeConfigDialog({

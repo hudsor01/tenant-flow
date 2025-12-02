@@ -15,7 +15,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getPropertyPerformancePageData } from '#lib/api/analytics-page'
-import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters'
+import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/currency'
 import type {
 	PropertyPerformanceSummary,
 	PropertyPerformanceEntry,

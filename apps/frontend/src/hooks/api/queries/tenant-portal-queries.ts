@@ -163,6 +163,16 @@ export interface PayRentResponse {
 
 /**
  * Tenant portal query factory
+ *
+ * Cache Strategy:
+ * - STATS (1 min staleTime): Amount due - needs frequent updates
+ * - LIST (10 min staleTime): Payments, maintenance - moderate freshness
+ * - DETAIL (5 min staleTime): Dashboard, autopay, lease, documents, settings
+ *
+ * Refetch Strategy:
+ * - refetchOnWindowFocus: false - staleTime handles freshness
+ * - refetchInterval: Only for critical real-time data (amount due)
+ * - refetchIntervalInBackground: false - save resources when tab inactive
  */
 export const tenantPortalQueries = {
 	/**
@@ -178,17 +188,21 @@ export const tenantPortalQueries = {
 			queryKey: [...tenantPortalQueries.all(), 'dashboard'],
 			queryFn: () => clientFetch('/api/v1/tenant-portal/dashboard'),
 			...QUERY_CACHE_TIMES.DETAIL,
+			refetchOnWindowFocus: false,
 		}),
 
 	/**
 	 * Amount due for current period
+	 * Critical data - uses interval for real-time updates
 	 */
 	amountDue: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'amount-due'],
 			queryFn: () => clientFetch<AmountDueResponse>('/api/v1/tenant-portal/amount-due'),
 			...QUERY_CACHE_TIMES.STATS,
-			refetchInterval: 60000, // Refetch every minute to stay current
+			refetchInterval: 60000, // 1 min - critical payment data
+			refetchIntervalInBackground: false,
+			refetchOnWindowFocus: false,
 		}),
 
 	/**
@@ -202,9 +216,8 @@ export const tenantPortalQueries = {
 				methodsEndpoint: string
 			}>('/api/v1/tenant-portal/payments'),
 			...QUERY_CACHE_TIMES.LIST,
-			refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
+			// No interval - list data refreshes on navigation
+			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
@@ -216,9 +229,7 @@ export const tenantPortalQueries = {
 			queryKey: [...tenantPortalQueries.all(), 'autopay'],
 			queryFn: () => clientFetch<TenantAutopayStatus>('/api/v1/tenant-portal/autopay'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchInterval: 5 * 60 * 1000,
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
+			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
@@ -233,9 +244,7 @@ export const tenantPortalQueries = {
 				summary: TenantMaintenanceStats
 			}>('/api/v1/tenant-portal/maintenance'),
 			...QUERY_CACHE_TIMES.LIST,
-			refetchInterval: 5 * 60 * 1000,
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
+			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
@@ -247,9 +256,7 @@ export const tenantPortalQueries = {
 			queryKey: [...tenantPortalQueries.all(), 'lease'],
 			queryFn: () => clientFetch<TenantLease | null>('/api/v1/tenant-portal/leases'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchInterval: 10 * 60 * 1000, // Auto-refresh every 10 minutes
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
+			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
@@ -261,9 +268,7 @@ export const tenantPortalQueries = {
 			queryKey: [...tenantPortalQueries.all(), 'documents'],
 			queryFn: () => clientFetch<{ documents: TenantDocument[] }>('/api/v1/tenant-portal/documents'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchInterval: 10 * 60 * 1000,
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
+			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
@@ -275,9 +280,7 @@ export const tenantPortalQueries = {
 			queryKey: [...tenantPortalQueries.all(), 'settings'],
 			queryFn: () => clientFetch<TenantSettings>('/api/v1/tenant-portal/settings'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchInterval: 10 * 60 * 1000,
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
+			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 }

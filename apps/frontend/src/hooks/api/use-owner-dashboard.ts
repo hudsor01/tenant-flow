@@ -63,18 +63,7 @@ export function useOwnerDashboardActivity() {
  * Expected performance gain: 40-50% faster initial page load
  */
 export function useOwnerDashboardPageData() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.analytics.pageData(),
-		queryFn: () => clientFetch<{
-			stats: DashboardStats
-			activity: ActivityItem[]
-		}>('/api/v1/owner/analytics/page-data'),
-		...QUERY_CACHE_TIMES.SECURITY,
-		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
-		refetchIntervalInBackground: false, // Stop when tab inactive
-		refetchOnWindowFocus: true,
-		retry: 2
-	})
+	return useQuery(ownerDashboardQueries.analytics.pageData())
 }
 
 // ============================================================================
@@ -340,11 +329,12 @@ export function useOwnerDashboardData() {
 				propertyPerformance: propertyPerformance ?? []
 			}
 		},
-		...QUERY_CACHE_TIMES.SECURITY,
+		// Uses STATS cache - dashboard needs frequent updates
+		...QUERY_CACHE_TIMES.STATS,
 		refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		refetchOnMount: true,
+		// Interval handles freshness - no need for focus/mount refetch
+		refetchOnWindowFocus: false,
 		retry: 2,
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
 		// Enable structural sharing for better performance
@@ -400,10 +390,9 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 				profit: item.netIncome ?? (item.revenue ?? 0) - (item.expenses ?? 0)
 			}))
 		},
+		// Financial/analytics data changes infrequently - no interval needed
 		...QUERY_CACHE_TIMES.ANALYTICS,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
+		refetchOnWindowFocus: false,
 		retry: 2,
 		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
 		structuralSharing: true
