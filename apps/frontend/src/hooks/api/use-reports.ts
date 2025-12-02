@@ -4,9 +4,9 @@
  */
 
 import { API_BASE_URL } from '#lib/api-config'
+import { createClient } from '#utils/supabase/client'
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { UseMutationResult } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -14,117 +14,21 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { isTest } from '#config/env'
+import { reportsQueries, reportsKeys } from './queries/reports-queries'
+import type { ListReportsResponse, Report as ReportType } from '@repo/shared/types/reports'
+import type { UseReportsResult } from './types/reports'
 
-/**
- * Report types
- */
-export interface Report {
-	id: string
-	user_id: string
-	reportType: string
-	reportName: string
-	format: string
-	status: string
-	fileUrl: string | null
-	filePath: string | null
-	fileSize: number | null
-	start_date: string
-	end_date: string
-	metadata: Record<string, unknown>
-	errorMessage: string | null
-	created_at: string
-	updated_at: string
-}
-
-export interface ListReportsResponse {
-	success: boolean
-	data: Report[]
-	pagination: {
-		total: number
-		limit: number
-		offset: number
-		hasMore: boolean
-	}
-}
-
-export interface RevenueData {
-	month: string
-	revenue: number
-	expenses: number
-	profit: number
-	propertyCount: number
-	unitCount: number
-	occupiedUnits: number
-}
-
-export interface PaymentAnalytics {
-	totalPayments: number
-	successfulPayments: number
-	failedPayments: number
-	totalRevenue: number
-	averagePayment: number
-	paymentsByMethod: {
-		card: number
-		ach: number
-	}
-	paymentsByStatus: {
-		completed: number
-		pending: number
-		failed: number
-	}
-}
-
-export interface OccupancyMetrics {
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	occupancyRate: number
-	byProperty: Array<{
-		property_id: string
-		propertyName: string
-		totalUnits: number
-		occupiedUnits: number
-		occupancyRate: number
-	}>
-}
+// Re-export types for backward compatibility
+export type {
+	Report,
+	ListReportsResponse,
+	RevenueData,
+	PaymentAnalytics,
+	OccupancyMetrics
+} from './types/reports'
 
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
-
-/**
- * Query keys for reports
- * Hierarchical pattern for selective cache invalidation
- */
-export const reportsKeys = {
-	all: ['reports'] as const,
-	lists: () => [...reportsKeys.all, 'list'] as const,
-	list: (offset: number, limit: number) =>
-		[...reportsKeys.lists(), offset, limit] as const,
-	revenue: (months: number) =>
-		[...reportsKeys.all, 'revenue', 'monthly', months] as const,
-	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'analytics', 'payments', start_date, end_date] as const,
-	occupancyMetrics: () =>
-		[...reportsKeys.all, 'analytics', 'occupancy'] as const
-}
-
-type UseReportsResult = {
-	reports: Report[]
-	total: number
-	isLoading: boolean
-	isFetching: boolean
-	deleteMutation: UseMutationResult<
-		unknown,
-		unknown,
-		string,
-		{ previous?: unknown }
-	>
-	downloadMutation: UseMutationResult<unknown, unknown, string, unknown>
-	downloadingIds: Set<string>
-	deletingIds: Set<string>
-	downloadReport: (reportId: string) => void
-	deleteReport: (reportId: string) => void
-}
 
 export function useReports({
 	offset,
@@ -144,15 +48,7 @@ export function useReports({
 		data: listResponse,
 		isLoading,
 		isFetching
-	} = useQuery<ListReportsResponse>({
-		queryKey,
-		queryFn: async (): Promise<ListReportsResponse> => {
-			const queryParams = new URLSearchParams()
-			queryParams.append('limit', limit.toString())
-			queryParams.append('offset', offset.toString())
-			return clientFetch<ListReportsResponse>(`/api/v1/reports?${queryParams.toString()}`)
-		}
-	})
+	} = useQuery(reportsQueries.list(offset, limit))
 
 	const reports = listResponse?.data ?? []
 	const total = listResponse?.pagination?.total ?? 0
@@ -174,7 +70,7 @@ export function useReports({
 			if (previous) {
 				const cloned: ListReportsResponse = {
 					...previous,
-					data: previous.data.filter((r: Report) => r.id !== reportId)
+					data: previous.data.filter((r: ReportType) => r.id !== reportId)
 				}
 				queryClient.setQueryData(queryKey, cloned)
 			}
@@ -208,9 +104,7 @@ export function useReports({
 		mutationFn: async (reportId: string): Promise<void> => {
 			// For blob downloads, we can't use clientFetch (it calls .json())
 			// But we still need to add Authorization header manually
-			const supabase = (
-				await import('@repo/shared/lib/supabase-client')
-			).getSupabaseClientInstance()
+			const supabase = createClient()
 
 			// SECURITY FIX: Validate user with getUser() before extracting token
 			const {
@@ -307,7 +201,7 @@ export function useReports({
 		if (previous) {
 			const cloned: ListReportsResponse = {
 				...previous,
-				data: previous.data.filter((r: Report) => r.id !== reportId)
+				data: previous.data.filter((r: ReportType) => r.id !== reportId)
 			}
 			queryClient.setQueryData(queryKey, cloned)
 		}
@@ -372,36 +266,21 @@ export function useReports({
  * Hook for fetching monthly revenue data
  */
 export function useMonthlyRevenue(months: number = 12) {
-	return useQuery<RevenueData[]>({
-		queryKey: reportsKeys.revenue(months),
-		queryFn: () => clientFetch<RevenueData[]>(`/api/v1/reports/analytics/revenue/monthly?months=${months}`)
-	})
+	return useQuery(reportsQueries.monthlyRevenue(months))
 }
 
 /**
  * Hook for fetching payment analytics
  */
 export function usePaymentAnalytics(start_date?: string, end_date?: string) {
-	return useQuery<PaymentAnalytics>({
-		queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
-		queryFn: (): Promise<PaymentAnalytics> => {
-			const params = new URLSearchParams()
-			if (start_date) params.append('start_date', start_date)
-			if (end_date) params.append('end_date', end_date)
-			const queryString = params.toString() ? `?${params.toString()}` : ''
-			return clientFetch<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
-		}
-	})
+	return useQuery(reportsQueries.paymentAnalytics(start_date, end_date))
 }
 
 /**
  * Hook for fetching occupancy metrics
  */
 export function useOccupancyMetrics() {
-	return useQuery<OccupancyMetrics>({
-		queryKey: reportsKeys.occupancyMetrics(),
-		queryFn: () => clientFetch<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
-	})
+	return useQuery(reportsQueries.occupancyMetrics())
 }
 
 /**
@@ -411,16 +290,7 @@ export function usePrefetchReports() {
 	const queryClient = useQueryClient()
 
 	return (offset: number, limit: number) => {
-		const queryKey = reportsKeys.list(offset, limit)
-		queryClient.prefetchQuery({
-			queryKey,
-			queryFn: async (): Promise<ListReportsResponse> => {
-			const queryParams = new URLSearchParams()
-			queryParams.append('limit', limit.toString())
-			queryParams.append('offset', offset.toString())
-			return clientFetch<ListReportsResponse>(`/api/v1/reports?${queryParams.toString()}`)
-		}
-		})
+		queryClient.prefetchQuery(reportsQueries.list(offset, limit))
 	}
 }
 
@@ -431,10 +301,7 @@ export function usePrefetchMonthlyRevenue() {
 	const queryClient = useQueryClient()
 
 	return (months: number = 12) => {
-		queryClient.prefetchQuery({
-			queryKey: reportsKeys.revenue(months),
-			queryFn: () => clientFetch<RevenueData[]>(`/api/v1/reports/analytics/revenue/monthly?months=${months}`)
-		})
+		queryClient.prefetchQuery(reportsQueries.monthlyRevenue(months))
 	}
 }
 
@@ -445,16 +312,7 @@ export function usePrefetchPaymentAnalytics() {
 	const queryClient = useQueryClient()
 
 	return (start_date?: string, end_date?: string) => {
-		queryClient.prefetchQuery({
-			queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
-			queryFn: (): Promise<PaymentAnalytics> => {
-			const params = new URLSearchParams()
-			if (start_date) params.append('start_date', start_date)
-			if (end_date) params.append('end_date', end_date)
-			const queryString = params.toString() ? `?${params.toString()}` : ''
-			return clientFetch<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
-		}
-		})
+		queryClient.prefetchQuery(reportsQueries.paymentAnalytics(start_date, end_date))
 	}
 }
 
@@ -465,9 +323,6 @@ export function usePrefetchOccupancyMetrics() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: reportsKeys.occupancyMetrics(),
-			queryFn: () => clientFetch<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
-		})
+		queryClient.prefetchQuery(reportsQueries.occupancyMetrics())
 	}
 }

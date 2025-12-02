@@ -18,7 +18,8 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useQuery } from '@tanstack/react-query'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
-import { formatCurrency } from '@repo/shared/utils/formatting'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
@@ -27,14 +28,6 @@ import { LEASE_STATUS } from '#lib/constants/status-values'
 
 export default function TenantLeasePage() {
 	const { data: lease, isLoading } = useQuery(leaseQueries.tenantPortalActive())
-
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			month: 'long',
-			day: 'numeric',
-			year: 'numeric'
-		})
-	}
 
 	const formatPropertyAddress = (property?: {
 		address?: string | null
@@ -52,7 +45,7 @@ export default function TenantLeasePage() {
 
 	return (
 		<div className="space-y-8">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">My Lease</h1>
 					<p className="text-muted-foreground">
@@ -121,22 +114,22 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<Calendar className="size-5 text-accent-main" />
 							<div>
-								<p className="text-sm text-muted-foreground">Start Date</p>
+								<p className="text-muted">Start Date</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{formatDate(lease.start_date)}</p>
+									<p className="font-semibold">{formatDate(lease.start_date, { style: 'long' })}</p>
 								)}
 							</div>
 						</div>
 						<div className="flex items-center gap-3">
 							<Calendar className="size-5 text-accent-main" />
 							<div>
-								<p className="text-sm text-muted-foreground">End Date</p>
+								<p className="text-muted">End Date</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{lease.end_date ? formatDate(lease.end_date) : 'Month-to-Month'}</p>
+									<p className="font-semibold">{lease.end_date ? formatDate(lease.end_date, { style: 'long' }) : 'Month-to-Month'}</p>
 								)}
 							</div>
 						</div>
@@ -151,7 +144,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<DollarSign className="size-5 text-accent-main" />
 							<div>
-								<p className="text-sm text-muted-foreground">Monthly Rent</p>
+								<p className="text-muted">Monthly Rent</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-7 w-24" />
 								) : (
@@ -164,7 +157,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<DollarSign className="size-5 text-accent-main" />
 							<div>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Security Deposit
 								</p>
 								{isLoading || !lease ? (
@@ -185,12 +178,12 @@ export default function TenantLeasePage() {
 				description="Your signed lease agreement and addendums"
 			>
 				<div className="space-y-3">
-					<div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+					<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 						<div className="flex items-center gap-3">
 							<FileText className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Lease Agreement</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Signed on loading...
 								</p>
 							</div>

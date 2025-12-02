@@ -49,7 +49,7 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 			<CardContent className="space-y-3">
 				{/* Property & Unit */}
 				{request.property && (
-					<div className="flex items-center gap-2 text-sm text-muted-foreground">
+					<div className="flex items-center gap-2 text-muted">
 						<MapPin className="size-4 shrink-0" />
 						<div className="flex flex-col min-w-0">
 							<span className="truncate">{request.property.name}</span>
@@ -63,7 +63,7 @@ export function MaintenanceCard({ request, isDragging }: MaintenanceCardProps) {
 				)}
 
 				{/* Created Date */}
-				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+				<div className="flex items-center gap-2 text-muted">
 					<Calendar className="size-4 shrink-0" />
 					<span>
 						{new Date(request.created_at ?? '').toLocaleDateString('en-US', {

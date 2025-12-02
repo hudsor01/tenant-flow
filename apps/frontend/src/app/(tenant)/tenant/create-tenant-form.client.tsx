@@ -310,7 +310,7 @@ export function CreateTenantForm({
 										placeholder="john.smith@example.com"
 									/>
 								</InputGroup>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Tenant will receive an invitation email to access their portal
 								</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -358,7 +358,7 @@ export function CreateTenantForm({
 									placeholder="Emergency contact name, relationship, and phone number..."
 									rows={4}
 								/>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Include name, relationship, and contact information
 								</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -457,7 +457,7 @@ export function CreateTenantForm({
 										))}
 									</SelectContent>
 								</Select>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									{!selectedproperty_id
 										? 'Select a property first'
 										: availableUnits.length === 0

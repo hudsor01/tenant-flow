@@ -13,7 +13,7 @@ export class UsersService {
 		email: string
 	): Promise<Database['public']['Tables']['users']['Row'] | null> {
 		const { data, error } = await this.supabase
-			.getAdminClient()
+			.getAdminClient() // This method is used for authentication lookups, so admin client is appropriate
 			.from('users')
 			.select('*')
 			.eq('email', email)
@@ -46,11 +46,32 @@ export class UsersService {
 	}
 
 	async updateUser(
+		token: string,
 		user_id: string,
 		userData: UserUpdate
 	): Promise<Database['public']['Tables']['users']['Row']> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
+		// Verify user is authenticated and has permission to update this user
+		const client = this.supabase.getUserClient(token)
+
+		// First verify the user exists and they have access to it
+		const { data: existingUser, error: fetchError } = await client
+			.from('users')
+			.select('id')
+			.eq('id', user_id)
+			.single()
+
+		if (fetchError) {
+			throw new InternalServerErrorException(
+				`Failed to verify user access: ${fetchError.message}`
+			)
+		}
+
+		if (!existingUser) {
+			throw new InternalServerErrorException('User not found or access denied')
+		}
+
+		// Update the user with RLS enforcement
+		const { data, error } = await client
 			.from('users')
 			.update(userData)
 			.eq('id', user_id)
@@ -67,10 +88,13 @@ export class UsersService {
 	}
 
 	async getUserById(
+		token: string,
 		user_id: string
 	): Promise<Database['public']['Tables']['users']['Row'] | null> {
-		const { data, error } = await this.supabase
-			.getAdminClient()
+		const client = this.supabase.getUserClient(token)
+
+		// Use RLS to enforce that user can only access their own data
+		const { data, error } = await client
 			.from('users')
 			.select('*')
 			.eq('id', user_id)

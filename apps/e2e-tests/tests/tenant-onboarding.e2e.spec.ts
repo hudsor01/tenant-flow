@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
  * TENANT ONBOARDING E2E TESTS
@@ -21,6 +22,7 @@ const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL!
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD!
 const TENANT_EMAIL = process.env.E2E_TENANT_A_EMAIL || ''
 const TENANT_PASSWORD = process.env.E2E_TENANT_A_PASSWORD || ''
+const logger = createLogger({ component: 'TenantOnboardingE2E' })
 
 /**
  * Helper function to login as owner
@@ -177,7 +179,7 @@ test.describe('Tenant Portal Access', () => {
 
 		// Badge may not always be visible depending on tenant state
 		// This test just verifies the dashboard loads without errors
-		console.log(`Payment status badge visible: ${badgeVisible}`)
+		logger.info(`Payment status badge visible: ${badgeVisible}`)
 	})
 })
 

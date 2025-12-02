@@ -14,6 +14,7 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../../database/supabase.service'
 import { EmailService } from '../../email/email.service'
 import { AppConfigService } from '../../../config/app-config.service'
+import { EventIdempotencyService } from '../../../shared/services/event-idempotency.service'
 
 /** Event payload for subscription failure */
 interface SubscriptionFailedEvent {
@@ -37,7 +38,8 @@ export class SubscriptionAlertListener {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly emailService: EmailService,
-		private readonly config: AppConfigService
+		private readonly config: AppConfigService,
+		private readonly idempotency: EventIdempotencyService
 	) {}
 
 	/**
@@ -46,21 +48,23 @@ export class SubscriptionAlertListener {
 	 */
 	@OnEvent('lease.subscription_failed')
 	async handleSubscriptionFailed(event: SubscriptionFailedEvent): Promise<void> {
-		try {
-			this.logger.warn('Subscription creation failed, will retry', {
-				leaseId: event.lease_id,
-				tenantId: event.tenant_id,
-				error: event.error
-			})
+		await this.idempotency.withIdempotency('lease.subscription_failed', event, async () => {
+			try {
+				this.logger.warn('Subscription creation failed, will retry', {
+					leaseId: event.lease_id,
+					tenantId: event.tenant_id,
+					error: event.error
+				})
 
-			// For now, just log. Could add Slack/PagerDuty integration here.
-			// The retry service will attempt to recover.
-		} catch (error) {
-			this.logger.error('Failed to handle subscription failed event', {
-				error: error instanceof Error ? error.message : String(error),
-				event
-			})
-		}
+				// For now, just log. Could add Slack/PagerDuty integration here.
+				// The retry service will attempt to recover.
+			} catch (error) {
+				this.logger.error('Failed to handle subscription failed event', {
+					error: error instanceof Error ? error.message : String(error),
+					event
+				})
+			}
+		})
 	}
 
 	/**
@@ -69,14 +73,15 @@ export class SubscriptionAlertListener {
 	 */
 	@OnEvent('lease.subscription_max_retries')
 	async handleMaxRetries(event: SubscriptionMaxRetriesEvent): Promise<void> {
-		try {
-			this.logger.error('CRITICAL: Subscription creation max retries reached', {
-				leaseId: event.lease_id,
-				propertyOwnerId: event.property_owner_id,
-				tenantId: event.tenant_id,
-				retryCount: event.retry_count,
-				action_required: 'Manual intervention required'
-			})
+		await this.idempotency.withIdempotency('lease.subscription_max_retries', event, async () => {
+			try {
+				this.logger.error('CRITICAL: Subscription creation max retries reached', {
+					leaseId: event.lease_id,
+					propertyOwnerId: event.property_owner_id,
+					tenantId: event.tenant_id,
+					retryCount: event.retry_count,
+					action_required: 'Manual intervention required'
+				})
 
 			// Get lease details for alert
 			const client = this.supabase.getAdminClient()
@@ -165,11 +170,12 @@ export class SubscriptionAlertListener {
 				})
 			}
 		} catch (error) {
-			this.logger.error('Failed to handle max retries event', {
-				error: error instanceof Error ? error.message : String(error),
-				event
-			})
-		}
+				this.logger.error('Failed to handle max retries event', {
+					error: error instanceof Error ? error.message : String(error),
+					event
+				})
+			}
+		})
 	}
 
 	/**

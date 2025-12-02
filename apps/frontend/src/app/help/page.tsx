@@ -1,5 +1,5 @@
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -78,7 +78,7 @@ export default function HelpPage() {
 									</ItemDescription>
 									<div className="mt-2 space-y-2">
 										{/* Online Now */}
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Average response: 90 seconds
 										</p>
 									</div>
@@ -100,7 +100,7 @@ export default function HelpPage() {
 										Free 30-minute call with automation expert
 									</ItemDescription>
 									<div className="mt-2">
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Get custom ROI projection for your portfolio
 										</p>
 									</div>
@@ -124,7 +124,7 @@ export default function HelpPage() {
 										Step-by-step guides to maximize your results
 									</ItemDescription>
 									<div className="mt-2">
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Learn proven strategies from top property managers
 										</p>
 									</div>
@@ -148,7 +148,7 @@ export default function HelpPage() {
 										Detailed help via email within 4 hours
 									</ItemDescription>
 									<div className="mt-2">
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											support@tenantflow.app
 										</p>
 									</div>
@@ -186,7 +186,7 @@ export default function HelpPage() {
 									<TrendingUp className="size-8 text-primary mr-3" />
 									<div>
 										<h3 className="font-semibold">Sarah M.</h3>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Portfolio Manager
 										</p>
 									</div>
@@ -210,7 +210,7 @@ export default function HelpPage() {
 									<Clock className="size-8 text-accent mr-3" />
 									<div>
 										<h3 className="font-semibold">Michael R.</h3>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Real Estate Investor
 										</p>
 									</div>
@@ -234,7 +234,7 @@ export default function HelpPage() {
 									<Users className="size-8 text-primary mr-3" />
 									<div>
 										<h3 className="font-semibold">David L.</h3>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Property Management Company
 										</p>
 									</div>
@@ -292,9 +292,9 @@ export default function HelpPage() {
 									badge: 'Cost Savings',
 									badgeColor: 'bg-accent/10 text-accent'
 								}
-							].map((resource, index) => (
+							].map((resource) => (
 								<CardLayout
-									key={index}
+									key={resource.title}
 									title={resource.title}
 									description={resource.description}
 									className="bg-card border border-border/50 shadow-md transition-shadow"

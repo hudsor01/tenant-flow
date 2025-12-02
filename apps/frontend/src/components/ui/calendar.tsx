@@ -33,7 +33,7 @@ function Calendar({
 		<DayPicker
 			showOutsideDays={showOutsideDays}
 			className={cn(
-				'bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',
+				'bg-background group/calendar p-3 [--cell-size:--spacing(8)]',
 				String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
 				String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
 				className
@@ -66,7 +66,7 @@ function Calendar({
 					defaultClassNames.button_next
 				),
 				month_caption: cn(
-					'flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)',
+					'flex-center h-(--cell-size) w-full px-(--cell-size)',
 					defaultClassNames.month_caption
 				),
 				dropdowns: cn(
@@ -132,7 +132,6 @@ function Calendar({
 				Root: ({ className, rootRef, ...props }) => {
 					return (
 						<div
-							data-slot="calendar"
 							ref={rootRef}
 							className={cn(className)}
 							{...props}

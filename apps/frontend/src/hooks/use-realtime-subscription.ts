@@ -5,13 +5,13 @@
 
 'use client'
 
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef } from 'react'
 
 type SupabaseChannel = ReturnType<
-	ReturnType<typeof getSupabaseClientInstance>['channel']
+	ReturnType<typeof createClient>['channel']
 >
 
 interface UseRealtimeSubscriptionOptions {
@@ -56,7 +56,7 @@ export function useRealtimeSubscription({
 }: UseRealtimeSubscriptionOptions) {
 	const queryClient = useQueryClient()
 	const channelRef = useRef<SupabaseChannel | null>(null)
-	const supabase = getSupabaseClientInstance()
+	const supabase = createClient()
 	
 	// Store callback references to avoid re-subscriptions when callbacks change
 	// Parent should use useCallback to keep callbacks stable

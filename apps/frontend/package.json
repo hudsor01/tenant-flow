@@ -14,7 +14,8 @@
     "#stores/*": "./src/stores/*",
     "#types/*": "./src/types/*",
     "#providers/*": "./src/providers/*",
-    "#test/*": "./src/test/*"
+    "#test/*": "./src/test/*",
+    "#utils/*": "./src/utils/*"
   },
   "scripts": {
     "dev": "rm -f .next/dev/lock && doppler run -- next dev --webpack",
@@ -99,8 +100,12 @@
     "react-dom": "19.2.0",
     "react-dropzone": "14.3.8",
     "react-intersection-observer": "10.0.0",
+    "react-markdown": "10.1.0",
     "react-resizable-panels": "3.0.6",
     "recharts": "3.4.1",
+    "rehype-raw": "7.0.0",
+    "rehype-sanitize": "6.0.0",
+    "remark-gfm": "4.0.1",
     "sharp": "^0.34.5",
     "sonner": "2.0.7",
     "tailwind-merge": "^3.4.0",
@@ -110,7 +115,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@playwright/test": "1.56.1",
+    "@playwright/test": "1.57.0",
     "@tailwindcss/forms": "0.5.10",
     "@tailwindcss/postcss": "4.1.17",
     "@tailwindcss/typography": "0.5.19",

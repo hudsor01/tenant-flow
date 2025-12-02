@@ -7,11 +7,7 @@ import { API_BASE_URL } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createServerClient, type CookieOptionsWithName } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import {
-	SUPABASE_URL,
-	SUPABASE_PUBLISHABLE_KEY,
-	assertSupabaseConfig
-} from '@repo/shared/config/supabase'
+
 import { isProduction } from '#config/env'
 
 const logger = createLogger({ component: 'ServerAPI' })
@@ -28,13 +24,11 @@ export async function serverFetch<T>(
 ): Promise<T> {
 	const cookieStore = await cookies()
 
-	// Validate config before creating client
-	assertSupabaseConfig()
 
 	// Create Supabase client with cookie handling (pattern from login/actions.ts)
 	const supabase = createServerClient<Database>(
-		SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
-		SUPABASE_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
+		process.env.NEXT_PUBLIC_SUPABASE_URL!, // Non-null: validated by assertSupabaseConfig()
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, // Non-null: validated by assertSupabaseConfig()
 		{
 			cookies: {
 				getAll() {

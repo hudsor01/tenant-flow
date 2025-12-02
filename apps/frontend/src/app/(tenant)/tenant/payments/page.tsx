@@ -22,7 +22,7 @@ export default function TenantPaymentsPage() {
 						<div className="divide-y">
 						{paymentsQuery.data?.payments.length ? (
 							paymentsQuery.data.payments.map((payment: TenantPaymentRecord) => (
-									<div key={payment.id} className="flex items-center justify-between py-3">
+									<div key={payment.id} className="flex-between py-3">
 										<div>
 											<div className="text-sm font-semibold">{formatCents(payment.amount)}</div>
 											<div className="text-xs text-muted-foreground">
@@ -33,7 +33,7 @@ export default function TenantPaymentsPage() {
 									</div>
 								))
 							) : (
-								<div className="text-sm text-muted-foreground">No payments recorded yet.</div>
+								<div className="text-muted">No payments recorded yet.</div>
 							)}
 						</div>
 					)}

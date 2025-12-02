@@ -39,7 +39,8 @@ import { useCreateUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import type { UnitInsert, UnitStatus } from '@repo/shared/types/core'
+import type { CreateUnitInput } from '@repo/shared/types/api-contracts'
+import type { UnitStatus } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { DoorOpen, Filter, Plus } from 'lucide-react'
@@ -116,7 +117,7 @@ export default function UnitsPage() {
 			{/* Units Metrics Cards */}
 			<div className="grid grid-cols-1 gap-(--spacing-4) px-4 lg:px-6 md:grid-cols-4">
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
+					<div className="flex-between mb-2">
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Total Units
 						</h3>
@@ -129,7 +130,7 @@ export default function UnitsPage() {
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
+					<div className="flex-between mb-2">
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Occupied
 						</h3>
@@ -142,7 +143,7 @@ export default function UnitsPage() {
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
+					<div className="flex-between mb-2">
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Vacant
 						</h3>
@@ -153,7 +154,7 @@ export default function UnitsPage() {
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
-					<div className="flex items-center justify-between mb-2">
+					<div className="flex-between mb-2">
 						<h3 className="text-sm font-medium text-muted-foreground">
 							Maintenance
 						</h3>
@@ -431,7 +432,7 @@ function NewUnitButton() {
 				rent_amount: Number(fd.get('rent') || 0),
 				property_id: String(fd.get('property_id') || ''),
 				status: 'VACANT'
-			} as UnitInsert)
+			} satisfies CreateUnitInput)
 			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Unit created successfully')
 			closeButtonRef.current?.click()

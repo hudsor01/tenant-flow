@@ -1,6 +1,7 @@
-import {
+import type {
 	CanActivate,
-	ExecutionContext,
+	ExecutionContext} from '@nestjs/common';
+import {
 	ForbiddenException,
 	Injectable,
 	Logger,

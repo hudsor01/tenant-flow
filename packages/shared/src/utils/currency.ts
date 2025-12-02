@@ -242,9 +242,9 @@ export const getDashboardPercentage = (
 
 	let color: string
 	if (trend === 'positive') {
-		color = 'text-green-600'
+		color = 'text-success'
 	} else if (trend === 'negative') {
-		color = 'text-red-600'
+		color = 'text-destructive'
 	} else {
 		color = 'text-muted-foreground'
 	}
@@ -267,12 +267,12 @@ export const getCollectionRateStatus = (
 	icon: string
 } => {
 	if (rate >= 95) {
-		return { status: 'Excellent', color: 'text-green-600', icon: 'TARGET:' }
+		return { status: 'Excellent', color: 'text-success', icon: 'TARGET:' }
 	} else if (rate >= 85) {
-		return { status: 'Good', color: 'text-blue-600', icon: '[OK]' }
+		return { status: 'Good', color: 'text-info', icon: '[OK]' }
 	} else if (rate >= 70) {
-		return { status: 'Fair', color: 'text-orange-600', icon: 'WARNING:' }
+		return { status: 'Fair', color: 'text-warning', icon: 'WARNING:' }
 	} else {
-		return { status: 'Poor', color: 'text-red-600', icon: '[DOWN]' }
+		return { status: 'Poor', color: 'text-destructive', icon: '[DOWN]' }
 	}
 }

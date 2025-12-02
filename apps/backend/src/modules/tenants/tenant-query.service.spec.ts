@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing'
 import { BadRequestException, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common'
 import { TenantQueryService } from './tenant-query.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 
 describe('TenantQueryService', () => {
 	let service: TenantQueryService
@@ -48,11 +49,20 @@ describe('TenantQueryService', () => {
 			}))
 		}
 
+		const mockCacheService = {
+			get: jest.fn().mockReturnValue(null),
+			set: jest.fn(),
+			invalidate: jest.fn().mockReturnValue(0),
+			invalidateByEntity: jest.fn().mockReturnValue(0),
+			invalidateByUser: jest.fn().mockReturnValue(0)
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				TenantQueryService,
 				{ provide: Logger, useValue: mockLogger },
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: ZeroCacheService, useValue: mockCacheService }
 			]
 		}).compile()
 

@@ -57,7 +57,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 
 			// Log auth errors
 			if (response.status() === 401 || response.status() === 403) {
-				console.error(`[AUTH_ERROR] ${response.status()} - ${response.url()}`)
+				logger.error(`[AUTH_ERROR] ${response.status()} - ${response.url()}`)
 			}
 		})
 
@@ -71,12 +71,12 @@ test.describe('Authentication Diagnostic Tests', () => {
 			consoleLogs.push(log)
 
 			if (msg.type() === 'error' || msg.type() === 'warning') {
-				console.log(`[${msg.type().toUpperCase()}] ${msg.text()}`)
+				logger.info(`[${msg.type().toUpperCase()}] ${msg.text()}`)
 			}
 		})
 
 		// Track page load stages
-		console.log(`[TIMING] Starting navigation to ${baseUrl}/login`)
+		logger.info(`[TIMING] Starting navigation to ${baseUrl}/login`)
 		navigationStart = Date.now()
 
 		await page.goto(`${baseUrl}/login`)
@@ -88,7 +88,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 		await page.waitForLoadState('networkidle')
 		timings.networkIdle = Date.now() - navigationStart
 
-		console.log('[TIMING] Page load stages:', timings)
+		logger.info('[TIMING] Page load stages:', timings)
 
 		// Check for Supabase initialization
 		const supabaseInitialized = await page.evaluate(() => {
@@ -98,7 +98,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 			};
 			return !!w.supabase || !!w._supabaseClient;
 		});
-		console.log(`[SUPABASE] Initialized: ${supabaseInitialized}`)
+		logger.info(`[SUPABASE] Initialized: ${supabaseInitialized}`)
 
 		// Get environment info
 		const envInfo = await page.evaluate(() => {
@@ -114,12 +114,12 @@ test.describe('Authentication Diagnostic Tests', () => {
 				supabaseKey: w.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
 			};
 		});
-		console.log('[ENV] Frontend environment:', envInfo)
+		logger.info('[ENV] Frontend environment:', envInfo)
 
 		// Log initial network requests
-		console.log('[NETWORK] Initial page load requests:')
+		logger.info('[NETWORK] Initial page load requests:')
 		networkLogs.slice(0, 10).forEach(log => {
-			console.log(`  ${log.method} ${log.url.substring(0, 100)} - Status: ${log.status} (${log.timing}ms)`)
+			logger.info(`  ${log.method} ${log.url.substring(0, 100)} - Status: ${log.status} (${log.timing}ms)`)
 		})
 
 		// Wait for form to be visible
@@ -129,13 +129,13 @@ test.describe('Authentication Diagnostic Tests', () => {
 
 		// Log form state
 		const formVisible = await emailField.isVisible()
-		console.log(`[FORM] Email field visible: ${formVisible}`)
+		logger.info(`[FORM] Email field visible: ${formVisible}`)
 
 		// Fill form
 		const email = process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
 		const password = process.env.E2E_OWNER_PASSWORD || ''
 
-		console.log(`[LOGIN] Attempting login with email: ${email}`)
+		logger.info(`[LOGIN] Attempting login with email: ${email}`)
 		timings.formFillStart = Date.now() - navigationStart
 
 		await emailField.fill(email, { force: true })
@@ -151,10 +151,10 @@ test.describe('Authentication Diagnostic Tests', () => {
 			password: (document.querySelector('#password') as HTMLInputElement)?.value,
 			submitButton: (document.querySelector('button[type="submit"]') as HTMLButtonElement)?.textContent
 		}))
-		console.log('[FORM] Form state before submission:', formData)
+		logger.info('[FORM] Form state before submission:', formData)
 
 		// Track form submission
-		console.log('[LOGIN] Clicking submit button')
+		logger.info('[LOGIN] Clicking submit button')
 		timings.submitStart = Date.now() - navigationStart
 
 		const submitButton = page.getByRole('button', {
@@ -167,7 +167,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 		page.on('load', () => {
 			navigationComplete = true
 			timings.navigationComplete = Date.now() - navigationStart
-			console.log(`[NAVIGATION] Page loaded at ${timings.navigationComplete}ms`)
+			logger.info(`[NAVIGATION] Page loaded at ${timings.navigationComplete}ms`)
 		})
 
 		// Track API calls during login
@@ -180,20 +180,20 @@ test.describe('Authentication Diagnostic Tests', () => {
 		// Submit and wait for result
 		// Only wait for URL change - networkidle resolves too early
 		await page.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 }).catch(err => {
-			console.error('[LOGIN_TIMEOUT] URL didnt change')
+			logger.error('[LOGIN_TIMEOUT] URL didnt change')
 		})
 		/*await Promise.race([
 			page.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 }),
 			page.waitForLoadState('networkidle', { timeout: 30000 })
 		]).catch(err => {
-			console.error('[LOGIN_TIMEOUT] Login did not complete within 30s')
-			console.error('[CURRENT_URL]', page.url())
+			logger.error('[LOGIN_TIMEOUT] Login did not complete within 30s')
+			logger.error('[CURRENT_URL]', page.url())
 		})*/
 
 		timings.loginComplete = Date.now() - navigationStart
 
 		// Log network requests related to auth
-		console.log('[NETWORK] Authentication-related requests:')
+		logger.info('[NETWORK] Authentication-related requests:')
 		networkLogs
 			.filter(
 				log =>
@@ -204,18 +204,18 @@ test.describe('Authentication Diagnostic Tests', () => {
 					log.status === 403
 			)
 			.forEach(log => {
-				console.log(
+				logger.info(
 					`  [${log.status || '?'}] ${log.method} ${log.url.substring(0, 80)} (+${log.timing}ms)`
 				)
 			})
 
 		// Log console errors and warnings
-		console.log('[CONSOLE] Errors and warnings:')
+		logger.info('[CONSOLE] Errors and warnings:')
 		consoleLogs
 			.filter(log => log.type === 'error' || log.type === 'warning')
 			.slice(0, 10)
 			.forEach(log => {
-				console.log(`  [${log.timestamp}ms] ${log.type}: ${log.message.substring(0, 100)}`)
+				logger.info(`  [${log.timestamp}ms] ${log.type}: ${log.message.substring(0, 100)}`)
 			})
 
 		// Check final state
@@ -223,21 +223,21 @@ test.describe('Authentication Diagnostic Tests', () => {
 		const sessionCookies = await context.cookies()
 		const authCookies = sessionCookies.filter(c => c.name.includes('auth') || c.name.includes('sb-'))
 
-		console.log('[FINAL_STATE]')
-		console.log(`  URL: ${finalUrl}`)
-		console.log(`  Auth cookies: ${authCookies.length}`)
-		console.log(`  Page title: ${await page.title()}`)
+		logger.info('[FINAL_STATE]')
+		logger.info(`  URL: ${finalUrl}`)
+		logger.info(`  Auth cookies: ${authCookies.length}`)
+		logger.info(`  Page title: ${await page.title()}`)
 
 		// Performance summary
-		console.log('[PERFORMANCE_SUMMARY]')
+		logger.info('[PERFORMANCE_SUMMARY]')
 		Object.entries(timings).forEach(([key, value]) => {
-			console.log(`  ${key}: ${value}ms`)
+			logger.info(`  ${key}: ${value}ms`)
 		})
 
-		console.log('[DIAGNOSIS_COMPLETE]')
-		console.log(`Total network requests: ${networkLogs.length}`)
-		console.log(`Console logs: ${consoleLogs.length}`)
-		console.log(`Auth-related requests: ${networkLogs.filter(log => log.url.includes('auth')).length}`)
+		logger.info('[DIAGNOSIS_COMPLETE]')
+		logger.info(`Total network requests: ${networkLogs.length}`)
+		logger.info(`Console logs: ${consoleLogs.length}`)
+		logger.info(`Auth-related requests: ${networkLogs.filter(log => log.url.includes('auth')).length}`)
 
 		// Assertion
 		expect(finalUrl).toMatch(/\/(dashboard|portal|auth)/)
@@ -246,7 +246,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 	test('check Supabase connectivity', async ({ page }) => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 
-		console.log('[SUPABASE_CHECK] Testing Supabase connectivity')
+		logger.info('[SUPABASE_CHECK] Testing Supabase connectivity')
 
 		await page.goto(`${baseUrl}/login`)
 		await page.waitForLoadState('networkidle')
@@ -275,7 +275,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 			}
 		})
 
-		console.log('[SUPABASE_CHECK] Result:', supabaseTest)
+		logger.info('[SUPABASE_CHECK] Result:', supabaseTest)
 		expect(supabaseTest).toHaveProperty('status')
 	})
 
@@ -290,7 +290,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 				event,
 				details
 			})
-			console.log(`[${Date.now() - startTime}ms] ${event}`, details || '')
+			logger.info(`[${Date.now() - startTime}ms] ${event}`, details || '')
 		}
 
 		log('Starting auth flow diagnostic')
@@ -344,9 +344,9 @@ test.describe('Authentication Diagnostic Tests', () => {
 		}
 
 		// Output timeline
-		console.log('\n[TIMELINE]')
+		logger.info('\n[TIMELINE]')
 		events.forEach(e => {
-			console.log(`${e.time}ms - ${e.event}`, e.details)
+			logger.info(`${e.time}ms - ${e.event}`, e.details)
 		})
 	})
 })

@@ -10,6 +10,7 @@
  * - Database must have latest migrations applied
  */
 
+import { Logger } from '@nestjs/common'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 
@@ -60,6 +61,8 @@ const OPTIONAL_TEST_USER_VARS = [
 	'E2E_TENANT_B_EMAIL', 'E2E_TENANT_B_PASSWORD'
 ] as const
 
+const logger = new Logger('RlsTestSetup')
+
 const missingRequiredVars = REQUIRED_TEST_USER_VARS.filter(varName => !process.env[varName])
 
 if (missingRequiredVars.length > 0) {
@@ -74,7 +77,7 @@ Please set these variables in your environment or .env.local file before running
 // Check for optional vars and warn (don't fail)
 const missingOptionalVars = OPTIONAL_TEST_USER_VARS.filter(varName => !process.env[varName])
 if (missingOptionalVars.length > 0) {
-	console.warn(
+	logger.warn(
 		`[RLS Tests] Some multi-user test accounts are not configured. Tests requiring these users will be skipped:
   - ${missingOptionalVars.join('\n  - ')}
 
@@ -322,7 +325,7 @@ export async function getPropertyOwnerId(
 		.maybeSingle()
 
 	if (error) {
-		console.warn(`Failed to get property owner ID: ${error.message}`)
+		logger.warn(`Failed to get property owner ID: ${error.message}`)
 		return null
 	}
 

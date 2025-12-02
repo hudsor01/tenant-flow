@@ -47,7 +47,7 @@ const Dropzone = ({
       <div
         {...getRootProps({
           className: cn(
-            'border-2 border-gray-300 rounded-lg p-6 text-center bg-card transition-colors duration-300 text-foreground',
+            'border-2 border-muted/300 rounded-lg p-6 text-center bg-card transition-colors duration-300 text-foreground',
             className,
             isSuccess ? 'border-solid' : 'border-dashed',
             isActive && 'border-primary bg-primary/10',
@@ -106,11 +106,11 @@ const DropzoneContent = ({ className }: { className?: string }) => {
             className="flex items-center gap-x-4 border-b py-2 first:mt-4 last:mb-4 "
           >
             {file.type.startsWith('image/') ? (
-              <div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+              <div className="h-10 w-10 rounded border overflow-hidden shrink-0 bg-muted flex-center">
                 <img src={file.preview} alt={file.name} className="object-cover" />
               </div>
             ) : (
-              <div className="h-10 w-10 rounded border bg-muted flex items-center justify-center">
+              <div className="h-10 w-10 rounded border bg-muted flex-center">
                 <File size={18} />
               </div>
             )}

@@ -726,7 +726,7 @@ function PdfPreviewPanel(props: {
 						/>
 					</div>
 				) : (
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Generate a preview to view the PDF in-line. You can download it
 						directly from the preview frame.
 					</p>

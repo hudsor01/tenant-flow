@@ -37,7 +37,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-sm text-muted-foreground">
+						<div className="space-y-2 text-muted">
 							<p>Comprehensive lease template including:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>State-specific requirements</li>
@@ -75,7 +75,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-sm text-muted-foreground">
+						<div className="space-y-2 text-muted">
 							<p>Future templates will include:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>Property inspection reports</li>

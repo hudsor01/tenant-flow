@@ -134,7 +134,7 @@ export default function CompletePage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-white">
+			<div className="min-h-screen flex-center bg-linear-to-br from-slate-50 to-white">
 				<CardLayout
 					title="Checking payment status..."
 					className="w-full max-w-md"
@@ -164,7 +164,7 @@ export default function CompletePage() {
 							{/* Status Icon */}
 							<div
 								id="status-icon"
-								className={`size-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusClass(status) : ''}`}
+								className={`size-16 rounded-full flex-center mx-auto mb-6 ${status ? getStatusClass(status) : ''}`}
 							>
 								{icon}
 							</div>

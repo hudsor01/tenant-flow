@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	baseConfig,
 	productionProject,
@@ -16,6 +17,7 @@ if (!process.env.NODE_ENV) {
 const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url))
 const TEST_DIR =
 	baseConfig.testDir ?? path.join(ROOT_DIR, 'apps/e2e-tests/tests')
+const logger = createLogger({ component: 'PlaywrightConfig' })
 
 // Build projects array without auth-helpers (httpOnly cookies require per-test login)
 const projects = [...smokeProjects]
@@ -57,12 +59,12 @@ export default defineConfig({
 	webServer: process.env.CI
 		? undefined // Don't start server in CI (already running)
 		: (() => {
-				const port = process.env.PLAYWRIGHT_PORT || '3000'
-				const url =
-					process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
-				console.log('Configured Playwright projects:', {
-					names: projects.map(project => project.name)
-				})
+			const port = process.env.PLAYWRIGHT_PORT || '3000'
+			const url =
+				process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${port}`
+			logger.info('Configured Playwright projects:', {
+				metadata: { names: projects.map(project => project.name) }
+			})
 				return {
 					// Forward the desired port via env so doppler/next receive it consistently.
 					command: `pnpm --filter @repo/frontend dev`,

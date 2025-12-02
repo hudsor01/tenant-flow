@@ -38,17 +38,14 @@ export class PropertyBulkImportService {
 	}> {
 		const startTime = Date.now()
 
-		// Use admin client for property_owner lookup to bypass RLS
-		const adminClient = this.supabase.getAdminClient()
-
-		// Use user client for property operations (respects RLS)
+		// Use user client for all operations (respects RLS)
 		const client = this.supabase.getUserClient(token)
 
 		this.logger.log('[BULK_IMPORT:START] Bulk import initiated', {
 			user_id,
 			fileSize: fileBuffer.length,
 			timestamp: new Date().toISOString()
-		})
+	})
 
 		try {
 			// Parse CSV file using csv-parse (RFC 4180 compliant streaming parser)
@@ -115,8 +112,8 @@ export class PropertyBulkImportService {
 				throw new BadRequestException('CSV file contains no data rows')
 			}
 
-			if (records.length > 100) {
-				this.logger.warn('[BULK_IMPORT:VALIDATION] CSV exceeds max 100 rows', {
+			if (records.length > 10) {
+				this.logger.warn('[BULK_IMPORT:VALIDATION] CSV exceeds max 10 rows', {
 					rowCount: records.length,
 					user_id
 				})
@@ -133,8 +130,8 @@ this.logger.log('[BULK_IMPORT:PHASE1.5] Fetching property_owner_id...', {
 	user_id_length: user_id?.length
 })
 
-// Use adminClient to bypass RLS for property_owner lookup
-const ownerResult = await adminClient
+// Use user client to respect RLS for property_owner lookup
+const ownerResult = await client
 	.from('property_owners')
 	.select('id')
 	.eq('user_id', user_id)

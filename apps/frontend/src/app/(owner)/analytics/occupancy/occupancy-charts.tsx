@@ -35,7 +35,7 @@ function EmptyState({ message }: { message: string }) {
 			<Badge variant="outline" className="mb-2">
 				No data
 			</Badge>
-			<CardDescription className="max-w-sm text-center text-sm text-muted-foreground">
+			<CardDescription className="max-w-sm text-center text-muted">
 				{message}
 			</CardDescription>
 		</div>
@@ -85,7 +85,7 @@ export function VacancySummaryList({ entries }: VacancyListProps) {
 			{entries.slice(0, 8).map(entry => (
 				<div
 					key={entry.property_id}
-					className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+					className="flex-between rounded-lg border px-3 py-2 text-sm"
 				>
 					<div className="flex flex-col">
 						<span className="font-medium">{entry.propertyName}</span>

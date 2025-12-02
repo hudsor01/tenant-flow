@@ -15,7 +15,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getMaintenanceInsightsPageData } from '#lib/api/analytics-page'
-import { formatCurrency, formatNumber } from '@repo/shared/utils/currency'
+import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import {
 	MaintenanceCostChart,
 	MaintenanceTrendChart

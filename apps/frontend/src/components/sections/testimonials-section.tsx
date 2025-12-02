@@ -45,7 +45,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 			<div className="container px-4 mx-auto">
 				<div className="text-center mb-16 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
-						<h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+						<h2 className="text-responsive-display-lg font-bold tracking-tight text-foreground mb-6 leading-tight">
 							What Our Customers Say
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
@@ -56,7 +56,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
 					{testimonials.map((testimonial, index) => (
-						<BlurFade key={index} delay={0.2 + index * 0.1} inView>
+						<BlurFade key={testimonial.author} delay={0.2 + index * 0.1} inView>
 							<div className="relative group h-full">
 								<div className={testimonialCardClasses()}>
 									{/* Quote icon */}
@@ -72,7 +72,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 										<div className="font-bold text-foreground text-lg mb-1">
 											{testimonial.author}
 										</div>
-										<div className="text-sm text-muted-foreground mb-2">
+										<div className="text-muted mb-2">
 											{testimonial.title}
 										</div>
 										<div className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">

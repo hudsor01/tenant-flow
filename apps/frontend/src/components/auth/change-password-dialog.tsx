@@ -2,12 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	CrudDialog,
+	CrudDialogBody,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle
+} from '#components/ui/crud-dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useChangePassword } from '#hooks/api/use-auth'
 import { useModalStore } from '#stores/modal-store'
@@ -16,7 +18,7 @@ import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'
 
 export function ChangePasswordDialog() {
-	const { closeModal, isModalOpen } = useModalStore()
+	const { closeModal } = useModalStore()
 	const changePassword = useChangePassword()
 
 	const modalId = 'change-password'
@@ -136,172 +138,159 @@ export function ChangePasswordDialog() {
 	}
 
 	return (
-		<>
-			{isModalOpen(modalId) && (
-				<Dialog open={true} onOpenChange={() => closeModal(modalId)}>
-					<DialogContent className="sm:max-w-[500px]">
-						<DialogHeader>
-							<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
-								<Lock className="size-[var(--spacing-5)]" />
-								Change Password
-							</DialogTitle>
-							<DialogDescription>
-								Enter your current password and choose a new secure password
-							</DialogDescription>
-						</DialogHeader>
-
-						<form onSubmit={handleSubmit} className="space-y-[var(--spacing-6)] mt-[var(--spacing-4)]">
-							{/* Current Password */}
-							<Field>
-								<FieldLabel>Current Password *</FieldLabel>
-								<div className="relative">
-									<input
-										type={showPasswords.current ? 'text' : 'password'}
-										className="input w-[var(--width-full)] pr-[var(--spacing-10)]"
-										value={formData.currentPassword}
-										onChange={e =>
-											handleChange('currentPassword', e.target.value)
-										}
-										disabled={changePassword.isPending}
-										required
-										autoComplete="current-password"
-									/>
-									<button
-										type="button"
-										onClick={() => togglePasswordVisibility('current')}
-										className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
-										disabled={changePassword.isPending}
-										aria-label={
-											showPasswords.current
-												? 'Hide current password'
-												: 'Show current password'
-										}
-									>
-										{showPasswords.current ? (
-											<EyeOff className="size-[var(--spacing-4)]" />
-										) : (
-											<Eye className="size-[var(--spacing-4)]" />
-										)}
-									</button>
-								</div>
-							</Field>
-
-							{/* New Password */}
-							<Field>
-								<FieldLabel>New Password *</FieldLabel>
-								<div className="relative">
-									<input
-										type={showPasswords.new ? 'text' : 'password'}
-										className="input w-[var(--width-full)] pr-[var(--spacing-10)]"
-										value={formData.newPassword}
-										onChange={e => handleChange('newPassword', e.target.value)}
-										disabled={changePassword.isPending}
-										required
-										autoComplete="new-password"
-									/>
-									<button
-										type="button"
-										onClick={() => togglePasswordVisibility('new')}
-										className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
-										disabled={changePassword.isPending}
-										aria-label={
-											showPasswords.new
-												? 'Hide new password'
-												: 'Show new password'
-										}
-									>
-										{showPasswords.new ? (
-											<EyeOff className="size-[var(--spacing-4)]" />
-										) : (
-											<Eye className="size-[var(--spacing-4)]" />
-										)}
-									</button>
-								</div>
-								<p className="text-caption text-muted-foreground mt-[var(--spacing-1)]">
-									Must be at least 8 characters with uppercase, lowercase,
-									number, and special character
-								</p>
-							</Field>
-
-							{/* Confirm Password */}
-							<Field>
-								<FieldLabel>Confirm New Password *</FieldLabel>
-								<div className="relative">
-									<input
-										type={showPasswords.confirm ? 'text' : 'password'}
-										className="input w-[var(--width-full)] pr-[var(--spacing-10)]"
-										value={formData.confirmPassword}
-										onChange={e =>
-											handleChange('confirmPassword', e.target.value)
-										}
-										disabled={changePassword.isPending}
-										required
-										autoComplete="new-password"
-									/>
-									<button
-										type="button"
-										onClick={() => togglePasswordVisibility('confirm')}
-										className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
-										disabled={changePassword.isPending}
-										aria-label={
-											showPasswords.confirm
-												? 'Hide confirm password'
-												: 'Show confirm password'
-										}
-									>
-										{showPasswords.confirm ? (
-											<EyeOff className="size-[var(--spacing-4)]" />
-										) : (
-											<Eye className="size-[var(--spacing-4)]" />
-										)}
-									</button>
-								</div>
-							</Field>
-
-							{/* Validation Errors */}
-							{validationErrors.length > 0 && (
-								<div className="rounded-[var(--radius-large)] border border-destructive/50 bg-destructive/10 p-(--spacing-4)">
-									<p className="font-semibold text-destructive mb-2">
-										Please fix the following errors:
-									</p>
-									<ul className="list-[disc] list-inside space-y-1 text-caption text-destructive">
-										{validationErrors.map((error, index) => (
-											<li key={index}>{error}</li>
-										))}
-									</ul>
-								</div>
-							)}
-
-							{/* Actions */}
-							<div className="flex gap-[var(--spacing-3)] pt-[var(--spacing-2)]">
-								<Button
+		<CrudDialog mode="edit" modalId={modalId}>
+			<CrudDialogContent className="sm:max-w-[500px]">
+				<CrudDialogHeader>
+					<CrudDialogTitle className="flex items-center gap-[var(--spacing-2)]">
+						<Lock className="size-[var(--spacing-5)]" />
+						Change Password
+					</CrudDialogTitle>
+					<CrudDialogDescription>
+						Enter your current password and choose a new secure password
+					</CrudDialogDescription>
+				</CrudDialogHeader>
+				<form onSubmit={handleSubmit} className="space-y-[var(--spacing-6)]">
+					<CrudDialogBody>
+						{/* Current Password */}
+						<Field>
+							<FieldLabel>Current Password *</FieldLabel>
+							<div className="relative">
+								<input
+									type={showPasswords.current ? 'text' : 'password'}
+									className="input w-full pr-[var(--spacing-10)]"
+									value={formData.currentPassword}
+									onChange={e =>
+										handleChange('currentPassword', e.target.value)
+									}
+									disabled={changePassword.isPending}
+									required
+									autoComplete="current-password"
+								/>
+								<button
 									type="button"
-									variant="outline"
-									className="flex-1"
-									onClick={handleCancel}
+									onClick={() => togglePasswordVisibility('current')}
+									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
 									disabled={changePassword.isPending}
+									aria-label={
+										showPasswords.current
+											? 'Hide current password'
+											: 'Show current password'
+									}
 								>
-									Cancel
-								</Button>
-								<Button
-									type="submit"
-									className="flex-1"
-									disabled={changePassword.isPending}
-								>
-									{changePassword.isPending ? (
-										<>
-												<div className="animate-spin rounded-full h-[var(--spacing-4)] w-[var(--spacing-4)] border-b-2 border-white mr-[var(--spacing-2)]" />
-											Changing...
-										</>
+									{showPasswords.current ? (
+										<EyeOff className="size-[var(--spacing-4)]" />
 									) : (
-										'Change Password'
+										<Eye className="size-[var(--spacing-4)]" />
 									)}
-								</Button>
+								</button>
 							</div>
-						</form>
-					</DialogContent>
-				</Dialog>
-			)}
-		</>
+						</Field>
+
+						{/* New Password */}
+						<Field>
+							<FieldLabel>New Password *</FieldLabel>
+							<div className="relative">
+								<input
+									type={showPasswords.new ? 'text' : 'password'}
+									className="input w-full pr-[var(--spacing-10)]"
+									value={formData.newPassword}
+									onChange={e => handleChange('newPassword', e.target.value)}
+									disabled={changePassword.isPending}
+									required
+									autoComplete="new-password"
+								/>
+								<button
+									type="button"
+									onClick={() => togglePasswordVisibility('new')}
+									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									disabled={changePassword.isPending}
+									aria-label={
+										showPasswords.new
+											? 'Hide new password'
+											: 'Show new password'
+									}
+								>
+									{showPasswords.new ? (
+										<EyeOff className="size-[var(--spacing-4)]" />
+									) : (
+										<Eye className="size-[var(--spacing-4)]" />
+									)}
+								</button>
+							</div>
+							<p className="text-caption text-muted-foreground mt-[var(--spacing-1)]">
+								Must be at least 8 characters with uppercase, lowercase,
+								number, and special character
+							</p>
+						</Field>
+
+						{/* Confirm Password */}
+						<Field>
+							<FieldLabel>Confirm New Password *</FieldLabel>
+							<div className="relative">
+								<input
+									type={showPasswords.confirm ? 'text' : 'password'}
+									className="input w-full pr-[var(--spacing-10)]"
+									value={formData.confirmPassword}
+									onChange={e =>
+										handleChange('confirmPassword', e.target.value)
+									}
+									disabled={changePassword.isPending}
+									required
+									autoComplete="new-password"
+								/>
+								<button
+									type="button"
+									onClick={() => togglePasswordVisibility('confirm')}
+									className="absolute right-[var(--spacing-3)] top-[50%] -translate-y-[50%] text-muted-foreground hover:text-foreground"
+									disabled={changePassword.isPending}
+									aria-label={
+										showPasswords.confirm
+											? 'Hide confirm password'
+											: 'Show confirm password'
+									}
+								>
+									{showPasswords.confirm ? (
+										<EyeOff className="size-[var(--spacing-4)]" />
+									) : (
+										<Eye className="size-[var(--spacing-4)]" />
+									)}
+								</button>
+							</div>
+						</Field>
+
+						{/* Validation Errors */}
+						{validationErrors.length > 0 && (
+							<div className="rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-(--spacing-4)">
+								<p className="font-semibold text-destructive mb-2">
+									Please fix the following errors:
+								</p>
+								<ul className="list-[disc] list-inside space-y-1 text-caption text-destructive">
+									{validationErrors.map((error) => (
+										<li key={error}>{error}</li>
+									))}
+								</ul>
+							</div>
+						)}
+					</CrudDialogBody>
+
+					<CrudDialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={handleCancel}
+							disabled={changePassword.isPending}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							disabled={changePassword.isPending}
+						>
+							{changePassword.isPending ? 'Changing...' : 'Change Password'}
+						</Button>
+					</CrudDialogFooter>
+				</form>
+			</CrudDialogContent>
+		</CrudDialog>
 	)
 }

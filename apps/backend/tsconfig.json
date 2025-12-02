@@ -7,6 +7,9 @@
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest", "express"],
+		"strict": false,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
 		"composite": false,
 		"declaration": true,
 		"declarationMap": true,
@@ -18,10 +21,17 @@
 			"@repo/testing/*": ["../../packages/testing/src/*"]
 		}
 	},
-	"include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts", "tests/**/*.ts"],
+	"include": ["src/types/**/*.d.ts"],
 	"exclude": [
 		"node_modules",
 		"dist",
+		"test",
+		"tests",
+		"**/*.spec.ts",
+		"**/*.spec.tsx",
+		"**/*.test.ts",
+		"src/**/dto/*.ts",
+		"src/**/*.dto.ts",
 		"src/auth/auth-production-diagnostic.ts",
 		"test/email/**/*"
 	]

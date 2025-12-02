@@ -11,7 +11,8 @@
  * - Permissions-Policy for feature restrictions
  */
 
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common'
+import type { NestMiddleware } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common'
 import type { SecurityHeadersConfig } from '@repo/shared/types/security'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { Request, Response } from 'express'

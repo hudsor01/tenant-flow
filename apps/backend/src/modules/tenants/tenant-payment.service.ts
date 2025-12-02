@@ -10,11 +10,10 @@ import type {
 	OwnerPaymentSummaryResponse,
 	TenantPaymentRecord
 } from '@repo/shared/types/api-contracts'
-import type { Database, Json } from '@repo/shared/types/supabase'
+import type { Database } from '@repo/shared/types/supabase'
 import type { RentPayment } from '@repo/shared/types/core'
-import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import { asStripeSchemaClient, type SupabaseError } from '../../types/stripe-schema'
+import { asStripeSchemaClient, type SupabaseError, type StripePaymentIntent } from '../../types/stripe-schema'
 
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 
@@ -108,7 +107,7 @@ export class TenantPaymentService {
 			throw new InternalServerErrorException('Failed to fetch tenant payment history')
 		}
 
-		const paymentIntents = (data as Stripe.PaymentIntent[]) || []
+		const paymentIntents = (data as StripePaymentIntent[]) || []
 		const payments = paymentIntents.map(intent => this._mapStripePaymentIntentToRecord(intent))
 
 		return { payments }
@@ -231,17 +230,24 @@ export class TenantPaymentService {
 		}
 	}
 
-	private _mapStripePaymentIntentToRecord(intent: Stripe.PaymentIntent): TenantPaymentRecord {
+	private _mapStripePaymentIntentToRecord(intent: StripePaymentIntent): TenantPaymentRecord {
 		return {
 			id: intent.id,
 			amount: intent.amount ?? 0,
 			currency: intent.currency ?? 'usd',
 			status: intent.status ?? 'unknown',
-			description: intent.description ?? null,
-			receiptEmail: intent.receipt_email ?? null,
-			metadata: (intent.metadata as Json) ?? null,
-			created_at: new Date((intent.created ?? 0) * 1000).toISOString()
-		}
+			description: intent.description ?? undefined,
+			metadata: (intent.metadata as Record<string, unknown>) ?? undefined,
+			created_at: new Date((intent.created ?? 0) * 1000).toISOString(),
+			paid_date: null,
+			due_date: '',
+			lease_id: '',
+			tenant_id: '',
+			payment_method_type: '',
+			period_start: '',
+			period_end: '',
+			receipt_email: intent.receipt_email ?? null
+		} as TenantPaymentRecord
 	}
 
 	private async _queryPaymentIntents(
@@ -267,7 +273,7 @@ export class TenantPaymentService {
 			throw new InternalServerErrorException('Failed to fetch tenant payment history')
 		}
 
-		return ((data as Stripe.PaymentIntent[]) || []).map(intent =>
+		return ((data as StripePaymentIntent[]) || []).map(intent =>
 			this._mapStripePaymentIntentToRecord(intent)
 		)
 	}
@@ -287,20 +293,51 @@ export class TenantPaymentService {
 			}
 		}
 
+		// Build a single batched query to avoid per-tenant round-trips (was N+1)
+		const stripeClient = asStripeSchemaClient(this.supabase.getAdminClient())
+
+		const { data: intents, error } = await stripeClient
+			.schema('stripe')
+			.from('payment_intents')
+			.select('id, amount, status, metadata, description')
+			.order('created', { ascending: false })
+			.limit(limitPerTenant * tenant_ids.length)
+
+		if (error) {
+			this.logger.error('Failed to batch fetch owner payment summary', {
+				user_id,
+				error: error.message
+			})
+			throw new InternalServerErrorException('Failed to fetch payment summary')
+		}
+
+		// Filter intents in-memory since stripe schema doesn't support .or()
+		const filteredIntents = (intents as StripePaymentIntent[])?.filter(intent => {
+			const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
+			return tenantId && tenant_ids.includes(tenantId)
+		}) || []
+
 		let lateFeeTotal = 0
 		let unpaidTotal = 0
 		let unpaidCount = 0
+		const perTenantCount = new Map<string, number>()
 
-		for (const tenant_id of tenant_ids) {
-			const payments = await this._queryPaymentIntents(tenant_id, limitPerTenant)
-			for (const payment of payments) {
-				if (payment.status !== 'succeeded') {
-					unpaidTotal += payment.amount
-					unpaidCount += 1
-				}
-				if (this.isLateFeeRecord(payment)) {
-					lateFeeTotal += payment.amount
-				}
+		for (const intent of filteredIntents) {
+			const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
+			if (!tenantId) continue
+
+			// Enforce per-tenant cap in-memory since PostgREST can't window by group
+			const used = perTenantCount.get(tenantId) ?? 0
+			if (used >= limitPerTenant) continue
+			perTenantCount.set(tenantId, used + 1)
+
+			const record = this._mapStripePaymentIntentToRecord(intent)
+			if (record.status !== 'succeeded') {
+				unpaidTotal += record.amount
+				unpaidCount += 1
+			}
+			if (this.isLateFeeRecord(record)) {
+				lateFeeTotal += record.amount
 			}
 		}
 
@@ -569,11 +606,15 @@ export class TenantPaymentService {
 			amount: intent.amount ?? 0,
 			status: intent.status ?? 'PENDING',
 			currency: intent.currency ?? 'USD',
-			description: null,
-			receiptEmail: null,
-			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : null,
+			receipt_email: null,
+			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : undefined,
 			created_at: new Date().toISOString(),
-			...(paidDate ? { paid_date: paidDate } : {})
-		}
+			...(paidDate ? { paid_date: paidDate } : {}),
+			due_date: '',
+			lease_id: '',
+			payment_method_type: '',
+			period_start: '',
+			period_end: ''
+		} as TenantPaymentRecord
 	}
 }

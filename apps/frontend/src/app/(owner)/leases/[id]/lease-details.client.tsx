@@ -99,7 +99,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							</h2>
 							<div className="grid gap-(--spacing-4) md:grid-cols-2">
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted">
 										<Calendar className="size-4" />
 										Lease period
 									</div>
@@ -114,7 +114,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 									</p>
 								</div>
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted">
 										<Home className="size-4" />
 										Monthly rent
 									</div>
@@ -134,17 +134,17 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							</h2>
 							{tenant ? (
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted">
 										<User className="size-4" />
 										Assigned tenant
 									</div>
 									<p className="mt-1 text-sm font-medium">{tenant.first_name || tenant.last_name ? `${tenant.first_name ?? ''} ${tenant.last_name ?? ''}`.trim() : tenant.name || 'Unknown'}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted">
                               {tenant.email}
 									</p>
 								</div>
 							) : (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									No tenant assigned
 								</p>
 							)}
@@ -157,12 +157,12 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							{unit ? (
 								<div className="rounded-xl border bg-muted/20 p-4">
 									<p className="text-sm font-medium">Unit {unit.unit_number}</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										{unit.bedrooms} bd · {unit.bathrooms} ba
 									</p>
 								</div>
 							) : (
-								<p className="text-sm text-muted-foreground">No unit linked</p>
+								<p className="text-muted">No unit linked</p>
 							)}
 						</section>
 					</div>

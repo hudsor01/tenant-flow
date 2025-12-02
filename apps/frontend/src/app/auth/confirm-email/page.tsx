@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
 import Image from 'next/image'
@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-const supabase = getSupabaseClientInstance()
+const supabase = createClient()
 
 export default function ConfirmEmailPage() {
 	const [isResending, setIsResending] = useState(false)
@@ -84,7 +84,7 @@ export default function ConfirmEmailPage() {
 				<div className="absolute inset-0 bg-linear-to-br from-black/30 via-black/20 to-black/30" />
 
 				{/* Content Panel */}
-				<div className="absolute inset-0 flex items-center justify-center">
+				<div className="absolute inset-0 flex-center">
 					<div className="relative max-w-lg mx-auto px-8">
 						{/* Semi-transparent panel */}
 						<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
@@ -93,7 +93,7 @@ export default function ConfirmEmailPage() {
 							{/* Logo */}
 							<div className="size-16 mx-auto mb-8 relative group">
 								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
-								<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
+								<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-white/20 shadow-lg">
 									<svg
 										viewBox="0 0 24 24"
 										fill="none"
@@ -159,12 +159,12 @@ export default function ConfirmEmailPage() {
 			</div>
 
 			{/* Right Side - Content Section */}
-			<div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
+			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 bg-background min-h-screen">
 				<div className="w-full max-w-md space-y-8">
 					{/* Logo (Mobile only) */}
 					<div className="lg:hidden flex justify-center mb-8">
 						<div className="flex items-center space-x-3">
-							<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex items-center justify-center shadow-lg">
+							<div className="size-10 rounded-xl overflow-hidden bg-primary border border-border flex-center shadow-lg">
 								<svg
 									viewBox="0 0 24 24"
 									fill="none"
@@ -189,7 +189,7 @@ export default function ConfirmEmailPage() {
 					{/* Header */}
 					<div className="space-y-4">
 						{/* Icon */}
-						<div className="mx-auto flex items-center justify-center size-20 rounded-full bg-primary/10 border border-primary/20 shadow-lg">
+						<div className="mx-auto flex-center size-20 rounded-full bg-primary/10 border border-primary/20 shadow-lg">
 							<Mail className="size-10 text-primary" />
 						</div>
 
@@ -211,40 +211,40 @@ export default function ConfirmEmailPage() {
 						</h3>
 						<ol className="space-y-4">
 							<li className="flex items-start gap-3">
-								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex-center text-sm font-bold">
 									1
 								</span>
 								<div className="pt-0.5">
 									<p className="text-foreground font-medium">
 										Check your email inbox
 									</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Don&apos;t forget to check your spam folder
 									</p>
 								</div>
 							</li>
 							<li className="flex items-start gap-3">
-								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex-center text-sm font-bold">
 									2
 								</span>
 								<div className="pt-0.5">
 									<p className="text-foreground font-medium">
 										Click the confirmation link
 									</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										The link expires in 24 hours
 									</p>
 								</div>
 							</li>
 							<li className="flex items-start gap-3">
-								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex items-center justify-center text-sm font-bold">
+								<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex-center text-sm font-bold">
 									3
 								</span>
 								<div className="pt-0.5">
 									<p className="text-foreground font-medium">
 										Start managing properties
 									</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										You&apos;ll be redirected to your dashboard
 									</p>
 								</div>
@@ -254,7 +254,7 @@ export default function ConfirmEmailPage() {
 
 					{/* Actions */}
 					<div className="space-y-4">
-						<p className="text-sm text-muted-foreground text-center">
+						<p className="text-muted text-center">
 							Didn&apos;t receive the email?
 						</p>
 
@@ -287,7 +287,7 @@ export default function ConfirmEmailPage() {
 
 					{/* Support */}
 					<div className="pt-6 border-t border-border">
-						<p className="text-sm text-muted-foreground text-center">
+						<p className="text-muted text-center">
 							Need help?{' '}
 							<Link
 								href="mailto:support@tenantflow.app"
@@ -299,7 +299,7 @@ export default function ConfirmEmailPage() {
 					</div>
 
 					{/* Trust Signals */}
-					<div className="flex items-center justify-center gap-8 text-xs text-muted-foreground pt-4">
+					<div className="flex-center gap-8 text-xs text-muted-foreground pt-4">
 						<div className="flex items-center gap-2">
 							<CheckCircle2 className="size-4" />
 							<span>Bank-level Security</span>

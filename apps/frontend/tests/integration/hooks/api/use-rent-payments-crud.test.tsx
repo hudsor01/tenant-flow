@@ -8,8 +8,11 @@
  * @vitest-environment jsdom
  */
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderHook, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { describe, it, expect, afterEach } from 'vitest'
+import { clientFetch } from '#lib/api/client'
+import { rentPaymentKeys } from '#hooks/api/use-rent-payments'
 
 const shouldRunIntegrationTests =
 	process.env.RUN_INTEGRATION_TESTS === 'true' &&
@@ -39,13 +42,27 @@ describeIfReady('Rent Payments Integration Tests', () => {
 	})
 
 	describe('API Contract', () => {
-		it('rent payments API requires Stripe integration - placeholder test', () => {
-			// TODO: Update when rent payments API contract is finalized
-			// Rent payments require:
-			// - Stripe test mode configuration
-			// - Valid payment methods
-			// - Active tenant/lease relationships
-			expect(true).toBe(true)
+		it('returns paginated rent payments list', async () => {
+			const { result } = renderHook(
+				() =>
+					useQuery({
+						queryKey: rentPaymentKeys.list(),
+						queryFn: () =>
+							clientFetch<{ data: unknown[]; total: number }>(
+								'/api/v1/rent-payments'
+							)
+					}),
+				{ wrapper: createWrapper() }
+			)
+
+			await waitFor(() => {
+				expect(result.current.isSuccess).toBe(true)
+			})
+
+			expect(result.current.data).toBeDefined()
+			expect(Array.isArray(result.current.data?.data)).toBe(true)
+			expect(result.current.data?.data).toHaveLength(0)
+			expect(typeof result.current.data?.total).toBe('number')
 		})
 	})
 })

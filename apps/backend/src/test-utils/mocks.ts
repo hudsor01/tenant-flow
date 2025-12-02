@@ -10,9 +10,9 @@ import type {
 } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import type { User } from '@supabase/supabase-js'
-import type { EmailService } from '../modules/email/email.service'
-import type { SupabaseService } from '../database/supabase.service'
-import type { AppConfigService } from '../config/app-config.service'
+import { EmailService } from '../modules/email/email.service'
+import { SupabaseService } from '../database/supabase.service'
+import { AppConfigService } from '../config/app-config.service'
 
 type DatabaseUser = Database['public']['Tables']['users']['Row']
 

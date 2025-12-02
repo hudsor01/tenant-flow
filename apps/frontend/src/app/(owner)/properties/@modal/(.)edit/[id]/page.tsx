@@ -1,6 +1,6 @@
 import { PropertyForm } from '#components/properties/property-form.client'
 import { RouteModal } from '#components/ui/route-modal'
-import { clientFetch } from '#lib/api/client'
+import { serverFetch } from '#lib/api/server'
 import { logErrorDetails } from '#lib/utils/error-logging'
 import type { Property } from '@repo/shared/types/core'
 import { notFound } from 'next/navigation'
@@ -28,9 +28,7 @@ export default async function EditPropertyModal({
 	const { id } = await params
 
 	try {
-		const property = await clientFetch<Property>(
-			`${process.env.API_BASE_URL}/api/v1/properties/${id}`
-		)
+		const property = await serverFetch<Property>(`/api/v1/properties/${id}`)
 
 		if (!property?.id) {
 			notFound()

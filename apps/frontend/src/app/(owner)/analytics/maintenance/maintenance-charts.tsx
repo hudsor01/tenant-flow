@@ -55,7 +55,7 @@ function EmptyState({ message }: { message: string }) {
 			<Badge variant="outline" className="mb-2">
 				No data
 			</Badge>
-			<CardDescription className="max-w-sm text-center text-sm text-muted-foreground">
+			<CardDescription className="max-w-sm text-center text-muted">
 				{message}
 			</CardDescription>
 		</div>

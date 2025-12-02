@@ -130,7 +130,7 @@ export default function TenantAutopayPage() {
 			{/* Status Card */}
 			<Card>
 				<CardHeader>
-					<div className="flex items-center justify-between">
+					<div className="flex-between">
 						<div>
 							<CardTitle className="flex items-center gap-2">
 								Autopay Status
@@ -162,14 +162,14 @@ export default function TenantAutopayPage() {
 					{/* Lease Info */}
 					<div className="rounded-lg border p-4 space-y-3">
 						<div className="flex justify-between">
-							<span className="text-sm text-muted-foreground">Monthly Rent</span>
+							<span className="text-muted">Monthly Rent</span>
 							<span className="font-semibold">
 								{formatCents(lease.rent_amount)}
 							</span>
 						</div>
 						{autopayStatus?.nextPaymentDate && (
 							<div className="flex justify-between">
-								<span className="text-sm text-muted-foreground">Next Payment</span>
+								<span className="text-muted">Next Payment</span>
 								<span className="font-semibold">
 									{new Date(autopayStatus.nextPaymentDate).toLocaleDateString('en-US', {
 										month: 'long',
@@ -180,13 +180,13 @@ export default function TenantAutopayPage() {
 							</div>
 						)}
 						<div className="flex justify-between">
-							<span className="text-sm text-muted-foreground">Property</span>
+							<span className="text-muted">Property</span>
 							<span className="font-semibold">
 								{lease.unit?.property?.name ?? 'N/A'}
 							</span>
 						</div>
 						<div className="flex justify-between">
-							<span className="text-sm text-muted-foreground">Unit</span>
+							<span className="text-muted">Unit</span>
 							<span className="font-semibold">
 								{lease.unit?.unit_number ?? 'N/A'}
 							</span>
@@ -278,7 +278,7 @@ export default function TenantAutopayPage() {
 						</div>
 						<div>
 							<p className="font-medium">Automatic Charging</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								Your payment method will be charged automatically on the rent due date each month.
 							</p>
 						</div>
@@ -289,7 +289,7 @@ export default function TenantAutopayPage() {
 						</div>
 						<div>
 							<p className="font-medium">Email Notifications</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								You will receive email confirmations when payments are processed successfully.
 							</p>
 						</div>
@@ -300,7 +300,7 @@ export default function TenantAutopayPage() {
 						</div>
 						<div>
 							<p className="font-medium">Cancel Anytime</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								You can disable autopay at any time from this page. Changes take effect immediately.
 							</p>
 						</div>

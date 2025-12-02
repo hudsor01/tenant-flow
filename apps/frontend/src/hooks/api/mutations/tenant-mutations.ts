@@ -2,64 +2,50 @@
  * Tenant Mutation Options (TanStack Query v5 Pattern)
  *
  * Modern mutation patterns with proper error handling and cache invalidation.
+ * Uses generic CRUD mutations factory for consistency.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { toast } from 'sonner'
 import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared/types/api-contracts'
 import type { Tenant } from '@repo/shared/types/core'
 import { tenantQueries } from '../queries/tenant-queries'
 import { leaseQueries } from '../queries/lease-queries'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { toast } from 'sonner'
+import { createCrudMutations } from '../crud-mutations'
+
+const {
+	useCreateMutation: useCreateTenantMutationBase,
+	useUpdateMutation: useUpdateTenantMutationBase
+} = createCrudMutations<CreateTenantInput, UpdateTenantInput, Tenant>({
+	entityName: 'Tenant',
+	createEndpoint: '/api/v1/tenants',
+	updateEndpoint: (id) => `/api/v1/tenants/${id}`,
+	deleteEndpoint: (id) => `/api/v1/tenants/${id}`,
+	listQueryKey: tenantQueries.lists,
+	detailQueryKey: (id) => tenantQueries.detail(id).queryKey
+})
 
 /**
  * Create tenant mutation
  */
-export function useCreateTenantMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: (data: CreateTenantInput) =>
-			clientFetch<Tenant>('/api/v1/tenants', {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
-		onSuccess: (_newTenant) => {
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			toast.success('Tenant created successfully')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Create tenant')
-		}
-	})
-}
+export const useCreateTenantMutation = useCreateTenantMutationBase
 
 /**
  * Update tenant mutation
  */
 export function useUpdateTenantMutation() {
-	const queryClient = useQueryClient()
+	const mutation = useUpdateTenantMutationBase()
 
-	return useMutation({
-		mutationFn: ({ id, data, version }: { id: string; data: UpdateTenantInput; version?: number }) =>
-			clientFetch<Tenant>(`/api/v1/tenants/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(version ? { ...data, version } : data)
-			}),
-		onSuccess: (updatedTenant) => {
-			queryClient.setQueryData(
-				tenantQueries.detail(updatedTenant.id).queryKey,
-				updatedTenant
-			)
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			toast.success('Tenant updated successfully')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Update tenant')
-		}
-	})
+	return {
+		...mutation,
+		mutate: ({ id, data }: { id: string; data: UpdateTenantInput }) =>
+			mutation.mutate({
+				id,
+				data
+			})
+	}
 }
 
 /**

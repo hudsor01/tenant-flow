@@ -27,7 +27,7 @@ import {
 import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
+import type { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
 	OwnerPaymentSummaryResponse,
@@ -42,10 +42,10 @@ import { TenantNotificationPreferencesService } from './tenant-notification-pref
 import { TenantPaymentService } from './tenant-payment.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
-import { CreateTenantDto } from './dto/create-tenant.dto'
-import { UpdateTenantDto } from './dto/update-tenant.dto'
-import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
-import {
+import type { CreateTenantDto } from './dto/create-tenant.dto'
+import type { UpdateTenantDto } from './dto/update-tenant.dto'
+import type { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
+import type {
 	CreateEmergencyContactDto,
 	UpdateEmergencyContactDto
 } from './dto/emergency-contact.dto'

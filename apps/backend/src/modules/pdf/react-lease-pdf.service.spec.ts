@@ -6,15 +6,17 @@ import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-gene
 // Mock NestJS Logger to suppress console output during tests
 jest.mock('@nestjs/common', () => {
 	const actual = jest.requireActual('@nestjs/common')
+	const LoggerClass = jest.fn().mockImplementation(() => ({
+		log: jest.fn(),
+		error: jest.fn(),
+		warn: jest.fn(),
+		debug: jest.fn(),
+		verbose: jest.fn()
+	}))
+	LoggerClass.overrideLogger = jest.fn()
 	return {
 		...actual,
-		Logger: jest.fn().mockImplementation(() => ({
-			log: jest.fn(),
-			error: jest.fn(),
-			warn: jest.fn(),
-			debug: jest.fn(),
-			verbose: jest.fn()
-		}))
+		Logger: LoggerClass
 	}
 })
 

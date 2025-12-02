@@ -81,7 +81,7 @@ export function AddPaymentMethod({ onSuccess }: AddPaymentMethodProps = {}) {
 						onSuccess={handleSetupSuccess}
 						onError={() => toast.error('Payment method confirmation failed')}
 					/>
-					<div className="rounded-lg border border-muted-foreground/20 bg-muted/50 p-4 text-sm text-muted-foreground">
+					<div className="rounded-lg border border-muted-foreground/20 bg-muted/50 p-4 text-muted">
 						Powered by Stripe — your payment details are encrypted and never
 						stored on TenantFlow servers.
 					</div>

@@ -436,7 +436,7 @@ export function PropertyForm({
 				{mode === 'edit' && property?.id && (
 					<div className="space-y-4 border rounded-lg p-6">
 						<h3 className="text-lg font-semibold">Property Images</h3>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							Manage your property photos. First uploaded image appears on property card.
 						</p>
 

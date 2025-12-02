@@ -156,7 +156,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					return (
 						<Card key={column.id} className="flex flex-col">
 							<CardHeader className="pb-3">
-								<div className="flex items-center justify-between">
+								<div className="flex-between">
 									<CardTitle className="text-base font-medium">
 										{column.title}
 									</CardTitle>

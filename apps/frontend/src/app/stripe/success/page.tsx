@@ -1,5 +1,5 @@
 import { Button } from '#components/ui/button'
-import { PageLayout } from '#components/layout/page-layout'
+import { PageLayout } from '#components/ui/layout/page-layout'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
@@ -9,7 +9,7 @@ function SuccessContent() {
 		<PageLayout
 			showNavbar={false}
 			className="gradient-authority"
-			containerClass="flex items-center justify-center min-h-screen max-w-md"
+			containerClass="flex-center min-h-screen max-w-md"
 		>
 			<div className="w-full shadow-md bg-card/50 border border-border backdrop-blur-sm rounded-2xl p-8 text-center">
 				<div className="mb-6">
@@ -36,7 +36,7 @@ function SuccessContent() {
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-border">
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						A confirmation email has been sent to your inbox with your receipt
 						and account details.
 					</p>
@@ -53,7 +53,7 @@ export default function SuccessPage() {
 				<PageLayout
 					showNavbar={false}
 					className="gradient-authority"
-					containerClass="flex items-center justify-center min-h-screen"
+					containerClass="flex-center min-h-screen"
 				>
 					<div className="animate-spin rounded-full size-12 border-b-2 border-primary"></div>
 				</PageLayout>

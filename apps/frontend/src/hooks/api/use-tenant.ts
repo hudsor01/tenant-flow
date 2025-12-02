@@ -20,7 +20,6 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	Tenant,
 	TenantInput,
@@ -104,47 +103,29 @@ export function useAllTenants() {
 	const queryClient = useQueryClient()
 
 	return useQuery({
-		queryKey: tenantQueries.lists(),
-		queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-			try {
-				const response =
-					await clientFetch<TenantWithLeaseInfo[]>('/api/v1/tenants')
+		...tenantQueries.allTenants(),
+		select: response => {
+			// Prefetch individual tenant details only if not already cached
+			// This prevents overwriting fresher detail data with potentially stale list data
+			response.forEach(tenant => {
+				const existingDetail = queryClient.getQueryData(
+					tenantQueries.detail(tenant.id).queryKey
+				)
+				const existingWithLease = queryClient.getQueryData(
+					tenantQueries.withLease(tenant.id).queryKey
+				)
 
-				// Prefetch individual tenant details only if not already cached
-				// This prevents overwriting fresher detail data with potentially stale list data
-				response.forEach(tenant => {
-					const existingDetail = queryClient.getQueryData(
-						tenantQueries.detail(tenant.id).queryKey
-					)
-					const existingWithLease = queryClient.getQueryData(
-						tenantQueries.withLease(tenant.id).queryKey
-					)
-
-					// Only set if no existing data (avoids race condition where detail is fresher)
-					if (!existingDetail) {
+				// Only set if no existing data (avoids race condition where detail is fresher)
+				if (!existingDetail) {
 					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
 				}
 				if (!existingWithLease) {
 					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
 				}
-				})
+			})
 
-				return response
-			} catch (error) {
-				logger.error(
-					'Failed to fetch tenant list',
-					{ action: 'useAllTenants' },
-					error
-				)
-				throw error
-			}
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 30 * 60 * 1000, // Keep 30 minutes for dropdown data
-		retry: 3, // Retry up to 3 times
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
-		// Enable structural sharing to prevent re-renders when data hasn't changed
-		structuralSharing: true
+			return response
+		}
 	})
 }
 
@@ -303,12 +284,8 @@ export function useTenantOperations() {
  */
 export function useTenantPolling(id: string, interval: number = 30000) {
 	return useQuery({
-		queryKey: [...tenantQueries.detail(id).queryKey, 'polling'],
-		queryFn: () => clientFetch<Tenant>(`/api/v1/tenants/${id}`),
-		enabled: !!id,
-		refetchInterval: interval,
-		refetchIntervalInBackground: false,
-		staleTime: 0 // Always refetch on interval
+		...tenantQueries.polling(id),
+		refetchInterval: interval
 	})
 }
 
@@ -620,19 +597,7 @@ export function useResendInvitation() {
  * Hook to fetch notification preferences for a tenant
  */
 export function useNotificationPreferences(tenant_id: string) {
-	return useQuery({
-		queryKey: [...tenantQueries.detail(tenant_id).queryKey, 'notification-preferences'] as const,
-		queryFn: () =>
-			clientFetch<{
-				emailNotifications: boolean
-				smsNotifications: boolean
-				maintenanceUpdates: boolean
-				paymentReminders: boolean
-			}>(`/api/v1/tenants/${tenant_id}/notification-preferences`),
-		enabled: !!tenant_id,
-		...QUERY_CACHE_TIMES.DETAIL,
-		gcTime: 10 * 60 * 1000 // 10 minutes
-	})
+	return useQuery(tenantQueries.notificationPreferences(tenant_id))
 }
 
 /**

@@ -16,10 +16,10 @@ export const getLeaseStatusLabel = (status: LeaseStatus): string => {
 
 export const getLeaseStatusColor = (status: LeaseStatus): string => {
 	const colors: Record<LeaseStatus, string> = {
-		DRAFT: 'bg-gray-100 text-gray-800',
-		ACTIVE: 'bg-green-100 text-green-800',
-		EXPIRED: 'bg-red-100 text-red-800',
-		TERMINATED: 'bg-orange-100 text-orange-800'
+		DRAFT: 'bg-muted text-muted-foreground border-border',
+		ACTIVE: 'bg-success/10 text-success-foreground border-success/20',
+		EXPIRED: 'bg-destructive/10 text-destructive-foreground border-destructive/20',
+		TERMINATED: 'bg-warning/10 text-warning-foreground border-warning/20'
 	}
-	return colors[status] || 'bg-gray-100 text-gray-800'
+	return colors[status] || 'bg-muted text-muted-foreground border-border'
 }

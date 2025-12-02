@@ -18,12 +18,12 @@ export const getPriorityLabel = (priority: Priority): string => {
 
 export const getPriorityColor = (priority: Priority): string => {
 	const colors: Record<Priority, string> = {
-		LOW: 'bg-green-100 text-green-800',
-		MEDIUM: 'bg-yellow-100 text-yellow-800',
-		HIGH: 'bg-orange-100 text-orange-800',
-		URGENT: 'bg-red-100 text-red-800'
+		LOW: 'bg-success/10 text-success-foreground border-success/20',
+		MEDIUM: 'bg-warning/10 text-warning-foreground border-warning/20',
+		HIGH: 'bg-warning/10 text-warning-foreground border-warning/20',
+		URGENT: 'bg-destructive/10 text-destructive-foreground border-destructive/20'
 	}
-	return colors[priority] || 'bg-gray-100 text-gray-800'
+	return colors[priority] || 'bg-muted text-muted-foreground border-border'
 }
 
 export const getRequestStatusLabel = (status: RequestStatus): string => {
@@ -40,12 +40,12 @@ export const getRequestStatusLabel = (status: RequestStatus): string => {
 
 export const getRequestStatusColor = (status: RequestStatus): string => {
 	const colors: Record<RequestStatus, string> = {
-		OPEN: 'bg-yellow-100 text-yellow-800',
-		IN_PROGRESS: 'bg-blue-100 text-blue-800',
-		COMPLETED: 'bg-green-100 text-green-800',
-		CANCELED: 'bg-gray-100 text-gray-800',
-		ON_HOLD: 'bg-orange-100 text-orange-800',
-		CLOSED: 'bg-green-100 text-green-800'
+		OPEN: 'bg-warning/10 text-warning-foreground border-warning/20',
+		IN_PROGRESS: 'bg-info/10 text-info-foreground border-info/20',
+		COMPLETED: 'bg-success/10 text-success-foreground border-success/20',
+		CANCELED: 'bg-muted text-muted-foreground border-border',
+		ON_HOLD: 'bg-warning/10 text-warning-foreground border-warning/20',
+		CLOSED: 'bg-success/10 text-success-foreground border-success/20'
 	}
-	return colors[status] || 'bg-gray-100 text-gray-800'
+	return colors[status] || 'bg-muted text-muted-foreground border-border'
 }

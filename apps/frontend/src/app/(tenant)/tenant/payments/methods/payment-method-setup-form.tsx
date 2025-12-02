@@ -1,30 +1,24 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Button } from '#components/ui/button'
+import { Spinner } from '#components/ui/loading-spinner'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	AddressElement,
 	Elements,
 	LinkAuthenticationElement,
 	PaymentElement,
-	PaymentRequestButtonElement,
 	useElements,
 	useStripe
 } from '@stripe/react-stripe-js'
-import type {
-	PaymentRequest,
-	StripeElementsOptions,
-	StripeError
-} from '@stripe/stripe-js'
+import type { StripeElementsOptions, StripeError } from '@stripe/stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-import { Button } from '#components/ui/button'
 
 const logger = createLogger({ component: 'PaymentMethodSetupForm' })
 
-// Use process.env directly - validated at build time
+// Load Stripe outside component render per official docs
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface PaymentMethodSetupFormProps {
@@ -49,178 +43,158 @@ function SetupForm({
 	const [isLoading, setIsLoading] = useState(true)
 	const [elementReady, setElementReady] = useState(false)
 	const [error, setError] = useState<string | null>(null)
-	const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
-		null
-	)
-	const [canMakePayment, setCanMakePayment] = useState(false)
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
+	// Ref to track component mount state for async operations
+	const isMountedRef = useRef(true)
+	// Ref for AbortController to cancel fetch requests on unmount
+	const abortControllerRef = useRef<AbortController | null>(null)
+	// Ref for stable callback reference
+	const onSuccessRef = useRef(onSuccess)
+	const onErrorRef = useRef(onError)
 
-		if (!stripe || !elements) {
-			toast.error('Stripe not loaded')
-			return
-		}
-
-		setIsProcessing(true)
-		setError(null)
-
-		try {
-			// Step 1: Submit the form data for validation
-			const { error: submitError } = await elements.submit()
-			if (submitError) {
-				setError(submitError.message || 'Please check your payment information')
-				setIsProcessing(false)
-				return
-			}
-
-			// Step 2: Create payment method directly using collected data
-			const { paymentMethod, error: createError } =
-				await stripe.createPaymentMethod({
-					elements,
-					params: {
-						billing_details: {
-							// Address details will be automatically included from Address Element
-							// Email will be automatically included from Link Authentication Element
-						}
-					}
-				})
-
-			if (createError) {
-				let errorMessage = 'Failed to create payment method'
-				const stripeError = createError as StripeError
-				switch (stripeError.type) {
-					case 'card_error':
-						errorMessage = stripeError.message || 'Card error occurred'
-						break
-					case 'validation_error':
-						errorMessage =
-							stripeError.message || 'Please check your payment information'
-						break
-					case 'invalid_request_error':
-						errorMessage = 'Invalid payment request. Please try again.'
-						logger.error('Invalid request error', { error: stripeError })
-						break
-					default:
-						errorMessage = stripeError.message || errorMessage
-						logger.error('Payment method creation error', {
-							error: stripeError
-						})
-				}
-				setError(errorMessage)
-				onError?.(new Error(errorMessage))
-				setIsProcessing(false)
-				return
-			}
-
-			if (!paymentMethod) {
-				const message =
-					'Payment method creation failed - no payment method returned'
-				setError(message)
-				onError?.(new Error(message))
-				setIsProcessing(false)
-				return
-			}
-
-			// Step 3: Attach payment method to customer via backend
-			const attachResponse = await fetch(
-				'/api/v1/stripe/attach-tenant-payment-method',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-						// Include auth headers as needed
-					},
-					body: JSON.stringify({
-						payment_method_id: paymentMethod.id,
-						set_as_default: true // Set as default for new payment methods
-					})
-				}
-			)
-
-			const attachResult = await attachResponse.json()
-
-			if (!attachResult.success) {
-				setError(attachResult.error || 'Failed to save payment method')
-				onError?.(
-					new Error(attachResult.error || 'Failed to save payment method')
-				)
-				setIsProcessing(false)
-				return
-			}
-
-			toast.success('Payment method saved successfully')
-			onSuccess(paymentMethod.id)
-		} catch (err) {
-			const error = err as Error
-			const message = error.message || 'An unexpected error occurred'
-			setError(message)
-			toast.error(message)
-			onError?.(error)
-		} finally {
-			setIsProcessing(false)
-		}
-	}
-
-	// Initialize Payment Request for Apple Pay / Google Pay
+	// Keep refs updated without triggering effects
 	useEffect(() => {
-		if (!stripe) return
+		onSuccessRef.current = onSuccess
+		onErrorRef.current = onError
+	}, [onSuccess, onError])
 
-		const pr = stripe.paymentRequest({
-			country: 'US',
-			currency: 'usd',
-			total: {
-				label: 'Payment Method Setup',
-				amount: 0 // $0 for setup
-			},
-			requestPayerName: true,
-			requestPayerEmail: true
-		})
+	// Cleanup on unmount
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+			// Abort any pending requests
+			abortControllerRef.current?.abort()
+		}
+	}, [])
 
-		pr.canMakePayment().then(result => {
-			setCanMakePayment(!!result)
-		})
+	const handleSubmit = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault()
 
-		pr.on('paymentmethod', async event => {
-			// Handle the payment method creation from wallet
+			// Guard: Stripe not loaded
+			if (!stripe || !elements) {
+				toast.error('Payment form not ready. Please wait.')
+				return
+			}
+
+			// Guard: Already processing
+			if (isProcessing) return
+
+			setIsProcessing(true)
+			setError(null)
+
+			// Create new AbortController for this submission
+			abortControllerRef.current?.abort()
+			const abortController = new AbortController()
+			abortControllerRef.current = abortController
+
 			try {
-				// Attach the payment method to customer
+				// Step 1: Submit the form data for validation
+				const { error: submitError } = await elements.submit()
+				if (submitError) {
+					if (!isMountedRef.current) return
+					setError(submitError.message || 'Please check your payment information')
+					setIsProcessing(false)
+					return
+				}
+
+				// Step 2: Create payment method using collected data
+				const { paymentMethod, error: createError } =
+					await stripe.createPaymentMethod({
+						elements,
+						params: {
+							billing_details: {
+								// Address and email auto-included from Elements
+							}
+						}
+					})
+
+				// Check if aborted or unmounted
+				if (abortController.signal.aborted || !isMountedRef.current) return
+
+				if (createError) {
+					const errorMessage = getStripeErrorMessage(createError)
+					setError(errorMessage)
+					onErrorRef.current?.(new Error(errorMessage))
+					setIsProcessing(false)
+					return
+				}
+
+				if (!paymentMethod) {
+					const message = 'Payment method creation failed'
+					setError(message)
+					onErrorRef.current?.(new Error(message))
+					setIsProcessing(false)
+					return
+				}
+
+				// Step 3: Attach payment method to customer via backend
 				const attachResponse = await fetch(
 					'/api/v1/stripe/attach-tenant-payment-method',
 					{
 						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
+						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
-							payment_method_id: event.paymentMethod.id,
+							payment_method_id: paymentMethod.id,
 							set_as_default: true
-						})
+						}),
+						signal: abortController.signal
 					}
 				)
 
+				// Check if aborted or unmounted
+				if (abortController.signal.aborted || !isMountedRef.current) return
+
 				const attachResult = await attachResponse.json()
 
-				if (attachResult.success) {
-					toast.success('Payment method saved successfully')
-					onSuccess(event.paymentMethod.id)
-					event.complete('success')
-				} else {
-					toast.error('Failed to save payment method')
-					event.complete('fail')
+				if (!attachResult.success) {
+					const message = attachResult.error || 'Failed to save payment method'
+					setError(message)
+					onErrorRef.current?.(new Error(message))
+					setIsProcessing(false)
+					return
 				}
-			} catch {
-				toast.error('Failed to save payment method')
-				event.complete('fail')
-			}
-		})
 
-		setPaymentRequest(pr)
-	}, [stripe, onSuccess])
+				// Success
+				toast.success('Payment method saved successfully')
+				onSuccessRef.current(paymentMethod.id)
+			} catch (err) {
+				// Ignore abort errors
+				if (err instanceof Error && err.name === 'AbortError') return
+				if (!isMountedRef.current) return
+
+				const error = err instanceof Error ? err : new Error('An unexpected error occurred')
+				setError(error.message)
+				toast.error(error.message)
+				onErrorRef.current?.(error)
+			} finally {
+				if (isMountedRef.current) {
+					setIsProcessing(false)
+				}
+			}
+		},
+		[stripe, elements, isProcessing]
+	)
+
+	const handleElementReady = useCallback(() => {
+		if (isMountedRef.current) {
+			setIsLoading(false)
+			setElementReady(true)
+		}
+	}, [])
+
+	const handleLoadError = useCallback((message: string) => {
+		if (isMountedRef.current) {
+			logger.error('Element failed to load', { message })
+			toast.error(message)
+			setIsLoading(false)
+		}
+	}, [])
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
-			{/* Stripe's pre-built Payment Element - handles card + ACH + validation */}
+			{/* Stripe PaymentElement - handles card + ACH + validation */}
 			<PaymentElement
 				options={{
 					layout: {
@@ -228,243 +202,84 @@ function SetupForm({
 						defaultCollapsed: false,
 						spacedAccordionItems: true
 					},
-					paymentMethodOrder: ['card', 'us_bank_account'], // Modern: Support both card and ACH
+					paymentMethodOrder: ['card', 'us_bank_account'],
 					fields: {
 						billingDetails: {
-							name: 'never', // Handled by Address Element
-							email: 'never', // Handled by Link Authentication Element
+							name: 'never',
+							email: 'never',
 							phone: 'never',
-							address: 'never' // Handled by Address Element
+							address: 'never'
 						}
 					},
 					wallets: {
 						applePay: 'auto',
 						googlePay: 'auto'
 					},
-					terms: {
-						applePay: 'never',
-						googlePay: 'never'
-						// Link terms are shown automatically when needed
-					},
 					business: {
 						name: 'TenantFlow'
 					}
 				}}
-				onReady={() => {
-					setIsLoading(false)
-					setElementReady(true)
-				}}
-				onLoadError={event => {
-					logger.error('Payment Element failed to load', { event })
-					toast.error('Failed to load payment form')
-					setIsLoading(false)
-				}}
-				onLoaderStart={() => {
-					setIsLoading(true)
-				}}
-				onChange={event => {
-					// Handle form validation state changes if needed
-					if (event.complete) {
-						// Form is complete and valid
-					}
-				}}
+				onReady={handleElementReady}
+				onLoadError={() => handleLoadError('Failed to load payment form')}
+				onLoaderStart={() => setIsLoading(true)}
 			/>
 
-			<div className="space-y-4">
-				<div className="space-y-2">
-					<label className="text-sm font-medium text-foreground">
-						Email address
-					</label>
-					<LinkAuthenticationElement
-						options={{
-							defaultValues: {
-								email: '' // Could be pre-filled if we have user email
-							}
-						}}
-						onChange={event => {
-							logger.info('Link Authentication changed', {
-								complete: event.complete,
-								empty: event.empty,
-								value: event.value
-							})
-							// Email value is available in event.value.email
-						}}
-						onReady={() => {
-							logger.info('Link Authentication Element ready')
-						}}
-						onFocus={() => {
-							logger.info('Link Authentication Element focused')
-						}}
-						onBlur={() => {
-							logger.info('Link Authentication Element blurred')
-						}}
-						onEscape={() => {
-							logger.info('Link Authentication Element escape pressed')
-						}}
-						onLoadError={event => {
-							logger.error('Link Authentication Element load error', {
-						error: event.error
-					})
-							setError('Failed to load email authentication')
-						}}
-					/>
-					<p className="text-xs text-muted-foreground">
-						Enter your email to save and reuse your payment method with Link
-					</p>
-				</div>
+			{/* Email with Link authentication */}
+			<div className="space-y-2">
+				<label className="text-sm font-medium text-foreground">
+					Email address
+				</label>
+				<LinkAuthenticationElement
+					options={{ defaultValues: { email: '' } }}
+					onLoadError={() => handleLoadError('Failed to load email form')}
+				/>
+				<p className="text-xs text-muted-foreground">
+					Enter your email to save and reuse your payment method with Link
+				</p>
 			</div>
 
-			{/* Payment Request Button - Apple Pay / Google Pay */}
-			{canMakePayment && paymentRequest && (
-				<div className="space-y-4">
-					<div className="relative">
-						<div className="absolute inset-0 flex items-center">
-							<span className="w-full border-t" />
-						</div>
-						<div className="relative flex justify-center text-xs uppercase">
-							<span className="bg-background px-2 text-muted-foreground">
-								Or pay with
-							</span>
-						</div>
-					</div>
-					<PaymentRequestButtonElement
-						options={{
-							paymentRequest,
-							style: {
-								paymentRequestButton: {
-									type: 'default',
-									theme: 'dark',
-									height: '40px'
-								}
-							}
-						}}
-						onReady={() => {
-							logger.info('Payment Request Button ready')
-						}}
-						onClick={event => {
-							logger.info('Payment Request Button clicked', { event })
-						}}
-					/>
-				</div>
-			)}
-
-			{/* Address Element - for enhanced billing address collection */}
-			<div className="space-y-4">
-				<div className="space-y-2">
-					<label className="text-sm font-medium text-foreground">
-						Billing address
-					</label>
-					<AddressElement
-						options={{
-							mode: 'billing',
-							allowedCountries: [
-								'US',
-								'CA',
-								'GB',
-								'AU',
-								'DE',
-								'FR',
-								'IT',
-								'ES',
-								'NL',
-								'BE',
-								'AT',
-								'CH',
-								'SE',
-								'NO',
-								'DK',
-								'FI',
-								'IE',
-								'PT',
-								'LU',
-								'MT',
-								'CY',
-								'SI',
-								'SK',
-								'EE',
-								'LV',
-								'LT',
-								'HR',
-								'HU',
-								'CZ',
-								'PL',
-								'RO',
-								'BG',
-								'GR',
-								'IS',
-								'LI',
-								'MC',
-								'SM',
-								'VA',
-								'AD',
-								'GI',
-								'GG',
-								'IM',
-								'JE',
-								'FO',
-								'GL',
-								'AX'
-							], // Major countries + EU
-							blockPoBox: true,
-							fields: {
-								phone: 'never' // We collect email separately
-							},
-							display: {
-								name: 'full'
-							}
-						}}
-						onChange={event => {
-							logger.info('Address Element changed', {
-								complete: event.complete,
-								empty: event.empty,
-								value: event.value
-							})
-							// Address data available in event.value
-						}}
-						onReady={() => {
-							logger.info('Address Element ready')
-						}}
-						onFocus={() => {
-							logger.info('Address Element focused')
-						}}
-						onBlur={() => {
-							logger.info('Address Element blurred')
-						}}
-						onEscape={() => {
-							logger.info('Address Element escape pressed')
-						}}
-						onLoadError={event => {
-							logger.error('Address Element load error', { error: event.error })
-							setError('Failed to load address form')
-						}}
-					/>
-					<p className="text-xs text-muted-foreground">
-						Required for billing and compliance. Supports international
-						addresses.
-					</p>
-				</div>
+			{/* Billing Address */}
+			<div className="space-y-2">
+				<label className="text-sm font-medium text-foreground">
+					Billing address
+				</label>
+				<AddressElement
+					options={{
+						mode: 'billing',
+						allowedCountries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR'],
+						blockPoBox: true,
+						fields: { phone: 'never' },
+						display: { name: 'full' }
+					}}
+					onLoadError={() => handleLoadError('Failed to load address form')}
+				/>
+				<p className="text-xs text-muted-foreground">
+					Required for billing and compliance
+				</p>
 			</div>
 
+			{/* Error Display */}
 			{error && (
-				<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+				<div
+					role="alert"
+					className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
+				>
 					{error}
 				</div>
 			)}
 
+			{/* Loading State */}
 			{isLoading && (
-				<div className="flex items-center justify-center py-4">
+				<div className="flex-center py-4">
 					<Spinner className="size-5 animate-spin" />
-					<span className="ml-2 text-sm text-muted-foreground">
-						Loading payment form...
-					</span>
+					<span className="ml-2 text-muted">Loading payment form...</span>
 				</div>
 			)}
 
+			{/* Submit Button */}
 			<Button
 				type="submit"
-				disabled={
-					isProcessing || !stripe || !elements || isLoading || !elementReady
-				}
+				disabled={isProcessing || !stripe || !elements || isLoading || !elementReady}
 				className="w-full"
 			>
 				{isProcessing ? (
@@ -481,57 +296,52 @@ function SetupForm({
 }
 
 /**
- * PaymentMethodSetupForm - Wrapper component with Elements provider
+ * Extract user-friendly error message from Stripe errors
+ */
+function getStripeErrorMessage(error: StripeError): string {
+	switch (error.type) {
+		case 'card_error':
+			return error.message || 'Card error occurred'
+		case 'validation_error':
+			return error.message || 'Please check your payment information'
+		case 'invalid_request_error':
+			logger.error('Invalid request error', { error })
+			return 'Invalid payment request. Please try again.'
+		default:
+			logger.error('Payment method creation error', { error })
+			return error.message || 'Failed to create payment method'
+	}
+}
+
+/**
+ * PaymentMethodSetupForm - Main component with Elements provider
  *
- * Modern implementation using direct PaymentMethod.create instead of SetupIntent.
- * Supports both card and ACH bank accounts with instant verification.
- *
- * @param onSuccess - Callback when payment method is saved successfully
- * @param onError - Optional error handler
+ * Per Stripe docs: loadStripe is called outside component to avoid
+ * recreating the Stripe object on every render.
  */
 export function PaymentMethodSetupForm({
 	onSuccess,
 	onError
 }: PaymentMethodSetupFormProps) {
 	const options: StripeElementsOptions = {
-		// No clientSecret needed for direct PaymentMethod.create
-		mode: 'setup', // Still use setup mode for payment method collection
-		// Enable fonts for better cross-platform consistency
-		fonts: [
-			{
-				cssSrc:
-					'https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@400;500;600&display=swap'
-			}
-		],
+		mode: 'setup',
 		appearance: {
 			theme: 'stripe',
 			labels: 'floating',
 			variables: {
-				colorPrimary: 'var(--primary)',
-				colorBackground: 'var(--background)',
-				colorText: 'var(--foreground)',
-				colorDanger: 'var(--destructive)',
-				colorTextSecondary: 'var(--muted-foreground)',
-				colorTextPlaceholder: 'var(--muted-foreground)',
-				colorIcon: 'var(--muted-foreground)',
-				colorSuccess: 'var(--primary)',
-				fontFamily: 'var(--font-roboto-flex), system-ui, sans-serif',
+				colorPrimary: 'var(--color-primary)',
+				colorBackground: 'var(--color-background)',
+				colorText: 'var(--color-foreground)',
+				colorDanger: 'var(--color-destructive)',
+				colorTextSecondary: 'var(--color-muted-foreground)',
+				colorTextPlaceholder: 'var(--color-muted-foreground)',
+				fontFamily: 'var(--font-sans), system-ui, sans-serif',
 				fontSizeBase: '14px',
-				fontSizeSm: '12px',
-				fontSizeXs: '11px',
-				fontSizeLg: '16px',
-				fontSizeXl: '18px',
-				fontWeightNormal: '400',
-				fontWeightMedium: '500',
-				fontWeightBold: '600',
 				borderRadius: 'var(--radius)',
-				focusOutline: 'none',
-				focusBoxShadow: '0 0 0 2px var(--ring)',
+				focusBoxShadow: '0 0 0 2px var(--color-ring)',
 				spacingUnit: '4px',
 				spacingGridRow: '16px',
-				spacingGridColumn: '16px',
-				spacingTab: '8px',
-				spacingAccordionItem: '8px'
+				spacingGridColumn: '16px'
 			},
 			rules: {
 				'.Input': {
@@ -539,25 +349,25 @@ export function PaymentMethodSetupForm({
 					transition: 'box-shadow 0.15s ease'
 				},
 				'.Input:focus': {
-					boxShadow: '0 0 0 2px var(--ring)'
+					boxShadow: '0 0 0 2px var(--color-ring)'
 				},
 				'.Tab': {
-					border: '1px solid var(--border)',
-					backgroundColor: 'var(--muted)',
-					color: 'var(--muted-foreground)'
+					border: '1px solid var(--color-border)',
+					backgroundColor: 'var(--color-muted)',
+					color: 'var(--color-muted-foreground)'
 				},
 				'.Tab:hover': {
-					backgroundColor: 'var(--accent)',
-					color: 'var(--accent-foreground)'
+					backgroundColor: 'var(--color-accent)',
+					color: 'var(--color-accent-foreground)'
 				},
 				'.Tab--selected': {
-					backgroundColor: 'var(--primary)',
-					color: 'var(--primary-foreground)'
+					backgroundColor: 'var(--color-primary)',
+					color: 'var(--color-primary-foreground)'
 				},
 				'.AccordionItem': {
-					border: '1px solid var(--border)',
+					border: '1px solid var(--color-border)',
 					borderRadius: 'var(--radius)',
-					backgroundColor: 'var(--card)'
+					backgroundColor: 'var(--color-card)'
 				}
 			}
 		}
@@ -565,7 +375,7 @@ export function PaymentMethodSetupForm({
 
 	return (
 		<Elements stripe={stripePromise} options={options}>
-			<SetupForm onSuccess={onSuccess} {...(onError ? { onError } : {})} />
+			<SetupForm onSuccess={onSuccess} {...(onError && { onError })} />
 		</Elements>
 	)
 }
