@@ -38,9 +38,9 @@ type NavMainItem = {
 	}[]
 }
 
-const ACTIVE_ITEM_CLASSES =
+const active_ITEM_CLASSES =
 	'data-[active=true]:bg-[oklch(0.95_0.03_240)] data-[active=true]:text-primary data-[active=true]:shadow-none'
-const ACTIVE_SUB_ITEM_CLASSES =
+const active_SUB_ITEM_CLASSES =
 	'data-[active=true]:bg-[oklch(0.95_0.03_240)] data-[active=true]:text-primary'
 
 export function NavMain({
@@ -101,7 +101,7 @@ export function NavMain({
 									isActive={pathname === item.url}
 									className={cn(
 										'justify-start gap-3 transition-colors py-2.5',
-										ACTIVE_ITEM_CLASSES
+										active_ITEM_CLASSES
 									)}
 								>
 									<Link href={item.url}>
@@ -161,7 +161,7 @@ function CollapsibleNavItem({
 						isActive={isActive}
 						className={cn(
 							'justify-start gap-3 transition-colors py-2.5',
-							ACTIVE_ITEM_CLASSES,
+							active_ITEM_CLASSES,
 							'data-[state=open]:bg-[oklch(0.97_0.02_240)]'
 						)}
 					>
@@ -191,7 +191,7 @@ function CollapsibleNavItem({
 										isActive={childIsActive}
 										className={cn(
 											'transition-colors py-2 gap-3',
-											ACTIVE_SUB_ITEM_CLASSES
+											active_SUB_ITEM_CLASSES
 										)}
 									>
 										<Link href={child.url}>

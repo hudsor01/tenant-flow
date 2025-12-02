@@ -277,7 +277,7 @@ export interface SecurityErrorContext {
 // STRIPE SUBSCRIPTION TYPES
 
 export type StripeSubscriptionStatus =
-	| 'ACTIVE'
+	| 'active'
 	| 'CANCELED'
 	| 'TRIALING'
 	| 'PAST_DUE'
