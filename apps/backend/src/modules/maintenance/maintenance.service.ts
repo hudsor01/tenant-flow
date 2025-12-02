@@ -258,6 +258,10 @@ export class MaintenanceService {
 				URGENT: 'urgent'
 			}
 
+			if (!createRequest.unit_id) {
+				throw new BadRequestException('unit_id is required')
+			}
+
 			const maintenanceData: Database['public']['Tables']['maintenance_requests']['Insert'] =
 				{
 					requested_by: user_id,
@@ -383,7 +387,7 @@ export class MaintenanceService {
 					'open'
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
-			if (updateRequest.completedDate !== undefined)
+			if (updateRequest.completedDate)
 				updated_data.completed_at = new Date(
 					updateRequest.completedDate
 				).toISOString()

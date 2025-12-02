@@ -512,9 +512,16 @@ export interface TenantPaymentHistoryResponse {
 
 // Subscription types
 export interface CreateRentSubscriptionRequest {
-	lease_id: string
-	payment_method_id: string
-	start_date: string
+	// snake_case fields (API contract)
+	lease_id?: string
+	payment_method_id?: string
+	start_date?: string
+	// camelCase fields (used in services) - required for subscription creation
+	leaseId: string
+	paymentMethodId: string
+	amount: number
+	billingDayOfMonth: number
+	currency?: string
 }
 
 export interface RentSubscriptionResponse {
@@ -530,19 +537,21 @@ export interface RentSubscriptionResponse {
 	created_at?: string
 	updated_at?: string
 	// camelCase aliases used in some components
-	paymentMethodId?: string
-	leaseId?: string
-	tenantId?: string
-	nextChargeDate?: string
-	updatedAt?: string
-	stripeSubscriptionId?: string
-	stripeCustomerId?: string
-	currency?: string
-	billing_day_of_month?: number
-	platformFeePercentage?: number
-	pausedAt?: string
-	canceledAt?: string
-	createdAt?: string
+	paymentMethodId?: string | undefined
+	leaseId?: string | undefined
+	tenantId?: string | undefined
+	ownerId?: string | undefined
+	nextChargeDate?: string | undefined
+	updatedAt?: string | undefined
+	stripeSubscriptionId?: string | undefined
+	stripeCustomerId?: string | undefined
+	currency?: string | undefined
+	billing_day_of_month?: number | undefined
+	billingDayOfMonth?: number | undefined
+	platformFeePercentage?: number | undefined
+	pausedAt?: string | undefined
+	canceledAt?: string | undefined
+	createdAt?: string | undefined
 }
 
 export interface UpdateSubscriptionRequest {
