@@ -547,7 +547,6 @@ export interface RentSubscriptionResponse {
 	stripeCustomerId?: string | undefined
 	currency?: string | undefined
 	billing_day_of_month?: number | undefined
-	billingDayOfMonth?: number | undefined
 	platformFeePercentage?: number | undefined
 	pausedAt?: string | undefined
 	canceledAt?: string | undefined
