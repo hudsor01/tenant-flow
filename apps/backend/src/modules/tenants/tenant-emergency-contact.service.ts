@@ -8,12 +8,11 @@
  * - emergency_contact_relationship
  */
 
-import type {
-	Logger} from '@nestjs/common';
 import {
 	BadRequestException,
 	ForbiddenException,
 	Injectable,
+	Logger,
 	NotFoundException
 } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
