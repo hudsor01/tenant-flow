@@ -17,9 +17,8 @@ import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { TenantPaymentService } from './tenant-payment.service'
-import { TenantInvitationService } from './tenant-invitation.service'
+import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
-import { TenantResendInvitationService } from './tenant-resend-invitation.service'
 
 /**
  * Tenants Module - Refactored with Decomposed Query Services
@@ -37,9 +36,8 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
  * ├─ TenantEmergencyContactService (Contact management)
  * ├─ TenantNotificationPreferencesService (Settings)
  * ├─ TenantPaymentService (Payment queries and analytics)
- * ├─ TenantInvitationService (Invitation SAGA)
- * ├─ TenantInvitationTokenService (Token validation)
- * └─ TenantResendInvitationService (Resend logic)
+ * ├─ TenantPlatformInvitationService (Invitation SAGA)
+ * └─ TenantInvitationTokenService (Token validation)
  *
  * Benefits:
  * - Single Responsibility Principle
@@ -66,9 +64,8 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantPaymentService,
-		TenantInvitationService,
-		TenantInvitationTokenService,
-		TenantResendInvitationService
+		TenantPlatformInvitationService,
+		TenantInvitationTokenService
 	],
 	exports: [
 		// Export query services for direct use if needed
@@ -84,9 +81,8 @@ import { TenantResendInvitationService } from './tenant-resend-invitation.servic
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantPaymentService,
-		TenantInvitationService,
-		TenantInvitationTokenService,
-		TenantResendInvitationService
+		TenantPlatformInvitationService,
+		TenantInvitationTokenService
 	]
 })
 export class TenantsModule {}
