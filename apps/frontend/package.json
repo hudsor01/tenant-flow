@@ -133,6 +133,7 @@
     "@vitejs/plugin-react": "5.1.1",
     "@vitest/coverage-v8": "4.0.13",
     "@vitest/ui": "4.0.13",
+    "baseline-browser-mapping": "2.8.32",
     "eslint": "catalog:default",
     "eslint-config-next": "16.0.3",
     "eslint-plugin-jest-dom": "5.5.0",
