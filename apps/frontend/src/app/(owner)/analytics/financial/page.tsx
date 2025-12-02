@@ -18,7 +18,7 @@ import {
 } from '#components/ui/table'
 import { getFinancialAnalyticsPageData } from '#lib/api/analytics-page'
 import { serverFetch } from '#lib/api/server'
-import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters'
+import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/currency'
 import type {
 	FinancialBreakdownRow,
 	LeaseFinancialInsight

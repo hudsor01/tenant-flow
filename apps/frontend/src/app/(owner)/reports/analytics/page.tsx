@@ -469,9 +469,9 @@ export default function AnalyticsPage() {
 											</tr>
 										</thead>
 										<tbody>
-											{occupancyMetrics.byProperty.map((property, index) => (
+											{occupancyMetrics.byProperty.map((property) => (
 												<tr
-													key={index}
+													key={property.propertyName}
 													className="border-b hover:bg-muted/30 transition-colors"
 												>
 													<td className="p-3 font-medium">

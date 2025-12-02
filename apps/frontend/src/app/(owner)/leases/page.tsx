@@ -38,7 +38,7 @@ import {
 } from '#hooks/api/mutations/lease-mutations'
 import { useLeaseList } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { formatDate } from '#lib/formatters'
+import { formatDate } from '#lib/formatters/date'
 import type { Lease } from '@repo/shared/types/core'
 import {
 	Edit,

@@ -166,8 +166,8 @@ export default function PayRentPage() {
 					{/* Payment Breakdown */}
 					<div className="rounded-lg border p-4 space-y-3">
 						<h3 className="font-semibold">Payment Breakdown</h3>
-						{amountDue?.breakdown.map((item, index) => (
-							<div key={index} className="flex justify-between text-sm">
+						{amountDue?.breakdown.map((item) => (
+							<div key={item.description} className="flex justify-between text-sm">
 								<span className="text-muted-foreground">{item.description}</span>
 								<span>{formatCents(item.amount_cents)}</span>
 							</div>

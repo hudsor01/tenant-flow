@@ -16,7 +16,8 @@ import {
 	useOverduePayments,
 	useProcessLateFees
 } from '#hooks/api/use-late-fees'
-import { formatCurrency, formatDate } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 import {
 	AlertCircle,
 	Calendar,

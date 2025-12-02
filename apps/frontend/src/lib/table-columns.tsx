@@ -202,7 +202,7 @@ export function createActionsColumn<TData extends { id: string }>(
 
 							if (action.href) {
 								return (
-									<DropdownMenuItem key={idx} asChild>
+									<DropdownMenuItem key={action.label} asChild>
 										<Link href={action.href}>{action.label}</Link>
 									</DropdownMenuItem>
 								)
@@ -210,7 +210,7 @@ export function createActionsColumn<TData extends { id: string }>(
 
 							return (
 								<DropdownMenuItem
-									key={idx}
+									key={action.label}
 									onClick={() => action.onClick?.(data)}
 								>
 									{action.label}

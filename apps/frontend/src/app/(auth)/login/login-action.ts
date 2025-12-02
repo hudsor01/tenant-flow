@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
+
 import type { SupabaseJwtPayload } from '@repo/shared/types/auth'
 
 interface LoginActionResponse {
@@ -26,8 +26,8 @@ export async function loginAction(
 	const cookieStore = await cookies()
 
 	const supabase = createServerClient(
-		SUPABASE_URL!,
-		SUPABASE_PUBLISHABLE_KEY!,
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
 		{
 			cookies: {
 				getAll() {

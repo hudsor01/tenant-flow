@@ -8,19 +8,11 @@
 import { z } from 'zod'
 import { emailSchema } from './common.js'
 
-// ============================================================================
-// METADATA SCHEMA (shared across payloads)
-// ============================================================================
-
 /**
  * Metadata can contain lease_id and other arbitrary string values
  * DocuSeal passes through metadata set when creating the submission
  */
 export const docusealMetadataSchema = z.record(z.string(), z.string().optional()).optional()
-
-// ============================================================================
-// FORM.COMPLETED PAYLOAD
-// ============================================================================
 
 /**
  * Payload received when a single submitter completes their signature
@@ -37,10 +29,6 @@ export const formCompletedPayloadSchema = z.object({
 })
 
 export type FormCompletedPayload = z.infer<typeof formCompletedPayloadSchema>
-
-// ============================================================================
-// SUBMISSION.COMPLETED PAYLOAD
-// ============================================================================
 
 /**
  * Individual submitter info within a submission
