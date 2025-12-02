@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ROUTES } from '../../constants/routes'
 import { loginAsOwner, clearSessionCache } from '../../auth-helpers'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
@@ -16,6 +17,7 @@ import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-he
 
 test.describe('Owner Authentication', () => {
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const logger = createLogger({ component: 'OwnerAuthenticationE2E' })
 
   test.beforeEach(() => {
     // Clear session cache to ensure fresh login for each test
@@ -53,7 +55,7 @@ test.describe('Owner Authentication', () => {
     expect(authCookies.length).toBeGreaterThan(0)
 
     // Log cookie names for debugging (not values for security)
-    console.log('Auth cookie names:', authCookies.map((c) => c.name))
+    logger.info('Auth cookie names:', authCookies.map((c) => c.name))
   })
 
   test('should redirect to /dashboard after successful login', async ({ page }) => {
@@ -160,7 +162,7 @@ test.describe('Owner Authentication', () => {
 
     // Verify no console errors
     if (consoleErrors.length > 0) {
-      console.error('Console errors detected:', consoleErrors)
+      logger.error('Console errors detected:', consoleErrors)
     }
     expect(consoleErrors).toHaveLength(0)
   })

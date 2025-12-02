@@ -14,7 +14,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Checkbox } from '#components/ui/checkbox'
 import { Label } from '#components/ui/label'
 import { useSignLeaseAsOwner, useSignLeaseAsTenant } from '#hooks/api/use-lease'

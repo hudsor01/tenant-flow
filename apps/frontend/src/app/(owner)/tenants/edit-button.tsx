@@ -162,7 +162,7 @@ export function TenantEditViewButtons({
 								<Mail className="size-4 text-muted-foreground" />
 								<div>
 									<p className="font-medium">{tenant.email}</p>
-									<p className="text-sm text-muted-foreground">Email Address</p>
+									<p className="text-muted">Email Address</p>
 								</div>
 							</div>
 
@@ -171,7 +171,7 @@ export function TenantEditViewButtons({
 									<Phone className="size-4 text-muted-foreground" />
 									<div>
 										<p className="font-medium">{tenant.phone}</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Phone Number
 										</p>
 									</div>
@@ -183,7 +183,7 @@ export function TenantEditViewButtons({
 									<Phone className="size-4 text-muted-foreground mt-1" />
 									<div>
 										<p className="font-medium">Emergency Contact</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											{tenant.emergency_contact_name}
 										</p>
 									</div>
@@ -193,48 +193,48 @@ export function TenantEditViewButtons({
 
 						{/* Property & Lease Information */}
 						<div className="space-y-4">
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<div className="flex items-center gap-2">
 									<MapPin className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Property</span>
 								</div>
-								<span className="text-sm text-muted-foreground">
+								<span className="text-muted">
 									{tenant.property?.name || 'No Property Assigned'}
 								</span>
 							</div>
 
 							{tenant.currentLease && (
-								<div className="flex items-center justify-between">
+								<div className="flex-between">
 									<div className="flex items-center gap-2">
 										<CreditCard className="size-4 text-muted-foreground" />
 										<span className="text-sm font-medium">Monthly Rent</span>
 									</div>
-									<span className="text-sm text-muted-foreground">
+									<span className="text-muted">
 										$
 										{tenant.currentLease?.rent_amount?.toLocaleString?.() ?? '0'}
 									</span>
 								</div>
 							)}
 
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<div className="flex items-center gap-2">
 									<Calendar className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Tenant Since</span>
 								</div>
-								<span className="text-sm text-muted-foreground">
+								<span className="text-muted">
 									{tenant.created_at
 										? new Date(tenant.created_at).toLocaleDateString()
 										: 'Unknown'}
 								</span>
 							</div>
 
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<div className="flex items-center gap-2">
 									<User className="size-4 text-muted-foreground" />
 									<span className="text-sm font-medium">Status</span>
 								</div>
 								<Badge
-								className="bg-(--chart-1) text-[var(--primary-foreground)]"
+								className="bg-(--chart-1) text-[var(--color-primary-foreground)]"
 							>
 									Active
 								</Badge>

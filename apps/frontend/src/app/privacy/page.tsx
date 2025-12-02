@@ -1,5 +1,5 @@
-import Footer from '#components/layout/footer'
-import { Navbar } from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import { Navbar } from '#components/ui/layout/navbar'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
 			<Navbar />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing pt-32">
 			<h1 className="mb-8 text-4xl font-bold">Privacy Policy</h1>
-			<p className="mb-6 text-sm text-muted-foreground">
+			<p className="mb-6 text-muted">
 				Last Updated: October 5, 2025
 			</p>
 
@@ -421,7 +421,7 @@ export default function PrivacyPage() {
 					</p>
 				</section>
 
-				<div className="mt-12 border-t pt-8 text-sm text-muted-foreground">
+				<div className="mt-12 border-t pt-8 text-muted">
 					<p>
 						This Privacy Policy is effective as of October 5, 2025 and applies
 						to all users of the TenantFlow platform.

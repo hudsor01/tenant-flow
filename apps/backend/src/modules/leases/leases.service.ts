@@ -16,6 +16,7 @@ import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -25,7 +26,26 @@ import {
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService
+	) {}
+
+	/**
+	 * Invalidate lease-related caches
+	 * Uses ZeroCacheService surgical invalidation
+	 */
+	private invalidateLeaseCaches(lease_id?: string, tenant_id?: string): void {
+		if (lease_id) {
+			this.cache.invalidateByEntity('leases', lease_id)
+		}
+		if (tenant_id) {
+			this.cache.invalidateByEntity('tenants', tenant_id)
+		}
+		// Invalidate general lease lists
+		this.cache.invalidate('leases:list')
+		this.logger.debug('Invalidated lease caches', { lease_id, tenant_id })
+	}
 
 	/**
 	 * Get user-scoped Supabase client for direct database access
@@ -429,6 +449,9 @@ export class LeasesService {
 
 			const lease = data as Lease
 
+			// Invalidate lease caches after creation
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
+
 			return lease
 		} catch (error) {
 			this.logger.error('Leases service failed to create lease', {
@@ -523,7 +546,12 @@ export class LeasesService {
 				throw new BadRequestException('Failed to update lease')
 			}
 
-			return data as Lease
+			const lease = data as Lease
+
+			// Invalidate lease caches after update
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
+
+			return lease
 		} catch (error) {
 			// Re-throw ConflictException as-is
 			if (error instanceof ConflictException) {
@@ -578,6 +606,9 @@ export class LeasesService {
 				})
 				throw new BadRequestException('Failed to delete lease')
 			}
+
+			// Invalidate lease caches after deletion
+			this.invalidateLeaseCaches(lease_id, existingLease.primary_tenant_id)
 		} catch (error) {
 			this.logger.error('Leases service failed to remove lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -657,7 +688,12 @@ export class LeasesService {
 				throw new BadRequestException('Failed to renew lease')
 			}
 
-			return data as Lease
+			const lease = data as Lease
+
+			// Invalidate lease caches after renewal
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
+
+			return lease
 		} catch (error) {
 			this.logger.error('Failed to renew lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -734,7 +770,12 @@ export class LeasesService {
 				throw new BadRequestException('Failed to terminate lease')
 			}
 
-			return data as Lease
+			const lease = data as Lease
+
+			// Invalidate lease caches after termination
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
+
+			return lease
 		} catch (error) {
 			this.logger.error('Failed to terminate lease', {
 				error: error instanceof Error ? error.message : String(error),

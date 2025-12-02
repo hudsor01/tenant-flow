@@ -1,8 +1,8 @@
 import { NotFoundException } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { StripeTenantService } from './stripe-tenant.service'
-import type { StripeClientService } from '../../shared/stripe-client.service'
-import type { SupabaseService } from '../../database/supabase.service'
+import { StripeClientService } from '../../shared/stripe-client.service'
+import { SupabaseService } from '../../database/supabase.service'
 
 const createMockStripe = (): jest.Mocked<Stripe> => {
 	const mockStripe = {

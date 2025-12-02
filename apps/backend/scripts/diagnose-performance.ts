@@ -6,7 +6,10 @@
  * Identifies performance bottlenecks (>1000ms)
  */
 
+import { Logger } from '@nestjs/common'
+
 const API_BASE_URL = 'http://localhost:4600'
+const logger = new Logger('PerformanceDiagnostic')
 
 interface EndpointTest {
 	method: string
@@ -72,15 +75,15 @@ async function testEndpoint(endpoint: EndpointTest, authToken?: string): Promise
 }
 
 async function main() {
-	console.log('🔍 PERFORMANCE DIAGNOSTIC TOOL')
-	console.log('=' .repeat(80))
-	console.log('')
+	logger.log('🔍 PERFORMANCE DIAGNOSTIC TOOL')
+	logger.log('='.repeat(80))
+	logger.log('')
 
 	const authToken = process.env.TEST_AUTH_TOKEN || ''
 
 	if (!authToken) {
-		console.log('⚠️  No TEST_AUTH_TOKEN provided - authenticated endpoints will fail')
-		console.log('')
+		logger.warn('⚠️  No TEST_AUTH_TOKEN provided - authenticated endpoints will fail')
+		logger.warn('')
 	}
 
 	const results: TestResult[] = []
@@ -92,41 +95,43 @@ async function main() {
 		const statusIcon = result.status >= 200 && result.status < 300 ? '✅' : '❌'
 		const speedIcon = result.duration > 1000 ? '🐌' : result.duration > 500 ? '⚠️' : '⚡'
 
-		console.log(`${statusIcon} ${speedIcon} [${result.status}] ${result.path}`)
-		console.log(`   ${result.description}`)
-		console.log(`   Duration: ${result.duration}ms`)
+		logger.log(`${statusIcon} ${speedIcon} [${result.status}] ${result.path}`)
+		logger.log(`   ${result.description}`)
+		logger.log(`   Duration: ${result.duration}ms`)
 
 		if (result.error) {
-			console.log(`   Error: ${result.error}`)
+			logger.error(`   Error: ${result.error}`)
 		}
 
-		console.log('')
+		logger.log('')
 	}
 
-	console.log('=' .repeat(80))
-	console.log('SUMMARY')
-	console.log('=' .repeat(80))
+	logger.log('='.repeat(80))
+	logger.log('SUMMARY')
+	logger.log('='.repeat(80))
 
 	const slow = results.filter(r => r.duration > 1000)
 	const medium = results.filter(r => r.duration > 500 && r.duration <= 1000)
 	const fast = results.filter(r => r.duration <= 500)
 
-	console.log(`⚡ Fast (<500ms): ${fast.length}`)
-	console.log(`⚠️  Medium (500-1000ms): ${medium.length}`)
-	console.log(`🐌 SLOW (>1000ms): ${slow.length}`)
-	console.log('')
+	logger.log(`⚡ Fast (<500ms): ${fast.length}`)
+	logger.log(`⚠️  Medium (500-1000ms): ${medium.length}`)
+	logger.log(`🐌 SLOW (>1000ms): ${slow.length}`)
+	logger.log('')
 
 	if (slow.length > 0) {
-		console.log('🚨 PERFORMANCE BOTTLENECKS DETECTED:')
+		logger.warn('🚨 PERFORMANCE BOTTLENECKS DETECTED:')
 		slow.forEach(r => {
-			console.log(`   - ${r.path}: ${r.duration}ms (${r.description})`)
+			logger.warn(`   - ${r.path}: ${r.duration}ms (${r.description})`)
 		})
-		console.log('')
+		logger.log('')
 	}
 
 	const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length
-	console.log(`📊 Average response time: ${Math.round(avgDuration)}ms`)
-	console.log('')
+	logger.log(`📊 Average response time: ${Math.round(avgDuration)}ms`)
+	logger.log('')
 }
-
-main().catch(console.error)
+main().catch(error => {
+	logger.error('Performance diagnostic failed', error instanceof Error ? error.stack : String(error))
+	process.exit(1)
+})

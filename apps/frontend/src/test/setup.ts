@@ -13,7 +13,7 @@
 import { beforeAll, afterAll, afterEach, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { server } from '../../tests/integration/mocks/server'
@@ -75,7 +75,7 @@ beforeAll(async () => {
 		}
 
 		// Get the singleton Supabase client
-		const supabase = getSupabaseClientInstance()
+		const supabase = createClient()
 
 		// Restore the session from tokens stored in temp file
 		const { data, error } = await supabase.auth.setSession({

@@ -3,7 +3,8 @@
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@repo/shared/config/supabase'
+
+import type { SupabaseJwtPayload } from '@repo/shared/types/auth'
 
 interface LoginActionResponse {
 	success: boolean
@@ -25,8 +26,8 @@ export async function loginAction(
 	const cookieStore = await cookies()
 
 	const supabase = createServerClient(
-		SUPABASE_URL!,
-		SUPABASE_PUBLISHABLE_KEY!,
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
 		{
 			cookies: {
 				getAll() {
@@ -56,7 +57,7 @@ export async function loginAction(
 
 	// Get user role from JWT (custom access token hook sets in app_metadata)
 	// SECURITY: Never fall back to user_metadata - it's user-editable!
-	const appMetadata = data.user.app_metadata as import('#types/supabase-metadata').SupabaseAppMetadata
+	const appMetadata = data.user.app_metadata as SupabaseJwtPayload['app_metadata']
 	const userType = appMetadata?.user_type
 
 	if (!userType) {

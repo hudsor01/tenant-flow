@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 
 interface PageDiagnostics {
@@ -15,6 +16,7 @@ interface PageDiagnostics {
 }
 
 const diagnostics: PageDiagnostics[] = []
+const logger = createLogger({ component: 'FullDiagnosticE2E' })
 
 test.describe('Full Application Diagnostic - All Pages & Features', () => {
 	test('comprehensive navigation and bug identification', async ({ page, context }) => {
@@ -29,11 +31,11 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 			const entry = { type: msg.type(), message: msg.text() }
 			consoleMessages.push(entry)
 			if (msg.type() === 'error') {
-				console.log(`[CONSOLE ERROR] ${msg.text()}`)
+				logger.error(`[CONSOLE ERROR] ${msg.text()}`)
 				pageErrors.push(msg.text())
 			}
 			if (msg.type() === 'warning') {
-				console.log(`[CONSOLE WARNING] ${msg.text()}`)
+				logger.warn(`[CONSOLE WARNING] ${msg.text()}`)
 			}
 		})
 
@@ -45,7 +47,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 				method: response.request().method()
 			})
 			if (response.status() >= 400) {
-				console.log(
+				logger.error(
 					`[API ERROR] ${response.request().method()} ${response.url()} - ${response.status()}`
 				)
 			}
@@ -55,16 +57,16 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 		const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 		
-		console.log('\n=== ENVIRONMENT CONFIGURATION ===')
-		console.log(`[ENV] Frontend Base URL: ${baseUrl}`)
-		console.log(`[ENV] API Base URL: ${apiBaseUrl}`)
-		console.log(`[ENV] Node Environment: ${process.env.NODE_ENV || 'development'}`)
+		logger.info('\n=== ENVIRONMENT CONFIGURATION ===')
+		logger.info(`[ENV] Frontend Base URL: ${baseUrl}`)
+		logger.info(`[ENV] API Base URL: ${apiBaseUrl}`)
+		logger.info(`[ENV] Node Environment: ${process.env.NODE_ENV || 'development'}`)
 		
 		// Login first
-		console.log('\n=== AUTHENTICATION ===')
-		console.log('[TEST] Starting login...')
+		logger.info('\n=== AUTHENTICATION ===')
+		logger.info('[TEST] Starting login...')
 		await loginAsOwner(page)
-		console.log('[TEST] Login complete')
+		logger.info('[TEST] Login complete')
 
 		// Define all pages to test
 		const pagesToTest = [
@@ -107,7 +109,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 
 		// Test each page
 		for (const { path, name } of pagesToTest) {
-			console.log(`\n=== TESTING PAGE: ${name.toUpperCase()} (${path}) ===`)
+			logger.info(`\n=== TESTING PAGE: ${name.toUpperCase()} (${path}) ===`)
 
 			const pageData: PageDiagnostics = {
 				page: name,
@@ -127,7 +129,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 				const priorErrorCount = pageErrors.length
 
 				// Navigate to page
-				console.log(`[NAVIGATE] Going to ${path}`)
+				logger.info(`[NAVIGATE] Going to ${path}`)
 				await page.goto(path, { waitUntil: 'domcontentloaded' })
 
 				// Wait for auth and page to be ready
@@ -140,14 +142,14 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 					// Page might redirect if auth fails - that's ok, we'll catch it below
 				}
 
-				console.log(`[NAVIGATE] Arrived at ${path}`)
+				logger.info(`[NAVIGATE] Arrived at ${path}`)
 
 				// Wait for main content
 				try {
 					await expect(page.locator('main')).toBeVisible({ timeout: 5000 })
-					console.log('[RENDER] Main content visible')
+					logger.info('[RENDER] Main content visible')
 				} catch {
-					console.log('[RENDER] Warning: Main content not immediately visible')
+					logger.info('[RENDER] Warning: Main content not immediately visible')
 					pageData.renderingIssues.push('Main content not visible')
 					pageData.status = 'FAIL'
 				}
@@ -158,7 +160,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 					.first()
 					.textContent()
 					.catch(() => 'Unknown')
-				console.log(`[PAGE] Heading: "${heading}"`)
+				logger.info(`[PAGE] Heading: "${heading}"`)
 
 				// Count UI elements
 				const buttons = await page.locator('button').count()
@@ -167,7 +169,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 				const inputs = await page.locator('input, textarea, select').count()
 				const dialogs = await page.locator('[role="dialog"]').count()
 
-				console.log(`[UI] Elements - Buttons: ${buttons}, Forms: ${forms}, Tables: ${tables}, Inputs: ${inputs}, Dialogs: ${dialogs}`)
+				logger.info(`[UI] Elements - Buttons: ${buttons}, Forms: ${forms}, Tables: ${tables}, Inputs: ${inputs}, Dialogs: ${dialogs}`)
 
 				pageData.uiElements = [
 					{ type: 'buttons', count: buttons },
@@ -179,10 +181,10 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 
 				// Test interactive elements if present
 				if (buttons > 0) {
-					console.log('[INTERACTION] Testing button interactions...')
+					logger.info('[INTERACTION] Testing button interactions...')
 					const firstButton = page.locator('button').first()
 					await firstButton.hover()
-					console.log('[INTERACTION] Button hover successful')
+					logger.info('[INTERACTION] Button hover successful')
 				}
 
 				// Collect network requests for this page
@@ -211,16 +213,16 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 						status: r.status
 					}))
 
-				console.log(`[NETWORK] Requests made: ${pageRequests.length}`)
-				console.log(`[API] Endpoints called: ${pageData.apiEndpoints.length}`)
-				console.log(`[ERRORS] Network errors: ${pageData.networkErrors.length}`)
-				console.log(`[ERRORS] Console errors: ${pageData.consoleErrors.length}`)
+				logger.info(`[NETWORK] Requests made: ${pageRequests.length}`)
+				logger.info(`[API] Endpoints called: ${pageData.apiEndpoints.length}`)
+				logger.info(`[ERRORS] Network errors: ${pageData.networkErrors.length}`)
+				logger.info(`[ERRORS] Console errors: ${pageData.consoleErrors.length}`)
 
 				// Take screenshot
 				const screenshotName = `diagnostic-${name.toLowerCase().replace(/ /g, '-')}.png`
 				await page.screenshot({ path: `test-results/${screenshotName}` })
 				pageData.screenshot = screenshotName
-				console.log(`[SCREENSHOT] Saved: ${screenshotName}`)
+				logger.info(`[SCREENSHOT] Saved: ${screenshotName}`)
 
 				// Small delay before next page navigation to allow state cleanup
 				await page.waitForTimeout(200)
@@ -229,7 +231,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 				if (name === 'Properties' || name === 'Units' || name === 'Tenants' || name === 'Leases' || name === 'Maintenance Requests') {
 					// Check for data tables
 					const tableRows = await page.locator('tbody tr, [role="row"]').count()
-					console.log(`[TABLE] Rows found: ${tableRows}`)
+					logger.info(`[TABLE] Rows found: ${tableRows}`)
 					if (tableRows === 0) {
 						pageData.renderingIssues.push('No data found in table (might be expected if empty)')
 					}
@@ -238,7 +240,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 				if (name === 'Dashboard') {
 					// Check for stat cards
 					const statCards = await page.locator('[data-testid*="stat"], .stat-card, [class*="metric"]').count()
-					console.log(`[DASHBOARD] Stat cards: ${statCards}`)
+					logger.info(`[DASHBOARD] Stat cards: ${statCards}`)
 					if (statCards === 0) {
 						pageData.renderingIssues.push('No stat cards visible')
 					}
@@ -248,7 +250,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 					// Check for chart/graph elements
 					const charts = await page.locator('[class*="chart"], [class*="graph"], svg[class*="recharts"]').count()
 					const selectElements = await page.locator('select, [role="combobox"]').count()
-					console.log(`[ANALYTICS] Charts found: ${charts}, Filters: ${selectElements}`)
+					logger.info(`[ANALYTICS] Charts found: ${charts}, Filters: ${selectElements}`)
 					if (charts === 0) {
 						pageData.renderingIssues.push('No charts visible - analytics may not have loaded data')
 					}
@@ -258,7 +260,7 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 					// Check for financial tables or reports
 					const finTables = await page.locator('table, [role="grid"]').count()
 					const finReports = await page.locator('[class*="report"], [class*="statement"], [class*="financial"]').count()
-					console.log(`[FINANCIALS] Tables: ${finTables}, Financial elements: ${finReports}`)
+					logger.info(`[FINANCIALS] Tables: ${finTables}, Financial elements: ${finReports}`)
 					if (finTables === 0 && finReports === 0) {
 						pageData.renderingIssues.push('No financial data displayed - page may not have loaded')
 					}
@@ -268,13 +270,13 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 					// Check for document-related elements
 					const docElements = await page.locator('[class*="document"], [class*="pdf"], [class*="template"]').count()
 					const actionButtons = await page.locator('button').count()
-					console.log(`[DOCUMENTS] Document elements: ${docElements}, Action buttons: ${actionButtons}`)
+					logger.info(`[DOCUMENTS] Document elements: ${docElements}, Action buttons: ${actionButtons}`)
 				}
 
 				diagnostics.push(pageData)
 			} catch (error) {
 				const errorMsg = error instanceof Error ? error.message : String(error)
-				console.log(`[ERROR] Failed to test ${name}: ${errorMsg}`)
+				logger.info(`[ERROR] Failed to test ${name}: ${errorMsg}`)
 				pageData.status = 'FAIL'
 				pageData.renderingIssues.push(errorMsg)
 				diagnostics.push(pageData)
@@ -282,81 +284,81 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 		}
 
 		// ===== DETAILED DIAGNOSTIC REPORT =====
-		console.log('\n' + '='.repeat(100))
-		console.log('COMPREHENSIVE APPLICATION DIAGNOSTIC REPORT')
-		console.log('='.repeat(100))
+		logger.info('\n' + '='.repeat(100))
+		logger.info('COMPREHENSIVE APPLICATION DIAGNOSTIC REPORT')
+		logger.info('='.repeat(100))
 
 		const failedPages = diagnostics.filter((p) => p.status === 'FAIL')
 		const pagesWithErrors = diagnostics.filter((p) => p.consoleErrors.length > 0 || p.networkErrors.length > 0)
 		const totalApiErrors = diagnostics.reduce((sum, p) => sum + p.networkErrors.length, 0)
 		const totalConsoleErrors = diagnostics.reduce((sum, p) => sum + p.consoleErrors.length, 0)
 
-		console.log('\n📊 SUMMARY STATISTICS')
-		console.log(`Total Pages Tested: ${diagnostics.length}`)
-		console.log(`Pages with Status FAIL: ${failedPages.length}`)
-		console.log(`Pages with Issues: ${pagesWithErrors.length}`)
-		console.log(`Total API Errors (4xx/5xx): ${totalApiErrors}`)
-		console.log(`Total Console Errors: ${totalConsoleErrors}`)
+		logger.info('\n📊 SUMMARY STATISTICS')
+		logger.info(`Total Pages Tested: ${diagnostics.length}`)
+		logger.info(`Pages with Status FAIL: ${failedPages.length}`)
+		logger.info(`Pages with Issues: ${pagesWithErrors.length}`)
+		logger.info(`Total API Errors (4xx/5xx): ${totalApiErrors}`)
+		logger.info(`Total Console Errors: ${totalConsoleErrors}`)
 
 		// Detailed breakdown per page
-		console.log('\n📄 DETAILED PAGE BREAKDOWN')
-		console.log('-'.repeat(100))
+		logger.info('\n📄 DETAILED PAGE BREAKDOWN')
+		logger.info('-'.repeat(100))
 
 		diagnostics.forEach((diag) => {
-			console.log(`\n🔹 ${diag.page.toUpperCase()} (${diag.url})`)
-			console.log(`   Status: ${diag.status === 'FAIL' ? '❌ FAILED' : '✅ PASSED'}`)
+			logger.info(`\n🔹 ${diag.page.toUpperCase()} (${diag.url})`)
+			logger.info(`   Status: ${diag.status === 'FAIL' ? '❌ FAILED' : '✅ PASSED'}`)
 
 			if (diag.uiElements.length > 0) {
-				console.log(`   UI Elements:`)
+				logger.info(`   UI Elements:`)
 				diag.uiElements.forEach((el) => {
-					console.log(`     • ${el.type}: ${el.count}`)
+					logger.info(`     • ${el.type}: ${el.count}`)
 				})
 			}
 
 			if (diag.consoleErrors.length > 0) {
-				console.log(`   Console Errors (${diag.consoleErrors.length}):`)
+				logger.info(`   Console Errors (${diag.consoleErrors.length}):`)
 				diag.consoleErrors.slice(0, 3).forEach((err) => {
-					console.log(`     ❌ ${err.substring(0, 100)}`)
+					logger.info(`     ❌ ${err.substring(0, 100)}`)
 				})
 				if (diag.consoleErrors.length > 3) {
-					console.log(`     ... and ${diag.consoleErrors.length - 3} more`)
+					logger.info(`     ... and ${diag.consoleErrors.length - 3} more`)
 				}
 			}
 
 			if (diag.networkErrors.length > 0) {
-				console.log(`   Network Errors (${diag.networkErrors.length}):`)
+				logger.info(`   Network Errors (${diag.networkErrors.length}):`)
 				diag.networkErrors.forEach((err) => {
-					console.log(`     ❌ ${err.method} ${err.endpoint} [${err.status}]`)
+					logger.info(`     ❌ ${err.method} ${err.endpoint} [${err.status}]`)
 				})
 			}
 
 			if (diag.apiEndpoints.length > 0) {
-				console.log(`   API Endpoints Called (${diag.apiEndpoints.length}):`)
+				logger.info(`   API Endpoints Called (${diag.apiEndpoints.length}):`)
 				diag.apiEndpoints.slice(0, 5).forEach((ep) => {
 					const status = ep.status >= 400 ? '❌' : '✅'
-					console.log(`     ${status} ${ep.method} ${ep.endpoint} [${ep.status}]`)
+					logger.info(`     ${status} ${ep.method} ${ep.endpoint} [${ep.status}]`)
 				})
 				if (diag.apiEndpoints.length > 5) {
-					console.log(`     ... and ${diag.apiEndpoints.length - 5} more`)
+					logger.info(`     ... and ${diag.apiEndpoints.length - 5} more`)
 				}
 			}
 
 			if (diag.renderingIssues.length > 0) {
-				console.log(`   Rendering Issues (${diag.renderingIssues.length}):`)
+				logger.info(`   Rendering Issues (${diag.renderingIssues.length}):`)
 				diag.renderingIssues.forEach((issue) => {
-					console.log(`     ⚠️ ${issue}`)
+					logger.info(`     ⚠️ ${issue}`)
 				})
 			}
 
 			if (diag.screenshot) {
-				console.log(`   Screenshot: ${diag.screenshot}`)
+				logger.info(`   Screenshot: ${diag.screenshot}`)
 			}
 		})
 
 		// Critical issues summary
-		console.log('\n' + '='.repeat(100))
-		console.log('🚨 CRITICAL ISSUES & BUGS FOUND')
-		console.log('='.repeat(100))
+		logger.info('\n' + '='.repeat(100))
+		logger.info('🚨 CRITICAL ISSUES & BUGS FOUND')
+		logger.info('='.repeat(100))
 
 		let criticalIssueCount = 0
 
@@ -364,17 +366,17 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 			if (diag.networkErrors.length > 0) {
 				diag.networkErrors.forEach((err) => {
 					criticalIssueCount++
-					console.log(
+					logger.info(
 						`\n[${criticalIssueCount}] ${diag.page} - API ERROR`
 					)
-					console.log(`    ${err.method} ${err.endpoint}`)
-					console.log(`    Status Code: ${err.status}`)
+					logger.info(`    ${err.method} ${err.endpoint}`)
+					logger.info(`    Status Code: ${err.status}`)
 					if (err.status === 404) {
-						console.log(`    → Endpoint not implemented or incorrect route`)
+						logger.info(`    → Endpoint not implemented or incorrect route`)
 					} else if (err.status === 401 || err.status === 403) {
-						console.log(`    → Authentication/Authorization issue`)
+						logger.info(`    → Authentication/Authorization issue`)
 					} else if (err.status >= 500) {
-						console.log(`    → Server error - check backend logs`)
+						logger.info(`    → Server error - check backend logs`)
 					}
 				})
 			}
@@ -382,23 +384,23 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 			if (diag.consoleErrors.length > 0) {
 				diag.consoleErrors.forEach((err) => {
 					criticalIssueCount++
-					console.log(`\n[${criticalIssueCount}] ${diag.page} - CONSOLE ERROR`)
-					console.log(`    ${err.substring(0, 150)}`)
+					logger.info(`\n[${criticalIssueCount}] ${diag.page} - CONSOLE ERROR`)
+					logger.info(`    ${err.substring(0, 150)}`)
 				})
 			}
 
 			if (diag.status === 'FAIL') {
 				diag.renderingIssues.forEach((issue) => {
 					criticalIssueCount++
-					console.log(`\n[${criticalIssueCount}] ${diag.page} - RENDERING ISSUE`)
-					console.log(`    ${issue}`)
+					logger.info(`\n[${criticalIssueCount}] ${diag.page} - RENDERING ISSUE`)
+					logger.info(`    ${issue}`)
 				})
 			}
 		})
 
-		console.log('\n' + '='.repeat(100))
-		console.log(`TOTAL CRITICAL ISSUES FOUND: ${criticalIssueCount}`)
-		console.log('='.repeat(100))
+		logger.info('\n' + '='.repeat(100))
+		logger.info(`TOTAL CRITICAL ISSUES FOUND: ${criticalIssueCount}`)
+		logger.info('='.repeat(100))
 
 		// Assertions
 		expect(failedPages, 'No pages should have FAIL status').toHaveLength(0)

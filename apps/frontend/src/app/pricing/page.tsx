@@ -1,4 +1,4 @@
-import { Navbar } from '#components/layout/navbar'
+import { Navbar } from '#components/ui/layout/navbar'
 import {
 	Accordion,
 	AccordionContent,
@@ -10,7 +10,7 @@ import { ArrowRight, CheckCircle2, Building, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { PricingSection } from './_components/pricing-section'
-import Footer from '#components/layout/footer'
+import Footer from '#components/ui/layout/footer'
 import { env } from '#config/env'
 import { trustIndicatorBadgeClasses, statCardClasses, accordionItemClasses } from '#lib/design-system'
 
@@ -186,7 +186,7 @@ export default async function PricingPage() {
 						</div>
 
 						{/* Trust Indicators Below Pricing */}
-						<div className="flex flex-wrap items-center justify-center gap-(--spacing-6) text-sm text-muted-foreground">
+						<div className="flex flex-wrap items-center justify-center gap-(--spacing-6) text-muted">
 							<div className="flex items-center gap-2">
 								<CheckCircle2 className="h-4 w-4 text-success" />
 								No credit card required
@@ -295,7 +295,7 @@ export default async function PricingPage() {
 									<p className="text-base font-medium text-foreground">
 										Still unsure which plan fits best?
 									</p>
-									<p className="text-sm text-muted-foreground sm:text-base">
+									<p className="text-muted sm:text-base">
 										Our team can walk through your portfolio and recommend the
 										right setup.
 									</p>
@@ -344,7 +344,7 @@ export default async function PricingPage() {
 										<p className="font-medium text-foreground">
 											14-day trial, all features
 										</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Add properties, send invites, test automations—keep
 											everything when you subscribe.
 										</p>
@@ -356,7 +356,7 @@ export default async function PricingPage() {
 										<p className="font-medium text-foreground">
 											Billing that flexes with you
 										</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Switch plans whenever you want. Monthly and annual billing
 											are available on every tier.
 										</p>
@@ -368,7 +368,7 @@ export default async function PricingPage() {
 										<p className="font-medium text-foreground">
 											Guided onboarding
 										</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Our implementation team and resource hub help migrate
 											leases, payments, and documents in days.
 										</p>

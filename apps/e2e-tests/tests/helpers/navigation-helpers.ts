@@ -1,4 +1,7 @@
 import { expect, type Page } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'NavigationHelpers' })
 
 /**
  * Navigation helper utilities for E2E testing
@@ -49,9 +52,9 @@ export async function verifyNoConsoleErrors(page: Page): Promise<void> {
   // Wait a bit for any async errors
   await page.waitForTimeout(1000)
 
-  if (errors.length > 0) {
-    console.error('Console errors detected:', errors)
-  }
+	if (errors.length > 0) {
+		logger.error('Console errors detected:', { metadata: { errors } })
+	}
 
   expect(errors).toHaveLength(0)
 }
@@ -74,9 +77,9 @@ export async function verifyNoNetworkErrors(page: Page): Promise<void> {
   // Wait a bit for any async requests
   await page.waitForTimeout(1000)
 
-  if (failedRequests.length > 0) {
-    console.error('Network errors detected:', failedRequests)
-  }
+	if (failedRequests.length > 0) {
+		logger.error('Network errors detected:', { metadata: { failedRequests } })
+	}
 
   expect(failedRequests).toHaveLength(0)
 }

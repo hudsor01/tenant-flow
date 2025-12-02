@@ -80,14 +80,20 @@ describe('Test Environment Configuration', () => {
 
 		it('should return real database config for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
+		process.env.TEST_DATABASE_URL = 'postgresql://test:test@localhost:5432/postgres'
+		process.env.TEST_DATABASE_HOST = 'localhost'
+		process.env.TEST_DATABASE_NAME = 'postgres'
 
-			const config = getTestDatabaseConfig()
-			expect(config.url).toContain('postgres')
-			expect(config.database).toBe('postgres')
-		})
+		const config = getTestDatabaseConfig()
+		expect(config.url).toContain('postgres')
+		expect(config.database).toBe('postgres')
+	})
 
-		it('should return e2e database config for e2e tests', () => {
-			process.env.TEST_TYPE = 'e2e'
+	it('should return e2e database config for e2e tests', () => {
+		process.env.TEST_TYPE = 'e2e'
+		process.env.E2E_DATABASE_URL = 'postgresql://test:test@localhost:5432/postgres'
+		process.env.E2E_DATABASE_HOST = 'localhost'
+		process.env.E2E_DATABASE_NAME = 'postgres'
 
 			const config = getTestDatabaseConfig()
 			expect(config.url).toContain('postgres')
@@ -169,6 +175,7 @@ describe('Test Environment Configuration', () => {
 
 	describe('getTestEmailConfig', () => {
 		it('should return test email configuration', () => {
+			process.env.TEST_TYPE = 'units'
 			const config = getTestEmailConfig()
 			expect(config.resendApiKey).toBeDefined()
 			expect(typeof config.resendApiKey).toBe('string')

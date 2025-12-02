@@ -93,18 +93,18 @@ describe('ExportService', () => {
 	})
 
 	describe('generatePDF', () => {
-		it('throws error indicating PDF export is disabled', async () => {
-			await expect(
-				service.generatePDF(
-					[
-						{
-							property: 'Oak Villas',
-							metrics: { occupancy: 0.9 }
-						}
-					],
-					'Portfolio Summary'
-				)
-			).rejects.toThrow('PDF export is not currently supported')
+		it('generates a valid PDF buffer from data', async () => {
+			const result = await service.generatePDF(
+				[
+					{
+						property: 'Oak Villas',
+						metrics: { occupancy: 0.9 }
+					}
+				],
+				'Portfolio Summary'
+			)
+			expect(Buffer.isBuffer(result)).toBe(true)
+			expect(result.length).toBeGreaterThan(0)
 		})
 	})
 })

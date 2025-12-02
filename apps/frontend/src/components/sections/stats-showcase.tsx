@@ -55,7 +55,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 			<div className="container px-4 mx-auto relative z-10">
 				<div className="text-center mb-10 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
-						<h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+						<h2 className="text-responsive-display-lg font-bold tracking-tight text-foreground mb-6 leading-tight">
 							Trusted by property managers
 							<span className="text-primary block">nationwide</span>
 						</h2>
@@ -102,7 +102,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 										</div>
 
 										{/* Enhanced description */}
-										<div className="text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+										<div className="text-muted group-hover:text-foreground/80 transition-colors duration-300">
 											{stat.description}
 										</div>
 									</div>

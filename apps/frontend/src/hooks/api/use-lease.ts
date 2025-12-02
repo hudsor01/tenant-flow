@@ -91,8 +91,7 @@ export function useLeaseList(params?: {
  * Hook to fetch expiring leases
  */
 export function useExpiringLeases(daysUntilExpiry: number = 30) {
-	const expiringQuery = leaseQueries.expiring(daysUntilExpiry)
-	return useQuery({ ...expiringQuery, ...QUERY_CACHE_TIMES.DETAIL, retry: 2 })
+	return useQuery(leaseQueries.expiring(daysUntilExpiry))
 }
 
 /**

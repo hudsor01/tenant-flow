@@ -1,4 +1,4 @@
-import { 
+import {
   borderBeamClasses
 } from "#lib/design-system"
 
@@ -27,12 +27,12 @@ export const BorderBeam = ({
 }: BorderBeamProps) => {
   // Color variants
   const colorVariants = {
-    primary: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
-    accent: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
-    rainbow: { from: 'var(--primary)', to: 'var(--accent)' },
-    success: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
-    warning: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
-    danger: { from: 'var(--destructive)', to: 'var(--destructive-foreground)' },
+    primary: { from: 'var(--color-primary)', to: 'var(--color-primary-foreground)' },
+    accent: { from: 'var(--color-accent)', to: 'var(--color-accent-foreground)' },
+    rainbow: { from: 'var(--color-primary)', to: 'var(--color-accent)' },
+    success: { from: 'var(--color-primary)', to: 'var(--color-primary-foreground)' },
+    warning: { from: 'var(--color-accent)', to: 'var(--color-accent-foreground)' },
+    danger: { from: 'var(--color-destructive)', to: 'var(--color-destructive-foreground)' },
   }
 
   const selectedColors = colorVariants[variant]

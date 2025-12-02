@@ -416,7 +416,7 @@ describe('LeasesController', () => {
 		it('should throw BadRequestException when lease is not in draft status', async () => {
 			const lease_id = generateUUID()
 			mockSignatureService.sendForSignature.mockRejectedValue(
-				new BadRequestException('Only draft leases can be sent for signature')
+				new BadRequestException('Only draft leases can be sent for signature.')
 			)
 
 			await expect(
@@ -427,7 +427,7 @@ describe('LeasesController', () => {
 		it('should throw ForbiddenException when user is not the owner', async () => {
 			const lease_id = generateUUID()
 			mockSignatureService.sendForSignature.mockRejectedValue(
-				new ForbiddenException('You do not own this lease')
+				new ForbiddenException('You do not own this lease.')
 			)
 
 			await expect(
@@ -459,7 +459,7 @@ describe('LeasesController', () => {
 		it('should throw BadRequestException when owner already signed', async () => {
 			const lease_id = generateUUID()
 			mockSignatureService.signLeaseAsOwner.mockRejectedValue(
-				new BadRequestException('Owner has already signed this lease')
+				new BadRequestException('Owner has already signed this lease.')
 			)
 
 			await expect(
@@ -491,7 +491,7 @@ describe('LeasesController', () => {
 		it('should throw ForbiddenException when user is not assigned to lease', async () => {
 			const lease_id = generateUUID()
 			mockSignatureService.signLeaseAsTenant.mockRejectedValue(
-				new ForbiddenException('You are not assigned to this lease')
+				new ForbiddenException('You are not assigned to this lease.')
 			)
 
 			await expect(
@@ -502,7 +502,7 @@ describe('LeasesController', () => {
 		it('should throw BadRequestException when lease is not pending signature', async () => {
 			const lease_id = generateUUID()
 			mockSignatureService.signLeaseAsTenant.mockRejectedValue(
-				new BadRequestException('Lease must be pending signature to sign')
+				new BadRequestException('Lease must be pending signature for tenant to sign.')
 			)
 
 			await expect(
@@ -541,7 +541,7 @@ describe('LeasesController', () => {
 		it('should throw NotFoundException when lease not found', async () => {
 			const lease_id = generateUUID()
 			mockSignatureService.getSignatureStatus.mockRejectedValue(
-				new NotFoundException('Lease not found')
+				new NotFoundException('Lease not found.')
 			)
 
 			await expect(
