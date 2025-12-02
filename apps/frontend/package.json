@@ -14,7 +14,8 @@
     "#stores/*": "./src/stores/*",
     "#types/*": "./src/types/*",
     "#providers/*": "./src/providers/*",
-    "#test/*": "./src/test/*"
+    "#test/*": "./src/test/*",
+    "#utils/*": "./src/utils/*"
   },
   "scripts": {
     "dev": "rm -f .next/dev/lock && doppler run -- next dev --webpack",

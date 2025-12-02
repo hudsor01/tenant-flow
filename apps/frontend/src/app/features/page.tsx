@@ -61,7 +61,7 @@ const NotificationList = () => (
 				"New tenant application"
 			].map((notification, i) => (
 				<div
-					key={i}
+					key={notification}
 					className="flex items-center space-x-2 bg-card/90 rounded-lg p-2 shadow-sm animate-fade-in"
 					style={{ animationDelay: `${i * 0.5}s` }}
 				>
@@ -128,7 +128,7 @@ const IntegrationBeam = () => (
 					{ angle: 270, icon: Shield, label: "Auth" }
 				].map(({ angle, icon: Icon, label }, i) => (
 					<div
-						key={i}
+						key={label}
 						className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
 						style={{
 							transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(60px)`
@@ -393,10 +393,10 @@ export default function FeaturesPage() {
 
 										{/* Testimonial dots */}
 										<div className="flex justify-center space-x-2 mt-6">
-											{testimonials.map((_, index) => (
+											{testimonials.map((testimonial, index) => (
 												<button
 													type="button"
-													key={index}
+													key={testimonial.author}
 													onClick={() => setCurrentTestimonial(index)}
 													className={cn(
 														'size-2 rounded-full transition-colors duration-300',

@@ -4,6 +4,7 @@
  */
 
 import { API_BASE_URL } from '#lib/api-config'
+import { createClient } from '#utils/supabase/client'
 import { clientFetch } from '#lib/api/client'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -103,9 +104,7 @@ export function useReports({
 		mutationFn: async (reportId: string): Promise<void> => {
 			// For blob downloads, we can't use clientFetch (it calls .json())
 			// But we still need to add Authorization header manually
-			const supabase = (
-				await import('@repo/shared/lib/supabase-client')
-			).getSupabaseClientInstance()
+			const supabase = createClient()
 
 			// SECURITY FIX: Validate user with getUser() before extracting token
 			const {

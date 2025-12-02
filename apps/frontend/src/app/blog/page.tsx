@@ -149,9 +149,9 @@ export default function BlogPage() {
 									description: 'Real results from property managers',
 									color: 'bg-accent/10 text-accent'
 								}
-							].map((category, index) => (
+							].map((category) => (
 								<Link
-									key={index}
+									key={category.name}
 									href={`/blog/category/${category.name.toLowerCase().replace(' ', '-')}`}
 									className="bg-card p-8 rounded-lg border border-border/50 shadow-md transition-all duration-300 text-center group hover:-translate-y-1"
 								>

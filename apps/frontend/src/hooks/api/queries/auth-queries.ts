@@ -9,10 +9,10 @@ import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { AuthSession } from '@repo/shared/types/auth'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 
 // Create browser client for authentication
-const supabase = getSupabaseClientInstance()
+const supabase = createClient()
 
 /**
  * User type with Stripe integration (from database)

@@ -189,8 +189,8 @@ function CheckoutPageContent() {
 								</div>
 
 								<div className="space-y-2 mb-6">
-									{plan.features.map((feature, index) => (
-										<div key={index} className="flex items-center gap-2">
+									{plan.features.map((feature) => (
+										<div key={feature} className="flex items-center gap-2">
 											<CheckCircle className="size-4 text-success shrink-0" />
 											<span className="text-sm text-foreground">{feature}</span>
 										</div>

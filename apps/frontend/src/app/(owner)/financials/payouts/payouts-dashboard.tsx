@@ -17,7 +17,8 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { Badge } from '#components/ui/badge'
-import { formatCurrency, formatDate } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 
 function getPayoutStatusBadge(status: string) {
 	switch (status) {

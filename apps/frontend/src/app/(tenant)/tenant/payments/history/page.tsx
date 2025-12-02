@@ -15,7 +15,7 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { PaymentHistoryItem, usePaymentHistory } from '#hooks/api/use-payment-history'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCurrency } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 

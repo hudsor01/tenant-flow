@@ -9,13 +9,6 @@
  * - Form components
  * - Data visualization
  */
-
-// TYPOGRAPHY SYSTEM
-
-/**
- * Font families following Tailwind CSS defaults
- * Provides fallbacks for consistent typography rendering
- */
 export const FONT_FAMILIES = {
 	sans: [
 		'ui-sans-serif',

@@ -9,7 +9,7 @@ import { getFieldErrorMessage } from '#lib/utils/form'
 import { useModalStore } from '#stores/modal-store'
 import { authQueryKeys } from '#providers/auth-provider'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,7 +24,6 @@ const logger = createLogger({ component: 'LoginPage' })
 function LoginPageContent() {
 	const [showPassword, setShowPassword] = useState(false)
 	const [authError, setAuthError] = useState<string | null>(null)
-	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
 	const { openModal } = useModalStore()
@@ -45,11 +44,10 @@ function LoginPageContent() {
 		defaultValues: { email: '', password: '' },
 		validators: { onSubmit: loginZodSchema },
 		onSubmit: async ({ value }) => {
-			setIsLoading(true)
 			setAuthError(null)
 
 			try {
-				const supabase = getSupabaseClientInstance()
+				const supabase = createClient()
 				const { data, error } = await supabase.auth.signInWithPassword({
 					email: value.email,
 					password: value.password
@@ -100,7 +98,6 @@ function LoginPageContent() {
 			} catch (error) {
 				const message = error instanceof Error ? error.message : 'Please try again'
 				setAuthError(message)
-				setIsLoading(false)
 			}
 		}
 	})
@@ -108,7 +105,7 @@ function LoginPageContent() {
 	const handleGoogleLogin = async () => {
 		setIsGoogleLoading(true)
 		try {
-			const supabase = getSupabaseClientInstance()
+			const supabase = createClient()
 			const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback`
 
 			const { error } = await supabase.auth.signInWithOAuth({
@@ -169,8 +166,8 @@ function LoginPageContent() {
 										{ value: '$2.4K+', label: 'Saved Per\nProperty' },
 										{ value: '98.7%', label: 'Customer\nSuccess' },
 										{ value: '90 sec', label: 'Support\nResponse' }
-									].map((stat, i) => (
-										<div key={i} className="text-center">
+									].map((stat) => (
+										<div key={stat.value} className="text-center">
 											<div className="text-foreground font-bold mb-1 text-base">
 												{stat.value}
 											</div>
@@ -255,7 +252,7 @@ function LoginPageContent() {
 												value={field.state.value}
 												onChange={(e) => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
-												disabled={isLoading}
+												disabled={form.state.isSubmitting}
 												aria-invalid={field.state.meta.errors.length > 0}
 											/>
 										</InputGroup>
@@ -283,7 +280,7 @@ function LoginPageContent() {
 												value={field.state.value}
 												onChange={(e) => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
-												disabled={isLoading}
+												disabled={form.state.isSubmitting}
 												aria-invalid={field.state.meta.errors.length > 0}
 											/>
 											<InputGroupAddon align="inline-end">
@@ -314,9 +311,9 @@ function LoginPageContent() {
 								type="submit"
 								data-testid="login-button"
 								className="w-full h-11 text-sm font-medium"
-								disabled={isLoading || form.state.isSubmitting}
+								disabled={form.state.isSubmitting}
 							>
-								{isLoading || form.state.isSubmitting ? 'Signing in...' : 'Sign In'}
+								{form.state.isSubmitting ? 'Signing in...' : 'Sign In'}
 							</Button>
 
 							{/* Divider */}

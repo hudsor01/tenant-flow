@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-	formatCurrency,
-	formatNumber,
-	formatDate,
-	formatRelativeDate,
-	formatCents
-} from '..'
+import { formatCurrency, formatNumber, formatCents } from '../currency'
+import { formatDate, formatRelativeDate } from '../date'
 
 describe('date formatters', () => {
 	it('formats dates with short and long styles', () => {

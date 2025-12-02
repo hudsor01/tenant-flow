@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { Mail } from 'lucide-react'
 
 /**
@@ -55,7 +55,7 @@ export default function PostCheckoutPage() {
 			}
 
 			// Send magic link via Supabase OTP
-			const supabase = getSupabaseClientInstance()
+			const supabase = createClient()
 			const { error } = await supabase.auth.signInWithOtp({
 				email: customerEmail,
 				options: {

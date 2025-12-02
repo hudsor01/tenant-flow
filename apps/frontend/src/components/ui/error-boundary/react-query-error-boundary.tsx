@@ -15,14 +15,14 @@ interface ReactQueryErrorBoundaryProps {
   children?: React.ReactNode;
 }
 
-export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = ({
+export function ReactQueryErrorBoundary({
   error,
   resetError,
   title = 'Something went wrong',
   description = 'An error occurred while loading the data. Please try again.',
   showResetButton = true,
   onRetry
-}) => {
+}: ReactQueryErrorBoundaryProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -79,10 +79,10 @@ export const ReactQueryErrorBoundary: React.FC<ReactQueryErrorBoundaryProps> = (
 };
 
 // Higher-order component for wrapping React Query components
-export const withReactQueryErrorBoundary = <P extends object>(
+export function withReactQueryErrorBoundary<P extends object>(
   Component: React.ComponentType<P>
-): React.FC<P> => {
-  const WrappedComponent = (props: P) => {
+) {
+  function WrappedComponent(props: P) {
     return (
       <React.Suspense fallback={<div>Loading...</div>}>
         <ReactQueryErrorBoundary>
@@ -90,10 +90,10 @@ export const withReactQueryErrorBoundary = <P extends object>(
         </ReactQueryErrorBoundary>
       </React.Suspense>
     );
-  };
+  }
   WrappedComponent.displayName = `withReactQueryErrorBoundary(${Component.displayName || Component.name || 'Component'})`;
   return WrappedComponent;
-};
+}
 
 // Hook for handling React Query errors in components
 export const useReactQueryErrorHandler = () => {
@@ -124,12 +124,12 @@ interface FormMutationErrorBoundaryProps {
   children?: React.ReactNode;
 }
 
-export const FormMutationErrorBoundary: React.FC<FormMutationErrorBoundaryProps> = ({
+export function FormMutationErrorBoundary({
   error,
   onRetry,
   onBack,
   errorType = 'unknown'
-}) => {
+}: FormMutationErrorBoundaryProps) {
   const getErrorTitle = () => {
     switch (errorType) {
       case 'validation':

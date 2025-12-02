@@ -11,7 +11,7 @@
  * Single source of truth for all authentication operations
  */
 
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { clientFetch } from '#lib/api/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
@@ -24,7 +24,7 @@ import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-
 import { authQueries, authKeys } from './queries/auth-queries'
 
 // Create browser client for authentication
-const supabase = getSupabaseClientInstance()
+const supabase = createClient()
 
 /**
  * User type with Stripe integration (from database)

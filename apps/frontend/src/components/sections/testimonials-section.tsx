@@ -56,7 +56,7 @@ export function TestimonialsSection({ className }: TestimonialsSectionProps) {
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
 					{testimonials.map((testimonial, index) => (
-						<BlurFade key={index} delay={0.2 + index * 0.1} inView>
+						<BlurFade key={testimonial.author} delay={0.2 + index * 0.1} inView>
 							<div className="relative group h-full">
 								<div className={testimonialCardClasses()}>
 									{/* Quote icon */}

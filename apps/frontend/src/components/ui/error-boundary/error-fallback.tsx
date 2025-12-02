@@ -15,14 +15,14 @@ interface ErrorFallbackProps {
 	onRetry?: () => void
 }
 
-export const ErrorFallback: React.FC<ErrorFallbackProps> = ({
+export function ErrorFallback({
 	error,
 	resetError,
 	title = 'Something went wrong',
 	description = 'An error occurred while loading the data. Please try again.',
 	showResetButton = true,
 	onRetry
-}) => {
+}: ErrorFallbackProps) {
 	const router = useRouter()
 
 	const handleReset = () => {

@@ -830,7 +830,6 @@ export class WebhookProcessor {
 						const attemptCount = paymentIntent.metadata?.attempt_count
 							? parseInt(paymentIntent.metadata.attempt_count, 10)
 							: 1
-						// Use latest_charge instead of deprecated charges.data
 						const latestCharge = paymentIntent.latest_charge
 						const invoiceUrl = latestCharge && typeof latestCharge === 'object' && 'receipt_url' in latestCharge
 							? latestCharge.receipt_url ?? null

@@ -81,38 +81,40 @@ export const ownerDashboardQueries = {
 	analytics: {
 		/**
 		 * Dashboard statistics
+		 * Uses STATS cache (1 min staleTime) with 2 min refresh interval
 		 */
 		stats: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.stats(),
 				queryFn: () => clientFetch<DashboardStats>('/api/v1/owner/analytics/stats'),
-				...QUERY_CACHE_TIMES.SECURITY,
+				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
-				refetchOnMount: true,
+				// Don't refetch on focus when interval handles freshness
+				refetchOnWindowFocus: false,
 				retry: 2,
 				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
 			}),
 
 		/**
 		 * Dashboard activity feed
+		 * Uses STATS cache (1 min staleTime) with 2 min refresh interval
 		 */
 		activity: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.activity(),
 				queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
-				...QUERY_CACHE_TIMES.SECURITY,
+				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
-				refetchOnMount: true,
+				refetchOnWindowFocus: false,
 				retry: 2,
 				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
 			}),
 
 		/**
 		 * Unified dashboard page data
+		 * Uses STATS cache (1 min staleTime) with 2 min refresh interval
 		 */
 		pageData: () =>
 			queryOptions({
@@ -121,10 +123,10 @@ export const ownerDashboardQueries = {
 					stats: DashboardStats
 					activity: ActivityItem[]
 				}>('/api/v1/owner/analytics/page-data'),
-				...QUERY_CACHE_TIMES.SECURITY,
+				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
+				refetchOnWindowFocus: false,
 				retry: 2
 			})
 	},
@@ -174,16 +176,15 @@ export const ownerDashboardQueries = {
 	properties: {
 		/**
 		 * Property performance metrics
+		 * Uses DETAIL cache (5 min staleTime) - no interval needed for detail views
 		 */
 		performance: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.properties.performance(),
 				queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/owner/properties/performance'),
 				...QUERY_CACHE_TIMES.DETAIL,
-				refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
-				refetchOnMount: true,
+				// No refetchInterval - data doesn't change frequently
+				refetchOnWindowFocus: false,
 				retry: 2,
 				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
 			})
@@ -195,6 +196,7 @@ export const ownerDashboardQueries = {
 	financial: {
 		/**
 		 * Billing insights and revenue analytics
+		 * Uses ANALYTICS cache (15 min staleTime) - financial data changes infrequently
 		 */
 		billingInsights: () =>
 			queryOptions({
@@ -206,15 +208,14 @@ export const ownerDashboardQueries = {
 					paidInvoices: number
 					unpaidInvoices: number
 				}>('/api/v1/owner/financial/billing/insights'),
-				...QUERY_CACHE_TIMES.DETAIL,
-				refetchInterval: 5 * 60 * 1000,
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
+				...QUERY_CACHE_TIMES.ANALYTICS,
+				refetchOnWindowFocus: false,
 				retry: 2
 			}),
 
 		/**
 		 * Revenue trends over time
+		 * Uses ANALYTICS cache (15 min staleTime) - historical data rarely changes
 		 */
 		revenueTrends: (year: number = new Date().getFullYear()) =>
 			queryOptions({
@@ -222,10 +223,8 @@ export const ownerDashboardQueries = {
 				queryFn: () => clientFetch<FinancialMetrics[]>(
 					`/api/v1/owner/financial/revenue-trends?year=${year}`
 				),
-				...QUERY_CACHE_TIMES.DETAIL,
-				refetchInterval: 5 * 60 * 1000,
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
+				...QUERY_CACHE_TIMES.ANALYTICS,
+				refetchOnWindowFocus: false,
 				retry: 2
 			})
 	},
@@ -236,6 +235,7 @@ export const ownerDashboardQueries = {
 	maintenance: {
 		/**
 		 * Maintenance analytics
+		 * Uses STATS cache (1 min staleTime) with 5 min interval - maintenance changes more frequently
 		 */
 		analytics: () =>
 			queryOptions({
@@ -248,10 +248,10 @@ export const ownerDashboardQueries = {
 					averageResolutionTime: number
 					urgentRequests: number
 				}>('/api/v1/owner/maintenance/analytics'),
-				...QUERY_CACHE_TIMES.DETAIL,
-				refetchInterval: 5 * 60 * 1000,
+				...QUERY_CACHE_TIMES.STATS,
+				refetchInterval: 5 * 60 * 1000, // 5 min refresh for maintenance updates
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
+				refetchOnWindowFocus: false,
 				retry: 2
 			})
 	},
@@ -262,6 +262,7 @@ export const ownerDashboardQueries = {
 	tenants: {
 		/**
 		 * Occupancy trends and tenant statistics
+		 * Uses LIST cache (10 min staleTime) - tenant data changes infrequently
 		 */
 		occupancyTrends: () =>
 			queryOptions({
@@ -273,10 +274,8 @@ export const ownerDashboardQueries = {
 					averageLeaseLength: number
 					expiringLeases: number
 				}>('/api/v1/owner/tenants/occupancy-trends'),
-				...QUERY_CACHE_TIMES.DETAIL,
-				refetchInterval: 5 * 60 * 1000,
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true,
+				...QUERY_CACHE_TIMES.LIST,
+				refetchOnWindowFocus: false,
 				retry: 2
 			})
 	}

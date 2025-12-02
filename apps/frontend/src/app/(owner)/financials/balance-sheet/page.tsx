@@ -77,10 +77,10 @@ const BalanceSheetPage = () => {
 		<div className="space-y-4">
 			<h3 className="text-lg font-semibold text-muted/900">{title}</h3>
 			<div className="space-y-2">
-				{items.map((item, index) => {
+				{items.map((item) => {
 					return (
 						<div
-							key={index}
+							key={item.name}
 							className="flex-between p-3 bg-muted/50 rounded-lg"
 						>
 							<div className="flex-1">

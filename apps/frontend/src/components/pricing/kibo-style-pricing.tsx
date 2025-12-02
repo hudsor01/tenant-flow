@@ -293,8 +293,8 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 								</CardHeader>
 								<CardContent className="flex-1 space-y-6">
 									<ul className="space-y-[var(--spacing-3)]">
-										{plan.features.map((feature, index) => (
-												<li key={index} className="flex items-start gap-[var(--spacing-3)]">
+										{plan.features.map((feature) => (
+												<li key={feature} className="flex items-start gap-[var(--spacing-3)]">
 												<BadgeCheck className="mt-0.5 size-4 shrink-0 text-primary" />
 												<span className="text-muted">
 													{feature}
@@ -371,10 +371,10 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 								</CardDescription>
 							</CardHeader>
 						<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
-								{plan.features.map((feature, index) => (
+								{plan.features.map((feature) => (
 									<div
 										className="flex gap-[var(--spacing-2)] text-left text-sm leading-6 text-muted-foreground"
-										key={index}
+										key={feature}
 									>
 										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-success" />
 										{feature}

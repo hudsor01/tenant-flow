@@ -1,13 +1,13 @@
 'use client'
 
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle
+} from '#components/ui/crud-dialog'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
@@ -15,11 +15,11 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { Button } from '#components/ui/button'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { useForm } from '@tanstack/react-form'
 import { signupFormSchema } from '@repo/shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useModalStore } from '#stores/modal-store'
 
@@ -38,12 +38,12 @@ export function OwnerSubscribeDialog({
 	planName,
 	planCta
 }: OwnerSubscribeDialogProps) {
-	const { openModal, closeModal, isModalOpen } = useModalStore()
+	const { closeModal } = useModalStore()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const modalId = 'owner-subscribe'
 
-	const supabase = useMemo(() => getSupabaseClientInstance(), [])
+	const supabase = useMemo(() => createClient(), [])
 
 	const form = useForm({
 		defaultValues: {
@@ -137,50 +137,26 @@ export function OwnerSubscribeDialog({
 		}
 	})
 
-	const isOpen = isModalOpen(modalId)
-
-	useEffect(() => {
-		if (!isOpen) {
+	const handleCancel = () => {
+		if (!isSubmitting) {
 			form.reset()
+			closeModal(modalId)
 		}
-	}, [isOpen, form])
-
-	const handleClose = useCallback(
-		(nextOpen: boolean) => {
-			if (!nextOpen && !isSubmitting) {
-				closeModal(modalId)
-			} else if (nextOpen) {
-				openModal(
-					modalId,
-					{},
-					{
-						type: 'dialog',
-						size: 'lg',
-						animationVariant: 'fade',
-						closeOnOutsideClick: true,
-						closeOnEscape: true
-					}
-				)
-			}
-		},
-		[isSubmitting, openModal, closeModal]
-	)
+	}
 
 	return (
-		<>
-			{isModalOpen(modalId) && (
-				<Dialog open={true} onOpenChange={handleClose}>
-					<DialogContent className="max-w-lg">
-						<DialogHeader>
-							<DialogTitle>
-								Join TenantFlow {planName ? `· ${planName}` : ''}
-							</DialogTitle>
-							<DialogDescription>
-								Create your account to kick off checkout. You&apos;ll be
-								redirected to Stripe to securely complete your subscription.
-							</DialogDescription>
-						</DialogHeader>
-						<form
+		<CrudDialog mode="create" modalId={modalId}>
+			<CrudDialogContent className="max-w-lg">
+				<CrudDialogHeader>
+					<CrudDialogTitle>
+						Join TenantFlow {planName ? `· ${planName}` : ''}
+					</CrudDialogTitle>
+					<CrudDialogDescription>
+						Create your account to kick off checkout. You&apos;ll be
+						redirected to Stripe to securely complete your subscription.
+					</CrudDialogDescription>
+				</CrudDialogHeader>
+				<form
 							onSubmit={event => {
 								event.preventDefault()
 								form.handleSubmit()
@@ -352,27 +328,25 @@ export function OwnerSubscribeDialog({
 								</form.Field>
 							</div>
 
-							<DialogFooter>
-								<Button
-									type="button"
-									variant="ghost"
-									onClick={() => handleClose(false)}
-									disabled={isSubmitting}
-								>
-									Cancel
-								</Button>
-								<Button
-									type="submit"
-									disabled={isSubmitting || form.state.isSubmitting}
-								>
-									{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
-								</Button>
-							</DialogFooter>
-						</form>
-					</DialogContent>
-				</Dialog>
-			)}
-		</>
+							<CrudDialogFooter>
+							<Button
+								type="button"
+								variant="ghost"
+								onClick={handleCancel}
+								disabled={isSubmitting}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								disabled={isSubmitting || form.state.isSubmitting}
+							>
+								{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
+							</Button>
+						</CrudDialogFooter>
+					</form>
+				</CrudDialogContent>
+		</CrudDialog>
 	)
 }
 

@@ -2,7 +2,7 @@
  * Client-side API utility for TanStack Query hooks
  * Simplified auth session management with race condition prevention
  */
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
@@ -11,7 +11,7 @@ import { ApiError, ApiErrorCode } from './api-error'
 const logger = createLogger({ component: 'ClientAPI' })
 
 // Mutex for auth session refresh to prevent multiple concurrent refreshes
-let refreshPromise: Promise<Awaited<ReturnType<ReturnType<typeof getSupabaseClientInstance>['auth']['refreshSession']>>> | null = null
+let refreshPromise: Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['refreshSession']>>> | null = null
 
 /**
  * Get auth headers with Supabase JWT token
@@ -25,7 +25,7 @@ export async function getAuthHeaders(
     ? { ...additionalHeaders }
     : { 'Content-Type': 'application/json', ...additionalHeaders }
 
-  const supabase = getSupabaseClientInstance()
+  const supabase = createClient()
 
   // Get user and session
   const { data: { user }, error: userError } = await supabase.auth.getUser()

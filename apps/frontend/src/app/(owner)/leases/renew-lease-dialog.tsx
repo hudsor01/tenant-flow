@@ -29,7 +29,7 @@ interface RenewLeaseDialogProps {
 /**
  * Format currency for display
  */
-import { formatCurrency } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
 
 /**
  * Main dialog component for lease renewal

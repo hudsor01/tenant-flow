@@ -2,12 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	CrudDialog,
+	CrudDialogBody,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle
+} from '#components/ui/crud-dialog'
 import { Label } from '#components/ui/label'
 import {
 	Select,
@@ -19,7 +21,7 @@ import {
 import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
 import { useModalStore } from '#stores/modal-store'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCurrency } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
 import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
@@ -30,7 +32,7 @@ interface PayRentDialogProps {
 }
 
 export function PayRentDialog({ lease }: PayRentDialogProps) {
-	const { closeModal, isModalOpen } = useModalStore()
+	const { closeModal } = useModalStore()
 	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
 		useState<string>('')
 
@@ -94,79 +96,74 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 	}
 
 	return (
-		<>
-			{isModalOpen(modalId) && (
-				<Dialog open={true} onOpenChange={handleCancel}>
-					<DialogContent className="sm:max-w-md">
-						<DialogHeader>
-								<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
-									<CreditCard className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
-								Pay Rent
-							</DialogTitle>
-							<DialogDescription>
-								Make a one-time rent payment for this lease
-							</DialogDescription>
-						</DialogHeader>
+		<CrudDialog mode="create" modalId={modalId}>
+			<CrudDialogContent className="sm:max-w-md">
+				<CrudDialogHeader>
+					<CrudDialogTitle className="flex items-center gap-[var(--spacing-2)]">
+						<CreditCard className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
+						Pay Rent
+					</CrudDialogTitle>
+					<CrudDialogDescription>
+						Make a one-time rent payment for this lease
+					</CrudDialogDescription>
+				</CrudDialogHeader>
 
-						<div className="space-y-[var(--spacing-4)]">
-							{/* Rent Amount Display */}
-							<div className="p-(--spacing-4) bg-muted rounded-lg">
-								<p className="text-muted mb-[var(--spacing-1)]">
-									Rent Amount
-								</p>
-								<p className="text-2xl font-semibold">
-									{formatCurrency(lease.rent_amount)}
-								</p>
-							</div>
+				<CrudDialogBody>
+					{/* Rent Amount Display */}
+					<div className="p-(--spacing-4) bg-muted rounded-lg">
+						<p className="text-muted mb-[var(--spacing-1)]">
+							Rent Amount
+						</p>
+						<p className="text-2xl font-semibold">
+							{formatCurrency(lease.rent_amount)}
+						</p>
+					</div>
 
-							{/* Payment Method Selection */}
-							<div className="space-y-[var(--spacing-2)]">
-								<Label htmlFor="paymentMethod">Payment Method</Label>
-								<Select
-									value={selectedPaymentMethodId}
-									onValueChange={setSelectedPaymentMethodId}
-								>
-									<SelectTrigger>
-										<SelectValue placeholder="Select payment method" />
-									</SelectTrigger>
-									<SelectContent>
-										{paymentMethods?.map(method => (
-											<SelectItem key={method.id} value={method.id}>
-												{method.type === 'card'
-													? `${method.brand} ••••${method.last4}`
-													: `${method.bankName || 'Bank'} ••••${method.last4}`}
-												{method.isDefault && ' (Default)'}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								{!paymentMethods?.length && (
-									<p className="text-muted">
-										No payment methods saved. Please add a payment method first.
-									</p>
-								)}
-							</div>
+					{/* Payment Method Selection */}
+					<div className="space-y-[var(--spacing-2)]">
+						<Label htmlFor="paymentMethod">Payment Method</Label>
+						<Select
+							value={selectedPaymentMethodId}
+							onValueChange={setSelectedPaymentMethodId}
+						>
+							<SelectTrigger>
+								<SelectValue placeholder="Select payment method" />
+							</SelectTrigger>
+							<SelectContent>
+								{paymentMethods?.map(method => (
+									<SelectItem key={method.id} value={method.id}>
+										{method.type === 'card'
+											? `${method.brand} ••••${method.last4}`
+											: `${method.bankName || 'Bank'} ••••${method.last4}`}
+										{method.isDefault && ' (Default)'}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						{!paymentMethods?.length && (
+							<p className="text-muted">
+								No payment methods saved. Please add a payment method first.
+							</p>
+						)}
+					</div>
+				</CrudDialogBody>
 
-							{/* Action Buttons */}
-							<div className="flex justify-end gap-[var(--spacing-2)] pt-[var(--spacing-4)] border-t">
-								<Button type="button" variant="outline" onClick={handleCancel}>
-									Cancel
-								</Button>
-								<Button
-									onClick={handlePayRent}
-									disabled={
-										createPayment.isPending ||
-										!selectedPaymentMethodId ||
-										!paymentMethods?.length
-									}
-								>
-									{createPayment.isPending ? 'Processing...' : 'Pay Now'}
-								</Button>
-							</div>
-						</div>
-					</DialogContent>
-				</Dialog>
-			)}
-		</>
+				<CrudDialogFooter>
+					<Button type="button" variant="outline" onClick={handleCancel}>
+						Cancel
+					</Button>
+					<Button
+						onClick={handlePayRent}
+						disabled={
+							createPayment.isPending ||
+							!selectedPaymentMethodId ||
+							!paymentMethods?.length
+						}
+					>
+						{createPayment.isPending ? 'Processing...' : 'Pay Now'}
+					</Button>
+				</CrudDialogFooter>
+			</CrudDialogContent>
+		</CrudDialog>
 	)
 }

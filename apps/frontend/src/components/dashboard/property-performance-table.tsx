@@ -15,7 +15,7 @@ import {
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
-import { formatCurrency } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
 
 // Inline helpers using CSS classes from globals.css
 const getOccupancyBadgeClass = (rate: number): string => {

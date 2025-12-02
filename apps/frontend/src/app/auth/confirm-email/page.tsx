@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
 import Image from 'next/image'
@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-const supabase = getSupabaseClientInstance()
+const supabase = createClient()
 
 export default function ConfirmEmailPage() {
 	const [isResending, setIsResending] = useState(false)

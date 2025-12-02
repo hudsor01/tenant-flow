@@ -533,9 +533,9 @@ export default function SettingsPage() {
 								{ date: 'Jan 15, 2024', amount: '$99.00', status: 'Paid' },
 								{ date: 'Dec 15, 2023', amount: '$99.00', status: 'Paid' },
 								{ date: 'Nov 15, 2023', amount: '$99.00', status: 'Paid' }
-							].map((invoice, index) => (
+							].map((invoice) => (
 								<div
-									key={index}
+									key={invoice.date}
 									className="flex-between p-3 rounded-lg bg-muted/20"
 								>
 									<div>

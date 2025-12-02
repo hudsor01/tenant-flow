@@ -10,7 +10,8 @@ import { Empty, EmptyHeader, EmptyMedia, EmptyDescription } from '#components/ui
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
 import { useQuery } from '@tanstack/react-query'
-import { formatCurrency, formatDate } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 import {
 	Home,
 	Calendar,
