@@ -27,7 +27,7 @@ describe('LeasesController', () => {
 		end_date: '2024-12-31',
 		rent_amount: 1500.0,
 		security_deposit: 3000.0,
-		lease_status: 'ACTIVE',
+		lease_status: 'active',
 		payment_day: 1,
 		rent_currency: 'USD',
 		auto_pay_enabled: false,
@@ -177,7 +177,7 @@ describe('LeasesController', () => {
 				tenant_id,
 				unit_id,
 				property_id,
-				'ACTIVE',
+				'active',
 				20,
 				10,
 				'start_date',
@@ -188,7 +188,7 @@ describe('LeasesController', () => {
 				tenant_id,
 				unit_id,
 				property_id,
-				status: 'ACTIVE',
+				status: 'active',
 				limit: 20,
 				offset: 10,
 				sortBy: 'start_date',
@@ -299,7 +299,7 @@ describe('LeasesController', () => {
 			const updateRequest = {
 				rent_amount: 1600.0,
 				security_deposit: 3200.0,
-				status: 'ACTIVE' as const
+				status: 'active' as const
 			}
 			const mockLease = createMockLease({ ...updateRequest })
 			mockLeasesService.update.mockResolvedValue(mockLease)
@@ -355,7 +355,7 @@ describe('LeasesController', () => {
 		it('should terminate lease with reason', async () => {
 			const lease_id = generateUUID()
 			const reason = 'Tenant violation'
-			const mockLease = createMockLease({ lease_status: 'TERMINATED' })
+			const mockLease = createMockLease({ lease_status: 'terminated' })
 			mockLeasesService.terminate.mockResolvedValue(mockLease)
 
 			const result = await controller.terminate(

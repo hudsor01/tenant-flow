@@ -146,7 +146,7 @@ describe('LeasesService', () => {
         end_date: '2026-01-01',
         rent_amount: 1000,
         security_deposit: 500,
-        status: 'DRAFT' as const
+        status: 'draft' as const
       };
 
       const result = await leasesService.create('mock-jwt-token', createLeaseDto as any);

@@ -340,7 +340,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				id: property_id,
 				name: 'Updated Property',
 				property_type: 'townhouse',
-				status: 'ACTIVE'
+				status: 'active'
 			}
 
 			propertiesService.update.mockResolvedValue(mockUpdatedProperty as any)

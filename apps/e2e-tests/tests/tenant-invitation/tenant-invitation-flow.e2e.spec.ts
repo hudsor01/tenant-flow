@@ -199,7 +199,7 @@ test.describe('Tenant Invitation Flow', () => {
 		const authHeaders = await getAuthHeaders(page)
 		const response = await page.request.get(`${API_URL}/api/v1/tenants/${tenant_id}`, { headers: authHeaders })
 		const tenant = await response.json()
-		expect(tenant.invitation_status).toBe('ACCEPTED')
+		expect(tenant.invitation_status).toBe('accepted')
 	})
 
 	test('[Tenant] Try to reuse token → Already Accepted message', async ({ page, context }) => {

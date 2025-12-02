@@ -266,7 +266,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 							<div>
 								<Badge
 									variant={
-										tenant.currentLease.status === 'ACTIVE'
+										tenant.currentLease.status === 'active'
 											? 'default'
 											: 'secondary'
 									}
