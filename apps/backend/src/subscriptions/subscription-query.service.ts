@@ -111,7 +111,7 @@ export class SubscriptionQueryService {
 			responses.push(await this.mapLeaseContextToResponse(context))
 		}
 
-		return responses.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+		return responses.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
 	}
 
 	/**
@@ -194,11 +194,11 @@ export class SubscriptionQueryService {
 			amount: context.lease.rent_amount,
 			currency: context.lease.rent_currency ?? 'usd',
 			billingDayOfMonth: context.lease.payment_day ?? 1,
-			nextChargeDate,
+			nextChargeDate: nextChargeDate ?? undefined,
 			status,
 			platformFeePercentage: context.owner.default_platform_fee_percent ?? 0,
-			pausedAt: stripeSubscription?.pause_collection ? new Date().toISOString() : null,
-			canceledAt: this.toIso(stripeSubscription?.canceled_at),
+			pausedAt: stripeSubscription?.pause_collection ? new Date().toISOString() : undefined,
+			canceledAt: this.toIso(stripeSubscription?.canceled_at) ?? undefined,
 			createdAt: context.lease.created_at ?? new Date().toISOString(),
 			updatedAt: context.lease.updated_at ?? context.lease.created_at ?? new Date().toISOString()
 		}
