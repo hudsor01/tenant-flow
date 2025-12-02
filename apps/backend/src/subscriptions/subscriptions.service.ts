@@ -245,6 +245,16 @@ export class SubscriptionsService {
 			const property = (leaseAny.properties as PropertyRow[])?.[0]
 			const owner = (leaseAny.property_owners as PropertyOwnerRow[])?.[0]
 
+			// Skip if property or owner data is missing (incomplete lease setup)
+			if (!property || !owner) {
+				this.logger.warn('Skipping lease due to missing property or owner data', {
+					leaseId: lease.id,
+					hasProperty: !!property,
+					hasOwner: !!owner
+				})
+				continue
+			}
+
 			// Get tenant user separately (still needed, but only once per tenant)
 			const tenantUser = await this.getUserById(tenant.user_id)
 
