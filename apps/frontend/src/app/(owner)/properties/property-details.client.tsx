@@ -17,7 +17,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">{property.name}</h1>
 					<div className="flex items-center gap-2 mt-2 text-muted-foreground">
@@ -37,7 +37,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			</div>
 
 			{/* Property Overview Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-(--spacing-6)">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Property Type</CardTitle>
@@ -57,7 +57,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							<Badge className="bg-(--chart-1) text-[var(--primary-foreground)]">
+							<Badge className="bg-(--chart-1) text-[var(--color-primary-foreground)]">
 								{property.status || 'Active'}
 							</Badge>
 						</div>
@@ -90,7 +90,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			</Card>
 
 			{/* Property Details */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-(--spacing-6)">
 				{/* Basic Information */}
 				<Card>
 					<CardHeader>

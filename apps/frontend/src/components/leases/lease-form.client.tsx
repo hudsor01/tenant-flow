@@ -168,7 +168,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 			>
 			<div className="space-y-6">
 				{/* Property Selection (for filtering units, not stored in lease) */}
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid gap-(--spacing-4) md:grid-cols-2">
 					<Field>
 						<FieldLabel htmlFor="property-select">Property *</FieldLabel>
 						<Select
@@ -184,11 +184,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 							</SelectTrigger>
 							<SelectContent>
 								{propertiesIsLoading ? (
-									<div className="flex items-center justify-center p-4">
+									<div className="flex-center p-4">
 										<LoadingSpinner size="sm" />
 									</div>
 								) : (properties ?? []).length === 0 ? (
-									<div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+									<div className="flex-center p-4 text-muted">
 										No properties available
 									</div>
 								) : (
@@ -267,7 +267,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					)}
 				</form.Field>
 
-					<div className="grid gap-4 md:grid-cols-2">
+					<div className="grid gap-(--spacing-4) md:grid-cols-2">
 					<form.Field name="start_date">
 						{field => (
 							<Field>
@@ -303,7 +303,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					</form.Field>
 				</div>
 
-					<div className="grid gap-4 md:grid-cols-2">
+					<div className="grid gap-(--spacing-4) md:grid-cols-2">
 					<form.Field name="rent_amount">
 						{field => (
 							<Field>
@@ -373,7 +373,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					)}
 				</form.Field>
 
-				<div className="grid gap-4 md:grid-cols-2">
+				<div className="grid gap-(--spacing-4) md:grid-cols-2">
 					<form.Field name="rent_currency">
 						{field => (
 							<Field>

@@ -30,10 +30,16 @@ export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 
 // Environment checks
 const isDevelopment = () => process.env["NODE_ENV"] === 'development'
+const isClient = () => typeof window !== 'undefined'
 const devConsole: Partial<Console> | undefined =
 	typeof globalThis !== 'undefined'
 		? (globalThis['console'] as Console | undefined)
 		: undefined
+
+// Safe timestamp for Next.js Server Components
+// Server-side logs skip timestamps to avoid Next.js 15 prerender errors
+// (new Date() before uncached data access breaks Server Components)
+const getTimestamp = () => isClient() ? new Date().toISOString() : ''
 
 /**
  * Development-only console logger
@@ -95,7 +101,7 @@ export const createLogger = (defaultContext?: LogContext) => {
 					level: 'DEBUG',
 					message,
 					context: { ...defaultContext, ...context },
-					timestamp: new Date().toISOString(),
+					timestamp: getTimestamp(),
 					args
 				}
 				logEntry(entry)
@@ -106,7 +112,7 @@ export const createLogger = (defaultContext?: LogContext) => {
 				level: 'INFO',
 				message,
 				context: { ...defaultContext, ...context },
-				timestamp: new Date().toISOString(),
+				timestamp: getTimestamp(),
 				args
 			}
 			logEntry(entry)
@@ -116,7 +122,7 @@ export const createLogger = (defaultContext?: LogContext) => {
 				level: 'WARN',
 				message,
 				context: { ...defaultContext, ...context },
-				timestamp: new Date().toISOString(),
+				timestamp: getTimestamp(),
 				args
 			}
 			logEntry(entry)
@@ -126,7 +132,7 @@ export const createLogger = (defaultContext?: LogContext) => {
 				level: 'ERROR',
 				message,
 				context: { ...defaultContext, ...context },
-				timestamp: new Date().toISOString(),
+				timestamp: getTimestamp(),
 				args
 			}
 			logEntry(entry)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import Image from 'next/image'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { usePropertyImages, useDeletePropertyImageMutation } from '#hooks/api/mutations/property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
@@ -51,7 +52,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 	// Loading state
 	if (isLoading) {
 		return (
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-(--spacing-4)">
 				{Array.from({ length: 4 }).map((_, idx) => (
 					<Skeleton key={idx} className="aspect-video rounded-lg" />
 				))}
@@ -75,7 +76,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 	return (
 		<>
 			{/* Image grid */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-(--spacing-4)">
 				{images.slice(0, 4).map((image, idx) => {
 					const isPrimary = idx === 0
 					const hasMore = idx === 3 && images.length > 4
@@ -87,11 +88,12 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 							onClick={() => goToImage(idx)}
 						>
 							{/* Image */}
-							<img
+							<Image
 								src={image.image_url}
 								alt={`Property image ${idx + 1}`}
-								className="object-cover w-full h-full transition-transform group-hover:scale-105"
-								loading="lazy"
+								fill
+								className="object-cover transition-transform group-hover:scale-105"
+								sizes="(max-width: 640px) 100vw, 50vw"
 							/>
 
 							{/* Primary badge */}
@@ -120,7 +122,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 
 							{/* "+N more" overlay on 4th image if > 4 total */}
 							{hasMore && (
-								<div className="absolute inset-0 bg-black/60 flex items-center justify-center group-hover:bg-black/70 transition-colors">
+								<div className="absolute inset-0 bg-black/60 flex-center group-hover:bg-black/70 transition-colors">
 									<span className="text-white text-3xl font-bold">
 										+{images.length - 4}
 									</span>
@@ -133,7 +135,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 
 			{/* Image count info */}
 			{images.length > 4 && (
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					Showing 4 of {images.length} images
 					{editable && '. Click image to view full gallery.'}
 				</p>

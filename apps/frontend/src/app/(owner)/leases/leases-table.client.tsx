@@ -13,7 +13,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -120,7 +120,7 @@ export function LeasesTable() {
 												<div className="font-medium">
 													Unit {unit.unit_number}
 												</div>
-												<div className="text-sm text-muted-foreground">
+												<div className="text-muted">
 													{unit.bedrooms} bd · {unit.bathrooms} ba
 												</div>
 											</>

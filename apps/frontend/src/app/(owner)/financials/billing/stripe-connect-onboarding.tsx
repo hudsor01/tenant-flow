@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -187,12 +187,12 @@ export function ConnectOnboardingDialog({
 								<SelectItem value="CA">Canada</SelectItem>
 							</SelectContent>
 						</Select>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-muted mt-1">
 							Currently limited to US and Canada only
 						</p>
 					</Field>
 					<div className="rounded-lg border p-4 bg-muted/50">
-						<p className="text-sm text-muted-foreground">
+						<p className="text-muted">
 							After creating your account, you&apos;ll be redirected to Stripe
 							to complete onboarding. This includes verifying your identity and
 							bank account details.
@@ -239,7 +239,7 @@ export function StripeConnectStatus() {
 				title="Payment Collection"
 				description="Loading Stripe account status..."
 			>
-				<div className="flex items-center justify-center py-8">
+				<div className="flex-center py-8">
 					<Spinner className="size-8 animate-spin text-muted-foreground" />
 				</div>
 			</CardLayout>
@@ -280,22 +280,22 @@ export function StripeConnectStatus() {
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'active':
-				return 'text-green-600 dark:text-green-400'
+				return 'text-success dark:text-green-400'
 			case 'pending':
 				return 'text-amber-600 dark:text-amber-400'
 			default:
-				return 'text-gray-600 dark:text-gray-400'
+				return 'text-muted/600 dark:text-muted/400'
 		}
 	}
 
 	const getStatusIcon = (status: string) => {
 		switch (status) {
 			case 'active':
-				return <CheckCircle className="size-5 text-green-600" />
+				return <CheckCircle className="size-5 text-success" />
 			case 'pending':
 				return <Spinner className="size-5 text-amber-600 animate-spin" />
 			default:
-				return <XCircle className="size-5 text-gray-600" />
+				return <XCircle className="size-5 text-muted/600" />
 		}
 	}
 
@@ -336,7 +336,7 @@ export function StripeConnectStatus() {
 				description="Stripe Connect account status"
 			>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between rounded-lg border p-4">
+					<div className="flex-between rounded-lg border p-4">
 						<div className="space-y-1">
 							<div className="flex items-center gap-2">
 								{getStatusIcon(account.identityVerification?.status || 'incomplete')}
@@ -348,30 +348,30 @@ export function StripeConnectStatus() {
 									{account.identityVerification?.status || 'incomplete'}
 								</span>
 							</div>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								Stripe Account ID: {account.stripe_account_id || 'N/A'}
 							</p>
 						</div>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4) rounded-lg border p-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium">Charges</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								{account.charges_enabled ? (
-									<span className="text-green-600">Enabled</span>
+									<span className="text-success">Enabled</span>
 								) : (
-									<span className="text-gray-600">Disabled</span>
+									<span className="text-muted/600">Disabled</span>
 								)}
 							</p>
 						</div>
 						<div className="space-y-1">
 							<p className="text-sm font-medium">Payouts</p>
-							<p className="text-sm text-muted-foreground">
+							<p className="text-muted">
 								{account.payouts_enabled ? (
-									<span className="text-green-600">Enabled</span>
+									<span className="text-success">Enabled</span>
 								) : (
-									<span className="text-gray-600">Disabled</span>
+									<span className="text-muted/600">Disabled</span>
 								)}
 							</p>
 						</div>

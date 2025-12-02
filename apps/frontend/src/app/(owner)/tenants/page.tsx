@@ -8,7 +8,6 @@ import {
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import { serverFetch } from '#lib/api/server'
 import { getLeasesPageData } from '#lib/api/analytics-page'
-import { getClaims } from '#lib/dal'
 import { formatCents } from '@repo/shared/lib/format'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
@@ -30,10 +29,7 @@ export const metadata: Metadata = {
 }
 
 export default async function TenantsPage() {
-	// Server-side auth - NO client flash, instant 307 redirect
-	const { claims } = await getClaims()
-
-	const logger = createLogger({ component: 'TenantsPage', user_id: claims?.sub ?? 'unknown' })
+	const logger = createLogger({ component: 'TenantsPage' })
 
 	// Server Component: Fetch data on server during RSC render
 	let tenants: TenantWithLeaseInfo[] = []
@@ -83,7 +79,7 @@ export default async function TenantsPage() {
 			data-available-leases={availableLeases.length}
 			className="flex-1 flex flex-col gap-8 px-8 py-6"
 		>
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
 					<p className="text-muted-foreground">
@@ -101,7 +97,7 @@ export default async function TenantsPage() {
 			</div>
 
 			{/* Summary / Stats Cards */}
-		<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+		<div className="grid gap-(--spacing-6) sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Tenants</CardDescription>
@@ -141,13 +137,13 @@ export default async function TenantsPage() {
 		<OwnerPaymentSummary summary={paymentSummary} />
 
 		{/* Invitation Tracking - Client Component */}
-		<section className="flex flex-col gap-4">
+		<section className="flex flex-col gap-(--spacing-4)">
 			<h2 className="text-xl font-semibold">Invitations</h2>
 			<InvitationsTableClient />
 		</section>
 
 		{/* Client Component for Delete Functionality */}
-		<section className="flex flex-col gap-4">
+		<section className="flex flex-col gap-(--spacing-4)">
 			<h2 className="text-xl font-semibold">Tenant Directory</h2>
 			<TenantsTableClient columns={columns} initialTenants={tenants} />
 		</section>

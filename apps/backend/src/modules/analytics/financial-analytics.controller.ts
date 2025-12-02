@@ -1,45 +1,20 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
-import type { SupabaseAuthUser as AuthUser } from '@repo/shared/types/auth'
+import { Controller, Get } from '@nestjs/common'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import type { Request } from 'express'
-import { SupabaseService } from '../../database/supabase.service'
+import { user_id } from '../../shared/decorators/user.decorator'
 import { FinancialAnalyticsService } from './financial-analytics.service'
 
 @Controller('analytics')
 export class FinancialAnalyticsController {
-	private readonly logger = new Logger(FinancialAnalyticsController.name)
-
 	constructor(
-		private readonly financialAnalyticsService: FinancialAnalyticsService,
-		private readonly supabaseService: SupabaseService
+		private readonly financialAnalyticsService: FinancialAnalyticsService
 	) {}
-
-	private async getAuthenticatedUser(request: Request): Promise<AuthUser> {
-		const user = await this.supabaseService.getUser(request)
-		if (!user) {
-			this.logger.warn('Financial analytics request missing authentication', {
-				endpoint: request.path,
-				method: request.method
-			})
-			throw new UnauthorizedException('Authentication required')
-		}
-
-		return user as unknown as AuthUser
-	}
 
 	@Get('financial-metrics')
 	async getFinancialMetrics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getFinancialMetrics(
-			user.id
+			userId
 		)
 
 		return {
@@ -52,11 +27,10 @@ export class FinancialAnalyticsController {
 
 	@Get('financial-breakdown')
 	async getFinancialBreakdown(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getFinancialBreakdown(
-			user.id
+			userId
 		)
 
 		return {
@@ -69,11 +43,10 @@ export class FinancialAnalyticsController {
 
 	@Get('net-operating-income')
 	async getNetOperatingIncome(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getNetOperatingIncome(
-			user.id
+			userId
 		)
 
 		return {
@@ -86,11 +59,10 @@ export class FinancialAnalyticsController {
 
 	@Get('financial-overview')
 	async getFinancialOverview(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getFinancialOverview(
-			user.id
+			userId
 		)
 
 		return {
@@ -103,11 +75,10 @@ export class FinancialAnalyticsController {
 
 	@Get('billing-insights')
 	async getBillingInsights(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getBillingInsights(
-			user.id
+			userId
 		)
 
 		return {
@@ -120,10 +91,9 @@ export class FinancialAnalyticsController {
 
 	@Get('expense-summary')
 	async getExpenseSummary(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.financialAnalyticsService.getExpenseSummary(user.id)
+		const data = await this.financialAnalyticsService.getExpenseSummary(userId)
 
 		return {
 			success: true,
@@ -135,11 +105,10 @@ export class FinancialAnalyticsController {
 
 	@Get('invoice-statistics')
 	async getInvoiceStatistics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getInvoiceStatistics(
-			user.id
+			userId
 		)
 
 		return {
@@ -152,10 +121,9 @@ export class FinancialAnalyticsController {
 
 	@Get('monthly-metrics')
 	async getMonthlyMetrics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
-		const data = await this.financialAnalyticsService.getMonthlyMetrics(user.id)
+		const data = await this.financialAnalyticsService.getMonthlyMetrics(userId)
 
 		return {
 			success: true,
@@ -167,11 +135,10 @@ export class FinancialAnalyticsController {
 
 	@Get('lease-financial-summary')
 	async getLeaseFinancialSummary(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data = await this.financialAnalyticsService.getLeaseFinancialSummary(
-			user.id
+			userId
 		)
 
 		return {
@@ -184,12 +151,11 @@ export class FinancialAnalyticsController {
 
 	@Get('lease-financial-analytics')
 	async getLeaseFinancialAnalytics(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data =
 			await this.financialAnalyticsService.getLeasesWithFinancialAnalytics(
-				user.id
+				userId
 			)
 
 		return {
@@ -202,12 +168,11 @@ export class FinancialAnalyticsController {
 
 	@Get('financial/page-data')
 	async getFinancialPageData(
-		@Req() request: Request
+		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const user = await this.getAuthenticatedUser(request)
 		const data =
 			await this.financialAnalyticsService.getFinancialAnalyticsPageData(
-				user.id
+				userId
 			)
 
 		return {

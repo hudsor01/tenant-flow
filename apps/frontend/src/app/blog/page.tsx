@@ -1,5 +1,5 @@
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { getAllBlogPosts } from '#lib/blog-posts'
@@ -57,16 +57,16 @@ export default function BlogPage() {
 										save $2,400+ per property annually. Includes templates,
 										calculators, and step-by-step automation workflows.
 									</p>
-									<div className="flex items-center gap-6 mb-6">
+									<div className="flex items-center gap-(--spacing-6) mb-6">
 										<div className="flex items-center gap-2">
 											<Clock className="size-4 text-accent" />
-											<span className="text-sm text-muted-foreground">
+											<span className="text-muted">
 												15 min to implement
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<Users className="size-4 text-primary" />
-											<span className="text-sm text-muted-foreground">
+											<span className="text-muted">
 												$2.4M+ saved by readers
 											</span>
 										</div>
@@ -81,11 +81,11 @@ export default function BlogPage() {
 										<div className="text-4xl font-bold text-primary mb-2">
 											40%
 										</div>
-										<p className="text-sm text-muted-foreground mb-4">
+										<p className="text-muted mb-4">
 											Average NOI Increase
 										</p>
 
-										<div className="grid grid-cols-2 gap-4 text-sm">
+										<div className="grid grid-cols-2 gap-(--spacing-4) text-sm">
 											<div>
 												<div className="text-2xl font-bold text-accent mb-1">
 													65%
@@ -149,14 +149,14 @@ export default function BlogPage() {
 									description: 'Real results from property managers',
 									color: 'bg-accent/10 text-accent'
 								}
-							].map((category, index) => (
+							].map((category) => (
 								<Link
-									key={index}
+									key={category.name}
 									href={`/blog/category/${category.name.toLowerCase().replace(' ', '-')}`}
 									className="bg-card p-8 rounded-lg border border-border/50 shadow-md transition-all duration-300 text-center group hover:-translate-y-1"
 								>
 									<div
-										className={`size-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
+										className={`size-16 rounded-2xl flex-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
 									>
 										<category.icon
 											className={`size-8 ${category.color.split(' ')[1]}`}
@@ -194,8 +194,8 @@ export default function BlogPage() {
 									href={`/blog/${post.slug}`}
 									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 								>
-									<div className="flex items-center justify-between mb-4">
-										<div className="text-sm text-muted-foreground">
+									<div className="flex-between mb-4">
+										<div className="text-muted">
 											{post.readTime}
 										</div>
 									</div>
@@ -208,11 +208,11 @@ export default function BlogPage() {
 										{post.excerpt}
 									</p>
 
-									<div className="flex items-center justify-between">
+									<div className="flex-between">
 										<div className="text-sm font-semibold text-primary">
 											Read Article
 										</div>
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted">
 											{post.date}
 										</div>
 									</div>
@@ -240,7 +240,7 @@ export default function BlogPage() {
 							automation, cost reduction, and revenue optimization delivered to
 							their inbox.
 						</p>
-						<div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+						<div className="flex flex-col sm:flex-row gap-(--spacing-4) max-w-md mx-auto">
 							<input
 								type="email"
 								placeholder="Enter your email address"

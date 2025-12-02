@@ -30,6 +30,20 @@ export interface LeaseFilters {
 }
 
 /**
+ * Signature status for a lease
+ */
+export interface SignatureStatus {
+	lease_id: string
+	status: string
+	owner_signed: boolean
+	owner_signed_at: string | null
+	tenant_signed: boolean
+	tenant_signed_at: string | null
+	sent_for_signature_at: string | null
+	both_signed: boolean
+}
+
+/**
  * Tenant Portal Lease type
  */
 export type TenantPortalLease = LeaseWithDetails & {
@@ -58,7 +72,7 @@ export const leaseQueries = {
 	 * Lease list with optional filters
 	 *
 	 * @example
-	 * const { data } = useQuery(leaseQueries.list({ status: 'ACTIVE' }))
+	 * const { data } = useQuery(leaseQueries.list({ status: 'active' }))
 	 */
 	list: (filters?: LeaseFilters) =>
 		queryOptions({
@@ -71,9 +85,8 @@ export const leaseQueries = {
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 
 				const params = searchParams.toString()
-				return clientFetch<PaginatedResponse<Lease>>(
-					`/api/v1/leases${params ? `?${params}` : ''}`
-				)
+				const endpoint = `/api/v1/leases${params ? `?${params}` : ''}`
+				return clientFetch<PaginatedResponse<Lease>>(endpoint)
 			},
 			...QUERY_CACHE_TIMES.LIST,
 		}),
@@ -123,7 +136,8 @@ export const leaseQueries = {
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'expiring', days],
 			queryFn: () => clientFetch<Lease[]>(`/api/v1/leases/expiring?days=${days}`),
-			...QUERY_CACHE_TIMES.LIST,
+			...QUERY_CACHE_TIMES.DETAIL,
+			retry: 2,
 		}),
 
 	/**
@@ -137,6 +151,21 @@ export const leaseQueries = {
 			queryKey: [...leaseQueries.all(), 'stats'],
 			queryFn: () => clientFetch('/api/v1/leases/stats'),
 			...QUERY_CACHE_TIMES.STATS,
+		}),
+
+	/**
+	 * Lease signature status
+	 *
+	 * @example
+	 * const { data } = useQuery(leaseQueries.signatureStatus(lease_id))
+	 */
+	signatureStatus: (id: string) =>
+		queryOptions({
+			queryKey: [...leaseQueries.all(), 'signature-status', id],
+			queryFn: () =>
+				clientFetch<SignatureStatus>(`/api/v1/leases/${id}/signature-status`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!id,
 		}),
 
 	/**

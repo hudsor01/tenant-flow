@@ -17,7 +17,7 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { buttonClasses, cardClasses, cn } from '#lib/design-system'
-import { supabaseClient } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import {
 	AlertTriangle,
@@ -50,6 +50,7 @@ export function UpdatePasswordForm({
 			if (password.length < 8) {
 				throw new Error('Password must be at least 8 characters')
 			}
+			const supabaseClient = createClient()
 			const { error } = await supabaseClient.auth.updateUser({ password })
 			if (error) throw error
 			return { success: true }
@@ -80,7 +81,7 @@ export function UpdatePasswordForm({
 				)}
 			>
 				<CardHeader className="text-center space-y-[var(--spacing-4)] animate-slide-in-top">
-					<div className="mx-auto bg-[color-mix(in oklch,var(--primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
+					<div className="mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
 						<Lock className="size-[var(--spacing-6)] text-primary" />
 					</div>
 				<div className="space-y-[var(--spacing-2)]">

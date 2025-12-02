@@ -11,7 +11,7 @@ import {
 } from '#components/ui/dialog'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { useSupabasePasswordReset } from '#hooks/api/use-auth'
 import { useModalStore } from '#stores/modal-store'
 import { CheckCircle2, Info, Mail } from 'lucide-react'
@@ -122,7 +122,7 @@ export function ForgotPasswordModal() {
 						) : (
 							<>
 								<DialogHeader>
-									<div className="mx-auto mb-4 size-[var(--spacing-12)] rounded-full bg-success/10 flex items-center justify-center">
+									<div className="mx-auto mb-4 size-[var(--spacing-12)] rounded-full bg-success/10 flex-center">
 										<CheckCircle2 className="size-[var(--spacing-6)] text-success" />
 									</div>
 									<DialogTitle className="text-center">

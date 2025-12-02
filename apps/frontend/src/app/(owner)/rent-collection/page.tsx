@@ -14,7 +14,7 @@ import {
 	XCircle
 } from 'lucide-react'
 
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import { useState } from 'react'
 
@@ -138,8 +138,8 @@ function RentCollectionContent() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-			<div className="flex items-center justify-between">
+		<div className="flex flex-1 flex-col gap-(--spacing-4) p-4 lg:gap-(--spacing-6) lg:p-6">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold text-foreground">
 						Rent Collection
@@ -151,7 +151,7 @@ function RentCollectionContent() {
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-(--spacing-4) md:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">
@@ -241,7 +241,7 @@ function RentCollectionContent() {
 
 						<TabsContent value="active">
 							{isLoading ? (
-								<div className="flex items-center justify-center py-8">
+								<div className="flex-center py-8">
 									<Spinner className="size-8 animate-spin text-muted-foreground" />
 								</div>
 							) : activeSubscriptions.length === 0 ? (
@@ -250,7 +250,7 @@ function RentCollectionContent() {
 									<p className="text-muted-foreground">
 										No active subscriptions
 									</p>
-									<p className="text-sm text-muted-foreground mt-2">
+									<p className="text-muted mt-2">
 										Create subscriptions for tenants to enable autopay
 									</p>
 								</div>
@@ -269,18 +269,18 @@ function RentCollectionContent() {
 									</TableHeader>
 									<TableBody>
 										{activeSubscriptions.map(sub => {
-											const paymentMethodInfo = getPaymentMethodInfo(
-												sub.paymentMethodId
-											)
+											const paymentMethodInfo = sub.payment_method_id
+												? getPaymentMethodInfo(sub.payment_method_id)
+												: null
 
 											return (
 												<TableRow key={sub.id}>
 													<TableCell className="font-medium">
-														{sub.tenantId}
+														{sub.tenant_id}
 													</TableCell>
-													<TableCell>{sub.leaseId}</TableCell>
+													<TableCell>{sub.lease_id}</TableCell>
 													<TableCell>
-														${(sub.amount / 100).toFixed(2)}/mo
+														${((sub.amount ?? 0) / 100).toFixed(2)}/mo
 													</TableCell>
 													<TableCell>
 														{paymentMethodInfo ? (
@@ -292,20 +292,22 @@ function RentCollectionContent() {
 																</span>
 															</div>
 														) : (
-															<span className="text-sm text-muted-foreground">
+															<span className="text-muted">
 																No payment method
 															</span>
 														)}
 													</TableCell>
 													<TableCell>
-														{sub.nextChargeDate
+														{sub.next_charge_date
 															? format(
-																	new Date(sub.nextChargeDate),
+																	new Date(sub.next_charge_date),
 																	'MMM d, yyyy'
 																)
 															: 'N/A'}
 													</TableCell>
-													<TableCell>{getStatusBadge(sub.status)}</TableCell>
+													<TableCell>
+														{sub.status ? getStatusBadge(sub.status) : 'Unknown'}
+													</TableCell>
 													<TableCell className="text-right">
 														<DropdownMenu>
 															<DropdownMenuTrigger asChild>
@@ -325,13 +327,13 @@ function RentCollectionContent() {
 																<DropdownMenuLabel>Actions</DropdownMenuLabel>
 																<DropdownMenuSeparator />
 																<DropdownMenuItem
-																	onClick={() => handlePause(sub.id)}
+																	onClick={() => sub.id && handlePause(sub.id)}
 																>
 																	<Pause className="mr-2 size-4" />
 																	Pause Subscription
 																</DropdownMenuItem>
 																<DropdownMenuItem
-																	onClick={() => handleCancel(sub.id)}
+																	onClick={() => sub.id && handleCancel(sub.id)}
 																	className="text-destructive"
 																>
 																	<XCircle className="mr-2 size-4" />
@@ -370,18 +372,18 @@ function RentCollectionContent() {
 									</TableHeader>
 									<TableBody>
 										{pausedSubscriptions.map(sub => {
-											const paymentMethodInfo = getPaymentMethodInfo(
-												sub.paymentMethodId
-											)
+											const paymentMethodInfo = sub.payment_method_id
+												? getPaymentMethodInfo(sub.payment_method_id)
+												: null
 
 											return (
 												<TableRow key={sub.id}>
 													<TableCell className="font-medium">
-														{sub.tenantId}
+														{sub.tenant_id}
 													</TableCell>
-													<TableCell>{sub.leaseId}</TableCell>
+													<TableCell>{sub.lease_id}</TableCell>
 													<TableCell>
-														${(sub.amount / 100).toFixed(2)}/mo
+														${((sub.amount ?? 0) / 100).toFixed(2)}/mo
 													</TableCell>
 													<TableCell>
 														{paymentMethodInfo ? (
@@ -393,17 +395,19 @@ function RentCollectionContent() {
 																</span>
 															</div>
 														) : (
-															<span className="text-sm text-muted-foreground">
+															<span className="text-muted">
 																No payment method
 															</span>
 														)}
 													</TableCell>
 													<TableCell>
-														{sub.updatedAt
-															? format(new Date(sub.updatedAt), 'MMM d, yyyy')
+														{sub.updated_at
+															? format(new Date(sub.updated_at), 'MMM d, yyyy')
 															: 'N/A'}
 													</TableCell>
-													<TableCell>{getStatusBadge(sub.status)}</TableCell>
+													<TableCell>
+														{sub.status ? getStatusBadge(sub.status) : 'Unknown'}
+													</TableCell>
 													<TableCell className="text-right">
 														<DropdownMenu>
 															<DropdownMenuTrigger asChild>
@@ -423,13 +427,13 @@ function RentCollectionContent() {
 																<DropdownMenuLabel>Actions</DropdownMenuLabel>
 																<DropdownMenuSeparator />
 																<DropdownMenuItem
-																	onClick={() => handleResume(sub.id)}
+																	onClick={() => sub.id && handleResume(sub.id)}
 																>
 																	<Play className="mr-2 size-4" />
 																	Resume Subscription
 																</DropdownMenuItem>
 																<DropdownMenuItem
-																	onClick={() => handleCancel(sub.id)}
+																	onClick={() => sub.id && handleCancel(sub.id)}
 																	className="text-destructive"
 																>
 																	<XCircle className="mr-2 size-4" />
@@ -467,18 +471,18 @@ function RentCollectionContent() {
 									</TableHeader>
 									<TableBody>
 										{canceledSubscriptions.map(sub => {
-											const paymentMethodInfo = getPaymentMethodInfo(
-												sub.paymentMethodId
-											)
+											const paymentMethodInfo = sub.payment_method_id
+												? getPaymentMethodInfo(sub.payment_method_id)
+												: null
 
 											return (
 												<TableRow key={sub.id}>
 													<TableCell className="font-medium">
-														{sub.tenantId}
+														{sub.tenant_id}
 													</TableCell>
-													<TableCell>{sub.leaseId}</TableCell>
+													<TableCell>{sub.lease_id}</TableCell>
 													<TableCell>
-														${(sub.amount / 100).toFixed(2)}/mo
+														${((sub.amount ?? 0) / 100).toFixed(2)}/mo
 													</TableCell>
 													<TableCell>
 														{paymentMethodInfo ? (
@@ -490,17 +494,19 @@ function RentCollectionContent() {
 																</span>
 															</div>
 														) : (
-															<span className="text-sm text-muted-foreground">
+															<span className="text-muted">
 																No payment method
 															</span>
 														)}
 													</TableCell>
 													<TableCell>
-														{sub.updatedAt
-															? format(new Date(sub.updatedAt), 'MMM d, yyyy')
+														{sub.updated_at
+															? format(new Date(sub.updated_at), 'MMM d, yyyy')
 															: 'N/A'}
 													</TableCell>
-													<TableCell>{getStatusBadge(sub.status)}</TableCell>
+													<TableCell>
+														{sub.status ? getStatusBadge(sub.status) : 'Unknown'}
+													</TableCell>
 												</TableRow>
 											)
 										})}

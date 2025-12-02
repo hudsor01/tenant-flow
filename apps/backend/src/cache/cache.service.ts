@@ -4,7 +4,8 @@
  * Follows DATABASE FIRST approach with in-memory performance layer
  */
 
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
+import type { OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common'
 import type { CacheEntry, CacheStats } from '@repo/shared/types/core'
 
 @Injectable()

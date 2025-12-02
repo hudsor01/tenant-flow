@@ -9,7 +9,7 @@
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 

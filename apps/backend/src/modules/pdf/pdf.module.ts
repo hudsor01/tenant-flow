@@ -4,13 +4,14 @@ import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationController } from './lease-generation.controller'
 import { SupabaseModule } from '../../database/supabase.module'
 import { CacheConfigurationModule } from '../../cache/cache.module'
+import { SharedModule } from '../../shared/shared.module'
 
 /**
  * PDF module for generating PDF documents
  * Provides services for lease PDF generation and other document types
  */
 @Module({
-	imports: [SupabaseModule, CacheConfigurationModule],
+	imports: [SupabaseModule, CacheConfigurationModule, SharedModule],
 	controllers: [LeaseGenerationController],
 	providers: [PDFGeneratorService, ReactLeasePDFService],
 	exports: [PDFGeneratorService, ReactLeasePDFService]

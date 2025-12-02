@@ -8,9 +8,7 @@
  * @see https://docs.stripe.com/connect/testing
  */
 
-// =============================================================================
 // CARD NUMBERS - For Payment Testing
-// =============================================================================
 
 export const STRIPE_TEST_CARDS = {
 	// Successful payments
@@ -64,16 +62,7 @@ export const STRIPE_PAYMENT_METHOD_IDS = {
 	VISA_DEBIT: 'pm_card_visa_debit'
 } as const
 
-// Legacy tokens (deprecated but still work)
-export const STRIPE_LEGACY_TOKENS = {
-	VISA: 'tok_visa',
-	MASTERCARD: 'tok_mastercard',
-	AMEX: 'tok_amex'
-} as const
-
-// =============================================================================
 // CARD CREDENTIALS - For Interactive Testing
-// =============================================================================
 
 export const STRIPE_TEST_CREDENTIALS = {
 	// Use any future date
@@ -85,9 +74,7 @@ export const STRIPE_TEST_CREDENTIALS = {
 	ZIP: '12345'
 } as const
 
-// =============================================================================
 // STRIPE CONNECT - For Property Owner Onboarding
-// =============================================================================
 
 export const STRIPE_CONNECT_TEST_DATA = {
 	// Identity verification - Date of Birth
@@ -137,9 +124,7 @@ export const STRIPE_CONNECT_TEST_DATA = {
 	}
 } as const
 
-// =============================================================================
 // BANK ACCOUNTS - For Payout Testing
-// =============================================================================
 
 export const STRIPE_TEST_BANK_ACCOUNTS = {
 	US: {
@@ -171,9 +156,7 @@ export const STRIPE_BANK_TOKENS = {
 	INVALID_CURRENCY: 'btok_us_verified_invalidCurrency'
 } as const
 
-// =============================================================================
 // CONNECT REQUIREMENTS TRIGGERS - Cards that trigger specific account states
-// =============================================================================
 
 export const STRIPE_CONNECT_TRIGGER_CARDS = {
 	// Advances requirements to next state
@@ -184,9 +167,7 @@ export const STRIPE_CONNECT_TRIGGER_CARDS = {
 	PAYOUT_BLOCK: '4000000000004236'
 } as const
 
-// =============================================================================
 // WEBHOOK TESTING
-// =============================================================================
 
 export const STRIPE_WEBHOOK_TEST = {
 	// Use Stripe CLI for local webhook testing:
@@ -209,9 +190,7 @@ export const STRIPE_WEBHOOK_TEST = {
 	]
 } as const
 
-// =============================================================================
 // HELPER FUNCTIONS
-// =============================================================================
 
 /**
  * Get a random successful test card for variation in tests

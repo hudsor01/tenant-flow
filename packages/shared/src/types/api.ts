@@ -14,8 +14,6 @@ export interface ApiError {
 	statusCode: number
 	error?: string
 }
-
-// Frontend API client types (consolidated from apps/frontend/src/lib/api-client.ts)
 export interface FrontendApiError {
 	message: string
 	code?: string
@@ -40,10 +38,6 @@ export interface RegisterData extends AuthCredentials {
 	confirmPassword: string
 }
 
-// Note: AuthResponse is defined in auth.ts and api-contracts.ts
-
-export type { RefreshTokenRequest } from './api-contracts.js'
-
 export interface UpdateUserProfileDto {
 	name?: string | null
 	phone?: string | null
@@ -59,29 +53,6 @@ export interface UpdateUserProfileInput {
 	avatarUrl?: string | null
 	fullName?: string | null
 	company?: string | null
-}
-
-import type {
-	CreateLeaseInput,
-	CreatePropertyInput,
-	CreateTenantInput,
-	CreateUnitInput,
-	UpdateLeaseInput,
-	UpdatePropertyInput,
-	UpdateTenantInput,
-	UpdateUnitInput
-} from './api-contracts.js'
-
-// Direct re-exports - use Input types consistently
-export type {
-	CreateLeaseInput,
-	CreatePropertyInput,
-	CreateTenantInput,
-	CreateUnitInput,
-	UpdateLeaseInput,
-	UpdatePropertyInput,
-	UpdateTenantInput,
-	UpdateUnitInput
 }
 
 // Re-export Statistics types from stats.ts
@@ -131,17 +102,6 @@ export interface FileUploadResponse {
 	size: number
 	mimeType: string
 }
-
-// Query parameters for API calls - using comprehensive query types from api-contracts.ts
-export type {
-	LeaseQuery,
-	MaintenanceQuery,
-	NotificationQuery,
-	PropertyQuery,
-	TenantQuery,
-	UnitQuery
-} from './api-contracts.js'
-
 
 export type { ActivityItem } from './activity.js'
 

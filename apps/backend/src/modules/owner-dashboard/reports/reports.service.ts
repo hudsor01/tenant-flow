@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
+import type { MetricTypeValue, PeriodTypeValue } from './dto/reports-query.dto'
 
 export interface MetricTrend {
 	current: number
@@ -12,15 +13,6 @@ export interface TimeSeriesDataPoint {
 	date: string
 	value: number
 }
-
-type MetricType =
-	| 'occupancy_rate'
-	| 'active_tenants'
-	| 'monthly_revenue'
-	| 'open_maintenance'
-	| 'total_maintenance'
-
-type PeriodType = 'day' | 'week' | 'month' | 'year'
 
 /**
  * ReportsService
@@ -39,8 +31,8 @@ export class ReportsService {
 	 */
 	async getMetricTrend(
 		user_id: string,
-		metric: MetricType,
-		period: PeriodType = 'month'
+		metric: MetricTypeValue,
+		period: PeriodTypeValue = 'month'
 	): Promise<MetricTrend> {
 		this.logger.log('Calculating metric trend', { user_id, metric, period })
 
@@ -75,7 +67,7 @@ export class ReportsService {
 	 */
 	async getTimeSeries(
 		user_id: string,
-		metric: MetricType,
+		metric: MetricTypeValue,
 		days: number = 30
 	): Promise<TimeSeriesDataPoint[]> {
 		this.logger.log('Fetching time series', { user_id, metric, days })
@@ -110,7 +102,7 @@ export class ReportsService {
 
 	private async getOccupancyTrend(
 		user_id: string,
-		_period: PeriodType
+		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
 		const trends = await this.dashboardAnalytics.getOccupancyTrends(user_id, undefined, 2)
 
@@ -126,7 +118,7 @@ export class ReportsService {
 
 	private async getActiveTenantsTrend(
 		user_id: string,
-		_period: PeriodType
+		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
 		const stats = await this.dashboardAnalytics.getDashboardStats(user_id)
 
@@ -140,7 +132,7 @@ export class ReportsService {
 
 	private async getRevenueTrend(
 		user_id: string,
-		_period: PeriodType
+		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
 		const trends = await this.dashboardAnalytics.getRevenueTrends(user_id, undefined, 2)
 
@@ -156,7 +148,7 @@ export class ReportsService {
 
 	private async getMaintenanceTrend(
 		user_id: string,
-		_period: PeriodType
+		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
 		const stats = await this.dashboardAnalytics.getDashboardStats(user_id)
 		const analytics = await this.dashboardAnalytics.getMaintenanceAnalytics(user_id)

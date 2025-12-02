@@ -1,5 +1,5 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { BadRequestException, Logger } from '@nestjs/common'
+import { ZeroCacheService } from '../../cache/cache.service'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StorageService } from '../../database/storage.service'
@@ -18,7 +18,7 @@ function createMockProperty(overrides?: Partial<any>): any {
 		state: 'TS',
 		postal_code: '12345',
 		country: 'US',
-		status: 'ACTIVE',
+		status: 'active',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 		...overrides
@@ -125,11 +125,13 @@ describe('PropertiesService', () => {
 					}
 				},
 				{
-					provide: CACHE_MANAGER,
+					provide: ZeroCacheService,
 					useValue: {
 						get: jest.fn(),
 						set: jest.fn(),
-						del: jest.fn()
+						invalidate: jest.fn().mockReturnValue(0),
+						invalidateByEntity: jest.fn().mockReturnValue(0),
+						invalidateByUser: jest.fn().mockReturnValue(0)
 					}
 				},
 				{

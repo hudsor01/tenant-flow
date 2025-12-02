@@ -4,8 +4,10 @@
  * Provides health check and monitoring endpoints for webhook system
  * Used for observability, alerting, and debugging
  *
- * Note: Access control removed - webhook health is for internal monitoring
- * Can be secured via network/firewall rules in production
+ * Security: Implements role-based access control
+ * - Public health endpoint for monitoring systems
+ * - OWNER role required for administrative webhook monitoring
+ * - Custom token authentication for configuration endpoint
  */
 
 import {
@@ -16,10 +18,30 @@ import {
 	ParseUUIDPipe,
 	HttpStatus,
 	HttpCode,
-	SetMetadata
+	SetMetadata,
+	UnauthorizedException,
+	Req,
+	UseGuards
 } from '@nestjs/common'
+import { timingSafeEqual } from 'crypto'
+import type { Request } from 'express'
 import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { AppConfigService } from '../../config/app-config.service'
+import { RolesGuard } from '../../shared/guards/roles.guard'
+import { Roles } from '../../shared/decorators/roles.decorator'
+
+const CONFIG_AUTH_HEADER = 'x-webhook-config-token'
+
+const constantTimeEquals = (a?: string, b?: string): boolean => {
+	if (!a || !b) return false
+
+	const aBuf = Buffer.from(a)
+	const bBuf = Buffer.from(b)
+
+	if (aBuf.length !== bBuf.length) return false
+
+	return timingSafeEqual(aBuf, bBuf)
+}
 
 // Public decorator for monitoring endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
@@ -63,8 +85,10 @@ export class WebhookHealthController {
 	 *
 	 * Returns detailed 24-hour health summary with hourly breakdown
 	 * Used for dashboards and trend analysis
+	 * Requires OWNER role for administrative webhook monitoring access
 	 */
-	@Public()
+	@UseGuards(RolesGuard)
+	@Roles('OWNER')
 	@Get('summary')
 	async getHealthSummary() {
 		const [healthSummary, eventTypeSummary] = await Promise.all([
@@ -83,8 +107,10 @@ export class WebhookHealthController {
 	 * GET /webhooks/health/failures
 	 *
 	 * Returns unresolved webhook failures for investigation
-	 * Requires authentication to prevent exposing error details
+	 * Requires OWNER role to prevent exposing sensitive error details
 	 */
+	@UseGuards(RolesGuard)
+	@Roles('OWNER')
 	@Get('failures')
 	async getFailures() {
 		const failures = await this.webhookMonitoringService.getUnresolvedFailures()
@@ -109,7 +135,10 @@ export class WebhookHealthController {
 	 * PATCH /webhooks/health/failures/:id/resolve
 	 *
 	 * Mark a webhook failure as resolved
+	 * Requires OWNER role for administrative webhook management
 	 */
+	@UseGuards(RolesGuard)
+	@Roles('OWNER')
 	@Patch('failures/:id/resolve')
 	@HttpCode(HttpStatus.OK)
 	async resolveFailure(
@@ -131,7 +160,14 @@ export class WebhookHealthController {
 	 * Requires authentication to prevent exposing internal configuration
 	 */
 	@Get('configuration')
-	async getConfiguration() {
+	async getConfiguration(@Req() req: Request) {
+		const expectedToken = this.appConfigService.getStripeWebhookSecret()
+		const providedToken = this.getConfigurationToken(req)
+
+		if (!constantTimeEquals(providedToken, expectedToken)) {
+			throw new UnauthorizedException('Invalid configuration access token')
+		}
+
 		const webhookSecret = this.appConfigService.getStripeWebhookSecret()
 		const stripeKey = this.appConfigService.getStripeSecretKey()
 
@@ -187,5 +223,22 @@ export class WebhookHealthController {
 			recommendations,
 			endpoint_url: `${this.appConfigService.getApiBaseUrl()}/webhooks/stripe-sync`
 		}
+	}
+
+	private getConfigurationToken(req: Request): string | undefined {
+		const header = req.headers[CONFIG_AUTH_HEADER]
+		const authHeader = Array.isArray(header) ? header[0] : header
+
+		if (authHeader) return authHeader
+
+		const authorization = Array.isArray(req.headers.authorization)
+			? req.headers.authorization[0]
+			: req.headers.authorization
+
+		if (authorization?.startsWith('Bearer ')) {
+			return authorization.slice(7)
+		}
+
+		return authorization
 	}
 }

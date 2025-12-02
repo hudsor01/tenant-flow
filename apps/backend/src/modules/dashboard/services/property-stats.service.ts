@@ -6,13 +6,8 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
+import type { PropertyStats } from '@repo/shared/types/core'
 import { SupabaseService } from '../../../database/supabase.service'
-
-export interface PropertyStats {
-	total: number
-	occupied: number
-	occupancyRate: number
-}
 
 @Injectable()
 export class PropertyStatsService {
@@ -33,7 +28,14 @@ export class PropertyStatsService {
 
 		if (error) {
 			this.logger.error('Failed to fetch properties', { error: error.message })
-			return { total: 0, occupied: 0, occupancyRate: 0 }
+			return {
+				total: 0,
+				occupied: 0,
+				vacant: 0,
+				occupancyRate: 0,
+				totalMonthlyRent: 0,
+				averageRent: 0
+			}
 		}
 
 		const properties = data ?? []
@@ -41,11 +43,19 @@ export class PropertyStatsService {
 		const occupied = properties.filter(
 			p => p.status?.toUpperCase() === 'OCCUPIED'
 		).length
+		const vacant = Math.max(total - occupied, 0)
+
+		// Rent metrics require joining leases/rent roll; keep zeros until analytics service provides enriched data
+		const totalMonthlyRent = 0
+		const averageRent = 0
 
 		return {
 			total,
 			occupied,
-			occupancyRate: total > 0 ? (occupied / total) * 100 : 0
+			vacant,
+			occupancyRate: total > 0 ? (occupied / total) * 100 : 0,
+			totalMonthlyRent,
+			averageRent
 		}
 	}
 

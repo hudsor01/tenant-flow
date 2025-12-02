@@ -271,7 +271,7 @@ export function LeaseTemplateBuilder() {
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="grid gap-6 lg:grid-cols-[20rem_1fr]">
+						<div className="grid gap-(--spacing-6) lg:grid-cols-[20rem_1fr]">
 							<aside className="space-y-6">
 								<ConfigurationPanel
 									builderInputs={builderInputs}
@@ -726,7 +726,7 @@ function PdfPreviewPanel(props: {
 						/>
 					</div>
 				) : (
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Generate a preview to view the PDF in-line. You can download it
 						directly from the preview frame.
 					</p>

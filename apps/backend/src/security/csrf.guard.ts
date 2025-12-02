@@ -1,13 +1,14 @@
-import {
+import type {
 	CanActivate,
-	ExecutionContext,
+	ExecutionContext} from '@nestjs/common';
+import {
 	Injectable,
 	Logger,
 	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { Request } from 'express'
+import type { Request } from 'express'
 import { AppConfigService } from '../config/app-config.service'
 
 @Injectable()

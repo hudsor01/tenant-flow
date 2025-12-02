@@ -3,7 +3,7 @@
  * Centralizes test mock types to avoid duplication
  */
 
-import type { Logger } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 
 /**
  * Properly typed mock logger for NestJS tests

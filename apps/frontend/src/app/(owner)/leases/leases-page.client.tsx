@@ -6,6 +6,7 @@
  * Initial data provided by Server Component parent
  */
 
+import React from 'react'
 import { Input } from '#components/ui/input'
 import {
 	Select,
@@ -57,7 +58,7 @@ function LeaseCreateDialog() {
 			gracePeriodDays: '5',
 			late_fee_amount: '',
 			lateFeePercentage: '',
-			status: 'ACTIVE' as LeaseStatus
+			status: 'active' as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -121,7 +122,7 @@ function LeaseCreateDialog() {
 						</CrudDialogHeader>
 						<CrudDialogBody>
 							<div className="space-y-4">
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Lease form coming soon - use the full-page form for now
 								</p>
 							</div>
@@ -173,7 +174,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	// Fetch leases with filters and pagination (uses initialData from Server Component)
 	const params: {
 		search?: string
-		status?: 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		status?: 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -182,30 +183,12 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		params.status = status as 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useQuery(leaseQueries.list(params))
 
 	const leases = leasesResponse?.data ?? initialLeases
 	const total = leasesResponse?.total ?? initialTotal
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	if (error) {
 		return (
@@ -214,7 +197,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 					<h2 className="text-lg font-semibold text-destructive">
 						Error Loading Leases
 					</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						{error instanceof Error ? error.message : 'Failed to load leases'}
 					</p>
 				</div>
@@ -225,7 +208,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	return (
 		<div className="container py-8 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
 						<FileText className="size-8" />
@@ -239,7 +222,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 			</div>
 
 			{/* Filters */}
-			<div className="flex items-center gap-4">
+			<div className="flex items-center gap-(--spacing-4)">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
 					<Input
@@ -263,13 +246,13 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
-						<SelectItem value="ACTIVE">Active</SelectItem>
+						<SelectItem value="active">Active</SelectItem>
 						<SelectItem value="EXPIRED">Expired</SelectItem>
 						<SelectItem value="TERMINATED">Terminated</SelectItem>
 					</SelectContent>
 				</Select>
 
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted">
 					{total} lease{total !== 1 ? 's' : ''} found
 				</div>
 			</div>
@@ -278,7 +261,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 			{isLoading ? (
 				<div className="rounded-lg border p-8 text-center">
 					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						Loading leases...
 					</p>
 				</div>
@@ -286,7 +269,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 				<div className="rounded-lg border p-8 text-center">
 					<FileText className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						{search || status !== 'all'
 							? 'Try adjusting your filters'
 							: 'Get started by creating your first lease'}

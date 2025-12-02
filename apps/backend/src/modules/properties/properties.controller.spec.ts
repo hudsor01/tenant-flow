@@ -2,8 +2,8 @@ import { NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type {
-	CreatePropertyRequest,
-	UpdatePropertyRequest
+	CreatePropertyInput,
+	UpdatePropertyInput
 } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
 import { createMockRequest } from '../../shared/test-utils/types'
@@ -53,7 +53,7 @@ describe('PropertiesController', () => {
 	postal_code: '10001',
 	country: 'US',
 	property_type: 'SINGLE_FAMILY',
-	status: 'ACTIVE',
+	status: 'active',
 	property_owner_id: mockUser.id,
 	date_sold: null,
 	sale_price: null,
@@ -62,7 +62,7 @@ describe('PropertiesController', () => {
 		...overrides
 	})
 
-	const validCreatePropertyRequest: CreatePropertyRequest = {
+	const validCreatePropertyInput: CreatePropertyInput = {
 		name: 'Test Property',
 		address_line1: '123 Main St',
 		city: 'New York',
@@ -71,7 +71,7 @@ describe('PropertiesController', () => {
 		property_type: 'SINGLE_FAMILY'
 	}
 
-	const validUpdatePropertyRequest: UpdatePropertyRequest = {
+	const validUpdatePropertyInput: UpdatePropertyInput = {
 		name: 'Updated Property'
 	}
 
@@ -190,18 +190,18 @@ describe('PropertiesController', () => {
 
 	describe('create', () => {
 		it('should create a new property', async () => {
-			const mockProperty = createMockProperty(validCreatePropertyRequest)
+			const mockProperty = createMockProperty(validCreatePropertyInput)
 
 			mockPropertiesServiceInstance.create.mockResolvedValue(mockProperty)
 
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.create(
-				validCreatePropertyRequest as unknown as CreatePropertyDto,
+				validCreatePropertyInput as unknown as CreatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.create).toHaveBeenCalledWith(
 				mockRequest,
-				validCreatePropertyRequest
+				validCreatePropertyInput
 			)
 			expect(result).toEqual(mockProperty)
 		})
@@ -219,13 +219,13 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.update(
 				'property-1',
-				validUpdatePropertyRequest as unknown as UpdatePropertyDto,
+				validUpdatePropertyInput as unknown as UpdatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.update).toHaveBeenCalledWith(
 				mockRequest,
 				'property-1',
-				validUpdatePropertyRequest,
+				validUpdatePropertyInput,
 				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockProperty)

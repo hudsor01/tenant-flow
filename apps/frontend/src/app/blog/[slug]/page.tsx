@@ -1,11 +1,15 @@
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { getBlogPost, getAllBlogPosts } from '#lib/blog-posts'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 
 // Pre-render all blog articles at build time (Next.js 16 static generation)
 export async function generateStaticParams() {
@@ -25,8 +29,7 @@ export default async function BlogArticlePage({
 		notFound()
 	}
 
-	// Content is trusted (from static blog-posts.ts), just format for rendering
-	const formattedContent = post.content.replace(/\n/g, '<br />')
+	const markdownContent = post.content.trim()
 
 	return (
 		<div className="relative min-h-screen flex flex-col">
@@ -59,7 +62,7 @@ export default async function BlogArticlePage({
 							{post.excerpt}
 						</p>
 
-						<div className="flex items-center gap-6 text-sm text-muted-foreground border-t border-b border-border py-4">
+						<div className="flex items-center gap-(--spacing-6) text-muted border-t border-b border-border py-4">
 							<div className="flex items-center gap-2">
 								<User className="size-4" />
 								<span>{post.author}</span>
@@ -73,26 +76,25 @@ export default async function BlogArticlePage({
 					</header>
 
 					{/* Article Content */}
-					<div className="prose prose-lg prose-slate dark:prose-invert max-w-none">
-						<div
-							className="
-								[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:mt-12 [&>h1]:mb-6 [&>h1]:text-foreground
-								[&>h2]:text-3xl [&>h2]:font-bold [&>h2]:mt-10 [&>h2]:mb-5 [&>h2]:text-foreground
-								[&>h3]:text-2xl [&>h3]:font-semibold [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:text-foreground
-								[&>p]:text-lg [&>p]:text-muted-foreground [&>p]:leading-relaxed [&>p]:mb-6
-								[&>ul]:text-lg [&>ul]:text-muted-foreground [&>ul]:mb-6 [&>ul]:ml-6
-								[&>ol]:text-lg [&>ol]:text-muted-foreground [&>ol]:mb-6 [&>ol]:ml-6
-								[&>li]:mb-2
-								[&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-6 [&>blockquote]:py-4 [&>blockquote]:my-8 [&>blockquote]:italic [&>blockquote]:text-foreground [&>blockquote]:bg-primary/5 [&>blockquote]:rounded-r-lg
-								[&>pre]:bg-muted [&>pre]:p-6 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:my-8
-								[&>code]:bg-muted [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:text-foreground
-								[&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80
-								[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg
-							"
-							dangerouslySetInnerHTML={{
-					__html: formattedContent
-				}}
-						/>
+					<div className="prose prose-lg prose-slate dark:prose-invert max-w-none
+						[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:mt-12 [&>h1]:mb-6 [&>h1]:text-foreground
+						[&>h2]:text-3xl [&>h2]:font-bold [&>h2]:mt-10 [&>h2]:mb-5 [&>h2]:text-foreground
+						[&>h3]:text-2xl [&>h3]:font-semibold [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:text-foreground
+						[&>p]:text-lg [&>p]:text-muted-foreground [&>p]:leading-relaxed [&>p]:mb-6
+						[&>ul]:text-lg [&>ul]:text-muted-foreground [&>ul]:mb-6 [&>ul]:ml-6
+						[&>ol]:text-lg [&>ol]:text-muted-foreground [&>ol]:mb-6 [&>ol]:ml-6
+						[&>li]:mb-2
+						[&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-6 [&>blockquote]:py-4 [&>blockquote]:my-8 [&>blockquote]:italic [&>blockquote]:text-foreground [&>blockquote]:bg-primary/5 [&>blockquote]:rounded-r-lg
+						[&>pre]:bg-muted [&>pre]:p-6 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:my-8
+						[&>code]:bg-muted [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:text-foreground
+						[&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80
+						[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg">
+						<ReactMarkdown
+							remarkPlugins={[remarkGfm]}
+							rehypePlugins={[rehypeRaw, rehypeSanitize]}
+						>
+							{markdownContent}
+						</ReactMarkdown>
 					</div>
 
 					{/* CTA Section */}

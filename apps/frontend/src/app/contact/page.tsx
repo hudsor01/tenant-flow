@@ -1,6 +1,6 @@
 import { ContactForm } from '#app/contact/contact-form'
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { env } from '#config/env'
 

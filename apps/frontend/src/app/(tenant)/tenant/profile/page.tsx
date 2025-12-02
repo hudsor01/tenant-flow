@@ -21,7 +21,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
@@ -261,7 +261,7 @@ export default function TenantProfilePage() {
 				description="Your basic contact details"
 			>
 				<form onSubmit={handleSave} className="space-y-6">
-					<div className="grid gap-6 md:grid-cols-2">
+					<div className="grid gap-(--spacing-6) md:grid-cols-2">
 						<Field>
 							<FieldLabel>First Name *</FieldLabel>
 							<input
@@ -301,7 +301,7 @@ export default function TenantProfilePage() {
 							disabled
 							required
 						/>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-muted mt-1">
 							Email cannot be changed. Contact support if needed.
 						</p>
 					</Field>
@@ -323,7 +323,7 @@ export default function TenantProfilePage() {
 						/>
 					</Field>
 
-					<div className="flex gap-4 pt-4">
+					<div className="flex gap-(--spacing-4) pt-4">
 						{!isEditing ? (
 							<Button
 								type="button"
@@ -368,7 +368,7 @@ export default function TenantProfilePage() {
 				description="Someone we can contact in case of emergency"
 			>
 				<form onSubmit={handleSaveEmergencyContact} className="space-y-6">
-					<div className="grid gap-6 md:grid-cols-2">
+					<div className="grid gap-(--spacing-6) md:grid-cols-2">
 						<Field>
 							<FieldLabel>Contact Name *</FieldLabel>
 							<input
@@ -465,7 +465,7 @@ export default function TenantProfilePage() {
 						</p>
 					)}
 
-					<div className="flex gap-4">
+					<div className="flex gap-(--spacing-4)">
 						{!emergency_contactEditing ? (
 							<>
 								<Button
@@ -572,12 +572,12 @@ export default function TenantProfilePage() {
 				description="Manage your password and security settings"
 			>
 				<div className="space-y-4">
-					<div className="flex items-center justify-between p-4 border rounded-lg">
+					<div className="flex-between p-4 border rounded-lg">
 						<div className="flex items-center gap-3">
 							<Shield className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Password</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Last changed:{' '}
 									{user?.last_sign_in_at
 										? new Date(user.last_sign_in_at).toLocaleDateString()

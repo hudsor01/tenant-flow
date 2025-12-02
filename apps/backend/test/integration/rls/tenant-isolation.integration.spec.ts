@@ -38,7 +38,7 @@ describe('RLS: Tenant Isolation', () => {
 	beforeAll(async () => {
 		// These tests require tenant users - skip if not available
 		if (!isTestUserAvailable('TENANT_A')) {
-			console.warn('[SKIP] Tenant isolation tests require TENANT_A credentials')
+			testLogger.warn('[SKIP] Tenant isolation tests require TENANT_A credentials')
 			return
 		}
 		tenantA = await authenticateAs(TEST_USERS.TENANT_A)

@@ -136,7 +136,7 @@ export default function PayRentPage() {
 				<Card>
 					<CardHeader className="text-center">
 						<div className="mx-auto mb-4 rounded-full bg-green-100 p-3 w-fit">
-							<CheckCircle2 className="size-8 text-green-600" />
+							<CheckCircle2 className="size-8 text-success" />
 						</div>
 						<CardTitle>Rent Paid</CardTitle>
 						<CardDescription>
@@ -166,8 +166,8 @@ export default function PayRentPage() {
 					{/* Payment Breakdown */}
 					<div className="rounded-lg border p-4 space-y-3">
 						<h3 className="font-semibold">Payment Breakdown</h3>
-						{amountDue?.breakdown.map((item, index) => (
-							<div key={index} className="flex justify-between text-sm">
+						{amountDue?.breakdown.map((item) => (
+							<div key={item.description} className="flex justify-between text-sm">
 								<span className="text-muted-foreground">{item.description}</span>
 								<span>{formatCents(item.amount_cents)}</span>
 							</div>
@@ -200,7 +200,7 @@ export default function PayRentPage() {
 						) : paymentMethods.length === 0 ? (
 							<div className="rounded-lg border border-dashed p-4 text-center">
 								<CreditCard className="mx-auto size-8 text-muted-foreground" />
-								<p className="mt-2 text-sm text-muted-foreground">
+								<p className="mt-2 text-muted">
 									No payment methods on file
 								</p>
 								<Button
@@ -236,7 +236,7 @@ export default function PayRentPage() {
 						)}
 					</div>
 				</CardContent>
-				<CardFooter className="flex-col gap-4">
+				<CardFooter className="flex-col gap-(--spacing-4)">
 					<Button
 						className="w-full"
 						size="lg"

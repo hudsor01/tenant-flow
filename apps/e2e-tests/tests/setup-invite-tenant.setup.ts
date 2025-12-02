@@ -1,4 +1,5 @@
 import { test as setup, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 import { ROUTES } from '../constants/routes'
 import { fillTextInput } from './helpers/form-helpers'
@@ -27,17 +28,18 @@ import { submitModalForm } from './helpers/modal-helpers'
 setup('invite e2e test tenant', async ({ page }) => {
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
   const tenantEmail = process.env.E2E_TENANT_EMAIL || 'test-tenant@tenantflow.app'
+	const logger = createLogger({ component: 'SetupInviteTenant' })
 
-  console.log(`🔧 Setting up E2E tenant invitation for: ${tenantEmail}`)
+	logger.info(`🔧 Setting up E2E tenant invitation for: ${tenantEmail}`)
 
   // Step 1: Login as owner
   await loginAsOwner(page)
-  console.log('✅ Logged in as owner')
+	logger.info('✅ Logged in as owner')
 
   // Step 2: Navigate to tenants page
   await page.goto(`${baseUrl}${ROUTES.TENANTS}`)
   await page.waitForLoadState('networkidle')
-  console.log('✅ Navigated to tenants page')
+	logger.info('✅ Navigated to tenants page')
 
   // Step 3: Click invite tenant button
   const inviteButton = page.getByRole('button', { name: /invite tenant/i }).or(
@@ -52,34 +54,34 @@ setup('invite e2e test tenant', async ({ page }) => {
 
   await inviteButton.click()
   await page.waitForTimeout(500)
-  console.log('✅ Clicked invite tenant button')
+	logger.info('✅ Clicked invite tenant button')
 
   // Step 4: Verify modal opened
   const modal = page.locator('[role="dialog"]')
   await expect(modal).toBeVisible({ timeout: 5000 })
-  console.log('✅ Invitation modal opened')
+	logger.info('✅ Invitation modal opened')
 
   // Step 5: Fill invitation form
   await fillTextInput(page, 'Email', tenantEmail)
-  console.log(`✅ Filled email: ${tenantEmail}`)
+	logger.info(`✅ Filled email: ${tenantEmail}`)
 
   // Step 6: Select property if required
   const propertyField = modal.getByRole('combobox', { name: /property/i })
-  if ((await propertyField.count()) > 0) {
-    await propertyField.click()
-    await page.waitForTimeout(500)
+	if ((await propertyField.count()) > 0) {
+		await propertyField.click()
+		await page.waitForTimeout(500)
 
     // Select first property option
-    const firstOption = page.getByRole('option').first()
-    if ((await firstOption.count()) > 0) {
-      await firstOption.click()
-      console.log('✅ Selected property')
-    }
-  }
+		const firstOption = page.getByRole('option').first()
+		if ((await firstOption.count()) > 0) {
+			await firstOption.click()
+			logger.info('✅ Selected property')
+		}
+	}
 
   // Step 7: Submit invitation
   await submitModalForm(page, 'Send Invitation')
-  console.log('✅ Submitted invitation')
+	logger.info('✅ Submitted invitation')
 
   // Step 8: Wait for success
   await page.waitForTimeout(3000)
@@ -94,6 +96,6 @@ setup('invite e2e test tenant', async ({ page }) => {
     throw new Error(`Invitation failed. Modal content: ${errorText}`)
   }
 
-  console.log('✅ Tenant invitation successful!')
-  console.log(`📧 Tenant can now login with: ${tenantEmail}`)
+	logger.info('✅ Tenant invitation successful!')
+	logger.info(`📧 Tenant can now login with: ${tenantEmail}`)
 })

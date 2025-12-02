@@ -60,7 +60,7 @@ export function FaqsAccordion({
 
 					return (
 						<FaqItem
-							key={index}
+							key={faq.question}
 							faq={faq}
 							isOpen={isOpen}
 							onToggle={() => toggleAccordion(index)}

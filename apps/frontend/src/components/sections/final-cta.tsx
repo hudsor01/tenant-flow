@@ -27,7 +27,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					quantity={60}
 					preset="floating"
 					size={1}
-					color="var(--primary)"
+					color="var(--color-primary)"
 					density="medium"
 				/>
 			</ErrorBoundary>
@@ -42,7 +42,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					</BlurFade>
 
 					<BlurFade delay={0.2} inView>
-						<p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-12 max-w-3xl mx-auto">
+						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-12 max-w-3xl mx-auto font-medium">
 							Join 2,847 property managers who&apos;ve increased their NOI by
 							40% and save 20+ hours weekly.
 							<span className="block mt-2 text-foreground font-semibold">
@@ -52,7 +52,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					</BlurFade>
 
 					<BlurFade delay={0.3} inView>
-						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+						<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center mb-12">
 							<Button
 								size="lg"
 								className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-xl font-semibold px-12 py-6"
@@ -81,7 +81,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					</BlurFade>
 
 					<BlurFade delay={0.4} inView>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-3xl mx-auto">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-6) text-center max-w-3xl mx-auto">
 							<div className="flex flex-col items-center">
 								<Check className="size-6 text-accent mb-2" />
 								<span className="text-sm font-medium text-muted-foreground">

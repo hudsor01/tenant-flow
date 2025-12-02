@@ -22,6 +22,7 @@ import {
 	PencilIcon,
 	Trash2
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 
 import { usePropertyImages } from '#hooks/api/use-properties'
@@ -37,16 +38,16 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
 	// Map database status enum to UI variants
 	const statusVariant =
-		property.status === 'ACTIVE'
+		property.status === 'active'
 			? 'default'
 			: property.status === 'UNDER_CONTRACT'
 				? 'secondary'
 				: 'outline'
 
 	const statusLabel =
-		property.status === 'ACTIVE'
+		property.status === 'active'
 			? 'active'
-			: property.status === 'INACTIVE'
+			: property.status === 'INactive'
 				? 'inactive'
 				: property.status === 'UNDER_CONTRACT'
 					? 'under contract'
@@ -57,14 +58,15 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 			{/* Property Image - displays primary image or placeholder */}
 			<div className="relative aspect-video w-full overflow-hidden bg-muted">
 				{primaryImage ? (
-					<img
+					<Image
 						src={primaryImage.image_url}
 						alt={property.name}
-						className="object-cover w-full h-full"
-						loading="lazy"
+						fill
+						className="object-cover"
+						sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 					/>
 				) : (
-					<div className="flex items-center justify-center h-full">
+					<div className="flex-center h-full">
 						<Building2 className="size-16 text-muted-foreground" />
 					</div>
 				)}
@@ -122,7 +124,7 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
 			<CardContent className="space-y-4">
 				{/* Property Type and Location */}
-				<div className="flex items-center justify-between text-sm">
+				<div className="flex-between text-sm">
 					<div>
 						<p className="text-muted-foreground">Type:</p>
 						<p className="font-medium capitalize">

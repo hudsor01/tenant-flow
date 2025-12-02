@@ -24,7 +24,7 @@ export function HeroSection({
 			{/* Trust Badge */}
 			{trustBadge && (
 				<div className="pb-8 text-center">
-					<div className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
+					<div className="inline-flex-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
 						<div className="size-2 bg-success rounded-full mr-3 animate-pulse" aria-hidden="true" />
 						<span className="text-muted-foreground font-medium text-sm">
 							{trustBadge}
@@ -52,7 +52,7 @@ export function HeroSection({
 							}
 						>
 							<div className="space-y-6">
-								<h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight leading-[1.1]">
+								<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-[1.1]">
 									{title}{' '}
 									{titleHighlight && (
 										<span className="hero-highlight">{titleHighlight}</span>
@@ -66,7 +66,7 @@ export function HeroSection({
 								</p>
 							</div>
 
-							<div className="flex flex-row gap-4">
+							<div className="flex flex-row gap-(--spacing-4)">
 								<Button onClick={() => router.push(primaryCta.href)}>
 									{primaryCta.label}
 									<ArrowRight className="ml-2 size-4" />
@@ -80,7 +80,7 @@ export function HeroSection({
 							</div>
 
 							{trustSignals && (
-								<p className="text-sm text-muted-foreground font-medium">
+								<p className="text-muted font-medium">
 									{trustSignals}
 								</p>
 							)}

@@ -13,7 +13,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { RotateCcw, X, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useState, useTransition } from 'react'
@@ -89,14 +89,14 @@ export function InvitationsTableClient() {
 				)
 			case 'accepted':
 				return (
-					<Badge variant="outline" className="border-green-500 text-green-600 bg-green-50">
+					<Badge variant="outline" className="border-success text-success bg-green-50">
 						<CheckCircle2 className="size-3 mr-1" />
 						Accepted
 					</Badge>
 				)
 			case 'expired':
 				return (
-					<Badge variant="outline" className="border-gray-500 text-gray-600 bg-gray-50">
+					<Badge variant="outline" className="border-muted/500 text-muted/600 bg-muted/50">
 						<AlertCircle className="size-3 mr-1" />
 						Expired
 					</Badge>
@@ -130,7 +130,7 @@ export function InvitationsTableClient() {
 					<div className="flex flex-col">
 						<span>{invitation.property_name}</span>
 						{invitation.unit_number && (
-							<span className="text-sm text-muted-foreground">
+							<span className="text-muted">
 								Unit {invitation.unit_number}
 							</span>
 						)}
@@ -233,7 +233,7 @@ export function InvitationsTableClient() {
 					<CardDescription>Track tenant invitation status</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center justify-center h-32">
+					<div className="flex-center h-32">
 						<span className="text-muted-foreground">Loading invitations...</span>
 					</div>
 				</CardContent>
@@ -249,7 +249,7 @@ export function InvitationsTableClient() {
 					<CardDescription>Track tenant invitation status</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center justify-center h-32">
+					<div className="flex-center h-32">
 						<span className="text-muted-foreground">No invitations yet</span>
 					</div>
 				</CardContent>

@@ -227,10 +227,8 @@ export class PropertyImagesService {
 			property_id
 		})
 
-		// Use admin client to fetch images (ownership already verified above)
-		// This avoids complex nested RLS policy evaluation issues
-		const adminClient = this.supabase.getAdminClient()
-		const { data, error } = await adminClient
+		// Use user client to enforce RLS - property ownership already verified above
+		const { data, error } = await client
 			.from('property_images')
 			.select('*')
 			.eq('property_id', property_id)

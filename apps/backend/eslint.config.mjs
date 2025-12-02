@@ -51,6 +51,9 @@ export default defineConfig([
 						'Direct console access is discouraged. Consider using NestJS Logger service for structured logging instead'
 				}
 			],
+			// Disable type-only imports rule - NestJS DI requires runtime class references
+			// See: https://typescript-eslint.io/blog/changes-to-consistent-type-imports-with-decorators
+			'@typescript-eslint/consistent-type-imports': 'off',
 			'@typescript-eslint/explicit-function-return-type': 'off',
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-empty-function': 'off',

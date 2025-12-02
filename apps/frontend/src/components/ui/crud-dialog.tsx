@@ -6,6 +6,8 @@ import { XIcon } from 'lucide-react'
 
 import { cn } from '#lib/utils'
 import { useModalStore } from '#stores/modal-store'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 
 export type CrudMode = 'create' | 'read' | 'edit' | 'delete'
@@ -28,6 +30,10 @@ export interface CrudDialogProps
 	 * Custom close handler
 	 */
 	onClose?: () => void
+	/**
+	 * Whether to persist the modal through navigation
+	 */
+	persistThroughNavigation?: boolean
 }
 
 const CrudDialogPortal = DialogPrimitive.Portal
@@ -58,7 +64,7 @@ const CrudDialogContent = React.forwardRef<
 		<DialogPrimitive.Content
 			ref={ref}
 			className={cn(
-				'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-6 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+				'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-(--spacing-6) rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
 				'border-border/50 shadow-medium',
 				className
 			)}
@@ -109,7 +115,7 @@ const CrudDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<DialogPrimitive.Description
 		ref={ref}
-		className={cn('text-sm text-muted-foreground leading-relaxed', className)}
+		className={cn('text-muted leading-relaxed', className)}
 		{...props}
 	/>
 ))
@@ -173,13 +179,25 @@ function CrudDialog({
 	modalId,
 	children,
 	onClose,
+	persistThroughNavigation = false,
 	...props
 }: CrudDialogProps) {
+	const router = useRouter()
 	const { isModalOpen, closeModal } = useModalStore()
 
-	// For read/edit/delete modes, use modal store to control open state
-	if (mode !== 'create' && modalId) {
-		const isOpen = isModalOpen(modalId)
+	const isModalMode = mode !== 'create' && !!modalId
+	let isOpen = false
+	if (isModalMode) {
+		isOpen = isModalOpen(modalId)
+	}
+
+	useEffect(() => {
+		if (isModalMode && !persistThroughNavigation && !isOpen) {
+			router.back()
+		}
+	}, [isModalMode, isOpen, router, persistThroughNavigation])
+
+	if (isModalMode) {
 		return (
 			<DialogPrimitive.Root
 				open={isOpen}

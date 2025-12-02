@@ -8,7 +8,6 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { serverFetch } from '#lib/api/server'
-import { getClaims } from '#lib/dal'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyStats } from '@repo/shared/types/core'
 import { Building2, Plus, TrendingDown, TrendingUp } from 'lucide-react'
@@ -23,10 +22,7 @@ export const metadata: Metadata = {
 }
 
 export default async function PropertiesPage() {
-	// Server-side auth - NO client flash, instant 307 redirect
-	const { claims } = await getClaims()
-
-const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub ?? 'unknown' })
+	const logger = createLogger({ component: 'PropertiesPage' })
 
 	let properties: Property[] = []
 	let stats: PropertyStats = {
@@ -62,7 +58,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 			{/* Header Card - Card-based redesign with better visual hierarchy */}
 			<Card className="border-2">
 				<CardHeader className="pb-4">
-					<div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+					<div className="flex flex-col gap-(--spacing-6) lg:flex-row lg:items-start lg:justify-between">
 						{/* Title Section */}
 						<div className="flex-1 space-y-2">
 							<div className="flex items-center gap-3">
@@ -79,7 +75,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 						</div>
 
 						{/* Quick Stats - Compact horizontal layout */}
-						<div className="flex flex-wrap gap-4 lg:gap-6">
+						<div className="flex flex-wrap gap-(--spacing-4) lg:gap-(--spacing-6)">
 							<div className="flex flex-col items-center justify-center rounded-lg border bg-card px-4 py-3 min-w-[100px]">
 								<div className="text-2xl font-bold text-foreground">
 									{stats.total ?? properties.length}
@@ -106,7 +102,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 				<CardFooter className="border-t bg-muted/20 pt-4">
 					<div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 						{/* Left side - Quick info */}
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<div className="flex items-center gap-2 text-muted">
 							<span className="font-medium">
 								{stats.occupancyRate?.toFixed(0) ?? 0}% occupancy
 							</span>
@@ -137,7 +133,7 @@ const logger = createLogger({ component: 'PropertiesPage', user_id: claims?.sub 
 			)}
 
 			{/* Stats Cards */}
-			<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-(--spacing-6) sm:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Properties</CardDescription>

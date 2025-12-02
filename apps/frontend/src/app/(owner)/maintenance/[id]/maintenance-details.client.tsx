@@ -56,15 +56,15 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	}
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-3">
+		<div className="grid gap-(--spacing-6) lg:grid-cols-3">
 			<Card className="lg:col-span-2">
-				<CardHeader className="flex-row items-start justify-between gap-4">
+				<CardHeader className="flex-row items-start justify-between gap-(--spacing-4)">
 					<div className="space-y-2">
 						<CardTitle className="flex items-center gap-2 text-2xl font-semibold">
 							<Wrench className="size-5 text-primary" />
 							{request.description ?? 'Maintenance Request'}
 						</CardTitle>
-						<div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+						<div className="flex flex-wrap gap-2 text-muted">
 							<Badge variant="outline">{request.status}</Badge>
 							<Badge variant="secondary">{request.priority}</Badge>
 						</div>
@@ -85,9 +85,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						</p>
 					</section>
 
-					<section className="grid gap-4 md:grid-cols-2">
+					<section className="grid gap-(--spacing-4) md:grid-cols-2">
 						<div className="rounded-xl border bg-muted/20 p-4">
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2 text-muted">
 								<MapPin className="size-4" />
 								Property
 							</div>
@@ -95,14 +95,14 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 								{property?.name ?? 'Unassigned property'}
 							</p>
 							{unit ? (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Unit {unit.unit_number}
 								</p>
 							) : null}
 						</div>
 
 						<div className="rounded-xl border bg-muted/20 p-4">
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+							<div className="flex items-center gap-2 text-muted">
 								<Calendar className="size-4" />
 								Scheduled date
 							</div>

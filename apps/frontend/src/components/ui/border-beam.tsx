@@ -1,5 +1,5 @@
-import { 
-  cn
+import {
+  borderBeamClasses
 } from "#lib/design-system"
 
 interface BorderBeamProps {
@@ -27,12 +27,12 @@ export const BorderBeam = ({
 }: BorderBeamProps) => {
   // Color variants
   const colorVariants = {
-    primary: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
-    accent: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
-    rainbow: { from: 'var(--primary)', to: 'var(--accent)' },
-    success: { from: 'var(--primary)', to: 'var(--primary-foreground)' },
-    warning: { from: 'var(--accent)', to: 'var(--accent-foreground)' },
-    danger: { from: 'var(--destructive)', to: 'var(--destructive-foreground)' },
+    primary: { from: 'var(--color-primary)', to: 'var(--color-primary-foreground)' },
+    accent: { from: 'var(--color-accent)', to: 'var(--color-accent-foreground)' },
+    rainbow: { from: 'var(--color-primary)', to: 'var(--color-accent)' },
+    success: { from: 'var(--color-primary)', to: 'var(--color-primary-foreground)' },
+    warning: { from: 'var(--color-accent)', to: 'var(--color-accent-foreground)' },
+    danger: { from: 'var(--color-destructive)', to: 'var(--color-destructive-foreground)' },
   }
 
   const selectedColors = colorVariants[variant]
@@ -52,19 +52,7 @@ export const BorderBeam = ({
           "--delay": `-${delay}s`,
         } as React.CSSProperties
       }
-      className={cn(
-        "pointer-events-none absolute inset-0 rounded-[inherit] [border:calc(var(--border-width)*1px)_solid_transparent]",
-
-        // mask styles
-        "![mask-clip:padding-box,border-box] ![mask-composite:intersect] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)]",
-
-        // pseudo styles
-        "after:absolute after:aspect-square after:w-[calc(var(--size)*1px)] after:animate-border-beam after:[animation-delay:var(--delay)] after:[background:linear-gradient(to_left,var(--color-from),var(--color-to),transparent)] after:[offset-anchor:calc(var(--anchor)*1%)_50%] after:[offset-path:rect(0_auto_auto_0_round_calc(var(--size)*1px))]",
-        
-        // Enhanced styles for better performance
-        "after:will-change-transform after:backface-visibility-hidden",
-        className,
-      )}
+      className={borderBeamClasses(variant, className)}
     />
   )
 }

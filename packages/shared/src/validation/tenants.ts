@@ -8,7 +8,7 @@ import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Tenant status enum validation
 export const tenantStatusSchema = z.enum([
-  'ACTIVE',
+  'active',
   'INACTIVE',
   'PENDING',
   'SUSPENDED',
@@ -154,3 +154,65 @@ export const transformTenantFormData = (data: TenantFormData) => ({
 
 export type TenantFormData = z.infer<typeof tenantFormSchema>
 export type TransformedTenantData = ReturnType<typeof transformTenantFormData>
+
+// ============================================================================
+// TENANT INVITATION SCHEMAS (Separate from Lease)
+// ============================================================================
+
+// Invitation type enum
+export const invitationTypeSchema = z.enum([
+  'platform_access',  // Just inviting to create account on platform
+  'lease_signing'     // Inviting to sign a specific lease
+])
+
+// Invitation status enum
+export const invitationStatusSchema = z.enum([
+  'pending',    // Created but not yet sent
+  'sent',       // Email sent to tenant
+  'accepted',   // Tenant accepted and created account
+  'expired',    // Invitation expired
+  'cancelled'   // Owner cancelled
+])
+
+// Schema for inviting a tenant to the platform (NO lease required)
+export const inviteTenantSchema = z.object({
+  email: z.string().email('Valid email is required'),
+  first_name: z.string().min(1, 'First name is required').max(100),
+  last_name: z.string().min(1, 'Last name is required').max(100),
+  phone: phoneSchema.optional(),
+  // Optional context - can invite without assigning to property/unit
+  property_id: uuidSchema.optional(),
+  unit_id: uuidSchema.optional()
+})
+
+// Schema for inviting tenant to sign a specific lease
+export const inviteToSignLeaseSchema = z.object({
+  lease_id: uuidSchema,
+  email: z.string().email('Valid email is required'),
+  message: z.string().max(1000, 'Message cannot exceed 1000 characters').optional()
+})
+
+// Full invitation response schema
+export const tenantInvitationSchema = z.object({
+  id: uuidSchema,
+  email: z.string().email(),
+  property_owner_id: uuidSchema,
+  unit_id: uuidSchema.nullable().optional(),
+  property_id: uuidSchema.nullable().optional(),
+  lease_id: uuidSchema.nullable().optional(),
+  invitation_code: z.string(),
+  invitation_url: z.string().url(),
+  status: invitationStatusSchema,
+  type: invitationTypeSchema,
+  expires_at: z.string(),
+  accepted_at: z.string().nullable().optional(),
+  accepted_by_user_id: uuidSchema.nullable().optional(),
+  created_at: z.string()
+})
+
+// Export invitation types
+export type InvitationType = z.infer<typeof invitationTypeSchema>
+export type InvitationStatus = z.infer<typeof invitationStatusSchema>
+export type InviteTenant = z.infer<typeof inviteTenantSchema>
+export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>
+export type TenantInvitation = z.infer<typeof tenantInvitationSchema>

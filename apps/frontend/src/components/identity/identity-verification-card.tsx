@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { getStripe } from '#lib/stripe/stripe-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IdentityVerificationStatus } from '@repo/shared/types/identity'
@@ -127,7 +127,7 @@ export function IdentityVerificationCard() {
 		status === 'verified' || sessionMutation.isPending || statusQuery.isLoading
 
 	const iconColor =
-		status === 'verified' ? 'text-green-600' : status === 'requires_input' ? 'text-amber-600' : 'text-muted-foreground'
+		status === 'verified' ? 'text-success' : status === 'requires_input' ? 'text-amber-600' : 'text-muted-foreground'
 
 	return (
 		<CardLayout
@@ -139,7 +139,7 @@ export function IdentityVerificationCard() {
 					<Icon className={`size-6 ${iconColor}`} />
 					<div>
 						<p className="font-medium text-sm">{info.title}</p>
-						<p className="text-sm text-muted-foreground">{info.description}</p>
+						<p className="text-muted">{info.description}</p>
 					</div>
 				</div>
 				<Button

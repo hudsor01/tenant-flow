@@ -15,7 +15,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getLeaseAnalyticsPageData } from '#lib/api/analytics-page'
-import { formatCurrency, formatNumber } from '@repo/shared/utils/currency'
+import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
 
 export default async function LeaseAnalyticsPage() {
@@ -38,7 +38,7 @@ export default async function LeaseAnalyticsPage() {
 			<section
 				className="border-b bg-background p-6 border-fill-tertiary"
 			>
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
 							Lease Analytics
@@ -47,7 +47,7 @@ export default async function LeaseAnalyticsPage() {
 							Understand profitability, renewals, and upcoming expirations.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
 						<Card>
 							<CardHeader>
 								<CardTitle>Total leases</CardTitle>
@@ -100,8 +100,8 @@ export default async function LeaseAnalyticsPage() {
 			</section>
 
 			<section className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
+					<div className="grid grid-cols-1 gap-(--spacing-6) lg:grid-cols-2">
 						<Card>
 							<CardHeader>
 								<CardTitle>Lease lifecycle</CardTitle>

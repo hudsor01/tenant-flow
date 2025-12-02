@@ -86,7 +86,7 @@ test.describe('Properties Endpoints Contract', () => {
 
 				// Validate enum values
 				expect(['RESIDENTIAL', 'COMMERCIAL', 'MULTI_FAMILY', 'INDUSTRIAL']).toContain(property.property_type)
-				expect(['ACTIVE', 'INACTIVE', 'MAINTENANCE']).toContain(property.status)
+				expect(['active', 'INACTIVE', 'MAINTENANCE']).toContain(property.status)
 			}
 		}
 	})
@@ -161,7 +161,7 @@ test.describe('Tenants Endpoints Contract', () => {
 				})
 
 				// Validate tenant status enum
-				expect(['ACTIVE', 'INACTIVE', 'PENDING', 'EVICTED']).toContain(tenant.status)
+				expect(['active', 'INACTIVE', 'PENDING', 'EVICTED']).toContain(tenant.status)
 
 				// Validate email format
 				expect(tenant.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
@@ -229,7 +229,7 @@ test.describe('Leases Endpoints Contract', () => {
 				})
 
 				// Validate lease status enum
-				expect(['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED']).toContain(lease.lease_status)
+				expect(['draft', 'active', 'expired', 'terminated']).toContain(lease.lease_status)
 
 				// Validate date format (ISO 8601)
 				expect(lease.start_date).toMatch(/^\d{4}-\d{2}-\d{2}/)

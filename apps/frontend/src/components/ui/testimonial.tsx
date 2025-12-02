@@ -164,7 +164,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-lg">
 											Jessica Thompson
 										</h2>
-										<p className="lg:text-base text-sm text-muted-foreground">
+										<p className="lg:text-base text-muted">
 											CEO, Prime Properties
 										</p>
 									</div>
@@ -205,7 +205,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-lg">
 											David Park
 										</h2>
-										<p className="lg:text-base text-sm text-muted-foreground">
+										<p className="lg:text-base text-muted">
 											Portfolio Manager
 										</p>
 									</div>
@@ -246,7 +246,7 @@ function ClientFeedback() {
 										<h2 className=" font-semibold lg:text-xl text-lg">
 											Amanda Rodriguez
 										</h2>
-										<p className="lg:text-base text-sm text-muted-foreground">
+										<p className="lg:text-base text-muted">
 											Regional Property Director
 										</p>
 									</div>

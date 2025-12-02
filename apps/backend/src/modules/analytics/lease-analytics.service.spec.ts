@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common'
-import type { SupabaseService } from '../../database/supabase.service'
+import { SupabaseService } from '../../database/supabase.service'
 import { LeaseAnalyticsService } from './lease-analytics.service'
 
 describe('LeaseAnalyticsService', () => {

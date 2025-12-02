@@ -5,6 +5,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase'
 import { WebhookProcessor } from './webhook-processor.service'
+import { logError } from '../../utils/error-serializer'
 
 type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
 
@@ -38,7 +39,7 @@ export class WebhookRetryService {
 			.limit(10)
 
 		if (error) {
-			this.logger.error('Failed to query webhook_attempts', error)
+			this.logger.error(logError('Failed to query webhook_attempts', error))
 			return
 		}
 

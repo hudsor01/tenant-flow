@@ -26,8 +26,8 @@ import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
-import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
-import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
+import type { CreateMaintenanceDto } from './dto/create-maintenance.dto'
+import type { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 
 @Controller('maintenance')
 export class MaintenanceController {

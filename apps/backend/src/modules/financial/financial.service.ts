@@ -285,7 +285,7 @@ export class FinancialService {
 			return {
 				summary: {
 					totalLeases: leaseList.length,
-					activeLeases: leaseList.filter((l: Lease) => l.lease_status === 'ACTIVE')
+					activeLeases: leaseList.filter((l: Lease) => l.lease_status === 'active')
 						.length,
 					expiredLeases: leaseList.filter(
 					(l: Lease) => l.end_date && new Date(l.end_date) < now
@@ -407,6 +407,8 @@ export class FinancialService {
 			)
 
 			const client = this.supabaseService.getUserClient(token)
+
+			// Query 1: Get all properties
 			const { data: properties } = await client
 				.from('properties')
 				.select('id, name')
@@ -419,52 +421,86 @@ export class FinancialService {
 				return []
 			}
 
-			// Calculate financial metrics for each property
-			const metrics = await Promise.all(
-				propertyRows.map(async property => {
-					// Get unit IDs for this property
-					const { data: units } = await client
-						.from('units')
-						.select('id')
-						.eq('property_id', property.id)
+			const property_ids = propertyRows.map(p => p.id)
 
-					const unit_ids = units?.map(u => u.id) || []
+			// Query 2: Get ALL units for ALL properties at once (batch query)
+			const { data: allUnits } = await client
+				.from('units')
+				.select('id, property_id')
+				.in('property_id', property_ids)
 
-					let revenue = 0
-					if (unit_ids.length > 0) {
-						const { data: leases } = await client
-							.from('leases')
-							.select('rent_amount')
-							.in('unit_id', unit_ids)
-							.eq('lease_status', 'ACTIVE')
+			const unitsData = (allUnits ?? []) as Array<{
+				id: string
+				property_id: string
+			}>
 
-						revenue = (
-							(leases ?? []) as unknown as Array<{
-                rent_amount: number | null
-}>
-						).reduce((sum, lease) => sum + (lease.rent_amount ?? 0), 0)
-					}
+			// Group units by property_id for quick lookup
+			const unitsByProperty = new Map<string, string[]>()
+			for (const unit of unitsData) {
+				const existing = unitsByProperty.get(unit.property_id) || []
+				existing.push(unit.id)
+				unitsByProperty.set(unit.property_id, existing)
+			}
 
-					const expenses = await this.fetchExpenses([property.id])
-					const totalExpenses = expenses.reduce(
-						(sum, exp) => sum + (exp.amount || 0),
-						0
-					)
+			// Query 3: Get ALL leases for ALL units at once (batch query)
+			const allUnitIds = unitsData.map(u => u.id)
+			let leasesData: Array<{ unit_id: string; rent_amount: number | null }> = []
 
-					const netIncome = revenue - totalExpenses
-					const roi = revenue > 0 ? Math.round((netIncome / revenue) * 100) : 0
+			if (allUnitIds.length > 0) {
+				const { data: leases } = await client
+					.from('leases')
+					.select('unit_id, rent_amount')
+					.in('unit_id', allUnitIds)
+					.eq('lease_status', 'active')
 
-					return {
-						propertyId: property.id,
-						propertyName: property.name ?? property.id,
-						revenue,
-						expenses: totalExpenses,
-						netIncome,
-						roi,
-						period
-					}
-				})
-			)
+				leasesData = (leases ?? []) as Array<{
+					unit_id: string
+					rent_amount: number | null
+				}>
+			}
+
+			// Group leases by unit_id for quick lookup
+			const leasesByUnit = new Map<string, number>()
+			for (const lease of leasesData) {
+				const existingRent = leasesByUnit.get(lease.unit_id) || 0
+				leasesByUnit.set(lease.unit_id, existingRent + (lease.rent_amount ?? 0))
+			}
+
+			// Query 4: Get ALL expenses for ALL properties at once (batch query)
+			const expenses = await this.fetchExpenses(property_ids)
+			const expensesByProperty = new Map<string, number>()
+		for (const exp of expenses) {
+			const propertyId = (exp as { property_id?: string }).property_id
+				if (propertyId) {
+					const existing = expensesByProperty.get(propertyId) || 0
+					expensesByProperty.set(propertyId, existing + (exp.amount || 0))
+				}
+			}
+
+			// Calculate financial metrics for each property using pre-fetched data
+			const metrics = propertyRows.map(property => {
+				const unit_ids = unitsByProperty.get(property.id) || []
+
+				// Calculate revenue from leases for this property's units
+				let revenue = 0
+				for (const unitId of unit_ids) {
+					revenue += leasesByUnit.get(unitId) || 0
+				}
+
+				const totalExpenses = expensesByProperty.get(property.id) || 0
+				const netIncome = revenue - totalExpenses
+				const roi = revenue > 0 ? Math.round((netIncome / revenue) * 100) : 0
+
+				return {
+					propertyId: property.id,
+					propertyName: property.name ?? property.id,
+					revenue,
+					expenses: totalExpenses,
+					netIncome,
+					roi,
+					period
+				}
+			})
 
 			return metrics
 		} catch (error) {

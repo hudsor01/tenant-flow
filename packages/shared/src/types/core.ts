@@ -7,6 +7,7 @@
 
 import type { ReactNode } from 'react'
 import type { DashboardActivity, ActivityItem } from './activity.js'
+import type { Tables, TablesInsert, Database } from './supabase.js'
 
 // Re-export ActivityItem for use across the app
 export type { ActivityItem }
@@ -20,8 +21,6 @@ import type {
   PaymentStatus as PaymentStatusFromConstants,
   UnitStatus as UnitStatusFromConstants
 } from '../constants/status-types.js'
-
-// NATIVE TYPESCRIPT 5.9.2 UTILITY TYPES (replacing custom implementations)
 
 export type DeepReadonly<T> = {
 	readonly [P in keyof T]: T[P] extends Record<string, unknown>
@@ -138,7 +137,7 @@ export interface AppError extends Error {
 	context?: Record<string, unknown>
 }
 
-import type { Tables, TablesInsert } from './supabase.js'
+
 
 export type User = Tables<'users'>
 export type Property = Tables<'properties'>
@@ -155,6 +154,27 @@ export type UnitInsert = TablesInsert<'units'>
 // Tenant input/update types for forms
 export type TenantInput = TablesInsert<'tenants'>
 export type TenantUpdate = Partial<TenantInput>
+
+// Database table type aliases for backend services
+export type UserRow = Database['public']['Tables']['users']['Row']
+export type PropertyRow = Database['public']['Tables']['properties']['Row']
+export type UnitRow = Database['public']['Tables']['units']['Row']
+export type TenantRow = Database['public']['Tables']['tenants']['Row']
+export type LeaseRow = Database['public']['Tables']['leases']['Row']
+export type MaintenanceRequestRow = Database['public']['Tables']['maintenance_requests']['Row']
+export type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
+export type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+export type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+export type SubscriptionRow = Database['public']['Tables']['subscriptions']['Row']
+export type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
+
+// Database table insert/update types for backend services
+export type UserInsert = Database['public']['Tables']['users']['Insert']
+export type UserUpdate = Database['public']['Tables']['users']['Update']
+export type RentPaymentInsert = Database['public']['Tables']['rent_payments']['Insert']
+export type RentPaymentUpdate = Database['public']['Tables']['rent_payments']['Update']
+export type MaintenanceRequestInsert = Database['public']['Tables']['maintenance_requests']['Insert']
+export type MaintenanceRequestUpdate = Database['public']['Tables']['maintenance_requests']['Update']
 
 // Augmented types with optimistic locking version field for mutations
 // IMPORTANT: Only Leases have version field for optimistic locking - other entities don't support versioning
@@ -216,6 +236,28 @@ export type LeaseStatus = LeaseStatusFromConstants
 export type PaymentStatus = PaymentStatusFromConstants
 export type Priority = MaintenancePriority
 export type ActivityEntityType = ActivityEntityTypeFromConstants
+
+// Enhanced Unit Row type with relations for UI display
+export type UnitRowWithRelations = Database['public']['Tables']['units']['Row'] & {
+	property?: {
+		name: string
+		address: string
+	}
+	tenant?: {
+		name: string
+		email: string
+		phone?: string
+	} | null
+	lease?: {
+		start_date: string
+		end_date: string | null
+		rent_amount: number
+		status: LeaseStatus
+	} | null
+	// Optional enhancement fields for UI display
+	marketValue?: number
+	lastUpdated?: string
+}
 
 // Maintenance API response with relations
 export interface MaintenanceRequestResponse {

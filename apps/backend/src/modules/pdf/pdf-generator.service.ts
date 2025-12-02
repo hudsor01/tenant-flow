@@ -1,4 +1,5 @@
-import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy } from '@nestjs/common'
+import type { OnModuleDestroy } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import React from 'react'
 import {
 	Document,

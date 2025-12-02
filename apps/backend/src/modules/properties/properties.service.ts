@@ -2,20 +2,18 @@ import type { PropertyStatus } from '@repo/shared/constants/status-types'
 import {
 	BadRequestException,
 	ConflictException,
-	Inject,
 	Injectable,
 	Logger,
 	Optional
 } from '@nestjs/common'
 import type {
-	CreatePropertyRequest,
-	UpdatePropertyRequest
+	CreatePropertyInput,
+	UpdatePropertyInput
 } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyType } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
-import type { Cache } from 'cache-manager'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { SupabaseService } from '../../database/supabase.service'
+import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -38,23 +36,24 @@ export class PropertiesService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+		private readonly cache: ZeroCacheService,
 		@Optional() logger?: Logger
 	) {
 		this.logger = logger ?? new Logger(PropertiesService.name)
 	}
 
-	private async invalidatePropertyStatsCache(user_id: string): Promise<void> {
-		const cacheKey = `property-stats:${user_id}`
-		try {
-			await this.cacheManager.del(cacheKey)
-			this.logger.debug('Invalidated property stats cache', { user_id })
-		} catch (error) {
-			this.logger.error('Failed to invalidate property stats cache', {
-				error: error instanceof Error ? error.message : 'Unknown error',
-				user_id
-			})
+	/**
+	 * Invalidate all property-related caches for a user/owner
+	 * Uses ZeroCacheService surgical invalidation
+	 */
+	private invalidatePropertyCaches(property_owner_id: string, property_id?: string): void {
+		// Invalidate specific property if ID provided
+		if (property_id) {
+			this.cache.invalidateByEntity('properties', property_id)
 		}
+		// Invalidate user's property list cache
+		this.cache.invalidate(`properties:owner:${property_owner_id}`)
+		this.logger.debug('Invalidated property caches', { property_owner_id, property_id })
 	}
 
 	async findAll(
@@ -121,7 +120,7 @@ export class PropertiesService {
 
 	async create(
 		req: AuthenticatedRequest,
-		request: CreatePropertyRequest
+		request: CreatePropertyInput
 	): Promise<Property> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
@@ -190,7 +189,7 @@ property_owner_id: property_owner_id,
 			)
 		}
 
-await this.invalidatePropertyStatsCache(property_owner_id)
+this.invalidatePropertyCaches(property_owner_id, data.id)
 
 		this.logger.log('Property created successfully', {
 			property_id: data.id
@@ -201,7 +200,7 @@ await this.invalidatePropertyStatsCache(property_owner_id)
 	async update(
 		req: AuthenticatedRequest,
 		property_id: string,
-		request: UpdatePropertyRequest,
+		request: UpdatePropertyInput,
 		expectedVersion?: number
 	): Promise<Property | null> {
 		const token = getTokenFromRequest(req)
@@ -267,8 +266,10 @@ await this.invalidatePropertyStatsCache(property_owner_id)
 			throw new BadRequestException('Failed to update property')
 		}
 
-		const user_id = req.user.id
-		await this.invalidatePropertyStatsCache(user_id)
+		// Invalidate caches using property_owner_id from returned data
+		if (data.property_owner_id) {
+			this.invalidatePropertyCaches(data.property_owner_id, property_id)
+		}
 
 		return data as Property
 	}
@@ -362,7 +363,10 @@ await this.invalidatePropertyStatsCache(property_owner_id)
 			completedSteps: result.completedSteps
 		})
 
-		await this.invalidatePropertyStatsCache(user_id)
+		// Invalidate caches using property_owner_id from existing property
+		if (existing.property_owner_id) {
+			this.invalidatePropertyCaches(existing.property_owner_id, property_id)
+		}
 
 		return { success: true, message: 'Property deleted successfully' }
 	}

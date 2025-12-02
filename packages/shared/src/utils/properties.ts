@@ -34,5 +34,5 @@ export const getUnitStatusColor = (status: UnitStatus): string => {
 		MAINTENANCE: 'bg-orange-100 text-orange-800',
 		RESERVED: 'bg-blue-100 text-blue-800'
 	}
-	return colors[status] || 'bg-gray-100 text-gray-800'
+	return colors[status] || 'bg-muted/100 text-muted/800'
 }

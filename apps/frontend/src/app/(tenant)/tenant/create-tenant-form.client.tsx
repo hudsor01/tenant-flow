@@ -228,7 +228,7 @@ export function CreateTenantForm({
 				</CardHeader>
 
 				<CardContent className="space-y-6">
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<form.Field
 							name="first_name"
 							validators={{
@@ -310,7 +310,7 @@ export function CreateTenantForm({
 										placeholder="john.smith@example.com"
 									/>
 								</InputGroup>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Tenant will receive an invitation email to access their portal
 								</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -358,7 +358,7 @@ export function CreateTenantForm({
 									placeholder="Emergency contact name, relationship, and phone number..."
 									rows={4}
 								/>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Include name, relationship, and contact information
 								</p>
 								<FieldError errors={field.state.meta.errors} />
@@ -457,7 +457,7 @@ export function CreateTenantForm({
 										))}
 									</SelectContent>
 								</Select>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									{!selectedproperty_id
 										? 'Select a property first'
 										: availableUnits.length === 0
@@ -471,7 +471,7 @@ export function CreateTenantForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<form.Field
 							name="rent_amount"
 							validators={{
@@ -537,7 +537,7 @@ export function CreateTenantForm({
 						</form.Field>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-(--spacing-4)">
 						<form.Field
 							name="start_date"
 							validators={{
@@ -598,7 +598,7 @@ export function CreateTenantForm({
 			</Card>
 
 			{/* Form Actions */}
-			<div className="flex justify-end gap-4">
+			<div className="flex justify-end gap-(--spacing-4)">
 				<Button type="button" variant="outline" onClick={() => router.back()}>
 					Cancel
 				</Button>
