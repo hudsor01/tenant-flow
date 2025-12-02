@@ -79,7 +79,7 @@ const MOCK_TENANTS: TenantWithLeaseInfo[] = [
 			end_date: '2025-04-30',
 			rent_amount: 3500,
 			security_deposit: 7000,
-			status: 'ACTIVE',
+			status: 'active',
 			primary_tenant_id: 'tenant-1',
 			unit_id: 'unit-101'
 		},
@@ -101,7 +101,7 @@ const MOCK_TENANTS: TenantWithLeaseInfo[] = [
 			postal_code: '90401'
 		},
 		monthlyRent: 3500,
-		lease_status: 'ACTIVE',
+		lease_status: 'active',
 		paymentStatus: 'Current',
 		unitDisplay: 'Unit 101',
 		propertyDisplay: 'Sunset Towers, Santa Monica',
@@ -125,14 +125,14 @@ const MOCK_TENANTS: TenantWithLeaseInfo[] = [
 		stripe_customer_id: 'cus_124',
 		created_at: '2024-06-10',
 		updated_at: '2024-10-05',
-		
+
 		currentLease: {
 			id: 'lease-2',
 			start_date: '2024-06-01',
 			end_date: '2025-05-31',
 			rent_amount: 3800,
 			security_deposit: 7600,
-			status: 'ACTIVE',
+			status: 'active',
 			primary_tenant_id: 'tenant-2',
 			unit_id: 'unit-A'
 		},
@@ -154,7 +154,7 @@ const MOCK_TENANTS: TenantWithLeaseInfo[] = [
 			postal_code: '92101'
 		},
 		monthlyRent: 3800,
-		lease_status: 'ACTIVE',
+		lease_status: 'active',
 		paymentStatus: 'Current',
 		unitDisplay: 'Unit A',
 		propertyDisplay: 'Harbor View Residences, San Diego',

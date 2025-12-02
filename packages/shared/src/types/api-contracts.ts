@@ -7,7 +7,7 @@
 
 // Tenant-related API contracts
 export interface TenantFilters {
-	status?: 'ACTIVE' | 'INACTIVE' | 'PENDING'
+	status?: 'active' | 'INACTIVE' | 'PENDING'
 	property_id?: string
 	search?: string
 	limit?: number
@@ -55,7 +55,7 @@ export interface SignatureStatus {
 }
 
 export interface PropertyFilters {
-	status?: 'ACTIVE' | 'SOLD' | 'INACTIVE'
+	status?: 'active' | 'SOLD' | 'INACTIVE'
 	property_type?: string
 	search?: string
 	limit?: number
@@ -370,11 +370,11 @@ export interface CreateLeaseInput {
 		| 'active'
 		| 'ended'
 		| 'terminated'
-		| 'ACTIVE'
+		| 'active'
 		| 'PENDING'
-		| 'EXPIRED'
-		| 'TERMINATED'
-		| 'DRAFT'
+		| 'expired'
+		| 'terminated'
+		| 'draft'
 	auto_pay_enabled?: boolean
 	stripe_subscription_id?: string
 }
@@ -397,11 +397,11 @@ export interface UpdateLeaseInput {
 		| 'active'
 		| 'ended'
 		| 'terminated'
-		| 'ACTIVE'
+		| 'active'
 		| 'PENDING'
-		| 'EXPIRED'
-		| 'TERMINATED'
-		| 'DRAFT'
+		| 'expired'
+		| 'terminated'
+		| 'draft'
 	auto_pay_enabled?: boolean
 }
 
@@ -547,7 +547,7 @@ export interface RentSubscriptionResponse {
 
 export interface UpdateSubscriptionRequest {
 	payment_method_id?: string
-	status?: 'ACTIVE' | 'PAUSED' | 'CANCELLED'
+	status?: 'active' | 'PAUSED' | 'CANCELLED'
 	amount?: number
 	billingDayOfMonth?: number
 	paymentMethodId?: string

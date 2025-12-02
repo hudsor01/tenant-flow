@@ -285,7 +285,7 @@ export class FinancialService {
 			return {
 				summary: {
 					totalLeases: leaseList.length,
-					activeLeases: leaseList.filter((l: Lease) => l.lease_status === 'ACTIVE')
+					activeLeases: leaseList.filter((l: Lease) => l.lease_status === 'active')
 						.length,
 					expiredLeases: leaseList.filter(
 					(l: Lease) => l.end_date && new Date(l.end_date) < now
@@ -451,7 +451,7 @@ export class FinancialService {
 					.from('leases')
 					.select('unit_id, rent_amount')
 					.in('unit_id', allUnitIds)
-					.eq('lease_status', 'ACTIVE')
+					.eq('lease_status', 'active')
 
 				leasesData = (leases ?? []) as Array<{
 					unit_id: string

@@ -71,7 +71,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			string,
 			'default' | 'secondary' | 'destructive' | 'outline'
 		> = {
-			ACTIVE: 'default',
+			active: 'default',
 			EXPIRED: 'destructive',
 			TERMINATED: 'secondary',
 			DRAFT: 'outline',
@@ -137,7 +137,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				)}
 
 				{/* Active lease actions */}
-				{lease.lease_status === 'ACTIVE' && (
+				{lease.lease_status === 'active' && (
 					<>
 						<DropdownMenuItem
 							onClick={() => openModal(`pay-rent-${lease.id}`)}

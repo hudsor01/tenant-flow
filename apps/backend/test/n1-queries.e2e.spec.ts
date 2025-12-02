@@ -132,7 +132,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 				lease_start_date: '2025-01-01',
 				lease_end_date: '2025-12-31',
 				rent_amount: 1000,
-				lease_status: 'ACTIVE'
+				lease_status: 'active'
 			})))
 	}
 

@@ -79,7 +79,7 @@ const DEFAULT_PROPERTY: Property = {
 	postal_code: '94105',
 	country: 'US',
 	property_type: 'multi_family',
-	status: 'ACTIVE',
+	status: 'active',
 	date_sold: null,
 	sale_price: null,
 	created_at: '2024-01-01T00:00:00Z',

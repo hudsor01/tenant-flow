@@ -38,16 +38,16 @@ export function PropertyCard({ property, onDelete }: PropertyCardProps) {
 
 	// Map database status enum to UI variants
 	const statusVariant =
-		property.status === 'ACTIVE'
+		property.status === 'active'
 			? 'default'
 			: property.status === 'UNDER_CONTRACT'
 				? 'secondary'
 				: 'outline'
 
 	const statusLabel =
-		property.status === 'ACTIVE'
+		property.status === 'active'
 			? 'active'
-			: property.status === 'INACTIVE'
+			: property.status === 'INactive'
 				? 'inactive'
 				: property.status === 'UNDER_CONTRACT'
 					? 'under contract'

@@ -100,7 +100,7 @@ const mockLease: Lease = {
   end_date: '2024-12-31',
   rent_amount: 1500,
   security_deposit: 1500,
-  lease_status: 'ACTIVE',
+  lease_status: 'active',
   grace_period_days: null,
   late_fee_amount: null,
   late_fee_days: null,

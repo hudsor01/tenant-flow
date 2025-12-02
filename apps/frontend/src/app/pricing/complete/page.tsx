@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation'
 // Map status to CSS class name (uses classes from globals.css)
 const getStatusClass = (status: string): string => {
 	const statusMap: Record<string, string> = {
-		ACTIVE: 'status-active',
+		active: 'status-active',
 		PENDING: 'status-pending',
 		INACTIVE: 'status-inactive',
 		OVERDUE: 'status-overdue',
