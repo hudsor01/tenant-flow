@@ -384,6 +384,24 @@ export class AppConfigService {
 		return this.get('IDEMPOTENCY_KEY_SECRET')
 	}
 
+	// ==================== DocuSeal (E-Signatures) ====================
+
+	getDocuSealApiUrl(): string {
+		return this.get('DOCUSEAL_API_URL')
+	}
+
+	getDocuSealApiKey(): string | undefined {
+		return this.get('DOCUSEAL_API_KEY')
+	}
+
+	getDocuSealWebhookSecret(): string | undefined {
+		return this.get('DOCUSEAL_WEBHOOK_SECRET')
+	}
+
+	isDocuSealEnabled(): boolean {
+		return !!this.getDocuSealApiKey()
+	}
+
 	private get<K extends keyof Config>(key: K): Config[K] {
 		return this.configService.get(key, { infer: true })
 	}

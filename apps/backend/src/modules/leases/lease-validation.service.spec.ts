@@ -37,7 +37,7 @@ describe('LeaseValidationService', () => {
 		it('should throw BadRequestException when owner name is missing', () => {
 			const leaseData = {
 				property: {
-					address: { state: 'CA' }
+					address: { state: 'TX' }
 				},
 				owner: {}
 			} as unknown as LeaseFormData
@@ -53,7 +53,7 @@ describe('LeaseValidationService', () => {
 		it('should throw BadRequestException when tenants array is empty', () => {
 			const leaseData = {
 				property: {
-					address: { state: 'CA' }
+					address: { state: 'TX' }
 				},
 				owner: { name: 'John Doe' },
 				tenants: []
@@ -70,7 +70,7 @@ describe('LeaseValidationService', () => {
 		it('should throw BadRequestException when rent amount is missing', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				property: {
-					address: { state: 'CA' }
+					address: { state: 'TX' }
 				},
 				owner: { name: 'John Doe' },
 				tenants: [{ name: 'Jane Smith' }],
@@ -88,7 +88,7 @@ describe('LeaseValidationService', () => {
 		it('should not throw when all required fields are present', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				property: {
-					address: { state: 'CA' }
+					address: { state: 'TX' }
 				},
 				owner: { name: 'John Doe' },
 				tenants: [{ name: 'Jane Smith' }],
@@ -168,10 +168,10 @@ describe('LeaseValidationService', () => {
 	})
 
 	describe('validateLeaseData', () => {
-		it('should return valid=true for valid lease data', () => {
+		it('should return valid=true for valid Texas lease data', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				property: {
-					address: { state: 'CA' }
+					address: { state: 'TX' }
 				},
 				leaseTerms: {
 					rent_amount: 2000,
@@ -199,17 +199,38 @@ describe('LeaseValidationService', () => {
 			expect(result.valid).toBe(false)
 			expect(result.errors).toHaveLength(1)
 			expect(result.errors[0]).toEqual({
-				field: 'property.address_line1.state',
+				field: 'property.address.state',
 				message: 'Property state is required',
 				code: 'REQUIRED_FIELD'
 			})
 		})
 
-		describe('California state-specific validation', () => {
-			it('should return error when security deposit exceeds 2x rent', () => {
+		it('should return error for non-Texas states', () => {
+			const leaseData: Partial<LeaseFormData> = {
+				property: {
+					address: { state: 'CA' }
+				},
+				leaseTerms: {
+					rent_amount: 2000
+				}
+			} as Partial<LeaseFormData>
+
+			const result = service.validateLeaseData(leaseData as LeaseFormData)
+
+			expect(result.valid).toBe(false)
+			expect(result.errors).toHaveLength(1)
+			expect(result.errors[0]).toEqual({
+				field: 'property.address.state',
+				message: 'Only Texas (TX) properties are currently supported',
+				code: 'UNSUPPORTED_STATE'
+			})
+		})
+
+		describe('Texas state-specific validation', () => {
+			it('should return warning when security deposit exceeds 2x rent', () => {
 				const leaseData: Partial<LeaseFormData> = {
 					property: {
-						address: { state: 'CA' }
+						address: { state: 'TX' }
 					},
 					leaseTerms: {
 						rent_amount: 2000,
@@ -221,19 +242,17 @@ describe('LeaseValidationService', () => {
 
 				const result = service.validateLeaseData(leaseData as LeaseFormData)
 
-				expect(result.valid).toBe(false)
-				expect(result.errors).toHaveLength(1)
-				expect(result.errors[0]).toEqual({
-					field: 'leaseTerms.security_deposit.amount',
-					message: 'Security deposit cannot exceed 2x monthly rent in California',
-					code: 'CA_DEPOSIT_LIMIT'
-				})
+				// In Texas, exceeding 2x rent is a warning, not an error
+				expect(result.valid).toBe(true)
+				expect(result.errors).toHaveLength(0)
+				expect(result.warnings).toHaveLength(1)
+				expect(result.warnings[0]?.field).toBe('leaseTerms.security_deposit.amount')
 			})
 
-			it('should allow security deposit exactly at 2x rent limit', () => {
+			it('should allow security deposit at 2x rent without warning', () => {
 				const leaseData: Partial<LeaseFormData> = {
 					property: {
-						address: { state: 'CA' }
+						address: { state: 'TX' }
 					},
 					leaseTerms: {
 						rent_amount: 2000,
@@ -247,43 +266,64 @@ describe('LeaseValidationService', () => {
 
 				expect(result.valid).toBe(true)
 				expect(result.errors).toHaveLength(0)
+				expect(result.warnings).toHaveLength(0)
 			})
 
-			it('should return warning when late fee grace period is less than 3 days', () => {
+			it('should return error when late fee grace period is less than 2 days', () => {
 				const leaseData: Partial<LeaseFormData> = {
 					property: {
-						address: { state: 'CA' }
+						address: { state: 'TX' }
 					},
 					leaseTerms: {
 						rent_amount: 2000,
 						lateFee: {
 							enabled: true,
-							gracePeriod: 1 // Less than recommended 3 days
+							gracePeriod: 1 // Less than required 2 days
 						}
 					}
 				} as Partial<LeaseFormData>
 
 				const result = service.validateLeaseData(leaseData as LeaseFormData)
 
-				expect(result.valid).toBe(true) // Valid, but with warning
-				expect(result.errors).toHaveLength(0)
-				expect(result.warnings).toHaveLength(1)
-				expect(result.warnings[0]).toEqual({
+				expect(result.valid).toBe(false)
+				expect(result.errors).toHaveLength(1)
+				expect(result.errors[0]).toEqual({
 					field: 'leaseTerms.lateFee.gracePeriod',
-					message: 'California recommends minimum 3-day grace period for late fees',
-					suggestion: 'Increase grace period to 3 days'
+					message: 'Texas law requires minimum 2-day grace period before late fees (Tex. Prop. Code § 92.019)',
+					code: 'TX_GRACE_PERIOD'
 				})
 			})
 
-			it('should not return warning when late fee grace period is 3 or more days', () => {
+			it('should accept 2-day grace period', () => {
 				const leaseData: Partial<LeaseFormData> = {
 					property: {
-						address: { state: 'CA' }
+						address: { state: 'TX' }
 					},
 					leaseTerms: {
 						rent_amount: 2000,
 						lateFee: {
 							enabled: true,
+							gracePeriod: 2
+						}
+					}
+				} as Partial<LeaseFormData>
+
+				const result = service.validateLeaseData(leaseData as LeaseFormData)
+
+				expect(result.valid).toBe(true)
+				expect(result.errors).toHaveLength(0)
+			})
+
+			it('should warn when late fee exceeds 15% of rent', () => {
+				const leaseData: Partial<LeaseFormData> = {
+					property: {
+						address: { state: 'TX' }
+					},
+					leaseTerms: {
+						rent_amount: 2000,
+						lateFee: {
+							enabled: true,
+							amount: 400, // 20% of rent
 							gracePeriod: 3
 						}
 					}
@@ -292,13 +332,14 @@ describe('LeaseValidationService', () => {
 				const result = service.validateLeaseData(leaseData as LeaseFormData)
 
 				expect(result.valid).toBe(true)
-				expect(result.warnings).toHaveLength(0)
+				expect(result.warnings).toHaveLength(1)
+				expect(result.warnings[0]?.field).toBe('leaseTerms.lateFee.amount')
 			})
 
-			it('should not validate late fee grace period when late fees are disabled', () => {
+			it('should not validate late fee when disabled', () => {
 				const leaseData: Partial<LeaseFormData> = {
 					property: {
-						address: { state: 'CA' }
+						address: { state: 'TX' }
 					},
 					leaseTerms: {
 						rent_amount: 2000,
@@ -312,14 +353,15 @@ describe('LeaseValidationService', () => {
 				const result = service.validateLeaseData(leaseData as LeaseFormData)
 
 				expect(result.valid).toBe(true)
+				expect(result.errors).toHaveLength(0)
 				expect(result.warnings).toHaveLength(0)
 			})
 		})
 
-		it('should return state requirements in response', () => {
+		it('should return Texas state requirements in response', () => {
 			const leaseData: Partial<LeaseFormData> = {
 				property: {
-					address: { state: 'CA' }
+					address: { state: 'TX' }
 				},
 				leaseTerms: {
 					rent_amount: 2000
@@ -329,53 +371,34 @@ describe('LeaseValidationService', () => {
 			const result = service.validateLeaseData(leaseData as LeaseFormData)
 
 			expect(result.stateRequirements).toBeDefined()
-			expect(result.stateRequirements.stateName).toBe('California')
+			expect(result.stateRequirements.stateName).toBe('Texas')
 		})
 	})
 
-	describe('getStateRequirements', () => {
-		it('should return California requirements', () => {
-			const result = service.getStateRequirements('CA')
-
-			expect(result).toEqual({
-				stateName: 'California',
-				security_depositMax: '2x monthly rent',
-				lateFeeGracePeriod: '3 days minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug History']
-			})
-		})
-
-		it('should return Texas requirements', () => {
-			const result = service.getStateRequirements('TX')
+	describe('getTexasRequirements', () => {
+		it('should return Texas-specific requirements', () => {
+			const result = service.getTexasRequirements()
 
 			expect(result).toEqual({
 				stateName: 'Texas',
-				security_depositMax: '2x monthly rent',
-				lateFeeGracePeriod: '1 day minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)']
+				security_depositMax: 'No statutory limit (2x monthly rent recommended)',
+				lateFeeGracePeriod: '2 days minimum (Tex. Prop. Code § 92.019)',
+				requiredDisclosures: [
+					'Lead Paint Disclosure (pre-1978 buildings)',
+					'Property Condition Report',
+					'Landlord Contact Information'
+				]
 			})
 		})
+	})
 
-		it('should return New York requirements', () => {
-			const result = service.getStateRequirements('NY')
-
-			expect(result).toEqual({
-				stateName: 'New York',
-				security_depositMax: '1x monthly rent',
-				lateFeeGracePeriod: '5 days minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug Annual Statement']
-			})
-		})
-
-		it('should return default requirements for unknown state', () => {
-			const result = service.getStateRequirements('WA')
-
-			expect(result).toEqual({
-				stateName: 'WA',
-				security_depositMax: 'Varies by state',
-				lateFeeGracePeriod: 'Check state law',
-				requiredDisclosures: ['Lead Paint (pre-1978)']
-			})
+	describe('getStateRequirements (deprecated)', () => {
+		it('should return Texas requirements regardless of state parameter', () => {
+			// This method is deprecated - always returns Texas
+			expect(service.getStateRequirements('TX')).toEqual(service.getTexasRequirements())
+			expect(service.getStateRequirements('CA')).toEqual(service.getTexasRequirements())
+			expect(service.getStateRequirements('NY')).toEqual(service.getTexasRequirements())
+			expect(service.getStateRequirements('WA')).toEqual(service.getTexasRequirements())
 		})
 	})
 })
