@@ -53,7 +53,7 @@ describe('PropertiesController', () => {
 	postal_code: '10001',
 	country: 'US',
 	property_type: 'SINGLE_FAMILY',
-	status: 'ACTIVE',
+	status: 'active',
 	property_owner_id: mockUser.id,
 	date_sold: null,
 	sale_price: null,

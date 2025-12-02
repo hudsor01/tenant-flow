@@ -29,7 +29,7 @@ export type LeadMagnetTier = keyof typeof LEAD_MAGNET_CONFIG
  * Customer invoice status enum values
  */
 export const CUSTOMER_INVOICE_STATUS = {
-	DRAFT: 'DRAFT',
+	DRAFT: 'draft',
 	SENT: 'SENT',
 	VIEWED: 'VIEWED',
 	PAID: 'PAID',

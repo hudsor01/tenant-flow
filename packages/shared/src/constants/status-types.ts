@@ -21,7 +21,7 @@ export type User = (typeof USER_user_typeS)[keyof typeof USER_user_typeS]
  * PROPERTY STATUS ENUMERATION
  */
 export const PROPERTY_STATUS = {
-	ACTIVE: 'ACTIVE',
+	ACTIVE: 'active',
 	INACTIVE: 'INACTIVE',
 	UNDER_CONTRACT: 'UNDER_CONTRACT',
 	SOLD: 'SOLD'
@@ -61,10 +61,10 @@ export type UnitStatus = (typeof UNIT_STATUS)[keyof typeof UNIT_STATUS]
  * LEASE STATUS ENUMERATION
  */
 export const LEASE_STATUS = {
-	DRAFT: 'DRAFT',
-	ACTIVE: 'ACTIVE',
-	EXPIRED: 'EXPIRED',
-	TERMINATED: 'TERMINATED'
+	DRAFT: 'draft',
+	ACTIVE: 'active',
+	EXPIRED: 'expired',
+	TERMINATED: 'terminated'
 } as const
 
 export type LeaseStatus = (typeof LEASE_STATUS)[keyof typeof LEASE_STATUS]
@@ -149,7 +149,7 @@ export type SubscriptionStatus =
  * TENANT STATUS ENUMERATION
  */
 export const TENANT_STATUS = {
-	ACTIVE: 'ACTIVE',
+	ACTIVE: 'active',
 	INACTIVE: 'INACTIVE',
 	EVICTED: 'EVICTED',
 	PENDING: 'PENDING',
@@ -165,8 +165,8 @@ export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS]
 export const INVITATION_STATUS = {
 	PENDING: 'PENDING',
 	SENT: 'SENT',
-	ACCEPTED: 'ACCEPTED',
-	EXPIRED: 'EXPIRED',
+	ACCEPTED: 'accepted',
+	EXPIRED: 'expired',
 	REVOKED: 'REVOKED'
 } as const
 
@@ -192,7 +192,7 @@ export type DocumentType = (typeof DOCUMENT_TYPES)[keyof typeof DOCUMENT_TYPES]
  * BLOG STATUS ENUMERATION
  */
 export const BLOG_STATUS = {
-	DRAFT: 'DRAFT',
+	DRAFT: 'draft',
 	PUBLISHED: 'PUBLISHED',
 	ARCHIVED: 'ARCHIVED',
 	SCHEDULED: 'SCHEDULED'
@@ -284,7 +284,7 @@ export type ReminderStatus =
  * CUSTOMER INVOICE STATUS ENUMERATION
  */
 export const CUSTOMER_INVOICE_STATUS = {
-	DRAFT: 'DRAFT',
+	DRAFT: 'draft',
 	SENT: 'SENT',
 	VIEWED: 'VIEWED',
 	PAID: 'PAID',
@@ -543,4 +543,3 @@ export type Result<T = void, E = string> =
  * ASYNC RESULT TYPE - For asynchronous operations
  */
 export type { AsyncResult } from '../types/api.js'
-
