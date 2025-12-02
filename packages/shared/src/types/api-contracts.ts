@@ -512,45 +512,38 @@ export interface TenantPaymentHistoryResponse {
 
 // Subscription types
 export interface CreateRentSubscriptionRequest {
-	lease_id: string
-	payment_method_id: string
-	start_date: string
+	leaseId: string
+	paymentMethodId: string
+	amount: number
+	billingDayOfMonth: number
+	currency?: string
 }
 
 export interface RentSubscriptionResponse {
-	id?: string
-	lease_id?: string
-	tenant_id?: string
-	status?: string
-	payment_method_id?: string
-	amount?: number
-	start_date?: string
-	next_payment_date?: string
-	next_charge_date?: string
-	created_at?: string
-	updated_at?: string
-	// camelCase aliases used in some components
-	paymentMethodId?: string
-	leaseId?: string
-	tenantId?: string
-	nextChargeDate?: string
-	updatedAt?: string
-	stripeSubscriptionId?: string
-	stripeCustomerId?: string
-	currency?: string
-	billing_day_of_month?: number
-	platformFeePercentage?: number
-	pausedAt?: string
-	canceledAt?: string
-	createdAt?: string
+	id: string
+	leaseId: string
+	tenantId: string
+	ownerId: string
+	stripeSubscriptionId: string
+	stripeCustomerId: string
+	paymentMethodId?: string | undefined
+	amount?: number | undefined
+	currency: string
+	billingDayOfMonth: number
+	nextChargeDate?: string | undefined
+	status: string
+	platformFeePercentage: number
+	pausedAt?: string | undefined
+	canceledAt?: string | undefined
+	createdAt: string
+	updatedAt: string
 }
 
 export interface UpdateSubscriptionRequest {
-	payment_method_id?: string
-	status?: 'active' | 'PAUSED' | 'CANCELLED'
+	paymentMethodId?: string
+	status?: 'active' | 'paused' | 'cancelled'
 	amount?: number
 	billingDayOfMonth?: number
-	paymentMethodId?: string
 }
 
 export interface SubscriptionActionResponse {

@@ -269,16 +269,16 @@ function RentCollectionContent() {
 									</TableHeader>
 									<TableBody>
 										{activeSubscriptions.map(sub => {
-											const paymentMethodInfo = sub.payment_method_id
-												? getPaymentMethodInfo(sub.payment_method_id)
+											const paymentMethodInfo = sub.paymentMethodId
+												? getPaymentMethodInfo(sub.paymentMethodId)
 												: null
 
 											return (
 												<TableRow key={sub.id}>
 													<TableCell className="font-medium">
-														{sub.tenant_id}
+														{sub.tenantId}
 													</TableCell>
-													<TableCell>{sub.lease_id}</TableCell>
+													<TableCell>{sub.leaseId}</TableCell>
 													<TableCell>
 														${((sub.amount ?? 0) / 100).toFixed(2)}/mo
 													</TableCell>
@@ -298,9 +298,9 @@ function RentCollectionContent() {
 														)}
 													</TableCell>
 													<TableCell>
-														{sub.next_charge_date
+														{sub.nextChargeDate
 															? format(
-																	new Date(sub.next_charge_date),
+																	new Date(sub.nextChargeDate),
 																	'MMM d, yyyy'
 																)
 															: 'N/A'}
@@ -372,16 +372,16 @@ function RentCollectionContent() {
 									</TableHeader>
 									<TableBody>
 										{pausedSubscriptions.map(sub => {
-											const paymentMethodInfo = sub.payment_method_id
-												? getPaymentMethodInfo(sub.payment_method_id)
+											const paymentMethodInfo = sub.paymentMethodId
+												? getPaymentMethodInfo(sub.paymentMethodId)
 												: null
 
 											return (
 												<TableRow key={sub.id}>
 													<TableCell className="font-medium">
-														{sub.tenant_id}
+														{sub.tenantId}
 													</TableCell>
-													<TableCell>{sub.lease_id}</TableCell>
+													<TableCell>{sub.leaseId}</TableCell>
 													<TableCell>
 														${((sub.amount ?? 0) / 100).toFixed(2)}/mo
 													</TableCell>
@@ -401,8 +401,8 @@ function RentCollectionContent() {
 														)}
 													</TableCell>
 													<TableCell>
-														{sub.updated_at
-															? format(new Date(sub.updated_at), 'MMM d, yyyy')
+														{sub.updatedAt
+															? format(new Date(sub.updatedAt), 'MMM d, yyyy')
 															: 'N/A'}
 													</TableCell>
 													<TableCell>
@@ -471,16 +471,16 @@ function RentCollectionContent() {
 									</TableHeader>
 									<TableBody>
 										{canceledSubscriptions.map(sub => {
-											const paymentMethodInfo = sub.payment_method_id
-												? getPaymentMethodInfo(sub.payment_method_id)
+											const paymentMethodInfo = sub.paymentMethodId
+												? getPaymentMethodInfo(sub.paymentMethodId)
 												: null
 
 											return (
 												<TableRow key={sub.id}>
 													<TableCell className="font-medium">
-														{sub.tenant_id}
+														{sub.tenantId}
 													</TableCell>
-													<TableCell>{sub.lease_id}</TableCell>
+													<TableCell>{sub.leaseId}</TableCell>
 													<TableCell>
 														${((sub.amount ?? 0) / 100).toFixed(2)}/mo
 													</TableCell>
@@ -500,8 +500,8 @@ function RentCollectionContent() {
 														)}
 													</TableCell>
 													<TableCell>
-														{sub.updated_at
-															? format(new Date(sub.updated_at), 'MMM d, yyyy')
+														{sub.updatedAt
+															? format(new Date(sub.updatedAt), 'MMM d, yyyy')
 															: 'N/A'}
 													</TableCell>
 													<TableCell>
