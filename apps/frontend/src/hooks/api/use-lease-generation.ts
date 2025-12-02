@@ -1,12 +1,12 @@
 'use client'
 
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { clientFetch, getAuthHeaders } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
-import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 /**
  * Query keys for lease generation
@@ -33,67 +33,90 @@ export function useLeaseAutoFill(property_id: string, unit_id: string, tenant_id
 	})
 }
 
+/** PDF generation timeout in milliseconds */
+const PDF_GENERATION_TIMEOUT_MS = 60000 // 1 minute for large documents
+
+/**
+ * Generate a safe filename from property address
+ */
+function generateSafeFilename(propertyAddress: string | undefined): string {
+	const sanitizedAddress = (propertyAddress || 'property')
+		.replace(/[^a-zA-Z0-9]/g, '-')
+		.replace(/-+/g, '-')
+		.slice(0, 50)
+	const timestamp = Date.now()
+	return `lease-${sanitizedAddress}-${timestamp}.pdf`
+}
+
+/**
+ * Download a blob as a file
+ */
+function downloadBlob(blob: Blob, filename: string): void {
+	const url = window.URL.createObjectURL(blob)
+	try {
+		const anchor = document.createElement('a')
+		anchor.href = url
+		anchor.download = filename
+		document.body.appendChild(anchor)
+		anchor.click()
+		document.body.removeChild(anchor)
+	} finally {
+		// Always revoke URL to prevent memory leaks
+		window.URL.revokeObjectURL(url)
+	}
+}
+
 /**
  * Hook to generate and download Texas lease PDF
  */
 export function useGenerateLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData) => {
-			// Get auth headers for authenticated request
-			const headers = await getAuthHeaders()
+			const controller = new AbortController()
+			const timeoutId = setTimeout(() => controller.abort(), PDF_GENERATION_TIMEOUT_MS)
 
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL!}/api/v1/leases/generate`,
-				{
-					method: 'POST',
-					headers,
-					body: JSON.stringify(data)
-				}
-			)
-
-			if (!response.ok) {
-				const errorText = await response.text()
-				throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
-			}
-
-			// SECURITY: Validate content-type before processing
-			const contentType = response.headers.get('content-type')
-			if (!contentType?.includes('application/pdf')) {
-				throw new Error(`Invalid response type: expected PDF, got ${contentType}`)
-			}
-
-			// Get the PDF blob
-			const blob = await response.blob()
-
-			// Generate safe filename (handle empty propertyAddress)
-			const sanitizedAddress = (data.propertyAddress || 'properties')
-				.replace(/[^a-zA-Z0-9]/g, '-')
-				.replace(/-+/g, '-')
-				.slice(0, 50) // Limit length
-			const timestamp = Date.now()
-			const filename = `lease-${sanitizedAddress}-${timestamp}.pdf`
-
-			// Create download link with proper cleanup
-			const url = window.URL.createObjectURL(blob)
 			try {
-				const a = document.createElement('a')
-				a.href = url
-				a.download = filename
-				document.body.appendChild(a)
-				a.click()
-				document.body.removeChild(a)
-			} finally {
-				// MEMORY LEAK FIX: Always revoke URL even if error occurs
-				window.URL.revokeObjectURL(url)
-			}
+				const headers = await getAuthHeaders()
 
-			return { success: true, filename }
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_BASE_URL!}/api/v1/leases/generate`,
+					{
+						method: 'POST',
+						headers,
+						body: JSON.stringify(data),
+						signal: controller.signal
+					}
+				)
+
+				if (!response.ok) {
+					const errorText = await response.text()
+					throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
+				}
+
+				// Validate content-type before processing
+				const contentType = response.headers.get('content-type')
+				if (!contentType?.includes('application/pdf')) {
+					throw new Error(`Invalid response type: expected PDF, got ${contentType}`)
+				}
+
+				const blob = await response.blob()
+				const filename = generateSafeFilename(data.propertyAddress)
+				downloadBlob(blob, filename)
+
+				return { success: true, filename }
+			} catch (error) {
+				// Re-throw with user-friendly message for timeout
+				if (error instanceof Error && error.name === 'AbortError') {
+					throw new Error('PDF generation timed out. Please try again.')
+				}
+				throw error
+			} finally {
+				clearTimeout(timeoutId)
+			}
 		},
 		onSuccess: () => {
 			toast.success('Lease generated and downloaded successfully')
-			logger.info('Lease generated', {
-				action: 'generate_lease'
-			})
+			logger.info('Lease generated', { action: 'generate_lease' })
 		},
 		onError: error => {
 			logger.error('Error generating lease', {
@@ -111,25 +134,37 @@ export function useGenerateLease() {
 export function useEmailLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData & { emailTo: string }) => {
-			// Get auth headers for authenticated request
-			const headers = await getAuthHeaders()
+			const controller = new AbortController()
+			const timeoutId = setTimeout(() => controller.abort(), PDF_GENERATION_TIMEOUT_MS)
 
-			const response = await fetch(
-				`${process.env.NEXT_PUBLIC_API_BASE_URL!}/api/v1/leases/email`,
-				{
-					method: 'POST',
-					headers,
-					body: JSON.stringify(data)
+			try {
+				const headers = await getAuthHeaders()
+
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_BASE_URL!}/api/v1/leases/email`,
+					{
+						method: 'POST',
+						headers,
+						body: JSON.stringify(data),
+						signal: controller.signal
+					}
+				)
+
+				if (!response.ok) {
+					const errorText = await response.text()
+					throw new Error(`Failed to email lease: ${response.status} ${errorText}`)
 				}
-			)
 
-			if (!response.ok) {
-				const errorText = await response.text()
-				throw new Error(`Failed to email lease: ${response.status} ${errorText}`)
+				const result = (await response.json()) as { success: boolean }
+				return { success: result?.success ?? true }
+			} catch (error) {
+				if (error instanceof Error && error.name === 'AbortError') {
+					throw new Error('Email request timed out. Please try again.')
+				}
+				throw error
+			} finally {
+				clearTimeout(timeoutId)
 			}
-
-			const result = (await response.json()) as { success: boolean }
-			return { success: result?.success ?? true }
 		},
 		onSuccess: (_data, variables) => {
 			toast.success(`Lease sent to ${variables.emailTo}`)

@@ -6,7 +6,7 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { cn } from '#lib/utils'
-import { formatRelativeDate } from '#lib/formatters'
+import { formatRelativeDate } from '#lib/formatters/date'
 import type { Activity } from '@repo/shared/types/activity'
 import type { ActivityEntityType } from '@repo/shared/types/core'
 import {

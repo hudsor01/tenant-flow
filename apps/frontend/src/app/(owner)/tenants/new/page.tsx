@@ -1,22 +1,10 @@
 import { serverFetch } from '#lib/api/server'
-import { getClaims } from '#lib/dal'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, Unit } from '@repo/shared/types/core'
 import { CreateTenantForm } from '../../../(tenant)/tenant/create-tenant-form.client'
 
 export default async function NewTenantPage() {
-	// Get JWT claims and access token for authentication
-	const { claims, accessToken } = await getClaims()
-
-	const logger = createLogger({ component: 'NewTenantPage', user_id: claims?.sub ?? 'unknown' })
-
-	// DEBUG: Log token info
-	logger.info('NewTenantPage auth info', {
-		user_id: claims?.sub ?? 'unknown',
-		hasToken: !!accessToken,
-		tokenLength: accessToken?.length,
-		tokenPrefix: accessToken?.substring(0, 20)
-	})
+	const logger = createLogger({ component: 'NewTenantPage' })
 
 	let properties: Property[] = []
 	let units: Unit[] = []
@@ -51,12 +39,7 @@ export default async function NewTenantPage() {
 			errorMessage: errorMessage || '(empty error message)',
 			errorStack,
 			statusCode,
-			responseData,
-			errorObject: JSON.stringify(err, Object.getOwnPropertyNames(err)),
-
-			hasToken: !!accessToken,
-			tokenLength: accessToken?.length,
-			tokenPreview: accessToken?.substring(0, 30) + '...'
+			responseData
 		})
 
 		// Still render the form with empty arrays - allow tenant creation even if fetch fails

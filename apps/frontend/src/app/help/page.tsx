@@ -292,9 +292,9 @@ export default function HelpPage() {
 									badge: 'Cost Savings',
 									badgeColor: 'bg-accent/10 text-accent'
 								}
-							].map((resource, index) => (
+							].map((resource) => (
 								<CardLayout
-									key={index}
+									key={resource.title}
 									title={resource.title}
 									description={resource.description}
 									className="bg-card border border-border/50 shadow-md transition-shadow"

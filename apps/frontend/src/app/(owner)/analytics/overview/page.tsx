@@ -11,7 +11,7 @@ import {
 } from '#components/ui/card'
 import { getAnalyticsPageData } from '#lib/api/analytics-page'
 import { serverFetch } from '#lib/api/server'
-import { formatCurrency, formatPercentage } from '#lib/formatters'
+import { formatCurrency, formatPercentage } from '#lib/formatters/currency'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import type { DashboardStats, DashboardSummary, PropertyPerformance } from '@repo/shared/types/core'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
@@ -232,7 +232,7 @@ export default async function AnalyticsPage() {
 										.slice(0, 5)
 										.map((property, index: number) => (
 											<div
-												key={index}
+												key={property.property ?? `property-${index}`}
 												className="flex-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
 											>
 												<div className="flex items-center gap-3">

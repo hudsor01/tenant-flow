@@ -184,10 +184,10 @@ const statusConfig: Record<
 }
 
 // Enhanced unit stats display component
-const UnitStatsDisplay: React.FC<{ stats: UnitStats; className?: string }> = ({
+function UnitStatsDisplay({
 	stats,
 	className
-}) => {
+}: { stats: UnitStats; className?: string }) {
 	return (
 		<div className={cn('flex gap-2', className)}>
 			<input
@@ -213,10 +213,10 @@ const UnitStatsDisplay: React.FC<{ stats: UnitStats; className?: string }> = ({
 }
 
 // Enhanced status badge component
-const UnitStatusBadge: React.FC<{ status: UnitStatus; className?: string }> = ({
+function UnitStatusBadge({
 	status,
 	className
-}) => {
+}: { status: UnitStatus; className?: string }) {
 	const config = statusConfig[status]
 	const IconComponent = config.icon
 

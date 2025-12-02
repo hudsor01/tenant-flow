@@ -4,7 +4,7 @@ import { MetricCard } from '#components/dashboard/metric-card'
 import { Skeleton } from '#components/ui/skeleton'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
-import { formatCurrency } from '#lib/formatters'
+import { formatCurrency } from '#lib/formatters/currency'
 import { TrendingUp, UserPlus, Building } from 'lucide-react'
 
 export function SectionCards() {

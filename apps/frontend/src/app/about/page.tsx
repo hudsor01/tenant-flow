@@ -248,7 +248,7 @@ export default function AboutPage() {
 
 							<div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
 								{stats.map((stat, index) => (
-									<BlurFade key={index} delay={0.6 + index * 0.1} inView>
+									<BlurFade key={stat.label} delay={0.6 + index * 0.1} inView>
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 											<div className="mb-4 flex justify-center">
 												<stat.Icon
@@ -303,7 +303,7 @@ export default function AboutPage() {
 										bio: 'Product strategist focused on user experience and customer success.'
 									}
 								].map((member, index) => (
-									<BlurFade key={index} delay={0.8 + index * 0.1} inView>
+									<BlurFade key={member.name} delay={0.8 + index * 0.1} inView>
 										<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
 											<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
 												<User className="size-12 text-primary" />
