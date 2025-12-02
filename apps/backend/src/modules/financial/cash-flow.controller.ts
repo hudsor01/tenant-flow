@@ -6,7 +6,8 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import type { CashFlowService, CashFlowData } from './cash-flow.service'
+import { CashFlowService } from './cash-flow.service'
+import type { CashFlowData } from './cash-flow.service'
 
 @Controller('financials/cash-flow')
 export class CashFlowController {
