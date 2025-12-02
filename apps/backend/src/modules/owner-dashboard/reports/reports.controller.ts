@@ -7,7 +7,8 @@ import {
 	UseInterceptors
 } from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
-import type { ReportsService, MetricTrend, TimeSeriesDataPoint } from './reports.service'
+import { ReportsService } from './reports.service'
+import type { MetricTrend, TimeSeriesDataPoint } from './reports.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
