@@ -37,7 +37,7 @@ COPY packages/*/package.json packages/
 COPY scripts/prepare-husky.cjs scripts/
 
 # Install dependencies with cache mount
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
 # ============================================
@@ -54,11 +54,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Reinstall to link workspace packages
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
 # Build with turbo cache
-RUN --mount=type=cache,id=turbo-cache,target=/app/.turbo \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,target=/app/.turbo \
     set -e && \
     pnpm build:shared && \
     pnpm --filter @repo/backend build && \
@@ -111,7 +111,7 @@ COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/
 RUN mkdir -p /app/reports && chown -R node:node /app/reports
 
 # Install production dependencies
-RUN --mount=type=cache,id=pnpm-prod,target=/root/.local/share/pnpm/store \
+RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prod --prefer-offline --filter @repo/backend...
 
 # Fast cleanup using find (faster than glob patterns)
