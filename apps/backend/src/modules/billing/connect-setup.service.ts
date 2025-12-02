@@ -319,10 +319,11 @@ export class ConnectSetupService {
 			if (url.protocol !== 'http:' && url.protocol !== 'https:') {
 				throw new Error(`FRONTEND_URL must use http or https protocol, got: ${url.protocol}`)
 			}
-		} catch (urlError) {
+		} catch (urlError: unknown) {
 			this.logger.error(`Invalid FRONTEND_URL format: ${frontendUrl}`, { accountId, urlError })
+			const errorMessage = urlError instanceof Error ? urlError.message : String(urlError)
 			throw new Error(
-				`Invalid FRONTEND_URL format: ${frontendUrl}${urlError && urlError.message ? ` - ${urlError.message}` : ''}`,
+				`Invalid FRONTEND_URL format: ${frontendUrl} - ${errorMessage}`,
 				{ cause: urlError }
 			)
 		}
