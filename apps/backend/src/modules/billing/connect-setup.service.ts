@@ -321,7 +321,10 @@ export class ConnectSetupService {
 			}
 		} catch (urlError) {
 			this.logger.error(`Invalid FRONTEND_URL format: ${frontendUrl}`, { accountId, urlError })
-			throw new Error(`Invalid FRONTEND_URL format: ${frontendUrl}`)
+			throw new Error(
+				`Invalid FRONTEND_URL format: ${frontendUrl}${urlError && urlError.message ? ` - ${urlError.message}` : ''}`,
+				{ cause: urlError }
+			)
 		}
 
 		const baseUrl = frontendUrl.replace(/\/+$/, '')
