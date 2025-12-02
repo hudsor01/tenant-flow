@@ -26,7 +26,7 @@ const phoneSchema: JSONSchema = {
 
 const invitationStatusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['PENDING', 'SENT', 'ACCEPTED', 'EXPIRED']
+	enum: ['PENDING', 'SENT', 'accepted', 'expired']
 }
 
 /**

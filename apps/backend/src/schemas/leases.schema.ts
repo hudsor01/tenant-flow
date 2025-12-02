@@ -10,8 +10,8 @@ import { dateSchema, moneySchema, uuidSchema } from './shared.schema'
 
 const lease_statusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['DRAFT', 'ACTIVE', 'EXPIRED', 'TERMINATED'],
-	default: 'DRAFT'
+	enum: ['draft', 'active', 'expired', 'terminated'],
+	default: 'draft'
 }
 
 const paymentFrequencySchema: JSONSchema = {

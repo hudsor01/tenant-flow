@@ -352,7 +352,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 					occupied_units: 8,
 					vacant_units: 2,
 					address: '123 Main St',
-					status: 'ACTIVE',
+					status: 'active',
 					property_type: 'APARTMENT'
 				}
 			]
@@ -385,7 +385,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				occupiedUnits: 8,
 				vacantUnits: 2,
 				address: '123 Main St',
-				status: 'ACTIVE',
+				status: 'active',
 				property_type: 'APARTMENT',
 				trend: 'up',
 				trendPercentage: 11.1

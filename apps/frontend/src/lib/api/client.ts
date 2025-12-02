@@ -29,10 +29,13 @@ export async function getAuthHeaders(
 
   // Get user and session
   const { data: { user }, error: userError } = await supabase.auth.getUser()
-  if (userError && requireAuth) throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+
+  if (userError && requireAuth) {
+    throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+  }
 
   if (user) {
-    const { data: { session }, error: _sessionError } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
 
     if (session?.access_token) {
       // Check if token is expired and refresh if needed
@@ -64,11 +67,11 @@ export async function getAuthHeaders(
     } else if (requireAuth) {
       throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
     }
- } else if (requireAuth) {
+  } else if (requireAuth) {
     throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
   }
 
- return headers
+  return headers
 }
 
 /**
@@ -87,7 +90,7 @@ export async function clientFetch<T>(
     ...fetchOptions
   } = options || {}
 
- // Build headers
+  // Build headers
   const customHeaders: Record<string, string> = {}
   if (fetchOptions.headers) {
     Object.entries(fetchOptions.headers).forEach(([key, value]) => {
@@ -109,8 +112,10 @@ export async function clientFetch<T>(
     })
   }
 
+  const url = `${getApiBaseUrl()}${endpoint}`
+
   try {
-    const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+    const response = await fetch(url, {
       ...finalOptions,
       credentials: finalOptions.credentials ?? 'include'
     })

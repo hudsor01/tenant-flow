@@ -72,7 +72,7 @@ export const leaseQueries = {
 	 * Lease list with optional filters
 	 *
 	 * @example
-	 * const { data } = useQuery(leaseQueries.list({ status: 'ACTIVE' }))
+	 * const { data } = useQuery(leaseQueries.list({ status: 'active' }))
 	 */
 	list: (filters?: LeaseFilters) =>
 		queryOptions({
@@ -85,9 +85,8 @@ export const leaseQueries = {
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 
 				const params = searchParams.toString()
-				return clientFetch<PaginatedResponse<Lease>>(
-					`/api/v1/leases${params ? `?${params}` : ''}`
-				)
+				const endpoint = `/api/v1/leases${params ? `?${params}` : ''}`
+				return clientFetch<PaginatedResponse<Lease>>(endpoint)
 			},
 			...QUERY_CACHE_TIMES.LIST,
 		}),

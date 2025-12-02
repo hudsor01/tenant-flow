@@ -109,7 +109,7 @@ const mockLedgerData = {
 						monthly_rent: 1500,
 						start_date: '2024-01-01',
 						updated_at: '2024-01-01',
-						lease_status: 'ACTIVE',
+						lease_status: 'active',
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
@@ -152,7 +152,7 @@ const mockLedgerData = {
 					sale_price: null,
 					updated_at: '2024-01-01',
 					state: 'CA',
-					status: 'ACTIVE'
+					status: 'active'
 				}
 			]
 		}
@@ -226,7 +226,7 @@ const mockLedgerData = {
 						monthly_rent: 1500,
 						start_date: '2024-01-01',
 						updated_at: '2024-01-01',
-						lease_status: 'ACTIVE',
+						lease_status: 'active',
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
@@ -247,7 +247,7 @@ const mockLedgerData = {
 						monthly_rent: 1500,
 						start_date: '2024-01-01',
 						updated_at: '2024-01-01',
-						lease_status: 'ACTIVE',
+						lease_status: 'active',
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
@@ -305,7 +305,7 @@ const mockLedgerData = {
 						sale_price: null,
 						updated_at: '2024-01-01',
 						state: 'CA',
-						status: 'ACTIVE'
+						status: 'active'
 					}
 				]
 			}
@@ -442,7 +442,7 @@ const mockLedgerData = {
 						monthly_rent: 1500,
 						start_date: '2024-01-01',
 						updated_at: '2024-01-01',
-						lease_status: 'ACTIVE',
+						lease_status: 'active',
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
@@ -463,7 +463,7 @@ const mockLedgerData = {
 						monthly_rent: 1500,
 						start_date: '2024-01-01',
 						updated_at: '2024-01-01',
-						lease_status: 'ACTIVE',
+						lease_status: 'active',
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
@@ -484,7 +484,7 @@ const mockLedgerData = {
 						monthly_rent: 1500,
 						start_date: '2024-01-01',
 						updated_at: '2024-01-01',
-						lease_status: 'ACTIVE',
+						lease_status: 'active',
 						payment_day: 1,
 						rent_amount: 1500,
 						rent_currency: 'USD',
@@ -557,7 +557,7 @@ const mockLedgerData = {
 						sale_price: null,
 						updated_at: '2024-01-01',
 						state: 'CA',
-						status: 'ACTIVE'
+						status: 'active'
 					},
 					{
 						id: 'prop-2',
@@ -575,7 +575,7 @@ const mockLedgerData = {
 						sale_price: null,
 						updated_at: '2024-01-01',
 						state: 'CA',
-						status: 'ACTIVE'
+						status: 'active'
 					},
 					{
 						id: 'prop-3',
@@ -593,7 +593,7 @@ const mockLedgerData = {
 						sale_price: null,
 						updated_at: '2024-01-01',
 						state: 'CA',
-						status: 'ACTIVE'
+						status: 'active'
 					}
 				]
 			}

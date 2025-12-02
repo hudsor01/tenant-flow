@@ -60,7 +60,7 @@ export default function TenantLeasePage() {
 							alreadySigned={!!lease.tenant_signed_at}
 						/>
 					)}
-					{lease?.lease_status === 'ACTIVE' && (
+					{lease?.lease_status === 'active' && (
 						<Badge
 							variant="outline"
 							className="bg-success/10 text-success border-success/20"
