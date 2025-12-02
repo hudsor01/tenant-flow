@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
 /**

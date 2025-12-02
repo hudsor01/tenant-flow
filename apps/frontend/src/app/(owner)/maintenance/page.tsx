@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { getClaims } from '#lib/dal'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { serverFetch } from '#lib/api/server'
 import { Button } from '#components/ui/button'
@@ -15,10 +14,7 @@ export const metadata: Metadata = {
 }
 
 export default async function MaintenancePage() {
-	// Server-side auth - NO client flash, instant 307 redirect
-	const { claims } = await getClaims()
-
-const logger = createLogger({ component: 'MaintenancePage', user_id: claims?.sub ?? 'unknown' })
+	const logger = createLogger({ component: 'MaintenancePage' })
 
 	// Server Component: Fetch data on server during RSC render
 	let requests: MaintenanceRequestResponse['data'] = []

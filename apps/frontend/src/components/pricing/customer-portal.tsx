@@ -6,8 +6,33 @@ import { CardLayout } from '#components/ui/card-layout'
 import { useUser } from '#hooks/api/use-auth'
 import { API_BASE_URL } from '#lib/api-config'
 import { cn } from '#lib/utils'
-import type { CustomerPortalCardProps } from '@repo/shared/types/frontend'
 import { useMutation } from '@tanstack/react-query'
+
+interface CustomerPortalCardProps {
+	className?: string
+	showStats?: boolean
+	showTestimonial?: boolean
+	currentPlan?: string
+	planTier?: string
+	usageStats?: {
+		properties: number
+		tenants: number
+		uptime: string
+		monthlyRevenue: number
+		activeLeases: number
+	}
+	billingInfo?: {
+		nextBillingDate: string
+		lastPayment: string
+		paymentMethod: string
+	}
+	testimonial?: {
+		text: string
+		author: string
+		company: string
+		rating: number
+	}
+}
 import {
 	Activity,
 	ArrowRight,
@@ -235,7 +260,7 @@ export function CustomerPortalCard({
 			>
 				<div className="absolute inset-0 bg-primary/5 opacity-50" />
 
-				<div className="flex items-center justify-between mb-[var(--spacing-6)]">
+				<div className="flex-between mb-[var(--spacing-6)]">
 					<div className="flex items-center gap-(--spacing-4)">
 						<div
 							className={cn(
@@ -288,7 +313,7 @@ export function CustomerPortalCard({
 					{/* Enhanced Usage Stats */}
 					{showStats && (
 						<div className="bg-muted/10 rounded-2xl p-(--spacing-6) border-2 border-muted/20">
-							<div className="flex items-center justify-between mb-[var(--spacing-6)]">
+							<div className="flex-between mb-[var(--spacing-6)]">
 								<h4
 									className="text-foreground flex items-center gap-[var(--spacing-3)]"
 									style={TYPOGRAPHY_SCALE['heading-md']}
@@ -370,7 +395,7 @@ export function CustomerPortalCard({
 					{/* Billing Information */}
 					{billingInfo && (
 						<div className="bg-accent/8 rounded-2xl p-(--spacing-6) border border-accent/20">
-							<div className="flex items-center justify-between mb-[var(--spacing-6)]">
+							<div className="flex-between mb-[var(--spacing-6)]">
 								<h4
 									className="text-foreground flex items-center gap-[var(--spacing-3)]"
 									style={TYPOGRAPHY_SCALE['heading-md']}
@@ -454,7 +479,7 @@ export function CustomerPortalCard({
 
 						{showTestimonial && testimonial && (
 							<div className="bg-primary/8 rounded-2xl p-(--spacing-6) border-2 border-primary/20 max-w-[var(--max-width-2xl)] mx-auto">
-								<div className="flex items-center justify-center gap-[var(--spacing-1)] mb-[var(--spacing-4)]">
+								<div className="flex-center gap-[var(--spacing-1)] mb-[var(--spacing-4)]">
 									{[...Array(testimonial.rating)].map((_, i) => (
 										<Star key={i} className="size-4 fill-accent text-accent" />
 									))}
@@ -465,8 +490,8 @@ export function CustomerPortalCard({
 								<blockquote className="text-foreground text-center leading-relaxed font-medium">
 									&quot;{testimonial.text}&quot;
 								</blockquote>
-								<div className="flex items-center justify-center gap-[var(--spacing-3)] mt-[var(--spacing-4)] pt-[var(--spacing-4)] border-t border-primary/10">
-									<div className="size-[var(--spacing-10)] bg-primary/15 rounded-full flex items-center justify-center">
+								<div className="flex-center gap-[var(--spacing-3)] mt-[var(--spacing-4)] pt-[var(--spacing-4)] border-t border-primary/10">
+									<div className="size-[var(--spacing-10)] bg-primary/15 rounded-full flex-center">
 										<Users className="size-5 text-primary" />
 									</div>
 									<cite className="text-sm font-bold text-foreground not-italic">
@@ -496,12 +521,12 @@ export function CustomerPortalCard({
 									<h5 className="font-bold text-foreground">
 										Payment Management
 									</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Update cards & billing info
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-primary font-medium">
 									Secure & instant updates
 								</span>
@@ -518,12 +543,12 @@ export function CustomerPortalCard({
 									<h5 className="font-bold text-foreground">
 										Invoices & Receipts
 									</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Download & track payments
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-accent font-medium">
 									Instant PDF downloads
 								</span>
@@ -538,12 +563,12 @@ export function CustomerPortalCard({
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Usage Reports</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Analytics & insights
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-primary font-medium">
 									Detailed breakdowns
 								</span>
@@ -558,12 +583,12 @@ export function CustomerPortalCard({
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Plan Management</h5>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										Upgrade, downgrade or cancel
 									</p>
 								</div>
 							</div>
-							<div className="flex items-center justify-between">
+							<div className="flex-between">
 								<span className="text-sm text-accent font-medium">
 									Flexible changes
 								</span>

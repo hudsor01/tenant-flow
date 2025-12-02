@@ -5,7 +5,7 @@ import * as React from 'react'
 import { cn } from '#lib/utils'
 
 const buttonVariants = cva(
-	'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+	'inline-flex inline-flex-center items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
 	{
 		variants: {
 			variant: {
@@ -24,12 +24,14 @@ const buttonVariants = cva(
 					'bg-primary text-primary-foreground border-2 border-primary/20 hover:border-primary/30 shadow-lg hover:shadow-xl font-bold rounded-none'
 			},
 			size: {
-				default: 'h-10 px-4 py-2',
-				sm: 'h-9 rounded-md px-3',
-				lg: 'h-11 rounded-md px-8',
-				xl: 'h-12 rounded-md px-10',
-				icon: 'h-10 w-10',
-				'icon-sm': 'h-8 w-8'
+				default: 'h-10 px-4 py-2 min-h-[2.75rem]', // Touch-friendly default
+				sm: 'h-9 rounded-md px-3 min-h-[2.75rem]', // Touch-friendly small
+				lg: 'h-11 rounded-md px-8 min-h-[2.75rem]', // Touch-friendly large
+				xl: 'h-12 rounded-md px-10 min-h-[2.75rem]', // Touch-friendly extra large
+				icon: 'h-10 w-10 min-h-[2.75rem] min-w-[2.75rem]', // Touch-friendly icon
+				'icon-sm': 'h-8 w-8 min-h-[2.75rem] min-w-[2.75rem]', // Touch-friendly small icon
+				'mobile-full': 'h-12 w-full rounded-md px-6 text-base font-semibold min-h-[2.75rem]', // Mobile-optimized full width
+				'touch-friendly': 'h-12 px-6 py-3 text-base min-h-[2.75rem] min-w-[2.75rem]' // Enhanced touch targets
 			}
 		},
 		defaultVariants: {
@@ -53,7 +55,6 @@ function Button({
 
 	return (
 		<Comp
-			data-slot="button"
 			className={cn(buttonVariants({ variant, size, className }))}
 			{...props}
 		/>

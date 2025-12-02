@@ -8,15 +8,8 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common'
+import type { TenantStats } from '@repo/shared/types/core'
 import { SupabaseService } from '../../../database/supabase.service'
-
-export interface TenantStats {
-	total: number
-	active: number
-	pending: number
-	inactive: number
-	newThisMonth: number
-}
 
 @Injectable()
 export class TenantStatsService {
@@ -77,7 +70,6 @@ export class TenantStatsService {
 		return {
 			total: tenants.length,
 			active: activeCount,
-			pending: 0,
 			inactive: inactiveCount,
 			newThisMonth: newThisMonthCount
 		}

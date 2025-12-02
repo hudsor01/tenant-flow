@@ -1,13 +1,8 @@
 /**
  * Client-side API utility for TanStack Query hooks
- * Mirrors server.ts pattern with Authorization header from Supabase session
- *
- * Pattern consistent with reports-client.ts and stripe-client.ts
- *
- * NOTE: This utility can be called from both client and server contexts,
- * so it MUST NOT call browser-only APIs like toast()
+ * Simplified auth session management with race condition prevention
  */
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
@@ -15,435 +10,184 @@ import { ApiError, ApiErrorCode } from './api-error'
 
 const logger = createLogger({ component: 'ClientAPI' })
 
-// Pre-load test token at module load time for integration tests
-// This avoids async issues with dynamic imports in jsdom
-let testAccessToken: string | null = null
-
-// Only check test environment on server-side (Node.js)
-// This prevents Webpack from bundling node:module for browser
-const isTestEnvironment =
-	typeof window === 'undefined' &&
-	typeof process !== 'undefined' &&
-	(process.env.VITEST === 'true' ||
-		process.env.VITEST_INTEGRATION === 'true' ||
-		process.env.NODE_ENV === 'test')
-
-// Load test session token server-side only
-if (isTestEnvironment) {
-	try {
-		// Dynamic require to avoid Webpack bundling node: modules
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const fs = require('fs')
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const path = require('path')
-		const sessionFile = path.join(process.cwd(), '.vitest-session.json')
-
-		if (fs.existsSync(sessionFile)) {
-			const sessionData = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'))
-			if (sessionData.access_token) {
-				testAccessToken = sessionData.access_token
-			}
-		}
-	} catch {
-		// Silently fail - will fall back to Supabase session
-	}
-}
+// Mutex for auth session refresh to prevent multiple concurrent refreshes
+let refreshPromise: Promise<Awaited<ReturnType<ReturnType<typeof createClient>['auth']['refreshSession']>>> | null = null
 
 /**
  * Get auth headers with Supabase JWT token
- * Extracted for reuse across fetch calls
- *
- * SECURITY: Validates session and extracts token in a single atomic operation
- * This prevents race conditions between user validation and token extraction
- *
- * @param additionalHeaders - Custom headers to merge with auth headers
- * @param requireAuth - Whether to throw error if no session exists (default: true)
- * @param omitContentType - Whether to omit Content-Type header (for FormData uploads)
  */
 export async function getAuthHeaders(
-	additionalHeaders?: Record<string, string>,
-	requireAuth: boolean = true,
-	omitContentType: boolean = false
+  additionalHeaders?: Record<string, string>,
+  requireAuth: boolean = true,
+  omitContentType: boolean = false
 ): Promise<Record<string, string>> {
-	const headers: Record<string, string> = omitContentType
-		? { ...additionalHeaders }
-		: {
-				'Content-Type': 'application/json',
-				...additionalHeaders
-			}
+  const headers: Record<string, string> = omitContentType
+    ? { ...additionalHeaders }
+    : { 'Content-Type': 'application/json', ...additionalHeaders }
 
-	// In test environments, use pre-loaded token directly
-	// This bypasses Supabase client session management issues with vitest
-	if (isTestEnvironment && testAccessToken) {
-		headers['Authorization'] = `Bearer ${testAccessToken}`
-		return headers
-	}
+  const supabase = createClient()
 
-	const supabase = getSupabaseClientInstance()
+  // Get user and session
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError && requireAuth) throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
 
-	// OFFICIAL SUPABASE SSR PATTERN: Call getUser() first to wait for session initialization
-	// This prevents race conditions where client components try to fetch before session is ready
-	// Reference: apps/frontend/src/lib/supabase/middleware.ts (same pattern)
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
+  if (user) {
+    const { data: { session }, error: _sessionError } = await supabase.auth.getSession()
 
-	// If user exists, get session to extract token
-	if (!userError && user) {
-		const {
-			data: { session },
-			error: sessionError
-		} = await supabase.auth.getSession()
+    if (session?.access_token) {
+      // Check if token is expired and refresh if needed
+      if (session.expires_at && session.expires_at < Date.now() / 1000) {
+        if (refreshPromise) {
+          await refreshPromise
+          const { data: { session: refreshedSession } } = await supabase.auth.getSession()
+          if (refreshedSession?.access_token) {
+            headers['Authorization'] = `Bearer ${refreshedSession.access_token}`
+          } else if (requireAuth) {
+            throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+          }
+        } else {
+          refreshPromise = supabase.auth.refreshSession()
+          try {
+            const result = await refreshPromise
+            if (!result || result.error || !result.data?.session) {
+              if (requireAuth) throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+            } else {
+              headers['Authorization'] = `Bearer ${result.data.session.access_token}`
+            }
+          } finally {
+            refreshPromise = null
+          }
+        }
+      } else {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } else if (requireAuth) {
+      throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+    }
+ } else if (requireAuth) {
+    throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
+  }
 
-		if (session?.access_token) {
-			// Additional JWT validation: check token expiration
-			try {
-				const tokenParts = session.access_token.split('.')
-				if (tokenParts.length !== 3) {
-					throw new Error('Invalid JWT format')
-				}
-				const payloadPart = tokenParts[1]
-				if (!payloadPart) {
-					throw new Error('Invalid JWT payload')
-				}
-				const tokenPayload = JSON.parse(atob(payloadPart))
-				const currentTime = Math.floor(Date.now() / 1000)
-
-				if (tokenPayload.exp < currentTime) {
-					// Token expired - attempt refresh
-					const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession()
-					if (refreshError || !refreshed?.session) {
-						if (requireAuth) {
-							throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
-						}
-					} else {
-						// Use refreshed token
-						headers['Authorization'] = `Bearer ${refreshed.session.access_token}`
-					}
-				} else {
-					// Token is valid and not expired
-					headers['Authorization'] = `Bearer ${session.access_token}`
-				}
-			} catch (jwtError) {
-				// Invalid JWT format - treat as expired
-				logger.warn('Invalid JWT token format', {
-					metadata: {
-						hasSession: !!session,
-						hasUser: !!user,
-						jwtError: jwtError instanceof Error ? jwtError.message : String(jwtError)
-					}
-				})
-				if (requireAuth) {
-					throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
-				}
-			}
-		} else {
-			// User exists but no session - log warning
-			logger.warn('User exists but session unavailable', {
-				metadata: {
-					hasUser: !!user,
-					hasSession: !!session,
-					sessionError: sessionError?.message,
-					requireAuth
-				}
-			})
-			if (requireAuth) {
-				throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
-			}
-		}
-	} else {
-		// No user found - log for debugging but don't fail the request
-		// The middleware/server will handle redirects for protected routes
-		logger.debug('No authenticated user found', {
-			metadata: {
-				hasUser: !!user,
-				userError: userError?.message,
-				requireAuth
-			}
-		})
-		if (requireAuth) {
-			throw new Error(ERROR_MESSAGES.AUTH_SESSION_EXPIRED)
-		}
-	}
-
-	return headers
+ return headers
 }
 
 /**
  * Client-side fetch with Supabase authentication
- *
- * The backend returns responses in two formats:
- * 1. Wrapped: { success: true, data: T } or { success: false, error: string }
- * 2. Direct: T (for some endpoints)
- *
- * Usage in TanStack Query hooks:
- * ```typescript
- * queryFn: () => clientFetch<Property>('/api/v1/properties/123')
- * mutationFn: (data) => clientFetch<Property>('/api/v1/properties', {
- *   method: 'POST',
- *   body: JSON.striangify(data)
- * })
- * // For FormData uploads (file uploads)
- * mutationFn: (formData) => clientFetch<Result>('/api/v1/upload', {
- *   method: 'POST',
- *   body: formData,
- *   omitJsonContentType: true
- * })
- * // For public endpoints (no auth required)
- * queryFn: () => clientFetch<Data>('/api/v1/public/data', { requireAuth: false })
- * ```
  */
 export async function clientFetch<T>(
-	endpoint: string,
-	options?: RequestInit & {
-		requireAuth?: boolean
-		omitJsonContentType?: boolean
-	}
+  endpoint: string,
+  options?: RequestInit & {
+    requireAuth?: boolean
+    omitJsonContentType?: boolean
+  }
 ): Promise<T> {
-	const {
-		requireAuth = true,
-		omitJsonContentType = false,
-		...fetchOptions
-	} = options || {}
+  const {
+    requireAuth = true,
+    omitJsonContentType = false,
+    ...fetchOptions
+  } = options || {}
 
-	// Build headers from options
-	const customHeaders: Record<string, string> = {}
-	if (fetchOptions?.headers) {
-		Object.entries(fetchOptions.headers).forEach(([key, value]) => {
-			if (typeof value === 'string') {
-				customHeaders[key] = value
-			}
-		})
-	}
+ // Build headers
+  const customHeaders: Record<string, string> = {}
+  if (fetchOptions.headers) {
+    Object.entries(fetchOptions.headers).forEach(([key, value]) => {
+      if (typeof value === 'string') customHeaders[key] = value
+    })
+  }
 
-	// Get auth headers (includes Authorization + custom headers)
-	// For FormData, omit Content-Type so browser sets multipart/form-data with boundary
-	const headers = await getAuthHeaders(
-		customHeaders,
-		requireAuth,
-		omitJsonContentType
-	)
+  const headers = await getAuthHeaders(
+    customHeaders,
+    requireAuth,
+    omitJsonContentType
+  )
 
-	// Ensure body is set for methods that require it
-	const finalOptions = { ...fetchOptions, headers }
-	if (
-		fetchOptions.method &&
-		['POST', 'PUT', 'PATCH'].includes(fetchOptions.method.toUpperCase()) &&
-		!finalOptions.body
-	) {
-		logger.warn('Request body missing for mutation method', {
-			metadata: { endpoint, method: fetchOptions.method }
-		})
-	}
+  const finalOptions = { ...fetchOptions, headers }
 
-	let response: Response
+  if (fetchOptions.method && ['POST', 'PUT', 'PATCH'].includes(fetchOptions.method.toUpperCase()) && !finalOptions.body) {
+    logger.warn('Request body missing for mutation method', {
+      metadata: { endpoint, method: fetchOptions.method }
+    })
+  }
 
-	try {
-		const apiBaseUrl = getApiBaseUrl()
-		response = await fetch(`${apiBaseUrl}${endpoint}`, {
-			...finalOptions,
-			credentials: finalOptions.credentials ?? 'include'
-		})
-	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : 'Network request failed'
+  try {
+    const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+      ...finalOptions,
+      credentials: finalOptions.credentials ?? 'include'
+    })
 
-		logger.error('Network error during API request', {
-			metadata: {
-				endpoint,
-				error: errorMessage
-			}
-		})
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => response.statusText)
+      let errorData: Record<string, unknown> | null = null
 
-		throw new ApiError(
-			'Network request failed. Please check your connection and try again.',
-			ApiErrorCode.NETWORK_ERROR,
-			undefined,
-			{
-				endpoint,
-				error: errorMessage
-			}
-		)
-	}
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        // Not JSON, use text directly
+      }
 
-	if (!response.ok) {
-		let errorData: unknown = null
-		let errorText = ''
+      const message: string = (typeof errorData?.message === 'string' ? errorData.message : undefined) ||
+        (typeof errorData?.error === 'string' ? errorData.error : undefined) ||
+        errorText ||
+        response.statusText ||
+        'API request failed'
+      const backendCode = errorData?.code
 
-		try {
-			errorText = await response.text()
-			errorData = JSON.parse(errorText)
-		} catch (parseError) {
-			// Log parsing errors to help diagnose unexpected response formats
-			logger.warn('Failed to parse API error response as JSON', {
-				metadata: {
-					endpoint,
-					status: response.status,
-					contentType: response.headers.get('content-type'),
-					responseLength: errorText.length,
-					responsePreview: errorText.substring(0, 200),
-					parseError:
-						parseError instanceof Error
-							? parseError.message
-							: String(parseError)
-				}
-			})
-			// Not JSON, use text directly
-		}
+      logger.error('API request failed', {
+        metadata: { endpoint, status: response.status, code: backendCode, error: message }
+      })
 
-		const backendCode = extractBackendErrorCode(errorData)
-		const message =
-			(typeof errorData === 'object' && errorData && 'message' in errorData
-				? String((errorData as { message?: unknown }).message)
-				: undefined) ||
-			(typeof errorData === 'object' && errorData && 'error' in errorData
-				? String((errorData as { error?: unknown }).error)
-				: undefined) ||
-			errorText ||
-			response.statusText
+      throw new ApiError(
+        message,
+        mapStatusToApiErrorCode(response.status),
+        response.status,
+        errorData ? { ...errorData } : { raw: errorText }
+      )
+    }
 
-		// Log error - caller should handle error appropriately for their context
-		logger.error('API request failed', {
-			metadata: {
-				endpoint,
-				status: response.status,
-				statusText: response.statusText,
-				code: backendCode,
-				error: message
-			}
-		})
+    const contentType = response.headers.get('content-type')
+    if (response.status === 204 || response.status === 205 || !contentType) {
+      return undefined as T
+    }
 
-		const details = buildErrorDetails(
-			errorData,
-			errorText,
-			response.status,
-			backendCode
-		)
+    const data = await response.json()
 
-		throw new ApiError(
-			message,
-			mapStatusToApiErrorCode(response.status),
-			response.status,
-			details
-		)
-	}
+    // Handle wrapped API responses
+    if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+      const message = data.error || data.message || 'API request failed'
+      logger.error('API returned error response', { metadata: { endpoint, error: message, data } })
+      throw new ApiError(message, ApiErrorCode.API_SERVER_ERROR, data.statusCode, { ...data })
+    }
 
-	const contentType = response.headers.get('content-type')
-	const contentLength = response.headers.get('content-length')
-	const isNoContentStatus = response.status === 204 || response.status === 205
-	const hasExplicitZeuser_typength =
-		typeof contentLength === 'string' && Number(contentLength) === 0
-	const shouldSkipParsing =
-		isNoContentStatus || hasExplicitZeuser_typength || !contentType
+    // Unwrap { data: T } responses
+    if (data && typeof data === 'object' && 'data' in data && !('total' in data)) {
+      return (data as { data: T }).data
+    }
 
-	if (shouldSkipParsing) {
-		return undefined as T
-	}
+    return data as T
 
-	const data = await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) throw error
 
-	// Handle API response format (success/data pattern)
-	if (
-		data &&
-		typeof data === 'object' &&
-		'success' in data &&
-		data.success === false
-	) {
-		const statusCode =
-			typeof data.statusCode === 'number' ? data.statusCode : response.status
-		const backendCode = extractBackendErrorCode(data)
-		const message =
-			(typeof data.error === 'string' && data.error) ||
-			(typeof data.message === 'string' && data.message) ||
-			'API request failed'
+    const errorMessage = error instanceof Error ? error.message : 'Network request failed'
+    logger.error('Network error during API request', { metadata: { endpoint, error: errorMessage } })
 
-		// Log error - caller should handle error appropriately for their context
-		logger.error('API returned error response', {
-			metadata: {
-				endpoint,
-				code: backendCode,
-				error: message,
-				data
-			}
-		})
-
-		const details = buildErrorDetails(data, '', statusCode, backendCode)
-
-		throw new ApiError(
-			message,
-			mapStatusToApiErrorCode(statusCode),
-			statusCode,
-			details
-		)
-	}
-
-	// Only unwrap { data: T } responses if they don't have pagination properties
-	// PaginatedResponse format { data: T[], total: number } should be returned as-is
-	if (
-		data &&
-		typeof data === 'object' &&
-		'data' in data &&
-		!('total' in data)
-	) {
-		return (data as { data: T }).data
-	}
-
-	return data as T
-}
-
-function extractBackendErrorCode(payload: unknown): string | undefined {
-	if (payload && typeof payload === 'object' && 'code' in payload) {
-		const code = (payload as { code?: unknown }).code
-		if (typeof code === 'string') {
-			return code
-		}
-	}
-	return undefined
-}
-
-function buildErrorDetails(
-	payload: unknown,
-	rawText: string,
-	status?: number,
-	backendCode?: string
-): Record<string, unknown> | undefined {
-	const details: Record<string, unknown> =
-		payload && typeof payload === 'object'
-			? { ...(payload as Record<string, unknown>) }
-			: {}
-
-	if (!Object.keys(details).length && rawText) {
-		details.raw = rawText
-	}
-
-	if (backendCode) {
-		details.code = backendCode
-	}
-
-	if (typeof status === 'number') {
-		details.status = status
-	}
-
-	return Object.keys(details).length > 0 ? details : undefined
+    throw new ApiError(
+      'Network request failed. Please check your connection and try again.',
+      ApiErrorCode.NETWORK_ERROR,
+      undefined,
+      { endpoint, error: errorMessage }
+    )
+  }
 }
 
 function mapStatusToApiErrorCode(status?: number): ApiErrorCode {
-	switch (status) {
-		case 400:
-			return ApiErrorCode.API_BAD_REQUEST
-		case 401:
-		case 403:
-			return ApiErrorCode.AUTH_UNAUTHORIZED
-		case 404:
-			return ApiErrorCode.API_NOT_FOUND
-		case 429:
-			return ApiErrorCode.API_RATE_LIMITED
-		case 500:
-			return ApiErrorCode.API_SERVER_ERROR
-		case 503:
-			return ApiErrorCode.API_SERVICE_UNAVAILABLE
-		default:
-			return ApiErrorCode.UNKNOWN_ERROR
-	}
+  switch (status) {
+    case 400: return ApiErrorCode.API_BAD_REQUEST
+    case 401: case 403: return ApiErrorCode.AUTH_UNAUTHORIZED
+    case 404: return ApiErrorCode.API_NOT_FOUND
+    case 429: return ApiErrorCode.API_RATE_LIMITED
+    case 500: return ApiErrorCode.API_SERVER_ERROR
+    case 503: return ApiErrorCode.API_SERVICE_UNAVAILABLE
+    default: return ApiErrorCode.UNKNOWN_ERROR
+  }
 }

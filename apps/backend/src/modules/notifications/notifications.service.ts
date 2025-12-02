@@ -13,7 +13,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import { EmailService } from '../email/email.service'
-import {
+import type {
 	LeaseExpiringEvent,
 	MaintenanceUpdatedEvent,
 	PaymentFailedEvent,

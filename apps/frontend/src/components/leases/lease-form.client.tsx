@@ -184,11 +184,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 							</SelectTrigger>
 							<SelectContent>
 								{propertiesIsLoading ? (
-									<div className="flex items-center justify-center p-4">
+									<div className="flex-center p-4">
 										<LoadingSpinner size="sm" />
 									</div>
 								) : (properties ?? []).length === 0 ? (
-									<div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+									<div className="flex-center p-4 text-muted">
 										No properties available
 									</div>
 								) : (

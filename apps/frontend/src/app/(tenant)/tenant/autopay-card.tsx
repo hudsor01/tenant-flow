@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { useTenantAutopayStatus } from '#hooks/api/use-tenant-portal'
 import {

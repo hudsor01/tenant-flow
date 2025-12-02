@@ -17,7 +17,7 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 				<Link href={`/tenants/${tenant.id}`} className="hover:underline">
 					<div className="flex flex-col">
 						<span className="font-medium">{tenant.name}</span>
-						<span className="text-sm text-muted-foreground">{tenant.email}</span>
+						<span className="text-muted">{tenant.email}</span>
 					</div>
 				</Link>
 			)
@@ -31,7 +31,7 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 			return tenant.property?.name ? (
 				<div className="flex flex-col">
 					<span>{tenant.property.name}</span>
-					<span className="text-sm text-muted-foreground">
+					<span className="text-muted">
 						{tenant.property.city}, {tenant.property.state}
 					</span>
 				</div>
@@ -74,7 +74,7 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 			return tenant.currentLease ? (
 				<div className="flex flex-col">
 					<span className="text-sm">#{tenant.currentLease.id.slice(0, 8)}</span>
-					<span className="text-sm text-muted-foreground">
+					<span className="text-muted">
 						{tenant.leaseStart ? new Date(tenant.leaseStart).toLocaleDateString() : 'Start TBD'} -{' '}
 						{tenant.leaseEnd ? new Date(tenant.leaseEnd).toLocaleDateString() : 'End TBD'}
 					</span>

@@ -114,6 +114,11 @@ export function TenantErrorFallback({
 }: TenantErrorFallbackProps) {
 	const router = useRouter()
 
+	const handleReset = () => {
+		onReset()
+		router.refresh()
+	}
+
 	const errorMessage = error?.message?.toLowerCase() || ''
 	const isNotFound =
 		errorMessage.includes('404') || errorMessage.includes('not found')
@@ -161,7 +166,7 @@ export function TenantErrorFallback({
 
 					<div className="flex w-full flex-col gap-2 sm:flex-row">
 						<Button
-							onClick={onReset}
+							onClick={handleReset}
 							className="flex-1"
 							aria-label="Try loading tenant again"
 						>
@@ -205,14 +210,13 @@ function trackRenderError(
 	// For now this is a best-effort synchronous log.
 }
 
-// Add a small helper that attempts basic automatic recovery actions.
-// The function is intentionally conservative: it tries to reload on auth failures
-// and waits for the network to come back online for network errors, then reloads.
-// It returns a Promise so callers can await or catch failures.
+// Add a small helper that attempts basic automatic recovery actions without nuking state.
+// Instead of a full reload, we nudge React Query to refetch by firing focus/reconnect events
+// and allow callers to provide their own recovery callback.
 async function recoverFromError(
 	error: unknown,
 	context: { entityType: string; operation: string },
-	options?: { showToast?: boolean }
+	options?: { showToast?: boolean; onRecover?: () => void | Promise<void> }
 ): Promise<void> {
 	try {
 		const message =
@@ -230,11 +234,20 @@ async function recoverFromError(
 			}
 		})
 
-		// If it's an auth-related error, reload to trigger auth flow (e.g., redirect to login)
-		if (message.includes('401') || message.includes('unauthorized')) {
-			if (typeof window !== 'undefined') {
-				window.location.reload()
+		const triggerSoftRefresh = () => {
+			if (typeof window === 'undefined') return
+			try {
+				window.dispatchEvent(new Event('visibilitychange'))
+				window.dispatchEvent(new Event('focus'))
+			} catch {
+				// best-effort
 			}
+		}
+
+		// If it's an auth-related error, trigger focus events so auth-aware queries refetch
+		if (message.includes('401') || message.includes('unauthorized')) {
+			triggerSoftRefresh()
+			await options?.onRecover?.()
 			return
 		}
 
@@ -257,8 +270,9 @@ async function recoverFromError(
 						)
 					})
 				}
-				// After coming back online, reload to re-run the fetches
-				window.location.reload()
+				// After coming back online, gently prompt refetch instead of reload
+				triggerSoftRefresh()
+				await options?.onRecover?.()
 			}
 			return
 		}

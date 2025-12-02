@@ -44,7 +44,7 @@ export function useMobileAccessibility() {
 		if (!element) return
 		element.setAttribute('data-mobile-focus', 'true')
 		element.classList.add('outline-none')
-		element.style.outline = '2px solid var(--primary)'
+		element.style.outline = '2px solid var(--color-primary)'
 		element.style.outlineOffset = '2px'
 	}, [])
 

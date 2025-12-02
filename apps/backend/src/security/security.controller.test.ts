@@ -1,11 +1,11 @@
-import type { Logger } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import type { CSPReportBody } from '@repo/shared/types/domain'
 import {
 	SecurityEventSeverity,
 	SecurityEventType
 } from '@repo/shared/types/security'
-import type { SupabaseService } from '../database/supabase.service'
-import type { AppConfigService } from '../config/app-config.service'
+import { SupabaseService } from '../database/supabase.service'
+import { AppConfigService } from '../config/app-config.service'
 import { createMockSupabaseService } from '../test-utils/mocks'
 import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
 import { SecurityMetricsService } from './security-metrics.service'
