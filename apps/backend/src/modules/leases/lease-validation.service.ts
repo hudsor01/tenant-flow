@@ -3,12 +3,14 @@ import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
 
 /**
  * Lease Validation Service
- * Handles state-specific validation and business rule enforcement
- * Extracted from LeaseGeneratorController for better separation of concerns
+ *
+ * Handles Texas-specific validation and business rule enforcement.
+ * Currently focused on Texas only - other states can be added later.
+ *
+ * Extracted from LeaseGeneratorController for better separation of concerns.
  */
 @Injectable()
 export class LeaseValidationService {
-
 	/**
 	 * Validate required lease fields
 	 */
@@ -34,7 +36,6 @@ export class LeaseValidationService {
 		start_date: Date
 		end_date: Date
 	} {
-		// Check that leaseTerms exists and has required start_date
 		if (!leaseData?.leaseTerms) {
 			throw new BadRequestException('Lease terms are required')
 		}
@@ -61,7 +62,7 @@ export class LeaseValidationService {
 	}
 
 	/**
-	 * Validate lease data against state requirements
+	 * Validate lease data against Texas requirements
 	 */
 	validateLeaseData(leaseData: LeaseFormData): {
 		valid: boolean
@@ -88,37 +89,62 @@ export class LeaseValidationService {
 		// Basic validation
 		if (!leaseData?.property?.address?.state) {
 			errors.push({
-				field: 'property.address_line1.state',
+				field: 'property.address.state',
 				message: 'Property state is required',
 				code: 'REQUIRED_FIELD'
 			})
 		}
 
-		// State-specific validation (simplified)
-		if (leaseData?.property?.address?.state === 'CA') {
-			// California security deposit limit: 2x monthly rent
-			const rent_amount = leaseData?.leaseTerms?.rent_amount || 0
-			const depositAmount =
-				leaseData?.leaseTerms?.security_deposit?.amount || 0
+		const state = leaseData?.property?.address?.state
 
+		// Currently only supporting Texas
+		if (state && state !== 'TX') {
+			errors.push({
+				field: 'property.address.state',
+				message: 'Only Texas (TX) properties are currently supported',
+				code: 'UNSUPPORTED_STATE'
+			})
+		}
+
+		// Texas-specific validation
+		if (state === 'TX') {
+			// Texas security deposit: no statutory limit, but 2x monthly rent is standard practice
+			const rent_amount = leaseData?.leaseTerms?.rent_amount || 0
+			const depositAmount = leaseData?.leaseTerms?.security_deposit?.amount || 0
+
+			// Warning if deposit exceeds 2x rent (unusual but not illegal in TX)
 			if (depositAmount > rent_amount * 2) {
-				errors.push({
+				warnings.push({
 					field: 'leaseTerms.security_deposit.amount',
 					message:
-						'Security deposit cannot exceed 2x monthly rent in California',
-					code: 'CA_DEPOSIT_LIMIT'
+						'Security deposit exceeds 2x monthly rent. While legal in Texas, this may deter tenants.',
+					suggestion: 'Consider reducing to 1-2x monthly rent'
 				})
 			}
 
-			// California late fee grace period
+			// Texas late fee: must be reasonable (typically 5-10% of rent or flat fee)
 			if (leaseData?.leaseTerms?.lateFee?.enabled) {
-				const gracePeriod = leaseData.leaseTerms.lateFee.gracePeriod || 0
-				if (gracePeriod < 3) {
+				const lateFeeAmount = leaseData.leaseTerms.lateFee.amount || 0
+				const lateFeePercentage = leaseData.leaseTerms.lateFee.percentage
+
+				// Check if late fee seems excessive (> 15% of rent)
+				if (lateFeeAmount > rent_amount * 0.15 && !lateFeePercentage) {
 					warnings.push({
+						field: 'leaseTerms.lateFee.amount',
+						message:
+							'Late fee exceeds 15% of monthly rent. Texas requires late fees to be "reasonable."',
+						suggestion: 'Consider reducing to 5-10% of monthly rent'
+					})
+				}
+
+				// Texas requires at least 2-day grace period (Tex. Prop. Code § 92.019)
+				const gracePeriod = leaseData.leaseTerms.lateFee.gracePeriod || 0
+				if (gracePeriod < 2) {
+					errors.push({
 						field: 'leaseTerms.lateFee.gracePeriod',
 						message:
-							'California recommends minimum 3-day grace period for late fees',
-						suggestion: 'Increase grace period to 3 days'
+							'Texas law requires minimum 2-day grace period before late fees (Tex. Prop. Code § 92.019)',
+						code: 'TX_GRACE_PERIOD'
 					})
 				}
 			}
@@ -128,63 +154,42 @@ export class LeaseValidationService {
 			valid: errors.length === 0,
 			errors,
 			warnings,
-			stateRequirements: this.getStateRequirements(
-				leaseData?.property?.address?.state || 'CA'
-			)
+			stateRequirements: this.getTexasRequirements()
 		}
 	}
 
 	/**
-	 * Get simplified state requirements
+	 * Get Texas-specific lease requirements
 	 */
-	getStateRequirements(state: string): {
+	getTexasRequirements(): {
 		stateName: string
 		security_depositMax: string
 		lateFeeGracePeriod: string
 		requiredDisclosures: string[]
 	} {
-		const requirements: Record<
-			string,
-			{
-				stateName: string
-				security_depositMax: string
-				lateFeeGracePeriod: string
-				requiredDisclosures: string[]
-			}
-		> = {
-			CA: {
-				stateName: 'California',
-				security_depositMax: '2x monthly rent',
-				lateFeeGracePeriod: '3 days minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)', 'Bed Bug History']
-			},
-			TX: {
-				stateName: 'Texas',
-				security_depositMax: '2x monthly rent',
-				lateFeeGracePeriod: '1 day minimum',
-				requiredDisclosures: ['Lead Paint (pre-1978)']
-			},
-			NY: {
-				stateName: 'New York',
-				security_depositMax: '1x monthly rent',
-				lateFeeGracePeriod: '5 days minimum',
-				requiredDisclosures: [
-					'Lead Paint (pre-1978)',
-					'Bed Bug Annual Statement'
-				]
-			}
-		}
-
-		const stateReq = requirements[state]
-		if (stateReq) {
-			return stateReq
-		}
-
 		return {
-			stateName: state,
-			security_depositMax: 'Varies by state',
-			lateFeeGracePeriod: 'Check state law',
-			requiredDisclosures: ['Lead Paint (pre-1978)']
+			stateName: 'Texas',
+			security_depositMax: 'No statutory limit (2x monthly rent recommended)',
+			lateFeeGracePeriod: '2 days minimum (Tex. Prop. Code § 92.019)',
+			requiredDisclosures: [
+				'Lead Paint Disclosure (pre-1978 buildings)',
+				'Property Condition Report',
+				'Landlord Contact Information'
+			]
 		}
+	}
+
+	/**
+	 * Get state requirements - currently returns Texas only
+	 * @deprecated Use getTexasRequirements() directly. Other states will be added later.
+	 */
+	getStateRequirements(_state: string): {
+		stateName: string
+		security_depositMax: string
+		lateFeeGracePeriod: string
+		requiredDisclosures: string[]
+	} {
+		// Always return Texas requirements for now
+		return this.getTexasRequirements()
 	}
 }
