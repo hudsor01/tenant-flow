@@ -36,7 +36,8 @@ const devConsole: Partial<Console> | undefined =
 		? (globalThis['console'] as Console | undefined)
 		: undefined
 
-// Safe timestamp that doesn't break Next.js Server Components
+// Safe timestamp for Next.js Server Components
+// Returns ISO timestamp on client, empty string on server to avoid prerender errors
 const getTimestamp = () => (isClient() ? new Date().toISOString() : '')
 
 /**
