@@ -13,10 +13,9 @@ import {
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
-import type { Lease, LeaseStatsResponse } from '@repo/shared/types/core'
+import type { Lease } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
-import { ZeroCacheService } from '../../cache/cache.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -26,26 +25,7 @@ import {
 export class LeasesService {
 	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly cache: ZeroCacheService
-	) {}
-
-	/**
-	 * Invalidate lease-related caches
-	 * Uses ZeroCacheService surgical invalidation
-	 */
-	private invalidateLeaseCaches(lease_id?: string, tenant_id?: string): void {
-		if (lease_id) {
-			this.cache.invalidateByEntity('leases', lease_id)
-		}
-		if (tenant_id) {
-			this.cache.invalidateByEntity('tenants', tenant_id)
-		}
-		// Invalidate general lease lists
-		this.cache.invalidate('leases:list')
-		this.logger.debug('Invalidated lease caches', { lease_id, tenant_id })
-	}
+	constructor(private readonly supabase: SupabaseService) {}
 
 	/**
 	 * Get user-scoped Supabase client for direct database access
@@ -209,132 +189,6 @@ export class LeasesService {
 	}
 
 	/**
-	 * Get lease statistics
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
-	 */
-	async getStats(token: string): Promise<LeaseStatsResponse> {
-		try {
-			if (!token) {
-				this.logger.warn('Lease stats requested without token')
-				throw new BadRequestException('Authentication token is required')
-			}
-
-			this.logger.log('Getting lease stats via RLS-protected query')
-
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client.from('leases').select('*')
-
-			if (error) {
-				this.logger.error('Failed to get lease stats from Supabase', {
-					error: error.message
-				})
-				throw new BadRequestException('Failed to get lease statistics')
-			}
-
-			const leases = data || []
-			const now = new Date()
-			const thirtyDaysFromNow = new Date(
-				now.getTime() + 30 * 24 * 60 * 60 * 1000
-			)
-
-			type LeaseRow = Database['public']['Tables']['leases']['Row']
-
-			const stats = {
-			totalLeases: leases.length,
-			activeLeases: leases.filter((l: LeaseRow) => l.lease_status === 'active')
-				.length,
-			expiredLeases: leases.filter((l: LeaseRow) => l.lease_status === 'ended')
-				.length,
-			terminatedLeases: leases.filter(
-				(l: LeaseRow) => l.lease_status === 'terminated'
-			).length,
-			totalMonthlyRent: leases
-				.filter((l: LeaseRow) => l.lease_status === 'active')
-				.reduce((sum: number, l: LeaseRow) => sum + (l.rent_amount || 0), 0),
-			averageRent:
-				leases.length > 0
-					? leases.reduce(
-							(sum: number, l: LeaseRow) => sum + (l.rent_amount || 0),
-							0
-					  ) / leases.length
-					: 0,
-			totalsecurity_deposits: leases.reduce(
-				(sum: number, l: LeaseRow) => sum + (l.security_deposit || 0),
-				0
-			),
-			expiringLeases: leases.filter((l: LeaseRow) => {
-				// Skip month-to-month leases (end_date is null)
-				if (!l.end_date) return false
-				const end_date = new Date(l.end_date)
-				return end_date > now && end_date <= thirtyDaysFromNow
-			}).length
-		}
-
-			return stats
-		} catch (error) {
-			this.logger.error('Leases service failed to get stats', {
-				error: error instanceof Error ? error.message : String(error)
-			})
-			throw new BadRequestException(
-				error instanceof Error
-					? error.message
-					: 'Failed to get lease statistics'
-			)
-		}
-	}
-
-	/**
-	 * Get leases expiring soon
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
-	 */
-	async getExpiring(token: string, days: number = 30): Promise<Lease[]> {
-		try {
-			if (!token) {
-				this.logger.warn('Expiring leases requested without token')
-				throw new BadRequestException('Authentication token is required')
-			}
-
-			this.logger.log('Getting expiring leases via RLS-protected query', {
-				days
-			})
-
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
-			const client = this.supabase.getUserClient(token)
-
-			const now = new Date()
-			const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
-
-			const { data, error } = await client
-				.from('leases')
-				.select('*')
-				.eq('lease_status', 'active')
-				.gte('end_date', now.toISOString())
-				.lte('end_date', futureDate.toISOString())
-				.order('end_date', { ascending: true })
-
-			if (error) {
-				this.logger.error('Failed to get expiring leases from Supabase', {
-					error: error.message,
-					days
-				})
-				throw new BadRequestException('Failed to get expiring leases')
-			}
-
-			return data as Lease[]
-		} catch (error) {
-			this.logger.error('Leases service failed to get expiring leases', {
-				error: error instanceof Error ? error.message : String(error),
-				days
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get expiring leases'
-			)
-		}
-	}
-
-	/**
 	 * Find one lease by ID
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
@@ -432,7 +286,7 @@ export class LeasesService {
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount,
 				security_deposit: dto.security_deposit || 0,
-				lease_status: dto.lease_status || 'draft',
+				lease_status: dto.lease_status || 'pending',
 				payment_day: 1,
 				rent_currency: 'USD'
 			})
@@ -448,9 +302,6 @@ export class LeasesService {
 			}
 
 			const lease = data as Lease
-
-			// Invalidate lease caches after creation
-			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
 
 			return lease
 		} catch (error) {
@@ -546,12 +397,7 @@ export class LeasesService {
 				throw new BadRequestException('Failed to update lease')
 			}
 
-			const lease = data as Lease
-
-			// Invalidate lease caches after update
-			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
-
-			return lease
+			return data as Lease
 		} catch (error) {
 			// Re-throw ConflictException as-is
 			if (error instanceof ConflictException) {
@@ -606,9 +452,6 @@ export class LeasesService {
 				})
 				throw new BadRequestException('Failed to delete lease')
 			}
-
-			// Invalidate lease caches after deletion
-			this.invalidateLeaseCaches(lease_id, existingLease.primary_tenant_id)
 		} catch (error) {
 			this.logger.error('Leases service failed to remove lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -616,292 +459,6 @@ export class LeasesService {
 			})
 			throw new BadRequestException(
 				error instanceof Error ? error.message : 'Failed to remove lease'
-			)
-		}
-	}
-
-	/**
-	 * Renew lease - consolidated method with validation
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
-	 */
-	async renew(
-		token: string,
-		lease_id: string,
-		newEndDate: string,
-		newRentAmount?: number
-	): Promise<Lease | null> {
-		try {
-			this.logger.log('Renewing lease via RLS-protected query', {
-				lease_id,
-				newEndDate,
-				newRentAmount
-			})
-
-			// Verify ownership and lease exists (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, lease_id)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			// Month-to-month leases cannot be renewed (no fixed end date)
-			if (!existingLease.end_date) {
-				throw new BadRequestException(
-					'Cannot renew a month-to-month lease. Convert to fixed-term first.'
-				)
-			}
-
-			// Validate new end date is after current
-			const currentEndDate = new Date(existingLease.end_date)
-			const renewalEndDate = new Date(newEndDate)
-			if (renewalEndDate <= currentEndDate) {
-				throw new BadRequestException(
-					'New end date must be after current lease end date'
-				)
-			}
-
-			// Validate new rent amount if provided
-			if (newRentAmount && newRentAmount <= 0) {
-				throw new BadRequestException('Rent amount must be positive')
-			}
-
-			// RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const updated_data: Database['public']['Tables']['leases']['Update'] = {
-				end_date: newEndDate,
-				updated_at: new Date().toISOString()
-			}
-			if (newRentAmount) updated_data.rent_amount = newRentAmount
-
-			const { data, error } = await client
-				.from('leases')
-				.update(updated_data)
-				.eq('id', lease_id)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to renew lease in Supabase', {
-					error: error.message,
-					lease_id
-				})
-				throw new BadRequestException('Failed to renew lease')
-			}
-
-			const lease = data as Lease
-
-			// Invalidate lease caches after renewal
-			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
-
-			return lease
-		} catch (error) {
-			this.logger.error('Failed to renew lease', {
-				error: error instanceof Error ? error.message : String(error),
-				lease_id,
-				newEndDate,
-				newRentAmount
-			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			throw new BadRequestException('Failed to renew lease')
-		}
-	}
-
-	/**
-	 * Terminate lease - consolidated method with validation
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
-	 */
-	async terminate(
-		token: string,
-		lease_id: string,
-		terminationDate: string,
-		reason?: string
-	): Promise<Lease | null> {
-		try {
-			this.logger.log('Terminating lease via RLS-protected query', {
-				lease_id,
-				terminationDate,
-				reason
-			})
-
-			// Verify ownership and lease exists (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, lease_id)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			// Validate termination date
-			const termDate = new Date(terminationDate)
-			const currentDate = new Date()
-			if (termDate < currentDate) {
-				throw new BadRequestException('Termination date cannot be in the past')
-			}
-
-			// Check if lease is already terminated
-			if (
-				existingLease.lease_status === 'terminated' ||
-				existingLease.lease_status === 'ended'
-			) {
-				throw new BadRequestException('Lease is already terminated or expired')
-			}
-
-			// RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client
-			.from('leases')
-			.update({
-				lease_status: 'terminated',
-				end_date: terminationDate,
-				updated_at: new Date().toISOString()
-			})
-				.eq('id', lease_id)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to terminate lease in Supabase', {
-					error: error.message,
-					lease_id
-				})
-				throw new BadRequestException('Failed to terminate lease')
-			}
-
-			const lease = data as Lease
-
-			// Invalidate lease caches after termination
-			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
-
-			return lease
-		} catch (error) {
-			this.logger.error('Failed to terminate lease', {
-				error: error instanceof Error ? error.message : String(error),
-				lease_id,
-				terminationDate,
-				reason
-			})
-
-			if (error instanceof BadRequestException) {
-				throw error
-			}
-
-			throw new BadRequestException('Failed to terminate lease')
-		}
-	}
-
-	/**
-	 * Get lease analytics - consolidated single method
-	 * Replaces: getAnalytics, getLeasePerformanceAnalytics, getLeaseDurationAnalytics,
-	 * getLeaseTurnoverAnalytics, getLeaseRevenueAnalytics
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
-	 */
-	async getAnalytics(
-		token: string,
-		options: {
-			lease_id?: string
-			property_id?: string
-			timeframe: string
-			period?: string
-		}
-	): Promise<unknown[]> {
-		try {
-			if (!token) {
-				this.logger.warn('Lease analytics requested without token')
-				throw new BadRequestException('Authentication token is required')
-			}
-
-			this.logger.log('Getting lease analytics via RLS-protected query', {
-				options
-			})
-
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
-			const client = this.supabase.getUserClient(token)
-
-			let queryBuilder = client.from('leases').select('*')
-
-			if (options.lease_id) {
-				queryBuilder = queryBuilder.eq('id', options.lease_id)
-			}
-
-			if (options.property_id) {
-				queryBuilder = queryBuilder.eq('property_id', options.property_id)
-			}
-
-			const { data, error } = await queryBuilder
-
-			if (error) {
-				this.logger.error('Failed to fetch lease analytics from Supabase', {
-					error: error.message,
-					options
-				})
-				throw new BadRequestException('Failed to get lease analytics')
-			}
-
-			return data || []
-		} catch (error) {
-			this.logger.error('Leases service failed to get analytics', {
-				error: error instanceof Error ? error.message : String(error),
-				options
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get lease analytics'
-			)
-		}
-	}
-
-	/**
-	 * Get lease payment history
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
-	 */
-	async getPaymentHistory(token: string, lease_id: string): Promise<unknown[]> {
-		try {
-			if (!token || !lease_id) {
-				this.logger.warn('Payment history requested with missing parameters', {
-					lease_id
-				})
-				throw new BadRequestException(
-					'Authentication token and lease ID are required'
-				)
-			}
-
-			// Verify ownership (RLS will enforce ownership)
-			const lease = await this.findOne(token, lease_id)
-			if (!lease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			this.logger.log('Getting lease payment history via RLS-protected query', {
-				lease_id
-			})
-
-			// RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client
-				.from('rent_payments')
-				.select('*')
-				.eq('lease_id', lease_id)
-				.order('payment_date', { ascending: false })
-
-			if (error) {
-				this.logger.error('Failed to fetch payment history from Supabase', {
-					error: error.message,
-					lease_id
-				})
-				return []
-			}
-
-			return data || []
-		} catch (error) {
-			this.logger.error('Leases service failed to get payment history', {
-				error: error instanceof Error ? error.message : String(error),
-				lease_id
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to get payment history'
 			)
 		}
 	}

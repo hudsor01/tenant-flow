@@ -49,6 +49,7 @@ import { SharedModule } from './shared/shared.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
+import { DocuSealModule } from './modules/docuseal/docuseal.module'
 
 /**
  * Core App Module - KISS principle
@@ -142,7 +143,8 @@ import { MetricsModule } from './modules/metrics/metrics.module'
 		SubscriptionsModule,
 		UsersModule,
 		SecurityModule,
-		ReportsModule
+		ReportsModule,
+		DocuSealModule
 	],
 	controllers: [AppController],
 	providers: [

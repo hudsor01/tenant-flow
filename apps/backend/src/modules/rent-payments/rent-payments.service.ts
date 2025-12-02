@@ -1,3 +1,13 @@
+/**
+ * Rent Payments Service (Facade)
+ * Delegates to specialized services while maintaining backwards-compatible API
+ *
+ * Decomposed Services:
+ * - RentPaymentQueryService: Payment history queries
+ * - RentPaymentAutopayService: Autopay setup, cancel, status
+ * - RentPaymentContextService: Tenant and lease context loading
+ */
+
 import {
 	BadRequestException,
 	ForbiddenException,
@@ -19,14 +29,11 @@ import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { getCanonicalPaymentDate } from '@repo/shared/utils/payment-dates'
-import type {
-	Lease,
-	RentPayment,
-	Tenant,
-	TenantPaymentMethod,
-	User
-} from './types'
+import type { RentPayment, TenantPaymentMethod } from './types'
 import type { CreatePaymentInput } from './dto/create-payment.dto'
+import { RentPaymentQueryService } from './rent-payment-query.service'
+import { RentPaymentAutopayService } from './rent-payment-autopay.service'
+import { RentPaymentContextService } from './rent-payment-context.service'
 
 type PaymentMethodType = 'card' | 'ach'
 
@@ -39,17 +46,6 @@ export interface CurrentPaymentStatus {
 	isOverdue: boolean
 }
 
-interface TenantContext {
-	tenant: Tenant
-	tenantUser: User
-}
-
-interface LeaseContext {
-	lease: Lease
-	ownerUser: User
-	stripeAccountId: string | null
-}
-
 @Injectable()
 export class RentPaymentsService {
 	private readonly logger = new Logger(RentPaymentsService.name)
@@ -58,10 +54,68 @@ export class RentPaymentsService {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
-		private readonly stripeTenantService: StripeTenantService
+		private readonly stripeTenantService: StripeTenantService,
+		private readonly queryService: RentPaymentQueryService,
+		private readonly autopayService: RentPaymentAutopayService,
+		private readonly contextService: RentPaymentContextService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
+
+	// ==================
+	// DELEGATED TO QUERY SERVICE
+	// ==================
+
+	async getPaymentHistory(token: string): Promise<RentPayment[]> {
+		return this.queryService.getPaymentHistory(token)
+	}
+
+	async getSubscriptionPaymentHistory(
+		subscriptionId: string,
+		token: string
+	): Promise<RentPayment[]> {
+		return this.queryService.getSubscriptionPaymentHistory(subscriptionId, token)
+	}
+
+	async getFailedPaymentAttempts(token: string): Promise<RentPayment[]> {
+		return this.queryService.getFailedPaymentAttempts(token)
+	}
+
+	async getSubscriptionFailedAttempts(
+		subscriptionId: string,
+		token: string
+	): Promise<RentPayment[]> {
+		return this.queryService.getSubscriptionFailedAttempts(subscriptionId, token)
+	}
+
+	// ==================
+	// DELEGATED TO AUTOPAY SERVICE
+	// ==================
+
+	async setupTenantAutopay(
+		params: SetupTenantAutopayParams,
+		requestingUserId: string
+	): Promise<SetupTenantAutopayResponse> {
+		return this.autopayService.setupTenantAutopay(params, requestingUserId)
+	}
+
+	async cancelTenantAutopay(
+		params: CancelTenantAutopayParams,
+		requestingUserId: string
+	): Promise<CancelTenantAutopayResponse> {
+		return this.autopayService.cancelTenantAutopay(params, requestingUserId)
+	}
+
+	async getAutopayStatus(
+		params: GetAutopayStatusParams,
+		requestingUserId: string
+	): Promise<TenantAutopayStatusResponse> {
+		return this.autopayService.getAutopayStatus(params, requestingUserId)
+	}
+
+	// ==================
+	// REMAINING METHODS (Payment processing - could be further decomposed)
+	// ==================
 
 	private normalizeAmount(amount: number): number {
 		const numericAmount = Number(amount)
@@ -83,7 +137,7 @@ export class RentPaymentsService {
 
 	async createOneTimePayment(
 		params: CreatePaymentInput,
-		requestinguser_id: string
+		requestingUserId: string
 	) {
 		const { tenant_id, lease_id, amount, paymentMethodId } = params
 
@@ -92,12 +146,12 @@ export class RentPaymentsService {
 		}
 
 		const adminClient = this.supabase.getAdminClient()
-		const { tenant, tenantUser } = await this.getTenantContext(tenant_id)
-		const { lease, stripeAccountId } = await this.getLeaseContext(
+		const { tenant, tenantUser } = await this.contextService.getTenantContext(tenant_id)
+		const { lease, stripeAccountId } = await this.contextService.getLeaseContext(
 			lease_id,
 			tenant_id,
-			requestinguser_id
-	)
+			requestingUserId
+		)
 
 		const { data: paymentMethod, error: paymentMethodError } = await adminClient
 			.from('payment_methods')
@@ -192,312 +246,12 @@ export class RentPaymentsService {
 		}
 	}
 
-	async getPaymentHistory(token: string) {
-		if (!token) {
-			throw new BadRequestException('Authentication token is required')
-		}
-
-		const client = this.supabase.getUserClient(token)
-		const { data, error } = await client
-			.from('rent_payments')
-			.select('*')
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load payment history', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load payment history')
-		}
-
-		return (data as RentPayment[]) ?? []
-	}
-
-	async getSubscriptionPaymentHistory(subscriptionId: string, token: string) {
-		const lease = await this.findLeaseBySubscription(subscriptionId, token)
-		const client = this.supabase.getUserClient(token)
-
-		const { data, error } = await client
-			.from('rent_payments')
-			.select('*')
-			.eq('lease_id', lease.id)
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load subscription payment history', {
-				subscriptionId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to load subscription payment history'
-			)
-		}
-
-		return (data as RentPayment[]) ?? []
-	}
-
-	async getFailedPaymentAttempts(token: string) {
-		if (!token) {
-			throw new BadRequestException('Authentication token is required')
-		}
-
-		const client = this.supabase.getUserClient(token)
-		const { data, error } = await client
-			.from('rent_payments')
-			.select('*')
-			.eq('status', 'FAILED')
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to fetch failed payment attempts', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to load failed payment attempts')
-		}
-
-		return (data as RentPayment[]) ?? []
-	}
-
-	async getSubscriptionFailedAttempts(subscriptionId: string, token: string) {
-		const lease = await this.findLeaseBySubscription(subscriptionId, token)
-		const client = this.supabase.getUserClient(token)
-
-		const { data, error } = await client
-			.from('rent_payments')
-			.select('*')
-			.eq('lease_id', lease.id)
-			.eq('status', 'FAILED')
-			.order('created_at', { ascending: false })
-
-		if (error) {
-			this.logger.error('Failed to load subscription failed attempts', {
-				subscriptionId,
-				error: error.message
-			})
-			throw new BadRequestException(
-				'Failed to load subscription failed attempts'
-			)
-		}
-
-		return (data as RentPayment[]) ?? []
-	}
-
-	async setupTenantAutopay(
-		params: SetupTenantAutopayParams,
-		requestinguser_id: string
-	): Promise<SetupTenantAutopayResponse> {
-		const { tenant_id, lease_id, paymentMethodId } = params
-		const adminClient = this.supabase.getAdminClient()
-
-		const { tenant, tenantUser } = await this.getTenantContext(tenant_id)
-		const { lease, stripeAccountId } = await this.getLeaseContext(
-			lease_id,
-			tenant_id,
-			requestinguser_id
-		)
-
-		if (lease.stripe_subscription_id) {
-			throw new BadRequestException('Autopay already enabled for this lease')
-		}
-
-		let stripeCustomer =
-			await this.stripeTenantService.getStripeCustomerForTenant(tenant.id)
-		if (!stripeCustomer) {
-			const customerParams: CreateTenantCustomerParams = {
-				tenant_id: tenant.id,
-				email: tenantUser.email
-			}
-			if (tenantUser.full_name) {
-				customerParams.name = tenantUser.full_name
-			}
-			if (tenantUser.phone) {
-				customerParams.phone = tenantUser.phone
-			}
-
-			stripeCustomer =
-				await this.stripeTenantService.createStripeCustomerForTenant(
-					customerParams
-				)
-		}
-
-		if (paymentMethodId) {
-			await this.stripeTenantService.attachPaymentMethod({
-				tenant_id,
-				paymentMethodId,
-				setAsDefault: true
-			})
-		}
-
-		const amountInCents = lease.rent_amount
-		const priceData =
-			{
-				currency: 'usd',
-				product_data: {
-					name: `Monthly Rent - Lease ${lease.id.slice(0, 8)}`
-				},
-				unit_amount: amountInCents,
-				recurring: {
-					interval: 'month'
-				}
-			} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
-
-		const subscriptionPayload: Stripe.SubscriptionCreateParams = {
-			customer: stripeCustomer.id,
-			items: [
-				{
-					price_data: priceData
-				}
-			],
-			metadata: {
-				tenant_id,
-				lease_id,
-				paymentType: 'autopay'
-			},
-			expand: ['latest_invoice.payment_intent']
-		}
-
-		if (stripeAccountId) {
-			subscriptionPayload.transfer_data = {
-				destination: stripeAccountId
-			}
-		}
-
-		const subscription = await this.stripe.subscriptions.create(
-			subscriptionPayload,
-			{
-				idempotencyKey: `subscription-${tenant_id}-${lease_id}`
-			}
-		)
-
-		const { error: updateError } = await adminClient
-			.from('leases')
-			.update({ stripe_subscription_id: subscription.id })
-			.eq('id', lease_id)
-
-		if (updateError) {
-			this.logger.error('Failed to update lease with subscription_id', {
-				lease_id,
-				subscriptionId: subscription.id,
-				error: updateError
-			})
-			await this.stripe.subscriptions
-				.cancel(subscription.id)
-				.catch(err =>
-					this.logger.error('Failed to cancel orphaned subscription', {
-						subscriptionId: subscription.id,
-						error: err
-					})
-				)
-			throw new BadRequestException('Failed to enable autopay')
-		}
-
-		return {
-			subscriptionId: subscription.id,
-			status: subscription.status
-		}
-	}
-
-	async cancelTenantAutopay(
-		params: CancelTenantAutopayParams,
-		requestinguser_id: string
-	): Promise<CancelTenantAutopayResponse> {
-		const { tenant_id, lease_id } = params
-		const adminClient = this.supabase.getAdminClient()
-
-		await this.getLeaseContext(lease_id, tenant_id, requestinguser_id)
-
-		const { data: lease, error: leaseError } = await adminClient
-			.from('leases')
-			.select('stripe_subscription_id')
-			.eq('id', lease_id)
-			.single()
-
-		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
-		}
-
-		const subscriptionId = (
-			lease as { stripe_subscription_id: string | null }
-		).stripe_subscription_id
-
-		if (!subscriptionId) {
-			throw new BadRequestException('Autopay not enabled for this lease')
-		}
-
-		await this.stripe.subscriptions.cancel(subscriptionId)
-
-		const { error: updateError } = await adminClient
-			.from('leases')
-			.update({ stripe_subscription_id: null })
-			.eq('id', lease_id)
-
-		if (updateError) {
-			this.logger.error('Failed to remove subscription_id from lease', {
-				lease_id,
-				error: updateError
-			})
-			throw new BadRequestException('Failed to cancel autopay')
-		}
-
-		return { success: true }
-	}
-
-	async getAutopayStatus(
-		params: GetAutopayStatusParams,
-		requestinguser_id: string
-	): Promise<TenantAutopayStatusResponse> {
-		const { tenant_id, lease_id } = params
-		const adminClient = this.supabase.getAdminClient()
-
-		await this.getLeaseContext(lease_id, tenant_id, requestinguser_id)
-
-		const { data: lease, error: leaseError } = await adminClient
-			.from('leases')
-			.select('stripe_subscription_id')
-			.eq('id', lease_id)
-			.single()
-
-		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
-		}
-
-		const subscriptionId = (
-			lease as { stripe_subscription_id: string | null }
-		).stripe_subscription_id
-
-		if (!subscriptionId) {
-			return {
-				enabled: false,
-				subscriptionId: null,
-				status: null,
-				nextPaymentDate: null
-			}
-		}
-
-		const subscription =
-			await this.stripe.subscriptions.retrieve(subscriptionId)
-		const currentPeriodEnd =
-			'current_period_end' in subscription
-				? (subscription.current_period_end as number)
-				: undefined
-		const nextPaymentDate = currentPeriodEnd
-			? new Date(currentPeriodEnd * 1000).toISOString()
-			: null
-
-		return {
-			enabled: true,
-			subscriptionId: subscription.id,
-			status: subscription.status,
-			nextPaymentDate
-		}
-	}
-
 	async getCurrentPaymentStatus(
 		tenant_id: string,
-		requestinguser_id: string
+		requestingUserId: string
 	): Promise<CurrentPaymentStatus> {
 		const adminClient = this.supabase.getAdminClient()
-		await this.verifyTenantAccess(requestinguser_id, tenant_id)
+		await this.contextService.verifyTenantAccess(requestingUserId, tenant_id)
 
 		const { data: lease, error: leaseError } = await adminClient
 			.from('leases')
@@ -602,136 +356,5 @@ export class RentPaymentsService {
 		}
 
 		return data as RentPayment
-	}
-
-	private async getTenantContext(tenant_id: string): Promise<TenantContext> {
-		const adminClient = this.supabase.getAdminClient()
-		const { data: tenant, error: tenantError } = await adminClient
-			.from('tenants')
-			.select('*, users!inner(*)')
-			.eq('id', tenant_id)
-			.single()
-
-		if (tenantError || !tenant) {
-			throw new NotFoundException('Tenant not found')
-		}
-
-		const tenantUser = (tenant as Tenant & { users: User }).users
-		return { tenant: tenant as Tenant, tenantUser }
-	}
-
-	private async getLeaseContext(
-		lease_id: string,
-		tenant_id: string,
-		requestinguser_id: string
-	): Promise<LeaseContext> {
-		const adminClient = this.supabase.getAdminClient()
-		const { data: lease, error: leaseError } = await adminClient
-			.from('leases')
-			.select('*')
-			.eq('id', lease_id)
-			.single<Lease>()
-
-		if (leaseError || !lease) {
-			throw new NotFoundException('Lease not found')
-		}
-
-		if (lease.primary_tenant_id !== tenant_id) {
-			throw new ForbiddenException('Lease does not belong to tenant')
-		}
-
-		const { data: unit, error: unitError } = await adminClient
-			.from('units')
-			.select('id, property_id')
-			.eq('id', lease.unit_id)
-			.single()
-
-		if (unitError || !unit) {
-			throw new NotFoundException('Unit not found for lease')
-		}
-
-		const { data: property, error: propertyError } = await adminClient
-			.from('properties')
-			.select('property_owner_id')
-			.eq('id', unit.property_id)
-			.single()
-
-		if (propertyError || !property) {
-			throw new NotFoundException('Property not found for lease')
-		}
-
-		const { data: owner, error: ownerError } = await adminClient
-			.from('property_owners')
-			.select('user_id, stripe_account_id')
-			.eq('id', property.property_owner_id)
-			.single()
-
-		if (ownerError || !owner) {
-			throw new NotFoundException('Property owner not found')
-		}
-
-		const { data: ownerUser, error: ownerUserError } = await adminClient
-			.from('users')
-			.select('*')
-			.eq('id', owner.user_id)
-			.single<User>()
-
-		if (ownerUserError || !ownerUser) {
-			throw new NotFoundException('Owner user not found')
-		}
-
-		const { tenant } = await this.getTenantContext(tenant_id)
-		const isOwner = ownerUser.id === requestinguser_id
-		const isTenant = tenant.user_id === requestinguser_id
-
-		if (!isOwner && !isTenant) {
-			throw new ForbiddenException('You are not authorized to access this lease')
-		}
-
-		return { lease, ownerUser, stripeAccountId: owner.stripe_account_id }
-	}
-
-	private async verifyTenantAccess(
-		requestinguser_id: string,
-		tenant_id: string
-	) {
-		const adminClient = this.supabase.getAdminClient()
-		const { tenant } = await this.getTenantContext(tenant_id)
-
-		if (tenant.user_id === requestinguser_id) {
-			return
-		}
-
-		const { data: owner, error } = await adminClient
-			.from('property_owners')
-			.select('user_id')
-			.eq('user_id', requestinguser_id)
-			.single()
-
-		if (error || !owner) {
-			throw new ForbiddenException('You are not authorized to access this tenant')
-		}
-	}
-
-	private async findLeaseBySubscription(
-		subscriptionId: string,
-		token: string
-	): Promise<Lease> {
-		if (!token) {
-			throw new BadRequestException('Authentication token is required')
-		}
-
-		const client = this.supabase.getUserClient(token)
-		const { data, error } = await client
-			.from('leases')
-			.select('*')
-			.eq('stripe_subscription_id', subscriptionId)
-			.single()
-
-		if (error || !data) {
-			throw new NotFoundException('Subscription not found')
-		}
-
-		return data as Lease
 	}
 }

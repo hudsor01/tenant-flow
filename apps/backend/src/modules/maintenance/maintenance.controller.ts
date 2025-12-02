@@ -24,12 +24,18 @@ import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/s
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
+import { MaintenanceReportingService } from './maintenance-reporting.service'
+import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 import type { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import type { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
 
 @Controller('maintenance')
 export class MaintenanceController {
-	constructor(private readonly maintenanceService: MaintenanceService) {}
+	constructor(
+		private readonly maintenanceService: MaintenanceService,
+		private readonly reportingService: MaintenanceReportingService,
+		private readonly workflowService: MaintenanceWorkflowService
+	) {}
 
 	/**
 	 * Get all maintenance requests
@@ -129,7 +135,7 @@ export class MaintenanceController {
 	 */
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
-		return this.maintenanceService.getStats(token)
+		return this.reportingService.getStats(token)
 	}
 
 	/**
@@ -138,7 +144,7 @@ export class MaintenanceController {
 	 */
 	@Get('urgent')
 	async getUrgent(@JwtToken() token: string) {
-		return this.maintenanceService.getUrgent(token)
+		return this.reportingService.getUrgent(token)
 	}
 
 	/**
@@ -147,7 +153,7 @@ export class MaintenanceController {
 	 */
 	@Get('overdue')
 	async getOverdue(@JwtToken() token: string) {
-		return this.maintenanceService.getOverdue(token)
+		return this.reportingService.getOverdue(token)
 	}
 
 	/**
@@ -230,7 +236,7 @@ export class MaintenanceController {
 		if (actualCost && (actualCost < 0 || actualCost > 999999)) {
 			throw new BadRequestException('Actual cost must be between 0 and 999999')
 		}
-		return this.maintenanceService.complete(token, id, actualCost, notes)
+		return this.workflowService.complete(token, id, actualCost, notes)
 	}
 
 	/**
@@ -243,6 +249,6 @@ export class MaintenanceController {
 		@JwtToken() token: string,
 		@Body('reason') reason?: string
 	) {
-		return this.maintenanceService.cancel(token, id, reason)
+		return this.workflowService.cancel(token, id, reason)
 	}
 }

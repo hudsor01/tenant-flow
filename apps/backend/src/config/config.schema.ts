@@ -243,7 +243,15 @@ const environmentSchema = z.object({
 	VERCEL_URL: z.string().optional(),
 	DOCKER_CONTAINER: z
 		.coerce.boolean()
-		.default(false)
+		.default(false),
+
+	// DocuSeal (self-hosted e-signature)
+	DOCUSEAL_API_URL: z
+		.string()
+		.url('Must be a valid URL')
+		.default('https://sign.thehudsonfam.com/api'),
+	DOCUSEAL_API_KEY: z.string().optional(),
+	DOCUSEAL_WEBHOOK_SECRET: z.string().optional()
 })
 
 export function validate(config: Record<string, unknown>) {
