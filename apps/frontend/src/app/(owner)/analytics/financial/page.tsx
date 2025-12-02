@@ -1,5 +1,5 @@
 import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
-import { ExportButtons } from '#components/export/export-buttons'
+import { ExportButtons } from '#components/ui/export/export-buttons'
 import { Badge } from '#components/ui/badge'
 import {
 	Card,
@@ -18,7 +18,7 @@ import {
 } from '#components/ui/table'
 import { getFinancialAnalyticsPageData } from '#lib/api/analytics-page'
 import { serverFetch } from '#lib/api/server'
-import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
+import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/currency'
 import type {
 	FinancialBreakdownRow,
 	LeaseFinancialInsight
@@ -31,8 +31,8 @@ import {
 	NetOperatingIncomeChart,
 	RevenueExpenseChart
 } from './financial-charts'
-import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
+import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
@@ -62,7 +62,7 @@ function BreakdownList({
 }) {
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<p className="text-sm font-medium text-muted-foreground">{title}</p>
 				<Link
 					className="text-xs text-muted-foreground underline-offset-2 hover:underline"
@@ -75,13 +75,13 @@ function BreakdownList({
 				{rows.slice(0, 5).map(item => (
 					<div
 						key={`${title}-${item.label}`}
-						className="flex items-center justify-between"
+						className="flex-between"
 					>
 						<div className="flex items-center gap-2">
 							<span className="text-sm font-medium">{item.label}</span>
 							{item.change !== null && <TrendPill value={item.change} />}
 						</div>
-						<div className="text-sm text-muted-foreground">
+						<div className="text-muted">
 							{formatCurrency(item.value)}
 						</div>
 					</div>
@@ -95,7 +95,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	if (!leases.length) {
 		return (
 			<div className="flex min-h-50 flex-col items-center justify-center rounded-lg border border-dashed">
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted">
 					We couldn&apos;t find leases with financial analytics yet.
 				</p>
 			</div>
@@ -163,7 +163,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 			<div className="@container/main flex min-h-screen w-full flex-col">
 				<OwnerPaymentSummary summary={paymentSummary} />
 				<div className="border-b bg-background p-6 border-fill-tertiary">
-					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
 							<h1 className="text-3xl font-semibold tracking-tight">
 								Financial Analytics
@@ -176,14 +176,14 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 						<div className="flex flex-wrap items-center gap-3">
 							<ExportButtons filename="financial-analytics" payload={data} />
 							<a
-								className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+								className="inline-flex items-center gap-2 text-muted hover:text-foreground"
 								href="#"
 							>
 								<FileDown className="size-4" />
 								Download insight summary
 							</a>
 						</div>
-						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
 							<Card className="@container/card">
 								<CardHeader>
 									<CardTitle>Total Revenue</CardTitle>
@@ -240,7 +240,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 				</div>
 				<div className="flex-1 bg-muted/30 p-6">
 					<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
 							<div className="xl:col-span-2">
 								<Card>
 									<CardHeader>
@@ -281,7 +281,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								</Card>
 							</div>
 						</div>
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-2">
 							<Card>
 								<CardHeader>
 									<CardTitle>Net Operating Income</CardTitle>
@@ -305,7 +305,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								</CardContent>
 							</Card>
 						</div>
-						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-2">
 							<Card>
 								<CardHeader>
 									<CardTitle>Billing Timeline</CardTitle>
@@ -326,7 +326,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 									{invoiceSummary.map(status => (
 										<div
 											key={status.status}
-											className="flex items-center justify-between"
+											className="flex-between"
 										>
 											<div className="flex items-center gap-2">
 												<span className="text-sm font-medium">
@@ -354,7 +354,7 @@ function FinancialAnalyticsSkeleton() {
 		<div className="@container/main flex min-h-screen w-full flex-col">
 # Additional component after top metrics
 			<div className="border-b bg-background p-6 border-fill-tertiary">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
 							Financial Analytics
@@ -364,7 +364,7 @@ function FinancialAnalyticsSkeleton() {
 							time.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
 						{Array.from({ length: 4 }).map((_, i) => (
 							<Card key={i} className="@container/card">
 								<CardHeader>
@@ -383,7 +383,7 @@ function FinancialAnalyticsSkeleton() {
 			<OwnerPaymentSummary summary={null} />
 			<div className="flex-1 bg-muted/30 p-6">
 				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+					<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
 						<div className="xl:col-span-2">
 							<Card>
 								<CardHeader>

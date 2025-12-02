@@ -7,6 +7,7 @@
 declare global {
   /**
    * Type helper for page component props with typed params
+   * In Next.js 15+, params is a Promise that must be awaited
    */
   type PageProps<T extends string> = {
     params: Promise<ExtractRouteParams<T>>
@@ -18,7 +19,7 @@ declare global {
    */
   type LayoutProps<T extends string> = {
     children: React.ReactNode
-    params?: Promise<ExtractRouteParams<T>>
+    params?: ExtractRouteParams<T>
     modal?: React.ReactNode
   }
 

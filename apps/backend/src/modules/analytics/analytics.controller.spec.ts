@@ -2,19 +2,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { AnalyticsController } from './analytics.controller'
 import { AnalyticsService } from './analytics.service'
-
-// Define WebVitalData type for test purposes - matches controller definition
-interface WebVitalData {
-	name: string
-	value: number
-	rating: 'good' | 'needs-improvement' | 'poor'
-	delta: number
-	id: string
-	page: string
-	timestamp?: string
-	sessionId?: string
-	user_id?: string
-}
+import type { WebVitalMetric } from './dto/web-vital.dto'
 
 // Mock the AnalyticsService
 jest.mock('./analytics.service', () => {
@@ -50,7 +38,7 @@ describe('AnalyticsController', () => {
 	})
 
 	describe('reportWebVitals', () => {
-		const validWebVitalData: WebVitalData = {
+		const validWebVitalData: WebVitalMetric = {
 			name: 'LCP',
 			value: 2500,
 			rating: 'good',
@@ -75,7 +63,7 @@ describe('AnalyticsController', () => {
 		})
 
 		it('should use sessionId as distinctId when user_id is not provided', async () => {
-			const dataWithoutuser_id: WebVitalData = { ...validWebVitalData }
+			const dataWithoutuser_id: WebVitalMetric = { ...validWebVitalData }
 			delete dataWithoutuser_id.user_id
 
 			await controller.reportWebVitals(dataWithoutuser_id)
@@ -89,7 +77,7 @@ describe('AnalyticsController', () => {
 		})
 
 		it('should use id as distinctId when neither user_id nor sessionId are provided', async () => {
-			const dataWithoutIds: WebVitalData = { ...validWebVitalData }
+			const dataWithoutIds: WebVitalMetric = { ...validWebVitalData }
 			delete dataWithoutIds.user_id
 			delete dataWithoutIds.sessionId
 
@@ -103,125 +91,8 @@ describe('AnalyticsController', () => {
 			)
 		})
 
-		it('should throw error for null/undefined payload', async () => {
-			// Type assertion for testing edge cases - null/undefined should be rejected
-			await expect(
-				controller.reportWebVitals(null as unknown as WebVitalData)
-			).rejects.toThrow('Invalid payload')
-			await expect(
-				controller.reportWebVitals(undefined as unknown as WebVitalData)
-			).rejects.toThrow('Invalid payload')
-		})
-
-		it('should throw error for non-object payload', async () => {
-			// Type assertion for testing edge cases - non-objects should be rejected
-			await expect(
-				controller.reportWebVitals('string' as unknown as WebVitalData)
-			).rejects.toThrow('Invalid payload')
-			await expect(
-				controller.reportWebVitals(123 as unknown as WebVitalData)
-			).rejects.toThrow('Invalid payload')
-		})
-
-		describe('name validation', () => {
-			it('should accept all valid metric names', async () => {
-				const validNames = ['FCP', 'LCP', 'CLS', 'FID', 'TTFB', 'INP'] as const
-
-				for (const name of validNames) {
-					const data: WebVitalData = { ...validWebVitalData, name }
-					await expect(controller.reportWebVitals(data)).resolves.toEqual({
-						success: true
-					})
-				}
-			})
-
-			it('should reject invalid metric names', async () => {
-				const invalidData = { ...validWebVitalData, name: 'INVALID_METRIC' }
-				await expect(
-					controller.reportWebVitals(invalidData as unknown as WebVitalData)
-				).rejects.toThrow('Invalid web vitals data')
-			})
-		})
-
-		describe('value validation', () => {
-			it('should accept numeric values', async () => {
-				const numericValues = [0, 100, 2500.5, -10]
-
-				for (const value of numericValues) {
-					const data = { ...validWebVitalData, value }
-					await expect(controller.reportWebVitals(data)).resolves.toEqual({
-						success: true
-					})
-				}
-			})
-
-			it('should reject non-numeric values', async () => {
-				const invalidData = { ...validWebVitalData, value: 'not-a-number' }
-				await expect(
-					controller.reportWebVitals(invalidData as unknown as WebVitalData)
-				).rejects.toThrow('Invalid web vitals data')
-			})
-		})
-
-		describe('rating validation', () => {
-			it('should accept all valid ratings', async () => {
-				const validRatings = ['good', 'needs-improvement', 'poor'] as const
-
-				for (const rating of validRatings) {
-					const data: WebVitalData = { ...validWebVitalData, rating }
-					await expect(controller.reportWebVitals(data)).resolves.toEqual({
-						success: true
-					})
-				}
-			})
-
-			it('should reject invalid ratings', async () => {
-				const invalidData = { ...validWebVitalData, rating: 'excellent' }
-				await expect(
-					controller.reportWebVitals(invalidData as unknown as WebVitalData)
-				).rejects.toThrow('Invalid web vitals data')
-			})
-		})
-
-		describe('delta validation', () => {
-			it('should accept numeric delta values', async () => {
-				const numericDeltas = [0, 50, -25, 1000.75]
-
-				for (const delta of numericDeltas) {
-					const data = { ...validWebVitalData, delta }
-					await expect(controller.reportWebVitals(data)).resolves.toEqual({
-						success: true
-					})
-				}
-			})
-
-			it('should reject non-numeric delta values', async () => {
-				const invalidData = { ...validWebVitalData, delta: 'not-a-number' }
-				await expect(
-					controller.reportWebVitals(invalidData as unknown as WebVitalData)
-				).rejects.toThrow('Invalid web vitals data')
-			})
-		})
-
-		describe('id validation', () => {
-			it('should accept string id values', async () => {
-				const stringIds = ['test-123', 'session-abc', '']
-
-				for (const id of stringIds) {
-					const data = { ...validWebVitalData, id }
-					await expect(controller.reportWebVitals(data)).resolves.toEqual({
-						success: true
-					})
-				}
-			})
-
-			it('should reject non-string id values', async () => {
-				const invalidData = { ...validWebVitalData, id: 123 }
-				await expect(
-					controller.reportWebVitals(invalidData as unknown as WebVitalData)
-				).rejects.toThrow('Invalid web vitals data')
-			})
-		})
+		// Validation is handled by ZodValidationPipe globally configured in app.module.ts
+		// The pipe validates DTOs before requests reach the controller in real traffic
 
 		it('should call service with correct parameters regardless of service outcome', async () => {
 			// The service call is fire-and-forget, so errors don't propagate

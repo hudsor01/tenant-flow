@@ -17,7 +17,7 @@ export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTab
 
 	if (initialProperties.length === 0) {
 		return (
-			<div className="rounded-2xl border border-dashed border-border/60 px-4 py-10 text-center text-sm text-muted-foreground">
+			<div className="rounded-2xl border border-dashed border-border/60 px-4 py-10 text-center text-muted">
 				No properties available.
 			</div>
 		)
@@ -44,7 +44,7 @@ export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTab
 										</Badge>
 									) : null}
 								</div>
-								<p className="text-sm text-muted-foreground">{property.address_line1}</p>
+								<p className="text-muted">{property.address_line1}</p>
 								<p className="text-xs uppercase text-muted-foreground">
 									{property.property_type?.replace(/_/g, ' ') ?? 'Unknown'}
 								</p>

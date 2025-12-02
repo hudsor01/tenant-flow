@@ -2,9 +2,8 @@
  * TDD Tests for DocuSeal Webhook Service
  *
  * Handles business logic for DocuSeal signature events:
- * - Emits events when parties sign (via metadata.lease_id)
- * - Stores signed documents in documents table
- * - Triggers lease activation events when submission completes
+ * - Updates lease signature status when parties sign
+ * - Triggers lease activation when both parties complete
  */
 
 import type { TestingModule } from '@nestjs/testing'
@@ -72,16 +71,27 @@ describe('DocuSealWebhookService', () => {
 	})
 
 	describe('handleFormCompleted', () => {
-		it('should emit lease.owner_signed event when owner signs', async () => {
+		it('should update owner_signed_at when owner signs', async () => {
+			const submissionId = 456
 			const leaseId = 'lease-uuid-123'
+			let updateData: Record<string, unknown> | null = null
 
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'leases') {
-						return createMockChain({
+						const chain = createMockChain({
 							id: leaseId,
-							lease_status: 'pending_signature'
+							docuseal_submission_id: String(submissionId),
+							owner_signed_at: null,
+							tenant_signed_at: null
 						})
+
+						chain.update = jest.fn((data: Record<string, unknown>) => {
+							updateData = data
+							return chain
+						})
+
+						return chain
 					}
 					return createMockChain()
 				})
@@ -89,34 +99,45 @@ describe('DocuSealWebhookService', () => {
 
 			await service.handleFormCompleted({
 				id: 123,
-				submission_id: 456,
+				submission_id: submissionId,
 				email: 'owner@example.com',
 				role: 'Property Owner',
 				completed_at: '2025-01-15T10:00:00Z',
 				metadata: { lease_id: leaseId }
 			})
 
+			expect(updateData).toMatchObject({
+				owner_signed_at: expect.any(String),
+				owner_signature_ip: null,
+				owner_signature_method: 'docuseal'
+			})
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'lease.owner_signed',
-				expect.objectContaining({
-					lease_id: leaseId,
-					signed_at: '2025-01-15T10:00:00Z',
-					email: 'owner@example.com',
-					via: 'docuseal'
-				})
+				expect.objectContaining({ lease_id: leaseId })
 			)
 		})
 
-		it('should emit lease.tenant_signed event when tenant signs', async () => {
+		it('should update tenant_signed_at when tenant signs', async () => {
+			const submissionId = 456
 			const leaseId = 'lease-uuid-123'
+			let updateData: Record<string, unknown> | null = null
 
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'leases') {
-						return createMockChain({
+						const chain = createMockChain({
 							id: leaseId,
-							lease_status: 'pending_signature'
+							docuseal_submission_id: String(submissionId),
+							owner_signed_at: null,
+							tenant_signed_at: null
 						})
+
+						chain.update = jest.fn((data: Record<string, unknown>) => {
+							updateData = data
+							return chain
+						})
+
+						return chain
 					}
 					return createMockChain()
 				})
@@ -124,74 +145,63 @@ describe('DocuSealWebhookService', () => {
 
 			await service.handleFormCompleted({
 				id: 123,
-				submission_id: 456,
+				submission_id: submissionId,
 				email: 'tenant@example.com',
 				role: 'Tenant',
 				completed_at: '2025-01-15T10:00:00Z',
 				metadata: { lease_id: leaseId }
 			})
 
+			expect(updateData).toMatchObject({
+				tenant_signed_at: expect.any(String),
+				tenant_signature_ip: null,
+				tenant_signature_method: 'docuseal'
+			})
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'lease.tenant_signed',
-				expect.objectContaining({
-					lease_id: leaseId,
-					signed_at: '2025-01-15T10:00:00Z',
-					email: 'tenant@example.com',
-					via: 'docuseal'
-				})
+				expect.objectContaining({ lease_id: leaseId })
 			)
 		})
 
-		it('should skip if no lease_id in metadata', async () => {
-			await service.handleFormCompleted({
-				id: 123,
-				submission_id: 999,
-				email: 'unknown@example.com',
-				role: 'Tenant',
-				completed_at: '2025-01-15T10:00:00Z'
-				// No metadata with lease_id
-			})
-
-			// Verify no event was emitted since no lease_id
-			expect(mockEventEmitter.emit).not.toHaveBeenCalled()
-		})
-
-		it('should skip if lease not found', async () => {
+		it('should skip if lease not found by docuseal_submission_id', async () => {
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn(() => createMockChain(null)) // No lease found
 			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
+			// Should not throw, just skip processing
 			await expect(
 				service.handleFormCompleted({
 					id: 123,
 					submission_id: 999,
 					email: 'unknown@example.com',
 					role: 'Tenant',
-					completed_at: '2025-01-15T10:00:00Z',
-					metadata: { lease_id: 'non-existent-lease' }
+					completed_at: '2025-01-15T10:00:00Z'
 				})
 			).resolves.toBeUndefined()
 
+			// Verify no event was emitted since lease wasn't found
 			expect(mockEventEmitter.emit).not.toHaveBeenCalled()
 		})
 	})
 
 	describe('handleSubmissionCompleted', () => {
-		it('should emit docuseal.submission_completed event when all parties have signed', async () => {
+		it('should activate lease when all parties have signed', async () => {
 			const submissionId = 456
 			const leaseId = 'lease-uuid-123'
 
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'leases') {
-						return createMockChain({
+						const chain = createMockChain({
 							id: leaseId,
-							lease_status: 'pending_signature'
+							docuseal_submission_id: String(submissionId),
+							lease_status: 'pending_signature',
+							owner_signed_at: '2025-01-15T09:00:00Z',
+							tenant_signed_at: '2025-01-15T10:00:00Z'
 						})
-					}
-					if (table === 'documents') {
-						const chain = createMockChain()
-						chain.insert = jest.fn(() => Promise.resolve({ error: null }))
+
+						chain.update = jest.fn(() => chain)
+
 						return chain
 					}
 					return createMockChain()
@@ -212,6 +222,7 @@ describe('DocuSealWebhookService', () => {
 				metadata: { lease_id: leaseId }
 			})
 
+			// Note: Actual activation with Stripe happens via event handler
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'docuseal.submission_completed',
 				expect.objectContaining({
@@ -228,14 +239,11 @@ describe('DocuSealWebhookService', () => {
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'leases') {
-						return createMockChain({
+						const chain = createMockChain({
 							id: leaseId,
+							docuseal_submission_id: String(submissionId),
 							lease_status: 'pending_signature'
 						})
-					}
-					if (table === 'documents') {
-						const chain = createMockChain()
-						chain.insert = jest.fn(() => Promise.resolve({ error: null }))
 						return chain
 					}
 					return createMockChain()
@@ -259,63 +267,6 @@ describe('DocuSealWebhookService', () => {
 					document_url: 'https://docuseal.example.com/download/123'
 				})
 			)
-		})
-
-		it('should skip if no lease_id in metadata', async () => {
-			await service.handleSubmissionCompleted({
-				id: 456,
-				status: 'completed',
-				completed_at: '2025-01-15T10:00:00Z',
-				submitters: [],
-				documents: []
-				// No metadata with lease_id
-			})
-
-			expect(mockEventEmitter.emit).not.toHaveBeenCalled()
-		})
-
-		it('should store signed document in documents table', async () => {
-			const submissionId = 456
-			const leaseId = 'lease-uuid-123'
-			let insertedDocument: Record<string, unknown> | null = null
-
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
-					if (table === 'leases') {
-						return createMockChain({
-							id: leaseId,
-							lease_status: 'pending_signature'
-						})
-					}
-					if (table === 'documents') {
-						const chain = createMockChain()
-						chain.insert = jest.fn((data: Record<string, unknown>) => {
-							insertedDocument = data
-							return Promise.resolve({ error: null })
-						})
-						return chain
-					}
-					return createMockChain()
-				})
-			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
-
-			await service.handleSubmissionCompleted({
-				id: submissionId,
-				status: 'completed',
-				completed_at: '2025-01-15T10:00:00Z',
-				submitters: [],
-				documents: [
-					{ name: 'lease-agreement.pdf', url: 'https://docuseal.example.com/download/123' }
-				],
-				metadata: { lease_id: leaseId }
-			})
-
-			expect(insertedDocument).toMatchObject({
-				entity_type: 'lease',
-				entity_id: leaseId,
-				document_type: 'signed_lease',
-				storage_url: 'https://docuseal.example.com/download/123'
-			})
 		})
 	})
 })

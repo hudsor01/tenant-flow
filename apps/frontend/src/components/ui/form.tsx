@@ -89,7 +89,6 @@ function Field({
 	return (
 		<IdContext.Provider value={id}>
 			<scn.Field
-				data-slot="form-item"
 				data-invalid={hasError ? 'true' : undefined}
 				className={cn('grid gap-2', className)}
 				{...props}
@@ -106,7 +105,6 @@ function FieldLabel({
 
 	return (
 		<scn.FieldLabel
-			data-slot="form-label"
 			data-error={hasError ? 'true' : undefined}
 			htmlFor={formControlId}
 			className={className}
@@ -125,7 +123,6 @@ function FieldControl(props: React.ComponentProps<typeof Slot>) {
 
 	return (
 		<Slot
-			data-slot="form-control"
 			id={formControlId}
 			aria-describedby={describedBy || undefined}
 			aria-invalid={hasError}
@@ -142,7 +139,6 @@ function FieldDescription({
 
 	return (
 		<scn.FieldDescription
-			data-slot="form-description"
 			id={formDescriptionId}
 			className={className}
 			{...props}
@@ -163,7 +159,6 @@ function FieldError({
 
 	return (
 		<scn.FieldError
-			data-slot="form-message"
 			id={formMessageId}
 			className={className}
 			{...props}

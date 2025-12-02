@@ -5,7 +5,7 @@ import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
 import { DataTable } from '#components/ui/data-tables/data-table'
 import { DataTableColumnHeader } from '#components/ui/data-tables/data-table-column-header'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/alert-dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { Trash2, MapPin } from 'lucide-react'
 import Link from 'next/link'
@@ -20,8 +20,8 @@ const logger = createLogger({ component: 'PropertiesTableClient' })
 
 // Status badge styling
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-	ACTIVE: 'default',
-	INACTIVE: 'secondary',
+	active: 'default',
+	INactive: 'secondary',
 	UNDER_CONTRACT: 'outline',
 	SOLD: 'destructive'
 }
@@ -78,7 +78,7 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 				return (
 					<div>
 						<div className="font-medium">{property.name}</div>
-						<div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+						<div className="text-muted flex items-center gap-1 mt-1">
 							<MapPin className="size-3" />
 							{property.address_line1}
 						</div>

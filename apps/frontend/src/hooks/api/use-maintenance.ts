@@ -6,8 +6,8 @@
 
 import { clientFetch } from '#lib/api/client'
 import type {
-	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
+	CreateMaintenanceRequestInput,
+	UpdateMaintenanceRequestInput
 } from '@repo/shared/types/api-contracts'
 import type { MaintenanceRequest, MaintenanceRequestWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
@@ -58,11 +58,11 @@ export function useMaintenanceRequest(id: string) {
 export function useMaintenanceStats() {
 	return useQuery(maintenanceQueries.stats())
 }
-export function useCreateMaintenanceRequest() {
+export function useCreateMaintenanceRequestInput() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateMaintenanceRequest) =>
+		mutationFn: (data: CreateMaintenanceRequestInput) =>
 			clientFetch<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(data)
@@ -84,7 +84,7 @@ export function useCreateMaintenanceRequest() {
 					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
 					'MEDIUM',
 				status: 'OPEN',
-				unit_id: newRequest.unit_id,
+			unit_id: newRequest.unit_id || '',
 				tenant_id: newRequest.tenant_id || '',
 				property_owner_id: '',
 				requested_by: null,
@@ -129,7 +129,7 @@ export function useCreateMaintenanceRequest() {
 /**
  * Hook to update maintenance request with optimistic update
  */
-export function useUpdateMaintenanceRequest() {
+export function useUpdateMaintenanceRequestInput() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
@@ -139,7 +139,7 @@ export function useUpdateMaintenanceRequest() {
 			version
 		}: {
 			id: string
-			data: UpdateMaintenanceRequest
+			data: UpdateMaintenanceRequestInput
 			version?: number
 		}): Promise<MaintenanceRequest> => {
 			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
@@ -422,8 +422,8 @@ export function useCancelMaintenance() {
  * Note: DELETE operations now use React 19 useOptimistic with Server Actions
  */
 export function useMaintenanceOperations() {
-	const createRequest = useCreateMaintenanceRequest()
-	const updateRequest = useUpdateMaintenanceRequest()
+	const createRequest = useCreateMaintenanceRequestInput()
+	const updateRequest = useUpdateMaintenanceRequestInput()
 	const completeRequest = useCompleteMaintenance()
 	const cancelRequest = useCancelMaintenance()
 

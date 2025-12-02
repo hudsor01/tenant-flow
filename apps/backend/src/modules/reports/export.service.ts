@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import ExcelJS from 'exceljs'
+import React from 'react'
+import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
 
 @Injectable()
 export class ExportService {
@@ -98,16 +100,25 @@ export class ExportService {
 	}
 
 	/**
-	 * PDF export disabled (pdfkit removed)
-	 * Use Excel or CSV exports instead
-	 * TODO: Implement PDF export using @react-pdf/renderer if needed
+	 * Generate PDF export using @react-pdf/renderer
+	 * Creates a formatted PDF document from analytics data
 	 */
 	async generatePDF(
-		_payload: unknown,
-		_title = 'Analytics Export'
+		payload: unknown,
+		title = 'Analytics Export'
 	): Promise<Buffer> {
-		this.logger.warn('PDF export not implemented - use Excel or CSV')
-		throw new Error('PDF export is not currently supported. Please use Excel or CSV format.')
+		try {
+			const records = this.normalizeRecords(payload)
+			const doc = this.createPDFDocument(records, title)
+			const buffer = await renderToBuffer(doc)
+			return Buffer.from(buffer)
+		} catch (error) {
+			this.logger.error('Failed to generate PDF export', {
+				error: error instanceof Error ? error.message : String(error),
+				title
+			})
+			throw new Error('Failed to generate PDF export. Please try Excel or CSV format.')
+		}
 	}
 
 	private normalizeRecords(payload: unknown): Record<string, unknown>[] {
@@ -164,5 +175,123 @@ export class ExportService {
 			.replace(/\s+/g, ' ')
 			.trim()
 			.replace(/\b\w/g, match => match.toUpperCase())
+	}
+
+	/**
+	 * Create PDF document component using @react-pdf/renderer
+	 */
+	private createPDFDocument(records: Record<string, unknown>[], title: string) {
+		const styles = StyleSheet.create({
+			page: {
+				padding: 30,
+				fontSize: 12,
+				fontFamily: 'Helvetica'
+			},
+			title: {
+				fontSize: 18,
+				fontWeight: 'bold',
+				marginBottom: 20,
+				textAlign: 'center'
+			},
+			table: {
+				marginTop: 10
+			},
+			tableHeader: {
+				flexDirection: 'row',
+				borderBottomWidth: 1,
+				borderBottomColor: '#000',
+				borderBottomStyle: 'solid',
+				paddingBottom: 5,
+				marginBottom: 5
+			},
+			tableRow: {
+				flexDirection: 'row',
+				borderBottomWidth: 1,
+				borderBottomColor: '#ccc',
+				borderBottomStyle: 'solid',
+				paddingVertical: 3
+			},
+			headerCell: {
+				fontWeight: 'bold',
+				fontSize: 10
+			},
+			cell: {
+				fontSize: 9,
+				paddingHorizontal: 2
+			},
+			noData: {
+				textAlign: 'center',
+				marginTop: 50,
+				fontSize: 14
+			},
+			generatedAt: {
+				position: 'absolute',
+				bottom: 30,
+				right: 30,
+				fontSize: 8,
+				color: '#666'
+			}
+		})
+
+		if (!records.length) {
+			return React.createElement(Document, null,
+				React.createElement(Page, { size: 'A4', style: styles.page },
+					React.createElement(Text, { style: styles.title }, title),
+					React.createElement(Text, { style: styles.noData }, 'No data available'),
+					React.createElement(Text, { style: styles.generatedAt },
+						`Generated on ${new Date().toLocaleString()}`
+					)
+				)
+			)
+		}
+
+		const [firstRecord] = records
+		const headers = firstRecord ? Object.keys(firstRecord) : []
+
+		if (!headers.length) {
+			return React.createElement(Document, null,
+				React.createElement(Page, { size: 'A4', style: styles.page },
+					React.createElement(Text, { style: styles.title }, title),
+					React.createElement(Text, { style: styles.noData }, 'No structured data available'),
+					React.createElement(Text, { style: styles.generatedAt },
+						`Generated on ${new Date().toLocaleString()}`
+					)
+				)
+			)
+		}
+
+		// Create table structure
+		const columnWidth = Math.max(60, 500 / headers.length) // Distribute width evenly
+
+		const headerCells = headers.map(header =>
+			React.createElement(Text, {
+				key: header,
+				style: [styles.headerCell, styles.cell, { width: columnWidth }]
+			}, this.toTitleCase(header))
+		)
+
+		const tableRows = records.map((record, index) =>
+			React.createElement(View, { key: index, style: styles.tableRow },
+				headers.map(header =>
+					React.createElement(Text, {
+						key: header,
+						style: [styles.cell, { width: columnWidth }]
+					}, String(record[header] ?? ''))
+				)
+			)
+		)
+
+		return React.createElement(Document, null,
+			React.createElement(Page, { size: 'A4', style: styles.page },
+				React.createElement(Text, { style: styles.title }, title),
+				React.createElement(View, { style: styles.table },
+					React.createElement(View, { style: styles.tableHeader }, headerCells),
+					tableRows
+				),
+				React.createElement(Text, { style: styles.generatedAt },
+					`Generated on ${new Date().toLocaleString()} | ${records.length} records`
+				)
+			)
+		)
 	}
 }

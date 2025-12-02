@@ -12,7 +12,7 @@ import {
 } from '#components/ui/input-group'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
 import { cn, TYPOGRAPHY_SCALE } from '#lib/design-system'
-import { supabaseClient } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react'
 import { useState } from 'react'
@@ -34,6 +34,7 @@ export function PasswordUpdateSection() {
 				throw new Error('Password must be at least 8 characters')
 			}
 
+			const supabaseClient = createClient()
 			const {
 				data: { user },
 				error: userError

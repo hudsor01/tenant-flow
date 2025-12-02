@@ -5,10 +5,7 @@
  * - form.completed: Individual submitter has signed
  * - submission.completed: All parties have signed
  *
- * Updates lease status and emits events for further processing.
- *
- * Note: This service works with the existing leases schema.
- * DocuSeal submission tracking is done via the documents table.
+ * Updates lease signature timestamps and triggers activation events.
  */
 
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
@@ -30,9 +27,6 @@ export class DocuSealWebhookService {
 
 	/**
 	 * Handle form.completed event - a single submitter has signed
-	 *
-	 * Uses metadata.lease_id from the DocuSeal submission to find the lease.
-	 * Emits events for signature tracking without requiring new DB columns.
 	 */
 	async handleFormCompleted(data: FormCompletedPayload): Promise<void> {
 		this.logger.log('Processing form.completed event', {
@@ -42,65 +36,91 @@ export class DocuSealWebhookService {
 			email: data.email
 		})
 
-		// Get lease_id from metadata (set when creating the submission)
-		const leaseId = data.metadata?.lease_id
-		if (!leaseId) {
-			this.logger.warn('No lease_id in metadata, skipping form.completed', {
-				submissionId: data.submission_id
-			})
-			return
-		}
-
 		const client = this.supabase.getAdminClient()
 
-		// Verify lease exists
+		// Find lease by DocuSeal submission ID
 		const { data: lease, error } = await client
 			.from('leases')
-			.select('id, lease_status')
-			.eq('id', leaseId)
+			.select('id, lease_status, owner_signed_at, tenant_signed_at')
+			.eq('docuseal_submission_id', String(data.submission_id))
 			.single()
 
 		if (error) {
 			this.logger.error('Database error querying lease', {
-				leaseId,
+				submissionId: data.submission_id,
 				error: error.message
 			})
 			throw new InternalServerErrorException(`Database error: ${error.message}`)
 		}
 
 		if (!lease) {
-			this.logger.warn('Lease not found', { leaseId })
+			this.logger.warn('Lease not found for DocuSeal submission', {
+				submissionId: data.submission_id
+			})
 			return
 		}
 
 		// Determine which party signed based on role
 		const isOwner = data.role.toLowerCase().includes('owner')
 		const isTenant = data.role.toLowerCase().includes('tenant')
+
 		const signedAt = data.completed_at || new Date().toISOString()
 
-		if (isOwner) {
+		if (isOwner && !lease.owner_signed_at) {
+			const { error: updateError } = await client
+				.from('leases')
+				.update({
+					owner_signed_at: signedAt,
+					owner_signature_ip: null,
+					owner_signature_method: 'docuseal'
+				})
+				.eq('id', lease.id)
+
+			if (updateError) {
+				this.logger.error('Failed to update owner signature', {
+					leaseId: lease.id,
+					error: updateError.message
+				})
+				throw new InternalServerErrorException(`Update failed: ${updateError.message}`)
+			}
+
 			this.eventEmitter.emit('lease.owner_signed', {
 				lease_id: lease.id,
 				signed_at: signedAt,
-				email: data.email,
 				via: 'docuseal'
 			})
+
 			this.logger.log('Owner signature recorded via DocuSeal', { leaseId: lease.id })
-		} else if (isTenant) {
+		} else if (isTenant && !lease.tenant_signed_at) {
+			const { error: updateError } = await client
+				.from('leases')
+				.update({
+					tenant_signed_at: signedAt,
+					tenant_signature_ip: null,
+					tenant_signature_method: 'docuseal'
+				})
+				.eq('id', lease.id)
+
+			if (updateError) {
+				this.logger.error('Failed to update tenant signature', {
+					leaseId: lease.id,
+					error: updateError.message
+				})
+				throw new InternalServerErrorException(`Update failed: ${updateError.message}`)
+			}
+
 			this.eventEmitter.emit('lease.tenant_signed', {
 				lease_id: lease.id,
 				signed_at: signedAt,
-				email: data.email,
 				via: 'docuseal'
 			})
+
 			this.logger.log('Tenant signature recorded via DocuSeal', { leaseId: lease.id })
 		}
 	}
 
 	/**
 	 * Handle submission.completed event - all parties have signed
-	 *
-	 * This indicates the lease is fully executed and can be activated.
 	 */
 	async handleSubmissionCompleted(data: SubmissionCompletedPayload): Promise<void> {
 		this.logger.log('Processing submission.completed event', {
@@ -109,34 +129,27 @@ export class DocuSealWebhookService {
 			documentCount: data.documents?.length || 0
 		})
 
-		// Get lease_id from metadata
-		const leaseId = data.metadata?.lease_id
-		if (!leaseId) {
-			this.logger.warn('No lease_id in metadata, skipping submission.completed', {
-				submissionId: data.id
-			})
-			return
-		}
-
 		const client = this.supabase.getAdminClient()
 
-		// Verify lease exists
+		// Find lease by DocuSeal submission ID
 		const { data: lease, error } = await client
 			.from('leases')
 			.select('id, lease_status')
-			.eq('id', leaseId)
+			.eq('docuseal_submission_id', String(data.id))
 			.single()
 
 		if (error) {
 			this.logger.error('Database error querying lease', {
-				leaseId,
+				submissionId: data.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException(`Database error: ${error.message}`)
 		}
 
 		if (!lease) {
-			this.logger.warn('Lease not found', { leaseId })
+			this.logger.warn('Lease not found for DocuSeal submission', {
+				submissionId: data.id
+			})
 			return
 		}
 
@@ -146,15 +159,6 @@ export class DocuSealWebhookService {
 			this.logger.log('Signed document available', {
 				leaseId: lease.id,
 				documentUrl: signedDocUrl
-			})
-
-			// Store signed document reference
-			await client.from('documents').insert({
-				entity_type: 'lease',
-				entity_id: lease.id,
-				document_type: 'signed_lease',
-				file_path: `docuseal/submission-${data.id}`,
-				storage_url: signedDocUrl
 			})
 		}
 

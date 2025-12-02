@@ -13,7 +13,6 @@ function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
 	return (
 		<nav
 			aria-label="pagination"
-			data-slot="pagination"
 			data-tokens="applied"
 			className={cn(
 				'mx-auto flex w-full justify-center transition-fast',
@@ -30,7 +29,6 @@ function PaginationContent({
 }: React.ComponentProps<'ul'>) {
 	return (
 		<ul
-			data-slot="pagination-content"
 			data-tokens="applied"
 			className={cn(
 				'flex flex-row items-center gap-1 transition-fast',
@@ -42,7 +40,7 @@ function PaginationContent({
 }
 
 function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
-	return <li data-slot="pagination-item" {...props} />
+	return <li {...props} />
 }
 
 // PaginationLinkProps now imported from @repo/shared
@@ -56,7 +54,6 @@ function PaginationLink({
 	return (
 		<a
 			aria-current={isActive ? 'page' : undefined}
-			data-slot="pagination-link"
 			data-active={isActive}
 			data-tokens="applied"
 			className={cn(
@@ -115,7 +112,6 @@ function PaginationEllipsis({
 	return (
 		<span
 			aria-hidden
-			data-slot="pagination-ellipsis"
 			data-tokens="applied"
 			className={cn(
 				'flex size-9 items-center justify-center transition-fast',

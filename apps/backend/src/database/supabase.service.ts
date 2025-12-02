@@ -1,9 +1,11 @@
+import type {
+	OnModuleDestroy
+} from '@nestjs/common';
 import {
 	Inject,
 	Injectable,
 	InternalServerErrorException,
-	Logger,
-	OnModuleDestroy
+	Logger
 } from '@nestjs/common'
 import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
@@ -341,7 +343,7 @@ export class SupabaseService implements OnModuleDestroy {
 				}
 
 				if (error) {
-					const errorMessage = error instanceof Error ? error.message : String(error)
+					const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
 					this.logger?.warn({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
 				}
 			} catch (rpcErr) {
@@ -379,7 +381,7 @@ export class SupabaseService implements OnModuleDestroy {
 							(error as SupabaseError)?.hint ||
 							(error as SupabaseError)?.code ||
 							JSON.stringify(error)
-				this.logger?.error({ error, table }, 'Supabase table ping failed')
+				this.logger?.error({ error: JSON.stringify(error), table }, 'Supabase table ping failed')
 				return { status: 'unhealthy', message }
 			}
 

@@ -1,5 +1,5 @@
-import Footer from '#components/layout/footer'
-import Navbar from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import Navbar from '#components/ui/layout/navbar'
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import {
@@ -138,7 +138,7 @@ export default function ResourcesPage() {
 			{/* Hero Section */}
 			<section className="relative page-content pb-16 overflow-hidden">
 				<div className="absolute inset-0 bg-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--primary)_5%,transparent),transparent_50%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--color-primary)_5%,transparent),transparent_50%)]" />
 				</div>
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
@@ -168,20 +168,20 @@ export default function ResourcesPage() {
 						</p>
 					</div>
 
-					<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+					<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-(--spacing-6)">
 						{quickLinks.map(link => (
 							<Link
 								key={link.title}
 								href={link.href}
 								className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
 							>
-								<div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
+								<div className="size-12 rounded-xl bg-primary/10 flex-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
 									{link.icon}
 								</div>
 								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
 									{link.title}
 								</h3>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									{link.description}
 								</p>
 							</Link>
@@ -212,9 +212,9 @@ export default function ResourcesPage() {
 								<div
 									className={`${resource.color} rounded-3xl p-8 border hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group-hover:scale-[1.02] h-full`}
 								>
-									<div className="flex items-start gap-6">
+									<div className="flex items-start gap-(--spacing-6)">
 										<div
-											className={`size-16 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${resource.iconColor}`}
+											className={`size-16 rounded-2xl bg-card border border-border flex-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${resource.iconColor}`}
 										>
 											{resource.icon}
 										</div>
@@ -271,7 +271,7 @@ export default function ResourcesPage() {
 			{/* CTA Section */}
 			<section className="section-content relative overflow-hidden">
 				<div className="absolute inset-0 bg-background">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_70%)]" />
+					<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_10%,transparent),transparent_70%)]" />
 				</div>
 
 				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
@@ -286,7 +286,7 @@ export default function ResourcesPage() {
 							questions about TenantFlow
 						</p>
 
-						<div className="flex flex-col sm:flex-row gap-6 justify-center">
+						<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center">
 							<Button
 								size="lg"
 								className="gradient-background hover:opacity-90 shadow-2xl shadow-primary/25 text-lg font-semibold px-8 py-4"
@@ -308,7 +308,7 @@ export default function ResourcesPage() {
 						</div>
 
 						{/* Trust Indicators */}
-						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-sm text-muted-foreground">
+						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-muted">
 							<div className="flex items-center gap-2">
 								<Clock className="size-4" />
 								<span>24-48h response time</span>

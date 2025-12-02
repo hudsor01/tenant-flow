@@ -1,6 +1,6 @@
 import { Providers } from '#components/providers'
-import SeoJsonLd from '#components/seo/SeoJsonLd'
-import RegisterServiceWorker from '#components/sw/register-sw'
+import SeoJsonLd from '#components/ui/seo/SeoJsonLd'
+import RegisterServiceWorker from '#components/ui/sw/register-sw'
 import { ErrorBoundary } from '#components/ui/error-boundary'
 import { generateSiteMetadata } from '#lib/generate-metadata'
 import { Analytics } from '@vercel/analytics/next'

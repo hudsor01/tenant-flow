@@ -6,12 +6,23 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { toast } from 'sonner'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
 import { propertyQueries } from '../queries/property-queries'
 import { unitQueries } from '../queries/unit-queries'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { toast } from 'sonner'
+import { createCrudMutations } from '../crud-mutations'
+
+const { useCreateMutation: useCreatePropertyMutationBase } =
+	createCrudMutations<CreatePropertyInput, UpdatePropertyInput, Property>({
+		entityName: 'Property',
+		createEndpoint: '/api/v1/properties',
+		updateEndpoint: (id) => `/api/v1/properties/${id}`,
+		deleteEndpoint: (id) => `/api/v1/properties/${id}`,
+		listQueryKey: propertyQueries.lists,
+		detailQueryKey: (id) => propertyQueries.detail(id).queryKey
+	})
 
 /**
  * Hook to get property images
@@ -23,24 +34,7 @@ export function usePropertyImages(property_id: string) {
 /**
  * Create property mutation
  */
-export function useCreatePropertyMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: (data: CreatePropertyInput) =>
-			clientFetch<Property>('/api/v1/properties', {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
-		onSuccess: (_newProperty) => {
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			toast.success('Property created successfully')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Create property')
-		}
-	})
-}
+export const useCreatePropertyMutation = useCreatePropertyMutationBase
 
 /**
  * Update property mutation

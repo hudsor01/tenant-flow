@@ -21,165 +21,19 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { handleMutationSuccess } from '#lib/mutation-error-handler'
-import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
-import type { MaintenanceCategory, Priority } from '@repo/shared/types/core'
-
-// ============================================================================
-// TYPE DEFINITIONS
-// ============================================================================
-
-interface TenantPayment {
-	id: string
-	amount: number
-	status: string
-	paidAt: string | null
-	dueDate: string
-	created_at: string
-	lease_id: string
-	tenant_id: string
-	stripePaymentIntentId: string | null
-	ownerReceives: number
-	receiptUrl: string | null
-}
-
-interface TenantAutopayStatus {
-	autopayEnabled: boolean
-	subscriptionId: string | null
-	lease_id?: string
-	tenant_id?: string
-	rent_amount?: number
-	nextPaymentDate?: string | null
-	message?: string
-}
-
-interface TenantMaintenanceRequest {
-	id: string
-	title: string
-	description: string | null
-	priority: Priority
-	status: string
-	category: MaintenanceCategory | null
-	created_at: string
-	updated_at: string | null
-	completed_at: string | null
-	requestedBy: string
-	unit_id: string
-}
-
-interface TenantMaintenanceStats {
-	total: number
-	open: number
-	inProgress: number
-	completed: number
-}
-
-interface TenantLease {
-	id: string
-	start_date: string
-	end_date: string
-	rent_amount: number
-	security_deposit: number | null
-	status: string
-	stripe_subscription_id: string | null
-	lease_document_url: string | null
-	created_at: string
-	unit: {
-		id: string
-		unit_number: string
-		bedrooms: number
-		bathrooms: number
-		property: {
-			id: string
-			name: string
-			address: string
-			city: string
-			state: string
-			postal_code: string
-		}
-	} | null
-	metadata: {
-		documentUrl: string | null
-	}
-}
-
-interface TenantDocument {
-	id: string
-	type: 'LEASE' | 'RECEIPT'
-	name: string
-	url: string | null
-	created_at: string | null
-}
-
-interface TenantProfile {
-	id: string
-	first_name: string
-	last_name: string
-	email: string
-	phone: string | null
-	status: string
-}
-
-interface TenantSettings {
-	profile: TenantProfile
-	preferences: {
-		notifications: boolean
-		emailReminders: boolean
-	}
-}
-
-interface CreateMaintenanceRequestInput {
-	title: string
-	description: string
-	priority: Priority
-	category?: MaintenanceCategory
-	allowEntry: boolean
-	photos?: string[]
-}
+import {
+	tenantPortalQueries,
+	tenantPortalKeys,
+	type TenantMaintenanceRequest,
+	type CreateMaintenanceRequestInput
+} from './queries/tenant-portal-queries'
 
 // ============================================================================
 // QUERY KEYS
 // ============================================================================
 
-/**
- * Hierarchical query keys for tenant portal
- * Enables targeted cache invalidation
- */
-export const tenantPortalKeys = {
-	all: ['tenant-portal'] as const,
-
-	// Payments endpoints (/tenant-portal/payments/*)
-	payments: {
-		all: () => [...tenantPortalKeys.all, 'payments'] as const,
-		list: () => [...tenantPortalKeys.payments.all(), 'list'] as const
-	},
-
-	// Autopay endpoints (/tenant-portal/autopay/*)
-	autopay: {
-		all: () => [...tenantPortalKeys.all, 'autopay'] as const,
-		status: () => [...tenantPortalKeys.autopay.all(), 'status'] as const
-	},
-
-	// Maintenance endpoints (/tenant-portal/maintenance/*)
-	maintenance: {
-		all: () => [...tenantPortalKeys.all, 'maintenance'] as const,
-		list: () => [...tenantPortalKeys.maintenance.all(), 'list'] as const
-	},
-
-	// Leases endpoints (/tenant-portal/leases/*)
-	leases: {
-		all: () => [...tenantPortalKeys.all, 'leases'] as const,
-		active: () => [...tenantPortalKeys.leases.all(), 'active'] as const,
-		documents: () => [...tenantPortalKeys.leases.all(), 'documents'] as const
-	},
-
-	// Settings endpoints (/tenant-portal/settings/*)
-	settings: {
-		all: () => [...tenantPortalKeys.all, 'settings'] as const,
-		profile: () => [...tenantPortalKeys.settings.all(), 'profile'] as const
-	}
-}
+// Query keys are now imported from tenant-portal-queries.ts
 
 // ============================================================================
 // PAYMENTS HOOKS (/tenant-portal/payments/*)
@@ -189,18 +43,7 @@ export const tenantPortalKeys = {
  * Get payment history and upcoming payments
  */
 export function useTenantPayments() {
-	return useQuery({
-		queryKey: tenantPortalKeys.payments.list(),
-		queryFn: () => clientFetch<{
-			payments: TenantPayment[]
-			methodsEndpoint: string
-		}>('/api/v1/tenant-portal/payments'),
-		...QUERY_CACHE_TIMES.LIST,
-		refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	})
+	return useQuery(tenantPortalQueries.payments())
 }
 
 // ============================================================================
@@ -211,15 +54,7 @@ export function useTenantPayments() {
  * Get autopay/subscription status for active lease
  */
 export function useTenantAutopayStatus() {
-	return useQuery({
-		queryKey: tenantPortalKeys.autopay.status(),
-		queryFn: () => clientFetch<TenantAutopayStatus>('/api/v1/tenant-portal/autopay'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	})
+	return useQuery(tenantPortalQueries.autopay())
 }
 
 // ============================================================================
@@ -230,18 +65,7 @@ export function useTenantAutopayStatus() {
  * Get maintenance request history with summary stats
  */
 export function useTenantMaintenance() {
-	return useQuery({
-		queryKey: tenantPortalKeys.maintenance.list(),
-		queryFn: () => clientFetch<{
-			requests: TenantMaintenanceRequest[]
-			summary: TenantMaintenanceStats
-		}>('/api/v1/tenant-portal/maintenance'),
-		...QUERY_CACHE_TIMES.LIST,
-		refetchInterval: 5 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	})
+	return useQuery(tenantPortalQueries.maintenance())
 }
 
 /**
@@ -304,30 +128,14 @@ export function useTenantPortalDashboard() {
  * Get active lease with unit/property metadata
  */
 export function useTenantLease() {
-	return useQuery({
-		queryKey: tenantPortalKeys.leases.active(),
-		queryFn: () => clientFetch<TenantLease | null>('/api/v1/tenant-portal/leases'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 10 * 60 * 1000, // Auto-refresh every 10 minutes
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	})
+	return useQuery(tenantPortalQueries.lease())
 }
 
 /**
  * Get lease documents (signed agreement, receipts)
  */
 export function useTenantLeaseDocuments() {
-	return useQuery({
-		queryKey: tenantPortalKeys.leases.documents(),
-		queryFn: () => clientFetch<{ documents: TenantDocument[] }>('/api/v1/tenant-portal/documents'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 10 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	})
+	return useQuery(tenantPortalQueries.documents())
 }
 
 // ============================================================================
@@ -338,15 +146,7 @@ export function useTenantLeaseDocuments() {
  * Get tenant profile and settings
  */
 export function useTenantSettings() {
-	return useQuery({
-		queryKey: tenantPortalKeys.settings.profile(),
-		queryFn: () => clientFetch<TenantSettings>('/api/v1/tenant-portal/settings'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchInterval: 10 * 60 * 1000,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	})
+	return useQuery(tenantPortalQueries.settings())
 }
 
 // ============================================================================
@@ -360,14 +160,7 @@ export function usePrefetchTenantPayments() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: tenantPortalKeys.payments.list(),
-			queryFn: () => clientFetch<{
-				payments: TenantPayment[]
-				methodsEndpoint: string
-			}>('/api/v1/tenant-portal/payments'),
-			...QUERY_CACHE_TIMES.LIST
-		})
+		queryClient.prefetchQuery(tenantPortalQueries.payments())
 	}
 }
 
@@ -378,11 +171,7 @@ export function usePrefetchTenantLease() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: tenantPortalKeys.leases.active(),
-			queryFn: () => clientFetch<TenantLease | null>('/api/v1/tenant-portal/leases'),
-			...QUERY_CACHE_TIMES.DETAIL
-		})
+		queryClient.prefetchQuery(tenantPortalQueries.lease())
 	}
 }
 
@@ -393,14 +182,7 @@ export function usePrefetchTenantMaintenance() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: tenantPortalKeys.maintenance.list(),
-			queryFn: () => clientFetch<{
-				requests: TenantMaintenanceRequest[]
-				summary: TenantMaintenanceStats
-			}>('/api/v1/tenant-portal/maintenance'),
-			...QUERY_CACHE_TIMES.LIST
-		})
+		queryClient.prefetchQuery(tenantPortalQueries.maintenance())
 	}
 }
 

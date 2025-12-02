@@ -4,6 +4,7 @@ import { LeasesService } from './leases.service';
 import { SupabaseService } from '../../database/supabase.service';
 import { EmailService } from '../email/email.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ZeroCacheService } from '../../cache/cache.service';
 
 describe('LeasesService', () => {
   let leasesService: LeasesService;
@@ -110,11 +111,20 @@ describe('LeasesService', () => {
     sendSubscriptionCanceledEmail: jest.fn(() => Promise.resolve()),
   };
 
+  const mockCacheService = {
+    get: jest.fn(),
+    set: jest.fn(),
+    invalidate: jest.fn().mockReturnValue(0),
+    invalidateByEntity: jest.fn().mockReturnValue(0),
+    invalidateByUser: jest.fn().mockReturnValue(0),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LeasesService,
         { provide: SupabaseService, useValue: mockSupabaseService },
+        { provide: ZeroCacheService, useValue: mockCacheService },
         { provide: EmailService, useValue: mockEmailService },
         EventEmitter2,
       ],
@@ -136,7 +146,7 @@ describe('LeasesService', () => {
         end_date: '2026-01-01',
         rent_amount: 1000,
         security_deposit: 500,
-        status: 'DRAFT' as const
+        status: 'draft' as const
       };
 
       const result = await leasesService.create('mock-jwt-token', createLeaseDto as any);

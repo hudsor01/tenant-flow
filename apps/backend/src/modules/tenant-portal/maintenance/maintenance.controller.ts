@@ -147,7 +147,7 @@ export class TenantMaintenanceController {
 			.from('leases')
 			.select('id, unit_id')
 			.eq('tenant_id', tenant_id)
-			.eq('status', 'ACTIVE')
+			.eq('status', 'active')
 			.order('start_date', { ascending: false })
 			.limit(1)
 			.maybeSingle()

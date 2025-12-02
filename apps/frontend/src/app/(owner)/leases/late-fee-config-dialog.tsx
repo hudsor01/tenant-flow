@@ -5,7 +5,7 @@ import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Slider } from '#components/ui/slider'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	useLateFeeConfig,
 	useUpdateLateFeeConfig
@@ -21,7 +21,7 @@ interface LateFeeConfigDialogProps {
 	onSuccess?: () => void
 }
 
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters/currency'
 
 
 export function LateFeeConfigDialog({
@@ -90,7 +90,7 @@ export function LateFeeConfigDialog({
 					</CrudDialogHeader>
 					<CrudDialogBody>
 						{isLoading ? (
-							<div className="flex items-center justify-center section-spacing-compact">
+							<div className="flex-center section-spacing-compact">
 								<Spinner className="size-6 animate-spin text-accent-main" />
 							</div>
 						) : (
@@ -102,7 +102,7 @@ export function LateFeeConfigDialog({
 									>
 										Grace Period
 									</Label>
-									<div className="flex items-center gap-4">
+									<div className="flex items-center gap-(--spacing-4)">
 										<Calendar className="size-5 text-label-tertiary shrink-0" />
 										<div className="flex-1 space-y-2">
 											<Slider
@@ -142,7 +142,7 @@ export function LateFeeConfigDialog({
 									>
 										Flat Fee Amount
 									</Label>
-									<div className="flex items-center gap-4">
+									<div className="flex items-center gap-(--spacing-4)">
 										<DollarSign className="size-5 text-label-tertiary shrink-0" />
 										<div className="flex-1 space-y-2">
 											<div className="relative">

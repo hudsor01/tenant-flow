@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback } from '#components/ui/avatar'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { Spinner } from '#components/ui/spinner'
+import { Spinner } from '#components/ui/loading-spinner'
 import {
 	Table,
 	TableBody,
@@ -12,9 +12,10 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { useOwnerPropertyPerformance } from '#hooks/api/use-owner-dashboard'
+import { ErrorBoundary } from '#components/ui/error-boundary'
+import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
-import { formatCurrency } from '@repo/shared/utils/currency'
+import { formatCurrency } from '#lib/formatters/currency'
 
 // Inline helpers using CSS classes from globals.css
 const getOccupancyBadgeClass = (rate: number): string => {
@@ -41,14 +42,7 @@ const getTrendIcon = (trend: string) => {
 }
 
 const getOccupancyBadge = (rate: number) => {
-	const label =
-		rate >= 90
-			? 'Excellent'
-			: rate >= 80
-				? 'Good'
-				: rate >= 70
-					? 'Fair'
-					: 'Poor'
+	const label = rate >= 90 ? 'Excellent' : rate >= 80 ? 'Good' : rate >= 70 ? 'Fair' : 'Poor'
 	return (
 		<Badge variant="outline" className={getOccupancyBadgeClass(rate)}>
 			{label}
@@ -57,7 +51,27 @@ const getOccupancyBadge = (rate: number) => {
 }
 
 export function PropertyPerformanceTable() {
-	const { data: properties, isLoading, error } = useOwnerPropertyPerformance()
+	return (
+		<ErrorBoundary
+			fallback={
+				<div className="dashboard-empty-state">
+					<p className="text-sm font-medium text-muted-foreground">
+						Unable to load property performance
+					</p>
+					<p className="text-xs text-muted-foreground">
+						Please refresh to try again.
+					</p>
+				</div>
+			}
+		>
+			<PropertyPerformanceTableContent />
+		</ErrorBoundary>
+	)
+}
+
+function PropertyPerformanceTableContent() {
+	const { data, isLoading, error } = useOwnerDashboardData()
+	const properties = data?.propertyPerformance
 
 	if (isLoading) {
 		return (
@@ -131,7 +145,7 @@ export function PropertyPerformanceTable() {
 											</Avatar>
 											<div>
 												<div className="font-medium">{property.property}</div>
-												<div className="text-sm text-muted-foreground">
+												<div className="text-muted">
 													{property.address_line1}
 												</div>
 											</div>
@@ -142,7 +156,7 @@ export function PropertyPerformanceTable() {
 											<div className="font-medium">
 												{property.occupiedUnits}/{property.totalUnits}
 											</div>
-											<div className="text-sm text-muted-foreground">
+											<div className="text-muted">
 												occupied
 											</div>
 										</div>
@@ -159,7 +173,7 @@ export function PropertyPerformanceTable() {
 										<div className="font-medium">
 											{formatCurrency(property.monthlyRevenue || 0)}
 										</div>
-										<div className="text-sm text-muted-foreground">monthly</div>
+										<div className="text-muted">monthly</div>
 									</TableCell>
 									<TableCell>
 										<div

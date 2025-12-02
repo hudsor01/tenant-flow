@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { ROUTES } from '../../constants/routes'
 import { loginAsOwner } from '../../auth-helpers'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
@@ -28,6 +29,7 @@ import {
 
 test.describe('Owner Dashboard', () => {
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const logger = createLogger({ component: 'OwnerDashboardE2E' })
 
   test.beforeEach(async ({ page }) => {
     // Login as owner and navigate to dashboard
@@ -51,13 +53,13 @@ test.describe('Owner Dashboard', () => {
 
     // Verify no console errors
     if (errors.length > 0) {
-      console.error('Console errors on dashboard:', errors)
+      logger.error('Console errors on dashboard:', errors)
     }
     expect(errors).toHaveLength(0)
 
     // Verify no network errors
     if (networkErrors.length > 0) {
-      console.error('Network errors on dashboard:', networkErrors)
+      logger.error('Network errors on dashboard:', networkErrors)
     }
     expect(networkErrors).toHaveLength(0)
   })
@@ -153,7 +155,7 @@ test.describe('Owner Dashboard', () => {
         await verifySVGChartRenders(page)
       }
 
-      console.log('Charts verified on dashboard')
+      logger.info('Charts verified on dashboard')
     }
 
     // Note: Some dashboards may not have charts, so this is optional verification

@@ -146,21 +146,21 @@ export function ChartAreaInteractive({
 			</CardHeader>
 
 			{/* Summary metrics */}
-			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
+			<div className="grid grid-cols-2 gap-(--spacing-4) p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
-					<p className="text-sm text-muted-foreground">Total Revenue</p>
+					<p className="text-muted">Total Revenue</p>
 					<p className="text-lg font-semibold text-success">
 						${totalRevenue.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-sm text-muted-foreground">Total Expenses</p>
+					<p className="text-muted">Total Expenses</p>
 					<p className="text-lg font-semibold text-warning">
 						${totalExpenses.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-sm text-muted-foreground">Net Profit</p>
+					<p className="text-muted">Net Profit</p>
 					<p
 						className={cn(
 							'flex items-center gap-1 text-lg font-semibold',
@@ -176,7 +176,7 @@ export function ChartAreaInteractive({
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-sm text-muted-foreground">Profit Margin</p>
+					<p className="text-muted">Profit Margin</p>
 					<p
 						className={cn(
 							'text-lg font-semibold',
@@ -190,7 +190,7 @@ export function ChartAreaInteractive({
 
 			<CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
 				{isLoading ? (
-					<div className="flex items-center justify-center h-75">
+					<div className="flex-center h-75">
 						<div className="animate-spin rounded-full size-11 border-b-2 border-primary"></div>
 					</div>
 				) : error ? (
@@ -203,7 +203,7 @@ export function ChartAreaInteractive({
 						</p>
 					</div>
 				) : !chartData || !Array.isArray(chartData) || chartData.length === 0 ? (
-					<Empty className="h-75 flex items-center justify-center">
+					<Empty className="h-75 flex-center">
 						<EmptyTitle>No data available</EmptyTitle>
 						<EmptyDescription>
 							Add properties and tenants to see financial trends

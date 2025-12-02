@@ -26,7 +26,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	createSupabaseTestClient,
 	ensureEnvVars
-} from 'tests/utils/env'
+} from '../utils/env'
 
 const logger = createLogger({ component: 'RlsBoundaryTest' })
 const shouldRunIntegrationTests =
