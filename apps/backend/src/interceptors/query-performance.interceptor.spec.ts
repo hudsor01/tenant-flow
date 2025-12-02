@@ -11,6 +11,8 @@ describe('QueryPerformanceInterceptor', () => {
 	let mockExecutionContext: jest.Mocked<ExecutionContext>
 	let mockCallHandler: jest.Mocked<CallHandler>
 
+	let performanceNowSpy: jest.SpyInstance | undefined
+
 	beforeEach(async () => {
 		mockLogger = {
 			warn: jest.fn(),
@@ -45,22 +47,31 @@ describe('QueryPerformanceInterceptor', () => {
 		} as unknown as jest.Mocked<CallHandler>
 	})
 
+	afterEach(() => {
+		// Restore performance.now if it was mocked
+		if (performanceNowSpy) {
+			performanceNowSpy.mockRestore()
+			performanceNowSpy = undefined
+		}
+	})
+
 	describe('TDD: Slow query logging', () => {
 		it('should log warning when request takes longer than 1000ms', (done) => {
 			// Mock slow handler that takes >1000ms
 			const slowDuration = 1100
-			const startTime = performance.now()
+			const startTime = 1000 // Use a fixed start time for deterministic testing
 
 			mockCallHandler.handle.mockReturnValue(of('result'))
 
 			// Override performance.now to simulate slow request
-			const originalNow = performance.now
 			let callCount = 0
-			jest.spyOn(performance, 'now').mockImplementation(() => {
-				callCount++
-				if (callCount === 1) return startTime
-				return startTime + slowDuration // Second call = after handler completes
-			})
+			performanceNowSpy = jest
+				.spyOn(performance, 'now')
+				.mockImplementation(() => {
+					callCount++
+					if (callCount === 1) return startTime
+					return startTime + slowDuration // Second call = after handler completes
+				})
 
 			interceptor.intercept(mockExecutionContext, mockCallHandler).subscribe({
 				complete: () => {
@@ -72,17 +83,16 @@ describe('QueryPerformanceInterceptor', () => {
 							handler: 'findAll',
 							method: 'GET',
 							route: '/api/properties',
-						durationMs: expect.any(Number),
-						thresholdMs: 1000
-					})
-				)
-				// Verify duration is approximately correct (allow for floating point precision)
-				const warnCall = mockLogger.warn.mock.calls[0]
-				const loggedDuration = warnCall[1].durationMs
-				expect(loggedDuration).toBeGreaterThanOrEqual(slowDuration)
-				expect(loggedDuration).toBeLessThan(slowDuration + 1)
+							durationMs: expect.any(Number),
+							thresholdMs: 1000
+						})
+					)
+					// Verify duration is approximately correct (allow for floating point precision)
+					const warnCall = mockLogger.warn.mock.calls[0]
+					const loggedDuration = warnCall[1].durationMs
+					expect(loggedDuration).toBeGreaterThanOrEqual(slowDuration - 1)
+					expect(loggedDuration).toBeLessThanOrEqual(slowDuration + 1)
 
-					performance.now = originalNow
 					done()
 				},
 				error: done
