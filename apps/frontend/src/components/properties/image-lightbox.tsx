@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import type { Tables } from '@repo/shared/types/supabase'
 import {
 	Dialog,
@@ -11,6 +12,7 @@ import {
 } from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { lightboxNavButtonClasses } from '#lib/design-system'
 
 interface ImageLightboxProps {
 	images: Tables<'property_images'>[]
@@ -85,12 +87,13 @@ export function ImageLightbox({
 				</DialogClose>
 
 				{/* Main image container */}
-				<div className="relative flex items-center justify-center min-h-[400px] w-full">
-					<img
+				<div className="relative flex-center min-h-[400px] w-full">
+					<Image
 						src={currentImage.image_url}
 						alt={`Property image ${currentIndex + 1}`}
-						className="max-w-full max-h-[90vh] object-contain"
-						loading="lazy"
+						fill
+						className="object-contain"
+						sizes="(max-width: 768px) 95vw, (max-width: 1200px) 80vw, 70vw"
 					/>
 
 					{/* Navigation controls - only show if multiple images */}
@@ -100,7 +103,7 @@ export function ImageLightbox({
 							<Button
 								variant="ghost"
 								size="icon"
-								className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+								className={lightboxNavButtonClasses('left')}
 								onClick={handlePrevious}
 								aria-label="Previous image"
 							>
@@ -111,7 +114,7 @@ export function ImageLightbox({
 							<Button
 								variant="ghost"
 								size="icon"
-								className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+								className={lightboxNavButtonClasses('right')}
 								onClick={handleNext}
 								aria-label="Next image"
 							>

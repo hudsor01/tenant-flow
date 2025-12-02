@@ -24,13 +24,13 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					{/* Headline */}
 					<BlurFade delay={0.1} inView>
 						<div className="mb-8">
-							<h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-[0.9]">
+							<h2 className="text-responsive-display-2xl font-bold tracking-tight text-foreground mb-6 leading-[0.9]">
 								Stop losing
 								<span className="block text-primary relative">
 									$30,000+ annually
 									<div className="absolute -inset-1 bg-primary/10 blur-xl rounded-lg" />
 								</span>
-								<span className="block text-foreground/80 text-4xl sm:text-5xl lg:text-6xl">
+								<span className="block text-foreground/80 text-responsive-display-lg">
 									to inefficiency
 								</span>
 							</h2>
@@ -39,7 +39,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 
 					{/* Value Proposition */}
 					<BlurFade delay={0.2} inView>
-						<p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
+						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
 							Join 2,847 property managers saving 20+ hours weekly and
 							increasing NOI by 40%.
 							<span className="block mt-3 text-foreground font-medium">
@@ -50,10 +50,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 
 					{/* CTA Buttons */}
 					<BlurFade delay={0.3} inView>
-						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+						<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center mb-12">
 							{/* Primary CTA with Glow */}
 							<GlowingEffect
-								glowColor="var(--primary)"
+								glowColor="var(--color-primary)"
 								glowOpacity={0.6}
 								className="group"
 							>
@@ -96,7 +96,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									<div className="text-lg font-semibold text-foreground mb-1">
 										No Setup Fees
 									</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="text-muted">
 										Start immediately with zero upfront costs
 									</div>
 								</div>
@@ -108,7 +108,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									<div className="text-lg font-semibold text-foreground mb-1">
 										ROI in 30 Days
 									</div>
-									<div className="text-sm text-muted-foreground">
+									<div className="text-muted">
 										See measurable results within first month
 									</div>
 								</div>

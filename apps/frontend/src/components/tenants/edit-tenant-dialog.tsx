@@ -51,10 +51,6 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 		updateMutation.mutate({
 			id: tenant.id,
 			data: formData
-		}, {
-			onSuccess: () => {
-				closeModal(modalId)
-			}
 		})
 	}
 

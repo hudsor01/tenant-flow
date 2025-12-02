@@ -67,7 +67,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 	}
 
 	const footer = (
-		<div className="flex justify-end gap-4 pt-6 border-t">
+		<div className="flex justify-end gap-(--spacing-4) pt-6 border-t">
 			<Button type="button" variant="outline" onClick={() => router.back()}>
 				Cancel
 			</Button>

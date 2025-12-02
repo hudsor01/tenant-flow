@@ -16,7 +16,7 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
  * Property query filters
  */
 export interface PropertyFilters {
-	status?: 'ACTIVE' | 'SOLD' | 'INACTIVE'
+	status?: 'active' | 'SOLD' | 'INACTIVE'
 	property_type?: 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'CONDO' | 'TOWNHOUSE' | 'COMMERCIAL'
 	search?: string
 	limit?: number
@@ -41,7 +41,7 @@ export const propertyQueries = {
 	 * Property list with optional filters
 	 *
 	 * @example
-	 * const { data } = useQuery(propertyQueries.list({ status: 'ACTIVE' }))
+	 * const { data } = useQuery(propertyQueries.list({ status: 'active' }))
 	 */
 	list: (filters?: PropertyFilters) =>
 		queryOptions({

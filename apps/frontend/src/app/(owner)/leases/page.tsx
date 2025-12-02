@@ -1,5 +1,7 @@
 'use client'
 
+import { Fragment } from 'react'
+
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -38,6 +40,7 @@ import {
 } from '#hooks/api/mutations/lease-mutations'
 import { useLeaseList } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { formatDate } from '#lib/formatters/date'
 import type { Lease } from '@repo/shared/types/core'
 import {
 	Edit,
@@ -59,7 +62,6 @@ import { useModalStore } from '#stores/modal-store'
 const ITEMS_PER_PAGE = 25
 
 export default function LeasesPage() {
-
 	// nuqs: Type-safe URL state with automatic batching and clean URLs
 	const [{ page, search, status }, setUrlState] = useQueryStates(
 		{
@@ -81,9 +83,10 @@ export default function LeasesPage() {
 	const { openModal } = useModalStore()
 
 	// Fetch leases with filters and pagination
+	// NOTE: Database uses lowercase status values: 'active', 'expired', 'terminated'
 	const params: {
 		search?: string
-		status?: 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		status?: 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -92,7 +95,7 @@ export default function LeasesPage() {
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'ACTIVE' | 'EXPIRED' | 'TERMINATED'
+		params.status = status as 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useLeaseList(params)
 
@@ -154,25 +157,20 @@ export default function LeasesPage() {
 	}
 
 	const getStatusBadge = (status: string) => {
+		// Database uses lowercase status values
 		const variants: Record<
 			string,
 			'default' | 'secondary' | 'destructive' | 'outline'
 		> = {
-			ACTIVE: 'default',
-			EXPIRED: 'destructive',
-			TERMINATED: 'secondary',
-			DRAFT: 'outline'
+			active: 'default',
+			expired: 'destructive',
+			terminated: 'secondary',
+			draft: 'outline'
 		}
 
-		return <Badge variant={variants[status]}>{status}</Badge>
-	}
-
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		})
+		// Capitalize first letter for display
+		const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
+		return <Badge variant={variants[status.toLowerCase()] || 'outline'}>{displayStatus}</Badge>
 	}
 
 	if (error) {
@@ -182,7 +180,7 @@ export default function LeasesPage() {
 					<h2 className="text-lg font-semibold text-destructive">
 						Error Loading Leases
 					</h2>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						{error instanceof Error ? error.message : 'Failed to load leases'}
 					</p>
 				</div>
@@ -193,7 +191,7 @@ export default function LeasesPage() {
 	return (
 		<div className="container py-8 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Leases</h1>
 					<p className="text-muted-foreground">
@@ -206,7 +204,7 @@ export default function LeasesPage() {
 			</div>
 
 			{/* Filters */}
-			<div className="flex items-center gap-4">
+			<div className="flex items-center gap-(--spacing-4)">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
 					<Input
@@ -230,13 +228,13 @@ export default function LeasesPage() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
-						<SelectItem value="ACTIVE">Active</SelectItem>
-						<SelectItem value="EXPIRED">Expired</SelectItem>
-						<SelectItem value="TERMINATED">Terminated</SelectItem>
+						<SelectItem value="active">Active</SelectItem>
+						<SelectItem value="expired">Expired</SelectItem>
+						<SelectItem value="terminated">Terminated</SelectItem>
 					</SelectContent>
 				</Select>
 
-				<div className="text-sm text-muted-foreground">
+				<div className="text-muted">
 					{total} lease{total !== 1 ? 's' : ''} found
 				</div>
 			</div>
@@ -245,7 +243,7 @@ export default function LeasesPage() {
 			{isLoading ? (
 				<div className="rounded-lg border p-8 text-center">
 					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						Loading leases...
 					</p>
 				</div>
@@ -253,7 +251,7 @@ export default function LeasesPage() {
 				<div className="rounded-lg border p-8 text-center">
 					<FileText className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
-					<p className="mt-2 text-sm text-muted-foreground">
+					<p className="mt-2 text-muted">
 						{search || status !== 'all'
 							? 'Try adjusting your filters'
 							: 'Get started by creating your first lease'}
@@ -278,14 +276,14 @@ export default function LeasesPage() {
 							{leases.map(lease => (
 								<TableRow key={lease.id}>
 									<TableCell>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											{lease?.primary_tenant_id ?? ''
 												? `${lease?.primary_tenant_id ?? ''.substring(0, 8)}...`
 												: 'N/A'}
 										</span>
 									</TableCell>
 									<TableCell>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											{lease.unit_id
 												? `${lease.unit_id.substring(0, 8)}...`
 												: 'N/A'}
@@ -321,7 +319,7 @@ export default function LeasesPage() {
 													<Edit className="mr-2 size-4" />
 													Edit Lease
 												</DropdownMenuItem>
-												{lease.lease_status === 'ACTIVE' && (
+												{lease.lease_status === 'active' && (
 													<>
 														<DropdownMenuItem
 															onClick={() => handleRenew(lease.id)}
@@ -427,13 +425,10 @@ export default function LeasesPage() {
 
 			{/* Lease Dialogs */}
 			{leases.map(lease => (
-				<>
-					<RenewLeaseDialog key={`renew-${lease.id}`} lease_id={lease.id} />
-					<TerminateLeaseDialog
-						key={`terminate-${lease.id}`}
-						lease_id={lease.id}
-					/>
-				</>
+				<Fragment key={lease.id}>
+					<RenewLeaseDialog lease_id={lease.id} />
+					<TerminateLeaseDialog lease_id={lease.id} />
+				</Fragment>
 			))}
 		</div>
 	)

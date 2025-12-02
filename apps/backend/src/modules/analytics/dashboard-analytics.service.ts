@@ -10,7 +10,7 @@ import type {
 } from '@repo/shared/types/database-rpc'
 import { EMPTY_MAINTENANCE_ANALYTICS } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
-import {
+import type {
 	BillingInsights,
 	IDashboardAnalyticsService
 } from './interfaces/dashboard-analytics.interface'

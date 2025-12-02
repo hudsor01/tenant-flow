@@ -53,7 +53,7 @@ export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDi
 					{paymentsQuery.data?.payments.length ? (
 						paymentsQuery.data.payments.map((payment: TenantPaymentRecord) => (
 								<div key={payment.id} className="border rounded-md p-3 space-y-1">
-									<div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+									<div className="flex-between text-xs font-semibold text-muted-foreground">
 										<span>{payment.created_at ?? 'Date unknown'}</span>
 										<Badge variant={payment.status === 'succeeded' ? 'secondary' : 'outline'}>
 											{payment.status}
@@ -63,14 +63,14 @@ export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDi
 										{formatCents(payment.amount)}
 									</div>
 									{payment.description && (
-										<div className="text-sm text-muted-foreground">
+										<div className="text-muted">
 											{payment.description}
 										</div>
 									)}
 								</div>
 							))
 						) : (
-							<div className="text-sm text-muted-foreground">No payments found</div>
+							<div className="text-muted">No payments found</div>
 						)}
 					</div>
 				)}

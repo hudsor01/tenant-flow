@@ -10,7 +10,7 @@ import { useSearchParams } from 'next/navigation'
 // Map status to CSS class name (uses classes from globals.css)
 const getStatusClass = (status: string): string => {
 	const statusMap: Record<string, string> = {
-		ACTIVE: 'status-active',
+		active: 'status-active',
 		PENDING: 'status-pending',
 		INACTIVE: 'status-inactive',
 		OVERDUE: 'status-overdue',
@@ -134,7 +134,7 @@ export default function CompletePage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to-white">
+			<div className="min-h-screen flex-center bg-linear-to-br from-slate-50 to-white">
 				<CardLayout
 					title="Checking payment status..."
 					className="w-full max-w-md"
@@ -164,7 +164,7 @@ export default function CompletePage() {
 							{/* Status Icon */}
 							<div
 								id="status-icon"
-								className={`size-16 rounded-full flex items-center justify-center mx-auto mb-6 ${status ? getStatusClass(status) : ''}`}
+								className={`size-16 rounded-full flex-center mx-auto mb-6 ${status ? getStatusClass(status) : ''}`}
 							>
 								{icon}
 							</div>
@@ -232,7 +232,7 @@ export default function CompletePage() {
 							</div>
 
 							{/* Action Buttons */}
-							<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+							<div className="flex flex-col sm:flex-row gap-(--spacing-4) items-center justify-center">
 								{sessionData?.payment_intent_id && (
 									<a
 										href={`https://dashboard.stripe.com/payments/${sessionData.payment_intent_id}`}

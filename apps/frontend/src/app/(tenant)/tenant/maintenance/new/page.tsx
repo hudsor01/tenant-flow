@@ -242,7 +242,7 @@ export default function NewMaintenanceRequestPage() {
 								Allow maintenance team to enter unit if I&apos;m not home
 							</FieldLabel>
 						</div>
-						<p className="text-sm text-muted-foreground mt-1">
+						<p className="text-muted mt-1">
 							Check this box if maintenance can access your unit without you being present
 						</p>
 					</Field>
@@ -279,7 +279,7 @@ export default function NewMaintenanceRequestPage() {
 							<DropzoneContent />
 						</Dropzone>
 					</Field>
-					<div className="flex gap-4 pt-2 mb-4">
+					<div className="flex gap-(--spacing-4) pt-2 mb-4">
 						{files.length > 0 && !isSuccess && (
 							<Button
 								type="button"
@@ -293,7 +293,7 @@ export default function NewMaintenanceRequestPage() {
 						)}
 					</div>
 
-					<div className="flex gap-4 pt-4">
+					<div className="flex gap-(--spacing-4) pt-4">
 						<Link href="/tenant/maintenance" className="flex-1">
 							<Button
 								type="button"

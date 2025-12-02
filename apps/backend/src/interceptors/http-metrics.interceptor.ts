@@ -1,11 +1,14 @@
-import {
+import type {
 	CallHandler,
 	ExecutionContext,
-	Injectable,
 	NestInterceptor
+} from '@nestjs/common';
+import {
+	Injectable
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
-import { Observable, tap } from 'rxjs'
+import type { Observable} from 'rxjs';
+import { tap } from 'rxjs'
 import { performance } from 'node:perf_hooks'
 import { MetricsService } from '../modules/metrics/metrics.service'
 

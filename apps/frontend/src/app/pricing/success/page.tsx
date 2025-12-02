@@ -1,7 +1,7 @@
 'use client'
 
-import Footer from '#components/layout/footer'
-import { Navbar } from '#components/layout/navbar'
+import Footer from '#components/ui/layout/footer'
+import { Navbar } from '#components/ui/layout/navbar'
 import { HeroSection } from '#components/sections/hero-section'
 import { CustomerPortalButton } from '#components/pricing/customer-portal'
 import { Button } from '#components/ui/button'
@@ -50,7 +50,7 @@ export default function CheckoutSuccessPage() {
 		return (
 			<main className="min-h-screen bg-background">
 				<Navbar />
-				<div className="section-content flex items-center justify-center min-h-[60vh]">
+				<div className="section-content flex-center min-h-[60vh]">
 					<div className="text-center">
 						<div className="animate-spin rounded-full size-12 border-b-2 border-primary mx-auto mb-4"></div>
 						<h2 className="text-xl font-semibold mb-2">
@@ -85,7 +85,7 @@ export default function CheckoutSuccessPage() {
 						className="text-center shadow-2xl border-2 border-border/50"
 					>
 						<div className="pb-8">
-							<div className="size-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+							<div className="size-16 bg-accent/10 rounded-full flex-center mx-auto mb-6">
 								<CheckCircle className="size-8 text-accent" />
 							</div>
 							<p className="text-xl text-muted-foreground">
@@ -96,7 +96,7 @@ export default function CheckoutSuccessPage() {
 						<div className="space-y-6">
 							<div className="space-y-4">
 								<h3 className="font-semibold">What&apos;s next?</h3>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-(--spacing-4) text-left">
 									<Link href="/dashboard">
 										<Button className="w-full justify-start" size="lg">
 											<Home className="size-4 mr-2" />
@@ -111,11 +111,11 @@ export default function CheckoutSuccessPage() {
 							</div>
 
 							<div className="pt-6 border-t">
-								<p className="text-sm text-muted-foreground mb-4">
+								<p className="text-muted mb-4">
 									A confirmation email has been sent to your email address with
 									your receipt and subscription details.
 								</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									Need help?{' '}
 									<Link
 										href="/contact"

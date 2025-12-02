@@ -15,7 +15,7 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { PaymentHistoryItem, usePaymentHistory } from '#hooks/api/use-payment-history'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCurrency } from '@repo/shared/utils/formatting'
+import { formatCurrency } from '#lib/formatters/currency'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 
@@ -35,20 +35,20 @@ export default function TenantPaymentHistoryPage() {
 	const getStatusBadgeClass = (status: string) => {
 		switch (status) {
 			case 'succeeded':
-				return 'bg-green-50 text-green-700 border-green-200'
+				return 'bg-success/10 text-success-foreground border-success/20'
 			case 'pending':
-				return 'bg-yellow-50 text-yellow-700 border-yellow-200'
+				return 'bg-warning/10 text-warning-foreground border-warning/20'
 			case 'failed':
 			case 'canceled':
-				return 'bg-red-50 text-red-700 border-red-200'
+				return 'bg-destructive/10 text-destructive-foreground border-destructive/20'
 			default:
-				return ''
+				return 'bg-muted text-muted-foreground border-border'
 		}
 	}
 
 	return (
 		<div className="space-y-8">
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
 					<p className="text-muted-foreground">
@@ -64,7 +64,7 @@ export default function TenantPaymentHistoryPage() {
 			</div>
 
 			{/* Payment Summary */}
-			<div className="grid gap-4 md:grid-cols-3">
+			<div className="grid gap-(--spacing-4) md:grid-cols-3">
 				<CardLayout title="Total Paid" description="Lifetime payments">
 					<div className="flex items-center gap-3">
 						<DollarSign className="size-8 text-accent-main" />
@@ -76,7 +76,7 @@ export default function TenantPaymentHistoryPage() {
 									{formatCurrency(totalPaid)}
 								</p>
 							)}
-							<p className="text-sm text-muted-foreground mt-1">All time</p>
+							<p className="text-muted mt-1">All time</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -94,7 +94,7 @@ export default function TenantPaymentHistoryPage() {
 							) : (
 								<p className="text-muted-foreground">No payments yet</p>
 							)}
-							<p className="text-sm text-muted-foreground mt-1">Date</p>
+							<p className="text-muted mt-1">Date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -104,7 +104,7 @@ export default function TenantPaymentHistoryPage() {
 						<Calendar className="size-8 text-accent-main" />
 						<div>
 							<Skeleton className="h-8 w-24" />
-							<p className="text-sm text-muted-foreground mt-1">Due date</p>
+							<p className="text-muted mt-1">Due date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -117,7 +117,7 @@ export default function TenantPaymentHistoryPage() {
 			>
 				<div className="space-y-1">
 					{/* Header */}
-					<div className="grid grid-cols-5 gap-4 p-4 text-sm font-medium text-muted-foreground border-b">
+					<div className="grid grid-cols-5 gap-(--spacing-4) p-4 text-sm font-medium text-muted-foreground border-b">
 						<div>Date</div>
 						<div>Amount</div>
 						<div>Method</div>
@@ -140,11 +140,11 @@ export default function TenantPaymentHistoryPage() {
 					payments.map((payment: PaymentHistoryItem) => (
 							<div
 								key={payment.id}
-								className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
+								className="grid grid-cols-5 gap-(--spacing-4) p-4 items-center border-b hover:bg-accent/5 transition-colors"
 							>
 								<div>
 									<p className="font-medium">{payment.formattedDate}</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										{payment.description || 'Monthly Rent'}
 									</p>
 								</div>
@@ -209,7 +209,7 @@ export default function TenantPaymentHistoryPage() {
 						paymentMethods.map(method => (
 							<div
 								key={method.id}
-								className="flex items-center justify-between p-4 border rounded-lg"
+								className="flex-between p-4 border rounded-lg"
 							>
 								<div className="flex items-center gap-3">
 									<CreditCard className="size-5 text-accent-main" />
@@ -217,7 +217,7 @@ export default function TenantPaymentHistoryPage() {
 										<p className="font-medium">
 											{method.brand || 'Card'} •••• {method.last4}
 										</p>
-										<p className="text-sm text-muted-foreground capitalize">
+										<p className="text-muted capitalize">
 											{method.type.replace('_', ' ')}
 										</p>
 									</div>

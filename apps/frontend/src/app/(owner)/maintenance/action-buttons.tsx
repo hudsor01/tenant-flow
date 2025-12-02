@@ -105,7 +105,7 @@ export function MaintenanceActionButtons({
 
 					<div className="space-y-6">
 						{/* Status and Priority */}
-						<div className="flex items-center gap-4">
+						<div className="flex items-center gap-(--spacing-4)">
 							<div className="flex items-center gap-2">
 								<span className="text-sm font-medium">Status:</span>
 								<Badge className={getStatusColor(maintenance.status)}>
@@ -124,20 +124,20 @@ export function MaintenanceActionButtons({
 						{maintenance.description && (
 							<div className="space-y-2">
 								<h4 className="font-medium">Description</h4>
-								<p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+								<p className="text-muted bg-muted p-3 rounded-lg">
 									{maintenance.description}
 								</p>
 							</div>
 						)}
 
 						{/* Property and Unit Information */}
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-2 gap-(--spacing-4)">
 							{maintenance.property && (
 								<div className="flex items-center gap-2">
 									<MapPin className="size-4 text-muted-foreground" />
 									<div>
 										<p className="text-sm font-medium">Property</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											{maintenance.property?.name || 'No Property'}
 										</p>
 									</div>
@@ -146,12 +146,12 @@ export function MaintenanceActionButtons({
 
 							{maintenance.unit_id && (
 								<div className="flex items-center gap-2">
-									<div className="size-4 rounded bg-muted flex items-center justify-center">
+									<div className="size-4 rounded bg-muted flex-center">
 										<span className="text-xs font-bold">#</span>
 									</div>
 									<div>
 										<p className="text-sm font-medium">Unit</p>
-										<p className="text-sm text-muted-foreground">
+										<p className="text-muted">
 											Unit {maintenance.unit_id}
 										</p>
 									</div>
@@ -165,7 +165,7 @@ export function MaintenanceActionButtons({
 								<DollarSign className="size-4 text-muted-foreground" />
 								<div>
 									<p className="text-sm font-medium">Estimated Cost</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										${maintenance.estimated_cost.toLocaleString()}
 									</p>
 								</div>
@@ -178,7 +178,7 @@ export function MaintenanceActionButtons({
 							<Calendar className="size-4 text-muted-foreground" />
 							<div>
 								<p className="text-sm font-medium">Created</p>
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									{maintenance.created_at
 										? new Date(maintenance.created_at).toLocaleDateString()
 										: 'No date'}

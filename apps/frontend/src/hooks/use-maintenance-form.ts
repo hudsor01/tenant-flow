@@ -2,8 +2,8 @@ import { useForm } from '@tanstack/react-form'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type {
-	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
+	CreateMaintenanceRequestInput,
+	UpdateMaintenanceRequestInput
 } from '@repo/shared/types/api-contracts'
 import type {
 	MaintenanceRequest,
@@ -29,13 +29,13 @@ export interface UseMaintenanceFormOptions {
 	createMutation?: UseMutationResult<
 		MaintenanceRequest,
 		Error,
-		CreateMaintenanceRequest,
+		CreateMaintenanceRequestInput,
 		unknown
 	>
 	updateMutation?: UseMutationResult<
 		MaintenanceRequest,
 		Error,
-		{ id: string; data: UpdateMaintenanceRequest; version?: number },
+		{ id: string; data: UpdateMaintenanceRequestInput; version?: number },
 		unknown
 	>
 	requestId?: string
@@ -74,12 +74,14 @@ export function useMaintenanceForm({
 						throw new Error('Create mutation is required for create mode')
 					}
 
-			const payload: CreateMaintenanceRequest = {
-							title: value.title,
-							description: value.description,
-							priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-							unit_id: value.unit_id
-						}
+			const payload: CreateMaintenanceRequestInput = {
+						title: value.title,
+						description: value.description,
+						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+						unit_id: value.unit_id,
+						property_id: value.property_id,
+						category: value.category ?? ''
+					}
 
 					// Add optional fields only if they have values
 					if (value.category) {
@@ -112,7 +114,7 @@ export function useMaintenanceForm({
 						throw new Error('Request ID is required for edit mode')
 					}
 
-			const payload: UpdateMaintenanceRequest = {
+			const payload: UpdateMaintenanceRequestInput = {
 							title: value.title,
 							description: value.description,
 							priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
@@ -134,7 +136,7 @@ export function useMaintenanceForm({
 
 					const mutationPayload: {
 						id: string
-						data: UpdateMaintenanceRequest
+						data: UpdateMaintenanceRequestInput
 						version?: number
 					} = {
 						id: requestId,

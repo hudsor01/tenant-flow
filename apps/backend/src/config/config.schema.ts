@@ -200,6 +200,14 @@ const environmentSchema = z.object({
 		.default('noreply@tenantflow.app'),
 	TEST_RESEND_API_KEY: z.string().optional(),
 
+	// DocuSeal (Self-hosted e-signature)
+	DOCUSEAL_API_URL: z
+		.string()
+		.url('Must be a valid URL')
+		.default('https://sign.thehudsonfam.com/api'),
+	DOCUSEAL_API_KEY: z.string().optional(),
+	DOCUSEAL_WEBHOOK_SECRET: z.string().optional(),
+
 	// Security
 	IDEMPOTENCY_KEY_SECRET: z.string().min(32, 'Idempotency key secret must be at least 32 characters'),
 	CSRF_SECRET: z.string().optional(),

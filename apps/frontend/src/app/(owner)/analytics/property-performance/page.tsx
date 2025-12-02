@@ -15,7 +15,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { getPropertyPerformancePageData } from '#lib/api/analytics-page'
-import { formatCurrency, formatNumber, formatPercentage } from '@repo/shared/utils/currency'
+import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/currency'
 import type {
 	PropertyPerformanceSummary,
 	PropertyPerformanceEntry,
@@ -51,7 +51,7 @@ export default async function PropertyPerformancePage() {
 			<section
 				className="border-b bg-background p-6 border-(--color-fill-tertiary)"
 			>
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
 						<h1 className="text-3xl font-semibold tracking-tight">
 							Property Performance
@@ -61,7 +61,7 @@ export default async function PropertyPerformancePage() {
 							portfolio.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
 						<Card>
 							<CardHeader>
 								<CardTitle>Total properties</CardTitle>
@@ -115,8 +115,8 @@ export default async function PropertyPerformancePage() {
 			</section>
 
 			<section className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
+					<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
 						<Card className="xl:col-span-2">
 							<CardHeader>
 								<CardTitle>Occupancy & revenue by property</CardTitle>
@@ -139,7 +139,7 @@ export default async function PropertyPerformancePage() {
 								{unitStats.slice(0, 6).map(stat => (
 									<div
 										key={stat.label}
-										className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+										className="flex-between rounded-lg border px-3 py-2 text-sm"
 									>
 										<span className="text-muted-foreground">{stat.label}</span>
 										<span className="font-medium tabular-nums">
@@ -159,7 +159,7 @@ export default async function PropertyPerformancePage() {
 						</Card>
 					</div>
 
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+					<div className="grid grid-cols-1 gap-(--spacing-6) lg:grid-cols-2">
 						<Card>
 							<CardHeader>
 								<CardTitle>Visitor analytics</CardTitle>

@@ -16,14 +16,20 @@ import {
 } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
+import { ZeroCacheService } from '../../cache/cache.service'
+import type {
+	activitySchema} from '@repo/shared/validation/dashboard';
 import {
-	activitySchema,
 	billingInsightsSchema,
 	dashboardActivityResponseSchema
 } from '@repo/shared/validation/dashboard'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { ValidationException } from '../../shared/exceptions/validation.exception'
 import type { Database } from '@repo/shared/types/supabase'
+
+// Cache TTLs per CLAUDE.md: Stats 1min, Real-time 3min refetch
+const STATS_CACHE_TTL = 60_000 // 1 minute
+const ACTIVITY_CACHE_TTL = 180_000 // 3 minutes
 
 @Injectable()
 export class DashboardService {
@@ -31,7 +37,8 @@ export class DashboardService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly dashboardAnalyticsService: DashboardAnalyticsService
+		private readonly dashboardAnalyticsService: DashboardAnalyticsService,
+		private readonly cache: ZeroCacheService
 	) {}
 
 	/**
@@ -44,6 +51,14 @@ export class DashboardService {
 			return { ...EMPTY_DASHBOARD_STATS }
 		}
 
+		// Check cache first (CLAUDE.md: Stats 1min TTL)
+		const cacheKey = ZeroCacheService.getUserKey(user_id, 'dashboard:stats')
+		const cached = this.cache.get<DashboardStats>(cacheKey)
+		if (cached) {
+			this.logger.debug('Dashboard stats cache hit', { user_id })
+			return cached
+		}
+
 		try {
 			// Delegate to DashboardAnalyticsService which uses optimized RPC functions
 			// This reduces this method from 586 lines to 14 lines (CLAUDE.md compliant)
@@ -51,6 +66,9 @@ export class DashboardService {
 				user_id,
 				token
 			)
+
+			// Cache the result
+			this.cache.set(cacheKey, stats, STATS_CACHE_TTL, [`user:${user_id}`, 'dashboard'])
 
 			this.logger.log('Dashboard stats retrieved successfully', {
 				user_id,
@@ -84,6 +102,15 @@ export class DashboardService {
 			this.logger.warn('Activity requested without token')
 			return { activities: [] }
 		}
+
+		// Check cache first (CLAUDE.md: Real-time 3min TTL)
+		const cacheKey = ZeroCacheService.getUserKey(user_id, 'dashboard:activity')
+		const cached = this.cache.get<z.infer<typeof dashboardActivityResponseSchema>>(cacheKey)
+		if (cached) {
+			this.logger.debug('Dashboard activity cache hit', { user_id })
+			return cached
+		}
+
 		try {
 			// Use optimized RPC function - eliminates N+1 query pattern
 			const { data, error } = await this.supabase
@@ -109,8 +136,10 @@ export class DashboardService {
 			const validation = dashboardActivityResponseSchema.safeParse({
 				activities: normalizedActivities
 			})
+			let result: z.infer<typeof dashboardActivityResponseSchema>
+
 			if (validation.success) {
-				return validation.data
+				result = validation.data
 			} else {
 				this.logger.warn('Some activities failed validation', {
 					user_id,
@@ -123,8 +152,13 @@ export class DashboardService {
 							activity
 						).success
 				) as z.infer<typeof dashboardActivityResponseSchema>['activities']
-				return { activities: validActivities }
+				result = { activities: validActivities }
 			}
+
+			// Cache the validated result
+			this.cache.set(cacheKey, result, ACTIVITY_CACHE_TTL, [`user:${user_id}`, 'dashboard'])
+
+			return result
 		} catch (error) {
 			this.logger.error('Failed to get activity', {
 				error: error instanceof Error ? error.message : String(error),

@@ -1,5 +1,5 @@
 import { BlurFade } from '#components/ui/blur-fade'
-import { cn } from '#lib/design-system'
+import { cn, sectionFeatureCardClasses, featureCardIconClasses } from '#lib/design-system'
 import {
 	ArrowLeft,
 	DollarSign,
@@ -62,9 +62,9 @@ export default function FeaturesSectionDemo({
 				className
 			)}
 		>
-			<div className="container px-[var(--spacing-4)] mx-auto relative z-10">
+			<div className="container px-(--spacing-4) mx-auto relative z-10">
 				<div className="text-center mb-[var(--spacing-10)] max-w-[var(--max-width-3xl)] mx-auto">
-					<h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+					<h2 className="text-responsive-display-lg font-bold tracking-tight text-foreground mb-6 leading-tight">
 						Everything you need for
 						<span className="text-primary block">
 							professional property management
@@ -78,7 +78,7 @@ export default function FeaturesSectionDemo({
 
 				<div
 					className={cn(
-						'grid gap-[var(--spacing-8)] md:grid-cols-2 lg:grid-cols-3 relative z-10'
+						'grid gap-(--spacing-8) md:grid-cols-2 lg:grid-cols-3 relative z-10'
 					)}
 				>
 					{features.map((feature, index) => (
@@ -100,13 +100,13 @@ interface FeatureProps {
 
 const Feature = ({ title, description, icon }: FeatureProps) => {
 	return (
-		<div className="group/feature relative p-[var(--spacing-6)] rounded bg-card/50 border border-border/40 hover:border-primary/40 hover:bg-card/90 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 backdrop-blur-sm hover:-translate-y-2 hover:scale-[1.02]">
+		<div className={sectionFeatureCardClasses()}>
 			{/* Enhanced hover background glow */}
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/5 rounded pointer-events-none transition-all duration-500 blur-sm" />
 
 			{/* Icon with enhanced animations */}
 			<div className="mb-[var(--spacing-4)] relative z-10">
-				<div className="size-[var(--spacing-12)] rounded bg-primary/10 text-primary flex items-center justify-center group-hover/feature:bg-primary/20 group-hover/feature:scale-110 group-hover/feature:rotate-3 transition-all duration-500 group-hover/feature:shadow-lg group-hover/feature:shadow-primary/25">
+				<div className={featureCardIconClasses()}>
 					<div className="size-[var(--spacing-6)] group-hover/feature:scale-110 transition-transform duration-300">
 						{icon}
 					</div>

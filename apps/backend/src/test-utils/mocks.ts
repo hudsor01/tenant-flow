@@ -10,9 +10,9 @@ import type {
 } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import type { User } from '@supabase/supabase-js'
-import type { EmailService } from '../modules/email/email.service'
-import type { SupabaseService } from '../database/supabase.service'
-import type { AppConfigService } from '../config/app-config.service'
+import { EmailService } from '../modules/email/email.service'
+import { SupabaseService } from '../database/supabase.service'
+import { AppConfigService } from '../config/app-config.service'
 
 type DatabaseUser = Database['public']['Tables']['users']['Row']
 
@@ -153,7 +153,7 @@ export function createMockProperty(overrides?: Partial<Property>): Property {
 		postal_code: '12345',
 		country: 'US',
 		property_type: 'APARTMENT',
-		status: 'ACTIVE',
+		status: 'active',
 		property_owner_id: 'owner-123',
 		sale_price: null,
 		date_sold: null,
@@ -212,16 +212,29 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		rent_amount: overrides?.rent_amount || 1500,
 		rent_currency: overrides?.rent_currency || 'USD',
 		security_deposit: overrides?.security_deposit || 1500,
-		lease_status: overrides?.lease_status || 'ACTIVE',
+		lease_status: overrides?.lease_status || 'active',
 		payment_day: overrides?.payment_day || 1,
 		auto_pay_enabled: overrides?.auto_pay_enabled || null,
 		grace_period_days: overrides?.grace_period_days || null,
 		late_fee_days: overrides?.late_fee_days || null,
 		late_fee_amount: overrides?.late_fee_amount || null,
 		stripe_subscription_id: overrides?.stripe_subscription_id || null,
+		stripe_subscription_status: overrides?.stripe_subscription_status || 'none',
+		subscription_failure_reason: overrides?.subscription_failure_reason || null,
+		subscription_retry_count: overrides?.subscription_retry_count || 0,
+		subscription_last_attempt_at: overrides?.subscription_last_attempt_at || null,
 		property_owner_id: overrides?.property_owner_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
+		// Signature tracking fields
+		docuseal_submission_id: overrides?.docuseal_submission_id || null,
+		owner_signed_at: overrides?.owner_signed_at || null,
+		owner_signature_ip: overrides?.owner_signature_ip || null,
+		owner_signature_method: overrides?.owner_signature_method || null,
+		tenant_signed_at: overrides?.tenant_signed_at || null,
+		tenant_signature_ip: overrides?.tenant_signature_ip || null,
+		tenant_signature_method: overrides?.tenant_signature_method || null,
+		sent_for_signature_at: overrides?.sent_for_signature_at || null,
 
 		...overrides
 	}
@@ -361,7 +374,7 @@ export function createMockAppConfigService(): jest.Mocked<AppConfigService> {
 
 		// Support
 		getSupportEmail: jest.fn().mockReturnValue('support@example.com'),
-		getSupportPhone: jest.fn().mockReturnValue('(555) 123-4567'),
+		getSupportPhone: jest.fn().mockReturnValue(undefined),
 
 		// Security
 		getIdempotencyKeySecret: jest.fn().mockReturnValue('test-idempotency-key'),

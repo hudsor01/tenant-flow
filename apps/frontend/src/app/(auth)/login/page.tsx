@@ -9,7 +9,7 @@ import { getFieldErrorMessage } from '#lib/utils/form'
 import { useModalStore } from '#stores/modal-store'
 import { authQueryKeys } from '#providers/auth-provider'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { getSupabaseClientInstance } from '@repo/shared/lib/supabase-client'
+import { createClient } from '#utils/supabase/client'
 import { loginZodSchema } from '@repo/shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,7 +24,6 @@ const logger = createLogger({ component: 'LoginPage' })
 function LoginPageContent() {
 	const [showPassword, setShowPassword] = useState(false)
 	const [authError, setAuthError] = useState<string | null>(null)
-	const [isLoading, setIsLoading] = useState(false)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 
 	const { openModal } = useModalStore()
@@ -45,11 +44,10 @@ function LoginPageContent() {
 		defaultValues: { email: '', password: '' },
 		validators: { onSubmit: loginZodSchema },
 		onSubmit: async ({ value }) => {
-			setIsLoading(true)
 			setAuthError(null)
 
 			try {
-				const supabase = getSupabaseClientInstance()
+				const supabase = createClient()
 				const { data, error } = await supabase.auth.signInWithPassword({
 					email: value.email,
 					password: value.password
@@ -100,7 +98,6 @@ function LoginPageContent() {
 			} catch (error) {
 				const message = error instanceof Error ? error.message : 'Please try again'
 				setAuthError(message)
-				setIsLoading(false)
 			}
 		}
 	})
@@ -108,7 +105,7 @@ function LoginPageContent() {
 	const handleGoogleLogin = async () => {
 		setIsGoogleLoading(true)
 		try {
-			const supabase = getSupabaseClientInstance()
+			const supabase = createClient()
 			const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback`
 
 			const { error } = await supabase.auth.signInWithOAuth({
@@ -145,13 +142,13 @@ function LoginPageContent() {
 					</div>
 					<div className="absolute inset-0 bg-black/25" />
 
-					<div className="absolute inset-0 flex items-center justify-center">
+					<div className="absolute inset-0 flex-center">
 						<div className="relative max-w-lg mx-auto px-8">
 							<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
 
 							<div className="relative text-center space-y-6 py-12 px-8">
 								<div className="size-16 mx-auto mb-8">
-									<div className="relative w-full h-full bg-primary rounded-2xl flex items-center justify-center border border-white/20 shadow-lg">
+									<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-white/20 shadow-lg">
 										<Home className="size-8 text-primary-foreground" />
 									</div>
 								</div>
@@ -164,13 +161,13 @@ function LoginPageContent() {
 									Join 10,000+ property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.
 								</p>
 
-								<div className="grid grid-cols-3 gap-6 pt-6">
+								<div className="grid grid-cols-3 gap-(--spacing-6) pt-6">
 									{[
 										{ value: '$2.4K+', label: 'Saved Per\nProperty' },
 										{ value: '98.7%', label: 'Customer\nSuccess' },
 										{ value: '90 sec', label: 'Support\nResponse' }
-									].map((stat, i) => (
-										<div key={i} className="text-center">
+									].map((stat) => (
+										<div key={stat.value} className="text-center">
 											<div className="text-foreground font-bold mb-1 text-base">
 												{stat.value}
 											</div>
@@ -187,12 +184,12 @@ function LoginPageContent() {
 				</div>
 
 				{/* Form Section */}
-				<div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 min-h-screen">
+				<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 min-h-screen">
 					<div className="w-full max-w-sm space-y-8">
 						{/* Logo & Title */}
 						<div className="text-center space-y-4">
 							<div className="size-14 mx-auto">
-								<div className="w-full h-full bg-primary rounded-xl flex items-center justify-center shadow-sm">
+								<div className="w-full h-full bg-primary rounded-xl flex-center shadow-sm">
 									<Home className="size-7 text-primary-foreground" />
 								</div>
 							</div>
@@ -255,7 +252,7 @@ function LoginPageContent() {
 												value={field.state.value}
 												onChange={(e) => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
-												disabled={isLoading}
+												disabled={form.state.isSubmitting}
 												aria-invalid={field.state.meta.errors.length > 0}
 											/>
 										</InputGroup>
@@ -283,7 +280,7 @@ function LoginPageContent() {
 												value={field.state.value}
 												onChange={(e) => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
-												disabled={isLoading}
+												disabled={form.state.isSubmitting}
 												aria-invalid={field.state.meta.errors.length > 0}
 											/>
 											<InputGroupAddon align="inline-end">
@@ -314,9 +311,9 @@ function LoginPageContent() {
 								type="submit"
 								data-testid="login-button"
 								className="w-full h-11 text-sm font-medium"
-								disabled={isLoading || form.state.isSubmitting}
+								disabled={form.state.isSubmitting}
 							>
-								{isLoading || form.state.isSubmitting ? 'Signing in...' : 'Sign In'}
+								{form.state.isSubmitting ? 'Signing in...' : 'Sign In'}
 							</Button>
 
 							{/* Divider */}
@@ -340,7 +337,7 @@ function LoginPageContent() {
 							/>
 
 							{/* Footer Links */}
-							<div className="flex items-center justify-between text-sm text-muted-foreground">
+							<div className="flex-between text-muted">
 								<button
 									type="button"
 									onClick={() => openModal('forgot-password')}
@@ -365,7 +362,7 @@ function LoginPageContent() {
 							<p className="text-muted-foreground/80 text-xs font-medium">
 								Trusted by property managers worldwide
 							</p>
-							<div className="flex items-center justify-center flex-wrap gap-4 sm:gap-6 text-xs">
+							<div className="flex-center flex-wrap gap-(--spacing-4) sm:gap-(--spacing-6) text-xs">
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Lock className="size-3" />
 									<span className="font-medium hidden sm:inline">Bank-level Security</span>

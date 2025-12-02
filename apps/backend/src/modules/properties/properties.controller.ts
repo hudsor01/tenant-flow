@@ -33,8 +33,8 @@ import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type {
-	CreatePropertyRequest,
-	UpdatePropertyRequest
+	CreatePropertyInput,
+	UpdatePropertyInput
 } from '@repo/shared/types/api-contracts'
 import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
@@ -42,9 +42,9 @@ import { PropertyImagesService } from './services/property-images.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
-import { CreatePropertyDto } from './dto/create-property.dto'
-import { UpdatePropertyDto } from './dto/update-property.dto'
-import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
+import type { CreatePropertyDto } from './dto/create-property.dto'
+import type { UpdatePropertyDto } from './dto/update-property.dto'
+import type { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 
 /**
@@ -158,7 +158,7 @@ export class PropertiesController {
 	) {
 		return this.propertiesService.create(
 			req,
-			dto as unknown as CreatePropertyRequest
+			dto as unknown as CreatePropertyInput
 		)
 	}
 
@@ -240,7 +240,7 @@ export class PropertiesController {
 		const property = await this.propertiesService.update(
 			req,
 			id,
-			dto as unknown as UpdatePropertyRequest,
+			dto as unknown as UpdatePropertyInput,
 			expectedVersion
 		)
 		if (!property) {

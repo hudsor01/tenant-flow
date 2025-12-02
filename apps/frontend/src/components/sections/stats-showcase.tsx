@@ -3,7 +3,7 @@
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { NumberTicker } from '#components/ui/number-ticker'
-import { cn } from '#lib/utils'
+import { cn, showcaseCardClasses } from '#lib/design-system'
 
 interface StatsShowcaseProps {
 	className?: string
@@ -55,7 +55,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 			<div className="container px-4 mx-auto relative z-10">
 				<div className="text-center mb-10 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
-						<h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
+						<h2 className="text-responsive-display-lg font-bold tracking-tight text-foreground mb-6 leading-tight">
 							Trusted by property managers
 							<span className="text-primary block">nationwide</span>
 						</h2>
@@ -70,7 +70,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 					{stats.map((stat, index) => (
 						<BlurFade key={stat.label} delay={0.2 + index * 0.1} inView>
 							<div className="relative group">
-								<div className="relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm hover:bg-card/90 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden hover:-translate-y-1 hover:scale-[1.02]">
+								<div className={showcaseCardClasses()}>
 									{/* Animated border beam */}
 									<BorderBeam
 										size={120}
@@ -102,7 +102,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 										</div>
 
 										{/* Enhanced description */}
-										<div className="text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
+										<div className="text-muted group-hover:text-foreground/80 transition-colors duration-300">
 											{stat.description}
 										</div>
 									</div>

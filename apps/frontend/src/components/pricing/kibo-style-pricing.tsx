@@ -12,7 +12,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import { cn } from '#lib/utils'
+import { pricingCardClasses } from '#lib/design-system'
 import { ArrowRight, BadgeCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useStripeProducts } from '#hooks/use-stripe-products'
@@ -246,17 +246,14 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		const plansToShow = fallbackPricingPlans
 		return (
 			<>
-					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-[var(--spacing-4)] sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
-					<p className="text-center text-sm text-muted-foreground">
+					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
+					<p className="text-center text-muted">
 						Loading live pricing...
 					</p>
-						<div className="mt-10 grid w-full gap-[var(--spacing-6)] sm:grid-cols-2 xl:grid-cols-3">
+						<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
 						{plansToShow.map(plan => (
 							<Card
-								className={cn(
-									'relative flex h-full flex-col overflow-hidden border border-border/60 bg-card/80 text-left shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg opacity-60',
-									plan.popular && 'ring-2 ring-primary/70'
-								)}
+								className={pricingCardClasses(plan.popular)}
 								key={plan.id}
 							>
 									<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
@@ -296,10 +293,10 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 								</CardHeader>
 								<CardContent className="flex-1 space-y-6">
 									<ul className="space-y-[var(--spacing-3)]">
-										{plan.features.map((feature, index) => (
-												<li key={index} className="flex items-start gap-[var(--spacing-3)]">
+										{plan.features.map((feature) => (
+												<li key={feature} className="flex items-start gap-[var(--spacing-3)]">
 												<BadgeCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-												<span className="text-sm text-muted-foreground">
+												<span className="text-muted">
 													{feature}
 												</span>
 											</li>
@@ -325,20 +322,17 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 
 	return (
 		<>
-				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-[var(--spacing-4)] sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
+				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
 				{usingFallback && (
-					<p className="text-center text-sm text-muted-foreground">
+					<p className="text-center text-muted">
 						Live pricing is warming up. Showing the default TenantFlow plans
 						with active Stripe checkout links.
 					</p>
 				)}
-					<div className="mt-10 grid w-full gap-[var(--spacing-6)] sm:grid-cols-2 xl:grid-cols-3">
+					<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card
-							className={cn(
-								'relative flex h-full flex-col overflow-hidden border border-border/60 bg-card/80 text-left shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg',
-								plan.popular && 'ring-2 ring-primary/70'
-							)}
+							className={pricingCardClasses(plan.popular)}
 							key={plan.id}
 						>
 						<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
@@ -377,10 +371,10 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 								</CardDescription>
 							</CardHeader>
 						<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
-								{plan.features.map((feature, index) => (
+								{plan.features.map((feature) => (
 									<div
 										className="flex gap-[var(--spacing-2)] text-left text-sm leading-6 text-muted-foreground"
-										key={index}
+										key={feature}
 									>
 										<BadgeCheck className="mt-1 h-4 w-4 flex-none text-success" />
 										{feature}

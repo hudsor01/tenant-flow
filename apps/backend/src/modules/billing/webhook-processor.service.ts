@@ -40,7 +40,7 @@ interface TenantWithEmail {
  *
  * if (isTenantWithEmail(data)) {
  *   // TypeScript now knows data.users.email is a string
- *   console.log(data.users.email)
+ *   // Example: inspect webhook payload email for debugging
  * } else {
  *   // Handle invalid data structure
  *   logger.error('Invalid tenant data')
@@ -77,6 +77,10 @@ export class WebhookProcessor {
 
 			case 'payment_method.attached':
 				await this.handlePaymentAttached(event.data.object as Stripe.PaymentMethod)
+				break
+
+			case 'customer.subscription.created':
+				await this.handleSubscriptionCreated(event.data.object as Stripe.Subscription)
 				break
 
 			case 'customer.subscription.updated':
@@ -126,43 +130,125 @@ export class WebhookProcessor {
 				return
 			}
 
-			const { data: tenant } = await client
+			// Fetch tenant and email in a single query to avoid multiple round-trips
+			const { data: tenantWithUser, error: tenantLookupError } = await client
 				.from('tenants')
-				.select('id')
+				.select('id, user_id, users!inner(email)')
 				.eq('stripe_customer_id', customerId)
 				.single()
 
-			if (!tenant) {
+			if (tenantLookupError || !tenantWithUser) {
 				this.logger.warn('Tenant not found for payment method', {
-					customerId: paymentMethod.customer
+					customerId: paymentMethod.customer,
+					error: tenantLookupError?.message
 				})
 				return
 			}
 
-			const { data: tenantWithUser } = await client
-				.from('tenants')
-				.select('id, user_id, users!inner(email)')
-				.eq('id', tenant.id)
-				.single()
-
-			if (tenantWithUser) {
-				await client
-					.from('tenant_invitations')
-					.update({
-						status: 'accepted',
-						accepted_by_user_id: tenantWithUser.user_id,
-						accepted_at: new Date().toISOString()
-					})
-					.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
-					.eq('status', 'pending')
-			}
+			await client
+				.from('tenant_invitations')
+				.update({
+					status: 'accepted',
+					accepted_by_user_id: tenantWithUser.user_id,
+					accepted_at: new Date().toISOString()
+				})
+				.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
+				.eq('status', 'pending')
 
 			this.logger.log('Tenant invitation accepted', {
-				tenant_id: tenant.id
+				tenant_id: tenantWithUser.id
 			})
 		} catch (error) {
 			this.logger.error('Failed to handle payment method attached', {
 				error: error instanceof Error ? error.message : String(error)
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Handle customer.subscription.created webhook
+	 * Belt-and-suspenders confirmation of subscription creation
+	 * Updates stripe_subscription_status to 'active' if still 'pending'
+	 */
+	private async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
+		try {
+			this.logger.log('Subscription created webhook received', {
+				subscriptionId: subscription.id,
+				status: subscription.status,
+				metadata: subscription.metadata
+			})
+
+			const client = this.supabase.getAdminClient()
+
+			// Get lease_id from subscription metadata (set during creation)
+			const leaseId = subscription.metadata?.lease_id
+
+			if (leaseId) {
+				// Find lease by ID from metadata
+				const { data: lease } = await client
+					.from('leases')
+					.select('id, stripe_subscription_status, stripe_subscription_id')
+					.eq('id', leaseId)
+					.single()
+
+				if (lease) {
+					// Only update if still pending (avoid overwriting active status)
+					if (lease.stripe_subscription_status === 'pending') {
+						await client
+							.from('leases')
+							.update({
+								stripe_subscription_id: subscription.id,
+								stripe_subscription_status: 'active',
+								subscription_failure_reason: null,
+								updated_at: new Date().toISOString()
+							})
+							.eq('id', lease.id)
+
+						this.logger.log('Lease subscription confirmed via webhook', {
+							leaseId: lease.id,
+							subscriptionId: subscription.id
+						})
+					} else {
+						this.logger.debug('Lease subscription already active, skipping update', {
+							leaseId: lease.id,
+							currentStatus: lease.stripe_subscription_status
+						})
+					}
+				} else {
+					this.logger.warn('Lease not found for subscription metadata', {
+						leaseId,
+						subscriptionId: subscription.id
+					})
+				}
+			} else {
+				// Fallback: Find by subscription ID (for edge cases)
+				const { data: lease } = await client
+					.from('leases')
+					.select('id, stripe_subscription_status')
+					.eq('stripe_subscription_id', subscription.id)
+					.maybeSingle()
+
+				if (lease && lease.stripe_subscription_status === 'pending') {
+					await client
+						.from('leases')
+						.update({
+							stripe_subscription_status: 'active',
+							subscription_failure_reason: null,
+							updated_at: new Date().toISOString()
+						})
+						.eq('id', lease.id)
+
+					this.logger.log('Lease subscription status confirmed via webhook (fallback)', {
+						leaseId: lease.id,
+						subscriptionId: subscription.id
+					})
+				}
+			}
+		} catch (error) {
+			this.logger.error('Failed to handle subscription created', {
+				error: error instanceof Error ? error.message : String(error),
+				subscriptionId: subscription.id
 			})
 			throw error
 		}
@@ -517,14 +603,12 @@ export class WebhookProcessor {
 
 			const client = this.supabase.getAdminClient()
 
-			// Determine onboarding status based on Stripe account state
-			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' | 'rejected' = 'in_progress'
+			// Determine onboarding status based on Stripe account state while respecting DB constraint
+			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' = 'in_progress'
 			if (account.details_submitted && account.charges_enabled && account.payouts_enabled) {
 				onboardingStatus = 'completed'
-			} else if (account.requirements?.disabled_reason) {
-				onboardingStatus = 'rejected'
 			} else if (!account.details_submitted) {
-				onboardingStatus = 'in_progress'
+				onboardingStatus = 'not_started'
 			}
 
 			// Combine currently_due and eventually_due requirements
@@ -681,30 +765,38 @@ export class WebhookProcessor {
 			}
 
 			if (rentPayment) {
-				const { error: updateError } = await client
-					.from('rent_payments')
-					.update({
+				const [updateResult, transactionResult] = await Promise.all([
+					client
+						.from('rent_payments')
+						.update({
+							status: 'failed',
+							updated_at: new Date().toISOString()
+						})
+						.eq('id', rentPayment.id),
+					client.from('payment_transactions').insert({
+						rent_payment_id: rentPayment.id,
+						stripe_payment_intent_id: paymentIntent.id,
 						status: 'failed',
-						updated_at: new Date().toISOString()
+						amount: paymentIntent.amount,
+						failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
+						attempted_at: new Date().toISOString()
 					})
-					.eq('id', rentPayment.id)
+				])
 
-				if (updateError) {
+				if (updateResult.error) {
 					this.logger.error('Failed to update rent payment status to failed', {
-						error: updateError.message,
+						error: updateResult.error.message,
 						rentPaymentId: rentPayment.id
 					})
 				}
 
-				// Record payment transaction with failure details
-				await client.from('payment_transactions').insert({
-					rent_payment_id: rentPayment.id,
-					stripe_payment_intent_id: paymentIntent.id,
-					status: 'failed',
-					amount: paymentIntent.amount,
-					failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
-					attempted_at: new Date().toISOString()
-				})
+				if (transactionResult?.error) {
+					this.logger.error('Failed to record failed payment transaction', {
+						error: transactionResult.error.message,
+						rentPaymentId: rentPayment.id,
+						paymentIntentId: paymentIntent.id
+					})
+				}
 
 				this.logger.warn('Rent payment failed', {
 					rentPaymentId: rentPayment.id,
@@ -738,7 +830,6 @@ export class WebhookProcessor {
 						const attemptCount = paymentIntent.metadata?.attempt_count
 							? parseInt(paymentIntent.metadata.attempt_count, 10)
 							: 1
-						// Use latest_charge instead of deprecated charges.data
 						const latestCharge = paymentIntent.latest_charge
 						const invoiceUrl = latestCharge && typeof latestCharge === 'object' && 'receipt_url' in latestCharge
 							? latestCharge.receipt_url ?? null

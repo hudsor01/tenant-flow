@@ -1,4 +1,4 @@
-import type { Logger } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 
 /**
  * Retry configuration constants

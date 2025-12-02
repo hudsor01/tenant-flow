@@ -11,7 +11,7 @@ import {
 } from '#components/ui/card'
 import { getAnalyticsPageData } from '#lib/api/analytics-page'
 import { serverFetch } from '#lib/api/server'
-import { formatCurrency, formatPercentage } from '@repo/shared/utils/currency'
+import { formatCurrency, formatPercentage } from '#lib/formatters/currency'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 import type { DashboardStats, DashboardSummary, PropertyPerformance } from '@repo/shared/types/core'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
@@ -51,7 +51,7 @@ export default async function AnalyticsPage() {
 			{/* Top Metric Cards Section - Matching Dashboard */}
 			<div className="border-b bg-background p-6 border-muted">
 				<div className="mx-auto max-w-400 py-4">
-					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-(--spacing-4) px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{/* Total Revenue */}
 						<Card className="@container/card">
 							<CardHeader>
@@ -196,16 +196,16 @@ export default async function AnalyticsPage() {
 								</div>
 							</CardHeader>
 							<div className="px-6 pb-6">
-								<div className="flex items-center gap-4 mb-4">
+								<div className="flex items-center gap-(--spacing-4) mb-4">
 									<div className="flex items-center gap-2">
 										<div className="size-3 rounded-full bg-chart-3"></div>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											Revenue
 										</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<div className="size-3 rounded-full bg-chart-5"></div>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted">
 											Expenses
 										</span>
 									</div>
@@ -232,18 +232,18 @@ export default async function AnalyticsPage() {
 										.slice(0, 5)
 										.map((property, index: number) => (
 											<div
-												key={index}
-												className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
+												key={property.property ?? `property-${index}`}
+												className="flex-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
 											>
 												<div className="flex items-center gap-3">
-													<div className="size-11 rounded-full bg-background border flex items-center justify-center font-semibold text-sm">
+													<div className="size-11 rounded-full bg-background border flex-center font-semibold text-sm">
 														{index + 1}
 													</div>
 													<div>
 														<p className="font-medium">
 															{property.property || 'Unknown Property'}
 														</p>
-														<p className="text-sm text-muted-foreground">
+														<p className="text-muted">
 															{property.occupiedUnits || 0}/
 															{property.totalUnits || 0} units occupied
 														</p>

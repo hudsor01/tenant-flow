@@ -9,6 +9,10 @@ import { useUnitList } from '#hooks/api/use-unit'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Calendar, Home, User } from 'lucide-react'
 import Link from 'next/link'
+import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
+import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
+import { SignLeaseButton } from '#components/leases/sign-lease-button'
+import { LEASE_STATUS } from '#lib/constants/status-values'
 
 interface LeaseDetailsProps {
 	id: string
@@ -49,10 +53,36 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 		)
 	}
 
+	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
+	const isPendingSignature = lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
+	const tenantFullName = tenant?.first_name || tenant?.last_name
+		? `${tenant?.first_name ?? ''} ${tenant?.last_name ?? ''}`.trim()
+		: tenant?.name
+
+	// Build props conditionally to satisfy exactOptionalPropertyTypes
+	const signatureButtonProps: { leaseId: string; size: 'sm'; tenantName?: string } = {
+		leaseId: lease.id,
+		size: 'sm'
+	}
+	if (tenantFullName) {
+		signatureButtonProps.tenantName = tenantFullName
+	}
+
 	return (
-		<div className="grid gap-6 lg:grid-cols-3">
-			<div className="lg:col-span-2 flex flex-col gap-4">
-				<div className="flex justify-end mb-2">
+		<div className="grid gap-(--spacing-6) lg:grid-cols-3">
+			<div className="lg:col-span-2 flex flex-col gap-(--spacing-4)">
+				<div className="flex justify-end gap-2 mb-2">
+					{isDraft && tenant && (
+						<SendForSignatureButton {...signatureButtonProps} />
+					)}
+					{isPendingSignature && (
+						<SignLeaseButton
+							leaseId={lease.id}
+							role="owner"
+							alreadySigned={!!lease.owner_signed_at}
+							size="sm"
+						/>
+					)}
 					<Button asChild variant="outline" size="sm">
 						<Link href={`/leases/${lease.id}/edit`}>Edit lease</Link>
 					</Button>
@@ -67,9 +97,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							<h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
 								Key details
 							</h2>
-							<div className="grid gap-4 md:grid-cols-2">
+							<div className="grid gap-(--spacing-4) md:grid-cols-2">
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted">
 										<Calendar className="size-4" />
 										Lease period
 									</div>
@@ -84,7 +114,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 									</p>
 								</div>
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted">
 										<Home className="size-4" />
 										Monthly rent
 									</div>
@@ -104,17 +134,17 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							</h2>
 							{tenant ? (
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<div className="flex items-center gap-2 text-muted">
 										<User className="size-4" />
 										Assigned tenant
 									</div>
 									<p className="mt-1 text-sm font-medium">{tenant.first_name || tenant.last_name ? `${tenant.first_name ?? ''} ${tenant.last_name ?? ''}`.trim() : tenant.name || 'Unknown'}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-muted">
                               {tenant.email}
 									</p>
 								</div>
 							) : (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-muted">
 									No tenant assigned
 								</p>
 							)}
@@ -127,24 +157,31 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							{unit ? (
 								<div className="rounded-xl border bg-muted/20 p-4">
 									<p className="text-sm font-medium">Unit {unit.unit_number}</p>
-									<p className="text-sm text-muted-foreground">
+									<p className="text-muted">
 										{unit.bedrooms} bd · {unit.bathrooms} ba
 									</p>
 								</div>
 							) : (
-								<p className="text-sm text-muted-foreground">No unit linked</p>
+								<p className="text-muted">No unit linked</p>
 							)}
 						</section>
 					</div>
 				</CardLayout>
 			</div>
-			<CardLayout
-				title="Security deposit"
-				description={new Intl.NumberFormat('en-US', {
-					style: 'currency',
-					currency: 'USD'
-				}).format(lease.security_deposit ?? 0)}
-			/>
+			<div className="flex flex-col gap-(--spacing-4)">
+				{/* Signature Status - show for draft and pending_signature leases */}
+				{(isDraft || isPendingSignature) && (
+					<LeaseSignatureStatus leaseId={lease.id} />
+				)}
+
+				<CardLayout
+					title="Security deposit"
+					description={new Intl.NumberFormat('en-US', {
+						style: 'currency',
+						currency: 'USD'
+					}).format(lease.security_deposit ?? 0)}
+				/>
+			</div>
 		</div>
 	)
 }

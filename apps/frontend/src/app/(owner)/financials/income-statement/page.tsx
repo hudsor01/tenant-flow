@@ -56,7 +56,7 @@ const IncomeStatementPage = () => {
 	}, [period, year])
 
 	// Fetch data from backend
-	const { data: response, isLoading, error } = useIncomeStatement(dateRange)
+	const { data: response, isLoading, error, refetch } = useIncomeStatement(dateRange)
 
 	// Extract data from API response ({success: true, data: IncomeStatementData})
 	const data = response?.data
@@ -69,10 +69,10 @@ const IncomeStatementPage = () => {
 	// Show loading state
 	if (isLoading) {
 		return (
-			<div className="p-6 flex items-center justify-center min-h-[400px]">
-				<div className="flex flex-col items-center gap-4">
+			<div className="p-6 flex-center min-h-[400px]">
+				<div className="flex flex-col items-center gap-(--spacing-4)">
 					<Loader2 className="w-8 h-8 animate-spin text-primary" />
-					<p className="text-sm text-muted-foreground">Loading income statement...</p>
+					<p className="text-muted">Loading income statement...</p>
 				</div>
 			</div>
 		)
@@ -84,17 +84,17 @@ const IncomeStatementPage = () => {
 			<div className="p-6">
 				<Card>
 					<CardContent className="p-6">
-						<div className="flex flex-col items-center gap-4 text-center">
+						<div className="flex flex-col items-center gap-(--spacing-4) text-center">
 							<div className="text-red-600">
 								<TrendingDown className="w-12 h-12" />
 							</div>
 							<div>
 								<h3 className="text-lg font-semibold">Failed to Load Income Statement</h3>
-								<p className="text-sm text-muted-foreground mt-2">
+								<p className="text-muted mt-2">
 									{error instanceof Error ? error.message : 'An error occurred'}
 								</p>
 							</div>
-							<Button onClick={() => window.location.reload()}>Try Again</Button>
+							<Button onClick={() => void refetch()}>Try Again</Button>
 						</div>
 					</CardContent>
 				</Card>
@@ -105,10 +105,10 @@ const IncomeStatementPage = () => {
 	return (
 		<div className="p-6 space-y-6">
 			{/* Header */}
-			<div className="flex items-center justify-between">
+			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold">Income Statement</h1>
-					<p className="text-gray-600">
+					<p className="text-muted-foreground">
 						Revenue, expenses, and net income over a period
 					</p>
 				</div>
@@ -127,7 +127,7 @@ const IncomeStatementPage = () => {
 			{/* Filters */}
 			<Card>
 				<CardContent className="p-4">
-					<div className="flex flex-wrap items-center gap-4">
+					<div className="flex flex-wrap items-center gap-(--spacing-4)">
 						<div className="flex items-center gap-2">
 								<Label>Period</Label>
 								<Select value={period} onValueChange={setPeriod}>
@@ -170,14 +170,14 @@ const IncomeStatementPage = () => {
 			</Card>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-6)">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-						<DollarSign className="h-4 w-4 text-green-600" />
+						<DollarSign className="h-4 w-4 text-success" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-green-600">
+						<div className="text-2xl font-bold text-success">
 							${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
 						<p className="text-xs text-muted-foreground">
@@ -208,7 +208,7 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-red-600'}`}
 						>
 							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
@@ -225,25 +225,25 @@ const IncomeStatementPage = () => {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<DollarSign className="w-5 h-5 text-green-600" />
+							<DollarSign className="w-5 h-5 text-success" />
 							Revenue
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Rental Income</span>
 								<span className="font-semibold">
 									${(data?.revenue.rentalIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Late Fees Income</span>
 								<span className="font-semibold">
 									${(data?.revenue.lateFeesIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Other Income</span>
 								<span className="font-semibold">
 									${(data?.revenue.otherIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -251,9 +251,9 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+						<div className="flex-between p-3 bg-green-50 rounded-lg">
 							<div className="font-semibold">Total Revenue</div>
-							<div className="font-bold text-lg text-green-600">
+							<div className="font-bold text-lg text-success">
 								${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 							</div>
 						</div>
@@ -270,43 +270,43 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Property Management</span>
 								<span className="font-semibold">
 									${(data?.expenses.propertyManagement || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Maintenance</span>
 								<span className="font-semibold">
 									${(data?.expenses.maintenance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Utilities</span>
 								<span className="font-semibold">
 									${(data?.expenses.utilities || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Insurance</span>
 								<span className="font-semibold">
 									${(data?.expenses.insurance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Property Tax</span>
 								<span className="font-semibold">
 									${(data?.expenses.propertyTax || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Mortgage</span>
 								<span className="font-semibold">
 									${(data?.expenses.mortgage || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
-							<div className="flex justify-between p-3 bg-gray-50 rounded-lg">
+							<div className="flex justify-between p-3 bg-muted/50 rounded-lg">
 								<span>Other</span>
 								<span className="font-semibold">
 									${(data?.expenses.other || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -314,7 +314,7 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+						<div className="flex-between p-3 bg-red-50 rounded-lg">
 							<div className="font-semibold">Total Expenses</div>
 							<div className="font-bold text-lg text-red-600">
 								${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -334,7 +334,7 @@ const IncomeStatementPage = () => {
 						<div className="space-y-2">
 							<div className="flex justify-between py-2 border-b">
 								<span>Total Revenue</span>
-								<span className="font-semibold text-green-600">
+								<span className="font-semibold text-success">
 									${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
@@ -358,23 +358,23 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex items-center justify-between p-4 bg-corporate-blue-50 rounded-lg">
+						<div className="flex-between p-4 bg-corporate-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
-								className={`text-xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'}`}
+								className={`text-xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-red-600'}`}
 							>
 								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 							</div>
 						</div>
 						{data?.previousPeriod && (
-							<div className="mt-4 p-3 bg-gray-50 rounded-lg">
-								<div className="text-sm text-gray-600 mb-2">Period Comparison</div>
+							<div className="mt-4 p-3 bg-muted/50 rounded-lg">
+								<div className="text-muted mb-2">Period Comparison</div>
 								<div className="flex items-center gap-2">
 									<span className="text-sm">Previous Period:</span>
 									<span className="font-semibold">
 										${data.previousPeriod.netIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 									</span>
-									<span className={`text-sm ${data.previousPeriod.changePercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+									<span className={`text-sm ${data.previousPeriod.changePercent >= 0 ? 'text-success' : 'text-red-600'}`}>
 										({data.previousPeriod.changePercent >= 0 ? '+' : ''}{data.previousPeriod.changePercent.toFixed(1)}%)
 									</span>
 								</div>

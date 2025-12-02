@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
 				className="border-b bg-background p-6 border-(--color-fill-tertiary)"
 			>
 				<div className="mx-auto max-w-400 py-4">
-					<div className="flex items-center justify-between mb-4">
+					<div className="flex-between mb-4">
 						<div>
 							<h1 className="text-3xl font-bold">Analytics Dashboard</h1>
 							<p className="text-muted-foreground mt-1">
@@ -100,7 +100,7 @@ export default function AnalyticsPage() {
 						</Select>
 					</div>
 
-					<div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+					<div className="grid grid-cols-1 gap-(--spacing-4) *:data-[slot=card]:bg-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{paymentsLoading ? (
 							<>
 								<Skeleton className="h-28" />
@@ -222,7 +222,7 @@ export default function AnalyticsPage() {
 			</div>
 
 			<div className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto max-w-400 flex flex-col gap-6">
+				<div className="mx-auto max-w-400 flex flex-col gap-(--spacing-6)">
 					{/* Revenue Chart */}
 					<Card className="@container/card">
 						<div className="p-6 border-b">
@@ -282,17 +282,17 @@ export default function AnalyticsPage() {
 										<XAxis
 											dataKey="month"
 											className="text-xs"
-											tick={{ fill: 'var(--muted-foreground)' }}
+											tick={{ fill: 'var(--color-muted-foreground)' }}
 										/>
 										<YAxis
 											className="text-xs"
-											tick={{ fill: 'var(--muted-foreground)' }}
+											tick={{ fill: 'var(--color-muted-foreground)' }}
 											tickFormatter={formatCurrency}
 										/>
 										<Tooltip
 											contentStyle={{
-												backgroundColor: 'var(--background)',
-												border: '1px solid var(--border)',
+												backgroundColor: 'var(--color-background)',
+												border: '1px solid var(--color-border)',
 												borderRadius: '8px'
 											}}
 											formatter={(value: number) => formatCurrency(value)}
@@ -317,14 +317,14 @@ export default function AnalyticsPage() {
 									</AreaChart>
 								</ResponsiveContainer>
 							) : (
-								<div className="h-80 flex items-center justify-center text-muted-foreground">
+								<div className="h-80 flex-center text-muted-foreground">
 									No revenue data available
 								</div>
 							)}
 						</div>
 					</Card>
 
-					<div className="grid lg:grid-cols-2 gap-6">
+					<div className="grid lg:grid-cols-2 gap-(--spacing-6)">
 						{/* Payment Methods Breakdown */}
 						<Card className="@container/card">
 							<div className="p-6 border-b">
@@ -357,16 +357,16 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="name"
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'var(--background)',
-													border: '1px solid var(--border)',
+													backgroundColor: 'var(--color-background)',
+													border: '1px solid var(--color-border)',
 													borderRadius: '8px'
 												}}
 											/>
@@ -374,7 +374,7 @@ export default function AnalyticsPage() {
 										</BarChart>
 									</ResponsiveContainer>
 								) : (
-									<div className="h-64 flex items-center justify-center text-muted-foreground">
+									<div className="h-64 flex-center text-muted-foreground">
 										No payment data available
 									</div>
 								)}
@@ -403,21 +403,21 @@ export default function AnalyticsPage() {
 											<XAxis
 												dataKey="propertyName"
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 												angle={-45}
 												textAnchor="end"
 												height={80}
 											/>
 											<YAxis
 												className="text-xs"
-												tick={{ fill: 'var(--muted-foreground)' }}
+												tick={{ fill: 'var(--color-muted-foreground)' }}
 												domain={[0, 100]}
 												tickFormatter={formatPercent}
 											/>
 											<Tooltip
 												contentStyle={{
-													backgroundColor: 'var(--background)',
-													border: '1px solid var(--border)',
+													backgroundColor: 'var(--color-background)',
+													border: '1px solid var(--color-border)',
 													borderRadius: '8px'
 												}}
 												formatter={(value: number) => formatPercent(value)}
@@ -432,7 +432,7 @@ export default function AnalyticsPage() {
 										</LineChart>
 									</ResponsiveContainer>
 								) : (
-									<div className="h-64 flex items-center justify-center text-muted-foreground">
+									<div className="h-64 flex-center text-muted-foreground">
 										No occupancy data available
 									</div>
 								)}
@@ -469,9 +469,9 @@ export default function AnalyticsPage() {
 											</tr>
 										</thead>
 										<tbody>
-											{occupancyMetrics.byProperty.map((property, index) => (
+											{occupancyMetrics.byProperty.map((property) => (
 												<tr
-													key={index}
+													key={property.propertyName}
 													className="border-b hover:bg-muted/30 transition-colors"
 												>
 													<td className="p-3 font-medium">
