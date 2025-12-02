@@ -12,6 +12,7 @@ import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { LeaseSignatureService } from './lease-signature.service'
+import { logError } from '../../utils/error-serializer'
 
 /** Maximum number of subscription creation retry attempts */
 const MAX_RETRY_ATTEMPTS = 5
@@ -69,7 +70,7 @@ export class SubscriptionRetryService {
 			.limit(10) as { data: LeaseWithSubscriptionPending[] | null; error: unknown }
 
 		if (error) {
-			this.logger.error('Failed to query leases for subscription retry', { error })
+			this.logger.error(logError('Failed to query leases for subscription retry', error))
 			return
 		}
 

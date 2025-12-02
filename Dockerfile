@@ -47,13 +47,13 @@ FROM base AS build
 
 ENV DOPPLER_DISABLED=1 \
     TURBO_TELEMETRY_DISABLED=1 \
-    NODE_OPTIONS="--max-old-space-size=2048"
+    NODE_OPTIONS="--max-old-space-size=4096"
 
 # Copy deps and full source
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Reinstall to link workspace packages
+# Reinstall to link workspace packages (skip scripts - not needed for build)
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --prefer-offline
 
@@ -129,6 +129,6 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/backend/dist/main.js"]
 
-LABEL maintainer="TenantFlow Team" \
+LABEL maintainer="TenantFlow" \
       version="1.0.2" \
-      description="TenantFlow Backend Service (Optimized)"
+      description="TenantFlow Backend Service"
