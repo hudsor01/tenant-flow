@@ -7,7 +7,7 @@ import {
 	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
-import type { Reflector } from '@nestjs/core'
+import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
 import { AppConfigService } from '../config/app-config.service'
 
