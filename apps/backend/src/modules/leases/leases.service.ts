@@ -450,7 +450,7 @@ export class LeasesService {
 			const lease = data as Lease
 
 			// Invalidate lease caches after creation
-			this.invalidateLeaseCaches(lease.id, lease.tenant_id)
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
 
 			return lease
 		} catch (error) {
@@ -549,7 +549,7 @@ export class LeasesService {
 			const lease = data as Lease
 
 			// Invalidate lease caches after update
-			this.invalidateLeaseCaches(lease.id, lease.tenant_id)
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
 
 			return lease
 		} catch (error) {
@@ -608,7 +608,7 @@ export class LeasesService {
 			}
 
 			// Invalidate lease caches after deletion
-			this.invalidateLeaseCaches(lease_id, existingLease.tenant_id)
+			this.invalidateLeaseCaches(lease_id, existingLease.primary_tenant_id)
 		} catch (error) {
 			this.logger.error('Leases service failed to remove lease', {
 				error: error instanceof Error ? error.message : String(error),
@@ -691,7 +691,7 @@ export class LeasesService {
 			const lease = data as Lease
 
 			// Invalidate lease caches after renewal
-			this.invalidateLeaseCaches(lease.id, lease.tenant_id)
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
 
 			return lease
 		} catch (error) {
@@ -773,7 +773,7 @@ export class LeasesService {
 			const lease = data as Lease
 
 			// Invalidate lease caches after termination
-			this.invalidateLeaseCaches(lease.id, lease.tenant_id)
+			this.invalidateLeaseCaches(lease.id, lease.primary_tenant_id)
 
 			return lease
 		} catch (error) {

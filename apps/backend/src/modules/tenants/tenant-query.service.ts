@@ -97,7 +97,7 @@ export class TenantQueryService {
 		if (!userId) throw new BadRequestException('User ID required')
 
 		// Check cache first
-		const cacheKey = ZeroCacheService.getUserKey(userId, 'tenants:findAll', filters)
+		const cacheKey = ZeroCacheService.getUserKey(userId, 'tenants:findAll', filters as Record<string, unknown>)
 		const cached = this.cache.get<Tenant[]>(cacheKey)
 		if (cached) return cached
 

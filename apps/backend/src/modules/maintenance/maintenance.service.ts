@@ -50,16 +50,16 @@ export class MaintenanceService {
 	 * Invalidate maintenance-related caches
 	 * Uses ZeroCacheService surgical invalidation
 	 */
-	private invalidateMaintenanceCaches(request_id?: string, property_id?: string): void {
+	private invalidateMaintenanceCaches(request_id?: string, unit_id?: string): void {
 		if (request_id) {
 			this.cache.invalidateByEntity('maintenance', request_id)
 		}
-		if (property_id) {
-			this.cache.invalidateByEntity('properties', property_id)
+		if (unit_id) {
+			this.cache.invalidateByEntity('units', unit_id)
 		}
 		// Invalidate general maintenance lists
 		this.cache.invalidate('maintenance:list')
-		this.logger.debug('Invalidated maintenance caches', { request_id, property_id })
+		this.logger.debug('Invalidated maintenance caches', { request_id, unit_id })
 	}
 
 	/**
@@ -519,7 +519,7 @@ export class MaintenanceService {
 			})
 
 			// Invalidate maintenance caches after creation
-			this.invalidateMaintenanceCaches(maintenance.id, maintenance.property_id)
+			this.invalidateMaintenanceCaches(maintenance.id, maintenance.unit_id)
 
 			return maintenance
 		} catch (error) {
@@ -681,7 +681,7 @@ export class MaintenanceService {
 			}
 
 			// Invalidate maintenance caches after update
-			this.invalidateMaintenanceCaches(updated.id, updated.property_id)
+			this.invalidateMaintenanceCaches(updated.id, updated.unit_id)
 
 			return updated
 		} catch (error) {
@@ -817,7 +817,7 @@ export class MaintenanceService {
 			const updated = data as MaintenanceRequest
 
 			// Invalidate maintenance caches after status update
-			this.invalidateMaintenanceCaches(updated.id, updated.property_id)
+			this.invalidateMaintenanceCaches(updated.id, updated.unit_id)
 
 			return updated
 		} catch (error) {
@@ -901,7 +901,7 @@ export class MaintenanceService {
 			const completed = data as MaintenanceRequest
 
 			// Invalidate maintenance caches after completion
-			this.invalidateMaintenanceCaches(completed.id, completed.property_id)
+			this.invalidateMaintenanceCaches(completed.id, completed.unit_id)
 
 			return completed
 		} catch (error) {
