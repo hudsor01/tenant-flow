@@ -11,11 +11,6 @@ import { ConnectPayoutsService } from './connect-payouts.service'
  * - ConnectSetupService: Account creation and onboarding
  * - ConnectBillingService: Customer and subscription management
  * - ConnectPayoutsService: Balance, payouts, and transfers
- *
- * @deprecated Direct service injection preferred. Use specific services directly:
- * - ConnectSetupService for account setup
- * - ConnectBillingService for billing operations
- * - ConnectPayoutsService for financial reporting
  */
 @Injectable()
 export class StripeConnectService {
