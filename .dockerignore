@@ -1,101 +1,98 @@
-# .dockerignore for TenantFlow monorepo
+# .dockerignore for TenantFlow Backend
+# Optimized for minimal build context
 
-# Dependencies
+# ===========================================
+# ALWAYS EXCLUDE - Large directories first
+# ===========================================
 
+# Node modules (installed fresh in Docker)
 **/node_modules
-**/.pnp
-\*\*/.pnp.js
 
-# Testing
+# Build outputs (built fresh in Docker)
+**/dist
+**/build
+**/.turbo
+**/.next
+**/.vite
 
+# Test artifacts
 **/coverage
 **/.nyc_output
 **/test-results
 **/playwright-report
 **/playwright/.cache
-**/_.test._ \*_/_.spec.\*
+**/*.spec.ts
+**/*.test.ts
 
-# Build outputs (we build fresh in Docker)
+# ===========================================
+# FRONTEND - Not needed for backend image
+# ===========================================
+apps/frontend
+apps/e2e-tests
 
-**/dist
-**/build
-**/.turbo
-**/.next
-\*\*/.vite
+# ===========================================
+# DEVELOPMENT FILES
+# ===========================================
 
-# Development files
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+!.env.docker.example
 
-**/.env
-**/.env._
-!**/.env.example
-**/_.log
-**/npm-debug.log\*
-**/yarn-debug.log*
-\*\*/yarn-error.log*
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
 
-**/.idea
-**/.vscode
-**/\*.swp
-**/\*.swo
-\*\*/~
+# OS
+.DS_Store
+Thumbs.db
 
-# OS files
-
-**/.DS_Store
-**/Thumbs.db
-
-# Git
-
+# ===========================================
+# GIT & CI/CD
+# ===========================================
 .git
 .gitignore
 .gitattributes
-
-# Documentation
-
-\*.md
-!README.md
-docs
-
-# CI/CD
-
 .github
 .gitlab-ci.yml
 .travis.yml
 
-# Misc
+# ===========================================
+# DOCUMENTATION
+# ===========================================
+*.md
+!README.md
+docs/
+CLAUDE.md
 
-**/\*.map
+# ===========================================
+# MISC
+# ===========================================
+*.map
 **/.cache
 **/tmp
 **/temp
-**/\*.pem
-**/\*.key
-
-# Vercel
-
+*.pem
+*.key
 .vercel
-api
+**/.pnp
+**/.pnp.js
 
-# Frontend (we only need backend in this image)
+# Docker files (avoid recursion)
+docker-compose*.yml
+docker-bake.hcl
+Dockerfile.optimized
 
-apps/frontend
-
-# E2E tests
-
-apps/e2e
-
-# Keep these
-
-!package.json
-!package-lock.json
-!turbo.json
-!apps/backend/package.json
-!apps/backend/package-lock.json
-!packages/shared/package.json
-!packages/shared/package-lock.json
-.env*
-.flaskenv*
-!.env.project
-!.env.vault
+# Local scripts not needed in container
+scripts/*.local.*
