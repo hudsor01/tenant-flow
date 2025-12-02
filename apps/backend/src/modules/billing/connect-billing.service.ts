@@ -19,11 +19,6 @@ export class ConnectBillingService {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
-	/** Get the Stripe instance for direct API access */
-	getStripe(): Stripe {
-		return this.stripe
-	}
-
 	/**
 	 * Create a Stripe customer on a connected account
 	 * Used for tenant billing when they're added to a lease
