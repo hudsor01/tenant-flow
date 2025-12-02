@@ -20,8 +20,8 @@ const logger = createLogger({ component: 'PropertiesTableClient' })
 
 // Status badge styling
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-	ACTIVE: 'default',
-	INACTIVE: 'secondary',
+	active: 'default',
+	INactive: 'secondary',
 	UNDER_CONTRACT: 'outline',
 	SOLD: 'destructive'
 }

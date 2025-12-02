@@ -18,7 +18,7 @@ function createMockProperty(overrides?: Partial<any>): any {
 		state: 'TS',
 		postal_code: '12345',
 		country: 'US',
-		status: 'ACTIVE',
+		status: 'active',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 		...overrides

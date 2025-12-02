@@ -147,7 +147,7 @@ export function useCreateProperty() {
 				country: newProperty.country || 'US',
 				property_owner_id: '', // Will be set by backend
 				property_type: newProperty.property_type || 'SINGLE_FAMILY',
-				status: 'ACTIVE',
+				status: 'active',
 				date_sold: null,
 				sale_price: null,
 				created_at: new Date().toISOString(),

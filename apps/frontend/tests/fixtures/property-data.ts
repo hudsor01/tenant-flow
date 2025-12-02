@@ -29,7 +29,7 @@ export const basePropertyData: PropertyInsert = {
   country: 'USA',
   property_owner_id: 'test-owner-id',
   property_type: 'APARTMENT',
-  status: 'ACTIVE',
+  status: 'active',
   date_sold: null,
   sale_price: null
 }
@@ -81,7 +81,7 @@ export const property_types: PropertyType[] = [
  * Property statuses for testing filters
  */
 export const propertyStatuses: PropertyStatus[] = [
-  'ACTIVE',
+  'active',
   'INACTIVE',
   'SOLD',
   'UNDER_CONTRACT'
