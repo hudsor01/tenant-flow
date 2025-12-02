@@ -10,11 +10,15 @@ import { createMockEmailService } from '../../test-utils/mocks'
 import { EmailService } from '../email/email.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
+import { LeaseFinancialService } from './lease-financial.service'
+import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
 	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockFinancialService: jest.Mocked<LeaseFinancialService>
+	let mockLifecycleService: jest.Mocked<LeaseLifecycleService>
 	let mockSignatureService: jest.Mocked<LeaseSignatureService>
 
 	const generateUUID = () => randomUUID()
@@ -57,22 +61,31 @@ describe('LeasesController', () => {
 	beforeEach(async () => {
 		mockLeasesService = {
 			findAll: jest.fn(),
-			getStats: jest.fn(),
-			getExpiring: jest.fn(),
 			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
-			remove: jest.fn(),
-			renew: jest.fn(),
-			terminate: jest.fn(),
-			getAnalytics: jest.fn()
+			remove: jest.fn()
 		} as unknown as jest.Mocked<LeasesService>
+
+		mockFinancialService = {
+			getStats: jest.fn(),
+			getExpiring: jest.fn(),
+			getAnalytics: jest.fn(),
+			getPaymentHistory: jest.fn()
+		} as unknown as jest.Mocked<LeaseFinancialService>
+
+		mockLifecycleService = {
+			renew: jest.fn(),
+			terminate: jest.fn()
+		} as unknown as jest.Mocked<LeaseLifecycleService>
 
 		mockSignatureService = {
 			sendForSignature: jest.fn(),
 			signLeaseAsOwner: jest.fn(),
 			signLeaseAsTenant: jest.fn(),
-			getSignatureStatus: jest.fn()
+			getSignatureStatus: jest.fn(),
+			getSigningUrl: jest.fn(),
+			cancelSignatureRequest: jest.fn()
 		} as unknown as jest.Mocked<LeaseSignatureService>
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -81,6 +94,14 @@ describe('LeasesController', () => {
 				{
 					provide: LeasesService,
 					useValue: mockLeasesService
+				},
+				{
+					provide: LeaseFinancialService,
+					useValue: mockFinancialService
+				},
+				{
+					provide: LeaseLifecycleService,
+					useValue: mockLifecycleService
 				},
 				{
 					provide: LeaseSignatureService,
@@ -216,11 +237,11 @@ describe('LeasesController', () => {
 				totalsecurity_deposits: 12000,
 				expiringLeases: 5
 			}
-			mockLeasesService.getStats.mockResolvedValue(mockStats)
+			mockFinancialService.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats('mock-jwt-token')
 
-			expect(mockLeasesService.getStats).toHaveBeenCalledWith('mock-jwt-token')
+			expect(mockFinancialService.getStats).toHaveBeenCalledWith('mock-jwt-token')
 			expect(result).toEqual(mockStats)
 		})
 	})
@@ -228,11 +249,11 @@ describe('LeasesController', () => {
 	describe('getExpiring', () => {
 		it('should return expiring leases with default days', async () => {
 			const mockExpiring = [createMockLease()]
-			mockLeasesService.getExpiring.mockResolvedValue(mockExpiring)
+			mockFinancialService.getExpiring.mockResolvedValue(mockExpiring)
 
 			const result = await controller.getExpiring('mock-jwt-token', 30)
 
-			expect(mockLeasesService.getExpiring).toHaveBeenCalledWith(
+			expect(mockFinancialService.getExpiring).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				30
 			)
@@ -338,11 +359,11 @@ describe('LeasesController', () => {
 			const lease_id = generateUUID()
 			const end_date = '2025-12-31'
 			const mockLease = createMockLease({ end_date: end_date })
-			mockLeasesService.renew.mockResolvedValue(mockLease)
+			mockLifecycleService.renew.mockResolvedValue(mockLease)
 
 			const result = await controller.renew(lease_id, end_date, 'mock-jwt-token')
 
-			expect(mockLeasesService.renew).toHaveBeenCalledWith(
+			expect(mockLifecycleService.renew).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				lease_id,
 				end_date
@@ -356,7 +377,7 @@ describe('LeasesController', () => {
 			const lease_id = generateUUID()
 			const reason = 'Tenant violation'
 			const mockLease = createMockLease({ lease_status: 'terminated' })
-			mockLeasesService.terminate.mockResolvedValue(mockLease)
+			mockLifecycleService.terminate.mockResolvedValue(mockLease)
 
 			const result = await controller.terminate(
 				lease_id,
@@ -364,7 +385,7 @@ describe('LeasesController', () => {
 				reason
 			)
 
-			expect(mockLeasesService.terminate).toHaveBeenCalledWith(
+			expect(mockLifecycleService.terminate).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				lease_id,
 				expect.any(String),
