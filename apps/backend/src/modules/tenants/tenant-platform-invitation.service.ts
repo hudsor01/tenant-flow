@@ -22,6 +22,7 @@ import {
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { randomBytes } from 'crypto'
+import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
 
 export interface InviteToPlatformRequest {
@@ -44,7 +45,8 @@ export class TenantPlatformInvitationService {
 	constructor(
 		private readonly logger: Logger,
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
+		private readonly eventEmitter: EventEmitter2,
+		private readonly config: AppConfigService
 	) {}
 
 	/**
@@ -112,7 +114,7 @@ export class TenantPlatformInvitationService {
 
 		// Step 5: Generate secure invitation code (64 hex chars from 32 bytes)
 		const invitationCode = randomBytes(32).toString('hex')
-		const invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite?code=${invitationCode}`
+		const invitationUrl = `${this.config.getNextPublicAppUrl()}/accept-invite?code=${invitationCode}`
 
 		// Step 6: Set expiry to 7 days from now
 		const expiresAt = new Date()

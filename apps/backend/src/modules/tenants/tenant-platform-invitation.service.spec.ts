@@ -18,6 +18,7 @@ import { Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 describe('TenantPlatformInvitationService', () => {
 	let service: TenantPlatformInvitationService
@@ -118,7 +119,8 @@ describe('TenantPlatformInvitationService', () => {
 				TenantPlatformInvitationService,
 				{ provide: Logger, useValue: mockLogger },
 				{ provide: EventEmitter2, useValue: mockEventEmitter },
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: AppConfigService, useValue: { getNextPublicAppUrl: () => 'http://localhost:3000' } }
 			]
 		}).compile()
 
