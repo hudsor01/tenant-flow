@@ -16,35 +16,14 @@ import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Tenant, TenantWithLeaseInfo, TenantStats } from '@repo/shared/types/core'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
+import type {
+	PaginatedResponse,
+	TenantFilters,
+	TenantInvitation
+} from '@repo/shared/types/api-contracts'
 
-/**
- * Tenant query filters
- */
-export interface TenantFilters {
-	status?: 'active' | 'INACTIVE' | 'PENDING'
-	property_id?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
-
-/**
- * Tenant invitation type
- */
-export interface TenantInvitation {
-	id: string
-	email: string
-	first_name: string | null
-	last_name: string | null
-	unit_id: string
-	unit_number: string
-	property_name: string
-	created_at: string
-	expires_at: string
-	accepted_at: string | null
-	status: 'sent' | 'accepted' | 'expired'
-}
+// Re-export for backward compatibility
+export type { TenantFilters, TenantInvitation }
 
 /**
  * Invitation filters

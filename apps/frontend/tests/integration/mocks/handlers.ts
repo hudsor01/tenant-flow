@@ -47,7 +47,7 @@ const sampleMaintenance = {
 	description: 'Test description',
 	category: 'GENERAL',
 	priority: 'MEDIUM',
-	status: 'PENDING',
+	status: 'pending',
 	requested_by: null,
 	assigned_to: null,
 	scheduled_date: null,

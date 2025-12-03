@@ -13,48 +13,33 @@ Resend/React Email - Email communications
 Prometheus - Observability
 
 ## Core Principles
+
 - **DRY**: Search first (`rg -r "pattern"`), consolidate code reused ≥2 places
 - **KISS**: Simplest solution wins, delete > add code
-- **SRP**: Each layer owns ONE responsibility; violations require refactoring
 - **NO GENERIC ABSTRACTIONS**: Avoid interfaces/repositories for abstraction's sake
 - **NO EMOJIS**: Professional communication, use Lucide Icons for UI
 - **PRODUCTION MINDSET**: Security first, platform-native, performance-conscious
 
+- **YAGNI (You Aren't Gonna Need It)**: Do not implement features, functionality, or infrastructure that is not immediately required for the current requirements. No speculative coding, no "just in case" implementations, no premature optimization. If it's not needed now, it will not be developed. This rule applies to libraries, frameworks, database schemas, API endpoints, and business logic.
+
+- **Composition Over Inheritance**: All system components must be built using composition rather than inheritance hierarchies. Avoid deep inheritance trees. Prefer building functionality by combining smaller, independent components rather than creating parent-child class relationships. This ensures flexibility, testability, and prevents brittle code that breaks when parent classes change.
+
+- **Explicit Data Flow & Type Safety**: All data must have clearly defined, strongly typed interfaces. No dynamic types, no implicit conversions, no untyped objects passed between functions. All inputs, outputs, and transformations must be explicitly declared with proper type annotations. Any data that crosses module boundaries must be validated and typed.
+
+- **Small, Focused Modules (High Cohesion, Low Coupling)**: Each module, class, function, and component must have a single, well-defined purpose. Modules must not exceed reasonable size limits and should only contain code directly related to their primary responsibility. Dependencies between modules must be minimal and clearly defined through explicit interfaces.
+
+- **Fail Fast, Log Precisely**: Systems must validate inputs immediately and throw clear, specific errors when invalid data is encountered. Do not attempt to recover from invalid states silently. All error conditions must be logged with sufficient context to identify the root cause without requiring additional debugging. Error messages must be actionable.
+
+- **Idempotency Everywhere**: All operations, especially those that modify state or interact with external systems, must be idempotent. Running the same operation multiple times must produce the same result as running it once. This applies to database operations, API calls, file operations, and any state-changing functions.
+
+- **Predictable State Management**: All application state must be managed in a deterministic, traceable manner. No hidden global state, no implicit side effects, no shared mutable state between components. State changes must follow clear, predictable patterns with no race conditions or unexpected interactions.
+
+- **Single Responsibility**: Every function, class, module, and service must have exactly one reason to change. If a component handles multiple concerns or domains, it must be split into separate components. This applies to business logic, data access, presentation, and infrastructure concerns.
+
+- **Prefer Readability Over Cleverness**: Code must be written for human understanding first, performance second. No clever tricks, no overly compact syntax, no "smart" solutions that sacrifice clarity. The codebase must be understandable by any team member without requiring extensive documentation or explanation.
+
 ## Developer Tools
 **Code Refactoring**: Use `ripgrep` (rg) + `sd` for fast, safe find-and-replace across codebase
-
-### ripgrep (rg) - Fast Code Search
-**Basic Search**:
-- `rg 'pattern'` - Search all files
-- `rg 'pattern' -g '*.tsx'` - Search specific file types
-- `rg -l 'pattern'` - List files containing pattern (for piping)
-- `rg -c 'pattern'` - Count matches per file
-- `rg -i 'pattern'` - Case-insensitive search
-- `rg -w 'word'` - Match whole words only
-- `rg '\bword\b'` - Word boundary regex
-- `rg -A 3 -B 3 'pattern'` - Show 3 lines of context (After/Before)
-
-**Advanced Features**:
-- `rg 'fn|function|const'` - Multiple patterns (regex alternation)
-- `rg 'TODO|FIXME|XXX'` - Find tech debt markers
-- `rg --type-list` - Show all supported file types
-- `rg -t typescript 'pattern'` - Search by language type
-- `rg --files-without-match 'pattern'` - Find files NOT containing pattern
-- `rg --stats 'pattern'` - Show search statistics
-
-**Why faster than grep**: Uses Rust, respects .gitignore by default, parallel search, smart defaults
-
-### sd (modern sed) - Safe String Replacement
-**Basic Replace**:
-- `sd 'old' 'new' file.txt` - Replace in file
-- `sd 'old' 'new' $(rg -l 'old')` - Replace in all matching files
-- `sd -p 'old' 'new' files` - Preview changes before applying
-
-**Advanced Features**:
-- `sd -f 's' '\n' file.txt` - Fixed strings mode (no regex, faster)
-- `sd 'v(\d+)' 'version $1'` - Capture groups with $1, $2, etc.
-- `sd '(\w+)=(\w+)' '$2=$1'` - Swap patterns
-- `sd 'color' 'colour' $(fd -e tsx)` - Combine with fd (find)
 
 **Why better than sed**:
 - Simpler syntax (no `/g` flags, no escaping hell)
@@ -62,23 +47,6 @@ Prometheus - Observability
 - Works consistently across macOS/Linux
 - Better error messages
 - UTF-8 by default
-
-### Combo Patterns (rg + sd)
-```bash
-# Pattern: Find files → Replace inline
-rg -l 'className="text-sm text-muted-foreground"' -g '*.tsx' | xargs sd 'text-sm text-muted-foreground' 'text-muted'
-
-# Count before/after
-rg 'old-pattern' -g '*.tsx' | wc -l  # Before
-rg -l 'old-pattern' -g '*.tsx' | xargs sd 'old' 'new'
-rg 'new-pattern' -g '*.tsx' | wc -l  # After
-
-# Preview changes across files
-rg -l 'pattern' -g '*.ts' | xargs sd -p 'old' 'new'
-
-# Replace in specific directory only
-rg -l 'pattern' apps/frontend/src -g '*.tsx' | xargs sd 'old' 'new'
-```
 
 **Real Example (507 replacements in seconds)**:
 ```bash
@@ -302,67 +270,3 @@ doppler run -- pnpm --filter @repo/backend dev
 # Terminal 2: Frontend
 pnpm --filter @repo/frontend dev
 ```
-
-## Hosting & Cost Management - Vercel Deployment
-**CRITICAL**: This project uses a separate NestJS backend (Railway) + Next.js frontend (Vercel). Certain Next.js features trigger metered billing on Vercel even though we have a separate backend.
-
-### Vercel Cost Model
-**FREE (Always use these):**
-- Static pages (`generateStaticParams()` pre-rendered at build time)
-- Client Components (`'use client'` - runs in browser)
-- Static assets (images, CSS, JS served from CDN)
-- Edge cached responses (served from CDN after first request)
-
-**PAID (Avoid unless necessary and APPROVED explicitly by the User):**
-- ❌ Server Components (async pages without `'use cache'`)
-- ❌ Server Actions (`'use server'` functions)
-- ❌ API Routes (`app/api/*/route.ts`)
-- ❌ Middleware (runs on every request)
-- ❌ On-demand ISR (revalidation without caching)
-
-### Cost-Conscious Development Rules
-**Rule 1: Prefer Client Components for Dynamic Data**
-- Use `'use client'` with TanStack Query for all user-specific data
-- Browser fetches directly from Railway backend (zero Vercel cost)
-**Rule 2: Use Static Generation for Static Content**
-- Implement `generateStaticParams()` for blogs, marketing pages, documentation
-- Pages are pre-rendered at build time and served from CDN
-**Rule 3: Use Long Cache Times for Shared Data (If Approved)**
-- Only with explicit user approval
-- Use `'use cache'` with `cacheLife({ stale: 3600, revalidate: 86400 })`
-- Shared data like dashboard stats, analytics
-**Rule 4: NO Server Actions for Mutations**
-- All mutations must use client-side TanStack Query `useMutation`
-- Never use `'use server'` functions
-**Rule 5: Minimize Middleware Usage**
-- Only run on specific protected routes via `matcher` config
-- Keep logic minimal (auth checks only)
-
-### Cache Components Pattern (When Approved)
-**Cost-optimized pattern:**
-- Page component serves as static shell (no 'use cache' directive)
-- Extract cacheable sections into separate async server components with 'use cache', cacheLife(), and cacheTag()
-- Wrap cached components in Suspense boundaries with skeleton fallbacks
-- Use client components with TanStack Query for user-specific data (zero Vercel cost)
-**Key principle:** Page layouts and shells should be static or minimal. Only apply caching to data-fetching components that benefit from it.
-
-### When Paid Features Are Acceptable
-**Requires Explicit User Approval:**
-- Cache Components with long TTL for shared, infrequently-updated data
-- API Routes for webhooks from external services (Stripe, etc.)
-- ISR with long revalidation periods
-- Server-side auth checks for routing (e.g., landing page getClaims for authenticated user routing)
-
-### Cost Monitoring
-**Monthly Budget:** $5/month serverless invocations (maximum)
-**Warning Signs:**
-- Serverless invocations exceeding 500,000/month
-- Average function duration over 1 second
-- Cache hit rate below 90% for cached routes
-
-### Architecture Decision
-**Current (Cost-Optimized):**
-- Static HTML/JS served from Vercel CDN
-- Client-side data fetching with TanStack Query hits Railway NestJS backend directly
-- Minimal serverless invocations for auth routing and webhooks only
-- Target: $0-5/month Vercel costs

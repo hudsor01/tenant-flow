@@ -7,12 +7,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { createClient } from '#utils/supabase/client'
 import { toast } from 'sonner'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
 import { propertyQueries } from '../queries/property-queries'
 import { unitQueries } from '../queries/unit-queries'
 import { createCrudMutations } from '../crud-mutations'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const { useCreateMutation: useCreatePropertyMutationBase } =
 	createCrudMutations<CreatePropertyInput, UpdatePropertyInput, Property>({
@@ -89,20 +91,48 @@ export function useDeletePropertyMutation() {
 
 /**
  * Delete property image mutation
+ * Uses Supabase client directly with RLS (Dec 2025 best practice)
  */
 export function useDeletePropertyImageMutation() {
 	const queryClient = useQueryClient()
+	const logger = createLogger({ component: 'PropertyMutations' })
 
 	return useMutation({
-		mutationFn: ({
-			imageId
+		mutationFn: async ({
+			imageId,
+			imagePath
 		}: {
 			imageId: string
 			property_id: string
-		}) =>
-			clientFetch<{ message: string }>(`/api/v1/properties/images/${imageId}`, {
-				method: 'DELETE'
-			}),
+			imagePath?: string // e.g., "property_id/filename.webp"
+		}) => {
+			const supabase = createClient()
+
+			// Delete from database (RLS will verify ownership)
+			const { error: dbError } = await supabase
+				.from('property_images')
+				.delete()
+				.eq('id', imageId)
+
+			if (dbError) throw new Error(dbError.message)
+
+			// Delete from storage if path provided (non-blocking)
+			if (imagePath) {
+				try {
+					await supabase.storage
+						.from('property-images')
+						.remove([imagePath])
+				} catch {
+					// Log warning but don't fail - DB cleanup is intact
+					logger.warn('Storage deletion failed', {
+						action: 'delete_storage_image_failed',
+						metadata: { imagePath }
+					})
+				}
+			}
+
+			return { success: true }
+		},
 		onSuccess: (_, { property_id }) => {
 			// Invalidate property images
 			queryClient.invalidateQueries({
@@ -114,52 +144,6 @@ export function useDeletePropertyImageMutation() {
 		},
 		onError: (error) => {
 			handleMutationError(error, 'Delete image')
-		}
-	})
-}
-
-/**
- * Upload property image mutation
- */
-export function useUploadPropertyImageMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async ({
-			property_id,
-			file,
-			isPrimary = false,
-			caption
-		}: {
-			property_id: string
-			file: File
-			isPrimary?: boolean
-			caption?: string
-		}) => {
-			const formData = new FormData()
-			formData.append('file', file)
-			formData.append('isPrimary', String(isPrimary))
-			if (caption) formData.append('caption', caption)
-
-			return await clientFetch(
-				`/api/v1/properties/${property_id}/images`,
-				{
-					method: 'POST',
-					body: formData
-				}
-			)
-		},
-		onSuccess: (data, { property_id }) => {
-			// Invalidate property images
-			queryClient.invalidateQueries({
-				queryKey: [...propertyQueries.detail(property_id).queryKey, 'images']
-			})
-			// Invalidate property list (primary image may have changed)
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			toast.success('Image uploaded successfully')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Upload image')
 		}
 	})
 }

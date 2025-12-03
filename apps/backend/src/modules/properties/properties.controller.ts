@@ -38,7 +38,6 @@ import type {
 } from '@repo/shared/types/api-contracts'
 import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
-import { PropertyImagesService } from './services/property-images.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
@@ -56,7 +55,6 @@ export class PropertiesController {
 
 	constructor(
 		private readonly propertiesService: PropertiesService,
-		private readonly propertyImagesService: PropertyImagesService,
 		private readonly propertyBulkImportService: PropertyBulkImportService,
 		private readonly propertyAnalyticsService: PropertyAnalyticsService,
 		private readonly dashboardService: DashboardService
@@ -290,79 +288,6 @@ export class PropertiesController {
 			timeframe: timeframe ?? '30d',
 			...(limit !== undefined ? { limit } : {})
 		})
-	}
-
-	/**
-	 * Upload property image
-	 * Stores image in property-images bucket and records in property_images table
-	 */
-	@Post(':id/images')
-	@UseInterceptors(
-		FileInterceptor('file', {
-			storage: memoryStorage(),
-			limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max (optimize for storage)
-			fileFilter: (_req, file, callback) => {
-				const allowedMimeTypes = [
-					'image/jpeg',
-					'image/png',
-					'image/webp',
-					'image/gif'
-				]
-				if (!allowedMimeTypes.includes(file.mimetype)) {
-					return callback(
-						new BadRequestException({
-							code: BUSINESS_ERROR_CODES.INVALID_FILE_TYPE,
-							message: 'Invalid file type; only images are allowed'
-						}),
-						false
-					)
-				}
-				callback(null, true)
-			}
-		})
-	)
-	async uploadImage(
-		@Param('id', ParseUUIDPipe) property_id: string,
-		@UploadedFile() file: Express.Multer.File,
-		@JwtToken() token: string,
-		@Request() req: AuthenticatedRequest
-	) {
-		if (!file) {
-			throw new BadRequestException({
-				code: BUSINESS_ERROR_CODES.NO_FILE_UPLOADED,
-				message: 'No file uploaded'
-			})
-		}
-
-		return this.propertyImagesService.uploadPropertyImage(
-			token,
-			req.user.id,
-			property_id,
-			file
-		)
-	}
-
-	/**
-	 * Get all images for a property
-	 */
-	@Get(':id/images')
-	async getImages(
-		@Param('id', ParseUUIDPipe) property_id: string,
-		@JwtToken() token: string
-	) {
-		return this.propertyImagesService.getPropertyImages(token, property_id)
-	}
-
-	/**
-	 * Delete property image
-	 */
-	@Delete('images/:imageId')
-	async deleteImage(
-		@Param('imageId', ParseUUIDPipe) imageId: string,
-		@JwtToken() token: string
-	) {
-		await this.propertyImagesService.deletePropertyImage(token, imageId)
-		return { message: 'Image deleted successfully' }
 	}
 
 	/**

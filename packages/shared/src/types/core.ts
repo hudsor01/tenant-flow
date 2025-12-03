@@ -467,11 +467,9 @@ export interface TenantWithLeaseInfo {
 export interface PropertyPerformance {
 	property: string
 	property_id: string
-	units: number
 	totalUnits: number
 	occupiedUnits: number
 	vacantUnits: number
-	occupancy: string // e.g. "95%"
 	occupancyRate: number // e.g. 95.5
 	revenue: number
 	monthlyRevenue: number

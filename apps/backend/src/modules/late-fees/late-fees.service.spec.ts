@@ -271,7 +271,7 @@ describe('LateFeesService', () => {
 					amount: 150000, // $1500 in cents
 					due_date: tenDaysAgo.toISOString(),
 					late_fee_amount: null,
-					status: 'PENDING'
+					status: 'pending'
 				}
 			]
 

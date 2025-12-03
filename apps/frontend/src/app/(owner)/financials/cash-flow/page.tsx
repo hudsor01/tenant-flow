@@ -25,11 +25,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useCashFlow } from '#hooks/api/use-financial-statements'
-
-type FinancialLineItem = {
-	name: string
-	amount: number
-}
+import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
 
 const CashFlowPage = () => {
 	const [period, setPeriod] = useState('monthly')
@@ -85,10 +81,6 @@ const CashFlowPage = () => {
 			{ name: 'Owner Distributions', amount: data.data.financingActivities.ownerDistributions }
 		]
 	} : null
-
-	const _calculateTotal = (items: FinancialLineItem[]) => {
-		return items.reduce((sum, item) => sum + item.amount, 0)
-	}
 
 	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">

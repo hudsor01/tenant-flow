@@ -139,39 +139,5 @@ describe('FinancialService - N+1 Query Prevention', () => {
 			expect(queryCount).toBeLessThanOrEqual(5)
 		})
 
-		// TODO: This test needs to be updated to test FinancialRevenueService directly
-		// since getNetOperatingIncome now delegates to revenueService
-		it.skip('should batch load all units at once instead of N separate queries', async () => {
-			const mockProperties = [
-				{ id: 'prop-1', name: 'Property 1' },
-				{ id: 'prop-2', name: 'Property 2' }
-			]
-
-			const mockClient = mockSupabaseService.getUserClient('test-token')
-
-			let callIndex = 0
-			mockClient.select = jest.fn().mockImplementation(() => {
-				callIndex++
-
-				if (callIndex === 1) {
-					;(mockClient as any).then = (cb: (result: any) => void) => {
-						cb({ data: mockProperties, error: null })
-					}
-				} else {
-					;(mockClient as any).then = (cb: (result: any) => void) => {
-						cb({ data: [], error: null })
-					}
-				}
-
-				return mockClient
-			})
-
-			queryCount = 0
-
-			await service.getNetOperatingIncome('test-token', { start_date: '2025-01-01', end_date: '2025-12-31' })
-
-			// The .in() method should be called with ALL property IDs at once
-			expect(mockClient.in).toHaveBeenCalled()
-		})
 	})
 })

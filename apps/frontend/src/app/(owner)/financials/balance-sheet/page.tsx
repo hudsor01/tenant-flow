@@ -24,11 +24,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useBalanceSheet } from '#hooks/api/use-financial-statements'
-
-type FinancialLineItem = {
-	name: string
-	amount: number
-}
+import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
 
 const BalanceSheetPage = () => {
 	const [year, setYear] = useState('2024')
@@ -68,10 +64,6 @@ const BalanceSheetPage = () => {
 			{ name: 'Current Period Income', amount: data.data.equity.currentPeriodIncome }
 		]
 	} : null
-
-	const _calculateTotal = (items: FinancialLineItem[]) => {
-		return items.reduce((sum, item) => sum + item.amount, 0)
-	}
 
 	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">

@@ -38,7 +38,7 @@ import { RentPaymentContextService } from './rent-payment-context.service'
 type PaymentMethodType = 'card' | 'ach'
 
 export interface CurrentPaymentStatus {
-	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'pending'
 	rentAmount: number
 	nextDueDate: string | null
 	lastPaymentDate: string | null
@@ -230,7 +230,7 @@ export class RentPaymentsService {
 			lease_id: lease.id,
 			amount: amountInCents,
 			payment_method_type: paymentType.toUpperCase(),
-			status: paymentIntent.status === 'succeeded' ? 'PAID' : 'PENDING',
+			status: paymentIntent.status === 'succeeded' ? 'PAID' : 'pending',
 			stripe_payment_intent_id: paymentIntent.id,
 			due_date: new Date().toISOString()
 		})
@@ -289,8 +289,8 @@ export class RentPaymentsService {
 			if (lastPayment.status === 'PAID') {
 				status = 'PAID'
 				outstandingBalance = 0
-			} else if (lastPayment.status === 'PENDING') {
-				status = 'PENDING'
+			} else if (lastPayment.status === 'pending') {
+				status = 'pending'
 				outstandingBalance = rentAmount
 			} else if (lastPayment.status === 'FAILED') {
 				status = 'OVERDUE'

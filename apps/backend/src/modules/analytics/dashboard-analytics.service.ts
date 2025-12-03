@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import type {
 	DashboardStats,
 	PropertyPerformance
@@ -35,129 +35,119 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	/**
 	 * Call RPC using centralized retry logic from SupabaseService
 	 * Uses admin client for server-side calls (RLS bypassed via service role)
+	 * FAIL-FAST: Throws on error instead of returning null to surface issues immediately
 	 */
 	private async callRpc<T = unknown>(
 		functionName: string,
 		payload: Record<string, unknown>
-	): Promise<T | null> {
+	): Promise<T> {
 		try {
 			const result = await this.supabase.rpcWithRetries(functionName, payload)
 			const res = result as { data?: T; error?: { message?: string } | null }
 
 			if (res.error) {
-				this.logger.warn('Dashboard analytics RPC failed', {
+				this.logger.error('Dashboard analytics RPC failed', {
 					functionName,
-					error: res.error?.message
+					error: res.error?.message,
+					payload
 				})
-				return null
+				throw new InternalServerErrorException(
+					`Analytics RPC failed: ${functionName}`,
+					{ cause: res.error, description: res.error?.message }
+				)
 			}
 
-			return res.data ?? null
+			if (res.data === undefined || res.data === null) {
+				this.logger.warn('Dashboard analytics RPC returned no data', {
+					functionName,
+					payload
+				})
+				throw new InternalServerErrorException(
+					`Analytics RPC returned no data: ${functionName}`
+				)
+			}
+
+			return res.data
 		} catch (error) {
+			// Re-throw if already an HTTP exception
+			if (error instanceof InternalServerErrorException) {
+				throw error
+			}
+
 			this.logger.error('Unexpected RPC failure', {
 				functionName,
 				error: error instanceof Error ? error.message : String(error)
 			})
-			return null
+			throw new InternalServerErrorException(
+				`Unexpected analytics failure: ${functionName}`,
+				{ cause: error }
+			)
 		}
 	}
 
 	async getDashboardStats(user_id: string, _token?: string): Promise<DashboardStats> {
-		try {
-			this.logger.log('Calculating dashboard stats via optimized RPC', {
-				user_id
-			})
+		this.logger.log('Calculating dashboard stats via optimized RPC', {
+			user_id
+		})
 
-			// Call RPC with built-in retry logic (3 attempts with exponential backoff)
-			const stats = await this.callRpc<DashboardStats>(
-				'get_dashboard_stats',
-				{ p_user_id: user_id }
-			)
-
-			if (!stats) {
-				this.logger.error('Dashboard stats RPC failed after retries', { user_id })
-				return this.getEmptyDashboardStats()
-			}
-
-			return stats
-		} catch (error) {
-			this.logger.error(
-				`Database error in getDashboardStats: ${error instanceof Error ? error.message : String(error)}`,
-				{
-					user_id,
-					error
-				}
-			)
-
-			return this.getEmptyDashboardStats()
-		}
+		// Call RPC with built-in retry logic (3 attempts with exponential backoff)
+		// FAIL-FAST: Let errors propagate to controller for proper HTTP response
+		return this.callRpc<DashboardStats>(
+			'get_dashboard_stats',
+			{ p_user_id: user_id }
+		)
 	}
 
 	async getPropertyPerformance(
 		user_id: string,
 		_token?: string
 	): Promise<PropertyPerformance[]> {
-		try {
-			this.logger.log('Calculating property performance via optimized RPC', {
-				user_id
-			})
+		this.logger.log('Calculating property performance via optimized RPC', {
+			user_id
+		})
 
-			const [rawProperties, rawTrends] = await Promise.all([
-				this.callRpc<PropertyPerformanceRpcResponse[]>(
-					'get_property_performance_cached',
-					{ p_user_id: user_id }
-				),
-				this.callRpc<
-					Array<{
-						property_id: string
-						current_month_revenue: number
-						previous_month_revenue: number
-						trend: 'up' | 'down' | 'stable'
-						trend_percentage: number
-					}>
-				>('get_property_performance_trends', { p_user_id: user_id })
-			])
+		// FAIL-FAST: Let errors propagate - no silent empty array returns
+		const [rawProperties, rawTrends] = await Promise.all([
+			this.callRpc<PropertyPerformanceRpcResponse[]>(
+				'get_property_performance_cached',
+				{ p_user_id: user_id }
+			),
+			this.callRpc<
+				Array<{
+					property_id: string
+					current_month_revenue: number
+					previous_month_revenue: number
+					trend: 'up' | 'down' | 'stable'
+					trend_percentage: number
+				}>
+			>('get_property_performance_trends', { p_user_id: user_id })
+		])
 
-			if (!rawProperties) return []
+		// Create a map of property trends for O(1) lookup
+		const trendsMap = new Map(
+			rawTrends.map(trend => [trend.property_id, trend])
+		)
 
-			// Create a map of property trends for O(1) lookup
-			const trendsMap = new Map(
-				(rawTrends || []).map(trend => [trend.property_id, trend])
-			)
+		return rawProperties.map(item => {
+			const trendData = trendsMap.get(item.property_id)
 
-			return rawProperties.map(item => {
-				const trendData = trendsMap.get(item.property_id)
-
-				return {
+			return {
 				property: item.property_name,
 				property_id: item.property_id,
 				address_line1: item.address,
-				units: item.total_units,
-					totalUnits: item.total_units,
-					occupiedUnits: item.occupied_units,
-					vacantUnits: item.vacant_units,
-					occupancy: `${item.occupancy_rate}%`,
-					occupancyRate: item.occupancy_rate,
-					revenue: item.annual_revenue,
-					monthlyRevenue: item.monthly_revenue,
-					potentialRevenue: item.potential_revenue,
-					address: item.address,
-					property_type: item.property_type,
-					status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL',
-					trend: trendData?.trend ?? ('stable' as const),
-					trendPercentage: trendData?.trend_percentage ?? 0
-				}
-			})
-		} catch (error) {
-			this.logger.error(
-				`Database error in getPropertyPerformance: ${error instanceof Error ? error.message : String(error)}`,
-				{
-					user_id,
-					error
-				}
-			)
-			return []
-		}
+				totalUnits: item.total_units,
+				occupiedUnits: item.occupied_units,
+				vacantUnits: item.vacant_units,
+				occupancyRate: item.occupancy_rate,
+				revenue: item.annual_revenue,
+				monthlyRevenue: item.monthly_revenue,
+				potentialRevenue: item.potential_revenue,
+				property_type: item.property_type,
+				status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL',
+				trend: trendData?.trend ?? ('stable' as const),
+				trendPercentage: trendData?.trend_percentage ?? 0
+			}
+		})
 	}
 
 	async getOccupancyTrends(

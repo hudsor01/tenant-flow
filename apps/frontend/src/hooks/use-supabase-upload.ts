@@ -22,6 +22,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     maxFiles = 1,
     cacheControl = 3600,
     upsert = false,
+    autoUpload = false,
   } = options
 
   const [files, setFiles] = useState<FileWithPreview[]>([])
@@ -64,7 +65,6 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
   const dropzoneProps = useDropzone({
     onDrop,
-    noClick: true,
     accept: allowedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     maxSize: maxFileSize,
     maxFiles: maxFiles,
@@ -135,6 +135,21 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Effect depends on count, not contents; adding files would cause infinite loop
   }, [files.length, setFiles, maxFiles])
+
+  // Auto-upload: trigger upload immediately when valid files are added
+  useEffect(() => {
+    if (!autoUpload) return
+
+    // Only auto-upload if we have valid files that haven't been uploaded yet
+    const validFilesToUpload = files.filter(
+      (f) => f.errors.length === 0 && !successes.includes(f.name)
+    )
+
+    if (validFilesToUpload.length > 0 && !loading) {
+      onUpload()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only trigger on files changes when autoUpload is enabled
+  }, [files.length, autoUpload])
 
   return {
     files,

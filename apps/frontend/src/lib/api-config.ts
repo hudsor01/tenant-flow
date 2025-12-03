@@ -15,12 +15,13 @@
 export function getApiBaseUrl(): string {
 	let baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!
 
-	// In local development/E2E tests, redirect production API to local backend
-	// This check runs in browser context where window is available
-	if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-		if (baseUrl === 'https://api.tenantflow.app') {
-			baseUrl = 'http://localhost:4600'
-		}
+	// In local development, redirect production API to local backend
+	// Check both server-side (NODE_ENV) and client-side (window.location)
+	const isDevelopment = process.env.NODE_ENV === 'development'
+	const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+
+	if ((isDevelopment || isLocalhost) && baseUrl === 'https://api.tenantflow.app') {
+		baseUrl = 'http://localhost:4600'
 	}
 
 	return baseUrl

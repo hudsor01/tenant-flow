@@ -51,7 +51,7 @@ export const maintenanceQueries = {
 	 * Maintenance list with optional filters
 	 *
 	 * @example
-	 * const { data } = useQuery(maintenanceQueries.list({ status: 'PENDING' }))
+	 * const { data } = useQuery(maintenanceQueries.list({ status: 'pending' }))
 	 */
 	list: (filters?: MaintenanceFilters) =>
 		queryOptions({

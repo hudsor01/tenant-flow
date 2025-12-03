@@ -72,7 +72,7 @@ export function useCreateRentPayment() {
 		id: tempId,
 		version: 1,
 		amount: newPayment.amount,
-		status: 'PENDING',
+		status: 'pending',
 		tenant_id: newPayment.tenant_id,
 		lease_id: newPayment.lease_id,
 		stripe_payment_intent_id: '',
@@ -131,7 +131,7 @@ export function useCreateRentPayment() {
  * Task 2.4: Payment Status Tracking
  */
 export interface PaymentStatus {
-	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'pending'
 	rent_amount: number
 	nextDueDate: string | null
 	lastPaymentDate: string | null

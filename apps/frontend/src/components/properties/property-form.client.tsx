@@ -17,7 +17,7 @@ import {
 
 import { useModalStore } from '#stores/modal-store'
 import { PropertyImageGallery } from './property-image-gallery'
-import { PropertyImageUpload } from './property-image-upload'
+import { PropertyImageDropzone } from './property-image-dropzone'
 
 import {
 	useCreatePropertyMutation,
@@ -446,7 +446,7 @@ export function PropertyForm({
 						{/* Upload form - add new images */}
 						<div className="border-t pt-4 mt-4">
 							<h4 className="text-sm font-medium mb-4">Add New Images</h4>
-							<PropertyImageUpload propertyId={property.id} />
+							<PropertyImageDropzone propertyId={property.id} />
 						</div>
 					</div>
 				)}

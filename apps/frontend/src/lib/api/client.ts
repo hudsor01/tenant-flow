@@ -114,6 +114,11 @@ export async function clientFetch<T>(
 
   const url = `${getApiBaseUrl()}${endpoint}`
 
+  // Debug: Log API URL to help trace upload issues
+  if (endpoint.includes('images')) {
+    logger.info('Image request URL:', { metadata: { url, method: fetchOptions.method } })
+  }
+
   try {
     const response = await fetch(url, {
       ...finalOptions,

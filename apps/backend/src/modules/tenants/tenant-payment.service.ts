@@ -163,7 +163,7 @@ export class TenantPaymentService {
 			.from('rent_payments')
 			.select('amount, due_date')
 			.eq('tenant_id', tenant_id)
-			.in('status', ['DUE', 'PENDING'])
+			.in('status', ['DUE', 'pending'])
 			.order('due_date', { ascending: true })
 			.limit(1)
 			.maybeSingle<RentPaymentRow>()
@@ -562,24 +562,53 @@ export class TenantPaymentService {
 	/**
 	 * PUBLIC: Check if a record is a late fee record
 	 * Migrated from TenantAnalyticsService - polymorphic version
+	 *
+	 * STANDARD KEY: New records should use metadata.isLateFee = true
+	 * Legacy support: Also checks lateFee, type='late_fee' for backward compatibility
 	 */
 	isLateFeeRecord(record: RentPayment | TenantPaymentRecord): boolean {
+		// RentPayment has explicit type field
 		if ('type' in record && typeof record.type === 'string') {
 			return record.type === 'LATE_FEE'
 		}
-		// For TenantPaymentRecord, check metadata and description
-		if ('description' in record) {
-			const description = (record as TenantPaymentRecord).description?.toLowerCase() ?? ''
-			const metadata = (record as TenantPaymentRecord).metadata ?? {}
-			const hasLateFlag =
-				(metadata as Record<string, unknown>).lateFee === true ||
-				(metadata as Record<string, unknown>).lateFee === 'true' ||
-				(metadata as Record<string, unknown>).isLateFee === true ||
-				(metadata as Record<string, unknown>).isLateFee === 'true' ||
-				(metadata as Record<string, unknown>).type === 'late_fee'
 
-			return hasLateFlag || description.includes('late fee')
+		// TenantPaymentRecord - check metadata and description
+		if ('description' in record) {
+			const tenantRecord = record as TenantPaymentRecord
+			const description = tenantRecord.description?.toLowerCase() ?? ''
+
+			// Check description first (most reliable)
+			if (description.includes('late fee')) {
+				return true
+			}
+
+			// Check metadata flags (normalized check)
+			const metadata = tenantRecord.metadata as Record<string, unknown> | null
+			if (metadata) {
+				return this.hasLateFeeFlag(metadata)
+			}
 		}
+
+		return false
+	}
+
+	/**
+	 * PRIVATE: Check metadata for late fee flag
+	 * Handles legacy key variants for backward compatibility
+	 *
+	 * STANDARD: isLateFee (boolean)
+	 * LEGACY: lateFee (boolean/string), type='late_fee'
+	 */
+	private hasLateFeeFlag(metadata: Record<string, unknown>): boolean {
+		// Standard key (preferred)
+		if (metadata.isLateFee === true) return true
+
+		// Legacy: lateFee key (boolean or string 'true')
+		if (metadata.lateFee === true || metadata.lateFee === 'true') return true
+
+		// Legacy: type field
+		if (metadata.type === 'late_fee') return true
+
 		return false
 	}
 
@@ -604,7 +633,7 @@ export class TenantPaymentService {
 			id: paymentId,
 			...(tenantId ? { tenant_id: tenantId } : {}),
 			amount: intent.amount ?? 0,
-			status: intent.status ?? 'PENDING',
+			status: intent.status ?? 'pending',
 			currency: intent.currency ?? 'USD',
 			receipt_email: null,
 			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : undefined,

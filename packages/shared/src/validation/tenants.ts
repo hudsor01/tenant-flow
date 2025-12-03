@@ -9,8 +9,8 @@ import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 // Tenant status enum validation
 export const tenantStatusSchema = z.enum([
   'active',
-  'INACTIVE',
-  'PENDING',
+  'inactive',
+  'pending',
   'SUSPENDED',
   'DELETED'
 ])

@@ -15,7 +15,7 @@ export type ActivityType =
 	| 'billing'
 	| 'auth'
 
-export type ActivityStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
+export type ActivityStatus = 'pending' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
 
 /**
  * Strongly typed metadata for activities

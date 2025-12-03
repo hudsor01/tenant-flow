@@ -464,90 +464,10 @@ export function usePrefetchProperty() {
  */
 /**
  * Hook to fetch property images
+ * Uses Supabase client directly with RLS
  */
 export function usePropertyImages(property_id: string) {
 	return useQuery(propertyQueries.images(property_id))
-}
-
-/**
- * Hook to upload property image
- */
-export function useUploadPropertyImage() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async ({
-			property_id,
-			file,
-			isPrimary = false,
-			caption
-		}: {
-			property_id: string
-			file: File
-			isPrimary?: boolean
-			caption?: string
-		}) => {
-			const formData = new FormData()
-			formData.append('file', file)
-			formData.append('isPrimary', String(isPrimary))
-			if (caption) formData.append('caption', caption)
-
-			return await clientFetch(
-				`/api/v1/properties/${property_id}/images`,
-				{
-					method: 'POST',
-					body: formData
-				}
-			)
-		},
-		onSuccess: (data, { property_id }) => {
-			handleMutationSuccess(
-				'Upload image',
-				'Image uploaded successfully'
-			)
-			// Invalidate property images
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.images(property_id).queryKey
-			})
-			// Invalidate property list (primary image may have changed)
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.lists()
-			})
-		},
-		onError: error => handleMutationError(error, 'Upload image')
-	})
-}
-
-/**
- * Hook to delete property image
- */
-export function useDeletePropertyImage() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: ({
-			imageId,
-			property_id: _property_id
-		}: {
-			imageId: string
-			property_id: string
-		}) =>
-			clientFetch<{ message: string }>(`/api/v1/properties/images/${imageId}`, {
-				method: 'DELETE'
-			}),
-		onSuccess: (_, { property_id }) => {
-			handleMutationSuccess('Delete image')
-			// Invalidate property images
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.images(property_id).queryKey
-			})
-			// Invalidate property list (primary image may have been deleted)
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.lists()
-			})
-		},
-		onError: error => handleMutationError(error, 'Delete image')
-	})
 }
 
 export function usePropertyOperations() {

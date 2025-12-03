@@ -250,7 +250,7 @@ export function createMockMaintenanceRequest(
 		title: overrides?.title || 'New Maintenance Request',
 		description: overrides?.description || 'Urgent leak repair needed',
 		priority: overrides?.priority || 'HIGH',
-		status: overrides?.status || 'PENDING',
+		status: overrides?.status || 'pending',
 		requested_by: overrides?.requested_by || null,
 		assigned_to: overrides?.assigned_to || null,
 		actual_cost: overrides?.actual_cost || null,

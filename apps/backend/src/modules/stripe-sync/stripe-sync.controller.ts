@@ -22,7 +22,7 @@ import type { Cache } from 'cache-manager'
 import type { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import type Stripe from 'stripe'
-import type { Database, Json } from '@repo/shared/types/supabase'
+import type { Json } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
@@ -57,57 +57,36 @@ export class StripeSyncController {
 	}
 
 	/**
-	 * Check if webhook event already processed (idempotency per Stripe best practices 2025)
-	 * Prevents duplicate processing if Stripe sends same event multiple times
-	 * Uses webhook_events table with unique constraint on (webhook_source, external_id)
+	 * Atomically acquire webhook event lock (idempotency per Stripe best practices 2025)
+	 * Uses RPC with INSERT ON CONFLICT for race-condition-free duplicate prevention
+	 * Returns true if lock acquired (new event), false if already processed
 	 */
-	private async isEventProcessed(eventId: string): Promise<boolean> {
+	private async acquireWebhookLock(
+		eventId: string,
+		eventType: string,
+		payload?: unknown
+	): Promise<boolean> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('webhook_events')
-			.select('id')
-			.eq('webhook_source', 'stripe')
-			.eq('external_id', eventId)
-			.maybeSingle()
-
-		if (error && error.code !== 'PGRST116') {
-			// PGRST116 = not found, which is expected for new events
-			this.logger.error('Error checking event idempotency', {
-				error: error.message,
-				eventId
+			.rpc('acquire_webhook_event_lock', {
+				p_webhook_source: 'stripe',
+				p_external_id: eventId,
+				p_event_type: eventType,
+				p_raw_payload: (payload || {}) as Json
 			})
+
+		if (error) {
+			this.logger.error('Failed to acquire webhook lock', {
+				error: error.message,
+				eventId,
+				eventType
+			})
+			// On error, allow processing to prevent blocking webhooks
+			// The business logic has its own idempotency (e.g., unique constraint on payment_intent_id)
+			return true
 		}
 
-		return !!data
-	}
-
-	/**
-	 * Mark webhook event as processed (idempotency tracking)
-	 * Stores Stripe event in webhook_events table for unified webhook tracking
-	 */
-	private async markEventProcessed(
-		eventId: string,
-		eventType?: string,
-		payload?: unknown
-	): Promise<void> {
-		const { error } = await this.supabaseService
-			.getAdminClient()
-			.from('webhook_events')
-			.insert({
-				webhook_source: 'stripe',
-				external_id: eventId,
-				event_type: eventType || 'unknown',
-				raw_payload: (payload || {}) as Json,
-				processed_at: new Date().toISOString()
-			})
-
-		if (error && error.code !== '23505') {
-			// 23505 = unique constraint violation (event already exists, safe to ignore)
-			this.logger.warn('Failed to mark event as processed', {
-				error: error.message,
-				eventId
-			})
-		}
+		return data === true
 	}
 
 	/**
@@ -132,8 +111,15 @@ export class StripeSyncController {
 				eventId: event.id
 			})
 
-			// IDEMPOTENCY CHECK: Prevent duplicate processing
-			if (await this.isEventProcessed(event.id)) {
+			// ATOMIC IDEMPOTENCY: Acquire lock before processing
+			// Returns false if event already processed (duplicate webhook)
+			const lockAcquired = await this.acquireWebhookLock(
+				event.id,
+				event.type,
+				event
+			)
+
+			if (!lockAcquired) {
 				this.logger.log('Event already processed, skipping', {
 					eventId: event.id,
 					eventType: event.type
@@ -207,8 +193,8 @@ export class StripeSyncController {
 				}
 			}
 
-			// Mark event as processed AFTER successful handling
-			await this.markEventProcessed(event.id, event.type, event)
+			// Note: Event already marked as processed atomically via acquireWebhookLock
+			// No need for separate markEventProcessed call
 		} catch (error) {
 			this.logger.error('Error processing webhook business logic', {
 				error: error instanceof Error ? error.message : 'Unknown error'
@@ -333,65 +319,57 @@ export class StripeSyncController {
 			}
 		}
 
-		// Record payment in database
-		// NOTE: We rely on unique constraint on stripePaymentIntentId to prevent duplicates
-		// If duplicate, we handle the error gracefully below
+		// Record payment using atomic upsert RPC (idempotent - safe for webhook retries)
 		const now = new Date()
 		const today = now.toISOString().split('T')[0]
 
-		const paymentRecord = {
-				lease_id: safelease_id,
-				tenant_id: safetenant_id,
-				amount: Math.round(amountInDollars * 100), // Convert to cents
-				currency: 'usd',
-				status: 'succeeded' as const,
-				due_date: today,
-				paid_date: now.toISOString(),
-				period_start: today,
-				period_end: today,
-				payment_method_type: paymentType,
-			stripe_payment_intent_id: session.payment_intent as string,
-			application_fee_amount: 0
-		}
-
-		const { error } = await this.supabaseService
+		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.from('rent_payments')
-			.insert(paymentRecord as Database['public']['Tables']['rent_payments']['Insert'])
+			.rpc('upsert_rent_payment', {
+				p_lease_id: safelease_id,
+				p_tenant_id: safetenant_id,
+				p_amount: Math.round(amountInDollars * 100), // Convert to cents
+				p_currency: 'usd',
+				p_status: 'succeeded',
+				p_due_date: today,
+				p_paid_date: now.toISOString(),
+				p_period_start: today,
+				p_period_end: today,
+				p_payment_method_type: paymentType,
+				p_stripe_payment_intent_id: session.payment_intent as string,
+				p_application_fee_amount: 0
+			})
 
 		if (error) {
-			// Check if it's a conflict (duplicate) or actual error
-			if (
-				error.code === '23505' ||
-				error.message.includes('duplicate key value')
-			) {
-				this.logger.log(
-					'Checkout payment already exists (webhook retry), skipping duplicate',
-					{
-						sessionId: session.id,
-						lease_id,
-						tenant_id,
-						stripePaymentIntentId: session.payment_intent,
-						amount: amountInDollars
-					}
-				)
-			} else {
-				this.logger.error('Failed to record checkout payment', {
-					error: error.message,
-					sessionId: session.id,
-					lease_id,
-					tenant_id,
-					stripePaymentIntentId: session.payment_intent
-				})
-			}
-		} else {
-			this.logger.log('Checkout payment recorded successfully', {
+			this.logger.error('Failed to record checkout payment', {
+				error: error.message,
 				sessionId: session.id,
 				lease_id,
 				tenant_id,
-				amount: amountInDollars,
 				stripePaymentIntentId: session.payment_intent
 			})
+		} else {
+			const result = Array.isArray(data) ? data[0] : data
+			const wasInserted = result?.was_inserted ?? true
+
+			if (wasInserted) {
+				this.logger.log('Checkout payment recorded successfully', {
+					sessionId: session.id,
+					lease_id,
+					tenant_id,
+					amount: amountInDollars,
+					stripePaymentIntentId: session.payment_intent,
+					paymentId: result?.id
+				})
+			} else {
+				this.logger.log('Checkout payment already exists (webhook retry), skipping', {
+					sessionId: session.id,
+					lease_id,
+					tenant_id,
+					stripePaymentIntentId: session.payment_intent,
+					existingPaymentId: result?.id
+				})
+			}
 		}
 	}
 

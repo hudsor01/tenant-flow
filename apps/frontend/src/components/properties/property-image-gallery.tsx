@@ -26,15 +26,28 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 	const { isOpen: lightboxOpen, currentIndex: lightboxIndex, open: _openLightbox, close: closeLightbox, goToImage } = useLightboxState(0)
 
 	const handleDelete = useCallback(
-		async (imageId: string) => {
+		async (imageId: string, imageUrl: string) => {
 			if (!confirm('Delete this image? This action cannot be undone.')) {
 				return
+			}
+
+			// Extract storage path from URL (e.g., "property_id/filename.webp")
+			let imagePath: string | undefined
+			try {
+				const urlPath = new URL(imageUrl).pathname
+				const pathParts = urlPath.split('/property-images/')
+				if (pathParts.length >= 2 && pathParts[1]) {
+					imagePath = pathParts[1]
+				}
+			} catch {
+				// URL parsing failed, skip storage deletion
 			}
 
 			try {
 				await deleteMutation.mutateAsync({
 					imageId,
-					property_id: propertyId
+					property_id: propertyId,
+					...(imagePath ? { imagePath } : {})
 				})
 			} catch (error) {
 				logger.error('Delete image failed', {
@@ -111,7 +124,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 									className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
 									onClick={(e) => {
 										e.stopPropagation()
-										handleDelete(image.id)
+										handleDelete(image.id, image.image_url)
 									}}
 									disabled={deleteMutation.isPending}
 									aria-label="Delete image"

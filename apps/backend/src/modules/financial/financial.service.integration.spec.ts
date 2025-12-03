@@ -188,9 +188,6 @@ describe('FinancialService - N+1 Integration Tests', () => {
 		// Restore original method
 		supabaseClient.from = originalFrom
 
-		console.log('Query breakdown:', queriesBefore)
-		console.log(`Total queries: ${queryCount}`)
-
 		// Should use batch loading: 1 properties + 1 all units + 1 all leases + 1 expenses = 4-5 queries
 		// NOT: 1 properties + (3 properties × 3 queries each) = 10+ queries
 		expect(queryCount).toBeLessThanOrEqual(6) // Allow small buffer for auth queries

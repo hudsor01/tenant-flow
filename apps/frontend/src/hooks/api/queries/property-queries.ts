@@ -8,6 +8,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { createClient } from '#utils/supabase/client'
 import type { Property, PropertyStats, PropertyPerformance } from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
@@ -16,7 +17,7 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
  * Property query filters
  */
 export interface PropertyFilters {
-	status?: 'active' | 'SOLD' | 'INACTIVE'
+	status?: 'active' | 'SOLD' | 'inactive'
 	property_type?: 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'CONDO' | 'TOWNHOUSE' | 'COMMERCIAL'
 	search?: string
 	limit?: number
@@ -140,6 +141,7 @@ export const propertyQueries = {
 
 	/**
 	 * Property images for a specific property
+	 * Uses Supabase client directly with RLS (Dec 2025 best practice)
 	 *
 	 * @example
 	 * const { data } = useQuery(propertyQueries.images(property_id))
@@ -147,7 +149,17 @@ export const propertyQueries = {
 	images: (property_id: string) =>
 		queryOptions({
 			queryKey: [...propertyQueries.detail(property_id).queryKey, 'images'],
-			queryFn: () => clientFetch<Tables<'property_images'>[]>(`/api/v1/properties/${property_id}/images`),
+			queryFn: async () => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('property_images')
+					.select('*')
+					.eq('property_id', property_id)
+					.order('display_order', { ascending: true })
+
+				if (error) throw new Error(error.message)
+				return data as Tables<'property_images'>[]
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
 		}),

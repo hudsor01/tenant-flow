@@ -5,9 +5,15 @@
  * between frontend and backend services.
  */
 
+/**
+ * Tenant status values (normalized to lowercase for consistency)
+ * Maps to application-level status, not a database enum
+ */
+export type TenantStatus = 'active' | 'inactive' | 'pending'
+
 // Tenant-related API contracts
 export interface TenantFilters {
-	status?: 'active' | 'INACTIVE' | 'PENDING'
+	status?: TenantStatus
 	property_id?: string
 	search?: string
 	limit?: number
@@ -55,7 +61,7 @@ export interface SignatureStatus {
 }
 
 export interface PropertyFilters {
-	status?: 'active' | 'SOLD' | 'INACTIVE'
+	status?: 'active' | 'SOLD' | 'inactive'
 	property_type?: string
 	search?: string
 	limit?: number
@@ -313,7 +319,7 @@ export interface EmergencyContactResponse {
 }
 
 export interface PaymentStatus {
-	status: 'PAID' | 'DUE' | 'OVERDUE' | 'PENDING'
+	status: 'PAID' | 'DUE' | 'OVERDUE' | 'pending'
 	due_date: string
 	amount: number
 }
@@ -371,7 +377,7 @@ export interface CreateLeaseInput {
 		| 'ended'
 		| 'terminated'
 		| 'active'
-		| 'PENDING'
+		| 'pending'
 		| 'expired'
 		| 'terminated'
 		| 'draft'
@@ -398,7 +404,7 @@ export interface UpdateLeaseInput {
 		| 'ended'
 		| 'terminated'
 		| 'active'
-		| 'PENDING'
+		| 'pending'
 		| 'expired'
 		| 'terminated'
 		| 'draft'
