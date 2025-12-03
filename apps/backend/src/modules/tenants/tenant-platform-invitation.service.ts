@@ -112,7 +112,7 @@ export class TenantPlatformInvitationService {
 
 		// Step 5: Generate secure invitation code (64 hex chars from 32 bytes)
 		const invitationCode = randomBytes(32).toString('hex')
-		const invitationUrl = `${process.env.FRONTEND_URL}/accept-invite?code=${invitationCode}`
+		const invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite?code=${invitationCode}`
 
 		// Step 6: Set expiry to 7 days from now
 		const expiresAt = new Date()
@@ -233,7 +233,7 @@ export class TenantPlatformInvitationService {
 		// Get invitation
 		const { data: invitation, error: fetchError } = await client
 			.from('tenant_invitations')
-			.select('id, status, email, invitation_code, invitation_url, property_owner_id')
+			.select('id, status, email, invitation_code, invitation_url, property_owner_id, property_id, unit_id')
 			.eq('id', invitationId)
 			.single()
 
@@ -263,7 +263,7 @@ export class TenantPlatformInvitationService {
 
 		if (invitation.status === 'expired') {
 			invitationCode = randomBytes(32).toString('hex')
-			invitationUrl = `${process.env.FRONTEND_URL}/accept-invite?code=${invitationCode}`
+			invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite?code=${invitationCode}`
 		}
 
 		// Update invitation
@@ -286,7 +286,9 @@ export class TenantPlatformInvitationService {
 			email: invitation.email,
 			invitation_id: invitation.id,
 			invitation_url: invitationUrl,
-			expires_at: expiresAt.toISOString()
+			expires_at: expiresAt.toISOString(),
+			property_id: invitation.property_id ?? undefined,
+			unit_id: invitation.unit_id ?? undefined
 		})
 
 		this.logger.log('Invitation resent', { invitationId, ownerId })

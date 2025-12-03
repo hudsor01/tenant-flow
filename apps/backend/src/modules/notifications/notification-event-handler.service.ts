@@ -38,6 +38,17 @@ interface TenantInvitationSentEventPayload {
 	expiresAt: string
 }
 
+interface TenantPlatformInvitationSentPayload {
+	email: string
+	first_name?: string
+	last_name?: string
+	invitation_id: string
+	invitation_url: string
+	expires_at: string
+	property_id?: string
+	unit_id?: string
+}
+
 @Injectable()
 export class NotificationEventHandlerService {
 	private readonly logger = new Logger(NotificationEventHandlerService.name)
@@ -262,6 +273,69 @@ export class NotificationEventHandlerService {
 				})
 			},
 			'tenant.invitation.sent',
+			event
+		)
+	}
+
+	@OnEvent('tenant.platform_invitation.sent')
+	async handleTenantPlatformInvitationSent(event: TenantPlatformInvitationSentPayload) {
+		this.logger.log(`Processing tenant.platform_invitation.sent for ${event.email}`)
+
+		await this.failedNotifications.retryWithBackoff(
+			async () => {
+				const client = this.supabaseService.getAdminClient()
+
+				let propertyName: string | undefined
+				let unitNumber: string | undefined
+				let ownerName: string | undefined
+
+				// Fetch property details if property_id provided
+				if (event.property_id) {
+					const { data: property } = await client
+						.from('properties')
+						.select(`
+							name,
+							property_owner_id,
+							owner:property_owner_id(
+								user_id,
+								user:user_id(first_name, last_name)
+							)
+						`)
+						.eq('id', event.property_id)
+						.single()
+
+					if (property) {
+						propertyName = property.name ?? undefined
+						const ownerUser = property.owner?.user as { first_name: string | null; last_name: string | null } | null
+						if (ownerUser?.first_name && ownerUser?.last_name) {
+							ownerName = `${ownerUser.first_name} ${ownerUser.last_name}`
+						}
+					}
+				}
+
+				// Fetch unit details if unit_id provided
+				if (event.unit_id) {
+					const { data: unit } = await client
+						.from('units')
+						.select('unit_number')
+						.eq('id', event.unit_id)
+						.single()
+
+					if (unit) {
+						unitNumber = unit.unit_number ?? undefined
+					}
+				}
+
+				await this.emailService.sendTenantInvitationEmail({
+					tenantEmail: event.email,
+					invitationUrl: event.invitation_url,
+					expiresAt: event.expires_at,
+					...(propertyName && { propertyName }),
+					...(unitNumber && { unitNumber }),
+					...(ownerName && { ownerName })
+				})
+			},
+			'tenant.platform_invitation.sent',
 			event
 		)
 	}

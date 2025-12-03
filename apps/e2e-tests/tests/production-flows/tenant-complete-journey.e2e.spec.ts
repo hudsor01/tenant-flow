@@ -129,7 +129,7 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 
 	test('1. Tenant: Receive and view invitation', async ({ page }) => {
 		// Navigate to invitation link
-		await page.goto(`${BASE_URL}/tenant/invitation/${invitationToken}`)
+		await page.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
 
 		// Should redirect to signup
 		await page.waitForURL(`${BASE_URL}/signup**`)

@@ -42,11 +42,11 @@ const formatPropertyType = (type: PropertyType): string => {
 }
 
 // Format property status for display
-// Note: PROPERTY_STATUS values are mixed case - 'active' is lowercase, others uppercase
+// Note: PROPERTY_STATUS values are mixed case - 'active'/'inactive' lowercase, others uppercase
 const formatPropertyStatus = (status: PropertyStatus): string => {
 	const statusMap: Record<PropertyStatus, string> = {
 		active: 'Active',
-		INACTIVE: 'Inactive',
+		inactive: 'Inactive',
 		UNDER_CONTRACT: 'Under Contract',
 		SOLD: 'Sold'
 	}
