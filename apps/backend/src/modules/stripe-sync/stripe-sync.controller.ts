@@ -68,7 +68,8 @@ export class StripeSyncController {
 	): Promise<boolean> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.rpc('acquire_webhook_event_lock', {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.rpc('acquire_webhook_event_lock' as any, {
 				p_webhook_source: 'stripe',
 				p_external_id: eventId,
 				p_event_type: eventType,
@@ -325,7 +326,8 @@ export class StripeSyncController {
 
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			.rpc('upsert_rent_payment', {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.rpc('upsert_rent_payment' as any, {
 				p_lease_id: safelease_id,
 				p_tenant_id: safetenant_id,
 				p_amount: Math.round(amountInDollars * 100), // Convert to cents

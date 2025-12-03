@@ -53,7 +53,9 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				})
 				throw new InternalServerErrorException(
 					`Analytics RPC failed: ${functionName}`,
-					{ cause: res.error, description: res.error?.message }
+					res.error?.message
+					? { cause: res.error, description: res.error.message }
+					: { cause: res.error }
 				)
 			}
 
