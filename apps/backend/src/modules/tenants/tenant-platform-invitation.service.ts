@@ -265,7 +265,7 @@ export class TenantPlatformInvitationService {
 
 		if (invitation.status === 'expired') {
 			invitationCode = randomBytes(32).toString('hex')
-			invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invite?code=${invitationCode}`
+			invitationUrl = `${this.config.getNextPublicAppUrl()}/accept-invite?code=${invitationCode}`
 		}
 
 		// Update invitation
