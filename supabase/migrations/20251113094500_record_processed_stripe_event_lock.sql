@@ -25,5 +25,5 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.record_processed_stripe_event_lock(TEXT, TEXT, TIMESTAMPTZ, TEXT) TO authenticated;
 
-COMMENT ON FUNCTION public.record_processed_stripe_event_lock IS
+COMMENT ON FUNCTION public.record_processed_stripe_event_lock(TEXT, TEXT, TIMESTAMPTZ, TEXT) IS
   'Acquires the Stripe webhook lock via INSERT ... ON CONFLICT DO NOTHING and returns whether the current request inserted the row.'

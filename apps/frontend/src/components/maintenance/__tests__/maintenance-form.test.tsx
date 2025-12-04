@@ -28,51 +28,76 @@ vi.mock('#hooks/api/use-maintenance', () => ({
 	}
 }))
 
-vi.mock('#lib/api/client', () => ({
-	clientFetch: vi.fn((url: string) => {
-		if (url.includes('/properties')) {
-			return Promise.resolve([
-				{
-					id: 'property-1',
-					name: 'Sunset Apartments',
-					address: '123 Main St',
-					city: 'San Francisco',
-					state: 'CA',
-					postal_code: '94105'
-				},
-				{
-					id: 'property-2',
-					name: 'Ocean View Complex',
-					address: '456 Beach Ave',
-					city: 'San Diego',
-					state: 'CA',
-					postal_code: '92101'
-				}
-			])
-		}
-		if (url.includes('/units')) {
-			return Promise.resolve([
-				{
-					id: 'unit-1',
-					unit_number: '101',
-					property_id: 'property-1',
-					status: 'OCCUPIED'
-				},
-				{
-					id: 'unit-2',
-					unit_number: '102',
-					property_id: 'property-1',
-					status: 'VACANT'
-				},
-				{
-					id: 'unit-3',
-					unit_number: '201',
-					property_id: 'property-2',
-					status: 'OCCUPIED'
-				}
-			])
-		}
-		return Promise.resolve([])
+vi.mock('#hooks/api/use-properties', () => ({
+	usePropertyList: () => ({
+		data: [
+			{
+				id: 'property-1',
+				name: 'Sunset Apartments',
+				address: '123 Main St',
+				city: 'San Francisco',
+				state: 'CA',
+				postal_code: '94105'
+			},
+			{
+				id: 'property-2',
+				name: 'Ocean View Complex',
+				address: '456 Beach Ave',
+				city: 'San Diego',
+				state: 'CA',
+				postal_code: '92101'
+			}
+		],
+		isLoading: false
+	})
+}))
+
+vi.mock('#hooks/api/use-unit', () => ({
+	useUnitsByProperty: () => ({
+		data: [
+			{
+				id: 'unit-1',
+				unit_number: '101',
+				property_id: 'property-1',
+				status: 'OCCUPIED'
+			},
+			{
+				id: 'unit-2',
+				unit_number: '102',
+				property_id: 'property-1',
+				status: 'VACANT'
+			},
+			{
+				id: 'unit-3',
+				unit_number: '201',
+				property_id: 'property-2',
+				status: 'OCCUPIED'
+			}
+		],
+		isLoading: false
+	}),
+	useUnitList: () => ({
+		data: [
+			{
+				id: 'unit-1',
+				unit_number: '101',
+				property_id: 'property-1',
+				status: 'OCCUPIED'
+			},
+			{
+				id: 'unit-2',
+				unit_number: '102',
+				property_id: 'property-1',
+				status: 'VACANT'
+			},
+			{
+				id: 'unit-3',
+				unit_number: '201',
+				property_id: 'property-2',
+				status: 'OCCUPIED'
+			}
+		],
+		isLoading: false
 	})
 }))
 
@@ -315,7 +340,7 @@ describe('MaintenanceForm', () => {
 			await waitFor(() => {
 				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
 			})
-			// Note: Properties are loaded via clientFetch and rendered in SelectContent
+			// Note: Properties are loaded via usePropertyList hook and rendered in SelectContent
 		})
 
 		test('loads units on mount', async () => {
@@ -326,7 +351,7 @@ describe('MaintenanceForm', () => {
 			await waitFor(() => {
 				expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
 			})
-			// Note: Units are loaded via clientFetch
+			// Note: Units are loaded via useUnitsByProperty hook
 		})
 
 		})

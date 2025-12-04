@@ -82,9 +82,9 @@ export function PropertyImageDropzone({
 		autoUpload: true // Upload immediately after file selection
 	})
 
-	const { isSuccess, successes, errors } = uploadState
+	const { isSuccess, successes, errors, setFiles } = uploadState
 
-	// Handle successful upload - invalidate queries and call callback
+	// Handle successful upload - invalidate queries, clear files, and call callback
 	useEffect(() => {
 		if (isSuccess && successes.length > 0) {
 			logger.info('Property images uploaded successfully', {
@@ -95,6 +95,9 @@ export function PropertyImageDropzone({
 					fileNames: successes
 				}
 			})
+
+			// Clear the files from dropzone after successful upload
+			setFiles([])
 
 			// Invalidate property images query to refresh the gallery
 			queryClient.invalidateQueries({
@@ -109,7 +112,7 @@ export function PropertyImageDropzone({
 			// Call the success callback if provided
 			onUploadSuccess?.()
 		}
-	}, [isSuccess, successes, propertyId, queryClient, onUploadSuccess])
+	}, [isSuccess, successes, propertyId, queryClient, onUploadSuccess, setFiles])
 
 	// Log errors for debugging
 	useEffect(() => {

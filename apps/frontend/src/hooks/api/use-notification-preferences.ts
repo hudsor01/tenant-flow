@@ -3,7 +3,8 @@
  * Manage tenant notification preferences with TanStack Query
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -33,7 +34,7 @@ export function useNotificationPreferences(tenant_id: string) {
 	return useQuery({
 		queryKey: notificationPreferencesKeys.tenant(tenant_id),
 		queryFn: () =>
-			clientFetch<NotificationPreferences>(
+			apiRequest<NotificationPreferences>(
 				`/api/v1/tenants/${tenant_id}/notification-preferences`
 			),
 		enabled: !!tenant_id,
@@ -50,7 +51,7 @@ export function useUpdateNotificationPreferences(tenant_id: string) {
 
 	return useMutation({
 		mutationFn: (preferences: Partial<NotificationPreferences>) =>
-			clientFetch<NotificationPreferences>(
+			apiRequest<NotificationPreferences>(
 				`/api/v1/tenants/${tenant_id}/notification-preferences`,
 				{
 					method: 'PUT',

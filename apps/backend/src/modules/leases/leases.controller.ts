@@ -28,8 +28,8 @@ import { LeasesService } from './leases.service'
 import { LeaseFinancialService } from './lease-financial.service'
 import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
-import type { CreateLeaseDto } from './dto/create-lease.dto'
-import type { UpdateLeaseDto } from './dto/update-lease.dto'
+import { CreateLeaseDto } from './dto/create-lease.dto'
+import { UpdateLeaseDto } from './dto/update-lease.dto'
 
 @Controller('leases')
 export class LeasesController {

@@ -8,8 +8,8 @@ import {
 	SetMetadata
 } from '@nestjs/common'
 import { AnalyticsService } from './analytics.service'
-import type { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
-import type { WebVitalDto } from './dto/web-vital.dto'
+import { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
+import { WebVitalDto } from './dto/web-vital.dto'
 
 @Controller('analytics')
 export class AnalyticsController {

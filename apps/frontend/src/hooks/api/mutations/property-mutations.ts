@@ -2,12 +2,13 @@
  * Property Mutation Options (TanStack Query v5 Pattern)
  *
  * Modern mutation patterns with proper error handling and cache invalidation.
+ * Uses apiRequest for NestJS calls.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import { createClient } from '#utils/supabase/client'
+import { apiRequest } from '#lib/api-request'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared/types/api-contracts'
 import type { Property } from '@repo/shared/types/core'
@@ -45,8 +46,8 @@ export function useUpdatePropertyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data, version }: { id: string; data: UpdatePropertyInput; version?: number }) =>
-			clientFetch<Property>(`/api/v1/properties/${id}`, {
+		mutationFn: async ({ id, data, version }: { id: string; data: UpdatePropertyInput; version?: number }) =>
+			apiRequest<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)
 			}),
@@ -72,10 +73,8 @@ export function useDeletePropertyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (id: string) =>
-			clientFetch(`/api/v1/properties/${id}`, {
-				method: 'DELETE'
-			}),
+		mutationFn: async (id: string) =>
+			apiRequest<void>(`/api/v1/properties/${id}`, { method: 'DELETE' }),
 		onSuccess: (_result, deletedId) => {
 			// Remove from cache
 			queryClient.removeQueries({ queryKey: propertyQueries.detail(deletedId).queryKey })

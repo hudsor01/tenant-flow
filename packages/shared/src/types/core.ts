@@ -259,12 +259,12 @@ export type UnitRowWithRelations = Database['public']['Tables']['units']['Row'] 
 	lastUpdated?: string
 }
 
-// Maintenance API response with relations
+// Maintenance API response with optional relations
 export interface MaintenanceRequestResponse {
 	data: (MaintenanceRequest & {
-		property: { name: string } | null
-		unit: { name: string } | null
-		assignedTo: { name: string } | null
+		property?: { name: string } | null
+		unit?: { name: string } | null
+		assignedTo?: { name: string } | null
 	})[]
 	total: number
 	limit: number

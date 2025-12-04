@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from '#lib/design-system'
+import { cn } from '#lib/utils'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface ParticleType {

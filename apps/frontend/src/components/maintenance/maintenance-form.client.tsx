@@ -138,8 +138,8 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 								</div>
 							</div>
 						</CardHeader>
-						<CardContent className="grid gap-(--spacing-6)">
-							<div className="grid gap-(--spacing-4) md:grid-cols-2">
+						<CardContent className="grid gap-6">
+							<div className="grid gap-4 md:grid-cols-2">
 								{/* Property Selection */}
 								<form.Field name="property_id">
 									{field => (

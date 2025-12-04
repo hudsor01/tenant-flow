@@ -1,6 +1,7 @@
 'use client'
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { tenantPortalKeys } from './queries/tenant-portal-queries'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
@@ -9,7 +10,7 @@ export function useTenantPortalSetupAutopay() {
 
 	return useMutation({
 		mutationFn: async (params: { tenant_id: string; lease_id: string; paymentMethodId?: string }) => {
-			return clientFetch('/api/v1/rent-payments/autopay/setup', {
+			return apiRequest('/api/v1/rent-payments/autopay/setup', {
 				method: 'POST',
 				body: JSON.stringify(params)
 			})
@@ -27,7 +28,7 @@ export function useTenantPortalCancelAutopay() {
 
 	return useMutation({
 		mutationFn: async (params: { tenant_id: string; lease_id: string; paymentMethodId?: string }) => {
-			return clientFetch('/api/v1/rent-payments/autopay/cancel', {
+			return apiRequest('/api/v1/rent-payments/autopay/cancel', {
 				method: 'POST',
 				body: JSON.stringify(params)
 			})

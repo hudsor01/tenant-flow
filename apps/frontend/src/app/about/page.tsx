@@ -31,7 +31,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { GridPattern } from '../../components/ui/grid-pattern'
-import { env } from '#config/env'
 
 const stats = [
 	{ number: '10,000+', label: 'Properties Managed', Icon: Building2 },
@@ -41,7 +40,8 @@ const stats = [
 ]
 
 export default function AboutPage() {
-	const baseUrl = env.NEXT_PUBLIC_BASE_URL
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 
 	// Breadcrumb Schema
 	const breadcrumbSchema = {
@@ -76,7 +76,7 @@ export default function AboutPage() {
 			{/* Navigation */}
 			<Navbar />
 
-			<main className="flex-1">
+			<main className="flex-1 page-offset-navbar">
 				{/* Hero Section */}
 				<HeroSection
 					title="Simplifying property management"
@@ -355,7 +355,7 @@ export default function AboutPage() {
 									their operations and scaled their business with
 									TenantFlow&apos;s enterprise platform.
 								</p>
-								<div className="flex flex-col sm:flex-row gap-(--spacing-4) justify-center">
+								<div className="flex flex-col sm:flex-row gap-4 justify-center">
 									<Button asChild size="lg" className="group">
 										<Link href="/pricing">
 											Start Free Trial

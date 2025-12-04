@@ -1,34 +1,34 @@
 import { test, expect } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
-import { loginAsTenant } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded } from '../helpers/navigation-helpers'
 import { openModal, verifyModalIsOpen } from '../helpers/modal-helpers'
 import { verifyTableRenders, verifyButtonExists, verifyLoadingComplete } from '../helpers/ui-validation-helpers'
 
+/**
+ * Tenant Payments E2E Tests
+ *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ */
 test.describe('Tenant Payments', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-
   test('should render payments overview page', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS)
     await verifyPageLoaded(page, ROUTES.TENANT_PAYMENTS, 'Payments')
   })
 
   test('should render payment methods page', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_METHODS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_METHODS)
     await verifyPageLoaded(page, ROUTES.TENANT_PAYMENTS_METHODS, 'Payment Methods')
   })
 
   test('should render payment history page', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_HISTORY}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
     await verifyPageLoaded(page, ROUTES.TENANT_PAYMENTS_HISTORY, 'Payment History')
   })
 
   test('should display payment history table', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_HISTORY}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
     await verifyLoadingComplete(page)
 
     const tableExists = (await page.getByRole('table').count()) > 0
@@ -38,8 +38,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should display saved payment methods', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_METHODS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_METHODS)
     await verifyLoadingComplete(page)
 
     const paymentMethods = page.getByText(/card|bank|payment method/i)
@@ -51,8 +50,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should have add payment method button', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_METHODS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_METHODS)
     await verifyLoadingComplete(page)
 
     const addButton = page.getByRole('button', { name: /add.*method|new.*method/i })
@@ -64,8 +62,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should display upcoming payment amount', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS)
     await verifyLoadingComplete(page)
 
     const amount = page.getByText(/\$\d+/)
@@ -77,8 +74,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should display next payment due date', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS)
     await verifyLoadingComplete(page)
 
     const dueDate = page.getByText(/due|next payment|upcoming/i)
@@ -90,8 +86,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should have pay rent button', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS)
     await verifyLoadingComplete(page)
 
     const payButton = page.getByRole('button', { name: /pay.*rent|make.*payment/i })
@@ -103,8 +98,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should open pay rent modal', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS)
     await verifyLoadingComplete(page)
 
     const payButton = page.getByRole('button', { name: /pay.*rent|make.*payment/i })
@@ -117,8 +111,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should display payment status badges in history', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_HISTORY}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
     await verifyLoadingComplete(page)
 
     const statusBadges = page.getByText(/paid|pending|failed/i)
@@ -130,8 +123,7 @@ test.describe('Tenant Payments', () => {
   })
 
   test('should allow downloading payment receipts', async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_HISTORY}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
     await verifyLoadingComplete(page)
 
     const downloadButtons = page.getByRole('button', { name: /download|receipt/i })

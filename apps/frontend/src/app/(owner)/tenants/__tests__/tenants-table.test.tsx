@@ -11,11 +11,6 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { ColumnDef } from '@tanstack/react-table'
 
-// Mock API client
-vi.mock('#lib/api/client', () => ({
-	clientFetch: vi.fn().mockResolvedValue({})
-}))
-
 // Mock hooks
 vi.mock('#hooks/api/use-tenant', () => ({
 	useResendInvitation: () => ({

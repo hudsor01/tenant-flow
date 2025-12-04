@@ -175,14 +175,31 @@ export const invitationStatusSchema = z.enum([
 ])
 
 // Schema for inviting a tenant to the platform (NO lease required)
+// Flat structure - used for simple validation
 export const inviteTenantSchema = z.object({
   email: z.string().email('Valid email is required'),
   first_name: z.string().min(1, 'First name is required').max(100),
   last_name: z.string().min(1, 'Last name is required').max(100),
   phone: phoneSchema.optional(),
-  // Optional context - can invite without assigning to property/unit
-  property_id: uuidSchema.optional(),
+  // Property is REQUIRED - can't invite tenant without a property
+  property_id: uuidSchema,
   unit_id: uuidSchema.optional()
+})
+
+// Nested structure - matches backend DTO (InviteWithLeaseDto)
+// Used for API requests
+export const inviteTenantRequestSchema = z.object({
+  tenantData: z.object({
+    email: z.string().email('Valid email is required'),
+    first_name: z.string().min(1, 'First name is required').max(100),
+    last_name: z.string().min(1, 'Last name is required').max(100),
+    phone: phoneSchema.optional()
+  }),
+  leaseData: z.object({
+    // Property is REQUIRED - can't invite tenant without a property
+    property_id: uuidSchema,
+    unit_id: uuidSchema.optional()
+  })
 })
 
 // Schema for inviting tenant to sign a specific lease
@@ -214,5 +231,6 @@ export const tenantInvitationSchema = z.object({
 export type InvitationType = z.infer<typeof invitationTypeSchema>
 export type InvitationStatus = z.infer<typeof invitationStatusSchema>
 export type InviteTenant = z.infer<typeof inviteTenantSchema>
+export type InviteTenantRequest = z.infer<typeof inviteTenantRequestSchema>
 export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>
 export type TenantInvitation = z.infer<typeof tenantInvitationSchema>

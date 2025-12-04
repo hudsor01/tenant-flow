@@ -322,12 +322,11 @@ export class StripeSyncController {
 
 		// Record payment using atomic upsert RPC (idempotent - safe for webhook retries)
 		const now = new Date()
-		const today = now.toISOString().split('T')[0]
+		const today = now.toISOString().split('T')[0] as string
 
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			.rpc('upsert_rent_payment' as any, {
+			.rpc('upsert_rent_payment', {
 				p_lease_id: safelease_id,
 				p_tenant_id: safetenant_id,
 				p_amount: Math.round(amountInDollars * 100), // Convert to cents

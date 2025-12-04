@@ -79,21 +79,161 @@ Clear convention: ALWAYS use snake_case in .select(), .insert(), .update() calls
 **Database Enums**: Use `Database['public']['Enums']['enum_name']`
 **FORBIDDEN**: TypeScript `enum`, duplicating DB enums, union types mirroring DB
 
-## Frontend - Data Fetching
-**Patterns**:
-- Client queries: TanStack Query `useQuery` with native `fetch()`
-- Simple mutations: `useTransition + fetch()`
-- Complex mutations: `useMutation` (retries, versioning, multi-cache, global errors)
-- Optimistic UI: Single component = `useOptimistic`, Multi-component = `useMutation` cache updates
+## Frontend - Data Fetching (CRITICAL)
 
-**State Management**:
-- URL: nuqs
-- React 19.2
-- Tanstack React Query
-- Zustand
+### DEPRECATED - DO NOT USE
+- `clientFetch()` - DELETE, replace with patterns below
+- `serverFetch()` - DELETE, replace with Supabase direct or client-side
+- Any HTTP abstraction wrapper - FORBIDDEN
 
-**Custom Hooks**: ALLOWED - wraps `useQuery`/`useMutation`, NO HTTP abstraction layer
-**Cache**: Lists 10min, Details 5min, Stats 1min, Real-time 3min refetch
+### Architecture: Destination Determines Vehicle
+Supabase and NestJS are **separate backends**. Choose based on where data lives:
+
+| Destination | Vehicle | Use When |
+|-------------|---------|----------|
+| Supabase Tables | `createClient()` direct | Simple CRUD (properties, tenants, leases, units) |
+| NestJS API | Native `fetch()` | Business logic, Stripe, analytics, external APIs |
+| Next.js API Routes | Native `fetch()` | Webhooks, auth callbacks only |
+
+### Decision Tree
+```
+1. Client or Server?
+   → CLIENT (default): Use TanStack Query, go to step 2
+   → SERVER (rare): Only if SEO-critical AND static. Otherwise convert to client.
+
+2. Where does data live?
+   → SUPABASE TABLE: createClient().from().select()
+   → NESTJS API: native fetch() with auth header from Supabase session
+```
+
+### Pattern A: Supabase Direct (Simple CRUD)
+Use for: properties, tenants, leases, units, images, maintenance_requests
+```typescript
+// Inside queryOptions queryFn
+const supabase = createClient()
+const { data, error } = await supabase.from('properties').select('*, units(count)')
+if (error) throw error
+return data
+```
+
+### Pattern B: NestJS via Native Fetch (Business Logic)
+Use for: Stripe, analytics, reports, multi-step operations, external APIs
+```typescript
+// Inside queryOptions queryFn
+const supabase = createClient()
+const { data: { session } } = await supabase.auth.getSession()
+const res = await fetch(`${API_BASE_URL}/api/v1/analytics`, {
+  headers: { Authorization: `Bearer ${session?.access_token}` }
+})
+if (!res.ok) throw new Error(`API Error: ${res.status}`)
+return res.json()
+```
+
+### Pattern C: Server Components (RARE - Cost Warning)
+Vercel bills per invocation. Only use for SEO-critical static content (landing, blog).
+```typescript
+// Direct Supabase server client - NEVER call your own API from server
+const supabase = await createClient() // server util
+const { data } = await supabase.from('blog_posts').select('*')
+```
+
+### TanStack Query Patterns
+- **Reads**: `useQuery(queryOptions({ queryKey, queryFn }))`
+- **Simple mutations**: `useTransition + fetch()`
+- **Complex mutations**: `useMutation` (retries, optimistic updates, multi-cache)
+- **Cache TTL**: Lists 10min, Details 5min, Stats 1min
+
+### State Management
+- URL state: nuqs
+- Server state: TanStack Query
+- Client state: Zustand (sparingly)
+
+**Custom Hooks**: ALLOWED - wrap `useQuery`/`useMutation` only
+
+### Migration: Files to Delete
+| File | Replacement |
+|------|-------------|
+| `lib/api/client.ts` | Pattern A or B in queryFn |
+| `lib/api/server.ts` | Supabase server client direct |
+| `lib/api/analytics-page.ts` | Client component + TanStack Query |
+| Any `*Fetch` wrapper | Native patterns above |
+
+### Edge Cases & Disambiguation
+**Q: Data from Supabase but needs transformation?**
+→ Still use Supabase direct. Transform in queryFn or dedicated transform function.
+
+**Q: Need data from multiple Supabase tables with business logic?**
+→ If simple joins: Supabase `.select('*, related(*)')`. If complex rules: NestJS endpoint.
+
+**Q: Mutation that calls Stripe then updates Supabase?**
+→ NestJS. Multi-step operations with external APIs always go through backend.
+
+**Q: Real-time subscriptions?**
+→ Supabase direct via `supabase.channel().on().subscribe()`. No TanStack Query wrapper.
+
+**Q: File uploads?**
+→ Supabase Storage direct: `supabase.storage.from('bucket').upload()`.
+
+**Q: Auth operations (login, logout, password reset)?**
+→ Supabase Auth direct: `supabase.auth.signIn()`. Never wrap in custom fetch.
+
+### Error Handling (Data Fetching)
+```typescript
+// Pattern: Throw errors, let TanStack Query handle them
+queryFn: async () => {
+  const { data, error } = await supabase.from('table').select('*')
+  if (error) throw new Error(error.message)  // TanStack catches this
+  return data
+}
+
+// Mutations: Use onError callback
+useMutation({
+  mutationFn: async (input) => { /* ... */ },
+  onError: (error) => toast.error(error.message),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['affected'] })
+})
+```
+
+### Anti-Patterns (FORBIDDEN)
+- ❌ Calling your own API from Server Components (wasteful round-trip)
+- ❌ Wrapping Supabase client in custom fetch abstraction
+- ❌ Using `getServerSideProps` or `getStaticProps` (Next.js 12 patterns)
+- ❌ Storing auth tokens manually (Supabase SSR handles this)
+- ❌ Creating "API service" classes that abstract fetch
+- ❌ Using axios, ky, or other HTTP libraries (native fetch is sufficient)
+- ❌ Mixing Server Component data fetching with Client Component queries for same data
+
+### Type Safety
+```typescript
+// Supabase: Types from generated schema
+import type { Database } from '@repo/shared/types/supabase'
+type Property = Database['public']['Tables']['properties']['Row']
+
+// NestJS: Types from shared contracts
+import type { PropertyResponse } from '@repo/shared/types/api-contracts'
+
+// queryOptions: Infers return type automatically
+const query = propertyQueries.list() // TypeScript knows the return type
+```
+
+### Prefetching & SSR Hydration (Advanced)
+For pages needing instant load without loading spinners:
+```typescript
+// In Server Component parent, prefetch for client child
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+
+export default async function Page() {
+  const queryClient = new QueryClient()
+  await queryClient.prefetchQuery(propertyQueries.list())
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <PropertiesClient /> {/* Client component uses same query, instant data */}
+    </HydrationBoundary>
+  )
+}
+```
+Use sparingly - adds complexity. Default to client-side with loading skeletons.
 
 ## Frontend - Routing
 **ARCHITECTURE**: Intercepting Routes + Parallel Routes for modal UX with URL support

@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
-import { loginAsOwner } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded } from '../helpers/navigation-helpers'
 import { verifyTableRenders, verifyLoadingComplete } from '../helpers/ui-validation-helpers'
 
+/**
+ * Owner Financials E2E Tests
+ *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ */
 test.describe('Owner Financials', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-
   const financialPages = [
     { path: ROUTES.FINANCIALS_INCOME_STATEMENT, heading: 'Income Statement' },
     { path: ROUTES.FINANCIALS_CASH_FLOW, heading: 'Cash Flow' },
@@ -16,14 +20,13 @@ test.describe('Owner Financials', () => {
 
   for (const page of financialPages) {
     test(`should render ${page.heading} page`, async ({ page: p }) => {
-      await loginAsOwner(p)
-      await p.goto(`${baseUrl}${page.path}`)
+      // Navigate directly (authenticated via storageState)
+      await p.goto(page.path)
       await verifyPageLoaded(p, page.path, page.heading)
     })
 
     test(`should display financial data on ${page.heading}`, async ({ page: p }) => {
-      await loginAsOwner(p)
-      await p.goto(`${baseUrl}${page.path}`)
+      await p.goto(page.path)
       await verifyLoadingComplete(p)
 
       const hasFinancialData = (await p.getByText(/\$\d+/i).count()) > 0
@@ -31,8 +34,7 @@ test.describe('Owner Financials', () => {
     })
 
     test(`should have export functionality on ${page.heading}`, async ({ page: p }) => {
-      await loginAsOwner(p)
-      await p.goto(`${baseUrl}${page.path}`)
+      await p.goto(page.path)
       await verifyLoadingComplete(p)
 
       const exportButton = p.getByRole('button', { name: /export|download|pdf|csv/i })
@@ -45,8 +47,7 @@ test.describe('Owner Financials', () => {
   }
 
   test('should display income statement table', async ({ page }) => {
-    await loginAsOwner(page)
-    await page.goto(`${baseUrl}${ROUTES.FINANCIALS_INCOME_STATEMENT}`)
+    await page.goto(ROUTES.FINANCIALS_INCOME_STATEMENT)
     await verifyLoadingComplete(page)
 
     const tableExists = (await page.getByRole('table').count()) > 0
@@ -56,8 +57,7 @@ test.describe('Owner Financials', () => {
   })
 
   test('should display date range selector', async ({ page }) => {
-    await loginAsOwner(page)
-    await page.goto(`${baseUrl}${ROUTES.FINANCIALS_CASH_FLOW}`)
+    await page.goto(ROUTES.FINANCIALS_CASH_FLOW)
     await verifyLoadingComplete(page)
 
     const dateSelector = page.getByLabel(/date|period|range/i)

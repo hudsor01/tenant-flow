@@ -37,7 +37,7 @@ async function attachText(testInfo: TestInfo, name: string, lines: string[]) {
  * Email: process.env.E2E_OWNER_EMAIL (default: test-owner@example.com)
  * Password: process.env.E2E_OWNER_PASSWORD (default: TestPassword123!)
  * To set up:
- * 1. Sign up at http://localhost:3000/signup with the test credentials
+ * 1. Sign up at http://localhost:3050/signup with the test credentials
  * 2. Verify the email in your local Supabase dashboard
  * 3. Run these tests
 
@@ -53,13 +53,18 @@ test.describe('Texas Lease Generation', () => {
 		const page = await browser.newPage()
 
 		try {
-			// Try to login with timeout using Promise.race
-			await Promise.race([
-				loginAsOwner(page),
+			// Try to login with timeout using Promise.race with proper error handling
+			const authResult = await Promise.race([
+				loginAsOwner(page).then(() => 'success'),
 				new Promise((_, reject) =>
 					setTimeout(() => reject(new Error('Auth timeout after 15s')), 15000)
 				)
 			])
+
+			if (authResult === 'success') {
+				authenticationAvailable = true
+				logger.info(' Authentication successful - tests will run')
+			}
 
 			authenticationAvailable = true
 			logger.info(' Authentication successful - tests will run')
@@ -70,7 +75,7 @@ test.describe('Texas Lease Generation', () => {
 			logger.info(' Required environment variables:')
 			logger.info(`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`)
 			logger.info(`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`)
-			logger.info(' Set up test account at http://localhost:3000/signup')
+			logger.info(' Set up test account at http://localhost:3050/signup')
 		} finally {
 			await page.close()
 		}

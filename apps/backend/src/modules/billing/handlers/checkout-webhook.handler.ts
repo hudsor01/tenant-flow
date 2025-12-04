@@ -153,23 +153,29 @@ export class CheckoutWebhookHandler {
 				email: customerEmail
 			})
 
-			const { error: usersError } = await client.from('users').insert({
-				id: authUser.user.id,
-				email: customerEmail.toLowerCase(),
-				full_name: customerName,
-				user_type: 'OWNER',
-				stripe_customer_id: stripeCustomerId,
-				status: 'active',
-				created_at: new Date().toISOString()
-			})
+			// Idempotent upsert - handles webhook retries safely
+			const { error: usersError } = await client
+				.from('users')
+				.upsert(
+					{
+						id: authUser.user.id,
+						email: customerEmail.toLowerCase(),
+						full_name: customerName,
+						user_type: 'OWNER',
+						stripe_customer_id: stripeCustomerId,
+						status: 'active',
+						created_at: new Date().toISOString()
+					},
+					{ onConflict: 'email', ignoreDuplicates: true }
+				)
 
 			if (usersError) {
-				this.logger.error('Failed to create users table row', {
+				this.logger.error('Failed to upsert users table row', {
 					error: usersError.message,
 					userId: authUser.user.id,
 					sessionId: session.id
 				})
-				throw new Error(`Failed to create users row: ${usersError.message}`)
+				throw new Error(`Failed to upsert users row: ${usersError.message}`)
 			}
 
 			this.logger.log('User creation completed', {

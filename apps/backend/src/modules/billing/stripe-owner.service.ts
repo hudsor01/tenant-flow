@@ -268,8 +268,8 @@ export class StripeOwnerService {
 			)
 		}
 
-		// Calculate application fee (platform revenue)
-		const platformFeePercent = propertyOwner.default_platform_fee_percent ?? 3.0
+		// Calculate application fee (platform revenue) - default 1%
+		const platformFeePercent = propertyOwner.default_platform_fee_percent ?? 1.0
 		const applicationFeeAmount = Math.round(
 			lease.rent_amount * (platformFeePercent / 100)
 		)
@@ -317,29 +317,35 @@ export class StripeOwnerService {
 			}
 		})
 
-		// Record rent payment in database
-		const { error: insertError } = await client.from('rent_payments').insert({
-			lease_id: leaseId,
-			tenant_id: lease.primary_tenant_id,
-			stripe_payment_intent_id: paymentIntent.id,
-			amount: lease.rent_amount,
-			currency: lease.rent_currency || 'usd',
-			status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
-			payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
-			period_start: periodStartStr,
-			period_end: periodEndStr,
-			due_date: dueDateStr,
-			paid_date: paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
-			application_fee_amount: applicationFeeAmount
+		// Record rent payment in database using idempotent RPC
+		const { data: upsertResult, error: upsertError } = await client.rpc('upsert_rent_payment', {
+			p_lease_id: leaseId,
+			p_tenant_id: lease.primary_tenant_id,
+			p_amount: lease.rent_amount,
+			p_currency: lease.rent_currency || 'usd',
+			p_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
+			p_due_date: dueDateStr,
+			p_paid_date: paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
+			p_period_start: periodStartStr,
+			p_period_end: periodEndStr,
+			p_payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
+			p_stripe_payment_intent_id: paymentIntent.id,
+			p_application_fee_amount: applicationFeeAmount
 		})
 
-		if (insertError) {
+		if (upsertError) {
 			this.logger.error('Failed to record rent payment in database', {
 				leaseId,
 				paymentIntentId: paymentIntent.id,
-				error: insertError.message
+				error: upsertError.message
 			})
 			// Don't throw - payment was successful, just log the db error
+		} else if (upsertResult?.[0]?.was_inserted === false) {
+			this.logger.warn('Rent payment already exists (idempotent duplicate)', {
+				leaseId,
+				paymentIntentId: paymentIntent.id,
+				existingPaymentId: upsertResult[0].id
+			})
 		}
 
 		this.logger.log('Rent payment intent created', {

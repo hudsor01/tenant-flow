@@ -64,7 +64,7 @@ function BalanceCard() {
 	const pendingUSD = balance.pending.find(b => b.currency === 'usd')?.amount ?? 0
 
 	return (
-		<div className="grid gap-(--spacing-4) md:grid-cols-2">
+		<div className="grid gap-4 md:grid-cols-2">
 			<CardLayout
 				title="Available Balance"
 				description="Funds ready for payout"
@@ -81,7 +81,7 @@ function BalanceCard() {
 				description="Processing to available"
 			>
 				<div className="flex items-center gap-2">
-					<Clock className="size-8 text-amber-600" />
+					<Clock className="size-8 text-warning" />
 					<span className="text-3xl font-bold">
 						{formatCurrency(pendingUSD / 100)}
 					</span>

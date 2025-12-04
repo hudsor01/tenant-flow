@@ -434,20 +434,22 @@ describe('LeasesService', () => {
 			expect(result).toEqual(mockLease)
 		})
 
-		it('should return null when token is missing', async () => {
-			// Implementation returns null for missing parameters
-			const result = await service.findOne('', 'lease-123')
-			expect(result).toBeNull()
+		// FAIL FAST: Missing token should throw immediately, not return null
+		it('should throw BadRequestException when token is missing', async () => {
+			await expect(service.findOne('', 'lease-123')).rejects.toThrow(
+				BadRequestException
+			)
 		})
 
-		it('should return null when lease_id is missing', async () => {
-			// Implementation returns null for missing parameters
-			const result = await service.findOne(mockToken, '')
-			expect(result).toBeNull()
+		// FAIL FAST: Missing lease_id should throw immediately, not return null
+		it('should throw BadRequestException when lease_id is missing', async () => {
+			await expect(service.findOne(mockToken, '')).rejects.toThrow(
+				BadRequestException
+			)
 		})
 
-		it('should return null when lease not found', async () => {
-			// Implementation returns null for not found (no exception thrown)
+		// FAIL FAST: Not found should throw NotFoundException, not return null
+		it('should throw NotFoundException when lease not found', async () => {
 			mockUserClient.from.mockImplementation(() => ({
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnValue({
@@ -458,8 +460,25 @@ describe('LeasesService', () => {
 				})
 			}))
 
-			const result = await service.findOne(mockToken, 'nonexistent')
-			expect(result).toBeNull()
+			await expect(service.findOne(mockToken, 'nonexistent')).rejects.toThrow(
+				NotFoundException
+			)
+		})
+
+		it('should throw BadRequestException on database error', async () => {
+			mockUserClient.from.mockImplementation(() => ({
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnValue({
+					single: jest.fn().mockResolvedValue({
+						data: null,
+						error: { message: 'Database error' }
+					})
+				})
+			}))
+
+			await expect(service.findOne(mockToken, 'lease-123')).rejects.toThrow(
+				BadRequestException
+			)
 		})
 	})
 
@@ -493,25 +512,29 @@ describe('LeasesService', () => {
 			expect(result.rent_amount).toBe(175000)
 		})
 
-		it('should return null when token is missing', async () => {
-			// Implementation returns null for missing parameters
-			const result = await service.update('', 'lease-123', validUpdateDto as any)
-			expect(result).toBeNull()
+		// FAIL FAST: Missing token should throw immediately, not return null
+		it('should throw BadRequestException when token is missing', async () => {
+			await expect(
+				service.update('', 'lease-123', validUpdateDto as any)
+			).rejects.toThrow(BadRequestException)
 		})
 
-		it('should return null when lease_id is missing', async () => {
-			// Implementation returns null for missing parameters
-			const result = await service.update(mockToken, '', validUpdateDto as any)
-			expect(result).toBeNull()
+		// FAIL FAST: Missing lease_id should throw immediately, not return null
+		it('should throw BadRequestException when lease_id is missing', async () => {
+			await expect(
+				service.update(mockToken, '', validUpdateDto as any)
+			).rejects.toThrow(BadRequestException)
 		})
 
-		it('should throw BadRequestException when lease not found', async () => {
-			// Service catches NotFoundException and re-throws as BadRequestException
-			jest.spyOn(service, 'findOne').mockRejectedValue(new NotFoundException())
+		// Lease not found should throw NotFoundException (via findOne)
+		it('should throw NotFoundException when lease not found', async () => {
+			jest.spyOn(service, 'findOne').mockRejectedValue(
+				new NotFoundException('Lease not found')
+			)
 
 			await expect(
 				service.update(mockToken, 'nonexistent', validUpdateDto as any)
-			).rejects.toThrow(BadRequestException)
+			).rejects.toThrow(NotFoundException)
 		})
 
 		it('should throw BadRequestException on database update error', async () => {
@@ -562,12 +585,14 @@ describe('LeasesService', () => {
 			await expect(service.remove(mockToken, '')).rejects.toThrow(BadRequestException)
 		})
 
-		it('should throw BadRequestException when lease not found', async () => {
-			// Service catches NotFoundException and re-throws as BadRequestException
-			jest.spyOn(service, 'findOne').mockRejectedValue(new NotFoundException())
+		// Lease not found should throw NotFoundException (via findOne)
+		it('should throw NotFoundException when lease not found', async () => {
+			jest.spyOn(service, 'findOne').mockRejectedValue(
+				new NotFoundException('Lease not found')
+			)
 
 			await expect(service.remove(mockToken, 'nonexistent')).rejects.toThrow(
-				BadRequestException
+				NotFoundException
 			)
 		})
 

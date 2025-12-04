@@ -335,7 +335,7 @@ export function PropertyForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-1 gap-(--spacing-4) md:grid-cols-3">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<form.Field name="city">
 							{field => (
 								<Field>
@@ -461,7 +461,7 @@ export function PropertyForm({
 				)}
 
 				{/* Submit Button */}
-				<div className="flex justify-end gap-(--spacing-4) pt-6 border-t">
+				<div className="flex justify-end gap-4 pt-6 border-t">
 					<Button
 						type="button"
 						variant="outline"

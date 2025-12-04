@@ -298,9 +298,9 @@ export function createMockAppConfigService(): jest.Mocked<AppConfigService> {
 		isTest: jest.fn().mockReturnValue(true),
 		getPort: jest.fn().mockReturnValue(3000),
 		getBackendTimeoutMs: jest.fn().mockReturnValue(30000),
-		getApiBaseUrl: jest.fn().mockReturnValue('http://localhost:3000'),
-		getFrontendUrl: jest.fn().mockReturnValue('http://localhost:3000'),
-		getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+		getApiBaseUrl: jest.fn().mockReturnValue('http://localhost:3050'),
+		getFrontendUrl: jest.fn().mockReturnValue('http://localhost:3050'),
+		getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3050'),
 
 		// Database
 		getDatabaseUrl: jest.fn().mockReturnValue('postgresql://localhost:5432/test'),

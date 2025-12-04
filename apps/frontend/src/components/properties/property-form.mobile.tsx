@@ -56,7 +56,7 @@ export function MobilePropertyForm({
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{!isOnline ? (
-						<Alert className="rounded-2xl border-yellow-200 bg-yellow-50 text-yellow-900">
+						<Alert className="rounded-2xl border-warning/20 bg-warning/10 text-warning">
 							<WifiOff className="size-4" aria-hidden />
 							<AlertTitle>Offline mode</AlertTitle>
 							<AlertDescription>

@@ -62,7 +62,7 @@
 	border-radius: var(--radius-xl);
 	border: 1px solid var(--color-border);
 	background: var(--color-card);
-	box-shadow: var(--shadow-premium-sm);
+	box-shadow: var(--shadow-sm);
 	transition: border-color var(--duration-300) var(--ease-out), box-shadow var(--duration-300) var(--ease-out);
 }
 
@@ -70,7 +70,7 @@
 .dashboard-panel:focus-visible,
 .dashboard-panel:focus-within {
 	border-color: color-mix(in oklch, var(--color-primary) 25%, var(--color-border));
-	box-shadow: var(--shadow-premium-md);
+	box-shadow: var(--shadow-md);
 }
 
 .dashboard-panel-header {
@@ -146,13 +146,13 @@
 	text-decoration: none;
 	color: var(--color-foreground);
 	transition: all var(--duration-300) var(--ease-out);
-	box-shadow: var(--shadow-premium-sm);
+	box-shadow: var(--shadow-sm);
 }
 
 .dashboard-quick-action:hover,
 .dashboard-quick-action:focus-visible {
 	border-color: color-mix(in oklch, var(--color-primary) 25%, var(--color-border));
-	box-shadow: var(--shadow-premium-md);
+	box-shadow: var(--shadow-md);
 	background: color-mix(in oklch, var(--color-accent) 5%, var(--color-card));
 }
 
@@ -291,13 +291,13 @@
 	border-radius: var(--radius-xl);
 	border: 1px solid var(--color-border);
 	background: var(--color-card);
-	box-shadow: var(--shadow-premium-sm);
+	box-shadow: var(--shadow-sm);
 	padding: var(--spacing-6);
 	transition: all var(--duration-300) var(--ease-out);
 }
 
 .dashboard-chart-card:hover {
-	box-shadow: var(--shadow-premium-md);
+	box-shadow: var(--shadow-md);
 	border-color: color-mix(in oklch, var(--color-primary) 15%, var(--color-border));
 }
 
@@ -360,7 +360,7 @@
 	background: color-mix(in oklch, var(--color-card) 99%, transparent);
 	overflow: hidden;
 	box-shadow: 0 30px 90px -45px
-		color-mix(in oklch, var(--color-primary-brand) 30%, transparent);
+		color-mix(in oklch, var(--color-primary) 30%, transparent);
 }
 
 .dashboard-empty-state {
@@ -382,7 +382,7 @@
 	border: 1px solid color-mix(in oklch, var(--color-border) 85%, transparent);
 	background: color-mix(in oklch, var(--color-card) 98%, transparent);
 	box-shadow: 0 25px 75px -50px
-		color-mix(in oklch, var(--color-primary-brand) 32%, transparent);
+		color-mix(in oklch, var(--color-primary) 32%, transparent);
 	transition: border-color 180ms ease, transform 180ms ease,
 		box-shadow 200ms ease;
 }
@@ -391,11 +391,11 @@
 .dashboard-card-surface:focus-visible {
 	border-color: color-mix(
 		in oklch,
-		var(--color-primary-brand) 35%,
+		var(--color-primary) 35%,
 		var(--color-border)
 	);
 	box-shadow: 0 35px 90px -55px
-		color-mix(in oklch, var(--color-primary-brand) 40%, transparent);
+		color-mix(in oklch, var(--color-primary) 40%, transparent);
 	transform: translateY(-1px);
 }
 

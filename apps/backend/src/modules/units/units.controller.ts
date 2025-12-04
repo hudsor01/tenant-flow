@@ -23,8 +23,8 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import type { CreateUnitDto } from './dto/create-unit.dto'
-import type { UpdateUnitDto } from './dto/update-unit.dto'
+import { CreateUnitDto } from './dto/create-unit.dto'
+import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'

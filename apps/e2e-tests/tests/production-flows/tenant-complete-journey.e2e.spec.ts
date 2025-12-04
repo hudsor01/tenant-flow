@@ -17,7 +17,7 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 	const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test-owner@tenantflow.app'
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
 	const TENANT_PASSWORD = process.env.E2E_TENANT_PASSWORD || 'TenantPass123!'
-	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 
 	let ownerAuthToken: string

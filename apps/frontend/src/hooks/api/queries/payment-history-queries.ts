@@ -2,11 +2,11 @@
  * Payment History Query Options (TanStack Query v5 Pattern)
  *
  * Uses queryOptions API for type-safe, reusable query configurations.
- * Single source of truth for queryKey + queryFn + cache settings.
+ * Uses native fetch for NestJS calls.
  */
 
 import { queryOptions } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 
 /**
  * Payment history query keys
@@ -72,7 +72,7 @@ export const paymentHistoryQueries = {
 		queryOptions({
 			queryKey: paymentHistoryKeys.list(),
 			queryFn: async (): Promise<PaymentHistoryItem[]> => {
-				const response = await clientFetch<{ payments: PaymentHistoryItem[] }>('/api/v1/rent-payments/history')
+				const response = await apiRequest<{ payments: PaymentHistoryItem[] }>('/api/v1/rent-payments/history')
 				return response.payments
 			},
 			staleTime: 60 * 1000 // 1 minute
@@ -85,9 +85,7 @@ export const paymentHistoryQueries = {
 		queryOptions({
 			queryKey: paymentHistoryKeys.bySubscription(subscriptionId),
 			queryFn: async (): Promise<PaymentHistoryItem[]> => {
-				const response = await clientFetch<{ payments: PaymentHistoryItem[] }>(
-					`/api/v1/rent-payments/history/subscription/${subscriptionId}`
-				)
+				const response = await apiRequest<{ payments: PaymentHistoryItem[] }>(`/api/v1/rent-payments/history/subscription/${subscriptionId}`)
 				return response.payments
 			},
 			enabled: !!subscriptionId,
@@ -101,7 +99,7 @@ export const paymentHistoryQueries = {
 		queryOptions({
 			queryKey: paymentHistoryKeys.failed(),
 			queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-				const response = await clientFetch<{ failedAttempts: FailedPaymentAttempt[] }>('/api/v1/rent-payments/failed-attempts')
+				const response = await apiRequest<{ failedAttempts: FailedPaymentAttempt[] }>('/api/v1/rent-payments/failed-attempts')
 				return response.failedAttempts
 			},
 			staleTime: 30 * 1000 // 30 seconds
@@ -114,9 +112,7 @@ export const paymentHistoryQueries = {
 		queryOptions({
 			queryKey: paymentHistoryKeys.failedBySubscription(subscriptionId),
 			queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-				const response = await clientFetch<{ failedAttempts: FailedPaymentAttempt[] }>(
-					`/api/v1/rent-payments/failed-attempts/subscription/${subscriptionId}`
-				)
+				const response = await apiRequest<{ failedAttempts: FailedPaymentAttempt[] }>(`/api/v1/rent-payments/failed-attempts/subscription/${subscriptionId}`)
 				return response.failedAttempts
 			},
 			enabled: !!subscriptionId,

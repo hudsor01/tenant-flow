@@ -3,7 +3,8 @@
  * Phase 6D: One-Time Rent Payment UI
  * Task 2.4: Payment Status Tracking
  */
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
@@ -31,7 +32,7 @@ export function useCreateRentPayment() {
 			amount: number
 			paymentMethodId: string
 		}) => {
-			const response = await clientFetch<{
+			const response = await apiRequest<{
 				success: boolean
 				payment: {
 					id: string
@@ -148,7 +149,7 @@ export function usePaymentStatus(tenant_id: string) {
 	return useQuery({
 		queryKey: rentPaymentKeys.status(tenant_id),
 		queryFn: () =>
-			clientFetch<PaymentStatus>(`/api/v1/rent-payments/status/${tenant_id}`),
+			apiRequest<PaymentStatus>(`/api/v1/rent-payments/status/${tenant_id}`),
 		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.STATS, // Payment status can change
 		retry: 2

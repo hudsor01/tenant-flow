@@ -266,14 +266,20 @@ export class PaymentWebhookHandler {
 							updated_at: new Date().toISOString()
 						})
 						.eq('id', rentPayment.id),
-					client.from('payment_transactions').insert({
-						rent_payment_id: rentPayment.id,
-						stripe_payment_intent_id: paymentIntent.id,
-						status: 'failed',
-						amount: paymentIntent.amount,
-						failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
-						attempted_at: new Date().toISOString()
-					})
+					// Idempotent upsert - handles webhook retries safely
+					client
+						.from('payment_transactions')
+						.upsert(
+							{
+								rent_payment_id: rentPayment.id,
+								stripe_payment_intent_id: paymentIntent.id,
+								status: 'failed',
+								amount: paymentIntent.amount,
+								failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
+								attempted_at: new Date().toISOString()
+							},
+							{ onConflict: 'rent_payment_id,stripe_payment_intent_id,status', ignoreDuplicates: true }
+						)
 				])
 
 				if (updateResult.error) {

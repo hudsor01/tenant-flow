@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 test.describe('Property Image Upload', () => {
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	let testImagePath: string
 
 	test.beforeAll(() => {

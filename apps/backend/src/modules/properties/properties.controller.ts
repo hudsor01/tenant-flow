@@ -41,9 +41,9 @@ import { PropertiesService } from './properties.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
-import type { CreatePropertyDto } from './dto/create-property.dto'
-import type { UpdatePropertyDto } from './dto/update-property.dto'
-import type { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
+import { CreatePropertyDto } from './dto/create-property.dto'
+import { UpdatePropertyDto } from './dto/update-property.dto'
+import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 
 /**

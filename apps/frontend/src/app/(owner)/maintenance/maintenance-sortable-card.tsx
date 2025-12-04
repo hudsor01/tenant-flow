@@ -3,12 +3,17 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { MaintenanceCard } from './maintenance-card'
-import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 
-type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
+// Extended type with optional relations for display
+type MaintenanceRequestWithRelations = MaintenanceRequest & {
+	property?: { name: string } | null
+	unit?: { name: string } | null
+	assignedTo?: { name: string } | null
+}
 
 interface MaintenanceSortableCardProps {
-	request: MaintenanceRequest
+	request: MaintenanceRequestWithRelations
 	columnId: string
 }
 

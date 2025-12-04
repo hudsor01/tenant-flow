@@ -252,7 +252,7 @@ function AcceptInviteContent() {
 								Create your account to access your tenant portal.
 							</p>
 
-							<div className="grid grid-cols-3 gap-(--spacing-6) pt-6">
+							<div className="grid grid-cols-3 gap-6 pt-6">
 								{[
 									{ icon: CheckCircle2, label: 'Pay Rent\nOnline' },
 									{ icon: Home, label: 'Submit\nRequests' },
@@ -458,7 +458,7 @@ function AcceptInviteContent() {
 						</Button>
 
 						{/* Already have account */}
-						<p className="text-center text-sm text-muted-foreground">
+						<p className="text-center text-muted">
 							Already have an account?{' '}
 							<Link href="/login" className="text-primary hover:underline font-medium">
 								Sign in
@@ -467,7 +467,7 @@ function AcceptInviteContent() {
 					</form>
 
 					{/* Footer */}
-					<div className="text-center text-xs text-muted-foreground/70">
+					<div className="text-center text-caption/70">
 						By creating an account, you agree to our{' '}
 						<Link href="/terms" className="hover:underline">Terms of Service</Link>
 						{' '}and{' '}
@@ -526,7 +526,7 @@ function ErrorState({ state, message }: { state: PageState; message: string }) {
 					<Button asChild className="w-full">
 						<Link href="/login">Go to Login</Link>
 					</Button>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted">
 						Need help?{' '}
 						<Link href="/contact" className="text-primary hover:underline">
 							Contact Support

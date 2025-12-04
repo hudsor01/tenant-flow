@@ -30,7 +30,7 @@ const STEPS = [
 		icon: Wrench,
 		title: 'Handle Maintenance',
 		description: 'Assign vendors, update statuses, and notify tenants instantly.',
-		color: 'text-orange-500'
+		color: 'text-warning'
 	}
 ]
 

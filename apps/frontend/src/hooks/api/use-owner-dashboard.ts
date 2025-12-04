@@ -21,7 +21,8 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Activity } from '@repo/shared/types/activity'
 import type {
@@ -154,7 +155,7 @@ export function usePrefetchOwnerDashboardStats() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: ownerDashboardKeys.analytics.stats(),
-			queryFn: () => clientFetch<DashboardStats>('/api/v1/owner/analytics/stats'),
+			queryFn: () => apiRequest<DashboardStats>('/api/v1/owner/analytics/stats'),
 			staleTime: 2 * 60 * 1000
 		})
 	}
@@ -169,7 +170,7 @@ export function usePrefetchOwnerDashboardActivity() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: ownerDashboardKeys.analytics.activity(),
-			queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
+			queryFn: () => apiRequest<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
 			staleTime: 2 * 60 * 1000
 		})
 	}
@@ -184,7 +185,7 @@ export function usePrefetchOwnerPropertyPerformance() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: ownerDashboardKeys.properties.performance(),
-			queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/owner/properties/performance'),
+			queryFn: () => apiRequest<PropertyPerformance[]>('/api/v1/owner/properties/performance'),
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
@@ -236,12 +237,12 @@ export function useOwnerDashboardData() {
 			] as const
 
 			const trendRequests = [
-				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=occupancy_rate&period=month'),
-				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=active_tenants&period=month'),
-				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=monthly_revenue&period=month'),
-				clientFetch<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=open_maintenance&period=month'),
-				clientFetch<TimeSeriesDataPoint[]>('/api/v1/owner/reports/time-series?metric=occupancy_rate&days=30'),
-				clientFetch<TimeSeriesDataPoint[]>('/api/v1/owner/reports/time-series?metric=monthly_revenue&days=30')
+				apiRequest<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=occupancy_rate&period=month'),
+				apiRequest<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=active_tenants&period=month'),
+				apiRequest<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=monthly_revenue&period=month'),
+				apiRequest<MetricTrend>('/api/v1/owner/reports/metric-trend?metric=open_maintenance&period=month'),
+				apiRequest<TimeSeriesDataPoint[]>('/api/v1/owner/reports/time-series?metric=occupancy_rate&days=30'),
+				apiRequest<TimeSeriesDataPoint[]>('/api/v1/owner/reports/time-series?metric=monthly_revenue&days=30')
 			] as const
 
 			const toMessage = (reason: unknown) =>
@@ -252,12 +253,12 @@ export function useOwnerDashboardData() {
 				trendResults,
 				propertyPerformanceResult
 			] = await Promise.allSettled([
-				clientFetch<{
+				apiRequest<{
 					stats: DashboardStats
 					activity: ActivityItem[]
 				}>('/api/v1/owner/analytics/page-data'),
 				Promise.allSettled(trendRequests),
-				clientFetch<PropertyPerformance[]>('/api/v1/owner/properties/performance')
+				apiRequest<PropertyPerformance[]>('/api/v1/owner/properties/performance')
 			])
 
 			const errors: string[] = []
@@ -370,7 +371,7 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 	return useQuery<FinancialChartDatum[]>({
 		queryKey: [...ownerDashboardKeys.financial.revenueTrends(currentYear), timeRange, months] as const,
 		queryFn: async () => {
-			const data = await clientFetch<FinancialMetrics[]>(
+			const data = await apiRequest<FinancialMetrics[]>(
 				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`
 			)
 

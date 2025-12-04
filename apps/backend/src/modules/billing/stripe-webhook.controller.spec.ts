@@ -97,8 +97,8 @@ describe('StripeWebhookController (replay protection)', () => {
 
 		// First call acquires lock, second call sees duplicate
 		supabaseClient.rpc
-			.mockResolvedValueOnce({ data: [{ lock_acquired: true }], error: null })
-			.mockResolvedValueOnce({ data: [{ lock_acquired: false }], error: null })
+			.mockResolvedValueOnce({ data: [{ lock_acquired: true, webhook_event_id: 'evt-uuid-123' }], error: null })
+			.mockResolvedValueOnce({ data: [{ lock_acquired: false, webhook_event_id: 'evt-uuid-123' }], error: null })
 
 		const req1 = createRequest(Buffer.from('{}'))
 		const req2 = createRequest(Buffer.from('{}'))
@@ -124,7 +124,7 @@ describe('StripeWebhookController (replay protection)', () => {
 		} as Stripe.Event
 
 		constructEvent.mockReturnValue(event)
-		supabaseClient.rpc.mockResolvedValue({ data: [{ lock_acquired: false }], error: null })
+		supabaseClient.rpc.mockResolvedValue({ data: [{ lock_acquired: false, webhook_event_id: 'evt-uuid-456' }], error: null })
 
 		const response = await controller.handleWebhook(createRequest(Buffer.from('{}')), 'sig_test')
 

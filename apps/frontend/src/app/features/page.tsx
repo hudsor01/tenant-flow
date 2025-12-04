@@ -29,7 +29,6 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
-import { env } from '#config/env'
 
 // Animated background components for bento grid
 const FileMarquee = () => (
@@ -94,17 +93,17 @@ const FinancialDashboard = () => (
 						/>
 					))}
 				</div>
-				<div className="text-xs text-muted-foreground mt-1">$124,500</div>
+				<div className="text-caption mt-1">$124,500</div>
 			</div>
 
 			{/* Key Metrics */}
 			<div className="grid grid-cols-2 gap-2">
 				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
-					<div className="text-xs text-muted-foreground">Occupancy</div>
+					<div className="text-caption">Occupancy</div>
 					<div className="text-lg font-bold text-primary animate-pulse">96.2%</div>
 				</div>
 				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
-					<div className="text-xs text-muted-foreground">Avg. Rent</div>
+					<div className="text-caption">Avg. Rent</div>
 					<div className="text-lg font-bold text-primary animate-pulse">$2,450</div>
 				</div>
 			</div>
@@ -148,7 +147,8 @@ const IntegrationBeam = () => (
 )
 
 export default function FeaturesPage() {
-	const baseUrl = env.NEXT_PUBLIC_BASE_URL
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 
 	const [currentTestimonial, setCurrentTestimonial] = useState(0)
 	const [stickyCtaVisible, setStickyCtaVisible] = useState(false)
@@ -256,7 +256,7 @@ export default function FeaturesPage() {
 			</div>
 
 			{/* Hero Section with Modern Background */}
-			<section className="relative pb-16 overflow-hidden">
+			<section className="relative pb-16 overflow-hidden page-offset-navbar">
 				{/* Solid tint background */}
 				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--color-primary)_5%,transparent)]" />
 
@@ -282,7 +282,7 @@ export default function FeaturesPage() {
 							</p>
 
 							{/* High-contrast, prominent CTAs */}
-							<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center pt-4">
+							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
 									size="lg"
 									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
@@ -571,7 +571,7 @@ export default function FeaturesPage() {
 									</span>
 								</p>
 
-								<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center">
+								<div className="flex flex-col sm:flex-row gap-6 justify-center">
 									<Button
 										size="lg"
 										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"

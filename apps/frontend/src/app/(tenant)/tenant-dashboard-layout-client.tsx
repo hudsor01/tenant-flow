@@ -2,7 +2,6 @@
 
 import { TenantSidebar } from '#components/dashboard/tenant-sidebar'
 import { SiteHeader } from '#components/dashboard/site-header'
-import { ViewTransitionsProvider } from '#providers/view-transitions-provider'
 import { Breadcrumbs } from '#components/ui/breadcrumb'
 import { SidebarInset } from '#components/ui/sidebar'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
@@ -14,21 +13,21 @@ export function TenantDashboardLayoutClient({ children }: { children: ReactNode 
 	const breadcrumbs = generateBreadcrumbs(pathname)
 
 	return (
-		<ViewTransitionsProvider>
-			<div className="flex h-full flex-col gap-(--spacing-4) p-4">
+		<>
+			<div className="flex h-full flex-col gap-[var(--layout-gap-items)] p-[var(--layout-gap-items)]">
 				<TenantSidebar />
 			</div>
-			<SidebarInset className="bg-muted/30">
+			<SidebarInset className="dashboard-root bg-muted/30">
 				<SiteHeader />
-				<div className="flex flex-1 flex-col">
-					<div className="@container/main flex min-h-screen w-full flex-col p-6">
-						<div className="mb-6">
+				<div className="dashboard-main flex-1">
+					<div className="@container/main dashboard-content p-[var(--layout-content-padding)]">
+						<nav className="mb-[var(--layout-gap-group)]">
 							<Breadcrumbs items={breadcrumbs} />
-						</div>
+						</nav>
 						{children}
 					</div>
 				</div>
 			</SidebarInset>
-		</ViewTransitionsProvider>
+		</>
 	)
 }

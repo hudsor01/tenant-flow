@@ -282,70 +282,103 @@ export class TenantPaymentService {
 		user_id: string,
 		limitPerTenant = 50
 	): Promise<OwnerPaymentSummaryResponse> {
-		const tenant_ids = await this.gettenant_idsForOwner(user_id)
+		// Graceful fallback - never throw 500 for dashboard widget
+		const emptyResponse: OwnerPaymentSummaryResponse = {
+			lateFeeTotal: 0,
+			unpaidTotal: 0,
+			unpaidCount: 0,
+			tenantCount: 0
+		}
 
-		if (!tenant_ids.length) {
+		// DEFENSIVE: Wrap entire method to ensure we never return 500
+		try {
+			// Handle undefined/null user_id gracefully (e.g., SSR without auth)
+			if (!user_id) {
+				this.logger.warn('getOwnerPaymentSummary called without user_id, returning empty response')
+				return emptyResponse
+			}
+
+			let tenant_ids: string[]
+			try {
+				tenant_ids = await this.gettenant_idsForOwner(user_id)
+			} catch (error) {
+				this.logger.warn('Failed to get tenant IDs for payment summary, returning zeros', {
+					user_id,
+					error: error instanceof Error ? error.message : String(error)
+				})
+				return emptyResponse
+			}
+
+			if (!tenant_ids.length) {
+				return emptyResponse
+			}
+
+			// Build a single batched query to avoid per-tenant round-trips (was N+1)
+			const stripeClient = asStripeSchemaClient(this.supabase.getAdminClient())
+
+			const { data: intents, error } = await stripeClient
+				.schema('stripe')
+				.from('payment_intents')
+				.select('id, amount, status, metadata, description')
+				.order('created', { ascending: false })
+				.limit(limitPerTenant * tenant_ids.length)
+
+			if (error) {
+				// Stripe schema may not exist or have permission issues - return zeros gracefully
+				this.logger.warn('Stripe schema query failed for payment summary, returning zeros', {
+					user_id,
+					error: error.message
+				})
+				return {
+					...emptyResponse,
+					tenantCount: tenant_ids.length
+				}
+			}
+
+			// Filter intents in-memory since stripe schema doesn't support .or()
+			const filteredIntents = (intents as StripePaymentIntent[])?.filter(intent => {
+				const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
+				return tenantId && tenant_ids.includes(tenantId)
+			}) || []
+
+			let lateFeeTotal = 0
+			let unpaidTotal = 0
+			let unpaidCount = 0
+			const perTenantCount = new Map<string, number>()
+
+			for (const intent of filteredIntents) {
+				const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
+				if (!tenantId) continue
+
+				// Enforce per-tenant cap in-memory since PostgREST can't window by group
+				const used = perTenantCount.get(tenantId) ?? 0
+				if (used >= limitPerTenant) continue
+				perTenantCount.set(tenantId, used + 1)
+
+				const record = this._mapStripePaymentIntentToRecord(intent)
+				if (record.status !== 'succeeded') {
+					unpaidTotal += record.amount
+					unpaidCount += 1
+				}
+				if (this.isLateFeeRecord(record)) {
+					lateFeeTotal += record.amount
+				}
+			}
+
 			return {
-				lateFeeTotal: 0,
-				unpaidTotal: 0,
-				unpaidCount: 0,
-				tenantCount: 0
+				lateFeeTotal,
+				unpaidTotal,
+				unpaidCount,
+				tenantCount: tenant_ids.length
 			}
-		}
-
-		// Build a single batched query to avoid per-tenant round-trips (was N+1)
-		const stripeClient = asStripeSchemaClient(this.supabase.getAdminClient())
-
-		const { data: intents, error } = await stripeClient
-			.schema('stripe')
-			.from('payment_intents')
-			.select('id, amount, status, metadata, description')
-			.order('created', { ascending: false })
-			.limit(limitPerTenant * tenant_ids.length)
-
-		if (error) {
-			this.logger.error('Failed to batch fetch owner payment summary', {
+		} catch (outerError) {
+			// DEFENSIVE: Catch any unexpected errors and return gracefully
+			this.logger.error('Unexpected error in getOwnerPaymentSummary, returning zeros', {
 				user_id,
-				error: error.message
+				error: outerError instanceof Error ? outerError.message : String(outerError),
+				stack: outerError instanceof Error ? outerError.stack : undefined
 			})
-			throw new InternalServerErrorException('Failed to fetch payment summary')
-		}
-
-		// Filter intents in-memory since stripe schema doesn't support .or()
-		const filteredIntents = (intents as StripePaymentIntent[])?.filter(intent => {
-			const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
-			return tenantId && tenant_ids.includes(tenantId)
-		}) || []
-
-		let lateFeeTotal = 0
-		let unpaidTotal = 0
-		let unpaidCount = 0
-		const perTenantCount = new Map<string, number>()
-
-		for (const intent of filteredIntents) {
-			const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
-			if (!tenantId) continue
-
-			// Enforce per-tenant cap in-memory since PostgREST can't window by group
-			const used = perTenantCount.get(tenantId) ?? 0
-			if (used >= limitPerTenant) continue
-			perTenantCount.set(tenantId, used + 1)
-
-			const record = this._mapStripePaymentIntentToRecord(intent)
-			if (record.status !== 'succeeded') {
-				unpaidTotal += record.amount
-				unpaidCount += 1
-			}
-			if (this.isLateFeeRecord(record)) {
-				lateFeeTotal += record.amount
-			}
-		}
-
-		return {
-			lateFeeTotal,
-			unpaidTotal,
-			unpaidCount,
-			tenantCount: tenant_ids.length
+			return emptyResponse
 		}
 	}
 
