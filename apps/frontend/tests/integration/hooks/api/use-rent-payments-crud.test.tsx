@@ -11,7 +11,8 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { describe, it, expect, afterEach } from 'vitest'
-import { clientFetch } from '#lib/api/client'
+import { createClient } from '#utils/supabase/client'
+import { getApiBaseUrl } from '#lib/api-config'
 import { rentPaymentKeys } from '#hooks/api/use-rent-payments'
 
 const shouldRunIntegrationTests =
@@ -47,10 +48,15 @@ describeIfReady('Rent Payments Integration Tests', () => {
 				() =>
 					useQuery({
 						queryKey: rentPaymentKeys.list(),
-						queryFn: () =>
-							clientFetch<{ data: unknown[]; total: number }>(
-								'/api/v1/rent-payments'
-							)
+						queryFn: async () => {
+							const supabase = createClient()
+							const { data: { session } } = await supabase.auth.getSession()
+							const res = await fetch(`${getApiBaseUrl()}/api/v1/rent-payments`, {
+								headers: { Authorization: `Bearer ${session?.access_token}` }
+							})
+							if (!res.ok) throw new Error(`API Error: ${res.status}`)
+							return res.json() as Promise<{ data: unknown[]; total: number }>
+						}
 					}),
 				{ wrapper: createWrapper() }
 			)

@@ -39,13 +39,18 @@ test.describe('Lease Template PDF Generation', () => {
 		const page = await browser.newPage()
 
 		try {
-			// Try to login with timeout using Promise.race
-			await Promise.race([
-				loginAsOwner(page),
+			// Try to login with timeout using Promise.race with proper error handling
+			const authResult = await Promise.race([
+				loginAsOwner(page).then(() => 'success'),
 				new Promise((_, reject) =>
 					setTimeout(() => reject(new Error('Auth timeout after 15s')), 15000)
 				)
 			])
+
+			if (authResult === 'success') {
+				authenticationAvailable = true
+				logger.info(' Authentication successful - tests will run')
+			}
 
 			authenticationAvailable = true
 			logger.info(' Authentication successful - tests will run')
@@ -56,7 +61,7 @@ test.describe('Lease Template PDF Generation', () => {
 			logger.info(' Required environment variables:')
 			logger.info(`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`)
 			logger.info(`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`)
-			logger.info(' Set up test account at http://localhost:3000/signup')
+			logger.info(' Set up test account at http://localhost:3050/signup')
 		} finally {
 			await page.close()
 		}
@@ -171,7 +176,7 @@ test.describe('Lease Template PDF Generation', () => {
 		// Log success
 		await testInfo.attach('pdf-generation-success', {
 			contentType: 'text/plain',
-			body: `PDF successfully generated and displayed\nPDF size: ${pdfData.pdf.length} bytes (base64)\nResponse time: ${pdfResponse.timing()}`
+			body: `PDF successfully generated and displayed\nPDF size: ${pdfData.pdf.length} bytes (base64)\nResponse time: ${pdfResponse.request().timing().responseEnd}`
 		})
 
 		// Verify no console or network errors during the process

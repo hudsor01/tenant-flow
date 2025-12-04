@@ -48,9 +48,9 @@ export default function CheckoutSuccessPage() {
 
 	if (isVerifying) {
 		return (
-			<main className="min-h-screen bg-background">
+			<div className="min-h-screen bg-background flex flex-col">
 				<Navbar />
-				<div className="section-content flex-center min-h-[60vh]">
+				<main className="flex-1 page-offset-navbar flex-center">
 					<div className="text-center">
 						<div className="animate-spin rounded-full size-12 border-b-2 border-primary mx-auto mb-4"></div>
 						<h2 className="text-xl font-semibold mb-2">
@@ -60,14 +60,16 @@ export default function CheckoutSuccessPage() {
 							Please wait while we confirm your subscription.
 						</p>
 					</div>
-				</div>
-			</main>
+				</main>
+			</div>
 		)
 	}
 
 	return (
-		<main className="min-h-screen bg-primary">
+		<div className="min-h-screen bg-primary flex flex-col">
 			<Navbar />
+
+			<main className="flex-1 page-offset-navbar">
 
 			{/* Hero Section */}
 			<HeroSection
@@ -96,7 +98,7 @@ export default function CheckoutSuccessPage() {
 						<div className="space-y-6">
 							<div className="space-y-4">
 								<h3 className="font-semibold">What&apos;s next?</h3>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-(--spacing-4) text-left">
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
 									<Link href="/dashboard">
 										<Button className="w-full justify-start" size="lg">
 											<Home className="size-4 mr-2" />
@@ -129,7 +131,8 @@ export default function CheckoutSuccessPage() {
 					</CardLayout>
 				</div>
 			</div>
+			</main>
 			<Footer />
-		</main>
+		</div>
 	)
 }

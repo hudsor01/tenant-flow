@@ -30,7 +30,7 @@ if [ -z "$E2E_OWNER_PASSWORD" ]; then
 fi
 
 # Set defaults
-export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-http://localhost:3000}"
+export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-http://localhost:3050}"
 export NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4600}"
 export E2E_TENANT_PASSWORD="${E2E_TENANT_PASSWORD:-TenantPass123!}"
 

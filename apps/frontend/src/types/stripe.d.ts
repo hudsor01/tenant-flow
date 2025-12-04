@@ -2,6 +2,8 @@
  * Stripe-related types
  */
 
+import type { Stripe } from '@stripe/stripe-js'
+
 // Subscription data from Stripe
 export interface SubscriptionData {
 	status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing'
@@ -21,7 +23,7 @@ export interface StripeEnvironmentConfig {
 
 // Backend response from /stripe/verify-checkout-session
 export interface StripeVerifyCheckoutSessionResponse {
-	session: any; // Define more precisely if needed (e.g., Stripe.Checkout.Session)
+	session: Stripe.Checkout.Session;
 	subscription: {
 		id: string;
 		status: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'trialing';

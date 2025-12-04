@@ -1,9 +1,23 @@
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '#lib/utils'
 
-interface SectionSkeletonProps {
+const sectionSkeletonVariants = cva('animate-pulse', {
+	variants: {
+		variant: {
+			default: 'bg-muted/30',
+			card: 'py-16 px-6 lg:px-8',
+			grid: 'py-16 px-6 lg:px-8'
+		}
+	},
+	defaultVariants: {
+		variant: 'default'
+	}
+})
+
+interface SectionSkeletonProps
+	extends VariantProps<typeof sectionSkeletonVariants> {
 	height?: number
 	className?: string
-	variant?: 'default' | 'card' | 'grid'
 }
 
 /**
@@ -17,7 +31,7 @@ export function SectionSkeleton({
 }: SectionSkeletonProps) {
 	if (variant === 'grid') {
 		return (
-			<div className={cn('py-16 px-6 lg:px-8', className)}>
+			<div className={cn(sectionSkeletonVariants({ variant }), className)}>
 				<div className="max-w-7xl mx-auto">
 					<div className="grid md:grid-cols-3 gap-8">
 						{[1, 2, 3].map(i => (
@@ -35,9 +49,12 @@ export function SectionSkeleton({
 
 	if (variant === 'card') {
 		return (
-			<div className={cn('py-16 px-6 lg:px-8', className)}>
+			<div className={cn(sectionSkeletonVariants({ variant }), className)}>
 				<div className="max-w-7xl mx-auto">
-					<div className="bg-muted/50 rounded-3xl animate-pulse" style={{ height }} />
+					<div
+						className="bg-muted/50 rounded-3xl animate-pulse"
+						style={{ height }}
+					/>
 				</div>
 			</div>
 		)
@@ -45,9 +62,11 @@ export function SectionSkeleton({
 
 	return (
 		<div
-			className={cn('bg-muted/30 animate-pulse', className)}
+			className={cn(sectionSkeletonVariants({ variant }), className)}
 			style={{ height }}
 			aria-label="Loading content..."
 		/>
 	)
 }
+
+export { sectionSkeletonVariants }

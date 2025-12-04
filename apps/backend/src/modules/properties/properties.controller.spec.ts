@@ -12,7 +12,6 @@ import type { CreatePropertyDto } from './dto/create-property.dto'
 import type { UpdatePropertyDto } from './dto/update-property.dto'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
-import { PropertyImagesService } from './services/property-images.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
@@ -82,7 +81,6 @@ describe('PropertiesController', () => {
 			controllers: [PropertiesController],
 			providers: [
 			PropertiesService,
-			{ provide: PropertyImagesService, useValue: {} },
 			{ provide: PropertyBulkImportService, useValue: {} },
 			{ provide: PropertyAnalyticsService, useValue: {} },
 			{ provide: DashboardService, useValue: {} }

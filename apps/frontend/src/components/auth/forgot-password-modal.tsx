@@ -85,7 +85,7 @@ export function ForgotPasswordModal() {
 
 									<Alert className="border-info bg-info/10">
 										<Info className="size-[var(--spacing-4)] text-info" />
-										<AlertDescription className="text-caption text-info-foreground">
+										<AlertDescription className="text-xs text-info-foreground">
 											For security reasons, we&apos;ll always show a success
 											message. If an account exists with this email, you&apos;ll
 											receive password reset instructions.
@@ -144,7 +144,7 @@ export function ForgotPasswordModal() {
 										</AlertDescription>
 									</Alert>
 
-									<div className="text-caption text-muted-foreground space-y-[var(--spacing-2)]">
+									<div className="text-caption space-y-[var(--spacing-2)]">
 										<p>
 											• Check your spam/junk folder if you don&apos;t see the
 											email

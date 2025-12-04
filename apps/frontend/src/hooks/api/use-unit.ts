@@ -10,7 +10,8 @@
  * - Proper error handling
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -98,7 +99,7 @@ export function useCreateUnit() {
 
 	return useMutation({
 		mutationFn: (unitData: CreateUnitInput) =>
-			clientFetch<Unit>('/api/v1/units', {
+			apiRequest<Unit>('/api/v1/units', {
 				method: 'POST',
 				body: JSON.stringify(unitData)
 			}),
@@ -188,7 +189,7 @@ export function useUpdateUnit() {
 			data: UpdateUnitInput
 			version?: number
 		}): Promise<Unit> => {
-			return clientFetch<Unit>(`/api/v1/units/${id}`, {
+			return apiRequest<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(
 					version !== null && version !== undefined
@@ -278,7 +279,7 @@ export function useDeleteUnit(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<string> => {
-			await clientFetch(`/api/v1/units/${id}`, {
+			await apiRequest(`/api/v1/units/${id}`, {
 				method: 'DELETE'
 			})
 			return id
@@ -344,7 +345,7 @@ export function usePrefetchUnit() {
 		queryClient.prefetchQuery({
 			queryKey: unitQueries.detail(id).queryKey,
 			queryFn: async (): Promise<Unit> => {
-				return clientFetch<Unit>(`/api/v1/units/${id}`)
+				return apiRequest<Unit>(`/api/v1/units/${id}`)
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})

@@ -9,7 +9,7 @@ export function TenantFormSkeleton() {
 			description="Please wait while we fetch the tenant details"
 		>
 			<div className="space-y-6">
-				<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 					<div className="space-y-2">
 						<Skeleton className="h-4 w-20" />
 						<Skeleton className="h-10 w-full" />
@@ -46,7 +46,7 @@ export function TenantTableSkeleton() {
 				{Array.from({ length: 5 }).map((_, i) => (
 					<div
 						key={i}
-						className="flex items-center gap-(--spacing-4) rounded-lg border p-4"
+						className="flex items-center gap-4 rounded-lg border p-4"
 					>
 						<Skeleton className="size-12 rounded-full" />
 						<div className="flex-1 space-y-2">
@@ -87,14 +87,14 @@ export function TenantDetailSkeleton({
 				description="Loading tenant details"
 			>
 				<div className="space-y-6">
-					<div className="flex items-center gap-(--spacing-4)">
+					<div className="flex items-center gap-4">
 						<Skeleton className="size-16 rounded-full" />
 						<div className="space-y-2">
 							<Skeleton className="h-6 w-32" />
 							<Skeleton className="h-4 w-48" />
 						</div>
 					</div>
-					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<div className="space-y-2">
 							<Skeleton className="h-4 w-20" />
 							<Skeleton className="h-10 w-full" />

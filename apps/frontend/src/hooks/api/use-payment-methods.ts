@@ -2,7 +2,8 @@
  * TanStack Query hooks for payment methods API
  * Phase 3: Frontend Integration for Tenant Payment System
  */
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import type { PaymentMethodResponse, PaymentMethodResponseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -23,7 +24,7 @@ export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
 		queryFn: async (): Promise<PaymentMethodResponse[]> => {
-			const response = await clientFetch<{
+			const response = await apiRequest<{
 				payment_methods: PaymentMethodResponse[]
 			}>('/api/v1/stripe/tenant-payment-methods')
 			// Backend now returns proper PaymentMethodResponse structure
@@ -49,7 +50,7 @@ export function useSetDefaultPaymentMethod() {
 		mutationFn: async (
 			paymentMethodId: string
 		): Promise<{ success: boolean }> => {
-			return clientFetch<{ success: boolean }>(
+			return apiRequest<{ success: boolean }>(
 				`/api/v1/payment-methods/${paymentMethodId}/default`,
 				{
 					method: 'PATCH'
@@ -116,7 +117,7 @@ export function useDeletePaymentMethod() {
 			success: boolean
 			message?: string
 		}> => {
-			return clientFetch<{
+			return apiRequest<{
 				success: boolean
 				message?: string
 			}>(`/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
@@ -168,7 +169,7 @@ export function usePrefetchPaymentMethods() {
 		queryClient.prefetchQuery({
 			queryKey: paymentMethodKeys.list(),
 			queryFn: async (): Promise<PaymentMethodResponse[]> => {
-				const response = await clientFetch<{
+				const response = await apiRequest<{
 					paymentMethods: PaymentMethodResponse[]
 				}>('/api/v1/payment-methods')
 				return response.paymentMethods

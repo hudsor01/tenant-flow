@@ -18,7 +18,8 @@ import type {
 	MetricTrend,
 	DashboardTimeSeriesOptions
 } from '@repo/shared/types/dashboard-repository'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 
 export const dashboardTrendKeys = {
 	all: () => ownerDashboardKeys.reports.all(),
@@ -51,16 +52,16 @@ export function useDashboardTrendData(_user_id?: string) {
 		}> => {
 			const [occupancyRate, activeTenants, monthlyRevenue, openMaintenance] =
 				await Promise.all([
-					clientFetch<MetricTrend>(
+					apiRequest<MetricTrend>(
 						'/api/v1/owner/reports/metric-trend?metric=occupancy_rate&period=month'
 					),
-					clientFetch<MetricTrend>(
+					apiRequest<MetricTrend>(
 						'/api/v1/owner/reports/metric-trend?metric=active_tenants&period=month'
 					),
-					clientFetch<MetricTrend>(
+					apiRequest<MetricTrend>(
 						'/api/v1/owner/reports/metric-trend?metric=monthly_revenue&period=month'
 					),
-					clientFetch<MetricTrend>(
+					apiRequest<MetricTrend>(
 						'/api/v1/owner/reports/metric-trend?metric=open_maintenance&period=month'
 					)
 				])

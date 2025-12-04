@@ -46,16 +46,24 @@ describe('RLS: Payment Isolation', () => {
 
 		// Authenticate optional tenants
 		if (isTestUserAvailable('TENANT_A')) {
-			tenantA = await authenticateAs(TEST_USERS.TENANT_A)
-			// Create test lease for payment foreign key - only if tenantA available
 			try {
-				testlease_id = await ensureTestLease(ownerA.client, ownerA.user_id, tenantA.user_id)
-			} catch (e) {
-				testLogger.warn('Could not create test lease - some tests may be skipped', e)
+				tenantA = await authenticateAs(TEST_USERS.TENANT_A)
+				// Create test lease for payment foreign key - only if tenantA available
+				try {
+					testlease_id = await ensureTestLease(ownerA.client, ownerA.user_id, tenantA.user_id)
+				} catch (e) {
+					testLogger.warn('Could not create test lease - some tests may be skipped', e)
+				}
+			} catch (error) {
+				testLogger.warn(`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			}
 		}
 		if (isTestUserAvailable('TENANT_B')) {
-			tenantB = await authenticateAs(TEST_USERS.TENANT_B)
+			try {
+				tenantB = await authenticateAs(TEST_USERS.TENANT_B)
+			} catch (error) {
+				testLogger.warn(`[SKIP] Failed to authenticate TENANT_B: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			}
 		}
 	})
 

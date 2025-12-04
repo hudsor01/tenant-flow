@@ -2,11 +2,11 @@
  * Maintenance Mutation Options (TanStack Query v5 Pattern)
  *
  * Modern mutation patterns with proper error handling and optimistic updates.
- * Uses useMutation with proper typing and cache invalidation.
+ * Uses native fetch for NestJS calls.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import type { CreateMaintenanceRequestInput } from '@repo/shared/types/api-contracts'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 
@@ -14,6 +14,7 @@ type UpdateMaintenanceRequest = Partial<CreateMaintenanceRequestInput>
 import { maintenanceQueries } from '../queries/maintenance-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
+
 
 /**
  * Create maintenance request mutation
@@ -23,7 +24,7 @@ export function useCreateMaintenanceRequestMutation() {
 
 	return useMutation({
 		mutationFn: (data: CreateMaintenanceRequestInput) =>
-			clientFetch<MaintenanceRequest>('/api/v1/maintenance', {
+			apiRequest<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
@@ -46,7 +47,7 @@ export function useUpdateMaintenanceRequestMutation() {
 
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: UpdateMaintenanceRequest }) =>
-			clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
+			apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(data)
 			}),

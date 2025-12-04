@@ -22,7 +22,7 @@ export type User = (typeof USER_user_typeS)[keyof typeof USER_user_typeS]
  */
 export const PROPERTY_STATUS = {
 	ACTIVE: 'active',
-	INACTIVE: 'INACTIVE',
+	INACTIVE: 'inactive',
 	UNDER_CONTRACT: 'UNDER_CONTRACT',
 	SOLD: 'SOLD'
 } as const
@@ -116,7 +116,7 @@ export type MaintenanceCategory =
  * PAYMENT STATUS ENUMERATION
  */
 export const PAYMENT_STATUS = {
-	PENDING: 'PENDING',
+	PENDING: 'pending',
 	SUCCEEDED: 'SUCCEEDED',
 	FAILED: 'FAILED',
 	CANCELLED: 'CANCELLED',
@@ -150,9 +150,9 @@ export type SubscriptionStatus =
  */
 export const TENANT_STATUS = {
 	ACTIVE: 'active',
-	INACTIVE: 'INACTIVE',
+	INACTIVE: 'inactive',
 	EVICTED: 'EVICTED',
-	PENDING: 'PENDING',
+	PENDING: 'pending',
 	MOVED_OUT: 'MOVED_OUT',
 	ARCHIVED: 'ARCHIVED'
 } as const
@@ -163,7 +163,7 @@ export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS]
  * INVITATION STATUS ENUMERATION
  */
 export const INVITATION_STATUS = {
-	PENDING: 'PENDING',
+	PENDING: 'pending',
 	SENT: 'SENT',
 	ACCEPTED: 'accepted',
 	EXPIRED: 'expired',
@@ -270,7 +270,7 @@ export type ReminderType = (typeof REMINDER_TYPES)[keyof typeof REMINDER_TYPES]
  * REMINDER STATUS ENUMERATION
  */
 export const REMINDER_STATUS = {
-	PENDING: 'PENDING',
+	PENDING: 'pending',
 	SENT: 'SENT',
 	FAILED: 'FAILED',
 	DELIVERED: 'DELIVERED',
@@ -299,7 +299,7 @@ export type CustomerInvoiceStatus =
  * RENT CHARGE STATUS ENUMERATION
  */
 export const RENT_CHARGE_STATUS = {
-	PENDING: 'PENDING',
+	PENDING: 'pending',
 	PAID: 'PAID',
 	PARTIAL: 'PARTIAL',
 	OVERDUE: 'OVERDUE',

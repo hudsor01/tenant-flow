@@ -3,12 +3,6 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import Link from 'next/link'
 
 import { Button } from '#components/ui/button'
-import {
-	bentoCardClasses,
-	bentoCardContentClasses,
-	bentoCardIconClasses,
-	bentoCardOverlayClasses
-} from '#lib/design-system'
 import { cn } from '#lib/utils'
 
 interface BentoGridProps extends ComponentPropsWithoutRef<'div'> {
@@ -30,7 +24,7 @@ const BentoGrid = ({ children, className, ...props }: BentoGridProps) => {
 	return (
 		<div
 			className={cn(
-				'grid w-full auto-rows-[22rem] gap-(--spacing-4)',
+				'grid w-full auto-rows-[22rem] gap-4',
 				className
 			)}
 			{...props}
@@ -52,13 +46,19 @@ const BentoCard = ({
 }: BentoCardProps) => (
 	<div
 		key={name}
-		className={bentoCardClasses(className)}
+		className={cn(
+			// bento-card styles inlined (group must be on element, not in @apply)
+			'group relative flex flex-col justify-between overflow-hidden rounded-xl bg-card shadow-sm border hover:shadow-lg transition-all duration-300',
+			className
+		)}
 		{...props}
 	>
 		<div className="absolute inset-0 z-0">{background}</div>
 		<div className="relative z-10 p-6">
-			<div className={bentoCardContentClasses()}>
-				<Icon className={bentoCardIconClasses()} />
+			{/* bento-card-content styles inlined */}
+			<div className="flex transform-gpu flex-col gap-2 transition-all duration-300 lg:group-hover:-translate-y-2">
+				{/* bento-card-icon styles inlined */}
+				<Icon className="size-12 origin-left transform-gpu text-foreground transition-all duration-300 group-hover:scale-90" />
 				<h3 className="text-xl font-semibold text-foreground">
 					{name}
 				</h3>
@@ -96,7 +96,8 @@ const BentoCard = ({
 			</Button>
 		</div>
 
-		<div className={bentoCardOverlayClasses()} />
+		{/* bento-card-overlay styles inlined */}
+		<div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-accent/5" />
 	</div>
 )
 

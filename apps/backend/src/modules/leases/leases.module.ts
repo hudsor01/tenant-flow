@@ -13,6 +13,7 @@ import { LeaseTransformationService } from './lease-transformation.service'
 import { LeaseValidationService } from './lease-validation.service'
 import { LeaseExpiryCheckerService } from './lease-expiry-checker.service'
 import { LeaseSignatureService } from './lease-signature.service'
+import { LeaseSubscriptionService } from './lease-subscription.service'
 import { SubscriptionRetryService } from './subscription-retry.service'
 import { SubscriptionAlertListener } from './listeners/subscription-alert.listener'
 import { TenantsModule } from '../tenants/tenants.module'
@@ -54,6 +55,7 @@ import { TenantsModule } from '../tenants/tenants.module'
 		LeaseValidationService,
 		LeaseExpiryCheckerService,
 		LeaseSignatureService,
+		LeaseSubscriptionService, // Handles Stripe subscription creation (SRP split)
 		SubscriptionRetryService, // Background job for retrying failed subscriptions
 		SubscriptionAlertListener // Event listener for subscription failure alerts
 	],
@@ -64,6 +66,7 @@ import { TenantsModule } from '../tenants/tenants.module'
 		LeaseTransformationService,
 		LeaseValidationService,
 		LeaseSignatureService,
+		LeaseSubscriptionService,
 		SubscriptionRetryService
 	]
 })

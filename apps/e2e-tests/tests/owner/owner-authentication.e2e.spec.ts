@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ROUTES } from '../../constants/routes'
+import { ROUTES } from '../constants/routes'
 import { loginAsOwner, clearSessionCache } from '../../auth-helpers'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
 
@@ -16,7 +16,7 @@ import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-he
  */
 
 test.describe('Owner Authentication', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
   const logger = createLogger({ component: 'OwnerAuthenticationE2E' })
 
   test.beforeEach(() => {
@@ -58,7 +58,10 @@ test.describe('Owner Authentication', () => {
     logger.info('Auth cookie names:', authCookies.map((c) => c.name))
   })
 
-  test('should redirect to /dashboard after successful login', async ({ page }) => {
+  test('should redirect to /dashboard after successful login', async ({ page, context }) => {
+    // Clear existing auth state to test login flow from scratch
+    await context.clearCookies()
+
     // Navigate to login page
     await page.goto(`${baseUrl}/login`)
 
@@ -70,11 +73,14 @@ test.describe('Owner Authentication', () => {
         throw new Error('E2E_OWNER_PASSWORD environment variable is required')
       })()
 
-    await page.locator('[data-testid="email-input"]').fill(email)
-    await page.locator('[data-testid="password-input"]').fill(password)
+    // Use id selectors (login form uses id="email" and id="password")
+    await page.locator('input#email').click()
+    await page.locator('input#email').fill(email)
+    await page.locator('input#password').click()
+    await page.locator('input#password').fill(password)
 
     // Submit and wait for redirect
-    const submitButton = page.locator('[data-testid="login-button"]')
+    const submitButton = page.locator('button[type="submit"]')
     await Promise.all([
       page.waitForURL(ROUTES.OWNER_DASHBOARD, { timeout: 30000 }),
       submitButton.click(),
@@ -136,11 +142,9 @@ test.describe('Owner Authentication', () => {
       )
     ).toBeVisible({ timeout: 10000 })
 
-    // User menu/avatar should be visible
+    // User menu/avatar should be visible (use first() to avoid strict mode with desktop/mobile sidebars)
     await expect(
-      page.locator('[data-testid="user-menu"]').or(
-        page.getByRole('button', { name: /account|profile|user/i })
-      )
+      page.locator('[data-testid="user-menu"]').first()
     ).toBeVisible({ timeout: 10000 })
   })
 
@@ -196,7 +200,10 @@ test.describe('Owner Authentication', () => {
     expect(page.url()).not.toContain('/login')
   })
 
-  test('should handle invalid credentials gracefully', async ({ page }) => {
+  test('should handle invalid credentials gracefully', async ({ page, context }) => {
+    // Clear existing auth state to test login flow from scratch
+    await context.clearCookies()
+
     // Navigate to login page
     await page.goto(`${baseUrl}/login`)
 
@@ -223,7 +230,10 @@ test.describe('Owner Authentication', () => {
     expect(errorVisible || page.url().includes('/login')).toBe(true)
   })
 
-  test('should verify dashboard is only accessible when authenticated', async ({ page }) => {
+  test('should verify dashboard is only accessible when authenticated', async ({ page, context }) => {
+    // Clear existing auth state to test unauthenticated access
+    await context.clearCookies()
+
     // Try to access dashboard without authentication
     await page.goto(`${baseUrl}${ROUTES.OWNER_DASHBOARD}`)
 

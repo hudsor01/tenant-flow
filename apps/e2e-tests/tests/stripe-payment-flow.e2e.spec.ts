@@ -12,11 +12,13 @@ import { test, expect, type Page } from '@playwright/test'
  * 6. Refund processing (if applicable)
  * 7. Multiple payment methods management
  *
- * Uses Stripe test keys and test card numbers
+ * Uses Stripe PaymentElement (modern embedded payment form).
+ * PaymentElement handles card input within Stripe's iframe - we interact
+ * with the form via typing into the visible iframe elements.
  */
 
 test.describe('Stripe Payment Flow - Comprehensive', () => {
-	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 	// Stripe test card numbers
 	const STRIPE_TEST_SUCCESS_CARD = '4242424242424242'
@@ -25,27 +27,76 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 	const STRIPE_TEST_INSUFFICIENT_FUNDS = '4000000000009995'
 
 	/**
-	 * Helper: Fill Stripe card element
+	 * Helper: Wait for Stripe form to be ready
+	 * Per Playwright docs, prefer deterministic waits over arbitrary timeouts
+	 * @see https://playwright.dev/docs/best-practices#use-web-first-assertions
 	 */
-	async function fillStripeCardElement(page: Page, cardNumber: string) {
-		// Wait for Stripe Elements to load
-		const stripeFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
-		await stripeFrame.locator('[name="number"]').waitFor({ state: 'visible', timeout: 10000 })
+	async function waitForStripeForm(page: Page) {
+		await page.waitForSelector('[class*="StripeElement"], [data-stripe], iframe[src*="stripe.com"]', { timeout: 15000 })
+		// Wait for Stripe iframe to be interactive
+		const stripeFrame = page.frameLocator('iframe[src*="stripe.com"]').first()
+		await expect(stripeFrame.locator('input').first()).toBeAttached({ timeout: 10000 })
+	}
 
-		// Fill card number
-		await stripeFrame.locator('[name="number"]').fill(cardNumber)
+	/**
+	 * Helper: Wait for payment submission result
+	 * Waits for either success message, error message, or page navigation
+	 */
+	async function waitForPaymentResult(page: Page, options?: { timeout?: number }) {
+		const timeout = options?.timeout || 15000
+		await expect(async () => {
+			const hasSuccess = await page.locator('text=/success|saved|added|confirmed|thank you/i').isVisible().catch(() => false)
+			const hasError = await page.locator('text=/error|failed|declined|invalid/i').isVisible().catch(() => false)
+			const urlChanged = !page.url().includes('/new') && !page.url().includes('/methods')
+			expect(hasSuccess || hasError || urlChanged).toBeTruthy()
+		}).toPass({ timeout })
+	}
 
-		// Fill expiry (future date)
-		await stripeFrame.locator('[name="expiry"]').fill('12/30')
+	/**
+	 * Helper: Wait for and fill Stripe PaymentElement
+	 * PaymentElement uses a different iframe structure than legacy CardElement.
+	 * The input fields are within iframes with src containing 'js.stripe.com/v3/elements'.
+	 *
+	 * @see https://playwright.dev/docs/pages#handling-iframes
+	 */
+	async function fillStripePaymentElement(page: Page, cardNumber: string, options?: { expiry?: string; cvc?: string }) {
+		const expiry = options?.expiry || '12/30'
+		const cvc = options?.cvc || '123'
 
-		// Fill CVC
-		await stripeFrame.locator('[name="cvc"]').fill('123')
+		// Wait for Stripe PaymentElement to load - look for the payment form container
+		await page.waitForSelector('[class*="StripeElement"], [data-stripe], iframe[src*="stripe.com"]', { timeout: 15000 })
 
-		// Fill postal code if present
-		const postalCode = stripeFrame.locator('[name="postalCode"]')
-		if (await postalCode.isVisible().catch(() => false)) {
-			await postalCode.fill('12345')
+		// Wait for Stripe iframe to be interactive (deterministic - wait for iframe's input to exist)
+		const stripeFrame = page.frameLocator('iframe[src*="stripe.com"]').first()
+		await expect(stripeFrame.locator('input').first()).toBeAttached({ timeout: 10000 })
+
+		// PaymentElement creates multiple iframes for different fields
+		// Find the card number iframe (contains 'cardNumber' in name or is first payment iframe)
+		const cardNumberFrame = page.frameLocator('iframe[title*="card number" i], iframe[name*="card" i]').first()
+
+		// Try to find and fill the card number input
+		try {
+			const cardInput = cardNumberFrame.locator('input[name="cardnumber"], input[autocomplete*="cc-number"], input').first()
+			await cardInput.waitFor({ state: 'visible', timeout: 5000 })
+			await cardInput.fill(cardNumber)
+		} catch {
+			// Fallback: Try typing into the focused element after clicking the payment form
+			const paymentForm = page.locator('[class*="StripeElement"], [data-stripe]').first()
+			await paymentForm.click()
+			await page.keyboard.type(cardNumber)
 		}
+
+		// Tab to expiry and fill
+		await page.keyboard.press('Tab')
+		await page.keyboard.type(expiry.replace('/', ''))
+
+		// Tab to CVC and fill
+		await page.keyboard.press('Tab')
+		await page.keyboard.type(cvc)
+
+		// Tab to postal/zip if required
+		await page.keyboard.press('Tab')
+		await page.keyboard.type('12345')
 	}
 
 	// Note: Authentication is handled via storageState in playwright.config.ts
@@ -78,10 +129,10 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await addButton.click()
 
 			// Wait for Stripe Elements to load
-			await page.waitForTimeout(2000)
+			await waitForStripeForm(page)
 
 			// Fill card details
-			await fillStripeCardElement(page, STRIPE_TEST_SUCCESS_CARD)
+			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 
 			// Fill billing address if AddressElement is present
 			const billingName = page.locator('input[name="name"], input[placeholder*="name" i]')
@@ -106,14 +157,14 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
 			await addButton.click()
 
-			await page.waitForTimeout(2000)
+			// Wait for Stripe form (deterministic)
+			await waitForStripeForm(page)
 
-			// Fill invalid card
-			const stripeFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
-			await stripeFrame.locator('[name="number"]').fill('1234567890123456')
+			// Fill invalid card using PaymentElement
+			await fillStripePaymentElement(page, '1234567890123456')
 
-			// Verify error appears
-			await expect(page.locator('text=/invalid|card number/i')).toBeVisible({ timeout: 5000 })
+			// Verify error appears (Stripe validates card numbers inline)
+			await expect(page.locator('text=/invalid|card number|Your card number is incomplete/i')).toBeVisible({ timeout: 5000 })
 		})
 
 		test('should handle declined card gracefully', async ({ page }) => {
@@ -122,17 +173,17 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
 			await addButton.click()
 
-			await page.waitForTimeout(2000)
+			await waitForStripeForm(page)
 
 			// Use decline test card
-			await fillStripeCardElement(page, STRIPE_TEST_DECLINE_CARD)
+			await fillStripePaymentElement(page, STRIPE_TEST_DECLINE_CARD)
 
 			const submitButton = page.locator('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').last()
 			await submitButton.click()
 
 			// Should show error (card may be saved but decline on first charge)
 			// Stripe's behavior: card is created but may fail on payment intent
-			await page.waitForTimeout(3000)
+			await waitForPaymentResult(page)
 		})
 
 		test('should allow multiple payment methods', async ({ page }) => {
@@ -146,13 +197,13 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
 			await addButton.click()
 
-			await page.waitForTimeout(2000)
-			await fillStripeCardElement(page, STRIPE_TEST_SUCCESS_CARD)
+			await waitForStripeForm(page)
+			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 
 			const submitButton = page.locator('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').last()
 			await submitButton.click()
 
-			await page.waitForTimeout(2000)
+			await waitForStripeForm(page)
 
 			// Verify count increased (or at least one card exists)
 			const newCount = await page.locator('text=/4242|visa|mastercard|ending in/i').count()
@@ -215,10 +266,10 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 				// Add payment method first
 				const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
 				await addButton.click()
-				await page.waitForTimeout(2000)
-				await fillStripeCardElement(page, STRIPE_TEST_SUCCESS_CARD)
+				await waitForStripeForm(page)
+			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 				await page.locator('button[type="submit"]').last().click()
-				await page.waitForTimeout(2000)
+				await waitForStripeForm(page)
 			}
 
 			// Navigate to make payment
@@ -242,7 +293,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await submitButton.first().click()
 
 			// Wait for processing
-			await page.waitForTimeout(3000)
+			await waitForPaymentResult(page)
 
 			// Verify success (either redirect or success message)
 			const successIndicators = page.locator('text=/success|payment received|confirmed|thank you/i')
@@ -256,10 +307,10 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
 			if (await addButton.isVisible().catch(() => false)) {
 				await addButton.click()
-				await page.waitForTimeout(2000)
-				await fillStripeCardElement(page, STRIPE_TEST_REQUIRES_AUTH)
+				await waitForStripeForm(page)
+			await fillStripePaymentElement(page, STRIPE_TEST_REQUIRES_AUTH)
 				await page.locator('button[type="submit"]').last().click()
-				await page.waitForTimeout(2000)
+				await waitForStripeForm(page)
 			}
 
 			// Attempt payment
@@ -270,7 +321,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 				await submitButton.first().click()
 
 				// Wait for 3D Secure modal/iframe (if implemented)
-				await page.waitForTimeout(5000)
+				await waitForPaymentResult(page, { timeout: 15000 })
 
 				// In production, you'd complete the 3DS flow here
 				// For test mode, Stripe may auto-complete
@@ -284,10 +335,10 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
 			if (await addButton.isVisible().catch(() => false)) {
 				await addButton.click()
-				await page.waitForTimeout(2000)
-				await fillStripeCardElement(page, STRIPE_TEST_INSUFFICIENT_FUNDS)
+				await waitForStripeForm(page)
+			await fillStripePaymentElement(page, STRIPE_TEST_INSUFFICIENT_FUNDS)
 				await page.locator('button[type="submit"]').last().click()
-				await page.waitForTimeout(2000)
+				await waitForStripeForm(page)
 			}
 
 			// Try to make payment
@@ -296,7 +347,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
 			if (await submitButton.isVisible().catch(() => false)) {
 				await submitButton.first().click()
-				await page.waitForTimeout(3000)
+				await waitForPaymentResult(page)
 
 				// Should show error
 				await expect(page.locator('text=/insufficient funds|declined|failed|error/i')).toBeVisible({ timeout: 10000 })
@@ -339,7 +390,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			if (await receiptLink.first().isVisible().catch(() => false)) {
 				// Click to view receipt
 				await receiptLink.first().click()
-				await page.waitForTimeout(2000)
+				await waitForStripeForm(page)
 			}
 		})
 
@@ -367,7 +418,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const payButton = page.locator('button:has-text("Pay"), button:has-text("Submit Payment")')
 			if (await payButton.isVisible().catch(() => false)) {
 				await payButton.click()
-				await page.waitForTimeout(5000)
+				await waitForPaymentResult(page, { timeout: 15000 })
 
 				// Status should update
 				// (This test is more relevant for autopay/subscriptions)
@@ -554,10 +605,10 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 				const addButton = page.locator('button:has-text("Add Payment Method")').first()
 				if (await addButton.isVisible().catch(() => false)) {
 					await addButton.click()
-					await page.waitForTimeout(2000)
-					await fillStripeCardElement(page, STRIPE_TEST_SUCCESS_CARD)
+					await waitForStripeForm(page)
+			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 					await page.locator('button[type="submit"]').last().click()
-					await page.waitForTimeout(2000)
+					await waitForStripeForm(page)
 				}
 			}
 
@@ -566,12 +617,12 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
 			if (await submitButton.isVisible().catch(() => false)) {
 				await submitButton.first().click()
-				await page.waitForTimeout(5000)
+				await waitForPaymentResult(page, { timeout: 15000 })
 			}
 
 			// Verify webhook updated payment status
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
-			await page.waitForTimeout(2000)
+			await waitForStripeForm(page)
 
 			// Most recent payment should show success status
 			const successStatus = page.locator('text=/paid|success|completed/i').first()
@@ -621,17 +672,14 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			const addButton = page.locator('button:has-text("Add Payment Method")').first()
 			if (await addButton.isVisible().catch(() => false)) {
 				await addButton.click()
-				await page.waitForTimeout(2000)
+				await waitForStripeForm(page)
 
-				// Fill with expired card (expiry in past)
-				const stripeFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]').first()
-				await stripeFrame.locator('[name="number"]').fill(STRIPE_TEST_SUCCESS_CARD)
-				await stripeFrame.locator('[name="expiry"]').fill('01/20') // Expired
-				await stripeFrame.locator('[name="cvc"]').fill('123')
+				// Fill with expired card (expiry in past) using PaymentElement
+				await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD, { expiry: '01/20' })
 
-				// Should show error
-				await page.waitForTimeout(1000)
-				await expect(page.locator('text=/expired|invalid|past/i')).toBeVisible({ timeout: 5000 })
+				// Should show error (Stripe validates expiry inline)
+				// No arbitrary wait - expect() handles retry automatically
+				await expect(page.locator('text=/expired|invalid|past|expiration/i')).toBeVisible({ timeout: 10000 })
 			}
 		})
 
@@ -647,7 +695,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 				await submitButton.click().catch(() => {}) // May be disabled
 
 				// Should only process once
-				await page.waitForTimeout(5000)
+				await waitForPaymentResult(page, { timeout: 15000 })
 			}
 		})
 
@@ -663,7 +711,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 				await submitButton.click()
 
 				// Should show validation error or process with Stripe limit error
-				await page.waitForTimeout(3000)
+				await waitForPaymentResult(page)
 			}
 		})
 
@@ -741,7 +789,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 
 				const submitButton = page.locator('button:has-text("Submit Payment")').first()
 				await submitButton.click()
-				await page.waitForTimeout(2000)
+				await waitForStripeForm(page)
 
 				// Script should not execute (would be sanitized)
 				// If it executed, test framework would catch the alert

@@ -212,23 +212,33 @@ export function QueryProvider({
 						try {
 							await set(QUERY_CACHE_KEY, client)
 						} catch (error) {
-							// DataCloneError or QuotaExceededError - fail silently
-							logger.warn('Failed to persist cache to IndexedDB', {
+							// DataCloneError or QuotaExceededError - log error clearly
+							// Cache persistence is best-effort, but we log for debugging
+							logger.error('IndexedDB persist failed - cache not saved', {
 								action: 'persist_client_error',
 								metadata: {
-									error: error instanceof Error ? error.message : String(error)
+									error: error instanceof Error ? error.message : String(error),
+									errorType: error instanceof Error ? error.name : 'Unknown'
 								}
 							})
 						}
 					},
 					restoreClient: async () => {
 						try {
-							return await get(QUERY_CACHE_KEY)
+							const cached = await get(QUERY_CACHE_KEY)
+							if (cached === undefined) {
+								logger.info('IndexedDB cache miss - no cached data found')
+							}
+							return cached
 						} catch (error) {
-							logger.warn('Failed to restore cache from IndexedDB', {
+							// FAIL-FAST LOGGING: Distinguish error from cache miss
+							logger.error('IndexedDB restore failed - treating as cache miss', {
 								action: 'restore_client_error',
 								metadata: {
-									error: error instanceof Error ? error.message : String(error)
+									error: error instanceof Error ? error.message : String(error),
+									errorType: error instanceof Error ? error.name : 'Unknown',
+									// This is an ERROR, not a normal cache miss
+									isError: true
 								}
 							})
 							return undefined
@@ -238,10 +248,11 @@ export function QueryProvider({
 						try {
 							await del(QUERY_CACHE_KEY)
 						} catch (error) {
-							logger.warn('Failed to remove cache from IndexedDB', {
+							logger.error('IndexedDB remove failed - cache may be stale', {
 								action: 'remove_client_error',
 								metadata: {
-									error: error instanceof Error ? error.message : String(error)
+									error: error instanceof Error ? error.message : String(error),
+									errorType: error instanceof Error ? error.name : 'Unknown'
 								}
 							})
 						}

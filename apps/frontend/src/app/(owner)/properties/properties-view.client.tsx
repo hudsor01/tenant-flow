@@ -4,26 +4,32 @@ import { PullToRefresh } from '#components/ui/pull-to-refresh'
 import { ViewSwitcher, type ViewType } from '#components/ui/view-switcher'
 import { useIsMobile } from '#hooks/use-mobile'
 import { usePreferencesStore } from '#providers/preferences-provider'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import { PropertiesGridClient } from './properties-grid.client'
 import { PropertiesTableClient } from './properties-table.client'
 import { MobilePropertiesTable } from './properties-table.mobile'
 import type { Property } from '@repo/shared/types/core'
 
 interface PropertiesViewClientProps {
-	data: Property[]
+	properties: Property[]
 }
 
-export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
+/**
+ * Properties view switcher - handles grid/table toggle and mobile layout
+ * Receives data from parent to avoid duplicate fetching
+ */
+export function PropertiesViewClient({ properties }: PropertiesViewClientProps) {
 	const isMobile = useIsMobile()
-	const router = useRouter()
+	const queryClient = useQueryClient()
 	const viewPreferences = usePreferencesStore(state => state.viewPreferences)
 	const setViewPreference = usePreferencesStore(state => state.setViewPreference)
 	const currentView = viewPreferences?.properties ?? 'grid'
+
 	const handleRefresh = useCallback(async () => {
-		router.refresh()
-	}, [router])
+		await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
+	}, [queryClient])
 
 	const handleViewChange = (view: ViewType) => {
 		if (view === 'grid' || view === 'table') {
@@ -38,7 +44,7 @@ export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 					<h2 className="text-xl font-semibold">Portfolio</h2>
 				</div>
 				<PullToRefresh onRefresh={handleRefresh}>
-					<MobilePropertiesTable initialProperties={data} />
+					<MobilePropertiesTable initialProperties={properties} />
 				</PullToRefresh>
 			</div>
 		)
@@ -57,11 +63,10 @@ export function PropertiesViewClient({ data }: PropertiesViewClientProps) {
 			</div>
 
 			{currentView === 'grid' ? (
-				<PropertiesGridClient data={data} />
+				<PropertiesGridClient data={properties} />
 			) : (
-				<PropertiesTableClient initialProperties={data} />
+				<PropertiesTableClient initialProperties={properties} />
 			)}
-		
 		</div>
 	)
 }

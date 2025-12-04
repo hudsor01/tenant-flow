@@ -134,7 +134,7 @@ function PaymentMethodDisplay({ method }: { method: PaymentMethodResponse }) {
 				<span className="font-medium text-sm truncate">
 					{details.description}
 				</span>
-				<div className="flex items-center gap-2 text-xs text-muted-foreground">
+				<div className="flex items-center gap-2 text-caption">
 					{details.expiryDate && <span>Expires {details.expiryDate}</span>}
 					{details.accountType && <span>{details.accountType}</span>}
 					{(details.expiryDate || details.accountType) && <span>•</span>}

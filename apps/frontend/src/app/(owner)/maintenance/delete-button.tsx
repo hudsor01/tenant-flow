@@ -41,7 +41,7 @@ export function DeleteMaintenanceButton({
 			<Button
 				variant="outline"
 				size="sm"
-				className="flex items-center gap-2 text-(--color-system-red) hover:text-(--color-system-red-85)"
+				className="flex items-center gap-2 text-(--color-destructive) hover:text-(--color-destructive-85)"
 				onClick={() => openModal(modalId)}
 			>
 				<Trash2 className="size-4" />

@@ -14,7 +14,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
  */
 
 test.describe('Financial Statements - Production Flow', () => {
-	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	const logger = createLogger({ component: 'FinancialStatementsE2E' })
 
 	/**

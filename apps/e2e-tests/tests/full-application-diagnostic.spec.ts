@@ -54,14 +54,14 @@ test.describe('Full Application Diagnostic - All Pages & Features', () => {
 		})
 
 		// Setup environment-aware base URL
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 		const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
-		
+
 		logger.info('\n=== ENVIRONMENT CONFIGURATION ===')
 		logger.info(`[ENV] Frontend Base URL: ${baseUrl}`)
 		logger.info(`[ENV] API Base URL: ${apiBaseUrl}`)
 		logger.info(`[ENV] Node Environment: ${process.env.NODE_ENV || 'development'}`)
-		
+
 		// Login first
 		logger.info('\n=== AUTHENTICATION ===')
 		logger.info('[TEST] Starting login...')

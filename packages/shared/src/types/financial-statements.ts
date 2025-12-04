@@ -4,6 +4,15 @@
 
 import type { Database } from './supabase.js'
 
+/**
+ * Generic line item for financial statements (balance sheet, cash flow, income)
+ * Used for rendering grouped financial data in UI components
+ */
+export interface FinancialLineItem {
+  name: string
+  amount: number
+}
+
 export interface TaxDocumentsData {
   period: { start_date: string; end_date: string; label: string }
   taxYear: number

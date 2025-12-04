@@ -58,7 +58,7 @@ export function PropertyPerformanceTable() {
 					<p className="text-sm font-medium text-muted-foreground">
 						Unable to load property performance
 					</p>
-					<p className="text-xs text-muted-foreground">
+					<p className="text-caption">
 						Please refresh to try again.
 					</p>
 				</div>
@@ -90,20 +90,20 @@ function PropertyPerformanceTableContent() {
 				<p className="text-sm font-medium text-muted-foreground">
 					Failed to load property performance data
 				</p>
-				<p className="text-xs text-muted-foreground">
+				<p className="text-caption">
 					Please refresh to try again.
 				</p>
 			</div>
 		)
 	}
 
-	if (!properties || properties.length === 0) {
+	if (!properties || !Array.isArray(properties) || properties.length === 0) {
 		return (
 			<div className="dashboard-empty-state">
 				<p className="text-sm font-medium text-muted-foreground">
 					No property data available
 				</p>
-				<p className="text-xs text-muted-foreground">
+				<p className="text-caption">
 					Add properties to see performance insights.
 				</p>
 			</div>

@@ -103,7 +103,7 @@ function ErrorBoundaryWithStore({
 							</p>
 						)}
 						{errorState.errorId && (
-							<p className="text-xs text-muted-foreground">
+							<p className="text-caption">
 								Error ID: {errorState.errorId}
 							</p>
 						)}

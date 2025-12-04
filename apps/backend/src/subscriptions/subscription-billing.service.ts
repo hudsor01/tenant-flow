@@ -103,7 +103,8 @@ export class SubscriptionBillingService {
 			transfer_data: {
 				destination: leaseContext.owner.stripe_account_id
 			},
-			...(leaseContext.owner.default_platform_fee_percent ? { application_fee_percent: leaseContext.owner.default_platform_fee_percent } : {}),
+			// Platform fee: use owner's configured rate or default to 1%
+			application_fee_percent: leaseContext.owner.default_platform_fee_percent ?? 1.0,
 			proration_behavior: 'none',
 			billing_cycle_anchor: billingCycleAnchor,
 			metadata: {

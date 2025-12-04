@@ -19,7 +19,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UsersService } from './users.service'
-import type { UpdateProfileDto } from './dto/update-profile.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 
 @Controller('users')

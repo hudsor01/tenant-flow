@@ -16,8 +16,8 @@ const prioritySchema: JSONSchema = {
 
 const statusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
-	default: 'PENDING'
+	enum: ['pending', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+	default: 'pending'
 }
 
 const categorySchema: JSONSchema = {

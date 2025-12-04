@@ -1,62 +1,59 @@
-import { serverFetch } from '#lib/api/server'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Property, Unit } from '@repo/shared/types/core'
-import { CreateTenantForm } from '../../../(tenant)/tenant/create-tenant-form.client'
+'use client'
 
-export default async function NewTenantPage() {
-	const logger = createLogger({ component: 'NewTenantPage' })
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import { Skeleton } from '#components/ui/skeleton'
+import { InviteTenantForm } from '#components/tenants/invite-tenant-form'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { useQuery } from '@tanstack/react-query'
 
-	let properties: Property[] = []
-	let units: Unit[] = []
+/**
+ * Invite Tenant Page (Full Page Fallback)
+ *
+ * Renders when user navigates directly to /tenants/new (e.g., bookmark, refresh).
+ * The intercepting route modal handles the normal flow from /tenants.
+ */
+export default function InviteTenantPage() {
+	const { data: propertiesResponse, isLoading: propertiesLoading } = useQuery(propertyQueries.list())
+	const { data: unitsResponse, isLoading: unitsLoading } = useQuery(unitQueries.list())
+	const properties = propertiesResponse?.data ?? []
+	const units = unitsResponse?.data ?? []
 
-	try {
-		logger.info('Fetching properties and units for tenant creation...')
+	const isLoading = propertiesLoading || unitsLoading
 
-		const [propertiesData, unitsData] = await Promise.all([
-			serverFetch<import('@repo/shared/types/core').Property[]>('/api/v1/properties'),
-			serverFetch<import('@repo/shared/types/core').Unit[]>('/api/v1/units')
-		])
-
-		properties = propertiesData ?? []
-		units = unitsData ?? []
-
-		logger.info('Successfully fetched data', {
-			propertiesCount: properties.length,
-			unitsCount: units.length
-		})
-	} catch (err) {
-		// Extract comprehensive error details for debugging
-		const isError = err instanceof Error
-		const errorMessage = isError ? err.message : String(err)
-		const errorName = isError ? err.name : 'Unknown'
-		const errorStack = isError ? err.stack : undefined
-		const statusCode = (err as { statusCode?: number }).statusCode
-		const responseData = (err as { response?: unknown }).response
-
-		// Log with all available context
-		logger.error('Failed to fetch properties and units for tenant creation', {
-			errorName,
-			errorMessage: errorMessage || '(empty error message)',
-			errorStack,
-			statusCode,
-			responseData
-		})
-
-		// Still render the form with empty arrays - allow tenant creation even if fetch fails
+	if (isLoading) {
+		return (
+			<div className="mx-auto w-full max-w-lg py-8">
+				<Card>
+					<CardHeader>
+						<Skeleton className="h-7 w-32 mb-2" />
+						<Skeleton className="h-5 w-full" />
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-4">
+							{[1, 2, 3, 4].map((i) => (
+								<Skeleton key={i} className="h-10 w-full" />
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		)
 	}
 
 	return (
-		<div className="mx-auto w-full max-w-2xl space-y-10">
-			<div className="space-y-2">
-				<h1 className="text-2xl font-semibold tracking-tight">
-					Onboard New Tenant
-				</h1>
-				<p className="text-muted-foreground">
-					Create a tenant profile, assign a lease, and send a portal invitation
-					in one step.
-				</p>
-			</div>
-			<CreateTenantForm properties={properties} units={units} />
+		<div className="mx-auto w-full max-w-lg py-8">
+			<Card>
+				<CardHeader>
+					<CardTitle>Invite Tenant</CardTitle>
+					<CardDescription>
+						Send a portal invitation to a new tenant. You can create their lease after they complete onboarding.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<InviteTenantForm properties={properties} units={units} />
+				</CardContent>
+			</Card>
 		</div>
 	)
 }
