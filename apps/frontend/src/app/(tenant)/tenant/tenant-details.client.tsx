@@ -148,7 +148,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 					title="Contact Information"
 					description="Tenant's contact details and emergency information"
 				>
-					<div className="grid grid-cols-2 gap-(--spacing-4)">
+					<div className="grid grid-cols-2 gap-4">
 						<div className="space-y-1">
 							<div className="text-muted flex items-center gap-2">
 								<Mail className="size-4" />
@@ -178,14 +178,14 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 					<div className="font-medium whitespace-pre-wrap">
 						{tenant.emergency_contact_name}
 						{tenant.emergency_contact_phone && <div>{tenant.emergency_contact_phone}</div>}
-						{tenant.emergency_contact_relationship && <div className="text-xs text-muted-foreground">{tenant.emergency_contact_relationship}</div>}
+						{tenant.emergency_contact_relationship && <div className="text-caption">{tenant.emergency_contact_relationship}</div>}
 					</div>
 				</div>
 			)}
 
 					{/* Created and Updated Dates */}
 					<div className="pt-4 border-t">
-						<div className="grid grid-cols-2 gap-(--spacing-4) text-sm">
+						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div className="space-y-1">
 								<div className="text-muted-foreground flex items-center gap-2">
 									<Calendar className="size-4" />
@@ -236,7 +236,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 										<div className="font-medium">
 											{lease.property?.address_line1 || 'Unknown Property'}
 										</div>
-										<div className="text-muted flex items-center gap-(--spacing-4)">
+										<div className="text-muted flex items-center gap-4">
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.start_date)} -{' '}

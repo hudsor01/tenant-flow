@@ -21,7 +21,7 @@ import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { tenantQueries, type TenantInvitation } from '#hooks/api/queries/tenant-queries'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -37,11 +37,10 @@ export function InvitationsTableClient() {
 
 	// Cancel mutation
 	const cancelMutation = useMutation({
-		mutationFn: async (invitation_id: string) => {
-			await clientFetch(`/api/v1/tenants/invitations/${invitation_id}/cancel`, {
+		mutationFn: async (invitation_id: string) =>
+			apiRequest<void>(`/api/v1/tenants/invitations/${invitation_id}/cancel`, {
 				method: 'POST'
-			})
-		},
+			}),
 		onSuccess: () => {
 			toast.success('Invitation cancelled')
 			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
@@ -54,11 +53,10 @@ export function InvitationsTableClient() {
 
 	// Resend mutation
 	const resendMutation = useMutation({
-		mutationFn: async (tenant_id: string) => {
-			await clientFetch(`/api/v1/tenants/${tenant_id}/resend-invitation`, {
+		mutationFn: async (tenant_id: string) =>
+			apiRequest<void>(`/api/v1/tenants/${tenant_id}/resend-invitation`, {
 				method: 'POST'
-			})
-		},
+			}),
 		onSuccess: () => {
 			toast.success('Invitation resent')
 			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
@@ -82,14 +80,14 @@ export function InvitationsTableClient() {
 		switch (status) {
 			case 'sent':
 				return (
-					<Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-50">
+					<Badge variant="outline" className="border-warning text-warning bg-warning/10">
 						<Clock className="size-3 mr-1" />
 						Pending
 					</Badge>
 				)
 			case 'accepted':
 				return (
-					<Badge variant="outline" className="border-success text-success bg-green-50">
+					<Badge variant="outline" className="border-success text-success bg-success/10">
 						<CheckCircle2 className="size-3 mr-1" />
 						Accepted
 					</Badge>

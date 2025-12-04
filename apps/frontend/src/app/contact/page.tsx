@@ -2,10 +2,10 @@ import { ContactForm } from '#app/contact/contact-form'
 import Footer from '#components/ui/layout/footer'
 import Navbar from '#components/ui/layout/navbar'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { env } from '#config/env'
 
 export default function ContactPage() {
-	const baseUrl = env.NEXT_PUBLIC_BASE_URL
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 
 	// Breadcrumb Schema
 	const breadcrumbSchema = {
@@ -40,7 +40,7 @@ export default function ContactPage() {
 			{/* Navigation */}
 			<Navbar />
 
-			<main className="flex-1">
+			<main className="flex-1 page-offset-navbar">
 				<ContactForm />
 			</main>
 

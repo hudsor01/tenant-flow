@@ -42,11 +42,11 @@ const formatPropertyType = (type: PropertyType): string => {
 }
 
 // Format property status for display
-// Note: PROPERTY_STATUS values are mixed case - 'active' is lowercase, others uppercase
+// Note: PROPERTY_STATUS values are mixed case - 'active'/'inactive' lowercase, others uppercase
 const formatPropertyStatus = (status: PropertyStatus): string => {
 	const statusMap: Record<PropertyStatus, string> = {
 		active: 'Active',
-		INACTIVE: 'Inactive',
+		inactive: 'Inactive',
 		UNDER_CONTRACT: 'Under Contract',
 		SOLD: 'Sold'
 	}
@@ -160,7 +160,7 @@ export function SectionTable() {
 						<Building2 className="size-4 text-muted-foreground" />
 												<span className="font-medium">{property.name}</span>
 											</div>
-					<div className="flex items-center gap-3 text-xs text-muted-foreground sm:hidden">
+					<div className="flex items-center gap-3 text-caption sm:hidden">
 												<span>{formatPropertyType(property.property_type as PropertyType)}</span>
 								<span className="flex items-center gap-1">
 									<MapPin className="size-3" />

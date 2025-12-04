@@ -27,7 +27,7 @@ import {
 import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
+import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
 	CreateTenantRequest,
 	OwnerPaymentSummaryResponse,
@@ -42,9 +42,9 @@ import { TenantNotificationPreferencesService } from './tenant-notification-pref
 import { TenantPaymentService } from './tenant-payment.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
-import type { CreateTenantDto } from './dto/create-tenant.dto'
-import type { UpdateTenantDto } from './dto/update-tenant.dto'
-import type { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
+import { CreateTenantDto } from './dto/create-tenant.dto'
+import { UpdateTenantDto } from './dto/update-tenant.dto'
+import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
 import type {
 	CreateEmergencyContactDto,
 	UpdateEmergencyContactDto
@@ -77,7 +77,7 @@ export class TenantsController {
 
 		if (
 			invitationStatus &&
-			!['PENDING', 'SENT', 'accepted', 'expired', 'REVOKED'].includes(
+			!['pending', 'sent', 'accepted', 'expired', 'cancelled'].includes(
 				invitationStatus
 			)
 		) {
@@ -513,8 +513,11 @@ export class TenantsController {
 	async getPaymentSummary(
 		@Req() req: AuthenticatedRequest
 	): Promise<OwnerPaymentSummaryResponse> {
-		const user_id = req.user.id
-		return this.paymentService.getOwnerPaymentSummary(user_id)
+		// Defensive: Return empty response if no auth (e.g., SSR hydration)
+		if (!req.user?.id) {
+			return { lateFeeTotal: 0, unpaidTotal: 0, unpaidCount: 0, tenantCount: 0 }
+		}
+		return this.paymentService.getOwnerPaymentSummary(req.user.id)
 	}
 
 	@Post('payments/reminders')

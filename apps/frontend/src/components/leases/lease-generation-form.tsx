@@ -125,8 +125,8 @@ export function LeaseGenerationForm({
 	// Show error if required data is missing (after all hooks)
 	if (!property_id || !unit_id || !tenant_id) {
 		return (
-			<div className="flex-center p-(--spacing-8)">
-				<div className="text-center space-y-[var(--spacing-2)]">
+			<div className="flex-center p-8">
+				<div className="text-center space-y-2">
 					<p className="text-destructive font-semibold">
 						Missing Required Information
 					</p>
@@ -140,8 +140,8 @@ export function LeaseGenerationForm({
 
 	if (isAutoFilling) {
 		return (
-			<div className="flex-center p-(--spacing-8)">
-				<Loader2 className="size-[var(--spacing-8)] animate-spin text-muted-foreground" />
+			<div className="flex-center p-8">
+				<Loader2 className="size-8 animate-spin text-muted-foreground" />
 			</div>
 		)
 	}
@@ -254,7 +254,7 @@ export function LeaseGenerationForm({
 			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Lease Term</h3>
 
-					<div className="grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-2)]">
+					<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="commencementDate">
 						{field => (
 							<div className="space-y-[var(--spacing-2)]">
@@ -297,7 +297,7 @@ export function LeaseGenerationForm({
 			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Financial Terms</h3>
 
-					<div className="grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-2)]">
+					<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="rent_amount">
 						{field => (
 							<div className="space-y-[var(--spacing-2)]">
@@ -341,7 +341,7 @@ export function LeaseGenerationForm({
 					</form.Field>
 				</div>
 
-					<div className="grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-2)]">
+					<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="rentDueDay">
 						{field => (
 							<div className="space-y-[var(--spacing-2)]">
@@ -402,7 +402,7 @@ export function LeaseGenerationForm({
 						if (!petsAllowed) return null
 
 						return (
-								<div className="grid gap-(--spacing-4) [grid-template-columns:var(--layout-grid-cols-2)]">
+								<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 								<form.Field name="petDeposit">
 									{field => (
 										<div className="space-y-[var(--spacing-2)]">
@@ -445,7 +445,7 @@ export function LeaseGenerationForm({
 			</div>
 
 			{/* Actions */}
-				<div className="flex justify-end gap-(--spacing-4) pt-[var(--spacing-4)] border-t border-(--color-border)">
+				<div className="flex justify-end gap-4 pt-[var(--spacing-4)] border-t border-(--color-border)">
 				<Button
 					type="submit"
 					disabled={generateLease.isPending || !form.state.isValid}

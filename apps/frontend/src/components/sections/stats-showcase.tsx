@@ -3,7 +3,7 @@
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { NumberTicker } from '#components/ui/number-ticker'
-import { cn, showcaseCardClasses } from '#lib/design-system'
+import { cn } from '#lib/utils'
 
 interface StatsShowcaseProps {
 	className?: string
@@ -70,7 +70,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 					{stats.map((stat, index) => (
 						<BlurFade key={stat.label} delay={0.2 + index * 0.1} inView>
 							<div className="relative group">
-								<div className={showcaseCardClasses()}>
+								<div className="showcase-card">
 									{/* Animated border beam */}
 									<BorderBeam
 										size={120}

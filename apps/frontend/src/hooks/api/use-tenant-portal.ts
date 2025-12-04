@@ -4,6 +4,7 @@
  * Tenant Portal Hooks
  *
  * Modern hooks using /tenant-portal/* endpoints for tenant-facing operations
+ * Uses native fetch for NestJS calls.
  *
  * Architecture:
  * - user_type-based access control (TenantAuthGuard)
@@ -20,7 +21,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { handleMutationSuccess } from '#lib/mutation-error-handler'
 import {
 	tenantPortalQueries,
@@ -34,6 +35,7 @@ import {
 // ============================================================================
 
 // Query keys are now imported from tenant-portal-queries.ts
+
 
 // ============================================================================
 // PAYMENTS HOOKS (/tenant-portal/payments/*)
@@ -76,7 +78,7 @@ export function useCreateMaintenanceRequest() {
 
 	return useMutation({
 		mutationFn: (request: CreateMaintenanceRequestInput) =>
-			clientFetch<TenantMaintenanceRequest>('/api/v1/tenant-portal/maintenance', {
+			apiRequest<TenantMaintenanceRequest>('/api/v1/tenant-portal/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(request)
 			}),

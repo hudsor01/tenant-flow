@@ -16,7 +16,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useMobileGestures } from '#hooks/use-mobile-gestures'
 import { useOfflineData } from '#hooks/use-offline-data'
@@ -55,7 +55,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 		startTransition(async () => {
 			removeOptimisticProperty(deletePropertyId)
 			try {
-				await clientFetch(`/api/v1/properties/${deletePropertyId}`, { method: 'DELETE' })
+				await apiRequest<void>(`/api/v1/properties/${deletePropertyId}`, { method: 'DELETE' })
 				toast.success('Property deleted successfully')
 				router.refresh()
 			} catch (error) {
@@ -76,7 +76,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 					Get started by adding your first property to begin managing your real estate portfolio.
 				</p>
 				{!isOnline && (
-					<div className="mt-4 rounded-lg bg-yellow-100 px-4 py-2 text-sm text-yellow-900">
+					<div className="mt-4 rounded-lg bg-warning/20 px-4 py-2 text-sm text-warning">
 						Currently offline
 					</div>
 				)}
@@ -89,7 +89,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 	return (
 		<>
 			{!isOnline && (
-				<div className="mb-4 rounded-lg bg-yellow-100 px-4 py-2 text-sm text-yellow-900">
+				<div className="mb-4 rounded-lg bg-warning/20 px-4 py-2 text-sm text-warning">
 					Offline mode – some actions are disabled
 				</div>
 			)}

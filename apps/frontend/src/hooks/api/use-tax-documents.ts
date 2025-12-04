@@ -1,7 +1,8 @@
 /**
  * TanStack Query hook for tax documents
  */
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { useQuery } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -15,7 +16,7 @@ export function useTaxDocuments(taxYear: number) {
 	return useQuery({
 		queryKey: taxDocumentsKeys.byYear(taxYear),
 		queryFn: async (): Promise<TaxDocumentsData> => {
-			const response = await clientFetch<{
+			const response = await apiRequest<{
 				data: TaxDocumentsData
 				success: boolean
 			}>(`/api/v1/financials/tax-documents?taxYear=${taxYear}`)

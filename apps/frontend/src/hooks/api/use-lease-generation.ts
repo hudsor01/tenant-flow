@@ -1,7 +1,18 @@
 'use client'
 
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { clientFetch, getAuthHeaders } from '#lib/api/client'
+import { createClient } from '#utils/supabase/client'
+import { apiRequest } from '#lib/api-request'
+
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+	const supabase = createClient()
+	const { data: { session } } = await supabase.auth.getSession()
+	return {
+		'Content-Type': 'application/json',
+		Authorization: `Bearer ${session?.access_token}`
+	}
+}
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
@@ -25,7 +36,7 @@ export function useLeaseAutoFill(property_id: string, unit_id: string, tenant_id
 	return useQuery({
 		queryKey: leaseGenerationKeys.autoFill(property_id, unit_id, tenant_id),
 		queryFn: () =>
-			clientFetch<Partial<LeaseGenerationFormData>>(
+			apiRequest<Partial<LeaseGenerationFormData>>(
 				`/api/v1/leases/auto-fill/${property_id}/${unit_id}/${tenant_id}`
 			),
 		enabled: !!property_id && !!unit_id && !!tenant_id,

@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCents } from '@repo/shared/lib/format'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { tenantPortalQueries, type PayRentRequest } from '#hooks/api/queries/tenant-portal-queries'
 
 interface PaymentMethod {
@@ -60,17 +60,17 @@ export default function PayRentPage() {
 	// Fetch payment methods
 	const { data: methodsData, isLoading: isLoadingMethods } = useQuery({
 		queryKey: ['payment-methods'],
-		queryFn: () => clientFetch<{ methods: PaymentMethod[] }>('/api/v1/stripe/tenant-payment-methods')
+		queryFn: async () =>
+			apiRequest<{ methods: PaymentMethod[] }>('/api/v1/stripe/tenant-payment-methods')
 	})
 
 	// Pay rent mutation
 	const payMutation = useMutation({
-		mutationFn: async (data: PayRentRequest) => {
-			return clientFetch('/api/v1/tenant-portal/pay-rent', {
+		mutationFn: async (data: PayRentRequest) =>
+			apiRequest<{ success: boolean }>('/api/v1/tenant-portal/pay-rent', {
 				method: 'POST',
 				body: JSON.stringify(data)
-			})
-		},
+			}),
 		onSuccess: () => {
 			toast.success('Payment submitted successfully!')
 			queryClient.invalidateQueries({ queryKey: tenantPortalQueries.all() })
@@ -135,7 +135,7 @@ export default function PayRentPage() {
 			<div className="container mx-auto max-w-2xl py-12">
 				<Card>
 					<CardHeader className="text-center">
-						<div className="mx-auto mb-4 rounded-full bg-green-100 p-3 w-fit">
+						<div className="mx-auto mb-4 rounded-full bg-success/20 p-3 w-fit">
 							<CheckCircle2 className="size-8 text-success" />
 						</div>
 						<CardTitle>Rent Paid</CardTitle>
@@ -181,12 +181,12 @@ export default function PayRentPage() {
 
 					{/* Late Fee Warning */}
 					{amountDue && amountDue.days_late > 0 && (
-						<div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4">
-							<div className="flex items-center gap-2 text-yellow-800">
+						<div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+							<div className="flex items-center gap-2 text-warning">
 								<AlertTriangle className="size-4" />
 								<span className="font-medium">Payment is {amountDue.days_late} days late</span>
 							</div>
-							<p className="mt-1 text-sm text-yellow-700">
+							<p className="mt-1 text-sm text-warning">
 								A late fee of {formatCents(amountDue.late_fee_cents)} has been added to your payment.
 							</p>
 						</div>
@@ -236,7 +236,7 @@ export default function PayRentPage() {
 						)}
 					</div>
 				</CardContent>
-				<CardFooter className="flex-col gap-(--spacing-4)">
+				<CardFooter className="flex-col gap-4">
 					<Button
 						className="w-full"
 						size="lg"

@@ -82,7 +82,7 @@ export const property_types: PropertyType[] = [
  */
 export const propertyStatuses: PropertyStatus[] = [
   'active',
-  'INACTIVE',
+  'inactive',
   'SOLD',
   'UNDER_CONTRACT'
 ]

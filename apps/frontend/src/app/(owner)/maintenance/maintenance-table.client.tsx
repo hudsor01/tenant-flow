@@ -25,17 +25,22 @@ import { Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
-import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 
 const logger = createLogger({ component: 'MaintenanceTableClient' })
 
-type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
+// Extended type with optional relations for display
+type MaintenanceRequestWithRelations = MaintenanceRequest & {
+	property?: { name: string } | null
+	unit?: { name: string } | null
+	assignedTo?: { name: string } | null
+}
 
 interface MaintenanceTableClientProps {
-	columns: ColumnDef<MaintenanceRequest>[]
-	initialRequests: MaintenanceRequest[]
+	columns: ColumnDef<MaintenanceRequestWithRelations>[]
+	initialRequests: MaintenanceRequestWithRelations[]
 }
 
 export function MaintenanceTableClient({
@@ -54,7 +59,7 @@ export function MaintenanceTableClient({
 		startTransition(async () => {
 			removeOptimistic(requestId)
 			try {
-				await clientFetch(`/api/v1/maintenance/${requestId}`, { method: 'DELETE' })
+				await apiRequest<void>(`/api/v1/maintenance/${requestId}`, { method: 'DELETE' })
 				toast.success(`Request "${requestTitle}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', {
@@ -70,7 +75,7 @@ export function MaintenanceTableClient({
 	}
 
 	// Add delete action column
-	const columnsWithActions: ColumnDef<MaintenanceRequest>[] = [
+	const columnsWithActions: ColumnDef<MaintenanceRequestWithRelations>[] = [
 		...columns,
 		{
 			id: 'actions',

@@ -34,12 +34,9 @@ import {
 	TableRow
 } from '#components/ui/table'
 import {
-	useDeleteLeaseMutation,
-	useRenewLeaseMutation,
-	useTerminateLeaseMutation
+	useDeleteLeaseMutation
 } from '#hooks/api/mutations/lease-mutations'
 import { useLeaseList } from '#hooks/api/use-lease'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'
 import type { Lease } from '@repo/shared/types/core'
 import {
@@ -53,10 +50,10 @@ import {
 } from 'lucide-react'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import Link from 'next/link'
 import { RenewLeaseDialog } from '#components/leases/renew-lease-dialog'
 import { TerminateLeaseDialog } from '#components/leases/terminate-lease-dialog'
+import { ConfirmDialog } from '#components/ui/confirm-dialog'
 import { useModalStore } from '#stores/modal-store'
 
 const ITEMS_PER_PAGE = 25
@@ -77,9 +74,7 @@ export default function LeasesPage() {
 			clearOnDefault: true
 		}
 	)
-	const [selectedlease_id, setSelectedlease_id] = useState<string | null>(null)
 	const [_selectedLease, setSelectedLease] = useState<Lease | null>(null)
-	const [newEndDate, setNewEndDate] = useState('')
 	const { openModal } = useModalStore()
 
 	// Fetch leases with filters and pagination
@@ -105,43 +100,6 @@ export default function LeasesPage() {
 	// Delete mutation
 	const deleteLeaseMutation = useDeleteLeaseMutation()
 
-	// Renew mutation
-	const renewLeaseMutation = useRenewLeaseMutation()
-
-	// Terminate mutation
-	const terminateLeaseMutation = useTerminateLeaseMutation()
-
-	const _handleRenewSubmit = async () => {
-		if (!selectedlease_id || !newEndDate) {
-			toast.error('Please enter a new end date')
-			return
-		}
-
-		try {
-			await renewLeaseMutation.mutateAsync({
-				id: selectedlease_id,
-				data: { end_date: newEndDate }
-			})
-			toast.success('Lease renewed successfully')
-			setSelectedlease_id(null)
-			setNewEndDate('')
-		} catch (error) {
-			handleMutationError(error, 'Renew lease')
-		}
-	}
-
-	const _handleTerminateSubmit = async () => {
-		if (!selectedlease_id) return
-
-		try {
-			await terminateLeaseMutation.mutateAsync(selectedlease_id)
-			toast.success('Lease terminated successfully')
-			setSelectedlease_id(null)
-		} catch (error) {
-			handleMutationError(error, 'Terminate lease')
-		}
-	}
-
 	const handleRenew = (lease_id: string) => {
 		openModal(`renew-lease-${lease_id}`)
 	}
@@ -151,9 +109,7 @@ export default function LeasesPage() {
 	}
 
 	const handleDelete = (lease_id: string) => {
-		if (confirm('Are you sure you want to delete this lease?')) {
-			deleteLeaseMutation.mutate(lease_id)
-		}
+		openModal(`delete-lease-${lease_id}`)
 	}
 
 	const getStatusBadge = (status: string) => {
@@ -204,7 +160,7 @@ export default function LeasesPage() {
 			</div>
 
 			{/* Filters */}
-			<div className="flex items-center gap-(--spacing-4)">
+			<div className="flex items-center gap-4">
 				<div className="relative flex-1 max-w-sm">
 					<Search className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
 					<Input
@@ -428,6 +384,14 @@ export default function LeasesPage() {
 				<Fragment key={lease.id}>
 					<RenewLeaseDialog lease_id={lease.id} />
 					<TerminateLeaseDialog lease_id={lease.id} />
+					<ConfirmDialog
+						modalId={`delete-lease-${lease.id}`}
+						title="Delete Lease"
+						description={`Are you sure you want to delete this lease? This action cannot be undone and will permanently remove the lease agreement.`}
+						confirmText="Delete Lease"
+						onConfirm={() => deleteLeaseMutation.mutate(lease.id)}
+						loading={deleteLeaseMutation.isPending}
+					/>
 				</Fragment>
 			))}
 		</div>

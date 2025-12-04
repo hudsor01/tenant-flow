@@ -1,11 +1,10 @@
 /**
  * TanStack Query hooks for reports API
  * Phase 5: Advanced Features - Custom Reports & Analytics
+ * Uses native fetch for NestJS calls.
  */
 
-import { API_BASE_URL } from '#lib/api-config'
-import { createClient } from '#utils/supabase/client'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest, apiRequestRaw } from '#lib/api-request'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -13,10 +12,12 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { isTest } from '#config/env'
 import { reportsQueries, reportsKeys } from './queries/reports-queries'
 import type { ListReportsResponse, Report as ReportType } from '@repo/shared/types/reports'
 import type { UseReportsResult } from './types/reports'
+
+// Check test environment directly - T3 Env cannot be imported in client components
+const isTest = process.env.NODE_ENV === 'test'
 
 // Re-export types for backward compatibility
 export type {
@@ -29,6 +30,7 @@ export type {
 
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
+
 
 export function useReports({
 	offset,
@@ -55,7 +57,7 @@ export function useReports({
 
 	const deleteMutation = useMutation({
 		mutationFn: (reportId: string) =>
-			clientFetch<void>(`/api/v1/reports/${reportId}`, {
+			apiRequest<void>(`/api/v1/reports/${reportId}`, {
 				method: 'DELETE'
 			}),
 		onMutate: async (reportId: string) => {
@@ -102,31 +104,8 @@ export function useReports({
 
 	const downloadMutation = useMutation({
 		mutationFn: async (reportId: string): Promise<void> => {
-			// For blob downloads, we can't use clientFetch (it calls .json())
-			// But we still need to add Authorization header manually
-			const supabase = createClient()
-
-			// SECURITY FIX: Validate user with getUser() before extracting token
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser()
-
-			// Get session for access token (only after user validation)
-			const { data: { session } } = await supabase.auth.getSession()
-
-			const headers: Record<string, string> = {}
-			if (!userError && user && session?.access_token) {
-				headers['Authorization'] = `Bearer ${session.access_token}`
-			}
-
-			const res = await fetch(`${API_BASE_URL}/api/v1/reports/${reportId}/download`, {
-				headers
-			})
-
-			if (!res.ok) {
-				throw new Error('Failed to download report')
-			}
+			// Use apiRequestRaw for blob downloads (returns raw Response)
+			const res = await apiRequestRaw(`/api/v1/reports/${reportId}/download`)
 
 			// Extract filename from Content-Disposition header
 			const contentDisposition = res.headers.get('Content-Disposition')

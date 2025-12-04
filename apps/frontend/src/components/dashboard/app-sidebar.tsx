@@ -3,50 +3,34 @@
 import {
 	BarChart3,
 	Building2,
-	Calculator,
-	CircleDollarSign,
 	ClipboardList,
 	FileText,
+	HelpCircle,
 	Home,
-	LayoutDashboard,
-	LineChart,
-	PieChart,
 	Receipt,
+	Search,
 	Settings,
-	TrendingUp,
+	Sparkles,
 	Users,
-	Wallet,
 	Wrench,
 	type LucideIcon
 } from 'lucide-react'
-import Link from 'next/link'
 
 import { NavDocuments } from '#components/dashboard/nav-documents'
 import { NavMain } from '#components/dashboard/nav-main'
 import { NavSecondary } from '#components/dashboard/nav-secondary'
+import { NavUser } from '#components/dashboard/nav-user'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem
+} from '#components/ui/sidebar'
 
-const navigation: {
-	navMain: {
-		title: string
-		url: string
-		icon?: LucideIcon
-		children?: {
-			title: string
-			url: string
-			icon?: LucideIcon
-		}[]
-	}[]
-	navSecondary: {
-		title: string
-		url: string
-		icon: LucideIcon
-	}[]
-	documents: {
-		name: string
-		url: string
-		icon: LucideIcon
-	}[]
-} = {
+const data = {
 	navMain: [
 		{
 			title: 'Dashboard',
@@ -72,81 +56,37 @@ const navigation: {
 			title: 'Maintenance',
 			url: '/maintenance',
 			icon: Wrench
-		},
+		}
+	],
+	navCollapsible: [
 		{
 			title: 'Analytics',
 			url: '/analytics',
 			icon: BarChart3,
-			children: [
-				{
-					title: 'Overview',
-					url: '/analytics/overview',
-					icon: LayoutDashboard
-				},
-				{
-					title: 'Financial Analytics',
-					url: '/analytics/financial',
-					icon: CircleDollarSign
-				},
-				{
-					title: 'Property Performance',
-					url: '/analytics/property-performance',
-					icon: TrendingUp
-				},
-				{
-					title: 'Lease Analytics',
-					url: '/analytics/leases',
-					icon: ClipboardList
-				},
-				{
-					title: 'Maintenance Insights',
-					url: '/analytics/maintenance',
-					icon: Wrench
-				},
-				{
-					title: 'Occupancy Trends',
-					url: '/analytics/occupancy',
-					icon: LineChart
-				}
+			items: [
+				{ title: 'Overview', url: '/analytics/overview' },
+				{ title: 'Financial', url: '/analytics/financial' },
+				{ title: 'Property Performance', url: '/analytics/property-performance' },
+				{ title: 'Leases', url: '/analytics/leases' },
+				{ title: 'Maintenance', url: '/analytics/maintenance' },
+				{ title: 'Occupancy', url: '/analytics/occupancy' }
 			]
 		},
 		{
 			title: 'Reports',
 			url: '/reports',
 			icon: FileText,
-			children: [
-				{
-					title: 'Generate Reports',
-					url: '/reports/generate',
-					icon: PieChart
-				}
-			]
+			items: [{ title: 'Generate Reports', url: '/reports/generate' }]
 		},
 		{
 			title: 'Financials',
 			url: '/financials',
 			icon: Receipt,
-			children: [
-				{
-					title: 'Income Statement',
-					url: '/financials/income-statement',
-					icon: TrendingUp
-				},
-				{
-					title: 'Cash Flow',
-					url: '/financials/cash-flow',
-					icon: Wallet
-				},
-				{
-					title: 'Balance Sheet',
-					url: '/financials/balance-sheet',
-					icon: Calculator
-				},
-				{
-					title: 'Tax Documents',
-					url: '/financials/tax-documents',
-					icon: Receipt
-				}
+			items: [
+				{ title: 'Income Statement', url: '/financials/income-statement' },
+				{ title: 'Cash Flow', url: '/financials/cash-flow' },
+				{ title: 'Balance Sheet', url: '/financials/balance-sheet' },
+				{ title: 'Tax Documents', url: '/financials/tax-documents' }
 			]
 		}
 	],
@@ -155,6 +95,16 @@ const navigation: {
 			title: 'Settings',
 			url: '/dashboard/settings',
 			icon: Settings
+		},
+		{
+			title: 'Get Help',
+			url: '/help',
+			icon: HelpCircle
+		},
+		{
+			title: 'Search',
+			url: '/search',
+			icon: Search
 		}
 	],
 	documents: [
@@ -169,41 +119,44 @@ const navigation: {
 			icon: ClipboardList
 		}
 	]
+} satisfies {
+	navMain: { title: string; url: string; icon: LucideIcon }[]
+	navCollapsible: {
+		title: string
+		url: string
+		icon: LucideIcon
+		items: { title: string; url: string }[]
+	}[]
+	navSecondary: { title: string; url: string; icon: LucideIcon }[]
+	documents: { name: string; url: string; icon: LucideIcon }[]
 }
 
-export function AppSidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	return (
-		<div className="flex h-full flex-col gap-4 p-4">
-			{/* Card 1: Brand */}
-			<div className="rounded-xl border border-border bg-card p-4">
-				<Link href="/dashboard" className="flex items-center gap-2">
-					<Home className="w-5 h-5" />
-					<span className="text-base font-semibold">TenantFlow</span>
-				</Link>
-			</div>
-
-			{/* Card 2: Search */}
-			<div className="rounded-xl border border-border bg-card p-4">
-				<div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
-					<span className="text-muted">Search</span>
-					<kbd className="ml-auto rounded border border-border px-2 py-0.5 text-xs text-muted-foreground">
-						⌘K
-					</kbd>
-				</div>
-			</div>
-
-			{/* Card 3: Navigation */}
-			<div className="flex-1 overflow-hidden rounded-xl border border-border bg-card">
-				<div className="flex h-full flex-col overflow-y-auto p-4">
-					<NavMain items={navigation.navMain} />
-					<NavDocuments items={navigation.documents} />
-				</div>
-			</div>
-
-			{/* Card 4: Settings */}
-			<div className="rounded-xl border border-border bg-card p-2">
-				<NavSecondary items={navigation.navSecondary} />
-			</div>
-		</div>
+		<Sidebar collapsible="offcanvas" {...props}>
+			<SidebarHeader>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton
+							asChild
+							className="data-[slot=sidebar-menu-button]:!p-1.5"
+						>
+							<a href="/dashboard">
+								<Sparkles className="!size-5" />
+								<span className="text-base font-semibold">TenantFlow</span>
+							</a>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarHeader>
+			<SidebarContent>
+				<NavMain items={data.navMain} collapsibleItems={data.navCollapsible} />
+				<NavDocuments items={data.documents} />
+				<NavSecondary items={data.navSecondary} className="mt-auto" />
+			</SidebarContent>
+			<SidebarFooter>
+				<NavUser />
+			</SidebarFooter>
+		</Sidebar>
 	)
 }

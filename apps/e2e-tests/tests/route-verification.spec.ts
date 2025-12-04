@@ -11,7 +11,7 @@ import { test, expect } from '@playwright/test'
  * @see https://nextjs.org/docs/app/building-your-application/routing/route-groups
  */
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 test.describe('Route Reorganization Verification', () => {
 	test('owner dashboard route should exist at root', async ({ page }) => {

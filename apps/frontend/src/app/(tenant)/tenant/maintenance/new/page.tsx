@@ -22,7 +22,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { env } from '#config/env'
 
 export default function NewMaintenanceRequestPage() {
 	const router = useRouter()
@@ -123,7 +122,8 @@ export default function NewMaintenanceRequestPage() {
 
 		// Get uploaded image URLs from Supabase
 		const photoUrls = successes.map((fileName) => {
-			const baseUrl = `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+			const baseUrl = `${supabaseUrl}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
 			return `${baseUrl}${fileName}`
 		})
 
@@ -279,7 +279,7 @@ export default function NewMaintenanceRequestPage() {
 							<DropzoneContent />
 						</Dropzone>
 					</Field>
-					<div className="flex gap-(--spacing-4) pt-2 mb-4">
+					<div className="flex gap-4 pt-2 mb-4">
 						{files.length > 0 && !isSuccess && (
 							<Button
 								type="button"
@@ -293,7 +293,7 @@ export default function NewMaintenanceRequestPage() {
 						)}
 					</div>
 
-					<div className="flex gap-(--spacing-4) pt-4">
+					<div className="flex gap-4 pt-4">
 						<Link href="/tenant/maintenance" className="flex-1">
 							<Button
 								type="button"

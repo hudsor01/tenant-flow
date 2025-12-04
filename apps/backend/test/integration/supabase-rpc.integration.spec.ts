@@ -33,10 +33,20 @@ const requiredEnv = [
 
 const missingEnv = requiredEnv.filter(key => !process.env[key])
 
+// In CI or when RUN_INTEGRATION_TESTS is set, fail loudly instead of skipping
+const shouldRunIntegration = process.env.CI || process.env.RUN_INTEGRATION_TESTS
+if (missingEnv.length > 0 && shouldRunIntegration) {
+	throw new Error(
+		`Integration tests FAILED - Missing required env vars: ${missingEnv.join(', ')}\n` +
+		`Set these in Doppler or CI secrets.`
+	)
+}
+
 // Check for missing environment variables and skip tests if any are missing
 if (missingEnv.length > 0) {
 	process.stderr.write(
-		`️ Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n`
+		`⚠️  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n` +
+		`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n`
 	)
 }
 

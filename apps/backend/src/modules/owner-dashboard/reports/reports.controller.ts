@@ -12,7 +12,7 @@ import type { MetricTrend, TimeSeriesDataPoint } from './reports.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
-import type { TimeSeriesQueryDto, MetricTrendQueryDto } from './dto/reports-query.dto'
+import { TimeSeriesQueryDto, MetricTrendQueryDto } from './dto/reports-query.dto'
 
 /**
  * ReportsController

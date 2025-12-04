@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
 import ExcelJS from 'exceljs'
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
@@ -57,9 +57,14 @@ export class ExportService {
 			return Buffer.from(buffer)
 		} catch (error) {
 			this.logger.error('Failed to generate Excel export', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				sheetName
 			})
-			return Buffer.from('')
+			// FAIL-FAST: Throw instead of returning empty buffer
+			throw new InternalServerErrorException(
+				'Failed to generate Excel export',
+				{ cause: error }
+			)
 		}
 	}
 

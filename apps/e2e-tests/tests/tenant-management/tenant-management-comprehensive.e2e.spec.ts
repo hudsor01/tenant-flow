@@ -10,8 +10,8 @@ test.describe('Tenant Management - Empty State and UI', () => {
 	test.use({ storageState: 'playwright/.auth/owner.json' })
 
 	test('tenant page loads with empty state and stats', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Navigate to tenants page', async () => {
 			await page.goto(`${baseUrl}/tenants`)
 			await page.waitForLoadState('networkidle')
@@ -48,8 +48,8 @@ test.describe('Tenant Management - Empty State and UI', () => {
 	})
 
 	test('invite tenant modal opens and displays form', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Navigate to tenants page', async () => {
 			await page.goto(`${baseUrl}/tenants`)
 			await page.waitForLoadState('networkidle')
@@ -112,8 +112,8 @@ test.describe('Tenant Management - Empty State and UI', () => {
 	})
 
 	test('property dropdown shows empty state', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Open invite tenant modal', async () => {
 			await page.goto(`${baseUrl}/tenants/new`)
 			await page.waitForLoadState('networkidle')
@@ -132,8 +132,8 @@ test.describe('Tenant Management - Empty State and UI', () => {
 	})
 
 	test('tenant search filter is functional', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Navigate to tenants page', async () => {
 			await page.goto(`${baseUrl}/tenants`)
 			await page.waitForLoadState('networkidle')
@@ -157,8 +157,8 @@ test.describe('Property Management - Empty State and UI', () => {
 	test.use({ storageState: 'playwright/.auth/owner.json' })
 
 	test('properties page loads with empty state and stats', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Navigate to properties page', async () => {
 			await page.goto(`${baseUrl}/properties`)
 			await page.waitForLoadState('networkidle')
@@ -200,7 +200,7 @@ test.describe('Property Management - Empty State and UI', () => {
 		await test.step('Verify view switcher', async () => {
 			const gridView = page.getByRole('radio', { name: /Grid/i })
 			const tableView = page.getByRole('radio', { name: /Table/i })
-			
+
 			await expect(gridView).toBeVisible()
 			await expect(tableView).toBeVisible()
 			await expect(gridView).toBeChecked()
@@ -208,8 +208,8 @@ test.describe('Property Management - Empty State and UI', () => {
 	})
 
 	test('new property modal opens and displays form', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Navigate to properties page', async () => {
 			await page.goto(`${baseUrl}/properties`)
 			await page.waitForLoadState('networkidle')
@@ -263,8 +263,8 @@ test.describe('Property Management - Empty State and UI', () => {
 	})
 
 	test('property type dropdown is functional', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Open new property modal', async () => {
 			await page.goto(`${baseUrl}/properties/new`)
 			await page.waitForLoadState('networkidle')
@@ -285,8 +285,8 @@ test.describe('Navigation Between Pages', () => {
 	test.use({ storageState: 'playwright/.auth/owner.json' })
 
 	test('navigate between dashboard, tenants, and properties', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-		
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 		await test.step('Start at dashboard', async () => {
 			await page.goto(`${baseUrl}/dashboard`)
 			await page.waitForLoadState('networkidle')

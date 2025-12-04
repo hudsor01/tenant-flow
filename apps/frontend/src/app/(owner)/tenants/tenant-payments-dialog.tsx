@@ -77,7 +77,7 @@ export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDi
 				<div className="mt-6 flex flex-col gap-3 rounded-lg border border-border/50 px-4 py-3">
 					<div>
 						<p className="text-sm font-semibold">Need a quick reminder?</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							Notify your tenant about pending rent directly from here.
 						</p>
 					</div>

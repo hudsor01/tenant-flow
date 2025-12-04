@@ -1,5 +1,4 @@
 import { test, expect, type Page } from '@playwright/test'
-import path from 'node:path'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
@@ -19,7 +18,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 test.describe('Complete Owner Journey - Production Flow', () => {
 	const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test-owner@tenantflow.app'
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
-	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 	const logger = createLogger({ component: 'CompleteOwnerJourneyE2E' })
 

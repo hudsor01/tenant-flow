@@ -160,7 +160,7 @@ test.describe('Tenant Invitation Flow', () => {
 
 		// Visit invitation link in new context (not logged in)
 		const newPage = await context.newPage()
-		await newPage.goto(`${BASE_URL}/tenant/invitation/${invitationToken}`)
+		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
 
 		// Should redirect to signup
 		await newPage.waitForURL(`${BASE_URL}/signup**`)
@@ -172,7 +172,7 @@ test.describe('Tenant Invitation Flow', () => {
 
 	test('[Tenant] Email pre-filled in signup form', async ({ page, context }) => {
 		const newPage = await context.newPage()
-		await newPage.goto(`${BASE_URL}/tenant/invitation/${invitationToken}`)
+		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
 
 		await newPage.waitForURL(`${BASE_URL}/signup**`)
 
@@ -204,7 +204,7 @@ test.describe('Tenant Invitation Flow', () => {
 
 	test('[Tenant] Try to reuse token → Already Accepted message', async ({ page, context }) => {
 		const newPage = await context.newPage()
-		await newPage.goto(`${BASE_URL}/tenant/invitation/${invitationToken}`)
+		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
 
 		// Should show "Already Accepted" message
 		await expect(newPage.locator('text=Invitation Already Accepted')).toBeVisible()
@@ -213,9 +213,9 @@ test.describe('Tenant Invitation Flow', () => {
 
 	test('[Tenant] Click invalid token → Invitation Not Found', async ({ page, context }) => {
 		const newPage = await context.newPage()
-		const invalidToken = 'a'.repeat(32) // 32 char invalid token
+		const invalidToken = 'a'.repeat(64) // 64 char invalid token (32 bytes = 64 hex chars)
 
-		await newPage.goto(`${BASE_URL}/tenant/invitation/${invalidToken}`)
+		await newPage.goto(`${BASE_URL}/accept-invite?code=${invalidToken}`)
 
 		// Should show "Invitation Not Found" message
 		await expect(newPage.locator('text=Invitation Not Found')).toBeVisible()
@@ -252,14 +252,12 @@ test.describe('Tenant Invitation Flow', () => {
 		/**
 		 * SKIPPED: This test requires refactoring to match current invitation system
 		 *
-		 * Current invitation flow uses Supabase Auth's verifyOtp with type='invite'
-		 * URL pattern: /accept-invite?token={token}&type=invite
-		 *
-		 * This test uses old URL pattern: /tenant/invitation/{token}
+		 * Current invitation flow uses platform invitation tokens
+		 * URL pattern: /accept-invite?code={64-char-hex-token}
 		 *
 		 * TO FIX:
-		 * 1. Update test to use /accept-invite route
-		 * 2. Mock Supabase verifyOtp to return token expired error
+		 * 1. Create expired invitation via API (or mock expiry check)
+		 * 2. Navigate to /accept-invite?code={expired-token}
 		 * 3. Verify error handling shows proper expired message
 		 *
 		 * Alternative: Test expiry in backend integration tests instead of E2E
@@ -314,7 +312,7 @@ test.describe('Email Template Tests', () => {
 		expect(emailPayload.html).toBeTruthy()
 
 		// Verify HTML contains invitation link
-		expect(emailPayload.html).toMatch(/\/tenant\/invitation\/[a-z0-9]{32}/i)
+		expect(emailPayload.html).toMatch(/\/accept-invite\?code=[a-f0-9]{64}/i)
 
 		// Verify expiry warning is present
 		expect(emailPayload.html).toMatch(/expires?.*7.*days?/i)
@@ -345,17 +343,17 @@ test.describe('Email Template Tests', () => {
 		await page.waitForTimeout(1000)
 
 		// Extract invitation link from HTML
-		const linkMatch = emailPayload.html.match(/href="([^"]*\/tenant\/invitation\/[a-z0-9]{32}[^"]*)"/i)
+		const linkMatch = emailPayload.html.match(/href="([^"]*\/accept-invite\?code=[a-f0-9]{64}[^"]*)"/i)
 		expect(linkMatch).not.toBeNull()
 
 		const invitationLink = linkMatch[1]
 		expect(invitationLink).toMatch(/^https?:\/\//)
-		expect(invitationLink).toContain('/tenant/invitation/')
+		expect(invitationLink).toContain('/accept-invite?code=')
 
-		// Verify link has 32-character token
-		const tokenMatch = invitationLink.match(/\/tenant\/invitation\/([a-z0-9]{32})/i)
+		// Verify link has 64-character token (32 bytes = 64 hex chars)
+		const tokenMatch = invitationLink.match(/code=([a-f0-9]{64})/i)
 		expect(tokenMatch).not.toBeNull()
-		expect(tokenMatch[1].length).toBe(32)
+		expect(tokenMatch[1].length).toBe(64)
 	})
 
 	test('[Email] Plain text version includes working link', async ({ page }) => {
@@ -387,6 +385,6 @@ test.describe('Email Template Tests', () => {
 		const plainText = emailPayload.text || emailPayload.plainText
 
 		// Should contain invitation URL
-		expect(plainText).toMatch(/https?:\/\/.*\/tenant\/invitation\/[a-z0-9]{32}/i)
+		expect(plainText).toMatch(/https?:\/\/.*\/accept-invite\?code=[a-f0-9]{64}/i)
 	})
 })

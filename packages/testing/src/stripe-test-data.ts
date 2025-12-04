@@ -43,6 +43,38 @@ export const STRIPE_TEST_CARDS = {
 		NOT_SUPPORTED: '378282246310005' // Same as AMEX
 	},
 
+	// Disputes & Chargebacks
+	DISPUTES: {
+		// Triggers a dispute immediately after charge succeeds
+		FRAUDULENT: '4000000000000259',
+		// Triggers an early fraud warning (EFW) - no dispute yet
+		EARLY_FRAUD_WARNING: '4000000000005423',
+		// Dispute with "product not received" reason
+		PRODUCT_NOT_RECEIVED: '4000000000002685',
+		// Dispute with "duplicate" reason
+		DUPLICATE: '4000000000008809',
+		// Dispute with "subscription canceled" reason
+		SUBSCRIPTION_CANCELED: '4000000000003543',
+		// Dispute where inquiry can be closed
+		INQUIRY: '4000000000001976'
+	},
+
+	// Fraud Prevention / Radar
+	RADAR: {
+		// Highest risk - blocked based on rules
+		HIGHEST_RISK: '4000000000004954',
+		// Always blocked regardless of rules
+		ALWAYS_BLOCKED: '4100000000000019',
+		// Elevated risk - passes but flagged
+		ELEVATED_RISK: '4000000000009235',
+		// CVC check fails
+		CVC_CHECK_FAIL: '4000000000000101',
+		// Address check fails
+		ADDRESS_CHECK_FAIL: '4000000000000028',
+		// Both CVC and address check fail
+		BOTH_CHECKS_FAIL: '4000000000000036'
+	},
+
 	// Country-specific (examples)
 	BY_COUNTRY: {
 		US: '4242424242424242',
@@ -55,11 +87,33 @@ export const STRIPE_TEST_CARDS = {
 
 // PaymentMethod IDs (for API testing without card entry)
 export const STRIPE_PAYMENT_METHOD_IDS = {
+	// Successful cards
 	VISA: 'pm_card_visa',
 	MASTERCARD: 'pm_card_mastercard',
 	AMEX: 'pm_card_amex',
 	DISCOVER: 'pm_card_discover',
-	VISA_DEBIT: 'pm_card_visa_debit'
+	VISA_DEBIT: 'pm_card_visa_debit',
+
+	// Declined cards
+	DECLINED: 'pm_card_chargeDeclined',
+	DECLINED_INSUFFICIENT_FUNDS: 'pm_card_chargeDeclinedInsufficientFunds',
+	DECLINED_LOST_CARD: 'pm_card_chargeDeclinedLostCard',
+	DECLINED_STOLEN_CARD: 'pm_card_chargeDeclinedStolenCard',
+	DECLINED_EXPIRED: 'pm_card_chargeDeclinedExpiredCard',
+	DECLINED_INCORRECT_CVC: 'pm_card_chargeDeclinedIncorrectCvc',
+	DECLINED_PROCESSING_ERROR: 'pm_card_chargeDeclinedProcessingError',
+
+	// Fraud / Risk
+	FRAUDULENT: 'pm_card_chargeDeclinedFraudulent',
+	RISK_LEVEL_HIGHEST: 'pm_card_riskLevelHighest',
+	RISK_LEVEL_ELEVATED: 'pm_card_riskLevelElevated',
+
+	// Disputes
+	DISPUTE_FRAUDULENT: 'pm_card_createDispute',
+	DISPUTE_INQUIRY: 'pm_card_createDisputeInquiry',
+
+	// 3D Secure
+	THREE_D_SECURE_REQUIRED: 'pm_card_threeDSecureRequired'
 } as const
 
 // CARD CREDENTIALS - For Interactive Testing
@@ -174,21 +228,75 @@ export const STRIPE_WEBHOOK_TEST = {
 	// stripe listen --forward-to localhost:4600/api/v1/stripe/webhook
 	CLI_SECRET_PREFIX: 'whsec_',
 
-	// Test event types that can be triggered via CLI:
-	// stripe trigger payment_intent.succeeded
-	// stripe trigger checkout.session.completed
-	// stripe trigger account.updated
-	COMMON_EVENTS: [
+	// Core payment events
+	PAYMENT_EVENTS: [
+		'payment_intent.created',
 		'payment_intent.succeeded',
 		'payment_intent.payment_failed',
-		'checkout.session.completed',
+		'payment_intent.canceled',
+		'payment_intent.requires_action',
+		'payment_method.attached',
+		'payment_method.detached'
+	],
+
+	// Subscription/billing events
+	SUBSCRIPTION_EVENTS: [
+		'customer.created',
 		'customer.subscription.created',
 		'customer.subscription.updated',
 		'customer.subscription.deleted',
+		'customer.subscription.paused',
+		'customer.subscription.resumed',
+		'customer.subscription.trial_will_end',
+		'invoice.created',
+		'invoice.finalized',
+		'invoice.paid',
 		'invoice.payment_failed',
-		'account.updated'
+		'invoice.upcoming'
+	],
+
+	// Connect account events
+	CONNECT_EVENTS: [
+		'account.updated',
+		'account.application.authorized',
+		'account.application.deauthorized',
+		'capability.updated',
+		'payout.created',
+		'payout.paid',
+		'payout.failed',
+		'transfer.created'
+	],
+
+	// Dispute & fraud events
+	DISPUTE_EVENTS: [
+		'charge.dispute.created',
+		'charge.dispute.updated',
+		'charge.dispute.closed',
+		'charge.dispute.funds_withdrawn',
+		'charge.dispute.funds_reinstated',
+		'radar.early_fraud_warning.created',
+		'radar.early_fraud_warning.updated',
+		'review.opened',
+		'review.closed'
+	],
+
+	// Checkout events
+	CHECKOUT_EVENTS: [
+		'checkout.session.completed',
+		'checkout.session.expired',
+		'checkout.session.async_payment_succeeded',
+		'checkout.session.async_payment_failed'
 	]
 } as const
+
+// All common events for quick reference
+export const STRIPE_ALL_WEBHOOK_EVENTS = [
+	...STRIPE_WEBHOOK_TEST.PAYMENT_EVENTS,
+	...STRIPE_WEBHOOK_TEST.SUBSCRIPTION_EVENTS,
+	...STRIPE_WEBHOOK_TEST.CONNECT_EVENTS,
+	...STRIPE_WEBHOOK_TEST.DISPUTE_EVENTS,
+	...STRIPE_WEBHOOK_TEST.CHECKOUT_EVENTS
+] as const
 
 // HELPER FUNCTIONS
 

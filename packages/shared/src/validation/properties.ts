@@ -18,17 +18,15 @@ export const propertyStatusSchema = z.enum([
   'under_construction'
 ])
 
-// Property type enum validation
+// Property type enum validation - must match PROPERTY_TYPES constant
 export const propertyTypeSchema = z.enum([
-  'single_family',
-  'multi_family',
-  'condo',
-  'townhouse',
-  'apartment',
-  'commercial',
-  'industrial',
-  'mixed_use',
-  'other'
+  'SINGLE_FAMILY',
+  'MULTI_UNIT',
+  'APARTMENT',
+  'COMMERCIAL',
+  'CONDO',
+  'TOWNHOUSE',
+  'OTHER'
 ])
 
 // Base property input schema (matches database exactly)
@@ -184,19 +182,9 @@ export const propertyFormSchema = z.object({
   address_line2: z.string().optional(),
   city: requiredString,
   state: requiredString,
- postal_code: requiredString,
+  postal_code: requiredString,
   country: z.string().optional().default('US'),
-  property_type: z.enum([
-    'single_family',
-    'multi_family',
-    'condo',
-    'townhouse',
-    'apartment',
-    'commercial',
-    'industrial',
-    'mixed_use',
-    'other'
-  ]),
+  property_type: propertyTypeSchema,
   property_owner_id: requiredString,
   bedrooms: z.string().optional(),
   bathrooms: z.string().optional()

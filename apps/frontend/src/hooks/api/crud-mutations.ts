@@ -1,10 +1,11 @@
 /**
  * Generic CRUD Mutations Factory
- * Consolidates common CRUD mutation patterns across entities
+ * Consolidates common CRUD mutation patterns across entities.
+ * Uses native fetch for NestJS calls.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
@@ -19,6 +20,7 @@ export interface CrudMutationsConfig<TCreateInput, TUpdateInput, TEntity> {
 	updateInput: TUpdateInput
 	entity: TEntity
 }
+
 
 export function createCrudMutations<
 	TCreateInput,
@@ -40,7 +42,7 @@ export function createCrudMutations<
 
 		return useMutation({
 			mutationFn: (data: TCreateInput) =>
-				clientFetch<TEntity>(createEndpoint, {
+				apiRequest<TEntity>(createEndpoint, {
 					method: 'POST',
 					body: JSON.stringify(data)
 				}),
@@ -62,7 +64,7 @@ export function createCrudMutations<
 
 		return useMutation({
 			mutationFn: ({ id, data }: { id: string; data: TUpdateInput }) =>
-				clientFetch<TEntity>(updateEndpoint(id), {
+				apiRequest<TEntity>(updateEndpoint(id), {
 					method: 'PUT',
 					body: JSON.stringify(data)
 				}),
@@ -85,7 +87,7 @@ export function createCrudMutations<
 
 		return useMutation({
 			mutationFn: (id: string) =>
-				clientFetch(deleteEndpoint(id), {
+				apiRequest(deleteEndpoint(id), {
 					method: 'DELETE'
 				}),
 			onSuccess: (_result, deletedId) => {
