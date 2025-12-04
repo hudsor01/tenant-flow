@@ -10,7 +10,7 @@ export default function TenantPaymentsPage() {
 	const paymentsQuery = useTenantPaymentsHistory({ limit: 20 })
 
 	return (
-		<main className="flex-1 space-y-6 px-6 py-8">
+		<section className="flex-1 space-y-6 px-6 py-8">
 			<Card>
 				<CardHeader>
 					<CardTitle>Payment history</CardTitle>
@@ -25,11 +25,11 @@ export default function TenantPaymentsPage() {
 									<div key={payment.id} className="flex-between py-3">
 										<div>
 											<div className="text-sm font-semibold">{formatCents(payment.amount)}</div>
-											<div className="text-xs text-muted-foreground">
+											<div className="text-caption">
 												{payment.description || 'Stripe payment intent'}
 											</div>
 										</div>
-										<div className="text-xs text-muted-foreground">{payment.created_at ?? 'Date pending'}</div>
+										<div className="text-caption">{payment.created_at ?? 'Date pending'}</div>
 									</div>
 								))
 							) : (
@@ -39,6 +39,6 @@ export default function TenantPaymentsPage() {
 					)}
 				</CardContent>
 			</Card>
-		</main>
+		</section>
 	)
 }

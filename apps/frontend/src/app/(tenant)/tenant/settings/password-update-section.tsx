@@ -11,7 +11,8 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
-import { cn, TYPOGRAPHY_SCALE } from '#lib/design-system'
+import { cn } from '#lib/utils'
+import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 import { createClient } from '#utils/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react'

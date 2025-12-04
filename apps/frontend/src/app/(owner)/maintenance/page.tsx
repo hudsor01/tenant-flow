@@ -1,10 +1,7 @@
 import type { Metadata } from 'next'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { serverFetch } from '#lib/api/server'
 import { Button } from '#components/ui/button'
 import { Wrench } from 'lucide-react'
 import Link from 'next/link'
-import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
 
 import { MaintenanceViewClient } from './maintenance-view.client'
 
@@ -13,25 +10,7 @@ export const metadata: Metadata = {
 	description: 'Stay on top of maintenance requests and keep residents updated on progress'
 }
 
-export default async function MaintenancePage() {
-	const logger = createLogger({ component: 'MaintenancePage' })
-
-	// Server Component: Fetch data on server during RSC render
-	let requests: MaintenanceRequestResponse['data'] = []
-
-	try {
-		// Production pattern: Server Component with explicit token
-		const result: MaintenanceRequestResponse = await serverFetch('/api/v1/maintenance')
-		requests = Array.isArray(result?.data) ? result.data : []
-	} catch (err) {
-		// Log server-side; avoid throwing to prevent resetting the RSC tree
-		logger.warn('Failed to fetch maintenance requests for MaintenancePage', {
-			error: err instanceof Error ? err.message : String(err)
-		})
-		// Ensure requests is always an array
-		requests = []
-	}
-
+export default function MaintenancePage() {
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -49,7 +28,7 @@ export default async function MaintenancePage() {
 			</div>
 
 			{/* Client Component for View Switcher and Data Display */}
-			<MaintenanceViewClient initialRequests={requests} />
+			<MaintenanceViewClient />
 		</div>
 	)
 }

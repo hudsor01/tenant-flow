@@ -1,13 +1,12 @@
 /**
  * Unit Query Options (TanStack Query v5 Pattern)
  *
- * Single source of truth for unit-related queries.
- * Reusable across components, server components, and prefetching.
+ * Uses native fetch for NestJS calls.
  */
 
 import { queryOptions } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { apiRequest } from '#lib/api-request'
 import type { Unit, UnitStats } from '@repo/shared/types/core'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
@@ -26,22 +25,9 @@ export interface UnitFilters {
  * Unit query factory
  */
 export const unitQueries = {
-	/**
-	 * Base key for all unit queries
-	 */
 	all: () => ['units'] as const,
-
-	/**
-	 * Base key for all unit lists
-	 */
 	lists: () => [...unitQueries.all(), 'list'] as const,
 
-	/**
-	 * Unit list with optional filters
-	 *
-	 * @example
-	 * const { data } = useQuery(unitQueries.list({ status: 'VACANT' }))
-	 */
 	list: (filters?: UnitFilters) =>
 		queryOptions({
 			queryKey: [...unitQueries.lists(), filters ?? {}],
@@ -52,73 +38,43 @@ export const unitQueries = {
 				if (filters?.search) searchParams.append('search', filters.search)
 				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
-
 				const params = searchParams.toString()
-				return clientFetch<PaginatedResponse<Unit>>(`/api/v1/units${params ? `?${params}` : ''}`)
+				return apiRequest<PaginatedResponse<Unit>>(`/api/v1/units${params ? `?${params}` : ''}`)
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
-	/**
-	 * Unit list by property ID with enabled condition
-	 * Prevents fetching when property_id is empty
-	 *
-	 * @example
-	 * const { data } = useQuery(unitQueries.listByProperty(property_id))
-	 */
 	listByProperty: (property_id: string) =>
 		queryOptions({
 			queryKey: [...unitQueries.lists(), 'by-property', property_id],
-			queryFn: () => clientFetch<Unit[]>(`/api/v1/units?property_id=${property_id}`),
+			queryFn: () => apiRequest<Unit[]>(`/api/v1/units?property_id=${property_id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
 		}),
 
-	/**
-	 * Base key for all unit details
-	 */
 	details: () => [...unitQueries.all(), 'detail'] as const,
 
-	/**
-	 * Single unit by ID
-	 *
-	 * @example
-	 * const { data } = useQuery(unitQueries.detail(unit_id))
-	 */
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...unitQueries.details(), id],
-			queryFn: () => clientFetch<Unit>(`/api/v1/units/${id}`),
+			queryFn: () => apiRequest<Unit>(`/api/v1/units/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
 		}),
 
-	/**
-	 * Units by property ID
-	 * Optimized for property detail pages showing all units
-	 *
-	 * @example
-	 * const { data } = useQuery(unitQueries.byProperty(property_id))
-	 */
 	byProperty: (property_id: string) =>
 		queryOptions({
 			queryKey: [...unitQueries.all(), 'by-property', property_id],
-			queryFn: () => clientFetch<Unit[]>(`/api/v1/units/by-property/${property_id}`),
+			queryFn: () => apiRequest<Unit[]>(`/api/v1/units/by-property/${property_id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
 		}),
 
-	/**
-	 * Unit statistics
-	 *
-	 * @example
-	 * const { data } = useQuery(unitQueries.stats())
-	 */
 	stats: () =>
 		queryOptions({
 			queryKey: [...unitQueries.all(), 'stats'],
-			queryFn: () => clientFetch<UnitStats>('/api/v1/units/stats'),
+			queryFn: () => apiRequest<UnitStats>('/api/v1/units/stats'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000, // Keep 30 minutes for stats
+			gcTime: 30 * 60 * 1000,
 		}),
 }

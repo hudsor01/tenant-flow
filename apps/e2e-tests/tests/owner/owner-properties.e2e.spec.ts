@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
-import { loginAsOwner } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
 import {
   openModal,
@@ -27,7 +26,7 @@ import {
   verifyButtonExists,
   verifySearchInputExists,
 } from '../helpers/ui-validation-helpers'
-import { createProperty } from '../../fixtures/test-data'
+import { createProperty } from '../fixtures/test-data'
 
 /**
  * Owner Properties E2E Tests
@@ -43,11 +42,11 @@ import { createProperty } from '../../fixtures/test-data'
  */
 
 test.describe('Owner Properties', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
   test.beforeEach(async ({ page }) => {
-    await loginAsOwner(page)
-    await page.goto(`${baseUrl}${ROUTES.PROPERTIES}`)
+    // Navigate directly (authenticated via storageState)
+    await page.goto(ROUTES.PROPERTIES)
     await verifyPageLoaded(page, ROUTES.PROPERTIES, 'Properties')
   })
 

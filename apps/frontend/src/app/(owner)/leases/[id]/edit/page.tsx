@@ -1,16 +1,38 @@
+'use client'
+
+import { use } from 'react'
 import { LeaseForm } from '#components/leases/lease-form.client'
-import { serverFetch } from '#lib/api/server'
-import type { Lease } from '@repo/shared/types/core'
+import { Skeleton } from '#components/ui/skeleton'
+import { leaseQueries } from '#hooks/api/queries/lease-queries'
+import { useQuery } from '@tanstack/react-query'
 
 interface LeaseEditPageProps {
 	params: Promise<{ id: string }>
 }
 
-export default async function LeaseEditPage({ params }: LeaseEditPageProps) {
-	const { id } = await params
+export default function LeaseEditPage({ params }: LeaseEditPageProps) {
+	const { id } = use(params)
+	const { data: lease, isLoading } = useQuery(leaseQueries.detail(id))
 
-	// Fetch lease data on server
-	const lease = await serverFetch<Lease>(`/api/v1/leases/${id}`)
+	if (isLoading) {
+		return (
+			<div className="mx-auto w-full max-w-4xl space-y-10">
+				<div className="space-y-2">
+					<Skeleton className="h-8 w-32" />
+					<Skeleton className="h-5 w-80" />
+				</div>
+				<Skeleton className="h-96 w-full rounded-xl" />
+			</div>
+		)
+	}
+
+	if (!lease) {
+		return (
+			<div className="mx-auto w-full max-w-4xl space-y-10">
+				<p className="text-muted-foreground">Lease not found</p>
+			</div>
+		)
+	}
 
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">

@@ -1,6 +1,6 @@
 "use client"
 
-import { animationClasses, cn } from '#lib/design-system'
+import { cn } from '#lib/utils'
 import { useSpring } from '@react-spring/core'
 import { animated } from '@react-spring/web'
 import type {
@@ -174,7 +174,7 @@ export function BlurFade({
 			style={spring}
 			className={cn(
 				'will-change-transform',
-				animationClasses('fade-in'),
+				'animate-in fade-in-0 duration-300',
 				className
 			)}
 			// Accessibility improvements

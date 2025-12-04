@@ -20,9 +20,9 @@ test.describe('Tenant Management E2E Workflows', () => {
 	test.beforeEach(async ({ page }) => {
 		// Login as property owner
 		await loginAsOwner(page)
-		
+
 		// Navigate to tenant management page
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 		await page.goto(`${baseUrl}/tenants`)
 		await page.waitForLoadState('networkidle')
 	})
@@ -68,11 +68,19 @@ test.describe('Tenant Management E2E Workflows', () => {
 				})
 				await submitButton.click()
 
-				// Wait for success message or redirect
-				await Promise.race([
-					page.waitForURL(/\/tenants\/[a-f0-9-]+/, { timeout: 10000 }),
-					page.waitForSelector('text=/tenant created|success/i', { timeout: 10000 })
+				// Wait for success message or redirect with proper error handling
+				const result = await Promise.race([
+					page.waitForURL(/\/tenants\/[a-f0-9-]+/, { timeout: 10000 }).then(() => 'url_redirect'),
+					page.waitForSelector('text=/tenant created|success/i', { timeout: 10000 }).then(() => 'success_message'),
+					new Promise((_, reject) => setTimeout(() => reject(new Error('Tenant creation timeout after 10s')), 10000))
 				])
+
+				// Verify the result
+				if (result === 'url_redirect') {
+					expect(page.url()).toMatch(/\/tenants\/[a-f0-9-]+/)
+				} else if (result === 'success_message') {
+					await expect(page.getByText(/tenant created|success/i)).toBeVisible()
+				}
 			}
 		})
 

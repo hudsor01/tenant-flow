@@ -35,17 +35,12 @@ const periodValues = Object.values(PeriodType) as [PeriodTypeValue, ...PeriodTyp
  */
 export const timeSeriesQuerySchema = z.object({
 	metric: z.enum(metricValues),
-	days: z
-		.string()
-		.optional()
-		.transform(val => (val ? parseInt(val, 10) : 30))
-		.pipe(
-			z
-				.number()
-				.int()
-				.min(1, 'days must be at least 1')
-				.max(365, 'days must be at most 365')
-		)
+	days: z.coerce
+		.number()
+		.int()
+		.min(1, 'days must be at least 1')
+		.max(365, 'days must be at most 365')
+		.default(30)
 })
 
 export class TimeSeriesQueryDto extends createZodDto(timeSeriesQuerySchema) {}

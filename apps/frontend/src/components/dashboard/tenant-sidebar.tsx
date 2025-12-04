@@ -110,7 +110,7 @@ export function TenantSidebar({
 			<div className="rounded-xl border border-border bg-card p-4">
 				<div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
 					<span className="text-muted">Search</span>
-					<kbd className="ml-auto rounded border border-border px-2 py-0.5 text-xs text-muted-foreground">
+					<kbd className="ml-auto rounded border border-border px-2 py-0.5 text-caption">
 						⌘K
 					</kbd>
 				</div>

@@ -163,7 +163,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 						security_deposit,
 						petsAllowed
 					}) => (
-						<dl className="grid grid-cols-2 gap-(--spacing-4) text-sm">
+						<dl className="grid grid-cols-2 gap-4 text-sm">
 							<div>
 								<dt className="font-medium text-muted-foreground">
 									Property Owner

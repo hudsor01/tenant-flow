@@ -308,4 +308,118 @@ describe('NotificationEventHandlerService', () => {
 			})
 		})
 	})
+
+	describe('handleTenantPlatformInvitationSent', () => {
+		it('sends invitation email for platform invitation event (no property/unit)', async () => {
+			const event = {
+				email: 'tenant@example.com',
+				first_name: 'John',
+				last_name: 'Doe',
+				invitation_id: 'inv-123',
+				invitation_url: 'https://app.tenantflow.app/accept-invite?code=abc123',
+				expires_at: '2025-01-15T00:00:00Z'
+			}
+
+			await service.handleTenantPlatformInvitationSent(event)
+
+			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
+				tenantEmail: 'tenant@example.com',
+				invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+				expiresAt: '2025-01-15T00:00:00Z'
+			})
+		})
+
+		it('includes property and unit details when provided', async () => {
+			const event = {
+				email: 'tenant@example.com',
+				first_name: 'John',
+				last_name: 'Doe',
+				invitation_id: 'inv-123',
+				invitation_url: 'https://app.tenantflow.app/accept-invite?code=abc123',
+				expires_at: '2025-01-15T00:00:00Z',
+				property_id: 'prop-456',
+				unit_id: 'unit-789'
+			}
+
+			// Mock property and unit queries
+			const mockClient = mockSupabaseService.getAdminClient()
+			;(mockClient.from as jest.Mock).mockImplementation((table: string) => {
+				if (table === 'properties') {
+					return {
+						select: jest.fn().mockReturnValue({
+							eq: jest.fn().mockReturnValue({
+								single: jest.fn().mockResolvedValue({
+									data: {
+										name: 'Sunset Apartments',
+										property_owner_id: 'owner-abc',
+										owner: {
+											user_id: 'user-xyz',
+											user: { first_name: 'Property', last_name: 'Owner' }
+										}
+									},
+									error: null
+								})
+							})
+						})
+					}
+				}
+				if (table === 'units') {
+					return {
+						select: jest.fn().mockReturnValue({
+							eq: jest.fn().mockReturnValue({
+								single: jest.fn().mockResolvedValue({
+									data: { unit_number: '101' },
+									error: null
+								})
+							})
+						})
+					}
+				}
+				return { select: jest.fn().mockReturnThis() }
+			})
+
+			await service.handleTenantPlatformInvitationSent(event)
+
+			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
+				tenantEmail: 'tenant@example.com',
+				invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+				expiresAt: '2025-01-15T00:00:00Z',
+				propertyName: 'Sunset Apartments',
+				unitNumber: '101',
+				ownerName: 'Property Owner'
+			})
+		})
+
+		it('handles missing property/unit gracefully', async () => {
+			const event = {
+				email: 'tenant@example.com',
+				invitation_id: 'inv-123',
+				invitation_url: 'https://app.tenantflow.app/accept-invite?code=abc123',
+				expires_at: '2025-01-15T00:00:00Z',
+				property_id: 'prop-456'
+			}
+
+			// Mock property query returning error
+			const mockClient = mockSupabaseService.getAdminClient()
+			;(mockClient.from as jest.Mock).mockImplementation(() => ({
+				select: jest.fn().mockReturnValue({
+					eq: jest.fn().mockReturnValue({
+						single: jest.fn().mockResolvedValue({
+							data: null,
+							error: { message: 'Not found' }
+						})
+					})
+				})
+			}))
+
+			await service.handleTenantPlatformInvitationSent(event)
+
+			// Should still send email without property details
+			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
+				tenantEmail: 'tenant@example.com',
+				invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+				expiresAt: '2025-01-15T00:00:00Z'
+			})
+		})
+	})
 })

@@ -18,7 +18,7 @@ export const maintenancePrioritySchema = z.enum([
 
 // Maintenance status enum validation
 export const maintenanceStatusSchema = z.enum([
-  'PENDING',
+  'pending',
   'IN_PROGRESS',
   'SCHEDULED',
   'COMPLETED',
@@ -42,7 +42,7 @@ export const maintenanceRequestInputSchema = z.object({
 
   priority: maintenancePrioritySchema,
 
-  status: maintenanceStatusSchema.default('PENDING'),
+  status: maintenanceStatusSchema.default('pending'),
 
   requested_by: uuidSchema.optional(),
 
@@ -119,7 +119,7 @@ export const maintenanceRequestCreateSchema = maintenanceRequestInputSchema.omit
   completed_at: true,
   actual_cost: true
 }).extend({
-  status: maintenanceStatusSchema.default('PENDING')
+  status: maintenanceStatusSchema.default('pending')
 })
 
 // Maintenance cost update schema

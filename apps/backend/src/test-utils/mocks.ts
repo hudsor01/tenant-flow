@@ -250,7 +250,7 @@ export function createMockMaintenanceRequest(
 		title: overrides?.title || 'New Maintenance Request',
 		description: overrides?.description || 'Urgent leak repair needed',
 		priority: overrides?.priority || 'HIGH',
-		status: overrides?.status || 'PENDING',
+		status: overrides?.status || 'pending',
 		requested_by: overrides?.requested_by || null,
 		assigned_to: overrides?.assigned_to || null,
 		actual_cost: overrides?.actual_cost || null,
@@ -298,9 +298,9 @@ export function createMockAppConfigService(): jest.Mocked<AppConfigService> {
 		isTest: jest.fn().mockReturnValue(true),
 		getPort: jest.fn().mockReturnValue(3000),
 		getBackendTimeoutMs: jest.fn().mockReturnValue(30000),
-		getApiBaseUrl: jest.fn().mockReturnValue('http://localhost:3000'),
-		getFrontendUrl: jest.fn().mockReturnValue('http://localhost:3000'),
-		getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3000'),
+		getApiBaseUrl: jest.fn().mockReturnValue('http://localhost:3050'),
+		getFrontendUrl: jest.fn().mockReturnValue('http://localhost:3050'),
+		getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3050'),
 
 		// Database
 		getDatabaseUrl: jest.fn().mockReturnValue('postgresql://localhost:5432/test'),

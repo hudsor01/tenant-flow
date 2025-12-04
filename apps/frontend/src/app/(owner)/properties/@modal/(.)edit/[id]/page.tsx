@@ -1,12 +1,12 @@
+'use client'
+
+import { use } from 'react'
 import { PropertyForm } from '#components/properties/property-form.client'
 import { RouteModal } from '#components/ui/route-modal'
-import { serverFetch } from '#lib/api/server'
-import { logErrorDetails } from '#lib/utils/error-logging'
-import type { Property } from '@repo/shared/types/core'
+import { Skeleton } from '#components/ui/skeleton'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { useQuery } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'EditPropertyModal' })
 
 /**
  * Edit Property Modal (Intercepting Route)
@@ -20,35 +20,33 @@ const logger = createLogger({ component: 'EditPropertyModal' })
  * - Back button: Closes modal, returns to list
  * - URL: /properties/[id]/edit (shareable, bookmarkable)
  */
-export default async function EditPropertyModal({
+export default function EditPropertyModal({
 	params
 }: {
 	params: Promise<{ id: string }>
 }) {
-	const { id } = await params
+	const { id } = use(params)
+	const { data: property, isLoading, error } = useQuery(propertyQueries.detail(id))
 
-	try {
-		const property = await serverFetch<Property>(`/api/v1/properties/${id}`)
+	if (error) {
+		notFound()
+	}
 
-		if (!property?.id) {
-			notFound()
-		}
-
-		return (
-			<RouteModal
-				modalId={`edit-property-${id}`}
-				className="max-w-3xl max-h-[90vh] overflow-y-auto"
-			>
+	return (
+		<RouteModal
+			modalId={`edit-property-${id}`}
+			className="max-w-3xl max-h-[90vh] overflow-y-auto"
+		>
+			{isLoading ? (
+				<Skeleton className="h-96 w-full rounded-xl" />
+			) : property ? (
 				<PropertyForm
 					mode="edit"
 					property={property}
 					modalId={`edit-property-${id}`}
 					showSuccessState={false}
 				/>
-			</RouteModal>
-		)
-	} catch (error) {
-		logErrorDetails(logger, 'Failed to fetch property', error, { id })
-		notFound()
-	}
+			) : null}
+		</RouteModal>
+	)
 }

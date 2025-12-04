@@ -3,7 +3,8 @@
 import { Button } from '#components/ui/button'
 import { ButtonLoader } from '#components/ui/loading-spinner'
 
-import { ANIMATION_DURATIONS, buttonClasses, cn } from '#lib/design-system'
+import { cn } from '#lib/utils'
+import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
 import { forwardRef } from 'react'
 
 interface GoogleButtonProps extends React.ComponentProps<typeof Button> {
@@ -40,7 +41,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 					variant="outline"
 					size="lg"
 					className={cn(
-						buttonClasses('outline', 'lg'),
+						'border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8',
 						'w-full relative overflow-hidden group',
 						`transition-all duration-[${ANIMATION_DURATIONS.default}] ease-out`,
 						'hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
@@ -76,7 +77,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 									: children || defaultText}
 							</span>
 							{showTrustIndicators && !isLoading && (
-								<span className="text-xs text-muted-foreground/75 leading-none mt-0.5">
+								<span className="text-caption/75 leading-none mt-0.5">
 									Secure OAuth 2.0 authentication
 								</span>
 							)}
@@ -94,7 +95,7 @@ export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
 				</Button>
 
 				{showTrustIndicators && (
-					<div className="flex-center gap-(--spacing-4) mt-2 text-xs text-muted-foreground/60">
+					<div className="flex-center gap-4 mt-2 text-caption/60">
 						<div className="flex items-center gap-1">
 							<div className="size-2 rounded-full bg-primary" />
 							<span>Encrypted</span>

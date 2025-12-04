@@ -16,6 +16,8 @@ import { IncomeStatementService } from './income-statement.service'
 import { TaxDocumentsController } from './tax-documents.controller'
 import { TaxDocumentsService } from './tax-documents.service'
 import { FinancialService } from './financial.service'
+import { FinancialExpenseService } from './financial-expense.service'
+import { FinancialRevenueService } from './financial-revenue.service'
 import { FinancialAnalyticsPublicController } from './financial-analytics.controller'
 
 @Module({
@@ -28,6 +30,8 @@ import { FinancialAnalyticsPublicController } from './financial-analytics.contro
 		FinancialAnalyticsPublicController
 	],
 	providers: [
+		FinancialExpenseService,
+		FinancialRevenueService,
 		FinancialService,
 		IncomeStatementService,
 		CashFlowService,
@@ -35,6 +39,8 @@ import { FinancialAnalyticsPublicController } from './financial-analytics.contro
 		TaxDocumentsService
 	],
 	exports: [
+		FinancialExpenseService,
+		FinancialRevenueService,
 		FinancialService,
 		IncomeStatementService,
 		CashFlowService,

@@ -1,7 +1,10 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { Test, TestingModule } from '@nestjs/testing'
 import { FinancialService } from '../src/modules/financial/financial.service'
-import { TenantQueryService } from '../src/modules/tenants/tenant-query.service'
+import { FinancialExpenseService } from '../src/modules/financial/financial-expense.service'
+import { FinancialRevenueService } from '../src/modules/financial/financial-revenue.service'
+import { TenantRelationService } from '../src/modules/tenants/tenant-relation.service'
+import { SupabaseService } from '../src/database/supabase.service'
 import { SubscriptionsService } from '../src/subscriptions/subscriptions.service'
 import { Logger } from '@nestjs/common'
 
@@ -21,7 +24,10 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 
 	beforeAll(async () => {
 		const supabaseUrl = process.env.SUPABASE_URL || 'http://127.0.0.1:54321'
-		const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+		// Use service role key to bypass RLS for test setup
+		const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ||
+			process.env.TEST_SUPABASE_SECRET_KEY ||
+			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 		supabaseClient = createClient(supabaseUrl, supabaseKey)
 
@@ -61,7 +67,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 			.insert({
 				email: `test-n1-owner-${Date.now()}@example.com`,
 				full_name: 'Test Owner',
-				user_type: 'PROPERTY_OWNER'
+				user_type: 'OWNER'
 			})
 			.select()
 			.single()
@@ -95,16 +101,16 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 		const { data: properties } = await supabaseClient
 			.from('properties')
 			.insert([
-				{ property_owner_id: testOwnerId, address_line1: '123 Test St', city: 'Test City', state_code: 'CA', postal_code: '12345', country_code: 'US' },
-				{ property_owner_id: testOwnerId, address_line1: '456 Test Ave', city: 'Test City', state_code: 'CA', postal_code: '12345', country_code: 'US' },
-				{ property_owner_id: testOwnerId, address_line1: '789 Test Blvd', city: 'Test City', state_code: 'CA', postal_code: '12345', country_code: 'US' }
+				{ property_owner_id: testOwnerId, name: 'Test Property 1', address_line1: '123 Test St', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' },
+				{ property_owner_id: testOwnerId, name: 'Test Property 2', address_line1: '456 Test Ave', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' },
+				{ property_owner_id: testOwnerId, name: 'Test Property 3', address_line1: '789 Test Blvd', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' }
 			])
 			.select()
 
 		// Create 2 units per property (6 total)
 		const unitsToInsert = properties.flatMap(prop => [
-			{ property_id: prop.id, unit_number: '1A', square_feet: 1000 },
-			{ property_id: prop.id, unit_number: '1B', square_feet: 1000 }
+			{ property_id: prop.id, unit_number: '1A', square_feet: 1000, rent_amount: 1500 },
+			{ property_id: prop.id, unit_number: '1B', square_feet: 1000, rent_amount: 1500 }
 		])
 
 		const { data: units } = await supabaseClient
@@ -112,14 +118,23 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 			.insert(unitsToInsert)
 			.select()
 
-		// Create tenants
+		// Create tenant users in public.users first (tenants.user_id FK)
+		const tenantUsers = units.map((unit, idx) => ({
+			email: `tenant${idx}-${Date.now()}@test.com`,
+			full_name: `Tenant ${idx}`,
+			user_type: 'TENANT'
+		}))
+
+		const { data: insertedTenantUsers } = await supabaseClient
+			.from('users')
+			.insert(tenantUsers)
+			.select()
+
+		// Create tenants with user_id references
 		const { data: tenants } = await supabaseClient
 			.from('tenants')
-			.insert(units.map((unit, idx) => ({
-				first_name: `Tenant${idx}`,
-				last_name: 'Test',
-				email: `tenant${idx}@test.com`,
-				phone: '555-0100'
+			.insert(insertedTenantUsers.map(user => ({
+				user_id: user.id
 			})))
 			.select()
 
@@ -129,9 +144,10 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 			.insert(units.map((unit, idx) => ({
 				unit_id: unit.id,
 				primary_tenant_id: tenants[idx].id,
-				lease_start_date: '2025-01-01',
-				lease_end_date: '2025-12-31',
+				start_date: '2025-01-01',
+				end_date: '2025-12-31',
 				rent_amount: 1000,
+				security_deposit: 1000,
 				lease_status: 'active'
 			})))
 	}
@@ -195,20 +211,25 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 			}
 
 			// Enable query logging
-			await supabaseClient.rpc('pg_stat_statements_reset').catch(() => {
+			try {
+				await supabaseClient.rpc('pg_stat_statements_reset')
+			} catch {
 				console.warn('pg_stat_statements extension not available, skipping query count verification')
-			})
+			}
 
 			// Create service with real Supabase client
 			const mockSupabaseService = {
-				getAdminClient: () => supabaseClient
+				getAdminClient: () => supabaseClient,
+				getUserClient: () => supabaseClient
 			}
 
 			const module: TestingModule = await Test.createTestingModule({
 				providers: [
 					FinancialService,
+					FinancialExpenseService,
+					FinancialRevenueService,
 					{
-						provide: 'SupabaseService',
+						provide: SupabaseService,
 						useValue: mockSupabaseService
 					},
 					Logger
@@ -230,17 +251,17 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 
 			// Verify results look correct
 			expect(result).toHaveLength(3)
-			expect(result[0]).toHaveProperty('property_id')
+			expect(result[0]).toHaveProperty('propertyId')
 			expect(result[0]).toHaveProperty('revenue')
 			expect(result[0]).toHaveProperty('expenses')
-			expect(result[0]).toHaveProperty('noi')
+			expect(result[0]).toHaveProperty('netIncome')
 
 			// Performance assertion - should be fast with batch queries
 			expect(duration).toBeLessThan(2000) // Should complete in < 2 seconds
 		})
 	})
 
-	describe('TenantQueryService.getTenantIdsForOwner', () => {
+	describe('TenantRelationService.getTenantIdsForOwner', () => {
 		it('should use ≤3 queries with nested joins (not 4 sequential)', async () => {
 			// Skip if test data not created
 			if (!testOwnerId) {
@@ -253,16 +274,16 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				providers: [
-					TenantQueryService,
+					TenantRelationService,
 					{
-						provide: 'SupabaseService',
+						provide: SupabaseService,
 						useValue: mockSupabaseService
 					},
 					Logger
 				]
 			}).compile()
 
-			const service = module.get<TenantQueryService>(TenantQueryService)
+			const service = module.get<TenantRelationService>(TenantRelationService)
 
 			const startTime = Date.now()
 			const tenantIds = await service.getTenantIdsForOwner(testAuthUserId)

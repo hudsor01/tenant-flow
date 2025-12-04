@@ -26,7 +26,7 @@ test.describe('Property CSV Template Download', () => {
 		page
 	}) => {
 		// Setup environment-aware base URL
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Step 1: Navigate to properties page (will redirect to login)
 		logStep(' Step 1: Navigating to /properties')

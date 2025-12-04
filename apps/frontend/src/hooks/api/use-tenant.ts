@@ -11,7 +11,8 @@
  * - Optimistic updates
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { toast } from 'sonner' // Still needed for some success handlers
 import { useMemo } from 'react'
@@ -138,7 +139,7 @@ export function useCreateTenant() {
 
 	return useMutation({
 		mutationFn: (tenantData: TenantInput) =>
-			clientFetch<Tenant>('/api/v1/tenants', {
+			apiRequest<Tenant>('/api/v1/tenants', {
 				method: 'POST',
 				body: JSON.stringify(tenantData)
 			}),
@@ -160,7 +161,7 @@ export function useUpdateTenant() {
 
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) =>
-			clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
+			apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(data)
 			}),
@@ -363,7 +364,7 @@ export function useMarkTenantAsMovedOut() {
 			id: string
 			data: { moveOutDate: string; moveOutReason: string }
 		}): Promise<TenantWithLeaseInfo> => {
-			return clientFetch<TenantWithLeaseInfo>(
+			return apiRequest<TenantWithLeaseInfo>(
 				`/api/v1/tenants/${id}/mark-moved-out`,
 				{
 					method: 'PUT',
@@ -474,7 +475,7 @@ export function useBatchTenantOperations() {
 		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
 			const results = await Promise.allSettled(
 				updates.map(async ({ id, data }) => {
-					return clientFetch<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
+					return apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
 						method: 'PUT',
 						body: JSON.stringify(data)
 					})
@@ -492,7 +493,7 @@ export function useBatchTenantOperations() {
 		batchDelete: async (ids: string[]) => {
 			const results = await Promise.allSettled(
 				ids.map(async id => {
-					return clientFetch(`/api/v1/tenants/${id}`, {
+					return apiRequest(`/api/v1/tenants/${id}`, {
 						method: 'DELETE'
 					})
 				})
@@ -521,7 +522,7 @@ export function useInviteTenant() {
 			phone: string | null
 			lease_id: string
 		}): Promise<TenantWithExtras> => {
-			const response = await clientFetch<TenantWithExtras>('/api/v1/tenants', {
+			const response = await apiRequest<TenantWithExtras>('/api/v1/tenants', {
 				method: 'POST',
 				body: JSON.stringify({
 					email: data?.email ?? '',
@@ -532,7 +533,7 @@ export function useInviteTenant() {
 
 			// Associate tenant with lease
 			if (data.lease_id) {
-				await clientFetch(`/api/v1/leases/${data.lease_id}`, {
+				await apiRequest(`/api/v1/leases/${data.lease_id}`, {
 					method: 'PATCH',
 					body: JSON.stringify({ tenant_id: response.id })
 				})
@@ -567,7 +568,7 @@ export function useResendInvitation() {
 
 	return useMutation({
 		mutationFn: (tenant_id: string) =>
-			clientFetch<{ message: string }>(
+			apiRequest<{ message: string }>(
 				`/api/v1/tenants/${tenant_id}/resend-invitation`,
 				{
 					method: 'POST'
@@ -619,7 +620,7 @@ export function useUpdateNotificationPreferences() {
 				paymentReminders: boolean
 			}
 		}) =>
-			clientFetch(`/api/v1/tenants/${tenant_id}/notification-preferences`, {
+			apiRequest(`/api/v1/tenants/${tenant_id}/notification-preferences`, {
 				method: 'PUT',
 				body: JSON.stringify(preferences)
 			}),

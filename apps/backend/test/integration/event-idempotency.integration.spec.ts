@@ -27,12 +27,24 @@ const missingEnv: string[] = []
 if (!SUPABASE_URL) missingEnv.push('TEST_SUPABASE_URL')
 if (!SUPABASE_SECRET_KEY) missingEnv.push('TEST_SUPABASE_SECRET_KEY')
 
+// In CI or when RUN_INTEGRATION_TESTS is set, fail loudly instead of skipping
+const shouldRunIntegration = process.env.CI || process.env.RUN_INTEGRATION_TESTS
+if (missingEnv.length > 0 && shouldRunIntegration) {
+	throw new Error(
+		`Integration tests FAILED - Missing required env vars: ${missingEnv.join(', ')}\n` +
+		`Set these in Doppler or CI secrets:\n` +
+		`  - TEST_SUPABASE_URL (e.g., http://127.0.0.1:54321)\n` +
+		`  - TEST_SUPABASE_SECRET_KEY (from \`supabase status\`)`
+	)
+}
+
 const describeIntegration = missingEnv.length > 0 ? describe.skip : describe
 
 if (missingEnv.length > 0) {
 	console.warn(
 		`⚠️  Skipping EventIdempotency integration tests. Missing env: ${missingEnv.join(', ')}\n` +
-		`   Set these in Doppler for local testing:\n` +
+		`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n` +
+		`   Required env vars:\n` +
 		`   - TEST_SUPABASE_URL=http://127.0.0.1:54321\n` +
 		`   - TEST_SUPABASE_SECRET_KEY=<from supabase status>`
 	)

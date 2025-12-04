@@ -1,16 +1,20 @@
 import { test, expect } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
-import { loginAsOwner } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded } from '../helpers/navigation-helpers'
 import { openModal, verifyModalIsOpen } from '../helpers/modal-helpers'
 import { verifyTableRenders } from '../helpers/ui-validation-helpers'
 
+/**
+ * Owner Maintenance E2E Tests
+ *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ */
 test.describe('Owner Maintenance', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-
   test.beforeEach(async ({ page }) => {
-    await loginAsOwner(page)
-    await page.goto(`${baseUrl}${ROUTES.MAINTENANCE}`)
+    // Navigate directly (authenticated via storageState)
+    await page.goto(ROUTES.MAINTENANCE)
     await verifyPageLoaded(page, ROUTES.MAINTENANCE, 'Maintenance')
   })
 

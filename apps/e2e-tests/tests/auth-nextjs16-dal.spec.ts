@@ -18,7 +18,7 @@ import { expect, test } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 const logger = createLogger({ component: 'AuthNextjs16DAL' })
 
 test.describe('DAL - Server Component Data Access', () => {

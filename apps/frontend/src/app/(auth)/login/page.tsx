@@ -161,7 +161,7 @@ function LoginPageContent() {
 									Join 10,000+ property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.
 								</p>
 
-								<div className="grid grid-cols-3 gap-(--spacing-6) pt-6">
+								<div className="grid grid-cols-3 gap-6 pt-6">
 									{[
 										{ value: '$2.4K+', label: 'Saved Per\nProperty' },
 										{ value: '98.7%', label: 'Customer\nSuccess' },
@@ -362,7 +362,7 @@ function LoginPageContent() {
 							<p className="text-muted-foreground/80 text-xs font-medium">
 								Trusted by property managers worldwide
 							</p>
-							<div className="flex-center flex-wrap gap-(--spacing-4) sm:gap-(--spacing-6) text-xs">
+							<div className="flex-center flex-wrap gap-4 sm:gap-6 text-xs">
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Lock className="size-3" />
 									<span className="font-medium hidden sm:inline">Bank-level Security</span>

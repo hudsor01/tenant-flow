@@ -32,7 +32,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 				<h3 className="text-lg font-semibold mb-4">
 					Rent & Deposits
 				</h3>
-				<div className="grid grid-cols-2 gap-(--spacing-4)">
+				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="rent_amount">
 						{field => (
 							<div className="space-y-2">
@@ -103,7 +103,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 
 			<div>
 				<h3 className="text-lg font-semibold mb-4">Fees & Penalties</h3>
-				<div className="grid grid-cols-2 gap-(--spacing-4)">
+				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="late_fee_amount">
 						{field => (
 							<div className="space-y-2">
@@ -166,7 +166,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 									}
 									placeholder="1.2"
 								/>
-								<p className="text-xs text-muted-foreground">
+								<p className="text-caption">
 									Rent multiplier if tenant stays after lease ends
 								</p>
 							</div>

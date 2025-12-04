@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#components/ui/she
 import { useSignOut } from '#hooks/api/use-auth'
 import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
-import { navbarButtonClasses, mobileDropdownLinkClasses } from '#lib/design-system'
+import { Button as _Button } from '#components/ui/button'
 import { useAuth } from '#providers/auth-provider'
 import { useSpring, useTransition } from '@react-spring/core'
 import { animated } from '@react-spring/web'
@@ -255,7 +255,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 				ref={ref}
 				style={navbarSpring}
 				className={cn(
-					'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-(--radius-medium) px-6 py-3 w-auto',
+					'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-300 rounded-xl px-6 py-3 w-auto',
 				isScrolled
 					? 'top-2 bg-card backdrop-blur-2xl shadow-2xl border border-fill-secondary/30 scale-[0.98]'
 					: 'top-4 bg-card/90 backdrop-blur-xl shadow-lg border border-fill-secondary/20',
@@ -374,7 +374,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								</div>
 								<button
 									onClick={handleSignOut}
-									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-(--radius-medium) hover:bg-muted/50 transition-all duration-300 font-medium"
+									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign Out
 								</button>
@@ -383,7 +383,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 							<>
 								<Link
 									href="/login"
-									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-(--radius-medium) hover:bg-muted/50 transition-all duration-300 font-medium"
+									className="hidden sm:flex px-4 py-2 text-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-all duration-300 font-medium"
 								>
 									Sign In
 								</Link>
@@ -397,7 +397,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								>
 									<Link
 										href={ctaHref}
-										className={navbarButtonClasses('cta')}
+										className="hidden sm:flex items-center bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl rounded-lg px-6 py-2.5 font-medium text-sm"
 									>
 										{ctaText}
 										<ArrowRight className="ml-2 size-4" />
@@ -416,7 +416,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 								isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
 							}
 							data-testid="mobile-nav-toggle"
-							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200"
+							className="md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200"
 						>
 							{isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 						</animated.button>
@@ -442,7 +442,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 												href={item.href}
 												onClick={() => !item.hasDropdown && closeMobileMenu()}
 												className={cn(
-													'relative flex-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-(--radius-medium) transition-all duration-200',
+													'relative flex-between px-4 py-3 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200',
 													isActiveLink(item.href) &&
 														'text-foreground bg-muted/50 border-l-2 border-l-[--color-accent-main]'
 												)}
@@ -482,7 +482,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 																	<Link
 																		href={dropdownItem.href}
 																		onClick={() => closeMobileMenu()}
-																		className={mobileDropdownLinkClasses}
+																		className="mobile-dropdown-link"
 																	>
 																		{dropdownItem.name}
 																	</Link>

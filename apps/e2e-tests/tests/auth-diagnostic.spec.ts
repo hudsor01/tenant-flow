@@ -30,7 +30,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 		page,
 		context
 	}) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 		const networkLogs: NetworkLog[] = []
 		const consoleLogs: ConsoleLog[] = []
 		const timings: { [key: string]: number } = {}
@@ -244,7 +244,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 	})
 
 	test('check Supabase connectivity', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		logger.info('[SUPABASE_CHECK] Testing Supabase connectivity')
 
@@ -280,7 +280,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 	})
 
 	test('capture detailed auth flow timeline', async ({ page }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 		const events: Array<{ time: number; event: string; details: any }> = []
 
 		const startTime = Date.now()

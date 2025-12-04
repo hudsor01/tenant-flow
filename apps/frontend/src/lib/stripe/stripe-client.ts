@@ -6,7 +6,9 @@ import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { API_BASE_URL } from '#lib/api-config'
 import { createClient } from '#utils/supabase/client'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
-import { env } from '#config/env'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'StripeClient' })
 
 // Cache the Stripe instance to avoid re-initializing
 let stripePromise: Promise<Stripe | null> | null = null
@@ -14,11 +16,18 @@ let stripePromise: Promise<Stripe | null> | null = null
 /**
  * Get Stripe.js instance (lazily loaded and cached)
  * Required for Stripe Elements and Identity verification
+ *
+ * Uses process.env directly for client-side access (NEXT_PUBLIC_ prefix).
+ * T3 Env cannot be imported in client components as it contains server-side vars.
  */
 export function getStripe(): Promise<Stripe | null> {
 	if (!stripePromise) {
-		// T3 Env validates this at build time - no runtime check needed
-		stripePromise = loadStripe(env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+		const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+		if (!publishableKey) {
+			logger.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set')
+			return Promise.resolve(null)
+		}
+		stripePromise = loadStripe(publishableKey)
 	}
 	return stripePromise
 }

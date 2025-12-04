@@ -56,13 +56,13 @@ export const TENANTFLOW_CHART_COLORS = {
 	secondary: 'var(--color-accent)',
 	accent: 'var(--color-accent-main)',
 	muted: 'var(--color-muted/secondary)',
-	success: 'var(--color-system-green)',
-	warning: 'var(--color-system-orange)',
-	destructive: 'var(--color-system-red)',
-	info: 'var(--color-system-blue)',
-	revenue: 'var(--color-system-green)',
-	occupancy: 'var(--color-system-blue)',
-	maintenance: 'var(--color-system-orange)',
+	success: 'var(--color-success)',
+	warning: 'var(--color-warning)',
+	destructive: 'var(--color-destructive)',
+	info: 'var(--color-info)',
+	revenue: 'var(--color-success)',
+	occupancy: 'var(--color-info)',
+	maintenance: 'var(--color-warning)',
 	properties: 'var(--color-primary)'
 }
 

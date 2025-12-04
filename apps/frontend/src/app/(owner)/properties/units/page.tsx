@@ -113,25 +113,25 @@ export default function UnitsPage() {
 	const occupancyRate = unitsStats?.occupancyRate ?? 0
 
 	return (
-		<div className="flex flex-col gap-(--spacing-4) py-4 md:gap-(--spacing-6) md:py-6">
+		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
 			{/* Units Metrics Cards */}
-			<div className="grid grid-cols-1 gap-(--spacing-4) px-4 lg:px-6 md:grid-cols-4">
+			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
+						<h3 className="text-muted font-medium">
 							Total Units
 						</h3>
 						<div className="size-2 rounded-full bg-chart-4" />
 					</div>
 					<div className="text-2xl font-bold">{totalUnits}</div>
-					<p className="text-xs text-muted-foreground mt-1">
+					<p className="text-caption mt-1">
 						Across all properties
 					</p>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
+						<h3 className="text-muted font-medium">
 							Occupied
 						</h3>
 						<div className="size-2 rounded-full bg-chart-1" />
@@ -144,7 +144,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
+						<h3 className="text-muted font-medium">
 							Vacant
 						</h3>
 						<div className="size-2 rounded-full bg-chart-7" />
@@ -155,7 +155,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-sm font-medium text-muted-foreground">
+						<h3 className="text-muted font-medium">
 							Maintenance
 						</h3>
 						<div className="size-2 rounded-full bg-chart-5" />
@@ -180,7 +180,7 @@ export default function UnitsPage() {
 				<ChartAreaInteractive className="mb-6" />
 
 				{/* Filters and Actions */}
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-(--spacing-4) mb-6">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
 					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
 						<div className="flex items-center gap-2">
 							<Filter className="size-4 text-muted-foreground" />
@@ -458,7 +458,7 @@ function NewUnitButton() {
 					</DialogTitle>
 				</DialogHeader>
 				<form
-					className="grid gap-(--spacing-4)"
+					className="grid gap-4"
 					onSubmit={e => {
 						e.preventDefault()
 						onSubmit(e.target as HTMLFormElement)

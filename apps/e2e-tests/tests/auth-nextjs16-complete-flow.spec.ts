@@ -15,7 +15,7 @@
 import { expect, test } from '@playwright/test'
 import { loginAsOwner, clearSessionCache } from '../auth-helpers'
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 test.describe('Complete Auth Flow - Login', () => {
 	test.beforeEach(async ({ context }) => {

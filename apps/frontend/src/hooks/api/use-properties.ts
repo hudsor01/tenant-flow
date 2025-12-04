@@ -10,7 +10,8 @@
  * - Proper error handling
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	handleConflictError,
@@ -18,8 +19,7 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-import type { UpdatePropertyInput } from '@repo/shared/types/api-contracts'
-import type { CreatePropertyInput } from '@repo/shared/types/api-contracts'
+import type { UpdatePropertyInput, CreatePropertyInput, PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
 
@@ -120,7 +120,7 @@ export function useCreateProperty() {
 		mutationFn: async (
 			propertyData: CreatePropertyInput
 		): Promise<Property> => {
-			return clientFetch<Property>('/api/v1/properties', {
+			return apiRequest<Property>('/api/v1/properties', {
 				method: 'POST',
 				body: JSON.stringify(propertyData)
 			})
@@ -129,8 +129,8 @@ export function useCreateProperty() {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
-			// Snapshot previous state
-			const previousLists = queryClient.getQueriesData<Property[]>({
+			// Snapshot previous state (cache stores PaginatedResponse<Property>)
+			const previousLists = queryClient.getQueriesData<PaginatedResponse<Property>>({
 				queryKey: propertyQueries.lists()
 			})
 
@@ -154,10 +154,17 @@ export function useCreateProperty() {
 				updated_at: new Date().toISOString()
 			}
 
-			// Optimistically update all caches
-			queryClient.setQueriesData<Property[]>(
+			// Optimistically update all caches (handle PaginatedResponse structure)
+			queryClient.setQueriesData<PaginatedResponse<Property>>(
 				{ queryKey: propertyQueries.lists() },
-				old => (old ? [optimisticProperty, ...old] : [optimisticProperty])
+				old => {
+					if (!old) return old
+					return {
+						...old,
+						data: [optimisticProperty, ...old.data],
+						total: old.total + 1
+					}
+				}
 			)
 
 			return { previousLists, tempId }
@@ -178,14 +185,17 @@ export function useCreateProperty() {
 				`${data.name} has been added to your portfolio`
 			)
 
-			// Replace optimistic entry with real data
-			queryClient.setQueriesData<Property[]>(
+			// Replace optimistic entry with real data (handle PaginatedResponse)
+			queryClient.setQueriesData<PaginatedResponse<Property>>(
 				{ queryKey: propertyQueries.lists() },
 				old => {
-					if (!old) return [data]
-					return old.map(property =>
-						property.id === context?.tempId ? data : property
-					)
+					if (!old) return old
+					return {
+						...old,
+						data: old.data.map(property =>
+							property.id === context?.tempId ? data : property
+						)
+					}
 				}
 			)
 
@@ -216,7 +226,7 @@ export function useUpdateProperty() {
 			data: UpdatePropertyInput
 			version?: number
 		}): Promise<Property> => {
-			return clientFetch<Property>(`/api/v1/properties/${id}`, {
+			return apiRequest<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
 				// OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
@@ -323,7 +333,7 @@ export function useMarkPropertySold() {
 			salePrice: number
 			saleNotes?: string
 		}): Promise<{ success: boolean; message: string }> => {
-			return clientFetch<{ success: boolean; message: string }>(
+			return apiRequest<{ success: boolean; message: string }>(
 				`/api/v1/properties/${id}/mark-sold`,
 				{
 					method: 'PUT',
@@ -389,7 +399,7 @@ export function useDeleteProperty() {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<{ message: string }> => {
-			return clientFetch<{ message: string }>(`/api/v1/properties/${id}`, {
+			return apiRequest<{ message: string }>(`/api/v1/properties/${id}`, {
 				method: 'DELETE'
 			})
 		},
@@ -451,7 +461,7 @@ export function usePrefetchProperty() {
 		queryClient.prefetchQuery({
 			queryKey: propertyQueries.detail(id).queryKey,
 			queryFn: async (): Promise<Property> => {
-				return clientFetch<Property>(`/api/v1/properties/${id}`)
+				return apiRequest<Property>(`/api/v1/properties/${id}`)
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})
@@ -464,90 +474,10 @@ export function usePrefetchProperty() {
  */
 /**
  * Hook to fetch property images
+ * Uses Supabase client directly with RLS
  */
 export function usePropertyImages(property_id: string) {
 	return useQuery(propertyQueries.images(property_id))
-}
-
-/**
- * Hook to upload property image
- */
-export function useUploadPropertyImage() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async ({
-			property_id,
-			file,
-			isPrimary = false,
-			caption
-		}: {
-			property_id: string
-			file: File
-			isPrimary?: boolean
-			caption?: string
-		}) => {
-			const formData = new FormData()
-			formData.append('file', file)
-			formData.append('isPrimary', String(isPrimary))
-			if (caption) formData.append('caption', caption)
-
-			return await clientFetch(
-				`/api/v1/properties/${property_id}/images`,
-				{
-					method: 'POST',
-					body: formData
-				}
-			)
-		},
-		onSuccess: (data, { property_id }) => {
-			handleMutationSuccess(
-				'Upload image',
-				'Image uploaded successfully'
-			)
-			// Invalidate property images
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.images(property_id).queryKey
-			})
-			// Invalidate property list (primary image may have changed)
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.lists()
-			})
-		},
-		onError: error => handleMutationError(error, 'Upload image')
-	})
-}
-
-/**
- * Hook to delete property image
- */
-export function useDeletePropertyImage() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: ({
-			imageId,
-			property_id: _property_id
-		}: {
-			imageId: string
-			property_id: string
-		}) =>
-			clientFetch<{ message: string }>(`/api/v1/properties/images/${imageId}`, {
-				method: 'DELETE'
-			}),
-		onSuccess: (_, { property_id }) => {
-			handleMutationSuccess('Delete image')
-			// Invalidate property images
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.images(property_id).queryKey
-			})
-			// Invalidate property list (primary image may have been deleted)
-			queryClient.invalidateQueries({
-				queryKey: propertyQueries.lists()
-			})
-		},
-		onError: error => handleMutationError(error, 'Delete image')
-	})
 }
 
 export function usePropertyOperations() {
