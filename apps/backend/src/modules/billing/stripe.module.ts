@@ -18,6 +18,12 @@ import { StripeTenantController } from './stripe-tenant.controller'
 import { WebhookRetryService } from './webhook-retry.service'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { WebhookProcessor } from './webhook-processor.service'
+import {
+	SubscriptionWebhookHandler,
+	PaymentWebhookHandler,
+	CheckoutWebhookHandler,
+	ConnectWebhookHandler
+} from './handlers'
 import { UsersModule } from '../users/users.module'
 import { BillingService } from './billing.service'
 import { StripeSharedService } from './stripe-shared.service'
@@ -52,6 +58,11 @@ import { StripeSharedService } from './stripe-shared.service'
 		ConnectSetupService,
 		ConnectBillingService,
 		ConnectPayoutsService,
+		// Webhook handlers (SRP-compliant decomposition)
+		SubscriptionWebhookHandler,
+		PaymentWebhookHandler,
+		CheckoutWebhookHandler,
+		ConnectWebhookHandler,
 		WebhookProcessor,
 		WebhookRetryService
 	],

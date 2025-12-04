@@ -1,26 +1,50 @@
+'use client'
+
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { use } from 'react'
 
 import { Button } from '#components/ui/button'
+import { Skeleton } from '#components/ui/skeleton'
 import { PropertyForm } from '#components/properties/property-form.client'
 import { MobilePropertyForm } from '#components/properties/property-form.mobile'
-import { serverFetch } from '#lib/api/server'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { useQuery } from '@tanstack/react-query'
 
-export default async function EditPropertyPage({
+export default function EditPropertyPage({
 	params
 }: {
 	params: Promise<{ id: string }>
 }) {
-	const { id } = await params
+	const { id } = use(params)
+	const { data: property, isLoading } = useQuery(propertyQueries.detail(id))
 
-	// Fetch property data on server
-	const property = await serverFetch<import('@repo/shared/types/core').Property>(
-		`/api/v1/properties/${id}`
-	)
+	if (isLoading) {
+		return (
+			<div className="space-y-6">
+				<div className="flex items-center gap-4">
+					<Skeleton className="h-9 w-20" />
+					<div>
+						<Skeleton className="h-9 w-48 mb-2" />
+						<Skeleton className="h-5 w-64" />
+					</div>
+				</div>
+				<Skeleton className="h-96 w-full rounded-xl" />
+			</div>
+		)
+	}
+
+	if (!property) {
+		return (
+			<div className="space-y-6">
+				<p className="text-muted-foreground">Property not found</p>
+			</div>
+		)
+	}
 
 	return (
 		<div className="space-y-6">
-			<div className="flex items-center gap-(--spacing-4)">
+			<div className="flex items-center gap-4">
 				<Button variant="outline" size="sm" asChild>
 					<Link href={`/properties/${id}`}>
 						<ArrowLeft className="size-4 mr-2" />

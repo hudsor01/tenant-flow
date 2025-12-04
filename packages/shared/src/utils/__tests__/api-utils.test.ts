@@ -73,13 +73,13 @@ describe('getApiBaseUrl', () => {
 		})
 
 		it('should handle URL with port number', () => {
-			process.env["NEXT_PUBLIC_API_BASE_URL"] = 'http://localhost:3001'
-			expect(getApiBaseUrl()).toBe('http://localhost:3001/api/v1')
+			process.env["NEXT_PUBLIC_API_BASE_URL"] = 'http://localhost:3050'
+			expect(getApiBaseUrl()).toBe('http://localhost:3050/api/v1')
 		})
 
 		it('should handle URL with port and /api', () => {
-			process.env["NEXT_PUBLIC_API_BASE_URL"] = 'http://localhost:3001/api/v1'
-			expect(getApiBaseUrl()).toBe('http://localhost:3001/api/v1')
+			process.env["NEXT_PUBLIC_API_BASE_URL"] = 'http://localhost:3050/api/v1'
+			expect(getApiBaseUrl()).toBe('http://localhost:3050/api/v1')
 		})
 	})
 
@@ -115,9 +115,9 @@ describe('getApiBaseUrl', () => {
 			delete (global as { window?: Window }).window
 		})
 
-		it('should return localhost:3001 when no env var is set', () => {
+		it('should return localhost:3050 when no env var is set', () => {
 			delete process.env["NEXT_PUBLIC_API_BASE_URL"]
-			expect(getApiBaseUrl()).toBe('http://localhost:3001/api/v1')
+			expect(getApiBaseUrl()).toBe('http://localhost:3050/api/v1')
 		})
 
 		it('should use env var if provided (even on server)', () => {
@@ -129,9 +129,9 @@ describe('getApiBaseUrl', () => {
 	describe('Edge Cases', () => {
 		it('should handle empty string env var (fallback to client/server logic)', () => {
 			process.env["NEXT_PUBLIC_API_BASE_URL"] = ''
-			// In browser: /api/v1, On server: http://localhost:3001/api/v1
+			// In browser: /api/v1, On server: http://localhost:3050/api/v1
 			const result = getApiBaseUrl()
-			expect(result).toMatch(/^(\/api\/v1|http:\/\/localhost:3001\/api\/v1)$/)
+			expect(result).toMatch(/^(\/api\/v1|http:\/\/localhost:3050\/api\/v1)$/)
 		})
 
 		it('should handle URL with multiple /api in path', () => {
@@ -177,8 +177,8 @@ describe('getApiBaseUrl', () => {
 
 	describe('Development Scenarios', () => {
 		it('should handle local dev with explicit localhost', () => {
-			process.env["NEXT_PUBLIC_API_BASE_URL"] = 'http://localhost:3001/api/v1'
-			expect(getApiBaseUrl()).toBe('http://localhost:3001/api/v1')
+			process.env["NEXT_PUBLIC_API_BASE_URL"] = 'http://localhost:3050/api/v1'
+			expect(getApiBaseUrl()).toBe('http://localhost:3050/api/v1')
 		})
 
 		it('should handle local dev with 127.0.0.1', () => {

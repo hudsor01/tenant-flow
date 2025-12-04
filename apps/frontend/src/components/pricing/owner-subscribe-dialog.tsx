@@ -163,7 +163,7 @@ export function OwnerSubscribeDialog({
 							}}
 							className="space-y-4"
 						>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-(--spacing-4)">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<form.Field name="first_name">
 									{field => (
 										<Field>
@@ -269,7 +269,7 @@ export function OwnerSubscribeDialog({
 								)}
 							</form.Field>
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-(--spacing-4)">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<form.Field name="password">
 									{field => (
 										<Field>

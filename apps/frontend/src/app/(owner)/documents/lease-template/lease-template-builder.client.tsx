@@ -271,7 +271,7 @@ export function LeaseTemplateBuilder() {
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="grid gap-(--spacing-6) lg:grid-cols-[20rem_1fr]">
+						<div className="grid gap-6 lg:grid-cols-[20rem_1fr]">
 							<aside className="space-y-6">
 								<ConfigurationPanel
 									builderInputs={builderInputs}
@@ -562,7 +562,7 @@ function ClauseSelector(props: {
 							<h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
 								{section.title}
 							</h3>
-							<p className="text-xs text-muted-foreground">
+							<p className="text-caption">
 								{section.description}
 							</p>
 						</div>
@@ -595,7 +595,7 @@ function ClauseSelector(props: {
 															<Badge variant="secondary">Recommended</Badge>
 														)}
 													</span>
-													<span className="text-xs text-muted-foreground">
+													<span className="text-caption">
 														{clause.description}
 													</span>
 												</span>

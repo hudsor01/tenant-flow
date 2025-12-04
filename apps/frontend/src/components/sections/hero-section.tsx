@@ -66,7 +66,7 @@ export function HeroSection({
 								</p>
 							</div>
 
-							<div className="flex flex-row gap-(--spacing-4)">
+							<div className="flex flex-row gap-4">
 								<Button onClick={() => router.push(primaryCta.href)}>
 									{primaryCta.label}
 									<ArrowRight className="ml-2 size-4" />

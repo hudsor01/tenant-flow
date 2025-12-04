@@ -1,168 +1,280 @@
 import { defineConfig, devices } from '@playwright/test'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
 /**
  * Playwright Configuration - TenantFlow E2E Tests
- * Following official Playwright documentation patterns
+ *
+ * Following official Playwright documentation patterns:
  * @see https://playwright.dev/docs/test-configuration
+ * @see https://playwright.dev/docs/auth
+ * @see https://playwright.dev/docs/test-webserver
  */
+
+// ESM-compatible __dirname
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Dedicated test ports to avoid conflicts with development servers
+const TEST_FRONTEND_PORT = 3050
+const TEST_BACKEND_PORT = 4650
+const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`
+const TEST_BACKEND_URL = `http://localhost:${TEST_BACKEND_PORT}`
+
+// Auth state file paths (official Playwright pattern)
+// @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+const OWNER_AUTH_FILE = path.join(__dirname, 'playwright/.auth/owner.json')
+const TENANT_AUTH_FILE = path.join(__dirname, 'playwright/.auth/tenant.json')
+
 export default defineConfig({
-	// Test organization
+	// ===================
+	// Test Organization
+	// ===================
 	testDir: './tests',
 	testMatch: ['**/*.e2e.spec.ts', '**/*.spec.ts'],
-	testIgnore: ['**/staging/**', '**/production/**', '**/fixtures/**', '**/*.setup.ts'],
+	testIgnore: ['**/staging/**', '**/production/**', '**/fixtures/**'],
 
-	// Timeouts (per Playwright docs)
-	timeout: 30000, // 30s per test
+	// ===================
+	// Timeouts
+	// ===================
+	timeout: 30_000, // 30s per test
 	expect: {
-		timeout: 5000, // 5s for assertions
+		timeout: 5_000, // 5s for assertions
 		toHaveScreenshot: {
 			maxDiffPixels: 100,
-			animations: 'disabled'
-		}
+			animations: 'disabled',
+		},
 	},
 
-	// Execution strategy (best practices)
-	fullyParallel: true, // Per-test parallelism for sharding
-	workers: process.env.CI ? 2 : undefined,
-	maxFailures: process.env.CI ? 5 : undefined,
+	// ===================
+	// Execution Strategy
+	// ===================
+	fullyParallel: true,
+	maxFailures: 1, // Stop on first failure for debugging
+	workers: process.env.CI ? 2 : 1, // Single worker locally for sequential debugging
 	forbidOnly: !!process.env.CI,
-
-	// Retry configuration (clean worker per retry)
 	retries: process.env.CI ? 2 : 0,
 
-	// Multiple reporters for different use cases
-	reporter: [
-		['list', { printSteps: true }], // Console output
-		['html', { open: 'never', outputFolder: 'playwright-report' }],
-		['json', { outputFile: 'test-results/results.json' }],
-		['junit', { outputFile: 'test-results/junit.xml' }],
-		...(process.env.CI ? [['github'] as const] : [])
-	],
+	// ===================
+	// Reporters
+	// @see https://playwright.dev/docs/test-reporters
+	// ===================
+	reporter: process.env.CI
+		? [
+				['github'],
+				['html', { open: 'never', outputFolder: 'playwright-report' }],
+				['json', { outputFile: 'test-results/results.json' }],
+				['junit', { outputFile: 'test-results/junit.xml' }],
+			]
+		: [
+				['list', { printSteps: true }],
+				['html', { open: 'on-failure', outputFolder: 'playwright-report' }],
+			],
 
-	// Global use options
+	// ===================
+	// Global Settings
+	// @see https://playwright.dev/docs/api/class-testoptions
+	// ===================
 	use: {
-		// Base URL for navigation
-		baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+		// Base URL - all page.goto() calls will be relative to this
+		baseURL: TEST_FRONTEND_URL,
 
-		// Recording options (trace > screenshot > video)
+		// Bypass CSP to allow test scripts to run
+		// @see https://playwright.dev/docs/api/class-browser#browser-new-context-option-bypass-csp
+		bypassCSP: true,
+
+		// Recording options
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',
 
 		// Action timeouts
-		actionTimeout: 10000,
-		navigationTimeout: 30000,
+		actionTimeout: 10_000,
+		navigationTimeout: 30_000,
 
 		// Consistency across runs
 		locale: 'en-US',
-		timezoneId: 'America/New_York',
+		timezoneId: 'America/Chicago',
 		viewport: { width: 1280, height: 720 },
 
-		// Headless by default
+		// Always headless (use --headed flag to override)
 		headless: true,
+
+		// Note: Removed x-playwright-test header - not in CORS allowed headers
 	},
 
-	// Projects with auth setup dependency
+	// ===================
+	// Projects
+	// @see https://playwright.dev/docs/auth
+	// @see https://playwright.dev/docs/test-projects
+	// ===================
 	projects: [
-		// Setup projects - run FIRST (UI-based for Supabase SSR compatibility)
-		// Per Playwright docs: Setup projects should have retries to handle transient auth failures
+		// ─────────────────────────────────────────
+		// SETUP: Authenticate owner via API (runs first)
+		// ─────────────────────────────────────────
 		{
-			name: 'setup',
-			testMatch: /auth\.setup\.ts/,
-			testIgnore: [], // Override global testIgnore to allow setup files
-			retries: 2, // Retry auth setup if it fails (network issues, slow servers, etc.)
+			name: 'setup-owner',
+			testMatch: /auth-api\.setup\.ts/,
+			retries: 2,
 		},
-		// Tenant invitation setup - runs AFTER owner auth to create tenant via invitation
+
+		// ─────────────────────────────────────────
+		// SETUP: Invite tenant (owner creates tenant record)
+		// Must run after owner auth, creates tenant record in DB
+		// ─────────────────────────────────────────
 		{
 			name: 'setup-invite-tenant',
 			testMatch: /setup-invite-tenant\.setup\.ts/,
-			testIgnore: [], // Override global testIgnore to allow setup files
-			dependencies: ['setup'], // Must run after owner auth
-			retries: 2, // Retry if invitation fails
+			dependencies: ['setup-owner'],
+			use: {
+				storageState: OWNER_AUTH_FILE,
+			},
+			retries: 2,
 		},
 
-		// Authenticated desktop tests
+		// ─────────────────────────────────────────
+		// SETUP: Authenticate tenant via API
+		// Must run after invite (tenant record must exist)
+		// ─────────────────────────────────────────
+		{
+			name: 'setup-tenant',
+			testMatch: /auth-tenant\.setup\.ts/,
+			dependencies: ['setup-invite-tenant'],
+			retries: 2,
+		},
+
+		// ─────────────────────────────────────────
+		// OWNER: Owner dashboard tests (authenticated)
+		// Uses storageState - tests start authenticated
+		// ─────────────────────────────────────────
+		{
+			name: 'owner',
+			use: {
+				...devices['Desktop Chrome'],
+				storageState: OWNER_AUTH_FILE,
+			},
+			dependencies: ['setup-owner'],
+			testMatch: ['**/owner/**/*.spec.ts'],
+		},
+
+		// ─────────────────────────────────────────
+		// TENANT: Tenant portal tests (authenticated)
+		// Uses storageState - tests start authenticated
+		// ─────────────────────────────────────────
+		{
+			name: 'tenant',
+			use: {
+				...devices['Desktop Chrome'],
+				storageState: TENANT_AUTH_FILE,
+			},
+			dependencies: ['setup-tenant'],
+			testMatch: ['**/tenant/**/*.spec.ts'],
+		},
+
+		// ─────────────────────────────────────────
+		// CHROMIUM: Other authenticated tests
+		// ─────────────────────────────────────────
 		{
 			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
-				// storageState: 'playwright/.auth/owner.json', // Temporarily disabled - tests use loginAsOwner() directly
+				storageState: OWNER_AUTH_FILE,
 			},
-			// dependencies: ['setup'], // Temporarily disabled - tests login directly
-			testIgnore: ['**/auth.setup.ts', '**/*public.spec.ts', '**/stripe-payment-flow.e2e.spec.ts'],
+			dependencies: ['setup-owner'],
+			testIgnore: [
+				'**/*.setup.ts',
+				'**/public/**',
+				'**/owner/**',
+				'**/tenant/**',
+				'**/stripe-payment-flow.e2e.spec.ts',
+			],
 		},
 
-		// Stripe payment flow tests (runs after owner creates tenant via invitation)
+		// ─────────────────────────────────────────
+		// SMOKE: Critical path tests (no auth - tests login flow)
+		// ─────────────────────────────────────────
 		{
-			name: 'chromium-stripe',
+			name: 'smoke',
 			use: {
 				...devices['Desktop Chrome'],
-				// No storageState - tests will use loginAsTenant() after invitation flow
+				storageState: { cookies: [], origins: [] }, // No auth - tests login flow
 			},
-			dependencies: ['setup-invite-tenant'], // Depends on tenant invitation (creates tenant user)
-			testMatch: ['**/stripe-payment-flow.e2e.spec.ts'],
+			testMatch: ['**/smoke/**/*.spec.ts'],
+			testIgnore: ['**/minimal.smoke.spec.ts'], // This test requires pre-auth, runs in chromium project
 		},
 
-		// Tenant management tests
-		{
-			name: 'chromium-tenant-management',
-			use: {
-				...devices['Desktop Chrome'],
-				storageState: 'playwright/.auth/owner.json',
-			},
-			dependencies: ['setup'],
-			testDir: './tests/tenant-management',
-		},
-
-		// Public tests (no auth needed)
+		// ─────────────────────────────────────────
+		// PUBLIC: No auth required
+		// ─────────────────────────────────────────
 		{
 			name: 'public',
-			use: { ...devices['Desktop Chrome'] },
-			testMatch: ['**/*public.spec.ts'],
+			use: {
+				...devices['Desktop Chrome'],
+				storageState: { cookies: [], origins: [] }, // Explicitly no auth
+			},
+			testMatch: ['**/public/**/*.spec.ts', '**/*public*.spec.ts'],
 		},
 
-		// Mobile tests
+		// ─────────────────────────────────────────
+		// FIREFOX: Cross-browser testing (owner tests only)
+		// ─────────────────────────────────────────
+		{
+			name: 'firefox',
+			use: {
+				...devices['Desktop Firefox'],
+				storageState: OWNER_AUTH_FILE,
+			},
+			dependencies: ['setup-owner'],
+			testMatch: ['**/owner/**/*.spec.ts'], // Owner tests for cross-browser
+		},
+
+		// ─────────────────────────────────────────
+		// MOBILE: Responsive testing (owner tests only)
+		// ─────────────────────────────────────────
 		{
 			name: 'mobile-chrome',
 			use: {
 				...devices['Pixel 5'],
-				storageState: 'playwright/.auth/owner.json',
+				storageState: OWNER_AUTH_FILE,
 			},
-			dependencies: ['setup'],
-			testMatch: ['**/*public.spec.ts'],
+			dependencies: ['setup-owner'],
+			testMatch: ['**/owner/**/*.spec.ts'], // Owner tests for responsive
 		},
 	],
 
-	// Auto-start development servers
-	// TEMPORARILY DISABLED - servers already running manually
-	// webServer: [
-	// 	{
-	// 		command: 'doppler run -- pnpm --filter @repo/backend dev',
-	// 		url: 'http://localhost:4600',
-	// 		timeout: 120000,
-	// 		reuseExistingServer: true,
-	// 		stdout: 'ignore',
-	// 		stderr: 'pipe',
-	// 	},
-	// 	{
-	// 		command: 'doppler run -- pnpm --filter @repo/frontend dev',
-	// 		url: 'http://localhost:3000',
-	// 		timeout: 120000,
-	// 		reuseExistingServer: true,
-	// 		stdout: 'ignore',
-	// 		stderr: 'pipe',
-	// 		env: {
-	// 			// Explicitly pass through Supabase env vars for Next.js
-	// 			// Doppler provides SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
-	// 			// Next.js needs NEXT_PUBLIC_* versions for client-side access
-	// 			NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
-	// 			NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '',
-	// 			SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-	// 			SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '',
-	// 		},
-	// 	}
-	// ],
+	// ===================
+	// Web Server
+	// @see https://playwright.dev/docs/test-webserver
+	//
+	// Uses dedicated ports (3050, 4650) to avoid conflicts
+	// with development servers (3001, 4600)
+	// ===================
+	webServer: [
+		{
+			command: `doppler run -- pnpm --filter @repo/backend dev --port ${TEST_BACKEND_PORT}`,
+			url: `${TEST_BACKEND_URL}/health/ping`,
+			timeout: 120_000,
+			reuseExistingServer: !process.env.CI,
+			stdout: 'pipe',
+			stderr: 'pipe',
+			env: {
+				PORT: String(TEST_BACKEND_PORT),
+			},
+		},
+		{
+			// Override API URL AFTER doppler injects its secrets
+			// bash -c ensures our export happens AFTER doppler injection
+			command: `cd apps/frontend && rm -rf .next && doppler run -- bash -c "export NEXT_PUBLIC_API_BASE_URL=${TEST_BACKEND_URL} && exec next dev --webpack --port ${TEST_FRONTEND_PORT}"`,
+			url: TEST_FRONTEND_URL,
+			timeout: 120_000,
+			reuseExistingServer: !process.env.CI,
+			stdout: 'pipe',
+			stderr: 'pipe',
+			cwd: '/Users/richard/Developer/tenant-flow',
+		},
+	],
 
-	// Output directory
+	// ===================
+	// Output
+	// ===================
 	outputDir: 'test-results/',
 })

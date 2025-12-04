@@ -10,9 +10,14 @@ import {
 import { Button } from '#components/ui/button'
 import { Calendar, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 
-type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
+// Extended type with optional relations for display
+type MaintenanceRequestWithRelations = MaintenanceRequest & {
+	property?: { name: string } | null
+	unit?: { name: string } | null
+	assignedTo?: { name: string } | null
+}
 
 const PRIORITY_VARIANTS: Record<
 	string,
@@ -25,7 +30,7 @@ const PRIORITY_VARIANTS: Record<
 }
 
 interface MaintenanceCardProps {
-	request: MaintenanceRequest
+	request: MaintenanceRequestWithRelations
 	isDragging?: boolean
 }
 

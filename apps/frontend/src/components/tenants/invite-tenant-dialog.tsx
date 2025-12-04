@@ -12,7 +12,7 @@ import {
 } from '#components/ui/crud-dialog'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -60,13 +60,13 @@ export function InviteTenantDialog({
 			if (property_id) params.property_id = property_id
 			if (lease_id) params.lease_id = lease_id
 
-			const invitationResponse = await clientFetch<{
-				success: boolean
-				message?: string
-			}>(`/api/v1/tenants/${tenant_id}/send-invitation-v2`, {
-				method: 'POST',
-				body: JSON.stringify(params)
-			})
+			const invitationResponse = await apiRequest<{ success: boolean; message?: string }>(
+				`/api/v1/tenants/${tenant_id}/send-invitation-v2`,
+				{
+					method: 'POST',
+					body: JSON.stringify(params)
+				}
+			)
 
 			const logContext: Record<string, unknown> = {
 				tenant_id,
@@ -154,7 +154,7 @@ export function InviteTenantDialog({
 								<li>Tenant sets password & completes onboarding</li>
 								<li>Tenant accesses their portal automatically</li>
 							</ol>
-							<p className="text-xs text-muted-foreground mt-2">
+							<p className="text-caption mt-2">
 								Note: Invitation uses secure token authentication. You can
 								resend if it expires.
 							</p>

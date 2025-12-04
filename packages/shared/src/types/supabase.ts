@@ -1778,6 +1778,38 @@ export type Database = {
         }[]
       }
       user_is_tenant: { Args: never; Returns: boolean }
+      acquire_webhook_event_lock_with_id: {
+        Args: {
+          p_webhook_source: string
+          p_external_id: string
+          p_event_type: string
+          p_raw_payload?: Json
+        }
+        Returns: {
+          lock_acquired: boolean
+          webhook_event_id: string
+        }[]
+      }
+      upsert_rent_payment: {
+        Args: {
+          p_lease_id: string
+          p_tenant_id: string
+          p_amount: number
+          p_currency: string
+          p_status: string
+          p_due_date: string
+          p_paid_date: string | null
+          p_period_start: string
+          p_period_end: string
+          p_payment_method_type: string
+          p_stripe_payment_intent_id: string
+          p_application_fee_amount?: number
+        }
+        Returns: {
+          id: string
+          was_inserted: boolean
+        }[]
+      }
     }
     Enums: {
       invitation_type: "platform_access" | "lease_signing"

@@ -6,7 +6,7 @@ export default function Footer() {
 		<footer className="bg-background py-(--spacing-4)">
 			<div className="max-w-7xl mx-auto px-(--spacing-4)">
 			<div
-				className="flex justify-center items-center gap-(--spacing-8) text-muted-foreground"
+				className="flex justify-center items-center gap-8 text-muted-foreground"
 				style={{ fontSize: 'var(--text-sm)' }}
 			>
 					<div className="flex items-center space-x-2">

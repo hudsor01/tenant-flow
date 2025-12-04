@@ -1,38 +1,41 @@
+'use client'
+
+import { use } from 'react'
 import { LeaseForm } from '#components/leases/lease-form.client'
 import { RouteModal } from '#components/ui/route-modal'
-import { serverFetch } from '#lib/api/server'
-import type { Lease } from '@repo/shared/types/core'
+import { Skeleton } from '#components/ui/skeleton'
+import { leaseQueries } from '#hooks/api/queries/lease-queries'
+import { useQuery } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 
 /**
  * Edit Lease Modal (Intercepting Route)
  */
-export default async function EditLeaseModal({
+export default function EditLeaseModal({
 	params
 }: {
 	params: Promise<{ id: string }>
 }) {
-	const { id } = await params
+	const { id } = use(params)
+	const { data: lease, isLoading, error } = useQuery(leaseQueries.detail(id))
 
-	try {
-		const lease = await serverFetch<Lease>(`/api/v1/leases/${id}`)
-
-		if (!lease?.id) {
-			notFound()
-		}
-
-		return (
-			<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
-				<div className="space-y-6">
-					<div className="space-y-2">
-						<h2 className="text-2xl font-bold">Edit Lease</h2>
-						<p className="text-muted-foreground">Update lease details</p>
-					</div>
-					<LeaseForm mode="edit" lease={lease} />
-				</div>
-			</RouteModal>
-		)
-	} catch {
+	if (error) {
 		notFound()
 	}
+
+	return (
+		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+			<div className="space-y-6">
+				<div className="space-y-2">
+					<h2 className="text-2xl font-bold">Edit Lease</h2>
+					<p className="text-muted-foreground">Update lease details</p>
+				</div>
+				{isLoading ? (
+					<Skeleton className="h-96 w-full rounded-xl" />
+				) : lease ? (
+					<LeaseForm mode="edit" lease={lease} />
+				) : null}
+			</div>
+		</RouteModal>
+	)
 }

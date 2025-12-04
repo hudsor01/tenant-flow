@@ -74,23 +74,6 @@ vi.mock('#hooks/api/use-unit', () => ({
 	})
 }))
 
-vi.mock('#lib/api/client', () => ({
-	clientFetch: vi.fn().mockResolvedValue([
-		{
-			id: 'unit-1',
-			unit_number: '101',
-			property_id: 'property-1',
-			status: 'VACANT'
-		},
-		{
-			id: 'unit-2',
-			unit_number: '102',
-			property_id: 'property-1',
-			status: 'OCCUPIED'
-		}
-	])
-}))
-
 const mockLease: Lease = {
   id: 'lease-1',
   unit_id: 'unit-1',

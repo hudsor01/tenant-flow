@@ -6,7 +6,8 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	IncomeStatementData,
@@ -44,7 +45,7 @@ export function useIncomeStatement(params: {
 				start_date: params.start_date,
 				end_date: params.end_date
 			})
-			return clientFetch<ApiResponse<IncomeStatementData>>(
+			return apiRequest<ApiResponse<IncomeStatementData>>(
 				`/api/v1/financials/income-statement?${searchParams.toString()}`
 			)
 		},
@@ -66,7 +67,7 @@ export function useCashFlow(params: { start_date: string; end_date: string }) {
 				start_date: params.start_date,
 				end_date: params.end_date
 			})
-			return clientFetch<ApiResponse<CashFlowData>>(
+			return apiRequest<ApiResponse<CashFlowData>>(
 				`/api/v1/financials/cash-flow?${searchParams.toString()}`
 			)
 		},
@@ -87,7 +88,7 @@ export function useBalanceSheet(asOfDate: string) {
 			const searchParams = new URLSearchParams({
 				asOfDate
 			})
-			return clientFetch<ApiResponse<BalanceSheetData>>(
+			return apiRequest<ApiResponse<BalanceSheetData>>(
 				`/api/v1/financials/balance-sheet?${searchParams.toString()}`
 			)
 		},

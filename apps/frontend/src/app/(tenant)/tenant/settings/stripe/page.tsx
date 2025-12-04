@@ -5,7 +5,7 @@ import { StripeConnectStatus } from '../stripe-connect-onboarding'
 
 export default function StripeConnectPage() {
        return (
-	       <div className="flex flex-1 flex-col gap-(--spacing-4) p-4 lg:gap-(--spacing-6) lg:p-6">
+	       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 		       <div className="flex-between">
 			       <div>
 				       <h1 className="text-3xl font-bold text-foreground">

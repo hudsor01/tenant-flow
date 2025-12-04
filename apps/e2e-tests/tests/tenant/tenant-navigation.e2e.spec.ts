@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ROUTES } from '../../constants/routes'
-import { loginAsTenant } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import {
   clickSidebarLink,
   verifyCurrentPage,
@@ -12,6 +11,10 @@ import { takePageScreenshot } from '../helpers/ui-validation-helpers'
 
 /**
  * Tenant Navigation E2E Tests
+ *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
  *
  * Tests all sidebar navigation links for the tenant portal:
  * - Dashboard
@@ -30,7 +33,6 @@ import { takePageScreenshot } from '../helpers/ui-validation-helpers'
  */
 
 test.describe('Tenant Navigation', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
   const logger = createLogger({ component: 'TenantNavigationE2E' })
 
   // Define all navigation links to test
@@ -58,10 +60,7 @@ test.describe('Tenant Navigation', () => {
     { name: 'Settings', path: '/tenant/settings', expectedHeading: 'Settings' },
   ]
 
-  test.beforeEach(async ({ page }) => {
-    // Login as tenant before each test
-    await loginAsTenant(page)
-  })
+  // Auth provided via storageState - no beforeEach login needed
 
   // Test each navigation link
   for (const link of tenantNavigationLinks) {
@@ -70,7 +69,7 @@ test.describe('Tenant Navigation', () => {
       const { errors, networkErrors } = setupErrorMonitoring(page)
 
       // Navigate directly via URL (faster than clicking sidebar)
-      await page.goto(`${baseUrl}${link.path}`)
+      await page.goto(link.path)
 
       // Verify page is fully loaded
       await verifyPageLoaded(page, link.path, link.expectedHeading)
@@ -120,11 +119,11 @@ test.describe('Tenant Navigation', () => {
     await page.waitForTimeout(500) // Wait for expansion animation
 
     // Navigate to Payment Methods
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_METHODS}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_METHODS)
     await verifyPageLoaded(page, ROUTES.TENANT_PAYMENTS_METHODS, 'Payment Methods')
 
     // Navigate to Payment History
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_HISTORY}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
     await verifyPageLoaded(page, ROUTES.TENANT_PAYMENTS_HISTORY, 'Payment History')
   })
 
@@ -164,7 +163,7 @@ test.describe('Tenant Navigation', () => {
 
   test('should maintain active state on current page', async ({ page }) => {
     // Navigate to Profile
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PROFILE}`)
+    await page.goto(ROUTES.TENANT_PROFILE)
     await page.waitForLoadState('networkidle')
 
     // Check if Profile link has active state
@@ -187,11 +186,11 @@ test.describe('Tenant Navigation', () => {
 
   test('should handle browser back/forward navigation', async ({ page }) => {
     // Navigate to Profile
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PROFILE}`)
+    await page.goto(ROUTES.TENANT_PROFILE)
     await verifyPageLoaded(page, ROUTES.TENANT_PROFILE, 'My Profile')
 
     // Navigate to Lease
-    await page.goto(`${baseUrl}${ROUTES.TENANT_LEASE}`)
+    await page.goto(ROUTES.TENANT_LEASE)
     await verifyPageLoaded(page, ROUTES.TENANT_LEASE, 'My Lease')
 
     // Go back
@@ -206,7 +205,7 @@ test.describe('Tenant Navigation', () => {
   })
 
   test('should navigate to new maintenance request page', async ({ page }) => {
-    await page.goto(`${baseUrl}${ROUTES.TENANT_MAINTENANCE_NEW}`)
+    await page.goto(ROUTES.TENANT_MAINTENANCE_NEW)
     await verifyPageLoaded(page, ROUTES.TENANT_MAINTENANCE_NEW, 'New Maintenance Request')
   })
 
@@ -219,7 +218,7 @@ test.describe('Tenant Navigation', () => {
     ]
 
     for (const route of ownerRoutes) {
-      await page.goto(`${baseUrl}${route}`)
+      await page.goto(route)
       await page.waitForTimeout(2000)
 
       // Should either redirect to tenant portal or show unauthorized
@@ -261,7 +260,7 @@ test.describe('Tenant Navigation', () => {
 
   test('should verify quick actions are available on dashboard', async ({ page }) => {
     // Navigate to dashboard
-    await page.goto(`${baseUrl}${ROUTES.TENANT_DASHBOARD}`)
+    await page.goto(ROUTES.TENANT_DASHBOARD)
     await page.waitForLoadState('networkidle')
 
     // Look for common quick action buttons (if they exist)
@@ -294,7 +293,7 @@ test.describe('Tenant Navigation', () => {
 
   test('should verify breadcrumb navigation if present', async ({ page }) => {
     // Navigate to a nested route
-    await page.goto(`${baseUrl}${ROUTES.TENANT_PAYMENTS_HISTORY}`)
+    await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
     await page.waitForLoadState('networkidle')
 
     // Check if breadcrumbs exist

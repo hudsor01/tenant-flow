@@ -18,8 +18,8 @@ describe('Mobile-First Responsive Design', () => {
 
 			const button = screen.getByRole('button')
 
-			// Check that the button has touch-friendly min-height class
-			expect(button).toHaveClass('min-h-[2.75rem]')
+			// Check that the button has touch-friendly min-height class (min-h-11 = 2.75rem = 44px)
+			expect(button).toHaveClass('min-h-11')
 		})
 
 		test('quick action links have minimum 44px touch target height', () => {

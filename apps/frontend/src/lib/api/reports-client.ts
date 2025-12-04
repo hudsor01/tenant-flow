@@ -1,5 +1,4 @@
-import { getApiBaseUrl } from '@repo/shared/utils/api-utils'
-import { getAuthHeaders } from './client'
+import { apiRequestRaw } from '#lib/api-request'
 
 export type ReportType =
 	| 'executive-monthly'
@@ -30,14 +29,13 @@ export const reportsClient = {
 		params: GenerateReportParams
 	): Promise<void> {
 		const format = params.format || 'pdf'
-		const apiBaseUrl = getApiBaseUrl()
-		const endpoint = `${apiBaseUrl}/reports/generate/${reportType}`
 
 		// Fetch binary data
-		const response = await fetch(endpoint, {
+		const response = await apiRequestRaw(`/reports/generate/${reportType}`, {
 			method: 'POST',
-			credentials: 'include',
-			headers: await getAuthHeaders(),
+			headers: {
+				'Content-Type': 'application/json'
+			},
 			body: JSON.stringify({
 				user_id: params.user_id,
 				start_date: params.start_date,
@@ -45,16 +43,6 @@ export const reportsClient = {
 				format
 			})
 		})
-
-		if (!response.ok) {
-			const { ApiErrorCode, createApiErrorFromResponse } = await import(
-				'@repo/shared/utils/api-error'
-			)
-			throw createApiErrorFromResponse(
-				response,
-				ApiErrorCode.REPORT_GENERATION_FAILED
-			)
-		}
 
 		// Create blob from binary response
 		const blob = await response.blob()

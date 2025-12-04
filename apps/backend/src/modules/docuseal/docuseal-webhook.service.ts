@@ -38,24 +38,49 @@ export class DocuSealWebhookService {
 
 		const client = this.supabase.getAdminClient()
 
-		// Find lease by DocuSeal submission ID
-		const { data: lease, error } = await client
+		// Find lease by DocuSeal submission ID first, then fallback to metadata.lease_id
+		let lease: { id: string; lease_status: string; owner_signed_at: string | null; tenant_signed_at: string | null } | null = null
+
+		// Try docuseal_submission_id first
+		const { data: leaseBySubmission, error: submissionError } = await client
 			.from('leases')
 			.select('id, lease_status, owner_signed_at, tenant_signed_at')
 			.eq('docuseal_submission_id', String(data.submission_id))
-			.single()
+			.maybeSingle()
 
-		if (error) {
-			this.logger.error('Database error querying lease', {
+		if (submissionError) {
+			this.logger.error('Database error querying lease by submission_id', {
 				submissionId: data.submission_id,
-				error: error.message
+				error: submissionError.message
 			})
-			throw new InternalServerErrorException(`Database error: ${error.message}`)
+			throw new InternalServerErrorException(`Database error: ${submissionError.message}`)
+		}
+
+		lease = leaseBySubmission
+
+		// Fallback to metadata.lease_id if not found
+		if (!lease && data.metadata?.lease_id) {
+			const { data: leaseById, error: leaseIdError } = await client
+				.from('leases')
+				.select('id, lease_status, owner_signed_at, tenant_signed_at')
+				.eq('id', data.metadata.lease_id)
+				.maybeSingle()
+
+			if (leaseIdError) {
+				this.logger.error('Database error querying lease by metadata.lease_id', {
+					leaseId: data.metadata.lease_id,
+					error: leaseIdError.message
+				})
+				throw new InternalServerErrorException(`Database error: ${leaseIdError.message}`)
+			}
+
+			lease = leaseById
 		}
 
 		if (!lease) {
 			this.logger.warn('Lease not found for DocuSeal submission', {
-				submissionId: data.submission_id
+				submissionId: data.submission_id,
+				metadataLeaseId: data.metadata?.lease_id
 			})
 			return
 		}
@@ -131,24 +156,49 @@ export class DocuSealWebhookService {
 
 		const client = this.supabase.getAdminClient()
 
-		// Find lease by DocuSeal submission ID
-		const { data: lease, error } = await client
+		// Find lease by DocuSeal submission ID first, then fallback to metadata.lease_id
+		let lease: { id: string; lease_status: string } | null = null
+
+		// Try docuseal_submission_id first
+		const { data: leaseBySubmission, error: submissionError } = await client
 			.from('leases')
 			.select('id, lease_status')
 			.eq('docuseal_submission_id', String(data.id))
-			.single()
+			.maybeSingle()
 
-		if (error) {
-			this.logger.error('Database error querying lease', {
+		if (submissionError) {
+			this.logger.error('Database error querying lease by submission_id', {
 				submissionId: data.id,
-				error: error.message
+				error: submissionError.message
 			})
-			throw new InternalServerErrorException(`Database error: ${error.message}`)
+			throw new InternalServerErrorException(`Database error: ${submissionError.message}`)
+		}
+
+		lease = leaseBySubmission
+
+		// Fallback to metadata.lease_id if not found
+		if (!lease && data.metadata?.lease_id) {
+			const { data: leaseById, error: leaseIdError } = await client
+				.from('leases')
+				.select('id, lease_status')
+				.eq('id', data.metadata.lease_id)
+				.maybeSingle()
+
+			if (leaseIdError) {
+				this.logger.error('Database error querying lease by metadata.lease_id', {
+					leaseId: data.metadata.lease_id,
+					error: leaseIdError.message
+				})
+				throw new InternalServerErrorException(`Database error: ${leaseIdError.message}`)
+			}
+
+			lease = leaseById
 		}
 
 		if (!lease) {
 			this.logger.warn('Lease not found for DocuSeal submission', {
-				submissionId: data.id
+				submissionId: data.id,
+				metadataLeaseId: data.metadata?.lease_id
 			})
 			return
 		}

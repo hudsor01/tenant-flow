@@ -1,4 +1,4 @@
-import { glowingEffectClasses, glowingEffectBlurClasses } from '#lib/design-system'
+import { cn } from '#lib/utils'
 import React from 'react'
 
 interface GlowingEffectProps {
@@ -15,9 +15,9 @@ export function GlowingEffect({
 	glowOpacity = 0.4
 }: GlowingEffectProps) {
 	return (
-		<div data-tokens="applied" className={glowingEffectClasses(glowOpacity, className)}>
+		<div data-tokens="applied" className={cn('relative', className)}>
 			<div
-				className={glowingEffectBlurClasses()}
+				className="glowing-effect-blur"
 				style={{
 					background: glowColor,
 					opacity: glowOpacity,

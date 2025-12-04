@@ -147,13 +147,11 @@ describe('CSS Variables Integration', () => {
 			expect(foreground).not.toBe(background)
 		})
 
-		it('should support focus ring variables', () => {
+		it('should support focus ring color variable', () => {
 			const rootStyles = window.getComputedStyle(document.documentElement)
 			const focusRingColor = rootStyles.getPropertyValue('--color-ring')
-			const focusRingWidth = rootStyles.getPropertyValue('--focus-ring-width')
 
 			expect(focusRingColor).toBeTruthy()
-			expect(focusRingWidth).toBeTruthy()
 		})
 	})
 

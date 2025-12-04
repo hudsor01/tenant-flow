@@ -2,7 +2,8 @@
  * TanStack Query hooks for Stripe Connect API
  * Phase 6: Frontend Integration for owner Payment Collection
  */
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe'
@@ -41,7 +42,7 @@ export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
 		queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
-			const response = await clientFetch<ConnectAccountResponse>(
+			const response = await apiRequest<ConnectAccountResponse>(
 				'/api/v1/stripe/connect/account'
 			)
 			return response.data
@@ -62,7 +63,7 @@ export function useCreateConnectedAccount() {
 		mutationFn: async (
 			request: CreateConnectAccountRequest
 		): Promise<ConnectAccountResponse> => {
-		return clientFetch('/api/v1/stripe/connect/onboard', {
+		return apiRequest('/api/v1/stripe/connect/onboard', {
 				method: 'POST',
 				body: JSON.stringify(request)
 			})
@@ -80,7 +81,7 @@ export function useCreateConnectedAccount() {
 export function useRefreshOnboarding() {
 	return useMutation({
 		mutationFn: async (): Promise<OnboardingUrlResponse> => {
-		return clientFetch<OnboardingUrlResponse>(
+		return apiRequest<OnboardingUrlResponse>(
 			'/api/v1/stripe/connect/refresh-link',
 				{
 					method: 'POST'
@@ -100,7 +101,7 @@ export function usePrefetchConnectedAccount() {
 		queryClient.prefetchQuery({
 			queryKey: stripeConnectKeys.account(),
 			queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
-				const response = await clientFetch<ConnectAccountResponse>(
+				const response = await apiRequest<ConnectAccountResponse>(
 					'/api/v1/stripe/connect/account'
 				)
 				return response.data
@@ -180,7 +181,7 @@ export function useConnectedAccountBalance() {
 	return useQuery({
 		queryKey: stripePayoutKeys.balance(),
 		queryFn: async (): Promise<BalanceResponse['balance']> => {
-			const response = await clientFetch<BalanceResponse>(
+			const response = await apiRequest<BalanceResponse>(
 				'/api/v1/stripe/connect/balance'
 			)
 			return response.balance
@@ -204,7 +205,7 @@ export function useConnectedAccountPayouts(params?: {
 			if (params?.limit) queryString.set('limit', params.limit.toString())
 			if (params?.starting_after) queryString.set('starting_after', params.starting_after)
 			const query = queryString.toString()
-			const response = await clientFetch<PayoutsResponse>(
+			const response = await apiRequest<PayoutsResponse>(
 				`/api/v1/stripe/connect/payouts${query ? `?${query}` : ''}`
 			)
 			return { payouts: response.payouts, hasMore: response.hasMore }
@@ -228,7 +229,7 @@ export function useConnectedAccountTransfers(params?: {
 			if (params?.limit) queryString.set('limit', params.limit.toString())
 			if (params?.starting_after) queryString.set('starting_after', params.starting_after)
 			const query = queryString.toString()
-			const response = await clientFetch<TransfersResponse>(
+			const response = await apiRequest<TransfersResponse>(
 				`/api/v1/stripe/connect/transfers${query ? `?${query}` : ''}`
 			)
 			return { transfers: response.transfers, hasMore: response.hasMore }

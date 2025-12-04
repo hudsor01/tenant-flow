@@ -12,11 +12,11 @@
  */
 
 import { test, expect, type Page } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
+import { ROUTES } from '../constants/routes'
 import { loginAsOwner, loginAsTenant } from '../../auth-helpers'
 
 test.describe('Lease Signature Flow', () => {
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	// E2E_API_BASE_URL takes precedence for E2E tests, then NEXT_PUBLIC_API_BASE_URL, then localhost fallback
 	const apiUrl = process.env.E2E_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 

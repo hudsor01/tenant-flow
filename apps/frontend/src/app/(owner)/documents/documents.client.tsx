@@ -24,7 +24,7 @@ export default function DocumentsClient() {
 				</div>
 			</div>
 
-			<div className="grid gap-(--spacing-6) md:grid-cols-2">
+			<div className="grid gap-6 md:grid-cols-2">
 				{/* Lease Agreement Template */}
 				<Card className="transition-all hover:shadow-md">
 					<CardHeader>

@@ -2,10 +2,11 @@
  * Lease Mutation Options (TanStack Query v5 Pattern)
  *
  * Modern mutation patterns with proper error handling and cache invalidation.
+ * Uses native fetch for NestJS calls.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import type { CreateLeaseInput, UpdateLeaseInput } from '@repo/shared/types/api-contracts'
 import type { Lease } from '@repo/shared/types/core'
 import { leaseQueries } from '../queries/lease-queries'
@@ -13,6 +14,7 @@ import { tenantQueries } from '../queries/tenant-queries'
 import { unitQueries } from '../queries/unit-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
+
 
 /**
  * Create lease mutation
@@ -22,7 +24,7 @@ export function useCreateLeaseMutation() {
 
 	return useMutation({
 		mutationFn: (data: CreateLeaseInput) =>
-			clientFetch<Lease>('/api/v1/leases', {
+			apiRequest<Lease>('/api/v1/leases', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
@@ -47,7 +49,7 @@ export function useUpdateLeaseMutation() {
 
 	return useMutation({
 		mutationFn: ({ id, data, version }: { id: string; data: UpdateLeaseInput; version?: number }) =>
-			clientFetch<Lease>(`/api/v1/leases/${id}`, {
+			apiRequest<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)
 			}),
@@ -77,7 +79,7 @@ export function useTerminateLeaseMutation() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch<Lease>(`/api/v1/leases/${id}/terminate`, {
+			apiRequest<Lease>(`/api/v1/leases/${id}/terminate`, {
 				method: 'POST'
 			}),
 		onSuccess: (_terminatedLease) => {
@@ -100,7 +102,7 @@ export function useRenewLeaseMutation() {
 
 	return useMutation({
 		mutationFn: ({ id, data }: { id: string; data: { end_date: string } }) =>
-			clientFetch<Lease>(`/api/v1/leases/${id}/renew`, {
+			apiRequest<Lease>(`/api/v1/leases/${id}/renew`, {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
@@ -126,7 +128,7 @@ export function useDeleteLeaseMutation() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch(`/api/v1/leases/${id}`, {
+			apiRequest(`/api/v1/leases/${id}`, {
 				method: 'DELETE'
 			}),
 		onSuccess: (_result, deletedId) => {
@@ -156,7 +158,7 @@ export function useSendForSignatureMutation() {
 
 	return useMutation({
 		mutationFn: ({ id, message }: { id: string; message?: string }) =>
-			clientFetch<{ success: boolean }>(`/api/v1/leases/${id}/send-for-signature`, {
+			apiRequest<{ success: boolean }>(`/api/v1/leases/${id}/send-for-signature`, {
 				method: 'POST',
 				body: JSON.stringify({ message })
 			}),
@@ -181,7 +183,7 @@ export function useSignLeaseAsOwnerMutation() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch<{ success: boolean }>(`/api/v1/leases/${id}/sign/owner`, {
+			apiRequest<{ success: boolean }>(`/api/v1/leases/${id}/sign/owner`, {
 				method: 'POST'
 			}),
 		onSuccess: (_result, id) => {
@@ -205,7 +207,7 @@ export function useSignLeaseAsTenantMutation() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch<{ success: boolean }>(`/api/v1/leases/${id}/sign/tenant`, {
+			apiRequest<{ success: boolean }>(`/api/v1/leases/${id}/sign/tenant`, {
 				method: 'POST'
 			}),
 		onSuccess: (_result, id) => {

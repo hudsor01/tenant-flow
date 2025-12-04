@@ -52,7 +52,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					</BlurFade>
 
 					<BlurFade delay={0.3} inView>
-						<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center mb-12">
+						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
 							<Button
 								size="lg"
 								className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-xl font-semibold px-12 py-6"
@@ -81,7 +81,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 					</BlurFade>
 
 					<BlurFade delay={0.4} inView>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-6) text-center max-w-3xl mx-auto">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-3xl mx-auto">
 							<div className="flex flex-col items-center">
 								<Check className="size-6 text-accent mb-2" />
 								<span className="text-sm font-medium text-muted-foreground">

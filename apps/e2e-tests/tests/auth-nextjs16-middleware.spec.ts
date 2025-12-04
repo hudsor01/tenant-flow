@@ -18,7 +18,7 @@
 import { expect, test } from '@playwright/test'
 import { loginAsOwner, clearSessionCache } from '../auth-helpers'
 
-const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 test.describe('Next.js 16 Proxy - Route Protection', () => {
 	test.beforeEach(async ({ context }) => {

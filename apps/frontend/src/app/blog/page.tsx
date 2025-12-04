@@ -25,7 +25,7 @@ export default function BlogPage() {
 			{/* Navigation */}
 			<Navbar />
 
-			<main className="flex-1">
+			<main className="flex-1 page-offset-navbar">
 				{/* Hero Section */}
 				<HeroSection
 					title="Free guides to save"
@@ -57,7 +57,7 @@ export default function BlogPage() {
 										save $2,400+ per property annually. Includes templates,
 										calculators, and step-by-step automation workflows.
 									</p>
-									<div className="flex items-center gap-(--spacing-6) mb-6">
+									<div className="flex items-center gap-6 mb-6">
 										<div className="flex items-center gap-2">
 											<Clock className="size-4 text-accent" />
 											<span className="text-muted">
@@ -85,7 +85,7 @@ export default function BlogPage() {
 											Average NOI Increase
 										</p>
 
-										<div className="grid grid-cols-2 gap-(--spacing-4) text-sm">
+										<div className="grid grid-cols-2 gap-4 text-sm">
 											<div>
 												<div className="text-2xl font-bold text-accent mb-1">
 													65%
@@ -240,7 +240,7 @@ export default function BlogPage() {
 							automation, cost reduction, and revenue optimization delivered to
 							their inbox.
 						</p>
-						<div className="flex flex-col sm:flex-row gap-(--spacing-4) max-w-md mx-auto">
+						<div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
 							<input
 								type="email"
 								placeholder="Enter your email address"

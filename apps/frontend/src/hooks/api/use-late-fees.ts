@@ -6,7 +6,8 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { leaseQueries } from './queries/lease-queries'
 import { rentPaymentKeys } from './use-rent-payments'
@@ -40,7 +41,7 @@ export function useUpdateLateFeeConfig() {
 			gracePeriodDays?: number
 			flatFeeAmount?: number
 		}) =>
-			clientFetch<{ success: boolean; message: string }>(
+			apiRequest<{ success: boolean; message: string }>(
 				`/api/v1/late-fees/lease/${lease_id}/config`,
 				{
 					method: 'PUT',
@@ -75,7 +76,7 @@ export function useProcessLateFees() {
 
 	return useMutation({
 		mutationFn: (lease_id: string) =>
-			clientFetch<ProcessLateFeesResult>(`/api/v1/late-fees/lease/${lease_id}/process`, {
+			apiRequest<ProcessLateFeesResult>(`/api/v1/late-fees/lease/${lease_id}/process`, {
 				method: 'POST'
 			}),
 		onSuccess: (result: ProcessLateFeesResult, lease_id) => {
@@ -119,7 +120,7 @@ export function useApplyLateFee() {
 			late_fee_amount: number
 			reason: string
 		}) =>
-			clientFetch<ApplyLateFeeResult>(`/api/v1/late-fees/payment/${paymentId}/apply`, {
+			apiRequest<ApplyLateFeeResult>(`/api/v1/late-fees/payment/${paymentId}/apply`, {
 				method: 'POST',
 				body: JSON.stringify({ late_fee_amount, reason })
 			}),

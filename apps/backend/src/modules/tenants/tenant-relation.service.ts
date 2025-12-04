@@ -80,55 +80,36 @@ export class TenantRelationService {
 				return []
 			}
 
-			// Get all property IDs for this owner
+			// Optimized: Single query with nested joins to get all tenant IDs
+			// properties -> units -> leases (with primary_tenant_id)
 			const { data: propertyData, error: propertyError } = await client
 				.from('properties')
-				.select('id')
+				.select('id, units(id, leases(primary_tenant_id))')
 				.eq('property_owner_id', ownerRecord.id)
 
 			if (propertyError || !propertyData) {
 				return []
 			}
 
-			const propertyIds = (propertyData as Array<{ id: string }>).map(
-				(p) => p.id
-			)
-			if (!propertyIds.length) return []
-
-			// Get units for these properties
-			const { data: unitData, error: unitError } = await this.supabase
-				.getAdminClient()
-				.from('units')
-				.select('id')
-				.in('property_id', propertyIds)
-
-			if (unitError || !unitData) {
-				return []
+			// Extract unique tenant IDs from nested structure
+			const tenantIds = new Set<string>()
+			for (const property of propertyData as Array<{
+				id: string
+				units: Array<{
+					id: string
+					leases: Array<{ primary_tenant_id: string | null }>
+				}>
+			}>) {
+				for (const unit of property.units || []) {
+					for (const lease of unit.leases || []) {
+						if (lease.primary_tenant_id) {
+							tenantIds.add(lease.primary_tenant_id)
+						}
+					}
+				}
 			}
 
-			const unitIds = (unitData as Array<{ id: string }>).map((u) => u.id)
-			if (!unitIds.length) return []
-
-			// Get tenant IDs from leases for these units
-			const { data: leaseData, error: leaseError } = await this.supabase
-				.getAdminClient()
-				.from('leases')
-				.select('primary_tenant_id')
-				.in('unit_id', unitIds)
-				.not('primary_tenant_id', 'is', null)
-
-			if (leaseError || !leaseData) {
-				return []
-			}
-
-			// Deduplicate using Set
-			return [
-				...new Set(
-					(
-						(leaseData as Array<{ primary_tenant_id: string }>) || []
-					).map((l) => l.primary_tenant_id)
-				)
-			]
+			return [...tenantIds]
 		} catch (error) {
 			this.logger.error('Error getting tenant IDs for owner', {
 				error: error instanceof Error ? error.message : String(error),

@@ -11,8 +11,8 @@ import {
 } from '#components/ui/dialog'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { BUSINESS_ERROR_CODES } from '@repo/shared/constants/error-codes'
-import { clientFetch } from '#lib/api/client'
-import { ApiErrorCode, isApiError } from '#lib/api/api-error'
+import { apiRequestFormData } from '#lib/api-request'
+import { ApiErrorCode, isApiError } from '@repo/shared/utils/api-error'
 import { AlertCircle, CheckCircle2, FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -76,12 +76,7 @@ export function PropertyBulkImportDialog() {
 		mutationFn: async (uploadFile: File) => {
 			const formData = new FormData()
 			formData.append('file', uploadFile)
-
-			return clientFetch<BulkImportResult>('/api/v1/properties/bulk-import', {
-				method: 'POST',
-				body: formData,
-				omitJsonContentType: true
-			})
+			return apiRequestFormData<BulkImportResult>('/api/v1/properties/bulk-import', formData)
 		},
 		onSuccess: async (data) => {
 			// Invalidate and refetch properties immediately
@@ -222,7 +217,7 @@ export function PropertyBulkImportDialog() {
 									cursor-pointer"
 								/>
 								{file && (
-									<p className="text-xs text-muted-foreground">
+									<p className="text-caption">
 										Selected: {file.name}
 									</p>
 								)}
@@ -245,7 +240,7 @@ export function PropertyBulkImportDialog() {
 						<BulkImportResultPanel result={result} />
 
 						{/* Quick Instructions */}
-						<div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
+						<div className="text-caption bg-muted/50 p-3 rounded-md">
 							<p className="font-medium mb-1">Required columns:</p>
 							<p>name, address, city, state, postal_code</p>
 							<p className="font-medium mt-2 mb-1">Optional columns:</p>

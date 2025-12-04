@@ -24,7 +24,6 @@ import {
 } from '#components/ui/tooltip'
 import { useIsMobile } from '#hooks/use-mobile'
 import { cn } from '#lib/utils'
-import { sidebarContainerClasses, sidebarRailClasses } from '#lib/design-system'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -229,7 +228,12 @@ function Sidebar({
 		>
 			{/* This is what handles the sidebar gap on desktop */}
 			<div
-				className={sidebarContainerClasses(variant, collapsible === 'icon', side, 'group-data-[collapsible=offcanvas]:w-0')}
+				className={cn(
+					'relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
+					collapsible === 'icon' && 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
+					(variant === 'floating' || variant === 'inset') && 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4)+2px)]',
+					'group-data-[collapsible=offcanvas]:w-0'
+				)}
 			/>
 			<div
 				className={cn(
@@ -292,7 +296,12 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 			tabIndex={-1}
 			onClick={toggleSidebar}
 			title="Toggle Sidebar"
-			className={sidebarRailClasses(className)}
+			className={cn(
+				'absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear sm:flex',
+				'hover:after:bg-sidebar-border after:absolute after:inset-y-0 after:left-1/2 after:w-0.5',
+				'group-data-[side=left]:-right-4 group-data-[side=right]:left-0',
+				className
+			)}
 			{...props}
 		/>
 	)

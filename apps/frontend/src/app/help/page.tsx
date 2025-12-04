@@ -35,7 +35,7 @@ export default function HelpPage() {
 			{/* Navigation */}
 			<Navbar />
 
-			<main className="flex-1">
+			<main className="flex-1 page-offset-navbar">
 				{/* Hero Section */}
 				<HeroSection
 					title="We guarantee your success"
@@ -262,7 +262,7 @@ export default function HelpPage() {
 							</p>
 						</div>
 
-						<div className="grid md:grid-cols-2 gap-(--spacing-6)">
+						<div className="grid md:grid-cols-2 gap-6">
 							{[
 								{
 									title: 'How to increase NOI by 40% in 90 days',
@@ -328,7 +328,7 @@ export default function HelpPage() {
 							with TenantFlow. Our experts are standing by to help you get
 							started.
 						</p>
-						<div className="flex flex-col sm:flex-row gap-(--spacing-4) justify-center">
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button size="lg" variant="secondary" className="px-8">
 								Start 14-day transformation
 								<ArrowRight className="size-5 ml-2" />

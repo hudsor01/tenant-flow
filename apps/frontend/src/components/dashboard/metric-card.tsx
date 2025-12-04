@@ -136,7 +136,7 @@ function TrendMetricCard(props: TrendVariantProps) {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">--</div>
-        <p className="text-xs text-muted-foreground">Error loading data</p>
+        <p className="text-caption">Error loading data</p>
       </CardContent>
     </Card>
   )
@@ -180,7 +180,7 @@ function TrendMetricCard(props: TrendVariantProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">--</div>
-            <p className="text-xs text-muted-foreground">{emptyLabel}</p>
+            <p className="text-caption">{emptyLabel}</p>
           </CardContent>
         </Card>
       ) : (
@@ -211,10 +211,10 @@ function TrendMetricCard(props: TrendVariantProps) {
                 {metric.change > 0 && '+'}
                 {(metric.percentChange ?? 0).toFixed(1)}%
               </span>
-              <span className="text-xs text-muted-foreground">{comparisonLabel}</span>
+              <span className="text-caption">{comparisonLabel}</span>
             </div>
             {metric.change !== 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-caption mt-1">
                 {metric.change > 0 ? '+' : ''}
                 {valueFormatter(metric.change ?? 0)} {changeLabel}
               </p>

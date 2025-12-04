@@ -6,7 +6,6 @@ import { ZodValidationPipe } from 'nestjs-zod'
 import request from 'supertest'
 import { PropertiesController } from '../../src/modules/properties/properties.controller'
 import { PropertiesService } from '../../src/modules/properties/properties.service'
-import { PropertyImagesService } from '../../src/modules/properties/services/property-images.service'
 import { PropertyBulkImportService } from '../../src/modules/properties/services/property-bulk-import.service'
 import { PropertyAnalyticsService } from '../../src/modules/properties/services/property-analytics.service'
 import { DashboardService } from '../../src/modules/dashboard/dashboard.service'
@@ -41,12 +40,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 		}
 
 		// Mock additional services required by controller
-		const mockPropertyImagesService = {
-			uploadImages: jest.fn(),
-			deleteImage: jest.fn(),
-			getImages: jest.fn()
-		}
-
 		const mockPropertyBulkImportService = {
 			importProperties: jest.fn(),
 			validateCSV: jest.fn()
@@ -68,10 +61,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				{
 					provide: PropertiesService,
 					useValue: mockPropertiesService
-				},
-				{
-					provide: PropertyImagesService,
-					useValue: mockPropertyImagesService
 				},
 				{
 					provide: PropertyBulkImportService,
@@ -116,7 +105,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
-				property_type: 'apartment',
+				property_type: 'APARTMENT',
 				property_owner_id: '550e8400-e29b-41d4-a716-446655440000',
 				status: 'active',
 				created_at: new Date().toISOString(),
@@ -131,7 +120,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
-				property_type: 'apartment',
+				property_type: 'APARTMENT',
 				property_owner_id: '550e8400-e29b-41d4-a716-446655440000'
 			}
 
@@ -166,7 +155,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Dallas',
 				state: 'TX',
 				postal_code: '75201',
-				property_type: 'single_family',
+				property_type: 'SINGLE_FAMILY',
 				property_owner_id: '550e8400-e29b-41d4-a716-446655440001',
 				status: 'active',
 				created_at: new Date().toISOString(),
@@ -182,7 +171,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: '  Dallas  ',
 				state: 'TX', // State should NOT be trimmed - it must be exactly 2 uppercase letters
 				postal_code: '75201',
-				property_type: 'single_family',
+				property_type: 'SINGLE_FAMILY',
 				property_owner_id: '550e8400-e29b-41d4-a716-446655440001'
 			}
 
@@ -248,7 +237,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
-				property_type: 'apartment'
+				property_type: 'APARTMENT'
 			}
 
 			await request(app.getHttpServer())
@@ -267,7 +256,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'texas', // Should be 'TX'
 				postal_code: '78701',
-				property_type: 'apartment'
+				property_type: 'APARTMENT'
 			}
 
 			await request(app.getHttpServer())
@@ -286,7 +275,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '1234', // Should be 5 or 9 digits
-				property_type: 'apartment'
+				property_type: 'APARTMENT'
 			}
 
 			await request(app.getHttpServer())
@@ -305,7 +294,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'San Antonio',
 				state: 'TX',
 				postal_code: '78205-1234',
-				property_type: 'condo',
+				property_type: 'CONDO',
 				property_owner_id: '550e8400-e29b-41d4-a716-446655440004',
 				status: 'active',
 				created_at: new Date().toISOString(),
@@ -320,7 +309,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'San Antonio',
 				state: 'TX',
 				postal_code: '78205-1234', // ZIP+4 format
-				property_type: 'condo',
+				property_type: 'CONDO',
 				property_owner_id: '550e8400-e29b-41d4-a716-446655440004'
 			}
 
@@ -339,7 +328,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			const mockUpdatedProperty = {
 				id: property_id,
 				name: 'Updated Property',
-				property_type: 'townhouse',
+				property_type: 'TOWNHOUSE',
 				status: 'active'
 			}
 
@@ -347,7 +336,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 
 			const updateBody = {
 				name: 'Updated Property',
-				property_type: 'townhouse'
+				property_type: 'TOWNHOUSE'
 			}
 
 			const response = await request(app.getHttpServer())

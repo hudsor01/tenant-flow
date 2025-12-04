@@ -5,7 +5,6 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { env } from '#config/env'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
@@ -27,9 +26,9 @@ export default function TenantOnboardingPage() {
 
 		const activateTenant = async () => {
 			try {
-			// T3 Env validates these at build time
-			const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-			const supabaseKey = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+			// Use process.env directly for NEXT_PUBLIC_* vars in client components
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
 			// 1. Create Supabase browser client with validated config
 			const supabase = createBrowserClient(supabaseUrl, supabaseKey)
@@ -72,8 +71,10 @@ export default function TenantOnboardingPage() {
 
 				setStatus('activating')
 
-			// T3 Env validates this at build time
-			const apiBaseUrl = env.NEXT_PUBLIC_API_BASE_URL
+			// Use process.env directly for NEXT_PUBLIC_* vars in client components
+			// Falls back to localhost in development, empty string triggers error in production
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ||
+				(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4600')
 
 			// 5. Call backend activation endpoint with authentication
 			const response = await fetch(
@@ -177,8 +178,8 @@ export default function TenantOnboardingPage() {
 				</div>
 
 				{status === 'success' && (
-					<div className="rounded-md bg-green-50 p-4">
-						<p className="text-sm text-green-800">
+					<div className="rounded-md bg-success/10 p-4">
+						<p className="text-sm text-success">
 							Welcome! Your account has been activated successfully.
 						</p>
 					</div>

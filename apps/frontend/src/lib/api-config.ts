@@ -1,26 +1,26 @@
 /**
  * API Configuration - DRY principle
  * Single source of truth for API URL
+ *
+ * - Development: Falls back to localhost:4600
+ * - Production: Requires NEXT_PUBLIC_API_BASE_URL to be set
  */
+
+const DEV_API_URL = 'http://localhost:4600'
 
 /**
- * Get API base URL with environment-aware fallback
- *
- * For local development and E2E tests:
- * - If API URL is production (https://api.tenantflow.app) but frontend is on localhost,
- *   redirect to local backend for testing purposes
- *
- * Uses validated environment variables from the new env system.
+ * Get API base URL from environment
+ * Falls back to localhost in development, throws in production if not set
  */
 export function getApiBaseUrl(): string {
-	let baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!
+	const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ||
+		(process.env.NODE_ENV === 'production' ? undefined : DEV_API_URL)
 
-	// In local development/E2E tests, redirect production API to local backend
-	// This check runs in browser context where window is available
-	if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-		if (baseUrl === 'https://api.tenantflow.app') {
-			baseUrl = 'http://localhost:4600'
-		}
+	if (!baseUrl) {
+		throw new Error(
+			'NEXT_PUBLIC_API_BASE_URL environment variable is required in production. ' +
+			'Set it in your deployment environment.'
+		)
 	}
 
 	return baseUrl
@@ -29,8 +29,5 @@ export function getApiBaseUrl(): string {
 /**
  * API base URL constant
  * For backward compatibility with existing imports
- *
- * Uses NEXT_PUBLIC_API_BASE_URL directly (client-safe)
- * Browser-side redirection handled by getApiBaseUrl() function
  */
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!
+export const API_BASE_URL = getApiBaseUrl()

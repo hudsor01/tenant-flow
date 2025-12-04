@@ -162,7 +162,7 @@ export function RenewLeaseDialog({
 								>
 									New End Date
 								</Label>
-								<div className="flex items-center gap-(--spacing-4)">
+								<div className="flex items-center gap-4">
 									<Calendar className="size-5 text-label-tertiary shrink-0" />
 									<Input
 										id="end-date"
@@ -235,7 +235,7 @@ export function RenewLeaseDialog({
 
 								{showRentIncrease && (
 									<div className="space-y-3">
-										<div className="flex items-center gap-(--spacing-4)">
+										<div className="flex items-center gap-4">
 											<DollarSign className="size-5 text-label-tertiary shrink-0" />
 											<div className="flex-1 relative">
 												<span className="absolute left-3 top-1/2 translate-y-[-50%] text-sm text-label-tertiary">

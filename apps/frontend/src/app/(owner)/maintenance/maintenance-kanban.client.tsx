@@ -21,13 +21,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { toast } from 'sonner'
 import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'
-import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 
 const logger = createLogger({ component: 'MaintenanceKanban' })
 
-type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
+// Extended type with optional relations for display
+type MaintenanceRequestWithRelations = MaintenanceRequest & {
+	property?: { name: string } | null
+	unit?: { name: string } | null
+	assignedTo?: { name: string } | null
+}
 // Define the exact status types that match the database enum
 type Status =
 	| 'OPEN'
@@ -55,13 +60,13 @@ const COLUMNS: {
 ]
 
 interface MaintenanceKanbanProps {
-	initialRequests: MaintenanceRequest[]
+	initialRequests: MaintenanceRequestWithRelations[]
 }
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const [requests, setRequests] =
-		useState<MaintenanceRequest[]>(initialRequests || [])
-	const [activeRequest, setActiveRequest] = useState<MaintenanceRequest | null>(
+		useState<MaintenanceRequestWithRelations[]>(initialRequests || [])
+	const [activeRequest, setActiveRequest] = useState<MaintenanceRequestWithRelations | null>(
 		null
 	)
 	const [, startTransition] = useTransition()
@@ -85,7 +90,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			acc[status].push(request)
 			return acc
 		},
-		{} as Record<Status, MaintenanceRequest[]>
+		{} as Record<Status, MaintenanceRequestWithRelations[]>
 	)
 
 	const handleDragStart = (event: DragStartEvent) => {
@@ -117,7 +122,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		// API update
 		startTransition(async () => {
 			try {
-				await clientFetch(`/api/v1/maintenance/${requestId}`, {
+				await apiRequest<void>(`/api/v1/maintenance/${requestId}`, {
 					method: 'PUT',
 					body: JSON.stringify({
 						status: newStatus,
@@ -150,7 +155,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			onDragEnd={handleDragEnd}
 			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-(--spacing-4)">
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 				{COLUMNS.map(column => {
 					const columnRequests = requestsByStatus[column.id] || []
 					return (

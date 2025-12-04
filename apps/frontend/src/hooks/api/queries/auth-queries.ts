@@ -2,17 +2,14 @@
  * Auth Query Options (TanStack Query v5 Pattern)
  *
  * Single source of truth for auth-related queries.
- * Reusable across components, server components, and prefetching.
+ * Uses native fetch for NestJS calls, Supabase direct for auth.
  */
 
 import { queryOptions } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { AuthSession } from '@repo/shared/types/auth'
+import { apiRequest } from '#lib/api-request'
 import { createClient } from '#utils/supabase/client'
-
-// Create browser client for authentication
-const supabase = createClient()
+import type { AuthSession } from '@repo/shared/types/auth'
 
 /**
  * User type with Stripe integration (from database)
@@ -58,7 +55,7 @@ export const authQueries = {
 	session: () =>
 		queryOptions({
 			queryKey: authKeys.session(),
-			queryFn: () => clientFetch<AuthSession>('/api/v1/auth/session'),
+			queryFn: () => apiRequest<AuthSession>('/api/v1/auth/session'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			retry: false, // Auth failures shouldn't retry
 		}),
@@ -72,13 +69,13 @@ export const authQueries = {
 	user: () =>
 		queryOptions({
 			queryKey: authKeys.me,
-			queryFn: () => clientFetch<User>('/api/v1/users/me'),
+			queryFn: () => apiRequest<User>('/api/v1/users/me'),
 			retry: 1,
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	/**
-	 * Supabase auth user
+	 * Supabase auth user (direct Supabase call - no NestJS)
 	 *
 	 * @example
 	 * const { data } = useQuery(authQueries.supabaseUser())
@@ -87,6 +84,7 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.supabase.user(),
 			queryFn: async () => {
+				const supabase = createClient()
 				const {
 					data: { user },
 					error
@@ -99,7 +97,7 @@ export const authQueries = {
 		}),
 
 	/**
-	 * Supabase auth session
+	 * Supabase auth session (direct Supabase call - no NestJS)
 	 *
 	 * @example
 	 * const { data } = useQuery(authQueries.supabaseSession())
@@ -108,6 +106,7 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.supabase.session(),
 			queryFn: async () => {
+				const supabase = createClient()
 				const {
 					data: { session },
 					error

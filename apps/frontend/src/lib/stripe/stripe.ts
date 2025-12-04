@@ -2,12 +2,13 @@
 
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { env } from '#config/env'
 
 const logger = createLogger({ component: 'StripeClient' })
 
 // Initialize Stripe with publishable key - handle missing env var gracefully
-const publishableKey = env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+// Uses process.env directly for client-side access (NEXT_PUBLIC_ prefix).
+// T3 Env cannot be imported in client components as it contains server-side vars.
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 
 let stripePromise: Promise<Stripe | null>
 

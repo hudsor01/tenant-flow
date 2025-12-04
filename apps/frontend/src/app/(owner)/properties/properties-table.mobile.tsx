@@ -26,7 +26,7 @@ export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTab
 	return (
 		<div className="space-y-3">
 			{!isOnline && (
-				<div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+				<div className="rounded-2xl border border-warning/20 bg-warning/10 px-4 py-2 text-xs text-warning">
 					Offline mode – some actions may be disabled
 				</div>
 			)}
@@ -63,7 +63,7 @@ export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTab
 							</Button>
 						</div>
 
-						<div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+						<div className="mt-3 flex items-center gap-2 text-caption">
 							<Button asChild variant="outline" size="sm">
 								<Link href={`/properties/${property.id}`}>View Details</Link>
 							</Button>

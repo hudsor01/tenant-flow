@@ -1,5 +1,5 @@
 import { BlurFade } from '#components/ui/blur-fade'
-import { cn, sectionFeatureCardClasses, featureCardIconClasses } from '#lib/design-system'
+import { cn } from '#lib/utils'
 import {
 	ArrowLeft,
 	DollarSign,
@@ -78,7 +78,7 @@ export default function FeaturesSectionDemo({
 
 				<div
 					className={cn(
-						'grid gap-(--spacing-8) md:grid-cols-2 lg:grid-cols-3 relative z-10'
+						'grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10'
 					)}
 				>
 					{features.map((feature, index) => (
@@ -100,13 +100,15 @@ interface FeatureProps {
 
 const Feature = ({ title, description, icon }: FeatureProps) => {
 	return (
-		<div className={sectionFeatureCardClasses()}>
+		// section-feature-card styles inlined (group/feature must be on element, not in @apply)
+		<div className="group/feature relative p-6 rounded bg-card/50 border border-border/40 hover:border-primary/15 hover:bg-card/95 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 backdrop-blur-sm hover:-translate-y-0.5">
 			{/* Enhanced hover background glow */}
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/5 rounded pointer-events-none transition-all duration-500 blur-sm" />
 
 			{/* Icon with enhanced animations */}
 			<div className="mb-[var(--spacing-4)] relative z-10">
-				<div className={featureCardIconClasses()}>
+				{/* feature-card-icon styles inlined */}
+				<div className="size-12 rounded bg-primary/10 text-primary flex-center group-hover/feature:bg-primary/20 group-hover/feature:scale-105 transition-all duration-300 group-hover/feature:shadow-lg group-hover/feature:shadow-primary/25">
 					<div className="size-[var(--spacing-6)] group-hover/feature:scale-110 transition-transform duration-300">
 						{icon}
 					</div>

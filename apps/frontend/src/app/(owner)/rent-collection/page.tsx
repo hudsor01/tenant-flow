@@ -138,7 +138,7 @@ function RentCollectionContent() {
 	}
 
 	return (
-		<div className="flex flex-1 flex-col gap-(--spacing-4) p-4 lg:gap-(--spacing-6) lg:p-6">
+		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex-between">
 				<div>
 					<h1 className="text-3xl font-bold text-foreground">
@@ -151,7 +151,7 @@ function RentCollectionContent() {
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid gap-(--spacing-4) md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">
@@ -163,7 +163,7 @@ function RentCollectionContent() {
 						<div className="text-2xl font-bold">
 							${(totalMonthlyRevenue / 100).toFixed(2)}
 						</div>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							From {activeSubscriptions.length} active subscriptions
 						</p>
 					</CardContent>
@@ -180,7 +180,7 @@ function RentCollectionContent() {
 						<div className="text-2xl font-bold">
 							{activeSubscriptions.length}
 						</div>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							Auto-collecting rent
 						</p>
 					</CardContent>
@@ -191,13 +191,13 @@ function RentCollectionContent() {
 						<CardTitle className="text-sm font-medium">
 							Paused Subscriptions
 						</CardTitle>
-						<Pause className="size-4 text-amber-600" />
+						<Pause className="size-4 text-warning" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
 							{pausedSubscriptions.length}
 						</div>
-						<p className="text-xs text-muted-foreground">Temporarily on hold</p>
+						<p className="text-caption">Temporarily on hold</p>
 					</CardContent>
 				</Card>
 
@@ -212,7 +212,7 @@ function RentCollectionContent() {
 						<div className="text-2xl font-bold">
 							{failedAttempts?.length || 0}
 						</div>
-						<p className="text-xs text-muted-foreground">Need attention</p>
+						<p className="text-caption">Need attention</p>
 					</CardContent>
 				</Card>
 			</div>

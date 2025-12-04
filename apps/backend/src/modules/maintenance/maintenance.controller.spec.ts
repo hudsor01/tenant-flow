@@ -105,7 +105,7 @@ describe('MaintenanceController', () => {
 			description: 'Fix',
 			priority: 'MEDIUM' as const,
 			category: 'GENERAL' as const,
-			status: 'PENDING' as const
+			status: 'pending' as const
 		}
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.create.mockResolvedValue(mockMaintenanceRequest)

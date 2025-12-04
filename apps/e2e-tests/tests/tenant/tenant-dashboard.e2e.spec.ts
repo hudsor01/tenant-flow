@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ROUTES } from '../../constants/routes'
-import { loginAsTenant } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
 import {
   verifyTableRenders,
@@ -16,6 +15,10 @@ import {
 /**
  * Tenant Dashboard E2E Tests
  *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ *
  * Comprehensive validation of the tenant dashboard/portal page:
  * - Lease summary card
  * - Upcoming payments widget
@@ -26,15 +29,14 @@ import {
  */
 
 test.describe('Tenant Dashboard', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
   const logger = createLogger({ component: 'TenantDashboardE2E' })
 
   test.beforeEach(async ({ page }) => {
-    // Login as tenant and navigate to dashboard
-    await loginAsTenant(page)
+    // Navigate directly (authenticated via storageState)
+    await page.goto(ROUTES.TENANT_DASHBOARD)
 
-    // Verify we're on tenant dashboard
-    await verifyPageLoaded(page, ROUTES.TENANT_DASHBOARD, 'Tenant Dashboard')
+    // Verify we're on tenant portal (page uses "Tenant Portal" heading)
+    await verifyPageLoaded(page, ROUTES.TENANT_DASHBOARD, 'Tenant Portal')
   })
 
   test('should render tenant dashboard page successfully', async ({ page }) => {
@@ -44,9 +46,9 @@ test.describe('Tenant Dashboard', () => {
     // Verify page loaded
     expect(page.url()).toContain(ROUTES.TENANT_DASHBOARD)
 
-    // Verify heading
+    // Verify heading (page uses "Tenant Portal" heading)
     await expect(
-      page.getByRole('heading', { name: /tenant dashboard|dashboard|home/i })
+      page.getByRole('heading', { name: /tenant portal|portal|dashboard/i })
     ).toBeVisible({ timeout: 10000 })
 
     // Verify no console errors
@@ -278,7 +280,7 @@ test.describe('Tenant Dashboard', () => {
     await verifyLoadingComplete(page)
 
     // Page should load successfully even if no data
-    await expect(page.getByRole('heading', { name: /tenant dashboard|dashboard/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /tenant portal|portal|dashboard/i })).toBeVisible()
 
     // Should not show critical error messages
     const criticalErrors = page.locator('[role="alert"]').filter({ hasText: /error|failed/i })
@@ -346,8 +348,8 @@ test.describe('Tenant Dashboard', () => {
     // Note initial URL
     const dashboardUrl = page.url()
 
-    // Navigate away
-    await page.goto(`${baseUrl}${ROUTES.TENANT_LEASE}`)
+    // Navigate away (use relative path - baseURL is set in playwright config)
+    await page.goto(ROUTES.TENANT_LEASE)
     await page.waitForLoadState('networkidle')
 
     // Navigate back
@@ -355,7 +357,7 @@ test.describe('Tenant Dashboard', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify dashboard loaded again
-    await expect(page.getByRole('heading', { name: /tenant dashboard|dashboard/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /tenant portal|portal|dashboard/i })).toBeVisible({
       timeout: 10000,
     })
   })
@@ -378,14 +380,14 @@ test.describe('Tenant Dashboard', () => {
     await page.waitForTimeout(500)
 
     // Verify dashboard still visible
-    await expect(page.getByRole('heading', { name: /tenant dashboard|dashboard/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /tenant portal|portal|dashboard/i })).toBeVisible()
 
     // Resize to smaller viewport
     await page.setViewportSize({ width: 1024, height: 768 })
     await page.waitForTimeout(500)
 
     // Verify dashboard still visible
-    await expect(page.getByRole('heading', { name: /tenant dashboard|dashboard/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /tenant portal|portal|dashboard/i })).toBeVisible()
   })
 
   test('should verify tenant cannot see owner-specific content', async ({ page }) => {

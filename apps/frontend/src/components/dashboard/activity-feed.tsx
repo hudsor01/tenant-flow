@@ -119,7 +119,7 @@ export const ActivityFeed = React.memo(function ActivityFeed() {
 				<p className="text-sm font-medium text-muted-foreground">
 					No recent activities
 				</p>
-				<p className="text-xs text-muted-foreground">
+				<p className="text-caption">
 					Workflow updates will appear here as they happen.
 				</p>
 			</div>

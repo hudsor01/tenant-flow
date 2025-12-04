@@ -1,12 +1,11 @@
 import { getAllBlogPosts } from '#lib/blog-posts'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MetadataRoute } from 'next'
-import { env } from '#config/env'
 
 const logger = createLogger({ component: 'Sitemap' })
 
 export default function sitemap(): MetadataRoute.Sitemap {
-	const baseUrl = env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
 	const currentDate = new Date().toISOString()
 
 	// High-priority marketing pages

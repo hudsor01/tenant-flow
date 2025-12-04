@@ -1,3 +1,7 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
 import { Badge } from '#components/ui/badge'
 import {
 	Card,
@@ -14,12 +18,79 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { getLeaseAnalyticsPageData } from '#lib/api/analytics-page'
+import { Skeleton } from '#components/ui/skeleton'
+import {
+	Empty,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+	EmptyDescription
+} from '#components/ui/empty'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
+import { FileText } from 'lucide-react'
 import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
 
-export default async function LeaseAnalyticsPage() {
-	const data = await getLeaseAnalyticsPageData()
+function LeaseAnalyticsSkeleton() {
+	return (
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			<section className="border-b bg-background p-6 border-fill-tertiary">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="flex flex-col gap-2">
+						<h1>Lease Analytics</h1>
+						<p className="text-muted-foreground">
+							Understanding profitability, renewals, and upcoming expirations.
+						</p>
+					</div>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i}>
+								<CardHeader>
+									<Skeleton className="h-4 w-24" />
+									<Skeleton className="h-3 w-32" />
+								</CardHeader>
+								<CardContent className="pt-0">
+									<Skeleton className="h-8 w-20" />
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				</div>
+			</section>
+			<section className="flex-1 p-6 pt-6 pb-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+						<Card>
+							<CardHeader>
+								<Skeleton className="h-5 w-32" />
+								<Skeleton className="h-4 w-48" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-64 w-full" />
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader>
+								<Skeleton className="h-5 w-32" />
+								<Skeleton className="h-4 w-40" />
+							</CardHeader>
+							<CardContent>
+								<Skeleton className="h-64 w-full" />
+							</CardContent>
+						</Card>
+					</div>
+				</div>
+			</section>
+		</div>
+	)
+}
+
+export default function LeaseAnalyticsPage() {
+	const { data, isLoading } = useQuery(analyticsQueries.leasePageData())
+
+	if (isLoading) {
+		return <LeaseAnalyticsSkeleton />
+	}
+
 	const {
 		metrics = {
 			totalLeases: 0,
@@ -33,21 +104,59 @@ export default async function LeaseAnalyticsPage() {
 		statusBreakdown = []
 	} = data || {}
 
+	// Show empty state when no meaningful data exists
+	const hasData = metrics.totalLeases > 0 ||
+		metrics.activeLeases > 0 ||
+		profitability.length > 0 ||
+		lifecycle.length > 0
+
+	if (!hasData) {
+		return (
+			<div className="@container/main flex min-h-screen w-full flex-col">
+				<section className="border-b bg-background p-6 border-fill-tertiary">
+					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+						<div className="flex flex-col gap-2">
+							<h1>Lease Analytics</h1>
+							<p className="text-muted-foreground">
+								Understanding profitability, renewals, and upcoming expirations.
+							</p>
+						</div>
+					</div>
+				</section>
+				<section className="flex-1 p-6">
+					<div className="mx-auto max-w-400 px-4 lg:px-6">
+						<Empty className="min-h-96 border">
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<FileText />
+								</EmptyMedia>
+								<EmptyTitle>No lease data yet</EmptyTitle>
+								<EmptyDescription>
+									Create leases for your tenants to start tracking analytics and profitability.
+								</EmptyDescription>
+							</EmptyHeader>
+						</Empty>
+					</div>
+				</section>
+			</div>
+		)
+	}
+
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col">
 			<section
 				className="border-b bg-background p-6 border-fill-tertiary"
 			>
-				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 					<div className="flex flex-col gap-2">
-						<h1 className="text-3xl font-semibold tracking-tight">
+						<h1>
 							Lease Analytics
 						</h1>
 						<p className="text-muted-foreground">
 							Understand profitability, renewals, and upcoming expirations.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 						<Card>
 							<CardHeader>
 								<CardTitle>Total leases</CardTitle>
@@ -100,8 +209,8 @@ export default async function LeaseAnalyticsPage() {
 			</section>
 
 			<section className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-(--spacing-6) lg:grid-cols-2">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 						<Card>
 							<CardHeader>
 								<CardTitle>Lease lifecycle</CardTitle>

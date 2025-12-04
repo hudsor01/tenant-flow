@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner } from '../../auth-helpers'
 
 /**
  * Owner Navigation E2E Tests
+ *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
  *
  * Tests ONLY critical user flows - the happy path.
  * When something breaks in production, add a test for it.
@@ -10,11 +13,9 @@ import { loginAsOwner } from '../../auth-helpers'
  */
 
 test.describe('Owner Core Navigation', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
-  test.beforeEach(async ({ page }) => {
-    await loginAsOwner(page)
-  })
+  // No beforeEach needed - tests navigate directly (auth via storageState)
 
   // Core pages that MUST work
   const criticalRoutes = [

@@ -24,6 +24,7 @@ import {
 } from '@nestjs/common'
 import type { Request } from 'express'
 import { Public } from '../../shared/decorators/public.decorator'
+import type { Json } from '@repo/shared/types/supabase'
 import { Throttle } from '@nestjs/throttler'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -109,21 +110,24 @@ export class StripeWebhookController {
 			id: event.id
 		})
 
+		// Store webhook event UUID for later use (set by RPC)
+		let webhookEventId: string | null = null
+
 		try {
 			// Use atomic lock via RPC to prevent duplicate processing
-			const lockAcquired = await this.supabase.getAdminClient().rpc(
-				'record_processed_stripe_event_lock',
-				{
-					p_stripe_event_id: event.id,
-					p_event_type: event.type,
-					p_processed_at: new Date().toISOString(),
-					p_status: 'processing'
-				}
-			)
+			// This creates/retrieves webhook_event and returns its UUID for linking webhook_attempts
+			const lockResult = await client.rpc('acquire_webhook_event_lock_with_id', {
+				p_webhook_source: 'stripe',
+				p_external_id: event.id,
+				p_event_type: event.type,
+				p_raw_payload: event as unknown as { [key: string]: Json | undefined }
+			})
 
-			const data = lockAcquired.data as Array<{ lock_acquired: boolean }> | null
-			const rows = Array.isArray(data) ? data : (data ? [data] : [])
-			const acquired = rows.some(row => row && 'lock_acquired' in row && row.lock_acquired === true)
+			type LockResult = { lock_acquired: boolean; webhook_event_id: string }
+			const data = lockResult.data as LockResult[] | null
+			const firstRow = data?.[0]
+			const acquired = firstRow?.lock_acquired === true
+			webhookEventId = firstRow?.webhook_event_id || null
 
 			if (!acquired) {
 				// Record idempotency hit
@@ -142,14 +146,15 @@ export class StripeWebhookController {
 			const duration = Date.now() - startTime
 			this.prometheus?.recordWebhookProcessing(event.type, duration, 'success')
 
-			// Mark event as processed
-			await client
-				.from('webhook_events')
-				.update({
-					processed_at: new Date().toISOString(),
-					status: 'processed'
-				})
-				.eq('external_id', event.id)
+			// Mark event as processed in webhook_events table
+			if (webhookEventId) {
+				await client
+					.from('webhook_events')
+					.update({
+						processed_at: new Date().toISOString()
+					})
+					.eq('id', webhookEventId)
+			}
 
 			// Store metrics in webhook_metrics table
 			const currentDate = new Date().toISOString().split('T')[0] as string
@@ -178,12 +183,19 @@ export class StripeWebhookController {
 				error instanceof Error ? error.constructor.name : 'UnknownError'
 			)
 
-			// Store failure details
-			await client.from('webhook_attempts').insert({
-				webhook_event_id: event.id,
-				status: 'failed',
-				failure_reason: 'processing_error'
-			})
+			// Store failure details with proper webhook_event_id reference
+			if (webhookEventId) {
+				await client
+					.from('webhook_attempts')
+					.upsert(
+						{
+							webhook_event_id: webhookEventId,
+							status: 'failed',
+							failure_reason: error instanceof Error ? error.message : 'processing_error'
+						},
+						{ onConflict: 'webhook_event_id,status', ignoreDuplicates: true }
+					)
+			}
 
 			// Store metrics
 			const currentDate = new Date().toISOString().split('T')[0] as string
@@ -205,6 +217,7 @@ export class StripeWebhookController {
 			this.logger.error('Webhook processing failed', {
 				type: event.type,
 				id: event.id,
+				webhookEventId,
 				error: error instanceof Error ? error.message : String(error)
 			})
 

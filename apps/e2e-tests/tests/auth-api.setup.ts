@@ -70,42 +70,90 @@ setup('authenticate as owner via API', async ({ request }) => {
 	const projectRef = new URL(supabaseUrl).hostname.split('.')[0]
 	const cookieName = `sb-${projectRef}-auth-token`
 
+	// Get base URL - must match playwright.config.ts TEST_FRONTEND_PORT
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+	const parsedUrl = new URL(baseUrl)
+	const domain = parsedUrl.hostname
+	const isSecure = parsedUrl.protocol === 'https:'
+
 	// Create storage state matching Supabase client format
 	// This mimics what @supabase/ssr sets in cookies
-	const storageState = {
-		cookies: [
-			{
-				name: cookieName,
-				value: JSON.stringify({
-					access_token: accessToken,
-					refresh_token: refreshToken,
-					expires_at: expiresAt,
-					expires_in: authData.expires_in,
-					token_type: 'bearer',
-					user: authData.user,
-				}),
-				domain: 'localhost',
+	//
+	// IMPORTANT: @supabase/ssr cookie format (from official source code):
+	// - src/cookies.ts: Uses BASE64_PREFIX = "base64-" + stringToBase64URL(value)
+	// - src/utils/base64url.ts: Base64URL alphabet replaces +→- and /→_, omits padding =
+	// - src/utils/chunker.ts: MAX_CHUNK_SIZE = 3180 bytes per chunk
+	// @see https://github.com/supabase/ssr/blob/main/src/cookies.ts
+	// @see https://github.com/supabase/ssr/blob/main/src/utils/base64url.ts
+	const sessionData = {
+		access_token: accessToken,
+		refresh_token: refreshToken,
+		expires_at: expiresAt,
+		expires_in: authData.expires_in,
+		token_type: 'bearer',
+		user: authData.user,
+	}
+
+	// Base64URL encode per RFC 4648: +→-, /→_, no padding
+	// Then prefix with "base64-" as expected by @supabase/ssr
+	const jsonSession = JSON.stringify(sessionData)
+	const base64UrlSession = Buffer.from(jsonSession)
+		.toString('base64')
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=/g, '')
+	const encodedSession = `base64-${base64UrlSession}`
+
+	// Supabase SSR chunks at 3180 bytes - create chunked cookies if needed
+	const CHUNK_SIZE = 3180
+	const cookies: Array<{
+		name: string
+		value: string
+		domain: string
+		path: string
+		expires: number
+		httpOnly: boolean
+		secure: boolean
+		sameSite: 'Lax'
+	}> = []
+
+	if (encodedSession.length <= CHUNK_SIZE) {
+		// Single cookie fits within chunk size
+		cookies.push({
+			name: cookieName,
+			value: encodedSession,
+			domain: domain,
+			path: '/',
+			expires: expiresAt,
+			httpOnly: false,
+			secure: isSecure,
+			sameSite: 'Lax' as const,
+		})
+	} else {
+		// Split into numbered chunks: cookieName.0, cookieName.1, etc.
+		for (let i = 0, chunkIndex = 0; i < encodedSession.length; i += CHUNK_SIZE, chunkIndex++) {
+			cookies.push({
+				name: `${cookieName}.${chunkIndex}`,
+				value: encodedSession.slice(i, i + CHUNK_SIZE),
+				domain: domain,
 				path: '/',
 				expires: expiresAt,
 				httpOnly: false,
-				secure: false,
-				sameSite: 'Lax',
-			},
-		],
+				secure: isSecure,
+				sameSite: 'Lax' as const,
+			})
+		}
+	}
+
+	const storageState = {
+		cookies,
 		origins: [
 			{
-				origin: 'http://localhost:3000',
+				origin: baseUrl,
 				localStorage: [
 					{
 						name: cookieName,
-						value: JSON.stringify({
-							access_token: accessToken,
-							refresh_token: refreshToken,
-							expires_at: expiresAt,
-							expires_in: authData.expires_in,
-							token_type: 'bearer',
-							user: authData.user,
-						}),
+						value: jsonSession,
 					},
 				],
 			},

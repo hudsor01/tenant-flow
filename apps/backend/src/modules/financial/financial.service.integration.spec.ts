@@ -1,6 +1,8 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing'
 import { FinancialService } from './financial.service'
+import { FinancialExpenseService } from './financial-expense.service'
+import { FinancialRevenueService } from './financial-revenue.service'
 import { SupabaseService } from '../../database/supabase.service'
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js'
@@ -16,6 +18,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 	let supabaseClient: SupabaseClient
 	let ownerUserId: string
 	let testOwnerId: string
+	let tenantId: string
 	const testPropertyIds: string[] = []
 	const testUnitIds: string[] = []
 	const testLeaseIds: string[] = []
@@ -36,16 +39,21 @@ describe('FinancialService - N+1 Integration Tests', () => {
 		// Create real Supabase client
 		supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-		// Create test module with real services
+		// Create mock SupabaseService
+		const mockSupabaseService = {
+			getAdminClient: () => supabaseClient,
+			getUserClient: () => supabaseClient
+		}
+
+		// Create test module with real services and sub-services
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				FinancialService,
+				FinancialExpenseService,
+				FinancialRevenueService,
 				{
 					provide: SupabaseService,
-					useValue: {
-						getAdminClient: () => supabaseClient,
-						getUserClient: () => supabaseClient
-					},
+					useValue: mockSupabaseService,
 				},
 			],
 		}).compile()
@@ -62,11 +70,19 @@ describe('FinancialService - N+1 Integration Tests', () => {
 	})
 
 	async function setupTestData() {
-		// Ensure tenant exists for leases
-		const tenantUserId =
-			process.env.E2E_TENANT_A_ID ||
-			process.env.E2E_TENANT_A_USER_ID ||
-			'5654f2de-86e7-4c90-9b04-6ed4fe1de3d3'
+		// Create test owner in users + property_owners to satisfy FK constraints
+		ownerUserId = randomUUID()
+
+		// Create tenant user in public.users first (FK constraint tenants.user_id -> public.users.id)
+		const tenantUserId = randomUUID()
+
+		// Insert into public.users (required for tenants FK constraint)
+		await pool.query(
+			`insert into users (id, email, full_name, user_type)
+			 values ($1, $2, 'Integration Tenant', 'TENANT')
+			 on conflict (id) do nothing`,
+			[tenantUserId, `integration-tenant-${Date.now()}@test.local`]
+		)
 
 		const tenantRes = await pool.query(
 			`insert into tenants (user_id, stripe_customer_id)
@@ -76,9 +92,6 @@ describe('FinancialService - N+1 Integration Tests', () => {
 			[tenantUserId, 'cus_integration_tenant']
 		)
 		tenantId = tenantRes.rows[0].id
-
-		// Create test owner in users + property_owners to satisfy FK constraints
-		ownerUserId = randomUUID()
 
 		await pool.query(
 			`insert into users (id, email, full_name, user_type) values ($1, $2, $3, 'OWNER') on conflict (id) do nothing`,
@@ -187,9 +200,6 @@ describe('FinancialService - N+1 Integration Tests', () => {
 
 		// Restore original method
 		supabaseClient.from = originalFrom
-
-		console.log('Query breakdown:', queriesBefore)
-		console.log(`Total queries: ${queryCount}`)
 
 		// Should use batch loading: 1 properties + 1 all units + 1 all leases + 1 expenses = 4-5 queries
 		// NOT: 1 properties + (3 properties × 3 queries each) = 10+ queries

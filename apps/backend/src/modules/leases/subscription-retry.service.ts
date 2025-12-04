@@ -11,7 +11,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
-import { LeaseSignatureService } from './lease-signature.service'
+import { LeaseSubscriptionService } from './lease-subscription.service'
 import { logError } from '../../utils/error-serializer'
 
 /** Maximum number of subscription creation retry attempts */
@@ -36,7 +36,7 @@ export class SubscriptionRetryService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly leaseSignatureService: LeaseSignatureService,
+		private readonly leaseSubscriptionService: LeaseSubscriptionService,
 		private readonly eventEmitter: EventEmitter2
 	) {}
 
@@ -138,7 +138,7 @@ export class SubscriptionRetryService {
 
 		try {
 			// Use the lease signature service to create the subscription
-			await this.leaseSignatureService.createSubscriptionForLease(
+			await this.leaseSubscriptionService.createSubscriptionForLease(
 				client,
 				{
 					id: lease.id,
@@ -250,7 +250,7 @@ export class SubscriptionRetryService {
 		}
 
 		try {
-			await this.leaseSignatureService.createSubscriptionForLease(
+			await this.leaseSubscriptionService.createSubscriptionForLease(
 				client,
 				{
 					id: lease.id,

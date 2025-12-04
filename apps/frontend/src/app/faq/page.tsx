@@ -6,10 +6,10 @@ import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
-import { env } from '#config/env'
 
 export default function FAQPage() {
-	const baseUrl = env.NEXT_PUBLIC_BASE_URL
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 	const faqCategories = faqData
 
 	// FAQ Schema for Google rich snippets - flatten all questions
@@ -64,7 +64,8 @@ export default function FAQPage() {
 			/>
 			<GridPattern className="fixed inset-0 -z-10" />
 			<Navbar />
-			<HeroSection
+			<main className="flex-1 page-offset-navbar">
+				<HeroSection
 				trustBadge="Real answers from real results"
 				title="Your $30,000 annual savings"
 				titleHighlight="questions answered"
@@ -107,7 +108,7 @@ export default function FAQPage() {
 						Speak with a property management automation expert and get a custom
 						ROI projection for your portfolio.
 					</p>
-					<div className="flex flex-col sm:flex-row gap-(--spacing-4) justify-center">
+					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" variant="secondary" className="px-8">
 							Schedule Expert Consultation
 							<ArrowRight className="size-5 ml-2" />
@@ -121,7 +122,8 @@ export default function FAQPage() {
 						</Button>
 					</div>
 				</div>
-			</section>
+				</section>
+			</main>
 			<Footer />
 		</div>
 	)

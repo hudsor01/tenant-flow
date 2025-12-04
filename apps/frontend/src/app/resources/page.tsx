@@ -16,10 +16,10 @@ import {
 	Video
 } from 'lucide-react'
 import Link from 'next/link'
-import { env } from '#config/env'
 
 export default function ResourcesPage() {
-	const baseUrl = env.NEXT_PUBLIC_BASE_URL
+	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 
 	// Breadcrumb Schema
 	const breadcrumbSchema = {
@@ -76,8 +76,8 @@ export default function ResourcesPage() {
 			title: 'Contact Support',
 			description: 'Get personalized help from our dedicated support team',
 			href: '/contact',
-			color: 'bg-orange-500/10 border-orange-500/20',
-			iconColor: 'text-orange-600 dark:text-orange-400',
+			color: 'bg-warning/10 border-warning/20',
+			iconColor: 'text-warning dark:text-warning',
 			stats: '24-48h response'
 		}
 	]
@@ -136,7 +136,7 @@ export default function ResourcesPage() {
 			<Navbar />
 
 			{/* Hero Section */}
-			<section className="relative page-content pb-16 overflow-hidden">
+			<section className="relative page-offset-navbar pb-16 overflow-hidden">
 				<div className="absolute inset-0 bg-background">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--color-primary)_5%,transparent),transparent_50%)]" />
 				</div>
@@ -168,7 +168,7 @@ export default function ResourcesPage() {
 						</p>
 					</div>
 
-					<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-(--spacing-6)">
+					<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
 						{quickLinks.map(link => (
 							<Link
 								key={link.title}
@@ -212,7 +212,7 @@ export default function ResourcesPage() {
 								<div
 									className={`${resource.color} rounded-3xl p-8 border hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group-hover:scale-[1.02] h-full`}
 								>
-									<div className="flex items-start gap-(--spacing-6)">
+									<div className="flex items-start gap-6">
 										<div
 											className={`size-16 rounded-2xl bg-card border border-border flex-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${resource.iconColor}`}
 										>
@@ -286,7 +286,7 @@ export default function ResourcesPage() {
 							questions about TenantFlow
 						</p>
 
-						<div className="flex flex-col sm:flex-row gap-(--spacing-6) justify-center">
+						<div className="flex flex-col sm:flex-row gap-6 justify-center">
 							<Button
 								size="lg"
 								className="gradient-background hover:opacity-90 shadow-2xl shadow-primary/25 text-lg font-semibold px-8 py-4"

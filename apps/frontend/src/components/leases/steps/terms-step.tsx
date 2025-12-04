@@ -133,7 +133,7 @@ export function TermsStep({ form }: TermsStepProps) {
 							if (!petsAllowed) return null
 
 							return (
-								<div className="grid grid-cols-2 gap-(--spacing-4) ml-6">
+								<div className="grid grid-cols-2 gap-4 ml-6">
 									<form.Field name="petDeposit">
 										{field => (
 											<div className="space-y-2">

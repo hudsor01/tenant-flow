@@ -111,7 +111,7 @@ export default function TenantMaintenancePage() {
 							<p className="text-muted">
 								No active maintenance requests
 							</p>
-							<p className="text-xs text-muted-foreground mt-1">
+							<p className="text-caption mt-1">
 								Submit a request if you need help with something
 							</p>
 						</div>
@@ -124,7 +124,7 @@ export default function TenantMaintenancePage() {
 								key={request.id}
 								className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
 							>
-								<div className="flex items-center gap-(--spacing-4) flex-1">
+								<div className="flex items-center gap-4 flex-1">
 									<Wrench className="size-5 text-primary" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ export default function TenantMaintenancePage() {
 												? `${request.description.substring(0, 100)}...`
 												: request.description}
 										</p>
-										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+										<div className="flex items-center gap-2 text-caption mt-2">
 											<Calendar className="size-3" />
 							<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
 										</div>
@@ -185,13 +185,13 @@ export default function TenantMaintenancePage() {
 								key={request.id}
 								className="flex-between p-4 border rounded-lg"
 							>
-								<div className="flex items-center gap-(--spacing-4) flex-1">
+								<div className="flex items-center gap-4 flex-1">
 									<Wrench className="size-5 text-muted-foreground" />
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
 											<p className="font-medium">{request.description.length > 50 ? `${request.description.substring(0, 50)}...` : request.description}</p>
 										</div>
-										<div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+										<div className="flex items-center gap-2 text-caption mt-1">
 											<Calendar className="size-3" />
 							<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
 											{request.completed_at && (

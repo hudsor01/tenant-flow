@@ -9,7 +9,7 @@ import {
 import { Throttle } from '@nestjs/throttler'
 import type { ContactFormResponse, ContactFormRequest } from '@repo/shared/types/domain'
 import { ContactService } from './contact.service'
-import type { ContactFormDto } from './dto/contact-form.dto'
+import { ContactFormDto } from './dto/contact-form.dto'
 import { createThrottleDefaults } from '../../config/throttle.config'
 
 const CONTACT_THROTTLE = createThrottleDefaults({

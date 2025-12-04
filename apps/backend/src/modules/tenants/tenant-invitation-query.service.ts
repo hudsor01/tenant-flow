@@ -16,9 +16,7 @@ const MAX_LIMIT = 100
 export interface TenantInvitation {
 	id: string
 	email: string
-	first_name: string | null
-	last_name: string | null
-	unit_id: string
+	unit_id: string | null
 	unit_number: string
 	property_name: string
 	created_at: string
@@ -33,9 +31,7 @@ export interface TenantInvitation {
 interface RawInvitationRow {
 	id: string
 	email: string
-	first_name: string | null
-	last_name: string | null
-	unit_id: string
+	unit_id: string | null
 	property_owner_id: string
 	created_at: string
 	expires_at: string
@@ -97,8 +93,6 @@ export class TenantInvitationQueryService {
 					`
 					id,
 					email,
-					first_name,
-					last_name,
 					unit_id,
 					property_owner_id,
 					created_at,
@@ -150,8 +144,6 @@ export class TenantInvitationQueryService {
 			const invitations: TenantInvitation[] = (rawData || []).map((inv) => ({
 				id: inv.id,
 				email: inv.email,
-				first_name: inv.first_name,
-				last_name: inv.last_name,
 				unit_id: inv.unit_id,
 				unit_number: inv.unit?.unit_number ?? '',
 				property_name: inv.unit?.property?.name ?? '',

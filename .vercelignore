@@ -13,16 +13,10 @@ _.md
 .eslintcache
 .prettierignore
 .prettierrc
-
-# Build outputs - prevent warning about uploading .next
-
 .next
 **/.next
 **/dist
 \*\*/build
-
-# Test files
-
 **/_.test._
 **/_.spec._
 **/test-results
@@ -33,85 +27,38 @@ e2e
 tests
 **tests**
 **mocks**
-
-# Backend files (not needed for frontend deployment)
-
 apps/backend
-
-# Package managers - keep only package.json and pnpm lock
 !pnpm-lock.yaml
-
-# Dependencies that are heavy and not needed in serverless
 node_modules
-**node_modules**
-
-# Config packages can be ignored for deployment (except typescript-config needed for builds)
-
 packages/prettier-config
-
-# packages/shared (required by frontend)
-
-
-# packages/tailwind-config (required by frontend)
-
-# packages/emails (required by frontend for types)
-
 Dockerfile
 railway.toml
 railway.json
-
-# Scripts not needed in production
-
 scripts/*
 !scripts/prepare-husky.cjs
 !apps/frontend/scripts/analyze-bundle.js
-
-# Documentation
-
 docs
 _.drawio
 _.svg
 !apps/frontend/public/\*.svg
-
-# Other unnecessary files
-
 .env*
 .env.production
 docker-compose*
 Dockerfile\*
 \*.sh
 !apps/frontend/scripts/quick-deploy.sh
-
-# Database files
-
 _.db
 _.sqlite
-
-# Reduce deployment size
-
 .turbo
 dist/
 build/
 !apps/frontend/dist/
-
-# Package manager files
-# DO NOT ignore pnpm-lock.yaml - Vercel needs it for installation!
-# pnpm-lock.yaml
 yarn.lock
 .pnpm-store
-
-# macOS files
-
 .DS_Store
-
-# IDE files
-
 .idea
 .vscode
 _.sublime-_
-
-# Temporary files
-
 _.tmp
 _.temp
 .cache

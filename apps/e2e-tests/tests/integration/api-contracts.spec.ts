@@ -86,7 +86,7 @@ test.describe('Properties Endpoints Contract', () => {
 
 				// Validate enum values
 				expect(['RESIDENTIAL', 'COMMERCIAL', 'MULTI_FAMILY', 'INDUSTRIAL']).toContain(property.property_type)
-				expect(['active', 'INACTIVE', 'MAINTENANCE']).toContain(property.status)
+				expect(['active', 'inactive', 'MAINTENANCE']).toContain(property.status)
 			}
 		}
 	})
@@ -161,7 +161,7 @@ test.describe('Tenants Endpoints Contract', () => {
 				})
 
 				// Validate tenant status enum
-				expect(['active', 'INACTIVE', 'PENDING', 'EVICTED']).toContain(tenant.status)
+				expect(['active', 'inactive', 'pending', 'EVICTED']).toContain(tenant.status)
 
 				// Validate email format
 				expect(tenant.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
@@ -361,7 +361,7 @@ test.describe('Maintenance Endpoints Contract', () => {
 				expect(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).toContain(maintenance.priority)
 
 				// Validate status enum
-				expect(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).toContain(maintenance.status)
+				expect(['pending', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).toContain(maintenance.status)
 
 				// Validate category enum
 				expect(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCE', 'GENERAL', 'OTHER']).toContain(

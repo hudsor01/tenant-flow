@@ -42,7 +42,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 
 interface TenantActionButtonsProps {
@@ -61,9 +61,8 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	const modalId = `edit-tenant-${tenant.id}`
 
 	const deleteMutation = useMutation({
-		mutationFn: async () => {
-			await clientFetch(`/api/v1/tenants/${tenant.id}`, { method: 'DELETE' })
-		},
+		mutationFn: async () =>
+			apiRequest<void>(`/api/v1/tenants/${tenant.id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.setQueryData(
 				['tenants'],
@@ -84,15 +83,11 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	})
 
 	const inviteMutation = useMutation({
-		mutationFn: async () => {
-			return await clientFetch(
-				`/api/v1/tenants/${tenant.id}/resend-invitation`,
-				{
-					method: 'POST',
-					body: JSON.stringify({})
-				}
-			)
-		},
+		mutationFn: async () =>
+			apiRequest<{ success: boolean }>(`/api/v1/tenants/${tenant.id}/resend-invitation`, {
+				method: 'POST',
+				body: JSON.stringify({})
+			}),
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')
 		},
@@ -106,17 +101,14 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 			const payload: UpdateTenantInput = {}
 
 			// Only include tenant-specific fields - user fields are updated separately
-		if (data.emergency_contact_name !== undefined) {
-			payload.emergency_contact_name = data.emergency_contact_name
-		}
+			if (data.emergency_contact_name !== undefined) {
+				payload.emergency_contact_name = data.emergency_contact_name
+			}
 
-			return await clientFetch<TenantWithLeaseInfo>(
-				`/api/v1/tenants/${tenant.id}`,
-				{
-					method: 'PATCH',
-					body: JSON.stringify(payload)
-				}
-			)
+			return apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${tenant.id}`, {
+				method: 'PATCH',
+				body: JSON.stringify(payload)
+			})
 		},
 		onSuccess: (updated: TenantWithLeaseInfo) => {
 			// Update single tenant cache and the tenants list without refetch

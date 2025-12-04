@@ -12,7 +12,8 @@
  */
 
 import { createClient } from '#utils/supabase/client'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
@@ -395,7 +396,7 @@ export function usePrefetchUser() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: authKeys.me,
-			queryFn: () => clientFetch<User>('/api/v1/users/me'),
+			queryFn: () => apiRequest<User>('/api/v1/users/me'),
 			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}

@@ -14,6 +14,10 @@
 		"./jest": {
 			"types": "./dist/jest.d.ts",
 			"default": "./dist/jest.js"
+		},
+		"./stripe-test-data": {
+			"types": "./dist/stripe-test-data.d.ts",
+			"default": "./dist/stripe-test-data.js"
 		}
 	},
 	"files": [

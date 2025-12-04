@@ -255,8 +255,8 @@ export function StripeConnectStatus() {
 					description="Connect Stripe to collect rent payments from tenants"
 				>
 					<div className="space-y-4">
-						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
-							<p className="text-sm text-amber-900 dark:text-amber-100">
+						<div className="rounded-lg border border-warning/20 bg-warning/10 p-4 dark:border-warning/80 dark:bg-warning/10">
+							<p className="text-sm text-warning dark:text-warning-foreground">
 								You need to connect a Stripe account before tenants can pay rent
 								online.
 							</p>
@@ -280,9 +280,9 @@ export function StripeConnectStatus() {
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'active':
-				return 'text-success dark:text-green-400'
+				return 'text-success dark:text-success'
 			case 'pending':
-				return 'text-amber-600 dark:text-amber-400'
+				return 'text-warning dark:text-warning'
 			default:
 				return 'text-muted/600 dark:text-muted/400'
 		}
@@ -293,7 +293,7 @@ export function StripeConnectStatus() {
 			case 'active':
 				return <CheckCircle className="size-5 text-success" />
 			case 'pending':
-				return <Spinner className="size-5 text-amber-600 animate-spin" />
+				return <Spinner className="size-5 text-warning animate-spin" />
 			default:
 				return <XCircle className="size-5 text-muted/600" />
 		}
@@ -354,7 +354,7 @@ export function StripeConnectStatus() {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-2 gap-(--spacing-4) rounded-lg border p-4">
+					<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
 						<div className="space-y-1">
 							<p className="text-sm font-medium">Charges</p>
 							<p className="text-muted">
@@ -378,8 +378,8 @@ export function StripeConnectStatus() {
 					</div>
 
 					{account.identityVerification?.status !== 'active' && (
-						<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
-							<p className="text-sm text-amber-900 dark:text-amber-100 mb-3">
+						<div className="rounded-lg border border-warning/20 bg-warning/10 p-4 dark:border-warning/80 dark:bg-warning/10">
+							<p className="text-sm text-warning dark:text-warning-foreground mb-3">
 								Complete your Stripe onboarding to start collecting payments.
 							</p>
 							<Button

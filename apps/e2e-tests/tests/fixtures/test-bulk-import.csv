@@ -1,0 +1,4 @@
+name,address,city,state,postal_code,property_type,description
+Test Property 1,123 Main Street,Austin,TX,78701,SINGLE_FAMILY,A beautiful single family home
+Test Property 2,456 Oak Avenue,Houston,TX,77001,MULTI_FAMILY,Multi-family property with 4 units
+Test Property 3,789 Pine Road,Dallas,TX,75201,CONDO,Modern downtown condo

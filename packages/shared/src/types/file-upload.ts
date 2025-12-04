@@ -130,4 +130,10 @@ export interface UseSupabaseUploadOptions {
 	 * When set to false, an error is thrown if the object already exists. Defaults to `false`
 	 */
 	upsert?: boolean
+	/**
+	 * When set to true, files are automatically uploaded after selection.
+	 *
+	 * Defaults to `false` (manual upload via onUpload callback)
+	 */
+	autoUpload?: boolean
 }

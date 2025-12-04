@@ -70,7 +70,7 @@ const IncomeStatementPage = () => {
 	if (isLoading) {
 		return (
 			<div className="p-6 flex-center min-h-[400px]">
-				<div className="flex flex-col items-center gap-(--spacing-4)">
+				<div className="flex flex-col items-center gap-4">
 					<Loader2 className="w-8 h-8 animate-spin text-primary" />
 					<p className="text-muted">Loading income statement...</p>
 				</div>
@@ -84,8 +84,8 @@ const IncomeStatementPage = () => {
 			<div className="p-6">
 				<Card>
 					<CardContent className="p-6">
-						<div className="flex flex-col items-center gap-(--spacing-4) text-center">
-							<div className="text-red-600">
+						<div className="flex flex-col items-center gap-4 text-center">
+							<div className="text-destructive">
 								<TrendingDown className="w-12 h-12" />
 							</div>
 							<div>
@@ -127,7 +127,7 @@ const IncomeStatementPage = () => {
 			{/* Filters */}
 			<Card>
 				<CardContent className="p-4">
-					<div className="flex flex-wrap items-center gap-(--spacing-4)">
+					<div className="flex flex-wrap items-center gap-4">
 						<div className="flex items-center gap-2">
 								<Label>Period</Label>
 								<Select value={period} onValueChange={setPeriod}>
@@ -170,7 +170,7 @@ const IncomeStatementPage = () => {
 			</Card>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-6)">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -180,7 +180,7 @@ const IncomeStatementPage = () => {
 						<div className="text-2xl font-bold text-success">
 							${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							{data?.period.label || 'Current period'}
 						</p>
 					</CardContent>
@@ -190,13 +190,13 @@ const IncomeStatementPage = () => {
 						<CardTitle className="text-sm font-medium">
 							Total Expenses
 						</CardTitle>
-						<DollarSign className="h-4 w-4 text-red-600" />
+						<DollarSign className="h-4 w-4 text-destructive" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-red-600">
+						<div className="text-2xl font-bold text-destructive">
 							${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							{data?.period.label || 'Current period'}
 						</p>
 					</CardContent>
@@ -208,11 +208,11 @@ const IncomeStatementPage = () => {
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-red-600'}`}
+							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}
 						>
 							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							Profit Margin: {(data?.profitMargin || 0).toFixed(1)}%
 						</p>
 					</CardContent>
@@ -251,7 +251,7 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex-between p-3 bg-green-50 rounded-lg">
+						<div className="flex-between p-3 bg-success/10 rounded-lg">
 							<div className="font-semibold">Total Revenue</div>
 							<div className="font-bold text-lg text-success">
 								${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -264,7 +264,7 @@ const IncomeStatementPage = () => {
 				<Card>
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
-							<DollarSign className="w-5 h-5 text-red-600" />
+							<DollarSign className="w-5 h-5 text-destructive" />
 							Operating Expenses
 						</CardTitle>
 					</CardHeader>
@@ -314,9 +314,9 @@ const IncomeStatementPage = () => {
 							</div>
 						</div>
 						<Separator />
-						<div className="flex-between p-3 bg-red-50 rounded-lg">
+						<div className="flex-between p-3 bg-destructive/10 rounded-lg">
 							<div className="font-semibold">Total Expenses</div>
-							<div className="font-bold text-lg text-red-600">
+							<div className="font-bold text-lg text-destructive">
 								${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 							</div>
 						</div>
@@ -340,7 +340,7 @@ const IncomeStatementPage = () => {
 							</div>
 							<div className="flex justify-between py-2 border-b">
 								<span>Total Operating Expenses</span>
-								<span className="font-semibold text-red-600">
+								<span className="font-semibold text-destructive">
 									-${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 								</span>
 							</div>
@@ -361,7 +361,7 @@ const IncomeStatementPage = () => {
 						<div className="flex-between p-4 bg-corporate-blue-50 rounded-lg">
 							<div className="text-lg font-semibold">Net Income</div>
 							<div
-								className={`text-xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-red-600'}`}
+								className={`text-xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}
 							>
 								{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 							</div>
@@ -374,7 +374,7 @@ const IncomeStatementPage = () => {
 									<span className="font-semibold">
 										${data.previousPeriod.netIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 									</span>
-									<span className={`text-sm ${data.previousPeriod.changePercent >= 0 ? 'text-success' : 'text-red-600'}`}>
+									<span className={`text-sm ${data.previousPeriod.changePercent >= 0 ? 'text-success' : 'text-destructive'}`}>
 										({data.previousPeriod.changePercent >= 0 ? '+' : ''}{data.previousPeriod.changePercent.toFixed(1)}%)
 									</span>
 								</div>

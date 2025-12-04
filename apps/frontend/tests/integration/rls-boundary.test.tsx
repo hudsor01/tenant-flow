@@ -19,7 +19,6 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { clientFetch } from '#lib/api/client'
 import type { Property } from '@repo/shared/types/core'
 import type { CreatePropertyInput } from '@repo/shared/types/api-contracts'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -102,8 +101,8 @@ async function fetchAsUser<T>(
 			Authorization: `Bearer ${user.session.access_token}`,
 			'User-Agent':
 				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-			Origin: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000',
-			Referer: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3000'
+			Origin: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3050',
+			Referer: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:3050'
 		}
 	})
 

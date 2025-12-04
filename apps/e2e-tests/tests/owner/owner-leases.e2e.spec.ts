@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
-import { loginAsOwner } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded } from '../helpers/navigation-helpers'
 import {
   openModal,
@@ -13,11 +12,11 @@ import { fillTextInput } from '../helpers/form-helpers'
 import { verifyTableRenders, verifyButtonExists } from '../helpers/ui-validation-helpers'
 
 test.describe('Owner Leases', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
   test.beforeEach(async ({ page }) => {
-    await loginAsOwner(page)
-    await page.goto(`${baseUrl}${ROUTES.LEASES}`)
+    // Navigate directly (authenticated via storageState)
+    await page.goto(ROUTES.LEASES)
     await verifyPageLoaded(page, ROUTES.LEASES, 'Leases')
   })
 

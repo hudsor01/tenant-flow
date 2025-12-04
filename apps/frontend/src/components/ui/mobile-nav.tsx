@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '#components/ui/sheet'
-import { mobileNavItemClasses, mobileNavLinkClasses } from '#lib/design-system'
+import { cn } from '#lib/utils'
 import { Building2, Home, LogOut, Menu, Users, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -28,7 +28,10 @@ const NavItem = memo(({ item, isActive }: { item: MobileNavItem; isActive: boole
 	return (
 		<Link
 			href={item.href}
-			className={mobileNavItemClasses(isActive)}
+			className={cn(
+				'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
+				isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+			)}
 			aria-label={`${item.label} navigation`}
 			aria-current={isActive ? 'page' : undefined}
 		>
@@ -86,7 +89,10 @@ export const MobileNav = memo(() => {
 										<Link
 											key={item.href}
 											href={item.href}
-											className={mobileNavLinkClasses(isActive)}
+											className={cn(
+																	'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+																	isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+																)}
 											aria-label={`${item.label} navigation`}
 											aria-current={isActive ? 'page' : undefined}
 										>

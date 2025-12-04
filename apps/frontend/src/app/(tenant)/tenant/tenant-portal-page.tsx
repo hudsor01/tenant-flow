@@ -113,7 +113,7 @@ export default function TenantDashboardPage() {
 	]
 
 	return (
-		<main className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--color-background)] via-[var(--color-card)] to-[var(--color-muted)]/50 dark:from-[var(--color-background)] dark:via-(--card) dark:to-(--muted)/50">
+		<div className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--color-background)] via-[var(--color-card)] to-[var(--color-muted)]/50 dark:from-[var(--color-background)] dark:via-(--card) dark:to-(--muted)/50">
 			<div className="dashboard-main border-b-2 border-(--color-border)/40 bg-gradient-to-b from-[var(--color-background)] via-[var(--color-muted)]/30 to-[var(--color-muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--color-background)] dark:via-[var(--color-muted)]/30 dark:to-[var(--color-muted)]/20">
 				<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
 					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--color-foreground)] via-[var(--color-foreground)]/80 to-[var(--color-foreground)] bg-clip-text text-transparent dark:from-[var(--color-background)] dark:via-(--background) dark:to-[var(--color-background)]">
@@ -122,16 +122,16 @@ export default function TenantDashboardPage() {
 
 					{/* Pending Signature Alert */}
 					{needsSignature && activeLease && (
-						<div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50 p-4 flex-between gap-(--spacing-4)" data-testid="pending-signature">
+						<div className="rounded-lg border border-warning/20 bg-warning/10 dark:border-warning/80 dark:bg-warning/10 p-4 flex-between gap-4" data-testid="pending-signature">
 							<div className="flex items-center gap-3">
-								<div className="flex-center w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900">
-									<PenLine className="size-5 text-amber-600 dark:text-amber-400" />
+								<div className="flex-center w-10 h-10 rounded-full bg-warning/20 dark:bg-warning/20">
+									<PenLine className="size-5 text-warning dark:text-warning" />
 								</div>
 								<div>
-									<p className="font-semibold text-amber-900 dark:text-amber-100">
+									<p className="font-semibold text-warning dark:text-warning-foreground">
 										Lease Agreement Pending Your Signature
 									</p>
-									<p className="text-sm text-amber-700 dark:text-amber-300">
+									<p className="text-sm text-warning dark:text-warning">
 										Please review and sign your lease agreement to complete the process.
 									</p>
 								</div>
@@ -329,7 +329,7 @@ export default function TenantDashboardPage() {
 													key={payment.id}
 													className="flex-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 												>
-													<div className="flex items-center gap-(--spacing-4)">
+													<div className="flex items-center gap-4">
 														<div className="flex-center w-10 h-10 rounded-lg icon-bg-success">
 															<CheckCircle2 className="size-5" />
 														</div>
@@ -341,7 +341,7 @@ export default function TenantDashboardPage() {
 																	? formatDate(payment.dueDate)
 																	: 'Unknown date'}
 															</p>
-															<p className="text-xs text-muted-foreground">
+															<p className="text-caption">
 																{payment.status === 'SUCCEEDED' ||
 																payment.status === 'PAID'
 																	? 'Payment successful'
@@ -434,7 +434,7 @@ export default function TenantDashboardPage() {
 														key={request.id}
 														className="flex-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
 													>
-														<div className="flex items-center gap-(--spacing-4)">
+														<div className="flex items-center gap-4">
 															<div
 																className={`flex-center w-10 h-10 rounded-lg ${config.bg}`}
 															>
@@ -442,7 +442,7 @@ export default function TenantDashboardPage() {
 															</div>
 															<div>
 																<p className="font-medium text-sm">{request.title}</p>
-																<p className="text-xs text-muted-foreground">
+																<p className="text-caption">
 																	{formatDate(request.created_at)}
 																</p>
 															</div>
@@ -451,7 +451,7 @@ export default function TenantDashboardPage() {
 															<p className={`text-xs font-semibold ${config.textColor}`}>
 																{request.status.replace('_', ' ')}
 															</p>
-															<p className="text-xs text-muted-foreground">
+															<p className="text-caption">
 																{request.priority}
 															</p>
 														</div>
@@ -466,6 +466,6 @@ export default function TenantDashboardPage() {
 					</ErrorBoundary>
 				</div>
 			</div>
-		</main>
+		</div>
 	)
 }

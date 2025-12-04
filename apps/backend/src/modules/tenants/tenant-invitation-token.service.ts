@@ -24,11 +24,16 @@ export class TenantInvitationTokenService {
 	/**
 	 * Validate invitation token
 	 * Checks expiration and token validity
+	 * Returns full invitation details for display
 	 */
 	async validateToken(token: string): Promise<{
 		valid: boolean
 		unit_id?: string
 		email?: string
+		expires_at?: string
+		property_owner_name?: string
+		property_name?: string
+		unit_number?: string
 		error?: string
 	}> {
 		try {
@@ -37,9 +42,31 @@ export class TenantInvitationTokenService {
 			}
 
 			const client = this.supabase.getAdminClient()
+
+			// Fetch invitation with related property owner, property, and unit data
 			const { data, error } = await client
 				.from('tenant_invitations')
-				.select('unit_id, email, expires_at, accepted_at, invitation_code')
+				.select(`
+					unit_id,
+					email,
+					expires_at,
+					accepted_at,
+					invitation_code,
+					property_id,
+					property_owner_id,
+					property_owners!tenant_invitations_property_owner_id_fkey (
+						business_name,
+						users!property_owners_user_id_fkey (
+							email
+						)
+					),
+					properties!tenant_invitations_property_id_fkey (
+						name
+					),
+					units!tenant_invitations_unit_id_fkey (
+						unit_number
+					)
+				`)
 				.eq('invitation_code', token)
 				.single()
 
@@ -58,13 +85,31 @@ export class TenantInvitationTokenService {
 				return { valid: false, error: 'Token has already been used' }
 			}
 
-			const result: { valid: boolean; unit_id?: string; email?: string; error?: string } = {
+			// Build response with optional fields
+			const propertyOwner = data.property_owners as { business_name?: string; users?: { email?: string } } | null
+			const property = data.properties as { name?: string } | null
+			const unit = data.units as { unit_number?: string } | null
+
+			const result: {
+				valid: boolean
+				unit_id?: string
+				email?: string
+				expires_at?: string
+				property_owner_name?: string
+				property_name?: string
+				unit_number?: string
+				error?: string
+			} = {
 				valid: true,
-				email: data.email
+				email: data.email,
+				expires_at: data.expires_at
 			}
-			if (data.unit_id) {
-				result.unit_id = data.unit_id
-			}
+
+			if (data.unit_id) result.unit_id = data.unit_id
+			if (propertyOwner?.business_name) result.property_owner_name = propertyOwner.business_name
+			if (property?.name) result.property_name = property.name
+			if (unit?.unit_number) result.unit_number = unit.unit_number
+
 			return result
 		} catch (error) {
 			this.logger.error('Error validating token', {
@@ -76,8 +121,9 @@ export class TenantInvitationTokenService {
 
 	/**
 	 * Accept invitation token and mark as used
+	 * Handles both platform-only and unit-assigned invitations
 	 */
-	async acceptToken(token: string, user_id: string): Promise<Tenant> {
+	async acceptToken(token: string, user_id: string): Promise<Tenant | { success: true; message: string }> {
 		try {
 			// Validate token first
 			const validation = await this.validateToken(token)
@@ -86,57 +132,23 @@ export class TenantInvitationTokenService {
 			}
 
 			const client = this.supabase.getAdminClient()
+
+			// Mark invitation as accepted
 			const { error } = await client
 				.from('tenant_invitations')
 				.update({
 					accepted_at: new Date().toISOString(),
-					accepted_by_user_id: user_id
+					accepted_by_user_id: user_id,
+					status: 'accepted'
 				})
 				.eq('invitation_code', token)
 
 			if (error) {
-				this.logger.error('Failed to accept token', {
-					error: error.message
-				})
+				this.logger.error('Failed to accept token', { error: error.message })
 				throw new BadRequestException('Failed to accept invitation')
 			}
 
-			// Get the lease through the unit, then find the primary tenant
-			const { data: unit, error: unitError } = await client
-				.from('units')
-				.select('property_id')
-				.eq('id', validation.unit_id!)
-				.single()
-
-			if (unitError || !unit) {
-				throw new BadRequestException('Unit not found')
-			}
-
-			// Find the lease for this unit and link the tenant
-			const { data: leaseData, error: leaseError } = await client
-				.from('leases')
-				.select('id, primary_tenant_id')
-				.eq('unit_id', validation.unit_id!)
-				.single()
-
-			if (leaseError || !leaseData?.primary_tenant_id) {
-				throw new BadRequestException('Lease not found')
-			}
-
-			// Link user to tenant and update tenant record
-			const { data: tenantData, error: tenantError } = await client
-				.from('tenants')
-				.update({ user_id })
-				.eq('id', leaseData.primary_tenant_id)
-				.select()
-				.single()
-
-			if (tenantError || !tenantData) {
-				throw new BadRequestException('Failed to retrieve tenant')
-			}
-
-			// Update user record to set user_type='TENANT' in public.users
-			// The DB trigger will sync this to auth.users.raw_app_meta_data
+			// Update user type to TENANT
 			const { error: userError } = await client
 				.from('users')
 				.update({ user_type: 'TENANT' })
@@ -147,7 +159,6 @@ export class TenantInvitationTokenService {
 					error: userError.message,
 					user_id
 				})
-				// Don't throw - tenant acceptance is more important than user_type update
 			} else {
 				this.logger.log('User type updated to TENANT on invitation acceptance', { user_id })
 			}
@@ -164,6 +175,74 @@ export class TenantInvitationTokenService {
 					user_id
 				})
 			}
+
+			// If this is a platform-only invitation (no unit), just create tenant record
+			if (!validation.unit_id) {
+				// Check if tenant already exists for this user
+				const { data: existingTenant } = await client
+					.from('tenants')
+					.select('*')
+					.eq('user_id', user_id)
+					.maybeSingle()
+
+				if (existingTenant) {
+					this.logger.log('Platform invitation accepted, tenant already exists', { user_id })
+					return existingTenant as Tenant
+				}
+
+				// Create new tenant record for platform-only invitation
+				const { data: newTenant, error: createError } = await client
+					.from('tenants')
+					.insert({ user_id })
+					.select()
+					.single()
+
+				if (createError || !newTenant) {
+					this.logger.error('Failed to create tenant record', { error: createError?.message })
+					// Don't fail - invitation is accepted, tenant creation is secondary
+					return { success: true, message: 'Invitation accepted. Please contact your property manager to complete setup.' }
+				}
+
+				this.logger.log('Platform invitation accepted, tenant created', { user_id, tenant_id: newTenant.id })
+				return newTenant as Tenant
+			}
+
+			// Unit-assigned invitation: link tenant to existing lease
+			const { data: leaseData, error: leaseError } = await client
+				.from('leases')
+				.select('id, primary_tenant_id')
+				.eq('unit_id', validation.unit_id)
+				.single()
+
+			if (leaseError || !leaseData?.primary_tenant_id) {
+				this.logger.warn('No lease found for unit, creating standalone tenant', { unit_id: validation.unit_id })
+				// Create tenant without lease link
+				const { data: newTenant } = await client
+					.from('tenants')
+					.insert({ user_id })
+					.select()
+					.single()
+
+				return newTenant as Tenant || { success: true, message: 'Invitation accepted' }
+			}
+
+			// Link user to existing tenant record
+			const { data: tenantData, error: tenantError } = await client
+				.from('tenants')
+				.update({ user_id })
+				.eq('id', leaseData.primary_tenant_id)
+				.select()
+				.single()
+
+			if (tenantError || !tenantData) {
+				throw new BadRequestException('Failed to link tenant account')
+			}
+
+			this.logger.log('Invitation accepted, tenant linked to lease', {
+				user_id,
+				tenant_id: tenantData.id,
+				lease_id: leaseData.id
+			})
 
 			return tenantData as Tenant
 		} catch (error) {

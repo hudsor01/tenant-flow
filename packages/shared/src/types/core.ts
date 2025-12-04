@@ -259,12 +259,12 @@ export type UnitRowWithRelations = Database['public']['Tables']['units']['Row'] 
 	lastUpdated?: string
 }
 
-// Maintenance API response with relations
+// Maintenance API response with optional relations
 export interface MaintenanceRequestResponse {
 	data: (MaintenanceRequest & {
-		property: { name: string } | null
-		unit: { name: string } | null
-		assignedTo: { name: string } | null
+		property?: { name: string } | null
+		unit?: { name: string } | null
+		assignedTo?: { name: string } | null
 	})[]
 	total: number
 	limit: number
@@ -467,11 +467,9 @@ export interface TenantWithLeaseInfo {
 export interface PropertyPerformance {
 	property: string
 	property_id: string
-	units: number
 	totalUnits: number
 	occupiedUnits: number
 	vacantUnits: number
-	occupancy: string // e.g. "95%"
 	occupancyRate: number // e.g. 95.5
 	revenue: number
 	monthlyRevenue: number

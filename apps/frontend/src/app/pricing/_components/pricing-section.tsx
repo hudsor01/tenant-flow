@@ -1,31 +1,50 @@
 'use client'
 
-import { KiboStylePricing } from '#components/pricing/kibo-style-pricing'
-import { Tabs, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { useState } from 'react'
+import { KiboStylePricing } from '#components/pricing/kibo-style-pricing'
+import { Switch } from '#components/ui/switch'
+import { Label } from '#components/ui/label'
 
 export function PricingSection() {
 	const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
 	return (
-		<div className="flex flex-col items-center gap-8">
-			<Tabs
-				defaultValue={billingCycle}
-				onValueChange={(value) => {
-					if (value === 'monthly' || value === 'yearly') {
-						setBillingCycle(value)
+		<div className="w-full">
+			{/* Billing Toggle */}
+			<div className="flex-center gap-4 mb-8">
+				<Label
+					htmlFor="billing-toggle"
+					className={`text-sm font-medium transition-colors ${
+						billingCycle === 'monthly'
+							? 'text-foreground'
+							: 'text-muted-foreground'
+					}`}
+				>
+					Monthly
+				</Label>
+				<Switch
+					id="billing-toggle"
+					checked={billingCycle === 'yearly'}
+					onCheckedChange={(checked) =>
+						setBillingCycle(checked ? 'yearly' : 'monthly')
 					}
-				}}
-			>
-				<TabsList className="inline-flex rounded-lg bg-muted/60 p-1 shadow-sm">
-					<TabsTrigger value="monthly" className="rounded-md px-5 py-2">
-						Monthly
-					</TabsTrigger>
-					<TabsTrigger value="yearly" className="rounded-md px-5 py-2">
-						Yearly
-					</TabsTrigger>
-				</TabsList>
-			</Tabs>
+				/>
+				<Label
+					htmlFor="billing-toggle"
+					className={`text-sm font-medium transition-colors ${
+						billingCycle === 'yearly'
+							? 'text-foreground'
+							: 'text-muted-foreground'
+					}`}
+				>
+					Annual
+					<span className="ml-1.5 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+						Save 17%
+					</span>
+				</Label>
+			</div>
+
+			{/* Pricing Cards */}
 			<KiboStylePricing billingCycle={billingCycle} />
 		</div>
 	)

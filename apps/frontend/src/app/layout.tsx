@@ -39,7 +39,7 @@ export default async function RootLayout({
 		>
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<meta name="theme-color" content="var(--color-system-blue)" />
+				<meta name="theme-color" content="var(--color-info)" />
 				<meta name="color-scheme" content="light dark" />
 				<meta name="mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -48,7 +48,7 @@ export default async function RootLayout({
 				<meta name="application-name" content="TenantFlow" />
 				<meta
 					name="msapplication-TileColor"
-					content="var(--color-system-blue)"
+					content="var(--color-info)"
 				/>
 				<meta name="msapplication-config" content="/browserconfig.xml" />
 				<SeoJsonLd />

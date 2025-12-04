@@ -20,15 +20,8 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { getTokenFromRequest } from '../../database/auth-token.utils'
 import { VALID_PROPERTY_TYPES } from './utils/csv-normalizer'
-
-function getTokenFromRequest(req: AuthenticatedRequest): string | null {
-	const authHeader = req.headers?.authorization as string | undefined
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		return null
-	}
-	return authHeader.substring(7)
-}
 
 @Injectable()
 export class PropertiesService {

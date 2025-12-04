@@ -52,7 +52,7 @@ function normalizeAuthFailureReason(reason: string): string {
 	if (upper.includes('MALFORMED') || upper.includes('DECODE')) return 'TOKEN_INVALID'
 	if (upper.includes('MISSING') || upper.includes('NOT FOUND')) return 'TOKEN_MISSING'
 	if (upper.includes('LOCKED')) return 'ACCOUNT_LOCKED'
-	if (upper.includes('DISABLED') || upper.includes('INACTIVE')) return 'ACCOUNT_DISABLED'
+	if (upper.includes('DISABLED') || upper.includes('inactive')) return 'ACCOUNT_DISABLED'
 	return 'UNKNOWN'
 }
 

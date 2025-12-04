@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export default function PropertyNotFound() {
 	return (
-		<main role="main" className="flex min-h-[400px] items-center justify-center p-8">
+		<section className="flex min-h-[400px] items-center justify-center p-8">
 			<div className="max-w-md w-full space-y-4">
 				<Alert variant="destructive">
 					<AlertTitle>Property not found</AlertTitle>
@@ -23,6 +23,6 @@ export default function PropertyNotFound() {
 					</Link>
 				</Button>
 			</div>
-		</main>
+		</section>
 	)
 }

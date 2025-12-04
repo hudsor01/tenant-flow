@@ -9,7 +9,8 @@
  * - Proper error handling
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { useMemo } from 'react'
 import type {
@@ -109,7 +110,7 @@ export function useCreateLease() {
 
 	return useMutation({
 		mutationFn: (leaseData: CreateLeaseInput) =>
-			clientFetch<Lease>('/api/v1/leases', {
+			apiRequest<Lease>('/api/v1/leases', {
 				method: 'POST',
 				body: JSON.stringify(leaseData)
 			}),
@@ -229,7 +230,7 @@ export function useUpdateLease() {
 			data: UpdateLeaseInput
 			version?: number
 		}): Promise<Lease> => {
-			return clientFetch<Lease>(`/api/v1/leases/${id}`, {
+			return apiRequest<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
 				// OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
@@ -334,7 +335,7 @@ export function useDeleteLease(options?: {
 
 	return useMutation({
 		mutationFn: async (id: string): Promise<string> => {
-			await clientFetch(`/api/v1/leases/${id}`, {
+			await apiRequest(`/api/v1/leases/${id}`, {
 				method: 'DELETE'
 			})
 			return id
@@ -409,7 +410,7 @@ export function useRenewLease() {
 
 	return useMutation({
 		mutationFn: ({ id, newEndDate }: { id: string; newEndDate: string }) =>
-			clientFetch<Lease>(`/api/v1/leases/${id}/renew`, {
+			apiRequest<Lease>(`/api/v1/leases/${id}/renew`, {
 				method: 'POST',
 				body: JSON.stringify({ end_date: newEndDate })
 			}),
@@ -454,7 +455,7 @@ export function useTerminateLease() {
 			terminationDate: string
 			reason?: string
 		}) =>
-			clientFetch<Lease>(`/api/v1/leases/${id}/terminate`, {
+			apiRequest<Lease>(`/api/v1/leases/${id}/terminate`, {
 				method: 'POST',
 				body: JSON.stringify(
 					reason !== undefined
@@ -495,7 +496,7 @@ export function usePrefetchLease() {
 	return (id: string) => {
 		queryClient.prefetchQuery({
 			queryKey: leaseQueries.detail(id).queryKey,
-			queryFn: () => clientFetch<Lease>(`/api/v1/leases/${id}`),
+			queryFn: () => apiRequest<Lease>(`/api/v1/leases/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
 		})
 	}
@@ -549,7 +550,7 @@ export function useSendLeaseForSignature() {
 
 	return useMutation({
 		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
-			clientFetch<{ success: boolean }>(`/api/v1/leases/${leaseId}/send-for-signature`, {
+			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/send-for-signature`, {
 				method: 'POST',
 				body: JSON.stringify({ message })
 			}),
@@ -574,7 +575,7 @@ export function useSignLeaseAsOwner() {
 
 	return useMutation({
 		mutationFn: (leaseId: string) =>
-			clientFetch<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/owner`, {
+			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/owner`, {
 				method: 'POST'
 			}),
 		onSuccess: (_result, leaseId) => {
@@ -598,7 +599,7 @@ export function useSignLeaseAsTenant() {
 
 	return useMutation({
 		mutationFn: (leaseId: string) =>
-			clientFetch<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/tenant`, {
+			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/tenant`, {
 				method: 'POST'
 			}),
 		onSuccess: (_result, leaseId) => {

@@ -110,7 +110,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 
 				<CrudDialogBody>
 					{/* Rent Amount Display */}
-					<div className="p-(--spacing-4) bg-muted rounded-lg">
+					<div className="p-4 bg-muted rounded-lg">
 						<p className="text-muted mb-[var(--spacing-1)]">
 							Rent Amount
 						</p>

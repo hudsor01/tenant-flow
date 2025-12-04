@@ -7,7 +7,7 @@ export default function Error({
 	reset: () => void
 }) {
 	return (
-		<div className="min-h-screen flex flex-col items-center justify-center gap-(--spacing-4) font-sans p-8">
+		<div className="min-h-screen flex flex-col items-center justify-center gap-4 font-sans p-8">
 			<h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
 			<button
 				onClick={() => reset()}

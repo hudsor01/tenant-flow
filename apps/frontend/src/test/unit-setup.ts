@@ -64,3 +64,28 @@ vi.mock('next/navigation', () => ({
 	useSearchParams: () => new URLSearchParams(),
 	useParams: () => ({})
 }))
+
+/**
+ * Create a mock fetch Response with proper text() and json() methods
+ * Required because apiRequest uses res.text() not res.json()
+ */
+export function createMockResponse<T>(data: T, ok = true, status = 200): Response {
+	const body = JSON.stringify(data)
+	return {
+		ok,
+		status,
+		statusText: ok ? 'OK' : 'Error',
+		headers: new Headers({ 'Content-Type': 'application/json' }),
+		text: () => Promise.resolve(body),
+		json: () => Promise.resolve(data),
+		clone: function() { return createMockResponse(data, ok, status) },
+		body: null,
+		bodyUsed: false,
+		arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+		blob: () => Promise.resolve(new Blob()),
+		formData: () => Promise.resolve(new FormData()),
+		redirected: false,
+		type: 'basic' as ResponseType,
+		url: ''
+	} as Response
+}

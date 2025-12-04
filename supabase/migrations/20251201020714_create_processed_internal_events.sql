@@ -1,8 +1,8 @@
 -- Migration: Create processed_internal_events table for @OnEvent handler idempotency
 -- Purpose: Track processed internal events to prevent duplicate processing
 
--- Table for internal event idempotency
-CREATE TABLE public.processed_internal_events (
+-- Table for internal event idempotency (idempotent)
+CREATE TABLE IF NOT EXISTS public.processed_internal_events (
     id uuid DEFAULT extensions.uuid_generate_v4() PRIMARY KEY,
     event_name text NOT NULL,
     idempotency_key text NOT NULL,
@@ -22,10 +22,10 @@ COMMENT ON COLUMN public.processed_internal_events.idempotency_key IS 'SHA-256 h
 COMMENT ON COLUMN public.processed_internal_events.payload_hash IS 'Short hash of payload for debugging/auditing';
 COMMENT ON COLUMN public.processed_internal_events.status IS 'Processing status: processing, processed, or failed';
 
--- Indexes for performance
-CREATE INDEX idx_processed_internal_events_created_at ON public.processed_internal_events(created_at);
-CREATE INDEX idx_processed_internal_events_event_name ON public.processed_internal_events(event_name);
-CREATE INDEX idx_processed_internal_events_status ON public.processed_internal_events(status) WHERE status = 'processing';
+-- Indexes for performance (idempotent)
+CREATE INDEX IF NOT EXISTS idx_processed_internal_events_created_at ON public.processed_internal_events(created_at);
+CREATE INDEX IF NOT EXISTS idx_processed_internal_events_event_name ON public.processed_internal_events(event_name);
+CREATE INDEX IF NOT EXISTS idx_processed_internal_events_status ON public.processed_internal_events(status) WHERE status = 'processing';
 
 -- RPC function for atomic lock acquisition (mirrors existing stripe webhook pattern)
 CREATE OR REPLACE FUNCTION public.acquire_internal_event_lock(

@@ -55,7 +55,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 						<span className="text-muted-foreground">Vacant:</span>
 						<span className="font-medium">{vacantUnits} units</span>
 					</div>
-					<div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+					<div className="text-caption mt-2 pt-2 border-t">
 						<div>
 							Occupancy Rate:{' '}
 							{data.occupancy_rate ? `${data.occupancy_rate.toFixed(1)}%` : '0%'}

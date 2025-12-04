@@ -37,7 +37,7 @@ test.describe('Authentication & JWT Validation', () => {
 			}
 		})
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Navigate to owner dashboard
 		await page.goto(`${baseUrl}/dashboard`)
@@ -68,7 +68,7 @@ test.describe('Authentication & JWT Validation', () => {
 			}
 		})
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Navigate to properties page
 		await page.goto(`${baseUrl}/properties`)
@@ -104,7 +104,7 @@ test.describe('Authentication & JWT Validation', () => {
 			}
 		})
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Test all protected routes
 		const protectedRoutes = [
@@ -147,7 +147,7 @@ test.describe('Authentication & JWT Validation', () => {
 	})
 
 	test('should have valid JWT token in cookies', async ({ page, context }) => {
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Navigate to owner dashboard
 		await page.goto(`${baseUrl}/dashboard`)
@@ -200,7 +200,7 @@ test.describe('Authentication & JWT Validation', () => {
 			}
 		})
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Navigate to properties page (most common user flow)
 		await page.goto(`${baseUrl}/properties`)
@@ -238,7 +238,7 @@ test.describe('Authentication & JWT Validation', () => {
 			}
 		})
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Navigate to properties page (triggers API calls)
 		await page.goto(`${baseUrl}/properties`)
@@ -279,7 +279,7 @@ test.describe('Authentication & JWT Validation', () => {
 			}
 		})
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		// Navigate to properties
 		await page.goto(`${baseUrl}/properties`)
@@ -303,7 +303,7 @@ test.describe('JWT Security Validation', () => {
 	}) => {
 		await loginAsOwner(page)
 
-		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 		await page.goto(`${baseUrl}/dashboard`)
 		await page.waitForLoadState('load')
 

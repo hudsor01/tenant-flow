@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ROUTES } from '../../constants/routes'
-import { loginAsOwner } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
 import {
   verifyTableRenders,
@@ -18,6 +17,10 @@ import {
 /**
  * Owner Dashboard E2E Tests
  *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ *
  * Comprehensive validation of the owner dashboard page:
  * - Quick stats cards (properties, tenants, revenue, maintenance)
  * - Recent activity section
@@ -28,12 +31,12 @@ import {
  */
 
 test.describe('Owner Dashboard', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
   const logger = createLogger({ component: 'OwnerDashboardE2E' })
 
   test.beforeEach(async ({ page }) => {
-    // Login as owner and navigate to dashboard
-    await loginAsOwner(page)
+    // Navigate to dashboard (authenticated via storageState)
+    await page.goto(ROUTES.OWNER_DASHBOARD)
 
     // Verify we're on dashboard
     await verifyPageLoaded(page, ROUTES.OWNER_DASHBOARD, 'Dashboard')

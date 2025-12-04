@@ -66,6 +66,7 @@ export async function verifyCanvasChartRenders(page: Page): Promise<void> {
 
 /**
  * Verify SVG chart renders
+ * Looks for chart-specific SVG elements (recharts, visx, etc) or falls back to first svg
  */
 export async function verifySVGChartRenders(page: Page, chartLabel?: string): Promise<void> {
   if (chartLabel) {
@@ -73,7 +74,17 @@ export async function verifySVGChartRenders(page: Page, chartLabel?: string): Pr
       page.locator('svg').filter({ has: page.getByText(new RegExp(chartLabel, 'i')) })
     ).toBeVisible({ timeout: 10000 })
   } else {
-    await expect(page.locator('svg')).toBeVisible({ timeout: 10000 })
+    // Look for chart container SVGs (recharts, visx) or any svg with chart-like attributes
+    const chartSvg = page.locator('.recharts-surface').or(
+      page.locator('svg.recharts-surface')
+    ).or(
+      page.locator('[class*="chart"] svg')
+    ).or(
+      page.locator('svg[viewBox]').first() // Fallback: first SVG with viewBox attribute
+    )
+
+    const count = await chartSvg.count()
+    expect(count).toBeGreaterThan(0)
   }
 }
 

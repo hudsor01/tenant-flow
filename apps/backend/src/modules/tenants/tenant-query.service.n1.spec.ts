@@ -20,7 +20,7 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 		// Create mock client that tracks query count
 		const createMockClient = () => {
 			const mockClient = {
-				from: jest.fn().mockImplementation((table: string) => {
+				from: jest.fn().mockImplementation(() => {
 					queryCount++ // Count each .from() call as a query
 					return mockClient
 				}),
@@ -71,21 +71,28 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 	})
 
 	describe('getTenantIdsForOwner - N+1 Prevention', () => {
-		// TODO: Enable when getTenantIdsForOwner is optimized to use Supabase nested joins
-		it.skip('should use single query with joins instead of 3 sequential queries', async () => {
+		it('should use single query with joins instead of 3 sequential queries', async () => {
 			// Setup: Mock owner with properties → units → leases chain
 			const mockOwnerRecord = { id: 'owner-1' }
 			const mockProperties = [
-				{ id: 'prop-1' },
-				{ id: 'prop-2' }
-			]
-			const mockUnits = [
-				{ id: 'unit-1', property_id: 'prop-1' },
-				{ id: 'unit-2', property_id: 'prop-2' }
-			]
-			const mockLeases = [
-				{ primary_tenant_id: 'tenant-1', unit_id: 'unit-1' },
-				{ primary_tenant_id: 'tenant-2', unit_id: 'unit-2' }
+				{
+					id: 'prop-1',
+					units: [
+						{
+							id: 'unit-1',
+							leases: [{ primary_tenant_id: 'tenant-1' }]
+						}
+					]
+				},
+				{
+					id: 'prop-2',
+					units: [
+						{
+							id: 'unit-2',
+							leases: [{ primary_tenant_id: 'tenant-2' }]
+						}
+					]
+				}
 			]
 
 			const mockClient = mockSupabaseService.getAdminClient()
@@ -101,24 +108,11 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 						error: null
 					})
 				}
-				// Second call: should be SINGLE query with joins
-				else if (callIndex === 2 && columns.includes('units(') && columns.includes('leases(')) {
+				// Second call: should be SINGLE query with nested joins
+				else if (callIndex === 2) {
 					;(mockClient as any).then = (cb: (result: any) => void) => {
-						// Return properties with nested units and leases
-						cb({
-							data: mockProperties.map(p => ({
-								id: p.id,
-								units: mockUnits
-									.filter(u => u.property_id === p.id)
-									.map(u => ({
-										id: u.id,
-										leases: mockLeases
-											.filter(l => l.unit_id === u.id)
-											.map(l => ({ primary_tenant_id: l.primary_tenant_id }))
-									}))
-							})),
-							error: null
-						})
+						cb({ data: mockProperties, error: null })
+						return Promise.resolve({ data: mockProperties, error: null })
 					}
 				}
 
@@ -129,17 +123,17 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 			queryCount = 0
 
 			// Execute
-			await service.getTenantIdsForOwner('auth-user-123')
+			const result = await service.getTenantIdsForOwner('auth-user-123')
 
 			// Assert: Should use ≤2 queries (not 4)
 			// 1 query: Get owner record
 			// 1 query: Get properties with nested units.leases in single join
 			// TOTAL: 2 queries (not 1 + properties + units + leases = 4)
 			expect(queryCount).toBeLessThanOrEqual(2)
+			expect(result).toEqual(['tenant-1', 'tenant-2'])
 		})
 
-		// TODO: Enable when getTenantIdsForOwner is optimized to use Supabase nested joins
-		it.skip('should use nested joins instead of sequential queries', async () => {
+		it('should use nested joins instead of sequential queries', async () => {
 			const mockOwnerRecord = { id: 'owner-1' }
 			const mockClient = mockSupabaseService.getAdminClient()
 
@@ -152,10 +146,11 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 						data: mockOwnerRecord,
 						error: null
 					})
-				} else if (callIndex === 2 && columns.includes('units') && columns.includes('leases')) {
+				} else if (callIndex === 2) {
 					// Nested join query
 					;(mockClient as any).then = (cb: (result: any) => void) => {
 						cb({ data: [], error: null })
+						return Promise.resolve({ data: [], error: null })
 					}
 				}
 
@@ -170,9 +165,11 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 			const selectCalls = mockClient.select.mock.calls
 			const hasNestedJoin = selectCalls.some((call: any[]) => {
 				const columns = call[0]
-				return typeof columns === 'string' &&
-					   columns.includes('units') &&
-					   columns.includes('leases')
+				return (
+					typeof columns === 'string' &&
+					columns.includes('units(') &&
+					columns.includes('leases(')
+				)
 			})
 			expect(hasNestedJoin).toBe(true)
 		})

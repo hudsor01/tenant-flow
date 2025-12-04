@@ -146,7 +146,7 @@ export function TenantErrorFallback({
 	return (
 		<div className="flex min-h-100 items-center justify-center p-4">
 			<CardLayout title={title} description={description}>
-				<div className="flex flex-col items-center gap-(--spacing-6)">
+				<div className="flex flex-col items-center gap-6">
 					<div className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10">
 						<AlertTriangle className="size-8 text-destructive" />
 					</div>

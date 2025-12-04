@@ -36,13 +36,10 @@ import {
 } from '#components/ui/select'
 import { Input } from '#components/ui/input'
 import { useDeleteUnitMutation } from '#hooks/api/mutations/unit-mutations'
-import {
-	TYPOGRAPHY_SCALE,
-	buttonClasses,
-	cardClasses,
-	cn,
-	inputClasses
-} from '#lib/design-system'
+import { cn } from '#lib/utils'
+import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import { buttonVariants } from '#components/ui/button'
+import { cardVariants } from '#components/ui/card'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UnitStats, UnitRowWithRelations as UnitRow, UnitStatus } from '@repo/shared/types/core'
 import type { Column, ColumnDef } from '@tanstack/react-table'
@@ -103,7 +100,7 @@ function SortableHeader({
 			variant="ghost"
 			onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
 			className={cn(
-				buttonClasses('ghost', 'sm'),
+				buttonVariants({ variant: 'ghost', size: 'sm' }),
 				'h-auto p-2 font-semibold hover:bg-muted/50 transition-all',
 				alignmentClasses[align],
 				'gap-2',
@@ -195,7 +192,7 @@ function UnitStatsDisplay({
 				readOnly
 				value={`${stats.occupied}/${stats.total} occupied`}
 				className={cn(
-					inputClasses('default', 'xs'),
+					'h-8 px-2 py-1 text-xs rounded-md border border-input bg-transparent',
 					'text-center pointer-events-none bg-muted/50'
 				)}
 			/>
@@ -204,7 +201,7 @@ function UnitStatsDisplay({
 				readOnly
 				value={`${((stats.occupied / stats.total) * 100).toFixed(1)}%`}
 				className={cn(
-					inputClasses('default', 'xs'),
+					'h-8 px-2 py-1 text-xs rounded-md border border-input bg-transparent',
 					'text-center pointer-events-none bg-primary/10'
 				)}
 			/>
@@ -283,7 +280,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							variant="ghost"
 							size="sm"
 							className={cn(
-								buttonClasses('ghost', 'sm'),
+								buttonVariants({ variant: 'ghost', size: 'sm' }),
 								'size-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/50',
 								'transition-all'
 							)}
@@ -349,7 +346,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 						<DialogTitle>Unit {unit.unit_number} Details</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-4">
-						<div className="grid grid-cols-2 gap-(--spacing-4)">
+						<div className="grid grid-cols-2 gap-4">
 							<div className="flex items-center gap-2">
 								<BedDouble className="size-4 text-muted-foreground" />
 								<span>{unit.bedrooms} Bedrooms</span>
@@ -391,7 +388,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							<Label>Unit Number</Label>
 							<Input value={unit.unit_number || ''} disabled />
 						</div>
-						<div className="grid grid-cols-2 gap-(--spacing-4)">
+						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<Label>Bedrooms</Label>
 								<Input type="number" value={unit.bedrooms ?? ''} disabled />
@@ -433,7 +430,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 			</Dialog>
 
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-				<AlertDialogContent className={cn(cardClasses('elevated'), 'max-w-md')}>
+				<AlertDialogContent className={cn(cardVariants({ variant: 'elevated' }), 'max-w-md')}>
 					<AlertDialogHeader className="space-y-4">
 						<div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
 							<TrashIcon className="size-6 text-destructive" />
@@ -453,7 +450,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 							{unit.status === 'OCCUPIED' && (
 								<div
 									className={cn(
-										cardClasses('default'),
+										cardVariants({ variant: 'default' }),
 										'mt-4 p-3 border-destructive/20 bg-destructive/5'
 									)}
 								>
@@ -473,14 +470,14 @@ function UnitActions({ unit }: UnitActionsProps) {
 					<AlertDialogFooter className="flex gap-3">
 						<AlertDialogCancel
 							disabled={isDeleting}
-							className={cn(buttonClasses('outline'), 'flex-1')}
+							className={cn(buttonVariants({ variant: 'outline' }), 'flex-1')}
 						>
 							Cancel
 						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting || !canDelete}
-							className={cn(buttonClasses('destructive'), 'flex-1')}
+							className={cn(buttonVariants({ variant: 'destructive' }), 'flex-1')}
 						>
 							{isDeleting ? (
 								<div className="flex items-center gap-2">

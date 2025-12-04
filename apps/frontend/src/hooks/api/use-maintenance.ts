@@ -4,7 +4,8 @@
  * Follows CUSTOM HOOKS architecture patterns
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import type {
 	CreateMaintenanceRequestInput,
 	UpdateMaintenanceRequestInput
@@ -63,7 +64,7 @@ export function useCreateMaintenanceRequestInput() {
 
 	return useMutation({
 		mutationFn: (data: CreateMaintenanceRequestInput) =>
-			clientFetch<MaintenanceRequest>('/api/v1/maintenance', {
+			apiRequest<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
@@ -142,7 +143,7 @@ export function useUpdateMaintenanceRequestInput() {
 			data: UpdateMaintenanceRequestInput
 			version?: number
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
+			return apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
 				method: 'PUT',
 				// OPTIMISTIC LOCKING: Include version if provided
 				body: JSON.stringify(
@@ -238,7 +239,7 @@ export function useCompleteMaintenance() {
 			actualCost?: number
 			notes?: string
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(
+			return apiRequest<MaintenanceRequest>(
 				`/api/v1/maintenance/${id}/complete`,
 				{
 					method: 'POST',
@@ -336,7 +337,7 @@ export function useCancelMaintenance() {
 			id: string
 			reason?: string
 		}): Promise<MaintenanceRequest> => {
-			return clientFetch<MaintenanceRequest>(
+			return apiRequest<MaintenanceRequest>(
 				`/api/v1/maintenance/${id}/cancel`,
 				{
 					method: 'POST',

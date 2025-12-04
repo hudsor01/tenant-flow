@@ -24,11 +24,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useBalanceSheet } from '#hooks/api/use-financial-statements'
-
-type FinancialLineItem = {
-	name: string
-	amount: number
-}
+import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
 
 const BalanceSheetPage = () => {
 	const [year, setYear] = useState('2024')
@@ -68,10 +64,6 @@ const BalanceSheetPage = () => {
 			{ name: 'Current Period Income', amount: data.data.equity.currentPeriodIncome }
 		]
 	} : null
-
-	const _calculateTotal = (items: FinancialLineItem[]) => {
-		return items.reduce((sum, item) => sum + item.amount, 0)
-	}
 
 	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">
@@ -114,7 +106,7 @@ const BalanceSheetPage = () => {
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-(--spacing-6)">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 					{[1, 2, 3].map(i => (
 						<Card key={i}>
 							<CardHeader>
@@ -164,7 +156,7 @@ const BalanceSheetPage = () => {
 				<Card>
 					<CardContent className="p-6">
 						<div className="text-center">
-							<p className="text-red-600">Failed to load balance sheet data. Please try again.</p>
+							<p className="text-destructive">Failed to load balance sheet data. Please try again.</p>
 						</div>
 					</CardContent>
 				</Card>
@@ -205,7 +197,7 @@ const BalanceSheetPage = () => {
 			{/* Filters */}
 			<Card>
 				<CardContent className="p-4">
-					<div className="flex flex-wrap items-center gap-(--spacing-4)">
+					<div className="flex flex-wrap items-center gap-4">
 						<div className="flex items-center gap-2">
 							<Label>As Of Date</Label>
 							<Select value={year} onValueChange={setYear}>
@@ -249,7 +241,7 @@ const BalanceSheetPage = () => {
 			</Card>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-6)">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Assets</CardTitle>
@@ -259,7 +251,7 @@ const BalanceSheetPage = () => {
 						<div className="text-2xl font-bold">
 							${totalAssets.toLocaleString()}
 						</div>
-						<p className="text-xs text-muted-foreground">As of {asOfDate}</p>
+						<p className="text-caption">As of {asOfDate}</p>
 					</CardContent>
 				</Card>
 				<Card>
@@ -273,7 +265,7 @@ const BalanceSheetPage = () => {
 						<div className="text-2xl font-bold">
 							${totalLiabilities.toLocaleString()}
 						</div>
-						<p className="text-xs text-muted-foreground">As of {asOfDate}</p>
+						<p className="text-caption">As of {asOfDate}</p>
 					</CardContent>
 				</Card>
 				<Card>
@@ -285,7 +277,7 @@ const BalanceSheetPage = () => {
 						<div className="text-2xl font-bold">
 							${totalEquity.toLocaleString()}
 						</div>
-						<p className="text-xs text-muted-foreground">As of {asOfDate}</p>
+						<p className="text-caption">As of {asOfDate}</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -340,7 +332,7 @@ const BalanceSheetPage = () => {
 								transformedData.liabilities.nonCurrent
 							)}
 							<Separator />
-							<div className="flex-between p-3 bg-red-50 rounded-lg">
+							<div className="flex-between p-3 bg-destructive/10 rounded-lg">
 								<div className="font-semibold">Total Liabilities</div>
 								<div className="font-bold text-lg">
 									${totalLiabilities.toLocaleString()}
@@ -362,7 +354,7 @@ const BalanceSheetPage = () => {
 								transformedData.equity
 							)}
 							<Separator />
-							<div className="flex-between p-3 bg-green-50 rounded-lg">
+							<div className="flex-between p-3 bg-success/10 rounded-lg">
 								<div className="font-semibold">Total Equity</div>
 								<div className="font-bold text-lg">
 									${totalEquity.toLocaleString()}
@@ -379,7 +371,7 @@ const BalanceSheetPage = () => {
 					<CardTitle>Financial Summary</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-(--spacing-4)">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<div className="text-center p-4 bg-muted/50 rounded-lg">
 							<div className="text-2xl font-bold text-blue-600">
 								${totalAssets.toLocaleString()}
@@ -387,7 +379,7 @@ const BalanceSheetPage = () => {
 							<div className="text-sm text-muted/600">Total Assets</div>
 						</div>
 						<div className="text-center p-4 bg-muted/50 rounded-lg">
-							<div className="text-2xl font-bold text-red-600">
+							<div className="text-2xl font-bold text-destructive">
 								${totalLiabilities.toLocaleString()}
 							</div>
 							<div className="text-sm text-muted/600">Total Liabilities</div>
@@ -410,7 +402,7 @@ const BalanceSheetPage = () => {
 							{totalEquity.toLocaleString()}
 						</div>
 						{data?.data?.balanceCheck === false && (
-							<div className="mt-2 text-sm text-red-600">
+							<div className="mt-2 text-sm text-destructive">
 								⚠️ Warning: Balance sheet equation does not balance
 							</div>
 						)}

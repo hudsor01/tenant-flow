@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	IdentityVerificationRecord,
@@ -16,7 +17,7 @@ export function useIdentityVerificationStatus() {
 	return useQuery({
 		queryKey: identityVerificationKeys.status(),
 		queryFn: async (): Promise<IdentityVerificationRecord> => {
-			const response = await clientFetch<{
+			const response = await apiRequest<{
 				success: boolean
 				data: IdentityVerificationRecord
 			}>('/api/v1/identity/verification-status')
@@ -32,7 +33,7 @@ export function useCreateIdentityVerificationSession() {
 
 	return useMutation({
 		mutationFn: async () => {
-			return clientFetch<{
+			return apiRequest<{
 				success: boolean
 				data: IdentityVerificationSessionPayload
 			}>('/api/v1/identity/verification-session', {

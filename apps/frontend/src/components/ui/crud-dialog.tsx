@@ -2,13 +2,25 @@
 
 import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { XIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 
 import { cn } from '#lib/utils'
 import { useModalStore } from '#stores/modal-store'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import type { ReactNode } from 'react'
+// Import base components from dialog.tsx - no duplication!
+import {
+	Dialog as _BaseDialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter,
+	DialogClose,
+	DialogOverlay,
+	DialogPortal,
+	DialogTrigger
+} from '#components/ui/dialog'
 
 export type CrudMode = 'create' | 'read' | 'edit' | 'delete'
 
@@ -36,146 +48,29 @@ export interface CrudDialogProps
 	persistThroughNavigation?: boolean
 }
 
-const CrudDialogPortal = DialogPrimitive.Portal
-
-const CrudDialogOverlay = React.forwardRef<
-	React.ElementRef<typeof DialogPrimitive.Overlay>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-	<DialogPrimitive.Overlay
-		ref={ref}
-		className={cn(
-			'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50',
-			className
-		)}
-		{...props}
-	/>
-))
-CrudDialogOverlay.displayName = DialogPrimitive.Overlay.displayName
-
-const CrudDialogContent = React.forwardRef<
-	React.ElementRef<typeof DialogPrimitive.Content>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-		showCloseButton?: boolean
-	}
->(({ className, children, showCloseButton = true, ...props }, ref) => (
-	<CrudDialogPortal>
-		<CrudDialogOverlay />
-		<DialogPrimitive.Content
-			ref={ref}
-			className={cn(
-				'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-(--spacing-6) rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
-				'border-border/50 shadow-medium',
-				className
-			)}
-			{...props}
-		>
-			{children}
-			{showCloseButton && (
-				<DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
-					<XIcon />
-					<span className="sr-only">Close</span>
-				</DialogPrimitive.Close>
-			)}
-		</DialogPrimitive.Content>
-	</CrudDialogPortal>
-))
-CrudDialogContent.displayName = DialogPrimitive.Content.displayName
-
-const CrudDialogHeader = React.forwardRef<
-	React.ElementRef<'div'>,
-	React.ComponentPropsWithoutRef<'div'>
->(({ className, ...props }, ref) => (
-	<div
-		ref={ref}
-		className={cn('flex flex-col gap-3 text-center sm:text-left', className)}
-		{...props}
-	/>
-))
-CrudDialogHeader.displayName = 'CrudDialogHeader'
-
-const CrudDialogTitle = React.forwardRef<
-	React.ElementRef<typeof DialogPrimitive.Title>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-	<DialogPrimitive.Title
-		ref={ref}
-		className={cn(
-			'text-lg font-semibold leading-none tracking-tight text-foreground font-display',
-			className
-		)}
-		{...props}
-	/>
-))
-CrudDialogTitle.displayName = DialogPrimitive.Title.displayName
-
-const CrudDialogDescription = React.forwardRef<
-	React.ElementRef<typeof DialogPrimitive.Description>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-	<DialogPrimitive.Description
-		ref={ref}
-		className={cn('text-muted leading-relaxed', className)}
-		{...props}
-	/>
-))
-CrudDialogDescription.displayName = DialogPrimitive.Description.displayName
-
-const CrudDialogBody = React.forwardRef<
-	React.ElementRef<'div'>,
-	React.ComponentPropsWithoutRef<'div'>
->(({ className, ...props }, ref) => (
-	<div ref={ref} className={cn('space-y-4', className)} {...props} />
-))
+/**
+ * CrudDialogBody - Container for dialog form content
+ * This is the ONLY new component - not in base dialog.tsx
+ */
+function CrudDialogBody({
+	className,
+	...props
+}: React.ComponentProps<'div'>) {
+	return <div className={cn('space-y-4', className)} {...props} />
+}
 CrudDialogBody.displayName = 'CrudDialogBody'
 
-const CrudDialogFooter = React.forwardRef<
-	React.ElementRef<'div'>,
-	React.ComponentPropsWithoutRef<'div'>
->(({ className, ...props }, ref) => (
-	<div
-		ref={ref}
-		className={cn(
-			'flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2',
-			className
-		)}
-		{...props}
-	/>
-))
-CrudDialogFooter.displayName = 'CrudDialogFooter'
-
-const CrudDialogClose = React.forwardRef<
-	React.ElementRef<typeof DialogPrimitive.Close>,
-	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>
->(({ className, ...props }, ref) => (
-	<DialogPrimitive.Close
-		ref={ref}
-		className={cn(
-			"ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-			className
-		)}
-		{...props}
-	>
-		<XIcon />
-		<span className="sr-only">Close</span>
-	</DialogPrimitive.Close>
-))
-CrudDialogClose.displayName = DialogPrimitive.Close.displayName
-
 /**
- * CrudDialog - Universal CRUD dialog component based on shadcn/ui Dialog
+ * CrudDialog - Dialog with modal store integration for CRUD operations
  *
- * Enhanced with TenantFlow design system:
- * - Custom shadows and borders from globals.css
- * - Proper typography using font-display
- * - Touch-friendly spacing and sizing
- * - Consistent color tokens
+ * This is the ONLY unique component - everything else is re-exported from dialog.tsx.
+ * Adds:
  * - Modal store integration for state management
- * - React Spring animations
- * - Enhanced accessibility and keyboard navigation
+ * - Navigation handling on close
+ * - CRUD mode support
  */
 function CrudDialog({
-	mode,
+	mode: _mode,
 	modalId,
 	children,
 	onClose,
@@ -185,14 +80,30 @@ function CrudDialog({
 	const router = useRouter()
 	const { isModalOpen, closeModal } = useModalStore()
 
-	const isModalMode = mode !== 'create' && !!modalId
+	// Modal mode is enabled when a modalId is provided, regardless of CRUD mode
+	// This allows any dialog (create, read, edit, delete) to be controlled by the modal store
+	const isModalMode = !!modalId
 	let isOpen = false
 	if (isModalMode) {
 		isOpen = isModalOpen(modalId)
 	}
 
+	// Track if modal was ever opened - only navigate back on close if it was opened
+	// This prevents router.back() on initial mount when modal starts closed
+	const wasEverOpenRef = useRef(false)
 	useEffect(() => {
-		if (isModalMode && !persistThroughNavigation && !isOpen) {
+		if (isOpen) {
+			wasEverOpenRef.current = true
+		}
+	}, [isOpen])
+
+	useEffect(() => {
+		// Only navigate back if:
+		// 1. We're in modal mode
+		// 2. Not persisting through navigation
+		// 3. Modal is currently closed
+		// 4. Modal was previously opened (prevents navigation on initial mount)
+		if (isModalMode && !persistThroughNavigation && !isOpen && wasEverOpenRef.current) {
 			router.back()
 		}
 	}, [isModalMode, isOpen, router, persistThroughNavigation])
@@ -228,26 +139,41 @@ function CrudDialog({
 		</DialogPrimitive.Root>
 	)
 }
-CrudDialog.displayName = DialogPrimitive.Root.displayName
+CrudDialog.displayName = 'CrudDialog'
 
+// Export CrudDialog (the unique component with modal store integration)
+export { CrudDialog }
+
+// Export CrudDialogBody (the only new component)
+export { CrudDialogBody }
+
+// Re-export base components with Crud prefix aliases for consumers that prefer that naming
 export {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogBody,
-	CrudDialogFooter,
-	CrudDialogClose,
-	CrudDialogPortal,
-	CrudDialogOverlay,
-	//
-	CrudDialog as Dialog,
-	CrudDialogContent as DialogContent,
-	CrudDialogHeader as DialogHeader,
-	CrudDialogTitle as DialogTitle,
-	CrudDialogDescription as DialogDescription,
-	CrudDialogBody as DialogBody,
-	CrudDialogFooter as DialogFooter,
-	CrudDialogClose as DialogClose
+	DialogContent as CrudDialogContent,
+	DialogHeader as CrudDialogHeader,
+	DialogTitle as CrudDialogTitle,
+	DialogDescription as CrudDialogDescription,
+	DialogFooter as CrudDialogFooter,
+	DialogClose as CrudDialogClose,
+	DialogOverlay as CrudDialogOverlay,
+	DialogPortal as CrudDialogPortal,
+	DialogTrigger as CrudDialogTrigger
 }
+
+// Also re-export with Dialog prefix for compatibility with existing imports
+export {
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter,
+	DialogClose,
+	DialogOverlay,
+	DialogPortal,
+	DialogTrigger
+}
+
+// Re-export CrudDialog as Dialog for consumers expecting that name
+export { CrudDialog as Dialog }
+// Re-export CrudDialogBody as DialogBody
+export { CrudDialogBody as DialogBody }

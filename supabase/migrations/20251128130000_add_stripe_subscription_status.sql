@@ -9,27 +9,32 @@
 
 BEGIN;
 
--- Create enum for subscription provisioning status
-CREATE TYPE public.stripe_subscription_status AS ENUM (
-  'none',       -- No subscription needed or not yet started
-  'pending',    -- Lease activated, subscription creation in progress
-  'active',     -- Subscription created successfully
-  'failed'      -- Subscription creation failed, needs retry
-);
+-- Create enum for subscription provisioning status (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'stripe_subscription_status') THEN
+    CREATE TYPE public.stripe_subscription_status AS ENUM (
+      'none',       -- No subscription needed or not yet started
+      'pending',    -- Lease activated, subscription creation in progress
+      'active',     -- Subscription created successfully
+      'failed'      -- Subscription creation failed, needs retry
+    );
+  END IF;
+END $$;
 
--- Add subscription status column to leases table
+-- Add subscription status column to leases table (idempotent)
 ALTER TABLE public.leases
-ADD COLUMN stripe_subscription_status public.stripe_subscription_status
+ADD COLUMN IF NOT EXISTS stripe_subscription_status public.stripe_subscription_status
   DEFAULT 'none' NOT NULL;
 
--- Add failure tracking columns for retry mechanism
+-- Add failure tracking columns for retry mechanism (idempotent)
 ALTER TABLE public.leases
-ADD COLUMN subscription_failure_reason TEXT,
-ADD COLUMN subscription_retry_count INTEGER DEFAULT 0,
-ADD COLUMN subscription_last_attempt_at TIMESTAMPTZ;
+ADD COLUMN IF NOT EXISTS subscription_failure_reason TEXT,
+ADD COLUMN IF NOT EXISTS subscription_retry_count INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS subscription_last_attempt_at TIMESTAMPTZ;
 
--- Index for background job queries (find pending/failed subscriptions efficiently)
-CREATE INDEX idx_leases_subscription_pending
+-- Index for background job queries (idempotent)
+CREATE INDEX IF NOT EXISTS idx_leases_subscription_pending
   ON public.leases(stripe_subscription_status)
   WHERE stripe_subscription_status IN ('pending', 'failed');
 

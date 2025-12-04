@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
 import { createClient } from '#utils/supabase/client'
 
@@ -22,6 +22,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     maxFiles = 1,
     cacheControl = 3600,
     upsert = false,
+    autoUpload = false,
   } = options
 
   const [files, setFiles] = useState<FileWithPreview[]>([])
@@ -64,7 +65,6 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
   const dropzoneProps = useDropzone({
     onDrop,
-    noClick: true,
     accept: allowedMimeTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     maxSize: maxFileSize,
     maxFiles: maxFiles,
@@ -135,6 +135,35 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Effect depends on count, not contents; adding files would cause infinite loop
   }, [files.length, setFiles, maxFiles])
+
+  // Auto-upload: trigger upload immediately when NEW files are added
+  // Using refs to avoid infinite loops while keeping behavior correct
+  const uploadAttemptedRef = useRef<Set<string>>(new Set())
+  const onUploadRef = useRef(onUpload)
+  onUploadRef.current = onUpload // Always keep ref updated
+
+  // Clear the upload tracking when files are cleared
+  useEffect(() => {
+    if (files.length === 0) {
+      uploadAttemptedRef.current.clear()
+    }
+  }, [files.length])
+
+  useEffect(() => {
+    if (!autoUpload) return
+    if (loading) return
+
+    // Find files we haven't tried to upload yet
+    const newFilesToUpload = files.filter(
+      (f) => f.errors.length === 0 && !uploadAttemptedRef.current.has(f.name)
+    )
+
+    if (newFilesToUpload.length > 0) {
+      // Mark these files as attempted BEFORE calling upload
+      newFilesToUpload.forEach(f => uploadAttemptedRef.current.add(f.name))
+      onUploadRef.current()
+    }
+  }, [files, autoUpload, loading])
 
   return {
     files,

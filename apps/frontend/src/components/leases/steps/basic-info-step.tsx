@@ -119,7 +119,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-2 gap-(--spacing-4)">
+					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="commencementDate">
 							{field => (
 								<div className="space-y-2">

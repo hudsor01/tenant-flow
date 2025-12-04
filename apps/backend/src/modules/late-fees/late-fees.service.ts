@@ -235,7 +235,7 @@ export class LateFeesService {
 				.from('rent_payments')
 				.select('id, amount, due_date, late_fee_amount, status')
 				.eq('lease_id', lease_id)
-				.in('status', ['PENDING', 'FAILED'])
+				.in('status', ['pending', 'FAILED'])
 				.order('due_date', { ascending: true })
 
 			if (error) throw error

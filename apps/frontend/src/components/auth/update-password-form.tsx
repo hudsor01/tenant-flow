@@ -16,7 +16,8 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '#components/ui/input-group'
-import { buttonClasses, cardClasses, cn } from '#lib/design-system'
+import { cn } from '#lib/utils'
+import { cardVariants } from '#components/ui/card'
 import { createClient } from '#utils/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import {
@@ -76,7 +77,7 @@ export function UpdatePasswordForm({
 		>
 			<Card
 				className={cn(
-					cardClasses(),
+					cardVariants({ variant: 'default' }),
 					'shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out'
 				)}
 			>
@@ -151,13 +152,13 @@ export function UpdatePasswordForm({
 									</InputGroupAddon>
 								</InputGroup>
 								{confirmPassword.length > 0 && password.length > 0 && password !== confirmPassword && (
-						<p className="text-caption text-destructive flex items-center gap-[var(--spacing-1)]">
+						<p className="text-xs text-destructive flex items-center gap-[var(--spacing-1)]">
 										<AlertTriangle className="size-[var(--spacing-3)]" />
 										Passwords do not match
 									</p>
 								)}
 								{confirmPassword.length > 0 && password.length > 0 && password === confirmPassword && (
-						<p className="text-caption text-primary flex items-center gap-[var(--spacing-1)]">
+						<p className="text-xs text-primary flex items-center gap-[var(--spacing-1)]">
 										<CheckCircle2 className="size-[var(--spacing-3)]" />
 										Passwords match
 									</p>
@@ -179,7 +180,7 @@ export function UpdatePasswordForm({
 						<Button
 							type="submit"
 							className={cn(
-								buttonClasses('primary', 'lg'),
+								'bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8',
 								'w-full font-semibold hover:scale-105',
 								'transition-fast-transform'
 							)}
@@ -206,7 +207,7 @@ export function UpdatePasswordForm({
 					</form>
 
 				<div className="text-center pt-[var(--spacing-4)] border-t border-(--color-border)">
-					<p className="text-caption text-muted-foreground">
+					<p className="text-caption">
 							Your password will be encrypted and stored securely
 						</p>
 					</div>

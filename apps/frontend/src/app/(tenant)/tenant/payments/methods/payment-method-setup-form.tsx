@@ -233,7 +233,7 @@ function SetupForm({
 					options={{ defaultValues: { email: '' } }}
 					onLoadError={() => handleLoadError('Failed to load email form')}
 				/>
-				<p className="text-xs text-muted-foreground">
+				<p className="text-caption">
 					Enter your email to save and reuse your payment method with Link
 				</p>
 			</div>
@@ -253,7 +253,7 @@ function SetupForm({
 					}}
 					onLoadError={() => handleLoadError('Failed to load address form')}
 				/>
-				<p className="text-xs text-muted-foreground">
+				<p className="text-caption">
 					Required for billing and compliance
 				</p>
 			</div>
@@ -345,7 +345,7 @@ export function PaymentMethodSetupForm({
 			},
 			rules: {
 				'.Input': {
-					boxShadow: 'var(--shadow-premium-sm)',
+					boxShadow: 'var(--shadow-sm)',
 					transition: 'box-shadow 0.15s ease'
 				},
 				'.Input:focus': {

@@ -12,7 +12,6 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
 import type { SupabaseJwtPayload } from '@repo/shared/types/auth'
 
 /**

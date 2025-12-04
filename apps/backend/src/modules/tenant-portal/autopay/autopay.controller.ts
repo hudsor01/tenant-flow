@@ -100,7 +100,7 @@ export class TenantAutopayController {
 			.from('rent_payments')
 			.select('due_date')
 			.eq('lease_id', lease_id)
-			.in('status', ['DUE', 'PENDING'])
+			.in('status', ['DUE', 'pending'])
 			.order('due_date', { ascending: true })
 			.limit(1)
 			.maybeSingle()

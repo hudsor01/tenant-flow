@@ -35,7 +35,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { useModalStore } from '#stores/modal-store'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 
 const logger = createLogger({ component: 'CreateTenantForm' })
 
@@ -111,8 +111,8 @@ export function CreateTenantForm({
 	const { trackMutation, closeOnMutationSuccess } = useModalStore()
 
 	const inviteTenantMutation = useMutation({
-		mutationFn: (payload: InviteTenantRequest) =>
-			clientFetch<InviteTenantResponse>('/api/v1/tenants/invite-with-lease', {
+		mutationFn: async (payload: InviteTenantRequest) =>
+			apiRequest<InviteTenantResponse>('/api/v1/tenants/invite-with-lease', {
 				method: 'POST',
 				body: JSON.stringify(payload)
 			}),
@@ -228,7 +228,7 @@ export function CreateTenantForm({
 				</CardHeader>
 
 				<CardContent className="space-y-6">
-					<div className="grid grid-cols-2 gap-(--spacing-4)">
+					<div className="grid grid-cols-2 gap-4">
 						<form.Field
 							name="first_name"
 							validators={{
@@ -471,7 +471,7 @@ export function CreateTenantForm({
 						)}
 					</form.Field>
 
-					<div className="grid grid-cols-2 gap-(--spacing-4)">
+					<div className="grid grid-cols-2 gap-4">
 						<form.Field
 							name="rent_amount"
 							validators={{
@@ -537,7 +537,7 @@ export function CreateTenantForm({
 						</form.Field>
 					</div>
 
-					<div className="grid grid-cols-2 gap-(--spacing-4)">
+					<div className="grid grid-cols-2 gap-4">
 						<form.Field
 							name="start_date"
 							validators={{
@@ -598,7 +598,7 @@ export function CreateTenantForm({
 			</Card>
 
 			{/* Form Actions */}
-			<div className="flex justify-end gap-(--spacing-4)">
+			<div className="flex justify-end gap-4">
 				<Button type="button" variant="outline" onClick={() => router.back()}>
 					Cancel
 				</Button>

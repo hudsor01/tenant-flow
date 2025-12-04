@@ -134,7 +134,7 @@ export function PaymentMethodsList() {
 												? `${method.brand} ending in ${method.last4}`
 												: method.bankName}
 										</span>
-										<span className="text-xs text-muted-foreground">
+										<span className="text-caption">
 											Added {new Date(method.createdAt).toLocaleDateString()}
 										</span>
 									</div>

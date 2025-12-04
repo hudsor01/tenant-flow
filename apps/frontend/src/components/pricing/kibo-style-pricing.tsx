@@ -12,10 +12,9 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import { pricingCardClasses } from '#lib/design-system'
+
 import { ArrowRight, BadgeCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useStripeProducts } from '#hooks/use-stripe-products'
 import { createCheckoutSession, isUserAuthenticated } from '#lib/stripe/stripe-client'
 import { checkoutRateLimiter } from '#lib/security'
 import { useMutation } from '@tanstack/react-query'
@@ -49,7 +48,6 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 	const frequency = billingCycle
 	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
 	const { openModal, closeModal } = useModalStore()
-	const { products, isLoading } = useStripeProducts()
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async ({
@@ -121,43 +119,8 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		}
 	})
 
-	// Filter and sort products - get Starter, Growth, MAX
-	const mainProducts = products
-		.filter(p => ['Starter', 'Growth', 'MAX'].includes(p.name))
-		.sort((a, b) => {
-			const aPrice = a.prices.monthly?.unit_amount || 0
-			const bPrice = b.prices.monthly?.unit_amount || 0
-			return aPrice - bPrice
-		})
-
-	// Map products to pricing data structure
-	const dynamicPricingPlans: PricingPlan[] = mainProducts.map(product => {
-		const planId = product.metadata.planId || product.name.toLowerCase()
-		const monthlyPrice = product.prices.monthly?.unit_amount || 0
-		const annualPrice = product.prices.annual?.unit_amount || 0
-
-		return {
-			id: planId,
-			name: product.name,
-			price: {
-				monthly: monthlyPrice > 0 ? monthlyPrice / 100 : 'Free forever',
-				yearly:
-					annualPrice > 0 ? Math.floor(annualPrice / 12) / 100 : 'Free forever'
-			},
-			description: product.description || '',
-			features: [...(PLAN_FEATURES[planId as keyof typeof PLAN_FEATURES] || [])],
-			cta: planId === 'max' ? 'Contact Sales' : `Subscribe to ${product.name}`,
-			popular: product.metadata.popular === 'true',
-			...(product.prices.monthly?.id && {
-				stripeMonthlyPriceId: product.prices.monthly.id
-			}),
-			...(product.prices.annual?.id && {
-				stripeAnnualPriceId: product.prices.annual.id
-			})
-		}
-	})
-
-	const fallbackPricingPlans = useMemo<PricingPlan[]>(() => {
+	// Use static pricing config - instant render, no API calls
+	const pricingPlans = useMemo<PricingPlan[]>(() => {
 		const plans = getAllPricingPlans()
 			.filter(plan => plan.planId !== 'trial')
 			.map(plan => {
@@ -199,10 +162,6 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		})
 	}, [])
 
-	const pricingPlans =
-		dynamicPricingPlans.length > 0 ? dynamicPricingPlans : fallbackPricingPlans
-	const usingFallback = dynamicPricingPlans.length === 0
-
 	const startCheckout = async (
 		plan: PricingPlan,
 		overrides?: { customerEmail?: string; tenant_id?: string }
@@ -242,100 +201,16 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		}
 	}
 
-	if (isLoading) {
-		const plansToShow = fallbackPricingPlans
-		return (
-			<>
-					<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
-					<p className="text-center text-muted">
-						Loading live pricing...
-					</p>
-						<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
-						{plansToShow.map(plan => (
-							<Card
-								className={pricingCardClasses(plan.popular)}
-								key={plan.id}
-							>
-									<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
-									<CardTitle className="text-2xl font-semibold tracking-tight">
-										{plan.name}
-									</CardTitle>
-									<CardDescription className="space-y-[var(--spacing-2)] text-left text-base text-muted-foreground">
-										<p>{plan.description}</p>
-										{typeof plan.price[frequency] === 'number' ? (
-											<div className="space-y-1 text-left">
-												<div className="flex items-baseline gap-[var(--spacing-2)] text-left">
-													<NumberFlow
-														className="text-4xl font-bold text-foreground"
-														format={{
-															style: 'currency',
-															currency: 'USD',
-															maximumFractionDigits: 0
-														}}
-														value={plan.price[frequency] as number}
-													/>
-													<span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-														/ {frequency}
-													</span>
-												</div>
-												<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-													{frequency === 'yearly'
-														? 'Billed annually'
-														: 'Billed monthly'}
-												</span>
-											</div>
-										) : (
-											<div className="text-4xl font-bold text-foreground">
-												{plan.price[frequency]}
-											</div>
-										)}
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="flex-1 space-y-6">
-									<ul className="space-y-[var(--spacing-3)]">
-										{plan.features.map((feature) => (
-												<li key={feature} className="flex items-start gap-[var(--spacing-3)]">
-												<BadgeCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-												<span className="text-muted">
-													{feature}
-												</span>
-											</li>
-										))}
-									</ul>
-								</CardContent>
-								<CardFooter className="pt-6">
-									<Button
-										className="w-full"
-										variant={plan.popular ? 'default' : 'outline'}
-										disabled
-									>
-										Loading...
-									</Button>
-								</CardFooter>
-							</Card>
-						))}
-					</div>
-				</div>
-			</>
-		)
-	}
-
 	return (
 		<>
-				<div className="mx-auto flex w-full max-w-6xl flex-col gap-(--spacing-8) px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
-				{usingFallback && (
-					<p className="text-center text-muted">
-						Live pricing is warming up. Showing the default TenantFlow plans
-						with active Stripe checkout links.
-					</p>
-				)}
-					<div className="mt-10 grid w-full gap-(--spacing-6) sm:grid-cols-2 xl:grid-cols-3">
+			<div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
+				<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card
-							className={pricingCardClasses(plan.popular)}
+							variant={plan.popular ? "pricingPopular" : "pricing"}
 							key={plan.id}
 						>
-						<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
+							<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
 								<CardTitle className="text-2xl font-semibold tracking-tight">
 									{plan.name}
 								</CardTitle>
@@ -370,7 +245,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 									)}
 								</CardDescription>
 							</CardHeader>
-						<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
+							<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
 								{plan.features.map((feature) => (
 									<div
 										className="flex gap-[var(--spacing-2)] text-left text-sm leading-6 text-muted-foreground"

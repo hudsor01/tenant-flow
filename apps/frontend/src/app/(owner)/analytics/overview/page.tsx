@@ -1,3 +1,7 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
 import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -9,35 +13,92 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { getAnalyticsPageData } from '#lib/api/analytics-page'
-import { serverFetch } from '#lib/api/server'
+import { Skeleton } from '#components/ui/skeleton'
 import { formatCurrency, formatPercentage } from '#lib/formatters/currency'
-import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
+import { EMPTY_PAYMENT_SUMMARY } from '@repo/shared/types/api-contracts'
 import type { DashboardStats, DashboardSummary, PropertyPerformance } from '@repo/shared/types/core'
 import { Calendar, TrendingDown, TrendingUp } from 'lucide-react'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 
-export default async function AnalyticsPage() {
-	// Data fetching already uses React cache() - no page-level caching needed
-	// Fetch real dashboard data from API server-side (includes NOI calculations from backend)
-	const {
-		financial,
-		maintenance: _maintenance,
-		occupancy,
-		lease: _lease
-	} = await getAnalyticsPageData()
-	const paymentSummary = await serverFetch<OwnerPaymentSummaryResponse>(
-		'/api/v1/tenants/payments/summary'
+function AnalyticsSkeleton() {
+	return (
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			<div className="border-b bg-background p-6 border-muted">
+				<div className="mx-auto max-w-400 py-4">
+					<div className="flex flex-col gap-2 px-4 lg:px-6 mb-6">
+						<h1>Analytics Overview</h1>
+						<p className="text-muted">
+							Portfolio performance metrics and insights at a glance.
+						</p>
+					</div>
+					<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i} className="@container/card">
+								<CardHeader>
+									<Skeleton className="h-4 w-24" />
+									<Skeleton className="h-8 w-32" />
+								</CardHeader>
+								<CardFooter className="flex-col items-start gap-1.5">
+									<Skeleton className="h-4 w-20" />
+									<Skeleton className="h-3 w-40" />
+								</CardFooter>
+							</Card>
+						))}
+					</div>
+				</div>
+			</div>
+			<OwnerPaymentSummary summary={null} />
+			<div className="flex-1 p-6">
+				<div className="mx-auto max-w-400 space-y-8">
+					<div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+						<Card>
+							<CardHeader>
+								<Skeleton className="h-5 w-48" />
+								<Skeleton className="h-4 w-36" />
+							</CardHeader>
+							<div className="px-6 pb-6">
+								<Skeleton className="h-64 w-full" />
+							</div>
+						</Card>
+						<Card>
+							<CardHeader>
+								<Skeleton className="h-5 w-48" />
+								<Skeleton className="h-4 w-36" />
+							</CardHeader>
+							<div className="px-6 pb-6 space-y-4">
+								{Array.from({ length: 5 }).map((_, i) => (
+									<Skeleton key={i} className="h-14 w-full" />
+								))}
+							</div>
+						</Card>
+					</div>
+				</div>
+			</div>
+		</div>
 	)
+}
 
+export default function AnalyticsPage() {
+	const { data: overviewData, isLoading: overviewLoading } = useQuery(analyticsQueries.overviewPageData())
+	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(analyticsQueries.ownerPaymentSummary())
+
+	if (overviewLoading) {
+		return <AnalyticsSkeleton />
+	}
+
+	const { financial } = overviewData || {}
+
+	// Extract metrics from financial page data
+	const financialMetrics = financial?.metrics
+	
 	// Map overview data to display format
 	const stats = {
-		revenue: { growth: financial?.revenueChange ?? 0 },
-		units: { occupancyChange: occupancy?.rateChange ?? 0 }
+		revenue: { growth: financialMetrics?.revenueTrend ?? 0 },
+		units: { occupancyChange: 0 } // Occupancy loaded separately if needed
 	} as DashboardStats
 	const financialStats = {
-		avgRoi: financial?.netIncome && financial?.totalRevenue
-			? (financial.netIncome / financial.totalRevenue) * 100
+		avgRoi: financialMetrics?.netIncome && financialMetrics?.totalRevenue
+			? (financialMetrics.netIncome / financialMetrics.totalRevenue) * 100
 			: 0
 	} as DashboardSummary
 	const properties = [] as PropertyPerformance[]
@@ -51,7 +112,13 @@ export default async function AnalyticsPage() {
 			{/* Top Metric Cards Section - Matching Dashboard */}
 			<div className="border-b bg-background p-6 border-muted">
 				<div className="mx-auto max-w-400 py-4">
-					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-(--spacing-4) px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+					<div className="flex flex-col gap-2 px-4 lg:px-6 mb-6">
+						<h1>Analytics Overview</h1>
+						<p className="text-muted">
+							Portfolio performance metrics and insights at a glance.
+						</p>
+					</div>
+					<div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
 						{/* Total Revenue */}
 						<Card className="@container/card">
 							<CardHeader>
@@ -125,7 +192,7 @@ export default async function AnalyticsPage() {
 							<CardHeader>
 								<CardDescription>Net Operating Income</CardDescription>
 								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-									{formatCurrency(financial?.netIncome ?? 0)}
+									{formatCurrency(financialMetrics?.netIncome ?? 0)}
 								</CardTitle>
 								<CardAction>
 									<Badge variant="outline">
@@ -147,7 +214,7 @@ export default async function AnalyticsPage() {
 									)}
 								</div>
 								<div className="text-muted-foreground">
-									{(financial?.avgRoi ?? 0).toFixed(1)}% average return
+									{financialStats.avgRoi.toFixed(1)}% average return
 								</div>
 							</CardFooter>
 						</Card>
@@ -196,7 +263,7 @@ export default async function AnalyticsPage() {
 								</div>
 							</CardHeader>
 							<div className="px-6 pb-6">
-								<div className="flex items-center gap-(--spacing-4) mb-4">
+								<div className="flex items-center gap-4 mb-4">
 									<div className="flex items-center gap-2">
 										<div className="size-3 rounded-full bg-chart-3"></div>
 										<span className="text-muted">
@@ -228,46 +295,52 @@ export default async function AnalyticsPage() {
 							</CardHeader>
 							<div className="px-6 pb-6">
 								<div className="space-y-4">
-									{properties
-										.slice(0, 5)
-										.map((property, index: number) => (
-											<div
-												key={property.property ?? `property-${index}`}
-												className="flex-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
-											>
-												<div className="flex items-center gap-3">
-													<div className="size-11 rounded-full bg-background border flex-center font-semibold text-sm">
-														{index + 1}
-													</div>
-													<div>
-														<p className="font-medium">
-															{property.property || 'Unknown Property'}
-														</p>
-														<p className="text-muted">
-															{property.occupiedUnits || 0}/
-															{property.totalUnits || 0} units occupied
-														</p>
-													</div>
-												</div>
-												<Badge
-													variant={
-														(property.occupancyRate || 0) >= 90
-															? 'default'
-															: 'destructive'
-													}
-													className="text-xs"
+									{properties.length > 0 ? (
+										properties
+											.slice(0, 5)
+											.map((property, index: number) => (
+												<div
+													key={property.property ?? `property-${index}`}
+													className="flex-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
 												>
-													{(property.occupancyRate || 0) >= 90 ? (
-														<TrendingUp className="size-3 mr-1" />
-													) : (
-														<TrendingDown className="size-3 mr-1" />
-													)}
-													{property.occupancyRate
-														? `${property.occupancyRate.toFixed(1)}%`
-														: '0.0%'}
-												</Badge>
-											</div>
-										))}
+													<div className="flex items-center gap-3">
+														<div className="size-11 rounded-full bg-background border flex-center font-semibold text-sm">
+															{index + 1}
+														</div>
+														<div>
+															<p className="font-medium">
+																{property.property || 'Unknown Property'}
+															</p>
+															<p className="text-muted">
+																{property.occupiedUnits || 0}/
+																{property.totalUnits || 0} units occupied
+															</p>
+														</div>
+													</div>
+													<Badge
+														variant={
+															(property.occupancyRate || 0) >= 90
+																? 'default'
+																: 'destructive'
+														}
+														className="text-xs"
+													>
+														{(property.occupancyRate || 0) >= 90 ? (
+															<TrendingUp className="size-3 mr-1" />
+														) : (
+															<TrendingDown className="size-3 mr-1" />
+														)}
+														{property.occupancyRate
+															? `${property.occupancyRate.toFixed(1)}%`
+															: '0.0%'}
+													</Badge>
+												</div>
+											))
+									) : (
+										<div className="text-center text-muted-foreground py-8">
+											No property data available yet.
+										</div>
+									)}
 								</div>
 							</div>
 						</Card>

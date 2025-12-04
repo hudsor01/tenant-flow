@@ -5,7 +5,8 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { cardClasses, cn } from '#lib/design-system'
+import { cn } from '#lib/utils'
+import { cardVariants } from '#components/ui/card'
 import type { MetricsCardProps } from '@repo/shared/types/frontend-ui'
 import * as React from 'react'
 
@@ -40,7 +41,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 			<Card
 				ref={ref}
 				className={cn(
-					cardClasses('interactive'),
+					cardVariants({ variant: 'interactive' }),
 					'dashboard-metric-card @container/card transform-gpu will-change-transform touch-manipulation active:scale-[0.99]',
 					'border-l-[3px] hover:shadow-md transition-all duration-200 ease-out min-h-30',
 					'p-6',
@@ -52,7 +53,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 				}}
 				{...props}
 			>
-				<CardHeader className="p-0 gap-(--spacing-4)">
+				<CardHeader className="p-0 gap-4">
 					<div className="flex-between gap-3">
 						<CardDescription className="font-medium text-muted-foreground text-sm leading-normal">
 							{title}

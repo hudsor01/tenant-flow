@@ -23,7 +23,8 @@ export const PageLayout = React.forwardRef<HTMLDivElement, PageLayoutProps>(
 				<main
 					className={cn(
 						'container mx-auto px-4 sm:px-6 lg:px-8',
-						showNavbar ? 'pt-32' : 'pt-8',
+						showNavbar && 'page-offset-navbar',
+						!showNavbar && 'pt-8',
 						containerClass
 					)}
 				>

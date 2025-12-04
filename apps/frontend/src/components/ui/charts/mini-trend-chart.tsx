@@ -50,7 +50,7 @@ export function MiniTrendChart({
         </CardHeader>
         <CardContent>
           <div className="h-[80px] flex-center">
-            <p className="text-xs text-muted-foreground">No trend data available</p>
+            <p className="text-caption">No trend data available</p>
           </div>
         </CardContent>
       </Card>
@@ -83,7 +83,7 @@ export function MiniTrendChart({
                 return (
                   <div className="rounded-lg border bg-background p-2 shadow-md">
                     <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-caption">
                         {new Date(payload[0].payload.date).toLocaleDateString()}
                       </span>
                       <span className="font-bold">

@@ -139,7 +139,7 @@ export default function CompletePage() {
 					title="Checking payment status..."
 					className="w-full max-w-md"
 				>
-					<div className="flex flex-col items-center justify-center space-y-4">
+					<div className="flex-col-center space-y-4">
 						<LoadingDots size="lg" variant="primary" />
 						<p className="text-(--color-text-secondary)">
 							Checking payment status...
@@ -232,7 +232,7 @@ export default function CompletePage() {
 							</div>
 
 							{/* Action Buttons */}
-							<div className="flex flex-col sm:flex-row gap-(--spacing-4) items-center justify-center">
+							<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
 								{sessionData?.payment_intent_id && (
 									<a
 										href={`https://dashboard.stripe.com/payments/${sessionData.payment_intent_id}`}
@@ -246,9 +246,9 @@ export default function CompletePage() {
 									</a>
 								)}
 
-								<Link href="/pricing/checkout" id="retry-button">
+								<Link href="/pricing" id="retry-button">
 									<Button variant="outline" className="h-11">
-										Test another
+										Choose a plan
 									</Button>
 								</Link>
 							</div>

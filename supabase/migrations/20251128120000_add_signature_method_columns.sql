@@ -2,13 +2,18 @@
 -- DocuSeal webhooks don't expose signer IP addresses, so we need a separate
 -- column to distinguish signing method while keeping IP field clean for actual IPs
 
--- Step 1: Create enum for signature methods
-CREATE TYPE public.signature_method AS ENUM ('in_app', 'docuseal');
+-- Step 1: Create enum for signature methods (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'signature_method') THEN
+    CREATE TYPE public.signature_method AS ENUM ('in_app', 'docuseal');
+  END IF;
+END $$;
 
--- Step 2: Add signature method columns to leases table
+-- Step 2: Add signature method columns to leases table (idempotent)
 ALTER TABLE public.leases
-ADD COLUMN owner_signature_method public.signature_method,
-ADD COLUMN tenant_signature_method public.signature_method;
+ADD COLUMN IF NOT EXISTS owner_signature_method public.signature_method,
+ADD COLUMN IF NOT EXISTS tenant_signature_method public.signature_method;
 
 -- Step 3: Add comments for documentation
 COMMENT ON COLUMN public.leases.owner_signature_method IS 'Method used for owner signature: in_app (direct with IP capture) or docuseal (third-party e-signature)';

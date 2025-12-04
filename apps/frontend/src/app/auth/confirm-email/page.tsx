@@ -121,7 +121,7 @@ export default function ConfirmEmailPage() {
 							</p>
 
 							{/* Stats */}
-							<div className="grid grid-cols-3 gap-(--spacing-6) pt-6">
+							<div className="grid grid-cols-3 gap-6 pt-6">
 								<div className="text-center group">
 									<div className="text-foreground font-bold text-2xl mb-1">
 										$2.4K+
@@ -299,7 +299,7 @@ export default function ConfirmEmailPage() {
 					</div>
 
 					{/* Trust Signals */}
-					<div className="flex-center gap-8 text-xs text-muted-foreground pt-4">
+					<div className="flex-center gap-8 text-caption pt-4">
 						<div className="flex items-center gap-2">
 							<CheckCircle2 className="size-4" />
 							<span>Bank-level Security</span>

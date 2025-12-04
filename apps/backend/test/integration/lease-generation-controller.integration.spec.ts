@@ -132,6 +132,7 @@ describe('LeaseGenerationController (Integration)', () => {
 			.compile()
 
 		app = module.createNestApplication()
+		app.setGlobalPrefix('api/v1')
 		app.useGlobalPipes(new ZodValidationPipe())
 
 		// Add middleware to set req.user for tests that need authenticated context

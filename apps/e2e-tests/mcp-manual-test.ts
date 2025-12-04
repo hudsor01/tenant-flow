@@ -9,7 +9,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 const logger = createLogger({ component: 'ManualMCPTest' })
 
 async function main() {
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 	const browser = await chromium.launch({
 		headless: false, // Show browser like MCP does

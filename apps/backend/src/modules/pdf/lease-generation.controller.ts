@@ -22,7 +22,7 @@ import { Roles } from '../../shared/decorators/roles.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
-import type { LeaseGenerationDto } from './dto/lease-generation.dto'
+import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
 import { ZeroCacheService } from '../../cache/cache.service'
@@ -40,7 +40,7 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
  * - RolesGuard: Restricts lease generation to OWNER and MANAGER roles
  * - PropertyOwnershipGuard: Verifies user owns the property (applied to specific routes)
  */
-@Controller('api/v1/leases')
+@Controller('leases')
 @UseGuards(RolesGuard)
 @Roles('TENANT', 'OWNER', 'MANAGER')
 export class LeaseGenerationController {

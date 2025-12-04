@@ -2,11 +2,11 @@
  * Tenant Mutation Options (TanStack Query v5 Pattern)
  *
  * Modern mutation patterns with proper error handling and cache invalidation.
- * Uses generic CRUD mutations factory for consistency.
+ * Uses apiRequest for NestJS calls.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared/types/api-contracts'
@@ -55,10 +55,8 @@ export function useDeleteTenantMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (id: string) =>
-			clientFetch(`/api/v1/tenants/${id}`, {
-				method: 'DELETE'
-			}),
+		mutationFn: async (id: string) =>
+			apiRequest<void>(`/api/v1/tenants/${id}`, { method: 'DELETE' }),
 		onSuccess: (_result, deletedId) => {
 			queryClient.removeQueries({ queryKey: tenantQueries.detail(deletedId).queryKey })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })

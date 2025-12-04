@@ -22,3 +22,6 @@ node_modules/
 .DS_Store
 *.swp
 *.swo
+playwright/.auth
+
+playwright/.auth

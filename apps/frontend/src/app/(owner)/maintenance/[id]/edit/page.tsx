@@ -1,20 +1,40 @@
+'use client'
+
+import { use } from 'react'
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
-import { serverFetch } from '#lib/api/server'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import { Skeleton } from '#components/ui/skeleton'
+import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { useQuery } from '@tanstack/react-query'
 
 interface MaintenanceEditPageProps {
 	params: Promise<{ id: string }>
 }
 
-export default async function MaintenanceEditPage({
+export default function MaintenanceEditPage({
 	params
 }: MaintenanceEditPageProps) {
-	const { id } = await params
+	const { id } = use(params)
+	const { data: request, isLoading } = useQuery(maintenanceQueries.detail(id))
 
-	// Fetch maintenance request data on server
-	const request = await serverFetch<MaintenanceRequest>(
-		`/api/v1/maintenance-requests/${id}`
-	)
+	if (isLoading) {
+		return (
+			<div className="mx-auto w-full max-w-4xl space-y-10">
+				<div className="space-y-2">
+					<Skeleton className="h-8 w-56" />
+					<Skeleton className="h-5 w-80" />
+				</div>
+				<Skeleton className="h-96 w-full rounded-xl" />
+			</div>
+		)
+	}
+
+	if (!request) {
+		return (
+			<div className="mx-auto w-full max-w-4xl space-y-10">
+				<p className="text-muted-foreground">Maintenance request not found</p>
+			</div>
+		)
+	}
 
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">

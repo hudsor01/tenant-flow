@@ -217,7 +217,7 @@ export function ChangePasswordDialog() {
 									)}
 								</button>
 							</div>
-							<p className="text-caption text-muted-foreground mt-[var(--spacing-1)]">
+							<p className="text-caption mt-[var(--spacing-1)]">
 								Must be at least 8 characters with uppercase, lowercase,
 								number, and special character
 							</p>
@@ -260,11 +260,11 @@ export function ChangePasswordDialog() {
 
 						{/* Validation Errors */}
 						{validationErrors.length > 0 && (
-							<div className="rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-(--spacing-4)">
+							<div className="rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-4">
 								<p className="font-semibold text-destructive mb-2">
 									Please fix the following errors:
 								</p>
-								<ul className="list-[disc] list-inside space-y-1 text-caption text-destructive">
+								<ul className="list-[disc] list-inside space-y-1 text-xs text-destructive">
 									{validationErrors.map((error) => (
 										<li key={error}>{error}</li>
 									))}

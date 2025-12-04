@@ -146,7 +146,7 @@ export function ChartAreaInteractive({
 			</CardHeader>
 
 			{/* Summary metrics */}
-			<div className="grid grid-cols-2 gap-(--spacing-4) p-6 pb-0 lg:grid-cols-4">
+			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-muted">Total Revenue</p>
 					<p className="text-lg font-semibold text-success">
@@ -198,7 +198,7 @@ export function ChartAreaInteractive({
 						<p className="text-sm font-medium text-muted-foreground">
 							Failed to load chart data
 						</p>
-						<p className="text-xs text-muted-foreground">
+						<p className="text-caption">
 							Unable to fetch financial data. Please try refreshing the page.
 						</p>
 					</div>

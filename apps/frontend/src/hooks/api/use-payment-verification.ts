@@ -1,7 +1,8 @@
 'use client'
 
 import type { SubscriptionData } from '#types/stripe'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
@@ -26,7 +27,7 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 
 			let data
 			try {
-				const response = await clientFetch<{
+				const response = await apiRequest<{
 					session: unknown
 					subscription: {
 						id: string
@@ -104,7 +105,7 @@ export function useSessionStatus(sessionId: string | null, options: { throwOnErr
 				throw new Error('No session ID provided')
 			}
 
-			const data = await clientFetch<StripeSessionStatusResponse>(
+			const data = await apiRequest<StripeSessionStatusResponse>(
 				`/stripe/session-status?session_id=${sessionId}`
 			)
 
@@ -153,7 +154,7 @@ export function usePrefetchSessionStatus() {
 		queryClient.prefetchQuery({
 			queryKey: paymentQueryKeys.sessionStatus(sessionId),
 			queryFn: () =>
-				clientFetch<StripeSessionStatusResponse>(
+				apiRequest<StripeSessionStatusResponse>(
 					`/stripe/session-status?session_id=${sessionId}`
 				),
 			...QUERY_CACHE_TIMES.STATS

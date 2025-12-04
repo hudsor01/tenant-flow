@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 import { ColumnDef } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 import { useResendInvitation } from '#hooks/api/use-tenant'
 
 const logger = createLogger({ component: 'TenantsTableClient' })
@@ -54,7 +54,7 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		startTransition(async () => {
 			removeOptimistic(tenant_id)
 			try {
-				await clientFetch(`/api/v1/tenants/${tenant_id}`, { method: 'DELETE' })
+				await apiRequest<void>(`/api/v1/tenants/${tenant_id}`, { method: 'DELETE' })
 				toast.success(`Tenant "${tenantName}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', { action: 'handleDelete', metadata: { tenant_id, error } })

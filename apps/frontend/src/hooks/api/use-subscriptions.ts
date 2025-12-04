@@ -5,7 +5,8 @@
  * TanStack Query hooks for subscription management
  */
 
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
 	CreateRentSubscriptionRequest,
@@ -34,7 +35,7 @@ export function useSubscriptions() {
 	return useQuery({
 		queryKey: subscriptionsKeys.list(),
 		queryFn: async (): Promise<RentSubscriptionResponse[]> => {
-			return clientFetch<RentSubscriptionResponse[]>('/api/v1/subscriptions')
+			return apiRequest<RentSubscriptionResponse[]>('/api/v1/subscriptions')
 		},
 		staleTime: 30 * 1000 // 30 seconds
 	})
@@ -46,7 +47,7 @@ export function useSubscriptions() {
 export function useSubscription(id: string) {
 	return useQuery({
 		queryKey: subscriptionsKeys.detail(id),
-		queryFn: () => clientFetch<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
+		queryFn: () => apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
 		enabled: !!id
 	})
 }
@@ -59,7 +60,7 @@ export function useCreateSubscription() {
 
 	return useMutation({
 		mutationFn: (data: CreateRentSubscriptionRequest) =>
-			clientFetch<RentSubscriptionResponse>('/api/v1/subscriptions', {
+			apiRequest<RentSubscriptionResponse>('/api/v1/subscriptions', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
@@ -92,7 +93,7 @@ export function useUpdateSubscription() {
 			id: string
 			data: UpdateSubscriptionRequest
 		}) =>
-			clientFetch<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`, {
+			apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(data)
 			}),
@@ -120,7 +121,7 @@ export function usePauseSubscription() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch<{ subscription?: RentSubscriptionResponse }>(
+			apiRequest<{ subscription?: RentSubscriptionResponse }>(
 				`/api/v1/subscriptions/${id}/pause`,
 				{
 					method: 'POST'
@@ -156,7 +157,7 @@ export function useResumeSubscription() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch<{ subscription?: RentSubscriptionResponse }>(
+			apiRequest<{ subscription?: RentSubscriptionResponse }>(
 				`/api/v1/subscriptions/${id}/resume`,
 				{
 					method: 'POST'
@@ -191,7 +192,7 @@ export function useCancelSubscription() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			clientFetch<{ subscription?: RentSubscriptionResponse }>(
+			apiRequest<{ subscription?: RentSubscriptionResponse }>(
 				`/api/v1/subscriptions/${id}`,
 				{
 					method: 'DELETE'
@@ -240,7 +241,7 @@ export function usePrefetchSubscriptions() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.list(),
-			queryFn: () => clientFetch<RentSubscriptionResponse[]>('/api/v1/subscriptions'),
+			queryFn: () => apiRequest<RentSubscriptionResponse[]>('/api/v1/subscriptions'),
 			staleTime: 60 * 1000
 		})
 	}
@@ -255,7 +256,7 @@ export function usePrefetchSubscription() {
 	return (id: string) => {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.detail(id),
-			queryFn: () => clientFetch<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
+			queryFn: () => apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
 			staleTime: 60 * 1000
 		})
 	}

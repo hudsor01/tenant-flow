@@ -1,12 +1,13 @@
 /**
  * Emergency Contact Query Options
  *
- * TanStack Query options for emergency contact management
+ * TanStack Query options for emergency contact management.
+ * Uses native fetch for NestJS calls.
  */
 
 import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 
 /**
  * Emergency contact types
@@ -52,10 +53,7 @@ export const emergencyContactQueries = {
 	contact: (tenant_id: string) =>
 		queryOptions({
 			queryKey: [...emergencyContactQueries.all(), tenant_id],
-			queryFn: () =>
-				clientFetch<EmergencyContact | null>(
-					`/api/v1/tenants/${tenant_id}/emergency-contact`
-				),
+			queryFn: () => apiRequest<EmergencyContact | null>(`/api/v1/tenants/${tenant_id}/emergency-contact`),
 			enabled: !!tenant_id,
 			...QUERY_CACHE_TIMES.DETAIL,
 			retry: 2

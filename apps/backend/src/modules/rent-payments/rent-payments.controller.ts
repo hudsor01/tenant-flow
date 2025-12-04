@@ -13,7 +13,7 @@ import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.g
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type { CreatePaymentDto } from './dto/create-payment.dto'
+import { CreatePaymentDto } from './dto/create-payment.dto'
 
 @Controller('rent-payments')
 export class RentPaymentsController {

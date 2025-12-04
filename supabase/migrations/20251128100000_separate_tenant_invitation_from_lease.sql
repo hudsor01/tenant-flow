@@ -119,10 +119,17 @@ END $$;
 ALTER TABLE public.tenant_invitations
   ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'platform_access';
 
--- Add constraint for type values
-ALTER TABLE public.tenant_invitations
-  ADD CONSTRAINT tenant_invitations_type_check
-  CHECK (type IN ('platform_access', 'lease_signing'));
+-- Add constraint for type values (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'tenant_invitations_type_check'
+  ) THEN
+    ALTER TABLE public.tenant_invitations
+      ADD CONSTRAINT tenant_invitations_type_check
+      CHECK (type IN ('platform_access', 'lease_signing'));
+  END IF;
+END $$;
 
 COMMENT ON COLUMN public.tenant_invitations.type IS 'Purpose of invitation: platform_access (join system) or lease_signing (sign specific lease)';
 

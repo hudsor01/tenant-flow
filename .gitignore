@@ -310,7 +310,7 @@ ROADMAP.md
 roadmap.md
 backend_logs.json
 .claude/*
-CLAUDE.md
+!CLAUDE.md
 AGENTS.md
 
 
@@ -361,19 +361,12 @@ pids
 **/dist/**/*.d.ts.map
 **/dist/**/*.js
 **/dist/**/*.js.map
-
-# Build outputs
 dist/
 coverage/
-
-# Cache directories
 .cache/
 .swc/
-
-# Additional TenantFlow environment patterns
 .env.vault
 .doppler.yaml
-# Additional TenantFlow environment patterns
 .env.vault
 .doppler.yaml
 
@@ -389,7 +382,7 @@ playwright-report/
 # Stripe webhook endpoints (local testing)
 stripe-webhooks.log
 **/stripe-events.log
-**/webhook-*.log
+*.log
 
 # CRITICAL: Production user data and uploads
 **/uploads/

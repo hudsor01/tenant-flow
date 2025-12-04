@@ -58,7 +58,7 @@ function getApplicationDomains() {
 	// Always add localhost in non-production environments
 	developmentOrigins.push(
 		'http://localhost:3000',
-		'http://localhost:3001', // Next.js alternate port
+		'http://localhost:3050', // Next.js alternate port
 		'http://localhost:4600'
 	)
 

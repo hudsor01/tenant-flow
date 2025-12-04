@@ -35,7 +35,7 @@ export default function DashboardPage() {
 						<div data-testid="dashboard-stats">
 							<ErrorBoundary
 								fallback={
-									<div className="dashboard-panel p-(--spacing-4)">
+									<div className="dashboard-panel p-4">
 										<p className="text-responsive-sm text-(--muted-foreground)">
 											Unable to load dashboard stats
 										</p>
@@ -52,7 +52,7 @@ export default function DashboardPage() {
 						{/* Trends & Performance Cards */}
 						<ErrorBoundary
 							fallback={
-								<div className="dashboard-panel p-(--spacing-4)">
+								<div className="dashboard-panel p-4">
 									<p className="text-responsive-sm text-(--muted-foreground)">
 										Unable to load trends section
 									</p>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
 						{/* Quick Actions - Moved higher for visibility */}
 						<ErrorBoundary
 							fallback={
-								<div className="dashboard-panel p-(--spacing-4)">
+								<div className="dashboard-panel p-4">
 									<p className="text-responsive-sm text-(--muted-foreground)">
 										Unable to load quick actions
 									</p>
@@ -78,7 +78,7 @@ export default function DashboardPage() {
 						{/* Portfolio Analytics Charts */}
 						<ErrorBoundary
 							fallback={
-								<div className="dashboard-panel p-(--spacing-4)">
+								<div className="dashboard-panel p-4">
 									<p className="text-responsive-sm text-(--muted-foreground)">
 										Unable to load charts section
 									</p>
@@ -92,7 +92,7 @@ export default function DashboardPage() {
 						<div className="dashboard-grid">
 							<ErrorBoundary
 								fallback={
-									<div className="dashboard-panel p-(--spacing-4)">
+									<div className="dashboard-panel p-4">
 										<p className="text-responsive-sm text-(--muted-foreground)">
 											Unable to load activity feed
 										</p>
@@ -104,7 +104,7 @@ export default function DashboardPage() {
 
 							<ErrorBoundary
 								fallback={
-									<div className="dashboard-panel p-(--spacing-4)">
+									<div className="dashboard-panel p-4">
 										<p className="text-responsive-sm text-(--muted-foreground)">
 											Unable to load performance section
 										</p>

@@ -16,7 +16,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
  * - Tenant must be linked to a lease for payment tests
  */
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL!
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD!

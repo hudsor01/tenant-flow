@@ -18,6 +18,7 @@ import { Logger, NotFoundException, BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppConfigService } from '../../config/app-config.service'
 
 describe('TenantPlatformInvitationService', () => {
 	let service: TenantPlatformInvitationService
@@ -118,7 +119,8 @@ describe('TenantPlatformInvitationService', () => {
 				TenantPlatformInvitationService,
 				{ provide: Logger, useValue: mockLogger },
 				{ provide: EventEmitter2, useValue: mockEventEmitter },
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: AppConfigService, useValue: { getNextPublicAppUrl: () => 'http://localhost:3050' } }
 			]
 		}).compile()
 
@@ -552,7 +554,9 @@ describe('TenantPlatformInvitationService', () => {
 							email: 'tenant@example.com',
 							invitation_code: 'abc123',
 							invitation_url: 'https://app.com/accept-invite?code=abc123',
-							property_owner_id: 'po-123'
+							property_owner_id: 'po-123',
+							property_id: 'property-456',
+							unit_id: 'unit-789'
 						})
 						chain.update = jest.fn((data: any) => {
 							updateData = data
@@ -570,11 +574,13 @@ describe('TenantPlatformInvitationService', () => {
 
 			// Should update expires_at
 			expect(updateData).toHaveProperty('expires_at')
-			// Should emit event
+			// Should emit event with property_id and unit_id
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'tenant.platform_invitation.sent',
 				expect.objectContaining({
-					email: 'tenant@example.com'
+					email: 'tenant@example.com',
+					property_id: 'property-456',
+					unit_id: 'unit-789'
 				})
 			)
 		})

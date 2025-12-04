@@ -28,7 +28,7 @@ export default function DashboardError({
 
 	return (
 		<div className="flex h-125 w-full items-center justify-center">
-			<div className="flex max-w-md flex-col items-center gap-(--spacing-4) text-center">
+			<div className="flex max-w-md flex-col items-center gap-4 text-center">
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">
 					<h2 className="text-xl font-semibold">Something went wrong</h2>

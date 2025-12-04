@@ -1,28 +1,40 @@
-import { env } from './env'
+/**
+ * Application Configuration
+ *
+ * - Development: Falls back to localhost URLs
+ * - Production: Requires environment variables to be set
+ */
 
-// Environment variable validation - only in runtime, not during build
-const isBuildTime =
-	typeof window === 'undefined' && !env.NEXT_PUBLIC_APP_URL
+const DEV_APP_URL = 'http://localhost:3000'
+const DEV_API_URL = 'http://localhost:4600'
 
-if (!isBuildTime) {
-	if (!env.NEXT_PUBLIC_APP_URL) {
-		throw new Error('NEXT_PUBLIC_APP_URL is required')
+function getEnvVar(key: string, devDefault: string): string {
+	const value = process.env[key] ||
+		(process.env.NODE_ENV === 'production' ? undefined : devDefault)
+
+	if (!value) {
+		throw new Error(
+			`${key} environment variable is required in production. ` +
+			'Set it in your deployment environment.'
+		)
 	}
-	if (!env.NEXT_PUBLIC_API_BASE_URL) {
-		throw new Error('NEXT_PUBLIC_API_BASE_URL is required')
-	}
+	return value
 }
 
 export const APP_CONFIG = {
 	name: 'TenantFlow',
 	description: 'Modern property management platform',
-	url: env.NEXT_PUBLIC_APP_URL,
+	get url() {
+		return getEnvVar('NEXT_PUBLIC_APP_URL', DEV_APP_URL)
+	},
 	copyright: `© ${new Date().getFullYear()} TenantFlow. All rights reserved.`,
 	auth: {
 		redirectUrl: '/auth/callback'
 	},
 	api: {
-		baseUrl: env.NEXT_PUBLIC_API_BASE_URL
+		get baseUrl() {
+			return getEnvVar('NEXT_PUBLIC_API_BASE_URL', DEV_API_URL)
+		}
 	},
 	features: {
 		registration: true,

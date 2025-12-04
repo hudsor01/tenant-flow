@@ -15,7 +15,7 @@ type Tenant = Database['public']['Tables']['tenants']['Row']
 type Lease = Database['public']['Tables']['leases']['Row']
 type MaintenanceRequest =
 	Database['public']['Tables']['maintenance_requests']['Row']
-type InvitationStatus = 'PENDING' | 'accepted' | 'expired' | 'CANCELLED'
+type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'CANCELLED'
 
 // Document type from database
 type Document = Database['public']['Tables']['documents']['Row']
@@ -164,7 +164,7 @@ export interface LeaseWithRelations extends Lease {
 			| 'LEASE_EXPIRATION'
 			| 'MAINTENANCE_DUE'
 			| 'PAYMENT_OVERDUE'
-		status: 'PENDING' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED'
+		status: 'pending' | 'SENT' | 'FAILED' | 'DELIVERED' | 'OPENED'
 		recipientEmail: string
 		recipientName: string | null
 		subject: string | null
@@ -299,7 +299,7 @@ export interface PropertySearchResult extends PropertyWithUnits {
  */
 export interface PropertyFilters {
 	property_type?: PropertyType
-	status?: 'active' | 'INACTIVE' | 'MAINTENANCE'
+	status?: 'active' | 'inactive' | 'MAINTENANCE'
 	minUnits?: number
 	maxUnits?: number
 	minRent?: number

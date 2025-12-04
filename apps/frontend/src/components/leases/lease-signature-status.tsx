@@ -114,7 +114,7 @@ function FullSignatureStatus({
 			return <CheckCircle2 className="h-5 w-5 text-success" />
 		}
 		if (status.sent_for_signature_at) {
-			return <Clock className="h-5 w-5 text-amber-500" />
+			return <Clock className="h-5 w-5 text-warning" />
 		}
 		return <PenLine className="h-5 w-5 text-muted-foreground" />
 	}
@@ -170,7 +170,7 @@ function FullSignatureStatus({
 				</div>
 
 				{status.sent_for_signature_at && (
-					<div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
+					<div className="flex items-center gap-2 text-caption pt-2 border-t">
 						<Send className="h-3 w-3" />
 						<span>
 							Sent for signature on{' '}
@@ -233,7 +233,7 @@ function SignatureRow({
 					</>
 				) : (
 					<>
-						<Clock className="h-4 w-4 text-amber-500" />
+						<Clock className="h-4 w-4 text-warning" />
 						<span className="text-muted">Pending</span>
 					</>
 				)}

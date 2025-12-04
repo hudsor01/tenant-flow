@@ -39,7 +39,7 @@ export default async function BlogArticlePage({
 			{/* Navigation */}
 			<Navbar />
 
-			<main className="flex-1">
+			<main className="flex-1 page-offset-navbar">
 				{/* Back to Blog */}
 				<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
 					<Link
@@ -62,7 +62,7 @@ export default async function BlogArticlePage({
 							{post.excerpt}
 						</p>
 
-						<div className="flex items-center gap-(--spacing-6) text-muted border-t border-b border-border py-4">
+						<div className="flex items-center gap-6 text-muted border-t border-b border-border py-4">
 							<div className="flex items-center gap-2">
 								<User className="size-4" />
 								<span>{post.author}</span>

@@ -1,15 +1,19 @@
 import { test, expect } from '@playwright/test'
-import { ROUTES } from '../../constants/routes'
-import { loginAsTenant } from '../../auth-helpers'
+import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded } from '../helpers/navigation-helpers'
 import { verifyButtonExists, verifyLoadingComplete } from '../helpers/ui-validation-helpers'
 
+/**
+ * Tenant Documents E2E Tests
+ *
+ * Uses official Playwright auth pattern: storageState provides authentication.
+ * Tests start authenticated - no manual login required.
+ * @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+ */
 test.describe('Tenant Documents', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
-
   test.beforeEach(async ({ page }) => {
-    await loginAsTenant(page)
-    await page.goto(`${baseUrl}${ROUTES.TENANT_DOCUMENTS}`)
+    // Navigate directly (authenticated via storageState)
+    await page.goto(ROUTES.TENANT_DOCUMENTS)
     await verifyPageLoaded(page, ROUTES.TENANT_DOCUMENTS, 'Documents')
   })
 

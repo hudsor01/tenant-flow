@@ -21,7 +21,7 @@ function TenantEditFormSkeleton() {
 			isLoading={true}
 		>
 			<div className="space-y-6">
-				<div className="grid grid-cols-2 gap-(--spacing-4)">
+				<div className="grid grid-cols-2 gap-4">
 					<div className="h-10 rounded-md bg-muted animate-pulse" />
 					<div className="h-10 rounded-md bg-muted animate-pulse" />
 				</div>

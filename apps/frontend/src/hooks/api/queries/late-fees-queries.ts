@@ -2,12 +2,13 @@
  * Late Fees Query Options
  * Phase 6.1: Late Fee System
  *
- * TanStack Query options for late fee management
+ * TanStack Query options for late fee management.
+ * Uses native fetch for NestJS calls.
  */
 
 import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { clientFetch } from '#lib/api/client'
+import { apiRequest } from '#lib/api-request'
 
 /**
  * Late fee types
@@ -59,7 +60,7 @@ export const lateFeesQueries = {
 	config: (lease_id: string) =>
 		queryOptions({
 			queryKey: [...lateFeesQueries.all(), 'config', lease_id],
-			queryFn: () => clientFetch<LateFeeConfig>(`/api/v1/late-fees/lease/${lease_id}/config`),
+			queryFn: () => apiRequest<LateFeeConfig>(`/api/v1/late-fees/lease/${lease_id}/config`),
 			enabled: !!lease_id,
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
@@ -70,10 +71,7 @@ export const lateFeesQueries = {
 	overdue: (lease_id: string) =>
 		queryOptions({
 			queryKey: [...lateFeesQueries.all(), 'overdue', lease_id],
-			queryFn: () =>
-				clientFetch<{ payments: OverduePayment[]; gracePeriod: number }>(
-					`/api/v1/late-fees/lease/${lease_id}/overdue`
-				),
+			queryFn: () => apiRequest<{ payments: OverduePayment[]; gracePeriod: number }>(`/api/v1/late-fees/lease/${lease_id}/overdue`),
 			enabled: !!lease_id,
 			staleTime: 60 * 1000 // 1 minute
 		})

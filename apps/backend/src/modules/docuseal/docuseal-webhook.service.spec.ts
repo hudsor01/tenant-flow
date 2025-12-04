@@ -22,13 +22,19 @@ describe('DocuSealWebhookService', () => {
 	// Helper to create a flexible Supabase query chain
 	const createMockChain = (resolveData: unknown = null, resolveError: unknown = null) => {
 		const chain: Record<string, jest.Mock> = {}
-		const methods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'in', 'or', 'gte', 'lte', 'order', 'maybeSingle']
+		const methods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'in', 'or', 'gte', 'lte', 'order']
 
 		methods.forEach(method => {
 			chain[method] = jest.fn(() => chain)
 		})
 
+		// Both single and maybeSingle return Promise with { data, error }
 		chain.single = jest.fn(() => Promise.resolve({
+			data: resolveData,
+			error: resolveError
+		}))
+
+		chain.maybeSingle = jest.fn(() => Promise.resolve({
 			data: resolveData,
 			error: resolveError
 		}))

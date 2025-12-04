@@ -50,6 +50,8 @@ BEGIN
 
   IF p_signer_type = 'owner' AND v_lease.lease_status NOT IN ('draft', 'pending_signature') THEN
     RETURN QUERY SELECT FALSE, FALSE, 'Lease cannot be signed in its current status.'::TEXT;
+    RETURN;
+  END IF;
 
   -- Step 4: Check if already signed (prevent double signing)
   IF p_signer_type = 'owner' AND v_lease.owner_signed_at IS NOT NULL THEN
@@ -59,6 +61,8 @@ BEGIN
 
   IF p_signer_type = 'tenant' AND v_lease.tenant_signed_at IS NOT NULL THEN
     RETURN QUERY SELECT FALSE, FALSE, 'Tenant has already signed this lease.'::TEXT;
+    RETURN;
+  END IF;
 
   -- Step 5: Record the signature atomically
   IF p_signer_type = 'owner' THEN
@@ -88,5 +92,5 @@ $$;
 -- Grant execute permission to authenticated users
 GRANT EXECUTE ON FUNCTION public.sign_lease_and_check_activation(UUID, TEXT, TEXT, TIMESTAMPTZ) TO authenticated;
 
-COMMENT ON FUNCTION public.sign_lease_and_check_activation IS
+COMMENT ON FUNCTION public.sign_lease_and_check_activation(UUID, TEXT, TEXT, TIMESTAMPTZ) IS
   'Atomically records a lease signature with row-level locking. Returns whether both parties have now signed. Prevents race conditions in simultaneous signing.';

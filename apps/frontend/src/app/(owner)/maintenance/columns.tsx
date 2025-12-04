@@ -19,8 +19,8 @@ import {
 } from '#components/ui/dialog'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { MaintenanceRequestResponse } from '@repo/shared/types/core'
-import { clientFetch } from '#lib/api/client'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
+import { apiRequest } from '#lib/api-request'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
 
 const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'> = {
@@ -29,9 +29,14 @@ const PRIORITY_VARIANTS: Record<string, 'destructive' | 'secondary' | 'outline'>
 	LOW: 'outline'
 }
 
-type MaintenanceRequest = MaintenanceRequestResponse['data'][number]
+// Extended type with optional relations for display
+type MaintenanceRequestWithRelations = MaintenanceRequest & {
+	property?: { name: string } | null
+	unit?: { name: string } | null
+	assignedTo?: { name: string } | null
+}
 
-export const columns: ColumnDef<MaintenanceRequest>[] = [
+export const columns: ColumnDef<MaintenanceRequestWithRelations>[] = [
 	{
 		accessorKey: 'title',
 		header: 'Request',
@@ -57,7 +62,7 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 			return (
 				<div>
 					<div className="text-sm">{request.property?.name ?? 'Unassigned'}</div>
-					<div className="text-xs text-muted-foreground">{request.unit?.name ?? 'No unit'}</div>
+					<div className="text-caption">{request.unit?.name ?? 'No unit'}</div>
 				</div>
 			)
 		}
@@ -82,14 +87,14 @@ export const columns: ColumnDef<MaintenanceRequest>[] = [
 	}
 ]
 
-function MaintenanceActionsCell({ request }: { request: MaintenanceRequest }) {
+function MaintenanceActionsCell({ request }: { request: MaintenanceRequestWithRelations }) {
 	const queryClient = useQueryClient()
 	const [isDeleting, setIsDeleting] = useState(false)
 
 	const handleDelete = async () => {
 		setIsDeleting(true)
 		try {
-			await clientFetch(`/api/v1/maintenance/${request.id}`, { method: 'DELETE' })
+			await apiRequest<void>(`/api/v1/maintenance/${request.id}`, { method: 'DELETE' })
 			toast.success('Request deleted')
 
 			await Promise.all([

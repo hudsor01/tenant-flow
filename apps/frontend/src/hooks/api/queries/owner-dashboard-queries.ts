@@ -2,12 +2,12 @@
  * Owner Dashboard Query Options (TanStack Query v5 Pattern)
  *
  * Single source of truth for owner dashboard-related queries.
- * Reusable across components, server components, and prefetching.
+ * Uses native fetch for NestJS calls.
  */
 
 import { queryOptions } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { apiRequest } from '#lib/api-request'
 import type { Activity } from '@repo/shared/types/activity'
 import type {
 	DashboardStats,
@@ -86,7 +86,7 @@ export const ownerDashboardQueries = {
 		stats: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.stats(),
-				queryFn: () => clientFetch<DashboardStats>('/api/v1/owner/analytics/stats'),
+				queryFn: () => apiRequest<DashboardStats>('/api/v1/owner/analytics/stats'),
 				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 				refetchIntervalInBackground: false,
@@ -103,7 +103,7 @@ export const ownerDashboardQueries = {
 		activity: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.activity(),
-				queryFn: () => clientFetch<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
+				queryFn: () => apiRequest<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
 				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
 				refetchIntervalInBackground: false,
@@ -119,7 +119,7 @@ export const ownerDashboardQueries = {
 		pageData: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.pageData(),
-				queryFn: () => clientFetch<{
+				queryFn: () => apiRequest<{
 					stats: DashboardStats
 					activity: ActivityItem[]
 				}>('/api/v1/owner/analytics/page-data'),
@@ -144,9 +144,7 @@ export const ownerDashboardQueries = {
 			return queryOptions({
 				queryKey: ownerDashboardKeys.reports.timeSeries(metric, days),
 				queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
-					const data = await clientFetch<TimeSeriesDataPoint[]>(
-						`/api/v1/owner/reports/time-series?metric=${metric}&days=${days}`
-					)
+					const data = await apiRequest<TimeSeriesDataPoint[]>(`/api/v1/owner/reports/time-series?metric=${metric}&days=${days}`)
 					return data ?? []
 				},
 				...QUERY_CACHE_TIMES.DETAIL,
@@ -160,11 +158,7 @@ export const ownerDashboardQueries = {
 		metricTrend: (metric: string, period: 'day' | 'week' | 'month' | 'year' = 'month') =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.reports.metricTrend(metric, period),
-				queryFn: async (): Promise<MetricTrend> => {
-					return clientFetch<MetricTrend>(
-						`/api/v1/owner/reports/metric-trend?metric=${metric}&period=${period}`
-					)
-				},
+				queryFn: () => apiRequest<MetricTrend>(`/api/v1/owner/reports/metric-trend?metric=${metric}&period=${period}`),
 				...QUERY_CACHE_TIMES.DETAIL,
 				gcTime: 10 * 60 * 1000 // 10 minutes
 			})
@@ -181,7 +175,7 @@ export const ownerDashboardQueries = {
 		performance: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.properties.performance(),
-				queryFn: () => clientFetch<PropertyPerformance[]>('/api/v1/owner/properties/performance'),
+				queryFn: () => apiRequest<PropertyPerformance[]>('/api/v1/owner/properties/performance'),
 				...QUERY_CACHE_TIMES.DETAIL,
 				// No refetchInterval - data doesn't change frequently
 				refetchOnWindowFocus: false,
@@ -201,7 +195,7 @@ export const ownerDashboardQueries = {
 		billingInsights: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.financial.billingInsights(),
-				queryFn: () => clientFetch<{
+				queryFn: () => apiRequest<{
 					totalRevenue: number
 					monthlyRevenue: number
 					outstandingBalance: number
@@ -220,9 +214,7 @@ export const ownerDashboardQueries = {
 		revenueTrends: (year: number = new Date().getFullYear()) =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.financial.revenueTrends(year),
-				queryFn: () => clientFetch<FinancialMetrics[]>(
-					`/api/v1/owner/financial/revenue-trends?year=${year}`
-				),
+				queryFn: () => apiRequest<FinancialMetrics[]>(`/api/v1/owner/financial/revenue-trends?year=${year}`),
 				...QUERY_CACHE_TIMES.ANALYTICS,
 				refetchOnWindowFocus: false,
 				retry: 2
@@ -240,7 +232,7 @@ export const ownerDashboardQueries = {
 		analytics: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.maintenance.analytics(),
-				queryFn: () => clientFetch<{
+				queryFn: () => apiRequest<{
 					totalRequests: number
 					openRequests: number
 					inProgressRequests: number
@@ -267,7 +259,7 @@ export const ownerDashboardQueries = {
 		occupancyTrends: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.tenants.occupancyTrends(),
-				queryFn: () => clientFetch<{
+				queryFn: () => apiRequest<{
 					totalTenants: number
 					activeTenants: number
 					occupancyRate: number

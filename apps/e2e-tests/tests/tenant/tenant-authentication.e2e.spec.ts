@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { ROUTES } from '../../constants/routes'
+import { ROUTES } from '../constants/routes'
 import { loginAsTenant, clearSessionCache } from '../../auth-helpers'
 import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-helpers'
 
@@ -16,7 +16,7 @@ import { verifyPageLoaded, setupErrorMonitoring } from '../helpers/navigation-he
  */
 
 test.describe('Tenant Authentication', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
   const logger = createLogger({ component: 'TenantAuthenticationE2E' })
 
   test.beforeEach(() => {

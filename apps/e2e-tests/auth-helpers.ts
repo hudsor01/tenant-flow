@@ -24,15 +24,49 @@
 import { type Page, type BrowserContext } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
-// Supabase project reference extracted from URL
-const PROJECT_REF = 'bshjmbshupiibfiewpxb'
-const SUPABASE_URL = `https://${PROJECT_REF}.supabase.co`
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
+// Extract Supabase configuration from environment variables
+// No more hardcoded project refs!
+function getSupabaseConfig() {
+	const supabaseUrl = process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+	const supabaseKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+
+	if (!supabaseUrl) {
+		throw new Error(
+			'Missing Supabase URL. Set TEST_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL environment variable.'
+		)
+	}
+	if (!supabaseKey) {
+		throw new Error(
+			'Missing Supabase key. Set TEST_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variable.'
+		)
+	}
+
+	// Extract project ref from URL (e.g., https://abc123.supabase.co -> abc123)
+	const url = new URL(supabaseUrl)
+	const hostnameParts = url.hostname.split('.')
+	if (hostnameParts.length === 0) {
+	throw new Error(`Invalid Supabase URL: ${supabaseUrl}`)
+	}
+	const projectRef = hostnameParts[0]
+
+	return { supabaseUrl, supabaseKey, projectRef }
+}
+
+// Lazy-loaded config (initialized on first use)
+let _config: { supabaseUrl: string; supabaseKey: string; projectRef: string } | null = null
+function getConfig() {
+	if (!_config) {
+		_config = getSupabaseConfig()
+	}
+	return _config!
+}
 
 const logger = createLogger({ component: 'AuthHelpers' })
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, SupabaseSession>()
+// Cache operations synchronization
+const cacheOperations = new Map<string, Promise<SupabaseSession>>()
 
 // Debug logging helper
 const debugLog = (...args: string[]) => {
@@ -75,12 +109,15 @@ async function authenticateViaAPI(
 	email: string,
 	password: string
 ): Promise<SupabaseSession> {
-	const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+  const config = getConfig()
+	const { supabaseUrl, supabaseKey } = config
+
+	const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'apikey': SUPABASE_ANON_KEY,
-			'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+			'apikey': supabaseKey,
+			'Authorization': `Bearer ${supabaseKey}`
 		},
 		body: JSON.stringify({ email, password })
 	})
@@ -104,7 +141,8 @@ async function injectSessionIntoBrowser(
 	session: SupabaseSession,
 	baseUrl: string
 ): Promise<void> {
-	const cookieName = `sb-${PROJECT_REF}-auth-token`
+	const { projectRef } = getConfig()
+	const cookieName = `sb-${projectRef}-auth-token`
 	const cookieValue = JSON.stringify(session)
 
 	// Parse base URL to get domain
@@ -159,7 +197,7 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const password = rawPassword.replace(/\\!/g, '!')
 	const cacheKey = `owner:${email}`
 
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	const context = page.context()
 
 	// Check cache first
@@ -216,7 +254,7 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	const password = rawPassword.replace(/\\!/g, '!')
 	const cacheKey = `tenant:${email}`
 
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	const context = page.context()
 
 	// Check cache first

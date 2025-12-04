@@ -3,6 +3,10 @@ import type Stripe from 'stripe'
 import { WebhookProcessor } from '../../src/modules/billing/webhook-processor.service'
 import { SupabaseService } from '../../src/database/supabase.service'
 import { EmailService } from '../../src/modules/email/email.service'
+import { PaymentWebhookHandler } from '../../src/modules/billing/handlers/payment-webhook.handler'
+import { SubscriptionWebhookHandler } from '../../src/modules/billing/handlers/subscription-webhook.handler'
+import { CheckoutWebhookHandler } from '../../src/modules/billing/handlers/checkout-webhook.handler'
+import { ConnectWebhookHandler } from '../../src/modules/billing/handlers/connect-webhook.handler'
 
 describe('payment_intent.payment_failed integration', () => {
 	let emailService: { sendPaymentFailedEmail: jest.Mock }
@@ -37,6 +41,10 @@ describe('payment_intent.payment_failed integration', () => {
 			insert: jest.fn(async (payload: any) => {
 				insertedTransaction = payload
 				return { data: null, error: null }
+			}),
+			upsert: jest.fn(async (payload: any) => {
+				insertedTransaction = payload
+				return { data: null, error: null }
 			})
 		}
 
@@ -53,11 +61,30 @@ describe('payment_intent.payment_failed integration', () => {
 			sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined)
 		}
 
+		// Mock handlers that aren't being tested
+		const mockSubscriptionHandler = {
+			handleSubscriptionCreated: jest.fn(),
+			handleSubscriptionUpdated: jest.fn(),
+			handleSubscriptionDeleted: jest.fn()
+		}
+
+		const mockCheckoutHandler = {
+			handleCheckoutCompleted: jest.fn()
+		}
+
+		const mockConnectHandler = {
+			handleAccountUpdated: jest.fn()
+		}
+
 		const moduleRef = await Test.createTestingModule({
 			providers: [
 				WebhookProcessor,
+				PaymentWebhookHandler,
 				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
-				{ provide: EmailService, useValue: emailService }
+				{ provide: EmailService, useValue: emailService },
+				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
+				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
+				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler }
 			]
 		}).compile()
 

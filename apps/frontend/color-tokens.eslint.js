@@ -5,7 +5,6 @@
 
 export default {
 	rules: {
-		// Prevent hardcoded hex colors
 		'no-hex-colors': {
 			meta: {
 				type: 'problem',

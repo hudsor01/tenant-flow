@@ -20,7 +20,7 @@ export function MobileChrome({ children }: MobileChromeProps) {
 		<MobileErrorBoundary>
 			<div className="flex min-h-screen flex-col bg-background">
 				{requiresSecureContext && isMobile ? (
-					<div className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">
+					<div className="bg-warning/10 px-4 py-2 text-center text-xs text-warning">
 						A secure (HTTPS) connection is required for mobile actions.
 					</div>
 				) : null}

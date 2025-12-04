@@ -69,8 +69,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	}
 
 	return (
-		<div className="grid gap-(--spacing-6) lg:grid-cols-3">
-			<div className="lg:col-span-2 flex flex-col gap-(--spacing-4)">
+		<div className="grid gap-6 lg:grid-cols-3">
+			<div className="lg:col-span-2 flex flex-col gap-4">
 				<div className="flex justify-end gap-2 mb-2">
 					{isDraft && tenant && (
 						<SendForSignatureButton {...signatureButtonProps} />
@@ -97,7 +97,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							<h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
 								Key details
 							</h2>
-							<div className="grid gap-(--spacing-4) md:grid-cols-2">
+							<div className="grid gap-4 md:grid-cols-2">
 								<div className="rounded-xl border bg-muted/20 p-4">
 									<div className="flex items-center gap-2 text-muted">
 										<Calendar className="size-4" />
@@ -168,7 +168,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 					</div>
 				</CardLayout>
 			</div>
-			<div className="flex flex-col gap-(--spacing-4)">
+			<div className="flex flex-col gap-4">
 				{/* Signature Status - show for draft and pending_signature leases */}
 				{(isDraft || isPendingSignature) && (
 					<LeaseSignatureStatus leaseId={lease.id} />

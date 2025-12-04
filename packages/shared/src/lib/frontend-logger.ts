@@ -42,6 +42,17 @@ const devConsole: Partial<Console> | undefined =
 const getTimestamp = () => isClient() ? new Date().toISOString() : ''
 
 /**
+ * Safe JSON stringify with circular reference handling
+ */
+const safeStringify = (obj: unknown): string => {
+	try {
+		return JSON.stringify(obj, null, 2)
+	} catch {
+		return String(obj)
+	}
+}
+
+/**
  * Development-only console logger
  * This is the ONLY place console methods are used
  */
@@ -54,27 +65,32 @@ const developmentConsoleFallback = (entry: LogEntry) => {
 		: ''
 	const message = `${timestamp} [${entry.level}]${contextStr} ${entry.message}`
 
+	// Serialize metadata for readable console output
+	const metadataStr = entry.context?.metadata
+		? safeStringify(entry.context.metadata)
+		: ''
+
 	// Only use console in development as absolute last resort
 	switch (entry.level) {
 		case 'DEBUG':
 		case 'INFO':
 			devConsole?.info?.(
 				message,
-				entry.context?.metadata || '',
+				metadataStr,
 				...(entry.args || [])
 			)
 			break
 		case 'WARN':
 			devConsole?.warn?.(
 				message,
-				entry.context?.metadata || '',
+				metadataStr,
 				...(entry.args || [])
 			)
 			break
 		case 'ERROR':
 			devConsole?.error?.(
 				message,
-				entry.context?.metadata || '',
+				metadataStr,
 				...(entry.args || [])
 			)
 			break

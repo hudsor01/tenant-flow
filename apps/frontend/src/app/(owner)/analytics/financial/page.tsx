@@ -1,3 +1,7 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
 import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
 import { ExportButtons } from '#components/ui/export/export-buttons'
 import { Badge } from '#components/ui/badge'
@@ -16,8 +20,7 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { getFinancialAnalyticsPageData } from '#lib/api/analytics-page'
-import { serverFetch } from '#lib/api/server'
+import { Skeleton } from '#components/ui/skeleton'
 import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/currency'
 import type {
 	FinancialBreakdownRow,
@@ -25,14 +28,13 @@ import type {
 } from '@repo/shared/types/financial-analytics'
 import { ArrowDownRight, ArrowUpRight, FileDown } from 'lucide-react'
 import Link from 'next/link'
-import { Suspense } from 'react'
 import {
 	BillingTimelineChart,
 	NetOperatingIncomeChart,
 	RevenueExpenseChart
 } from './financial-charts'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
-import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
+import { EMPTY_PAYMENT_SUMMARY } from '@repo/shared/types/api-contracts'
 
 function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {
@@ -63,9 +65,9 @@ function BreakdownList({
 	return (
 		<div className="space-y-4">
 			<div className="flex-between">
-				<p className="text-sm font-medium text-muted-foreground">{title}</p>
+				<p className="text-muted font-medium">{title}</p>
 				<Link
-					className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+					className="text-caption underline-offset-2 hover:underline"
 					href="#"
 				>
 					View details
@@ -141,31 +143,106 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	)
 }
 
-	async function FinancialAnalyticsContent() {
-		const [data, paymentSummary] = await Promise.all([
-		getFinancialAnalyticsPageData(),
-		serverFetch<OwnerPaymentSummaryResponse>(
-			'/api/v1/tenants/payments/summary'
-		)
-	])
+function FinancialAnalyticsSkeleton() {
+	return (
+		<div className="@container/main flex min-h-screen w-full flex-col">
+			<div className="border-b bg-background p-6 border-fill-tertiary">
+				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
+					<div className="flex flex-col gap-2">
+						<h1>Financial Analytics</h1>
+						<p className="text-muted">
+							Track revenue, profitability, and portfolio cash flow in real
+							time.
+						</p>
+					</div>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						{Array.from({ length: 4 }).map((_, i) => (
+							<Card key={i} className="@container/card">
+								<CardHeader>
+									<Skeleton className="h-4 w-24" />
+									<Skeleton className="h-3 w-20" />
+								</CardHeader>
+								<CardContent className="space-y-3">
+									<Skeleton className="h-8 w-28" />
+									<Skeleton className="h-5 w-16" />
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				</div>
+			</div>
+			<OwnerPaymentSummary summary={null} />
+			<div className="flex-1 bg-muted/30 p-6">
+				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
+					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+						<div className="xl:col-span-2">
+							<Card>
+								<CardHeader>
+									<Skeleton className="h-5 w-40" />
+									<Skeleton className="h-4 w-56" />
+								</CardHeader>
+								<CardContent>
+									<Skeleton className="h-64 w-full" />
+								</CardContent>
+							</Card>
+						</div>
+						<div className="space-y-6">
+							{Array.from({ length: 2 }).map((_, i) => (
+								<Card key={i}>
+									<CardHeader>
+										<Skeleton className="h-5 w-36" />
+										<Skeleton className="h-4 w-24" />
+									</CardHeader>
+									<CardContent>
+										<div className="space-y-3">
+											{Array.from({ length: 3 }).map((_, j) => (
+												<Skeleton key={j} className="h-4 w-full" />
+											))}
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default function FinancialAnalyticsPage() {
+	const { data, isLoading } = useQuery(analyticsQueries.financialPageData())
+	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(analyticsQueries.ownerPaymentSummary())
+
+	if (isLoading) {
+		return <FinancialAnalyticsSkeleton />
+	}
+
 	const {
-		metrics,
-		breakdown,
-		netOperatingIncome,
-		billingInsights,
-		invoiceSummary,
-		monthlyMetrics,
-		leaseAnalytics
-	} = data
+		metrics = {
+			totalRevenue: 0,
+			netIncome: 0,
+			profitMargin: null,
+			cashFlow: 0,
+			revenueTrend: null,
+			expenseTrend: null
+		},
+		breakdown = { revenue: [], expenses: [] },
+		netOperatingIncome = [],
+		billingInsights = { points: [], totals: { invoiced: 0, paid: 0, overdue: 0 } },
+		invoiceSummary = [],
+		monthlyMetrics = [],
+		leaseAnalytics = []
+	} = data || {}
 
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
 			<div className="@container/main flex min-h-screen w-full flex-col">
 				<OwnerPaymentSummary summary={paymentSummary} />
 				<div className="border-b bg-background p-6 border-fill-tertiary">
-					<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
+					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
 						<div className="flex flex-col gap-2">
-							<h1 className="text-3xl font-semibold tracking-tight">
+							<h1>
 								Financial Analytics
 							</h1>
 							<p className="text-muted-foreground">
@@ -183,7 +260,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								Download insight summary
 							</a>
 						</div>
-						<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 							<Card className="@container/card">
 								<CardHeader>
 									<CardTitle>Total Revenue</CardTitle>
@@ -240,7 +317,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 				</div>
 				<div className="flex-1 bg-muted/30 p-6">
 					<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
-						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
+						<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 							<div className="xl:col-span-2">
 								<Card>
 									<CardHeader>
@@ -281,7 +358,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								</Card>
 							</div>
 						</div>
-						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-2">
+						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 							<Card>
 								<CardHeader>
 									<CardTitle>Net Operating Income</CardTitle>
@@ -305,7 +382,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 								</CardContent>
 							</Card>
 						</div>
-						<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-2">
+						<div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 							<Card>
 								<CardHeader>
 									<CardTitle>Billing Timeline</CardTitle>
@@ -334,7 +411,7 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 												</span>
 												<Badge variant="outline">{status.count}</Badge>
 											</div>
-											<p className="text-xs text-muted-foreground">
+											<p className="text-caption">
 												{formatCurrency(status.amount)}
 											</p>
 										</div>
@@ -346,83 +423,5 @@ function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 				</div>
 			</div>
 		</RefreshableAnalytics>
-	)
-}
-
-function FinancialAnalyticsSkeleton() {
-	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-# Additional component after top metrics
-			<div className="border-b bg-background p-6 border-fill-tertiary">
-				<div className="mx-auto flex max-w-400 flex-col gap-(--spacing-6) px-4 lg:px-6">
-					<div className="flex flex-col gap-2">
-						<h1 className="text-3xl font-semibold tracking-tight">
-							Financial Analytics
-						</h1>
-						<p className="text-muted-foreground">
-							Track revenue, profitability, and portfolio cash flow in real
-							time.
-						</p>
-					</div>
-					<div className="grid grid-cols-1 gap-(--spacing-4) sm:grid-cols-2 xl:grid-cols-4">
-						{Array.from({ length: 4 }).map((_, i) => (
-							<Card key={i} className="@container/card">
-								<CardHeader>
-									<div className="h-4 bg-muted rounded animate-pulse" />
-									<div className="h-3 bg-muted rounded animate-pulse w-2/3" />
-								</CardHeader>
-								<CardContent className="space-y-3">
-									<div className="h-8 bg-muted rounded animate-pulse" />
-									<div className="h-5 bg-muted rounded animate-pulse w-1/2" />
-								</CardContent>
-							</Card>
-						))}
-					</div>
-				</div>
-			</div>
-			<OwnerPaymentSummary summary={null} />
-			<div className="flex-1 bg-muted/30 p-6">
-				<div className="mx-auto max-w-400 space-y-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-(--spacing-6) xl:grid-cols-3">
-						<div className="xl:col-span-2">
-							<Card>
-								<CardHeader>
-									<div className="h-5 bg-muted rounded animate-pulse" />
-									<div className="h-4 bg-muted rounded animate-pulse w-3/4" />
-								</CardHeader>
-								<CardContent>
-									<div className="h-64 bg-muted rounded animate-pulse" />
-								</CardContent>
-							</Card>
-						</div>
-						<div className="space-y-6">
-							{Array.from({ length: 2 }).map((_, i) => (
-								<Card key={i}>
-									<CardHeader>
-										<div className="h-5 bg-muted rounded animate-pulse" />
-										<div className="h-4 bg-muted rounded animate-pulse w-1/2" />
-									</CardHeader>
-									<CardContent>
-										<div className="space-y-3">
-											{Array.from({ length: 3 }).map((_, j) => (
-												<div key={j} className="h-4 bg-muted rounded animate-pulse" />
-											))}
-										</div>
-									</CardContent>
-								</Card>
-							))}
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	)
-}
-
-export default function FinancialAnalyticsPage() {
-	return (
-		<Suspense fallback={<FinancialAnalyticsSkeleton />}>
-			<FinancialAnalyticsContent />
-		</Suspense>
 	)
 }

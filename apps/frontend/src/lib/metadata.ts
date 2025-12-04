@@ -1,11 +1,27 @@
 import type { Metadata } from 'next'
-import { env } from '#config/env'
 
-export const siteMetadata: Metadata = (() => {
-	const appUrl = env.NEXT_PUBLIC_APP_URL
+const DEV_APP_URL = 'http://localhost:3000'
 
-	// No need for validation - env.NEXT_PUBLIC_APP_URL is guaranteed to be a valid URL string
-	// The validation happens at startup, so if we get here, it's valid
+// Use getter to ensure env var is read at runtime, not compile time
+// Falls back to localhost in development, requires env var in production
+function getSiteUrl(): string {
+	const url = process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? undefined : DEV_APP_URL)
+
+	if (!url) {
+		throw new Error(
+			'NEXT_PUBLIC_APP_URL environment variable is required in production. ' +
+			'Set it in your deployment environment.'
+		)
+	}
+	return url
+}
+
+// Lazy initialization
+let _siteMetadata: Metadata | null = null
+
+function createSiteMetadata(): Metadata {
+	const appUrl = getSiteUrl()
 	return {
 		metadataBase: new URL(appUrl),
 		title:
@@ -75,13 +91,28 @@ export const siteMetadata: Metadata = (() => {
 				{
 					url: '/safari-pinned-tab.svg',
 					rel: 'mask-icon',
-					color: 'var(--color-system-blue)'
+					color: 'var(--color-info)'
 				}
 			]
 		},
 		manifest: '/manifest.json'
 	}
-})()
+}
+
+// Getter for lazy initialization
+export function getSiteMetadata(): Metadata {
+	if (!_siteMetadata) {
+		_siteMetadata = createSiteMetadata()
+	}
+	return _siteMetadata
+}
+
+// For backward compatibility - uses Proxy for lazy access
+export const siteMetadata: Metadata = new Proxy({} as Metadata, {
+	get(_, prop) {
+		return getSiteMetadata()[prop as keyof Metadata]
+	}
+})
 
 export const structuredData = {
 	'@context': 'https://schema.org',

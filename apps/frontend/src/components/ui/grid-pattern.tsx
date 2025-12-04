@@ -1,6 +1,7 @@
 import { useId } from 'react'
 
-import { ANIMATION_DURATIONS, cn } from '#lib/design-system'
+import { cn } from '#lib/utils'
+import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
 
 interface GridPatternProps extends React.SVGProps<SVGSVGElement> {
 	width?: number

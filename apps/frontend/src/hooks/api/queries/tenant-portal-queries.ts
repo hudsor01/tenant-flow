@@ -1,12 +1,13 @@
 /**
  * Tenant Portal Query Options
  *
- * TanStack Query options for tenant portal operations
+ * TanStack Query options for tenant portal operations.
+ * Uses native fetch for NestJS calls.
  */
 
 import { queryOptions } from '@tanstack/react-query'
-import { clientFetch } from '#lib/api/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { apiRequest } from '#lib/api-request'
 import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
 import type { MaintenanceCategory, Priority } from '@repo/shared/types/core'
 
@@ -186,7 +187,7 @@ export const tenantPortalQueries = {
 	dashboard: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'dashboard'],
-			queryFn: () => clientFetch('/api/v1/tenant-portal/dashboard'),
+			queryFn: () => apiRequest('/api/v1/tenant-portal/dashboard'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 		}),
@@ -198,7 +199,7 @@ export const tenantPortalQueries = {
 	amountDue: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'amount-due'],
-			queryFn: () => clientFetch<AmountDueResponse>('/api/v1/tenant-portal/amount-due'),
+			queryFn: () => apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
 			...QUERY_CACHE_TIMES.STATS,
 			refetchInterval: 60000, // 1 min - critical payment data
 			refetchIntervalInBackground: false,
@@ -211,10 +212,10 @@ export const tenantPortalQueries = {
 	payments: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'payments'],
-			queryFn: () => clientFetch<{
+			queryFn: () => apiRequest<{
 				payments: TenantPayment[]
 				methodsEndpoint: string
-			}>('/api/v1/tenant-portal/payments'),
+			}>('/api/v1/tenants/payments'),
 			...QUERY_CACHE_TIMES.LIST,
 			// No interval - list data refreshes on navigation
 			refetchOnWindowFocus: false,
@@ -227,7 +228,7 @@ export const tenantPortalQueries = {
 	autopay: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'autopay'],
-			queryFn: () => clientFetch<TenantAutopayStatus>('/api/v1/tenant-portal/autopay'),
+			queryFn: () => apiRequest<TenantAutopayStatus>('/api/v1/tenants/autopay'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -239,10 +240,10 @@ export const tenantPortalQueries = {
 	maintenance: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'maintenance'],
-			queryFn: () => clientFetch<{
+			queryFn: () => apiRequest<{
 				requests: TenantMaintenanceRequest[]
 				summary: TenantMaintenanceStats
-			}>('/api/v1/tenant-portal/maintenance'),
+			}>('/api/v1/tenants/maintenance'),
 			...QUERY_CACHE_TIMES.LIST,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -254,7 +255,7 @@ export const tenantPortalQueries = {
 	lease: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'lease'],
-			queryFn: () => clientFetch<TenantLease | null>('/api/v1/tenant-portal/leases'),
+			queryFn: () => apiRequest<TenantLease | null>('/api/v1/tenants/leases'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -266,7 +267,7 @@ export const tenantPortalQueries = {
 	documents: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'documents'],
-			queryFn: () => clientFetch<{ documents: TenantDocument[] }>('/api/v1/tenant-portal/documents'),
+			queryFn: () => apiRequest<{ documents: TenantDocument[] }>('/api/v1/tenant-portal/documents'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -278,7 +279,7 @@ export const tenantPortalQueries = {
 	settings: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'settings'],
-			queryFn: () => clientFetch<TenantSettings>('/api/v1/tenant-portal/settings'),
+			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenant-portal/settings'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS

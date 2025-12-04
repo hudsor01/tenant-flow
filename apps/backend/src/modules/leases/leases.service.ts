@@ -9,7 +9,8 @@ import {
 	BadRequestException,
 	ConflictException,
 	Injectable,
-	Logger
+	Logger,
+	NotFoundException
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
@@ -192,44 +193,43 @@ export class LeasesService {
 	 * Find one lease by ID
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	async findOne(token: string, lease_id: string): Promise<Lease | null> {
-		try {
-			if (!token || !lease_id) {
-				this.logger.warn('Find one lease called with missing parameters', {
-					lease_id
-				})
-				return null
-			}
-
-			this.logger.log('Finding one lease via RLS-protected query', {
+	async findOne(token: string, lease_id: string): Promise<Lease> {
+		// FAIL FAST: Validate inputs immediately
+		if (!token || !lease_id) {
+			this.logger.warn('Find one lease called with missing parameters', {
 				lease_id
 			})
-
-			// RLS SECURITY: User-scoped client automatically filters to user's leases
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client
-				.from('leases')
-				.select('*')
-				.eq('id', lease_id)
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to fetch lease from Supabase', {
-					error: error.message,
-					lease_id
-				})
-				return null
-			}
-
-			return data as Lease
-		} catch (error) {
-			this.logger.error('Leases service failed to find one lease', {
-				error: error instanceof Error ? error.message : String(error),
-				lease_id
-			})
-			return null
+			throw new BadRequestException(
+				'Authentication token and lease ID are required'
+			)
 		}
+
+		this.logger.log('Finding one lease via RLS-protected query', {
+			lease_id
+		})
+
+		// RLS SECURITY: User-scoped client automatically filters to user's leases
+		const client = this.supabase.getUserClient(token)
+
+		const { data, error } = await client
+			.from('leases')
+			.select('*')
+			.eq('id', lease_id)
+			.single()
+
+		if (error) {
+			this.logger.error('Failed to fetch lease from Supabase', {
+				error: error.message,
+				lease_id
+			})
+			throw new BadRequestException('Failed to fetch lease')
+		}
+
+		if (!data) {
+			throw new NotFoundException(`Lease with ID ${lease_id} not found`)
+		}
+
+		return data as Lease
 	}
 
 	/**
@@ -323,96 +323,74 @@ export class LeasesService {
 		token: string,
 		lease_id: string,
 		updateRequest: UpdateLeaseDto
-	): Promise<Lease | null> {
-		try {
-			if (!token || !lease_id) {
-				this.logger.warn('Update lease called with missing parameters', {
-					lease_id
-				})
-				return null
-			}
-
-			this.logger.log('Updating lease via RLS-protected query', {
-				lease_id,
-				updateRequest
-			})
-
-			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, lease_id)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			// RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const updated_data: Database['public']['Tables']['leases']['Update'] = {
-				updated_at: new Date().toISOString()
-			}
-
-			// Note: Version-based optimistic locking removed - not in database schema
-
-			if (updateRequest.start_date !== undefined)
-				updated_data.start_date = updateRequest.start_date
-			if (updateRequest.end_date !== undefined)
-				updated_data.end_date = updateRequest.end_date
-			if (
-				updateRequest.rent_amount !== undefined &&
-				updateRequest.rent_amount !== null
-			)
-				updated_data.rent_amount = updateRequest.rent_amount
-			if (
-				updateRequest.security_deposit !== undefined &&
-				updateRequest.security_deposit !== null
-			)
-				updated_data.security_deposit = updateRequest.security_deposit
-			if (updateRequest.lease_status !== undefined)
-			updated_data.lease_status = updateRequest.lease_status
-
-			//Add version check for optimistic locking
-			const query = client.from('leases').update(updated_data).eq('id', lease_id)
-
-			// Note: Version-based optimistic locking removed - not in database schema
-			// If needed in future, add version column to database first
-
-			const { data, error } = await query.select().single()
-
-			if (error || !data) {
-				// Check for not found error (PGRST116 = 0 rows affected)
-				if (error?.code === 'PGRST116') {
-					this.logger.warn('Lease not found or no changes made', {
-						lease_id
-					})
-					throw new ConflictException(
-						'Lease not found or already modified'
-					)
-				}
-
-				// Other database errors
-				this.logger.error('Failed to update lease in Supabase', {
-					error: error ? String(error) : 'Unknown error',
-					lease_id,
-					updateRequest
-				})
-				throw new BadRequestException('Failed to update lease')
-			}
-
-			return data as Lease
-		} catch (error) {
-			// Re-throw ConflictException as-is
-			if (error instanceof ConflictException) {
-				throw error
-			}
-
-			this.logger.error('Leases service failed to update lease', {
-				error: error instanceof Error ? error.message : String(error),
-				lease_id,
-				updateRequest
+	): Promise<Lease> {
+		// FAIL FAST: Validate inputs immediately
+		if (!token || !lease_id) {
+			this.logger.warn('Update lease called with missing parameters', {
+				lease_id
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to update lease'
+				'Authentication token and lease ID are required'
 			)
 		}
+
+		this.logger.log('Updating lease via RLS-protected query', {
+			lease_id,
+			updateRequest
+		})
+
+		// Verify ownership via findOne (will throw NotFoundException if not found)
+		await this.findOne(token, lease_id)
+
+		// RLS SECURITY: User-scoped client automatically validates ownership
+		const client = this.supabase.getUserClient(token)
+
+		const updated_data: Database['public']['Tables']['leases']['Update'] = {
+			updated_at: new Date().toISOString()
+		}
+
+		if (updateRequest.start_date !== undefined)
+			updated_data.start_date = updateRequest.start_date
+		if (updateRequest.end_date !== undefined)
+			updated_data.end_date = updateRequest.end_date
+		if (
+			updateRequest.rent_amount !== undefined &&
+			updateRequest.rent_amount !== null
+		)
+			updated_data.rent_amount = updateRequest.rent_amount
+		if (
+			updateRequest.security_deposit !== undefined &&
+			updateRequest.security_deposit !== null
+		)
+			updated_data.security_deposit = updateRequest.security_deposit
+		if (updateRequest.lease_status !== undefined)
+			updated_data.lease_status = updateRequest.lease_status
+
+		const query = client.from('leases').update(updated_data).eq('id', lease_id)
+
+		const { data, error } = await query.select().single()
+
+		if (error || !data) {
+			// Check for not found error (PGRST116 = 0 rows affected)
+			if (error?.code === 'PGRST116') {
+				this.logger.warn('Lease not found or no changes made', {
+					lease_id
+				})
+				throw new ConflictException(
+					'Lease not found or already modified'
+				)
+			}
+
+			// Other database errors
+			this.logger.error('Failed to update lease in Supabase', {
+				error: error ? String(error) : 'Unknown error',
+				lease_id,
+				updateRequest
+			})
+			throw new BadRequestException('Failed to update lease')
+		}
+
+		return data as Lease
 	}
 
 	/**
@@ -420,46 +398,34 @@ export class LeasesService {
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
 	async remove(token: string, lease_id: string): Promise<void> {
-		try {
-			if (!token || !lease_id) {
-				this.logger.warn('Remove lease called with missing parameters', {
-					lease_id
-				})
-				throw new BadRequestException(
-					'Authentication token and lease ID are required'
-				)
-			}
-
-			this.logger.log('Removing lease via RLS-protected query', {
-				lease_id
-			})
-
-			// Verify ownership via findOne (RLS will enforce ownership)
-			const existingLease = await this.findOne(token, lease_id)
-			if (!existingLease) {
-				throw new BadRequestException('Lease not found or access denied')
-			}
-
-			// RLS SECURITY: User-scoped client automatically validates ownership
-			const client = this.supabase.getUserClient(token)
-
-			const { error } = await client.from('leases').delete().eq('id', lease_id)
-
-			if (error) {
-				this.logger.error('Failed to delete lease in Supabase', {
-					error: error.message,
-					lease_id
-				})
-				throw new BadRequestException('Failed to delete lease')
-			}
-		} catch (error) {
-			this.logger.error('Leases service failed to remove lease', {
-				error: error instanceof Error ? error.message : String(error),
+		// FAIL FAST: Validate inputs immediately
+		if (!token || !lease_id) {
+			this.logger.warn('Remove lease called with missing parameters', {
 				lease_id
 			})
 			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to remove lease'
+				'Authentication token and lease ID are required'
 			)
+		}
+
+		this.logger.log('Removing lease via RLS-protected query', {
+			lease_id
+		})
+
+		// Verify ownership via findOne (will throw NotFoundException if not found)
+		await this.findOne(token, lease_id)
+
+		// RLS SECURITY: User-scoped client automatically validates ownership
+		const client = this.supabase.getUserClient(token)
+
+		const { error } = await client.from('leases').delete().eq('id', lease_id)
+
+		if (error) {
+			this.logger.error('Failed to delete lease in Supabase', {
+				error: error.message,
+				lease_id
+			})
+			throw new BadRequestException('Failed to delete lease')
 		}
 	}
 }
