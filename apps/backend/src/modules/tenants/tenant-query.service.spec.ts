@@ -7,6 +7,7 @@ import { TenantStatsService } from './tenant-stats.service'
 import { TenantRelationService } from './tenant-relation.service'
 import { TenantInvitationQueryService } from './tenant-invitation-query.service'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * TenantQueryService is now a facade/coordinator that delegates to specialized services.
@@ -72,7 +73,11 @@ describe('TenantQueryService', () => {
 				{ provide: TenantListService, useValue: mockListService },
 				{ provide: TenantStatsService, useValue: mockStatsService },
 				{ provide: TenantRelationService, useValue: mockRelationService },
-				{ provide: TenantInvitationQueryService, useValue: mockInvitationService }
+				{ provide: TenantInvitationQueryService, useValue: mockInvitationService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

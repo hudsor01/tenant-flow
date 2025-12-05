@@ -12,11 +12,12 @@
  */
 
 import type { NestMiddleware } from '@nestjs/common';
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { SecurityHeadersConfig } from '@repo/shared/types/security'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { Request, Response } from 'express'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 const SECURITY_CONFIG: SecurityHeadersConfig = {
 	csp: {
@@ -49,9 +50,8 @@ const SECURITY_CONFIG: SecurityHeadersConfig = {
 
 @Injectable()
 export class SecurityHeadersMiddleware implements NestMiddleware {
-	private readonly logger = new Logger(SecurityHeadersMiddleware.name)
 
-	constructor(private readonly config: AppConfigService) {}
+	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
 	use(req: Request, res: Response, next: () => void): void {
 		try {

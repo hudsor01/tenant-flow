@@ -7,7 +7,7 @@
  * @see docs/CRUD_BUGS_FIXES_2025.md - Bug #3: Transaction Compensation
  */
 
-import { Logger } from '@nestjs/common'
+import type { AppLogger } from '../../logger/app-logger.service'
 
 export interface SagaStep<T = unknown> {
 	/** Human-readable step name for logging */
@@ -47,9 +47,9 @@ export interface SagaResult<T> {
  */
 export async function executeSaga<T = unknown>(
 	steps: SagaStep<unknown>[],
-	logger?: Logger
+	logger?: AppLogger
 ): Promise<SagaResult<T>> {
-	const log = logger || new Logger('Saga')
+	const log = logger
 	const executedSteps: Array<{ name: string; result: unknown }> = []
 	const completedSteps: string[] = []
 	const compensatedSteps: string[] = []
@@ -57,11 +57,11 @@ export async function executeSaga<T = unknown>(
 	try {
 		// Forward phase: Execute all steps
 		for (const step of steps) {
-			log.log(`Executing saga step: ${step.name}`)
+			log?.log(`Executing saga step: ${step.name}`)
 			const result = await step.execute()
 			executedSteps.push({ name: step.name, result })
 			completedSteps.push(step.name)
-			log.log(` Saga step completed: ${step.name}`)
+			log?.log(` Saga step completed: ${step.name}`)
 		}
 
 		// All steps succeeded
@@ -74,8 +74,9 @@ export async function executeSaga<T = unknown>(
 	} catch (error) {
 		// Compensation phase: Rollback completed steps in reverse order
 		const lastStep = executedSteps[executedSteps.length - 1]
-		log.error(
+		log?.error(
 			`Saga failed at step: ${lastStep?.name || 'unknown'}`,
+			'Saga',
 			{ error: error instanceof Error ? error.message : String(error) }
 		)
 
@@ -89,12 +90,12 @@ export async function executeSaga<T = unknown>(
 			if (!step) continue
 
 			try {
-				log.warn(`Compensating saga step: ${name}`)
+				log?.warn(`Compensating saga step: ${name}`)
 				await step.compensate(result)
 				compensatedSteps.push(name)
-				log.log(` Saga step compensated: ${name}`)
+				log?.log(` Saga step compensated: ${name}`)
 			} catch (compensationError) {
-				log.error(` Failed to compensate saga step: ${name}`, {
+				log?.error(` Failed to compensate saga step: ${name}`, 'Saga', {
 					error:
 						compensationError instanceof Error
 							? compensationError.message
@@ -139,9 +140,9 @@ export function noCompensation(): Promise<void> {
  */
 export class SagaBuilder {
 	private steps: SagaStep<unknown>[] = []
-	private logger: Logger | undefined
+	private logger: AppLogger | undefined
 
-	constructor(logger?: Logger) {
+	constructor(logger?: AppLogger) {
 		this.logger = logger
 	}
 

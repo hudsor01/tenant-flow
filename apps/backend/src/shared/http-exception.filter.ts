@@ -1,15 +1,11 @@
 import type {
 	ExceptionFilter,
 	ArgumentsHost} from '@nestjs/common';
-import {
-	Catch,
-	HttpException,
-	HttpStatus,
-	Logger
-} from '@nestjs/common'
+import { Catch, HttpException, HttpStatus } from '@nestjs/common'
 import { BUSINESS_ERROR_CODES, API_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import type { Request, Response } from 'express'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 type ExceptionResponse = {
 	message?: string | string[]
@@ -20,9 +16,8 @@ type ExceptionResponse = {
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-	private readonly logger = new Logger(HttpExceptionFilter.name)
 
-	constructor(private readonly config: AppConfigService) {}
+	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp()

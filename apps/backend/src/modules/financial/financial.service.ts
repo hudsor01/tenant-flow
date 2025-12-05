@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	FinancialMetrics,
 	Lease,
@@ -10,6 +10,7 @@ import { THIRTY_DAYS_IN_MS } from '@repo/shared/constants/time'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Financial Service
@@ -19,13 +20,10 @@ import { FinancialRevenueService } from './financial-revenue.service'
  */
 @Injectable()
 export class FinancialService {
-	private readonly logger = new Logger(FinancialService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
+	constructor(private readonly supabaseService: SupabaseService,
 		private readonly expenseService: FinancialExpenseService,
-		private readonly revenueService: FinancialRevenueService
-	) {}
+		private readonly revenueService: FinancialRevenueService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get expense summary - delegates to expense service

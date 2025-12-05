@@ -1,16 +1,4 @@
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	Get,
-	HttpCode,
-	HttpStatus,
-	InternalServerErrorException,
-	Logger,
-	Post,
-	UseGuards,
-	UseInterceptors
-} from '@nestjs/common'
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards, UseInterceptors } from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -20,6 +8,7 @@ import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 const CreateMaintenanceRequestSchema = z.object({
 	title: z.string().min(1).max(200),
@@ -51,9 +40,8 @@ type MaintenanceRequestRow =
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantMaintenanceController {
-	private readonly logger = new Logger(TenantMaintenanceController.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get maintenance request history

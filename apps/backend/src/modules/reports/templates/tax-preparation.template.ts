@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { FinancialAnalyticsService } from '../../analytics/financial-analytics.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 export interface TaxPreparationReportData {
 	incomeSummary: {
@@ -46,9 +47,8 @@ export interface TaxPreparationReportData {
 
 @Injectable()
 export class TaxPreparationTemplate {
-	private readonly logger = new Logger(TaxPreparationTemplate.name)
 
-	constructor(private readonly financialService: FinancialAnalyticsService) {}
+	constructor(private readonly financialService: FinancialAnalyticsService, private readonly logger: AppLogger) {}
 
 	async generateReportData(
 		user_id: string,

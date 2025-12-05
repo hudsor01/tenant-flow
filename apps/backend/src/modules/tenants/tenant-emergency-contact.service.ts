@@ -8,15 +8,10 @@
  * - emergency_contact_relationship
  */
 
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Emergency contact information for a tenant
@@ -52,7 +47,7 @@ function mapEmergencyContactToResponse(
 @Injectable()
 export class TenantEmergencyContactService {
 	constructor(
-		private readonly logger: Logger,
+		private readonly logger: AppLogger,
 		private readonly supabase: SupabaseService
 	) {}
 

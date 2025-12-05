@@ -3,14 +3,12 @@ import type {
 	ExecutionContext,
 	NestInterceptor
 } from '@nestjs/common';
-import {
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Request } from 'express'
 import type { Observable} from 'rxjs';
 import { tap } from 'rxjs'
 import { performance } from 'node:perf_hooks'
+import { AppLogger } from '../logger/app-logger.service'
 
 /**
  * Interceptor to track query/request performance and log slow queries
@@ -20,10 +18,9 @@ import { performance } from 'node:perf_hooks'
  */
 @Injectable()
 export class QueryPerformanceInterceptor implements NestInterceptor {
-	private readonly logger = new Logger(QueryPerformanceInterceptor.name)
 	private readonly slowQueryThresholdMs: number
 
-	constructor() {
+	constructor(private readonly logger: AppLogger) {
 		// Allow configurable threshold via environment variable
 		this.slowQueryThresholdMs = process.env.SLOW_QUERY_THRESHOLD_MS
 			? parseInt(process.env.SLOW_QUERY_THRESHOLD_MS, 10)

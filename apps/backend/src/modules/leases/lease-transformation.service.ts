@@ -1,10 +1,4 @@
-import {
-	Injectable,
-	Logger,
-	NotFoundException,
-	BadRequestException,
-	InternalServerErrorException
-} from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import type {
 	LeaseFormData,
 	LeaseTermType,
@@ -12,6 +6,7 @@ import type {
 } from '@repo/shared/types/lease-generator.types'
 import { PROPERTY_TYPES } from '@repo/shared/constants/status-types'
 import { LeasesService } from './leases.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Lease Transformation Service
@@ -47,9 +42,8 @@ export const PROPERTY_TYPE_MAP: Record<
 
 @Injectable()
 export class LeaseTransformationService {
-	private readonly logger = new Logger(LeaseTransformationService.name)
 
-	constructor(private readonly leasesService: LeasesService) {}
+	constructor(private readonly leasesService: LeasesService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Build LeaseFormData either from full relational data or fallback JSON terms.

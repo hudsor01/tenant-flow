@@ -4,12 +4,7 @@
  * Extracted from RentPaymentsService for SRP compliance
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import type {
 	CancelTenantAutopayParams,
 	CancelTenantAutopayResponse,
@@ -24,18 +19,16 @@ import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class RentPaymentAutopayService {
-	private readonly logger = new Logger(RentPaymentAutopayService.name)
 	private readonly stripe: Stripe
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly stripeTenantService: StripeTenantService,
-		private readonly contextService: RentPaymentContextService
-	) {
+		private readonly contextService: RentPaymentContextService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 

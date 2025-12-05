@@ -1,24 +1,17 @@
 import type {
 	CanActivate,
 	ExecutionContext} from '@nestjs/common';
-import {
-	Injectable,
-	Logger,
-	SetMetadata,
-	UnauthorizedException
-} from '@nestjs/common'
+import { Injectable, SetMetadata, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
-	private readonly logger = new Logger(CsrfGuard.name)
 
-	constructor(
-		private reflector: Reflector,
-		private readonly appConfigService: AppConfigService
-	) {}
+	constructor(private reflector: Reflector,
+		private readonly appConfigService: AppConfigService, private readonly logger: AppLogger) {}
 
 	canActivate(context: ExecutionContext): boolean {
 		// Check if route is exempt from CSRF protection

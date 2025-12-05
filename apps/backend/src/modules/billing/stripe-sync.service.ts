@@ -1,7 +1,8 @@
 import type { OnModuleDestroy } from '@nestjs/common';
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { StripeSync } from '@supabase/stripe-sync-engine'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Ultra-Native Stripe Sync Service
@@ -16,10 +17,9 @@ import { AppConfigService } from '../../config/app-config.service'
  */
 @Injectable()
 export class StripeSyncService implements OnModuleDestroy {
-	private readonly logger = new Logger(StripeSyncService.name)
 	private stripeSync: StripeSync | null = null
 
-	constructor(private readonly config: AppConfigService) {
+	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {
 		// Stripe Sync Engine is started lazily on first use
 		// to avoid blocking app startup
 	}

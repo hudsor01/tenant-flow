@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { PropertyPerformanceService } from '../../analytics/property-performance.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 export interface PropertyPortfolioReportData {
 	portfolioSummary: {
@@ -36,9 +37,8 @@ export interface PropertyPortfolioReportData {
 
 @Injectable()
 export class PropertyPortfolioTemplate {
-	private readonly logger = new Logger(PropertyPortfolioTemplate.name)
 
-	constructor(private readonly propertyService: PropertyPerformanceService) {}
+	constructor(private readonly propertyService: PropertyPerformanceService, private readonly logger: AppLogger) {}
 
 	async generateReportData(
 		user_id: string,

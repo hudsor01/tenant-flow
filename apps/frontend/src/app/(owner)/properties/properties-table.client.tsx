@@ -1,17 +1,17 @@
 'use client'
 
-
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table'
-import { DataTableColumnHeader } from '#components/ui/data-tables/data-table-column-header'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { DataTableColumnHeader } from '#components/data-table/data-table-column-header'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
-import { Trash2, MapPin } from 'lucide-react'
+import { Trash2, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import type { Property } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
@@ -71,8 +71,14 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		{
 			accessorKey: 'name',
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Property Name" />
+				<DataTableColumnHeader column={column} label="Property Name" />
 			),
+			meta: {
+				label: 'Property',
+				variant: 'text',
+				placeholder: 'Search properties...',
+			},
+			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const property = row.original
 				return (
@@ -89,8 +95,14 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		{
 			accessorKey: 'type',
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Type" />
+				<DataTableColumnHeader column={column} label="Type" />
 			),
+			meta: {
+				label: 'Type',
+				variant: 'select',
+				options: Object.entries(typeLabels).map(([value, label]) => ({ value, label })),
+			},
+			enableColumnFilter: true,
 			cell: ({ row }) => (
 				<span className="text-sm">
 					{typeLabels[row.getValue('type') as string] || row.getValue('type')}
@@ -103,8 +115,19 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		{
 			accessorKey: 'status',
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Status" />
+				<DataTableColumnHeader column={column} label="Status" />
 			),
+			meta: {
+				label: 'Status',
+				variant: 'select',
+				options: [
+					{ label: 'Active', value: 'active' },
+					{ label: 'Inactive', value: 'INactive' },
+					{ label: 'Under Contract', value: 'UNDER_CONTRACT' },
+					{ label: 'Sold', value: 'SOLD' },
+				],
+			},
+			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const status = row.getValue('status') as string
 				return (
@@ -120,7 +143,7 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		{
 			accessorKey: 'unitCount',
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Units" />
+				<DataTableColumnHeader column={column} label="Units" />
 			),
 			cell: ({ row }) => (
 				<span className="text-sm tabular-nums">{row.getValue('unitCount') || 0}</span>
@@ -170,19 +193,33 @@ export function PropertiesTableClient({ initialProperties }: PropertiesTableClie
 		}
 	]
 
+	const table = useReactTable({
+		data: optimisticProperties,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+	})
+
 	return (
 		<Card>
-			<CardHeader>
-				<CardTitle>Properties</CardTitle>
-				<CardDescription>Manage your property portfolio</CardDescription>
+			<CardHeader className="flex-between flex-row">
+				<div>
+					<CardTitle>Properties</CardTitle>
+					<CardDescription>Manage your property portfolio</CardDescription>
+				</div>
+				<Button asChild>
+					<Link href="/properties/new">
+						<Plus className="size-4" />
+						Add Property
+					</Link>
+				</Button>
 			</CardHeader>
 			<CardContent>
-				<DataTable
-					columns={columns}
-					data={optimisticProperties}
-					filterColumn="name"
-					filterPlaceholder="Filter by property name or address..."
-				/>
+				<DataTable table={table}>
+					<DataTableToolbar table={table} />
+				</DataTable>
 			</CardContent>
 		</Card>
 	)

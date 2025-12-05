@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { PDFDocument } from 'pdf-lib'
 import sharp from 'sharp'
 import { performanceConfig } from '../../config/performance.config'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface CompressionResult {
 	compressed: Buffer
@@ -12,7 +13,8 @@ export interface CompressionResult {
 
 @Injectable()
 export class CompressionService {
-	private readonly logger = new Logger(CompressionService.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	/**
 	 * Compress document based on MIME type

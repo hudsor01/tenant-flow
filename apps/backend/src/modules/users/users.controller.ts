@@ -6,30 +6,20 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import {
-	Body,
-	Controller,
-	Get,
-	Logger,
-	NotFoundException,
-	Patch,
-	Req
-} from '@nestjs/common'
+import { Body, Controller, Get, NotFoundException, Patch, Req } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UsersService } from './users.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Controller('users')
 export class UsersController {
-	private readonly logger = new Logger(UsersController.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly usersService: UsersService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService,
+		private readonly usersService: UsersService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get current user with Stripe customer ID

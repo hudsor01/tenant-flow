@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { AppLogger } from '../logger/app-logger.service'
 
 @Injectable()
 export class SecurityMonitorService {
-	private readonly logger = new Logger(SecurityMonitorService.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	logSecurityEvent(event: string, details: Record<string, unknown> = {}) {
 		this.logger.warn(

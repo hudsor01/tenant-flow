@@ -5,19 +5,15 @@
  * Manages: Token validation, Token expiration, Tenant activation
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import type { Tenant } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class TenantInvitationTokenService {
 	constructor(
-		private readonly logger: Logger,
+		private readonly logger: AppLogger,
 		private readonly supabase: SupabaseService
 	) {}
 

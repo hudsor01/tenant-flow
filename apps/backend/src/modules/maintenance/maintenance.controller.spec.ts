@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	createMockMaintenanceRequest,
@@ -53,7 +54,11 @@ describe('MaintenanceController', () => {
 				{ provide: MaintenanceService, useValue: mockService },
 				{ provide: MaintenanceReportingService, useValue: mockReportingService },
 				{ provide: MaintenanceWorkflowService, useValue: mockWorkflowService },
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

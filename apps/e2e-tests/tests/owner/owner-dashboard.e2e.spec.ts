@@ -54,16 +54,16 @@ test.describe('Owner Dashboard', () => {
       timeout: 10000,
     })
 
-    // Verify no console errors
-    if (errors.length > 0) {
-      logger.error('Console errors on dashboard:', errors)
-    }
+	// Verify no console errors
+	if (errors.length > 0) {
+		logger.error('Console errors on dashboard:', { errors })
+	}
     expect(errors).toHaveLength(0)
 
-    // Verify no network errors
-    if (networkErrors.length > 0) {
-      logger.error('Network errors on dashboard:', networkErrors)
-    }
+	// Verify no network errors
+	if (networkErrors.length > 0) {
+		logger.error('Network errors on dashboard:', { networkErrors })
+	}
     expect(networkErrors).toHaveLength(0)
   })
 

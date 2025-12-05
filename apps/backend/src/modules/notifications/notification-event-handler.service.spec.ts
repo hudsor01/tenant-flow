@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import { EmailService } from '../email/email.service'
@@ -54,7 +55,11 @@ describe('NotificationEventHandlerService', () => {
 				NotificationEventHandlerService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: FailedNotificationsService, useValue: mockFailedNotifications },
-				{ provide: EmailService, useValue: mockEmailService }
+				{ provide: EmailService, useValue: mockEmailService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

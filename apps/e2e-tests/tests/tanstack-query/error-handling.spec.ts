@@ -59,7 +59,7 @@ test.describe('TanStack Query Error Handling', () => {
   test.describe('Network Failure Scenarios', () => {
     test('should handle complete network failure gracefully', async () => {
       // Simulate complete network failure
-      await page.setOfflineMode(true)
+		await page.context().setOffline(true)
 
       const testProperty = createTestProperty({ name: 'Offline Test Property' })
       const initialCount = await tableHelper.getPropertyCount()
@@ -86,7 +86,7 @@ test.describe('TanStack Query Error Handling', () => {
       await expect(errorNotification.first()).toBeVisible({ timeout: 10000 })
 
       // Test recovery when network returns
-      await page.setOfflineMode(false)
+		await page.context().setOffline(false)
 
       // Retry the operation
       await formHelper.createProperty(testProperty)

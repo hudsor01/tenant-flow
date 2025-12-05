@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, Optional } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { SupabaseService } from '../../../database/supabase.service'
 import type { Database } from '@repo/shared/types/supabase'
 import { parse } from 'csv-parse'
@@ -8,18 +8,16 @@ import {
 	normalizePropertyType,
 	VALID_PROPERTY_TYPES
 } from '../utils/csv-normalizer'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class PropertyBulkImportService {
-	private readonly logger: Logger
 	private readonly CSV_MAX_RECORD_SIZE_BYTES = 100_000 // 100KB max per record
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		@Optional() logger?: Logger
-	) {
-		this.logger = logger ?? new Logger(PropertyBulkImportService.name)
-	}
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Bulk import properties from CSV file

@@ -64,7 +64,10 @@ test.describe('Authentication & JWT Validation', () => {
 					// Ignore if can't read body
 				}
 				authErrors.push(`${response.status()} - ${url}`)
-				apiErrors.push({ status: response.status(), url, body })
+				const errorPayload = body !== undefined
+					? { status: response.status(), url, body }
+					: { status: response.status(), url }
+				apiErrors.push(errorPayload)
 			}
 		})
 

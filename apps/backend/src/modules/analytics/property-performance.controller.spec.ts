@@ -1,6 +1,9 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 import { PropertyPerformanceController } from './property-performance.controller'
 import { PropertyPerformanceService } from './property-performance.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('PropertyPerformanceController', () => {
 	let controller: PropertyPerformanceController
@@ -23,6 +26,10 @@ describe('PropertyPerformanceController', () => {
 				{
 					provide: PropertyPerformanceService,
 					useValue: service
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

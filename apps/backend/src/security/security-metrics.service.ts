@@ -3,7 +3,7 @@
  * Direct Supabase access, no repository abstraction
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	SecurityEvent,
 	SecurityMetrics,
@@ -16,6 +16,7 @@ import {
 } from '@repo/shared/types/security'
 import type { SecurityAuditLogEntry } from '@repo/shared/types/security-repository'
 import { SupabaseService } from '../database/supabase.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 const DEFAULT_LOOKBACK_DAYS = 30
 const RECENT_EVENTS_LIMIT = 25
@@ -23,9 +24,8 @@ const TREND_WINDOW_DAYS = 14
 
 @Injectable()
 export class SecurityMetricsService {
-	private readonly logger = new Logger(SecurityMetricsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	async getMetrics(
 		lookbackInDays: number = DEFAULT_LOOKBACK_DAYS

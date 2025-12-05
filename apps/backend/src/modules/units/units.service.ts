@@ -7,12 +7,7 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import {
-	BadRequestException,
-	ConflictException,
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
 import type { Unit, UnitStats, UnitStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { ZeroCacheService } from '../../cache/cache.service'
@@ -22,15 +17,13 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import type { CreateUnitDto } from './dto/create-unit.dto'
 import type { UpdateUnitDto } from './dto/update-unit.dto'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class UnitsService {
-	private readonly logger = new Logger(UnitsService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly cache: ZeroCacheService
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly cache: ZeroCacheService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all units for a user via direct Supabase query

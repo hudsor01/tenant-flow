@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	FinancialMetrics,
 	Lease,
@@ -6,6 +6,7 @@ import type {
 } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialExpenseService } from './financial-expense.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Financial Revenue Service
@@ -15,12 +16,9 @@ import { FinancialExpenseService } from './financial-expense.service'
  */
 @Injectable()
 export class FinancialRevenueService {
-	private readonly logger = new Logger(FinancialRevenueService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly expenseService: FinancialExpenseService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService,
+		private readonly expenseService: FinancialExpenseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get revenue trends by month for a given year

@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { NotificationQueryService } from './notification-query.service'
 
@@ -35,7 +36,11 @@ describe('NotificationQueryService', () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				NotificationQueryService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

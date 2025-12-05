@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type {
 	FileUploadOptions,
 	StorageEntityType,
@@ -9,14 +9,14 @@ import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 // StorageUploadResult now imported from @repo/shared to eliminate duplication
 
 @Injectable()
 export class StorageService {
-	private readonly logger = new Logger(StorageService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	private get supabase(): SupabaseClient<Database> {
 		return this.supabaseService.getAdminClient()

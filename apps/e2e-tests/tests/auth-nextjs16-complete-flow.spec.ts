@@ -316,7 +316,7 @@ test.describe('Complete Auth Flow - Security', () => {
 		for (const key of sensitiveKeys) {
 			const value = localStorage[key]
 			// Check it's not a JWT (starts with eyJ)
-			if (value.startsWith('eyJ')) {
+			if (value && value.startsWith('eyJ')) {
 				throw new Error(`Raw JWT found in localStorage: ${key}`)
 			}
 		}

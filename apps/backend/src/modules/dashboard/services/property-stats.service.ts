@@ -5,15 +5,15 @@
  * Extracted from dashboard.service.ts for CLAUDE.md compliance (<30 lines/method)
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { PropertyStats } from '@repo/shared/types/core'
 import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class PropertyStatsService {
-	private readonly logger = new Logger(PropertyStatsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Calculate property statistics for a user

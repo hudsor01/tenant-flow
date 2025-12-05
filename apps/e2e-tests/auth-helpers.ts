@@ -26,7 +26,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 // Extract Supabase configuration from environment variables
 // No more hardcoded project refs!
-function getSupabaseConfig() {
+function getSupabaseConfig(): { supabaseUrl: string; supabaseKey: string; projectRef: string } {
 	const supabaseUrl = process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 	const supabaseKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
@@ -44,10 +44,10 @@ function getSupabaseConfig() {
 	// Extract project ref from URL (e.g., https://abc123.supabase.co -> abc123)
 	const url = new URL(supabaseUrl)
 	const hostnameParts = url.hostname.split('.')
-	if (hostnameParts.length === 0) {
-	throw new Error(`Invalid Supabase URL: ${supabaseUrl}`)
-	}
 	const projectRef = hostnameParts[0]
+	if (!projectRef) {
+		throw new Error(`Invalid Supabase URL: ${supabaseUrl}`)
+	}
 
 	return { supabaseUrl, supabaseKey, projectRef }
 }
@@ -69,9 +69,8 @@ const sessionCache = new Map<string, SupabaseSession>()
 const cacheOperations = new Map<string, Promise<SupabaseSession>>()
 
 // Debug logging helper
-const debugLog = (...args: string[]) => {
+const debugLog = (message: string, ...rest: string[]) => {
 	if (!process.env.DEBUG) return
-	const [message, ...rest] = args
 	if (rest.length > 0) {
 		logger.debug(message, undefined, ...rest)
 	} else {
@@ -127,7 +126,8 @@ async function authenticateViaAPI(
 		throw new Error(`Supabase auth failed: ${error.error_description || error.message || response.statusText}`)
 	}
 
-	return response.json()
+	const data = (await response.json()) as SupabaseSession
+	return data
 }
 
 /**
@@ -211,7 +211,8 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 			sessionCache.set(cacheKey, session)
 			debugLog(` API authentication successful`)
 		} catch (error) {
-			debugLog(` API authentication failed: ${error}`)
+			const message = error instanceof Error ? error.message : String(error)
+			debugLog(` API authentication failed: ${message}`)
 			throw error
 		}
 	} else {
@@ -268,7 +269,8 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 			sessionCache.set(cacheKey, session)
 			debugLog(` Tenant API authentication successful`)
 		} catch (error) {
-			debugLog(` Tenant API authentication failed: ${error}`)
+			const message = error instanceof Error ? error.message : String(error)
+			debugLog(` Tenant API authentication failed: ${message}`)
 			throw error
 		}
 	} else {

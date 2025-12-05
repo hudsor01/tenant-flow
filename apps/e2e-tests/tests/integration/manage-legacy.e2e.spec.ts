@@ -17,10 +17,10 @@ test.describe('Legacy /manage routes are removed', () => {
 			const res = await request.get(`${API_URL}/api/v1/health`, { timeout: 2000 })
 			serverReachable = res.ok()
 			if (!serverReachable) {
-				test.skip('Backend API not reachable; skipping legacy route checks')
+				test.skip(true, 'Backend API not reachable; skipping legacy route checks')
 			}
 		} catch (error) {
-			test.skip('Backend API not reachable; skipping legacy route checks')
+			test.skip(true, 'Backend API not reachable; skipping legacy route checks')
 		}
 	})
 

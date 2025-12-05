@@ -2,13 +2,11 @@ import type {
 	NestInterceptor,
 	ExecutionContext,
 	CallHandler} from '@nestjs/common';
-import {
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /**
  * OwnerContextInterceptor
@@ -27,7 +25,8 @@ import type { AuthenticatedRequest } from '../../../shared/types/express-request
  */
 @Injectable()
 export class OwnerContextInterceptor implements NestInterceptor {
-	private readonly logger = new Logger(OwnerContextInterceptor.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()

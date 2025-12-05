@@ -14,6 +14,9 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { DocuSealWebhookService } from './docuseal-webhook.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Skip if not running integration tests
 const runIntegrationTests = process.env.RUN_INTEGRATION_TESTS === 'true'
@@ -59,7 +62,11 @@ describeIf('DocuSealWebhookService Integration', () => {
 			providers: [
 				DocuSealWebhookService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: EventEmitter2, useValue: eventEmitter }
+				{ provide: EventEmitter2, useValue: eventEmitter },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

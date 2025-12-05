@@ -16,6 +16,9 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('StripeWebhookService', () => {
 	let service: StripeWebhookService
@@ -52,6 +55,10 @@ describe('StripeWebhookService', () => {
 					useValue: {
 						getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
 					}
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()
