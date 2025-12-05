@@ -82,6 +82,29 @@ export class TanStackQueryHelper {
 			}
 		}, queryKey)
 	}
+
+	async clearCache(): Promise<void> {
+		await this.page.evaluate(() => {
+			const qc = (window as Window & { __QUERY_CLIENT__?: any }).__QUERY_CLIENT__
+			qc?.clear?.()
+		})
+	}
+
+	async invalidateQueries(queryKey?: unknown[]): Promise<void> {
+		await this.page.evaluate((key) => {
+			const qc = (window as Window & { __QUERY_CLIENT__?: any }).__QUERY_CLIENT__
+			if (!qc?.invalidateQueries) return
+			qc.invalidateQueries(key ?? [])
+		}, queryKey)
+	}
+
+	async getAllQueries(): Promise<unknown[]> {
+		return this.page.evaluate(() => {
+			const qc = (window as Window & { __QUERY_CLIENT__?: any }).__QUERY_CLIENT__
+			const cache = qc?.getQueryCache?.()
+			return cache?.getAll ? cache.getAll() : []
+		})
+	}
 }
 
 /**
@@ -89,6 +112,28 @@ export class TanStackQueryHelper {
  */
 export class NetworkSimulator {
 	constructor(private page: Page) {}
+
+	async simulateNetworkFailure(urlPattern: string, status = 500): Promise<void> {
+		await this.page.route(urlPattern, (route) => {
+			route.fulfill({ status, body: JSON.stringify({ error: 'Simulated failure' }) })
+		})
+	}
+
+	async simulateSlowNetwork(delayMs = 1200): Promise<void> {
+		await this.page.route('**/*', async (route) => {
+			await this.page.waitForTimeout(delayMs)
+			route.continue()
+		})
+	}
+
+	async simulateIntermittentFailures(urlPattern = '**/*', failureRate = 0.3): Promise<void> {
+		await this.page.route(urlPattern, async (route) => {
+			if (Math.random() < failureRate) {
+				return route.fulfill({ status: 503, body: JSON.stringify({ error: 'Intermittent failure' }) })
+			}
+			return route.continue()
+		})
+	}
 
 	/**
 	 * Mock a successful API response
@@ -242,6 +287,33 @@ export class PropertyTableHelper {
 
 		return names
 	}
+
+	async scrollToLoadMore(): Promise<void> {
+		await this.page.evaluate(() => {
+			window.scrollBy(0, window.innerHeight)
+		})
+		await this.waitForLoading()
+	}
+
+	async waitForLoading(isLoading: boolean | number = true, timeout = 10000): Promise<void> {
+		const effectiveTimeout = typeof isLoading === 'number' ? isLoading : timeout
+		if (isLoading === true) {
+			await this.page.locator('text="Loading more properties..."').first().waitFor({ state: 'visible', timeout: effectiveTimeout }).catch(() => {})
+			return
+		}
+		if (isLoading === false) {
+			await this.page.locator('text="Loading more properties..."').first().waitFor({ state: 'hidden', timeout: effectiveTimeout }).catch(() => {})
+			return
+		}
+		await this.page.waitForLoadState('networkidle', { timeout: effectiveTimeout }).catch(() => {})
+	}
+
+	async isAtEnd(): Promise<boolean> {
+		const loadingVisible = await this.page.locator('text="Loading more properties..."').first().isVisible().catch(() => false)
+		const lastRow = this.page.locator('table tbody tr').last()
+		const lastVisible = await lastRow.isVisible().catch(() => false)
+		return !loadingVisible && lastVisible
+	}
 }
 
 /**
@@ -349,6 +421,11 @@ export class PropertyFormHelper {
 	async cancelForm(): Promise<void> {
 		await this.page.locator('button:has-text("Cancel")').click()
 	}
+
+	async waitForFormSubmission(timeout = 10000): Promise<void> {
+		const success = this.page.getByText(/saved|created|updated|success/i)
+		await success.first().waitFor({ timeout }).catch(() => {})
+	}
 }
 
 /**
@@ -400,6 +477,27 @@ export class DashboardStatsHelper {
 			state: 'visible',
 			timeout: 10000
 		})
+	}
+
+	async getTotalPropertiesCount(): Promise<number | undefined> {
+		const stats = await this.getDashboardStats()
+		return stats.totalProperties
+	}
+
+	async waitForStatsUpdate(previous?: number, timeout = 10000): Promise<void> {
+		await this.page.waitForFunction(
+			({ prev }) => {
+				const el = document.querySelector('[data-stat="total-properties"], [data-testid="total-properties"]')
+				if (!el) return false
+				const text = el.textContent || ''
+				const cleaned = text.replace(/[^0-9.]/g, '')
+				const value = parseInt(cleaned, 10)
+				if (Number.isNaN(value)) return false
+				return prev === undefined ? true : value !== prev
+			},
+			{ prev: previous },
+			{ timeout }
+		)
 	}
 }
 
@@ -505,5 +603,13 @@ export class PerformanceHelper {
 			},
 			{ end: markName, start: startMark }
 		)
+	}
+
+	async measureScrollPerformance(): Promise<number> {
+		return this.page.evaluate(() => {
+			const start = performance.now()
+			window.scrollBy(0, window.innerHeight)
+			return performance.now() - start
+		})
 	}
 }

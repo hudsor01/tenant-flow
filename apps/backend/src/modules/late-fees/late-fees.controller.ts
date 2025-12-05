@@ -6,28 +6,17 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	Logger,
-	Param,
-	ParseUUIDPipe,
-	Post,
-	Req
-} from '@nestjs/common'
+import { BadRequestException, Body, Controller, Param, ParseUUIDPipe, Post, Req } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesService } from './late-fees.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Controller('late-fees')
 export class LateFeesController {
-	private readonly logger = new Logger(LateFeesController.name)
 
-	constructor(
-		private readonly lateFeesService: LateFeesService,
-		private readonly supabaseService: SupabaseService
-	) {}
+	constructor(private readonly lateFeesService: LateFeesService,
+		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Helper method to verify lease ownership via unit ownership

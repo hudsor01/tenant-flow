@@ -2,9 +2,7 @@ import type { PropertyStatus } from '@repo/shared/constants/status-types'
 import {
 	BadRequestException,
 	ConflictException,
-	Injectable,
-	Logger,
-	Optional
+	Injectable
 } from '@nestjs/common'
 import type {
 	CreatePropertyInput,
@@ -22,18 +20,15 @@ import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { getTokenFromRequest } from '../../database/auth-token.utils'
 import { VALID_PROPERTY_TYPES } from './utils/csv-normalizer'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class PropertiesService {
-	private readonly logger: Logger
-
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly cache: ZeroCacheService,
-		@Optional() logger?: Logger
-	) {
-		this.logger = logger ?? new Logger(PropertiesService.name)
-	}
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Invalidate all property-related caches for a user/owner

@@ -12,7 +12,7 @@ import {
 	TableHeader,
 	TableRow
 } from '#components/ui/table'
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { formatCurrency } from '#lib/formatters/currency'

@@ -1,21 +1,13 @@
-import {
-	Body,
-	Controller,
-	HttpCode,
-	HttpStatus,
-	Logger,
-	Post,
-	SetMetadata
-} from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Post, SetMetadata } from '@nestjs/common'
 import { AnalyticsService } from './analytics.service'
 import { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
 import { WebVitalDto } from './dto/web-vital.dto'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Controller('analytics')
 export class AnalyticsController {
-	private readonly logger = new Logger(AnalyticsController.name)
 
-	constructor(private readonly analyticsService: AnalyticsService) {}
+	constructor(private readonly analyticsService: AnalyticsService, private readonly logger: AppLogger) {}
 
 	@Post()
 	@SetMetadata('isPublic', true)

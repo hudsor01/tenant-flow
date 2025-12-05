@@ -1,10 +1,11 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import type Stripe from 'stripe'
 import * as countries from 'i18n-iso-countries'
 import enLocale from 'i18n-iso-countries/langs/en.json'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Stripe Connect Setup Service
@@ -16,7 +17,6 @@ import { AppConfigService } from '../../config/app-config.service'
  */
 @Injectable()
 export class ConnectSetupService {
-	private readonly logger = new Logger(ConnectSetupService.name)
 	private stripe: Stripe
 	private readonly defaultCountry: string
 
@@ -202,11 +202,9 @@ export class ConnectSetupService {
 		'ZW'
 	])
 
-	constructor(
-		private readonly stripeClientService: StripeClientService,
+	constructor(private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
-		private readonly appConfigService: AppConfigService
-	) {
+		private readonly appConfigService: AppConfigService, private readonly logger: AppLogger) {
 		countries.registerLocale(enLocale)
 		this.stripe = this.stripeClientService.getClient()
 		this.defaultCountry =

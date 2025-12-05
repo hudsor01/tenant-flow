@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { cn } from '#lib/utils'
 import type { MetricTrend } from '@repo/shared/types/dashboard-repository'
 import { ArrowDown, ArrowUp, Minus, type LucideIcon } from 'lucide-react'

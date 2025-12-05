@@ -1,13 +1,13 @@
 'use client'
 
-import { ChartSkeleton } from '#components/ui/charts/chart-skeleton'
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { ChartSkeleton } from '#components/charts/chart-skeleton'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import dynamic from 'next/dynamic'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'
 
 const CombinedMetricsAreaChart = dynamic(
 	() =>
-		import('#components/ui/charts/combined-metrics-area-chart').then(
+		import('#components/charts/metrics-area-chart').then(
 			mod => mod.CombinedMetricsAreaChart
 		),
 	{
@@ -18,7 +18,7 @@ const CombinedMetricsAreaChart = dynamic(
 
 const PropertyPerformanceBarChart = dynamic(
 	() =>
-		import('#components/ui/charts/bar-chart').then(
+		import('#components/charts/bar-chart').then(
 			mod => mod.PropertyPerformanceBarChart
 		),
 	{
@@ -48,7 +48,7 @@ export function ChartsSection() {
 				</section>
 			}
 		>
-			<section className="dashboard-section">
+			<section className="dashboard-section" data-tour="charts-section">
 				<div className="dashboard-section-header">
 					<h2 className="dashboard-section-title">Portfolio Analytics</h2>
 					<p className="dashboard-section-description">

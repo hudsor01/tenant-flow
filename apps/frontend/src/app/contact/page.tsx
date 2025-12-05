@@ -1,7 +1,5 @@
 import { ContactForm } from '#app/contact/contact-form'
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
-import { GridPattern } from '#components/ui/grid-pattern'
+import { PageLayout } from '#components/layout/page-layout'
 
 export default function ContactPage() {
 	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
@@ -27,24 +25,14 @@ export default function ContactPage() {
 	}
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<PageLayout>
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
 					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-			{/* Full page grid background */}
-			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<Navbar />
-
-			<main className="flex-1 page-offset-navbar">
-				<ContactForm />
-			</main>
-
-			<Footer />
-		</div>
+			<ContactForm />
+		</PageLayout>
 	)
 }

@@ -7,11 +7,12 @@
  * - Production: Battle-tested late fee formula
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface LateFeeConfig {
 	lease_id: string
@@ -30,13 +31,10 @@ export interface LateFeeCalculation {
 
 @Injectable()
 export class LateFeesService {
-	private readonly logger = new Logger(LateFeesService.name)
 	private readonly stripe: Stripe
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService
-	) {
+	constructor(private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 

@@ -1,5 +1,5 @@
 import type { OnModuleDestroy } from '@nestjs/common';
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import React from 'react'
 import {
 	Document,
@@ -11,6 +11,7 @@ import {
 	type DocumentProps
 } from '@react-pdf/renderer'
 import puppeteer from 'puppeteer'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * PDF Generator Service
@@ -20,10 +21,9 @@ import puppeteer from 'puppeteer'
  */
 @Injectable()
 export class PDFGeneratorService implements OnModuleDestroy {
-	private readonly logger = new Logger(PDFGeneratorService.name)
 	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
 
-	constructor() {}
+	constructor(private readonly logger: AppLogger) {}
 
 	/**
 	 * Generate invoice PDF using React components
@@ -146,7 +146,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			})
 			return pdfBuffer
 		} catch (error) {
-			this.logger.error('Error generating invoice PDF:', error)
+			this.logger.error('Error generating invoice PDF:', { error })
 			throw new InternalServerErrorException('Failed to generate invoice PDF')
 		}
 	}
@@ -295,7 +295,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			})
 			return pdfBuffer
 		} catch (error) {
-			this.logger.error('Error generating lease agreement PDF:', error)
+			this.logger.error('Error generating lease agreement PDF:', { error })
 			throw new InternalServerErrorException('Failed to generate lease agreement PDF')
 		}
 	}
@@ -311,7 +311,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			})
 			return pdfBuffer
 		} catch (error) {
-			this.logger.error('Error generating PDF:', error)
+			this.logger.error('Error generating PDF:', { error })
 			throw new InternalServerErrorException('Failed to generate PDF')
 		}
 	}
@@ -377,7 +377,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			})
 			return Buffer.from(pdfBuffer)
 		} catch (error) {
-			this.logger.error('Error generating PDF:', error)
+			this.logger.error('Error generating PDF:', { error })
 			throw new InternalServerErrorException('Failed to generate PDF')
 		}
 	}

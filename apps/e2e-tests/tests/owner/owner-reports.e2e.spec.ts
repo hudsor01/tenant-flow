@@ -3,6 +3,8 @@ import { ROUTES } from '../constants/routes'
 import { verifyPageLoaded } from '../helpers/navigation-helpers'
 import { verifyButtonExists, verifyLoadingComplete } from '../helpers/ui-validation-helpers'
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 /**
  * Owner Reports E2E Tests
  *

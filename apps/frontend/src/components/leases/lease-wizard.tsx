@@ -2,32 +2,43 @@
 
 import { useState } from 'react'
 import { Button } from '#components/ui/button'
-import { Stepper, type Step } from '#components/ui/stepper'
+import {
+	Stepper,
+	StepperList,
+	StepperItem,
+	StepperTrigger,
+	StepperIndicator,
+	StepperTitle,
+	StepperDescription,
+	StepperSeparator
+} from '#components/ui/stepper'
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react'
 import { cn } from '#lib/utils'
 
-const WIZARD_STEPS: Step[] = [
+const WIZARD_STEPS = [
 	{
-		id: 'basic-info',
+		value: 'basic-info',
 		title: 'Basic Information',
 		description: 'Property and lease details'
 	},
 	{
-		id: 'financial',
+		value: 'financial',
 		title: 'Financial Terms',
 		description: 'Rent and deposits'
 	},
 	{
-		id: 'terms',
+		value: 'terms',
 		title: 'Terms & Conditions',
 		description: 'Pets, utilities, rules'
 	},
 	{
-		id: 'review',
+		value: 'review',
 		title: 'Review & Generate',
 		description: 'Final review'
 	}
-]
+] as const
+
+type StepValue = (typeof WIZARD_STEPS)[number]['value']
 
 interface LeaseWizardProps {
 	property_id: string
@@ -55,27 +66,31 @@ export function LeaseWizard({
 	onSubmit,
 	isSubmitting
 }: LeaseWizardProps) {
-	const [currentStep, setCurrentStep] = useState(0)
+	const [currentStepValue, setCurrentStepValue] = useState<StepValue>('basic-info')
 	const [canGoNext, setCanGoNext] = useState(true)
 
-	const isFirstStep = currentStep === 0
-	const isLastStep = currentStep === WIZARD_STEPS.length - 1
+	const currentStepIndex = WIZARD_STEPS.findIndex(s => s.value === currentStepValue)
+	const isFirstStep = currentStepIndex === 0
+	const isLastStep = currentStepIndex === WIZARD_STEPS.length - 1
 
-	const goToStep = (step: number) => {
-		if (step >= 0 && step < WIZARD_STEPS.length) {
-			setCurrentStep(step)
+	const goToStep = (stepIndex: number) => {
+		const step = WIZARD_STEPS[stepIndex]
+		if (step) {
+			setCurrentStepValue(step.value)
 		}
 	}
 
 	const goToNextStep = () => {
 		if (!isLastStep && canGoNext) {
-			setCurrentStep(prev => prev + 1)
+			const nextStep = WIZARD_STEPS[currentStepIndex + 1]
+			if (nextStep) setCurrentStepValue(nextStep.value)
 		}
 	}
 
 	const goToPreviousStep = () => {
 		if (!isFirstStep) {
-			setCurrentStep(prev => prev - 1)
+			const prevStep = WIZARD_STEPS[currentStepIndex - 1]
+			if (prevStep) setCurrentStepValue(prevStep.value)
 		}
 	}
 
@@ -108,13 +123,35 @@ export function LeaseWizard({
 	return (
 		<div className="w-full space-y-8">
 			{/* Progress Stepper */}
-			<Stepper steps={WIZARD_STEPS} currentStep={currentStep} />
+			<Stepper
+				value={currentStepValue}
+				onValueChange={(value) => setCurrentStepValue(value as StepValue)}
+				orientation="horizontal"
+				nonInteractive
+			>
+				<StepperList>
+					{WIZARD_STEPS.map((step) => (
+						<StepperItem key={step.value} value={step.value}>
+							<StepperTrigger className="gap-3">
+								<StepperIndicator />
+								<div className="flex flex-col items-start">
+									<StepperTitle>{step.title}</StepperTitle>
+									<StepperDescription className="hidden sm:block">
+										{step.description}
+									</StepperDescription>
+								</div>
+							</StepperTrigger>
+							<StepperSeparator />
+						</StepperItem>
+					))}
+				</StepperList>
+			</Stepper>
 
 			{/* Step Content */}
 			<form onSubmit={handleSubmit} className="space-y-8">
 				<div className="min-h-[400px]">
 					{children({
-						currentStep,
+						currentStep: currentStepIndex,
 						goToStep,
 						goToNextStep,
 						goToPreviousStep,

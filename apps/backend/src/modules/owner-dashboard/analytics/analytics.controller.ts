@@ -1,14 +1,4 @@
-import {
-	Controller,
-	Get,
-	Req,
-	UnauthorizedException,
-	Logger,
-	HttpException,
-	InternalServerErrorException,
-	UseGuards,
-	UseInterceptors
-} from '@nestjs/common'
+import { Controller, Get, Req, UnauthorizedException, HttpException, InternalServerErrorException, UseGuards, UseInterceptors } from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
@@ -17,6 +7,7 @@ import { DashboardService } from '../../dashboard/dashboard.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /**
  * AnalyticsController
@@ -32,12 +23,9 @@ import { OwnerContextInterceptor } from '../interceptors/owner-context.intercept
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class AnalyticsController {
-	private readonly logger = new Logger(AnalyticsController.name)
 
-	constructor(
-		private readonly dashboardService: DashboardService,
-		private readonly supabase: SupabaseService
-	) {}
+	constructor(private readonly dashboardService: DashboardService,
+		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	@Get('stats')
 	async getStats(

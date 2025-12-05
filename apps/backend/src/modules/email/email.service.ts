@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Resend } from 'resend'
 import { render } from '@react-email/render'
 import { AppConfigService } from '../../config/app-config.service'
@@ -6,6 +6,7 @@ import { PaymentSuccessEmail } from '../../emails/payment-success-email'
 import { PaymentFailedEmail } from '../../emails/payment-failed-email'
 import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Email Service - Direct Resend Integration
@@ -15,10 +16,9 @@ import type { ContactFormRequest } from '@repo/shared/types/domain'
  */
 @Injectable()
 export class EmailService {
-	private readonly logger = new Logger(EmailService.name)
 	private readonly resend: InstanceType<typeof Resend> | null
 
-	constructor(private readonly config: AppConfigService) {
+	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {
 		const apiKey = this.config.getResendApiKey()
 		if (!apiKey) {
 			this.logger.warn(

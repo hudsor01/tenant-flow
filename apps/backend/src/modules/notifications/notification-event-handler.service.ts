@@ -3,11 +3,12 @@
  * Handles all @OnEvent notifications
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import { EmailService } from '../email/email.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	MaintenanceUpdatedEvent,
 	PaymentReceivedEvent,
@@ -51,13 +52,10 @@ interface TenantPlatformInvitationSentPayload {
 
 @Injectable()
 export class NotificationEventHandlerService {
-	private readonly logger = new Logger(NotificationEventHandlerService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
+	constructor(private readonly supabaseService: SupabaseService,
 		private readonly failedNotifications: FailedNotificationsService,
-		private readonly emailService: EmailService
-	) {}
+		private readonly emailService: EmailService, private readonly logger: AppLogger) {}
 
 	@OnEvent('maintenance.updated')
 	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {

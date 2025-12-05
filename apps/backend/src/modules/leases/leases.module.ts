@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
 import { PDFModule } from '../pdf/pdf.module'
@@ -47,7 +47,6 @@ import { TenantsModule } from '../tenants/tenants.module'
 	],
 	controllers: [LeasesController],
 	providers: [
-		Logger,
 		LeasesService,
 		LeaseFinancialService,
 		LeaseLifecycleService,

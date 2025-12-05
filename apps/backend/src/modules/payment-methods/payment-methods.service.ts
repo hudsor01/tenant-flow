@@ -1,23 +1,16 @@
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class PaymentMethodsService {
-	private readonly logger = new Logger(PaymentMethodsService.name)
 	private readonly stripe: Stripe
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService
-	) {
+	constructor(private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	} /**
 	 * Get or create Stripe customer for a user.

@@ -5,8 +5,9 @@
  */
 
 import type { OnModuleDestroy } from '@nestjs/common';
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { CacheEntry, CacheStats } from '@repo/shared/types/core'
+import { AppLogger } from '../logger/app-logger.service'
 
 @Injectable()
 export class ZeroCacheService implements OnModuleDestroy {
@@ -20,11 +21,10 @@ export class ZeroCacheService implements OnModuleDestroy {
 		hitRatio: 0
 	}
 	private versionCounter = 1
-	private readonly logger = new Logger(ZeroCacheService.name)
 	private cleanupInterval: NodeJS.Timeout | null = null
 	private statsInterval: NodeJS.Timeout | null = null
 
-	constructor() {
+	constructor(private readonly logger: AppLogger) {
 		// Auto-cleanup expired entries every 30 seconds
 		this.cleanupInterval = setInterval(() => this.cleanupExpired(), 30_000)
 

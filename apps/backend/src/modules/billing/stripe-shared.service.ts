@@ -1,18 +1,16 @@
-import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { createHmac } from 'crypto'
 import type Stripe from 'stripe'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Shared Stripe utilities and helper methods
  */
 @Injectable()
 export class StripeSharedService {
-  private readonly logger = new Logger(StripeSharedService.name)
 
-  constructor(
-    private readonly config: AppConfigService
-  ) {}
+  constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
   /**
    * Generate a deterministic idempotency key for Stripe API calls

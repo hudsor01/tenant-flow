@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	DashboardStats,
 	DashboardMetricsResponse,
@@ -26,6 +26,7 @@ import {
 import type { z } from 'zod'
 import { ValidationException } from '../../shared/exceptions/validation.exception'
 import type { Database } from '@repo/shared/types/supabase'
+import { AppLogger } from '../../logger/app-logger.service'
 
 // Cache TTLs per CLAUDE.md: Stats 1min, Real-time 3min refetch
 const STATS_CACHE_TTL = 60_000 // 1 minute
@@ -33,13 +34,10 @@ const ACTIVITY_CACHE_TTL = 180_000 // 3 minutes
 
 @Injectable()
 export class DashboardService {
-	private readonly logger = new Logger(DashboardService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly dashboardAnalyticsService: DashboardAnalyticsService,
-		private readonly cache: ZeroCacheService
-	) {}
+		private readonly cache: ZeroCacheService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get comprehensive dashboard statistics

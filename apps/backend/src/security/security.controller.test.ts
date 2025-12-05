@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common'
+
 import type { CSPReportBody } from '@repo/shared/types/domain'
 import {
 	SecurityEventSeverity,

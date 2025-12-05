@@ -1,11 +1,4 @@
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	InternalServerErrorException,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import type {
 	OwnerPaymentSummaryResponse,
 	TenantPaymentRecord
@@ -14,16 +7,14 @@ import type { Database } from '@repo/shared/types/supabase'
 import type { RentPayment } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { asStripeSchemaClient, type SupabaseError, type StripePaymentIntent } from '../../types/stripe-schema'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 
 @Injectable()
 export class TenantPaymentService {
-	private readonly logger = new Logger(TenantPaymentService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService
-	) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Calculate payment status for a tenant

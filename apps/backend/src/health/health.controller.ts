@@ -3,7 +3,7 @@
  * Follows NestJS 2025 best practices for clean architecture
  */
 
-import { Controller, Get, Logger, SetMetadata } from '@nestjs/common'
+import { Controller, Get, SetMetadata } from '@nestjs/common'
 import { SkipThrottle, Throttle } from '@nestjs/throttler'
 import { HealthCheckService } from '@nestjs/terminus';
 import { HealthCheck } from '@nestjs/terminus'
@@ -13,6 +13,7 @@ import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
+import { AppLogger } from '../logger/app-logger.service'
 
 const HEALTH_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'HEALTH_THROTTLE_TTL',
@@ -24,16 +25,13 @@ const HEALTH_THROTTLE = createThrottleDefaults({
 @Throttle({ default: HEALTH_THROTTLE })
 @Controller(['health', 'auth'])
 export class HealthController {
-	private readonly logger = new Logger(HealthController.name)
 
-	constructor(
-		private readonly healthService: HealthService,
+	constructor(private readonly healthService: HealthService,
 		private readonly metricsService: MetricsService,
 		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
-		private readonly stripeSyncService: StripeSyncService
-	) {}
+		private readonly stripeSyncService: StripeSyncService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Simple ping endpoint for lightweight health checks

@@ -1,14 +1,9 @@
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type Stripe from 'stripe'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 
@@ -26,7 +21,6 @@ interface EnsureOwnerCustomerResult {
 
 @Injectable()
 export class StripeOwnerService {
-	private readonly logger = new Logger(StripeOwnerService.name)
 	private readonly stripe: Stripe
 	// Cache user profile data for 10 minutes (stable data, rarely changes)
 	private readonly CACHE_TTL_MS = 600_000
@@ -59,10 +53,8 @@ export class StripeOwnerService {
 		}
 	}
 
-	constructor(
-		private readonly stripeClientService: StripeClientService,
-		private readonly supabaseService: SupabaseService
-	) {
+	constructor(private readonly stripeClientService: StripeClientService,
+		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 

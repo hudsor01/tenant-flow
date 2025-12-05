@@ -1,12 +1,13 @@
 'use client'
 
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { ActivitySection } from '#components/dashboard/activity-section'
 import { ChartsSection } from '#components/dashboard/charts-section'
 import { PerformanceSection } from '#components/dashboard/performance-section'
 import { QuickActionsSection } from '#components/dashboard/quick-actions-section'
 import { SectionCards } from '#components/dashboard/section-cards'
 import { TrendsSection } from '#components/dashboard/trends-section'
+import { OwnerOnboardingTour, OwnerTourTrigger } from '#components/tours'
 import { DashboardProvider } from '#contexts/dashboard-context'
 import '../dashboard.css'
 
@@ -24,14 +25,18 @@ export default function DashboardPage() {
 
 	return (
 		<DashboardProvider>
+			<OwnerOnboardingTour />
 			<div
 				className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-(--background)"
 			>
 				<div className="dashboard-main border-b border-(--border) bg-(--card)">
 					<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--spacing-6)">
-						<h1 className="text-responsive-display-xl font-black tracking-tight text-(--foreground)">
-							Dashboard
-						</h1>
+						<div className="flex-between">
+							<h1 className="text-responsive-display-xl font-black tracking-tight text-(--foreground)">
+								Dashboard
+							</h1>
+							<OwnerTourTrigger />
+						</div>
 						<div data-testid="dashboard-stats">
 							<ErrorBoundary
 								fallback={

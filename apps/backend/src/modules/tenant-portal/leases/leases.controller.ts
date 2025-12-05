@@ -1,17 +1,11 @@
-import {
-	Controller,
-	Get,
-	InternalServerErrorException,
-	Logger,
-	UseGuards,
-	UseInterceptors
-} from '@nestjs/common'
+import { Controller, Get, InternalServerErrorException, UseGuards, UseInterceptors } from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /**
  * Tenant Leases Controller
@@ -25,9 +19,8 @@ import { TenantContextInterceptor } from '../interceptors/tenant-context.interce
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantLeasesController {
-	private readonly logger = new Logger(TenantLeasesController.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get active lease with unit/property metadata

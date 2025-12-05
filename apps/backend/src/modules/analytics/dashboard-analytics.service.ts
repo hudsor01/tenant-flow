@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import type {
 	DashboardStats,
 	PropertyPerformance
@@ -10,6 +10,7 @@ import type {
 } from '@repo/shared/types/database-rpc'
 import { EMPTY_MAINTENANCE_ANALYTICS } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import type {
 	BillingInsights,
 	IDashboardAnalyticsService
@@ -28,9 +29,8 @@ import type {
  */
 @Injectable()
 export class DashboardAnalyticsService implements IDashboardAnalyticsService {
-	private readonly logger = new Logger(DashboardAnalyticsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Call RPC using centralized retry logic from SupabaseService
@@ -262,7 +262,10 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 					completed: number
 					avgResolutionDays: number
 				}>
-			}>('get_maintenance_analytics', { p_user_id: user_id })
+			}>('get_maintenance_analytics', {
+				// Supabase function signature is (user_id uuid); p_user_id was causing PGRST202
+				user_id: user_id
+			})
 
 			if (!maintenanceRaw) {
 				this.logger.error('Failed to calculate maintenance analytics via RPC', {
@@ -329,7 +332,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		} catch (error) {
 			this.logger.error(
 				'Dashboard analytics service health check failed:',
-				error
+				{ error }
 			)
 			return false
 		}

@@ -13,11 +13,9 @@ import type {
 	NestMiddleware,
 	OnModuleDestroy
 } from '@nestjs/common';
-import {
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Request, Response } from 'express'
+import { AppLogger } from '../../logger/app-logger.service'
 
 // Extend the shared interfaces for local needs
 interface ExtendedRateLimitWindow {
@@ -76,7 +74,6 @@ const RATE_LIMIT_CONFIGS: Record<string, ExtendedRateLimitConfig> = {
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
-	private readonly logger = new Logger(RateLimitMiddleware.name)
 	private readonly rateLimitStore = new Map<string, ExtendedRateLimitWindow>()
 
 	// Track IPs with suspicious activity
@@ -88,7 +85,7 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 	// Track active timers for cleanup
 	private activeTimers: Set<NodeJS.Timeout> = new Set()
 
-	constructor() {
+	constructor(private readonly logger: AppLogger) {
 		// Cleanup expired rate limit entries every 5 minutes
 		this.cleanupInterval = setInterval(
 			() => this.cleanupExpiredEntries(),

@@ -287,7 +287,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			})
 
 			// Simulate network going down during operation
-			await page.setOfflineMode(true)
+		await page.context().setOffline(true)
 
 			// Attempt to create property (will fail)
 			await formHelper.createProperty(testProperty)
@@ -306,7 +306,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await expect(errorMessage.first()).toBeVisible({ timeout: 5000 })
 
 			// Restore network
-			await page.setOfflineMode(false)
+		await page.context().setOffline(false)
 
 			// Retry operation should succeed
 			await formHelper.createProperty(testProperty)

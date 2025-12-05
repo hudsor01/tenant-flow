@@ -2,7 +2,8 @@
 
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -20,6 +21,7 @@ import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
+import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 import { tenantQueries, type TenantInvitation } from '#hooks/api/queries/tenant-queries'
@@ -106,6 +108,12 @@ export function InvitationsTableClient() {
 		{
 			accessorKey: 'email',
 			header: 'Email',
+			meta: {
+				label: 'Email',
+				variant: 'text',
+				placeholder: 'Search email...',
+			},
+			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const invitation = row.original
 				const name = invitation.first_name && invitation.last_name
@@ -139,6 +147,16 @@ export function InvitationsTableClient() {
 		{
 			accessorKey: 'status',
 			header: 'Status',
+			meta: {
+				label: 'Status',
+				variant: 'select',
+				options: [
+					{ label: 'Pending', value: 'sent' },
+					{ label: 'Accepted', value: 'accepted' },
+					{ label: 'Expired', value: 'expired' },
+				],
+			},
+			enableColumnFilter: true,
 			cell: ({ row }) => getStatusBadge(row.original.status)
 		},
 		{
@@ -223,6 +241,15 @@ export function InvitationsTableClient() {
 
 	const invitations = data?.data ?? []
 
+	const table = useReactTable({
+		data: invitations,
+		columns,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+	})
+
 	if (isLoading) {
 		return (
 			<Card>
@@ -265,12 +292,9 @@ export function InvitationsTableClient() {
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<DataTable
-					columns={columns}
-					data={invitations}
-					filterColumn="email"
-					filterPlaceholder="Filter by email..."
-				/>
+				<DataTable table={table}>
+					<DataTableToolbar table={table} />
+				</DataTable>
 			</CardContent>
 		</Card>
 	)
