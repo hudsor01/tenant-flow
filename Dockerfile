@@ -14,16 +14,24 @@ FROM node:${NODE_VERSION} AS base
 ARG BUILDKIT_INLINE_CACHE=1
 
 # Install build dependencies
-RUN apk add --no-cache bash python3 make g++ dumb-init ca-certificates && \
-    rm -rf /var/cache/apk/* /tmp/* && \
-    npm install -g pnpm@10 turbo@2.5.6
+RUN apk add --no-cache \
+        bash \
+        python3 \
+        make \
+        g++ \
+        dumb-init \
+        ca-certificates \
+        curl && \
+    npm install -g pnpm@10 turbo@2.5.6 && \
+    rm -rf /var/cache/apk/* /tmp/*
 
 WORKDIR /app
 
 ENV PNPM_HOME=/root/.local/share/pnpm \
     PATH=/root/.local/share/pnpm:$PATH \
     HUSKY=0 \
-    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    TURBO_TELEMETRY_DISABLED=1
 
 # ============================================
 # DEPS STAGE - Install dependencies
@@ -34,11 +42,10 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY packages/*/package.json packages/
-COPY scripts/prepare-husky.cjs scripts/
 
 # Install dependencies with cache mount
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prefer-offline
+    pnpm install --frozen-lockfile --prefer-offline --reporter=silent
 
 # ============================================
 # BUILD STAGE - Compile TypeScript
@@ -46,7 +53,6 @@ RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,targ
 FROM base AS build
 
 ENV DOPPLER_DISABLED=1 \
-    TURBO_TELEMETRY_DISABLED=1 \
     NODE_OPTIONS="--max-old-space-size=4096"
 
 # Copy deps and full source
@@ -55,7 +61,7 @@ COPY . .
 
 # Reinstall to link workspace packages (skip scripts - not needed for build)
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prefer-offline
+    pnpm install --frozen-lockfile --prefer-offline --reporter=silent
 
 # Build with turbo cache
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-turbo-cache,target=/app/.turbo \
@@ -123,7 +129,7 @@ USER node
 
 EXPOSE ${PORT}
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
     CMD node -e "require('http').get('http://127.0.0.1:'+process.env.PORT+'/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]

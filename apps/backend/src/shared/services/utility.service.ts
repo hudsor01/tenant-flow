@@ -13,527 +13,529 @@ import { USER_user_type } from '@repo/shared/constants/auth'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import {
-	buildILikePattern,
-	buildMultiColumnSearch,
-	sanitizeSearchInput
+  buildILikePattern,
+  buildMultiColumnSearch,
+  sanitizeSearchInput
 } from '../utils/sql-safe.utils'
 
 const VALID_USER_TYPES = Object.values(USER_user_type) as string[]
 const SAFE_DEFAULT_SIGNUP_USER_TYPE: string = 'OWNER'
 
 function isValidUserType(userType: unknown): userType is string {
-	return typeof userType === 'string' && VALID_USER_TYPES.includes(userType)
+  return typeof userType === 'string' && VALID_USER_TYPES.includes(userType)
 }
 
 export interface PasswordValidationResult {
-	isValid: boolean
-	score: number
-	feedback: string[]
-	requirements: {
-		minLength: boolean
-		hasUppercase: boolean
-		hasLowercase: boolean
-		hasNumbers: boolean
-		hasSpecialChars: boolean
-	}
+  isValid: boolean
+  score: number
+  feedback: string[]
+  requirements: {
+    minLength: boolean
+    hasUppercase: boolean
+    hasLowercase: boolean
+    hasNumbers: boolean
+    hasSpecialChars: boolean
+  }
 }
 
 @Injectable()
 export class UtilityService {
 
-	constructor(private readonly supabase: SupabaseService,
-		@Inject(CACHE_MANAGER) private readonly logger: AppLogger, private readonly cacheManager: Cache
-	) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly logger: AppLogger,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+  ) { }
 
-	/**
-	 * Global search by name - replaces search_by_name function
-	 * Uses direct Supabase queries
-	 */
-	async searchByName(
-		user_id: string,
-		searchTerm: string,
-		limit = 20
-	): Promise<SearchResult[]> {
-		try {
-			this.logger.log('Performing global search via Supabase', {
-				user_id,
-				searchTerm,
-				limit
-			})
+  /**
+   * Global search by name - replaces search_by_name function
+   * Uses direct Supabase queries
+   */
+  async searchByName(
+    user_id: string,
+    searchTerm: string,
+    limit = 20
+  ): Promise<SearchResult[]> {
+    try {
+      this.logger.log('Performing global search via Supabase', {
+        user_id,
+        searchTerm,
+        limit
+      })
 
-			if (!searchTerm || searchTerm.trim().length < 2) {
-				return []
-			}
+      if (!searchTerm || searchTerm.trim().length < 2) {
+        return []
+      }
 
-			// SECURITY FIX: Sanitize search input to prevent SQL injection
-			const sanitized = sanitizeSearchInput(searchTerm)
-			if (!sanitized) {
-				return []
-			}
+      // SECURITY FIX: Sanitize search input to prevent SQL injection
+      const sanitized = sanitizeSearchInput(searchTerm)
+      if (!sanitized) {
+        return []
+      }
 
-			const searchLimit = Math.min(limit, 50)
-			const client = this.supabase.getAdminClient()
+      const searchLimit = Math.min(limit, 50)
+      const client = this.supabase.getAdminClient()
 
-			// SECURITY FIX: Use safe search pattern building
-			const pattern = buildILikePattern(sanitized)
+      // SECURITY FIX: Use safe search pattern building
+      const pattern = buildILikePattern(sanitized)
 
-			// Search across all entity types in parallel
-			const [propertiesResult, tenantsResult, unitsResult, leasesResult] =
-					await Promise.all([
-					client
-						.from('properties')
-						.select('id, name, address_line1, city, state, property_type')
-					.eq('user_id', user_id)
-						.or(
-							// SAFE: Uses sanitized pattern
-							buildMultiColumnSearch(sanitized, ['name', 'address_line1', 'city'])
-						)
-						.limit(searchLimit),
-					client
-						.from('tenants')
-						.select('id, user_id, users!inner(email, first_name, last_name)')
-						.eq('user_id', user_id)
-						.or(
-							// SAFE: Uses sanitized pattern
-							buildMultiColumnSearch(sanitized, ['users.email', 'users.first_name', 'users.last_name'])
-						)
-						.limit(searchLimit),
-					client
-						.from('units')
-						.select(
-							'id, unit_number, bedrooms, bathrooms, rent_amount, status, property_id'
-						)
-						.eq('user_id', user_id)
-						// SAFE: Uses sanitized pattern
-						.ilike('unit_number', pattern)
-						.limit(searchLimit),
-					client
-						.from('leases')
-						.select(
-							'id, rent_amount, start_date, end_date, lease_status, primary_tenant_id, unit_id'
-						)
-						.eq('user_id', user_id)
-						.limit(searchLimit)
-				])
+      // Search across all entity types in parallel
+      const [propertiesResult, tenantsResult, unitsResult, leasesResult] =
+        await Promise.all([
+          client
+            .from('properties')
+            .select('id, name, address_line1, city, state, property_type')
+            .eq('user_id', user_id)
+            .or(
+              // SAFE: Uses sanitized pattern
+              buildMultiColumnSearch(sanitized, ['name', 'address_line1', 'city'])
+            )
+            .limit(searchLimit),
+          client
+            .from('tenants')
+            .select('id, user_id, users!inner(email, first_name, last_name)')
+            .eq('user_id', user_id)
+            .or(
+              // SAFE: Uses sanitized pattern
+              buildMultiColumnSearch(sanitized, ['users.email', 'users.first_name', 'users.last_name'])
+            )
+            .limit(searchLimit),
+          client
+            .from('units')
+            .select(
+              'id, unit_number, bedrooms, bathrooms, rent_amount, status, property_id'
+            )
+            .eq('user_id', user_id)
+            // SAFE: Uses sanitized pattern
+            .ilike('unit_number', pattern)
+            .limit(searchLimit),
+          client
+            .from('leases')
+            .select(
+              'id, rent_amount, start_date, end_date, lease_status, primary_tenant_id, unit_id'
+            )
+            .eq('user_id', user_id)
+            .limit(searchLimit)
+        ])
 
-			const properties = propertiesResult.data || []
-			const tenants = tenantsResult.data || []
-			const units = unitsResult.data || []
-			const leases = leasesResult.data || []
+      const properties = propertiesResult.data || []
+      const tenants = tenantsResult.data || []
+      const units = unitsResult.data || []
+      const leases = leasesResult.data || []
 
-			// Transform results to unified search format
-			const results: SearchResult[] = []
+      // Transform results to unified search format
+      const results: SearchResult[] = []
 
-			// Add property results
-			properties.forEach(property => {
-				results.push({
-					id: property.id,
-					type: 'properties',
-					name: property.name,
-					description: `${property.address_line1}, ${property.city}, ${property.state}`,
-					metadata: {
-						property_type: property.property_type,
-						address_line1: property.address_line1,
-						city: property.city,
-						state: property.state
-					}
-				})
-			})
+      // Add property results
+      properties.forEach(property => {
+        results.push({
+          id: property.id,
+          type: 'properties',
+          name: property.name,
+          description: `${property.address_line1}, ${property.city}, ${property.state}`,
+          metadata: {
+            property_type: property.property_type,
+            address_line1: property.address_line1,
+            city: property.city,
+            state: property.state
+          }
+        })
+      })
 
-			// Add tenant results
-			tenants.forEach(tenant => {
-				const fullName =
-					tenant.users.first_name && tenant.users.last_name
-						? `${tenant.users.first_name} ${tenant.users.last_name}`
-						: tenant.users.email
-				results.push({
-					id: tenant.id,
-					type: 'tenants',
-					name: fullName,
-					description: `Email: ${tenant.users.email}`,
-					metadata: {
-						email: tenant.users.email,
-						first_name: tenant.users.first_name,
-						last_name: tenant.users.last_name,
-						phone: null // Phone is no longer stored on tenant
-					}
-				})
-			})
+      // Add tenant results
+      tenants.forEach(tenant => {
+        const fullName =
+          tenant.users.first_name && tenant.users.last_name
+            ? `${tenant.users.first_name} ${tenant.users.last_name}`
+            : tenant.users.email
+        results.push({
+          id: tenant.id,
+          type: 'tenants',
+          name: fullName,
+          description: `Email: ${tenant.users.email}`,
+          metadata: {
+            email: tenant.users.email,
+            first_name: tenant.users.first_name,
+            last_name: tenant.users.last_name,
+            phone: null // Phone is no longer stored on tenant
+          }
+        })
+      })
 
-			// Add unit results
-			units.forEach(unit => {
-				results.push({
-					id: unit.id,
-					type: 'units',
-					name: `Unit ${unit.unit_number}`,
-					description: `${unit.bedrooms}BR/${unit.bathrooms}BA - $${unit.rent_amount}/month`,
-					metadata: {
-						unit_number: unit.unit_number,
-						bedrooms: unit.bedrooms,
-						bathrooms: unit.bathrooms,
-						rent: unit.rent_amount,
-						status: unit.status,
-						property_id: unit.property_id
-					}
-				})
-			})
+      // Add unit results
+      units.forEach(unit => {
+        results.push({
+          id: unit.id,
+          type: 'units',
+          name: `Unit ${unit.unit_number}`,
+          description: `${unit.bedrooms}BR/${unit.bathrooms}BA - $${unit.rent_amount}/month`,
+          metadata: {
+            unit_number: unit.unit_number,
+            bedrooms: unit.bedrooms,
+            bathrooms: unit.bathrooms,
+            rent: unit.rent_amount,
+            status: unit.status,
+            property_id: unit.property_id
+          }
+        })
+      })
 
-			// Add lease results
-			leases.forEach(lease => {
-				results.push({
-					id: lease.id,
-					type: 'leases',
-					name: `Lease ${lease.id.substring(0, 8)}`,
-					description: `$${lease.rent_amount}/month - ${lease.lease_status}`,
-					metadata: {
-						rent_amount: lease.rent_amount,
-						start_date: lease.start_date,
-						end_date: lease.end_date,
-						status: lease.lease_status,
-						tenant_id: lease.primary_tenant_id,
-						unit_id: lease.unit_id
-					}
-				})
-			})
+      // Add lease results
+      leases.forEach(lease => {
+        results.push({
+          id: lease.id,
+          type: 'leases',
+          name: `Lease ${lease.id.substring(0, 8)}`,
+          description: `$${lease.rent_amount}/month - ${lease.lease_status}`,
+          metadata: {
+            rent_amount: lease.rent_amount,
+            start_date: lease.start_date,
+            end_date: lease.end_date,
+            status: lease.lease_status,
+            tenant_id: lease.primary_tenant_id,
+            unit_id: lease.unit_id
+          }
+        })
+      })
 
-			// Sort results by relevance (exact matches first, then partial matches)
-			const sortedResults = results.sort((a, b) => {
-				const aExact = a.name.toLowerCase() === sanitized.toLowerCase()
-				const bExact = b.name.toLowerCase() === sanitized.toLowerCase()
+      // Sort results by relevance (exact matches first, then partial matches)
+      const sortedResults = results.sort((a, b) => {
+        const aExact = a.name.toLowerCase() === sanitized.toLowerCase()
+        const bExact = b.name.toLowerCase() === sanitized.toLowerCase()
 
-				if (aExact && !bExact) return -1
-				if (!aExact && bExact) return 1
+        if (aExact && !bExact) return -1
+        if (!aExact && bExact) return 1
 
-				// Then sort by name similarity
-				return (
-					a.name.toLowerCase().indexOf(sanitized.toLowerCase()) -
-					b.name.toLowerCase().indexOf(sanitized.toLowerCase())
-				)
-			})
+        // Then sort by name similarity
+        return (
+          a.name.toLowerCase().indexOf(sanitized.toLowerCase()) -
+          b.name.toLowerCase().indexOf(sanitized.toLowerCase())
+        )
+      })
 
-			// Return limited results
-			return sortedResults.slice(0, limit)
-		} catch (error) {
-			this.logger.error('Failed to perform global search', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id,
-				searchTerm,
-				limit
-			})
-			return []
-		}
-	}
+      // Return limited results
+      return sortedResults.slice(0, limit)
+    } catch (error) {
+      this.logger.error('Failed to perform global search', {
+        error: error instanceof Error ? error.message : String(error),
+        user_id,
+        searchTerm,
+        limit
+      })
+      return []
+    }
+  }
 
-	/**
-	 * Map Supabase Auth ID to internal users.id
-	 * Cached for 5 minutes to reduce database lookups
+  /**
+   * Map Supabase Auth ID to internal users.id
+   * Cached for 5 minutes to reduce database lookups
 
-	 * @param supabaseId - Supabase Auth UID from JWT token
-	 * @returns Internal users.id for RLS policies
-	 */
-	async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
-		const cacheKey = `user:supabaseId:${supabaseId}`
-		const cached = await this.cacheManager.get<string>(cacheKey)
-		if (cached) return cached
+   * @param supabaseId - Supabase Auth UID from JWT token
+   * @returns Internal users.id for RLS policies
+   */
+  async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
+    const cacheKey = `user:supabaseId:${supabaseId}`
+    const cached = await this.cacheManager.get<string>(cacheKey)
+    if (cached) return cached
 
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('id')
-			.eq('id', supabaseId)
-			.single()
+    const { data, error } = await this.supabase
+      .getAdminClient()
+      .from('users')
+      .select('id')
+      .eq('id', supabaseId)
+      .single()
 
-		// Handle database errors separately from missing user
-		if (error) {
-			this.logger.error('Database error during user ID lookup', {
-				error: error.message || error,
-				supabaseId
-			})
-			throw new InternalServerErrorException('Failed to lookup user information')
-		}
+    // Handle database errors separately from missing user
+    if (error) {
+      this.logger.error('Database error during user ID lookup', {
+        error: error.message || error,
+        supabaseId
+      })
+      throw new InternalServerErrorException('Failed to lookup user information')
+    }
 
-		if (!data) {
-			this.logger.error('User not found in database', { supabaseId })
-			throw new NotFoundException('User not found')
-		}
+    if (!data) {
+      this.logger.error('User not found in database', { supabaseId })
+      throw new NotFoundException('User not found')
+    }
 
-		await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
-		return data.id
-	}
+    await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
+    return data.id
+  }
 
-	async getUserTypeByUserId(userId: string): Promise<string | null> {
-		const cacheKey = `user:user_type:${userId}`
-		const cachedUserType = await this.cacheManager.get<string>(cacheKey)
-		if (cachedUserType) {
-			return cachedUserType
-		}
+  async getUserTypeByUserId(userId: string): Promise<string | null> {
+    const cacheKey = `user:user_type:${userId}`
+    const cachedUserType = await this.cacheManager.get<string>(cacheKey)
+    if (cachedUserType) {
+      return cachedUserType
+    }
 
-		const { data, error } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('user_type')
-			.eq('id', userId)
-			.single()
+    const { data, error } = await this.supabase
+      .getAdminClient()
+      .from('users')
+      .select('user_type')
+      .eq('id', userId)
+      .single()
 
-		if (error) {
-			this.logger.error('Failed to fetch user user_type', {
-				error: error.message || error,
-				userId
-			})
-			return null
-		}
+    if (error) {
+      this.logger.error('Failed to fetch user user_type', {
+        error: error.message || error,
+        userId
+      })
+      return null
+    }
 
-		if (!data?.user_type) {
-			this.logger.warn('User user_type missing from database record', { userId })
-			return null
-		}
+    if (!data?.user_type) {
+      this.logger.warn('User user_type missing from database record', { userId })
+      return null
+    }
 
-		await this.cacheManager.set(cacheKey, data.user_type, 1800)
-		return data.user_type
-	}
+    await this.cacheManager.set(cacheKey, data.user_type, 1800)
+    return data.user_type
+  }
 
-	/**
-	 * Ensures a user exists in the users table for the given Supabase auth ID
-	 * Creates the user if they don't exist (e.g., OAuth sign-ins)
-	 * Returns the internal users.id
+  /**
+   * Ensures a user exists in the users table for the given Supabase auth ID
+   * Creates the user if they don't exist (e.g., OAuth sign-ins)
+   * Returns the internal users.id
 
-	 * This is the proper way to handle OAuth users who may not have a users table record yet
+   * This is the proper way to handle OAuth users who may not have a users table record yet
 
-	 * @param authUser - User data from Supabase auth
-	 * @param retryCount - Internal retry counter to prevent infinite loops (default: 0, max: 1)
-	 */
-	async ensureUserExists(authUser: {
-		id: string
-	email: string
-	user_metadata?: {
-			full_name?: string
-			name?: string
-			avatar_url?: string
-			picture?: string
-			[key: string]: unknown
-		}
-		app_metadata?: {
-			user_type?: string
-			[key: string]: unknown
-		}
-	}, retryCount = 0): Promise<string> {
-		// Try to get existing user first using atomic upsert
-		try {
-				return await this.getUserIdFromSupabaseId(authUser.id)
-		} catch (error) {
-			// User doesn't exist - proceed with atomic upsert to prevent race conditions
-			if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
-				this.logger.log('Creating new user record for OAuth user', {
-					supabaseId: authUser.id,
-					email: authUser.email
-				})
+   * @param authUser - User data from Supabase auth
+   * @param retryCount - Internal retry counter to prevent infinite loops (default: 0, max: 1)
+   */
+  async ensureUserExists(authUser: {
+    id: string
+    email: string
+    user_metadata?: {
+      full_name?: string
+      name?: string
+      avatar_url?: string
+      picture?: string
+      [key: string]: unknown
+    }
+    app_metadata?: {
+      user_type?: string
+      [key: string]: unknown
+    }
+  }, retryCount = 0): Promise<string> {
+    // Try to get existing user first using atomic upsert
+    try {
+      return await this.getUserIdFromSupabaseId(authUser.id)
+    } catch (error) {
+      // User doesn't exist - proceed with atomic upsert to prevent race conditions
+      if (error instanceof NotFoundException || error instanceof InternalServerErrorException) {
+        this.logger.log('Creating new user record for OAuth user', {
+          supabaseId: authUser.id,
+          email: authUser.email
+        })
 
-				// Extract name from user metadata (OAuth providers)
-				const fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.name
-				const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
+        // Extract name from user metadata (OAuth providers)
+        const fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.name
+        const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture
 
-				// Determine user user_type with safe defaults (never silently escalate to OWNER)
-				const requestedUserType = authUser.app_metadata?.user_type
-				let resolvedUserType: string = SAFE_DEFAULT_SIGNUP_USER_TYPE
+        // Determine user user_type with safe defaults (never silently escalate to OWNER)
+        const requestedUserType = authUser.app_metadata?.user_type
+        let resolvedUserType: string = SAFE_DEFAULT_SIGNUP_USER_TYPE
 
-				if (isValidUserType(requestedUserType)) {
-					resolvedUserType = requestedUserType
-				} else if (requestedUserType) {
-					this.logger.warn('Invalid user_type supplied in Supabase app_metadata during signup, defaulting to owner access', {
-						supabaseId: authUser.id,
-						email: authUser.email,
-						requestedUserType
-					})
-				} else {
-					this.logger.debug('No user_type supplied in Supabase app_metadata during signup, defaulting to owner access', {
-						supabaseId: authUser.id,
-						email: authUser.email
-					})
-				}
+        if (isValidUserType(requestedUserType)) {
+          resolvedUserType = requestedUserType
+        } else if (requestedUserType) {
+          this.logger.warn('Invalid user_type supplied in Supabase app_metadata during signup, defaulting to owner access', {
+            supabaseId: authUser.id,
+            email: authUser.email,
+            requestedUserType
+          })
+        } else {
+          this.logger.debug('No user_type supplied in Supabase app_metadata during signup, defaulting to owner access', {
+            supabaseId: authUser.id,
+            email: authUser.email
+          })
+        }
 
-				// Use atomic upsert to prevent race conditions
-				const { data, error: upsertError } = await this.supabase
-					.getAdminClient()
-					.from('users')
-					.upsert({
-					id: authUser.id,
-					email: authUser.email,
-					full_name: fullName || null,
-					avatar_url: avatarUrl || null,
-					user_type: resolvedUserType
-				} as Database['public']['Tables']['users']['Insert'], {
-					onConflict: 'id', // Use supabaseId as conflict key
-					})
-					.select('id')
-					.single()
+        // Use atomic upsert to prevent race conditions
+        const { data, error: upsertError } = await this.supabase
+          .getAdminClient()
+          .from('users')
+          .upsert({
+            id: authUser.id,
+            email: authUser.email,
+            full_name: fullName || null,
+            avatar_url: avatarUrl || null,
+            user_type: resolvedUserType
+          } as Database['public']['Tables']['users']['Insert'], {
+            onConflict: 'id', // Use supabaseId as conflict key
+          })
+          .select('id')
+          .single()
 
-				if (upsertError) {
-					// Check if it's a constraint violation
-					const errorCode = (upsertError as { code?: string }).code
-					if (errorCode === '23505' || upsertError.message?.includes('duplicate')) {
-						// Race condition: another request created the user, retry lookup
-						if (retryCount >= 2) { // Increase max retries slightly
-							this.logger.error('Max retries exceeded for user creation race condition', {
-								supabaseId: authUser.id,
-								email: authUser.email,
-								retryCount
-							})
-							throw new InternalServerErrorException('Failed to create user account after retry')
-						}
+        if (upsertError) {
+          // Check if it's a constraint violation
+          const errorCode = (upsertError as { code?: string }).code
+          if (errorCode === '23505' || upsertError.message?.includes('duplicate')) {
+            // Race condition: another request created the user, retry lookup
+            if (retryCount >= 2) { // Increase max retries slightly
+              this.logger.error('Max retries exceeded for user creation race condition', {
+                supabaseId: authUser.id,
+                email: authUser.email,
+                retryCount
+              })
+              throw new InternalServerErrorException('Failed to create user account after retry')
+            }
 
-						this.logger.warn('User creation race condition detected, retrying lookup', {
-							supabaseId: authUser.id,
-							email: authUser.email,
-							retryCount
-						})
-						// Wait briefly to allow database consistency before retrying
-						await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)))
-						return await this.ensureUserExists(authUser, retryCount + 1)
-					}
+            this.logger.warn('User creation race condition detected, retrying lookup', {
+              supabaseId: authUser.id,
+              email: authUser.email,
+              retryCount
+            })
+            // Wait briefly to allow database consistency before retrying
+            await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1)))
+            return await this.ensureUserExists(authUser, retryCount + 1)
+          }
 
-					this.logger.error('Failed to create user record', {
-						error: upsertError.message || upsertError,
-						supabaseId: authUser.id,
-						email: authUser.email
-					})
-					throw new InternalServerErrorException('Failed to create user account')
-				}
+          this.logger.error('Failed to create user record', {
+            error: upsertError.message || upsertError,
+            supabaseId: authUser.id,
+            email: authUser.email
+          })
+          throw new InternalServerErrorException('Failed to create user account')
+        }
 
-				if (!data) {
-					this.logger.error('No data returned from user upsert', {
-						supabaseId: authUser.id
-					})
-					throw new InternalServerErrorException('Failed to create user account')
-				}
+        if (!data) {
+          this.logger.error('No data returned from user upsert', {
+            supabaseId: authUser.id
+          })
+          throw new InternalServerErrorException('Failed to create user account')
+        }
 
-				this.logger.log('User record created/updated successfully', {
-					user_id: data.id,
-					supabaseId: authUser.id,
-					email: authUser.email,
-					user_type: resolvedUserType
-				})
+        this.logger.log('User record created/updated successfully', {
+          user_id: data.id,
+          supabaseId: authUser.id,
+          email: authUser.email,
+          user_type: resolvedUserType
+        })
 
-				// Cache the new user ID
-				const cacheKey = `user:supabaseId:${authUser.id}`
-				await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
+        // Cache the new user ID
+        const cacheKey = `user:supabaseId:${authUser.id}`
+        await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
 
-				return data.id
-			}
+        return data.id
+      }
 
-			// Re-throw if it's not a NotFoundException
-			throw error
-		}
-	}
+      // Re-throw if it's not a NotFoundException
+      throw error
+    }
+  }
 
-	/**
-	 * Validate password strength - replaces validate_password_strength function
-	 * Uses native JavaScript instead of database function
-	 */
-	validatePasswordStrength(password: string): PasswordValidationResult {
-		try {
-			this.logger.debug('Validating password strength')
+  /**
+   * Validate password strength - replaces validate_password_strength function
+   * Uses native JavaScript instead of database function
+   */
+  validatePasswordStrength(password: string): PasswordValidationResult {
+    try {
+      this.logger.debug('Validating password strength')
 
-			if (!password) {
-				return {
-					isValid: false,
-					score: 0,
-					feedback: ['Password is required'],
-					requirements: {
-						minLength: false,
-						hasUppercase: false,
-						hasLowercase: false,
-						hasNumbers: false,
-						hasSpecialChars: false
-					}
-				}
-			}
+      if (!password) {
+        return {
+          isValid: false,
+          score: 0,
+          feedback: ['Password is required'],
+          requirements: {
+            minLength: false,
+            hasUppercase: false,
+            hasLowercase: false,
+            hasNumbers: false,
+            hasSpecialChars: false
+          }
+        }
+      }
 
-			// Check requirements
-			const requirements = {
-				minLength: password.length >= 8,
-				hasUppercase: /[A-Z]/.test(password),
-				hasLowercase: /[a-z]/.test(password),
-				hasNumbers: /\d/.test(password),
-				hasSpecialChars: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
-			} // Calculate score (0-100)
-			let score = 0
-			if (requirements.minLength) score += 20
-			if (requirements.hasUppercase) score += 20
-			if (requirements.hasLowercase) score += 20
-			if (requirements.hasNumbers) score += 20
-			if (requirements.hasSpecialChars) score += 20
+      // Check requirements
+      const requirements = {
+        minLength: password.length >= 8,
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasNumbers: /\d/.test(password),
+        hasSpecialChars: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+      } // Calculate score (0-100)
+      let score = 0
+      if (requirements.minLength) score += 20
+      if (requirements.hasUppercase) score += 20
+      if (requirements.hasLowercase) score += 20
+      if (requirements.hasNumbers) score += 20
+      if (requirements.hasSpecialChars) score += 20
 
-			// Bonus points for length
-			if (password.length >= 12) score += 10
-			if (password.length >= 16) score += 10
+      // Bonus points for length
+      if (password.length >= 12) score += 10
+      if (password.length >= 16) score += 10
 
-			// Penalty for common patterns
-			if (/(.)\1{2,}/.test(password)) score -= 10 // Repeated characters
-			if (/123|abc|qwe|password|admin/i.test(password)) score -= 20 // Common patterns
+      // Penalty for common patterns
+      if (/(.)\1{2,}/.test(password)) score -= 10 // Repeated characters
+      if (/123|abc|qwe|password|admin/i.test(password)) score -= 20 // Common patterns
 
-			// Ensure score stays within bounds
-			score = Math.max(0, Math.min(100, score))
+      // Ensure score stays within bounds
+      score = Math.max(0, Math.min(100, score))
 
-			// Generate feedback
-			const feedback: string[] = []
-			if (!requirements.minLength)
-				feedback.push('Password must be at least 8 characters long')
-			if (!requirements.hasUppercase)
-				feedback.push('Password must contain at least one uppercase letter')
-			if (!requirements.hasLowercase)
-				feedback.push('Password must contain at least one lowercase letter')
-			if (!requirements.hasNumbers)
-				feedback.push('Password must contain at least one number')
-			if (!requirements.hasSpecialChars)
-				feedback.push('Password must contain at least one special character')
+      // Generate feedback
+      const feedback: string[] = []
+      if (!requirements.minLength)
+        feedback.push('Password must be at least 8 characters long')
+      if (!requirements.hasUppercase)
+        feedback.push('Password must contain at least one uppercase letter')
+      if (!requirements.hasLowercase)
+        feedback.push('Password must contain at least one lowercase letter')
+      if (!requirements.hasNumbers)
+        feedback.push('Password must contain at least one number')
+      if (!requirements.hasSpecialChars)
+        feedback.push('Password must contain at least one special character')
 
-			if (password.length < 12)
-				feedback.push('Consider using a longer password (12+ characters)')
-			if (/(.)\1{2,}/.test(password))
-				feedback.push('Avoid repeating the same character multiple times')
-			if (/123|abc|qwe|password|admin/i.test(password))
-				feedback.push('Avoid common patterns and words')
+      if (password.length < 12)
+        feedback.push('Consider using a longer password (12+ characters)')
+      if (/(.)\1{2,}/.test(password))
+        feedback.push('Avoid repeating the same character multiple times')
+      if (/123|abc|qwe|password|admin/i.test(password))
+        feedback.push('Avoid common patterns and words')
 
-			// Determine if password is valid (meets basic requirements)
-			const isValid = Object.values(requirements).every(req => req)
+      // Determine if password is valid (meets basic requirements)
+      const isValid = Object.values(requirements).every(req => req)
 
-			return {
-				isValid,
-				score,
-				feedback:
-					feedback.length > 0 ? feedback : ['Password meets all requirements'],
-				requirements
-			}
-		} catch (error) {
-			this.logger.error('Failed to validate password strength', {
-				error: error instanceof Error ? error.message : String(error)
-			})
+      return {
+        isValid,
+        score,
+        feedback:
+          feedback.length > 0 ? feedback : ['Password meets all requirements'],
+        requirements
+      }
+    } catch (error) {
+      this.logger.error('Failed to validate password strength', {
+        error: error instanceof Error ? error.message : String(error)
+      })
 
-			return {
-				isValid: false,
-				score: 0,
-				feedback: ['Error validating password'],
-				requirements: {
-					minLength: false,
-					hasUppercase: false,
-					hasLowercase: false,
-					hasNumbers: false,
-					hasSpecialChars: false
-				}
-			}
-		}
-	}
+      return {
+        isValid: false,
+        score: 0,
+        feedback: ['Error validating password'],
+        requirements: {
+          minLength: false,
+          hasUppercase: false,
+          hasLowercase: false,
+          hasNumbers: false,
+          hasSpecialChars: false
+        }
+      }
+    }
+  }
 
-	/**
-	 * Health check for utility service
-	 */
-	async isHealthy(): Promise<boolean> {
-		try {
-			// Basic health check - verify Supabase service is available
-			return !!this.supabase.getAdminClient()
-		} catch (error) {
-			this.logger.error('Utility service health check failed:', { error })
-			return false
-		}
-	}
+  /**
+   * Health check for utility service
+   */
+  async isHealthy(): Promise<boolean> {
+    try {
+      // Basic health check - verify Supabase service is available
+      return !!this.supabase.getAdminClient()
+    } catch (error) {
+      this.logger.error('Utility service health check failed:', { error })
+      return false
+    }
+  }
 }
