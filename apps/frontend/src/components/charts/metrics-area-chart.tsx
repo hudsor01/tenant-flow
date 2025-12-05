@@ -155,34 +155,6 @@ export function CombinedMetricsAreaChart({
 					data={formattedData}
 					margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
 				>
-					{/* Gradient definitions */}
-					<defs>
-						<linearGradient id="occupancyGradient" x1="0" y1="0" x2="0" y2="1">
-							<stop
-								offset="5%"
-								stopColor={TENANTFLOW_CHART_COLORS.occupancy}
-								stopOpacity={0.8}
-							/>
-							<stop
-								offset="95%"
-								stopColor={TENANTFLOW_CHART_COLORS.occupancy}
-								stopOpacity={0.1}
-							/>
-						</linearGradient>
-						<linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-							<stop
-								offset="5%"
-								stopColor={TENANTFLOW_CHART_COLORS.revenue}
-								stopOpacity={0.8}
-							/>
-							<stop
-								offset="95%"
-								stopColor={TENANTFLOW_CHART_COLORS.revenue}
-								stopOpacity={0.1}
-							/>
-						</linearGradient>
-					</defs>
-
 					<CartesianGrid
 						strokeDasharray={TENANTFLOW_CHART_CONFIG.grid.strokeDasharray}
 						stroke={TENANTFLOW_CHART_CONFIG.grid.stroke}
@@ -264,10 +236,11 @@ export function CombinedMetricsAreaChart({
 							dataKey="occupancy"
 							name="Occupancy Rate"
 							stroke={TENANTFLOW_CHART_COLORS.occupancy}
-							fill="url(#occupancyGradient)"
-							strokeWidth={3}
+							fill={TENANTFLOW_CHART_COLORS.occupancy}
+							fillOpacity={0.12}
+							strokeWidth={2}
 							dot={false}
-							activeDot={{ r: 6 }}
+							activeDot={{ r: 5 }}
 							connectNulls
 						/>
 					)}
@@ -280,10 +253,11 @@ export function CombinedMetricsAreaChart({
 							dataKey="revenue"
 							name="Monthly Revenue"
 							stroke={TENANTFLOW_CHART_COLORS.revenue}
-							fill="url(#revenueGradient)"
-							strokeWidth={3}
+							fill={TENANTFLOW_CHART_COLORS.revenue}
+							fillOpacity={0.12}
+							strokeWidth={2}
 							dot={false}
-							activeDot={{ r: 6 }}
+							activeDot={{ r: 5 }}
 							connectNulls
 						/>
 					)}

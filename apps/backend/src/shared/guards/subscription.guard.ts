@@ -1,18 +1,12 @@
 import type {
 	CanActivate,
 	ExecutionContext} from '@nestjs/common';
-import {
-	ForbiddenException,
-	Injectable,
-	Logger,
-	ServiceUnavailableException,
-	SetMetadata,
-	UnauthorizedException
-} from '@nestjs/common'
+import { ForbiddenException, Injectable, ServiceUnavailableException, SetMetadata, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export const SKIP_SUBSCRIPTION_CHECK_KEY = 'skipSubscriptionCheck'
 export const SkipSubscriptionCheck = () =>
@@ -20,12 +14,9 @@ export const SkipSubscriptionCheck = () =>
 
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
-	private readonly logger = new Logger(SubscriptionGuard.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly reflector: Reflector
-	) {}
+	constructor(private readonly supabaseService: SupabaseService,
+		private readonly reflector: Reflector, private readonly logger: AppLogger) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [

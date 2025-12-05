@@ -15,6 +15,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { validate } from './config/config.schema'
 import { AppConfigService } from './config/app-config.service'
+import { LoggerModule } from './logger/winston.module'
 import { CacheConfigurationModule } from './cache/cache.module'
 import { SupabaseModule } from './database/supabase.module'
 import { HealthModule } from './health/health.module'
@@ -55,12 +56,15 @@ import { DocuSealModule } from './modules/docuseal/docuseal.module'
  * Core App Module - KISS principle
  * Essential business modules with simplified configuration
  */
-	@Module({
+@Module({
 	imports: [
 		ConfigModule.forRoot({
 			isGlobal: true,
 			validate
 		}),
+
+		// Centralized logging configured via Winston
+		LoggerModule,
 
 		// Request context for tracing and user management
 		ClsModule.forRoot({

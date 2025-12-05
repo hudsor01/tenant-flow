@@ -35,19 +35,16 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Input } from '#components/ui/input'
+import { DataTableColumnHeader } from '#components/data-table/data-table-column-header'
 import { useDeleteUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import { cn } from '#lib/utils'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 import { buttonVariants } from '#components/ui/button'
 import { cardVariants } from '#components/ui/card'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UnitStats, UnitRowWithRelations as UnitRow, UnitStatus } from '@repo/shared/types/core'
-import type { Column, ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import {
 	AlertTriangle,
-	ArrowDown,
-	ArrowUp,
-	ArrowUpDown,
 	Bath,
 	Bed,
 	BedDouble,
@@ -61,9 +58,7 @@ import {
 	MoreHorizontalIcon,
 	Ruler,
 	ShowerHead,
-	Star,
 	TrashIcon,
-	TrendingUp,
 	Users
 } from 'lucide-react'
 import * as React from 'react'
@@ -71,69 +66,6 @@ import { toast } from 'sonner'
 
 // Re-export UnitRow for use in other components
 export type { UnitRow }
-
-// Enhanced sortable header component with professional design
-interface SortableHeaderProps {
-	column: Column<UnitRow, unknown>
-	children: React.ReactNode
-	className?: string
-	align?: 'left' | 'center' | 'right'
-}
-
-function SortableHeader({
-	column,
-	children,
-	className,
-	align = 'left'
-}: SortableHeaderProps) {
-	const sortDirection = column.getIsSorted()
-	const isActive = sortDirection !== false
-
-	const alignmentClasses = {
-		left: 'justify-start',
-		center: 'justify-center',
-		right: 'justify-end'
-	}
-
-	return (
-		<Button
-			variant="ghost"
-			onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-			className={cn(
-				buttonVariants({ variant: 'ghost', size: 'sm' }),
-				'h-auto p-2 font-semibold hover:bg-muted/50 transition-all',
-				alignmentClasses[align],
-				'gap-2',
-				isActive && 'text-primary',
-				className,
-				'text-sm leading-[1.33] font-normal duration-150'
-			)}
-		>
-			<div className="flex items-center gap-2">
-				{children}
-				<div className="size-4 flex-center">
-					{sortDirection === 'desc' ? (
-						<ArrowDown
-							className={cn(
-								'h-3.5 w-3.5 transition-all duration-150',
-								isActive ? 'text-primary' : 'text-muted-foreground'
-							)}
-						/>
-					) : sortDirection === 'asc' ? (
-						<ArrowUp
-							className={cn(
-								'h-3.5 w-3.5 transition-all duration-150',
-								isActive ? 'text-primary' : 'text-muted-foreground'
-							)}
-						/>
-					) : (
-						<ArrowUpDown className="h-3.5 w-3.5 opacity-50 transition-opacity hover:opacity-75 duration-150" />
-					)}
-				</div>
-			</div>
-		</Button>
-	)
-}
 
 // Enhanced status configuration with icons and semantic meaning
 const statusConfig: Record<
@@ -295,10 +227,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="w-56">
-						<DropdownMenuLabel
-							className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-							style={TYPOGRAPHY_SCALE['body-xs']}
-						>
+						<DropdownMenuLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
 							Unit {unit.unit_number} Actions
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
@@ -435,16 +364,10 @@ function UnitActions({ unit }: UnitActionsProps) {
 						<div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
 							<TrashIcon className="size-6 text-destructive" />
 						</div>
-						<AlertDialogTitle
-							className="text-center"
-							style={TYPOGRAPHY_SCALE['heading-sm']}
-						>
+						<AlertDialogTitle className="text-center text-lg font-semibold">
 							Delete Unit {unit.unit_number}?
 						</AlertDialogTitle>
-						<AlertDialogDescription
-							className="text-center text-muted-foreground"
-							style={TYPOGRAPHY_SCALE['body-md']}
-						>
+						<AlertDialogDescription className="text-center text-muted-foreground">
 							This action cannot be undone. The unit will be permanently removed
 							from your property management system.
 							{unit.status === 'OCCUPIED' && (
@@ -456,10 +379,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 								>
 									<div className="flex items-center gap-2 text-destructive">
 										<AlertTriangle className="size-4" />
-										<span
-											className="font-medium text-sm"
-											style={TYPOGRAPHY_SCALE['body-xs']}
-										>
+										<span className="font-medium text-sm">
 											This unit is currently occupied and cannot be deleted.
 										</span>
 									</div>
@@ -505,31 +425,28 @@ function UnitActions({ unit }: UnitActionsProps) {
 // Export the UnitStatsDisplay component for use in dashboard and analytics
 export { UnitStatsDisplay }
 
-// Enhanced column definitions with professional design and comprehensive data display
+// Enhanced column definitions with DiceUI DataTable
 export const unitColumns: ColumnDef<UnitRow>[] = [
 	{
 		accessorKey: 'unit_number',
 		header: ({ column }) => (
-			<SortableHeader column={column} align="left">
-				<Home className="size-4" />
-				Unit Details
-			</SortableHeader>
+			<DataTableColumnHeader column={column} label="Unit Details" />
 		),
+		meta: {
+			label: 'Unit',
+			variant: 'text',
+			placeholder: 'Search units...',
+		},
+		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const unit: UnitRow = row.original
 			return (
 				<div className="flex flex-col gap-1 py-2">
-					<div
-						className="font-bold text-foreground"
-						style={TYPOGRAPHY_SCALE['body-md']}
-					>
+					<div className="font-bold text-foreground">
 						Unit {row.getValue('unit_number')}
 					</div>
 					{unit.property && (
-						<div
-							className="text-muted-foreground text-xs"
-							style={TYPOGRAPHY_SCALE['body-xs']}
-						>
+						<div className="text-muted-foreground text-xs">
 							<MapPin className="size-3 inline mr-1" />
 							{unit.property.name}
 						</div>
@@ -541,71 +458,80 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		enableHiding: false
 	},
 	{
-		id: 'layout',
+		accessorKey: 'bedrooms',
 		header: ({ column }) => (
-			<SortableHeader column={column} align="center">
-				<Bed className="size-4" />
-				Layout
-			</SortableHeader>
+			<DataTableColumnHeader column={column} label="Bedrooms" />
 		),
-		accessorFn: row => `${row.bedrooms}bed${row.bathrooms}bath`,
+		meta: {
+			label: 'Bedrooms',
+			variant: 'range',
+			range: [0, 10],
+		},
+		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const bedrooms = row.getValue('bedrooms') as number
-			const bathrooms = row.getValue('bathrooms') as number
-			const square_feet = row.getValue('square_feet') as number | null
-
 			return (
-				<div className="text-center space-y-1">
-					<div className="flex-center gap-3">
-						<div className="flex items-center gap-1">
-							<Bed className="size-3 text-muted-foreground" />
-							<span className="font-medium" style={TYPOGRAPHY_SCALE['body-md']}>
-								{bedrooms}
-							</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<Bath className="size-3 text-muted-foreground" />
-							<span className="font-medium" style={TYPOGRAPHY_SCALE['body-md']}>
-								{bathrooms}
-							</span>
-						</div>
-					</div>
-					{square_feet && (
-						<div className="flex-center gap-1">
-							<Maximize2 className="size-3 text-muted-foreground" />
-							<span
-								className="text-muted-foreground text-xs"
-								style={TYPOGRAPHY_SCALE['body-xs']}
-							>
-								{square_feet.toLocaleString()} ft²
-							</span>
-						</div>
-					)}
+				<div className="flex items-center gap-1">
+					<Bed className="size-3 text-muted-foreground" />
+					<span className="font-medium">{bedrooms}</span>
 				</div>
 			)
 		},
-		sortingFn: (rowA, rowB) => {
-			const layoutA = (rowA.original.bedrooms ?? 0) * 10 + (rowA.original.bathrooms ?? 0)
-			const layoutB = (rowB.original.bedrooms ?? 0) * 10 + (rowB.original.bathrooms ?? 0)
-			return layoutA - layoutB
-		},
-		size: 120
+		size: 100
 	},
 	{
-		accessorKey: 'rent',
+		accessorKey: 'bathrooms',
 		header: ({ column }) => (
-			<SortableHeader column={column} align="right">
-				<DollarSign className="size-4" />
-				Rent & Value
-			</SortableHeader>
+			<DataTableColumnHeader column={column} label="Bathrooms" />
+		),
+		meta: {
+			label: 'Bathrooms',
+			variant: 'range',
+			range: [0, 10],
+		},
+		enableColumnFilter: true,
+		cell: ({ row }) => {
+			const bathrooms = row.getValue('bathrooms') as number
+			return (
+				<div className="flex items-center gap-1">
+					<Bath className="size-3 text-muted-foreground" />
+					<span className="font-medium">{bathrooms}</span>
+				</div>
+			)
+		},
+		size: 100
+	},
+	{
+		accessorKey: 'square_feet',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} label="Size" />
 		),
 		cell: ({ row }) => {
-			const unit: UnitRow = row.original
-			const rent = parseFloat(row.getValue('rent'))
-			const marketValue = unit.marketValue || rent
-			const variance =
-				marketValue !== rent ? ((rent - marketValue) / marketValue) * 100 : 0
-
+			const sqft = row.getValue('square_feet') as number | null
+			if (!sqft) return <span className="text-muted-foreground">-</span>
+			return (
+				<div className="flex items-center gap-1">
+					<Maximize2 className="size-3 text-muted-foreground" />
+					<span className="text-xs">{sqft.toLocaleString()} ft²</span>
+				</div>
+			)
+		},
+		size: 100
+	},
+	{
+		accessorKey: 'rent_amount',
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} label="Rent" />
+		),
+		meta: {
+			label: 'Rent',
+			variant: 'range',
+			range: [0, 10000],
+			unit: '$',
+		},
+		enableColumnFilter: true,
+		cell: ({ row }) => {
+			const rent = parseFloat(row.getValue('rent_amount'))
 			const rentFormatted = new Intl.NumberFormat('en-US', {
 				style: 'currency',
 				currency: 'USD',
@@ -614,49 +540,29 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 
 			return (
 				<div className="text-right space-y-1 py-2">
-					<div
-						className="font-bold text-foreground"
-						style={TYPOGRAPHY_SCALE['body-md']}
-					>
-						{rentFormatted}
-					</div>
-					<div
-						className="text-muted-foreground text-xs"
-						style={TYPOGRAPHY_SCALE['body-xs']}
-					>
-						per month
-					</div>
-					{variance !== 0 && (
-						<div className="flex items-center justify-end gap-1">
-							<TrendingUp
-								className={cn(
-									'size-3',
-									variance > 0 ? 'text-accent' : 'text-destructive'
-								)}
-							/>
-							<span
-								className={cn(
-									'text-xs font-medium',
-									variance > 0 ? 'text-accent' : 'text-destructive'
-								)}
-							>
-								{variance > 0 ? '+' : ''}
-								{variance.toFixed(1)}%
-							</span>
-						</div>
-					)}
+					<div className="font-bold text-foreground">{rentFormatted}</div>
+					<div className="text-muted-foreground text-xs">per month</div>
 				</div>
 			)
 		},
-		size: 140
+		size: 120
 	},
 	{
 		accessorKey: 'status',
 		header: ({ column }) => (
-			<SortableHeader column={column} align="left">
-				Status & Tenant
-			</SortableHeader>
+			<DataTableColumnHeader column={column} label="Status" />
 		),
+		meta: {
+			label: 'Status',
+			variant: 'select',
+			options: [
+				{ label: 'Occupied', value: 'OCCUPIED' },
+				{ label: 'Vacant', value: 'VACANT' },
+				{ label: 'Maintenance', value: 'MAINTENANCE' },
+				{ label: 'Reserved', value: 'RESERVED' },
+			],
+		},
+		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const unit: UnitRow = row.original
 			const status = row.getValue('status') as UnitStatus
@@ -666,16 +572,10 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 					<UnitStatusBadge status={status} />
 					{unit.tenant && status === 'OCCUPIED' && (
 						<div className="space-y-1">
-							<div
-								className="font-medium text-foreground text-sm"
-								style={TYPOGRAPHY_SCALE['body-xs']}
-							>
+							<div className="font-medium text-foreground text-sm">
 								{unit.tenant.name}
 							</div>
-							<div
-								className="text-muted-foreground text-xs"
-								style={TYPOGRAPHY_SCALE['body-xs']}
-							>
+							<div className="text-muted-foreground text-xs">
 								{unit.tenant.email}
 							</div>
 						</div>
@@ -694,53 +594,9 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		size: 200
 	},
 	{
-		id: 'lastUpdated',
-		accessorKey: 'lastUpdated',
-		header: ({ column }) => (
-			<SortableHeader column={column} align="center">
-				<Calendar className="size-4" />
-				Last Updated
-			</SortableHeader>
-		),
-		cell: ({ row }) => {
-			const unit: UnitRow = row.original
-			const lastUpdated = unit.lastUpdated || new Date().toISOString()
-			const date = new Date(lastUpdated)
-			const isRecent = Date.now() - date.getTime() < 7 * 24 * 60 * 60 * 1000 // 7 days
-
-			return (
-				<div className="text-center space-y-1">
-					<div
-						className="font-medium text-foreground"
-						style={TYPOGRAPHY_SCALE['body-xs']}
-					>
-						{date.toLocaleDateString()}
-					</div>
-					<div
-						className={cn(
-							'text-xs',
-							isRecent ? 'text-accent' : 'text-muted-foreground'
-						)}
-						style={TYPOGRAPHY_SCALE['body-xs']}
-					>
-						{isRecent && <Star className="size-3 inline mr-1" />}
-						{date.toLocaleDateString('en-US', {
-							month: 'short',
-							day: 'numeric'
-						})}
-					</div>
-				</div>
-			)
-		},
-		size: 120
-	},
-	{
 		id: 'actions',
 		header: () => (
-			<div
-				className="text-center font-semibold text-muted-foreground"
-				style={TYPOGRAPHY_SCALE['body-md']}
-			>
+			<div className="text-center font-semibold text-muted-foreground">
 				Actions
 			</div>
 		),

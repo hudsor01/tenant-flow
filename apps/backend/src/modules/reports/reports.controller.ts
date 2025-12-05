@@ -1,15 +1,4 @@
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	Get,
-	Logger,
-	UnauthorizedException,
-	Post,
-	Query,
-	Req,
-	Res
-} from '@nestjs/common'
+import { BadRequestException, Body, Controller, Get, UnauthorizedException, Post, Query, Req, Res } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { ExportService } from './export.service'
@@ -20,6 +9,7 @@ import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxPreparationTemplate } from './templates/tax-preparation.template'
+import { AppLogger } from '../../logger/app-logger.service'
 
 interface AuthenticatedRequest extends Request {
 	user?: { id: string; email: string }
@@ -58,18 +48,15 @@ type ExportRequestDto = z.infer<typeof exportRequestSchema>
 
 @Controller('reports')
 export class ReportsController {
-	private readonly logger = new Logger(ReportsController.name)
 
-	constructor(
-		private readonly exportService: ExportService,
+	constructor(private readonly exportService: ExportService,
 		private readonly reportsService: ReportsService,
 		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
 		private readonly leasePortfolioTemplate: LeasePortfolioTemplate,
 		private readonly maintenanceOperationsTemplate: MaintenanceOperationsTemplate,
-		private readonly taxPreparationTemplate: TaxPreparationTemplate
-	) {}
+		private readonly taxPreparationTemplate: TaxPreparationTemplate, private readonly logger: AppLogger) {}
 
 	private parseRequest(body: ExportRequestDto): ExportRequestDto {
 		try {

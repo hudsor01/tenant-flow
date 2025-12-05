@@ -1,20 +1,9 @@
-import {
-	Body,
-	Controller,
-	Post,
-	Get,
-	Request,
-	BadRequestException,
-	InternalServerErrorException,
-	Logger,
-	NotFoundException,
-	Query,
-	Param
-} from '@nestjs/common'
+import { Body, Controller, Post, Get, Request, BadRequestException, InternalServerErrorException, NotFoundException, Query, Param } from '@nestjs/common'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 
 /**
@@ -85,13 +74,9 @@ const MAX_PAGINATION_LIMIT = 100
  */
 @Controller('stripe/connect')
 export class StripeConnectController {
-	private readonly logger = new Logger(StripeConnectController.name)
 
-	constructor(
-		private readonly stripeConnectService: StripeConnectService,
-		private readonly supabaseService: SupabaseService,
-
-	) {}
+	constructor(private readonly stripeConnectService: StripeConnectService,
+		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Validates and normalizes pagination limit parameter

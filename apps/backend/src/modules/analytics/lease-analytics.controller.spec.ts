@@ -3,6 +3,9 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeaseAnalyticsController } from './lease-analytics.controller'
 import { LeaseAnalyticsService } from './lease-analytics.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('LeaseAnalyticsController', () => {
 	let controller: LeaseAnalyticsController
@@ -31,6 +34,10 @@ describe('LeaseAnalyticsController', () => {
 				{
 					provide: LeaseAnalyticsService,
 					useValue: service
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

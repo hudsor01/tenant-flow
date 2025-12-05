@@ -7,6 +7,9 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { SupabaseService } from '../../database/supabase.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('RentPaymentContextService', () => {
 	let service: RentPaymentContextService
@@ -99,7 +102,11 @@ describe('RentPaymentContextService', () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				RentPaymentContextService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

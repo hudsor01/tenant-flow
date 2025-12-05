@@ -5,12 +5,7 @@
  * Manages: Create, Update, MarkAsMovedOut (soft delete), HardDelete (7+ years only)
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
@@ -21,11 +16,12 @@ import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { TenantQueryService } from './tenant-query.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class TenantCrudService {
 	constructor(
-		private readonly logger: Logger,
+		private readonly logger: AppLogger,
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly tenantQueryService: TenantQueryService

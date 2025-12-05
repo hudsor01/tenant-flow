@@ -4,8 +4,9 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /** Default limit for invitation queries */
 const DEFAULT_INVITATION_LIMIT = 25
@@ -53,9 +54,8 @@ export interface InvitationFilters {
 
 @Injectable()
 export class TenantInvitationQueryService {
-	private readonly logger = new Logger(TenantInvitationQueryService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get paginated tenant invitations for an owner

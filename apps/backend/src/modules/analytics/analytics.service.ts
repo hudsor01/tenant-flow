@@ -1,10 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { MobileAnalyticsEvent } from './dto/mobile-analytics-event.dto'
 import type { WebVitalMetric } from './dto/web-vital.dto'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class AnalyticsService {
-	private readonly logger = new Logger(AnalyticsService.name)
+    constructor(private readonly logger: AppLogger) {}
+
 	private static readonly SENSITIVE_PROPERTY_KEYS = [
 		'password',
 		'secret',

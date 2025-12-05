@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	MaintenanceAnalyticsPageResponse,
 	MaintenanceMetricSummary
@@ -11,12 +11,12 @@ import {
 	mapMaintenanceTrends
 } from '@repo/shared/utils/maintenance-analytics'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class MaintenanceInsightsService {
-	private readonly logger = new Logger(MaintenanceInsightsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	private buildUserPayload(
 		user_id: string,

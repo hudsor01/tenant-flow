@@ -1,11 +1,13 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import ExcelJS from 'exceljs'
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class ExportService {
-	private readonly logger = new Logger(ExportService.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	async generateExcel(
 		payload: unknown,

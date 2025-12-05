@@ -5,9 +5,10 @@
  * - checkout.session.completed
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 import {
 	asStripeSchemaClient,
 	type SupabaseError,
@@ -18,9 +19,8 @@ import {
 
 @Injectable()
 export class CheckoutWebhookHandler {
-	private readonly logger = new Logger(CheckoutWebhookHandler.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	async handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
 		try {

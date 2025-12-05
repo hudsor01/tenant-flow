@@ -1,13 +1,11 @@
-import { Logger } from '@nestjs/common'
+import type { AppLogger } from '../../logger/app-logger.service'
 
 type AsyncFunction = (...args: unknown[]) => Promise<unknown>
-
-const logger = new Logger('Performance')
 
 /**
  * Decorator to measure method execution time
  */
-export function MeasureMethod(thresholdMs = 100) {
+export function MeasureMethod(thresholdMs = 100, logger?: AppLogger) {
 	return function (
 		target: object,
 		propertyName: string | symbol,
@@ -27,14 +25,18 @@ export function MeasureMethod(thresholdMs = 100) {
 				const duration = seconds * 1000 + nanoseconds / 1000000
 
 				const className = target.constructor?.name || 'Unknown'
-				if (duration > thresholdMs) {
-					logger.warn(
-						`${className}.${String(propertyName)} took ${duration.toFixed(2)}ms (threshold: ${thresholdMs}ms)`
-					)
-				} else {
-					logger.log(
-						`${className}.${String(propertyName)} executed in ${duration.toFixed(2)}ms`
-					)
+				if (logger) {
+					if (duration > thresholdMs) {
+						logger.warn(
+							`${className}.${String(propertyName)} took ${duration.toFixed(2)}ms (threshold: ${thresholdMs}ms)`,
+							className
+						)
+					} else {
+						logger.log(
+							`${className}.${String(propertyName)} executed in ${duration.toFixed(2)}ms`,
+							className
+						)
+					}
 				}
 
 				return result
@@ -43,10 +45,13 @@ export function MeasureMethod(thresholdMs = 100) {
 				const duration = seconds * 1000 + nanoseconds / 1000000
 
 				const className = target.constructor?.name || 'Unknown'
-				logger.error(
-					`${className}.${String(propertyName)} failed after ${duration.toFixed(2)}ms`,
-					error
-				)
+				if (logger) {
+					logger.error(
+						`${className}.${String(propertyName)} failed after ${duration.toFixed(2)}ms`,
+						className,
+						{ error }
+					)
+				}
 				throw error
 			}
 		}

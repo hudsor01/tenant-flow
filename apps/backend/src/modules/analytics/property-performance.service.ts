@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 import type {
@@ -13,6 +13,7 @@ import {
 	mapVisitorAnalytics
 } from '@repo/shared/utils/property-analytics'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 // Local DTOs to satisfy strict typing for nested selects
 type PaymentRow = { amount: number | null; status: string | null; paid_date: string | null }
@@ -31,9 +32,8 @@ type UnitRow = {
 
 @Injectable()
 export class PropertyPerformanceService {
-	private readonly logger = new Logger(PropertyPerformanceService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	private getQueryClient(): SupabaseClient<Database> {
 		const maybeClient = this.supabase as unknown as {

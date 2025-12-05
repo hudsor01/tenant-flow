@@ -12,6 +12,9 @@ import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxPreparationTemplate } from './templates/tax-preparation.template'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('ReportsController', () => {
 	let controller: ReportsController
@@ -66,6 +69,10 @@ describe('ReportsController', () => {
 				{
 					provide: TaxPreparationTemplate,
 					useValue: {}
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

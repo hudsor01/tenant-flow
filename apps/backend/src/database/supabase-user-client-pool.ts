@@ -1,7 +1,8 @@
-import { Logger } from '@nestjs/common'
+
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
+import type { AppLogger } from '../logger/app-logger.service'
 
 interface CachedClient {
 	client: SupabaseClient<Database>
@@ -19,7 +20,7 @@ export interface SupabaseClientPoolMetrics {
 interface SupabaseUserClientPoolOptions {
 	supabaseUrl: string
 	supabasePublishableKey: string
-	logger: Logger
+	logger: AppLogger
 	maxSize?: number
 	ttlMs?: number
 	cleanupIntervalMs?: number

@@ -7,15 +7,15 @@
  * NOTE: Tenant status is derived from lease_status, not a direct column on tenants table
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { TenantStats } from '@repo/shared/types/core'
 import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class TenantStatsService {
-	private readonly logger = new Logger(TenantStatsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Calculate tenant statistics for a user

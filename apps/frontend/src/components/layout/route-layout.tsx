@@ -1,4 +1,4 @@
-import ModalLayout from '#components/ui/layout/modal-layout'
+import ModalLayout from '#components/layout/modal-layout'
 import type { ReactNode } from 'react'
 
 interface RouteLayoutProps {

@@ -9,7 +9,8 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -21,10 +22,10 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger
 } from '#components/ui/dialog'
-import { Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
@@ -129,21 +130,35 @@ export function MaintenanceTableClient({
 		}
 	]
 
+	const table = useReactTable({
+		data: optimisticRequests,
+		columns: columnsWithActions,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+	})
+
 	return (
 		<Card>
-			<CardHeader>
-				<CardTitle>Maintenance Requests</CardTitle>
-				<CardDescription>
-					Track maintenance tickets and resolution progress
-				</CardDescription>
+			<CardHeader className="flex-between flex-row">
+				<div>
+					<CardTitle>Maintenance Requests</CardTitle>
+					<CardDescription>
+						Track maintenance tickets and resolution progress
+					</CardDescription>
+				</div>
+				<Button asChild>
+					<Link href="/maintenance/new">
+						<Plus className="size-4" />
+						New Request
+					</Link>
+				</Button>
 			</CardHeader>
 			<CardContent>
-				<DataTable
-					columns={columnsWithActions}
-					data={optimisticRequests}
-					filterColumn="title"
-					filterPlaceholder="Filter by request title..."
-				/>
+				<DataTable table={table}>
+					<DataTableToolbar table={table} />
+				</DataTable>
 			</CardContent>
 		</Card>
 	)

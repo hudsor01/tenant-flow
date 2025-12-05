@@ -8,33 +8,20 @@
  * - System status monitoring
  */
 
-import {
-	Body,
-	Controller,
-	Get,
-	HttpCode,
-	HttpStatus,
-	Logger,
-	Param,
-	ParseUUIDPipe,
-	Post,
-	SetMetadata
-} from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, SetMetadata } from '@nestjs/common'
 import type { CSPReportBody } from '@repo/shared/types/domain'
 import type {
   SecurityMetrics
 } from '@repo/shared/types/security'
 import { SecurityMetricsService } from './security-metrics.service'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 @Controller('security')
 export class SecurityController {
-  private readonly logger = new Logger(SecurityController.name)
 
-  constructor(
-    private readonly metricsService: SecurityMetricsService,
-    private readonly config: AppConfigService
-  ) {}
+  constructor(private readonly metricsService: SecurityMetricsService,
+    private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
   /**
    * CSP Violation Reporting Endpoint

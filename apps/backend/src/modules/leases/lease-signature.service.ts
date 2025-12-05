@@ -14,18 +14,13 @@
  * to LeaseSubscriptionService (SRP compliance).
  */
 
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { DocuSealService } from '../docuseal/docuseal.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
 import { LEASE_SIGNATURE_ERROR_MESSAGES, LEASE_SIGNATURE_ERROR_CODES } from '@repo/shared/constants/lease-signature-errors'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface SignatureStatus {
 	lease_id: string
@@ -55,14 +50,11 @@ export interface SignLeaseRpcResult {
 
 @Injectable()
 export class LeaseSignatureService {
-	private readonly logger = new Logger(LeaseSignatureService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly docuSealService: DocuSealService,
-		private readonly leaseSubscriptionService: LeaseSubscriptionService
-	) {}
+		private readonly leaseSubscriptionService: LeaseSubscriptionService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Parse the result from sign_lease_and_check_activation RPC

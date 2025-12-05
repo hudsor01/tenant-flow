@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
 import type { MetricTypeValue, PeriodTypeValue } from './dto/reports-query.dto'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 export interface MetricTrend {
 	current: number
@@ -22,9 +23,8 @@ export interface TimeSeriesDataPoint {
  */
 @Injectable()
 export class ReportsService {
-	private readonly logger = new Logger(ReportsService.name)
 
-	constructor(private readonly dashboardAnalytics: DashboardAnalyticsService) {}
+	constructor(private readonly dashboardAnalytics: DashboardAnalyticsService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get metric trend comparing current period to previous period

@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import type Stripe from 'stripe'
 import type {
 	AttachPaymentMethodParams,
@@ -8,6 +8,7 @@ import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import type { PostgrestError } from '@supabase/supabase-js'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type TenantRow = Database['public']['Tables']['tenants']['Row']
 
@@ -35,13 +36,10 @@ type TenantWithUser = TenantRow & {
  */
 @Injectable()
 export class StripeTenantService {
-	private readonly logger = new Logger(StripeTenantService.name)
 	private stripe: Stripe
 
-	constructor(
-		private readonly stripeClientService: StripeClientService,
-		private readonly supabase: SupabaseService
-	) {
+	constructor(private readonly stripeClientService: StripeClientService,
+		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe Tenant Customer Service initialized')
 	}

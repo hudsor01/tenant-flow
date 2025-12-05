@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import type { DatabaseNotificationEventType } from '@repo/shared/types/notifications'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type NotificationType = DatabaseNotificationEventType
 
@@ -25,9 +26,8 @@ export interface CreateNotificationParams {
  */
 @Injectable()
 export class NotificationService {
-	private readonly logger = new Logger(NotificationService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Create in-app notification for user

@@ -2,11 +2,11 @@
  * API Configuration - DRY principle
  * Single source of truth for API URL
  *
- * - Development: Falls back to localhost:4600
+ * - Development: Falls back to localhost:4650
  * - Production: Requires NEXT_PUBLIC_API_BASE_URL to be set
  */
 
-const DEV_API_URL = 'http://localhost:4600'
+const DEV_API_URL = 'http://localhost:4650'
 
 /**
  * Get API base URL from environment

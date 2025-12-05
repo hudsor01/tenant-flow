@@ -3,6 +3,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesController } from './late-fees.controller'
@@ -100,6 +101,10 @@ describe('LateFeesController', () => {
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		})

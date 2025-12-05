@@ -3,12 +3,13 @@
 	"display": "TenantFlow E2E Tests Config",
 	"extends": "../../packages/typescript-config/library.json",
 	"compilerOptions": {
-		"rootDir": "./tests",
+		"rootDir": "..",
 		"outDir": "./.cache",
 		"noEmit": true,
 		"types": ["@types/node", "@playwright/test"],
+		"lib": ["ES2022", "DOM"],
 		"composite": false
 	},
-	"include": ["tests/**/*.ts"],
-	"exclude": ["tests/**/__snapshots__/**"]
+	"include": ["tests/**/*.ts", "auth-helpers.ts", "../frontend/tests/fixtures/**/*.ts", "global.d.ts"],
+	"exclude": ["tests/**/__snapshots__/**", "tests/tanstack-query/**"]
 }

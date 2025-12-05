@@ -8,6 +8,9 @@ import { SubscriptionsService } from './subscriptions.service'
 import { SubscriptionQueryService } from './subscription-query.service'
 import { SubscriptionBillingService } from './subscription-billing.service'
 import { SubscriptionLifecycleService } from './subscription-lifecycle.service'
+import { SilentLogger } from '../__test__/silent-logger'
+import { AppLogger } from '../logger/app-logger.service'
+
 
 describe('SubscriptionsService (Facade)', () => {
 	let service: SubscriptionsService
@@ -40,7 +43,11 @@ describe('SubscriptionsService (Facade)', () => {
 				SubscriptionsService,
 				{ provide: SubscriptionQueryService, useValue: mockQueryService },
 				{ provide: SubscriptionBillingService, useValue: mockBillingService },
-				{ provide: SubscriptionLifecycleService, useValue: mockLifecycleService }
+				{ provide: SubscriptionLifecycleService, useValue: mockLifecycleService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

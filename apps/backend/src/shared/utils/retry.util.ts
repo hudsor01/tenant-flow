@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common'
+import type { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Retry configuration constants
@@ -12,14 +12,14 @@ export const RETRY_CONFIG = {
  * Retry an async operation with exponential backoff
  *
  * @param operation - The async function to retry
- * @param logger - NestJS Logger instance for logging retry attempts
+ * @param logger - AppLogger instance for logging retry attempts
  * @param context - Context string for logging (e.g., "RPC call: get_billing_insights")
  * @param attempt - Current attempt number (default: 0, internal use for recursion)
  * @returns The result of the operation or null if all retries failed
  */
 export async function retryWithExponentialBackoff<T>(
 	operation: () => Promise<T>,
-	logger: Logger,
+	logger: AppLogger,
 	context: string,
 	attempt = 0
 ): Promise<T | null> {

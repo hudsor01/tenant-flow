@@ -5,6 +5,9 @@ import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { TaxDocumentsController } from './tax-documents.controller'
 import { TaxDocumentsService } from './tax-documents.service'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Mock the JwtToken decorator to return our test token
 jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
@@ -139,6 +142,10 @@ describe('TaxDocumentsController', () => {
 				{
 					provide: TaxDocumentsService,
 					useValue: service
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		})
