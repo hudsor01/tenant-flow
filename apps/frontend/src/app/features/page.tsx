@@ -1,14 +1,14 @@
 'use client'
-'use client'
 
 import { useState, useEffect, type ReactNode } from 'react'
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
-import { GridPattern } from '#components/ui/grid-pattern'
+
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
+import { LogoCloud } from '#components/sections/logo-cloud'
+import { ComparisonTable } from '#components/sections/comparison-table'
 import { cn } from '#lib/utils'
 import {
 	ArrowRight,
@@ -20,128 +20,220 @@ import {
 	TrendingUp,
 	Users,
 	Zap,
-	Bell,
-	Share2,
 	Building,
-	DollarSign,
-	FileText
+	FileText,
+	Home,
+	Wrench,
+	CreditCard,
+	PieChart
 } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
 
-// Animated background components for bento grid
-const FileMarquee = () => (
-	<div className="absolute inset-0 overflow-hidden">
-		<div className="absolute top-4 left-4 space-y-2 animate-pulse">
-			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm">
-				<FileText className="size-4 text-primary" />
-				<span className="text-xs font-medium">Lease_Agreement.pdf</span>
-			</div>
-			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm animate-delay-100">
-				<FileText className="size-4 text-primary" />
-				<span className="text-xs font-medium">Tenant_Application.docx</span>
-			</div>
-			<div className="flex items-center space-x-2 bg-card/80 rounded-lg p-2 shadow-sm animate-delay-200">
-				<FileText className="size-4 text-primary" />
-				<span className="text-xs font-medium">Maintenance_Report.xlsx</span>
-			</div>
-		</div>
-	</div>
-)
-
-const NotificationList = () => (
-	<div className="absolute inset-0 overflow-hidden">
-		<div className="absolute top-4 right-4 space-y-2">
+// Animated background: Property Management Grid
+const PropertyGrid = () => (
+	<div className="absolute inset-x-0 top-0 bottom-[45%] p-4">
+		<div className="grid grid-cols-2 gap-2 h-full opacity-70">
 			{[
-				"Rent payment received - $2,450",
-				"Maintenance request submitted",
-				"Lease renewal reminder sent",
-				"New tenant application"
-			].map((notification, i) => (
+				{ name: '123 Oak St', units: 4, occupancy: '100%' },
+				{ name: '456 Maple Ave', units: 8, occupancy: '87%' },
+				{ name: '789 Pine Rd', units: 12, occupancy: '92%' },
+				{ name: '321 Cedar Ln', units: 6, occupancy: '100%' }
+			].map((property, i) => (
 				<div
-					key={notification}
-					className="flex items-center space-x-2 bg-card/90 rounded-lg p-2 shadow-sm animate-fade-in"
-					style={{ animationDelay: `${i * 0.5}s` }}
+					key={property.name}
+					className="card-standard p-3 flex flex-col justify-between"
+					style={{ animationDelay: `${i * 100}ms` }}
 				>
-					<Bell className="size-3 text-primary animate-bounce" />
-					<span className="text-xs">{notification}</span>
+					<div className="flex items-center gap-2">
+						<div className="icon-container-sm bg-primary/10 text-primary">
+							<Home className="size-3" />
+						</div>
+						<span className="text-xs font-medium text-foreground truncate">{property.name}</span>
+					</div>
+					<div className="flex justify-between text-xs mt-2">
+						<span className="text-muted-foreground">{property.units} units</span>
+						<span className="text-success font-medium">{property.occupancy}</span>
+					</div>
 				</div>
 			))}
 		</div>
 	</div>
 )
 
-const FinancialDashboard = () => (
-	<div className="absolute inset-0 overflow-hidden">
-		<div className="absolute top-4 left-4 right-4 space-y-3">
-			{/* Revenue Chart */}
-			<div className="bg-card/90 rounded-lg p-3 shadow-sm">
-				<div className="flex-between mb-2">
-					<span className="text-sm font-medium">Monthly Revenue</span>
-					<DollarSign className="size-4 text-primary" />
+// Animated background: Rent Collection Dashboard
+const RentCollection = () => (
+	<div className="absolute inset-x-0 top-0 bottom-[30%] p-4 overflow-hidden">
+		<div className="space-y-3 opacity-70">
+			{/* Progress bar */}
+			<div className="card-standard p-3">
+				<div className="flex justify-between text-xs mb-2">
+					<span className="text-muted-foreground">December Rent</span>
+					<span className="text-foreground font-medium">$48,250 / $52,000</span>
 				</div>
-				<div className="flex items-end space-x-1 h-12">
-					{[40, 60, 45, 80, 65, 90, 75, 85, 95, 88, 92, 98].map((height, i) => (
-						<div
-							key={i}
-							className="bg-primary/80 rounded-sm flex-1 animate-pulse"
-							style={{
-								height: `${height}%`,
-								animationDelay: `${i * 0.1}s`
-							}}
-						/>
-					))}
+				<div className="h-2 bg-muted rounded-full overflow-hidden">
+					<div className="h-full bg-success rounded-full" style={{ width: '93%' }} />
 				</div>
-				<div className="text-caption mt-1">$124,500</div>
 			</div>
+			{/* Recent payments */}
+			<div className="space-y-2">
+				{[
+					{ tenant: 'Sarah Johnson', amount: '$1,850', status: 'Paid' },
+					{ tenant: 'Michael Chen', amount: '$2,200', status: 'Paid' },
+					{ tenant: 'Emily Davis', amount: '$1,650', status: 'Pending' }
+				].map((payment) => (
+					<div key={payment.tenant} className="card-standard p-2 flex-between">
+						<span className="text-xs text-foreground">{payment.tenant}</span>
+						<div className="flex items-center gap-2">
+							<span className="text-xs font-medium text-foreground">{payment.amount}</span>
+							<span className={cn(
+								'text-xs px-2 py-0.5 rounded-full',
+								payment.status === 'Paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+							)}>
+								{payment.status}
+							</span>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	</div>
+)
 
-			{/* Key Metrics */}
-			<div className="grid grid-cols-2 gap-2">
-				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
-					<div className="text-caption">Occupancy</div>
-					<div className="text-lg font-bold text-primary animate-pulse">96.2%</div>
+// Animated background: Tenant Management
+const TenantList = () => (
+	<div className="absolute inset-x-0 top-0 bottom-[45%] p-4 overflow-hidden">
+		<div className="space-y-2 opacity-70">
+			{[
+				{ name: 'Alex Thompson', unit: 'Unit 2A', lease: 'Active', rent: '$1,800' },
+				{ name: 'Jessica Miller', unit: 'Unit 3B', lease: 'Renewing', rent: '$2,100' },
+				{ name: 'David Wilson', unit: 'Unit 1C', lease: 'Active', rent: '$1,650' },
+				{ name: 'Rachel Green', unit: 'Unit 4D', lease: 'Active', rent: '$1,950' }
+			].map((tenant) => (
+				<div key={tenant.name} className="card-standard p-3 flex-between">
+					<div className="flex items-center gap-3">
+						<div className="size-8 rounded-full bg-primary/10 flex-center text-primary text-xs font-medium">
+							{tenant.name.split(' ').map(n => n[0]).join('')}
+						</div>
+						<div>
+							<div className="text-xs font-medium text-foreground">{tenant.name}</div>
+							<div className="text-xs text-muted-foreground">{tenant.unit}</div>
+						</div>
+					</div>
+					<div className="text-right">
+						<div className="text-xs font-medium text-foreground">{tenant.rent}</div>
+						<span className={cn(
+							'text-xs',
+							tenant.lease === 'Renewing' ? 'text-warning' : 'text-success'
+						)}>
+							{tenant.lease}
+						</span>
+					</div>
 				</div>
-				<div className="bg-card/90 rounded-lg p-2 shadow-sm">
-					<div className="text-caption">Avg. Rent</div>
-					<div className="text-lg font-bold text-primary animate-pulse">$2,450</div>
+			))}
+		</div>
+	</div>
+)
+
+// Animated background: Maintenance Requests
+const MaintenanceBoard = () => (
+	<div className="absolute inset-x-0 top-0 bottom-[45%] p-4 overflow-hidden">
+		<div className="grid grid-cols-3 gap-2 h-full opacity-70">
+			{/* Open */}
+			<div className="space-y-2">
+				<div className="text-xs font-medium text-muted-foreground px-1">Open</div>
+				<div className="card-standard p-2 border-l-2 border-l-warning">
+					<div className="text-xs font-medium text-foreground">Leaky Faucet</div>
+					<div className="text-xs text-muted-foreground">Unit 2A</div>
+				</div>
+			</div>
+			{/* In Progress */}
+			<div className="space-y-2">
+				<div className="text-xs font-medium text-muted-foreground px-1">In Progress</div>
+				<div className="card-standard p-2 border-l-2 border-l-info">
+					<div className="text-xs font-medium text-foreground">HVAC Repair</div>
+					<div className="text-xs text-muted-foreground">Unit 3B</div>
+				</div>
+				<div className="card-standard p-2 border-l-2 border-l-info">
+					<div className="text-xs font-medium text-foreground">Window Fix</div>
+					<div className="text-xs text-muted-foreground">Unit 1C</div>
+				</div>
+			</div>
+			{/* Completed */}
+			<div className="space-y-2">
+				<div className="text-xs font-medium text-muted-foreground px-1">Done</div>
+				<div className="card-standard p-2 border-l-2 border-l-success">
+					<div className="text-xs font-medium text-foreground">Paint Touch-up</div>
+					<div className="text-xs text-muted-foreground">Unit 4D</div>
 				</div>
 			</div>
 		</div>
 	</div>
 )
 
-const IntegrationBeam = () => (
-	<div className="absolute inset-0 overflow-hidden">
-		<div className="absolute inset-0 flex-center">
-			<div className="relative">
-				{/* Central hub */}
-				<div className="size-8 bg-primary rounded-full flex-center animate-pulse">
-					<Building className="size-4 text-primary-foreground" />
+// Animated background: Analytics Charts
+const AnalyticsPreview = () => (
+	<div className="absolute inset-x-0 top-0 bottom-[40%] p-4 overflow-hidden">
+		<div className="space-y-3 opacity-70">
+			{/* Revenue chart bars */}
+			<div className="card-standard p-3">
+				<div className="flex-between mb-2">
+					<span className="text-xs text-muted-foreground">Monthly Revenue</span>
+					<span className="text-xs font-medium text-success">+12.5%</span>
 				</div>
-				{/* Connecting beams */}
-				{[
-					{ angle: 0, icon: DollarSign, label: "Stripe" },
-					{ angle: 90, icon: Share2, label: "Supabase" },
-					{ angle: 180, icon: Bell, label: "Resend" },
-					{ angle: 270, icon: Shield, label: "Auth" }
-				].map(({ angle, icon: Icon, label }, i) => (
-					<div
-						key={label}
-						className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-						style={{
-							transform: `translate(-50%, -50%) rotate(${angle}deg) translateX(60px)`
-						}}
-					>
-						<div className="flex flex-col items-center space-y-1 animate-fade-in" style={{ animationDelay: `${i * 0.3}s` }}>
-							<div className="size-6 bg-card rounded-full flex-center shadow-sm border">
-								<Icon className="size-3 text-primary" />
-							</div>
-							<span className="text-xs font-medium transform -rotate-90 whitespace-nowrap">{label}</span>
+				<div className="flex items-end gap-1 h-16">
+					{[45, 52, 48, 61, 55, 70, 65, 78, 72, 85, 80, 92].map((height, i) => (
+						<div
+							key={i}
+							className="bg-primary/70 rounded-sm flex-1 transition-all duration-300"
+							style={{ height: `${height}%` }}
+						/>
+					))}
+				</div>
+			</div>
+			{/* Metrics */}
+			<div className="grid grid-cols-2 gap-2">
+				<div className="card-standard p-2 text-center">
+					<div className="text-lg font-bold text-foreground">96.2%</div>
+					<div className="text-xs text-muted-foreground">Occupancy</div>
+				</div>
+				<div className="card-standard p-2 text-center">
+					<div className="text-lg font-bold text-foreground">$2,450</div>
+					<div className="text-xs text-muted-foreground">Avg. Rent</div>
+				</div>
+			</div>
+		</div>
+	</div>
+)
+
+// Animated background: Lease Documents
+const LeaseDocuments = () => (
+	<div className="absolute inset-x-0 top-0 bottom-[45%] p-4 overflow-hidden">
+		<div className="space-y-2 opacity-70">
+			{[
+				{ name: 'Lease Agreement - Unit 2A', status: 'Signed', date: 'Dec 1, 2024' },
+				{ name: 'Renewal Notice - Unit 3B', status: 'Pending', date: 'Dec 15, 2024' },
+				{ name: 'Move-in Inspection', status: 'Signed', date: 'Nov 28, 2024' },
+				{ name: 'Pet Addendum - Unit 1C', status: 'Signed', date: 'Nov 20, 2024' }
+			].map((doc) => (
+				<div key={doc.name} className="card-standard p-3 flex-between">
+					<div className="flex items-center gap-3">
+						<div className="icon-container-sm bg-primary/10 text-primary">
+							<FileText className="size-3" />
+						</div>
+						<div>
+							<div className="text-xs font-medium text-foreground">{doc.name}</div>
+							<div className="text-xs text-muted-foreground">{doc.date}</div>
 						</div>
 					</div>
-				))}
-			</div>
+					<span className={cn(
+						'text-xs px-2 py-0.5 rounded-full',
+						doc.status === 'Signed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+					)}>
+						{doc.status}
+					</span>
+				</div>
+			))}
 		</div>
 	</div>
 )
@@ -193,7 +285,7 @@ export default function FeaturesPage() {
 		},
 		{
 			quote:
-				'Best property management decision we&apos;ve made. ROI was clear within 60 days.',
+				'Best property management decision we\'ve made. ROI was clear within 60 days.',
 			author: 'Marcus Rodriguez',
 			title: 'Director of Operations',
 			company: 'Urban Real Estate Group',
@@ -221,18 +313,13 @@ export default function FeaturesPage() {
 		testimonials[0]) as (typeof testimonials)[number]
 
 	return (
-		<div className="relative min-h-screen flex flex-col marketing-page">
+		<PageLayout>
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
 					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-			{/* Full page grid background */}
-			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<Navbar />
 
 			{/* Sticky CTA */}
 			<div
@@ -255,24 +342,19 @@ export default function FeaturesPage() {
 				</Button>
 			</div>
 
-			{/* Hero Section with Modern Background */}
+			{/* Hero Section */}
 			<section className="relative pb-16 overflow-hidden page-offset-navbar">
-				{/* Solid tint background */}
 				<div className="absolute inset-0 bg-[color-mix(in_oklch,var(--color-primary)_5%,transparent)]" />
-
-				{/* Subtle pattern overlay */}
 				<div className="absolute inset-0 opacity-[0.015] bg-[radial-gradient(circle_at_1px_1px,var(--color-foreground)_1px,transparent_0)] bg-size-[32px_32px]" />
 
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<BlurFade delay={0.1} inView>
 						<div className="text-center max-w-5xl mx-auto space-y-8">
-							{/* Strengthened headline with premium typography */}
 							<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
 								<span className="text-foreground">Transform your portfolio into a</span>{' '}
 								<span className="hero-highlight">profit powerhouse</span>
 							</h1>
 
-							{/* Concise, benefit-driven subtext */}
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
 								Join 10,000+ property managers who&apos;ve increased NOI by 40%
 								with enterprise-grade automation and AI-powered analytics.{' '}
@@ -281,7 +363,6 @@ export default function FeaturesPage() {
 								</span>
 							</p>
 
-							{/* High-contrast, prominent CTAs */}
 							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
 									size="lg"
@@ -289,7 +370,6 @@ export default function FeaturesPage() {
 									asChild
 								>
 									<Link href="/pricing" aria-label="Start free trial">
-										<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 										<span className="relative z-10 flex items-center">
 											Start Free Trial
 											<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
@@ -309,18 +389,16 @@ export default function FeaturesPage() {
 								</Button>
 							</div>
 
-							{/* Social proof below CTAs */}
 							<p className="text-muted-foreground/80 text-sm font-medium">
 								<Check className="size-4 inline text-primary mr-2" />
-								Join 10,000+ managers already growing NOI • No credit card
-								required
+								Join 10,000+ managers already growing NOI • No credit card required
 							</p>
 						</div>
 					</BlurFade>
 				</div>
 			</section>
 
-			{/* Feature callouts (concise horizontal pills) */}
+			{/* Feature callouts */}
 			<section className="section-spacing-compact">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="grid gap-3 md:grid-cols-3">
@@ -352,46 +430,34 @@ export default function FeaturesPage() {
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
 						<BlurFade delay={0.2} inView>
 							<div className="text-center space-y-8">
-								{/* Press mentions and awards */}
 								<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
 									<div className="flex items-center space-x-2">
 										<Star className="size-4 fill-current text-accent" />
-										<span className="font-medium">
-											Featured in PropTech Today
-										</span>
+										<span className="font-medium">Featured in PropTech Today</span>
 									</div>
 									<div className="flex items-center space-x-2">
 										<span className="font-medium">99.9% Uptime SLA</span>
 									</div>
 								</div>
 
-								{/* Rotating testimonial */}
 								<div className="max-w-4xl mx-auto">
-									<div className="relative rounded-2xl p-8 border border-primary/10 backdrop-blur-sm bg-card/50">
-										<>
-											<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
-												&quot;{t.quote}&quot;
-											</blockquote>
-											<div className="flex-center space-x-4">
-												<Image
-													src={t.avatar}
-													alt={t.author}
-													width={48}
-													height={48}
-													className="size-12 rounded-full"
-												/>
-												<div className="text-left">
-													<div className="font-semibold text-foreground">
-														{t.author}
-													</div>
-													<div className="text-muted-foreground text-sm">
-														{t.title}, {t.company}
-													</div>
+									<div className="testimonial-card">
+										<blockquote className="text-xl text-foreground font-medium leading-relaxed mb-6">
+											&quot;{t.quote}&quot;
+										</blockquote>
+										<div className="flex-center space-x-4">
+											{/* Initial avatar instead of photo */}
+											<div className="size-12 rounded-full bg-primary/10 flex-center text-primary font-bold">
+												{t.author.split(' ').map(n => n[0]).join('')}
+											</div>
+											<div className="text-left">
+												<div className="font-semibold text-foreground">{t.author}</div>
+												<div className="text-muted-foreground text-sm">
+													{t.title}, {t.company}
 												</div>
 											</div>
-										</>
+										</div>
 
-										{/* Testimonial dots */}
 										<div className="flex justify-center space-x-2 mt-6">
 											{testimonials.map((testimonial, index) => (
 												<button
@@ -415,7 +481,7 @@ export default function FeaturesPage() {
 				</section>
 			</LazySection>
 
-			{/* Animated Feature Showcase */}
+			{/* Feature Showcase - BentoGrid */}
 			<LazySection
 				fallback={<SectionSkeleton height={600} variant="grid" />}
 				minHeight={600}
@@ -425,55 +491,84 @@ export default function FeaturesPage() {
 						<BlurFade delay={0.3} inView>
 							<div className="text-center mb-16 space-y-6">
 								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-									See TenantFlow in action -{' '}
-									<span className="hero-highlight">
-										live & interactive
-									</span>
+									Everything you need to{' '}
+									<span className="hero-highlight">manage properties</span>
 								</h2>
 								<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
-									Experience our platform&apos;s power through animated demonstrations
-									of real property management workflows
+									From rent collection to maintenance tracking, TenantFlow gives you
+									complete control over your property portfolio
 								</p>
 							</div>
 
-							<BentoGrid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+							<BentoGrid>
+								{/* Row 1: Large left (2 cols), Small right (1 col) */}
 								<BentoCard
-									name="Smart Document Processing"
-									background={<FileMarquee />}
-									Icon={FileText}
-									description="AI-powered document analysis and automated lease processing with real-time file previews"
-									href="/documents"
-									cta="Explore Documents"
+									name="Property Management"
+									className="md:col-span-2"
+									background={<PropertyGrid />}
+									Icon={Building}
+									description="Manage unlimited properties and units with real-time occupancy tracking and portfolio analytics"
+									href="/properties"
+									cta="Manage Properties"
 								/>
 								<BentoCard
-									name="Real-Time Notifications"
-									background={<NotificationList />}
-									Icon={Bell}
-									description="Intelligent notification system that keeps you updated on all property activities and deadlines"
-									href="/dashboard/settings"
-									cta="View Notifications"
+									name="Rent Collection"
+									className="md:col-span-1 md:row-span-2"
+									background={<RentCollection />}
+									Icon={CreditCard}
+									description="Automated ACH payments, late fee calculations, and Stripe integration"
+									href="/financials/billing"
+									cta="Collect Rent"
+								/>
+								{/* Row 2: Small left (1 col), continues with tall rent card */}
+								<BentoCard
+									name="Tenant Portal"
+									className="md:col-span-1"
+									background={<TenantList />}
+									Icon={Users}
+									description="Self-service portal for payments and maintenance requests"
+									href="/tenants"
+									cta="View Tenants"
+								/>
+								<BentoCard
+									name="Maintenance Tracking"
+									className="md:col-span-1"
+									background={<MaintenanceBoard />}
+									Icon={Wrench}
+									description="Kanban-style board with photo uploads and vendor assignment"
+									href="/maintenance"
+									cta="Track Maintenance"
+								/>
+								{/* Row 3: Small left (1 col), Large right (2 cols) */}
+								<BentoCard
+									name="Lease Management"
+									className="md:col-span-1"
+									background={<LeaseDocuments />}
+									Icon={FileText}
+									description="Digital signing with DocuSeal and Texas-compliant templates"
+									href="/leases"
+									cta="Manage Leases"
 								/>
 								<BentoCard
 									name="Financial Analytics"
-									background={<FinancialDashboard />}
-									Icon={TrendingUp}
-									description="Real-time revenue tracking, occupancy metrics, and financial insights to maximize your NOI"
+									className="md:col-span-2"
+									background={<AnalyticsPreview />}
+									Icon={PieChart}
+									description="Real-time revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
 									href="/analytics/financial"
 									cta="View Analytics"
-								/>
-								<BentoCard
-									name="Seamless Integrations"
-									background={<IntegrationBeam />}
-									Icon={Building}
-									description="Connect with Stripe, Supabase, and more for a unified property management ecosystem"
-									href="/pricing"
-									cta="See Integrations"
 								/>
 							</BentoGrid>
 						</BlurFade>
 					</div>
 				</section>
 			</LazySection>
+
+			{/* Logo Cloud - Integrations */}
+			<LogoCloud
+				title="Powered by best-in-class integrations"
+				subtitle="Seamlessly connect with the tools you already use"
+			/>
 
 			{/* Results Proof Section */}
 			<LazySection
@@ -493,49 +588,36 @@ export default function FeaturesPage() {
 								</p>
 							</div>
 
-							{/* Results grid with enhanced visual design */}
 							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<TrendingUp className="size-10 text-primary" />
+									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<TrendingUp className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">
-										40%
-									</div>
-									<div className="text-muted-foreground">
-										Average NOI increase
-									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">40%</div>
+									<div className="text-muted-foreground">Average NOI increase</div>
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Clock className="size-10 text-primary" />
+									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Clock className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">
-										25+
-									</div>
-									<div className="text-muted-foreground">
-										Hours saved weekly
-									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">25+</div>
+									<div className="text-muted-foreground">Hours saved weekly</div>
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<Users className="size-10 text-primary" />
+									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<Users className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">
-										10K+
-									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">10K+</div>
 									<div className="text-muted-foreground">Happy customers</div>
 								</div>
 
 								<div className="text-center group">
-									<div className="size-20 rounded-full bg-[color-mix(in_oklch,var(--color-primary)_15%,transparent)] mx-auto mb-4 flex-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-										<BarChart3 className="size-10 text-primary" />
+									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+										<BarChart3 className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">
-										90
-									</div>
+									<div className="text-4xl font-bold text-foreground mb-2">90</div>
 									<div className="text-muted-foreground">Days to ROI</div>
 								</div>
 							</div>
@@ -544,23 +626,28 @@ export default function FeaturesPage() {
 				</section>
 			</LazySection>
 
-			{/* Final CTA Section with Enhanced Design */}
+			{/* Comparison Table */}
+			<LazySection
+				fallback={<SectionSkeleton height={600} variant="grid" />}
+				minHeight={600}
+			>
+				<ComparisonTable />
+			</LazySection>
+
+			{/* Final CTA Section */}
 			<LazySection
 				fallback={<SectionSkeleton height={400} variant="card" />}
 				minHeight={400}
 			>
 				<section className="section-spacing relative overflow-hidden">
-					{/* Enhanced background */}
 					<div className="absolute inset-0 bg-muted/40" />
 
 					<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 						<BlurFade delay={0.5} inView>
 							<div className="text-center space-y-8">
 								<h2 className="font-bold tracking-tight leading-tight">
-									<span className="text-foreground">Start your transformation{' '}</span>
-									<span className="hero-highlight">
-										today
-									</span>
+									<span className="text-foreground">Start your transformation </span>
+									<span className="hero-highlight">today</span>
 								</h2>
 
 								<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
@@ -578,7 +665,6 @@ export default function FeaturesPage() {
 										asChild
 									>
 										<Link href="/pricing" aria-label="Start free trial">
-											<div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-card/50" />
 											<span className="relative z-10 flex items-center">
 												Start Free Trial
 												<ArrowRight className="size-5 ml-3 transition-transform group-hover:translate-x-1" />
@@ -622,8 +708,7 @@ export default function FeaturesPage() {
 				</section>
 			</LazySection>
 
-			<Footer />
-		</div>
+					</PageLayout>
 	)
 }
 
@@ -637,8 +722,8 @@ function FeaturePill({
 	description: string
 }) {
 	return (
-		<div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm px-4 py-3 hover:border-primary/30 transition-colors">
-			<div className="size-9 rounded-xl bg-primary/15 text-primary flex-center">
+		<div className="flex items-center gap-3 card-standard px-4 py-3 hover:border-primary/30 hover:shadow-sm transition-all duration-200">
+			<div className="icon-container-md icon-container-primary">
 				{icon}
 			</div>
 			<div>
