@@ -113,8 +113,9 @@ COPY --from=build --chown=node:node /app/apps/backend/dist ./apps/backend/dist
 COPY --from=build --chown=node:node /app/packages/shared/package.json ./packages/shared/
 COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/dist
 
-# Create reports directory
-RUN mkdir -p /app/reports && chown -R node:node /app/reports
+# Create reports and logs directories with proper permissions
+RUN mkdir -p /app/reports /app/logs/backend && \
+    chown -R node:node /app/reports /app/logs
 
 # Install production dependencies
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
