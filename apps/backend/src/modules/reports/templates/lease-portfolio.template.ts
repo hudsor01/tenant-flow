@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { LeaseAnalyticsService } from '../../analytics/lease-analytics.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 export interface LeasePortfolioReportData {
 	leaseSummary: {
@@ -36,9 +37,8 @@ export interface LeasePortfolioReportData {
 
 @Injectable()
 export class LeasePortfolioTemplate {
-	private readonly logger = new Logger(LeasePortfolioTemplate.name)
 
-	constructor(private readonly leaseService: LeaseAnalyticsService) {}
+	constructor(private readonly leaseService: LeaseAnalyticsService, private readonly logger: AppLogger) {}
 
 	async generateReportData(
 		user_id: string,

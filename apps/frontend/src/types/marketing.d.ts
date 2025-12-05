@@ -1,3 +1,3 @@
-declare module '@/types/marketing' {
+declare module '#types/marketing' {
 	export type HeroVariant = 'default' | 'centered' | 'split' | 'minimal'
 }

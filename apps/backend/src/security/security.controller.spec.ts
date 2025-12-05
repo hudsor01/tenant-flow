@@ -4,6 +4,9 @@ import type { CSPReportBody } from '@repo/shared/types/domain'
 import { SecurityMetricsService } from './security-metrics.service'
 import { SecurityController } from './security.controller'
 import { AppConfigService } from '../config/app-config.service'
+import { SilentLogger } from '../__test__/silent-logger'
+import { AppLogger } from '../logger/app-logger.service'
+
 
 describe('SecurityController', () => {
 	let controller: SecurityController
@@ -25,7 +28,11 @@ describe('SecurityController', () => {
 			controllers: [SecurityController],
 			providers: [
 				{ provide: SecurityMetricsService, useValue: mockMetricsService },
-				{ provide: AppConfigService, useValue: mockConfigService }
+				{ provide: AppConfigService, useValue: mockConfigService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

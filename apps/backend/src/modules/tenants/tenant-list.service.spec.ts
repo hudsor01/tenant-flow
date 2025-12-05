@@ -1,6 +1,7 @@
 import { BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantListService } from './tenant-list.service'
 import type { ListFilters } from './tenant-list.service'
@@ -47,7 +48,11 @@ describe('TenantListService', () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				TenantListService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

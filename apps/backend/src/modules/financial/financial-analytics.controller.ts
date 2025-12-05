@@ -1,15 +1,9 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	Query,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
+import { Controller, Get, Query, Req, UnauthorizedException } from '@nestjs/common'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialService } from './financial.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Public financial analytics endpoints (used by Next.js dashboard pages).
@@ -20,12 +14,9 @@ import { FinancialService } from './financial.service'
  */
 @Controller('financial/analytics')
 export class FinancialAnalyticsPublicController {
-	private readonly logger = new Logger(FinancialAnalyticsPublicController.name)
 
-	constructor(
-		private readonly financialService: FinancialService,
-		private readonly supabase: SupabaseService
-	) {}
+	constructor(private readonly financialService: FinancialService,
+		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	private getToken(req: Request): string {
 		const token = this.supabase.getTokenFromRequest(req)

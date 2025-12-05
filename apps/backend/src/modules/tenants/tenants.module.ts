@@ -1,4 +1,4 @@
-import { Module, Logger } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { StripeModule } from '../billing/stripe.module'
@@ -50,7 +50,6 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 	imports: [SupabaseModule, EmailModule, StripeModule],
 	controllers: [TenantsController],
 	providers: [
-		Logger,
 		// Query services (decomposed)
 		TenantDetailService,
 		TenantListService,

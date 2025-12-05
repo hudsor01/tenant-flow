@@ -1,0 +1,10 @@
+-- Grant permissions on lease_tenants and payment_intents tables
+-- Required for tenant list queries with lease info and payment summaries
+
+-- lease_tenants: Required for tenant list with lease info
+GRANT SELECT ON public.lease_tenants TO authenticated;
+GRANT ALL ON public.lease_tenants TO service_role;
+
+-- payment_intents: Required for payment summary queries
+GRANT SELECT ON stripe.payment_intents TO authenticated;
+GRANT ALL ON stripe.payment_intents TO service_role;

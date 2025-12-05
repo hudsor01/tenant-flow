@@ -7,12 +7,13 @@
  * Runs every 5 minutes via cron job.
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
 import { logError } from '../../utils/error-serializer'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /** Maximum number of subscription creation retry attempts */
 const MAX_RETRY_ATTEMPTS = 5
@@ -32,13 +33,10 @@ interface LeaseWithSubscriptionPending {
 
 @Injectable()
 export class SubscriptionRetryService {
-	private readonly logger = new Logger(SubscriptionRetryService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly leaseSubscriptionService: LeaseSubscriptionService,
-		private readonly eventEmitter: EventEmitter2
-	) {}
+		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
 
 	/**
 	 * Retry failed subscription creations every 5 minutes

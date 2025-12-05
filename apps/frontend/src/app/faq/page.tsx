@@ -1,9 +1,8 @@
 import { FaqsAccordion } from '#app/faq/faq-accordion'
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
-import { GridPattern } from '#components/ui/grid-pattern'
+
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
 
@@ -49,7 +48,7 @@ export default function FAQPage() {
 	}
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<PageLayout>
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -62,9 +61,6 @@ export default function FAQPage() {
 					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-			<GridPattern className="fixed inset-0 -z-10" />
-			<Navbar />
-			<main className="flex-1 page-offset-navbar">
 				<HeroSection
 				trustBadge="Real answers from real results"
 				title="Your $30,000 annual savings"
@@ -123,8 +119,6 @@ export default function FAQPage() {
 					</div>
 				</div>
 				</section>
-			</main>
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

@@ -1,4 +1,5 @@
-import { All, Controller, GoneException, Logger, Param } from '@nestjs/common'
+import { All, Controller, GoneException, Param } from '@nestjs/common'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Legacy /manage controller
@@ -8,7 +9,8 @@ import { All, Controller, GoneException, Logger, Param } from '@nestjs/common'
  */
 @Controller('manage')
 export class DashboardController {
-	private readonly logger = new Logger(DashboardController.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	@All('*path')
 	handleLegacyRoute(@Param('path') path = ''): never {

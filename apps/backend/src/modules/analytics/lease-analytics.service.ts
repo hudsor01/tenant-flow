@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	LeaseFinancialInsight,
 	LeaseFinancialSummary
@@ -16,12 +16,12 @@ import {
 	mapLeaseSummary
 } from '@repo/shared/utils/lease-analytics'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class LeaseAnalyticsService {
-	private readonly logger = new Logger(LeaseAnalyticsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	private buildUserPayload(
 		user_id: string,

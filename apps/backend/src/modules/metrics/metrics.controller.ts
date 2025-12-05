@@ -1,18 +1,11 @@
-import {
-	Controller,
-	Get,
-	Req,
-	Res,
-	UnauthorizedException,
-	SetMetadata,
-	Logger
-} from '@nestjs/common'
+import { Controller, Get, Req, Res, UnauthorizedException, SetMetadata } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { PrometheusController } from '@willsoto/nestjs-prometheus'
 import { timingSafeEqual } from 'crypto'
 import type { Request, Response } from 'express'
 import { createThrottleDefaults } from '../../config/throttle.config'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 const METRICS_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'METRICS_THROTTLE_TTL',
@@ -32,9 +25,8 @@ const METRICS_THROTTLE = createThrottleDefaults({
  */
 @Controller() // Define explicit route paths inside decorators
 export class MetricsController extends PrometheusController {
-	private readonly logger = new Logger(MetricsController.name)
 
-	constructor(private readonly appConfigService: AppConfigService) {
+	constructor(private readonly appConfigService: AppConfigService, private readonly logger: AppLogger) {
 		super()
 	}
 

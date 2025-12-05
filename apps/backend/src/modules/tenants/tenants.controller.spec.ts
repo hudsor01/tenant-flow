@@ -9,6 +9,9 @@ import { TenantPaymentService } from './tenant-payment.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('TenantsController', () => {
 	let controller: TenantsController
@@ -80,7 +83,11 @@ describe('TenantsController', () => {
 				{ provide: TenantNotificationPreferencesService, useValue: mockNotificationPreferencesService },
 				{ provide: TenantPaymentService, useValue: mockPaymentService },
 				{ provide: TenantPlatformInvitationService, useValue: mockPlatformInvitationService },
-				{ provide: TenantInvitationTokenService, useValue: mockInvitationTokenService }
+				{ provide: TenantInvitationTokenService, useValue: mockInvitationTokenService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 		.overrideGuard(PropertyOwnershipGuard)
@@ -97,7 +104,10 @@ describe('TenantsController', () => {
 	describe('Query Endpoints', () => {
 		describe('findAll', () => {
 			it('should return all tenants with lease info in PaginatedResponse format', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				const mockTenants = [{ id: 'tenant-1', lease: { id: 'lease-1' } }]
 				mockQueryService.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
 
@@ -105,7 +115,7 @@ describe('TenantsController', () => {
 
 				// Controller now returns PaginatedResponse format
 				expect(result).toEqual({ data: mockTenants, total: mockTenants.length })
-				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith('user-1', {})
+				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith('user-1', { token: 'test-token' })
 			})
 		})
 

@@ -5,6 +5,9 @@ import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { PaymentMethodsService } from './payment-methods.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 type SupabaseQueryResult<T> = Promise<{ data: T; error: null }>
 
@@ -60,6 +63,10 @@ describe('PaymentMethodsService', () => {
 				{
 					provide: StripeClientService,
 					useValue: mockStripeClientService
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

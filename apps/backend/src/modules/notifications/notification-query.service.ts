@@ -4,18 +4,18 @@
  * Extracted from NotificationsService for SRP compliance
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /** Default pagination limit per Supabase best practices */
 const DEFAULT_LIMIT = 50
 
 @Injectable()
 export class NotificationQueryService {
-	private readonly logger = new Logger(NotificationQueryService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get unread notifications for a user with pagination

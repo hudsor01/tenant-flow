@@ -1,10 +1,4 @@
-import {
-	Controller,
-	Get,
-	Logger,
-	UseGuards,
-	UseInterceptors
-} from '@nestjs/common'
+import { Controller, Get, UseGuards, UseInterceptors } from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -12,6 +6,7 @@ import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 type TenantRow = Pick<
 	Database['public']['Tables']['tenants']['Row'],
@@ -31,9 +26,8 @@ type TenantRow = Pick<
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantSettingsController {
-	private readonly logger = new Logger(TenantSettingsController.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get tenant profile and settings

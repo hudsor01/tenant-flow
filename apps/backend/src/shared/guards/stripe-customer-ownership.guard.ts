@@ -3,26 +3,18 @@
  * Uses RPC function to check ownership through stripe.customers table
  */
 
-import {
-	type CanActivate,
-	type ExecutionContext,
-	ForbiddenException,
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { type CanActivate, type ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 import { user_idByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
 import { AuthRequestCache } from '../services/auth-request-cache.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class StripeCustomerOwnershipGuard implements CanActivate {
-	private readonly logger = new Logger(StripeCustomerOwnershipGuard.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly authCache: AuthRequestCache
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly authCache: AuthRequestCache, private readonly logger: AppLogger) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()

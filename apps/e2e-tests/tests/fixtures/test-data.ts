@@ -8,7 +8,40 @@
  */
 
 import { faker } from '@faker-js/faker'
-import type { LeaseInput, PropertyInput, TenantInput } from '@repo/shared'
+
+// Local test data contracts (kept narrow to the fields used in E2E flows)
+export interface TenantInput {
+	first_name: string
+	last_name: string
+	email: string
+	phone: string
+	emergency_contact: string
+	avatarUrl: string | null
+	user_id: string | null
+}
+
+export interface PropertyInput {
+	name: string
+	address: string
+	city: string
+	state: string
+	postal_code: string
+	property_type: string
+	units: number
+	description?: string
+	yearBuilt?: number
+}
+
+export interface LeaseInput {
+	tenant_id: string
+	property_id: string
+	unit_id: string
+	start_date: string
+	end_date: string
+	rent_amount: number
+	security_deposit: number
+	status: string
+}
 
 /**
  * Tenant Factory
@@ -23,8 +56,8 @@ export const createTenant = (overrides?: Partial<TenantInput>): TenantInput => {
 		last_name,
 		email: faker.internet
 			.email({
-				first_name: first_name.toLowerCase(),
-				last_name: last_name.toLowerCase()
+				firstName: first_name.toLowerCase(),
+				lastName: last_name.toLowerCase()
 			})
 			.toLowerCase(),
 		phone: faker.phone.number(),

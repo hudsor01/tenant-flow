@@ -2,7 +2,7 @@
 
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Particles } from '#components/ui/particles'
 import { cn } from '#lib/utils'
 import { ArrowRight, Check } from 'lucide-react'

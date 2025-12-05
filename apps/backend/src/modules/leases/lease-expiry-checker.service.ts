@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { LeaseExpiringEvent } from '../notifications/events/notification.events'
 import { calculateDaysUntilExpiry } from '@repo/shared/utils/lease-expiry-calculator'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Lease Expiry Checker Service
@@ -18,12 +19,9 @@ import { calculateDaysUntilExpiry } from '@repo/shared/utils/lease-expiry-calcul
  */
 @Injectable()
 export class LeaseExpiryCheckerService {
-	private readonly logger = new Logger(LeaseExpiryCheckerService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
 
 	/**
 	 * Daily safety net: Check for leases entering notification windows

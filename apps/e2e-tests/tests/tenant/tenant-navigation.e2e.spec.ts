@@ -170,11 +170,11 @@ test.describe('Tenant Navigation', () => {
     const profileLink = page.getByRole('link', { name: /profile/i }).first()
 
     // Check for common active state indicators
-    const hasActiveClass = await profileLink.evaluate((el) => {
-      const classes = el.className
-      return (
-        classes.includes('active') ||
-        classes.includes('bg-') ||
+	const hasActiveClass = await profileLink.evaluate((el) => {
+		const classes = (el.className as string | { toString(): string }).toString()
+		return (
+			classes.includes('active') ||
+			classes.includes('bg-') ||
         classes.includes('font-bold') ||
         el.getAttribute('data-active') === 'true' ||
         el.getAttribute('aria-current') === 'page'

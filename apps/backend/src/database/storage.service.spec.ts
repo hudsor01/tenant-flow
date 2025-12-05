@@ -16,6 +16,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { generateUUID } from '../../test/setup'
 import { SilentLogger } from '../__test__/silent-logger'
+import { AppLogger } from '../logger/app-logger.service'
 import { StorageService } from './storage.service'
 import { SupabaseService } from './supabase.service'
 
@@ -62,10 +63,14 @@ describe('StorageService', () => {
           provide: Logger,
           useValue: mockLogger,
         },
+        {
+          provide: AppLogger,
+          useValue: new SilentLogger()
+        }
       ],
     })
-			.setLogger(new SilentLogger())
-			.compile()
+      .setLogger(new SilentLogger())
+      .compile()
 
     service = module.get<StorageService>(StorageService)
     supabaseService = module.get<SupabaseService>(SupabaseService)

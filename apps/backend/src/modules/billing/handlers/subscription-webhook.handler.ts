@@ -7,17 +7,17 @@
  * - customer.subscription.deleted
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import type { LeaseStatus } from '@repo/shared/constants/status-types'
 import { LEASE_STATUS } from '@repo/shared/constants/status-types'
 import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class SubscriptionWebhookHandler {
-	private readonly logger = new Logger(SubscriptionWebhookHandler.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
 		try {

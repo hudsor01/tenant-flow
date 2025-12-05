@@ -1,13 +1,10 @@
 import type {
 	CanActivate,
 	ExecutionContext} from '@nestjs/common';
-import {
-	Injectable,
-	ForbiddenException,
-	Logger
-} from '@nestjs/common'
+import { Injectable, ForbiddenException } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /**
  * Tenant Authentication Guard
@@ -25,6 +22,8 @@ import { SupabaseService } from '../../../database/supabase.service'
  * @UseGuards(JwtAuthGuard, TenantAuthGuard)
  * @Controller('tenants')
  * export class TenantPaymentsController {
+    constructor(private readonly logger: AppLogger) {}
+
  *   @Get()
  *   async getPayments() {
  *     // Only TENANT user_type can access
@@ -34,9 +33,8 @@ import { SupabaseService } from '../../../database/supabase.service'
  */
 @Injectable()
 export class TenantAuthGuard implements CanActivate {
-	private readonly logger = new Logger(TenantAuthGuard.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()

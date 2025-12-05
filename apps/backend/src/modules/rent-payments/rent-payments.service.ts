@@ -8,13 +8,7 @@
  * - RentPaymentContextService: Tenant and lease context loading
  */
 
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type Stripe from 'stripe'
 import type {
 	CancelTenantAutopayParams,
@@ -34,6 +28,7 @@ import type { CreatePaymentInput } from './dto/create-payment.dto'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type PaymentMethodType = 'card' | 'ach'
 
@@ -48,17 +43,14 @@ export interface CurrentPaymentStatus {
 
 @Injectable()
 export class RentPaymentsService {
-	private readonly logger = new Logger(RentPaymentsService.name)
 	private readonly stripe: Stripe
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly stripeTenantService: StripeTenantService,
 		private readonly queryService: RentPaymentQueryService,
 		private readonly autopayService: RentPaymentAutopayService,
-		private readonly contextService: RentPaymentContextService
-	) {
+		private readonly contextService: RentPaymentContextService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 

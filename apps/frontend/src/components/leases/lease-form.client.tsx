@@ -27,7 +27,7 @@ import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
 
 import { z } from 'zod'

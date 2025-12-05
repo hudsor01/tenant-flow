@@ -1,7 +1,7 @@
 'use client'
 
 import { ActivityFeedSkeleton } from '#components/dashboard/activity-feed-skeleton'
-import { ErrorFallback } from '#components/ui/error-boundary/error-fallback'
+import { ErrorFallback } from '#components/error-boundary/error-fallback'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { useOwnerDashboardData } from '#hooks/api/use-owner-dashboard'

@@ -19,6 +19,9 @@ import { LeaseSignatureService } from './lease-signature.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { DocuSealService } from '../docuseal/docuseal.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('LeaseSignatureService', () => {
 	let service: LeaseSignatureService
@@ -78,7 +81,11 @@ describe('LeaseSignatureService', () => {
 				{ provide: EventEmitter2, useValue: mockEventEmitter },
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: DocuSealService, useValue: mockDocuSealService },
-				{ provide: LeaseSubscriptionService, useValue: mockLeaseSubscriptionService }
+				{ provide: LeaseSubscriptionService, useValue: mockLeaseSubscriptionService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

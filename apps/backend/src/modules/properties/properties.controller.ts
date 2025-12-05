@@ -8,26 +8,7 @@
  * - Direct PostgreSQL RPC calls
  */
 
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	DefaultValuePipe,
-	Delete,
-	Get,
-	NotFoundException,
-	Param,
-	ParseIntPipe,
-	ParseUUIDPipe,
-	Post,
-	Put,
-	Query,
-	Request,
-	UnauthorizedException,
-	UploadedFile,
-	UseInterceptors,
-	Logger
-} from '@nestjs/common'
+import { BadRequestException, Body, Controller, DefaultValuePipe, Delete, Get, NotFoundException, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Query, Request, UnauthorizedException, UploadedFile, UseInterceptors } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
@@ -45,20 +26,18 @@ import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * No base classes, no abstraction, just clean endpoints
  */
 @Controller('properties')
 export class PropertiesController {
-	private readonly logger = new Logger(PropertiesController.name)
 
-	constructor(
-		private readonly propertiesService: PropertiesService,
+	constructor(private readonly propertiesService: PropertiesService,
 		private readonly propertyBulkImportService: PropertyBulkImportService,
 		private readonly propertyAnalyticsService: PropertyAnalyticsService,
-		private readonly dashboardService: DashboardService
-	) {}
+		private readonly dashboardService: DashboardService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all properties for authenticated user

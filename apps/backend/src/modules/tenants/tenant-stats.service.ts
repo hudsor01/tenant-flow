@@ -4,15 +4,15 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { TenantStats, TenantSummary, RentPayment } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class TenantStatsService {
-	private readonly logger = new Logger(TenantStatsService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get tenant count for a user

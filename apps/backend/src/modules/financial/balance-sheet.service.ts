@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import {
 	createFinancialPeriod,
@@ -6,6 +6,7 @@ import {
 	validateBalanceSheet
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	calculatePropertyFinancials,
 	loadLedgerData,
@@ -37,9 +38,8 @@ interface NOIResponse {
 
 @Injectable()
 export class BalanceSheetService {
-	private readonly logger = new Logger(BalanceSheetService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Generate balance sheet for a given date

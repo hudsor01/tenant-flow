@@ -1,12 +1,13 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { TexasLeaseTemplate } from './templates/texas-lease-template'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * React Lease PDF Service
  * Generates Texas Residential Lease Agreement PDFs using React components
- * 
+ *
  * Advantages over form-filling:
  * - Full control over layout and styling
  * - No dependency on external PDF templates
@@ -15,7 +16,8 @@ import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-gene
  */
 @Injectable()
 export class ReactLeasePDFService {
-	private readonly logger = new Logger(ReactLeasePDFService.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	/**
 	 * Generate filled Texas lease PDF from form data
@@ -38,7 +40,7 @@ export class ReactLeasePDFService {
 			return pdfBuffer
 
 		} catch (error) {
-			this.logger.error('Error generating Texas lease PDF', error)
+			this.logger.error('Error generating Texas lease PDF', { error })
 			throw new InternalServerErrorException(
 				'Failed to generate lease PDF',
 				error instanceof Error ? error.message : String(error)

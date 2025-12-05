@@ -4,14 +4,10 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	InternalServerErrorException,
-	Logger
-} from '@nestjs/common'
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
 import type { Tenant, TenantWithLeaseInfo, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -29,13 +25,13 @@ export interface ListFilters {
 	invitationStatus?: string
 	limit?: number
 	offset?: number
+	token?: string
 }
 
 @Injectable()
 export class TenantListService {
-	private readonly logger = new Logger(TenantListService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all tenants for user with optional filtering
@@ -113,7 +109,9 @@ export class TenantListService {
 		userId: string,
 		filters: ListFilters
 	): Promise<Tenant[]> {
-		const client = this.supabase.getAdminClient()
+		const client = filters.token
+			? this.supabase.getUserClient(filters.token)
+			: this.supabase.getAdminClient()
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
@@ -306,7 +304,9 @@ export class TenantListService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		const client = this.supabase.getAdminClient()
+		const client = filters.token
+			? this.supabase.getUserClient(filters.token)
+			: this.supabase.getAdminClient()
 
 		// Get property owner's user_id for the RPC call
 		const { data: ownerRecord } = await client

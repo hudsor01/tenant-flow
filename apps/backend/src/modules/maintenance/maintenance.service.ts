@@ -4,12 +4,7 @@
  * Simplified: Removed helper methods, consolidated status updates
  */
 
-import {
-	BadRequestException,
-	ConflictException,
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateMaintenanceRequest,
@@ -23,10 +18,10 @@ import {
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class MaintenanceService {
-	private readonly logger = new Logger(MaintenanceService.name)
 
 	// Reverse map for converting database priority values to enum values for events
 	private readonly reversePriorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
@@ -36,10 +31,8 @@ export class MaintenanceService {
 		urgent: 'URGENT'
 	}
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all maintenance requests for a user with search and filters

@@ -256,8 +256,9 @@ test.describe('Static Asset Delivery', () => {
 		await page.goto(PROD_URL)
 
 		// Check if custom fonts are loaded
-		const fontFaces = await page.evaluate(() => {
-			return Array.from(document.fonts).map((font) => font.family)
+		const fontFaces = await page.evaluate<string[]>(() => {
+			const fonts = Array.from(document.fonts as unknown as Iterable<FontFace>)
+			return fonts.map((font) => font.family)
 		})
 
 		expect(fontFaces.length).toBeGreaterThan(0)

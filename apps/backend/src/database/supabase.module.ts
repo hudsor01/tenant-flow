@@ -2,12 +2,12 @@ import type {
 	DynamicModule} from '@nestjs/common';
 import {
 	Global,
-	Logger,
 	Module
 } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { createClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { SupabaseService } from './supabase.service'
 import { StorageService } from './storage.service'
@@ -22,7 +22,7 @@ export class SupabaseModule {
 			providers: [
 				{
 					provide: SUPABASE_ADMIN_CLIENT,
-					useFactory: (config: AppConfigService) => {
+					useFactory: (config: AppConfigService, logger: AppLogger) => {
 						const url = config.getSupabaseUrl()
 						const key = config.getSupabaseSecretKey()
 
@@ -33,7 +33,6 @@ export class SupabaseModule {
 							)
 						}
 
-						const logger = new Logger('SupabaseModule')
 						logger.log(
 							`[ADMIN_CLIENT_INIT] URL=${url?.substring(0, 35)}..., KEY_PREFIX=${key?.substring(0, 20)}...`
 						)
@@ -51,7 +50,7 @@ export class SupabaseModule {
 						}
 					})
 					},
-					inject: [AppConfigService]
+					inject: [AppConfigService, AppLogger]
 				},
 				SupabaseService,
 				StorageService

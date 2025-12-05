@@ -3,12 +3,12 @@
  * Centralizes test mock types to avoid duplication
  */
 
-import { Logger } from '@nestjs/common'
+import type { LoggerService } from '@nestjs/common'
 
 /**
  * Properly typed mock logger for NestJS tests
  */
-export interface MockLogger extends Partial<Logger> {
+export interface MockLogger extends Partial<LoggerService> {
 	log: jest.Mock
 	error: jest.Mock
 	warn: jest.Mock

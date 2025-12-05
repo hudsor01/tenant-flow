@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
 import { asStripeSchemaClient, type SupabaseError } from '../../types/stripe-schema'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Billing Service - Handles all database operations for Stripe billing entities
@@ -11,9 +12,8 @@ import { asStripeSchemaClient, type SupabaseError } from '../../types/stripe-sch
  */
 @Injectable()
 export class BillingService {
-  private readonly logger = new Logger(BillingService.name)
 
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
   /**
    * Query Stripe customer from synced stripe schema (read-only)
@@ -33,7 +33,7 @@ export class BillingService {
       .single()
 
     if (result.error && result.error.code !== 'PGRST116') {
-      this.logger.error('Failed to get customer:', result.error)
+      this.logger.error('Failed to get customer:', { error: result.error })
       throw result.error
     }
 
@@ -102,7 +102,7 @@ export class BillingService {
       .eq('id', ownerId)
 
     if (error) {
-      this.logger.error('Failed to link customer to owner:', error)
+      this.logger.error('Failed to link customer to owner:', { error })
       throw error
     }
   }
@@ -125,7 +125,7 @@ export class BillingService {
       .eq('id', tenantId)
 
     if (error) {
-      this.logger.error('Failed to link customer to tenant:', error)
+      this.logger.error('Failed to link customer to tenant:', { error })
       throw error
     }
   }
@@ -148,7 +148,7 @@ export class BillingService {
       .single()
 
     if (result.error && result.error.code !== 'PGRST116') {
-      this.logger.error('Failed to find subscription:', result.error)
+      this.logger.error('Failed to find subscription:', { error: result.error })
       throw result.error
     }
 
@@ -172,7 +172,7 @@ export class BillingService {
       .eq('customer', stripeCustomerId)
 
     if (result.error) {
-      this.logger.error('Failed to find subscriptions by customer:', result.error)
+      this.logger.error('Failed to find subscriptions by customer:', { error: result.error })
       throw result.error
     }
 
@@ -218,7 +218,7 @@ export class BillingService {
         return null
       }
       // All other errors throw (fail-closed security)
-      this.logger.error('Failed to find subscription by user ID:', error)
+      this.logger.error('Failed to find subscription by user ID:', { error })
       throw error
     }
 
@@ -243,7 +243,7 @@ export class BillingService {
       .single()
 
     if (result.error && result.error.code !== 'PGRST116') {
-      this.logger.error('Failed to find payment intent:', result.error)
+      this.logger.error('Failed to find payment intent:', { error: result.error })
       throw result.error
     }
 

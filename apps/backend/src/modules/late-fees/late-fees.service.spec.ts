@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing'
 import { randomUUID } from 'crypto'
 import type Stripe from 'stripe'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { LateFeesService } from './late-fees.service'
@@ -58,6 +59,10 @@ describe('LateFeesService', () => {
 				{
 					provide: StripeClientService,
 					useValue: mockStripeClientService
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		})

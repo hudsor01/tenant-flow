@@ -11,6 +11,9 @@ import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
 import { UnitsController } from './units.controller'
 import { UnitsService } from './units.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Mock the services
 jest.mock('./units.service', () => {
@@ -87,7 +90,11 @@ describe('UnitsController', () => {
 			controllers: [UnitsController],
 			providers: [
 				UnitsService,
-				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider }
+				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

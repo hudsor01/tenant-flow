@@ -1,6 +1,9 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 import { MaintenanceInsightsController } from './maintenance-insights.controller'
 import { MaintenanceInsightsService } from './maintenance-insights.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('MaintenanceInsightsController', () => {
 	let controller: MaintenanceInsightsController
@@ -21,6 +24,10 @@ describe('MaintenanceInsightsController', () => {
 				{
 					provide: MaintenanceInsightsService,
 					useValue: service
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

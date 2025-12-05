@@ -1,7 +1,6 @@
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
-import { GridPattern } from '#components/ui/grid-pattern'
+
 import { getBlogPost, getAllBlogPosts } from '#lib/blog-posts'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
@@ -32,14 +31,7 @@ export default async function BlogArticlePage({
 	const markdownContent = post.content.trim()
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
-			{/* Full page grid background */}
-			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<Navbar />
-
-			<main className="flex-1 page-offset-navbar">
+		<PageLayout>
 				{/* Back to Blog */}
 				<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
 					<Link
@@ -113,9 +105,6 @@ export default async function BlogArticlePage({
 						</Button>
 					</div>
 				</article>
-			</main>
-
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

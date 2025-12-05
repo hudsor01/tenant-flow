@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { MaintenanceInsightsService } from '../../analytics/maintenance-insights.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 export interface MaintenanceOperationsReportData {
 	operationsSummary: {
@@ -35,11 +36,8 @@ export interface MaintenanceOperationsReportData {
 
 @Injectable()
 export class MaintenanceOperationsTemplate {
-	private readonly logger = new Logger(MaintenanceOperationsTemplate.name)
 
-	constructor(
-		private readonly maintenanceService: MaintenanceInsightsService
-	) {}
+	constructor(private readonly maintenanceService: MaintenanceInsightsService, private readonly logger: AppLogger) {}
 
 	async generateReportData(
 		user_id: string,

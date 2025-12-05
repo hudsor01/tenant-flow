@@ -1,9 +1,8 @@
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { GridPattern } from '#components/ui/grid-pattern'
+
 
 import {
 	Item,
@@ -28,14 +27,7 @@ import {
 
 export default function HelpPage() {
 	return (
-		<div className="relative min-h-screen flex flex-col">
-			{/* Full page grid background */}
-			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<Navbar />
-
-			<main className="flex-1 page-offset-navbar">
+		<PageLayout>
 				{/* Hero Section */}
 				<HeroSection
 					title="We guarantee your success"
@@ -48,7 +40,7 @@ export default function HelpPage() {
 					secondaryCta={{ label: 'Schedule Success Call', href: '/contact' }}
 					trustSignals="24/7 Expert Support • 90-second response • 98.7% success rate"
 					image={{
-						src: 'https://images.unsplash.com/photo-155676175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
+						src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
 						alt: 'Professional customer support team helping property managers'
 					}}
 				/>
@@ -333,15 +325,16 @@ export default function HelpPage() {
 								Start 14-day transformation
 								<ArrowRight className="size-5 ml-2" />
 							</Button>
-							<Button size="lg" variant="outline" className="px-8">
-								Talk to an Expert
-							</Button>
+							<Button
+							size="lg"
+							variant="outline"
+							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary"
+						>
+							Talk to an Expert
+						</Button>
 						</div>
 					</div>
 				</section>
-			</main>
-
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

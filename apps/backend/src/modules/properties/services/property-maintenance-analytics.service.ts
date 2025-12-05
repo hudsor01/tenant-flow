@@ -1,8 +1,6 @@
 import {
 	BadRequestException,
-	Injectable,
-	Logger,
-	Optional
+	Injectable
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -11,6 +9,7 @@ import type {
 	PropertyMaintenanceData,
 	MaintenanceQueryProperty
 } from '@repo/shared/src/types/financial-statements.js'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
 
@@ -22,14 +21,10 @@ const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
  */
 @Injectable()
 export class PropertyMaintenanceAnalyticsService {
-	private readonly logger: Logger
-
 	constructor(
 		private readonly supabase: SupabaseService,
-		@Optional() logger?: Logger
-	) {
-		this.logger = logger ?? new Logger(PropertyMaintenanceAnalyticsService.name)
-	}
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Parse timeframe string to date range

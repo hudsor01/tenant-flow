@@ -1,12 +1,4 @@
-import {
-	BadRequestException,
-	Controller,
-	Get,
-	Logger,
-	Query,
-	Req,
-	UnauthorizedException
-} from '@nestjs/common'
+import { BadRequestException, Controller, Get, Query, Req, UnauthorizedException } from '@nestjs/common'
 import type {
 	MaintenanceCostSummary,
 	MaintenanceMetrics,
@@ -16,6 +8,7 @@ import type {
 import type { Request } from 'express'
 import { isValidUUID } from '@repo/shared/validation/common'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Maintenance Analytics Controller - Ultra-Native Implementation
@@ -23,9 +16,8 @@ import { SupabaseService } from '../../database/supabase.service'
  */
 @Controller('maintenance/analytics')
 export class MaintenanceAnalyticsController {
-	private readonly logger = new Logger(MaintenanceAnalyticsController.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get maintenance metrics via existing optimized analytics service

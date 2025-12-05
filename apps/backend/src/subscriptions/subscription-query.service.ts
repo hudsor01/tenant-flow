@@ -4,13 +4,7 @@
  * Extracted from SubscriptionsService for SRP compliance
  */
 
-import {
-	BadRequestException,
-	ForbiddenException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import type { RentSubscriptionResponse } from '@repo/shared/types/api-contracts'
 import type { SubscriptionStatus } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
@@ -18,6 +12,7 @@ import Stripe from 'stripe'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
 import { SubscriptionCacheService } from './subscription-cache.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
@@ -38,14 +33,11 @@ export interface LeaseContext {
 
 @Injectable()
 export class SubscriptionQueryService {
-	private readonly logger = new Logger(SubscriptionQueryService.name)
 	private readonly stripe: Stripe
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
-		private readonly cache: SubscriptionCacheService
-	) {
+		private readonly cache: SubscriptionCacheService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 

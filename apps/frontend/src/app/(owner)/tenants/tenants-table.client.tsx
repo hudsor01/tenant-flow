@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
-import { DataTable } from '#components/ui/data-tables/data-table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/dialog'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useOptimistic, useState, useTransition, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
@@ -113,14 +114,33 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		}
 	]
 
+	const table = useReactTable({
+		data: optimisticTenants,
+		columns: columnsWithActions,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+	})
+
 	return (
 		<Card>
-			<CardHeader>
-				<CardTitle>Tenants</CardTitle>
-				<CardDescription>Manage tenants and lease information</CardDescription>
+			<CardHeader className="flex-between flex-row">
+				<div>
+					<CardTitle>Tenants</CardTitle>
+					<CardDescription>Manage tenants and lease information</CardDescription>
+				</div>
+				<Button asChild>
+					<Link href="/tenants/new">
+						<Plus className="size-4" />
+						Add Tenant
+					</Link>
+				</Button>
 			</CardHeader>
 			<CardContent>
-				<DataTable columns={columnsWithActions} data={optimisticTenants} filterColumn="name" filterPlaceholder="Filter by tenant name..." />
+				<DataTable table={table}>
+					<DataTableToolbar table={table} />
+				</DataTable>
 			</CardContent>
 		</Card>
 	)

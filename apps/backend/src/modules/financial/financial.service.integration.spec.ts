@@ -8,6 +8,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { Pool } from 'pg'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 /**
  * Integration test for FinancialService N+1 query prevention
@@ -55,6 +58,10 @@ describe('FinancialService - N+1 Integration Tests', () => {
 					provide: SupabaseService,
 					useValue: mockSupabaseService,
 				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			],
 		}).compile()
 

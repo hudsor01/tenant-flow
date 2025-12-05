@@ -1,25 +1,15 @@
-import {
-	Body,
-	Controller,
-	Get,
-	Logger,
-	Param,
-	Post,
-	Request,
-	UseGuards,
-	ParseUUIDPipe
-} from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Request, UseGuards, ParseUUIDPipe } from '@nestjs/common'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { CreatePaymentDto } from './dto/create-payment.dto'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Controller('rent-payments')
 export class RentPaymentsController {
-	private readonly logger = new Logger(RentPaymentsController.name)
 
-	constructor(private readonly rentPaymentsService: RentPaymentsService) {}
+	constructor(private readonly rentPaymentsService: RentPaymentsService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Create a one-time rent payment

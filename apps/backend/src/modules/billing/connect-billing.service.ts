@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Stripe Connect Billing Service
@@ -12,10 +13,9 @@ import { StripeClientService } from '../../shared/stripe-client.service'
  */
 @Injectable()
 export class ConnectBillingService {
-	private readonly logger = new Logger(ConnectBillingService.name)
 	private stripe: Stripe
 
-	constructor(private readonly stripeClientService: StripeClientService) {
+	constructor(private readonly stripeClientService: StripeClientService, private readonly logger: AppLogger) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 

@@ -1,4 +1,5 @@
 import { test, expect, type Page } from './fixtures/auth.fixture'
+import type { Route } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
@@ -31,7 +32,7 @@ test.describe('Financial Statements - Production Flow', () => {
 		await page.waitForTimeout(1000)
 
 		// Check page content for error message
-		const pageText = await page.textContent('body').catch(() => '')
+		const pageText = (await page.textContent('body').catch(() => '')) ?? ''
 		const hasFailedText = pageText.toLowerCase().includes('failed to load')
 
 		if (hasFailedText) {
@@ -128,7 +129,7 @@ test.describe('Financial Statements - Production Flow', () => {
 		})
 
 		test('should handle API errors gracefully', async ({ authenticatedPage: page }) => {
-			await page.route('**/api/v1/financials/cash-flow*', route => {
+			await page.route('**/api/v1/financials/cash-flow*', (route: Route) => {
 				route.fulfill({
 					status: 500,
 					body: JSON.stringify({ error: 'Internal Server Error' })
@@ -234,7 +235,7 @@ test.describe('Financial Statements - Production Flow', () => {
 		})
 
 		test('should handle API errors gracefully', async ({ authenticatedPage: page }) => {
-			await page.route('**/api/v1/financials/balance-sheet*', route => {
+			await page.route('**/api/v1/financials/balance-sheet*', (route: Route) => {
 				route.fulfill({
 					status: 500,
 					body: JSON.stringify({ error: 'Internal Server Error' })

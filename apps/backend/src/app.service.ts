@@ -1,16 +1,14 @@
 import type { OnModuleInit } from '@nestjs/common';
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { AppConfigService } from './config/app-config.service'
 import { SupabaseService } from './database/supabase.service'
+import { AppLogger } from './logger/app-logger.service'
 
 @Injectable()
 export class AppService implements OnModuleInit {
-	private readonly logger = new Logger(AppService.name)
 
-	constructor(
-		private readonly supabaseService: SupabaseService,
-		private readonly config: AppConfigService
-	) {}
+	constructor(private readonly supabaseService: SupabaseService,
+		private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Lifecycle hook: Called once the module has been initialized
@@ -54,7 +52,7 @@ export class AppService implements OnModuleInit {
 
 			this.logger.log('✅ Application initialized successfully')
 		} catch (error) {
-			this.logger.error('✗ Application initialization failed', error)
+			this.logger.error('✗ Application initialization failed', { error })
 			throw error
 		}
 	}
@@ -170,7 +168,7 @@ export class AppService implements OnModuleInit {
 			return result
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error'
-			this.logger.error('Health check failed', error)
+			this.logger.error('Health check failed', { error })
 			return {
 				status: 'error',
 				uptime,

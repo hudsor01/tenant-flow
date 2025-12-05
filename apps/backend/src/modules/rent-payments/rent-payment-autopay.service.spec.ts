@@ -11,6 +11,9 @@ import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
 import type { Lease, Tenant, User } from './types'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('RentPaymentAutopayService', () => {
 	let service: RentPaymentAutopayService
@@ -141,7 +144,11 @@ describe('RentPaymentAutopayService', () => {
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: StripeClientService, useValue: mockStripeClientService },
 				{ provide: StripeTenantService, useValue: mockStripeTenantService },
-				{ provide: RentPaymentContextService, useValue: mockContextService }
+				{ provide: RentPaymentContextService, useValue: mockContextService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

@@ -9,7 +9,7 @@ import { QuickActions } from '#components/dashboard/quick-actions'
  */
 export function QuickActionsSection() {
 	return (
-		<section className="dashboard-panel" data-density="compact">
+		<section className="dashboard-panel" data-density="compact" data-tour="quick-actions">
 			<div className="dashboard-panel-header" data-variant="actions">
 				<h3 className="dashboard-panel-title">Quick Actions</h3>
 				<p className="dashboard-panel-description">

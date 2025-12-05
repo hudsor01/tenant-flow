@@ -1,10 +1,11 @@
-import { Controller, Get, InternalServerErrorException, Logger } from '@nestjs/common'
+import { Controller, Get, InternalServerErrorException } from '@nestjs/common'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { User } from '../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { getCanonicalPaymentDate } from '@repo/shared/utils/payment-dates'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type TenantRow = Database['public']['Tables']['tenants']['Row']
 type LeaseRow = Database['public']['Tables']['leases']['Row']
@@ -73,9 +74,8 @@ interface MaintenanceSummary {
  */
 @Controller('tenant-portal')
 export class TenantPortalController {
-	private readonly logger = new Logger(TenantPortalController.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Tenant dashboard - combines lease, payments, and maintenance summaries

@@ -3,7 +3,10 @@ import { FinancialService } from './financial.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
-import { Logger } from '@nestjs/common'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
+
 
 describe('FinancialService - N+1 Query Prevention', () => {
 	let service: FinancialService
@@ -48,6 +51,10 @@ describe('FinancialService - N+1 Query Prevention', () => {
 				{
 					provide: FinancialRevenueService,
 					useValue: {} // Not used in N+1 tests
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

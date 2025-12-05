@@ -132,7 +132,7 @@ test.describe('Property CSV Template Download', () => {
 		expect(lines.length).toBeGreaterThan(1) // Header + at least 1 sample row
 
 		// Verify headers
-		const headerLine = lines[0]
+		const headerLine = lines[0] ?? ''
 		const headers = headerLine.split(',')
 
 		logStep(' Expected Headers:', expectedHeaders.join(', '))

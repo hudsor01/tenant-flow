@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { createMockMaintenanceRequest } from '../../test-utils/mocks'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
@@ -40,7 +41,11 @@ describe('MaintenanceWorkflowService', () => {
 			providers: [
 				MaintenanceWorkflowService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: EventEmitter2, useValue: mockEventEmitter }
+				{ provide: EventEmitter2, useValue: mockEventEmitter },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

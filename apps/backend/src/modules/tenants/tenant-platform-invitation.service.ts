@@ -14,16 +14,12 @@
  * as a separate workflow with proper signature collection.
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { randomBytes } from 'crypto'
 import { AppConfigService } from '../../config/app-config.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface InviteToPlatformRequest {
 	email: string
@@ -43,7 +39,7 @@ export interface InviteToPlatformResponse {
 @Injectable()
 export class TenantPlatformInvitationService {
 	constructor(
-		private readonly logger: Logger,
+		private readonly logger: AppLogger,
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
 		private readonly config: AppConfigService

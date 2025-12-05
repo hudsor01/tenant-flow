@@ -1,4 +1,4 @@
-import { Navbar } from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import {
 	Accordion,
 	AccordionContent,
@@ -10,7 +10,7 @@ import { ArrowRight, CheckCircle2, Building, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { PricingSection } from './_components/pricing-section'
-import Footer from '#components/ui/layout/footer'
+
 import { Badge } from '#components/ui/badge'
 import { Card } from '#components/ui/card'
 
@@ -140,7 +140,7 @@ export default async function PricingPage() {
 	}
 
 	return (
-		<div className="relative min-h-screen flex flex-col marketing-page">
+		<PageLayout>
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
@@ -159,8 +159,6 @@ export default async function PricingPage() {
 					__html: JSON.stringify(offerSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-			<Navbar />
-			<main className="flex-1 page-offset-navbar">
 				{/* Minimal Hero with Pricing Above the Fold */}
 				<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 					<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">
@@ -379,9 +377,6 @@ export default async function PricingPage() {
 						</div>
 					</div>
 				</section>
-			</main>
-
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

@@ -1,21 +1,4 @@
-import {
-	Body,
-	Controller,
-	Get,
-	HttpCode,
-	HttpStatus,
-	Logger,
-	Param,
-	ParseUUIDPipe,
-	Post,
-	Req,
-	Res,
-	UseGuards,
-	NotFoundException,
-	BadRequestException,
-	InternalServerErrorException,
-	UnauthorizedException
-} from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, Res, UseGuards, NotFoundException, BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
 import type { Response } from 'express'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
@@ -26,6 +9,7 @@ import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
 import { ZeroCacheService } from '../../cache/cache.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 // Filename sanitization constants
 const MAX_ADDRESS_LENGTH = 30 // Max characters for property address in filename
@@ -44,13 +28,10 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
 @UseGuards(RolesGuard)
 @Roles('TENANT', 'OWNER', 'MANAGER')
 export class LeaseGenerationController {
-	private readonly logger = new Logger(LeaseGenerationController.name)
 
-	constructor(
-		private readonly leasePDF: ReactLeasePDFService,
+	constructor(private readonly leasePDF: ReactLeasePDFService,
 		private readonly supabase: SupabaseService,
-		private readonly cache: ZeroCacheService
-	) {}
+		private readonly cache: ZeroCacheService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Sanitize string for use in filename

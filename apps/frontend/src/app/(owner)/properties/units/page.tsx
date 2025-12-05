@@ -12,39 +12,23 @@ import {
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import {
-	Pagination,
-	PaginationContent,
-	PaginationItem,
-	PaginationLink,
-	PaginationNext,
-	PaginationPrevious
-} from '#components/ui/pagination'
-import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { unitColumns, type UnitRow } from './columns'
 import { useCreateUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import type { CreateUnitInput } from '@repo/shared/types/api-contracts'
-import type { UnitStatus } from '@repo/shared/types/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ColumnDef } from '@tanstack/react-table'
-import { DoorOpen, Filter, Plus } from 'lucide-react'
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
+import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import { DoorOpen, Plus } from 'lucide-react'
 import { useRef } from 'react'
 import { toast } from 'sonner'
 
@@ -62,48 +46,20 @@ const ChartAreaInteractive = dynamic(
 	}
 )
 
-const ITEMS_PER_PAGE = 25
-
 export default function UnitsPage() {
-	// nuqs: Type-safe URL state with automatic batching and clean URLs
-	const [{ page, status, property }, setUrlState] = useQueryStates(
-		{
-			page: parseAsInteger.withDefault(1),
-			status: parseAsString.withDefault(''),
-			property: parseAsString.withDefault('')
-		},
-		{
-			history: 'push',
-			scroll: false,
-			shallow: true,
-			throttleMs: 200,
-			clearOnDefault: true // Clean URLs: /units instead of /units?page=1&status=&property=
-		}
-	)
-
 	// Use modern hook with pagination
-	const params: {
-		status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
-		property_id?: string
-		limit: number
-		offset: number
-	} = {
-		limit: ITEMS_PER_PAGE,
-		offset: (page - 1) * ITEMS_PER_PAGE
-	}
-	if (status) params.status = status as UnitStatus
-	if (property) params.property_id = property
-
-	const { data: unitsResponse, isLoading } = useQuery(unitQueries.list(params))
+	const { data: unitsResponse, isLoading } = useQuery(unitQueries.list({
+		limit: 100,
+		offset: 0
+	}))
 
 	const { data: propertiesResponse } = useQuery(propertyQueries.list())
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
 	const { data: unitsStats } = useQuery(unitQueries.stats())
 
-	const units = unitsResponse?.data || []
+	const units = (unitsResponse?.data || []) as UnitRow[]
 	const properties = propertiesResponse?.data || []
-	const totalItems = unitsResponse?.total || 0
 
 	// Use backend statistics directly - trust the database calculations
 	const totalUnits = unitsStats?.total ?? 0
@@ -111,6 +67,21 @@ export default function UnitsPage() {
 	const vacantCount = unitsStats?.vacant ?? 0
 	const maintenanceCount = unitsStats?.maintenance ?? 0
 	const occupancyRate = unitsStats?.occupancyRate ?? 0
+
+	// Setup TanStack Table with DiceUI DataTable
+	const table = useReactTable({
+		data: units,
+		columns: unitColumns,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		initialState: {
+			pagination: {
+				pageSize: 25,
+			},
+		},
+	})
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -179,247 +150,40 @@ export default function UnitsPage() {
 				{/* Interactive Chart */}
 				<ChartAreaInteractive className="mb-6" />
 
-				{/* Filters and Actions */}
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-						<div className="flex items-center gap-2">
-							<Filter className="size-4 text-muted-foreground" />
-							<Select
-								value={status || 'ALL'}
-								onValueChange={value =>
-									setUrlState({
-										status: value === 'ALL' ? '' : value,
-										page: 1
-									})
-								}
-							>
-								<SelectTrigger className="w-40">
-									<SelectValue placeholder="Filter by status" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="ALL">All Status</SelectItem>
-									<SelectItem value="OCCUPIED">Occupied</SelectItem>
-									<SelectItem value="VACANT">Vacant</SelectItem>
-									<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-									<SelectItem value="RESERVED">Reserved</SelectItem>
-								</SelectContent>
-							</Select>
+				{/* Units Table with DiceUI DataTable */}
+				<div className="rounded-md border bg-card shadow-sm">
+					{isLoading ? (
+						<div className="flex flex-col items-center justify-center py-12">
+							<div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+							<p className="mt-4 text-muted-foreground">Loading units...</p>
 						</div>
-
-						<Select
-							value={property || 'ALL'}
-							onValueChange={value =>
-								setUrlState({ property: value === 'ALL' ? '' : value, page: 1 })
-							}
-						>
-							<SelectTrigger className="w-48">
-								<SelectValue placeholder="Filter by property" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="ALL">All Properties</SelectItem>
-								{properties?.map((property) => (
-									<SelectItem key={property.id} value={property.id}>
-										{property.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<NewUnitButton />
-				</div>
-
-				{/* Units Table */}
-				<UnitsTable
-					data={units as UnitRow[]}
-					columns={unitColumns}
-					isLoading={isLoading}
-				/>
-
-				{/* Pagination */}
-				{totalItems > ITEMS_PER_PAGE && (
-					<div className="mt-4">
-						<Pagination>
-							<PaginationContent>
-								<PaginationItem>
-									<PaginationPrevious
-										page={page - 1}
-										currentPage={page}
-										onPageChange={(newPage: number) =>
-											setUrlState({ page: newPage })
-										}
-										className={
-											page === 1 ? 'pointer-events-none opacity-50' : ''
-										}
-									>
-										Previous
-									</PaginationPrevious>
-								</PaginationItem>
-
-								{Array.from(
-									{ length: Math.ceil(totalItems / ITEMS_PER_PAGE) },
-									(_, i) => i + 1
-								)
-									.filter(
-										pageNum =>
-											pageNum === 1 ||
-											pageNum === Math.ceil(totalItems / ITEMS_PER_PAGE) ||
-											(pageNum >= page - 1 && pageNum <= page + 1)
-									)
-									.map((pageNum, idx, arr) => (
-										<PaginationItem key={pageNum}>
-											{idx > 0 && arr[idx - 1] !== pageNum - 1 ? (
-												<span className="px-2">...</span>
-											) : null}
-											<PaginationLink
-												page={pageNum}
-												currentPage={page}
-												onPageChange={(newPage: number) =>
-													setUrlState({ page: newPage })
-												}
-												isActive={page === pageNum}
-											>
-												{pageNum}
-											</PaginationLink>
-										</PaginationItem>
-									))}
-
-								<PaginationItem>
-									<PaginationNext
-										page={page + 1}
-										currentPage={page}
-										onPageChange={(newPage: number) => {
-											if (page < Math.ceil(totalItems / ITEMS_PER_PAGE)) {
-												setUrlState({ page: newPage })
-											}
-										}}
-										className={
-											page === Math.ceil(totalItems / ITEMS_PER_PAGE)
-												? 'pointer-events-none opacity-50'
-												: ''
-										}
-									>
-										Next
-									</PaginationNext>
-								</PaginationItem>
-							</PaginationContent>
-						</Pagination>
-					</div>
-				)}
-			</div>
-		</div>
-	)
-}
-
-function UnitsTable({
-	data,
-	columns,
-	isLoading
-}: {
-	data: UnitRow[]
-	columns: ColumnDef<UnitRow>[]
-	isLoading?: boolean
-}) {
-	if (isLoading) {
-		return (
-			<div className="rounded-md border bg-card shadow-sm">
-				<Table>
-					<TableHeader className="bg-muted/50">
-						<TableRow>
-							{columns.map((col: ColumnDef<UnitRow>, index) => {
-								const key =
-									'accessorKey' in col
-										? String(col.accessorKey)
-										: (col.id ?? `col-${index}`)
-								return <TableHead key={key} className="font-semibold" />
-							})}
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						<TableRow>
-							<TableCell colSpan={columns.length} className="h-24 text-center">
-								<p className="text-muted-foreground">Loading units...</p>
-							</TableCell>
-						</TableRow>
-					</TableBody>
-				</Table>
-			</div>
-		)
-	}
-
-	return (
-		<div className="rounded-md border bg-card shadow-sm">
-			<Table>
-				<TableHeader className="bg-muted/50">
-					<TableRow>
-						{columns.map((col: ColumnDef<UnitRow>, index) => {
-							const key =
-								'accessorKey' in col
-									? String(col.accessorKey)
-									: (col.id ?? `col-${index}`)
-							const headerContent =
-								typeof col.header === 'function'
-									? col.header({ column: col } as Parameters<
-											NonNullable<typeof col.header>
-										>[0])
-									: col.header
-							return (
-								<TableHead key={key} className="font-semibold">
-									{headerContent ?? ''}
-								</TableHead>
-							)
-						})}
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{data.length ? (
-						data.map(row => (
-							<TableRow key={row.id} className="hover:bg-muted/30">
-								{columns.map((col: ColumnDef<UnitRow>, index) => {
-									const key =
-										'accessorKey' in col
-											? String(col.accessorKey)
-											: (col.id ?? `col-${index}`)
-									const value =
-										'accessorKey' in col
-											? (row as Record<string, unknown>)[
-													col.accessorKey as string
-												]
-											: undefined
-									const cellContent =
-										col.cell && typeof col.cell === 'function'
-											? col.cell({ row: { original: row } } as Parameters<
-													NonNullable<typeof col.cell>
-												>[0])
-											: col.cell || value
-									return <TableCell key={key}>{cellContent}</TableCell>
-								})}
-							</TableRow>
-						))
+					) : units.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-12">
+							<DoorOpen className="size-12 text-muted-foreground/50" />
+							<p className="mt-4 text-muted-foreground">No units found.</p>
+							<NewUnitButton properties={properties} />
+						</div>
 					) : (
-						<TableRow>
-							<TableCell colSpan={columns.length} className="h-24 text-center">
-								<div className="flex flex-col items-center gap-2">
-									<DoorOpen className="size-12 text-muted-foreground/50" />
-									<p className="text-muted-foreground">No units found.</p>
-									<NewUnitButton />
-								</div>
-							</TableCell>
-						</TableRow>
+						<DataTable table={table}>
+							<div className="flex items-center justify-between gap-4 p-4">
+								<DataTableToolbar table={table} />
+								<NewUnitButton properties={properties} />
+							</div>
+						</DataTable>
 					)}
-				</TableBody>
-			</Table>
+				</div>
+			</div>
 		</div>
 	)
 }
 
-function NewUnitButton() {
+interface NewUnitButtonProps {
+	properties?: Array<{ id: string; name: string }>
+}
+
+function NewUnitButton({ properties }: NewUnitButtonProps) {
 	const qc = useQueryClient()
-	const { data: propertiesResponse } = useQuery(propertyQueries.list())
-	const properties = propertiesResponse?.data
-
 	const create = useCreateUnitMutation()
-
 	const closeButtonRef = useRef<HTMLButtonElement>(null)
 
 	async function onSubmit(form: HTMLFormElement) {

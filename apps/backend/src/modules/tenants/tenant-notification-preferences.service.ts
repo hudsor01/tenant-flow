@@ -5,14 +5,10 @@
  * Manages: Get, Update notification preferences
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import type { TenantNotificationPreferences } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Default notification preferences for new tenants
@@ -31,7 +27,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = {
 @Injectable()
 export class TenantNotificationPreferencesService {
 	constructor(
-		private readonly logger: Logger,
+		private readonly logger: AppLogger,
 		private readonly supabase: SupabaseService
 	) {}
 

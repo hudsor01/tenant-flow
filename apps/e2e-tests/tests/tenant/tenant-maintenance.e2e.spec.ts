@@ -5,6 +5,8 @@ import { openModal, verifyModalIsOpen } from '../helpers/modal-helpers'
 import { fillTextInput, submitForm } from '../helpers/form-helpers'
 import { verifyTableRenders, verifyButtonExists, verifyLoadingComplete } from '../helpers/ui-validation-helpers'
 
+const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+
 /**
  * Tenant Maintenance E2E Tests
  *

@@ -1,9 +1,10 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TimeSeriesDataPoint } from '@repo/shared/types/dashboard-repository'
 import { cn } from '#lib/utils'
+import { BarChart3 } from 'lucide-react'
 
 interface MiniTrendChartProps {
   title: string
@@ -26,7 +27,7 @@ export function MiniTrendChart({
     return (
       <Card
         className={cn(
-          'dashboard-card-surface dashboard-mini-chart animate-pulse',
+          'dashboard-card-surface dashboard-mini-chart',
           className
         )}
       >
@@ -34,7 +35,15 @@ export function MiniTrendChart({
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[80px] bg-muted rounded" />
+          <div className="h-[80px] flex items-end gap-1 animate-pulse">
+            {[...Array(12)].map((_, i) => (
+              <div
+                key={i}
+                className="flex-1 bg-muted rounded-t"
+                style={{ height: `${Math.random() * 60 + 20}%` }}
+              />
+            ))}
+          </div>
         </CardContent>
       </Card>
     )
@@ -49,8 +58,11 @@ export function MiniTrendChart({
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-[80px] flex-center">
-            <p className="text-caption">No trend data available</p>
+          <div className="h-[80px] flex-center border border-dashed border-border rounded-lg bg-muted/30">
+            <div className="text-center">
+              <BarChart3 className="size-5 mx-auto text-muted-foreground/40 mb-1" />
+              <p className="text-xs text-muted-foreground">No data yet</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -66,7 +78,7 @@ export function MiniTrendChart({
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={80}>
-          <LineChart data={data}>
+          <AreaChart data={data}>
             <XAxis
               dataKey="date"
               hide
@@ -94,14 +106,16 @@ export function MiniTrendChart({
                 )
               }}
             />
-            <Line
+            <Area
               type="monotone"
               dataKey="value"
               stroke={color}
+              fill={color}
+              fillOpacity={0.08}
               strokeWidth={2}
               dot={false}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

@@ -3,6 +3,9 @@ import { Test } from '@nestjs/testing'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { ContactController } from './contact.controller'
 import { ContactService } from './contact.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Mock the ContactService
 jest.mock('./contact.service', () => {

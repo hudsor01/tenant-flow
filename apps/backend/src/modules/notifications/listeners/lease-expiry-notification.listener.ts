@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import type { LeaseExpiringEvent } from '../events/notification.events'
 import { NotificationService } from '../notification.service'
 import { EventIdempotencyService } from '../../../shared/services/event-idempotency.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 import {
 	calculateNotificationTypes,
 	formatNotificationTitle,
@@ -16,14 +17,8 @@ import {
  */
 @Injectable()
 export class LeaseExpiryNotificationListener {
-	private readonly logger = new Logger(
-		LeaseExpiryNotificationListener.name
-	)
-
-	constructor(
-		private readonly notificationService: NotificationService,
-		private readonly idempotency: EventIdempotencyService
-	) {}
+	constructor(private readonly notificationService: NotificationService,
+		private readonly idempotency: EventIdempotencyService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Handle lease expiring event

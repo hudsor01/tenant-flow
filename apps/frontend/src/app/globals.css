@@ -203,14 +203,11 @@
 	--radius-full: 9999px;
 
 	/* === SHADOWS (--shadow-*) === */
-	--shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
-	--shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1);
-	--shadow-lg: 0 12px 20px -5px rgb(15 23 42 / 0.15), 0 6px 12px -6px rgb(15 23 42 / 0.12);
-	--shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
-	--shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1);
-	--shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.1);
-	--shadow-xl: 0 20px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.1);
-	--shadow-2xl: 0 25px 50px -12px rgb(15 23 42 / 0.25);
+	--shadow-sm: 0 1px 2px 0 oklch(0.15 0.02 250 / 0.05);
+	--shadow-md: 0 4px 6px -1px oklch(0.15 0.02 250 / 0.1), 0 2px 4px -2px oklch(0.15 0.02 250 / 0.1);
+	--shadow-lg: 0 10px 15px -3px oklch(0.15 0.02 250 / 0.1), 0 4px 6px -4px oklch(0.15 0.02 250 / 0.1);
+	--shadow-xl: 0 20px 25px -5px oklch(0.15 0.02 250 / 0.1), 0 8px 10px -6px oklch(0.15 0.02 250 / 0.1);
+	--shadow-2xl: 0 25px 50px -12px oklch(0.15 0.02 250 / 0.25);
 
 	/* === ANIMATION (--duration-*, --ease-*) === */
 	--duration-75: 75ms;
@@ -276,7 +273,7 @@
 		/* Glass effects */
 		--glass-material: oklch(1 0 0 / 0.8);
 		--glass-border: oklch(0.9 0.005 240 / 0.5);
-		--glass-shadow: 0 20px 60px rgb(15 23 42 / 0.25);
+		--glass-shadow: 0 20px 60px oklch(0.15 0.02 250 / 0.25);
 		--glass-blur: 10px;
 
 		/* Focus ring */
@@ -314,8 +311,8 @@
 		--navbar-btn-hover-text: var(--color-primary);
 
 		/* Lightbox navigation */
-		--lightbox-nav-bg: rgba(0, 0, 0, 0.5);
-		--lightbox-nav-hover-bg: rgba(0, 0, 0, 0.7);
+		--lightbox-nav-bg: oklch(0 0 0 / 0.5);
+		--lightbox-nav-hover-bg: oklch(0 0 0 / 0.7);
 
 		/* Pricing card effects */
 
@@ -347,7 +344,7 @@
 		--layout-grid-cols-5: repeat(5, minmax(0, 1fr));
 		--layout-stack-tight: var(--spacing-3);
 		--layout-navbar-height: var(--spacing-16);
-		--layout-navbar-spacing: var(--spacing-20);
+		--layout-navbar-spacing: var(--spacing-32);
 	}
 
 	/* box-sizing and border resets provided by Tailwind preflight */

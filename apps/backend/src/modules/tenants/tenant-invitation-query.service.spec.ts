@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantInvitationQueryService } from './tenant-invitation-query.service'
 
@@ -42,7 +43,11 @@ describe('TenantInvitationQueryService', () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				TenantInvitationQueryService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

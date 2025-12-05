@@ -1,9 +1,10 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
 import { z } from 'zod'
 import { SecureEmailSchema, EmailMetadataSchema } from '@repo/shared/validation/emails.schemas'
 import { SupabaseService } from '../database/supabase.service'
 import type { Json } from '@repo/shared/src/types/supabase.js'
+import { AppLogger } from '../logger/app-logger.service'
 
 export interface SanitizationOptions {
 	/**
@@ -78,9 +79,8 @@ const SanitizationOptionsSchema = z
 
 @Injectable()
 export class SecurityService {
-	private readonly logger = new Logger(SecurityService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Basic input sanitization - removes dangerous characters while preserving valid business data
@@ -463,11 +463,11 @@ export class SecurityService {
 				.insert(insertData)
 
 			if (error) {
-				this.logger.error('Failed to log audit event:', error)
+				this.logger.error('Failed to log audit event:', { error })
 				// Don't throw - audit logging should not block operations
 			}
 		} catch (error) {
-			this.logger.error('Error logging audit event:', error)
+			this.logger.error('Error logging audit event:', { error })
 			// Don't throw - audit logging should not block operations
 		}
 	}

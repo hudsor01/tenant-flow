@@ -5,7 +5,8 @@
  * Provides observability and alerting for webhook processing
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface WebhookMetrics {
 	stripeEventId: string
@@ -71,9 +72,8 @@ export interface WebhookEventTypeSummary {
 
 @Injectable()
 export class WebhookMonitoringService {
-	private readonly logger = new Logger(WebhookMonitoringService.name)
 
-	constructor() {}
+	constructor(private readonly logger: AppLogger) {}
 
 	/**
 	 * Record webhook processing metrics for performance monitoring

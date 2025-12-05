@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
 import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
-import { ExportButtons } from '#components/ui/export/export-buttons'
+import { ExportButtons } from '#components/export/export-buttons'
 import { Badge } from '#components/ui/badge'
 import {
 	Card,

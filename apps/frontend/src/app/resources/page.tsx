@@ -1,7 +1,7 @@
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
+import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { GridPattern } from '#components/ui/grid-pattern'
+
 import {
 	ArrowRight,
 	BookOpen,
@@ -123,17 +123,13 @@ export default function ResourcesPage() {
 	]
 
 	return (
-		<div className="relative min-h-screen flex flex-col">
+		<PageLayout>
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{
 					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<Navbar />
 
 			{/* Hero Section */}
 			<section className="relative page-offset-navbar pb-16 overflow-hidden">
@@ -175,6 +171,14 @@ export default function ResourcesPage() {
 								href={link.href}
 								className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
 							>
+								{link.badge && (
+									<Badge
+										variant={link.badge === 'New' ? 'default' : 'secondary'}
+										className="absolute top-4 right-4"
+									>
+										{link.badge}
+									</Badge>
+								)}
 								<div className="size-12 rounded-xl bg-primary/10 flex-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
 									{link.icon}
 								</div>
@@ -326,7 +330,6 @@ export default function ResourcesPage() {
 				</div>
 			</section>
 
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

@@ -4,16 +4,16 @@
  * Extracted from MaintenanceService for SRP compliance
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { MaintenanceRequest, MaintenanceStats } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class MaintenanceReportingService {
-	private readonly logger = new Logger(MaintenanceReportingService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get maintenance statistics

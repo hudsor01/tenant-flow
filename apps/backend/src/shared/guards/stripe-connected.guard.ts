@@ -12,21 +12,15 @@
  * }
  */
 
-import {
-	BadRequestException,
-	type CanActivate,
-	type ExecutionContext,
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { BadRequestException, type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class StripeConnectedGuard implements CanActivate {
-	private readonly logger = new Logger(StripeConnectedGuard.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()

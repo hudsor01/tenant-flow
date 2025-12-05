@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import type { IncomeStatementData } from '@repo/shared/types/financial-statements'
 import {
 	calculatePercentChange,
@@ -7,6 +7,7 @@ import {
 	safeNumber
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	isWithinRange,
 	loadLedgerData,
@@ -16,9 +17,8 @@ import {
 
 @Injectable()
 export class IncomeStatementService {
-	private readonly logger = new Logger(IncomeStatementService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Generate income statement for a given period

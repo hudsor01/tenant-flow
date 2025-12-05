@@ -13,6 +13,9 @@ import { RentPaymentsService } from './rent-payments.service'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 const createSingleQueryMock = <T>(data: T): any => {
 	const builder: any = {}
@@ -82,7 +85,11 @@ describe('RentPaymentsService (Facade)', () => {
 				{ provide: StripeTenantService, useValue: mockStripeTenantService },
 				{ provide: RentPaymentQueryService, useValue: mockQueryService },
 				{ provide: RentPaymentAutopayService, useValue: mockAutopayService },
-				{ provide: RentPaymentContextService, useValue: mockContextService }
+				{ provide: RentPaymentContextService, useValue: mockContextService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

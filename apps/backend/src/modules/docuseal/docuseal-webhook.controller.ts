@@ -9,15 +9,7 @@
  * - submission.completed: All parties have signed
  */
 
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	Headers,
-	Logger,
-	Post,
-	UnauthorizedException
-} from '@nestjs/common'
+import { BadRequestException, Body, Controller, Headers, Post, UnauthorizedException } from '@nestjs/common'
 import { timingSafeEqual } from 'crypto'
 import { DocuSealWebhookService } from './docuseal-webhook.service'
 import {
@@ -25,6 +17,7 @@ import {
 	submissionCompletedPayloadSchema
 } from '@repo/shared/validation/docuseal-webhooks'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface DocuSealWebhookPayload {
 	event_type?: string
@@ -34,12 +27,9 @@ export interface DocuSealWebhookPayload {
 
 @Controller('webhooks/docuseal')
 export class DocuSealWebhookController {
-	private readonly logger = new Logger(DocuSealWebhookController.name)
 
-	constructor(
-		private readonly webhookService: DocuSealWebhookService,
-		private readonly config: AppConfigService
-	) {}
+	constructor(private readonly webhookService: DocuSealWebhookService,
+		private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
 	@Post()
 	async handleWebhook(

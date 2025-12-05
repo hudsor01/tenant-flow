@@ -2,6 +2,7 @@ import type { NestMiddleware } from '@nestjs/common';
 import { Injectable } from '@nestjs/common'
 import type { NextFunction, Request, Response } from 'express'
 import { randomUUID } from 'node:crypto'
+import { ClsService } from 'nestjs-cls'
 
 /**
  * Request ID Middleware
@@ -34,6 +35,8 @@ interface RequestWithId extends Request {
 
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
+	constructor(private readonly cls: ClsService) {}
+
 	/**
 	 * Middleware handler that assigns a UUID to each request
 	 *
@@ -42,7 +45,16 @@ export class RequestIdMiddleware implements NestMiddleware {
 	 * @param next - Express next function to pass control to next middleware
 	 */
 	use(req: RequestWithId, _res: Response, next: NextFunction): void {
-		req.id = randomUUID()
+		const requestId = randomUUID()
+		req.id = requestId
+
+		const context = (this.cls.get('REQUEST_CONTEXT') as
+			| Record<string, unknown>
+			| undefined) ?? {}
+		this.cls.set('REQUEST_CONTEXT', {
+			...context,
+			requestId
+		})
 		next()
 	}
 }

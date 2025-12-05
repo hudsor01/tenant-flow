@@ -20,6 +20,9 @@ import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
 import { SecurityService } from '../../security/security.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Mock services
 const mockStripeService = {
@@ -65,6 +68,10 @@ describe('StripeController', () => {
 				{
 					provide: Reflector,
 					useValue: { get: jest.fn(), getAllAndOverride: jest.fn() }
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		}).compile()

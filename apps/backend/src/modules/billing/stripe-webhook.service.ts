@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Stripe Webhook Service - Database-backed idempotency and event tracking
@@ -10,9 +11,8 @@ import { SupabaseService } from '../../database/supabase.service'
  */
 @Injectable()
 export class StripeWebhookService {
-	private readonly logger = new Logger(StripeWebhookService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Type predicate to check if an object has lock_acquired property set to true
@@ -275,7 +275,7 @@ export class StripeWebhookService {
 			await this.cleanupOldEvents(30)
 			this.logger.log('Scheduled webhook cleanup completed successfully')
 		} catch (error) {
-			this.logger.error('Scheduled webhook cleanup failed', error)
+			this.logger.error('Scheduled webhook cleanup failed', { error })
 		}
 	}
 

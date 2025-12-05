@@ -7,8 +7,9 @@
  * Uses native fetch - no SDK wrapper needed (KISS principle)
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { AppConfigService } from '../../config/app-config.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 export interface DocuSealTemplate {
 	id: number
@@ -79,9 +80,8 @@ export interface CreateLeaseSubmissionParams {
 
 @Injectable()
 export class DocuSealService {
-	private readonly logger = new Logger(DocuSealService.name)
 
-	constructor(private readonly config: AppConfigService) {}
+	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Check if DocuSeal is enabled (API key configured)

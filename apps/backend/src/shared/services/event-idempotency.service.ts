@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import * as crypto from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Event Idempotency Service
@@ -21,9 +22,8 @@ import { SupabaseService } from '../../database/supabase.service'
  */
 @Injectable()
 export class EventIdempotencyService {
-	private readonly logger = new Logger(EventIdempotencyService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Type predicate to check if an object has lock_acquired property set to true

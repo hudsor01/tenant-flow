@@ -55,7 +55,7 @@ test.describe('Owner Authentication', () => {
     expect(authCookies.length).toBeGreaterThan(0)
 
     // Log cookie names for debugging (not values for security)
-    logger.info('Auth cookie names:', authCookies.map((c) => c.name))
+	logger.info('Auth cookie names:', { cookies: authCookies.map((c) => c.name) })
   })
 
   test('should redirect to /dashboard after successful login', async ({ page, context }) => {
@@ -164,11 +164,11 @@ test.describe('Owner Authentication', () => {
     // Wait for page to fully load
     await page.waitForLoadState('networkidle')
 
-    // Verify no console errors
-    if (consoleErrors.length > 0) {
-      logger.error('Console errors detected:', consoleErrors)
-    }
-    expect(consoleErrors).toHaveLength(0)
+	// Verify no console errors
+	if (consoleErrors.length > 0) {
+		logger.error('Console errors detected:', { errors: consoleErrors })
+	}
+	expect(consoleErrors).toHaveLength(0)
   })
 
   test('should persist auth cookies across page navigations', async ({ page, context }) => {

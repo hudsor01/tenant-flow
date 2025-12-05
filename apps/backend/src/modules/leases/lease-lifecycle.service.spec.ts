@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { LeaseLifecycleService } from './lease-lifecycle.service'
 
@@ -33,7 +34,11 @@ describe('LeaseLifecycleService', () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				LeaseLifecycleService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

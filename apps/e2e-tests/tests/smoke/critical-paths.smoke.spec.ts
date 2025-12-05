@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 /**
@@ -23,7 +23,7 @@ const logger = createLogger({ component: 'CriticalPathsSmoke' })
  * Reusable login helper using reliable selectors
  * Uses click + fill pattern for TanStack Form controlled inputs
  */
-async function loginAsOwner(page: Parameters<typeof test>[1]['page']) {
+async function loginAsOwner(page: Page) {
 	await page.goto(`${BASE_URL}/login`)
 
 	const emailInput = page.locator('input#email')

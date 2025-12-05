@@ -2,23 +2,19 @@ import type {
 	CallHandler,
 	ExecutionContext,
 	NestInterceptor} from '@nestjs/common';
-import {
-	Injectable,
-	Logger,
-	RequestTimeoutException
-} from '@nestjs/common'
+import { Injectable, RequestTimeoutException } from '@nestjs/common'
 import type { Request } from 'express'
 import type { Observable} from 'rxjs';
 import { TimeoutError, catchError, throwError, timeout } from 'rxjs'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 // Simple global timeout to catch unusually slow handlers
 // Uses env BACKEND_TIMEOUT_MS or defaults to 15s
 @Injectable()
 export class TimeoutInterceptor implements NestInterceptor {
-	private readonly logger = new Logger(TimeoutInterceptor.name)
 
-	constructor(private readonly appConfigService: AppConfigService) {}
+	constructor(private readonly appConfigService: AppConfigService, private readonly logger: AppLogger) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		const request = context.switchToHttp().getRequest<Request>()

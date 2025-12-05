@@ -1,16 +1,4 @@
-import {
-	BadRequestException,
-	Body,
-	Controller,
-	Get,
-	HttpCode,
-	HttpStatus,
-	InternalServerErrorException,
-	Logger,
-	Post,
-	UseGuards,
-	UseInterceptors
-} from '@nestjs/common'
+import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards, UseInterceptors } from '@nestjs/common'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
@@ -19,6 +7,7 @@ import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 const PayRentSchema = z.object({
 	payment_method_id: z.string().min(1),
@@ -39,9 +28,8 @@ class PayRentDto extends createZodDto(PayRentSchema) {}
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantPaymentsController {
-	private readonly logger = new Logger(TenantPaymentsController.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get payment history and upcoming payments

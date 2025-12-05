@@ -24,17 +24,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
  * ```
  */
 
-type AuthFixtures = {
+export type AuthFixtures = {
 	/**
 	 * Page fixture with pre-loaded authentication state
 	 * Scoped to worker for parallel isolation
 	 */
 	authenticatedPage: Page
 }
-
-export const test = base.extend<Record<string, never>, AuthFixtures>({
-	authenticatedPage: [
-		async ({ browser }, use) => {
+export const test = base.extend<AuthFixtures>({
+		authenticatedPage: [
+			async ({ browser }, use: (page: Page) => Promise<void>) => {
 			// Get worker-specific auth file
 			// In multi-worker scenarios, each worker could use a different account
 			// For now, all workers use the same owner account
@@ -54,19 +53,20 @@ export const test = base.extend<Record<string, never>, AuthFixtures>({
 			// Cleanup: Close page and context after test
 			await page.close()
 			await context.close()
-		},
-		{ scope: 'worker' },
-	],
-})
+			},
+			{ scope: 'worker' },
+		],
+	})
 
 export { expect } from '@playwright/test'
+export { type Page } from '@playwright/test'
 
 /**
  * Alternative fixture for multiple role support
  * Uncomment and adapt when tenant role tests are needed
  */
 /*
-export const multiRoleTest = base.extend<{}, AuthFixtures & {
+export const multiRoleTest = base.extend<Record<string, never>, AuthFixtures & {
 	tenantPage: Page
 }>({
 	authenticatedPage: [

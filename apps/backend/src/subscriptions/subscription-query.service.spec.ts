@@ -7,6 +7,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { SilentLogger } from '../__test__/silent-logger'
+import { AppLogger } from '../logger/app-logger.service'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
 import { SubscriptionCacheService } from './subscription-cache.service'
@@ -133,7 +134,11 @@ describe('SubscriptionQueryService', () => {
 				SubscriptionCacheService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: StripeClientService, useValue: mockStripeClientService },
-				{ provide: CACHE_MANAGER, useValue: mockCacheManager }
+				{ provide: CACHE_MANAGER, useValue: mockCacheManager },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		})
 			.setLogger(new SilentLogger())

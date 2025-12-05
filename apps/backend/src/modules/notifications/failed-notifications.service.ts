@@ -7,16 +7,16 @@
  */
 
 import type { OnModuleDestroy } from '@nestjs/common';
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class FailedNotificationsService implements OnModuleDestroy {
-	private readonly logger = new Logger(FailedNotificationsService.name)
 	private readonly MAX_RETRIES = 3
 	private readonly RETRY_DELAYS_MS = [1000, 5000, 15000] // 1s, 5s, 15s
 	private pendingTimers: Set<NodeJS.Timeout> = new Set()
 
-	constructor() {}
+	constructor(private readonly logger: AppLogger) {}
 
 	/**
 	 * Retry operation with exponential backoff

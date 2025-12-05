@@ -4,18 +4,18 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { RentPayment } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /** Default limit for payment history queries */
 const DEFAULT_PAYMENT_HISTORY_LIMIT = 50
 
 @Injectable()
 export class TenantRelationService {
-	private readonly logger = new Logger(TenantRelationService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all owner property IDs

@@ -3,25 +3,17 @@
  * Checks ownership chain through the database
  */
 
-import {
-	type CanActivate,
-	type ExecutionContext,
-	ForbiddenException,
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { type CanActivate, type ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 import { AuthRequestCache } from '../services/auth-request-cache.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class PropertyOwnershipGuard implements CanActivate {
-	private readonly logger = new Logger(PropertyOwnershipGuard.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly authCache: AuthRequestCache
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly authCache: AuthRequestCache, private readonly logger: AppLogger) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()

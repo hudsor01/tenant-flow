@@ -5,18 +5,13 @@
  * Simplified: Removed duplicate methods, consolidated analytics
  */
 
-import {
-	BadRequestException,
-	ConflictException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -24,9 +19,8 @@ import {
 
 @Injectable()
 export class LeasesService {
-	private readonly logger = new Logger(LeasesService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get user-scoped Supabase client for direct database access

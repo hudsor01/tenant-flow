@@ -302,9 +302,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.click('button:has-text("New Lease")')
 
 		// Fill lease form
-		const today = new Date()
-		const startDate = today.toISOString().split('T')[0]
-		const endDate = new Date(today.setFullYear(today.getFullYear() + 1)).toISOString().split('T')[0]
+			const today = new Date()
+			const startDate: string = today.toISOString().split('T')[0] ?? ''
+			const endDate: string = new Date(today.setFullYear(today.getFullYear() + 1)).toISOString().split('T')[0] ?? ''
 
 		await page.fill('input[name="start_date"]', startDate)
 		await page.fill('input[name="end_date"]', endDate)

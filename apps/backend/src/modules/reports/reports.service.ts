@@ -5,8 +5,9 @@
  * Provides revenue, payment, and occupancy analytics
  */
 
-import { Injectable, Logger, Optional } from '@nestjs/common'
+import { Injectable, Optional } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 // Use inferred query result types instead of strict Database types
 // This allows flexibility with Supabase's actual return types which include nullability
@@ -54,9 +55,8 @@ export interface OccupancyMetrics {
 
 @Injectable()
 export class ReportsService {
-	private readonly logger = new Logger(ReportsService.name)
 
-	constructor(@Optional() private readonly supabase?: SupabaseService) {}
+	constructor(@Optional() private readonly logger: AppLogger, private readonly supabase?: SupabaseService) {}
 
 	/**
 	 * Get monthly revenue data for charts
@@ -166,7 +166,7 @@ export class ReportsService {
 				.sort((a, b) => a.month.localeCompare(b.month))
 				.reverse()
 		} catch (error) {
-			this.logger.error('Failed to get monthly revenue', error)
+			this.logger.error('Failed to get monthly revenue', { error })
 			throw error
 		}
 	}
@@ -269,7 +269,7 @@ export class ReportsService {
 
 			return analytics
 		} catch (error) {
-			this.logger.error('Failed to get payment analytics', error)
+			this.logger.error('Failed to get payment analytics', { error })
 			throw error
 		}
 	}
@@ -355,7 +355,7 @@ export class ReportsService {
 				byProperty
 			}
 		} catch (error) {
-			this.logger.error('Failed to get occupancy metrics', error)
+			this.logger.error('Failed to get occupancy metrics', { error })
 			throw error
 		}
 	}

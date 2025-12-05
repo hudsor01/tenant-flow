@@ -5,15 +5,15 @@
  * - account.updated
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class ConnectWebhookHandler {
-	private readonly logger = new Logger(ConnectWebhookHandler.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	async handleAccountUpdated(account: Stripe.Account): Promise<void> {
 		try {

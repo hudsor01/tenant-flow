@@ -4,16 +4,16 @@
  * Extracted from MaintenanceService for SRP compliance
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class MaintenanceWorkflowService {
-	private readonly logger = new Logger(MaintenanceWorkflowService.name)
 
 	// Reverse map for converting database priority values to enum values for events
 	private readonly reversePriorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
@@ -23,10 +23,8 @@ export class MaintenanceWorkflowService {
 		urgent: 'URGENT'
 	}
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
 
 	/**
 	 * Update status - consolidated method (replaces complete and cancel)

@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import {
 	calculatePeriodComparison,
 	createFinancialPeriod
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	isWithinRange,
 	loadLedgerData,
@@ -47,9 +48,8 @@ export interface CashFlowData {
 
 @Injectable()
 export class CashFlowService {
-	private readonly logger = new Logger(CashFlowService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Generate cash flow statement for a given period

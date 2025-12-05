@@ -23,7 +23,7 @@ module.exports = {
 		'/node_modules/',
 		'/dist/',
 		'/coverage/',
-		'\.integration\.(spec|test)\.ts$'
+		'\\.integration\\.(spec|test)\\.ts$'
 	],
 	collectCoverageFrom: [
 		'src/**/*.{ts,js}',
@@ -83,7 +83,8 @@ module.exports = {
 					forceConsistentCasingInFileNames: true,
 					strict: true,
 					isolatedModules: true,
-					jsx: 'react'
+					jsx: 'react',
+					types: ['node', 'jest', 'express', '@jest/globals']
 				}
 			}
 		]

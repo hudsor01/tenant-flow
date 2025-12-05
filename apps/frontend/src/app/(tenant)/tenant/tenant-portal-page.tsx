@@ -1,12 +1,12 @@
 'use client'
 
 import '../../(owner)/dashboard.css'
-import { MetricCard } from '#components/dashboard/metric-card'
-import { ErrorBoundary } from '#components/ui/error-boundary'
+import { Stat, StatLabel, StatValue, StatDescription, StatIndicator } from '#components/ui/stat'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Skeleton } from '#components/ui/skeleton'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Empty, EmptyHeader, EmptyMedia, EmptyDescription } from '#components/ui/empty'
+import { TenantOnboardingTour, TenantTourTrigger } from '#components/tours'
 import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
 import { useQuery } from '@tanstack/react-query'
@@ -90,13 +90,15 @@ export default function TenantDashboardPage() {
 			title: 'Pay Rent',
 			description: 'Make a rent payment',
 			icon: CreditCard,
-			href: '/tenant/payments/new'
+			href: '/tenant/payments/new',
+			tourId: 'pay-rent'
 		},
 		{
 			title: 'Submit Request',
 			description: 'Report maintenance issue',
 			icon: Wrench,
-			href: '/tenant/maintenance/new'
+			href: '/tenant/maintenance/new',
+			tourId: 'maintenance'
 		},
 		{
 			title: 'View Lease',
@@ -113,12 +115,17 @@ export default function TenantDashboardPage() {
 	]
 
 	return (
-		<div className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--color-background)] via-[var(--color-card)] to-[var(--color-muted)]/50 dark:from-[var(--color-background)] dark:via-(--card) dark:to-(--muted)/50">
+		<>
+			<TenantOnboardingTour />
+			<div className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--color-background)] via-[var(--color-card)] to-[var(--color-muted)]/50 dark:from-[var(--color-background)] dark:via-(--card) dark:to-(--muted)/50">
 			<div className="dashboard-main border-b-2 border-(--color-border)/40 bg-gradient-to-b from-[var(--color-background)] via-[var(--color-muted)]/30 to-[var(--color-muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--color-background)] dark:via-[var(--color-muted)]/30 dark:to-[var(--color-muted)]/20">
 				<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
-					<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--color-foreground)] via-[var(--color-foreground)]/80 to-[var(--color-foreground)] bg-clip-text text-transparent dark:from-[var(--color-background)] dark:via-(--background) dark:to-[var(--color-background)]">
-						Tenant Portal
-					</h1>
+					<div className="flex-between">
+						<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--color-foreground)] via-[var(--color-foreground)]/80 to-[var(--color-foreground)] bg-clip-text text-transparent dark:from-[var(--color-background)] dark:via-(--background) dark:to-[var(--color-background)]">
+							Tenant Portal
+						</h1>
+						<TenantTourTrigger />
+					</div>
 
 					{/* Pending Signature Alert */}
 					{needsSignature && activeLease && (
@@ -172,58 +179,57 @@ export default function TenantDashboardPage() {
 							) : (
 					<div className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-3 gap-(--layout-gap-group)">
 						{/* Lease Card */}
-						<MetricCard
-							variant="stat"
-							title="Current Lease"
-							value={activeLease?.status === 'active' ? 'Active' : 'Inactive'}
-							description={
-								activeLease?.start_date && activeLease?.end_date
+						<Stat data-testid="stat-card">
+							<StatLabel>Current Lease</StatLabel>
+							<StatValue>{activeLease?.status === 'active' ? 'Active' : 'Inactive'}</StatValue>
+							<StatDescription>
+								{activeLease?.start_date && activeLease?.end_date
 									? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
-									: 'No active lease'
-							}
-							icon={Home}
-						/>
+									: 'No active lease'}
+							</StatDescription>
+							<StatIndicator variant="icon" color="default">
+								<Home />
+							</StatIndicator>
+						</Stat>
 
 						{/* Payment Card */}
-						<MetricCard
-							variant="stat"
-							title="Next Payment"
-							value={nextPaymentAmount}
-							description={`Due: ${nextPaymentDate}`}
-							badge={
-								paymentStatus && (
-									<Badge
-										variant={paymentStatus.variant === 'success' ? 'default' : paymentStatus.variant === 'warning' ? 'outline' : 'destructive'}
-										className={
-											paymentStatus.variant === 'success'
-												? 'status-badge status-badge-success'
-											: paymentStatus.variant === 'warning'
-											? 'status-badge status-badge-warning'
-											: ''
-										}
-									>
-										<paymentStatus.icon className="size-3 mr-1" />
-										{paymentStatus.label}
-									</Badge>
-								)
-							}
-							icon={Calendar}
-						/>
+						<Stat data-testid="stat-card">
+							<StatLabel>Next Payment</StatLabel>
+							<StatValue>{nextPaymentAmount}</StatValue>
+							<StatDescription>Due: {nextPaymentDate}</StatDescription>
+							{paymentStatus ? (
+								<StatIndicator
+									variant="badge"
+									color={
+										paymentStatus.variant === 'success' ? 'success' :
+										paymentStatus.variant === 'warning' ? 'warning' : 'error'
+									}
+								>
+									<paymentStatus.icon className="size-3" />
+									{paymentStatus.label}
+								</StatIndicator>
+							) : (
+								<StatIndicator variant="icon" color="default">
+									<Calendar />
+								</StatIndicator>
+							)}
+						</Stat>
 
 						{/* Maintenance Card */}
-						<MetricCard
-							variant="stat"
-							title="Maintenance"
-							value={maintenanceSummary?.open ?? 0}
-							description={
-								maintenanceSummary?.open === 0
+						<Stat data-testid="stat-card">
+							<StatLabel>Maintenance</StatLabel>
+							<StatValue>{maintenanceSummary?.open ?? 0}</StatValue>
+							<StatDescription>
+								{maintenanceSummary?.open === 0
 									? 'No open requests'
 									: maintenanceSummary?.open === 1
 									? '1 request in progress'
-									: `${maintenanceSummary.open} requests in progress`
-							}
-							icon={Wrench}
-						/>
+									: `${maintenanceSummary.open} requests in progress`}
+							</StatDescription>
+							<StatIndicator variant="icon" color="default">
+								<Wrench />
+							</StatIndicator>
+						</Stat>
 					</div>
 							)}
 						</ErrorBoundary>
@@ -243,7 +249,7 @@ export default function TenantDashboardPage() {
 							</div>
 						}
 					>
-						<section className="dashboard-panel" data-density="compact">
+						<section className="dashboard-panel" data-density="compact" data-tour="quick-actions">
 							<div className="dashboard-panel-header" data-variant="actions">
 								<h3 className="dashboard-panel-title">Quick Actions</h3>
 								<p className="dashboard-panel-description">
@@ -260,6 +266,7 @@ export default function TenantDashboardPage() {
 												href={action.href}
 												className="dashboard-quick-action group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
 												aria-label={`${action.title}: ${action.description}`}
+												{...(action.tourId && { 'data-tour': action.tourId })}
 											>
 												<div className="dashboard-quick-action-icon">
 													<Icon className="size-5" aria-hidden="true" />
@@ -291,7 +298,7 @@ export default function TenantDashboardPage() {
 							</div>
 						}
 					>
-						<div className="dashboard-grid">
+						<div className="dashboard-grid" data-tour="recent-activity">
 							{/* Recent Payments */}
 							<section className="dashboard-panel" data-density="compact">
 								<div className="dashboard-panel-header">
@@ -467,5 +474,6 @@ export default function TenantDashboardPage() {
 				</div>
 			</div>
 		</div>
+		</>
 	)
 }

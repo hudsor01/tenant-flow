@@ -15,6 +15,9 @@ import { PropertiesService } from './properties.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Mock the PropertiesService
 jest.mock('./properties.service', () => {
@@ -83,7 +86,11 @@ describe('PropertiesController', () => {
 			PropertiesService,
 			{ provide: PropertyBulkImportService, useValue: {} },
 			{ provide: PropertyAnalyticsService, useValue: {} },
-			{ provide: DashboardService, useValue: {} }
+			{ provide: DashboardService, useValue: {} },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 		]
 		}).compile()
 

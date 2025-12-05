@@ -1,7 +1,7 @@
 'use client'
 
 import { PullToRefresh } from '#components/ui/pull-to-refresh'
-import { ViewSwitcher, type ViewType } from '#components/ui/view-switcher'
+import { ViewSwitcher, type ViewType } from '#components/view-switcher'
 import { useIsMobile } from '#hooks/use-mobile'
 import { usePreferencesStore } from '#providers/preferences-provider'
 import { propertyQueries } from '#hooks/api/queries/property-queries'

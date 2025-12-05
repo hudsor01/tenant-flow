@@ -1,12 +1,9 @@
 import type {
 	ExceptionFilter,
 	ArgumentsHost} from '@nestjs/common';
-import {
-	Catch,
-	HttpStatus,
-	Logger
-} from '@nestjs/common'
+import { Catch, HttpStatus } from '@nestjs/common'
 import type { Response } from 'express'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * PostgreSQL/PostgREST Error Type
@@ -32,7 +29,8 @@ interface PostgrestError {
  */
 @Catch()
 export class DatabaseExceptionFilter implements ExceptionFilter {
-	private readonly logger = new Logger(DatabaseExceptionFilter.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp()

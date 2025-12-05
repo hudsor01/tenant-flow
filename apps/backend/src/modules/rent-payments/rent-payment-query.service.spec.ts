@@ -8,6 +8,9 @@ import { Test } from '@nestjs/testing'
 import { SupabaseService } from '../../database/supabase.service'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import type { RentPayment, Lease } from './types'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('RentPaymentQueryService', () => {
 	let service: RentPaymentQueryService
@@ -89,7 +92,11 @@ describe('RentPaymentQueryService', () => {
 		const module = await Test.createTestingModule({
 			providers: [
 				RentPaymentQueryService,
-				{ provide: SupabaseService, useValue: mockSupabaseService }
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

@@ -4,20 +4,15 @@
  * Extracted from RentPaymentsService for SRP compliance
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	Logger,
-	NotFoundException
-} from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import type { Lease, RentPayment } from './types'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class RentPaymentQueryService {
-	private readonly logger = new Logger(RentPaymentQueryService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get payment history for authenticated user

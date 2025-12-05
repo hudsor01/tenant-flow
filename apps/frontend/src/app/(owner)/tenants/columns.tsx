@@ -11,6 +11,12 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Tenant',
+		meta: {
+			label: 'Tenant',
+			variant: 'text',
+			placeholder: 'Search tenants...',
+		},
+		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const tenant = row.original
 			return (
@@ -43,6 +49,16 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 	{
 		accessorKey: 'paymentStatus',
 		header: 'Status',
+		meta: {
+			label: 'Payment Status',
+			variant: 'select',
+			options: [
+				{ label: 'Current', value: 'Current' },
+				{ label: 'Overdue', value: 'Overdue' },
+				{ label: 'No Lease', value: 'No Lease' },
+			],
+		},
+		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const tenant = row.original
 
@@ -87,6 +103,13 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 	{
 		accessorKey: 'rent_amount',
 		header: 'Monthly Rent',
+		meta: {
+			label: 'Rent',
+			variant: 'range',
+			range: [0, 10000],
+			unit: '$',
+		},
+		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const rent = row.getValue('rent_amount') as number | null
 			return rent ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(rent) : '-'

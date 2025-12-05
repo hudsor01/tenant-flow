@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	TaxDocumentsData,
 	TaxExpenseCategory,
@@ -9,6 +9,7 @@ import {
 	safeNumber
 } from '@repo/shared/utils/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	calculatePropertyFinancials,
 	isWithinRange,
@@ -20,9 +21,8 @@ import {
 
 @Injectable()
 export class TaxDocumentsService {
-	private readonly logger = new Logger(TaxDocumentsService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Generate tax documents for a given year

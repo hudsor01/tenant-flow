@@ -2,13 +2,11 @@ import type {
 	NestInterceptor,
 	ExecutionContext,
 	CallHandler} from '@nestjs/common';
-import {
-	Injectable,
-	Logger
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /**
  * Tenant Context attached to Request by TenantAuthGuard
@@ -35,6 +33,8 @@ export interface TenantContext {
  * @UseInterceptors(TenantContextInterceptor)
  * @Controller('tenant/payments')
  * export class TenantPaymentsController {
+    constructor(private readonly logger: AppLogger) {}
+
  *   @Get()
  *   async getPayments(@Req() req: AuthenticatedRequest) {
  *     // req.tenantContext available
@@ -44,7 +44,8 @@ export interface TenantContext {
  */
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
-	private readonly logger = new Logger(TenantContextInterceptor.name)
+    constructor(private readonly logger: AppLogger) {}
+
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		const request = context
