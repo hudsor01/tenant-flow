@@ -4,14 +4,10 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import {
-	BadRequestException,
-	Injectable,
-	InternalServerErrorException,
-	Logger
-} from '@nestjs/common'
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
 import type { Tenant, TenantWithLeaseInfo, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -34,9 +30,8 @@ export interface ListFilters {
 
 @Injectable()
 export class TenantListService {
-	private readonly logger = new Logger(TenantListService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all tenants for user with optional filtering

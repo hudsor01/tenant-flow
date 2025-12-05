@@ -1,8 +1,6 @@
 import {
 	BadRequestException,
-	Injectable,
-	Logger,
-	Optional
+	Injectable
 } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -12,6 +10,7 @@ import type {
 	QueryProperty
 } from '@repo/shared/src/types/financial-statements.js'
 import { LEASE_STATUS } from '@repo/shared/constants/status-types'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 const VALID_PERIODS = ['current', 'monthly', 'quarterly', 'yearly'] as const
 
@@ -23,14 +22,10 @@ const VALID_PERIODS = ['current', 'monthly', 'quarterly', 'yearly'] as const
  */
 @Injectable()
 export class PropertyOccupancyAnalyticsService {
-	private readonly logger: Logger
-
 	constructor(
 		private readonly supabase: SupabaseService,
-		@Optional() logger?: Logger
-	) {
-		this.logger = logger ?? new Logger(PropertyOccupancyAnalyticsService.name)
-	}
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get property occupancy analytics

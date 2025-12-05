@@ -15,7 +15,7 @@ test/utils/
 ## Quick Start
 
 ```typescript
-import { render, screen, buildMockTenant, TenantBuilder } from '@/test/utils'
+import { render, screen, buildMockTenant, TenantBuilder } from '#test/utils'
 
 test('displays tenant name', () => {
  const tenant = buildMockTenant({ name: 'Jane Doe' })
@@ -33,7 +33,7 @@ test('displays tenant name', () => {
 Build test data with sensible defaults and easy overrides:
 
 ```typescript
-import { buildMockTenant, buildMockUser, buildMockProperty } from '@/test/utils'
+import { buildMockTenant, buildMockUser, buildMockProperty } from '#test/utils'
 
 // Use defaults
 const tenant = buildMockTenant()
@@ -57,7 +57,7 @@ const customTenant = buildMockTenant({
 For complex test scenarios, use fluent builders:
 
 ```typescript
-import { TenantBuilder, UserBuilder } from '@/test/utils'
+import { TenantBuilder, UserBuilder } from '#test/utils'
 
 const tenant = new TenantBuilder()
  .withId('custom-id')
@@ -99,7 +99,7 @@ const user = new UserBuilder()
 Automatically wraps components in `QueryClientProvider`:
 
 ```typescript
-import { render, screen } from '@/test/utils'
+import { render, screen } from '#test/utils'
 
 test('renders component', () => {
  render(<MyComponent />)
@@ -140,7 +140,7 @@ render(<MyComponent />, {
 For describe blocks with common setup:
 
 ```typescript
-import { createTestWrapper } from '@/test/utils'
+import { createTestWrapper } from '#test/utils'
 
 describe('MyComponent', () => {
  const { Wrapper } = createTestWrapper()
@@ -162,7 +162,7 @@ describe('MyComponent', () => {
 Type-safe mocks for TanStack Query:
 
 ```typescript
-import { createMockQuery } from '@/test/utils'
+import { createMockQuery } from '#test/utils'
 
 const mockQuery = createMockQuery({
  data: buildMockTenant(),
@@ -195,7 +195,7 @@ const errorQuery = createMockQuery({
 Mock mutations with callbacks:
 
 ```typescript
-import { createMockMutation } from '@/test/utils'
+import { createMockMutation } from '#test/utils'
 
 const mockMutation = createMockMutation({
  onSuccess: (data) => {
@@ -365,7 +365,7 @@ it('renders tenant details', () => {
 
 **After:**
 ```typescript
-import { render, screen, buildMockTenant } from '@/test/utils'
+import { render, screen, buildMockTenant } from '#test/utils'
 
 test('renders tenant details', () => {
  const tenant = buildMockTenant()

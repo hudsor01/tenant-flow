@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
 import { DashboardModule } from '../dashboard/dashboard.module'
@@ -23,8 +23,7 @@ import { PropertyMaintenanceAnalyticsService } from './services/property-mainten
 		PropertyOccupancyAnalyticsService,
 		PropertyFinancialAnalyticsService,
 		PropertyMaintenanceAnalyticsService,
-		PropertyAnalyticsService,
-		Logger
+		PropertyAnalyticsService
 	],
 	exports: [PropertiesService]
 })

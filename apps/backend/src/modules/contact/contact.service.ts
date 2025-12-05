@@ -1,14 +1,10 @@
-import {
-	Injectable,
-	InternalServerErrorException,
-	Logger,
-	Inject
-} from '@nestjs/common'
+import { Injectable, InternalServerErrorException, Inject } from '@nestjs/common'
 import type { ConfigType } from '@nestjs/config'
 import { Resend } from 'resend'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import emailConfig from 'src/config/email.config'
 import { EmailService } from '../email/email.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type ResendClient = {
 	emails: { send: (args: unknown) => Promise<unknown> }
@@ -16,11 +12,9 @@ type ResendClient = {
 
 @Injectable()
 export class ContactService {
-	private readonly logger = new Logger(ContactService.name)
 	private readonly resend: ResendClient | null
 
-	constructor(
-		@Inject(emailConfig.KEY)
+	constructor(@Inject(emailConfig.KEY) private readonly logger: AppLogger,
 		private emailOptions: ConfigType<typeof emailConfig>,
 		private readonly emailService: EmailService
 	) {
@@ -56,15 +50,13 @@ export class ContactService {
 				if (teamEmailError.status === 'rejected') {
 					this.logger.error(
 						`Failed to send team notification for ${dto.email}: ${teamEmailError.reason}`,
-						teamEmailError.reason?.stack, // Log stack trace if available
-						'ContactService'
+						{ stack: teamEmailError.reason?.stack, context: 'ContactService' }
 					)
 				}
 				if (confirmationEmailError.status === 'rejected') {
 					this.logger.error(
 						`Failed to send user confirmation to ${dto.email}: ${confirmationEmailError.reason}`,
-						confirmationEmailError.reason?.stack,
-						'ContactService'
+						{ stack: confirmationEmailError.reason?.stack, context: 'ContactService' }
 					)
 				}
 			}
@@ -93,12 +85,12 @@ export class ContactService {
 			// This catch block handles unexpected errors *before* attempting to send emails
 			// Errors during email sending are handled by Promise.allSettled
 			this.logger.error(
+				'Unexpected error during contact form processing',
 				{
 					error: error instanceof Error ? error.message : String(error),
-					email: dto.email
-				},
-				'Unexpected error during contact form processing',
-				'ContactService'
+					email: dto.email,
+					context: 'ContactService'
+				}
 			)
 			throw new InternalServerErrorException(
 				'Contact submission failed [CONTACT-001]'

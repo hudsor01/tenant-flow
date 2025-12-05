@@ -5,6 +5,9 @@ import { SubscriptionWebhookHandler } from './handlers/subscription-webhook.hand
 import { PaymentWebhookHandler } from './handlers/payment-webhook.handler'
 import { CheckoutWebhookHandler } from './handlers/checkout-webhook.handler'
 import { ConnectWebhookHandler } from './handlers/connect-webhook.handler'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('WebhookProcessor', () => {
 	let processor: WebhookProcessor
@@ -41,7 +44,11 @@ describe('WebhookProcessor', () => {
 				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
 				{ provide: PaymentWebhookHandler, useValue: mockPaymentHandler },
 				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
-				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler }
+				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

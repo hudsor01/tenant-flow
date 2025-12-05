@@ -101,19 +101,12 @@ test.describe('Authentication Diagnostic Tests', () => {
 		logger.info(`[SUPABASE] Initialized: ${supabaseInitialized}`)
 
 		// Get environment info
-		const envInfo = await page.evaluate(() => {
-			const w = window as unknown as {
-				location: Location;
-				NEXT_PUBLIC_SUPABASE_URL?: string;
-				NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
-			};
-			return {
-				origin: w.location.origin,
-				pathname: w.location.pathname,
-				supabaseUrl: w.NEXT_PUBLIC_SUPABASE_URL,
-				supabaseKey: w.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
-			};
-		});
+		const envInfo = await page.evaluate(() => ({
+			origin: window.location.origin,
+			pathname: window.location.pathname,
+			supabaseUrl: (window as any).NEXT_PUBLIC_SUPABASE_URL,
+			supabaseKey: (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+		}));
 		logger.info('[ENV] Frontend environment:', envInfo)
 
 		// Log initial network requests

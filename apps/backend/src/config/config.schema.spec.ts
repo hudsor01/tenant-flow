@@ -85,7 +85,7 @@ describe('Configuration Schema Validation', () => {
 			const result = validate(config)
 
 			expect(result.NODE_ENV).toBe('production') // Default
-			expect(result.PORT).toBe(4600) // Default
+			expect(result.PORT).toBe(4650) // Default
 			expect(result.JWT_EXPIRES_IN).toBe('7d') // Default
 			expect(result.LOG_LEVEL).toBe('info') // Default
 			expect(result.STORAGE_PROVIDER).toBe('supabase') // Default

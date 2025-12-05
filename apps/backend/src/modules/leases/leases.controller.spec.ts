@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing'
 import type { Lease } from '@repo/shared/types/core'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockEmailService } from '../../test-utils/mocks'
@@ -132,6 +133,10 @@ describe('LeasesController', () => {
 				{
 					provide: EmailService,
 					useValue: createMockEmailService()
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 		})

@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { DashboardStats } from '@repo/shared/types/core'
 import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
 import { FinancialAnalyticsService } from '../../analytics/financial-analytics.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 export interface ExecutiveMonthlyReportData {
 	summary: {
@@ -31,12 +32,9 @@ export interface ExecutiveMonthlyReportData {
 
 @Injectable()
 export class ExecutiveMonthlyTemplate {
-	private readonly logger = new Logger(ExecutiveMonthlyTemplate.name)
 
-	constructor(
-		private readonly dashboardService: DashboardAnalyticsService,
-		private readonly financialService: FinancialAnalyticsService
-	) {}
+	constructor(private readonly dashboardService: DashboardAnalyticsService,
+		private readonly financialService: FinancialAnalyticsService, private readonly logger: AppLogger) {}
 
 	async generateReportData(
 		user_id: string,

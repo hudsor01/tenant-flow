@@ -1,7 +1,6 @@
 'use client'
 
 import { FloatingActionButton } from '#components/ui/floating-action-button'
-import { MobileOnboarding } from '#components/ui/mobile-onboarding'
 import { MobileNav } from '#components/ui/mobile-nav'
 import { MobileErrorBoundary } from '#components/ui/mobile-error-boundary'
 import { useIsMobile } from '#hooks/use-mobile'
@@ -32,7 +31,6 @@ export function MobileChrome({ children }: MobileChromeProps) {
 							label="Add property"
 						/>
 						<MobileNav />
-						<MobileOnboarding />
 					</>
 				) : null}
 			</div>

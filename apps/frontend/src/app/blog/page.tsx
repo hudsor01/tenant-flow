@@ -1,5 +1,4 @@
-import Footer from '#components/ui/layout/footer'
-import Navbar from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { getAllBlogPosts } from '#lib/blog-posts'
@@ -13,19 +12,12 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { GridPattern } from '../../components/ui/grid-pattern'
+
 
 export default function BlogPage() {
 	const blogPosts = getAllBlogPosts()
 	return (
-		<div className="relative min-h-screen flex flex-col">
-			{/* Full page grid background */}
-			<GridPattern className="fixed inset-0 -z-10" />
-
-			{/* Navigation */}
-			<Navbar />
-
-			<main className="flex-1 page-offset-navbar">
+		<PageLayout>
 				{/* Hero Section */}
 				<HeroSection
 					title="Free guides to save"
@@ -255,9 +247,6 @@ export default function BlogPage() {
 						</p>
 					</div>
 				</section>
-			</main>
-
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

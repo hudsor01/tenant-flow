@@ -11,11 +11,12 @@
  * - Emit subscription lifecycle events
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 import { LEASE_SIGNATURE_ERROR_MESSAGES, LEASE_SIGNATURE_ERROR_CODES } from '@repo/shared/constants/lease-signature-errors'
+import { AppLogger } from '../../logger/app-logger.service'
 
 interface LeaseForSubscription {
 	id: string
@@ -41,13 +42,10 @@ interface SignatureData {
 
 @Injectable()
 export class LeaseSubscriptionService {
-	private readonly logger = new Logger(LeaseSubscriptionService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly stripeConnectService: StripeConnectService
-	) {}
+		private readonly stripeConnectService: StripeConnectService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Activate a fully-signed lease and create Stripe subscription

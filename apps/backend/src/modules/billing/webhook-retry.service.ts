@@ -1,4 +1,4 @@
-import { Injectable, Logger, Optional } from '@nestjs/common'
+import { Injectable, Optional } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
@@ -6,17 +6,16 @@ import { PrometheusService } from '../observability/prometheus.service'
 import type { Database } from '@repo/shared/types/supabase'
 import { WebhookProcessor } from './webhook-processor.service'
 import { logError } from '../../utils/error-serializer'
+import { AppLogger } from '../../logger/app-logger.service'
 
 type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
 
 @Injectable()
 export class WebhookRetryService {
-	private readonly logger = new Logger(WebhookRetryService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly processor: WebhookProcessor,
-		@Optional() private readonly prometheus: PrometheusService | null
+		@Optional() private readonly logger: AppLogger, private readonly prometheus: PrometheusService | null
 	) {}
 
 	/**

@@ -6,6 +6,9 @@ import { createMockRequest } from '../../shared/test-utils/types'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { createMockUser } from '../../test-utils/mocks'
 import { NotificationsController } from './notifications.controller'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 // Mock the SupabaseService
 jest.mock('../../database/supabase.service', () => {
@@ -87,6 +90,10 @@ describe('NotificationsController', () => {
 					priority: 'MEDIUM',
 					isRead: false,
 					created_at: new Date()
+				},
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
 				}
 			]
 

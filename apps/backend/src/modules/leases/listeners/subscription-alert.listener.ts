@@ -9,12 +9,13 @@
  * - lease.subscription_max_retries: Max retry attempts reached (requires manual intervention)
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../../database/supabase.service'
 import { EmailService } from '../../email/email.service'
 import { AppConfigService } from '../../../config/app-config.service'
 import { EventIdempotencyService } from '../../../shared/services/event-idempotency.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /** Event payload for subscription failure */
 interface SubscriptionFailedEvent {
@@ -33,14 +34,11 @@ interface SubscriptionMaxRetriesEvent {
 
 @Injectable()
 export class SubscriptionAlertListener {
-	private readonly logger = new Logger(SubscriptionAlertListener.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
+	constructor(private readonly supabase: SupabaseService,
 		private readonly emailService: EmailService,
 		private readonly config: AppConfigService,
-		private readonly idempotency: EventIdempotencyService
-	) {}
+		private readonly idempotency: EventIdempotencyService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Handle subscription failure event

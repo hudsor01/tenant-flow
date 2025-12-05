@@ -17,7 +17,7 @@ const environmentSchema = z.object({
 	NODE_ENV: z
 		.enum(NODE_ENVIRONMENTS)
 		.default('production'),
-	PORT: z.coerce.number().default(4600),
+	PORT: z.coerce.number().default(4650),
   BACKEND_TIMEOUT_MS: z.coerce.number().default(30000),
 	API_BASE_URL: z.string().url('Must be a valid URL').default('https://api.tenantflow.app'),
 

@@ -5,6 +5,9 @@ import {
 	type PdfResponse
 } from './pdf-response.interceptor'
 import type { ExecutionContext, CallHandler } from '@nestjs/common'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('PdfResponseInterceptor', () => {
 	let interceptor: PdfResponseInterceptor

@@ -1,5 +1,4 @@
-import Footer from '#components/ui/layout/footer'
-import { Navbar } from '#components/ui/layout/navbar'
+import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -9,8 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
 	return (
-		<div className="relative min-h-screen flex flex-col">
-			<Navbar />
+		<PageLayout>
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing page-offset-navbar">
 			<h1 className="mb-8 text-4xl font-bold">Privacy Policy</h1>
 			<p className="mb-6 text-muted">
@@ -434,7 +432,6 @@ export default function PrivacyPage() {
 				</div>
 			</div>
 			</div>
-			<Footer />
-		</div>
+		</PageLayout>
 	)
 }

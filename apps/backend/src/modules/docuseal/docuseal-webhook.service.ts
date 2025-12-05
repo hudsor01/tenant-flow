@@ -8,9 +8,10 @@
  * Updates lease signature timestamps and triggers activation events.
  */
 
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import type {
 	FormCompletedPayload,
 	SubmissionCompletedPayload
@@ -18,12 +19,9 @@ import type {
 
 @Injectable()
 export class DocuSealWebhookService {
-	private readonly logger = new Logger(DocuSealWebhookService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
 
 	/**
 	 * Handle form.completed event - a single submitter has signed

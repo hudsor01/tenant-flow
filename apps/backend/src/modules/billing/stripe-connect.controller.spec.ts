@@ -3,6 +3,9 @@ import { BadRequestException, InternalServerErrorException } from '@nestjs/commo
 import { StripeConnectController } from './stripe-connect.controller'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { SilentLogger } from '../../__test__/silent-logger'
+import { AppLogger } from '../../logger/app-logger.service'
+
 
 describe('StripeConnectController', () => {
 	let controller: StripeConnectController
@@ -33,7 +36,11 @@ describe('StripeConnectController', () => {
 			controllers: [StripeConnectController],
 			providers: [
 				{ provide: StripeConnectService, useValue: {} },
-				{ provide: SupabaseService, useValue: supabaseService }
+				{ provide: SupabaseService, useValue: supabaseService },
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
 			]
 		}).compile()
 

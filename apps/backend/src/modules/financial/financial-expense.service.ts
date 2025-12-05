@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { ExpenseRecord } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Financial Expense Service
@@ -10,9 +11,8 @@ import { SupabaseService } from '../../database/supabase.service'
  */
 @Injectable()
 export class FinancialExpenseService {
-	private readonly logger = new Logger(FinancialExpenseService.name)
 
-	constructor(private readonly supabaseService: SupabaseService) {}
+	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get expense summary for a given year

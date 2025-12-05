@@ -1,8 +1,9 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type Stripe from 'stripe'
 import { StripeClientService } from '../../shared/stripe-client.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Ultra-Native Stripe Service
@@ -12,16 +13,14 @@ import { StripeClientService } from '../../shared/stripe-client.service'
  */
 @Injectable()
 export class StripeService {
-	private readonly logger = new Logger(StripeService.name)
 	private stripe: Stripe
 
 	// Stripe API pagination defaults
 	private readonly STRIPE_DEFAULT_LIMIT = 100 // Maximum items per page for Stripe API
 	private readonly STRIPE_MAX_TOTAL_ITEMS = 1000 // Maximum total items to prevent unbounded pagination
 
-	constructor(
-		private readonly stripeClientService: StripeClientService,
-		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+	constructor(private readonly stripeClientService: StripeClientService,
+		@Inject(CACHE_MANAGER) private readonly logger: AppLogger, private readonly cacheManager: Cache
 	) {
 		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe SDK initialized')

@@ -4,15 +4,15 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import type { Tenant, TenantWithLeaseInfo, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class TenantDetailService {
-	private readonly logger = new Logger(TenantDetailService.name)
 
-	constructor(private readonly supabase: SupabaseService) {}
+	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get single tenant by ID

@@ -7,16 +7,7 @@
  * See: https://github.com/supabase/stripe-sync-engine
  */
 
-import {
-	BadRequestException,
-	Controller,
-	Header,
-	Inject,
-	Logger,
-	Post,
-	Req,
-	SetMetadata
-} from '@nestjs/common'
+import { BadRequestException, Controller, Header, Inject, Post, Req, SetMetadata } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type { Request } from 'express'
@@ -29,6 +20,7 @@ import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeSyncService } from '../billing/stripe-sync.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { createThrottleDefaults } from '../../config/throttle.config'
+import { AppLogger } from '../../logger/app-logger.service'
 
 const STRIPE_SYNC_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'STRIPE_SYNC_THROTTLE_TTL',
@@ -39,10 +31,8 @@ const STRIPE_SYNC_THROTTLE = createThrottleDefaults({
 
 @Controller('webhooks')
 export class StripeSyncController {
-	private readonly logger = new Logger(StripeSyncController.name)
 
-	constructor(
-		@Inject(StripeSyncService)
+	constructor(@Inject(StripeSyncService) private readonly logger: AppLogger,
 		private readonly stripeSyncService: StripeSyncService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,

@@ -8,10 +8,11 @@
  * - payment_intent.payment_failed
  */
 
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../../database/supabase.service'
 import { EmailService } from '../../email/email.service'
+import { AppLogger } from '../../../logger/app-logger.service'
 
 /** Maximum number of payment retry attempts before marking as final failure */
 export const MAX_PAYMENT_RETRY_ATTEMPTS = 3
@@ -41,12 +42,9 @@ function isTenantWithEmail(data: unknown): data is TenantWithEmail {
 
 @Injectable()
 export class PaymentWebhookHandler {
-	private readonly logger = new Logger(PaymentWebhookHandler.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly emailService: EmailService
-	) {}
+	constructor(private readonly supabase: SupabaseService,
+		private readonly emailService: EmailService, private readonly logger: AppLogger) {}
 
 	async handlePaymentAttached(paymentMethod: Stripe.PaymentMethod): Promise<void> {
 		try {

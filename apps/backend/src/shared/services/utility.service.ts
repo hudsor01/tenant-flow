@@ -4,13 +4,14 @@
  * Handles utility functions and global search operations
  */
 
-import { Inject, Injectable, Logger, NotFoundException, InternalServerErrorException } from '@nestjs/common'
+import { Inject, Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import type { Cache } from 'cache-manager'
 import type { SearchResult } from '@repo/shared/types/search'
 import type { Database } from '@repo/shared/types/supabase'
 import { USER_user_type } from '@repo/shared/constants/auth'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import {
 	buildILikePattern,
 	buildMultiColumnSearch,
@@ -39,11 +40,9 @@ export interface PasswordValidationResult {
 
 @Injectable()
 export class UtilityService {
-	private readonly logger = new Logger(UtilityService.name)
 
-	constructor(
-		private readonly supabase: SupabaseService,
-		@Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+	constructor(private readonly supabase: SupabaseService,
+		@Inject(CACHE_MANAGER) private readonly logger: AppLogger, private readonly cacheManager: Cache
 	) {}
 
 	/**
@@ -533,7 +532,7 @@ export class UtilityService {
 			// Basic health check - verify Supabase service is available
 			return !!this.supabase.getAdminClient()
 		} catch (error) {
-			this.logger.error('Utility service health check failed:', error)
+			this.logger.error('Utility service health check failed:', { error })
 			return false
 		}
 	}

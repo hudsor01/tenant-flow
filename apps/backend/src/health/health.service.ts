@@ -1,14 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import type { HealthCheckResponse } from '@repo/shared/types/health'
 import { SupabaseService } from '../database/supabase.service'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 @Injectable()
 export class HealthService {
-	private readonly logger = new Logger(HealthService.name)
 
-	constructor(
-		@Inject('SUPABASE_SERVICE_FOR_HEALTH')
+	constructor(@Inject('SUPABASE_SERVICE_FOR_HEALTH') private readonly logger: AppLogger,
 		private readonly supabaseClient: SupabaseService,
 		private readonly config: AppConfigService
 	) {}
