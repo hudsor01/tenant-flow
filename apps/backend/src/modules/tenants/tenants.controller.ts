@@ -86,8 +86,7 @@ export class TenantsController {
 
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? undefined
-		const filters: Record<string, unknown> = { token }
+		const filters: Record<string, unknown> = {}
 		if (search !== undefined) filters.search = search
 		if (invitationStatus !== undefined) filters.invitationStatus = invitationStatus
 		if (limit !== undefined) filters.limit = limit
