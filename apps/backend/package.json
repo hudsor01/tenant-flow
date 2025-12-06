@@ -102,6 +102,7 @@
 		"@types/express": "^5.0.5",
 		"@types/jest": "catalog:default",
 		"@types/multer": "2.0.0",
+		"fast-check": "^4.3.0",
 		"@types/node": "catalog:default",
 		"@types/react": "catalog:default",
 		"@types/supertest": "^6.0.3",

@@ -21,7 +21,7 @@
 			"@repo/testing/*": ["../../packages/testing/src/*"]
 		}
 	},
-	"include": ["src/types/**/*.d.ts"],
+	"include": ["src/**/*.ts", "src/types/**/*.d.ts"],
 	"exclude": [
 		"node_modules",
 		"dist",
