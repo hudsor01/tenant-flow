@@ -28,6 +28,16 @@ export class WebhookRetryService {
   async retryFailedWebhooks() {
     this.logger.log('Starting webhook retry job')
 
+    // Check database connection health before proceeding
+    const healthCheck = await this.supabase.checkConnection()
+    if (healthCheck.status === 'unhealthy') {
+      this.logger.warn('Skipping webhook retry job - database connection unhealthy', {
+        reason: healthCheck.message,
+        method: healthCheck.method
+      })
+      return
+    }
+
     const client = this.supabase.getAdminClient()
 
     // Query webhook_attempts table for failed attempts

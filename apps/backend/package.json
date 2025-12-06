@@ -26,7 +26,8 @@
 		"test:watch": "jest --watch",
 		"clean": "rimraf dist coverage .turbo node_modules/.cache",
 		"stripe:migrate": "tsx scripts/stripe-sync-migrate.ts",
-		"stripe:backfill-customers": "tsx scripts/backfill-stripe-customers.ts"
+		"stripe:backfill-customers": "tsx scripts/backfill-stripe-customers.ts",
+		"validate:supabase": "doppler run -- tsx scripts/validate-supabase-keys.ts"
 	},
 	"dependencies": {
 		"@nestjs/bullmq": "11.0.4",

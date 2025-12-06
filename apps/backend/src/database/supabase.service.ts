@@ -378,6 +378,22 @@ export class SupabaseService implements OnModuleDestroy {
           const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
           // Check if error is "function does not exist" - this is expected and not an error
           const errorStr = String(errorMessage).toLowerCase()
+
+          // Check for API key errors
+          if (errorStr.includes('unregistered api key') || errorStr.includes('invalid api key')) {
+            this.logger?.error(
+              {
+                error: errorMessage,
+                fn,
+                urlPrefix: this.config.getSupabaseUrl()?.substring(0, 35),
+                keyPrefix: this.config.getSupabaseSecretKey()?.substring(0, 20),
+                errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED
+              },
+              '[SUP-005] Invalid Supabase API key - check SB_SECRET_KEY environment variable'
+            )
+            return { status: 'unhealthy', message: 'Invalid API key', method: 'rpc' }
+          }
+
           if (errorStr.includes('function') && errorStr.includes('does not exist')) {
             this.logger?.debug({ fn }, 'RPC health_check function not available, using table ping fallback')
           } else {
@@ -388,6 +404,20 @@ export class SupabaseService implements OnModuleDestroy {
         // RPC not available; continue to table ping
         const rpcErrMsg = rpcErr instanceof Error ? rpcErr.message : String(rpcErr)
         const errorStr = rpcErrMsg.toLowerCase()
+
+        // Check for API key errors
+        if (errorStr.includes('unregistered api key') || errorStr.includes('invalid api key')) {
+          this.logger?.error(
+            {
+              error: rpcErrMsg,
+              urlPrefix: this.config.getSupabaseUrl()?.substring(0, 35),
+              keyPrefix: this.config.getSupabaseSecretKey()?.substring(0, 20),
+              errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED
+            },
+            '[SUP-005] Invalid Supabase API key - check SB_SECRET_KEY environment variable'
+          )
+          return { status: 'unhealthy', message: 'Invalid API key', method: 'rpc' }
+        }
 
         // Only log at DEBUG level - missing RPC is not an error
         if (errorStr.includes('function') && errorStr.includes('does not exist')) {
@@ -421,10 +451,27 @@ export class SupabaseService implements OnModuleDestroy {
             (error as SupabaseError)?.hint ||
             (error as SupabaseError)?.code ||
             JSON.stringify(error)
-        this.logger?.error(
-          { error: JSON.stringify(error), table, errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED },
-          `[${SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED}] Supabase table ping failed`
-        )
+
+        const errorStr = String(message).toLowerCase()
+
+        // Check for API key errors
+        if (errorStr.includes('unregistered api key') || errorStr.includes('invalid api key')) {
+          this.logger?.error(
+            {
+              error: JSON.stringify(error),
+              table,
+              errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED,
+              urlPrefix: this.config.getSupabaseUrl()?.substring(0, 35),
+              keyPrefix: this.config.getSupabaseSecretKey()?.substring(0, 20)
+            },
+            `[${SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED}] Invalid Supabase API key - check SB_SECRET_KEY environment variable`
+          )
+        } else {
+          this.logger?.error(
+            { error: JSON.stringify(error), table, errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED },
+            `[${SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED}] Supabase table ping failed`
+          )
+        }
         return { status: 'unhealthy', message, method: 'table_ping' }
       }
 
