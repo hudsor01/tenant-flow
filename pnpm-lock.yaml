@@ -449,6 +449,9 @@ importers:
       eslint:
         specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
+      fast-check:
+        specifier: ^4.3.0
+        version: 4.3.0
       lighthouse:
         specifier: 13.0.1
         version: 13.0.1
@@ -783,6 +786,9 @@ importers:
       eslint-plugin-testing-library:
         specifier: 7.13.4
         version: 7.13.4(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3)
+      fast-check:
+        specifier: ^4.3.0
+        version: 4.3.0
       jest-axe:
         specifier: 10.0.0
         version: 10.0.0

@@ -12,165 +12,193 @@ import { AppLogger } from '../../logger/app-logger.service'
 @Injectable()
 export class PropertyOwnershipGuard implements CanActivate {
 
-	constructor(private readonly supabase: SupabaseService,
-		private readonly authCache: AuthRequestCache, private readonly logger: AppLogger) {}
+  constructor(private readonly supabase: SupabaseService,
+    private readonly authCache: AuthRequestCache, private readonly logger: AppLogger) { }
 
-	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
-		const user_id = request.user?.id
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
+    const user_id = request.user?.id
 
-		if (!user_id) {
-			this.logger.warn('PropertyOwnershipGuard: No user ID in request')
-			throw new ForbiddenException('Authentication required')
-		}
+    if (!user_id) {
+      this.logger.warn('PropertyOwnershipGuard: No user ID in request')
+      throw new ForbiddenException('Authentication required')
+    }
 
-		// Extract resource IDs from request (controllers commonly expose them as `id` or nested objects)
-		const normalized = {
-			tenant_id:
-				request.params?.tenant_id ??
-				request.params?.id ??
-				request.body?.tenant_id ??
-				request.body?.id ??
-				request.query?.tenant_id,
-			lease_id:
-				request.params?.lease_id ??
-				request.params?.id ??
-				request.body?.lease_id ??
-				request.body?.id ??
-				request.query?.lease_id ??
-				request.body?.leaseData?.lease_id,
-			property_id:
-				request.params?.property_id ??
-				request.body?.property_id ??
-				request.query?.property_id ??
-				request.body?.leaseData?.property_id
-		}
-		const { tenant_id, lease_id, property_id } = normalized
+    // Extract resource IDs from request (controllers commonly expose them as `id` or nested objects)
+    // Enhanced extraction with type-safe access and fallback for nested structures
+    const normalized = {
+      tenant_id:
+        request.params?.tenant_id ??
+        request.params?.id ??
+        request.body?.tenant_id ??
+        request.body?.id ??
+        request.query?.tenant_id,
+      lease_id:
+        request.params?.lease_id ??
+        request.params?.id ??
+        request.body?.lease_id ??
+        request.body?.id ??
+        request.query?.lease_id ??
+        request.body?.leaseData?.lease_id,
+      property_id:
+        request.params?.property_id ??
+        request.body?.property_id ??
+        request.query?.property_id ??
+        // Type-safe access to nested leaseData structure
+        request.body?.leaseData?.property_id ??
+        // Fallback with type assertion for runtime safety
+        ((request.body as Record<string, unknown>)?.leaseData as Record<string, unknown> | undefined)?.property_id
+    }
+    const { tenant_id, lease_id, property_id } = normalized
 
-		const checks: Promise<void>[] = []
+    // Log warning if no resource IDs found to aid debugging
+    if (!tenant_id && !lease_id && !property_id) {
+      this.logger.warn('PropertyOwnershipGuard: No resource IDs found in request', {
+        user_id,
+        body: JSON.stringify(request.body),
+        params: JSON.stringify(request.params),
+        query: JSON.stringify(request.query)
+      })
+    }
 
-		if (tenant_id) {
-			checks.push(
-				this.assertOwnership(
-					`tenant:${tenant_id}:owner:${user_id}`,
-					() => this.verifyTenantOwnership(user_id, tenant_id),
-					'You do not have access to this tenant resource',
-					{ tenant_id, user_id }
-				)
-			)
-		}
+    const checks: Promise<void>[] = []
 
-		if (lease_id) {
-			checks.push(
-				this.assertOwnership(
-					`lease:${lease_id}:owner:${user_id}`,
-					() => this.verifyLeaseOwnership(user_id, lease_id),
-					'You do not have access to this lease resource',
-					{ lease_id, user_id }
-				)
-			)
-		}
+    if (tenant_id) {
+      checks.push(
+        this.assertOwnership(
+          `tenant:${tenant_id}:owner:${user_id}`,
+          () => this.verifyTenantOwnership(user_id, tenant_id),
+          'You do not have access to this tenant resource',
+          { tenant_id, user_id }
+        )
+      )
+    }
 
-		if (property_id) {
-			checks.push(
-				this.assertOwnership(
-					`property:${property_id}:owner:${user_id}`,
-					() => this.verifyPropertyOwnership(user_id, property_id),
-					'You do not have access to this property resource',
-					{ property_id, user_id }
-				)
-			)
-		}
+    if (lease_id) {
+      checks.push(
+        this.assertOwnership(
+          `lease:${lease_id}:owner:${user_id}`,
+          () => this.verifyLeaseOwnership(user_id, lease_id),
+          'You do not have access to this lease resource',
+          { lease_id, user_id }
+        )
+      )
+    }
 
-		await Promise.all(checks)
-		return true
-	}
+    if (property_id) {
+      checks.push(
+        this.assertOwnership(
+          `property:${property_id}:owner:${user_id}`,
+          () => this.verifyPropertyOwnership(user_id, property_id),
+          'You do not have access to this property resource',
+          { property_id, user_id }
+        )
+      )
+    }
 
-	private async cachedOwnership(
-		key: string,
-		factory: () => Promise<boolean>
-	): Promise<boolean> {
-		return this.authCache.getOrSet(key, factory)
-	}
+    await Promise.all(checks)
 
-	private async assertOwnership(
-		cacheKey: string,
-		check: () => Promise<boolean>,
-		message: string,
-		context: Record<string, unknown>
-	): Promise<void> {
-		const ownsResource = await this.cachedOwnership(cacheKey, check)
-		if (!ownsResource) {
-			this.logger.warn('PropertyOwnershipGuard: access denied', context)
-			throw new ForbiddenException(message)
-		}
-	}
+    // Log successful ownership verification at debug level
+    this.logger.debug('PropertyOwnershipGuard: ownership verified', {
+      user_id,
+      tenant_id,
+      lease_id,
+      property_id
+    })
 
-	/**
-	 * Verify user owns the tenant (through lease → property ownership chain)
-	 * Tenant belongs to Lease, Lease belongs to Property, Property has owner_id
-	 */
-	private async verifyTenantOwnership(
-		user_id: string,
-		tenant_id: string
-	): Promise<boolean> {
-		const client = this.supabase.getAdminClient()
+    return true
+  }
 
-		// Follow the ownership chain: tenant → lease → property → owner_id
-		const { data, error } = await client
-			.from('leases')
-			.select('property:property_id(property_owner_id)')
-			.eq('tenant_id', tenant_id)
-			.single()
+  private async cachedOwnership(
+    key: string,
+    factory: () => Promise<boolean>
+  ): Promise<boolean> {
+    return this.authCache.getOrSet(key, factory)
+  }
 
-		if (error) {
-			return false
-		}
+  private async assertOwnership(
+    cacheKey: string,
+    check: () => Promise<boolean>,
+    message: string,
+    context: Record<string, unknown>
+  ): Promise<void> {
+    const ownsResource = await this.cachedOwnership(cacheKey, check)
+    if (!ownsResource) {
+      // Enhanced logging with full context for ownership verification failures
+      this.logger.warn('PropertyOwnershipGuard: access denied', {
+        ...context,
+        reason: 'ownership_verification_failed',
+        message
+      })
+      throw new ForbiddenException(message)
+    }
+  }
 
-		// Supabase join returns nested object structure
-		const result = data as unknown as { property: { property_owner_id: string } | null }
-		return result?.property?.property_owner_id === user_id
-	}
+  /**
+   * Verify user owns the tenant (through lease → property ownership chain)
+   * Tenant belongs to Lease, Lease belongs to Property, Property has owner_id
+   */
+  private async verifyTenantOwnership(
+    user_id: string,
+    tenant_id: string
+  ): Promise<boolean> {
+    const client = this.supabase.getAdminClient()
 
-	/**
-	 * Verify user owns the lease (through property ownership)
-	 */
-	private async verifyLeaseOwnership(
-		user_id: string,
-		lease_id: string
-	): Promise<boolean> {
-		const client = this.supabase.getAdminClient()
+    // Follow the ownership chain: tenant → lease → property → owner_id
+    const { data, error } = await client
+      .from('leases')
+      .select('property:property_id(property_owner_id)')
+      .eq('tenant_id', tenant_id)
+      .single()
 
-		const { data, error } = await client
-			.from('leases')
-			.select('property:property_id(owner_id)')
-			.eq('id', lease_id)
-			.single()
+    if (error) {
+      return false
+    }
 
-		if (error) {
-			return false
-		}
+    // Supabase join returns nested object structure
+    const result = data as unknown as { property: { property_owner_id: string } | null }
+    return result?.property?.property_owner_id === user_id
+  }
 
-		// Supabase join returns nested object structure
-		const result = data as unknown as { property: { owner_id: string } | null }
-		return result?.property?.owner_id === user_id
-	}
+  /**
+   * Verify user owns the lease (through property ownership)
+   */
+  private async verifyLeaseOwnership(
+    user_id: string,
+    lease_id: string
+  ): Promise<boolean> {
+    const client = this.supabase.getAdminClient()
 
-	/**
-	 * Verify user owns the property
-	 */
-	private async verifyPropertyOwnership(
-		user_id: string,
-		property_id: string
-	): Promise<boolean> {
-		const client = this.supabase.getAdminClient()
+    const { data, error } = await client
+      .from('leases')
+      .select('property:property_id(owner_id)')
+      .eq('id', lease_id)
+      .single()
 
-		const { data } = await client
-			.from('properties')
-			.select('property_owner_id')
-			.eq('id', property_id)
-			.single()
+    if (error) {
+      return false
+    }
 
-		return data?.property_owner_id === user_id
-	}
+    // Supabase join returns nested object structure
+    const result = data as unknown as { property: { owner_id: string } | null }
+    return result?.property?.owner_id === user_id
+  }
+
+  /**
+   * Verify user owns the property
+   */
+  private async verifyPropertyOwnership(
+    user_id: string,
+    property_id: string
+  ): Promise<boolean> {
+    const client = this.supabase.getAdminClient()
+
+    const { data } = await client
+      .from('properties')
+      .select('property_owner_id')
+      .eq('id', property_id)
+      .single()
+
+    return data?.property_owner_id === user_id
+  }
 }
