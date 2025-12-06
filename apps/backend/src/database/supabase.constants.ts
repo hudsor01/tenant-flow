@@ -26,3 +26,31 @@ export const RPC_BACKOFF_MS = 500
  * @default 10000 (10 seconds)
  */
 export const RPC_TIMEOUT_MS = 10_000
+
+/**
+ * Supabase Error Codes
+ *
+ * Standardized error codes for Supabase connectivity and configuration issues.
+ * Used for monitoring, alerting, and troubleshooting.
+ */
+export const SUPABASE_ERROR_CODES = {
+  /** Admin client not initialized or unavailable */
+  ADMIN_CLIENT_UNAVAILABLE: 'SUP-001',
+
+  /** User client pool initialization failed (missing publishable key) */
+  USER_CLIENT_UNAVAILABLE: 'SUP-002',
+
+  /** Configuration validation failed (invalid URL, JWT, or project ref) */
+  CONFIG_VALIDATION_FAILED: 'SUP-003',
+
+  /** Startup connectivity verification failed */
+  STARTUP_VERIFICATION_FAILED: 'SUP-004',
+
+  /** Health check failed (both RPC and table ping) */
+  HEALTH_CHECK_FAILED: 'SUP-005'
+} as const
+
+/**
+ * Error code type for type safety
+ */
+export type SupabaseErrorCode = typeof SUPABASE_ERROR_CODES[keyof typeof SUPABASE_ERROR_CODES]
