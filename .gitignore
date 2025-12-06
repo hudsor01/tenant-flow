@@ -375,6 +375,10 @@ test-results/
 .last-run.json
 playwright-report/
 
+# Vitest session files (contain auth tokens)
+.vitest-session.json
+**/.vitest-session.json
+
 # Temporary files
 .temp/
 .tmp/
