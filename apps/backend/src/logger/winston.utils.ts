@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { utilities as nestWinstonUtilities } from 'nest-winston'
-import { createLogger, format, transports } from 'winston'
+import { format, transports } from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
 import type { LogLevel } from '../config/config.constants'
 import {
@@ -10,18 +10,6 @@ import {
   DEFAULT_MAX_SIZE,
   DEFAULT_SERVICE_NAME
 } from './winston.config'
-
-// Simple winston logger for bootstrap errors (before main logger is configured)
-const bootstrapLogger = createLogger({
-  level: 'warn',
-  format: format.combine(
-    format.timestamp(),
-    format.printf(({ timestamp, level, message }) =>
-      `[${timestamp}] ${level.toUpperCase()}: ${message}`
-    )
-  ),
-  transports: [new transports.Console()]
-})
 
 export const ensureLogDirectory = (dir?: string): string => {
   const targetDir = dir ?? DEFAULT_LOG_DIR
@@ -34,13 +22,9 @@ export const ensureLogDirectory = (dir?: string): string => {
     // If we can't create the log directory (e.g., permission denied in Docker),
     // fall back to /tmp which should always be writable
     const fallbackDir = '/tmp/logs/backend'
-    const errorMsg = error instanceof Error ? error.message : String(error)
-
-    // Use winston for consistent logging (console-only during bootstrap)
-    bootstrapLogger.warn(
-      `Failed to create log directory ${targetDir}: ${errorMsg}. Falling back to ${fallbackDir}`
+    console.warn(
+      `Failed to create log directory ${targetDir}: ${error instanceof Error ? error.message : String(error)}. Falling back to ${fallbackDir}`
     )
-
     if (!fs.existsSync(fallbackDir)) {
       fs.mkdirSync(fallbackDir, { recursive: true })
     }

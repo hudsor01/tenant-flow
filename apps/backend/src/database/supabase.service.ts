@@ -7,13 +7,6 @@ import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import {
-  SUPABASE_ADMIN_CLIENT,
-  RPC_MAX_RETRIES,
-  RPC_BACKOFF_MS,
-  RPC_TIMEOUT_MS,
-  SUPABASE_ERROR_CODES
-} from './supabase.constants'
-import {
   SupabaseAuthTokenResolver,
   type ResolvedSupabaseToken
 } from './supabase-auth-token.resolver'
@@ -29,8 +22,7 @@ export class SupabaseService implements OnModuleDestroy {
   private readonly tokenResolver: SupabaseAuthTokenResolver
   private userClientPool?: SupabaseUserClientPool
 
-  constructor(
-    @Inject(SUPABASE_ADMIN_CLIENT) private readonly adminClient: SupabaseClient<Database>,
+  constructor(@Inject(SUPABASE_ADMIN_CLIENT) private readonly adminClient: SupabaseClient<Database>,
     private readonly logger: AppLogger,
     private readonly config: AppConfigService
   ) {
@@ -51,24 +43,10 @@ export class SupabaseService implements OnModuleDestroy {
       const supabasePublishableKey = this.config.getSupabasePublishableKey()
 
       if (!supabaseUrl || !supabasePublishableKey) {
-        this.logger.error(
-          `[${SUPABASE_ERROR_CODES.USER_CLIENT_UNAVAILABLE}] Authentication service unavailable`,
-          {
-            errorCode: SUPABASE_ERROR_CODES.USER_CLIENT_UNAVAILABLE,
-            url: supabaseUrl?.substring(0, 35),
-            hasPublishableKey: !!supabasePublishableKey,
-            context: 'getUserClientPool'
-          }
-        )
         throw new InternalServerErrorException(
-          `Authentication service unavailable [${SUPABASE_ERROR_CODES.USER_CLIENT_UNAVAILABLE}]`
+          'Authentication service unavailable [SUP-002]'
         )
       }
-
-      this.logger.debug('Initializing user client pool', {
-        url: supabaseUrl.substring(0, 35),
-        keyPrefix: supabasePublishableKey.substring(0, 20)
-      })
 
       this.userClientPool = new SupabaseUserClientPool({
         supabaseUrl,
@@ -85,25 +63,15 @@ export class SupabaseService implements OnModuleDestroy {
    * Call this in OnModuleDestroy lifecycle hook
    */
   onModuleDestroy(): void {
-    const metrics = this.getPoolMetrics()
     this.userClientPool?.close()
-    this.logger.debug('SupabaseService cleanup complete', {
-      poolMetrics: metrics
-    })
+    this.logger.debug('SupabaseService cleanup complete')
   }
 
   getAdminClient(): SupabaseClient<Database> {
     if (!this.adminClient) {
-      this.logger.error(
-        `[${SUPABASE_ERROR_CODES.ADMIN_CLIENT_UNAVAILABLE}] Supabase admin client not initialized`,
-        {
-          errorCode: SUPABASE_ERROR_CODES.ADMIN_CLIENT_UNAVAILABLE,
-          context: 'getAdminClient',
-          url: this.config.getSupabaseUrl()?.substring(0, 35)
-        }
-      )
+      this.logger.error('Supabase admin client not initialized')
       throw new InternalServerErrorException(
-        `Database service unavailable [${SUPABASE_ERROR_CODES.ADMIN_CLIENT_UNAVAILABLE}]`
+        'Database service unavailable [SUP-001]'
       )
     }
 
@@ -123,7 +91,6 @@ export class SupabaseService implements OnModuleDestroy {
   ) {
     const client = this.adminClient
     let lastErr: unknown = null
-    let attemptCount = 0
 
     function isTransientMessage(msg: string | undefined): boolean {
       if (!msg) return false
@@ -137,16 +104,11 @@ export class SupabaseService implements OnModuleDestroy {
         m.includes('try again') ||
         m.includes('rate limit') ||
         m.includes('429') ||
-        m.includes('503') ||
-        m.includes('connection reset') ||
-        m.includes('econnreset') ||
-        m.includes('econnrefused') ||
-        m.includes('etimedout')
+        m.includes('503')
       )
     }
 
     for (let i = 0; i < attempts; i++) {
-      attemptCount = i + 1
       // Create an AbortController for per-attempt timeout
       const ac = new AbortController()
       let timer: NodeJS.Timeout | undefined
@@ -194,11 +156,11 @@ export class SupabaseService implements OnModuleDestroy {
             continue
           }
           // Non-transient - return immediately
-          return { ...result, attempts: attemptCount }
+          return result
         }
 
         // Success
-        return { ...result, attempts: attemptCount }
+        return result
       } catch (errUnknown) {
         if (timer) clearTimeout(timer)
         lastErr = errUnknown
@@ -222,21 +184,16 @@ export class SupabaseService implements OnModuleDestroy {
           continue
         }
 
-        // Non-transient thrown error - fail immediately per Requirement 7.4
-        break
+        // Non-transient thrown error - still backoff a bit and let subsequent attempts run
+        await new Promise(r => setTimeout(r, backoffMs * Math.pow(2, i)))
       }
     }
 
-    // Handle error message extraction properly
-    let finalMessage: string
-    if (lastErr instanceof Error) {
-      finalMessage = lastErr.message
-    } else if (lastErr && typeof lastErr === 'object' && 'message' in lastErr) {
-      finalMessage = String((lastErr as { message: unknown }).message)
-    } else {
-      finalMessage = String(lastErr ?? 'Unknown error')
-    }
-    return { data: null, error: { message: finalMessage }, attempts: attemptCount }
+    const finalMessage =
+      lastErr instanceof Error
+        ? lastErr.message
+        : String(lastErr ?? 'Unknown error')
+    return { data: null, error: { message: finalMessage }, attempts }
   }
 
   /**
@@ -359,7 +316,6 @@ export class SupabaseService implements OnModuleDestroy {
   async checkConnection(): Promise<{
     status: 'healthy' | 'unhealthy'
     message?: string
-    method?: 'rpc' | 'table_ping'
   }> {
     try {
       const fn = 'health_check' // Hardcoded health check function name
@@ -375,31 +331,23 @@ export class SupabaseService implements OnModuleDestroy {
           const healthData = data as HealthCheckResult
           if (healthData.ok === true) {
             this.logger?.debug({ fn, version: healthData.version }, 'Supabase RPC health ok')
-            return { status: 'healthy', method: 'rpc' }
+            return { status: 'healthy' }
           }
         }
 
         if (error) {
           const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
-          // Check if error is "function does not exist" - this is expected and not an error
-          const errorStr = String(errorMessage).toLowerCase()
-          if (errorStr.includes('function') && errorStr.includes('does not exist')) {
-            this.logger?.debug({ fn }, 'RPC health_check function not available, using table ping fallback')
-          } else {
-            this.logger?.debug({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
-          }
+          this.logger?.warn({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
         }
       } catch (rpcErr) {
         // RPC not available; continue to table ping
-        const rpcErrMsg = rpcErr instanceof Error ? rpcErr.message : String(rpcErr)
-        const errorStr = rpcErrMsg.toLowerCase()
-
-        // Only log at DEBUG level - missing RPC is not an error
-        if (errorStr.includes('function') && errorStr.includes('does not exist')) {
-          this.logger?.debug({ fn }, 'RPC health_check function not available, using table ping fallback')
-        } else {
-          this.logger?.debug({ fn, rpcErr: rpcErrMsg }, 'RPC health not available; using table ping')
-        }
+        this.logger?.debug(
+          {
+            fn,
+            rpcErr: rpcErr instanceof Error ? rpcErr.message : String(rpcErr)
+          },
+          'RPC health not available; using table ping'
+        )
       }
 
       // Connectivity check: lightweight HEAD count on a canonical table.
@@ -426,27 +374,17 @@ export class SupabaseService implements OnModuleDestroy {
             (error as SupabaseError)?.hint ||
             (error as SupabaseError)?.code ||
             JSON.stringify(error)
-        this.logger?.error(
-          {
-            error: JSON.stringify(error),
-            table,
-            errorCode: 'SUP-005'
-          },
-          '[SUP-005] Supabase table ping failed'
-        )
-        return { status: 'unhealthy', message, method: 'table_ping' }
+        this.logger?.error({ error: JSON.stringify(error), table }, 'Supabase table ping failed')
+        return { status: 'unhealthy', message }
       }
 
       this.logger?.debug({ table }, 'Supabase table ping ok')
-      return { status: 'healthy', method: 'table_ping' }
+      return { status: 'healthy' }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
       this.logger?.error(
-        {
-          error: message,
-          errorCode: 'SUP-005'
-        },
-        '[SUP-005] Supabase connectivity check threw'
+        { error: message },
+        'Supabase connectivity check threw'
       )
       return { status: 'unhealthy', message }
     }
