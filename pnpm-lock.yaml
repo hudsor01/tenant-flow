@@ -388,6 +388,9 @@ importers:
       eslint:
         specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
+      fast-check:
+        specifier: ^4.3.0
+        version: 4.3.0
       globals:
         specifier: 16.5.0
         version: 16.5.0
@@ -446,6 +449,9 @@ importers:
       eslint:
         specifier: catalog:default
         version: 9.39.0(jiti@2.6.1)
+      fast-check:
+        specifier: ^4.3.0
+        version: 4.3.0
       lighthouse:
         specifier: 13.0.1
         version: 13.0.1
@@ -780,6 +786,9 @@ importers:
       eslint-plugin-testing-library:
         specifier: 7.13.4
         version: 7.13.4(eslint@9.39.0(jiti@2.6.1))(typescript@5.9.3)
+      fast-check:
+        specifier: ^4.3.0
+        version: 4.3.0
       jest-axe:
         specifier: 10.0.0
         version: 10.0.0
@@ -6810,6 +6819,10 @@ packages:
   fast-check@3.23.2:
     resolution: {integrity: sha512-h5+1OzzfCC3Ef7VbtKdcv7zsstUQwUDlYpUTvjeUsJAssPgLn7QzbboPtL5ro04Mq0rPOsMzl7q5hIbRs2wD1A==}
     engines: {node: '>=8.0.0'}
+
+  fast-check@4.3.0:
+    resolution: {integrity: sha512-JVw/DJSxVKl8uhCb7GrwanT9VWsCIdBkK3WpP37B/Au4pyaspriSjtrY2ApbSFwTg3ViPfniT13n75PhzE7VEQ==}
+    engines: {node: '>=12.17.0'}
 
   fast-csv@4.3.6:
     resolution: {integrity: sha512-2RNSpuwwsJGP0frGsOmTb9oUF+VkFSM4SyLTDgwf2ciHWTarN0lQTC+F2f/t5J9QjW+c65VFIAAu85GsvMIusw==}
@@ -17707,6 +17720,10 @@ snapshots:
   fast-check@3.23.2:
     dependencies:
       pure-rand: 6.1.0
+
+  fast-check@4.3.0:
+    dependencies:
+      pure-rand: 7.0.1
 
   fast-csv@4.3.6:
     dependencies:
