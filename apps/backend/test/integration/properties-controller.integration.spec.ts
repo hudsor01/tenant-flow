@@ -9,6 +9,7 @@ import { PropertiesService } from '../../src/modules/properties/properties.servi
 import { PropertyBulkImportService } from '../../src/modules/properties/services/property-bulk-import.service'
 import { PropertyAnalyticsService } from '../../src/modules/properties/services/property-analytics.service'
 import { DashboardService } from '../../src/modules/dashboard/dashboard.service'
+import { AppLogger } from '../../src/logger/app-logger.service'
 
 /**
  * Integration Tests - Properties Controller Production Validation
@@ -55,6 +56,14 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			getRecentActivity: jest.fn()
 		}
 
+		const mockAppLogger = {
+			log: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PropertiesController],
 			providers: [
@@ -73,6 +82,10 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				{
 					provide: DashboardService,
 					useValue: mockDashboardService
+				},
+				{
+					provide: AppLogger,
+					useValue: mockAppLogger
 				}
 			]
 		}).compile()
