@@ -5,7 +5,6 @@ dist
 .tsc-output
 target
 packages/next/wasm/@next
-tarballs/
 packages/**/*.tgz
 .errors/
 
@@ -44,9 +43,6 @@ api-keys.*
 *.api-key
 .tokens
 tokens.*
-
-# SECRETS & CREDENTIALS (CRITICAL)
-# Private keys and certificates
 *.key
 *.pem
 *.crt
@@ -61,8 +57,6 @@ tokens.*
 certs/
 .serena/
 .supabase/
-
-# SSH keys
 id_rsa*
 id_dsa*
 id_ecdsa*
@@ -77,12 +71,8 @@ id_ed25519*
 **/*_ed25519
 known_hosts
 authorized_keys
-
-# GPG keys
 *.gpg
 *.asc
-
-# API keys and tokens (actual secret files, not source code)
 **/api[_-]key*.txt
 **/api[_-]key*.json
 **/api[_-]secret*.txt
@@ -94,8 +84,6 @@ authorized_keys
 **/credentials*.txt
 **/credentials*.json
 **/*.credentials
-
-# But explicitly allow TypeScript/JavaScript source files
 !**/*[_-]token*.ts
 !**/*[_-]token*.js
 !**/*[_-]token*.jsx
@@ -205,8 +193,6 @@ test-timings.json
 # Vercel
 .vercel
 .now
-
-# Cache
 *.tsbuildinfo
 .swc/
 .turbo
@@ -265,7 +251,6 @@ apps/backend/test/setup.ts
 # Test cache only (keep test files tracked)
 playwright/.cache/
 playwright/.auth/
-.npm
 .eslintcache
 .stylelintcache
 .cache
@@ -286,18 +271,11 @@ $RECYCLE.BIN/
 # IDE & EDITORS
 .vscode/*
 .vscode-test
-.idea/
-*.sublime-*
 .history/
 .vercel/
 .railway/
-.netlify/
 
 # Docker
-docker-compose.override.yml
-docker-compose.*.yml
-docker-compose.secrets.yml
-!docker-compose.example.yml
 .dockerignore.local
 /documents/
 temp/
@@ -306,13 +284,10 @@ temp/
 mcp.json
 .mcp.json
 .claude/
-ROADMAP.md
-roadmap.md
 backend_logs.json
 .claude/*
 CLAUDE.md
 AGENTS.md
-
 
 # DOCUMENTATION & EXAMPLES
 docs/
@@ -320,9 +295,6 @@ documentation/
 !README.md
 !LICENSE.md
 !SECURITY.md
-*_GUIDE.md
-*_PLAN.md
-*_ANALYSIS.md
 .env.example
 
 # BACKUP & TEMP FILES
