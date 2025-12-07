@@ -10,13 +10,13 @@
  */
 
 import { Test, type TestingModule } from '@nestjs/testing'
-import { INestApplication, HttpStatus, HttpException } from '@nestjs/common'
+import { INestApplication, HttpStatus } from '@nestjs/common'
 import request from 'supertest'
 import { HealthController } from '../../src/health/health.controller'
 import { HealthService } from '../../src/health/health.service'
 import { MetricsService } from '../../src/health/metrics.service'
 import { CircuitBreakerService } from '../../src/health/circuit-breaker.service'
-import { HealthCheckService, TerminusModule } from '@nestjs/terminus'
+import { TerminusModule } from '@nestjs/terminus'
 import { SupabaseHealthIndicator } from '../../src/health/supabase.health'
 import { StripeSyncService } from '../../src/modules/billing/stripe-sync.service'
 import { AppLogger } from '../../src/logger/app-logger.service'

@@ -22,6 +22,7 @@ export const ensureLogDirectory = (dir?: string): string => {
     // If we can't create the log directory (e.g., permission denied in Docker),
     // fall back to /tmp which should always be writable
     const fallbackDir = '/tmp/logs/backend'
+    // eslint-disable-next-line no-restricted-syntax
     console.warn(
       `Failed to create log directory ${targetDir}: ${error instanceof Error ? error.message : String(error)}. Falling back to ${fallbackDir}`
     )

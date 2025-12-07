@@ -124,7 +124,7 @@ export class PropertyOwnershipGuard implements CanActivate {
 
   /**
    * Verify user owns the tenant (through lease → property ownership chain)
-   * Tenant belongs to Lease, Lease belongs to Property, Property has owner_id
+   * Tenant belongs to Lease, Lease belongs to Property, Property has property_owner_id → property_owners.user_id
    */
   private async verifyTenantOwnership(
     user_id: string,
@@ -132,24 +132,48 @@ export class PropertyOwnershipGuard implements CanActivate {
   ): Promise<boolean> {
     const client = this.supabase.getAdminClient()
 
-    // Follow the ownership chain: tenant → lease → property → owner_id
-    const { data, error } = await client
-      .from('leases')
-      .select('property:property_id(property_owner_id)')
-      .eq('tenant_id', tenant_id)
-      .single()
+    try {
+      // Follow the ownership chain: tenant → lease → property_owner → user
+      // Note: leases.primary_tenant_id (not tenant_id) references tenants.id
+      const { data, error } = await client
+        .from('leases')
+        .select('property_owner:property_owner_id(user_id)')
+        .eq('primary_tenant_id', tenant_id)
+        .single()
 
-    if (error) {
+      if (error) {
+        this.logger.error('PropertyOwnershipGuard: Database error in verifyTenantOwnership', {
+          user_id,
+          tenant_id,
+          error: error.message
+        })
+        return false
+      }
+
+      // Supabase join returns nested object structure
+      const result = data as unknown as { property_owner: { user_id: string } | null }
+      const isOwner = result?.property_owner?.user_id === user_id
+
+      this.logger.debug('PropertyOwnershipGuard: verifyTenantOwnership result', {
+        user_id,
+        tenant_id,
+        isOwner
+      })
+
+      return isOwner
+    } catch (error) {
+      this.logger.error('PropertyOwnershipGuard: Unexpected error in verifyTenantOwnership', {
+        user_id,
+        tenant_id,
+        error: error instanceof Error ? error.message : String(error)
+      })
       return false
     }
-
-    // Supabase join returns nested object structure
-    const result = data as unknown as { property: { property_owner_id: string } | null }
-    return result?.property?.property_owner_id === user_id
   }
 
   /**
    * Verify user owns the lease (through property ownership)
+   * Lease has property_owner_id → property_owners.user_id
    */
   private async verifyLeaseOwnership(
     user_id: string,
@@ -157,23 +181,48 @@ export class PropertyOwnershipGuard implements CanActivate {
   ): Promise<boolean> {
     const client = this.supabase.getAdminClient()
 
-    const { data, error } = await client
-      .from('leases')
-      .select('property:property_id(owner_id)')
-      .eq('id', lease_id)
-      .single()
+    try {
+      // Join through property_owners table to match user_id
+      // Note: leases.property_owner_id references property_owners.id (not users.id)
+      const { data, error } = await client
+        .from('leases')
+        .select('property_owner:property_owner_id(user_id)')
+        .eq('id', lease_id)
+        .single()
 
-    if (error) {
+      if (error) {
+        this.logger.error('PropertyOwnershipGuard: Database error in verifyLeaseOwnership', {
+          user_id,
+          lease_id,
+          error: error.message
+        })
+        return false
+      }
+
+      // Supabase join returns nested object structure
+      const result = data as unknown as { property_owner: { user_id: string } | null }
+      const isOwner = result?.property_owner?.user_id === user_id
+
+      this.logger.debug('PropertyOwnershipGuard: verifyLeaseOwnership result', {
+        user_id,
+        lease_id,
+        isOwner
+      })
+
+      return isOwner
+    } catch (error) {
+      this.logger.error('PropertyOwnershipGuard: Unexpected error in verifyLeaseOwnership', {
+        user_id,
+        lease_id,
+        error: error instanceof Error ? error.message : String(error)
+      })
       return false
     }
-
-    // Supabase join returns nested object structure
-    const result = data as unknown as { property: { owner_id: string } | null }
-    return result?.property?.owner_id === user_id
   }
 
   /**
    * Verify user owns the property
+   * Property has property_owner_id → property_owners.user_id
    */
   private async verifyPropertyOwnership(
     user_id: string,
@@ -181,12 +230,42 @@ export class PropertyOwnershipGuard implements CanActivate {
   ): Promise<boolean> {
     const client = this.supabase.getAdminClient()
 
-    const { data } = await client
-      .from('properties')
-      .select('property_owner_id')
-      .eq('id', property_id)
-      .single()
+    try {
+      // Join through property_owners table to match user_id
+      // Note: properties.property_owner_id references property_owners.id (not users.id)
+      const { data, error } = await client
+        .from('properties')
+        .select('property_owner:property_owner_id(user_id)')
+        .eq('id', property_id)
+        .single()
 
-    return data?.property_owner_id === user_id
+      if (error) {
+        this.logger.error('PropertyOwnershipGuard: Database error in verifyPropertyOwnership', {
+          user_id,
+          property_id,
+          error: error.message
+        })
+        return false
+      }
+
+      // Supabase join returns nested object structure
+      const result = data as unknown as { property_owner: { user_id: string } | null }
+      const isOwner = result?.property_owner?.user_id === user_id
+
+      this.logger.debug('PropertyOwnershipGuard: verifyPropertyOwnership result', {
+        user_id,
+        property_id,
+        isOwner
+      })
+
+      return isOwner
+    } catch (error) {
+      this.logger.error('PropertyOwnershipGuard: Unexpected error in verifyPropertyOwnership', {
+        user_id,
+        property_id,
+        error: error instanceof Error ? error.message : String(error)
+      })
+      return false
+    }
   }
 }

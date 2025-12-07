@@ -516,4 +516,245 @@ describe('PropertyOwnershipGuard', () => {
       )
     })
   })
+
+  describe('Caching Behavior', () => {
+    /**
+     * Unit tests for caching behavior
+     * Requirements: 4.1, 4.3
+     *
+     * Note: AuthRequestCache is request-scoped (not time-based), so it only
+     * caches within a single HTTP request. The 5-minute expiration mentioned
+     * in requirements is not applicable to the current implementation.
+     */
+
+    it('should use cache on repeated ownership checks within the same request (cache hit)', async () => {
+      const userId = 'user-123'
+      const propertyId = 'property-456'
+
+      // Mock the cache to track calls
+      let factoryCalls = 0
+      mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
+        factoryCalls++
+        return await factory()
+      })
+
+      // Mock the Supabase query to return ownership = true
+      const mockClient = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { property_owner: { user_id: userId } },
+          error: null
+        })
+      }
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+
+      // First check - should call factory
+      const context1 = createContext({
+        user: { id: userId } as any,
+        body: { property_id: propertyId },
+        params: {},
+        query: {}
+      })
+
+      await guard.canActivate(context1)
+      expect(factoryCalls).toBe(1)
+      expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
+        `property:${propertyId}:owner:${userId}`,
+        expect.any(Function)
+      )
+
+      // Reset mock to simulate cache hit behavior
+      factoryCalls = 0
+      mockAuthCache.getOrSet.mockResolvedValue(true) // Return cached value
+
+      // Second check - should use cached value (no factory call)
+      const context2 = createContext({
+        user: { id: userId } as any,
+        body: { property_id: propertyId },
+        params: {},
+        query: {}
+      })
+
+      await guard.canActivate(context2)
+
+      // Verify cache was checked again
+      expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
+        `property:${propertyId}:owner:${userId}`,
+        expect.any(Function)
+      )
+
+      // Factory should not have been called (cache hit)
+      expect(factoryCalls).toBe(0)
+    })
+
+    it('should query database on first ownership check (cache miss)', async () => {
+      const userId = 'user-789'
+      const propertyId = 'property-012'
+
+      // Track if factory was called
+      let factoryCalled = false
+      mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
+        factoryCalled = true
+        return await factory()
+      })
+
+      // Mock the Supabase query
+      const mockClient = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { property_owner: { user_id: userId } },
+          error: null
+        })
+      }
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+
+      const context = createContext({
+        user: { id: userId } as any,
+        body: { property_id: propertyId },
+        params: {},
+        query: {}
+      })
+
+      await guard.canActivate(context)
+
+      // Verify cache was checked
+      expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
+        `property:${propertyId}:owner:${userId}`,
+        expect.any(Function)
+      )
+
+      // Verify factory was called (cache miss)
+      expect(factoryCalled).toBe(true)
+
+      // Verify database was queried
+      expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
+      expect(mockClient.from).toHaveBeenCalledWith('properties')
+      expect(mockClient.select).toHaveBeenCalledWith('property_owner:property_owner_id(user_id)')
+      expect(mockClient.eq).toHaveBeenCalledWith('id', propertyId)
+    })
+
+    it('should cache different resource types independently', async () => {
+      const userId = 'user-abc'
+      const propertyId = 'property-def'
+      const leaseId = 'lease-ghi'
+      const tenantId = 'tenant-jkl'
+
+      // Track cache keys
+      const cacheKeys: string[] = []
+      mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
+        cacheKeys.push(key)
+        return await factory()
+      })
+
+      // Mock Supabase queries for all resource types
+      const mockClient = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { property_owner: { user_id: userId } },
+          error: null
+        })
+      }
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+
+      // Request with all three resource types
+      const context = createContext({
+        user: { id: userId } as any,
+        body: {
+          property_id: propertyId,
+          lease_id: leaseId,
+          tenant_id: tenantId
+        },
+        params: {},
+        query: {}
+      })
+
+      await guard.canActivate(context)
+
+      // Verify each resource type has its own cache key
+      expect(cacheKeys).toContain(`property:${propertyId}:owner:${userId}`)
+      expect(cacheKeys).toContain(`lease:${leaseId}:owner:${userId}`)
+      expect(cacheKeys).toContain(`tenant:${tenantId}:owner:${userId}`)
+      expect(cacheKeys).toHaveLength(3)
+    })
+
+    it('should cache results per user (different users have different cache entries)', async () => {
+      const user1Id = 'user-111'
+      const user2Id = 'user-222'
+      const propertyId = 'property-shared'
+
+      const cacheKeys: string[] = []
+      mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
+        cacheKeys.push(key)
+        // Return true for both users to allow the test to complete
+        return true
+      })
+
+      const mockClient = {
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { property_owner: { user_id: user1Id } },
+          error: null
+        })
+      }
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+
+      // First user checks ownership
+      const context1 = createContext({
+        user: { id: user1Id } as any,
+        body: { property_id: propertyId },
+        params: {},
+        query: {}
+      })
+      await guard.canActivate(context1)
+
+      // Second user checks ownership of same property
+      const context2 = createContext({
+        user: { id: user2Id } as any,
+        body: { property_id: propertyId },
+        params: {},
+        query: {}
+      })
+      await guard.canActivate(context2)
+
+      // Verify different cache keys for different users
+      expect(cacheKeys).toContain(`property:${propertyId}:owner:${user1Id}`)
+      expect(cacheKeys).toContain(`property:${propertyId}:owner:${user2Id}`)
+      expect(cacheKeys[0]).not.toBe(cacheKeys[1])
+    })
+
+    it('should handle cache returning false (denied ownership)', async () => {
+      const userId = 'user-denied'
+      const propertyId = 'property-forbidden'
+
+      // Mock cache to return false (ownership denied)
+      mockAuthCache.getOrSet.mockResolvedValue(false)
+
+      const context = createContext({
+        user: { id: userId } as any,
+        body: { property_id: propertyId },
+        params: {},
+        query: {}
+      })
+
+      // Should throw ForbiddenException
+      await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException)
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        'You do not have access to this property resource'
+      )
+
+      // Verify cache was checked
+      expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
+        `property:${propertyId}:owner:${userId}`,
+        expect.any(Function)
+      )
+    })
+  })
 })

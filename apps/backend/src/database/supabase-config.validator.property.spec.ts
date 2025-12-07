@@ -192,11 +192,6 @@ describe('SupabaseConfigValidator - Property-Based Tests', () => {
      * valid configurations (no false positives).
      */
     it('should accept all valid configurations', () => {
-      // Generator for valid Supabase URLs
-      const validUrlArbitrary = fc
-        .stringMatching(/^[a-z0-9]{8,20}$/)
-        .map((ref) => `https://${ref}.supabase.co`)
-
       // Generator for valid JWT keys
       const validJwtArbitrary = fc
         .string({ minLength: 10, maxLength: 200 })

@@ -6,14 +6,9 @@
  */
 
 import { InternalServerErrorException } from '@nestjs/common'
-import type { TestingModule } from '@nestjs/testing'
-import { Test } from '@nestjs/testing'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { AppConfigService } from '../config/app-config.service'
-import { SilentLogger } from '../__test__/silent-logger'
-import { AppLogger } from '../logger/app-logger.service'
-import { SUPABASE_ADMIN_CLIENT, SUPABASE_ERROR_CODES } from './supabase.constants'
+import { SUPABASE_ERROR_CODES } from './supabase.constants'
 import { SupabaseService } from './supabase.service'
 
 describe('SupabaseService - Error Codes', () => {

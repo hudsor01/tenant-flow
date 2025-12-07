@@ -17,7 +17,7 @@ export const tenantStatusSchema = z.enum([
 
 // Base tenant input schema (matches database exactly)
 export const tenantInputSchema = z.object({
- user_id: uuidSchema,
+  user_id: uuidSchema,
 
   date_of_birth: z.string().optional(),
 
@@ -44,7 +44,7 @@ export const tenantInputSchema = z.object({
 
 // Full tenant schema (includes server-generated fields)
 export const tenantSchema = tenantInputSchema.extend({
- id: uuidSchema,
+  id: uuidSchema,
   created_at: z.string(),
   updated_at: z.string()
 })
@@ -56,11 +56,11 @@ export const tenantUpdateSchema = tenantInputSchema.partial().extend({
 
 // Tenant query schema (for search/filtering)
 export const tenantQuerySchema = z.object({
- search: z.string().optional(),
+  search: z.string().optional(),
   user_id: uuidSchema.optional(),
   identity_verified: z.boolean().optional(),
   created_after: z.string().optional(),
- created_before: z.string().optional(),
+  created_before: z.string().optional(),
   sort_by: z.enum([
     'created_at',
     'user_id',
@@ -95,7 +95,7 @@ export const sendPaymentReminderSchema = z.object({
 
 // Emergency contact validation schema
 export const emergencyContactSchema = z.object({
- name: z.string()
+  name: z.string()
     .min(1, 'Emergency contact name is required')
     .max(100, 'Emergency contact name cannot exceed 100 characters'),
   phone: phoneSchema,
@@ -106,7 +106,7 @@ export const emergencyContactSchema = z.object({
 
 // Tenant verification schema
 export const tenantVerificationSchema = z.object({
- identity_verified: z.boolean(),
+  identity_verified: z.boolean(),
   verification_date: z.string().optional()
 })
 
@@ -143,12 +143,12 @@ export const tenantFormUpdateSchema = z.object({
 
 // Transform functions for form data
 export const transformTenantFormData = (data: TenantFormData) => ({
- user_id: data.user_id,
+  user_id: data.user_id,
   date_of_birth: data.date_of_birth || undefined,
   emergency_contact_name: data.emergency_contact_name || undefined,
   emergency_contact_phone: data.emergency_contact_phone || undefined,
   emergency_contact_relationship: data.emergency_contact_relationship || undefined,
- identity_verified: data.identity_verified,
+  identity_verified: data.identity_verified,
   ssn_last_four: data.ssn_last_four || undefined
 })
 
@@ -178,8 +178,8 @@ export const invitationStatusSchema = z.enum([
 // Flat structure - used for simple validation
 export const inviteTenantSchema = z.object({
   email: z.string().email('Valid email is required'),
-  first_name: z.string().min(1, 'First name is required').max(100),
-  last_name: z.string().min(1, 'Last name is required').max(100),
+  first_name: z.string().trim().min(1, 'First name is required').max(100),
+  last_name: z.string().trim().min(1, 'Last name is required').max(100),
   phone: phoneSchema.optional(),
   // Property is REQUIRED - can't invite tenant without a property
   property_id: uuidSchema,
@@ -191,8 +191,8 @@ export const inviteTenantSchema = z.object({
 export const inviteTenantRequestSchema = z.object({
   tenantData: z.object({
     email: z.string().email('Valid email is required'),
-    first_name: z.string().min(1, 'First name is required').max(100),
-    last_name: z.string().min(1, 'Last name is required').max(100),
+    first_name: z.string().trim().min(1, 'First name is required').max(100),
+    last_name: z.string().trim().min(1, 'Last name is required').max(100),
     phone: phoneSchema.optional()
   }),
   leaseData: z.object({
