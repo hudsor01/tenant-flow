@@ -22,7 +22,6 @@ import {
 	ArrowRight,
 	CheckCircle2,
 	Clock,
-	AlertCircle,
 	AlertTriangle,
 	PenLine
 } from 'lucide-react'
@@ -187,7 +186,7 @@ export default function TenantDashboardPage() {
 									? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
 									: 'No active lease'}
 							</StatDescription>
-							<StatIndicator variant="icon" color="default">
+							<StatIndicator variant="icon" color="primary">
 								<Home />
 							</StatIndicator>
 						</Stat>
@@ -209,7 +208,7 @@ export default function TenantDashboardPage() {
 									{paymentStatus.label}
 								</StatIndicator>
 							) : (
-								<StatIndicator variant="icon" color="default">
+								<StatIndicator variant="icon" color="primary">
 									<Calendar />
 								</StatIndicator>
 							)}
@@ -226,7 +225,7 @@ export default function TenantDashboardPage() {
 									? '1 request in progress'
 									: `${maintenanceSummary.open} requests in progress`}
 							</StatDescription>
-							<StatIndicator variant="icon" color="default">
+							<StatIndicator variant="icon" color="primary">
 								<Wrench />
 							</StatIndicator>
 						</Stat>
@@ -334,41 +333,31 @@ export default function TenantDashboardPage() {
 											{recentPayments.slice(0, 5).map(payment => (
 												<div
 													key={payment.id}
-													className="flex-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
+													className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
 												>
-													<div className="flex items-center gap-4">
-														<div className="flex-center w-10 h-10 rounded-lg icon-bg-success">
-															<CheckCircle2 className="size-5" />
-														</div>
-														<div>
-															<p className="font-medium text-sm">
-																{payment.created_at
-																	? formatDate(payment.created_at)
-																	: payment.dueDate
-																	? formatDate(payment.dueDate)
-																	: 'Unknown date'}
-															</p>
-															<p className="text-caption">
-																{payment.status === 'SUCCEEDED' ||
-																payment.status === 'PAID'
-																	? 'Payment successful'
-																	: payment.status?.replace('_', ' ') ?? 'Unknown'}
-															</p>
+													{/* Avatar initials in colored circle - Hero Mockup pattern */}
+													<div className="size-8 rounded-full bg-success/10 flex-center text-success text-xs font-medium">
+														<CheckCircle2 className="size-4" />
+													</div>
+													{/* Action text with name highlighting */}
+													<div className="flex-1 min-w-0">
+														<div className="text-sm text-foreground">
+															<span className="font-medium">Payment</span>
+															<span className="text-muted-foreground"> completed</span>
 														</div>
 													</div>
-													<div className="text-right">
-														<p className="font-semibold text-sm">
-															{formatCurrency(payment.amount / 100)}
-														</p>
-														{payment.receiptUrl && (
-															<a
-																href={payment.receiptUrl}
-																className="text-xs text-primary hover:underline"
-															>
-																Receipt
-															</a>
-														)}
-													</div>
+													{/* Status badge with rounded-full */}
+													<span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">
+														{formatCurrency(payment.amount / 100)}
+													</span>
+													{/* Timestamp */}
+													<span className="text-xs text-muted-foreground">
+														{payment.created_at
+															? formatDate(payment.created_at)
+															: payment.dueDate
+															? formatDate(payment.dueDate)
+															: ''}
+													</span>
 												</div>
 											))}
 										</div>
@@ -411,57 +400,53 @@ export default function TenantDashboardPage() {
 											{recentRequests.slice(0, 5).map(request => {
 												const statusConfig = {
 													PENDING: {
-														icon: Clock,
-														bg: 'icon-bg-warning',
-														textColor: 'text-[var(--color-warning)]'
+														bg: 'bg-warning/10',
+														textColor: 'text-warning',
+														badgeBg: 'bg-warning/10 text-warning'
 													},
 													IN_PROGRESS: {
-														icon: Clock,
-														bg: 'icon-bg-primary',
-														textColor: 'text-[var(--color-primary)]'
+														bg: 'bg-primary/10',
+														textColor: 'text-primary',
+														badgeBg: 'bg-primary/10 text-primary'
 													},
 													COMPLETED: {
-														icon: CheckCircle2,
-														bg: 'icon-bg-success',
-														textColor: 'text-[var(--color-success)]'
+														bg: 'bg-success/10',
+														textColor: 'text-success',
+														badgeBg: 'bg-success/10 text-success'
 													},
 													CANCELED: {
-														icon: AlertCircle,
-														bg: 'bg-muted text-muted-foreground',
-														textColor: 'text-muted-foreground'
+														bg: 'bg-muted',
+														textColor: 'text-muted-foreground',
+														badgeBg: 'bg-muted text-muted-foreground'
 													}
 												} as const
 
 												const config =
 													statusConfig[request.status as keyof typeof statusConfig] || statusConfig.PENDING
-												const Icon = config.icon
 
 												return (
 													<div
 														key={request.id}
-														className="flex-between py-4 px-4 rounded-lg hover:bg-muted/50 transition-colors"
+														className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
 													>
-														<div className="flex items-center gap-4">
-															<div
-																className={`flex-center w-10 h-10 rounded-lg ${config.bg}`}
-															>
-																<Icon className="size-5" />
-															</div>
-															<div>
-																<p className="font-medium text-sm">{request.title}</p>
-																<p className="text-caption">
-																	{formatDate(request.created_at)}
-																</p>
+														{/* Avatar initials in colored circle - Hero Mockup pattern */}
+														<div className={`size-8 rounded-full ${config.bg} flex-center ${config.textColor} text-xs font-medium`}>
+															<Wrench className="size-4" />
+														</div>
+														{/* Action text with name highlighting */}
+														<div className="flex-1 min-w-0">
+															<div className="text-sm text-foreground">
+																<span className="font-medium">{request.title}</span>
 															</div>
 														</div>
-														<div className="text-right">
-															<p className={`text-xs font-semibold ${config.textColor}`}>
-																{request.status.replace('_', ' ')}
-															</p>
-															<p className="text-caption">
-																{request.priority}
-															</p>
-														</div>
+														{/* Status badge with rounded-full */}
+														<span className={`text-xs px-2 py-0.5 rounded-full ${config.badgeBg}`}>
+															{request.status.replace('_', ' ')}
+														</span>
+														{/* Timestamp */}
+														<span className="text-xs text-muted-foreground">
+															{formatDate(request.created_at)}
+														</span>
 													</div>
 												)
 											})}
