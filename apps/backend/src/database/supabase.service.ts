@@ -399,13 +399,6 @@ export class SupabaseService implements OnModuleDestroy {
           } else {
             this.logger?.debug({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
           }
-          // Check if error is "function does not exist" - this is expected and not an error
-          const errorStr = String(errorMessage).toLowerCase()
-          if (errorStr.includes('function') && errorStr.includes('does not exist')) {
-            this.logger?.debug({ fn }, 'RPC health_check function not available, using table ping fallback')
-          } else {
-            this.logger?.debug({ error: errorMessage, fn }, 'Supabase RPC health failed; falling back to table ping')
-          }
         }
       } catch (rpcErr) {
         // RPC not available; continue to table ping
@@ -425,15 +418,6 @@ export class SupabaseService implements OnModuleDestroy {
           )
           return { status: 'unhealthy', message: 'Invalid API key', method: 'rpc' }
         }
-
-        // Only log at DEBUG level - missing RPC is not an error
-        if (errorStr.includes('function') && errorStr.includes('does not exist')) {
-          this.logger?.debug({ fn }, 'RPC health_check function not available, using table ping fallback')
-        } else {
-          this.logger?.debug({ fn, rpcErr: rpcErrMsg }, 'RPC health not available; using table ping')
-        }
-        const rpcErrMsg = rpcErr instanceof Error ? rpcErr.message : String(rpcErr)
-        const errorStr = rpcErrMsg.toLowerCase()
 
         // Only log at DEBUG level - missing RPC is not an error
         if (errorStr.includes('function') && errorStr.includes('does not exist')) {

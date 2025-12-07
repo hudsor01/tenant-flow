@@ -6,7 +6,6 @@
  */
 
 import { inviteTenantRequestSchema } from '@repo/shared/validation/tenants'
-import { ZodError } from 'zod'
 
 describe('Tenant Invitation Validation Logic - Unit Tests', () => {
   describe('Email Format Validation', () => {

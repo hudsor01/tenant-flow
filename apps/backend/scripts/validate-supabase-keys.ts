@@ -117,7 +117,7 @@ async function validateSupabaseKeys(): Promise<void> {
       })
 
       // Try to query a table (users is a common table)
-      const { data, error } = await client
+      const { error } = await client
         .from('users')
         .select('id', { count: 'exact', head: true })
         .limit(1)
