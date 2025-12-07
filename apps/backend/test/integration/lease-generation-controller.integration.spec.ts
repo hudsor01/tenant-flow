@@ -12,6 +12,7 @@ import { AuthRequestCache } from '../../src/shared/services/auth-request-cache.s
 import { ZeroCacheService } from '../../src/cache/cache.service'
 import { RolesGuard } from '../../src/shared/guards/roles.guard'
 import { PropertyOwnershipGuard } from '../../src/shared/guards/property-ownership.guard'
+import { AppLogger } from '../../src/logger/app-logger.service'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 
 /**
@@ -103,6 +104,14 @@ describe('LeaseGenerationController (Integration)', () => {
 			wrap: jest.fn()
 		}
 
+		const mockAppLogger = {
+			log: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeaseGenerationController],
 			providers: [
@@ -121,6 +130,10 @@ describe('LeaseGenerationController (Integration)', () => {
 				{
 					provide: ZeroCacheService,
 					useValue: mockZeroCacheService
+				},
+				{
+					provide: AppLogger,
+					useValue: mockAppLogger
 				},
 				Reflector
 			]

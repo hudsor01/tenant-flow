@@ -7,6 +7,7 @@ import { PaymentWebhookHandler } from '../../src/modules/billing/handlers/paymen
 import { SubscriptionWebhookHandler } from '../../src/modules/billing/handlers/subscription-webhook.handler'
 import { CheckoutWebhookHandler } from '../../src/modules/billing/handlers/checkout-webhook.handler'
 import { ConnectWebhookHandler } from '../../src/modules/billing/handlers/connect-webhook.handler'
+import { AppLogger } from '../../src/logger/app-logger.service'
 
 describe('payment_intent.payment_failed integration', () => {
 	let emailService: { sendPaymentFailedEmail: jest.Mock }
@@ -76,6 +77,14 @@ describe('payment_intent.payment_failed integration', () => {
 			handleAccountUpdated: jest.fn()
 		}
 
+		const mockAppLogger = {
+			log: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			debug: jest.fn(),
+			verbose: jest.fn()
+		}
+
 		const moduleRef = await Test.createTestingModule({
 			providers: [
 				WebhookProcessor,
@@ -84,7 +93,8 @@ describe('payment_intent.payment_failed integration', () => {
 				{ provide: EmailService, useValue: emailService },
 				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
 				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
-				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler }
+				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler },
+				{ provide: AppLogger, useValue: mockAppLogger }
 			]
 		}).compile()
 

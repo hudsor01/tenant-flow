@@ -3,23 +3,43 @@
 import { Button } from '#components/ui/button'
 import { Card, CardContent } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
 import { useOfflineData } from '#hooks/use-offline-data'
 import type { Property } from '@repo/shared/types/core'
-import { PencilLine } from 'lucide-react'
+import { Building2, PencilLine, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 interface MobilePropertiesTableProps {
 	initialProperties: Property[]
 }
 
-export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTableProps) {
+export function MobilePropertiesTable({
+	initialProperties
+}: MobilePropertiesTableProps) {
 	const { isOnline } = useOfflineData<Property>('properties')
 
 	if (initialProperties.length === 0) {
 		return (
-			<div className="rounded-2xl border border-dashed border-border/60 px-4 py-10 text-center text-muted">
-				No properties available.
-			</div>
+			<Empty className="py-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+				<EmptyMedia variant="icon">
+					<Building2 className="size-6" />
+				</EmptyMedia>
+				<EmptyTitle>No properties yet</EmptyTitle>
+				<EmptyDescription>
+					Add your first property to start tracking your portfolio.
+				</EmptyDescription>
+				<Button asChild size="default" className="mt-2 touch-target">
+					<Link href="/properties/new">
+						<Plus className="size-4 mr-2" />
+						Add Property
+					</Link>
+				</Button>
+			</Empty>
 		)
 	}
 
@@ -53,7 +73,7 @@ export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTab
 								asChild
 								variant="ghost"
 								size="sm"
-								className="size-9 p-0"
+								className="touch-target p-2"
 								disabled={!isOnline}
 							>
 								<Link href={`/properties/${property.id}/edit`}>
@@ -64,7 +84,12 @@ export function MobilePropertiesTable({ initialProperties }: MobilePropertiesTab
 						</div>
 
 						<div className="mt-3 flex items-center gap-2 text-caption">
-							<Button asChild variant="outline" size="sm">
+							<Button
+								asChild
+								variant="outline"
+								size="sm"
+								className="touch-target"
+							>
 								<Link href={`/properties/${property.id}`}>View Details</Link>
 							</Button>
 						</div>
