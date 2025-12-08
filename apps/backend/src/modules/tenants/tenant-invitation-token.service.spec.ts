@@ -12,340 +12,514 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common'
+import * as fc from 'fast-check'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('TenantInvitationTokenService', () => {
-  let service: TenantInvitationTokenService
-  let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
-  let mockLogger: jest.Mocked<Partial<Logger>>
+	let service: TenantInvitationTokenService
+	let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
+	let mockLogger: jest.Mocked<Partial<Logger>>
 
-  // Helper to create a flexible Supabase query chain
-  const createMockChain = (resolveData: unknown = null, resolveError: unknown = null) => {
-    const chain: Record<string, jest.Mock> = {}
-    const methods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'in', 'or', 'gte', 'lte', 'order']
+	// Helper to create a flexible Supabase query chain
+	const createMockChain = (
+		resolveData: unknown = null,
+		resolveError: unknown = null
+	) => {
+		const chain: Record<string, jest.Mock> = {}
+		const methods = [
+			'select',
+			'insert',
+			'update',
+			'delete',
+			'eq',
+			'neq',
+			'is',
+			'in',
+			'or',
+			'gte',
+			'lte',
+			'order'
+		]
 
-    methods.forEach(method => {
-      chain[method] = jest.fn(() => chain)
-    })
+		methods.forEach(method => {
+			chain[method] = jest.fn(() => chain)
+		})
 
-    chain.single = jest.fn(() => Promise.resolve({
-      data: resolveData,
-      error: resolveError
-    }))
+		chain.single = jest.fn(() =>
+			Promise.resolve({
+				data: resolveData,
+				error: resolveError
+			})
+		)
 
-    chain.maybeSingle = jest.fn(() => Promise.resolve({
-      data: resolveData,
-      error: resolveError
-    }))
+		chain.maybeSingle = jest.fn(() =>
+			Promise.resolve({
+				data: resolveData,
+				error: resolveError
+			})
+		)
 
-    return chain
-  }
+		return chain
+	}
 
-  beforeEach(async () => {
-    mockLogger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn()
-    }
+	// Helper to create a mock Supabase admin client with auth
+	const createMockAdminClient = (options: {
+		fromChains: ReturnType<typeof createMockChain>[]
+		updateUserByIdResult?: { error: { message: string } | null }
+	}) => {
+		const fromMock = jest.fn()
+		options.fromChains.forEach((chain, index) => {
+			fromMock.mockReturnValueOnce(chain)
+		})
 
-    mockSupabaseService = {
-      getAdminClient: jest.fn()
-    }
+		return {
+			from: fromMock,
+			auth: {
+				admin: {
+					updateUserById: jest.fn().mockResolvedValue({
+						error: options.updateUserByIdResult?.error ?? null
+					})
+				}
+			}
+		}
+	}
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TenantInvitationTokenService,
-        { provide: SupabaseService, useValue: mockSupabaseService },
-        { provide: AppLogger, useValue: mockLogger }
-      ]
-    }).compile()
+	beforeEach(async () => {
+		mockLogger = {
+			log: jest.fn(),
+			error: jest.fn(),
+			warn: jest.fn(),
+			debug: jest.fn()
+		}
 
-    service = module.get<TenantInvitationTokenService>(TenantInvitationTokenService)
-  })
+		mockSupabaseService = {
+			getAdminClient: jest.fn()
+		}
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [
+				TenantInvitationTokenService,
+				{ provide: SupabaseService, useValue: mockSupabaseService },
+				{ provide: AppLogger, useValue: mockLogger }
+			]
+		}).compile()
 
-  describe('validateToken', () => {
-    it('should return invalid for empty token', async () => {
-      const result = await service.validateToken('')
-      expect(result).toEqual({ valid: false, error: 'Token is required' })
-    })
+		service = module.get<TenantInvitationTokenService>(
+			TenantInvitationTokenService
+		)
+	})
 
-    it('should return invalid for whitespace-only token', async () => {
-      const result = await service.validateToken('   ')
-      expect(result).toEqual({ valid: false, error: 'Token is required' })
-    })
+	afterEach(() => {
+		jest.clearAllMocks()
+	})
 
-    it('should return invalid for non-existent token', async () => {
-      const mockChain = createMockChain(null, { message: 'not found' })
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue(mockChain)
-      })
+	describe('validateToken', () => {
+		it('should return invalid for empty token', async () => {
+			const result = await service.validateToken('')
+			expect(result).toEqual({ valid: false, error: 'Token is required' })
+		})
 
-      const result = await service.validateToken('invalid-token')
-      expect(result).toEqual({ valid: false, error: 'Invalid or expired token' })
-    })
+		it('should return invalid for whitespace-only token', async () => {
+			const result = await service.validateToken('   ')
+			expect(result).toEqual({ valid: false, error: 'Token is required' })
+		})
 
-    it('should return invalid for expired token', async () => {
-      const expiredDate = new Date()
-      expiredDate.setDate(expiredDate.getDate() - 1) // Yesterday
+		it('should return invalid for non-existent token', async () => {
+			const mockChain = createMockChain(null, { message: 'not found' })
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
+				from: jest.fn().mockReturnValue(mockChain)
+			})
 
-      const mockInvitation = {
-        unit_id: 'unit-123',
-        email: 'tenant@example.com',
-        expires_at: expiredDate.toISOString(),
-        accepted_at: null,
-        invitation_code: 'valid-token',
-        property_id: 'prop-123',
-        property_owner_id: 'owner-123',
-        property_owners: { business_name: 'Test LLC', users: { email: 'owner@test.com' } },
-        properties: { name: 'Test Property' },
-        units: { unit_number: '101' }
-      }
+			const result = await service.validateToken('invalid-token')
+			expect(result).toEqual({
+				valid: false,
+				error: 'Invalid or expired token'
+			})
+		})
 
-      const mockChain = createMockChain(mockInvitation, null)
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue(mockChain)
-      })
+		it('should return invalid for expired token', async () => {
+			const expiredDate = new Date()
+			expiredDate.setDate(expiredDate.getDate() - 1) // Yesterday
 
-      const result = await service.validateToken('valid-token')
-      expect(result).toEqual({ valid: false, error: 'Token has expired' })
-    })
+			const mockInvitation = {
+				unit_id: 'unit-123',
+				email: 'tenant@example.com',
+				expires_at: expiredDate.toISOString(),
+				accepted_at: null,
+				invitation_code: 'valid-token',
+				property_id: 'prop-123',
+				property_owner_id: 'owner-123',
+				property_owners: {
+					business_name: 'Test LLC',
+					users: { email: 'owner@test.com' }
+				},
+				properties: { name: 'Test Property' },
+				units: { unit_number: '101' }
+			}
 
-    it('should return invalid for already accepted token', async () => {
-      const futureDate = new Date()
-      futureDate.setDate(futureDate.getDate() + 7)
+			const mockChain = createMockChain(mockInvitation, null)
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
+				from: jest.fn().mockReturnValue(mockChain)
+			})
 
-      const mockInvitation = {
-        unit_id: 'unit-123',
-        email: 'tenant@example.com',
-        expires_at: futureDate.toISOString(),
-        accepted_at: new Date().toISOString(), // Already accepted
-        invitation_code: 'valid-token',
-        property_id: 'prop-123',
-        property_owner_id: 'owner-123',
-        property_owners: { business_name: 'Test LLC', users: { email: 'owner@test.com' } },
-        properties: { name: 'Test Property' },
-        units: { unit_number: '101' }
-      }
+			const result = await service.validateToken('valid-token')
+			expect(result).toEqual({ valid: false, error: 'Token has expired' })
+		})
 
-      const mockChain = createMockChain(mockInvitation, null)
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue(mockChain)
-      })
+		it('should return invalid for already accepted token', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-      const result = await service.validateToken('valid-token')
-      expect(result).toEqual({ valid: false, error: 'Token has already been used' })
-    })
+			const mockInvitation = {
+				unit_id: 'unit-123',
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString(),
+				accepted_at: new Date().toISOString(), // Already accepted
+				invitation_code: 'valid-token',
+				property_id: 'prop-123',
+				property_owner_id: 'owner-123',
+				property_owners: {
+					business_name: 'Test LLC',
+					users: { email: 'owner@test.com' }
+				},
+				properties: { name: 'Test Property' },
+				units: { unit_number: '101' }
+			}
 
-    it('should return valid with full details for valid token', async () => {
-      const futureDate = new Date()
-      futureDate.setDate(futureDate.getDate() + 7)
+			const mockChain = createMockChain(mockInvitation, null)
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
+				from: jest.fn().mockReturnValue(mockChain)
+			})
 
-      const mockInvitation = {
-        unit_id: 'unit-123',
-        email: 'tenant@example.com',
-        expires_at: futureDate.toISOString(),
-        accepted_at: null,
-        invitation_code: 'valid-token',
-        property_id: 'prop-123',
-        property_owner_id: 'owner-123',
-        property_owners: { business_name: 'Test LLC', users: { email: 'owner@test.com' } },
-        properties: { name: 'Test Property' },
-        units: { unit_number: '101' }
-      }
+			const result = await service.validateToken('valid-token')
+			expect(result).toEqual({
+				valid: false,
+				error: 'Token has already been used'
+			})
+		})
 
-      const mockChain = createMockChain(mockInvitation, null)
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue(mockChain)
-      })
+		it('should return valid with full details for valid token', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-      const result = await service.validateToken('valid-token')
+			const mockInvitation = {
+				unit_id: 'unit-123',
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString(),
+				accepted_at: null,
+				invitation_code: 'valid-token',
+				property_id: 'prop-123',
+				property_owner_id: 'owner-123',
+				property_owners: {
+					business_name: 'Test LLC',
+					users: { email: 'owner@test.com' }
+				},
+				properties: { name: 'Test Property' },
+				units: { unit_number: '101' }
+			}
 
-      expect(result.valid).toBe(true)
-      expect(result.email).toBe('tenant@example.com')
-      expect(result.unit_id).toBe('unit-123')
-      expect(result.property_owner_name).toBe('Test LLC')
-      expect(result.property_name).toBe('Test Property')
-      expect(result.unit_number).toBe('101')
-      expect(result.expires_at).toBe(futureDate.toISOString())
-    })
+			const mockChain = createMockChain(mockInvitation, null)
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
+				from: jest.fn().mockReturnValue(mockChain)
+			})
 
-    it('should return valid for platform-only invitation (no unit)', async () => {
-      const futureDate = new Date()
-      futureDate.setDate(futureDate.getDate() + 7)
+			const result = await service.validateToken('valid-token')
 
-      const mockInvitation = {
-        unit_id: null, // Platform-only
-        email: 'tenant@example.com',
-        expires_at: futureDate.toISOString(),
-        accepted_at: null,
-        invitation_code: 'valid-token',
-        property_id: null,
-        property_owner_id: 'owner-123',
-        property_owners: { business_name: 'Test LLC', users: { email: 'owner@test.com' } },
-        properties: null,
-        units: null
-      }
+			expect(result.valid).toBe(true)
+			expect(result.email).toBe('tenant@example.com')
+			expect(result.unit_id).toBe('unit-123')
+			expect(result.property_owner_name).toBe('Test LLC')
+			expect(result.property_name).toBe('Test Property')
+			expect(result.unit_number).toBe('101')
+			expect(result.expires_at).toBe(futureDate.toISOString())
+		})
 
-      const mockChain = createMockChain(mockInvitation, null)
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue(mockChain)
-      })
+		it('should return valid for platform-only invitation (no unit)', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-      const result = await service.validateToken('valid-token')
+			const mockInvitation = {
+				unit_id: null, // Platform-only
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString(),
+				accepted_at: null,
+				invitation_code: 'valid-token',
+				property_id: null,
+				property_owner_id: 'owner-123',
+				property_owners: {
+					business_name: 'Test LLC',
+					users: { email: 'owner@test.com' }
+				},
+				properties: null,
+				units: null
+			}
 
-      expect(result.valid).toBe(true)
-      expect(result.email).toBe('tenant@example.com')
-      expect(result.unit_id).toBeUndefined()
-      expect(result.property_owner_name).toBe('Test LLC')
-      expect(result.property_name).toBeUndefined()
-      expect(result.unit_number).toBeUndefined()
-    })
-  })
+			const mockChain = createMockChain(mockInvitation, null)
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
+				from: jest.fn().mockReturnValue(mockChain)
+			})
 
-  describe('acceptToken', () => {
-    const validUserId = 'user-123'
-    const validToken = 'valid-token'
+			const result = await service.validateToken('valid-token')
 
-    it('should throw BadRequestException for invalid token', async () => {
-      // Mock validateToken to return invalid
-      jest.spyOn(service, 'validateToken').mockResolvedValue({
-        valid: false,
-        error: 'Invalid token'
-      })
+			expect(result.valid).toBe(true)
+			expect(result.email).toBe('tenant@example.com')
+			expect(result.unit_id).toBeUndefined()
+			expect(result.property_owner_name).toBe('Test LLC')
+			expect(result.property_name).toBeUndefined()
+			expect(result.unit_number).toBeUndefined()
+		})
+	})
 
-      await expect(service.acceptToken(validToken, validUserId))
-        .rejects.toThrow(BadRequestException)
-    })
+	describe('acceptToken', () => {
+		const validUserId = 'user-123'
+		const validToken = 'valid-token'
 
-    it('should accept platform-only invitation and create tenant', async () => {
-      const futureDate = new Date()
-      futureDate.setDate(futureDate.getDate() + 7)
+		it('should verify email by calling auth.admin.updateUserById with email_confirm: true', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-      // Mock validateToken
-      jest.spyOn(service, 'validateToken').mockResolvedValue({
-        valid: true,
-        email: 'tenant@example.com',
-        expires_at: futureDate.toISOString()
-        // No unit_id = platform-only
-      })
+			jest.spyOn(service, 'validateToken').mockResolvedValue({
+				valid: true,
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString()
+			})
 
-      // Mock update invitation
-      const updateChain = createMockChain(null, null)
-      // Mock select existing tenant (none)
-      const selectTenantChain = createMockChain(null, null)
-      // Mock insert new tenant
-      const insertTenantChain = createMockChain({ id: 'tenant-123', user_id: validUserId }, null)
-      // Mock update user
-      const updateUserChain = createMockChain(null, null)
+			const mockClient = createMockAdminClient({
+				fromChains: [
+					createMockChain(null, null), // tenant_invitations update
+					createMockChain(null, null), // users update
+					createMockChain(null, null), // tenants select (existing check)
+					createMockChain({ id: 'tenant-123', user_id: validUserId }, null) // tenants insert
+				]
+			})
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
 
-      const mockClient = {
-        from: jest.fn()
-          .mockReturnValueOnce(updateChain) // tenant_invitations update
-          .mockReturnValueOnce(updateUserChain) // users update
-          .mockReturnValueOnce(selectTenantChain) // tenants select (existing check)
-          .mockReturnValueOnce(insertTenantChain), // tenants insert
-        auth: {
-          admin: {
-            updateUserById: jest.fn().mockResolvedValue({ error: null })
-          }
-        }
-      }
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
+			await service.acceptToken(validToken, validUserId)
 
-      const result = await service.acceptToken(validToken, validUserId)
+			expect(mockClient.auth.admin.updateUserById).toHaveBeenCalledWith(
+				validUserId,
+				expect.objectContaining({ email_confirm: true })
+			)
+		})
 
-      expect(result).toHaveProperty('id', 'tenant-123')
-    })
+		it('should set email_confirmed_at after invitation acceptance', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-    it('should accept unit-assigned invitation and link to lease', async () => {
-      const futureDate = new Date()
-      futureDate.setDate(futureDate.getDate() + 7)
+			jest.spyOn(service, 'validateToken').mockResolvedValue({
+				valid: true,
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString()
+			})
 
-      // Mock validateToken with unit_id
-      jest.spyOn(service, 'validateToken').mockResolvedValue({
-        valid: true,
-        email: 'tenant@example.com',
-        unit_id: 'unit-123',
-        expires_at: futureDate.toISOString()
-      })
+			const mockClient = createMockAdminClient({
+				fromChains: [
+					createMockChain(null, null),
+					createMockChain(null, null),
+					createMockChain(null, null),
+					createMockChain({ id: 'tenant-123', user_id: validUserId }, null)
+				]
+			})
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
 
-      // Mock chains
-      const updateInvitationChain = createMockChain(null, null)
-      const updateUserChain = createMockChain(null, null)
-      const leaseChain = createMockChain({ id: 'lease-123', primary_tenant_id: 'tenant-456' }, null)
-      const updateTenantChain = createMockChain({ id: 'tenant-456', user_id: validUserId }, null)
+			const result = await service.acceptToken(validToken, validUserId)
 
-      const mockClient = {
-        from: jest.fn()
-          .mockReturnValueOnce(updateInvitationChain) // tenant_invitations update
-          .mockReturnValueOnce(updateUserChain) // users update
-          .mockReturnValueOnce(leaseChain) // leases select
-          .mockReturnValueOnce(updateTenantChain), // tenants update
-        auth: {
-          admin: {
-            updateUserById: jest.fn().mockResolvedValue({ error: null })
-          }
-        }
-      }
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
+			expect(result).toHaveProperty('emailVerified', true)
+		})
 
-      const result = await service.acceptToken(validToken, validUserId)
+		it('should return emailVerified: false when email verification fails', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-      expect(result).toHaveProperty('id', 'tenant-456')
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Invitation accepted, tenant linked to lease',
-        expect.objectContaining({ user_id: validUserId })
-      )
-    })
-  })
+			jest.spyOn(service, 'validateToken').mockResolvedValue({
+				valid: true,
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString()
+			})
 
-  describe('activateTenantFromAuthUser', () => {
-    const validUserId = 'user-123'
+			const mockClient = createMockAdminClient({
+				fromChains: [
+					createMockChain(null, null),
+					createMockChain(null, null),
+					createMockChain(null, null),
+					createMockChain({ id: 'tenant-123', user_id: validUserId }, null)
+				],
+				updateUserByIdResult: {
+					error: { message: 'Email verification failed' }
+				}
+			})
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
 
-    it('should throw NotFoundException when tenant not found', async () => {
-      const mockChain = createMockChain(null, { message: 'not found' })
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue(mockChain)
-      })
+			const result = await service.acceptToken(validToken, validUserId)
 
-      await expect(service.activateTenantFromAuthUser(validUserId))
-        .rejects.toThrow(NotFoundException)
-    })
+			expect(result).toHaveProperty('emailVerified', false)
+			expect(mockLogger.warn).toHaveBeenCalledWith(
+				'Failed to verify email during invitation acceptance',
+				expect.objectContaining({ user_id: validUserId })
+			)
+		})
 
-    it('should activate tenant and update user type', async () => {
-      const tenantSelectChain = createMockChain({ id: 'tenant-123' }, null)
-      const tenantUpdateChain = createMockChain({ id: 'tenant-123', user_id: validUserId }, null)
-      const userUpdateChain = createMockChain(null, null)
+		it('should throw BadRequestException for invalid token', async () => {
+			// Mock validateToken to return invalid
+			jest.spyOn(service, 'validateToken').mockResolvedValue({
+				valid: false,
+				error: 'Invalid token'
+			})
 
-      const mockClient = {
-        from: jest.fn()
-          .mockReturnValueOnce(tenantSelectChain) // tenants select by user_id
-          .mockReturnValueOnce(tenantUpdateChain) // tenants update
-          .mockReturnValueOnce(userUpdateChain), // users update
-        auth: {
-          admin: {
-            updateUserById: jest.fn().mockResolvedValue({ error: null })
-          }
-        }
-      }
-      mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
+			await expect(
+				service.acceptToken(validToken, validUserId)
+			).rejects.toThrow(BadRequestException)
+		})
 
-      const result = await service.activateTenantFromAuthUser(validUserId)
+		it('should accept platform-only invitation and create tenant', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
 
-      expect(result).toHaveProperty('id', 'tenant-123')
-      expect(mockClient.auth.admin.updateUserById).toHaveBeenCalledWith(
-        validUserId,
-        { app_metadata: { user_type: 'TENANT' } }
-      )
-    })
-  })
+			jest.spyOn(service, 'validateToken').mockResolvedValue({
+				valid: true,
+				email: 'tenant@example.com',
+				expires_at: futureDate.toISOString()
+				// No unit_id = platform-only
+			})
+
+			const mockClient = createMockAdminClient({
+				fromChains: [
+					createMockChain(null, null), // tenant_invitations update
+					createMockChain(null, null), // users update
+					createMockChain(null, null), // tenants select (existing check)
+					createMockChain({ id: 'tenant-123', user_id: validUserId }, null) // tenants insert
+				]
+			})
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
+
+			const result = await service.acceptToken(validToken, validUserId)
+
+			expect(result).toHaveProperty('id', 'tenant-123')
+		})
+
+		it('should accept unit-assigned invitation and link to lease', async () => {
+			const futureDate = new Date()
+			futureDate.setDate(futureDate.getDate() + 7)
+
+			jest.spyOn(service, 'validateToken').mockResolvedValue({
+				valid: true,
+				email: 'tenant@example.com',
+				unit_id: 'unit-123',
+				expires_at: futureDate.toISOString()
+			})
+
+			const mockClient = createMockAdminClient({
+				fromChains: [
+					createMockChain(null, null), // tenant_invitations update
+					createMockChain(null, null), // users update
+					createMockChain(
+						{ id: 'lease-123', primary_tenant_id: 'tenant-456' },
+						null
+					), // leases select
+					createMockChain({ id: 'tenant-456', user_id: validUserId }, null) // tenants update
+				]
+			})
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
+
+			const result = await service.acceptToken(validToken, validUserId)
+
+			expect(result).toHaveProperty('id', 'tenant-456')
+			expect(mockLogger.log).toHaveBeenCalledWith(
+				'Invitation accepted, tenant linked to lease',
+				expect.objectContaining({ user_id: validUserId })
+			)
+		})
+
+		/**
+		 * **Feature: tenant-onboarding-optimization, Property 1: Email Verification on Invitation Acceptance**
+		 * **Validates: Requirements 1.1, 1.2**
+		 *
+		 * Property: For any valid invitation token and new user signup, accepting the invitation
+		 * SHALL result in the user's email_confirmed_at being set in Supabase Auth.
+		 */
+		it('PROPERTY: For any valid invitation and user, acceptToken SHALL call email verification', async () => {
+			await fc.assert(
+				fc.asyncProperty(
+					fc
+						.string({ minLength: 8, maxLength: 64 })
+						.filter(s => s.trim().length > 0),
+					fc.uuid(),
+					fc.emailAddress(),
+					async (token, userId, email) => {
+						jest.clearAllMocks()
+
+						const futureDate = new Date()
+						futureDate.setDate(futureDate.getDate() + 7)
+
+						jest.spyOn(service, 'validateToken').mockResolvedValue({
+							valid: true,
+							email: email,
+							expires_at: futureDate.toISOString()
+						})
+
+						const mockClient = createMockAdminClient({
+							fromChains: [
+								createMockChain(null, null),
+								createMockChain(null, null),
+								createMockChain(null, null),
+								createMockChain({ id: 'tenant-123', user_id: userId }, null)
+							]
+						})
+						mockSupabaseService.getAdminClient = jest
+							.fn()
+							.mockReturnValue(mockClient)
+
+						const result = await service.acceptToken(token, userId)
+
+						// Property: email_confirm: true MUST be passed to updateUserById
+						expect(mockClient.auth.admin.updateUserById).toHaveBeenCalledWith(
+							userId,
+							expect.objectContaining({ email_confirm: true })
+						)
+
+						// Property: result MUST include emailVerified status
+						expect(result).toHaveProperty('emailVerified')
+					}
+				),
+				{ numRuns: 100 }
+			)
+		})
+	})
+
+	describe('activateTenantFromAuthUser', () => {
+		const validUserId = 'user-123'
+
+		it('should throw NotFoundException when tenant not found', async () => {
+			const mockChain = createMockChain(null, { message: 'not found' })
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue({
+				from: jest.fn().mockReturnValue(mockChain)
+			})
+
+			await expect(
+				service.activateTenantFromAuthUser(validUserId)
+			).rejects.toThrow(NotFoundException)
+		})
+
+		it('should activate tenant and update user type', async () => {
+			const mockClient = createMockAdminClient({
+				fromChains: [
+					createMockChain({ id: 'tenant-123' }, null), // tenants select by user_id
+					createMockChain({ id: 'tenant-123', user_id: validUserId }, null), // tenants update
+					createMockChain(null, null) // users update
+				]
+			})
+			mockSupabaseService.getAdminClient = jest.fn().mockReturnValue(mockClient)
+
+			const result = await service.activateTenantFromAuthUser(validUserId)
+
+			expect(result).toHaveProperty('id', 'tenant-123')
+			expect(mockClient.auth.admin.updateUserById).toHaveBeenCalledWith(
+				validUserId,
+				{ app_metadata: { user_type: 'TENANT' } }
+			)
+		})
+	})
 })
