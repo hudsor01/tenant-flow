@@ -6,7 +6,7 @@ import {
 	useGenerateLease,
 	useLeaseAutoFill
 } from '#hooks/api/use-lease-generation'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { Loader2 } from 'lucide-react'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { LeaseWizard } from './lease-wizard'
@@ -57,8 +57,7 @@ export function LeaseGenerationFormWizard({
 			security_deposit: 0,
 			security_depositDueDays: 30,
 			maxOccupants: 2,
-			allowedUse:
-				'Residential dwelling purposes only. No business activities.',
+			allowedUse: 'Residential dwelling purposes only. No business activities.',
 			alterationsAllowed: false,
 			alterationsRequireConsent: true,
 			utilitiesIncluded: [] as string[],
@@ -104,7 +103,9 @@ export function LeaseGenerationFormWizard({
 			Object.entries(autoFillData).forEach(([key, value]) => {
 				if (value !== undefined) {
 					try {
-						const fieldInfo = form.getFieldInfo(key as keyof LeaseGenerationFormData)
+						const fieldInfo = form.getFieldInfo(
+							key as keyof LeaseGenerationFormData
+						)
 						if (fieldInfo?.instance) {
 							fieldInfo.instance.setValue(value)
 						}
@@ -139,65 +140,72 @@ export function LeaseGenerationFormWizard({
 			onSubmit={handleSubmit}
 			isSubmitting={generateLease.isPending}
 		>
-			{({ currentStep, setCanGoNext }) => {
-				// Validate current step based on form values
-				const values = form.state.values
-				let isValid = false
-
-				switch (currentStep) {
-					case 0: // Basic Info
-						isValid = !!(
-							values.agreementDate &&
-							values.ownerName &&
-							values.ownerAddress &&
-							values.tenantName &&
-							values.propertyAddress &&
-							values.commencementDate &&
-							values.terminationDate
-						)
-						break
-					case 1: // Financial
-						isValid = !!(
-							values.rent_amount > 0 &&
-							values.rentDueDay >= 1 &&
-							values.rentDueDay <= 31
-						)
-						break
-					case 2: // Terms
-						isValid = !!(values.maxOccupants && values.maxOccupants > 0)
-						break
-					case 3: // Review
-						isValid = true
-						break
-				}
-
-				// Update wizard navigation state (only once per render)
-				setCanGoNext(isValid)
-
-				return (
-					<>
-						{/* Step 1: Basic Information */}
-						{currentStep === 0 && (
-							<BasicInfoStep form={form} />
-						)}
-
-						{/* Step 2: Financial Terms */}
-						{currentStep === 1 && (
-							<FinancialStep form={form} />
-						)}
-
-						{/* Step 3: Terms & Conditions */}
-						{currentStep === 2 && (
-							<TermsStep form={form} />
-						)}
-
-						{/* Step 4: Review & Legal */}
-						{currentStep === 3 && (
-							<ReviewStep form={form} />
-						)}
-					</>
-				)
-			}}
+			{({ currentStep, setCanGoNext }) => (
+				<WizardStepContent
+					currentStep={currentStep}
+					setCanGoNext={setCanGoNext}
+					form={form}
+				/>
+			)}
 		</LeaseWizard>
+	)
+}
+
+/**
+ * Separate component to properly handle validation state updates via useEffect
+ * This prevents the infinite render loop caused by calling setCanGoNext during render
+ */
+function WizardStepContent({
+	currentStep,
+	setCanGoNext,
+	form
+}: {
+	currentStep: number
+	setCanGoNext: (can: boolean) => void
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	form: any
+}) {
+	const values = form.state.values
+
+	// Memoize validation to prevent unnecessary effect triggers
+	const isValid = useMemo(() => {
+		switch (currentStep) {
+			case 0: // Basic Info
+				return !!(
+					values.agreementDate &&
+					values.ownerName &&
+					values.ownerAddress &&
+					values.tenantName &&
+					values.propertyAddress &&
+					values.commencementDate &&
+					values.terminationDate
+				)
+			case 1: // Financial
+				return !!(
+					values.rent_amount > 0 &&
+					values.rentDueDay >= 1 &&
+					values.rentDueDay <= 31
+				)
+			case 2: // Terms
+				return !!(values.maxOccupants && values.maxOccupants > 0)
+			case 3: // Review
+				return true
+			default:
+				return false
+		}
+	}, [currentStep, values])
+
+	// Update parent state via useEffect to avoid render-time state updates
+	useEffect(() => {
+		setCanGoNext(isValid)
+	}, [isValid, setCanGoNext])
+
+	return (
+		<>
+			{currentStep === 0 && <BasicInfoStep form={form} />}
+			{currentStep === 1 && <FinancialStep form={form} />}
+			{currentStep === 2 && <TermsStep form={form} />}
+			{currentStep === 3 && <ReviewStep form={form} />}
+		</>
 	)
 }

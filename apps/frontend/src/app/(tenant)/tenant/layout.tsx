@@ -1,8 +1,9 @@
-import { SiteHeader } from '#components/dashboard/site-header'
 import { TenantSidebar } from '#components/dashboard/tenant-sidebar'
-import { SidebarInset, SidebarProvider } from '#components/ui/sidebar'
+import { ServerSidebarProvider } from '#components/ui/server-sidebar-provider'
+import { TenantDashboardLayoutClient } from '../tenant-dashboard-layout-client'
 import type { ReactNode } from 'react'
 import { TenantMobileNavWrapper } from './tenant-layout-client'
+import '../../(owner)/dashboard.css'
 
 /**
  * Tenant Portal Layout
@@ -11,59 +12,30 @@ import { TenantMobileNavWrapper } from './tenant-layout-client'
  * This layout is purely presentational - no auth guards needed.
  *
  * Responsive behavior:
- * - Desktop (md+): Shows sidebar navigation
+ * - Desktop (md+): Shows sidebar navigation with full-width content
  * - Mobile (<md): Hides sidebar, shows bottom navigation bar
  */
 export default function TenantLayout({
-	children,
-	modal
+children,
+modal
 }: {
-	children: ReactNode
-	modal?: ReactNode
+children: ReactNode
+modal?: ReactNode
 }) {
 	return (
-		<div
-			className="min-h-screen bg-muted/50 p-(--layout-gap-items) pb-20 md:pb-4 overflow-x-hidden"
-			data-testid="tenant-layout-root"
+<ServerSidebarProvider
+			style={{
+				'--sidebar-width': 'calc(var(--spacing) * 72)',
+				'--header-height': 'calc(var(--spacing) * 12)'
+			} as React.CSSProperties}
 		>
-			<SidebarProvider
-				style={
-					{
-						'--sidebar-width': 'calc(var(--spacing) * 72)',
-						'--header-height': 'calc(var(--spacing) * 12)'
-					} as React.CSSProperties
-				}
-			>
-				<div className="flex flex-col gap-(--layout-gap-items) md:flex-row md:gap-4 md:h-[calc(100vh-2rem)]">
-					{/* Sidebar - Hidden on mobile, visible on md+ */}
-					<div
-						className="hidden w-70 flex-col gap-4 md:flex"
-						data-testid="tenant-layout-sidebar"
-					>
-						<TenantSidebar variant="inset" />
-					</div>
-
-					{/* Main Column */}
-					<div
-						className="flex flex-1 flex-col gap-(--layout-gap-items) md:gap-4"
-						data-testid="tenant-layout-main"
-					>
-						<SidebarInset>
-							<SiteHeader />
-							<div className="flex flex-1 flex-col rounded-xl border border-muted/200 bg-white p-4 md:p-6">
-								<div className="@container/main flex flex-1 flex-col gap-2">
-									{children}
-								</div>
-							</div>
-						</SidebarInset>
-					</div>
-				</div>
-			</SidebarProvider>
+			<TenantSidebar />
+			<TenantDashboardLayoutClient>{children}</TenantDashboardLayoutClient>
 
 			{/* Mobile Bottom Navigation - Visible on mobile only */}
 			<TenantMobileNavWrapper />
 
 			{modal}
-		</div>
+		</ServerSidebarProvider>
 	)
 }
